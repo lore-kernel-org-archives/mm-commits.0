@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FB80C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D26C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3F65206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B6F02076C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195843;
-	bh=x582tD1h+vS2f6YGBBDD8WemtYE9p1jIAzL15pVJnh0=;
+	s=default; t=1597195847;
+	bh=NYLOKXpxLnlZ31fmvSd4fx+D+YSrzyATQEnejxy0Sls=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=DdvxekkjZR/PIeFeJ2jeO0npQbuZKmXowkOlUxluYrF4EygBRlRDdgT/2z7YGHfS8
-	 mNYoACiTOLsAxPKKMEfZDzSTqjpP/8H1tC9kLJcm3dx6e0OnaCG9VvAaJCb7xT4bn6
-	 mOf/ZFTjJ+8aHxbQgdLPnjnx5o/GhP6Nq5wsNIwg=
+	b=1u+IcTvf3OhjjCYoa1dsUJwXTfhnOQKEwqdLCV0LOke8tAU1ADnpPxQycCvS9bS/t
+	 x1QdYX0lHJ/u0ydNcYYkWZmcjQEKRzneifvUZz/0WTukBQEn3Jd+TZp078qvhwnhe0
+	 eOhDrqv9qdP7lx+FI/9Zzg10ryZh5YfEWioXv/XM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726501AbgHLBam (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:30:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57608 "EHLO mail.kernel.org"
+        id S1726506AbgHLBar (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:30:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBam (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:30:42 -0400
+        id S1726235AbgHLBaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:30:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0E2602076C;
-        Wed, 12 Aug 2020 01:30:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 716E8206B2;
+        Wed, 12 Aug 2020 01:30:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195841;
-        bh=x582tD1h+vS2f6YGBBDD8WemtYE9p1jIAzL15pVJnh0=;
+        s=default; t=1597195844;
+        bh=NYLOKXpxLnlZ31fmvSd4fx+D+YSrzyATQEnejxy0Sls=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=1yn51SPcxNw2+unTKYo6WWYjSZPKhFbf0PKX6gznAQnt2MODZvMKfFgh+qfeAjCnf
-         P35ATe+1/IqWPiCOwNnfGtljRxur0kfDI2Iix5l5OP0y5OlprZPaw+RTexPTW0lh+Z
-         qOBT4/mEiIAWtNIRLgfeg4M4QNEABLM67UqmuFA0=
-Date:   Tue, 11 Aug 2020 18:30:40 -0700
+        b=RD+SvpbeyHayZLgctSLODbx92FZ33DhVP8PHFzhmUJaiFtXoMyjh9DFcIDajLN9mm
+         /hofCRM5D8L/JXDSr49txLVifi4AdyTJQzJOJtR+WN6Qd0/niSH3FfZoURydpBHopz
+         rjtwFED62fNYORa80xMQpXy74fA9Bxg3tn79THX4=
+Date:   Tue, 11 Aug 2020 18:30:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com,
         iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
         mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vbabka@suse.cz, willy@infradead.org
-Subject:  [patch 008/165] mm/vmscan: protect the workingset on
- anonymous LRU
-Message-ID: <20200812013040.eCK-XfE3P%akpm@linux-foundation.org>
+Subject:  [patch 009/165] mm/workingset: prepare the workingset
+ detection infrastructure for anon LRU
+Message-ID: <20200812013043.Bsf8PMejo%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,50 +57,13 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/vmscan: protect the workingset on anonymous LRU
+Subject: mm/workingset: prepare the workingset detection infrastructure for anon LRU
 
-In current implementation, newly created or swap-in anonymous page is
-started on active list.  Growing active list results in rebalancing
-active/inactive list so old pages on active list are demoted to inactive
-list.  Hence, the page on active list isn't protected at all.
+To prepare the workingset detection for anon LRU, this patch splits
+workingset event counters for refault, activate and restore into anon and
+file variants, as well as the refaults counter in struct lruvec.
 
-Following is an example of this situation.
-
-Assume that 50 hot pages on active list.  Numbers denote the number of
-pages on active/inactive list (active | inactive).
-
-1. 50 hot pages on active list
-50(h) | 0
-
-2. workload: 50 newly created (used-once) pages
-50(uo) | 50(h)
-
-3. workload: another 50 newly created (used-once) pages
-50(uo) | 50(uo), swap-out 50(h)
-
-This patch tries to fix this issue.  Like as file LRU, newly created or
-swap-in anonymous pages will be inserted to the inactive list.  They are
-promoted to active list if enough reference happens.  This simple
-modification changes the above example as following.
-
-1. 50 hot pages on active list
-50(h) | 0
-
-2. workload: 50 newly created (used-once) pages
-50(h) | 50(uo)
-
-3. workload: another 50 newly created (used-once) pages
-50(h) | 50(uo), swap-out 50(uo)
-
-As you can see, hot pages on active list would be protected.
-
-Note that, this implementation has a drawback that the page cannot be
-promoted and will be swapped-out if re-access interval is greater than the
-size of inactive list but less than the size of total(active+inactive). 
-To solve this potential issue, following patch will apply workingset
-detection similar to the one that's already applied to file LRU.
-
-Link: http://lkml.kernel.org/r/1595490560-15117-3-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1595490560-15117-4-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -112,187 +75,170 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h    |    2 +-
- kernel/events/uprobes.c |    2 +-
- mm/huge_memory.c        |    2 +-
- mm/khugepaged.c         |    2 +-
- mm/memory.c             |    9 ++++-----
- mm/migrate.c            |    2 +-
- mm/swap.c               |   13 +++++++------
- mm/swapfile.c           |    2 +-
- mm/userfaultfd.c        |    2 +-
- mm/vmscan.c             |    4 +---
- 10 files changed, 19 insertions(+), 21 deletions(-)
+ include/linux/mmzone.h |   16 +++++++++++-----
+ mm/memcontrol.c        |   16 +++++++++++-----
+ mm/vmscan.c            |   15 ++++++++++-----
+ mm/vmstat.c            |    9 ++++++---
+ mm/workingset.c        |    8 +++++---
+ 5 files changed, 43 insertions(+), 21 deletions(-)
 
---- a/include/linux/swap.h~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/include/linux/swap.h
-@@ -352,7 +352,7 @@ extern void deactivate_page(struct page
- extern void mark_page_lazyfree(struct page *page);
- extern void swap_setup(void);
+--- a/include/linux/mmzone.h~mm-workingset-prepare-the-workingset-detection-infrastructure-for-anon-lru
++++ a/include/linux/mmzone.h
+@@ -173,9 +173,15 @@ enum node_stat_item {
+ 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
+ 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+ 	WORKINGSET_NODES,
+-	WORKINGSET_REFAULT,
+-	WORKINGSET_ACTIVATE,
+-	WORKINGSET_RESTORE,
++	WORKINGSET_REFAULT_BASE,
++	WORKINGSET_REFAULT_ANON = WORKINGSET_REFAULT_BASE,
++	WORKINGSET_REFAULT_FILE,
++	WORKINGSET_ACTIVATE_BASE,
++	WORKINGSET_ACTIVATE_ANON = WORKINGSET_ACTIVATE_BASE,
++	WORKINGSET_ACTIVATE_FILE,
++	WORKINGSET_RESTORE_BASE,
++	WORKINGSET_RESTORE_ANON = WORKINGSET_RESTORE_BASE,
++	WORKINGSET_RESTORE_FILE,
+ 	WORKINGSET_NODERECLAIM,
+ 	NR_ANON_MAPPED,	/* Mapped anonymous pages */
+ 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
+@@ -277,8 +283,8 @@ struct lruvec {
+ 	unsigned long			file_cost;
+ 	/* Non-resident age, driven by LRU movement */
+ 	atomic_long_t			nonresident_age;
+-	/* Refaults at the time of last reclaim cycle */
+-	unsigned long			refaults;
++	/* Refaults at the time of last reclaim cycle, anon=0, file=1 */
++	unsigned long			refaults[2];
+ 	/* Various lruvec state flags (enum lruvec_flags) */
+ 	unsigned long			flags;
+ #ifdef CONFIG_MEMCG
+--- a/mm/memcontrol.c~mm-workingset-prepare-the-workingset-detection-infrastructure-for-anon-lru
++++ a/mm/memcontrol.c
+@@ -1530,12 +1530,18 @@ static char *memory_stat_format(struct m
+ 	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGMAJFAULT),
+ 		       memcg_events(memcg, PGMAJFAULT));
  
--extern void lru_cache_add_active_or_unevictable(struct page *page,
-+extern void lru_cache_add_inactive_or_unevictable(struct page *page,
- 						struct vm_area_struct *vma);
+-	seq_buf_printf(&s, "workingset_refault %lu\n",
+-		       memcg_page_state(memcg, WORKINGSET_REFAULT));
+-	seq_buf_printf(&s, "workingset_activate %lu\n",
+-		       memcg_page_state(memcg, WORKINGSET_ACTIVATE));
++	seq_buf_printf(&s, "workingset_refault_anon %lu\n",
++		       memcg_page_state(memcg, WORKINGSET_REFAULT_ANON));
++	seq_buf_printf(&s, "workingset_refault_file %lu\n",
++		       memcg_page_state(memcg, WORKINGSET_REFAULT_FILE));
++	seq_buf_printf(&s, "workingset_activate_anon %lu\n",
++		       memcg_page_state(memcg, WORKINGSET_ACTIVATE_ANON));
++	seq_buf_printf(&s, "workingset_activate_file %lu\n",
++		       memcg_page_state(memcg, WORKINGSET_ACTIVATE_FILE));
+ 	seq_buf_printf(&s, "workingset_restore %lu\n",
+-		       memcg_page_state(memcg, WORKINGSET_RESTORE));
++		       memcg_page_state(memcg, WORKINGSET_RESTORE_ANON));
++	seq_buf_printf(&s, "workingset_restore %lu\n",
++		       memcg_page_state(memcg, WORKINGSET_RESTORE_FILE));
+ 	seq_buf_printf(&s, "workingset_nodereclaim %lu\n",
+ 		       memcg_page_state(memcg, WORKINGSET_NODERECLAIM));
  
- /* linux/mm/vmscan.c */
---- a/kernel/events/uprobes.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/kernel/events/uprobes.c
-@@ -184,7 +184,7 @@ static int __replace_page(struct vm_area
- 	if (new_page) {
- 		get_page(new_page);
- 		page_add_new_anon_rmap(new_page, vma, addr, false);
--		lru_cache_add_active_or_unevictable(new_page, vma);
-+		lru_cache_add_inactive_or_unevictable(new_page, vma);
- 	} else
- 		/* no new page, just dec_mm_counter for old_page */
- 		dec_mm_counter(mm, MM_ANONPAGES);
---- a/mm/huge_memory.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/huge_memory.c
-@@ -640,7 +640,7 @@ static vm_fault_t __do_huge_pmd_anonymou
- 		entry = mk_huge_pmd(page, vma->vm_page_prot);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		page_add_new_anon_rmap(page, vma, haddr, true);
--		lru_cache_add_active_or_unevictable(page, vma);
-+		lru_cache_add_inactive_or_unevictable(page, vma);
- 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
- 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
- 		add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
---- a/mm/khugepaged.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/khugepaged.c
-@@ -1173,7 +1173,7 @@ static void collapse_huge_page(struct mm
- 	spin_lock(pmd_ptl);
- 	BUG_ON(!pmd_none(*pmd));
- 	page_add_new_anon_rmap(new_page, vma, address, true);
--	lru_cache_add_active_or_unevictable(new_page, vma);
-+	lru_cache_add_inactive_or_unevictable(new_page, vma);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, address, pmd, _pmd);
- 	update_mmu_cache_pmd(vma, address, pmd);
---- a/mm/memory.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/memory.c
-@@ -2715,7 +2715,7 @@ static vm_fault_t wp_page_copy(struct vm
- 		 */
- 		ptep_clear_flush_notify(vma, vmf->address, vmf->pte);
- 		page_add_new_anon_rmap(new_page, vma, vmf->address, false);
--		lru_cache_add_active_or_unevictable(new_page, vma);
-+		lru_cache_add_inactive_or_unevictable(new_page, vma);
- 		/*
- 		 * We call the notify macro here because, when using secondary
- 		 * mmu page tables (such as kvm shadow page tables), we want the
-@@ -3266,10 +3266,9 @@ vm_fault_t do_swap_page(struct vm_fault
- 	/* ksm created a completely new copy */
- 	if (unlikely(page != swapcache && swapcache)) {
- 		page_add_new_anon_rmap(page, vma, vmf->address, false);
--		lru_cache_add_active_or_unevictable(page, vma);
-+		lru_cache_add_inactive_or_unevictable(page, vma);
- 	} else {
- 		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
--		activate_page(page);
- 	}
- 
- 	swap_free(entry);
-@@ -3414,7 +3413,7 @@ static vm_fault_t do_anonymous_page(stru
- 
- 	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 	page_add_new_anon_rmap(page, vma, vmf->address, false);
--	lru_cache_add_active_or_unevictable(page, vma);
-+	lru_cache_add_inactive_or_unevictable(page, vma);
- setpte:
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
- 
-@@ -3672,7 +3671,7 @@ vm_fault_t alloc_set_pte(struct vm_fault
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 		page_add_new_anon_rmap(page, vma, vmf->address, false);
--		lru_cache_add_active_or_unevictable(page, vma);
-+		lru_cache_add_inactive_or_unevictable(page, vma);
- 	} else {
- 		inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
- 		page_add_file_rmap(page, false);
---- a/mm/migrate.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/migrate.c
-@@ -2830,7 +2830,7 @@ static void migrate_vma_insert_page(stru
- 	inc_mm_counter(mm, MM_ANONPAGES);
- 	page_add_new_anon_rmap(page, vma, addr, false);
- 	if (!is_zone_device_page(page))
--		lru_cache_add_active_or_unevictable(page, vma);
-+		lru_cache_add_inactive_or_unevictable(page, vma);
- 	get_page(page);
- 
- 	if (flush) {
---- a/mm/swap.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/swap.c
-@@ -476,23 +476,24 @@ void lru_cache_add(struct page *page)
- EXPORT_SYMBOL(lru_cache_add);
- 
- /**
-- * lru_cache_add_active_or_unevictable
-+ * lru_cache_add_inactive_or_unevictable
-  * @page:  the page to be added to LRU
-  * @vma:   vma in which page is mapped for determining reclaimability
-  *
-- * Place @page on the active or unevictable LRU list, depending on its
-+ * Place @page on the inactive or unevictable LRU list, depending on its
-  * evictability.  Note that if the page is not evictable, it goes
-  * directly back onto it's zone's unevictable list, it does NOT use a
-  * per cpu pagevec.
-  */
--void lru_cache_add_active_or_unevictable(struct page *page,
-+void lru_cache_add_inactive_or_unevictable(struct page *page,
- 					 struct vm_area_struct *vma)
- {
-+	bool unevictable;
-+
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
- 
--	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
--		SetPageActive(page);
--	else if (!TestSetPageMlocked(page)) {
-+	unevictable = (vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) == VM_LOCKED;
-+	if (unlikely(unevictable) && !TestSetPageMlocked(page)) {
- 		/*
- 		 * We use the irq-unsafe __mod_zone_page_stat because this
- 		 * counter is not modified from interrupt context, and the pte
---- a/mm/swapfile.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/swapfile.c
-@@ -1915,7 +1915,7 @@ static int unuse_pte(struct vm_area_stru
- 		page_add_anon_rmap(page, vma, addr, false);
- 	} else { /* ksm created a completely new copy */
- 		page_add_new_anon_rmap(page, vma, addr, false);
--		lru_cache_add_active_or_unevictable(page, vma);
-+		lru_cache_add_inactive_or_unevictable(page, vma);
- 	}
- 	swap_free(entry);
- 	/*
---- a/mm/userfaultfd.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
-+++ a/mm/userfaultfd.c
-@@ -123,7 +123,7 @@ static int mcopy_atomic_pte(struct mm_st
- 
- 	inc_mm_counter(dst_mm, MM_ANONPAGES);
- 	page_add_new_anon_rmap(page, dst_vma, dst_addr, false);
--	lru_cache_add_active_or_unevictable(page, dst_vma);
-+	lru_cache_add_inactive_or_unevictable(page, dst_vma);
- 
- 	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
- 
---- a/mm/vmscan.c~mm-vmscan-protect-the-workingset-on-anonymous-lru
+--- a/mm/vmscan.c~mm-workingset-prepare-the-workingset-detection-infrastructure-for-anon-lru
 +++ a/mm/vmscan.c
-@@ -998,8 +998,6 @@ static enum page_references page_check_r
- 		return PAGEREF_RECLAIM;
+@@ -2683,7 +2683,10 @@ again:
+ 	if (!sc->force_deactivate) {
+ 		unsigned long refaults;
  
- 	if (referenced_ptes) {
--		if (PageSwapBacked(page))
--			return PAGEREF_ACTIVATE;
- 		/*
- 		 * All mapped pages start out with page table
- 		 * references from the instantiating fault, so we need
-@@ -1022,7 +1020,7 @@ static enum page_references page_check_r
- 		/*
- 		 * Activate file-backed executable pages after first usage.
+-		if (inactive_is_low(target_lruvec, LRU_INACTIVE_ANON))
++		refaults = lruvec_page_state(target_lruvec,
++				WORKINGSET_ACTIVATE_ANON);
++		if (refaults != target_lruvec->refaults[0] ||
++			inactive_is_low(target_lruvec, LRU_INACTIVE_ANON))
+ 			sc->may_deactivate |= DEACTIVATE_ANON;
+ 		else
+ 			sc->may_deactivate &= ~DEACTIVATE_ANON;
+@@ -2694,8 +2697,8 @@ again:
+ 		 * rid of any stale active pages quickly.
  		 */
--		if (vm_flags & VM_EXEC)
-+		if ((vm_flags & VM_EXEC) && !PageSwapBacked(page))
- 			return PAGEREF_ACTIVATE;
+ 		refaults = lruvec_page_state(target_lruvec,
+-					     WORKINGSET_ACTIVATE);
+-		if (refaults != target_lruvec->refaults ||
++				WORKINGSET_ACTIVATE_FILE);
++		if (refaults != target_lruvec->refaults[1] ||
+ 		    inactive_is_low(target_lruvec, LRU_INACTIVE_FILE))
+ 			sc->may_deactivate |= DEACTIVATE_FILE;
+ 		else
+@@ -2972,8 +2975,10 @@ static void snapshot_refaults(struct mem
+ 	unsigned long refaults;
  
- 		return PAGEREF_KEEP;
+ 	target_lruvec = mem_cgroup_lruvec(target_memcg, pgdat);
+-	refaults = lruvec_page_state(target_lruvec, WORKINGSET_ACTIVATE);
+-	target_lruvec->refaults = refaults;
++	refaults = lruvec_page_state(target_lruvec, WORKINGSET_ACTIVATE_ANON);
++	target_lruvec->refaults[0] = refaults;
++	refaults = lruvec_page_state(target_lruvec, WORKINGSET_ACTIVATE_FILE);
++	target_lruvec->refaults[1] = refaults;
+ }
+ 
+ /*
+--- a/mm/vmstat.c~mm-workingset-prepare-the-workingset-detection-infrastructure-for-anon-lru
++++ a/mm/vmstat.c
+@@ -1167,9 +1167,12 @@ const char * const vmstat_text[] = {
+ 	"nr_isolated_anon",
+ 	"nr_isolated_file",
+ 	"workingset_nodes",
+-	"workingset_refault",
+-	"workingset_activate",
+-	"workingset_restore",
++	"workingset_refault_anon",
++	"workingset_refault_file",
++	"workingset_activate_anon",
++	"workingset_activate_file",
++	"workingset_restore_anon",
++	"workingset_restore_file",
+ 	"workingset_nodereclaim",
+ 	"nr_anon_pages",
+ 	"nr_mapped",
+--- a/mm/workingset.c~mm-workingset-prepare-the-workingset-detection-infrastructure-for-anon-lru
++++ a/mm/workingset.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/memcontrol.h>
++#include <linux/mm_inline.h>
+ #include <linux/writeback.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/pagemap.h>
+@@ -280,6 +281,7 @@ void *workingset_eviction(struct page *p
+  */
+ void workingset_refault(struct page *page, void *shadow)
+ {
++	bool file = page_is_file_lru(page);
+ 	struct mem_cgroup *eviction_memcg;
+ 	struct lruvec *eviction_lruvec;
+ 	unsigned long refault_distance;
+@@ -346,7 +348,7 @@ void workingset_refault(struct page *pag
+ 	memcg = page_memcg(page);
+ 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+-	inc_lruvec_state(lruvec, WORKINGSET_REFAULT);
++	inc_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file);
+ 
+ 	/*
+ 	 * Compare the distance to the existing workingset size. We
+@@ -366,7 +368,7 @@ void workingset_refault(struct page *pag
+ 
+ 	SetPageActive(page);
+ 	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+-	inc_lruvec_state(lruvec, WORKINGSET_ACTIVATE);
++	inc_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + file);
+ 
+ 	/* Page was active prior to eviction */
+ 	if (workingset) {
+@@ -375,7 +377,7 @@ void workingset_refault(struct page *pag
+ 		spin_lock_irq(&page_pgdat(page)->lru_lock);
+ 		lru_note_cost_page(page);
+ 		spin_unlock_irq(&page_pgdat(page)->lru_lock);
+-		inc_lruvec_state(lruvec, WORKINGSET_RESTORE);
++		inc_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file);
+ 	}
+ out:
+ 	rcu_read_unlock();
 _
