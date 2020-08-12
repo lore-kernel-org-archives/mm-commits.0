@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7255BC433E3
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62D6BC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53BC420658
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41B3F2054F
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196250;
-	bh=TZanbVBUHN0RRIQAyHhjapwFcTY0LHEhCgqRN/FuE4k=;
+	s=default; t=1597196253;
+	bh=bKAPJNIGiVJlKhCT4bZZpnE0Q/Iy6y8D8bXa9KzP67s=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dM7AcOvYcZZOst7LaVbRWZVFKGg6pfHhfbEdrjRUJk9q3qLRgFQp5cr2kWTibjTQY
-	 SOx/k5ejG/byfUik75Q9uon0CyiYni2npuYSZneaMWOtiDwZU3IjCK4DwM0uIdB38X
-	 viKpfZT91AGDk/sN0b7PNEciRlXDxLgH57Z/jMss=
+	b=le9881/g+d6T7UEEceefWnLZbpQPd6tLHPo8KWZCCt6cBn24CxTYUqjHi8z7VP3p/
+	 uNaXSEgCnxnWfHbifhsV9Pzb5OyY+LtI4u6tLrVfnR5/GL6UFy7jygj7s3zEJ1Zwi1
+	 2lPwZCuzUeT0Dy2Opl6rvzPVDK+sm3czgPMFQocs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726506AbgHLBha (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:37:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39252 "EHLO mail.kernel.org"
+        id S1726507AbgHLBhd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:37:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBha (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:37:30 -0400
+        id S1726235AbgHLBhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:37:32 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C34332054F;
-        Wed, 12 Aug 2020 01:37:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE74A2076C;
+        Wed, 12 Aug 2020 01:37:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196249;
-        bh=TZanbVBUHN0RRIQAyHhjapwFcTY0LHEhCgqRN/FuE4k=;
+        s=default; t=1597196252;
+        bh=bKAPJNIGiVJlKhCT4bZZpnE0Q/Iy6y8D8bXa9KzP67s=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jjHsXfc0idGktt/F/Da8Wf7szlmrI8kVLPIlGLJYKRZCJF6x1En93aXWeYUWN4lKh
-         BDNdwmqsnwAOlR0SIdhTAiMW0MQwPHivz9TZ3IqEGV5MMzR0vtz9svnBZb3szmuWW0
-         X03ajZ37F8utrgC8NuCczh1456DsKzJH7Er3gmNY=
-Date:   Tue, 11 Aug 2020 18:37:28 -0700
+        b=OeXnUKnRsULF2WigFu8qs4DU6ZMnwYP4emmZzlcrefp5Mv9oIyE13ujPTZ7EzfHSO
+         /y1vUUfUSf5FA3BnLsNKM19uqitR6qIbGH+/3NIDGh/oQfMra8WyZAuYe7Le8mBnd9
+         iZP++TqnjvaitGFoaNpjGKk3zqggo62VdwJq0xFs=
+Date:   Tue, 11 Aug 2020 18:37:31 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, guro@fb.com, hch@infradead.org,
         iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org,
         vbabka@suse.cz
-Subject:  [patch 136/165] mm/mempolicy: use a standard migration
- target allocation callback
-Message-ID: <20200812013728.FhUOwuCCe%akpm@linux-foundation.org>
+Subject:  [patch 137/165] mm/page_alloc: remove a wrapper for
+ alloc_migration_target()
+Message-ID: <20200812013731.WRd9fl7-I%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,11 +57,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/mempolicy: use a standard migration target allocation callback
+Subject: mm/page_alloc: remove a wrapper for alloc_migration_target()
 
-There is a well-defined migration target allocation callback.  Use it.
+There is a well-defined standard migration target callback.  Use it
+directly.
 
-Link: http://lkml.kernel.org/r/1594622517-20681-7-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1594622517-20681-8-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -72,91 +73,48 @@ Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h  |    1 -
- mm/mempolicy.c |   31 ++++++-------------------------
- mm/migrate.c   |    8 ++++++--
- 3 files changed, 12 insertions(+), 28 deletions(-)
+ mm/page_alloc.c     |    8 ++++++--
+ mm/page_isolation.c |   10 ----------
+ 2 files changed, 6 insertions(+), 12 deletions(-)
 
---- a/mm/internal.h~mm-mempolicy-use-a-standard-migration-target-allocation-callback
-+++ a/mm/internal.h
-@@ -613,7 +613,6 @@ static inline bool is_migrate_highatomic
- }
- 
- void setup_zone_pageset(struct zone *zone);
--extern struct page *alloc_new_node_page(struct page *page, unsigned long node);
- 
- struct migration_target_control {
- 	int nid;		/* preferred node id */
---- a/mm/mempolicy.c~mm-mempolicy-use-a-standard-migration-target-allocation-callback
-+++ a/mm/mempolicy.c
-@@ -1065,29 +1065,6 @@ static int migrate_page_add(struct page
- 	return 0;
- }
- 
--/* page allocation callback for NUMA node migration */
--struct page *alloc_new_node_page(struct page *page, unsigned long node)
--{
--	if (PageHuge(page)) {
--		struct hstate *h = page_hstate(compound_head(page));
--		gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
--
--		return alloc_huge_page_nodemask(h, node, NULL, gfp_mask);
--	} else if (PageTransHuge(page)) {
--		struct page *thp;
--
--		thp = alloc_pages_node(node,
--			(GFP_TRANSHUGE | __GFP_THISNODE),
--			HPAGE_PMD_ORDER);
--		if (!thp)
--			return NULL;
--		prep_transhuge_page(thp);
--		return thp;
--	} else
--		return __alloc_pages_node(node, GFP_HIGHUSER_MOVABLE |
--						    __GFP_THISNODE, 0);
--}
--
- /*
-  * Migrate pages from one node to a target node.
-  * Returns error or the number of pages not migrated.
-@@ -1098,6 +1075,10 @@ static int migrate_to_node(struct mm_str
- 	nodemask_t nmask;
- 	LIST_HEAD(pagelist);
- 	int err = 0;
+--- a/mm/page_alloc.c~mm-page_alloc-remove-a-wrapper-for-alloc_migration_target
++++ a/mm/page_alloc.c
+@@ -8347,6 +8347,10 @@ static int __alloc_contig_migrate_range(
+ 	unsigned long pfn = start;
+ 	unsigned int tries = 0;
+ 	int ret = 0;
 +	struct migration_target_control mtc = {
-+		.nid = dest,
-+		.gfp_mask = GFP_HIGHUSER_MOVABLE | __GFP_THISNODE,
++		.nid = zone_to_nid(cc->zone),
++		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
 +	};
  
- 	nodes_clear(nmask);
- 	node_set(source, nmask);
-@@ -1112,8 +1093,8 @@ static int migrate_to_node(struct mm_str
- 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
+ 	migrate_prep();
  
- 	if (!list_empty(&pagelist)) {
--		err = migrate_pages(&pagelist, alloc_new_node_page, NULL, dest,
--					MIGRATE_SYNC, MR_SYSCALL);
-+		err = migrate_pages(&pagelist, alloc_migration_target, NULL,
-+				(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL);
- 		if (err)
- 			putback_movable_pages(&pagelist);
+@@ -8373,8 +8377,8 @@ static int __alloc_contig_migrate_range(
+ 							&cc->migratepages);
+ 		cc->nr_migratepages -= nr_reclaimed;
+ 
+-		ret = migrate_pages(&cc->migratepages, alloc_migrate_target,
+-				    NULL, 0, cc->mode, MR_CONTIG_RANGE);
++		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
++				NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE);
  	}
---- a/mm/migrate.c~mm-mempolicy-use-a-standard-migration-target-allocation-callback
-+++ a/mm/migrate.c
-@@ -1598,9 +1598,13 @@ static int do_move_pages_to_node(struct
- 		struct list_head *pagelist, int node)
- {
- 	int err;
-+	struct migration_target_control mtc = {
-+		.nid = node,
-+		.gfp_mask = GFP_HIGHUSER_MOVABLE | __GFP_THISNODE,
-+	};
+ 	if (ret < 0) {
+ 		putback_movable_pages(&cc->migratepages);
+--- a/mm/page_isolation.c~mm-page_alloc-remove-a-wrapper-for-alloc_migration_target
++++ a/mm/page_isolation.c
+@@ -306,13 +306,3 @@ int test_pages_isolated(unsigned long st
  
--	err = migrate_pages(pagelist, alloc_new_node_page, NULL, node,
--			MIGRATE_SYNC, MR_SYSCALL);
-+	err = migrate_pages(pagelist, alloc_migration_target, NULL,
-+			(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL);
- 	if (err)
- 		putback_movable_pages(pagelist);
- 	return err;
+ 	return pfn < end_pfn ? -EBUSY : 0;
+ }
+-
+-struct page *alloc_migrate_target(struct page *page, unsigned long private)
+-{
+-	struct migration_target_control mtc = {
+-		.nid = page_to_nid(page),
+-		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
+-	};
+-
+-	return alloc_migration_target(page, (unsigned long)&mtc);
+-}
 _
