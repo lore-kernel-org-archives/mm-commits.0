@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC2C5C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE7EEC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:04:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98CE8206F2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:03:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D0DC206F2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:04:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597194217;
-	bh=K+ZFlFBYfRQfFWDYRHfTe3QO7+w0yrE+hkkC5Wokgr8=;
+	s=default; t=1597194275;
+	bh=yLtbW5r5zY/iIeWvJe3phWyuNnoarlTY94m4+f9rc6g=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dYgItm3hDUDIeJN9BpGVBV1qIBckdjk0FLK+PUDXjzmiSqUzUiKMdQlTICH8vrXCQ
-	 rEl16dXy5lEmO7rYkR+ndMhRTA9X4pwZRzENLotCvLWpgpI5dxRwlFNRRJ3OUs1EFt
-	 3T0oVhiRA5BmeX/AEXKwyhXVuc1zp38tt0zUmL5I=
+	b=osTZN6a0H/20O0u26Ku1PQQe5Bc7/NVmX0kITriLkzfYu18TRg2byXrirFNjAS9F8
+	 NySEZHml4Z7GP5yPNyWmGA3djE72D8kb32rgrAE7X6TQU/K4ltK/DgwQYsapVqbirO
+	 uXlOHS/n6F8nUFQFtX/f8LJWaWnasBAvpg1JB/js=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726235AbgHLBDh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:03:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45522 "EHLO mail.kernel.org"
+        id S1726173AbgHLBEe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:04:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45772 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726173AbgHLBDh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:03:37 -0400
+        id S1726143AbgHLBEe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:04:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4CF08206B5;
-        Wed, 12 Aug 2020 01:03:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 32915206B5;
+        Wed, 12 Aug 2020 01:04:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597194215;
-        bh=K+ZFlFBYfRQfFWDYRHfTe3QO7+w0yrE+hkkC5Wokgr8=;
+        s=default; t=1597194274;
+        bh=yLtbW5r5zY/iIeWvJe3phWyuNnoarlTY94m4+f9rc6g=;
         h=Date:From:To:Subject:From;
-        b=MIXm0Jvo4dIO7lkJWFMWLbEcvTxd6z5kpqb7Z3rBTCCRnYNz0AkdO+5BLDMOgYLgc
-         UalgdFsWH054EhAzRLnO5Ub8++VoFy4jQ/3qStZZfizmLszo4hilgJgLyCembtH/M5
-         Y8rzAxyh3NQqrI9CHyTzVLewkmFUZVboYr/+q0Fg=
-Date:   Tue, 11 Aug 2020 18:03:34 -0700
+        b=HZvZb4ur5v2lCdfrwNeqcgloDHQbBznjOdrTxGFG7/sE8ClDaCNliMdBYHe2lxGLG
+         pHCmN7Vm4YzrVD0l3qzxK8MH9qlToR2ran2Pyu97wHQR5LQqOIUzHPJQjEDknmQPFN
+         1VQExFH/0UoOb0zK4uOja94GlDvvoaDgXD74KfLo=
+Date:   Tue, 11 Aug 2020 18:04:33 -0700
 From:   akpm@linux-foundation.org
-To:     geert@linux-m68k.org, green.hu@gmail.com, hch@lst.de,
-        mark.rutland@arm.com, mm-commits@vger.kernel.org
-Subject:  [folded-merged]
- uaccess-add-force_uaccess_beginend-helpers-v2.patch removed from -mm tree
-Message-ID: <20200812010334.tq34cP9lK%akpm@linux-foundation.org>
+To:     andy.shevchenko@gmail.com, mm-commits@vger.kernel.org,
+        rd.dunlap@gmail.com, rikard.falkeborn@gmail.com
+Subject:  [folded-merged] bits-add-tests-of-genmask-fix.patch
+ removed from -mm tree
+Message-ID: <20200812010433.TlZOyOtZI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,85 +54,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uaccess-add-force_uaccess_beginend-helpers-v2
+     Subject: lib/test_bits: add MODULE_LICENSE()
 has been removed from the -mm tree.  Its filename was
-     uaccess-add-force_uaccess_beginend-helpers-v2.patch
+     bits-add-tests-of-genmask-fix.patch
 
-This patch was dropped because it was folded into uaccess-add-force_uaccess_beginend-helpers.patch
+This patch was dropped because it was folded into bits-add-tests-of-genmask.patch
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: uaccess-add-force_uaccess_beginend-helpers-v2
+From: Randy Dunlap <rd.dunlap@gmail.com>
+Subject: lib/test_bits: add MODULE_LICENSE()
 
-drop two incorrect hunks, fix a commit log typo
+Add MODULE_LICENSE() to prevent build warning:
 
-Link: http://lkml.kernel.org/r/20200714105505.935079-6-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Greentime Hu <green.hu@gmail.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+WARNING: modpost: missing MODULE_LICENSE() in lib/test_bits.o
+
+Link: http://lkml.kernel.org/r/dfc74524-0789-2827-4eff-476ddab65699@gmail.com
+Signed-off-by: Randy Dunlap <rd.dunlap@gmail.com>
+Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/tlbflush.h |    6 +++---
- arch/sh/kernel/traps_32.c        |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ lib/test_bits.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/m68k/include/asm/tlbflush.h~uaccess-add-force_uaccess_beginend-helpers-v2
-+++ a/arch/m68k/include/asm/tlbflush.h
-@@ -13,13 +13,13 @@ static inline void flush_tlb_kernel_page
- 	if (CPU_IS_COLDFIRE) {
- 		mmu_write(MMUOR, MMUOR_CNL);
- 	} else if (CPU_IS_040_OR_060) {
--		mm_segment_t old_fs = force_uaccess_begin();
--
-+		mm_segment_t old_fs = get_fs();
-+		set_fs(KERNEL_DS);
- 		__asm__ __volatile__(".chip 68040\n\t"
- 				     "pflush (%0)\n\t"
- 				     ".chip 68k"
- 				     : : "a" (addr));
--		force_uaccess_end(old_fs);
-+		set_fs(old_fs);
- 	} else if (CPU_IS_020_OR_030)
- 		__asm__ __volatile__("pflush #4,#4,(%0)" : : "a" (addr));
- }
---- a/arch/sh/kernel/traps_32.c~uaccess-add-force_uaccess_beginend-helpers-v2
-+++ a/arch/sh/kernel/traps_32.c
-@@ -538,13 +538,13 @@ uspace_segv:
- 		if (regs->pc & 1)
- 			die("unaligned program counter", regs, error_code);
- 
--		oldfs = force_uaccess_begin();
-+		set_fs(KERNEL_DS);
- 		if (copy_from_user(&instruction, (void __user *)(regs->pc),
- 				   sizeof(instruction))) {
- 			/* Argh. Fault on the instruction itself.
- 			   This should never happen non-SMP
- 			*/
--			force_uaccess_end(oldfs);
-+			set_fs(oldfs);
- 			die("insn faulting in do_address_error", regs, 0);
- 		}
- 
-@@ -552,7 +552,7 @@ uspace_segv:
- 
- 		handle_unaligned_access(instruction, regs, &user_mem_access,
- 					0, address);
--		force_uaccess_end(oldfs);
-+		set_fs(oldfs);
- 	}
- }
- 
+--- a/lib/test_bits.c~bits-add-tests-of-genmask-fix
++++ a/lib/test_bits.c
+@@ -71,3 +71,5 @@ static struct kunit_suite bits_test_suit
+ 	.test_cases = bits_test_cases,
+ };
+ kunit_test_suite(bits_test_suite);
++
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from rd.dunlap@gmail.com are
 
-syscalls-use-uaccess_kernel-in-addr_limit_user_check.patch
-nds32-use-uaccess_kernel-in-show_regs.patch
-riscv-include-asm-pgtableh-in-asm-uaccessh.patch
-uaccess-remove-segment_eq.patch
-uaccess-add-force_uaccess_beginend-helpers.patch
-exec-use-force_uaccess_begin-during-exec-and-exit.patch
-kernel-add-a-kernel_wait-helper.patch
+bits-add-tests-of-genmask.patch
 
