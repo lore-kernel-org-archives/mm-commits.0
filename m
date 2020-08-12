@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06AB7C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50718C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C854D206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BB75206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195849;
-	bh=zKsm+5OsJKiPVe6aRXh1s+yX9KRPYMgQZrw7nteUvWI=;
+	s=default; t=1597195853;
+	bh=JgvGOQBpFacRCixL+fd47ZW4gbFXlGWqJ3HMkxazoD0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=f4XEK9t1v2s0nonWReeQXgXMeqZ7zMpUqeIxCdieGwF4qYp9DC8Vhqb6h5A+TAgSa
-	 NuJ4vKKEPTDUvthrGII8bwrM9ila5lLiKQFMWP0UxMb5I3opawlFaWu+M0nZW5m4cL
-	 uPa2MrjZEbdkPxLd4zpWWZlqqxvVYU2c8N74OuOc=
+	b=ToDHaf3mca9pwdFAHYxrMIKHaOfdQ9xpvIEmvV06m0sUkQXHyqMcF8O3X1ppr93gA
+	 94Zwbj562zmBMeSkGkP9rEDTMnyDW0hUUydiMbT9bOfW9zYBYwGXqIOzI4S+aE3AKB
+	 tKA+F0T1UVtW30ZsRH5jAM8VvpZrLUyfU+00dJew=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726402AbgHLBat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:30:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57780 "EHLO mail.kernel.org"
+        id S1726507AbgHLBaw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:30:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57876 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBat (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:30:49 -0400
+        id S1726235AbgHLBaw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:30:52 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A69A22076C;
-        Wed, 12 Aug 2020 01:30:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2253D207F7;
+        Wed, 12 Aug 2020 01:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195848;
-        bh=zKsm+5OsJKiPVe6aRXh1s+yX9KRPYMgQZrw7nteUvWI=;
+        s=default; t=1597195851;
+        bh=JgvGOQBpFacRCixL+fd47ZW4gbFXlGWqJ3HMkxazoD0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=YmQBTGehpJNR23PP3QZzWBP+3iL8MUd3j8zOCG8d6KvqrEqD/9gJQOVqlQbzhJe52
-         +kheyihvxbYmT5CK2Vw98npFGAmg5fehul5CeF/T5kE30bEFmM6lPwpZ4GtjuBgJx7
-         KgPl1pr1kc3sWY9gY0MKZ2aJNW55n2Nbsft1B++g=
-Date:   Tue, 11 Aug 2020 18:30:47 -0700
+        b=AOXiNr+PB8MVWC5OPqqQakrRQ8JD7czMcMkGjaQSH6tiaxOgoxoaNN/BneFg9ZU/J
+         ldxXi4xujreZsN3gSiCMlWJTURM7yYVjA2nckjy7mqLBlLqnbS/zablwlrmpLA13PX
+         EuqfXnneMqnJfFZ+E429Li1JhaVZ6NpjWzy6FyNk=
+Date:   Tue, 11 Aug 2020 18:30:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com,
         iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
         mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vbabka@suse.cz, willy@infradead.org
-Subject:  [patch 010/165] mm/swapcache: support to handle the
- shadow entries
-Message-ID: <20200812013047.Y1IP0x9tV%akpm@linux-foundation.org>
+Subject:  [patch 011/165] mm/swap: implement workingset detection
+ for anonymous LRU
+Message-ID: <20200812013050.glnHgZHtd%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,251 +57,188 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/swapcache: support to handle the shadow entries
+Subject: mm/swap: implement workingset detection for anonymous LRU
 
-Workingset detection for anonymous page will be implemented in the
-following patch and it requires to store the shadow entries into the
-swapcache.  This patch implements an infrastructure to store the shadow
-entry in the swapcache.
+This patch implements workingset detection for anonymous LRU.  All the
+infrastructure is implemented by the previous patches so this patch just
+activates the workingset detection by installing/retrieving the shadow
+entry and adding refault calculation.
 
-Link: http://lkml.kernel.org/r/1595490560-15117-5-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1595490560-15117-6-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   17 +++++++++---
- mm/shmem.c           |    3 +-
- mm/swap_state.c      |   57 ++++++++++++++++++++++++++++++++++++-----
- mm/swapfile.c        |    2 +
- mm/vmscan.c          |    2 -
- 5 files changed, 69 insertions(+), 12 deletions(-)
+ include/linux/swap.h |    6 ++++++
+ mm/memory.c          |   11 ++++-------
+ mm/swap_state.c      |   23 ++++++++++++++++++-----
+ mm/vmscan.c          |    7 ++++---
+ mm/workingset.c      |   15 +++++++++++----
+ 5 files changed, 43 insertions(+), 19 deletions(-)
 
---- a/include/linux/swap.h~mm-swapcache-support-to-handle-the-shadow-entries
+--- a/include/linux/swap.h~mm-swap-implement-workingset-detection-for-anonymous-lru
 +++ a/include/linux/swap.h
-@@ -414,9 +414,13 @@ extern struct address_space *swapper_spa
+@@ -414,6 +414,7 @@ extern struct address_space *swapper_spa
  extern unsigned long total_swapcache_pages(void);
  extern void show_swap_cache_info(void);
  extern int add_to_swap(struct page *page);
--extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
--extern void __delete_from_swap_cache(struct page *, swp_entry_t entry);
-+extern int add_to_swap_cache(struct page *page, swp_entry_t entry,
-+			gfp_t gfp, void **shadowp);
-+extern void __delete_from_swap_cache(struct page *page,
-+			swp_entry_t entry, void *shadow);
- extern void delete_from_swap_cache(struct page *);
-+extern void clear_shadow_from_swap_cache(int type, unsigned long begin,
-+				unsigned long end);
- extern void free_page_and_swap_cache(struct page *);
- extern void free_pages_and_swap_cache(struct page **, int);
- extern struct page *lookup_swap_cache(swp_entry_t entry,
-@@ -570,13 +574,13 @@ static inline int add_to_swap(struct pag
++extern void *get_shadow_from_swap_cache(swp_entry_t entry);
+ extern int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 			gfp_t gfp, void **shadowp);
+ extern void __delete_from_swap_cache(struct page *page,
+@@ -573,6 +574,11 @@ static inline int add_to_swap(struct pag
+ 	return 0;
  }
  
- static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
--							gfp_t gfp_mask)
-+					gfp_t gfp_mask, void **shadowp)
- {
- 	return -1;
- }
- 
- static inline void __delete_from_swap_cache(struct page *page,
--							swp_entry_t entry)
-+					swp_entry_t entry, void *shadow)
- {
- }
- 
-@@ -584,6 +588,11 @@ static inline void delete_from_swap_cach
- {
- }
- 
-+static inline void clear_shadow_from_swap_cache(int type, unsigned long begin,
-+				unsigned long end)
++static inline void *get_shadow_from_swap_cache(swp_entry_t entry)
 +{
++	return NULL;
 +}
 +
- static inline int page_swapcount(struct page *page)
+ static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 					gfp_t gfp_mask, void **shadowp)
  {
- 	return 0;
---- a/mm/shmem.c~mm-swapcache-support-to-handle-the-shadow-entries
-+++ a/mm/shmem.c
-@@ -1434,7 +1434,8 @@ static int shmem_writepage(struct page *
- 		list_add(&info->swaplist, &shmem_swaplist);
+--- a/mm/memory.c~mm-swap-implement-workingset-detection-for-anonymous-lru
++++ a/mm/memory.c
+@@ -3098,6 +3098,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	int locked;
+ 	int exclusive = 0;
+ 	vm_fault_t ret = 0;
++	void *shadow = NULL;
  
- 	if (add_to_swap_cache(page, swap,
--			__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN) == 0) {
-+			__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN,
-+			NULL) == 0) {
- 		spin_lock_irq(&info->lock);
- 		shmem_recalc_inode(inode);
- 		info->swapped++;
---- a/mm/swapfile.c~mm-swapcache-support-to-handle-the-shadow-entries
-+++ a/mm/swapfile.c
-@@ -696,6 +696,7 @@ static void add_to_avail_list(struct swa
- static void swap_range_free(struct swap_info_struct *si, unsigned long offset,
- 			    unsigned int nr_entries)
- {
-+	unsigned long begin = offset;
- 	unsigned long end = offset + nr_entries - 1;
- 	void (*swap_slot_free_notify)(struct block_device *, unsigned long);
+ 	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte))
+ 		goto out;
+@@ -3149,13 +3150,9 @@ vm_fault_t do_swap_page(struct vm_fault
+ 					goto out_page;
+ 				}
  
-@@ -721,6 +722,7 @@ static void swap_range_free(struct swap_
- 			swap_slot_free_notify(si->bdev, offset);
- 		offset++;
- 	}
-+	clear_shadow_from_swap_cache(si->type, begin, end);
+-				/*
+-				 * XXX: Move to lru_cache_add() when it
+-				 * supports new vs putback
+-				 */
+-				spin_lock_irq(&page_pgdat(page)->lru_lock);
+-				lru_note_cost_page(page);
+-				spin_unlock_irq(&page_pgdat(page)->lru_lock);
++				shadow = get_shadow_from_swap_cache(entry);
++				if (shadow)
++					workingset_refault(page, shadow);
+ 
+ 				lru_cache_add(page);
+ 				swap_readpage(page, true);
+--- a/mm/swap_state.c~mm-swap-implement-workingset-detection-for-anonymous-lru
++++ a/mm/swap_state.c
+@@ -106,6 +106,20 @@ void show_swap_cache_info(void)
+ 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
  }
  
- static void set_cluster_next(struct swap_info_struct *si, unsigned long next)
---- a/mm/swap_state.c~mm-swapcache-support-to-handle-the-shadow-entries
-+++ a/mm/swap_state.c
-@@ -110,12 +110,14 @@ void show_swap_cache_info(void)
++void *get_shadow_from_swap_cache(swp_entry_t entry)
++{
++	struct address_space *address_space = swap_address_space(entry);
++	pgoff_t idx = swp_offset(entry);
++	struct page *page;
++
++	page = find_get_entry(address_space, idx);
++	if (xa_is_value(page))
++		return page;
++	if (page)
++		put_page(page);
++	return NULL;
++}
++
+ /*
   * add_to_swap_cache resembles add_to_page_cache_locked on swapper_space,
   * but sets SwapCache flag and private instead of mapping and index.
-  */
--int add_to_swap_cache(struct page *page, swp_entry_t entry, gfp_t gfp)
-+int add_to_swap_cache(struct page *page, swp_entry_t entry,
-+			gfp_t gfp, void **shadowp)
+@@ -406,6 +420,7 @@ struct page *__read_swap_cache_async(swp
  {
- 	struct address_space *address_space = swap_address_space(entry);
- 	pgoff_t idx = swp_offset(entry);
- 	XA_STATE_ORDER(xas, &address_space->i_pages, idx, compound_order(page));
- 	unsigned long i, nr = hpage_nr_pages(page);
-+	void *old;
+ 	struct swap_info_struct *si;
+ 	struct page *page;
++	void *shadow = NULL;
  
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageSwapCache(page), page);
-@@ -125,16 +127,25 @@ int add_to_swap_cache(struct page *page,
- 	SetPageSwapCache(page);
+ 	*new_page_allocated = false;
  
- 	do {
-+		unsigned long nr_shadows = 0;
-+
- 		xas_lock_irq(&xas);
- 		xas_create_range(&xas);
- 		if (xas_error(&xas))
- 			goto unlock;
- 		for (i = 0; i < nr; i++) {
- 			VM_BUG_ON_PAGE(xas.xa_index != idx + i, page);
-+			old = xas_load(&xas);
-+			if (xa_is_value(old)) {
-+				nr_shadows++;
-+				if (shadowp)
-+					*shadowp = old;
-+			}
- 			set_page_private(page + i, entry.val + i);
- 			xas_store(&xas, page);
- 			xas_next(&xas);
- 		}
-+		address_space->nrexceptional -= nr_shadows;
- 		address_space->nrpages += nr;
- 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
- 		ADD_CACHE_INFO(add_total, nr);
-@@ -154,7 +165,8 @@ unlock:
-  * This must be called only on pages that have
-  * been verified to be in the swap cache.
-  */
--void __delete_from_swap_cache(struct page *page, swp_entry_t entry)
-+void __delete_from_swap_cache(struct page *page,
-+			swp_entry_t entry, void *shadow)
- {
- 	struct address_space *address_space = swap_address_space(entry);
- 	int i, nr = hpage_nr_pages(page);
-@@ -166,12 +178,14 @@ void __delete_from_swap_cache(struct pag
- 	VM_BUG_ON_PAGE(PageWriteback(page), page);
- 
- 	for (i = 0; i < nr; i++) {
--		void *entry = xas_store(&xas, NULL);
-+		void *entry = xas_store(&xas, shadow);
- 		VM_BUG_ON_PAGE(entry != page, entry);
- 		set_page_private(page + i, 0);
- 		xas_next(&xas);
- 	}
- 	ClearPageSwapCache(page);
-+	if (shadow)
-+		address_space->nrexceptional += nr;
- 	address_space->nrpages -= nr;
- 	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
- 	ADD_CACHE_INFO(del_total, nr);
-@@ -208,7 +222,7 @@ int add_to_swap(struct page *page)
- 	 * Add it to the swap cache.
- 	 */
- 	err = add_to_swap_cache(page, entry,
--			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
-+			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN, NULL);
- 	if (err)
- 		/*
- 		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
-@@ -246,13 +260,44 @@ void delete_from_swap_cache(struct page
- 	struct address_space *address_space = swap_address_space(entry);
- 
- 	xa_lock_irq(&address_space->i_pages);
--	__delete_from_swap_cache(page, entry);
-+	__delete_from_swap_cache(page, entry, NULL);
- 	xa_unlock_irq(&address_space->i_pages);
- 
- 	put_swap_page(page, entry);
- 	page_ref_sub(page, hpage_nr_pages(page));
- }
- 
-+void clear_shadow_from_swap_cache(int type, unsigned long begin,
-+				unsigned long end)
-+{
-+	unsigned long curr = begin;
-+	void *old;
-+
-+	for (;;) {
-+		unsigned long nr_shadows = 0;
-+		swp_entry_t entry = swp_entry(type, curr);
-+		struct address_space *address_space = swap_address_space(entry);
-+		XA_STATE(xas, &address_space->i_pages, curr);
-+
-+		xa_lock_irq(&address_space->i_pages);
-+		xas_for_each(&xas, old, end) {
-+			if (!xa_is_value(old))
-+				continue;
-+			xas_store(&xas, NULL);
-+			nr_shadows++;
-+		}
-+		address_space->nrexceptional -= nr_shadows;
-+		xa_unlock_irq(&address_space->i_pages);
-+
-+		/* search the next swapcache until we meet end */
-+		curr >>= SWAP_ADDRESS_SPACE_SHIFT;
-+		curr++;
-+		curr <<= SWAP_ADDRESS_SPACE_SHIFT;
-+		if (curr > end)
-+			break;
-+	}
-+}
-+
- /* 
-  * If we are the only user, then try to free up the swap cache. 
-  * 
-@@ -429,7 +474,7 @@ struct page *__read_swap_cache_async(swp
+@@ -474,7 +489,7 @@ struct page *__read_swap_cache_async(swp
  	__SetPageSwapBacked(page);
  
  	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK)) {
-+	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, NULL)) {
+-	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, NULL)) {
++	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow)) {
  		put_swap_page(page, entry);
  		goto fail_unlock;
  	}
---- a/mm/vmscan.c~mm-swapcache-support-to-handle-the-shadow-entries
+@@ -484,10 +499,8 @@ struct page *__read_swap_cache_async(swp
+ 		goto fail_unlock;
+ 	}
+ 
+-	/* XXX: Move to lru_cache_add() when it supports new vs putback */
+-	spin_lock_irq(&page_pgdat(page)->lru_lock);
+-	lru_note_cost_page(page);
+-	spin_unlock_irq(&page_pgdat(page)->lru_lock);
++	if (shadow)
++		workingset_refault(page, shadow);
+ 
+ 	/* Caller will initiate read into locked page */
+ 	SetPageWorkingset(page);
+--- a/mm/vmscan.c~mm-swap-implement-workingset-detection-for-anonymous-lru
 +++ a/mm/vmscan.c
-@@ -896,7 +896,7 @@ static int __remove_mapping(struct addre
+@@ -854,6 +854,7 @@ static int __remove_mapping(struct addre
+ {
+ 	unsigned long flags;
+ 	int refcount;
++	void *shadow = NULL;
+ 
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(mapping != page_mapping(page));
+@@ -896,13 +897,13 @@ static int __remove_mapping(struct addre
  	if (PageSwapCache(page)) {
  		swp_entry_t swap = { .val = page_private(page) };
  		mem_cgroup_swapout(page, swap);
--		__delete_from_swap_cache(page, swap);
-+		__delete_from_swap_cache(page, swap, NULL);
+-		__delete_from_swap_cache(page, swap, NULL);
++		if (reclaimed && !mapping_exiting(mapping))
++			shadow = workingset_eviction(page, target_memcg);
++		__delete_from_swap_cache(page, swap, shadow);
  		xa_unlock_irqrestore(&mapping->i_pages, flags);
  		put_swap_page(page, swap);
- 		workingset_eviction(page, target_memcg);
+-		workingset_eviction(page, target_memcg);
+ 	} else {
+ 		void (*freepage)(struct page *);
+-		void *shadow = NULL;
+ 
+ 		freepage = mapping->a_ops->freepage;
+ 		/*
+--- a/mm/workingset.c~mm-swap-implement-workingset-detection-for-anonymous-lru
++++ a/mm/workingset.c
+@@ -353,15 +353,22 @@ void workingset_refault(struct page *pag
+ 	/*
+ 	 * Compare the distance to the existing workingset size. We
+ 	 * don't activate pages that couldn't stay resident even if
+-	 * all the memory was available to the page cache. Whether
+-	 * cache can compete with anon or not depends on having swap.
++	 * all the memory was available to the workingset. Whether
++	 * workingset competition needs to consider anon or not depends
++	 * on having swap.
+ 	 */
+ 	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
+-	if (mem_cgroup_get_nr_swap_pages(memcg) > 0) {
++	if (!file) {
+ 		workingset_size += lruvec_page_state(eviction_lruvec,
+-						     NR_INACTIVE_ANON);
++						     NR_INACTIVE_FILE);
++	}
++	if (mem_cgroup_get_nr_swap_pages(memcg) > 0) {
+ 		workingset_size += lruvec_page_state(eviction_lruvec,
+ 						     NR_ACTIVE_ANON);
++		if (file) {
++			workingset_size += lruvec_page_state(eviction_lruvec,
++						     NR_INACTIVE_ANON);
++		}
+ 	}
+ 	if (refault_distance > workingset_size)
+ 		goto out;
 _
