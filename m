@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B5C3C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:06:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1A59C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:06:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3788D20774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:06:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 962972078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:06:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266393;
-	bh=12kdOX4NKI6eq+g+9o2SJ2gH1RvWN4f5H9qqCVtamMc=;
+	s=default; t=1597266395;
+	bh=ezEdlRv1lbUM3h3gzJItJ4ekIqRpVYxlmebaxnQ32Ak=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=QlXrKh4R1XaG5nFm8nC7D1oY4c3ZiEdwM/RJIDOEGvWFREnOO0/XPeQCNTF/lsivu
-	 HbrV+LW+Xagp86ggRqMq7rY6XhBZ0SBKbb15O6Z1vVPS1KKLGoyxA/I6lrIBU4P7dj
-	 cAJ3GkmXa36vlwj7Ne9pPxjbuDoNw0nQI5yoDuf8=
+	b=iR42wPhfQ52c8IWJvQOxxP/28Q5P7lUB0ltA/u8gi+OaGoiWrZavY5MURWDLuu4IV
+	 4o8uBIvoYD/RqajbcrtxJ6ljYdKmGK8fCzpL3nJDTaaYlGMY/OGFB4OgiIWxiAXyFf
+	 xsCgkOsO42MeHdpHe6qo5TYQQXlLLAuVpLZydEZ4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726583AbgHLVGd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:06:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33418 "EHLO mail.kernel.org"
+        id S1726554AbgHLVGf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:06:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVGc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:06:32 -0400
+        id S1726030AbgHLVGf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:06:35 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 86756207F7;
-        Wed, 12 Aug 2020 21:06:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7832620774;
+        Wed, 12 Aug 2020 21:06:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266391;
-        bh=12kdOX4NKI6eq+g+9o2SJ2gH1RvWN4f5H9qqCVtamMc=;
+        s=default; t=1597266394;
+        bh=ezEdlRv1lbUM3h3gzJItJ4ekIqRpVYxlmebaxnQ32Ak=;
         h=Date:From:To:Subject:From;
-        b=Dv0ajdEootciy++WTIW+w+N9usvfbhv0nxlhuv0dUPAi3usVaHBRMKajSAenP+zhB
-         qleEnAQfPp9vkK7o6yHCG0wMr5l4Sc9No+DDUH5p73pxoDJSbwnCgZEwtMndBvuu7a
-         5rpUd0pTSDlGPFk/pZ1KGVrwslqgVodtCHpG+gcA=
-Date:   Wed, 12 Aug 2020 14:06:31 -0700
+        b=IIRD9/bqT5kUePpxkSQvIEv9GHXGibJIR4WTK+AOWncHv0yQYoTlCm/ryzZoaa3PZ
+         LnTaD/asU99m4JYU1yOShDehLgTTSORq4/cpN9IYe6kkmkL6rO2H6R6RYLUKsr6np8
+         dk/cCovpb0nYTgnGOYd1r6zMCTiW5GQBCgWWmW7Y=
+Date:   Wed, 12 Aug 2020 14:06:34 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterx@redhat.com, tony.luck@intel.com
-Subject:  [merged] mm-ia64-use-general-page-fault-accounting.patch
+To:     geert@linux-m68k.org, mm-commits@vger.kernel.org, peterx@redhat.com
+Subject:  [merged] mm-m68k-use-general-page-fault-accounting.patch
  removed from -mm tree
-Message-ID: <20200812210631.P7htIuS6k%akpm@linux-foundation.org>
+Message-ID: <20200812210634.a8BKuD5Is%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,15 +53,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ia64: use general page fault accounting
+     Subject: mm/m68k: use general page fault accounting
 has been removed from the -mm tree.  Its filename was
-     mm-ia64-use-general-page-fault-accounting.patch
+     mm-m68k-use-general-page-fault-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/ia64: use general page fault accounting
+Subject: mm/m68k: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
@@ -71,46 +71,52 @@ Add the missing PERF_COUNT_SW_PAGE_FAULTS perf events too.  Note, the
 other two perf events (PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]) were done in
 handle_mm_fault().
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-9-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-10-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/fault.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/m68k/mm/fault.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/arch/ia64/mm/fault.c~mm-ia64-use-general-page-fault-accounting
-+++ a/arch/ia64/mm/fault.c
-@@ -14,6 +14,7 @@
- #include <linux/kdebug.h>
- #include <linux/prefetch.h>
+--- a/arch/m68k/mm/fault.c~mm-m68k-use-general-page-fault-accounting
++++ a/arch/m68k/mm/fault.c
+@@ -12,6 +12,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
  #include <linux/uaccess.h>
 +#include <linux/perf_event.h>
  
- #include <asm/processor.h>
- #include <asm/exception.h>
-@@ -105,6 +106,8 @@ ia64_do_page_fault (unsigned long addres
+ #include <asm/setup.h>
+ #include <asm/traps.h>
+@@ -84,6 +85,8 @@ int do_page_fault(struct pt_regs *regs,
+ 
+ 	if (user_mode(regs))
  		flags |= FAULT_FLAG_USER;
- 	if (mask & VM_WRITE)
- 		flags |= FAULT_FLAG_WRITE;
 +
 +	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
  retry:
  	mmap_read_lock(mm);
  
-@@ -143,7 +146,7 @@ retry:
- 	 * sure we exit gracefully rather than endlessly redo the
- 	 * fault.
+@@ -134,7 +137,7 @@ good_area:
+ 	 * the fault.
  	 */
+ 
 -	fault = handle_mm_fault(vma, address, flags, NULL);
 +	fault = handle_mm_fault(vma, address, flags, regs);
+ 	pr_debug("handle_mm_fault returns %x\n", fault);
  
  	if (fault_signal_pending(fault, regs))
- 		return;
-@@ -166,10 +169,6 @@ retry:
+@@ -150,16 +153,7 @@ good_area:
+ 		BUG();
  	}
  
+-	/*
+-	 * Major/minor page fault accounting is only done on the
+-	 * initial attempt. If we go through a retry, it is extremely
+-	 * likely that the page will be found in page cache at that point.
+-	 */
  	if (flags & FAULT_FLAG_ALLOW_RETRY) {
 -		if (fault & VM_FAULT_MAJOR)
 -			current->maj_flt++;
