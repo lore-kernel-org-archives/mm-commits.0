@@ -2,51 +2,54 @@ Return-Path: <SRS0=McLq=BW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A93AC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8485CC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61B8B207DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 648BC2080C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195893;
-	bh=zRGeNM6mpYmWTG1hl4rMZdDYVTJmyd34zKe0DAJKaMs=;
+	s=default; t=1597195903;
+	bh=Q6rApmQDZq4TeKb8rhD6Grm+mRm2ZCIupR/XKyeYeTA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=EuQBMvefhmwUR+rTt42xr8z13s1tGeh4TdMkN13KHU49J2gznP/0i2rv3bRW4psVG
-	 w1t5sLy4S0cl4jbnlhSZEz+D9fkKz5/lV6sh4si5432kLiNVPVJCdNTMad08qD5iVN
-	 Wz/FbP1cJcjCvgNOD3cPSAS+GswVYWV7Iu/11qws=
+	b=xk20vSF1HhwEiSTk+sr3ZDlkH0/imA3o1Dr0L/XA4q2j5R2JYM/IR1kPqF2chZEjC
+	 bVFRTxLeO+xeSCHLVdVw0XPJU2I5oD6oogBafYKblSg1LPu+AxaO+8Cw/rxKMAqIj6
+	 FKqBJ6VuMQ/WE5Kv1AkYhb5YdK8K+Od5eQfEWF6I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgHLBbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:31:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58942 "EHLO mail.kernel.org"
+        id S1726333AbgHLBbm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:31:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBbd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:31:33 -0400
+        id S1726609AbgHLBbk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:31:40 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6D51E206B2;
-        Wed, 12 Aug 2020 01:31:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E9BB620829;
+        Wed, 12 Aug 2020 01:31:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195892;
-        bh=zRGeNM6mpYmWTG1hl4rMZdDYVTJmyd34zKe0DAJKaMs=;
+        s=default; t=1597195899;
+        bh=Q6rApmQDZq4TeKb8rhD6Grm+mRm2ZCIupR/XKyeYeTA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=im5NYhn8mml1t0UHky5AzX/Jcxk4JsBxFi92zHdDckqmF8oumNQYbZZ1DqC1VZhf9
-         asqK9nIt2Cg/aMdaXvRnKGfeqOH6c/HlpDOx/Bkbs2c8sk8/IhdBnXodidAegtU1J9
-         2K71y1Q8I2LV+i2Vq2W9ve8PunaBLCij6SdPLT34=
-Date:   Tue, 11 Aug 2020 18:31:32 -0700
+        b=tun4aQW8B6L9tSru65vVl8Ktq5k/qZ+kcStRwR6omnE37B79qG0t8rlIgudXmB65r
+         82fvv7UbKpMSVz4L5nn3m0PbUy1BULxThOjBZtG3x0n+UAKXS456sPV9idRl8qIyPj
+         Zfp7r6JH9X1utTJ2p6id4L0rHgLpS7WSwnx9peLs=
+Date:   Tue, 11 Aug 2020 18:31:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cai@lca.pw, laoar.shao@gmail.com,
-        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 024/165] mm, oom: show process exiting information
- in __oom_kill_process()
-Message-ID: <20200812013132.y2HAP8zOp%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        aneesh.kumar@linux.vnet.ibm.com, dave@stgolabs.net,
+        hughd@google.com, kirill.shutemov@linux.intel.com,
+        linux-mm@kvack.org, mhocko@kernel.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        prakash.sangappa@oracle.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 026/165] hugetlbfs: remove call to huge_pte_alloc
+ without i_mmap_rwsem
+Message-ID: <20200812013138.uoXpEHoev%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,36 +58,162 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm, oom: show process exiting information in __oom_kill_process()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem
 
-When the OOM killer finds a victim and tryies to kill it, if the victim is
-already exiting, the task mm will be NULL and no process will be killed. 
-But the dump_header() has been already executed, so it will be strange to
-dump so much information without killing a process.  We'd better show some
-helpful information to indicate why this happens.
+Commit c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing
+synchronization") requires callers of huge_pte_alloc to hold i_mmap_rwsem
+in at least read mode.  This is because the explicit locking in
+huge_pmd_share (called by huge_pte_alloc) was removed.  When restructuring
+the code, the call to huge_pte_alloc in the else block at the beginning of
+hugetlb_fault was missed.
 
-Link: http://lkml.kernel.org/r/20200721010127.17238-1-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Qian Cai <cai@lca.pw>
+Unfortunately, that else clause is exercised when there is no page table
+entry.  This will likely lead to a call to huge_pmd_share.  If
+huge_pmd_share thinks pmd sharing is possible, it will traverse the
+mapping tree (i_mmap) without holding i_mmap_rwsem.  If someone else is
+modifying the tree, bad things such as addressing exceptions or worse
+could happen.
+
+Simply remove the else clause.  It should have been removed previously. 
+The code following the else will call huge_pte_alloc with the appropriate
+locking.
+
+To prevent this type of issue in the future, add routines to assert that
+i_mmap_rwsem is held, and call these routines in huge pmd sharing
+routines.
+
+Link: http://lkml.kernel.org/r/e670f327-5cf9-1959-96e4-6dc7cc30d3d5@oracle.com
+Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A.Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/fs.h      |   10 ++++++++++
+ include/linux/hugetlb.h |    8 +++++---
+ mm/hugetlb.c            |   15 +++++++--------
+ mm/rmap.c               |    2 +-
+ 4 files changed, 23 insertions(+), 12 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom-show-process-exiting-information-in-__oom_kill_process
-+++ a/mm/oom_kill.c
-@@ -861,6 +861,8 @@ static void __oom_kill_process(struct ta
+--- a/include/linux/fs.h~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
++++ a/include/linux/fs.h
+@@ -518,6 +518,16 @@ static inline void i_mmap_unlock_read(st
+ 	up_read(&mapping->i_mmap_rwsem);
+ }
  
- 	p = find_lock_task_mm(victim);
- 	if (!p) {
-+		pr_info("%s: OOM victim %d (%s) is already exiting. Skip killing the task\n",
-+			message, task_pid_nr(victim), victim->comm);
- 		put_task_struct(victim);
- 		return;
- 	} else if (victim != p) {
++static inline void i_mmap_assert_locked(struct address_space *mapping)
++{
++	lockdep_assert_held(&mapping->i_mmap_rwsem);
++}
++
++static inline void i_mmap_assert_write_locked(struct address_space *mapping)
++{
++	lockdep_assert_held_write(&mapping->i_mmap_rwsem);
++}
++
+ /*
+  * Might pages of this file be mapped into userspace?
+  */
+--- a/include/linux/hugetlb.h~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
++++ a/include/linux/hugetlb.h
+@@ -164,7 +164,8 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 			unsigned long addr, unsigned long sz);
+ pte_t *huge_pte_offset(struct mm_struct *mm,
+ 		       unsigned long addr, unsigned long sz);
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep);
++int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
++				unsigned long *addr, pte_t *ptep);
+ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
+ 				unsigned long *start, unsigned long *end);
+ struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
+@@ -203,8 +204,9 @@ static inline struct address_space *huge
+ 	return NULL;
+ }
+ 
+-static inline int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr,
+-					pte_t *ptep)
++static inline int huge_pmd_unshare(struct mm_struct *mm,
++					struct vm_area_struct *vma,
++					unsigned long *addr, pte_t *ptep)
+ {
+ 	return 0;
+ }
+--- a/mm/hugetlb.c~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
++++ a/mm/hugetlb.c
+@@ -3967,7 +3967,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 			continue;
+ 
+ 		ptl = huge_pte_lock(h, mm, ptep);
+-		if (huge_pmd_unshare(mm, &address, ptep)) {
++		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
+ 			spin_unlock(ptl);
+ 			/*
+ 			 * We just unmapped a page of PMDs by clearing a PUD.
+@@ -4554,10 +4554,6 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
+ 			return VM_FAULT_HWPOISON_LARGE |
+ 				VM_FAULT_SET_HINDEX(hstate_index(h));
+-	} else {
+-		ptep = huge_pte_alloc(mm, haddr, huge_page_size(h));
+-		if (!ptep)
+-			return VM_FAULT_OOM;
+ 	}
+ 
+ 	/*
+@@ -5034,7 +5030,7 @@ unsigned long hugetlb_change_protection(
+ 		if (!ptep)
+ 			continue;
+ 		ptl = huge_pte_lock(h, mm, ptep);
+-		if (huge_pmd_unshare(mm, &address, ptep)) {
++		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
+ 			pages++;
+ 			spin_unlock(ptl);
+ 			shared_pmd = true;
+@@ -5415,12 +5411,14 @@ out:
+  * returns: 1 successfully unmapped a shared pte page
+  *	    0 the underlying pte page is not shared, or it is the last user
+  */
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
++int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
++					unsigned long *addr, pte_t *ptep)
+ {
+ 	pgd_t *pgd = pgd_offset(mm, *addr);
+ 	p4d_t *p4d = p4d_offset(pgd, *addr);
+ 	pud_t *pud = pud_offset(p4d, *addr);
+ 
++	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
+ 	BUG_ON(page_count(virt_to_page(ptep)) == 0);
+ 	if (page_count(virt_to_page(ptep)) == 1)
+ 		return 0;
+@@ -5438,7 +5436,8 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	return NULL;
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
++int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
++				unsigned long *addr, pte_t *ptep)
+ {
+ 	return 0;
+ }
+--- a/mm/rmap.c~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
++++ a/mm/rmap.c
+@@ -1469,7 +1469,7 @@ static bool try_to_unmap_one(struct page
+ 			 * do this outside rmap routines.
+ 			 */
+ 			VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
+-			if (huge_pmd_unshare(mm, &address, pvmw.pte)) {
++			if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
+ 				/*
+ 				 * huge_pmd_unshare unmapped an entire PMD
+ 				 * page.  There is no way of knowing exactly
 _
