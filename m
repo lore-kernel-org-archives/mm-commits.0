@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09F1DC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22B29C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9EC1207F7
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6A33207F7
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266162;
-	bh=RwqWivEzaZJZhkUutu0ocku5wdg9by+3tanHEwPE440=;
+	s=default; t=1597266165;
+	bh=Yd1XvXI3UTyp6RuHhMb2gYe8umeDgeHEceEIgPyqinw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=P+PvjCBn8BEJw+c6nr0dOSNazhC02i+J+dvKlgn+FbhiTly6Pv7D6VTuYFhVSFBn2
-	 F/h91MOZwYhf15FdhgAQBI4elqTTR1Nk2+NkFpvikiXy4hC/2ZV2HWDDdOSkDu/D6C
-	 4oKSgQgA0vluFFyTPuKLDApZBuu6s69suInmn2kA=
+	b=tohgrDXEKjo3qj9BqL5IOOOg9XV4X06aK/RPk2MqaWwXzZt04+kJNP7KH8jMXPExP
+	 XMwycmhiwBPahAh6taQXHQN1jKCRXsh+rYLqqGeevtLzaI0VJ7427HRy90D1xBzQLr
+	 WUv0p2yvqOuutcbNvdRypzshpZBTqPs9FfWvxqlQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726526AbgHLVCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50532 "EHLO mail.kernel.org"
+        id S1726512AbgHLVCo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726512AbgHLVCm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:42 -0400
+        id S1726282AbgHLVCo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:44 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 84B1F20838;
-        Wed, 12 Aug 2020 21:02:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8067120774;
+        Wed, 12 Aug 2020 21:02:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266161;
-        bh=RwqWivEzaZJZhkUutu0ocku5wdg9by+3tanHEwPE440=;
+        s=default; t=1597266163;
+        bh=Yd1XvXI3UTyp6RuHhMb2gYe8umeDgeHEceEIgPyqinw=;
         h=Date:From:To:Subject:From;
-        b=PDbKUOPYcYqw0Es4zg81Pa9nib3+/vJxGzg1Te6EWKGy6p5ZnwlwEZlS+rOUhqoH3
-         FhRyYdkzuUTp8wuRUv6mgjH/yP0fkoI3LkJHQYDVfgcArXYIBaF7/NmZH+YrNMWmlr
-         CcyO6eKJ41qu4r9GlvallW1hdg9ohuq8P9QjwmAQ=
-Date:   Wed, 12 Aug 2020 14:02:41 -0700
+        b=VZ7QaC3CSLv5pF7eZULWYyFDoGIIY07gwUibFc7dCSLBE9vCt3qXhHB0ioa8Yoimk
+         QmbjuQPoxDlKwb4U5akGeETXyDGr642WfJZKgELcOCtfpwq2eJ0mxs2jDNDvV2CfxB
+         Puqw5/XqpcpGJg+MnLA6yH8TW61HjuWUtuvPhXcc=
+Date:   Wed, 12 Aug 2020 14:02:43 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        vdavydov.dev@gmail.com
-Subject:  [merged]
- memcontrol-drop-duplicate-word-and-fix-spello-in-linux-memcontrolh.patch
+To:     akpm@linux-foundation.org, dave.hansen@linux.intel.com,
+        david@redhat.com, mm-commits@vger.kernel.org,
+        nivedita@alum.mit.edu, rppt@linux.ibm.com
+Subject:  [merged] sh-mm-drop-unused-max_physaddr_bits.patch
  removed from -mm tree
-Message-ID: <20200812210241.Kr457wRlz%akpm@linux-foundation.org>
+Message-ID: <20200812210243.sxb8NMN-B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,46 +55,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/memcontrol.h: drop duplicate word and fix spello
+     Subject: sh/mm: drop unused MAX_PHYSADDR_BITS
 has been removed from the -mm tree.  Its filename was
-     memcontrol-drop-duplicate-word-and-fix-spello-in-linux-memcontrolh.patch
+     sh-mm-drop-unused-max_physaddr_bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: include/linux/memcontrol.h: drop duplicate word and fix spello
+From: Arvind Sankar <nivedita@alum.mit.edu>
+Subject: sh/mm: drop unused MAX_PHYSADDR_BITS
 
-Drop the doubled word "for" in a comment.
-Fix spello of "incremented".
+The macro is not used anywhere, so remove the definition.
 
-Link: http://lkml.kernel.org/r/b04aa2e4-7c95-12f0-599d-43d07fb28134@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/20200723231544.17274-3-nivedita@alum.mit.edu
+Signed-off-by: Arvind Sankar <nivedita@alum.mit.edu>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sh/include/asm/sparsemem.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/linux/memcontrol.h~memcontrol-drop-duplicate-word-and-fix-spello-in-linux-memcontrolh
-+++ a/include/linux/memcontrol.h
-@@ -65,8 +65,8 @@ struct mem_cgroup_id {
- 
+--- a/arch/sh/include/asm/sparsemem.h~sh-mm-drop-unused-max_physaddr_bits
++++ a/arch/sh/include/asm/sparsemem.h
+@@ -5,11 +5,9 @@
+ #ifdef __KERNEL__
  /*
-  * Per memcg event counter is incremented at every pagein/pageout. With THP,
-- * it will be incremated by the number of pages. This counter is used for
-- * for trigger some periodic events. This is straightforward and better
-+ * it will be incremented by the number of pages. This counter is used
-+ * to trigger some periodic events. This is straightforward and better
-  * than using jiffies etc. to handle periodic memcg event.
+  * SECTION_SIZE_BITS		2^N: how big each section will be
+- * MAX_PHYSADDR_BITS		2^N: how much physical address space we have
+- * MAX_PHYSMEM_BITS		2^N: how much memory we can have in that space
++ * MAX_PHYSMEM_BITS		2^N: how much physical address space we have
   */
- enum mem_cgroup_events_target {
+ #define SECTION_SIZE_BITS	26
+-#define MAX_PHYSADDR_BITS	32
+ #define MAX_PHYSMEM_BITS	32
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from nivedita@alum.mit.edu are
 
 
