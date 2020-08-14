@@ -7,45 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEEBC433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 03:00:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 016F7C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 03:16:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A68AD2078D
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 03:00:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFB432078D
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 03:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597374016;
-	bh=egEDfFWEsu8u2ioZb3d3d9OXAZsoL+GxKHwv/9cwC+Q=;
+	s=default; t=1597375014;
+	bh=g35qmKgpwXXd2PE3EKCbo2NlEpZhvhFEORU3F6HbX+I=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=L5LPsRvrb1Uk0c+4pDTL634eWFpLWeBuxK+uYdKalmauKtX8LVVkYcy+V40PYhEOd
-	 OQXXv24JE2/prQaQkbXjMBYmm2fAbYmWTJCCclAw5vAPWODV44NuBjcLOEHLqJgY9j
-	 h9af06k1XGVfcMy6CloZzxaE2WMBuEznPJh/Yh8M=
+	b=Na9SN6J+d1o3ffiNp+im2T4/Cuy4SSvGNARf+A3xq1h74OkXjiGhmGADjA9dsGU9l
+	 FoC+hT6pL6Puk9JzrwPDTcKerHhFyA+CgWKdX3GM252zcf2+vpcH0UEVObPDD5b2QM
+	 Z+zPsvPFZqYhpdpS8R0QT9PuUk3ufB38kp92mztA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726568AbgHNDAQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Aug 2020 23:00:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38648 "EHLO mail.kernel.org"
+        id S1726576AbgHNDQy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Aug 2020 23:16:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44050 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726567AbgHNDAP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 13 Aug 2020 23:00:15 -0400
+        id S1726567AbgHNDQy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 13 Aug 2020 23:16:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C07AC2078B;
-        Fri, 14 Aug 2020 03:00:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 92BF520715;
+        Fri, 14 Aug 2020 03:16:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597374015;
-        bh=egEDfFWEsu8u2ioZb3d3d9OXAZsoL+GxKHwv/9cwC+Q=;
+        s=default; t=1597375013;
+        bh=g35qmKgpwXXd2PE3EKCbo2NlEpZhvhFEORU3F6HbX+I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lP/NWdO/1n7E+7QOlzd7kpMCZTQaQ8a7Dw/+BjRSmFI0AChD7jPmmEVKrKv5jTPvM
-         keU5T3zkrXbExU9+GjvIKvCAMUMQiXWJJ7+A+YMurhgsMXh/hPm+bbILv+QasgOKDi
-         U28WDNBJKWqy4BIs7nV8UQ4HqjL3r7tGST8K4VCY=
-Date:   Thu, 13 Aug 2020 20:00:14 -0700
+        b=Hm516d3rwa9JxZ49YrdbxhsabvPfSu6tEQ2Pd3XrfneuUA7mKPvmnT1/iwHn/mMos
+         SJxbkxFuuBGCxzYznVgwxWO3TwRskRrx6cDuxrbSg2HyN/7x5ouWA0sQmbxwZdoQ9u
+         ArxbiW9y2kZOIhXtnmwn/i9LktXW/IThuSkks6aM=
+Date:   Thu, 13 Aug 2020 20:16:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     charante@codeaurora.org, david@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        stable@vger.kernel.org, vbabka@suse.cz, vinmenon@codeaurora.org
-Subject:  + mm-page_alloc-fix-core-hung-in-free_pcppages_bulk.patch
- added to -mm tree
-Message-ID: <20200814030014.ODl4NLbRv%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, raven@themaw.net, rdunlap@infradead.org
+Subject:  + fs-autofs-delete-repeated-words-in-comments.patch added
+ to -mm tree
+Message-ID: <20200814031653.PAbtnAbps%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: fix core hung in free_pcppages_bulk()
+     Subject: fs: autofs: delete repeated words in comments
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-core-hung-in-free_pcppages_bulk.patch
+     fs-autofs-delete-repeated-words-in-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-core-hung-in-free_pcppages_bulk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-autofs-delete-repeated-words-in-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-core-hung-in-free_pcppages_bulk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-autofs-delete-repeated-words-in-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,100 +75,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, page_alloc: fix core hung in free_pcppages_bulk()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: fs: autofs: delete repeated words in comments
 
-The following race is observed with the repeated online, offline and a
-delay between two successive online of memory blocks of movable zone.
+Drop duplicated words {the, at} in comments.
 
-P1						P2
-
-Online the first memory block in
-the movable zone. The pcp struct
-values are initialized to default
-values,i.e., pcp->high = 0 &
-pcp->batch = 1.
-
-					Allocate the pages from the
-					movable zone.
-
-Try to Online the second memory
-block in the movable zone thus it
-entered the online_pages() but yet
-to call zone_pcp_update().
-					This process is entered into
-					the exit path thus it tries
-					to release the order-0 pages
-					to pcp lists through
-					free_unref_page_commit().
-					As pcp->high = 0, pcp->count = 1
-					proceed to call the function
-					free_pcppages_bulk().
-Update the pcp values thus the
-new pcp values are like, say,
-pcp->high = 378, pcp->batch = 63.
-					Read the pcp's batch value using
-					READ_ONCE() and pass the same to
-					free_pcppages_bulk(), pcp values
-					passed here are, batch = 63,
-					count = 1.
-
-					Since num of pages in the pcp
-					lists are less than ->batch,
-					then it will stuck in
-					while(list_empty(list)) loop
-					with interrupts disabled thus
-					a core hung.
-
-Avoid this by ensuring free_pcppages_bulk() is called with proper count of
-pcp list pages.
-
-The mentioned race is some what easily reproducible without [1] because
-pcp's are not updated for the first memory block online and thus there is
-a enough race window for P2 between alloc+free and pcp struct values
-update through onlining of second memory block.
-
-With [1], the race still exists but it is very narrow as we update the pcp
-struct values for the first memory block online itself.
-
-This is not limited to the movable zone, it could also happen in cases
-with the normal zone (e.g., hotplug to a node that only has DMA memory, or
-no other memory yet).
-
-[1]: https://patchwork.kernel.org/patch/11696389/
-
-Link: http://lkml.kernel.org/r/1597150703-19003-1-git-send-email-charante@codeaurora.org
-Fixes: 5f8dcc21211a ("page-allocator: split per-cpu list into one-list-per-migrate-type")
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: <stable@vger.kernel.org> [2.6+]
+Link: http://lkml.kernel.org/r/20200811021817.24982-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/autofs/dev-ioctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-core-hung-in-free_pcppages_bulk
-+++ a/mm/page_alloc.c
-@@ -1301,6 +1301,11 @@ static void free_pcppages_bulk(struct zo
- 	struct page *page, *tmp;
- 	LIST_HEAD(head);
+--- a/fs/autofs/dev-ioctl.c~fs-autofs-delete-repeated-words-in-comments
++++ a/fs/autofs/dev-ioctl.c
+@@ -20,7 +20,7 @@
+  * another mount. This situation arises when starting automount(8)
+  * or other user space daemon which uses direct mounts or offset
+  * mounts (used for autofs lazy mount/umount of nested mount trees),
+- * which have been left busy at at service shutdown.
++ * which have been left busy at service shutdown.
+  */
  
-+	/*
-+	 * Ensure proper count is passed which otherwise would stuck in the
-+	 * below while (list_empty(list)) loop.
-+	 */
-+	count = min(pcp->count, count);
- 	while (count) {
- 		struct list_head *list;
- 
+ typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
+@@ -496,7 +496,7 @@ static int autofs_dev_ioctl_askumount(st
+  * located path is the root of a mount we return 1 along with
+  * the super magic of the mount or 0 otherwise.
+  *
+- * In both cases the the device number (as returned by
++ * In both cases the device number (as returned by
+  * new_encode_dev()) is also returned.
+  */
+ static int autofs_dev_ioctl_ismountpoint(struct file *fp,
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-page_alloc-fix-core-hung-in-free_pcppages_bulk.patch
+fs-autofs-delete-repeated-words-in-comments.patch
 
