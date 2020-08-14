@@ -7,48 +7,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76FB4C433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 23:07:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1D66C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 23:07:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5254F20774
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 23:07:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9ABE020771
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Aug 2020 23:07:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597446426;
-	bh=OHDhETSAck9+q+xeox3W+Qxx3rz/242qgd4A8UyYZHo=;
+	s=default; t=1597446454;
+	bh=6MQfRjjy/MKdiuwv2djSPRtl0zfdwXUMk8T/Y0IDx5U=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=U5vrt3HwlwPTc1tIJppQ+tP22npstdX+og5RBzUzmQiO6yG2bi8kj+RN5/JhdvjF+
-	 6izXZCSXPlZ8pcJYCQ7iqHYvfB8O9IReUrkB3dnPeGDrh/otSv3VaoKSpDfidWLKuG
-	 cHEYteXvuRO+/2nRpfHz27Zh50YAkP7bpy59d68w=
+	b=gb2nkk7mhHvlriYxTGtUNaz2zQ9DIMEMqlbibuUbsXWR16CEXrvXhFRSCRqrMA5XT
+	 9+PToBfG6ZvXp5Dik9sDru/UDL1mSwCJin9A5qKDR6XWXB6C2FrXCPMzx18A7WKeIi
+	 MlO4Lol49OH4tHSPRgZKXCyP0BWJPeJ4XrKzXVVo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726919AbgHNXHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Aug 2020 19:07:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39412 "EHLO mail.kernel.org"
+        id S1726360AbgHNXHe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Aug 2020 19:07:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39604 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726320AbgHNXHF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 Aug 2020 19:07:05 -0400
+        id S1726320AbgHNXHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 Aug 2020 19:07:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 22B6C20771;
-        Fri, 14 Aug 2020 23:07:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D940420771;
+        Fri, 14 Aug 2020 23:07:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597446425;
-        bh=OHDhETSAck9+q+xeox3W+Qxx3rz/242qgd4A8UyYZHo=;
+        s=default; t=1597446451;
+        bh=6MQfRjjy/MKdiuwv2djSPRtl0zfdwXUMk8T/Y0IDx5U=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WCUxQ5IEbHriqzmXwh1/ibnpm26nPEBy/HIdDGm8r9FxKh7rtARJTb3mDPkwqitDJ
-         0Ech0DE7SrcTiYbQATrwL2U++Q8nP0E4Q4LciAoHJ4Upoq+rpK8juK+8QAtp5r7vDI
-         R/icsQKXNuHwL2ij1b47wZzYAV7ioBzFmuw81vyk=
-Date:   Fri, 14 Aug 2020 16:07:04 -0700
+        b=l/7HmDyLvcKd3nbqXMAvDYON3O9h62UJoDtBsbvjpgIHCcN7bj+sMo+crYyt+Rz8E
+         sDgbeBQr7BEYxEX3lIDNM5MSRY51OxeChBv3WV6cCMEZWWpQ80TJpjDOA9w12MHsms
+         FvDXfNFylm6feh2eWncrOeQxqKJIQN6XbiKbfxHY=
+Date:   Fri, 14 Aug 2020 16:07:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     dan.j.williams@intel.com, edumazet@google.com, hch@lst.de,
-        hughd@google.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [merged]
- dma-debug-fix-debug_dma_assert_idle-use-rcu_read_lock.patch removed from
- -mm tree
-Message-ID: <20200814230704.sIbCgKdfs%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, krzk@kernel.org, lkp@intel.com,
+        mm-commits@vger.kernel.org
+Subject:  +
+ =?US-ASCII?Q?iomap-constify-ioreadx-iomem-argument-as-in-generic-implemen?=
+ =?US-ASCII?Q?tation-fix-fix.patch?= added to -mm tree
+Message-ID: <20200814230730.dmUL1VTtT%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,97 +58,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug: fix debug_dma_assert_idle(), use rcu_read_lock()
-has been removed from the -mm tree.  Its filename was
-     dma-debug-fix-debug_dma_assert_idle-use-rcu_read_lock.patch
+     Subject: iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix
+has been added to the -mm tree.  Its filename is
+     iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: dma-debug: fix debug_dma_assert_idle(), use rcu_read_lock()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix
 
-Since commit 2a9127fcf229 ("mm: rewrite wait_on_page_bit_common() logic")
-improved unlock_page(), it has become more noticeable how cow_user_page()
-in a kernel with CONFIG_DMA_API_DEBUG=y can create and suffer from heavy
-contention on DMA debug's radix_lock in debug_dma_assert_idle().
+fix drivers/mailbox/bcm-pdc-mailbox.c
 
-It is only doing a lookup: use rcu_read_lock() and rcu_read_unlock()
-instead; though that does require the static ents[] to be moved onstack...
-
-...but, hold on, isn't that radix_tree_gang_lookup() and loop doing quite
-the wrong thing: searching CACHELINES_PER_PAGE entries for an exact match
-with the first cacheline of the page in question? 
-radix_tree_gang_lookup() is the right tool for the job, but we need
-nothing more than to check the first entry it can find, reporting if that
-falls anywhere within the page.
-
-(Is RCU safe here?  As safe as using the spinlock was.  The entries are
-never freed, so don't need to be freed by RCU.  They may be reused, and
-there is a faint chance of a race, with an offending entry reused while
-printing its error info; but the spinlock did not prevent that either, and
-I agree that it's not worth worrying about.)
-
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008122005240.11996@eggly.anvils
-Fixes: 3b7a6418c749 ("dma debug: account for cachelines and read-only mappings in overlap tracking")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Eric Dumazet <edumazet@google.com>
+Link: http://lkml.kernel.org/r/202007132209.Rxmv4QyS%25lkp@intel.com
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma/debug.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ drivers/mailbox/bcm-pdc-mailbox.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/dma/debug.c~dma-debug-fix-debug_dma_assert_idle-use-rcu_read_lock
-+++ a/kernel/dma/debug.c
-@@ -565,11 +565,8 @@ static void active_cacheline_remove(stru
-  */
- void debug_dma_assert_idle(struct page *page)
- {
--	static struct dma_debug_entry *ents[CACHELINES_PER_PAGE];
--	struct dma_debug_entry *entry = NULL;
--	void **results = (void **) &ents;
--	unsigned int nents, i;
--	unsigned long flags;
-+	struct dma_debug_entry *entry;
-+	unsigned long pfn;
- 	phys_addr_t cln;
+--- a/drivers/mailbox/bcm-pdc-mailbox.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix
++++ a/drivers/mailbox/bcm-pdc-mailbox.c
+@@ -679,7 +679,7 @@ pdc_receive(struct pdc_state *pdcs)
  
- 	if (dma_debug_disabled())
-@@ -578,20 +575,14 @@ void debug_dma_assert_idle(struct page *
- 	if (!page)
- 		return;
+ 	/* read last_rx_curr from register once */
+ 	pdcs->last_rx_curr =
+-	    (ioread32(&pdcs->rxregs_64->status0) &
++	    (ioread32((const void __iomem *)&pdcs->rxregs_64->status0) &
+ 	     CRYPTO_D64_RS0_CD_MASK) / RING_ENTRY_SIZE;
  
--	cln = (phys_addr_t) page_to_pfn(page) << CACHELINE_PER_PAGE_SHIFT;
--	spin_lock_irqsave(&radix_lock, flags);
--	nents = radix_tree_gang_lookup(&dma_active_cacheline, results, cln,
--				       CACHELINES_PER_PAGE);
--	for (i = 0; i < nents; i++) {
--		phys_addr_t ent_cln = to_cacheline_number(ents[i]);
-+	pfn = page_to_pfn(page);
-+	cln = (phys_addr_t) pfn << CACHELINE_PER_PAGE_SHIFT;
- 
--		if (ent_cln == cln) {
--			entry = ents[i];
--			break;
--		} else if (ent_cln >= cln + CACHELINES_PER_PAGE)
--			break;
--	}
--	spin_unlock_irqrestore(&radix_lock, flags);
-+	rcu_read_lock();
-+	if (!radix_tree_gang_lookup(&dma_active_cacheline, (void **) &entry,
-+				    cln, 1) || entry->pfn != pfn)
-+		entry = NULL;
-+	rcu_read_unlock();
- 
- 	if (!entry)
- 		return;
+ 	do {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-khugepaged-adjust-vm_bug_on_mm-in-__khugepaged_enter.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
