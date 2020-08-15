@@ -2,50 +2,50 @@ Return-Path: <SRS0=U74d=BZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DATE_IN_PAST_12_24,
+X-Spam-Status: No, score=-4.3 required=3.0 tests=BAYES_00,DATE_IN_PAST_12_24,
 	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D30B7C433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D735C433E3
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A093220657
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 560B820639
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529540;
-	bh=4ezhMfTvQ6DKf/rvPdBQqJDKMDzigCKkI5KbmITVWXw=;
+	s=default; t=1597529542;
+	bh=AvFXvOLAEDFOlsmkx/t3SRcMu/M1D+WAgX+MfEVh7iQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=yzd0EXBE092koUSQc95Xor+eN06p0jN4+vdiwqaLKLBA3sLSl6iDM2YOMz1zPdSaW
-	 0vfO+jWdBik31eMD6NeT4XCQvs31wwW0L8mebpLsSJqs6MhWf+EkkEOusEhsd23bTe
-	 gDtQ2Ip8XB3Elq0DJRWc+b97iempNTtyy9d9+gUk=
+	b=hp2JWkS6kFp0+8K+F4wt2ads5wp65Ocw9g9z789lVnBaxLd47dR3oNTiI3M6F1/oZ
+	 AgBBamDJ6d/1CMwhVnCdGC81NjFC8u9NHxeN1X8IH3syNaY6ttObubT9sBjAa0K8Iv
+	 Fld9iXHWqJShIpWbNmjzHoRXbcG+2tz50pDTsKGw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728428AbgHOWMS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:12:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41798 "EHLO mail.kernel.org"
+        id S1729042AbgHOWMV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 15 Aug 2020 18:12:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729093AbgHOWK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729024AbgHOWK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 15 Aug 2020 18:10:28 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F401222BF3;
-        Sat, 15 Aug 2020 00:30:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 69E4622CAF;
+        Sat, 15 Aug 2020 00:31:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451447;
-        bh=4ezhMfTvQ6DKf/rvPdBQqJDKMDzigCKkI5KbmITVWXw=;
+        s=default; t=1597451474;
+        bh=AvFXvOLAEDFOlsmkx/t3SRcMu/M1D+WAgX+MfEVh7iQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PCSX1pW/G4qze3rmFTA9uriZF3eJle1aYnOSkms5X5TZaBeNnqjCNK/Z2u4FAQqm8
-         OUv726Tv20UdrFtIC2lTmMj7XDiqUkrCyX08/DJopxy8t/uvmLPIX89S1PqiD/4jc6
-         irjEB6kD7i3yPQJX6Zngv15K/XOATOZJz++97BMs=
-Date:   Fri, 14 Aug 2020 17:30:46 -0700
+        b=b4wgoM9tgM8HqZJY+ZvCfd5Sk/Ylt9Lg4jV9bpqBSy939tSsLzm9aegJpsKl3aa9P
+         1EyesqJxFXROhKs+q8j9CEqbffz/NXfIyC+CqsHMSJCBPDMAkLi3tWtrcMEW9ZFw/4
+         mQlmmfyW/1VfkehFwF2rVVvqv3cFPPGRB2f5H6L4=
+Date:   Fri, 14 Aug 2020 17:31:14 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, raven@themaw.net,
-        rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 14/39] fs: autofs: delete repeated words in
- comments
-Message-ID: <20200815003046.h_CYnc3X0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, catalin.marinas@arm.com,
+        elver@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 20/39] mm/kmemleak: silence KCSAN splats in
+ checksum
+Message-ID: <20200815003114.m8MWd8xqQ%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,38 +54,65 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: fs: autofs: delete repeated words in comments
+From: Qian Cai <cai@lca.pw>
+Subject: mm/kmemleak: silence KCSAN splats in checksum
 
-Drop duplicated words {the, at} in comments.
+Even if KCSAN is disabled for kmemleak, update_checksum() could still call
+crc32() (which is outside of kmemleak.c) to dereference object->pointer. 
+Thus, the value of object->pointer could be accessed concurrently as
+noticed by KCSAN,
 
-Link: http://lkml.kernel.org/r/20200811021817.24982-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Ian Kent <raven@themaw.net>
+ BUG: KCSAN: data-race in crc32_le_base / do_raw_spin_lock
+
+ write to 0xffffb0ea683a7d50 of 4 bytes by task 23575 on cpu 12:
+  do_raw_spin_lock+0x114/0x200
+  debug_spin_lock_after at kernel/locking/spinlock_debug.c:91
+  (inlined by) do_raw_spin_lock at kernel/locking/spinlock_debug.c:115
+  _raw_spin_lock+0x40/0x50
+  __handle_mm_fault+0xa9e/0xd00
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x6f9
+  page_fault+0x34/0x40
+
+ read to 0xffffb0ea683a7d50 of 4 bytes by task 839 on cpu 60:
+  crc32_le_base+0x67/0x350
+  crc32_le_base+0x67/0x350:
+  crc32_body at lib/crc32.c:106
+  (inlined by) crc32_le_generic at lib/crc32.c:179
+  (inlined by) crc32_le at lib/crc32.c:197
+  kmemleak_scan+0x528/0xd90
+  update_checksum at mm/kmemleak.c:1172
+  (inlined by) kmemleak_scan at mm/kmemleak.c:1497
+  kmemleak_scan_thread+0xcc/0xfa
+  kthread+0x1e0/0x200
+  ret_from_fork+0x27/0x50
+
+If a shattered value was returned due to a data race, it will be corrected
+in the next scan.  Thus, let KCSAN ignore all reads in the region to
+silence KCSAN in case the write side is non-atomic.
+
+Link: http://lkml.kernel.org/r/20200317182754.2180-1-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Suggested-by: Marco Elver <elver@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs/dev-ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kmemleak.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/autofs/dev-ioctl.c~fs-autofs-delete-repeated-words-in-comments
-+++ a/fs/autofs/dev-ioctl.c
-@@ -20,7 +20,7 @@
-  * another mount. This situation arises when starting automount(8)
-  * or other user space daemon which uses direct mounts or offset
-  * mounts (used for autofs lazy mount/umount of nested mount trees),
-- * which have been left busy at at service shutdown.
-+ * which have been left busy at service shutdown.
-  */
+--- a/mm/kmemleak.c~mm-kmemleak-silence-kcsan-splats-in-checksum
++++ a/mm/kmemleak.c
+@@ -1169,8 +1169,10 @@ static bool update_checksum(struct kmeml
+ 	u32 old_csum = object->checksum;
  
- typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
-@@ -496,7 +496,7 @@ static int autofs_dev_ioctl_askumount(st
-  * located path is the root of a mount we return 1 along with
-  * the super magic of the mount or 0 otherwise.
-  *
-- * In both cases the the device number (as returned by
-+ * In both cases the device number (as returned by
-  * new_encode_dev()) is also returned.
-  */
- static int autofs_dev_ioctl_ismountpoint(struct file *fp,
+ 	kasan_disable_current();
++	kcsan_disable_current();
+ 	object->checksum = crc32(0, (void *)object->pointer, object->size);
+ 	kasan_enable_current();
++	kcsan_enable_current();
+ 
+ 	return object->checksum != old_csum;
+ }
 _
