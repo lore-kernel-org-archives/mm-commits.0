@@ -7,1109 +7,995 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6876C433E1
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:10:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BF4BC433DF
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:10:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 760232063A
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:10:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E80352063A
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:10:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529444;
-	bh=KJjHlCIsPJNzQSK5hDr8EAAHB3q55v/HuUtKcZGOGu8=;
+	s=default; t=1597529449;
+	bh=UnTMF3tY5DznXYgiuyPtpxVqv0Dgj99nZTgqS1evF0o=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Y4eL+cwz27+unjiiyIuMKEziIFfzScTsoDz/p3aOnw19/kEog4acCnfJqpq2pfVUP
-	 FD/Y6JjRxU8Dh/DmY22COnhNhqbIGhuUMx4JHVt/p0prGvt7eqsOtsSeeW1nSySbFU
-	 9GUekav9RlzoaJPwiImLg3Tp2JBT9atf+uLyoYV0=
+	b=OgDX2gOdApjEyGHIheZhG9oScqUt6RtphH4+S1LeaIHfjIQaPykVCHjK22F1zt0M7
+	 aEOwXZlihqpaEdlTiNcGTQ4+QkQYLMsiGyascUFELLwxFEr0bhFGC1cwiLjbS2o1k2
+	 5ua5ZqXK6QEC9wDxx+cR5dMmHkrJN8pYKpLwjKTY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729681AbgHOWKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1729697AbgHOWKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 15 Aug 2020 18:10:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41772 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729586AbgHOWKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729581AbgHOWKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 15 Aug 2020 18:10:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 443B722DFB;
-        Sat, 15 Aug 2020 00:32:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4ECC922CAD;
+        Sat, 15 Aug 2020 00:31:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451529;
-        bh=KJjHlCIsPJNzQSK5hDr8EAAHB3q55v/HuUtKcZGOGu8=;
+        s=default; t=1597451471;
+        bh=UnTMF3tY5DznXYgiuyPtpxVqv0Dgj99nZTgqS1evF0o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ty9AhIUdYRjo9+GuzRtdohOLvbcfkv+ltSnt/IdZOznL7jjj0Q/Ujj35gLDs4Zan7
-         sAKevfbUb93j6DXv4Yrf1PEftPFyNPFDbyQ435Arf14D0SbVyDKI7SklY8sIgl85kg
-         tqW+MaZ2nDrzKpP7rQmcZDLA0KnVQ6ivFc6UIv9E=
-Date:   Fri, 14 Aug 2020 17:32:07 -0700
+        b=YlSkXcLKZ8paiD7mR+JH7wycwpCMQUDKUDtSZ3Rik0xc197M4nGsYZEqIeWGv2N9T
+         P9K5BwdZHFQcjqnTTJH0rMFptzNHto96LYe4HW+7DiGuj1l3jHpycv+Yb4aiILHE1W
+         XHCWzM+5RbzizgrZUrVG5INK6Tk+UIn2C+HlVnlc=
+Date:   Fri, 14 Aug 2020 17:31:07 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, allenbh@gmail.com, arnd@arndb.de,
-        benh@kernel.crashing.org, dalias@libc.org, dave.jiang@intel.com,
-        davem@davemloft.net, deller@gmx.de, geert+renesas@glider.be,
-        geert@linux-m68k.org, ink@jurassic.park.msu.ru,
-        James.Bottomley@HansenPartnership.com, jasowang@redhat.com,
-        jdmason@kudzu.us, krzk@kernel.org, kuba@kernel.org,
-        kvalo@codeaurora.org, linux-mm@kvack.org, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, mst@redhat.com,
-        paulus@samba.org, rth@twiddle.net, torvalds@linux-foundation.org,
-        ysato@users.sourceforge.jp
-Subject:  [patch 36/39] iomap: constify ioreadX() iomem argument
- (as in generic implementation)
-Message-ID: <20200815003207.urswytB1f%akpm@linux-foundation.org>
+To:     acme@kernel.org, ak@linux.intel.com, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com, arnd@arndb.de, axboe@kernel.dk,
+        bauerman@linux.ibm.com, benh@kernel.crashing.org,
+        bin.meng@windriver.com, borntraeger@de.ibm.com, bp@alien8.de,
+        brgerst@gmail.com, catalin.marinas@arm.com, chenzefeng2@huawei.com,
+        chris@zankel.net, christian@brauner.io, cyphar@cyphar.com,
+        dalias@libc.org, davem@davemloft.net, deller@gmx.de,
+        dhowells@redhat.com, dvyukov@google.com, ebiederm@xmission.com,
+        elver@google.com, fenghua.yu@intel.com, flameeyes@flameeyes.com,
+        geert@linux-m68k.org, gor@linux.ibm.com, heiko.carstens@de.ibm.com,
+        hpa@zytor.com, ink@jurassic.park.msu.ru,
+        James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com,
+        jolsa@redhat.com, jongk@linux-m68k.org, keescook@chromium.org,
+        krzk@kernel.org, linux-mm@kvack.org, linux@armlinux.org.uk,
+        linux@dominikbrodowski.net, luto@kernel.org, mark.rutland@arm.com,
+        martin.petersen@oracle.com, mattst88@gmail.com, mcgrof@kernel.org,
+        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        monstr@monstr.eu, mpe@ellerman.id.au, mszeredi@redhat.com,
+        namhyung@kernel.org, naveen.n.rao@linux.vnet.ibm.com,
+        nixiaoming@huawei.com, npiggin@gmail.com, oleg@redhat.com,
+        olof@lixom.net, paulburton@kernel.org, paulmck@kernel.org,
+        paulus@samba.org, peterz@infradead.org,
+        ravi.bangoria@linux.ibm.com, rdunlap@infradead.org,
+        rth@twiddle.net, samitolvanen@google.com, sargun@sargun.me,
+        sfr@canb.auug.org.au, sudeep.holla@arm.com, svens@stackframe.org,
+        tglx@linutronix.de, tony.luck@intel.com,
+        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
+        vbabka@suse.cz, viro@zeniv.linux.org.uk, will@kernel.org,
+        yamada.masahiro@socionext.com, ysato@users.sourceforge.jp,
+        yzaikin@google.com, zhouyanjie@wanyeetech.com
+Subject:  [patch 19/39] all arch: remove system call sys_sysctl
+Message-ID: <20200815003107.M3FiGawo9%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Subject: iomap: constify ioreadX() iomem argument (as in generic implementation)
+=46rom: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: all arch: remove system call sys_sysctl
 
-Patch series "iomap: Constify ioreadX() iomem argument", v3.
+Since commit 61a47c1ad3a4dc ("sysctl: Remove the sysctl system call"),
+sys_sysctl is actually unavailable: any input can only return an error.
 
-The ioread8/16/32() and others have inconsistent interface among the
-architectures: some taking address as const, some not.
+We have been warning about people using the sysctl system call for years
+and believe there are no more users.  Even if there are users of this
+interface if they have not complained or fixed their code by now they
+probably are not going to, so there is no point in warning them any
+longer.
 
-It seems there is nothing really stopping all of them to take pointer to
-const.
+So completely remove sys_sysctl on all architectures.
 
-
-This patch (of 4):
-
-The ioreadX() and ioreadX_rep() helpers have inconsistent interface.  On
-some architectures void *__iomem address argument is a pointer to const,
-on some not.
-
-Implementations of ioreadX() do not modify the memory under the address so
-they can be converted to a "const" version for const-safety and
-consistency among architectures.
-
-[krzk@kernel.org: sh: clk: fix assignment from incompatible pointer type for ioreadX()]
-  Link: http://lkml.kernel.org/r/20200723082017.24053-1-krzk@kernel.org
-[akpm@linux-foundation.org: fix drivers/mailbox/bcm-pdc-mailbox.c]
-  Link: http://lkml.kernel.org/r/202007132209.Rxmv4QyS%25lkp@intel.com
-Link: http://lkml.kernel.org/r/20200709072837.5869-1-krzk@kernel.org
-Link: http://lkml.kernel.org/r/20200709072837.5869-2-krzk@kernel.org
-Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+[nixiaoming@huawei.com: s390: fix build error for sys_call_table_emu]
+ Link: http://lkml.kernel.org/r/20200618141426.16884-1-nixiaoming@huawei.com
+Link: http://lkml.kernel.org/r/20200616030734.87257-1-nixiaoming@huawei.com
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Acked-by: Will Deacon <will@kernel.org>		[arm/arm64]
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Bin Meng <bin.meng@windriver.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: chenzefeng <chenzefeng2@huawei.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christian Brauner <christian@brauner.io>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Diego Elio Petten=C3=B2 <flameeyes@flameeyes.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jiri Olsa <jolsa@redhat.com>
+Cc: Kars de Jong <jongk@linux-m68k.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ravi Bangoria <ravi.bangoria@linux.ibm.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Cc: Rich Felker <dalias@libc.org>
-Cc: Kalle Valo <kvalo@codeaurora.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Jon Mason <jdmason@kudzu.us>
-Cc: Allen Hubbe <allenbh@gmail.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Sargun Dhillon <sargun@sargun.me>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Sven Schnelle <svens@stackframe.org>
+Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Zhou Yanjie <zhouyanjie@wanyeetech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/core_apecs.h   |    6 +-
- arch/alpha/include/asm/core_cia.h     |    6 +-
- arch/alpha/include/asm/core_lca.h     |    6 +-
- arch/alpha/include/asm/core_marvel.h  |    4 -
- arch/alpha/include/asm/core_mcpcia.h  |    6 +-
- arch/alpha/include/asm/core_t2.h      |    2 
- arch/alpha/include/asm/io.h           |   12 ++--
- arch/alpha/include/asm/io_trivial.h   |   16 ++---
- arch/alpha/include/asm/jensen.h       |    2 
- arch/alpha/include/asm/machvec.h      |    6 +-
- arch/alpha/kernel/core_marvel.c       |    2 
- arch/alpha/kernel/io.c                |   12 ++--
- arch/parisc/include/asm/io.h          |    4 -
- arch/parisc/lib/iomap.c               |   72 ++++++++++++------------
- arch/powerpc/kernel/iomap.c           |   28 ++++-----
- arch/sh/kernel/iomap.c                |   22 +++----
- drivers/mailbox/bcm-pdc-mailbox.c     |    2 
- drivers/sh/clk/cpg.c                  |    2 
- include/asm-generic/iomap.h           |   28 ++++-----
- include/linux/io-64-nonatomic-hi-lo.h |    4 -
- include/linux/io-64-nonatomic-lo-hi.h |    4 -
- lib/iomap.c                           |   30 +++++-----
- 22 files changed, 138 insertions(+), 138 deletions(-)
+ arch/alpha/kernel/syscalls/syscall.tbl             |    2=20
+ arch/arm/configs/am200epdkit_defconfig             |    1=20
+ arch/arm/tools/syscall.tbl                         |    2=20
+ arch/arm64/include/asm/unistd32.h                  |    4=20
+ arch/ia64/kernel/syscalls/syscall.tbl              |    2=20
+ arch/m68k/kernel/syscalls/syscall.tbl              |    2=20
+ arch/microblaze/kernel/syscalls/syscall.tbl        |    2=20
+ arch/mips/configs/cu1000-neo_defconfig             |    1=20
+ arch/mips/kernel/syscalls/syscall_n32.tbl          |    2=20
+ arch/mips/kernel/syscalls/syscall_n64.tbl          |    2=20
+ arch/mips/kernel/syscalls/syscall_o32.tbl          |    2=20
+ arch/parisc/kernel/syscalls/syscall.tbl            |    2=20
+ arch/powerpc/kernel/syscalls/syscall.tbl           |    2=20
+ arch/s390/kernel/syscalls/syscall.tbl              |    2=20
+ arch/sh/configs/dreamcast_defconfig                |    1=20
+ arch/sh/configs/espt_defconfig                     |    1=20
+ arch/sh/configs/hp6xx_defconfig                    |    1=20
+ arch/sh/configs/landisk_defconfig                  |    1=20
+ arch/sh/configs/lboxre2_defconfig                  |    1=20
+ arch/sh/configs/microdev_defconfig                 |    1=20
+ arch/sh/configs/migor_defconfig                    |    1=20
+ arch/sh/configs/r7780mp_defconfig                  |    1=20
+ arch/sh/configs/r7785rp_defconfig                  |    1=20
+ arch/sh/configs/rts7751r2d1_defconfig              |    1=20
+ arch/sh/configs/rts7751r2dplus_defconfig           |    1=20
+ arch/sh/configs/se7206_defconfig                   |    1=20
+ arch/sh/configs/se7343_defconfig                   |    1=20
+ arch/sh/configs/se7619_defconfig                   |    1=20
+ arch/sh/configs/se7705_defconfig                   |    1=20
+ arch/sh/configs/se7750_defconfig                   |    1=20
+ arch/sh/configs/se7751_defconfig                   |    1=20
+ arch/sh/configs/secureedge5410_defconfig           |    1=20
+ arch/sh/configs/sh03_defconfig                     |    1=20
+ arch/sh/configs/sh7710voipgw_defconfig             |    1=20
+ arch/sh/configs/sh7757lcr_defconfig                |    1=20
+ arch/sh/configs/sh7763rdp_defconfig                |    1=20
+ arch/sh/configs/shmin_defconfig                    |    1=20
+ arch/sh/configs/titan_defconfig                    |    1=20
+ arch/sh/kernel/syscalls/syscall.tbl                |    2=20
+ arch/sparc/kernel/syscalls/syscall.tbl             |    2=20
+ arch/x86/entry/syscalls/syscall_32.tbl             |    2=20
+ arch/x86/entry/syscalls/syscall_64.tbl             |    2=20
+ arch/xtensa/kernel/syscalls/syscall.tbl            |    2=20
+ include/linux/compat.h                             |    1=20
+ include/linux/syscalls.h                           |    2=20
+ include/linux/sysctl.h                             |    6=20
+ kernel/Makefile                                    |    2=20
+ kernel/sys_ni.c                                    |    1=20
+ kernel/sysctl_binary.c                             |  171 -----------
+ tools/perf/arch/powerpc/entry/syscalls/syscall.tbl |    2=20
+ tools/perf/arch/s390/entry/syscalls/syscall.tbl    |    2=20
+ tools/perf/arch/x86/entry/syscalls/syscall_64.tbl  |    2=20
+ 52 files changed, 24 insertions(+), 227 deletions(-)
 
---- a/arch/alpha/include/asm/core_apecs.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/core_apecs.h
-@@ -384,7 +384,7 @@ struct el_apecs_procdata
- 		}						\
- 	} while (0)
- 
--__EXTERN_INLINE unsigned int apecs_ioread8(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int apecs_ioread8(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	unsigned long result, base_and_type;
-@@ -420,7 +420,7 @@ __EXTERN_INLINE void apecs_iowrite8(u8 b
- 	*(vuip) ((addr << 5) + base_and_type) = w;
- }
- 
--__EXTERN_INLINE unsigned int apecs_ioread16(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int apecs_ioread16(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	unsigned long result, base_and_type;
-@@ -456,7 +456,7 @@ __EXTERN_INLINE void apecs_iowrite16(u16
- 	*(vuip) ((addr << 5) + base_and_type) = w;
- }
- 
--__EXTERN_INLINE unsigned int apecs_ioread32(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int apecs_ioread32(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	if (addr < APECS_DENSE_MEM)
---- a/arch/alpha/include/asm/core_cia.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/core_cia.h
-@@ -342,7 +342,7 @@ struct el_CIA_sysdata_mcheck {
- #define vuip	volatile unsigned int __force *
- #define vulp	volatile unsigned long __force *
- 
--__EXTERN_INLINE unsigned int cia_ioread8(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int cia_ioread8(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	unsigned long result, base_and_type;
-@@ -374,7 +374,7 @@ __EXTERN_INLINE void cia_iowrite8(u8 b,
- 	*(vuip) ((addr << 5) + base_and_type) = w;
- }
- 
--__EXTERN_INLINE unsigned int cia_ioread16(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int cia_ioread16(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	unsigned long result, base_and_type;
-@@ -404,7 +404,7 @@ __EXTERN_INLINE void cia_iowrite16(u16 b
- 	*(vuip) ((addr << 5) + base_and_type) = w;
- }
- 
--__EXTERN_INLINE unsigned int cia_ioread32(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int cia_ioread32(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	if (addr < CIA_DENSE_MEM)
---- a/arch/alpha/include/asm/core_lca.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/core_lca.h
-@@ -230,7 +230,7 @@ union el_lca {
- 	} while (0)
- 
- 
--__EXTERN_INLINE unsigned int lca_ioread8(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int lca_ioread8(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	unsigned long result, base_and_type;
-@@ -266,7 +266,7 @@ __EXTERN_INLINE void lca_iowrite8(u8 b,
- 	*(vuip) ((addr << 5) + base_and_type) = w;
- }
- 
--__EXTERN_INLINE unsigned int lca_ioread16(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int lca_ioread16(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	unsigned long result, base_and_type;
-@@ -302,7 +302,7 @@ __EXTERN_INLINE void lca_iowrite16(u16 b
- 	*(vuip) ((addr << 5) + base_and_type) = w;
- }
- 
--__EXTERN_INLINE unsigned int lca_ioread32(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int lca_ioread32(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	if (addr < LCA_DENSE_MEM)
---- a/arch/alpha/include/asm/core_marvel.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/core_marvel.h
-@@ -332,10 +332,10 @@ struct io7 {
- #define vucp	volatile unsigned char __force *
- #define vusp	volatile unsigned short __force *
- 
--extern unsigned int marvel_ioread8(void __iomem *);
-+extern unsigned int marvel_ioread8(const void __iomem *);
- extern void marvel_iowrite8(u8 b, void __iomem *);
- 
--__EXTERN_INLINE unsigned int marvel_ioread16(void __iomem *addr)
-+__EXTERN_INLINE unsigned int marvel_ioread16(const void __iomem *addr)
- {
- 	return __kernel_ldwu(*(vusp)addr);
- }
---- a/arch/alpha/include/asm/core_mcpcia.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/core_mcpcia.h
-@@ -267,7 +267,7 @@ extern inline int __mcpcia_is_mmio(unsig
- 	return (addr & 0x80000000UL) == 0;
- }
- 
--__EXTERN_INLINE unsigned int mcpcia_ioread8(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int mcpcia_ioread8(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long)xaddr & MCPCIA_MEM_MASK;
- 	unsigned long hose = (unsigned long)xaddr & ~MCPCIA_MEM_MASK;
-@@ -291,7 +291,7 @@ __EXTERN_INLINE void mcpcia_iowrite8(u8
- 	*(vuip) ((addr << 5) + hose + 0x00) = w;
- }
- 
--__EXTERN_INLINE unsigned int mcpcia_ioread16(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int mcpcia_ioread16(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long)xaddr & MCPCIA_MEM_MASK;
- 	unsigned long hose = (unsigned long)xaddr & ~MCPCIA_MEM_MASK;
-@@ -315,7 +315,7 @@ __EXTERN_INLINE void mcpcia_iowrite16(u1
- 	*(vuip) ((addr << 5) + hose + 0x08) = w;
- }
- 
--__EXTERN_INLINE unsigned int mcpcia_ioread32(void __iomem *xaddr)
-+__EXTERN_INLINE unsigned int mcpcia_ioread32(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long)xaddr;
- 
---- a/arch/alpha/include/asm/core_t2.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/core_t2.h
-@@ -572,7 +572,7 @@ __EXTERN_INLINE int t2_is_mmio(const vol
-    it doesn't make sense to merge the pio and mmio routines.  */
- 
- #define IOPORT(OS, NS)							\
--__EXTERN_INLINE unsigned int t2_ioread##NS(void __iomem *xaddr)		\
-+__EXTERN_INLINE unsigned int t2_ioread##NS(const void __iomem *xaddr)		\
- {									\
- 	if (t2_is_mmio(xaddr))						\
- 		return t2_read##OS(xaddr);				\
---- a/arch/alpha/include/asm/io.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/io.h
-@@ -150,9 +150,9 @@ static inline void generic_##NAME(TYPE b
- 	alpha_mv.mv_##NAME(b, addr);					\
- }
- 
--REMAP1(unsigned int, ioread8, /**/)
--REMAP1(unsigned int, ioread16, /**/)
--REMAP1(unsigned int, ioread32, /**/)
-+REMAP1(unsigned int, ioread8, const)
-+REMAP1(unsigned int, ioread16, const)
-+REMAP1(unsigned int, ioread32, const)
- REMAP1(u8, readb, const volatile)
- REMAP1(u16, readw, const volatile)
- REMAP1(u32, readl, const volatile)
-@@ -307,7 +307,7 @@ static inline int __is_mmio(const volati
-  */
- 
- #if IO_CONCAT(__IO_PREFIX,trivial_io_bw)
--extern inline unsigned int ioread8(void __iomem *addr)
-+extern inline unsigned int ioread8(const void __iomem *addr)
- {
- 	unsigned int ret;
- 	mb();
-@@ -316,7 +316,7 @@ extern inline unsigned int ioread8(void
- 	return ret;
- }
- 
--extern inline unsigned int ioread16(void __iomem *addr)
-+extern inline unsigned int ioread16(const void __iomem *addr)
- {
- 	unsigned int ret;
- 	mb();
-@@ -359,7 +359,7 @@ extern inline void outw(u16 b, unsigned
- #endif
- 
- #if IO_CONCAT(__IO_PREFIX,trivial_io_lq)
--extern inline unsigned int ioread32(void __iomem *addr)
-+extern inline unsigned int ioread32(const void __iomem *addr)
- {
- 	unsigned int ret;
- 	mb();
---- a/arch/alpha/include/asm/io_trivial.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/io_trivial.h
-@@ -7,15 +7,15 @@
- 
- #if IO_CONCAT(__IO_PREFIX,trivial_io_bw)
- __EXTERN_INLINE unsigned int
--IO_CONCAT(__IO_PREFIX,ioread8)(void __iomem *a)
-+IO_CONCAT(__IO_PREFIX,ioread8)(const void __iomem *a)
- {
--	return __kernel_ldbu(*(volatile u8 __force *)a);
-+	return __kernel_ldbu(*(const volatile u8 __force *)a);
- }
- 
- __EXTERN_INLINE unsigned int
--IO_CONCAT(__IO_PREFIX,ioread16)(void __iomem *a)
-+IO_CONCAT(__IO_PREFIX,ioread16)(const void __iomem *a)
- {
--	return __kernel_ldwu(*(volatile u16 __force *)a);
-+	return __kernel_ldwu(*(const volatile u16 __force *)a);
- }
- 
- __EXTERN_INLINE void
-@@ -33,9 +33,9 @@ IO_CONCAT(__IO_PREFIX,iowrite16)(u16 b,
- 
- #if IO_CONCAT(__IO_PREFIX,trivial_io_lq)
- __EXTERN_INLINE unsigned int
--IO_CONCAT(__IO_PREFIX,ioread32)(void __iomem *a)
-+IO_CONCAT(__IO_PREFIX,ioread32)(const void __iomem *a)
- {
--	return *(volatile u32 __force *)a;
-+	return *(const volatile u32 __force *)a;
- }
- 
- __EXTERN_INLINE void
-@@ -73,14 +73,14 @@ IO_CONCAT(__IO_PREFIX,writew)(u16 b, vol
- __EXTERN_INLINE u8
- IO_CONCAT(__IO_PREFIX,readb)(const volatile void __iomem *a)
- {
--	void __iomem *addr = (void __iomem *)a;
-+	const void __iomem *addr = (const void __iomem *)a;
- 	return IO_CONCAT(__IO_PREFIX,ioread8)(addr);
- }
- 
- __EXTERN_INLINE u16
- IO_CONCAT(__IO_PREFIX,readw)(const volatile void __iomem *a)
- {
--	void __iomem *addr = (void __iomem *)a;
-+	const void __iomem *addr = (const void __iomem *)a;
- 	return IO_CONCAT(__IO_PREFIX,ioread16)(addr);
- }
- 
---- a/arch/alpha/include/asm/jensen.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/jensen.h
-@@ -305,7 +305,7 @@ __EXTERN_INLINE int jensen_is_mmio(const
-    that it doesn't make sense to merge them.  */
- 
- #define IOPORT(OS, NS)							\
--__EXTERN_INLINE unsigned int jensen_ioread##NS(void __iomem *xaddr)	\
-+__EXTERN_INLINE unsigned int jensen_ioread##NS(const void __iomem *xaddr)	\
- {									\
- 	if (jensen_is_mmio(xaddr))					\
- 		return jensen_read##OS(xaddr - 0x100000000ul);		\
---- a/arch/alpha/include/asm/machvec.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/include/asm/machvec.h
-@@ -46,9 +46,9 @@ struct alpha_machine_vector
- 	void (*mv_pci_tbi)(struct pci_controller *hose,
- 			   dma_addr_t start, dma_addr_t end);
- 
--	unsigned int (*mv_ioread8)(void __iomem *);
--	unsigned int (*mv_ioread16)(void __iomem *);
--	unsigned int (*mv_ioread32)(void __iomem *);
-+	unsigned int (*mv_ioread8)(const void __iomem *);
-+	unsigned int (*mv_ioread16)(const void __iomem *);
-+	unsigned int (*mv_ioread32)(const void __iomem *);
- 
- 	void (*mv_iowrite8)(u8, void __iomem *);
- 	void (*mv_iowrite16)(u16, void __iomem *);
---- a/arch/alpha/kernel/core_marvel.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/kernel/core_marvel.c
-@@ -806,7 +806,7 @@ void __iomem *marvel_ioportmap (unsigned
- }
- 
- unsigned int
--marvel_ioread8(void __iomem *xaddr)
-+marvel_ioread8(const void __iomem *xaddr)
- {
- 	unsigned long addr = (unsigned long) xaddr;
- 	if (__marvel_is_port_kbd(addr))
---- a/arch/alpha/kernel/io.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/alpha/kernel/io.c
-@@ -14,7 +14,7 @@
-    "generic", which bumps through the machine vector.  */
- 
- unsigned int
--ioread8(void __iomem *addr)
-+ioread8(const void __iomem *addr)
- {
- 	unsigned int ret;
- 	mb();
-@@ -23,7 +23,7 @@ ioread8(void __iomem *addr)
- 	return ret;
- }
- 
--unsigned int ioread16(void __iomem *addr)
-+unsigned int ioread16(const void __iomem *addr)
- {
- 	unsigned int ret;
- 	mb();
-@@ -32,7 +32,7 @@ unsigned int ioread16(void __iomem *addr
- 	return ret;
- }
- 
--unsigned int ioread32(void __iomem *addr)
-+unsigned int ioread32(const void __iomem *addr)
- {
- 	unsigned int ret;
- 	mb();
-@@ -257,7 +257,7 @@ EXPORT_SYMBOL(readq_relaxed);
- /*
-  * Read COUNT 8-bit bytes from port PORT into memory starting at SRC.
-  */
--void ioread8_rep(void __iomem *port, void *dst, unsigned long count)
-+void ioread8_rep(const void __iomem *port, void *dst, unsigned long count)
- {
- 	while ((unsigned long)dst & 0x3) {
- 		if (!count)
-@@ -300,7 +300,7 @@ EXPORT_SYMBOL(insb);
-  * the interfaces seems to be slow: just using the inlined version
-  * of the inw() breaks things.
-  */
--void ioread16_rep(void __iomem *port, void *dst, unsigned long count)
-+void ioread16_rep(const void __iomem *port, void *dst, unsigned long count)
- {
- 	if (unlikely((unsigned long)dst & 0x3)) {
- 		if (!count)
-@@ -340,7 +340,7 @@ EXPORT_SYMBOL(insw);
-  * but the interfaces seems to be slow: just using the inlined version
-  * of the inl() breaks things.
-  */
--void ioread32_rep(void __iomem *port, void *dst, unsigned long count)
-+void ioread32_rep(const void __iomem *port, void *dst, unsigned long count)
- {
- 	if (unlikely((unsigned long)dst & 0x3)) {
- 		while (count--) {
---- a/arch/parisc/include/asm/io.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/parisc/include/asm/io.h
-@@ -303,8 +303,8 @@ extern void outsl (unsigned long port, c
- #define ioread64be ioread64be
- #define iowrite64 iowrite64
- #define iowrite64be iowrite64be
--extern u64 ioread64(void __iomem *addr);
--extern u64 ioread64be(void __iomem *addr);
-+extern u64 ioread64(const void __iomem *addr);
-+extern u64 ioread64be(const void __iomem *addr);
- extern void iowrite64(u64 val, void __iomem *addr);
- extern void iowrite64be(u64 val, void __iomem *addr);
- 
---- a/arch/parisc/lib/iomap.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/parisc/lib/iomap.c
-@@ -43,13 +43,13 @@
- #endif
- 
- struct iomap_ops {
--	unsigned int (*read8)(void __iomem *);
--	unsigned int (*read16)(void __iomem *);
--	unsigned int (*read16be)(void __iomem *);
--	unsigned int (*read32)(void __iomem *);
--	unsigned int (*read32be)(void __iomem *);
--	u64 (*read64)(void __iomem *);
--	u64 (*read64be)(void __iomem *);
-+	unsigned int (*read8)(const void __iomem *);
-+	unsigned int (*read16)(const void __iomem *);
-+	unsigned int (*read16be)(const void __iomem *);
-+	unsigned int (*read32)(const void __iomem *);
-+	unsigned int (*read32be)(const void __iomem *);
-+	u64 (*read64)(const void __iomem *);
-+	u64 (*read64be)(const void __iomem *);
- 	void (*write8)(u8, void __iomem *);
- 	void (*write16)(u16, void __iomem *);
- 	void (*write16be)(u16, void __iomem *);
-@@ -57,9 +57,9 @@ struct iomap_ops {
- 	void (*write32be)(u32, void __iomem *);
- 	void (*write64)(u64, void __iomem *);
- 	void (*write64be)(u64, void __iomem *);
--	void (*read8r)(void __iomem *, void *, unsigned long);
--	void (*read16r)(void __iomem *, void *, unsigned long);
--	void (*read32r)(void __iomem *, void *, unsigned long);
-+	void (*read8r)(const void __iomem *, void *, unsigned long);
-+	void (*read16r)(const void __iomem *, void *, unsigned long);
-+	void (*read32r)(const void __iomem *, void *, unsigned long);
- 	void (*write8r)(void __iomem *, const void *, unsigned long);
- 	void (*write16r)(void __iomem *, const void *, unsigned long);
- 	void (*write32r)(void __iomem *, const void *, unsigned long);
-@@ -69,17 +69,17 @@ struct iomap_ops {
- 
- #define ADDR2PORT(addr) ((unsigned long __force)(addr) & 0xffffff)
- 
--static unsigned int ioport_read8(void __iomem *addr)
-+static unsigned int ioport_read8(const void __iomem *addr)
- {
- 	return inb(ADDR2PORT(addr));
- }
- 
--static unsigned int ioport_read16(void __iomem *addr)
-+static unsigned int ioport_read16(const void __iomem *addr)
- {
- 	return inw(ADDR2PORT(addr));
- }
- 
--static unsigned int ioport_read32(void __iomem *addr)
-+static unsigned int ioport_read32(const void __iomem *addr)
- {
- 	return inl(ADDR2PORT(addr));
- }
-@@ -99,17 +99,17 @@ static void ioport_write32(u32 datum, vo
- 	outl(datum, ADDR2PORT(addr));
- }
- 
--static void ioport_read8r(void __iomem *addr, void *dst, unsigned long count)
-+static void ioport_read8r(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	insb(ADDR2PORT(addr), dst, count);
- }
- 
--static void ioport_read16r(void __iomem *addr, void *dst, unsigned long count)
-+static void ioport_read16r(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	insw(ADDR2PORT(addr), dst, count);
- }
- 
--static void ioport_read32r(void __iomem *addr, void *dst, unsigned long count)
-+static void ioport_read32r(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	insl(ADDR2PORT(addr), dst, count);
- }
-@@ -150,37 +150,37 @@ static const struct iomap_ops ioport_ops
- 
- /* Legacy I/O memory ops */
- 
--static unsigned int iomem_read8(void __iomem *addr)
-+static unsigned int iomem_read8(const void __iomem *addr)
- {
- 	return readb(addr);
- }
- 
--static unsigned int iomem_read16(void __iomem *addr)
-+static unsigned int iomem_read16(const void __iomem *addr)
- {
- 	return readw(addr);
- }
- 
--static unsigned int iomem_read16be(void __iomem *addr)
-+static unsigned int iomem_read16be(const void __iomem *addr)
- {
- 	return __raw_readw(addr);
- }
- 
--static unsigned int iomem_read32(void __iomem *addr)
-+static unsigned int iomem_read32(const void __iomem *addr)
- {
- 	return readl(addr);
- }
- 
--static unsigned int iomem_read32be(void __iomem *addr)
-+static unsigned int iomem_read32be(const void __iomem *addr)
- {
- 	return __raw_readl(addr);
- }
- 
--static u64 iomem_read64(void __iomem *addr)
-+static u64 iomem_read64(const void __iomem *addr)
- {
- 	return readq(addr);
- }
- 
--static u64 iomem_read64be(void __iomem *addr)
-+static u64 iomem_read64be(const void __iomem *addr)
- {
- 	return __raw_readq(addr);
- }
-@@ -220,7 +220,7 @@ static void iomem_write64be(u64 datum, v
- 	__raw_writel(datum, addr);
- }
- 
--static void iomem_read8r(void __iomem *addr, void *dst, unsigned long count)
-+static void iomem_read8r(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	while (count--) {
- 		*(u8 *)dst = __raw_readb(addr);
-@@ -228,7 +228,7 @@ static void iomem_read8r(void __iomem *a
- 	}
- }
- 
--static void iomem_read16r(void __iomem *addr, void *dst, unsigned long count)
-+static void iomem_read16r(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	while (count--) {
- 		*(u16 *)dst = __raw_readw(addr);
-@@ -236,7 +236,7 @@ static void iomem_read16r(void __iomem *
- 	}
- }
- 
--static void iomem_read32r(void __iomem *addr, void *dst, unsigned long count)
-+static void iomem_read32r(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	while (count--) {
- 		*(u32 *)dst = __raw_readl(addr);
-@@ -297,49 +297,49 @@ static const struct iomap_ops *iomap_ops
- };
- 
- 
--unsigned int ioread8(void __iomem *addr)
-+unsigned int ioread8(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read8(addr);
- 	return *((u8 *)addr);
- }
- 
--unsigned int ioread16(void __iomem *addr)
-+unsigned int ioread16(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read16(addr);
- 	return le16_to_cpup((u16 *)addr);
- }
- 
--unsigned int ioread16be(void __iomem *addr)
-+unsigned int ioread16be(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read16be(addr);
- 	return *((u16 *)addr);
- }
- 
--unsigned int ioread32(void __iomem *addr)
-+unsigned int ioread32(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read32(addr);
- 	return le32_to_cpup((u32 *)addr);
- }
- 
--unsigned int ioread32be(void __iomem *addr)
-+unsigned int ioread32be(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read32be(addr);
- 	return *((u32 *)addr);
- }
- 
--u64 ioread64(void __iomem *addr)
-+u64 ioread64(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read64(addr);
- 	return le64_to_cpup((u64 *)addr);
- }
- 
--u64 ioread64be(void __iomem *addr)
-+u64 ioread64be(const void __iomem *addr)
- {
- 	if (unlikely(INDIRECT_ADDR(addr)))
- 		return iomap_ops[ADDR_TO_REGION(addr)]->read64be(addr);
-@@ -411,7 +411,7 @@ void iowrite64be(u64 datum, void __iomem
- 
- /* Repeating interfaces */
- 
--void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	if (unlikely(INDIRECT_ADDR(addr))) {
- 		iomap_ops[ADDR_TO_REGION(addr)]->read8r(addr, dst, count);
-@@ -423,7 +423,7 @@ void ioread8_rep(void __iomem *addr, voi
- 	}
- }
- 
--void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	if (unlikely(INDIRECT_ADDR(addr))) {
- 		iomap_ops[ADDR_TO_REGION(addr)]->read16r(addr, dst, count);
-@@ -435,7 +435,7 @@ void ioread16_rep(void __iomem *addr, vo
- 	}
- }
- 
--void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	if (unlikely(INDIRECT_ADDR(addr))) {
- 		iomap_ops[ADDR_TO_REGION(addr)]->read32r(addr, dst, count);
---- a/arch/powerpc/kernel/iomap.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/powerpc/kernel/iomap.c
-@@ -15,23 +15,23 @@
-  * Here comes the ppc64 implementation of the IOMAP 
-  * interfaces.
-  */
--unsigned int ioread8(void __iomem *addr)
-+unsigned int ioread8(const void __iomem *addr)
- {
- 	return readb(addr);
- }
--unsigned int ioread16(void __iomem *addr)
-+unsigned int ioread16(const void __iomem *addr)
- {
- 	return readw(addr);
- }
--unsigned int ioread16be(void __iomem *addr)
-+unsigned int ioread16be(const void __iomem *addr)
- {
- 	return readw_be(addr);
- }
--unsigned int ioread32(void __iomem *addr)
-+unsigned int ioread32(const void __iomem *addr)
- {
- 	return readl(addr);
- }
--unsigned int ioread32be(void __iomem *addr)
-+unsigned int ioread32be(const void __iomem *addr)
- {
- 	return readl_be(addr);
- }
-@@ -41,27 +41,27 @@ EXPORT_SYMBOL(ioread16be);
- EXPORT_SYMBOL(ioread32);
- EXPORT_SYMBOL(ioread32be);
- #ifdef __powerpc64__
--u64 ioread64(void __iomem *addr)
-+u64 ioread64(const void __iomem *addr)
- {
- 	return readq(addr);
- }
--u64 ioread64_lo_hi(void __iomem *addr)
-+u64 ioread64_lo_hi(const void __iomem *addr)
- {
- 	return readq(addr);
- }
--u64 ioread64_hi_lo(void __iomem *addr)
-+u64 ioread64_hi_lo(const void __iomem *addr)
- {
- 	return readq(addr);
- }
--u64 ioread64be(void __iomem *addr)
-+u64 ioread64be(const void __iomem *addr)
- {
- 	return readq_be(addr);
- }
--u64 ioread64be_lo_hi(void __iomem *addr)
-+u64 ioread64be_lo_hi(const void __iomem *addr)
- {
- 	return readq_be(addr);
- }
--u64 ioread64be_hi_lo(void __iomem *addr)
-+u64 ioread64be_hi_lo(const void __iomem *addr)
- {
- 	return readq_be(addr);
- }
-@@ -139,15 +139,15 @@ EXPORT_SYMBOL(iowrite64be_hi_lo);
-  * FIXME! We could make these do EEH handling if we really
-  * wanted. Not clear if we do.
-  */
--void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	readsb(addr, dst, count);
- }
--void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	readsw(addr, dst, count);
- }
--void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	readsl(addr, dst, count);
- }
---- a/arch/sh/kernel/iomap.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/arch/sh/kernel/iomap.c
-@@ -8,31 +8,31 @@
- #include <linux/module.h>
- #include <linux/io.h>
- 
--unsigned int ioread8(void __iomem *addr)
-+unsigned int ioread8(const void __iomem *addr)
- {
- 	return readb(addr);
- }
- EXPORT_SYMBOL(ioread8);
- 
--unsigned int ioread16(void __iomem *addr)
-+unsigned int ioread16(const void __iomem *addr)
- {
- 	return readw(addr);
- }
- EXPORT_SYMBOL(ioread16);
- 
--unsigned int ioread16be(void __iomem *addr)
-+unsigned int ioread16be(const void __iomem *addr)
- {
- 	return be16_to_cpu(__raw_readw(addr));
- }
- EXPORT_SYMBOL(ioread16be);
- 
--unsigned int ioread32(void __iomem *addr)
-+unsigned int ioread32(const void __iomem *addr)
- {
- 	return readl(addr);
- }
- EXPORT_SYMBOL(ioread32);
- 
--unsigned int ioread32be(void __iomem *addr)
-+unsigned int ioread32be(const void __iomem *addr)
- {
- 	return be32_to_cpu(__raw_readl(addr));
- }
-@@ -74,7 +74,7 @@ EXPORT_SYMBOL(iowrite32be);
-  * convert to CPU byte order. We write in "IO byte
-  * order" (we also don't have IO barriers).
-  */
--static inline void mmio_insb(void __iomem *addr, u8 *dst, int count)
-+static inline void mmio_insb(const void __iomem *addr, u8 *dst, int count)
- {
- 	while (--count >= 0) {
- 		u8 data = __raw_readb(addr);
-@@ -83,7 +83,7 @@ static inline void mmio_insb(void __iome
- 	}
- }
- 
--static inline void mmio_insw(void __iomem *addr, u16 *dst, int count)
-+static inline void mmio_insw(const void __iomem *addr, u16 *dst, int count)
- {
- 	while (--count >= 0) {
- 		u16 data = __raw_readw(addr);
-@@ -92,7 +92,7 @@ static inline void mmio_insw(void __iome
- 	}
- }
- 
--static inline void mmio_insl(void __iomem *addr, u32 *dst, int count)
-+static inline void mmio_insl(const void __iomem *addr, u32 *dst, int count)
- {
- 	while (--count >= 0) {
- 		u32 data = __raw_readl(addr);
-@@ -125,19 +125,19 @@ static inline void mmio_outsl(void __iom
- 	}
- }
- 
--void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	mmio_insb(addr, dst, count);
- }
- EXPORT_SYMBOL(ioread8_rep);
- 
--void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	mmio_insw(addr, dst, count);
- }
- EXPORT_SYMBOL(ioread16_rep);
- 
--void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	mmio_insl(addr, dst, count);
- }
---- a/drivers/mailbox/bcm-pdc-mailbox.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/drivers/mailbox/bcm-pdc-mailbox.c
-@@ -679,7 +679,7 @@ pdc_receive(struct pdc_state *pdcs)
- 
- 	/* read last_rx_curr from register once */
- 	pdcs->last_rx_curr =
--	    (ioread32(&pdcs->rxregs_64->status0) &
-+	    (ioread32((const void __iomem *)&pdcs->rxregs_64->status0) &
- 	     CRYPTO_D64_RS0_CD_MASK) / RING_ENTRY_SIZE;
- 
- 	do {
---- a/drivers/sh/clk/cpg.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/drivers/sh/clk/cpg.c
-@@ -40,7 +40,7 @@ static int sh_clk_mstp_enable(struct clk
- {
- 	sh_clk_write(sh_clk_read(clk) & ~(1 << clk->enable_bit), clk);
- 	if (clk->status_reg) {
--		unsigned int (*read)(void __iomem *addr);
-+		unsigned int (*read)(const void __iomem *addr);
- 		int i;
- 		void __iomem *mapped_status = (phys_addr_t)clk->status_reg -
- 			(phys_addr_t)clk->enable_reg + clk->mapped_reg;
---- a/include/asm-generic/iomap.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/include/asm-generic/iomap.h
-@@ -26,14 +26,14 @@
-  * in the low address range. Architectures for which this is not
-  * true can't use this generic implementation.
-  */
--extern unsigned int ioread8(void __iomem *);
--extern unsigned int ioread16(void __iomem *);
--extern unsigned int ioread16be(void __iomem *);
--extern unsigned int ioread32(void __iomem *);
--extern unsigned int ioread32be(void __iomem *);
-+extern unsigned int ioread8(const void __iomem *);
-+extern unsigned int ioread16(const void __iomem *);
-+extern unsigned int ioread16be(const void __iomem *);
-+extern unsigned int ioread32(const void __iomem *);
-+extern unsigned int ioread32be(const void __iomem *);
- #ifdef CONFIG_64BIT
--extern u64 ioread64(void __iomem *);
--extern u64 ioread64be(void __iomem *);
-+extern u64 ioread64(const void __iomem *);
-+extern u64 ioread64be(const void __iomem *);
- #endif
- 
- #ifdef readq
-@@ -41,10 +41,10 @@ extern u64 ioread64be(void __iomem *);
- #define ioread64_hi_lo ioread64_hi_lo
- #define ioread64be_lo_hi ioread64be_lo_hi
- #define ioread64be_hi_lo ioread64be_hi_lo
--extern u64 ioread64_lo_hi(void __iomem *addr);
--extern u64 ioread64_hi_lo(void __iomem *addr);
--extern u64 ioread64be_lo_hi(void __iomem *addr);
--extern u64 ioread64be_hi_lo(void __iomem *addr);
-+extern u64 ioread64_lo_hi(const void __iomem *addr);
-+extern u64 ioread64_hi_lo(const void __iomem *addr);
-+extern u64 ioread64be_lo_hi(const void __iomem *addr);
-+extern u64 ioread64be_hi_lo(const void __iomem *addr);
- #endif
- 
- extern void iowrite8(u8, void __iomem *);
-@@ -79,9 +79,9 @@ extern void iowrite64be_hi_lo(u64 val, v
-  * memory across multiple ports, use "memcpy_toio()"
-  * and friends.
-  */
--extern void ioread8_rep(void __iomem *port, void *buf, unsigned long count);
--extern void ioread16_rep(void __iomem *port, void *buf, unsigned long count);
--extern void ioread32_rep(void __iomem *port, void *buf, unsigned long count);
-+extern void ioread8_rep(const void __iomem *port, void *buf, unsigned long count);
-+extern void ioread16_rep(const void __iomem *port, void *buf, unsigned long count);
-+extern void ioread32_rep(const void __iomem *port, void *buf, unsigned long count);
- 
- extern void iowrite8_rep(void __iomem *port, const void *buf, unsigned long count);
- extern void iowrite16_rep(void __iomem *port, const void *buf, unsigned long count);
---- a/include/linux/io-64-nonatomic-hi-lo.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/include/linux/io-64-nonatomic-hi-lo.h
-@@ -57,7 +57,7 @@ static inline void hi_lo_writeq_relaxed(
- 
- #ifndef ioread64_hi_lo
- #define ioread64_hi_lo ioread64_hi_lo
--static inline u64 ioread64_hi_lo(void __iomem *addr)
-+static inline u64 ioread64_hi_lo(const void __iomem *addr)
- {
- 	u32 low, high;
- 
-@@ -79,7 +79,7 @@ static inline void iowrite64_hi_lo(u64 v
- 
- #ifndef ioread64be_hi_lo
- #define ioread64be_hi_lo ioread64be_hi_lo
--static inline u64 ioread64be_hi_lo(void __iomem *addr)
-+static inline u64 ioread64be_hi_lo(const void __iomem *addr)
- {
- 	u32 low, high;
- 
---- a/include/linux/io-64-nonatomic-lo-hi.h~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/include/linux/io-64-nonatomic-lo-hi.h
-@@ -57,7 +57,7 @@ static inline void lo_hi_writeq_relaxed(
- 
- #ifndef ioread64_lo_hi
- #define ioread64_lo_hi ioread64_lo_hi
--static inline u64 ioread64_lo_hi(void __iomem *addr)
-+static inline u64 ioread64_lo_hi(const void __iomem *addr)
- {
- 	u32 low, high;
- 
-@@ -79,7 +79,7 @@ static inline void iowrite64_lo_hi(u64 v
- 
- #ifndef ioread64be_lo_hi
- #define ioread64be_lo_hi ioread64be_lo_hi
--static inline u64 ioread64be_lo_hi(void __iomem *addr)
-+static inline u64 ioread64be_lo_hi(const void __iomem *addr)
- {
- 	u32 low, high;
- 
---- a/lib/iomap.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation
-+++ a/lib/iomap.c
-@@ -70,27 +70,27 @@ static void bad_io_access(unsigned long
- #define mmio_read64be(addr) swab64(readq(addr))
- #endif
- 
--unsigned int ioread8(void __iomem *addr)
-+unsigned int ioread8(const void __iomem *addr)
- {
- 	IO_COND(addr, return inb(port), return readb(addr));
- 	return 0xff;
- }
--unsigned int ioread16(void __iomem *addr)
-+unsigned int ioread16(const void __iomem *addr)
- {
- 	IO_COND(addr, return inw(port), return readw(addr));
- 	return 0xffff;
- }
--unsigned int ioread16be(void __iomem *addr)
-+unsigned int ioread16be(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read16be(port), return mmio_read16be(addr));
- 	return 0xffff;
- }
--unsigned int ioread32(void __iomem *addr)
-+unsigned int ioread32(const void __iomem *addr)
- {
- 	IO_COND(addr, return inl(port), return readl(addr));
- 	return 0xffffffff;
- }
--unsigned int ioread32be(void __iomem *addr)
-+unsigned int ioread32be(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read32be(port), return mmio_read32be(addr));
- 	return 0xffffffff;
-@@ -142,26 +142,26 @@ static u64 pio_read64be_hi_lo(unsigned l
- 	return lo | (hi << 32);
- }
- 
--u64 ioread64_lo_hi(void __iomem *addr)
-+u64 ioread64_lo_hi(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64_lo_hi(port), return readq(addr));
- 	return 0xffffffffffffffffULL;
- }
- 
--u64 ioread64_hi_lo(void __iomem *addr)
-+u64 ioread64_hi_lo(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64_hi_lo(port), return readq(addr));
- 	return 0xffffffffffffffffULL;
- }
- 
--u64 ioread64be_lo_hi(void __iomem *addr)
-+u64 ioread64be_lo_hi(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64be_lo_hi(port),
- 		return mmio_read64be(addr));
- 	return 0xffffffffffffffffULL;
- }
- 
--u64 ioread64be_hi_lo(void __iomem *addr)
-+u64 ioread64be_hi_lo(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64be_hi_lo(port),
- 		return mmio_read64be(addr));
-@@ -275,7 +275,7 @@ EXPORT_SYMBOL(iowrite64be_hi_lo);
-  * order" (we also don't have IO barriers).
-  */
- #ifndef mmio_insb
--static inline void mmio_insb(void __iomem *addr, u8 *dst, int count)
-+static inline void mmio_insb(const void __iomem *addr, u8 *dst, int count)
- {
- 	while (--count >= 0) {
- 		u8 data = __raw_readb(addr);
-@@ -283,7 +283,7 @@ static inline void mmio_insb(void __iome
- 		dst++;
- 	}
- }
--static inline void mmio_insw(void __iomem *addr, u16 *dst, int count)
-+static inline void mmio_insw(const void __iomem *addr, u16 *dst, int count)
- {
- 	while (--count >= 0) {
- 		u16 data = __raw_readw(addr);
-@@ -291,7 +291,7 @@ static inline void mmio_insw(void __iome
- 		dst++;
- 	}
- }
--static inline void mmio_insl(void __iomem *addr, u32 *dst, int count)
-+static inline void mmio_insl(const void __iomem *addr, u32 *dst, int count)
- {
- 	while (--count >= 0) {
- 		u32 data = __raw_readl(addr);
-@@ -325,15 +325,15 @@ static inline void mmio_outsl(void __iom
- }
- #endif
- 
--void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insb(port,dst,count), mmio_insb(addr, dst, count));
- }
--void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insw(port,dst,count), mmio_insw(addr, dst, count));
- }
--void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insl(port,dst,count), mmio_insl(addr, dst, count));
- }
+--- a/arch/alpha/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -249,7 +249,7 @@
+ 316	common	mlockall			sys_mlockall
+ 317	common	munlockall			sys_munlockall
+ 318	common	sysinfo				sys_sysinfo
+-319	common	_sysctl				sys_sysctl
++319	common	_sysctl				sys_ni_syscall
+ # 320 was sys_idle
+ 321	common	oldumount			sys_oldumount
+ 322	common	swapon				sys_swapon
+--- a/arch/arm64/include/asm/unistd32.h~all-arch-remove-system-call-sys_sys=
+ctl
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -308,8 +308,8 @@ __SYSCALL(__NR_writev, compat_sys_writev
+ __SYSCALL(__NR_getsid, sys_getsid)
+ #define __NR_fdatasync 148
+ __SYSCALL(__NR_fdatasync, sys_fdatasync)
+-#define __NR__sysctl 149
+-__SYSCALL(__NR__sysctl, compat_sys_sysctl)
++			/* 149 was sys_sysctl */
++__SYSCALL(149, sys_ni_syscall)
+ #define __NR_mlock 150
+ __SYSCALL(__NR_mlock, sys_mlock)
+ #define __NR_munlock 151
+--- a/arch/arm/configs/am200epdkit_defconfig~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/arm/configs/am200epdkit_defconfig
+@@ -3,7 +3,6 @@ CONFIG_LOCALVERSION=3D"gum"
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_SYSFS_DEPRECATED_V2=3Dy
+ CONFIG_EXPERT=3Dy
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_EPOLL is not set
+ # CONFIG_SHMEM is not set
+ # CONFIG_VM_EVENT_COUNTERS is not set
+--- a/arch/arm/tools/syscall.tbl~all-arch-remove-system-call-sys_sysctl
++++ a/arch/arm/tools/syscall.tbl
+@@ -162,7 +162,7 @@
+ 146	common	writev			sys_writev
+ 147	common	getsid			sys_getsid
+ 148	common	fdatasync		sys_fdatasync
+-149	common	_sysctl			sys_sysctl
++149	common	_sysctl			sys_ni_syscall
+ 150	common	mlock			sys_mlock
+ 151	common	munlock			sys_munlock
+ 152	common	mlockall		sys_mlockall
+--- a/arch/ia64/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys=
+_sysctl
++++ a/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -135,7 +135,7 @@
+ 123	common	writev				sys_writev
+ 124	common	pread64				sys_pread64
+ 125	common	pwrite64			sys_pwrite64
+-126	common	_sysctl				sys_sysctl
++126	common	_sysctl				sys_ni_syscall
+ 127	common	mmap				sys_mmap
+ 128	common	munmap				sys_munmap
+ 129	common	mlock				sys_mlock
+--- a/arch/m68k/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys=
+_sysctl
++++ a/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -156,7 +156,7 @@
+ 146	common	writev				sys_writev
+ 147	common	getsid				sys_getsid
+ 148	common	fdatasync			sys_fdatasync
+-149	common	_sysctl				sys_sysctl
++149	common	_sysctl				sys_ni_syscall
+ 150	common	mlock				sys_mlock
+ 151	common	munlock				sys_munlock
+ 152	common	mlockall			sys_mlockall
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl~all-arch-remove-system-ca=
+ll-sys_sysctl
++++ a/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -156,7 +156,7 @@
+ 146	common	writev				sys_writev
+ 147	common	getsid				sys_getsid
+ 148	common	fdatasync			sys_fdatasync
+-149	common	_sysctl				sys_sysctl
++149	common	_sysctl				sys_ni_syscall
+ 150	common	mlock				sys_mlock
+ 151	common	munlock				sys_munlock
+ 152	common	mlockall			sys_mlockall
+--- a/arch/mips/configs/cu1000-neo_defconfig~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/mips/configs/cu1000-neo_defconfig
+@@ -17,7 +17,6 @@ CONFIG_CGROUP_CPUACCT=3Dy
+ CONFIG_NAMESPACES=3Dy
+ CONFIG_USER_NS=3Dy
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=3Dy
+-CONFIG_SYSCTL_SYSCALL=3Dy
+ CONFIG_KALLSYMS_ALL=3Dy
+ CONFIG_EMBEDDED=3Dy
+ # CONFIG_VM_EVENT_COUNTERS is not set
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~all-arch-remove-system-call=
+-sys_sysctl
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -159,7 +159,7 @@
+ 149	n32	munlockall			sys_munlockall
+ 150	n32	vhangup				sys_vhangup
+ 151	n32	pivot_root			sys_pivot_root
+-152	n32	_sysctl				compat_sys_sysctl
++152	n32	_sysctl				sys_ni_syscall
+ 153	n32	prctl				sys_prctl
+ 154	n32	adjtimex			sys_adjtimex_time32
+ 155	n32	setrlimit			compat_sys_setrlimit
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~all-arch-remove-system-call=
+-sys_sysctl
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -159,7 +159,7 @@
+ 149	n64	munlockall			sys_munlockall
+ 150	n64	vhangup				sys_vhangup
+ 151	n64	pivot_root			sys_pivot_root
+-152	n64	_sysctl				sys_sysctl
++152	n64	_sysctl				sys_ni_syscall
+ 153	n64	prctl				sys_prctl
+ 154	n64	adjtimex			sys_adjtimex
+ 155	n64	setrlimit			sys_setrlimit
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~all-arch-remove-system-call=
+-sys_sysctl
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -164,7 +164,7 @@
+ 150	o32	unused150			sys_ni_syscall
+ 151	o32	getsid				sys_getsid
+ 152	o32	fdatasync			sys_fdatasync
+-153	o32	_sysctl				sys_sysctl			compat_sys_sysctl
++153	o32	_sysctl				sys_ni_syscall
+ 154	o32	mlock				sys_mlock
+ 155	o32	munlock				sys_munlock
+ 156	o32	mlockall			sys_mlockall
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-s=
+ys_sysctl
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -163,7 +163,7 @@
+ 146	common	writev			sys_writev			compat_sys_writev
+ 147	common	getsid			sys_getsid
+ 148	common	fdatasync		sys_fdatasync
+-149	common	_sysctl			sys_sysctl			compat_sys_sysctl
++149	common	_sysctl			sys_ni_syscall
+ 150	common	mlock			sys_mlock
+ 151	common	munlock			sys_munlock
+ 152	common	mlockall		sys_mlockall
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-=
+sys_sysctl
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -197,7 +197,7 @@
+ 146	common	writev				sys_writev			compat_sys_writev
+ 147	common	getsid				sys_getsid
+ 148	common	fdatasync			sys_fdatasync
+-149	nospu	_sysctl				sys_sysctl			compat_sys_sysctl
++149	nospu	_sysctl				sys_ni_syscall
+ 150	common	mlock				sys_mlock
+ 151	common	munlock				sys_munlock
+ 152	common	mlockall			sys_mlockall
+--- a/arch/s390/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys=
+_sysctl
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -138,7 +138,7 @@
+ 146  common	writev			sys_writev			compat_sys_writev
+ 147  common	getsid			sys_getsid			sys_getsid
+ 148  common	fdatasync		sys_fdatasync			sys_fdatasync
+-149  common	_sysctl			sys_sysctl			compat_sys_sysctl
++149  common	_sysctl			-				-
+ 150  common	mlock			sys_mlock			sys_mlock
+ 151  common	munlock			sys_munlock			sys_munlock
+ 152  common	mlockall		sys_mlockall			sys_mlockall
+--- a/arch/sh/configs/dreamcast_defconfig~all-arch-remove-system-call-sys_s=
+ysctl
++++ a/arch/sh/configs/dreamcast_defconfig
+@@ -1,7 +1,6 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_BSD_PROCESS_ACCT=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_MODULES=3Dy
+--- a/arch/sh/configs/espt_defconfig~all-arch-remove-system-call-sys_sysctl
++++ a/arch/sh/configs/espt_defconfig
+@@ -5,7 +5,6 @@ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_NAMESPACES=3Dy
+ CONFIG_UTS_NS=3Dy
+ CONFIG_IPC_NS=3Dy
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dy
+--- a/arch/sh/configs/hp6xx_defconfig~all-arch-remove-system-call-sys_sysctl
++++ a/arch/sh/configs/hp6xx_defconfig
+@@ -3,7 +3,6 @@ CONFIG_IKCONFIG=3Dy
+ CONFIG_IKCONFIG_PROC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_CPU_SUBTYPE_SH7709=3Dy
+--- a/arch/sh/configs/landisk_defconfig~all-arch-remove-system-call-sys_sys=
+ctl
++++ a/arch/sh/configs/landisk_defconfig
+@@ -1,6 +1,5 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_KALLSYMS_EXTRA_PASS=3Dy
+ CONFIG_SLAB=3Dy
+ CONFIG_MODULES=3Dy
+--- a/arch/sh/configs/lboxre2_defconfig~all-arch-remove-system-call-sys_sys=
+ctl
++++ a/arch/sh/configs/lboxre2_defconfig
+@@ -1,6 +1,5 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_KALLSYMS_EXTRA_PASS=3Dy
+ CONFIG_SLAB=3Dy
+ CONFIG_MODULES=3Dy
+--- a/arch/sh/configs/microdev_defconfig~all-arch-remove-system-call-sys_sy=
+sctl
++++ a/arch/sh/configs/microdev_defconfig
+@@ -2,7 +2,6 @@ CONFIG_BSD_PROCESS_ACCT=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_CPU_SUBTYPE_SH4_202=3Dy
+--- a/arch/sh/configs/migor_defconfig~all-arch-remove-system-call-sys_sysctl
++++ a/arch/sh/configs/migor_defconfig
+@@ -4,7 +4,6 @@ CONFIG_IKCONFIG_PROC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dy
+--- a/arch/sh/configs/r7780mp_defconfig~all-arch-remove-system-call-sys_sys=
+ctl
++++ a/arch/sh/configs/r7780mp_defconfig
+@@ -3,7 +3,6 @@ CONFIG_BSD_PROCESS_ACCT=3Dy
+ CONFIG_IKCONFIG=3Dy
+ CONFIG_IKCONFIG_PROC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_FUTEX is not set
+ # CONFIG_EPOLL is not set
+ CONFIG_SLAB=3Dy
+--- a/arch/sh/configs/r7785rp_defconfig~all-arch-remove-system-call-sys_sys=
+ctl
++++ a/arch/sh/configs/r7785rp_defconfig
+@@ -7,7 +7,6 @@ CONFIG_RCU_TRACE=3Dy
+ CONFIG_IKCONFIG=3Dy
+ CONFIG_IKCONFIG_PROC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dy
+--- a/arch/sh/configs/rts7751r2d1_defconfig~all-arch-remove-system-call-sys=
+_sysctl
++++ a/arch/sh/configs/rts7751r2d1_defconfig
+@@ -1,7 +1,6 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dy
+--- a/arch/sh/configs/rts7751r2dplus_defconfig~all-arch-remove-system-call-=
+sys_sysctl
++++ a/arch/sh/configs/rts7751r2dplus_defconfig
+@@ -1,7 +1,6 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dy
+--- a/arch/sh/configs/se7206_defconfig~all-arch-remove-system-call-sys_sysc=
+tl
++++ a/arch/sh/configs/se7206_defconfig
+@@ -18,7 +18,6 @@ CONFIG_USER_NS=3Dy
+ CONFIG_PID_NS=3Dy
+ CONFIG_BLK_DEV_INITRD=3Dy
+ # CONFIG_UID16 is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_KALLSYMS_ALL=3Dy
+ # CONFIG_ELF_CORE is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/sh/configs/se7343_defconfig~all-arch-remove-system-call-sys_sysc=
+tl
++++ a/arch/sh/configs/se7343_defconfig
+@@ -2,7 +2,6 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_POSIX_MQUEUE=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_FUTEX is not set
+ # CONFIG_EPOLL is not set
+ # CONFIG_SHMEM is not set
+--- a/arch/sh/configs/se7619_defconfig~all-arch-remove-system-call-sys_sysc=
+tl
++++ a/arch/sh/configs/se7619_defconfig
+@@ -1,7 +1,6 @@
+ # CONFIG_LOCALVERSION_AUTO is not set
+ CONFIG_LOG_BUF_SHIFT=3D14
+ # CONFIG_UID16 is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_KALLSYMS is not set
+ # CONFIG_HOTPLUG is not set
+ # CONFIG_ELF_CORE is not set
+--- a/arch/sh/configs/se7705_defconfig~all-arch-remove-system-call-sys_sysc=
+tl
++++ a/arch/sh/configs/se7705_defconfig
+@@ -2,7 +2,6 @@
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_KALLSYMS is not set
+ # CONFIG_HOTPLUG is not set
+ CONFIG_SLAB=3Dy
+--- a/arch/sh/configs/se7750_defconfig~all-arch-remove-system-call-sys_sysc=
+tl
++++ a/arch/sh/configs/se7750_defconfig
+@@ -5,7 +5,6 @@ CONFIG_IKCONFIG=3Dy
+ CONFIG_IKCONFIG_PROC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_HOTPLUG is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_MODULES=3Dy
+--- a/arch/sh/configs/se7751_defconfig~all-arch-remove-system-call-sys_sysc=
+tl
++++ a/arch/sh/configs/se7751_defconfig
+@@ -3,7 +3,6 @@ CONFIG_BSD_PROCESS_ACCT=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_HOTPLUG is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_MODULES=3Dy
+--- a/arch/sh/configs/secureedge5410_defconfig~all-arch-remove-system-call-=
+sys_sysctl
++++ a/arch/sh/configs/secureedge5410_defconfig
+@@ -1,7 +1,6 @@
+ # CONFIG_SWAP is not set
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_HOTPLUG is not set
+ CONFIG_SLAB=3Dy
+ # CONFIG_BLK_DEV_BSG is not set
+--- a/arch/sh/configs/sh03_defconfig~all-arch-remove-system-call-sys_sysctl
++++ a/arch/sh/configs/sh03_defconfig
+@@ -3,7 +3,6 @@ CONFIG_POSIX_MQUEUE=3Dy
+ CONFIG_BSD_PROCESS_ACCT=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dm
+--- a/arch/sh/configs/sh7710voipgw_defconfig~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/sh/configs/sh7710voipgw_defconfig
+@@ -2,7 +2,6 @@
+ CONFIG_SYSVIPC=3Dy
+ CONFIG_POSIX_MQUEUE=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_FUTEX is not set
+ # CONFIG_EPOLL is not set
+ # CONFIG_SHMEM is not set
+--- a/arch/sh/configs/sh7757lcr_defconfig~all-arch-remove-system-call-sys_s=
+ysctl
++++ a/arch/sh/configs/sh7757lcr_defconfig
+@@ -8,7 +8,6 @@ CONFIG_TASK_XACCT=3Dy
+ CONFIG_TASK_IO_ACCOUNTING=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_BLK_DEV_INITRD=3Dy
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_KALLSYMS_ALL=3Dy
+ CONFIG_SLAB=3Dy
+ CONFIG_MODULES=3Dy
+--- a/arch/sh/configs/sh7763rdp_defconfig~all-arch-remove-system-call-sys_s=
+ysctl
++++ a/arch/sh/configs/sh7763rdp_defconfig
+@@ -5,7 +5,6 @@ CONFIG_LOG_BUF_SHIFT=3D14
+ CONFIG_NAMESPACES=3Dy
+ CONFIG_UTS_NS=3Dy
+ CONFIG_IPC_NS=3Dy
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_PROFILING=3Dy
+ CONFIG_OPROFILE=3Dy
+--- a/arch/sh/configs/shmin_defconfig~all-arch-remove-system-call-sys_sysctl
++++ a/arch/sh/configs/shmin_defconfig
+@@ -1,7 +1,6 @@
+ # CONFIG_SWAP is not set
+ CONFIG_LOG_BUF_SHIFT=3D14
+ # CONFIG_UID16 is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_KALLSYMS is not set
+ # CONFIG_HOTPLUG is not set
+ # CONFIG_BUG is not set
+--- a/arch/sh/configs/titan_defconfig~all-arch-remove-system-call-sys_sysctl
++++ a/arch/sh/configs/titan_defconfig
+@@ -6,7 +6,6 @@ CONFIG_IKCONFIG_PROC=3Dy
+ CONFIG_LOG_BUF_SHIFT=3D16
+ CONFIG_BLK_DEV_INITRD=3Dy
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-# CONFIG_SYSCTL_SYSCALL is not set
+ CONFIG_SLAB=3Dy
+ CONFIG_MODULES=3Dy
+ CONFIG_MODULE_UNLOAD=3Dy
+--- a/arch/sh/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys_s=
+ysctl
++++ a/arch/sh/kernel/syscalls/syscall.tbl
+@@ -156,7 +156,7 @@
+ 146	common	writev				sys_writev
+ 147	common	getsid				sys_getsid
+ 148	common	fdatasync			sys_fdatasync
+-149	common	_sysctl				sys_sysctl
++149	common	_sysctl				sys_ni_syscall
+ 150	common	mlock				sys_mlock
+ 151	common	munlock				sys_munlock
+ 152	common	mlockall			sys_mlockall
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -300,7 +300,7 @@
+ 249	64	nanosleep		sys_nanosleep
+ 250	32	mremap			sys_mremap
+ 250	64	mremap			sys_64_mremap
+-251	common	_sysctl			sys_sysctl			compat_sys_sysctl
++251	common	_sysctl			sys_ni_syscall
+ 252	common	getsid			sys_getsid
+ 253	common	fdatasync		sys_fdatasync
+ 254	32	nfsservctl		sys_ni_syscall			sys_nis_syscall
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -160,7 +160,7 @@
+ 146	i386	writev			sys_writev			compat_sys_writev
+ 147	i386	getsid			sys_getsid
+ 148	i386	fdatasync		sys_fdatasync
+-149	i386	_sysctl			sys_sysctl			compat_sys_sysctl
++149	i386	_sysctl			sys_ni_syscall
+ 150	i386	mlock			sys_mlock
+ 151	i386	munlock			sys_munlock
+ 152	i386	mlockall		sys_mlockall
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~all-arch-remove-system-call-sy=
+s_sysctl
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -164,7 +164,7 @@
+ 153	common	vhangup			sys_vhangup
+ 154	common	modify_ldt		sys_modify_ldt
+ 155	common	pivot_root		sys_pivot_root
+-156	64	_sysctl			sys_sysctl
++156	64	_sysctl			sys_ni_syscall
+ 157	common	prctl			sys_prctl
+ 158	common	arch_prctl		sys_arch_prctl
+ 159	common	adjtimex		sys_adjtimex
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-s=
+ys_sysctl
++++ a/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -222,7 +222,7 @@
+ 204	common	quotactl			sys_quotactl
+ # 205 was old nfsservctl
+ 205	common	nfsservctl			sys_ni_syscall
+-206	common	_sysctl				sys_sysctl
++206	common	_sysctl				sys_ni_syscall
+ 207	common	bdflush				sys_bdflush
+ 208	common	uname				sys_newuname
+ 209	common	sysinfo				sys_sysinfo
+--- a/include/linux/compat.h~all-arch-remove-system-call-sys_sysctl
++++ a/include/linux/compat.h
+@@ -855,7 +855,6 @@ asmlinkage long compat_sys_select(int n,
+ asmlinkage long compat_sys_ustat(unsigned dev, struct compat_ustat __user =
+*u32);
+ asmlinkage long compat_sys_recv(int fd, void __user *buf, compat_size_t le=
+n,
+ 				unsigned flags);
+-asmlinkage long compat_sys_sysctl(struct compat_sysctl_args __user *args);
+=20
+ /* obsolete: fs/readdir.c */
+ asmlinkage long compat_sys_old_readdir(unsigned int fd,
+--- a/include/linux/syscalls.h~all-arch-remove-system-call-sys_sysctl
++++ a/include/linux/syscalls.h
+@@ -47,7 +47,6 @@ struct stat64;
+ struct statfs;
+ struct statfs64;
+ struct statx;
+-struct __sysctl_args;
+ struct sysinfo;
+ struct timespec;
+ struct __kernel_old_timeval;
+@@ -1119,7 +1118,6 @@ asmlinkage long sys_send(int, void __use
+ asmlinkage long sys_bdflush(int func, long data);
+ asmlinkage long sys_oldumount(char __user *name);
+ asmlinkage long sys_uselib(const char __user *library);
+-asmlinkage long sys_sysctl(struct __sysctl_args __user *args);
+ asmlinkage long sys_sysfs(int option,
+ 				unsigned long arg1, unsigned long arg2);
+ asmlinkage long sys_fork(void);
+--- a/include/linux/sysctl.h~all-arch-remove-system-call-sys_sysctl
++++ a/include/linux/sysctl.h
+@@ -74,15 +74,13 @@ int proc_do_static_key(struct ctl_table
+  * sysctl names can be mirrored automatically under /proc/sys.  The
+  * procname supplied controls /proc naming.
+  *
+- * The table's mode will be honoured both for sys_sysctl(2) and
+- * proc-fs access.
++ * The table's mode will be honoured for proc-fs access.
+  *
+  * Leaf nodes in the sysctl tree will be represented by a single file
+  * under /proc; non-leaf nodes will be represented by directories.  A
+  * null procname disables /proc mirroring at this node.
+  *
+- * sysctl(2) can automatically manage read and write requests through
+- * the sysctl table.  The data and maxlen fields of the ctl_table
++ * The data and maxlen fields of the ctl_table
+  * struct enable minimal validation of the values being written to be
+  * performed, and the mode field allows minimal authentication.
+  *=20
+--- a/kernel/Makefile~all-arch-remove-system-call-sys_sysctl
++++ a/kernel/Makefile
+@@ -5,7 +5,7 @@
+=20
+ obj-y     =3D fork.o exec_domain.o panic.o \
+ 	    cpu.o exit.o softirq.o resource.o \
+-	    sysctl.o sysctl_binary.o capability.o ptrace.o user.o \
++	    sysctl.o capability.o ptrace.o user.o \
+ 	    signal.o sys.o umh.o workqueue.o pid.o task_work.o \
+ 	    extable.o params.o \
+ 	    kthread.o sys_ni.o nsproxy.o \
+--- a/kernel/sysctl_binary.c
++++ /dev/null
+@@ -1,171 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-#include <linux/stat.h>
+-#include <linux/sysctl.h>
+-#include "../fs/xfs/xfs_sysctl.h"
+-#include <linux/sunrpc/debug.h>
+-#include <linux/string.h>
+-#include <linux/syscalls.h>
+-#include <linux/namei.h>
+-#include <linux/mount.h>
+-#include <linux/fs.h>
+-#include <linux/nsproxy.h>
+-#include <linux/pid_namespace.h>
+-#include <linux/file.h>
+-#include <linux/ctype.h>
+-#include <linux/netdevice.h>
+-#include <linux/kernel.h>
+-#include <linux/uuid.h>
+-#include <linux/slab.h>
+-#include <linux/compat.h>
+-
+-static ssize_t binary_sysctl(const int *name, int nlen,
+-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+-{
+-	return -ENOSYS;
+-}
+-
+-static void deprecated_sysctl_warning(const int *name, int nlen)
+-{
+-	int i;
+-
+-	/*
+-	 * CTL_KERN/KERN_VERSION is used by older glibc and cannot
+-	 * ever go away.
+-	 */
+-	if (nlen >=3D 2 && name[0] =3D=3D CTL_KERN && name[1] =3D=3D KERN_VERSION)
+-		return;
+-
+-	if (printk_ratelimit()) {
+-		printk(KERN_INFO
+-			"warning: process `%s' used the deprecated sysctl "
+-			"system call with ", current->comm);
+-		for (i =3D 0; i < nlen; i++)
+-			printk(KERN_CONT "%d.", name[i]);
+-		printk(KERN_CONT "\n");
+-	}
+-	return;
+-}
+-
+-#define WARN_ONCE_HASH_BITS 8
+-#define WARN_ONCE_HASH_SIZE (1<<WARN_ONCE_HASH_BITS)
+-
+-static DECLARE_BITMAP(warn_once_bitmap, WARN_ONCE_HASH_SIZE);
+-
+-#define FNV32_OFFSET 2166136261U
+-#define FNV32_PRIME 0x01000193
+-
+-/*
+- * Print each legacy sysctl (approximately) only once.
+- * To avoid making the tables non-const use a external
+- * hash-table instead.
+- * Worst case hash collision: 6, but very rarely.
+- * NOTE! We don't use the SMP-safe bit tests. We simply
+- * don't care enough.
+- */
+-static void warn_on_bintable(const int *name, int nlen)
+-{
+-	int i;
+-	u32 hash =3D FNV32_OFFSET;
+-
+-	for (i =3D 0; i < nlen; i++)
+-		hash =3D (hash ^ name[i]) * FNV32_PRIME;
+-	hash %=3D WARN_ONCE_HASH_SIZE;
+-	if (__test_and_set_bit(hash, warn_once_bitmap))
+-		return;
+-	deprecated_sysctl_warning(name, nlen);
+-}
+-
+-static ssize_t do_sysctl(int __user *args_name, int nlen,
+-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+-{
+-	int name[CTL_MAXNAME];
+-	int i;
+-
+-	/* Check args->nlen. */
+-	if (nlen < 0 || nlen > CTL_MAXNAME)
+-		return -ENOTDIR;
+-	/* Read in the sysctl name for simplicity */
+-	for (i =3D 0; i < nlen; i++)
+-		if (get_user(name[i], args_name + i))
+-			return -EFAULT;
+-
+-	warn_on_bintable(name, nlen);
+-
+-	return binary_sysctl(name, nlen, oldval, oldlen, newval, newlen);
+-}
+-
+-SYSCALL_DEFINE1(sysctl, struct __sysctl_args __user *, args)
+-{
+-	struct __sysctl_args tmp;
+-	size_t oldlen =3D 0;
+-	ssize_t result;
+-
+-	if (copy_from_user(&tmp, args, sizeof(tmp)))
+-		return -EFAULT;
+-
+-	if (tmp.oldval && !tmp.oldlenp)
+-		return -EFAULT;
+-
+-	if (tmp.oldlenp && get_user(oldlen, tmp.oldlenp))
+-		return -EFAULT;
+-
+-	result =3D do_sysctl(tmp.name, tmp.nlen, tmp.oldval, oldlen,
+-			   tmp.newval, tmp.newlen);
+-
+-	if (result >=3D 0) {
+-		oldlen =3D result;
+-		result =3D 0;
+-	}
+-
+-	if (tmp.oldlenp && put_user(oldlen, tmp.oldlenp))
+-		return -EFAULT;
+-
+-	return result;
+-}
+-
+-
+-#ifdef CONFIG_COMPAT
+-
+-struct compat_sysctl_args {
+-	compat_uptr_t	name;
+-	int		nlen;
+-	compat_uptr_t	oldval;
+-	compat_uptr_t	oldlenp;
+-	compat_uptr_t	newval;
+-	compat_size_t	newlen;
+-	compat_ulong_t	__unused[4];
+-};
+-
+-COMPAT_SYSCALL_DEFINE1(sysctl, struct compat_sysctl_args __user *, args)
+-{
+-	struct compat_sysctl_args tmp;
+-	compat_size_t __user *compat_oldlenp;
+-	size_t oldlen =3D 0;
+-	ssize_t result;
+-
+-	if (copy_from_user(&tmp, args, sizeof(tmp)))
+-		return -EFAULT;
+-
+-	if (tmp.oldval && !tmp.oldlenp)
+-		return -EFAULT;
+-
+-	compat_oldlenp =3D compat_ptr(tmp.oldlenp);
+-	if (compat_oldlenp && get_user(oldlen, compat_oldlenp))
+-		return -EFAULT;
+-
+-	result =3D do_sysctl(compat_ptr(tmp.name), tmp.nlen,
+-			   compat_ptr(tmp.oldval), oldlen,
+-			   compat_ptr(tmp.newval), tmp.newlen);
+-
+-	if (result >=3D 0) {
+-		oldlen =3D result;
+-		result =3D 0;
+-	}
+-
+-	if (compat_oldlenp && put_user(oldlen, compat_oldlenp))
+-		return -EFAULT;
+-
+-	return result;
+-}
+-
+-#endif /* CONFIG_COMPAT */
+--- a/kernel/sys_ni.c~all-arch-remove-system-call-sys_sysctl
++++ a/kernel/sys_ni.c
+@@ -366,7 +366,6 @@ COND_SYSCALL(socketcall);
+ COND_SYSCALL_COMPAT(socketcall);
+=20
+ /* compat syscalls for arm64, x86, ... */
+-COND_SYSCALL_COMPAT(sysctl);
+ COND_SYSCALL_COMPAT(fanotify_mark);
+=20
+ /* x86 */
+--- a/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl~all-arch-remove-sy=
+stem-call-sys_sysctl
++++ a/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl
+@@ -193,7 +193,7 @@
+ 146	common	writev				sys_writev			compat_sys_writev
+ 147	common	getsid				sys_getsid
+ 148	common	fdatasync			sys_fdatasync
+-149	nospu	_sysctl				sys_sysctl			compat_sys_sysctl
++149	nospu	_sysctl				sys_ni_syscall
+ 150	common	mlock				sys_mlock
+ 151	common	munlock				sys_munlock
+ 152	common	mlockall			sys_mlockall
+--- a/tools/perf/arch/s390/entry/syscalls/syscall.tbl~all-arch-remove-syste=
+m-call-sys_sysctl
++++ a/tools/perf/arch/s390/entry/syscalls/syscall.tbl
+@@ -138,7 +138,7 @@
+ 146  common	writev			sys_writev			compat_sys_writev
+ 147  common	getsid			sys_getsid			sys_getsid
+ 148  common	fdatasync		sys_fdatasync			sys_fdatasync
+-149  common	_sysctl			sys_sysctl			compat_sys_sysctl
++149  common	_sysctl			-				-
+ 150  common	mlock			sys_mlock			compat_sys_mlock
+ 151  common	munlock			sys_munlock			compat_sys_munlock
+ 152  common	mlockall		sys_mlockall			sys_mlockall
+--- a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl~all-arch-remove-sys=
+tem-call-sys_sysctl
++++ a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -164,7 +164,7 @@
+ 153	common	vhangup			sys_vhangup
+ 154	common	modify_ldt		sys_modify_ldt
+ 155	common	pivot_root		sys_pivot_root
+-156	64	_sysctl			sys_sysctl
++156	64	_sysctl			sys_ni_syscall
+ 157	common	prctl			sys_prctl
+ 158	common	arch_prctl		sys_arch_prctl
+ 159	common	adjtimex		sys_adjtimex
 _
