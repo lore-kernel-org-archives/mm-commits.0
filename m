@@ -7,48 +7,51 @@ X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DATE_IN_PAST_12_24,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 305A1C433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:11:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72470C433E1
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:11:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFAF420639
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:11:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A6412065C
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:11:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529480;
-	bh=hThRyai980Y67m2zrEcHnW2XWNlR0ZzrNYbZiTrEi+U=;
+	s=default; t=1597529490;
+	bh=a75//nuJqj8HMG+JgXFzyRjdz5w6Wfl4RUCLGGDhVB8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=BSJhaFk+U6XApJsvhy3CCCdMjX/d137l4ZPVDn+3jfsDoGCgAtbOweYbn1kNvPTsJ
-	 eFtbCJgra52q3TqWrkRhzx3qQ39i9KZK+hlGys3WUj+EmPdPsfu2Pm+mG1ITzLK3iK
-	 6r27b8TnvIDuDpG7OsypWTW7xovkJUMIoKkMEoo4=
+	b=Ob6Tuehk4OEyBG9cqfMDJHw9LQg7fSqTwPAm36ZacX032UP9gyxToTA9GeQQT+b5h
+	 1LXL49MfwBhgFak/GM5wqkzf5lx7CClf6L7jS47bQ3fu5Q9CJ6S9hoRoecywbRgXYB
+	 KR+4xqlKLQRX4l9QULmC1Gqx3yXrOSAPmGbU2NJg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727957AbgHOWLT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:11:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41770 "EHLO mail.kernel.org"
+        id S1729964AbgHOWLU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 15 Aug 2020 18:11:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728590AbgHOWKa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729374AbgHOWKa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 15 Aug 2020 18:10:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 88D9F22DD6;
-        Sat, 15 Aug 2020 00:32:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 84ECD22CBB;
+        Sat, 15 Aug 2020 00:30:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451525;
-        bh=hThRyai980Y67m2zrEcHnW2XWNlR0ZzrNYbZiTrEi+U=;
+        s=default; t=1597451455;
+        bh=a75//nuJqj8HMG+JgXFzyRjdz5w6Wfl4RUCLGGDhVB8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=pJp80jub25b3m4RCV1cgWfWQSb+1xkG33f5eB7PbUYJIDIt9GazNhkqc6fpIJenBH
-         z626oBnwcknhl2IBMWnK9PUe9DVeZX5KliHZTyRFm7wUFf2VEoxkss2NPzLVgFK9Iz
-         4J4Pcw+22fJo1nXrcCjytoRVNv8iHUN932RfQyAU=
-Date:   Fri, 14 Aug 2020 17:32:04 -0700
+        b=ROTePZXJiSa2fbuQqcJ3i3kREaaqmJz8g3AfunWC2HZwXsu5Kr9Wsq3qYXQnpAH2u
+         YWvwvWTHXv/FDsUid8v2FUnZlAoqqFJKObXrCTJuCy6UNhGh+4qF08iaQQAR0pjxPw
+         hy/s7e7jTkzjZFFx4SeQ0K6fQa/SA6DNwJ9UK0Kg=
+Date:   Fri, 14 Aug 2020 17:30:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, amodra@gmail.com,
-        bin.meng@windriver.com, chenzhou10@huawei.com, dalias@libc.org,
-        geert+renesas@glider.be, glaubitz@physik.fu-berlin.de,
-        krzk@kernel.org, kuninori.morimoto.gx@renesas.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        romain.naour@gmail.com, sam@ravnborg.org,
-        torvalds@linux-foundation.org, ysato@users.sourceforge.jp
-Subject:  [patch 35/39] sh: use generic strncpy()
-Message-ID: <20200815003204.lzZYGZKk4%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
+        axboe@kernel.dk, bgeffon@google.com, christian.brauner@ubuntu.com,
+        dancol@google.com, hannes@cmpxchg.org, jannh@google.com,
+        joaodias@google.com, joel@joelfernandes.org, ktkhai@virtuozzo.com,
+        linux-man@vger.kernel.org, linux-mm@kvack.org, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        oleksandr@redhat.com, rientjes@google.com, shakeelb@google.com,
+        sj38.park@gmail.com, sjpark@amazon.de, sonnyrao@google.com,
+        sspatil@google.com, surenb@google.com, timmurray@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 16/39] pid: move pidfd_get_pid() to pid.c
+Message-ID: <20200815003054.OgBLpWc6x%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,93 +60,107 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: sh: use generic strncpy()
+From: Minchan Kim <minchan@kernel.org>
+Subject: pid: move pidfd_get_pid() to pid.c
 
-Current SH will get below warning at strncpy()
+process_madvise syscall needs pidfd_get_pid function to translate pidfd to
+pid so this patch move the function to kernel/pid.c.
 
-In file included from ${LINUX}/arch/sh/include/asm/string.h:3,
-                 from ${LINUX}/include/linux/string.h:20,
-                 from ${LINUX}/include/linux/bitmap.h:9,
-                 from ${LINUX}/include/linux/nodemask.h:95,
-                 from ${LINUX}/include/linux/mmzone.h:17,
-                 from ${LINUX}/include/linux/gfp.h:6,
-                 from ${LINUX}/innclude/linux/slab.h:15,
-                 from ${LINUX}/linux/drivers/mmc/host/vub300.c:38:
-${LINUX}/drivers/mmc/host/vub300.c: In function 'new_system_port_status':
-${LINUX}/arch/sh/include/asm/string_32.h:51:42: warning: array subscript\
-  80 is above array bounds of 'char[26]' [-Warray-bounds]
-   : "0" (__dest), "1" (__src), "r" (__src+__n)
-                                     ~~~~~^~~~
-
-In general, strncpy() should behave like below.
-
-	char dest[10];
-	char *src = "12345";
-
-	strncpy(dest, src, 10);
-	// dest = {'1', '2', '3', '4', '5',
-	           '\0','\0','\0','\0','\0'}
-
-But, current SH strnpy() has 2 issues.
-1st is it will access to out-of-memory (= src + 10).
-2nd is it needs big fixup for it, and maintenance __asm__
-code is difficult.
-
-To solve these issues, this patch simply uses generic strncpy()
-instead of architecture specific one.
-
-Link: https://marc.info/?l=linux-renesas-soc&m=157664657013309
-Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Alan Modra <amodra@gmail.com>
-Cc: Bin Meng <bin.meng@windriver.com>
-Cc: Chen Zhou <chenzhou10@huawei.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Romain Naour <romain.naour@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: http://lkml.kernel.org/r/20200302193630.68771-5-minchan@kernel.org
+Link: http://lkml.kernel.org/r/20200622192900.22757-3-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jann Horn <jannh@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Dias <joaodias@google.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleksandr Natalenko <oleksandr@redhat.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: <linux-man@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/string_32.h |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ include/linux/pid.h |    1 +
+ kernel/exit.c       |   17 -----------------
+ kernel/pid.c        |   17 +++++++++++++++++
+ 3 files changed, 18 insertions(+), 17 deletions(-)
 
---- a/arch/sh/include/asm/string_32.h~sh-use-generic-strncpy
-+++ a/arch/sh/include/asm/string_32.h
-@@ -28,32 +28,6 @@ static inline char *strcpy(char *__dest,
- 	return __xdest;
+--- a/include/linux/pid.h~pid-move-pidfd_get_pid-to-pidc
++++ a/include/linux/pid.h
+@@ -77,6 +77,7 @@ extern const struct file_operations pidf
+ struct file;
+ 
+ extern struct pid *pidfd_pid(const struct file *file);
++struct pid *pidfd_get_pid(unsigned int fd);
+ 
+ static inline struct pid *get_pid(struct pid *pid)
+ {
+--- a/kernel/exit.c~pid-move-pidfd_get_pid-to-pidc
++++ a/kernel/exit.c
+@@ -1474,23 +1474,6 @@ end:
+ 	return retval;
  }
  
--#define __HAVE_ARCH_STRNCPY
--static inline char *strncpy(char *__dest, const char *__src, size_t __n)
+-static struct pid *pidfd_get_pid(unsigned int fd)
 -{
--	register char *__xdest = __dest;
--	unsigned long __dummy;
+-	struct fd f;
+-	struct pid *pid;
 -
--	if (__n == 0)
--		return __xdest;
+-	f = fdget(fd);
+-	if (!f.file)
+-		return ERR_PTR(-EBADF);
 -
--	__asm__ __volatile__(
--		"1:\n"
--		"mov.b	@%1+, %2\n\t"
--		"mov.b	%2, @%0\n\t"
--		"cmp/eq	#0, %2\n\t"
--		"bt/s	2f\n\t"
--		" cmp/eq	%5,%1\n\t"
--		"bf/s	1b\n\t"
--		" add	#1, %0\n"
--		"2:"
--		: "=r" (__dest), "=r" (__src), "=&z" (__dummy)
--		: "0" (__dest), "1" (__src), "r" (__src+__n)
--		: "memory", "t");
+-	pid = pidfd_pid(f.file);
+-	if (!IS_ERR(pid))
+-		get_pid(pid);
 -
--	return __xdest;
+-	fdput(f);
+-	return pid;
 -}
 -
- #define __HAVE_ARCH_STRCMP
- static inline int strcmp(const char *__cs, const char *__ct)
+ static long kernel_waitid(int which, pid_t upid, struct waitid_info *infop,
+ 			  int options, struct rusage *ru)
  {
+--- a/kernel/pid.c~pid-move-pidfd_get_pid-to-pidc
++++ a/kernel/pid.c
+@@ -519,6 +519,23 @@ struct pid *find_ge_pid(int nr, struct p
+ 	return idr_get_next(&ns->idr, &nr);
+ }
+ 
++struct pid *pidfd_get_pid(unsigned int fd)
++{
++	struct fd f;
++	struct pid *pid;
++
++	f = fdget(fd);
++	if (!f.file)
++		return ERR_PTR(-EBADF);
++
++	pid = pidfd_pid(f.file);
++	if (!IS_ERR(pid))
++		get_pid(pid);
++
++	fdput(f);
++	return pid;
++}
++
+ /**
+  * pidfd_create() - Create a new pid file descriptor.
+  *
 _
