@@ -2,1000 +2,130 @@ Return-Path: <SRS0=U74d=BZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BF4BC433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:10:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A87FC433DF
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:11:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E80352063A
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:10:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2801520657
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:11:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529449;
-	bh=UnTMF3tY5DznXYgiuyPtpxVqv0Dgj99nZTgqS1evF0o=;
+	s=default; t=1597529462;
+	bh=X6lX7m6NUoXLTN3olMcWyQXXrQGbAcHZenjZfttSmzs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=OgDX2gOdApjEyGHIheZhG9oScqUt6RtphH4+S1LeaIHfjIQaPykVCHjK22F1zt0M7
-	 aEOwXZlihqpaEdlTiNcGTQ4+QkQYLMsiGyascUFELLwxFEr0bhFGC1cwiLjbS2o1k2
-	 5ua5ZqXK6QEC9wDxx+cR5dMmHkrJN8pYKpLwjKTY=
+	b=MJgb6SSNNWtfMBG2ZIWH891+bNQGtddiP2casFIlECLDvfCoKdmgXgyKm/PoeaX5e
+	 I/y9DNIXutPdhr2MddstGdfXI9QO/yLejxlj4tEHJwLNg8VBGr7/B/lPKFTHTImz5A
+	 5SA+ny84qFFlLFG9CT5vB4y3p1ep/gMyY7EfF2tY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729697AbgHOWKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:10:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41792 "EHLO mail.kernel.org"
+        id S1729772AbgHOWKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 15 Aug 2020 18:10:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729581AbgHOWKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 15 Aug 2020 18:10:39 -0400
+        id S1729462AbgHOWKb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 15 Aug 2020 18:10:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4ECC922CAD;
-        Sat, 15 Aug 2020 00:31:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4BCF422D3E;
+        Sat, 15 Aug 2020 00:31:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451471;
-        bh=UnTMF3tY5DznXYgiuyPtpxVqv0Dgj99nZTgqS1evF0o=;
+        s=default; t=1597451514;
+        bh=X6lX7m6NUoXLTN3olMcWyQXXrQGbAcHZenjZfttSmzs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=YlSkXcLKZ8paiD7mR+JH7wycwpCMQUDKUDtSZ3Rik0xc197M4nGsYZEqIeWGv2N9T
-         P9K5BwdZHFQcjqnTTJH0rMFptzNHto96LYe4HW+7DiGuj1l3jHpycv+Yb4aiILHE1W
-         XHCWzM+5RbzizgrZUrVG5INK6Tk+UIn2C+HlVnlc=
-Date:   Fri, 14 Aug 2020 17:31:07 -0700
+        b=Txr9I1xZDkIJaXBWBOeIU2vnJV4D1GZKoOKacPQR2ucIqDhaB6iwHgCGHLWBkH9m8
+         P+xKsJi+R3LWmegt1gmNzRqXUod1LmOigoA2cvwLn6LjphMdnTK5ssmOCNYZgLyALf
+         3MWYf13YC1GvFkWXmtNcG/nBZkU9Cq0bmHDE4IhQ=
+Date:   Fri, 14 Aug 2020 17:31:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     acme@kernel.org, ak@linux.intel.com, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com, arnd@arndb.de, axboe@kernel.dk,
-        bauerman@linux.ibm.com, benh@kernel.crashing.org,
-        bin.meng@windriver.com, borntraeger@de.ibm.com, bp@alien8.de,
-        brgerst@gmail.com, catalin.marinas@arm.com, chenzefeng2@huawei.com,
-        chris@zankel.net, christian@brauner.io, cyphar@cyphar.com,
-        dalias@libc.org, davem@davemloft.net, deller@gmx.de,
-        dhowells@redhat.com, dvyukov@google.com, ebiederm@xmission.com,
-        elver@google.com, fenghua.yu@intel.com, flameeyes@flameeyes.com,
-        geert@linux-m68k.org, gor@linux.ibm.com, heiko.carstens@de.ibm.com,
-        hpa@zytor.com, ink@jurassic.park.msu.ru,
-        James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com,
-        jolsa@redhat.com, jongk@linux-m68k.org, keescook@chromium.org,
-        krzk@kernel.org, linux-mm@kvack.org, linux@armlinux.org.uk,
-        linux@dominikbrodowski.net, luto@kernel.org, mark.rutland@arm.com,
-        martin.petersen@oracle.com, mattst88@gmail.com, mcgrof@kernel.org,
-        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        monstr@monstr.eu, mpe@ellerman.id.au, mszeredi@redhat.com,
-        namhyung@kernel.org, naveen.n.rao@linux.vnet.ibm.com,
-        nixiaoming@huawei.com, npiggin@gmail.com, oleg@redhat.com,
-        olof@lixom.net, paulburton@kernel.org, paulmck@kernel.org,
-        paulus@samba.org, peterz@infradead.org,
-        ravi.bangoria@linux.ibm.com, rdunlap@infradead.org,
-        rth@twiddle.net, samitolvanen@google.com, sargun@sargun.me,
-        sfr@canb.auug.org.au, sudeep.holla@arm.com, svens@stackframe.org,
-        tglx@linutronix.de, tony.luck@intel.com,
-        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
-        vbabka@suse.cz, viro@zeniv.linux.org.uk, will@kernel.org,
-        yamada.masahiro@socionext.com, ysato@users.sourceforge.jp,
-        yzaikin@google.com, zhouyanjie@wanyeetech.com
-Subject:  [patch 19/39] all arch: remove system call sys_sysctl
-Message-ID: <20200815003107.M3FiGawo9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, dan.j.williams@intel.com,
+        david@redhat.com, elver@google.com, ira.weiny@intel.com,
+        jack@suse.cz, jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, paulmck@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 32/39] mm: annotate a data race in page_zonenum()
+Message-ID: <20200815003153.u2a5W_kRT%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: all arch: remove system call sys_sysctl
+From: Qian Cai <cai@lca.pw>
+Subject: mm: annotate a data race in page_zonenum()
 
-Since commit 61a47c1ad3a4dc ("sysctl: Remove the sysctl system call"),
-sys_sysctl is actually unavailable: any input can only return an error.
+ BUG: KCSAN: data-race in page_cpupid_xchg_last / put_page
 
-We have been warning about people using the sysctl system call for years
-and believe there are no more users.  Even if there are users of this
-interface if they have not complained or fixed their code by now they
-probably are not going to, so there is no point in warning them any
-longer.
+ write (marked) to 0xfffffc0d48ec1a00 of 8 bytes by task 91442 on cpu 3:
+  page_cpupid_xchg_last+0x51/0x80
+  page_cpupid_xchg_last at mm/mmzone.c:109 (discriminator 11)
+  wp_page_reuse+0x3e/0xc0
+  wp_page_reuse at mm/memory.c:2453
+  do_wp_page+0x472/0x7b0
+  do_wp_page at mm/memory.c:2798
+  __handle_mm_fault+0xcb0/0xd00
+  handle_pte_fault at mm/memory.c:4049
+  (inlined by) __handle_mm_fault at mm/memory.c:4163
+  handle_mm_fault+0xfc/0x2f0
+  handle_mm_fault at mm/memory.c:4200
+  do_page_fault+0x263/0x6f9
+  do_user_addr_fault at arch/x86/mm/fault.c:1465
+  (inlined by) do_page_fault at arch/x86/mm/fault.c:1539
+  page_fault+0x34/0x40
 
-So completely remove sys_sysctl on all architectures.
+ read to 0xfffffc0d48ec1a00 of 8 bytes by task 94817 on cpu 69:
+  put_page+0x15a/0x1f0
+  page_zonenum at include/linux/mm.h:923
+  (inlined by) is_zone_device_page at include/linux/mm.h:929
+  (inlined by) page_is_devmap_managed at include/linux/mm.h:948
+  (inlined by) put_page at include/linux/mm.h:1023
+  wp_page_copy+0x571/0x930
+  wp_page_copy at mm/memory.c:2615
+  do_wp_page+0x107/0x7b0
+  __handle_mm_fault+0xcb0/0xd00
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x6f9
+  page_fault+0x34/0x40
 
-[nixiaoming@huawei.com: s390: fix build error for sys_call_table_emu]
- Link: http://lkml.kernel.org/r/20200618141426.16884-1-nixiaoming@huawei.com
-Link: http://lkml.kernel.org/r/20200616030734.87257-1-nixiaoming@huawei.com
-Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
-Acked-by: Will Deacon <will@kernel.org>		[arm/arm64]
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Bin Meng <bin.meng@windriver.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: chenzefeng <chenzefeng2@huawei.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Diego Elio Petten=C3=B2 <flameeyes@flameeyes.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Kars de Jong <jongk@linux-m68k.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ravi Bangoria <ravi.bangoria@linux.ibm.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Sargun Dhillon <sargun@sargun.me>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Sven Schnelle <svens@stackframe.org>
-Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Zhou Yanjie <zhouyanjie@wanyeetech.com>
+ Reported by Kernel Concurrency Sanitizer on:
+ CPU: 69 PID: 94817 Comm: systemd-udevd Tainted: G        W  O L 5.5.0-next-20200204+ #6
+ Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
+
+A page never changes its zone number. The zone number happens to be
+stored in the same word as other bits which are modified, but the zone
+number bits will never be modified by any other write, so it can accept
+a reload of the zone bits after an intervening write and it don't need
+to use READ_ONCE(). Thus, annotate this data race using
+ASSERT_EXCLUSIVE_BITS() to also assert that there are no concurrent
+writes to it.
+
+Link: http://lkml.kernel.org/r/1581619089-14472-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Suggested-by: Marco Elver <elver@google.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/syscalls/syscall.tbl             |    2=20
- arch/arm/configs/am200epdkit_defconfig             |    1=20
- arch/arm/tools/syscall.tbl                         |    2=20
- arch/arm64/include/asm/unistd32.h                  |    4=20
- arch/ia64/kernel/syscalls/syscall.tbl              |    2=20
- arch/m68k/kernel/syscalls/syscall.tbl              |    2=20
- arch/microblaze/kernel/syscalls/syscall.tbl        |    2=20
- arch/mips/configs/cu1000-neo_defconfig             |    1=20
- arch/mips/kernel/syscalls/syscall_n32.tbl          |    2=20
- arch/mips/kernel/syscalls/syscall_n64.tbl          |    2=20
- arch/mips/kernel/syscalls/syscall_o32.tbl          |    2=20
- arch/parisc/kernel/syscalls/syscall.tbl            |    2=20
- arch/powerpc/kernel/syscalls/syscall.tbl           |    2=20
- arch/s390/kernel/syscalls/syscall.tbl              |    2=20
- arch/sh/configs/dreamcast_defconfig                |    1=20
- arch/sh/configs/espt_defconfig                     |    1=20
- arch/sh/configs/hp6xx_defconfig                    |    1=20
- arch/sh/configs/landisk_defconfig                  |    1=20
- arch/sh/configs/lboxre2_defconfig                  |    1=20
- arch/sh/configs/microdev_defconfig                 |    1=20
- arch/sh/configs/migor_defconfig                    |    1=20
- arch/sh/configs/r7780mp_defconfig                  |    1=20
- arch/sh/configs/r7785rp_defconfig                  |    1=20
- arch/sh/configs/rts7751r2d1_defconfig              |    1=20
- arch/sh/configs/rts7751r2dplus_defconfig           |    1=20
- arch/sh/configs/se7206_defconfig                   |    1=20
- arch/sh/configs/se7343_defconfig                   |    1=20
- arch/sh/configs/se7619_defconfig                   |    1=20
- arch/sh/configs/se7705_defconfig                   |    1=20
- arch/sh/configs/se7750_defconfig                   |    1=20
- arch/sh/configs/se7751_defconfig                   |    1=20
- arch/sh/configs/secureedge5410_defconfig           |    1=20
- arch/sh/configs/sh03_defconfig                     |    1=20
- arch/sh/configs/sh7710voipgw_defconfig             |    1=20
- arch/sh/configs/sh7757lcr_defconfig                |    1=20
- arch/sh/configs/sh7763rdp_defconfig                |    1=20
- arch/sh/configs/shmin_defconfig                    |    1=20
- arch/sh/configs/titan_defconfig                    |    1=20
- arch/sh/kernel/syscalls/syscall.tbl                |    2=20
- arch/sparc/kernel/syscalls/syscall.tbl             |    2=20
- arch/x86/entry/syscalls/syscall_32.tbl             |    2=20
- arch/x86/entry/syscalls/syscall_64.tbl             |    2=20
- arch/xtensa/kernel/syscalls/syscall.tbl            |    2=20
- include/linux/compat.h                             |    1=20
- include/linux/syscalls.h                           |    2=20
- include/linux/sysctl.h                             |    6=20
- kernel/Makefile                                    |    2=20
- kernel/sys_ni.c                                    |    1=20
- kernel/sysctl_binary.c                             |  171 -----------
- tools/perf/arch/powerpc/entry/syscalls/syscall.tbl |    2=20
- tools/perf/arch/s390/entry/syscalls/syscall.tbl    |    2=20
- tools/perf/arch/x86/entry/syscalls/syscall_64.tbl  |    2=20
- 52 files changed, 24 insertions(+), 227 deletions(-)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/alpha/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -249,7 +249,7 @@
- 316	common	mlockall			sys_mlockall
- 317	common	munlockall			sys_munlockall
- 318	common	sysinfo				sys_sysinfo
--319	common	_sysctl				sys_sysctl
-+319	common	_sysctl				sys_ni_syscall
- # 320 was sys_idle
- 321	common	oldumount			sys_oldumount
- 322	common	swapon				sys_swapon
---- a/arch/arm64/include/asm/unistd32.h~all-arch-remove-system-call-sys_sys=
-ctl
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -308,8 +308,8 @@ __SYSCALL(__NR_writev, compat_sys_writev
- __SYSCALL(__NR_getsid, sys_getsid)
- #define __NR_fdatasync 148
- __SYSCALL(__NR_fdatasync, sys_fdatasync)
--#define __NR__sysctl 149
--__SYSCALL(__NR__sysctl, compat_sys_sysctl)
-+			/* 149 was sys_sysctl */
-+__SYSCALL(149, sys_ni_syscall)
- #define __NR_mlock 150
- __SYSCALL(__NR_mlock, sys_mlock)
- #define __NR_munlock 151
---- a/arch/arm/configs/am200epdkit_defconfig~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/arm/configs/am200epdkit_defconfig
-@@ -3,7 +3,6 @@ CONFIG_LOCALVERSION=3D"gum"
- CONFIG_SYSVIPC=3Dy
- CONFIG_SYSFS_DEPRECATED_V2=3Dy
- CONFIG_EXPERT=3Dy
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_EPOLL is not set
- # CONFIG_SHMEM is not set
- # CONFIG_VM_EVENT_COUNTERS is not set
---- a/arch/arm/tools/syscall.tbl~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/arm/tools/syscall.tbl
-@@ -162,7 +162,7 @@
- 146	common	writev			sys_writev
- 147	common	getsid			sys_getsid
- 148	common	fdatasync		sys_fdatasync
--149	common	_sysctl			sys_sysctl
-+149	common	_sysctl			sys_ni_syscall
- 150	common	mlock			sys_mlock
- 151	common	munlock			sys_munlock
- 152	common	mlockall		sys_mlockall
---- a/arch/ia64/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys=
-_sysctl
-+++ a/arch/ia64/kernel/syscalls/syscall.tbl
-@@ -135,7 +135,7 @@
- 123	common	writev				sys_writev
- 124	common	pread64				sys_pread64
- 125	common	pwrite64			sys_pwrite64
--126	common	_sysctl				sys_sysctl
-+126	common	_sysctl				sys_ni_syscall
- 127	common	mmap				sys_mmap
- 128	common	munmap				sys_munmap
- 129	common	mlock				sys_mlock
---- a/arch/m68k/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys=
-_sysctl
-+++ a/arch/m68k/kernel/syscalls/syscall.tbl
-@@ -156,7 +156,7 @@
- 146	common	writev				sys_writev
- 147	common	getsid				sys_getsid
- 148	common	fdatasync			sys_fdatasync
--149	common	_sysctl				sys_sysctl
-+149	common	_sysctl				sys_ni_syscall
- 150	common	mlock				sys_mlock
- 151	common	munlock				sys_munlock
- 152	common	mlockall			sys_mlockall
---- a/arch/microblaze/kernel/syscalls/syscall.tbl~all-arch-remove-system-ca=
-ll-sys_sysctl
-+++ a/arch/microblaze/kernel/syscalls/syscall.tbl
-@@ -156,7 +156,7 @@
- 146	common	writev				sys_writev
- 147	common	getsid				sys_getsid
- 148	common	fdatasync			sys_fdatasync
--149	common	_sysctl				sys_sysctl
-+149	common	_sysctl				sys_ni_syscall
- 150	common	mlock				sys_mlock
- 151	common	munlock				sys_munlock
- 152	common	mlockall			sys_mlockall
---- a/arch/mips/configs/cu1000-neo_defconfig~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/mips/configs/cu1000-neo_defconfig
-@@ -17,7 +17,6 @@ CONFIG_CGROUP_CPUACCT=3Dy
- CONFIG_NAMESPACES=3Dy
- CONFIG_USER_NS=3Dy
- CONFIG_CC_OPTIMIZE_FOR_SIZE=3Dy
--CONFIG_SYSCTL_SYSCALL=3Dy
- CONFIG_KALLSYMS_ALL=3Dy
- CONFIG_EMBEDDED=3Dy
- # CONFIG_VM_EVENT_COUNTERS is not set
---- a/arch/mips/kernel/syscalls/syscall_n32.tbl~all-arch-remove-system-call=
--sys_sysctl
-+++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
-@@ -159,7 +159,7 @@
- 149	n32	munlockall			sys_munlockall
- 150	n32	vhangup				sys_vhangup
- 151	n32	pivot_root			sys_pivot_root
--152	n32	_sysctl				compat_sys_sysctl
-+152	n32	_sysctl				sys_ni_syscall
- 153	n32	prctl				sys_prctl
- 154	n32	adjtimex			sys_adjtimex_time32
- 155	n32	setrlimit			compat_sys_setrlimit
---- a/arch/mips/kernel/syscalls/syscall_n64.tbl~all-arch-remove-system-call=
--sys_sysctl
-+++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
-@@ -159,7 +159,7 @@
- 149	n64	munlockall			sys_munlockall
- 150	n64	vhangup				sys_vhangup
- 151	n64	pivot_root			sys_pivot_root
--152	n64	_sysctl				sys_sysctl
-+152	n64	_sysctl				sys_ni_syscall
- 153	n64	prctl				sys_prctl
- 154	n64	adjtimex			sys_adjtimex
- 155	n64	setrlimit			sys_setrlimit
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~all-arch-remove-system-call=
--sys_sysctl
-+++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
-@@ -164,7 +164,7 @@
- 150	o32	unused150			sys_ni_syscall
- 151	o32	getsid				sys_getsid
- 152	o32	fdatasync			sys_fdatasync
--153	o32	_sysctl				sys_sysctl			compat_sys_sysctl
-+153	o32	_sysctl				sys_ni_syscall
- 154	o32	mlock				sys_mlock
- 155	o32	munlock				sys_munlock
- 156	o32	mlockall			sys_mlockall
---- a/arch/parisc/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-s=
-ys_sysctl
-+++ a/arch/parisc/kernel/syscalls/syscall.tbl
-@@ -163,7 +163,7 @@
- 146	common	writev			sys_writev			compat_sys_writev
- 147	common	getsid			sys_getsid
- 148	common	fdatasync		sys_fdatasync
--149	common	_sysctl			sys_sysctl			compat_sys_sysctl
-+149	common	_sysctl			sys_ni_syscall
- 150	common	mlock			sys_mlock
- 151	common	munlock			sys_munlock
- 152	common	mlockall		sys_mlockall
---- a/arch/powerpc/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-=
-sys_sysctl
-+++ a/arch/powerpc/kernel/syscalls/syscall.tbl
-@@ -197,7 +197,7 @@
- 146	common	writev				sys_writev			compat_sys_writev
- 147	common	getsid				sys_getsid
- 148	common	fdatasync			sys_fdatasync
--149	nospu	_sysctl				sys_sysctl			compat_sys_sysctl
-+149	nospu	_sysctl				sys_ni_syscall
- 150	common	mlock				sys_mlock
- 151	common	munlock				sys_munlock
- 152	common	mlockall			sys_mlockall
---- a/arch/s390/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys=
-_sysctl
-+++ a/arch/s390/kernel/syscalls/syscall.tbl
-@@ -138,7 +138,7 @@
- 146  common	writev			sys_writev			compat_sys_writev
- 147  common	getsid			sys_getsid			sys_getsid
- 148  common	fdatasync		sys_fdatasync			sys_fdatasync
--149  common	_sysctl			sys_sysctl			compat_sys_sysctl
-+149  common	_sysctl			-				-
- 150  common	mlock			sys_mlock			sys_mlock
- 151  common	munlock			sys_munlock			sys_munlock
- 152  common	mlockall		sys_mlockall			sys_mlockall
---- a/arch/sh/configs/dreamcast_defconfig~all-arch-remove-system-call-sys_s=
-ysctl
-+++ a/arch/sh/configs/dreamcast_defconfig
-@@ -1,7 +1,6 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_BSD_PROCESS_ACCT=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_MODULES=3Dy
---- a/arch/sh/configs/espt_defconfig~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/sh/configs/espt_defconfig
-@@ -5,7 +5,6 @@ CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_NAMESPACES=3Dy
- CONFIG_UTS_NS=3Dy
- CONFIG_IPC_NS=3Dy
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dy
---- a/arch/sh/configs/hp6xx_defconfig~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/sh/configs/hp6xx_defconfig
-@@ -3,7 +3,6 @@ CONFIG_IKCONFIG=3Dy
- CONFIG_IKCONFIG_PROC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_CPU_SUBTYPE_SH7709=3Dy
---- a/arch/sh/configs/landisk_defconfig~all-arch-remove-system-call-sys_sys=
-ctl
-+++ a/arch/sh/configs/landisk_defconfig
-@@ -1,6 +1,5 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_EXTRA_PASS=3Dy
- CONFIG_SLAB=3Dy
- CONFIG_MODULES=3Dy
---- a/arch/sh/configs/lboxre2_defconfig~all-arch-remove-system-call-sys_sys=
-ctl
-+++ a/arch/sh/configs/lboxre2_defconfig
-@@ -1,6 +1,5 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_EXTRA_PASS=3Dy
- CONFIG_SLAB=3Dy
- CONFIG_MODULES=3Dy
---- a/arch/sh/configs/microdev_defconfig~all-arch-remove-system-call-sys_sy=
-sctl
-+++ a/arch/sh/configs/microdev_defconfig
-@@ -2,7 +2,6 @@ CONFIG_BSD_PROCESS_ACCT=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_CPU_SUBTYPE_SH4_202=3Dy
---- a/arch/sh/configs/migor_defconfig~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/sh/configs/migor_defconfig
-@@ -4,7 +4,6 @@ CONFIG_IKCONFIG_PROC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dy
---- a/arch/sh/configs/r7780mp_defconfig~all-arch-remove-system-call-sys_sys=
-ctl
-+++ a/arch/sh/configs/r7780mp_defconfig
-@@ -3,7 +3,6 @@ CONFIG_BSD_PROCESS_ACCT=3Dy
- CONFIG_IKCONFIG=3Dy
- CONFIG_IKCONFIG_PROC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
- CONFIG_SLAB=3Dy
---- a/arch/sh/configs/r7785rp_defconfig~all-arch-remove-system-call-sys_sys=
-ctl
-+++ a/arch/sh/configs/r7785rp_defconfig
-@@ -7,7 +7,6 @@ CONFIG_RCU_TRACE=3Dy
- CONFIG_IKCONFIG=3Dy
- CONFIG_IKCONFIG_PROC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dy
---- a/arch/sh/configs/rts7751r2d1_defconfig~all-arch-remove-system-call-sys=
-_sysctl
-+++ a/arch/sh/configs/rts7751r2d1_defconfig
-@@ -1,7 +1,6 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dy
---- a/arch/sh/configs/rts7751r2dplus_defconfig~all-arch-remove-system-call-=
-sys_sysctl
-+++ a/arch/sh/configs/rts7751r2dplus_defconfig
-@@ -1,7 +1,6 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dy
---- a/arch/sh/configs/se7206_defconfig~all-arch-remove-system-call-sys_sysc=
-tl
-+++ a/arch/sh/configs/se7206_defconfig
-@@ -18,7 +18,6 @@ CONFIG_USER_NS=3Dy
- CONFIG_PID_NS=3Dy
- CONFIG_BLK_DEV_INITRD=3Dy
- # CONFIG_UID16 is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_ALL=3Dy
- # CONFIG_ELF_CORE is not set
- # CONFIG_COMPAT_BRK is not set
---- a/arch/sh/configs/se7343_defconfig~all-arch-remove-system-call-sys_sysc=
-tl
-+++ a/arch/sh/configs/se7343_defconfig
-@@ -2,7 +2,6 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_POSIX_MQUEUE=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
- # CONFIG_SHMEM is not set
---- a/arch/sh/configs/se7619_defconfig~all-arch-remove-system-call-sys_sysc=
-tl
-+++ a/arch/sh/configs/se7619_defconfig
-@@ -1,7 +1,6 @@
- # CONFIG_LOCALVERSION_AUTO is not set
- CONFIG_LOG_BUF_SHIFT=3D14
- # CONFIG_UID16 is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_ELF_CORE is not set
---- a/arch/sh/configs/se7705_defconfig~all-arch-remove-system-call-sys_sysc=
-tl
-+++ a/arch/sh/configs/se7705_defconfig
-@@ -2,7 +2,6 @@
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=3Dy
---- a/arch/sh/configs/se7750_defconfig~all-arch-remove-system-call-sys_sysc=
-tl
-+++ a/arch/sh/configs/se7750_defconfig
-@@ -5,7 +5,6 @@ CONFIG_IKCONFIG=3Dy
- CONFIG_IKCONFIG_PROC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=3Dy
- CONFIG_MODULES=3Dy
---- a/arch/sh/configs/se7751_defconfig~all-arch-remove-system-call-sys_sysc=
-tl
-+++ a/arch/sh/configs/se7751_defconfig
-@@ -3,7 +3,6 @@ CONFIG_BSD_PROCESS_ACCT=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=3Dy
- CONFIG_MODULES=3Dy
---- a/arch/sh/configs/secureedge5410_defconfig~all-arch-remove-system-call-=
-sys_sysctl
-+++ a/arch/sh/configs/secureedge5410_defconfig
-@@ -1,7 +1,6 @@
- # CONFIG_SWAP is not set
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_HOTPLUG is not set
- CONFIG_SLAB=3Dy
- # CONFIG_BLK_DEV_BSG is not set
---- a/arch/sh/configs/sh03_defconfig~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/sh/configs/sh03_defconfig
-@@ -3,7 +3,6 @@ CONFIG_POSIX_MQUEUE=3Dy
- CONFIG_BSD_PROCESS_ACCT=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dm
---- a/arch/sh/configs/sh7710voipgw_defconfig~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/sh/configs/sh7710voipgw_defconfig
-@@ -2,7 +2,6 @@
- CONFIG_SYSVIPC=3Dy
- CONFIG_POSIX_MQUEUE=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
- # CONFIG_SHMEM is not set
---- a/arch/sh/configs/sh7757lcr_defconfig~all-arch-remove-system-call-sys_s=
-ysctl
-+++ a/arch/sh/configs/sh7757lcr_defconfig
-@@ -8,7 +8,6 @@ CONFIG_TASK_XACCT=3Dy
- CONFIG_TASK_IO_ACCOUNTING=3Dy
- CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_BLK_DEV_INITRD=3Dy
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_KALLSYMS_ALL=3Dy
- CONFIG_SLAB=3Dy
- CONFIG_MODULES=3Dy
---- a/arch/sh/configs/sh7763rdp_defconfig~all-arch-remove-system-call-sys_s=
-ysctl
-+++ a/arch/sh/configs/sh7763rdp_defconfig
-@@ -5,7 +5,6 @@ CONFIG_LOG_BUF_SHIFT=3D14
- CONFIG_NAMESPACES=3Dy
- CONFIG_UTS_NS=3Dy
- CONFIG_IPC_NS=3Dy
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_PROFILING=3Dy
- CONFIG_OPROFILE=3Dy
---- a/arch/sh/configs/shmin_defconfig~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/sh/configs/shmin_defconfig
-@@ -1,7 +1,6 @@
- # CONFIG_SWAP is not set
- CONFIG_LOG_BUF_SHIFT=3D14
- # CONFIG_UID16 is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
- # CONFIG_HOTPLUG is not set
- # CONFIG_BUG is not set
---- a/arch/sh/configs/titan_defconfig~all-arch-remove-system-call-sys_sysctl
-+++ a/arch/sh/configs/titan_defconfig
-@@ -6,7 +6,6 @@ CONFIG_IKCONFIG_PROC=3Dy
- CONFIG_LOG_BUF_SHIFT=3D16
- CONFIG_BLK_DEV_INITRD=3Dy
- # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
--# CONFIG_SYSCTL_SYSCALL is not set
- CONFIG_SLAB=3Dy
- CONFIG_MODULES=3Dy
- CONFIG_MODULE_UNLOAD=3Dy
---- a/arch/sh/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys_s=
-ysctl
-+++ a/arch/sh/kernel/syscalls/syscall.tbl
-@@ -156,7 +156,7 @@
- 146	common	writev				sys_writev
- 147	common	getsid				sys_getsid
- 148	common	fdatasync			sys_fdatasync
--149	common	_sysctl				sys_sysctl
-+149	common	_sysctl				sys_ni_syscall
- 150	common	mlock				sys_mlock
- 151	common	munlock				sys_munlock
- 152	common	mlockall			sys_mlockall
---- a/arch/sparc/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -300,7 +300,7 @@
- 249	64	nanosleep		sys_nanosleep
- 250	32	mremap			sys_mremap
- 250	64	mremap			sys_64_mremap
--251	common	_sysctl			sys_sysctl			compat_sys_sysctl
-+251	common	_sysctl			sys_ni_syscall
- 252	common	getsid			sys_getsid
- 253	common	fdatasync		sys_fdatasync
- 254	32	nfsservctl		sys_ni_syscall			sys_nis_syscall
---- a/arch/x86/entry/syscalls/syscall_32.tbl~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -160,7 +160,7 @@
- 146	i386	writev			sys_writev			compat_sys_writev
- 147	i386	getsid			sys_getsid
- 148	i386	fdatasync		sys_fdatasync
--149	i386	_sysctl			sys_sysctl			compat_sys_sysctl
-+149	i386	_sysctl			sys_ni_syscall
- 150	i386	mlock			sys_mlock
- 151	i386	munlock			sys_munlock
- 152	i386	mlockall		sys_mlockall
---- a/arch/x86/entry/syscalls/syscall_64.tbl~all-arch-remove-system-call-sy=
-s_sysctl
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -164,7 +164,7 @@
- 153	common	vhangup			sys_vhangup
- 154	common	modify_ldt		sys_modify_ldt
- 155	common	pivot_root		sys_pivot_root
--156	64	_sysctl			sys_sysctl
-+156	64	_sysctl			sys_ni_syscall
- 157	common	prctl			sys_prctl
- 158	common	arch_prctl		sys_arch_prctl
- 159	common	adjtimex		sys_adjtimex
---- a/arch/xtensa/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-s=
-ys_sysctl
-+++ a/arch/xtensa/kernel/syscalls/syscall.tbl
-@@ -222,7 +222,7 @@
- 204	common	quotactl			sys_quotactl
- # 205 was old nfsservctl
- 205	common	nfsservctl			sys_ni_syscall
--206	common	_sysctl				sys_sysctl
-+206	common	_sysctl				sys_ni_syscall
- 207	common	bdflush				sys_bdflush
- 208	common	uname				sys_newuname
- 209	common	sysinfo				sys_sysinfo
---- a/include/linux/compat.h~all-arch-remove-system-call-sys_sysctl
-+++ a/include/linux/compat.h
-@@ -855,7 +855,6 @@ asmlinkage long compat_sys_select(int n,
- asmlinkage long compat_sys_ustat(unsigned dev, struct compat_ustat __user =
-*u32);
- asmlinkage long compat_sys_recv(int fd, void __user *buf, compat_size_t le=
-n,
- 				unsigned flags);
--asmlinkage long compat_sys_sysctl(struct compat_sysctl_args __user *args);
-=20
- /* obsolete: fs/readdir.c */
- asmlinkage long compat_sys_old_readdir(unsigned int fd,
---- a/include/linux/syscalls.h~all-arch-remove-system-call-sys_sysctl
-+++ a/include/linux/syscalls.h
-@@ -47,7 +47,6 @@ struct stat64;
- struct statfs;
- struct statfs64;
- struct statx;
--struct __sysctl_args;
- struct sysinfo;
- struct timespec;
- struct __kernel_old_timeval;
-@@ -1119,7 +1118,6 @@ asmlinkage long sys_send(int, void __use
- asmlinkage long sys_bdflush(int func, long data);
- asmlinkage long sys_oldumount(char __user *name);
- asmlinkage long sys_uselib(const char __user *library);
--asmlinkage long sys_sysctl(struct __sysctl_args __user *args);
- asmlinkage long sys_sysfs(int option,
- 				unsigned long arg1, unsigned long arg2);
- asmlinkage long sys_fork(void);
---- a/include/linux/sysctl.h~all-arch-remove-system-call-sys_sysctl
-+++ a/include/linux/sysctl.h
-@@ -74,15 +74,13 @@ int proc_do_static_key(struct ctl_table
-  * sysctl names can be mirrored automatically under /proc/sys.  The
-  * procname supplied controls /proc naming.
-  *
-- * The table's mode will be honoured both for sys_sysctl(2) and
-- * proc-fs access.
-+ * The table's mode will be honoured for proc-fs access.
-  *
-  * Leaf nodes in the sysctl tree will be represented by a single file
-  * under /proc; non-leaf nodes will be represented by directories.  A
-  * null procname disables /proc mirroring at this node.
-  *
-- * sysctl(2) can automatically manage read and write requests through
-- * the sysctl table.  The data and maxlen fields of the ctl_table
-+ * The data and maxlen fields of the ctl_table
-  * struct enable minimal validation of the values being written to be
-  * performed, and the mode field allows minimal authentication.
-  *=20
---- a/kernel/Makefile~all-arch-remove-system-call-sys_sysctl
-+++ a/kernel/Makefile
-@@ -5,7 +5,7 @@
-=20
- obj-y     =3D fork.o exec_domain.o panic.o \
- 	    cpu.o exit.o softirq.o resource.o \
--	    sysctl.o sysctl_binary.o capability.o ptrace.o user.o \
-+	    sysctl.o capability.o ptrace.o user.o \
- 	    signal.o sys.o umh.o workqueue.o pid.o task_work.o \
- 	    extable.o params.o \
- 	    kthread.o sys_ni.o nsproxy.o \
---- a/kernel/sysctl_binary.c
-+++ /dev/null
-@@ -1,171 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--#include <linux/stat.h>
--#include <linux/sysctl.h>
--#include "../fs/xfs/xfs_sysctl.h"
--#include <linux/sunrpc/debug.h>
--#include <linux/string.h>
--#include <linux/syscalls.h>
--#include <linux/namei.h>
--#include <linux/mount.h>
--#include <linux/fs.h>
--#include <linux/nsproxy.h>
--#include <linux/pid_namespace.h>
--#include <linux/file.h>
--#include <linux/ctype.h>
--#include <linux/netdevice.h>
--#include <linux/kernel.h>
--#include <linux/uuid.h>
--#include <linux/slab.h>
--#include <linux/compat.h>
--
--static ssize_t binary_sysctl(const int *name, int nlen,
--	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
--{
--	return -ENOSYS;
--}
--
--static void deprecated_sysctl_warning(const int *name, int nlen)
--{
--	int i;
--
--	/*
--	 * CTL_KERN/KERN_VERSION is used by older glibc and cannot
--	 * ever go away.
--	 */
--	if (nlen >=3D 2 && name[0] =3D=3D CTL_KERN && name[1] =3D=3D KERN_VERSION)
--		return;
--
--	if (printk_ratelimit()) {
--		printk(KERN_INFO
--			"warning: process `%s' used the deprecated sysctl "
--			"system call with ", current->comm);
--		for (i =3D 0; i < nlen; i++)
--			printk(KERN_CONT "%d.", name[i]);
--		printk(KERN_CONT "\n");
--	}
--	return;
--}
--
--#define WARN_ONCE_HASH_BITS 8
--#define WARN_ONCE_HASH_SIZE (1<<WARN_ONCE_HASH_BITS)
--
--static DECLARE_BITMAP(warn_once_bitmap, WARN_ONCE_HASH_SIZE);
--
--#define FNV32_OFFSET 2166136261U
--#define FNV32_PRIME 0x01000193
--
--/*
-- * Print each legacy sysctl (approximately) only once.
-- * To avoid making the tables non-const use a external
-- * hash-table instead.
-- * Worst case hash collision: 6, but very rarely.
-- * NOTE! We don't use the SMP-safe bit tests. We simply
-- * don't care enough.
-- */
--static void warn_on_bintable(const int *name, int nlen)
--{
--	int i;
--	u32 hash =3D FNV32_OFFSET;
--
--	for (i =3D 0; i < nlen; i++)
--		hash =3D (hash ^ name[i]) * FNV32_PRIME;
--	hash %=3D WARN_ONCE_HASH_SIZE;
--	if (__test_and_set_bit(hash, warn_once_bitmap))
--		return;
--	deprecated_sysctl_warning(name, nlen);
--}
--
--static ssize_t do_sysctl(int __user *args_name, int nlen,
--	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
--{
--	int name[CTL_MAXNAME];
--	int i;
--
--	/* Check args->nlen. */
--	if (nlen < 0 || nlen > CTL_MAXNAME)
--		return -ENOTDIR;
--	/* Read in the sysctl name for simplicity */
--	for (i =3D 0; i < nlen; i++)
--		if (get_user(name[i], args_name + i))
--			return -EFAULT;
--
--	warn_on_bintable(name, nlen);
--
--	return binary_sysctl(name, nlen, oldval, oldlen, newval, newlen);
--}
--
--SYSCALL_DEFINE1(sysctl, struct __sysctl_args __user *, args)
--{
--	struct __sysctl_args tmp;
--	size_t oldlen =3D 0;
--	ssize_t result;
--
--	if (copy_from_user(&tmp, args, sizeof(tmp)))
--		return -EFAULT;
--
--	if (tmp.oldval && !tmp.oldlenp)
--		return -EFAULT;
--
--	if (tmp.oldlenp && get_user(oldlen, tmp.oldlenp))
--		return -EFAULT;
--
--	result =3D do_sysctl(tmp.name, tmp.nlen, tmp.oldval, oldlen,
--			   tmp.newval, tmp.newlen);
--
--	if (result >=3D 0) {
--		oldlen =3D result;
--		result =3D 0;
--	}
--
--	if (tmp.oldlenp && put_user(oldlen, tmp.oldlenp))
--		return -EFAULT;
--
--	return result;
--}
--
--
--#ifdef CONFIG_COMPAT
--
--struct compat_sysctl_args {
--	compat_uptr_t	name;
--	int		nlen;
--	compat_uptr_t	oldval;
--	compat_uptr_t	oldlenp;
--	compat_uptr_t	newval;
--	compat_size_t	newlen;
--	compat_ulong_t	__unused[4];
--};
--
--COMPAT_SYSCALL_DEFINE1(sysctl, struct compat_sysctl_args __user *, args)
--{
--	struct compat_sysctl_args tmp;
--	compat_size_t __user *compat_oldlenp;
--	size_t oldlen =3D 0;
--	ssize_t result;
--
--	if (copy_from_user(&tmp, args, sizeof(tmp)))
--		return -EFAULT;
--
--	if (tmp.oldval && !tmp.oldlenp)
--		return -EFAULT;
--
--	compat_oldlenp =3D compat_ptr(tmp.oldlenp);
--	if (compat_oldlenp && get_user(oldlen, compat_oldlenp))
--		return -EFAULT;
--
--	result =3D do_sysctl(compat_ptr(tmp.name), tmp.nlen,
--			   compat_ptr(tmp.oldval), oldlen,
--			   compat_ptr(tmp.newval), tmp.newlen);
--
--	if (result >=3D 0) {
--		oldlen =3D result;
--		result =3D 0;
--	}
--
--	if (compat_oldlenp && put_user(oldlen, compat_oldlenp))
--		return -EFAULT;
--
--	return result;
--}
--
--#endif /* CONFIG_COMPAT */
---- a/kernel/sys_ni.c~all-arch-remove-system-call-sys_sysctl
-+++ a/kernel/sys_ni.c
-@@ -366,7 +366,6 @@ COND_SYSCALL(socketcall);
- COND_SYSCALL_COMPAT(socketcall);
-=20
- /* compat syscalls for arm64, x86, ... */
--COND_SYSCALL_COMPAT(sysctl);
- COND_SYSCALL_COMPAT(fanotify_mark);
-=20
- /* x86 */
---- a/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl~all-arch-remove-sy=
-stem-call-sys_sysctl
-+++ a/tools/perf/arch/powerpc/entry/syscalls/syscall.tbl
-@@ -193,7 +193,7 @@
- 146	common	writev				sys_writev			compat_sys_writev
- 147	common	getsid				sys_getsid
- 148	common	fdatasync			sys_fdatasync
--149	nospu	_sysctl				sys_sysctl			compat_sys_sysctl
-+149	nospu	_sysctl				sys_ni_syscall
- 150	common	mlock				sys_mlock
- 151	common	munlock				sys_munlock
- 152	common	mlockall			sys_mlockall
---- a/tools/perf/arch/s390/entry/syscalls/syscall.tbl~all-arch-remove-syste=
-m-call-sys_sysctl
-+++ a/tools/perf/arch/s390/entry/syscalls/syscall.tbl
-@@ -138,7 +138,7 @@
- 146  common	writev			sys_writev			compat_sys_writev
- 147  common	getsid			sys_getsid			sys_getsid
- 148  common	fdatasync		sys_fdatasync			sys_fdatasync
--149  common	_sysctl			sys_sysctl			compat_sys_sysctl
-+149  common	_sysctl			-				-
- 150  common	mlock			sys_mlock			compat_sys_mlock
- 151  common	munlock			sys_munlock			compat_sys_munlock
- 152  common	mlockall		sys_mlockall			sys_mlockall
---- a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl~all-arch-remove-sys=
-tem-call-sys_sysctl
-+++ a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -164,7 +164,7 @@
- 153	common	vhangup			sys_vhangup
- 154	common	modify_ldt		sys_modify_ldt
- 155	common	pivot_root		sys_pivot_root
--156	64	_sysctl			sys_sysctl
-+156	64	_sysctl			sys_ni_syscall
- 157	common	prctl			sys_prctl
- 158	common	arch_prctl		sys_arch_prctl
- 159	common	adjtimex		sys_adjtimex
+--- a/include/linux/mm.h~mm-annotate-a-data-race-in-page_zonenum
++++ a/include/linux/mm.h
+@@ -1067,6 +1067,7 @@ vm_fault_t finish_mkwrite_fault(struct v
+ 
+ static inline enum zone_type page_zonenum(const struct page *page)
+ {
++	ASSERT_EXCLUSIVE_BITS(page->flags, ZONES_MASK << ZONES_PGSHIFT);
+ 	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
+ }
+ 
 _
