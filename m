@@ -2,58 +2,50 @@ Return-Path: <SRS0=U74d=BZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0946DC433E3
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA3D7C433E1
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:13:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C819B2063A
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:13:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D80F2063A
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:13:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529580;
-	bh=SGU17zcX4Cvxb1VKTQeMydqbLFays/P4mHZAxJsRlGE=;
+	s=default; t=1597529584;
+	bh=E7fw8tCpk6T7/+SCegpwA8nehBcjVROtnx8FLOgafMk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=jbJXAxbEIM8OrqcLw4SI3nG+uqoUw1uwdMndxTxl1WsstZVW9BrbBfE86VUg5ZdPJ
-	 8EdJsJORGxGPb1QfssVHlAxiyAQLCQ7akH3YpTmwcVoXSCOEEGw87ILfS+NdSnSShG
-	 VZKkb9Mk1vL++FAajxk5ZW+RENUJMviVyOvTqLhA=
+	b=XyA9yhkV2qK4ThTPjZVVeIfoLCn/yhtKStCVrxoSMWa6Qj9lIiJut9k9oS4e0Ghkq
+	 BoBB1J04M8KVz6BmW9OlA+u1DZr1s85dQXFiytTCq6Qej9/kvqj31+98ucpXne102/
+	 iM7uq6lCGBw+OzgtvajuyLajMEm5sWffJvfTIPpo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728600AbgHOWK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:10:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41754 "EHLO mail.kernel.org"
+        id S1729387AbgHOWNA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 15 Aug 2020 18:13:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728585AbgHOWK0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 15 Aug 2020 18:10:26 -0400
+        id S1728889AbgHOWK1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 15 Aug 2020 18:10:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1682022CB3;
-        Sat, 15 Aug 2020 00:31:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 24F8420838;
+        Sat, 15 Aug 2020 00:30:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451464;
-        bh=SGU17zcX4Cvxb1VKTQeMydqbLFays/P4mHZAxJsRlGE=;
+        s=default; t=1597451405;
+        bh=E7fw8tCpk6T7/+SCegpwA8nehBcjVROtnx8FLOgafMk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cksY0/hBNct9oOH6/kLR6WpFUqMRigVhj8dyD5zdOv+BBjPgIU3LLcjlElnsBysAE
-         27PVDa3eP89VA2jg8UmirfyLkbufvsaJ25EEuaX3D6s5ZXRrTpX/K56h1b3v52iWdK
-         +WJdPVWvgDdsp8BCNFO/wel2IeVonyy5+rWzMtV0=
-Date:   Fri, 14 Aug 2020 17:31:02 -0700
+        b=2N7gSHdWpsWrCtJmlzRbi34KBSVFspmGfArimhP5NlOAmBEtAyG0KQvzD19I0PmzB
+         cvc8e/UbDZblSLFiF8gH7dfUG+O72kJwMSfRg1wts6+hJ1/YivTVpha2KydOT01bmb
+         ipd8zePAD08uMlBbZXQNQKem5LYgdMQ5FKQ0co+Y=
+Date:   Fri, 14 Aug 2020 17:30:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
-        axboe@kernel.dk, bgeffon@google.com, christian.brauner@ubuntu.com,
-        christian@brauner.io, dancol@google.com, hannes@cmpxchg.org,
-        jannh@google.com, joaodias@google.com, joel@joelfernandes.org,
-        ktkhai@virtuozzo.com, linux-man@vger.kernel.org,
-        linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, oleksandr@redhat.com,
-        rientjes@google.com, shakeelb@google.com, sj38.park@gmail.com,
-        sjpark@amazon.de, sonnyrao@google.com, sspatil@google.com,
-        surenb@google.com, timmurray@google.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 18/39] mm/madvise: check fatal signal pending of
- target process
-Message-ID: <20200815003102.dzZiwVm-K%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 01/39] asm-generic: pgalloc.h: use correct #ifdef
+ to enable pud_alloc_one()
+Message-ID: <20200815003004.mp-mW9op5%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -62,162 +54,33 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm/madvise: check fatal signal pending of target process
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: asm-generic: pgalloc.h: use correct #ifdef to enable pud_alloc_one()
 
-Bail out to prevent unnecessary CPU overhead if target process has pending
-fatal signal during (MADV_COLD|MADV_PAGEOUT) operation.
+The #ifdef statement that guards the generic version of pud_alloc_one() by
+mistake used __HAVE_ARCH_PUD_FREE instead of __HAVE_ARCH_PUD_ALLOC_ONE.
 
-Link: http://lkml.kernel.org/r/20200302193630.68771-4-minchan@kernel.org
-Link: http://lkml.kernel.org/r/20200622192900.22757-5-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Dias <joaodias@google.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksandr Natalenko <oleksandr@redhat.com>
-Cc: Sandeep Patil <sspatil@google.com>
-Cc: SeongJae Park <sj38.park@gmail.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: <linux-man@vger.kernel.org>
+Fix it.
+
+Link: http://lkml.kernel.org/r/20200812191415.GE163101@linux.ibm.com
+Fixes: d9e8b929670b ("asm-generic: pgalloc: provide generic pud_alloc_one() and pud_free_one()")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ include/asm-generic/pgalloc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-check-fatal-signal-pending-of-target-process
-+++ a/mm/madvise.c
-@@ -39,6 +39,7 @@
- struct madvise_walk_private {
- 	struct mmu_gather *tlb;
- 	bool pageout;
-+	struct task_struct *target_task;
- };
+--- a/include/asm-generic/pgalloc.h~asm-generic-pgalloch-use-correct-ifdef-to-enable-pud_alloc_one
++++ a/include/asm-generic/pgalloc.h
+@@ -147,7 +147,7 @@ static inline void pmd_free(struct mm_st
  
- /*
-@@ -319,6 +320,10 @@ static int madvise_cold_or_pageout_pte_r
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
+ #if CONFIG_PGTABLE_LEVELS > 3
  
-+	if (private->target_task &&
-+			fatal_signal_pending(private->target_task))
-+		return -EINTR;
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (pmd_trans_huge(*pmd)) {
- 		pmd_t orig_pmd;
-@@ -480,12 +485,14 @@ static const struct mm_walk_ops cold_wal
- };
- 
- static void madvise_cold_page_range(struct mmu_gather *tlb,
-+			     struct task_struct *task,
- 			     struct vm_area_struct *vma,
- 			     unsigned long addr, unsigned long end)
- {
- 	struct madvise_walk_private walk_private = {
- 		.pageout = false,
- 		.tlb = tlb,
-+		.target_task = task,
- 	};
- 
- 	tlb_start_vma(tlb, vma);
-@@ -493,7 +500,8 @@ static void madvise_cold_page_range(stru
- 	tlb_end_vma(tlb, vma);
- }
- 
--static long madvise_cold(struct vm_area_struct *vma,
-+static long madvise_cold(struct task_struct *task,
-+			struct vm_area_struct *vma,
- 			struct vm_area_struct **prev,
- 			unsigned long start_addr, unsigned long end_addr)
- {
-@@ -506,19 +514,21 @@ static long madvise_cold(struct vm_area_
- 
- 	lru_add_drain();
- 	tlb_gather_mmu(&tlb, mm, start_addr, end_addr);
--	madvise_cold_page_range(&tlb, vma, start_addr, end_addr);
-+	madvise_cold_page_range(&tlb, task, vma, start_addr, end_addr);
- 	tlb_finish_mmu(&tlb, start_addr, end_addr);
- 
- 	return 0;
- }
- 
- static void madvise_pageout_page_range(struct mmu_gather *tlb,
-+			     struct task_struct *task,
- 			     struct vm_area_struct *vma,
- 			     unsigned long addr, unsigned long end)
- {
- 	struct madvise_walk_private walk_private = {
- 		.pageout = true,
- 		.tlb = tlb,
-+		.target_task = task,
- 	};
- 
- 	tlb_start_vma(tlb, vma);
-@@ -542,7 +552,8 @@ static inline bool can_do_pageout(struct
- 		inode_permission(file_inode(vma->vm_file), MAY_WRITE) == 0;
- }
- 
--static long madvise_pageout(struct vm_area_struct *vma,
-+static long madvise_pageout(struct task_struct *task,
-+			struct vm_area_struct *vma,
- 			struct vm_area_struct **prev,
- 			unsigned long start_addr, unsigned long end_addr)
- {
-@@ -558,7 +569,7 @@ static long madvise_pageout(struct vm_ar
- 
- 	lru_add_drain();
- 	tlb_gather_mmu(&tlb, mm, start_addr, end_addr);
--	madvise_pageout_page_range(&tlb, vma, start_addr, end_addr);
-+	madvise_pageout_page_range(&tlb, task, vma, start_addr, end_addr);
- 	tlb_finish_mmu(&tlb, start_addr, end_addr);
- 
- 	return 0;
-@@ -938,7 +949,8 @@ static int madvise_inject_error(int beha
- #endif
- 
- static long
--madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
-+madvise_vma(struct task_struct *task, struct vm_area_struct *vma,
-+		struct vm_area_struct **prev,
- 		unsigned long start, unsigned long end, int behavior)
- {
- 	switch (behavior) {
-@@ -947,9 +959,9 @@ madvise_vma(struct vm_area_struct *vma,
- 	case MADV_WILLNEED:
- 		return madvise_willneed(vma, prev, start, end);
- 	case MADV_COLD:
--		return madvise_cold(vma, prev, start, end);
-+		return madvise_cold(task, vma, prev, start, end);
- 	case MADV_PAGEOUT:
--		return madvise_pageout(vma, prev, start, end);
-+		return madvise_pageout(task, vma, prev, start, end);
- 	case MADV_FREE:
- 	case MADV_DONTNEED:
- 		return madvise_dontneed_free(vma, prev, start, end, behavior);
-@@ -1166,7 +1178,8 @@ int do_madvise(struct task_struct *targe
- 			tmp = end;
- 
- 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
--		error = madvise_vma(vma, &prev, start, tmp, behavior);
-+		error = madvise_vma(target_task, vma, &prev,
-+					start, tmp, behavior);
- 		if (error)
- 			goto out;
- 		start = tmp;
+-#ifndef __HAVE_ARCH_PUD_FREE
++#ifndef __HAVE_ARCH_PUD_ALLOC_ONE
+ /**
+  * pud_alloc_one - allocate a page for PUD-level page table
+  * @mm: the mm_struct of the current context
 _
