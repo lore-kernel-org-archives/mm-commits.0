@@ -2,53 +2,51 @@ Return-Path: <SRS0=U74d=BZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DATE_IN_PAST_12_24,
+	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B83F5C433E3
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5B4BC433DF
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9697420639
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D17A20639
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597529551;
-	bh=GVaJJW/OYpppYLOhpXPgsssCL9wyyqGm8nxB5rclNEQ=;
+	s=default; t=1597529555;
+	bh=++vL9+ojwEXDICxj/fe7a4hZzf7XNJzmA7W3ygUedH8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=RJQqS7+RtfxjoQEX6cAPdzYZMEDAMk3rcA7Gdpe+hR86+Lo47n0Tx8OEdp/5Elf2i
-	 DnzgCfJN75TXYXrQkXp7IduAXZx23rpMb3sZp/dCNAA8VwNIyoL+PbfBva0cTE71in
-	 hQpWOGd18ydWBmwOxKknwGSlRDpRjU+J6jgIcYzI=
+	b=vQobe7lpmKNLiscFvtXD1pPjnOAhZfqZzGBMKaqhDvmFJkjyq8imMxgNDSVDecRAP
+	 vp2iXOHyTa/G5iN5zbPfJqhIGc1MaZYv5ANHG259v7xj0i0N97bO6cKAjCmgBmOPg5
+	 jKBDCZtmaftZYeukz1o76eY8cWvdFMQEAYOSxo3Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729093AbgHOWMT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 Aug 2020 18:12:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41776 "EHLO mail.kernel.org"
+        id S1728986AbgHOWMc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 15 Aug 2020 18:12:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729197AbgHOWK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 15 Aug 2020 18:10:28 -0400
+        id S1729016AbgHOWK1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 15 Aug 2020 18:10:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0BC8422DA9;
-        Sat, 15 Aug 2020 00:32:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D7DD622B4B;
+        Sat, 15 Aug 2020 00:30:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451521;
-        bh=GVaJJW/OYpppYLOhpXPgsssCL9wyyqGm8nxB5rclNEQ=;
+        s=default; t=1597451444;
+        bh=++vL9+ojwEXDICxj/fe7a4hZzf7XNJzmA7W3ygUedH8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PzlbjQ2KRH3uH/0Wg+sYySfPdfXH6BqyJzifSHOXMUCTlhDMYnmRl6ltKq6SJZUZH
-         ++jCvJg8YKM6mO3LMPUIXWKVXm7AZZrmpe90Y5pEcwpkvzGTeVNLsOy6i5ITvnbsZW
-         9n/IpuCFn3LVNyuntRYUgJHtdwfc7K8C9xJvJci0=
-Date:   Fri, 14 Aug 2020 17:32:00 -0700
+        b=VO5/8TSH2Dxp5SXA992juoQM28EkKSzAiMeWKUlGQf3qzG53hBLLfK0rjogcqg/In
+         jdWPVOEQ+NqixJS8V+y8oZpDMYo0xJ52F9CRdInj9Zc53IKdTNhCOS8R+sMdu1T0rl
+         u6Xdp24dsIlD6A2mTbNCuuEDijoEz+yL4tLNlHsM=
+Date:   Fri, 14 Aug 2020 17:30:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, amodra@gmail.com,
-        bin.meng@windriver.com, chenzhou10@huawei.com, dalias@libc.org,
-        geert+renesas@glider.be, glaubitz@physik.fu-berlin.de,
-        krzk@kernel.org, kuninori.morimoto.gx@renesas.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        romain.naour@gmail.com, sam@ravnborg.org,
-        torvalds@linux-foundation.org, ysato@users.sourceforge.jp
-Subject:  [patch 34/39] sh: clkfwk: remove r8/r16/r32
-Message-ID: <20200815003200.WlARhgLvU%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, william.kucharski@oracle.com,
+        willy@infradead.org, ziy@nvidia.com
+Subject:  [patch 13/39] mm: introduce offset_in_thp
+Message-ID: <20200815003043.SkWT1tEoI%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,86 +55,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: sh: clkfwk: remove r8/r16/r32
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: introduce offset_in_thp
 
-SH will get below warning
+Mirroring offset_in_page(), this gives you the offset within this
+particular page, no matter what size page it is.  It optimises down to
+offset_in_page() if CONFIG_TRANSPARENT_HUGEPAGE is not set.
 
-${LINUX}/drivers/sh/clk/cpg.c: In function 'r8':
-${LINUX}/drivers/sh/clk/cpg.c:41:17: warning: passing argument 1 of 'ioread8'
- discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-  return ioread8(addr);
-                 ^~~~
-In file included from ${LINUX}/arch/sh/include/asm/io.h:21,
-                 from ${LINUX}/include/linux/io.h:13,
-                 from ${LINUX}/drivers/sh/clk/cpg.c:14:
-${LINUX}/include/asm-generic/iomap.h:29:29: note: expected 'void *' but
-argument is of type 'const void *'
- extern unsigned int ioread8(void __iomem *);
-                             ^~~~~~~~~~~~~~
-
-We don't need "const" for r8/r16/r32.  And we don't need r8/r16/r32
-themselvs.  This patch cleanup these.
-
-X-MARC-Message: https://marc.info/?l=linux-renesas-soc&m=157852973916903
-Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Alan Modra <amodra@gmail.com>
-Cc: Bin Meng <bin.meng@windriver.com>
-Cc: Chen Zhou <chenzhou10@huawei.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Romain Naour <romain.naour@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: http://lkml.kernel.org/r/20200629151959.15779-8-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sh/clk/cpg.c |   23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/sh/clk/cpg.c~sh-clkfwk-remove-r8-r16-r32
-+++ a/drivers/sh/clk/cpg.c
-@@ -36,36 +36,21 @@ static void sh_clk_write(int value, stru
- 		iowrite32(value, clk->mapped_reg);
- }
+--- a/include/linux/mm.h~mm-introduce-offset_in_thp
++++ a/include/linux/mm.h
+@@ -1594,6 +1594,7 @@ static inline void clear_page_pfmemalloc
+ extern void pagefault_out_of_memory(void);
  
--static unsigned int r8(const void __iomem *addr)
--{
--	return ioread8(addr);
--}
--
--static unsigned int r16(const void __iomem *addr)
--{
--	return ioread16(addr);
--}
--
--static unsigned int r32(const void __iomem *addr)
--{
--	return ioread32(addr);
--}
--
- static int sh_clk_mstp_enable(struct clk *clk)
- {
- 	sh_clk_write(sh_clk_read(clk) & ~(1 << clk->enable_bit), clk);
- 	if (clk->status_reg) {
--		unsigned int (*read)(const void __iomem *addr);
-+		unsigned int (*read)(void __iomem *addr);
- 		int i;
- 		void __iomem *mapped_status = (phys_addr_t)clk->status_reg -
- 			(phys_addr_t)clk->enable_reg + clk->mapped_reg;
+ #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
++#define offset_in_thp(page, p)	((unsigned long)(p) & (thp_size(page) - 1))
  
- 		if (clk->flags & CLK_ENABLE_REG_8BIT)
--			read = r8;
-+			read = ioread8;
- 		else if (clk->flags & CLK_ENABLE_REG_16BIT)
--			read = r16;
-+			read = ioread16;
- 		else
--			read = r32;
-+			read = ioread32;
- 
- 		for (i = 1000;
- 		     (read(mapped_status) & (1 << clk->enable_bit)) && i;
+ /*
+  * Flags passed to show_mem() and show_free_areas() to suppress output in
 _
