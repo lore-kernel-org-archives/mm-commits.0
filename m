@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F16EC433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F1E2C433E1
 	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0519720639
+	by mail.kernel.org (Postfix) with ESMTP id 4F95220657
 	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 22:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1597529533;
-	bh=KRcdZYKBYDpbzRiT1KFMulPfq0YwNH+U+JnKO7So524=;
+	bh=DFfIma9Jr9kQvTbOUHa92NMlePBi95LEQeWnzf21Prg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=QWzs2VX30Wudhqv8dlsF1m/HrP5hpiuz5+2IKvTpF/xcpcc4D0PXYu31h1kj5s74h
-	 Z5PE19xl01s8kdZ3lxdW3KpKVmRJilaHLDn27AkpJYnRh6E0q4aOueM1+F3WOCCyFA
-	 OwdqTO4srFZdxG4zohaaV+1XZC3BAEj45luh2hCg=
+	b=fC4QY9CU5JfscOq5eD1uYs8xISZCJzznlKtBKAT7YwqSkOYZ88UixLuUZC6B7VUsQ
+	 5HSmS24klezCMiUy69EPwpW1r2PE974yIG8nm1UceJjo4gc9kCrK1zfTfnUq8vqdWS
+	 bfZYOOJySPaPw+TrsbWT3yKBxwGdxYw8Quwgxk1k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728240AbgHOWMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1729160AbgHOWMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 15 Aug 2020 18:12:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41806 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729250AbgHOWK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729232AbgHOWK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 15 Aug 2020 18:10:28 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3684E20885;
-        Sat, 15 Aug 2020 00:30:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0EBD722B43;
+        Sat, 15 Aug 2020 00:30:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597451408;
-        bh=KRcdZYKBYDpbzRiT1KFMulPfq0YwNH+U+JnKO7So524=;
+        s=default; t=1597451421;
+        bh=DFfIma9Jr9kQvTbOUHa92NMlePBi95LEQeWnzf21Prg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HDUWH6Me5cyJ/mk5XCExM7YjBK4dwu7s5ZXuWA/DaYDAhgbcQLrjsPEnma7HQnFmB
-         2ss0weBVc4loC9SOnPOdaQtL9e/uxQddhA+uLuzH37kg3CL87jUZd7NhgJ8/xKcKv+
-         4CZzFIURmHR3qRL8pj16y2VVAGCzzXqDeJSwKNkE=
-Date:   Fri, 14 Aug 2020 17:30:07 -0700
+        b=gukmrL0EW7F8vv5cKA08EshxHLDdhhEBrXiYuUL4yR1G63I1udNrNFwWQjzWhll/o
+         5FmcrYPupuKHStkj6ZbCKsm74tK4tw6bhjttZEdEbxUBi9BeTYpcnzjVZG+5Y5WJn9
+         V1EXqkgLor2/f1eW4Ppwikf3vlRIRjhZWJkBtRWA=
+Date:   Fri, 14 Aug 2020 17:30:20 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rientjes@google.com, sonnyrao@chromium.org, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 02/39] Revert "mm/vmstat.c: do not show lowmem
- reserve protection information of empty zone"
-Message-ID: <20200815003007.GWlu7N4q0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, groug@kaod.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 06/39] mailmap: add entry for Greg Kurz
+Message-ID: <20200815003020.kKSiB4xB6%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,57 +52,29 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baoquan He <bhe@redhat.com>
-Subject: Revert "mm/vmstat.c: do not show lowmem reserve protection information of empty zone"
+From: Greg Kurz <groug@kaod.org>
+Subject: mailmap: add entry for Greg Kurz
 
-This reverts commit 26e7deadaae175.
+I had stopped using gkurz@linux.vnet.ibm.com a while back already but this
+email address was shutdown last June when I quit IBM.  It's about time to
+map it to groug@kaod.org.
 
-Sonny reported that one of their tests started failing on the latest
-kernel on their Chrome OS platform.  The root cause is that the above
-commit removed the protection line of empty zone, while the parser used in
-the test relies on the protection line to mark the end of each zone.
-
-Let's revert it to avoid breaking userspace testing or applications.
-
-Link: http://lkml.kernel.org/r/20200811075412.12872-1-bhe@redhat.com
-Fixes: 26e7deadaae175 ("mm/vmstat.c: do not show lowmem reserve protection information of empty zone)"
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Sonny Rao <sonnyrao@chromium.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[5.8.x]
+Link: http://lkml.kernel.org/r/159724692879.76040.4938578139173154028.stgit@bahia.lan
+Signed-off-by: Greg Kurz <groug@kaod.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmstat.c~revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone
-+++ a/mm/vmstat.c
-@@ -1642,12 +1642,6 @@ static void zoneinfo_show_print(struct s
- 		   zone->present_pages,
- 		   zone_managed_pages(zone));
- 
--	/* If unpopulated, no other information is useful */
--	if (!populated_zone(zone)) {
--		seq_putc(m, '\n');
--		return;
--	}
--
- 	seq_printf(m,
- 		   "\n        protection: (%ld",
- 		   zone->lowmem_reserve[0]);
-@@ -1655,6 +1649,12 @@ static void zoneinfo_show_print(struct s
- 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
- 	seq_putc(m, ')');
- 
-+	/* If unpopulated, no other information is useful */
-+	if (!populated_zone(zone)) {
-+		seq_putc(m, '\n');
-+		return;
-+	}
-+
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 		seq_printf(m, "\n      %-12s %lu", zone_stat_name(i),
- 			   zone_page_state(zone, i));
+--- a/.mailmap~mailmap-add-entry-for-greg-kurz
++++ a/.mailmap
+@@ -104,6 +104,7 @@ Gerald Schaefer <gerald.schaefer@linux.i
+ Greg Kroah-Hartman <greg@echidna.(none)>
+ Greg Kroah-Hartman <gregkh@suse.de>
+ Greg Kroah-Hartman <greg@kroah.com>
++Greg Kurz <groug@kaod.org> <gkurz@linux.vnet.ibm.com>
+ Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
+ Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
+ Heiko Carstens <hca@linux.ibm.com> <h.carstens@de.ibm.com>
 _
