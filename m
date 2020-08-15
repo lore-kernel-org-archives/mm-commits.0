@@ -2,49 +2,49 @@ Return-Path: <SRS0=U74d=BZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3991EC433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 00:13:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7673CC433E1
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 00:13:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16DE1207DA
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 00:13:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46FBE207DA
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Aug 2020 00:13:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597450387;
-	bh=LRtkVYC0a1oEAPNeoy27l6dq+xaSk5mmfKstbzH/y3c=;
+	s=default; t=1597450432;
+	bh=XG/BT3yrAu7IHGtMCqwuFt2JiDPu/FXexJxkGDW4yBo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=VsRyqCwWcgYmT9y8ACbozbo/DMY/buQiD15VLCIt1s/V6HRy/vUjDFETi/o+2t/a8
-	 4UtCzlzL8nsfzW+9X5EFyWFBjnOVTcyxT3psM09+joXGIVckQe+50lUUwP2jPzjlmr
-	 C79zDdUssAV088wdAeGuV7WimJbq2Jy2VSe8HSkQ=
+	b=Zprqz3EuGnyGLK4qXKA7LIPUkUshdMmlic0DXfBRER2L/idffJ/zkWzFXnTuHV38V
+	 /gN9sjjhn0zg/IcEFaugCQej7xjGld4UGxf3Tdiww4/BtZK2W/T+WHtrh9Td5b8Uik
+	 HWr2QRPP+eMj0N0IDhfuIWOlVT0cOgR03KFq/a6Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726897AbgHOANG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Aug 2020 20:13:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49992 "EHLO mail.kernel.org"
+        id S1726772AbgHOANw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Aug 2020 20:13:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726213AbgHOANG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 Aug 2020 20:13:06 -0400
+        id S1726213AbgHOANv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 Aug 2020 20:13:51 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 44E6920781;
-        Sat, 15 Aug 2020 00:13:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 31EE820781;
+        Sat, 15 Aug 2020 00:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597450385;
-        bh=LRtkVYC0a1oEAPNeoy27l6dq+xaSk5mmfKstbzH/y3c=;
+        s=default; t=1597450431;
+        bh=XG/BT3yrAu7IHGtMCqwuFt2JiDPu/FXexJxkGDW4yBo=;
         h=Date:From:To:Subject:From;
-        b=WCmk4qoGhPSF3Io51LEHPuVW+qCijE+rlbz6S7QTfteDYdRCnUsbXlzp4SLLqRteq
-         0GNcEDRCFTpvLl/pXSnIhrfv3JT85EQlcIjejGUf+4+RizkacaBwG6mV6ySiM5iL+A
-         pdgq91EknnkQCd9JTtHt9dj1Yygtzj5NWVGJsMZE=
-Date:   Fri, 14 Aug 2020 17:13:04 -0700
+        b=OXhSyZV5aW/q0dZ05jHYGLXsGLDC9aAhkBJ6myAELHXgxLQo9l9JGAOIxi6ZZ1jjf
+         NwrRhkrzTQtzm79/VzdnNiZ4KX2LPSU2c+r9hjjDCVBoHAR/WIa5cwD1x+k4Un1oZJ
+         GAaHN1WVHLsAPRWf2pV40FIGdywRy4p3SvZEtpeA=
+Date:   Fri, 14 Aug 2020 17:13:50 -0700
 From:   akpm@linux-foundation.org
-To:     heiko.carstens@de.ibm.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, nixiaoming@huawei.com
+To:     cai@lca.pw, elver@google.com, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- all-arch-remove-system-call-sys_sysctl-fix.patch removed from -mm tree
-Message-ID: <20200815001304.jbgV4IfjY%akpm@linux-foundation.org>
+ mm-page_io-mark-various-intentional-data-races-v2.patch removed from -mm
+ tree
+Message-ID: <20200815001350.Pbufvrv2o%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,74 +54,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: fix build error for sys_call_table_emu
+     Subject: mm-page_io-mark-various-intentional-data-races-v2
 has been removed from the -mm tree.  Its filename was
-     all-arch-remove-system-call-sys_sysctl-fix.patch
+     mm-page_io-mark-various-intentional-data-races-v2.patch
 
-This patch was dropped because it was folded into all-arch-remove-system-call-sys_sysctl.patch
+This patch was dropped because it was folded into mm-page_io-mark-various-intentional-data-races.patch
 
 ------------------------------------------------------
-From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: s390: fix build error for sys_call_table_emu
+From: Qian Cai <cai@lca.pw>
+Subject: mm-page_io-mark-various-intentional-data-races-v2
 
-Build error on s390:
-	arch/s390/kernel/entry.o: in function `sys_call_table_emu':
-	>> (.rodata+0x1288): undefined reference to `__s390_'
+add a missing annotation
 
-In commit ("All arch: remove system call sys_sysctl")
- 148  common	fdatasync		sys_fdatasync			sys_fdatasync
--149  common	_sysctl			sys_sysctl			compat_sys_sysctl
-+149  common	_sysctl			sys_ni_syscall
- 150  common	mlock			sys_mlock			sys_mlock
-
-After the patch is integrated, there is a format error in the generated
-arch/s390/include/generated/asm/syscall_table.h:
-	SYSCALL(sys_fdatasync, sys_fdatasync)
-	SYSCALL(sys_ni_syscall,) /* cause build error */
-	SYSCALL(sys_mlock,sys_mlock)
-
-According to the guidance of Heiko Carstens, use "-" to fill the empty
-system call Similarly, modify
-tools/perf/arch/s390/entry/syscalls/syscall.tbl.
-
-Link: http://lkml.kernel.org/r/20200618141426.16884-1-nixiaoming@huawei.com
-Fixes: ("All arch: remove system call sys_sysctl")
-Fixes: https://lore.kernel.org/linuxppc-dev/20200616030734.87257-1-nixiaoming@huawei.com/
-Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Link: http://lkml.kernel.org/r/1581612585-5812-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/syscalls/syscall.tbl           |    2 +-
- tools/perf/arch/s390/entry/syscalls/syscall.tbl |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/page_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys_sysctl-fix
-+++ a/arch/s390/kernel/syscalls/syscall.tbl
-@@ -138,7 +138,7 @@
- 146  common	writev			sys_writev			compat_sys_writev
- 147  common	getsid			sys_getsid			sys_getsid
- 148  common	fdatasync		sys_fdatasync			sys_fdatasync
--149  common	_sysctl			sys_ni_syscall
-+149  common	_sysctl			-				-
- 150  common	mlock			sys_mlock			sys_mlock
- 151  common	munlock			sys_munlock			sys_munlock
- 152  common	mlockall		sys_mlockall			sys_mlockall
---- a/tools/perf/arch/s390/entry/syscalls/syscall.tbl~all-arch-remove-system-call-sys_sysctl-fix
-+++ a/tools/perf/arch/s390/entry/syscalls/syscall.tbl
-@@ -138,7 +138,7 @@
- 146  common	writev			sys_writev			compat_sys_writev
- 147  common	getsid			sys_getsid			sys_getsid
- 148  common	fdatasync		sys_fdatasync			sys_fdatasync
--149  common	_sysctl			sys_ni_syscall
-+149  common	_sysctl			-				-
- 150  common	mlock			sys_mlock			compat_sys_mlock
- 151  common	munlock			sys_munlock			compat_sys_munlock
- 152  common	mlockall		sys_mlockall			sys_mlockall
+--- a/mm/page_io.c~mm-page_io-mark-various-intentional-data-races-v2
++++ a/mm/page_io.c
+@@ -85,7 +85,7 @@ static void swap_slot_free_notify(struct
+ 		return;
+ 
+ 	sis = page_swap_info(page);
+-	if (!(sis->flags & SWP_BLKDEV))
++	if (data_race(!(sis->flags & SWP_BLKDEV)))
+ 		return;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from nixiaoming@huawei.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-all-arch-remove-system-call-sys_sysctl.patch
+mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
+fork-silence-a-false-postive-warning-in-__mmdrop.patch
 
