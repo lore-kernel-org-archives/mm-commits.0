@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 066CCC433E1
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:53:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6045FC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:56:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC14220772
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:53:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13A0820789
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597794837;
-	bh=HMXQ7BUHIzz0d76n5WjUS/Z4hprhgzF66AaG15LqGWk=;
+	s=default; t=1597795005;
+	bh=vcnBzZjR8FbRLsZnoNIXk4U3toP5op85EywbCnDI2Ik=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HQL+WVY/xuShXNJYxSU2k/33iUDnaJtxv2lz+/ytjpYJf3EwH4rypZKlGHSIq4FK5
-	 qD4YJJNMgehWCsWl9DAIU5C0sTNb+iR/B5o1+kNnkJi4P69cUrBWqONweF2q5lbdtq
-	 uJjP4oAFxtrVlKqVKOc9waAIX4CfzD4Dkc9RScks=
+	b=r4PVJLdXyQQMAOUD3OKSjsRLA/f2y2Or6g7Zv1k4TmJ9ORoJHR5BJwTovs5/nrSJr
+	 thdvuv6lSM0RIGkMorxRB3jI3eh+MMdSJI5U93DydA1JAsnOo3LVmfeWeHJL698jnH
+	 OUKG49MxVU8t+GdEnNZzaWG69qtPn1xQ1j2cjVgU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726868AbgHRXx5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 19:53:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53526 "EHLO mail.kernel.org"
+        id S1727013AbgHRX4o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 19:56:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726847AbgHRXx5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 19:53:57 -0400
+        id S1726799AbgHRX4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 19:56:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A3D4A20709;
-        Tue, 18 Aug 2020 23:53:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 04B4D20772;
+        Tue, 18 Aug 2020 23:56:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597794836;
-        bh=HMXQ7BUHIzz0d76n5WjUS/Z4hprhgzF66AaG15LqGWk=;
+        s=default; t=1597795003;
+        bh=vcnBzZjR8FbRLsZnoNIXk4U3toP5op85EywbCnDI2Ik=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=W6XIIqoT8B5giRS+bABOdOIANX6hpPOUvCHJgScjjyy+ymiZQF837lO6OT/EQufch
-         poi9qHFeOVlAYQW0evMDhJH5MIG3RFZsfVPZ8Zydr49FfirXDlUUkuuDBm1cVWQtBH
-         QJXGZYJP3ebI7ojuuc3WCfGWTACX11xoJEAiCg0U=
-Date:   Tue, 18 Aug 2020 16:53:56 -0700
+        b=OyAmg+f0SLlVdGlgvd4/5B0Vrx+K+BgKeEnHazFlrvfrGgzMiCRCBTH4KQbSD1vM6
+         Xw+s/h+SxIYtkbl33nLcLe3vvaEy9So2L3ZOGPv+sQoMjIxkmXHjf8h3ojOUca6BAo
+         IWX8zbSWQgZi3h3+4lL5QsZPt7UpOnNGafTYvcPE=
+Date:   Tue, 18 Aug 2020 16:56:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     david@redhat.com, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
-Subject:  + mm-memory-fix-typo-in-__do_fault-comment.patch added to
- -mm tree
-Message-ID: <20200818235356.YVOem3SjA%akpm@linux-foundation.org>
+To:     jan.kiszka@siemens.com, kbingham@kernel.org,
+        mm-commits@vger.kernel.org, riteshh@linux.ibm.com
+Subject:  +
+ proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command.patch
+ added to -mm tree
+Message-ID: <20200818235642.Q_FusksPg%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix typo in __do_fault() comment
+     Subject: scripts/gdb/proc: add struct mount & struct super_block addr in lx-mounts command
 has been added to the -mm tree.  Its filename is
-     mm-memory-fix-typo-in-__do_fault-comment.patch
+     proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-fix-typo-in-__do_fault-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-fix-typo-in-__do_fault-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,34 +77,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/memory.c: fix typo in __do_fault() comment
+From: Ritesh Harjani <riteshh@linux.ibm.com>
+Subject: scripts/gdb/proc: add struct mount & struct super_block addr in lx-mounts command
 
-It's "pte_alloc_one", not "pte_alloc_pne". Let's fix that.
+This is many times found useful while debugging some FS related
+issue.
 
-Link: http://lkml.kernel.org/r/20200818104339.5310-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+<e.g. output>
+      mount          super_block     devname pathname fstype options
+0xffff888a0bfa4b40 0xffff888a0bfc1000 none / rootfs rw 0 0
+0xffff888a033f75c0 0xffff8889fcf65000 /dev/root / ext4 rw,relatime 0 0
+0xffff8889fc8ce040 0xffff888a0bb51000 devtmpfs /dev devtmpfs rw,relatime 0 0
+
+Link: http://lkml.kernel.org/r/a3c4177e1597b3e06d66d55e07d72c0c46a03571.1597742951.git.riteshh@linux.ibm.com
+Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/proc.py |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-typo-in-__do_fault-comment
-+++ a/mm/memory.c
-@@ -3446,7 +3446,7 @@ static vm_fault_t __do_fault(struct vm_f
- 	 *				unlock_page(A)
- 	 * lock_page(B)
- 	 *				lock_page(B)
--	 * pte_alloc_pne
-+	 * pte_alloc_one
- 	 *   shrink_page_list
- 	 *     wait_on_page_writeback(A)
- 	 *				SetPageWriteback(B)
+--- a/scripts/gdb/linux/proc.py~proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command
++++ a/scripts/gdb/linux/proc.py
+@@ -167,6 +167,9 @@ values of that process namespace"""
+         if not namespace:
+             raise gdb.GdbError("No namespace for current process")
+ 
++        gdb.write("{:^18} {:^15} {:>9} {} {} options\n".format(
++                  "mount", "super_block", "devname", "pathname", "fstype"))
++
+         for vfs in lists.list_for_each_entry(namespace['list'],
+                                              mount_ptr_type, "mnt_list"):
+             devname = vfs['mnt_devname'].string()
+@@ -190,14 +193,10 @@ values of that process namespace"""
+             m_flags = int(vfs['mnt']['mnt_flags'])
+             rd = "ro" if (s_flags & constants.LX_SB_RDONLY) else "rw"
+ 
+-            gdb.write(
+-                "{} {} {} {}{}{} 0 0\n"
+-                .format(devname,
+-                        pathname,
+-                        fstype,
+-                        rd,
+-                        info_opts(FS_INFO, s_flags),
+-                        info_opts(MNT_INFO, m_flags)))
++            gdb.write("{} {} {} {} {} {}{}{} 0 0\n".format(
++                      vfs.format_string(), superblock.format_string(), devname,
++                      pathname, fstype, rd, info_opts(FS_INFO, s_flags),
++                      info_opts(MNT_INFO, m_flags)))
+ 
+ 
+ LxMounts()
 _
 
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
+Patches currently in -mm which might be from riteshh@linux.ibm.com are
 
-mm-memory-fix-typo-in-__do_fault-comment.patch
+proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command.patch
+tasks-add-headers-and-improve-spacing-format.patch
 
