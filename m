@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB114C433E4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 189A3C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CADE7207BB
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAA272078D
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790450;
-	bh=w1+Gc0kQQr+jVln/PJh7NgUA2LCpwZXRergCsZBe9u0=;
+	s=default; t=1597790455;
+	bh=vWv4Xy4rtS9PnfuadMa9h69dDA9pb0lQO9nLm//EuHs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=nZvqNlftqro0lzIGetYcbRyf9K2PDxgOFVF9Pt7qsoShSYPt+rDpk8JozU+kJWJIi
-	 pU1PzCINqHEIKDsczmSrLacawse8dQEfPnSKGWSdubbd8V/ik6s02EUJhLPVctyZFM
-	 RviZTBEneKsm4rm3oHADB0ZDELrcvVgeycw+5b0Y=
+	b=ViN+zVdnVrTACWPRccRx0kZdcdOXXYeqjzgrUvmrXfIRIVqtEF3i1NV11MZx4sGIV
+	 NZru5vEBRlT8ZsIKmAwfjy3zlei8eIqG7/Fuzeeq7sEmT0gQnvxYXYkV3nZgAMdjIU
+	 n6pOzRHAqWeiFYLpp+1WERd+U+km3ZPgOsyHfrtg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727118AbgHRWku (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:40:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50242 "EHLO mail.kernel.org"
+        id S1727042AbgHRWkx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:40:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727070AbgHRWks (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:40:48 -0400
+        id S1727070AbgHRWkw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:52 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9922E20786;
-        Tue, 18 Aug 2020 22:40:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9C527207BB;
+        Tue, 18 Aug 2020 22:40:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790447;
-        bh=w1+Gc0kQQr+jVln/PJh7NgUA2LCpwZXRergCsZBe9u0=;
+        s=default; t=1597790451;
+        bh=vWv4Xy4rtS9PnfuadMa9h69dDA9pb0lQO9nLm//EuHs=;
         h=Date:From:To:Subject:From;
-        b=af78BosqgOUygthGo/HPr0+JXxoct0kks8IV2C7kqeIHavWdzruTB39bPd8PVHZ+o
-         MzxPGqICJCvsSM4ElOxhN+QbwD03BZstpIlCGbU6inR/bYwFFJQTWsrjDMsxNB/fOn
-         Q2dNaacXmLsN6M8fXAIlqpdsuvBSnKCpm/zkGKvU=
-Date:   Tue, 18 Aug 2020 15:40:47 -0700
+        b=hlM6ACa1ehGwhgAfS3M8EuizAqp6oMIEz36vwK85ja8aU3C8hNlSkMh2n1AXhubJf
+         F6djTs5raVoaCzABRGlxm3WhCPOMW0mHU3Rnssqyz+ZUH9cvym6TYCuZwox4xX5A0z
+         DxYF9wAgYRIse7vUCmrtLKATzYwjh/or+WNs2EFU=
+Date:   Tue, 18 Aug 2020 15:40:51 -0700
 From:   akpm@linux-foundation.org
-To:     cai@lca.pw, elver@google.com, mm-commits@vger.kernel.org
+To:     cai@lca.pw, elver@google.com, kirill@shutemov.name,
+        mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-page_io-mark-various-intentional-data-races.patch removed from -mm tree
-Message-ID: <20200818224047.Ds6b19P7p%akpm@linux-foundation.org>
+ mm-filemap-fix-a-data-race-in-filemap_fault.patch removed from -mm tree
+Message-ID: <20200818224051._SlalZrCD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,124 +54,142 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io: mark various intentional data races
+     Subject: mm/filemap.c: fix a data race in filemap_fault()
 has been removed from the -mm tree.  Its filename was
-     mm-page_io-mark-various-intentional-data-races.patch
+     mm-filemap-fix-a-data-race-in-filemap_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/page_io: mark various intentional data races
+From: Kirill A. Shutemov <kirill@shutemov.name>
+Subject: mm/filemap.c: fix a data race in filemap_fault()
 
-struct swap_info_struct si.flags could be accessed concurrently as noticed
-by KCSAN,
+struct file_ra_state ra.mmap_miss could be accessed concurrently during
+page faults as noticed by KCSAN,
 
- BUG: KCSAN: data-race in scan_swap_map_slots / swap_readpage
+ BUG: KCSAN: data-race in filemap_fault / filemap_map_pages
 
- write to 0xffff9c77b80ac400 of 8 bytes by task 91325 on cpu 16:
-  scan_swap_map_slots+0x6fe/0xb50
-  scan_swap_map_slots at mm/swapfile.c:887
-  get_swap_pages+0x39d/0x5c0
-  get_swap_page+0x377/0x524
-  add_to_swap+0xe4/0x1c0
-  shrink_page_list+0x1740/0x2820
-  shrink_inactive_list+0x316/0x8b0
-  shrink_lruvec+0x8dc/0x1380
-  shrink_node+0x317/0xd80
-  do_try_to_free_pages+0x1f7/0xa10
-  try_to_free_pages+0x26c/0x5e0
-  __alloc_pages_slowpath+0x458/0x1290
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_vma+0x8a/0x2c0
-  do_anonymous_page+0x170/0x700
-  __handle_mm_fault+0xc9f/0xd00
+ write to 0xffff9b1700a2c1b4 of 4 bytes by task 3292 on cpu 30:
+  filemap_fault+0x920/0xfc0
+  do_sync_mmap_readahead at mm/filemap.c:2384
+  (inlined by) filemap_fault at mm/filemap.c:2486
+  __xfs_filemap_fault+0x112/0x3e0 [xfs]
+  xfs_filemap_fault+0x74/0x90 [xfs]
+  __do_fault+0x9e/0x220
+  do_fault+0x4a0/0x920
+  __handle_mm_fault+0xc69/0xd00
   handle_mm_fault+0xfc/0x2f0
   do_page_fault+0x263/0x6f9
   page_fault+0x34/0x40
 
- read to 0xffff9c77b80ac400 of 8 bytes by task 5422 on cpu 7:
-  swap_readpage+0x204/0x6a0
-  swap_readpage at mm/page_io.c:380
-  read_swap_cache_async+0xa2/0xb0
-  swapin_readahead+0x6a0/0x890
-  do_swap_page+0x465/0xeb0
-  __handle_mm_fault+0xc7a/0xd00
+ read to 0xffff9b1700a2c1b4 of 4 bytes by task 3313 on cpu 32:
+  filemap_map_pages+0xc2e/0xd80
+  filemap_map_pages at mm/filemap.c:2625
+  do_fault+0x3da/0x920
+  __handle_mm_fault+0xc69/0xd00
   handle_mm_fault+0xfc/0x2f0
   do_page_fault+0x263/0x6f9
   page_fault+0x34/0x40
 
  Reported by Kernel Concurrency Sanitizer on:
- CPU: 7 PID: 5422 Comm: gmain Tainted: G        W  O L 5.5.0-next-20200204+ #6
+ CPU: 32 PID: 3313 Comm: systemd-udevd Tainted: G        W    L 5.5.0-next-20200210+ #1
  Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
 
-Other reads,
+ra.mmap_miss is used to contribute the readahead decisions, a data race
+could be undesirable.  Both the read and write is only under non-exclusive
+mmap_sem, two concurrent writers could even underflow the counter.  Fix
+the underflow by writing to a local variable before committing a final
+store to ra.mmap_miss given a small inaccuracy of the counter should be
+acceptable.
 
- read to 0xffff91ea33eac400 of 8 bytes by task 11276 on cpu 120:
-  __swap_writepage+0x140/0xc20
-  __swap_writepage at mm/page_io.c:289
-
- read to 0xffff91ea33eac400 of 8 bytes by task 11264 on cpu 16:
-  swap_set_page_dirty+0x44/0x1f4
-  swap_set_page_dirty at mm/page_io.c:442
-
-The write is under &si->lock, but the reads are done as lockless.  Since
-the reads only check for a specific bit in the flag, it is harmless even
-if load tearing happens.  Thus, just mark them as intentional data races
-using the data_race() macro.
-
-[cai@lca.pw: add a missing annotation]
-  Link: http://lkml.kernel.org/r/1581612585-5812-1-git-send-email-cai@lca.pw
-Link: http://lkml.kernel.org/r/20200207003601.1526-1-cai@lca.pw
+Link: http://lkml.kernel.org/r/20200211030134.1847-1-cai@lca.pw
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Qian Cai <cai@lca.pw>
+Tested-by: Qian Cai <cai@lca.pw>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-mark-various-intentional-data-races
-+++ a/mm/page_io.c
-@@ -85,7 +85,7 @@ static void swap_slot_free_notify(struct
- 		return;
+--- a/mm/filemap.c~mm-filemap-fix-a-data-race-in-filemap_fault
++++ a/mm/filemap.c
+@@ -2468,6 +2468,7 @@ static struct file *do_sync_mmap_readahe
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct file *fpin = NULL;
+ 	pgoff_t offset = vmf->pgoff;
++	unsigned int mmap_miss;
  
- 	sis = page_swap_info(page);
--	if (!(sis->flags & SWP_BLKDEV))
-+	if (data_race(!(sis->flags & SWP_BLKDEV)))
- 		return;
- 
- 	/*
-@@ -302,7 +302,7 @@ int __swap_writepage(struct page *page,
- 	struct swap_info_struct *sis = page_swap_info(page);
- 
- 	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
--	if (sis->flags & SWP_FS) {
-+	if (data_race(sis->flags & SWP_FS)) {
- 		struct kiocb kiocb;
- 		struct file *swap_file = sis->swap_file;
- 		struct address_space *mapping = swap_file->f_mapping;
-@@ -393,7 +393,7 @@ int swap_readpage(struct page *page, boo
- 		goto out;
+ 	/* If we don't want any read-ahead, don't bother */
+ 	if (vmf->vma->vm_flags & VM_RAND_READ)
+@@ -2483,14 +2484,15 @@ static struct file *do_sync_mmap_readahe
  	}
  
--	if (sis->flags & SWP_FS) {
-+	if (data_race(sis->flags & SWP_FS)) {
- 		struct file *swap_file = sis->swap_file;
- 		struct address_space *mapping = swap_file->f_mapping;
+ 	/* Avoid banging the cache line if not needed */
+-	if (ra->mmap_miss < MMAP_LOTSAMISS * 10)
+-		ra->mmap_miss++;
++	mmap_miss = READ_ONCE(ra->mmap_miss);
++	if (mmap_miss < MMAP_LOTSAMISS * 10)
++		WRITE_ONCE(ra->mmap_miss, ++mmap_miss);
  
-@@ -455,7 +455,7 @@ int swap_set_page_dirty(struct page *pag
- {
- 	struct swap_info_struct *sis = page_swap_info(page);
+ 	/*
+ 	 * Do we miss much more than hit in this file? If so,
+ 	 * stop bothering with read-ahead. It will only hurt.
+ 	 */
+-	if (ra->mmap_miss > MMAP_LOTSAMISS)
++	if (mmap_miss > MMAP_LOTSAMISS)
+ 		return fpin;
  
--	if (sis->flags & SWP_FS) {
-+	if (data_race(sis->flags & SWP_FS)) {
- 		struct address_space *mapping = sis->swap_file->f_mapping;
+ 	/*
+@@ -2516,13 +2518,15 @@ static struct file *do_async_mmap_readah
+ 	struct file_ra_state *ra = &file->f_ra;
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct file *fpin = NULL;
++	unsigned int mmap_miss;
+ 	pgoff_t offset = vmf->pgoff;
  
- 		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 	/* If we don't want any read-ahead, don't bother */
+ 	if (vmf->vma->vm_flags & VM_RAND_READ || !ra->ra_pages)
+ 		return fpin;
+-	if (ra->mmap_miss > 0)
+-		ra->mmap_miss--;
++	mmap_miss = READ_ONCE(ra->mmap_miss);
++	if (mmap_miss)
++		WRITE_ONCE(ra->mmap_miss, --mmap_miss);
+ 	if (PageReadahead(page)) {
+ 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
+ 		page_cache_async_readahead(mapping, ra, file,
+@@ -2688,6 +2692,7 @@ void filemap_map_pages(struct vm_fault *
+ 	unsigned long max_idx;
+ 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
+ 	struct page *page;
++	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
+ 
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, page, end_pgoff) {
+@@ -2724,8 +2729,8 @@ void filemap_map_pages(struct vm_fault *
+ 		if (page->index >= max_idx)
+ 			goto unlock;
+ 
+-		if (file->f_ra.mmap_miss > 0)
+-			file->f_ra.mmap_miss--;
++		if (mmap_miss > 0)
++			mmap_miss--;
+ 
+ 		vmf->address += (xas.xa_index - last_pgoff) << PAGE_SHIFT;
+ 		if (vmf->pte)
+@@ -2745,6 +2750,7 @@ next:
+ 			break;
+ 	}
+ 	rcu_read_unlock();
++	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
+ }
+ EXPORT_SYMBOL(filemap_map_pages);
+ 
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-fork-silence-a-false-postive-warning-in-__mmdrop.patch
 
