@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B3AEC433E3
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6836C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B792207FF
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81EC52078D
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790478;
-	bh=ILm6PYAHR9zoYRR/F9/v/nsmW1S+3S1F0Bf1JqdVsWc=;
+	s=default; t=1597790480;
+	bh=YDKoMRZPWPrMzawAsBj3Mt/XWgI30wagQ5/UTDsIENg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=UpDGy5kt2ED5tqI8hDo6dGqzJ2kXyi5OZ8ZSsNp5zGKnftlAUI01l9UVMTGDUUlHa
-	 v5yqlKoX9lo9Xb1y8m0AZbd+j4HWxZ+OBiuTvn4aOwMltxcBV7dWYqAprQu3Bxb9zP
-	 lmf2Qtq/QYayMBtSiT6EvOrovfCht95golFD7mTs=
+	b=u8dP8pOAqAhZ4wgQ1Tfj2PLdpa4jq+BpZLviNPzdfzDdYzX3vmtMd3TNkG7AE/70I
+	 ZuKEb6TaC3K2Jg+ooX2REyUOXcS3k/6g4v5mJGeK7EjV0N2IR5ymwnteRjijEdX+eO
+	 pMBhQYvTnb2uqXgV7ybJu9medMMbViCQkiEJcTRw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727769AbgHRWlR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:41:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50850 "EHLO mail.kernel.org"
+        id S1727770AbgHRWlU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:41:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727013AbgHRWlP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:41:15 -0400
+        id S1727013AbgHRWlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:41:18 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6B05520786;
-        Tue, 18 Aug 2020 22:41:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9AA2A20674;
+        Tue, 18 Aug 2020 22:41:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790474;
-        bh=ILm6PYAHR9zoYRR/F9/v/nsmW1S+3S1F0Bf1JqdVsWc=;
+        s=default; t=1597790478;
+        bh=YDKoMRZPWPrMzawAsBj3Mt/XWgI30wagQ5/UTDsIENg=;
         h=Date:From:To:Subject:From;
-        b=VwIRIYDwlCLVfIwR3btm2qsToWwDSS6YqWktUvc8zjHx6ukfEKr7Naa8MBtURzy1I
-         omG4FpZ1/E8VSxcEL51FB3mtDLahU6WZrdCuLv5WbtYDmAFOLTUBoL7m11OFWsk4Th
-         EYzFtNo8ADOv4SZrKrCMPqxmpLRSBvWBmEVwcERk=
-Date:   Tue, 18 Aug 2020 15:41:14 -0700
+        b=PuKU2CpCFKC/b1vq/AftjgLVFF016GAoeTON7NEkQJVW41T36tbwE8ArJpVlpMgBh
+         C0PCsZ2IJEdBCcXpzzyeZDw1rBoMeyLLdd4VI4yj4kq0uh1fSyNoxf2CeT8aGyTaQF
+         I9OZms4Pz7d4xhrjCByNe/V0yQxtEgta/io7Yshc=
+Date:   Tue, 18 Aug 2020 15:41:17 -0700
 From:   akpm@linux-foundation.org
-To:     amodra@gmail.com, arnd@arndb.de, bin.meng@windriver.com,
-        chenzhou10@huawei.com, dalias@libc.org, geert+renesas@glider.be,
+To:     amodra@gmail.com, bin.meng@windriver.com, chenzhou10@huawei.com,
+        dalias@libc.org, geert+renesas@glider.be,
         glaubitz@physik.fu-berlin.de, krzk@kernel.org,
         kuninori.morimoto.gx@renesas.com, mm-commits@vger.kernel.org,
-        romain.naour@gmail.com, sam@ravnborg.org, stable@vger.kernel.org,
+        romain.naour@gmail.com, sam@ravnborg.org,
         ysato@users.sourceforge.jp
-Subject:  [merged]
- include-asm-generic-vmlinuxldsh-align-ro_after_init.patch removed from -mm
- tree
-Message-ID: <20200818224114.DVsPR2YH-%akpm@linux-foundation.org>
+Subject:  [merged] sh-clkfwk-remove-r8-r16-r32.patch removed from
+ -mm tree
+Message-ID: <20200818224117.DQktVBud3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,55 +58,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/asm-generic/vmlinux.lds.h: align ro_after_init
+     Subject: sh: clkfwk: remove r8/r16/r32
 has been removed from the -mm tree.  Its filename was
-     include-asm-generic-vmlinuxldsh-align-ro_after_init.patch
+     sh-clkfwk-remove-r8-r16-r32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Romain Naour <romain.naour@gmail.com>
-Subject: include/asm-generic/vmlinux.lds.h: align ro_after_init
+From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Subject: sh: clkfwk: remove r8/r16/r32
 
-Since the patch [1], building the kernel using a toolchain built with
-binutils 2.33.1 prevents booting a sh4 system under Qemu.  Apply the patch
-provided by Alan Modra [2] that fix alignment of rodata.
+SH will get below warning
 
-[1] https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;h=ebd2263ba9a9124d93bbc0ece63d7e0fae89b40e
-[2] https://www.sourceware.org/ml/binutils/2019-12/msg00112.html
+${LINUX}/drivers/sh/clk/cpg.c: In function 'r8':
+${LINUX}/drivers/sh/clk/cpg.c:41:17: warning: passing argument 1 of 'ioread8'
+ discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  return ioread8(addr);
+                 ^~~~
+In file included from ${LINUX}/arch/sh/include/asm/io.h:21,
+                 from ${LINUX}/include/linux/io.h:13,
+                 from ${LINUX}/drivers/sh/clk/cpg.c:14:
+${LINUX}/include/asm-generic/iomap.h:29:29: note: expected 'void *' but
+argument is of type 'const void *'
+ extern unsigned int ioread8(void __iomem *);
+                             ^~~~~~~~~~~~~~
 
-Link: https://marc.info/?l=linux-sh&m=158429470221261
-Signed-off-by: Romain Naour <romain.naour@gmail.com>
+We don't need "const" for r8/r16/r32.  And we don't need r8/r16/r32
+themselvs.  This patch cleanup these.
+
+X-MARC-Message: https://marc.info/?l=linux-renesas-soc&m=157852973916903
+Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc: Alan Modra <amodra@gmail.com>
 Cc: Bin Meng <bin.meng@windriver.com>
 Cc: Chen Zhou <chenzhou10@huawei.com>
 Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc: Rich Felker <dalias@libc.org>
+Cc: Romain Naour <romain.naour@gmail.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/sh/clk/cpg.c |   23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
---- a/include/asm-generic/vmlinux.lds.h~include-asm-generic-vmlinuxldsh-align-ro_after_init
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -394,6 +394,7 @@
-  */
- #ifndef RO_AFTER_INIT_DATA
- #define RO_AFTER_INIT_DATA						\
-+	. = ALIGN(8);							\
- 	__start_ro_after_init = .;					\
- 	*(.data..ro_after_init)						\
- 	JUMP_TABLE_DATA							\
+--- a/drivers/sh/clk/cpg.c~sh-clkfwk-remove-r8-r16-r32
++++ a/drivers/sh/clk/cpg.c
+@@ -36,36 +36,21 @@ static void sh_clk_write(int value, stru
+ 		iowrite32(value, clk->mapped_reg);
+ }
+ 
+-static unsigned int r8(const void __iomem *addr)
+-{
+-	return ioread8(addr);
+-}
+-
+-static unsigned int r16(const void __iomem *addr)
+-{
+-	return ioread16(addr);
+-}
+-
+-static unsigned int r32(const void __iomem *addr)
+-{
+-	return ioread32(addr);
+-}
+-
+ static int sh_clk_mstp_enable(struct clk *clk)
+ {
+ 	sh_clk_write(sh_clk_read(clk) & ~(1 << clk->enable_bit), clk);
+ 	if (clk->status_reg) {
+-		unsigned int (*read)(const void __iomem *addr);
++		unsigned int (*read)(void __iomem *addr);
+ 		int i;
+ 		void __iomem *mapped_status = (phys_addr_t)clk->status_reg -
+ 			(phys_addr_t)clk->enable_reg + clk->mapped_reg;
+ 
+ 		if (clk->flags & CLK_ENABLE_REG_8BIT)
+-			read = r8;
++			read = ioread8;
+ 		else if (clk->flags & CLK_ENABLE_REG_16BIT)
+-			read = r16;
++			read = ioread16;
+ 		else
+-			read = r32;
++			read = ioread32;
+ 
+ 		for (i = 1000;
+ 		     (read(mapped_status) & (1 << clk->enable_bit)) && i;
 _
 
-Patches currently in -mm which might be from romain.naour@gmail.com are
+Patches currently in -mm which might be from kuninori.morimoto.gx@renesas.com are
 
 
