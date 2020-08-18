@@ -7,42 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C691DC433E1
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:36:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D314DC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9527E20709
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:36:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADFE520789
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790160;
-	bh=pcvu5oj1xSEmjN1uTiW+bENqcrHdnniCcq7YJ0/6BSY=;
+	s=default; t=1597790421;
+	bh=sNA5nXBOJRESC5kyI0/VudBOQig5vtkLt/FAPtueUrI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=0dAj8WUBpm+Wwzhy6s3Elf1btg6oSTkfM5zHHLAIJ1kgCt4zZaxVx4ONAgozdbR3l
-	 JG4vWc/lhhmbtAnTfhWIPCBXAznPNOVwnbFaS5NATNZfiAtriO5nqahBwIZCt0Up7T
-	 LnelePw4Pkdpokq8ao/uhsmwI4LfH+8uro9zAHBI=
+	b=rcORD3xwwv1Sjw7HgjPNU48UwlGF6bKz5SDm5DmwdfhIC8N4CgvSrV8/YNhDcMMpQ
+	 +/D3IIH/ANc0At5AGI3gKCZu+CfGIMN/7wt3abJhnMSsaAfw+rOwghH4fY6X6XWulH
+	 40iDUEnCijNQOB+PEFRvtt+w3ex3s8Rnbl6lI7j8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726799AbgHRWgA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:36:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44070 "EHLO mail.kernel.org"
+        id S1726996AbgHRWkV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:40:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49262 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726600AbgHRWgA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:36:00 -0400
+        id S1727103AbgHRWkQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:16 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4B25920709;
-        Tue, 18 Aug 2020 22:35:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8275220789;
+        Tue, 18 Aug 2020 22:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790159;
-        bh=pcvu5oj1xSEmjN1uTiW+bENqcrHdnniCcq7YJ0/6BSY=;
+        s=default; t=1597790415;
+        bh=sNA5nXBOJRESC5kyI0/VudBOQig5vtkLt/FAPtueUrI=;
         h=Date:From:To:Subject:From;
-        b=nh1sx57bfc6ShN21Ye9aSqv8+j3r1WnZ25MAyHu47z+JEgiPEI0EDLJf+7DYs9Eqj
-         LiaAOLb3s7B1+/9IIsMTlfBNem12mcTtaWckoOSyzZ3x9d+YGQEWA9w9YuIdXcXh10
-         FuYzzSlfe1cMpD5olazAZe1WpjySxidVgBeB1Kmk=
-Date:   Tue, 18 Aug 2020 15:35:58 -0700
+        b=sqb4FW9zdrqUNaoQvfRALb1WAoKga1KvnDmwhUc2tARcRsBTbeMFzObQczQxvBy0+
+         Hw9NGrGNAZGJExqQEde5qCFsdxu2Vosd8BYVp6F7kkECJ2VU8aHDb2u9NvC2BmfOkB
+         Xuw5lQtisGNovrPV2hrDHlBiQTVCk/6dXmZxsfE8=
+Date:   Tue, 18 Aug 2020 15:40:15 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-rejects.patch removed from -mm tree
-Message-ID: <20200818223558.vhTQlPN8b%akpm@linux-foundation.org>
+To:     gregkh@android.com, gregkh@google.com, keescook@chromium.org,
+        maz@kernel.org, mm-commits@vger.kernel.org
+Subject:  [merged] exec-restore-eacces-of-s_isdir-execve.patch
+ removed from -mm tree
+Message-ID: <20200818224015.ZvRadDUyj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,54 +54,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: exec: restore EACCES of S_ISDIR execve()
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     exec-restore-eacces-of-s_isdir-execve.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Kees Cook <keescook@chromium.org>
+Subject: exec: restore EACCES of S_ISDIR execve()
 
+Patch series "Fix S_ISDIR execve() errno".
+
+Fix an errno change for execve() of directories, noticed by Marc Zyngier. 
+Along with the fix, include a regression test to avoid seeing this return
+in the future.
+
+
+This patch (of 2):
+
+The return code for attempting to execute a directory has always been
+EACCES.  Adjust the S_ISDIR exec test to reflect the old errno instead of
+the general EISDIR for other kinds of "open" attempts on directories.
+
+Link: http://lkml.kernel.org/r/20200813231723.2725102-2-keescook@chromium.org
+Link: https://lore.kernel.org/lkml/20200813151305.6191993b@why
+Fixes: 633fb6ac3980 ("exec: move S_ISREG() check earlier")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Marc Zyngier <maz@kernel.org>
+Reviewed-by: Greg Kroah-Hartman <gregkh@google.com>
+Tested-by: Greg Kroah-Hartman <gregkh@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/namei.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/.mailmap~linux-next-rejects
-+++ a/.mailmap
-@@ -94,20 +94,22 @@ Felix Kuhling <fxkuehl@gmx.de>
- Felix Moeller <felix@derklecks.de>
- Filipe Lautert <filipe@icewall.org>
- Franck Bui-Huu <vagabon.xyz@gmail.com>
--Frank Rowand <frowand.list@gmail.com> <frowand@mvista.com>
- Frank Rowand <frowand.list@gmail.com> <frank.rowand@am.sony.com>
- Frank Rowand <frowand.list@gmail.com> <frank.rowand@sonymobile.com>
-+Frank Rowand <frowand.list@gmail.com> <frowand@mvista.com>
- Frank Zago <fzago@systemfabricworks.com>
- Gao Xiang <xiang@kernel.org> <gaoxiang25@huawei.com>
- Gao Xiang <xiang@kernel.org> <hsiangkao@aol.com>
--Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@de.ibm.com>
-+Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@linux.vnet.ibm.com>
- Greg Kroah-Hartman <greg@echidna.(none)>
- Greg Kroah-Hartman <gregkh@suse.de>
- Greg Kroah-Hartman <greg@kroah.com>
- Greg Kurz <groug@kaod.org> <gkurz@linux.vnet.ibm.com>
- Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
-+Gustavo Padovan <gustavo@las.ic.unicamp.br>
-+Gustavo Padovan <padovan@profusion.mobi>
- Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
- Heiko Carstens <hca@linux.ibm.com> <h.carstens@de.ibm.com>
- Heiko Carstens <hca@linux.ibm.com> <heiko.carstens@de.ibm.com>
+--- a/fs/namei.c~exec-restore-eacces-of-s_isdir-execve
++++ a/fs/namei.c
+@@ -2849,8 +2849,10 @@ static int may_open(const struct path *p
+ 	case S_IFLNK:
+ 		return -ELOOP;
+ 	case S_IFDIR:
+-		if (acc_mode & (MAY_WRITE | MAY_EXEC))
++		if (acc_mode & MAY_WRITE)
+ 			return -EISDIR;
++		if (acc_mode & MAY_EXEC)
++			return -EACCES;
+ 		break;
+ 	case S_IFBLK:
+ 	case S_IFCHR:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
