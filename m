@@ -4,51 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0320C433E3
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63B22C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC12020786
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E46420674
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790427;
-	bh=cDLWWX3e2FLJRHIegVhtEOVgqRr16LxMVl5U2IsMXeo=;
+	s=default; t=1597790429;
+	bh=7LEvssKcQae38qndF1e0nLLzp+x6bnK3x8d4MSE1Lu4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=eJKC1v6N0NEiufqQC+aWLdx42V2gM1mIZxaz16TCxvkpyCnZUyh2Rb246D7oelrSi
-	 /lRtofB5W+hMPVKtRi0MRrJeAzB6klTQi8alGnWetGirX+NjhBTH+ZeuuKdwabYKOO
-	 pc3vX2nnSf/YnsOicjaKt7KRnAL296VDoB81jSyw=
+	b=P9v0+MTqW0xeqUJj9aP19KGpEWPwhVtlPXmeg4U573kLt6YnvSofjeB1J7wEmrZ4t
+	 gr7vyoc+i78rUUG/cOQ3tTATOZue5Wkh19I1Q6PbHABQ7Z0kWOn7ugvd53qG9GeXj8
+	 J3yTJzweFBhjIuxDbfbgh9U9jSnrMsIvm/JzAp6w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727041AbgHRWkW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:40:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49120 "EHLO mail.kernel.org"
+        id S1727110AbgHRWk2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:40:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727098AbgHRWkM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:40:12 -0400
+        id S1727097AbgHRWkW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:22 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 75F1620786;
-        Tue, 18 Aug 2020 22:40:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6AFE520786;
+        Tue, 18 Aug 2020 22:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790411;
-        bh=cDLWWX3e2FLJRHIegVhtEOVgqRr16LxMVl5U2IsMXeo=;
+        s=default; t=1597790421;
+        bh=7LEvssKcQae38qndF1e0nLLzp+x6bnK3x8d4MSE1Lu4=;
         h=Date:From:To:Subject:From;
-        b=FsyCjypkbqxnfCoxR3gmZVvyFdTIojMIs4ITRx/40tIZ+vS6VgRqNFEu+75LfJzFE
-         nlc7DZ1bOzNaOwZWDgrIUT22QuZFoa9trfDNXU3F6loZYTruD4Z+jCw11MtXRJx/2E
-         wsyVtjNYyn9SpUOrY5Jq0AJHZhqC/ANvMURnacrE=
-Date:   Tue, 18 Aug 2020 15:40:11 -0700
+        b=qV42h7Cw1mDOd/n8IUqnwiBbFy2fy566ZpaMD1nlDuqDoEg4hw67vWqN+AxTQqvKE
+         fKJrFl7DovOvL5zVrQkijM/UY/tPgqjpnn2HEFziYO64eaMg/JBhZeKhh1q6It+XDe
+         WbX08uRgt6BXF/AqqeQA+nxnsIGl0WsyASAzWK9c=
+Date:   Tue, 18 Aug 2020 15:40:21 -0700
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, david@redhat.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, sonnyrao@chromium.org, stable@vger.kernel.org
+To:     david@redhat.com, kirill.shutemov@linux.intel.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        william.kucharski@oracle.com, willy@infradead.org, ziy@nvidia.com
 Subject:  [merged]
- =?US-ASCII?Q?revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-inf?=
- =?US-ASCII?Q?ormation-of-empty-zone.patch?= removed from -mm tree
-Message-ID: <20200818224011.mhWqdwXXl%akpm@linux-foundation.org>
+ mm-store-compound_nr-as-well-as-compound_order.patch removed from -mm tree
+Message-ID: <20200818224021.AotU_NQcY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,68 +55,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm/vmstat.c: do not show lowmem reserve protection information of empty zone"
+     Subject: mm: store compound_nr as well as compound_order
 has been removed from the -mm tree.  Its filename was
-     revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+     mm-store-compound_nr-as-well-as-compound_order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: Revert "mm/vmstat.c: do not show lowmem reserve protection information of empty zone"
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: store compound_nr as well as compound_order
 
-This reverts commit 26e7deadaae175.
+Patch series "THP prep patches".
 
-Sonny reported that one of their tests started failing on the latest
-kernel on their Chrome OS platform.  The root cause is that the above
-commit removed the protection line of empty zone, while the parser used in
-the test relies on the protection line to mark the end of each zone.
+These are some generic cleanups and improvements, which I would like
+merged into mmotm soon.  The first one should be a performance improvement
+for all users of compound pages, and the others are aimed at getting code
+to compile away when CONFIG_TRANSPARENT_HUGEPAGE is disabled (ie small
+systems).  Also better documented / less confusing than the current prefix
+mixture of compound, hpage and thp.
 
-Let's revert it to avoid breaking userspace testing or applications.
 
-Link: http://lkml.kernel.org/r/20200811075412.12872-1-bhe@redhat.com
-Fixes: 26e7deadaae175 ("mm/vmstat.c: do not show lowmem reserve protection information of empty zone)"
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Sonny Rao <sonnyrao@chromium.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[5.8.x]
+This patch (of 7):
+
+This removes a few instructions from functions which need to know how many
+pages are in a compound page.  The storage used is either page->mapping on
+64-bit or page->index on 32-bit.  Both of these are fine to overlay on
+tail pages.
+
+Link: http://lkml.kernel.org/r/20200629151959.15779-1-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200629151959.15779-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mm.h       |    5 ++++-
+ include/linux/mm_types.h |    1 +
+ mm/page_alloc.c          |    5 +++--
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/vmstat.c~revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone
-+++ a/mm/vmstat.c
-@@ -1642,12 +1642,6 @@ static void zoneinfo_show_print(struct s
- 		   zone->present_pages,
- 		   zone_managed_pages(zone));
+--- a/include/linux/mm.h~mm-store-compound_nr-as-well-as-compound_order
++++ a/include/linux/mm.h
+@@ -922,12 +922,15 @@ static inline int compound_pincount(stru
+ static inline void set_compound_order(struct page *page, unsigned int order)
+ {
+ 	page[1].compound_order = order;
++	page[1].compound_nr = 1U << order;
+ }
  
--	/* If unpopulated, no other information is useful */
--	if (!populated_zone(zone)) {
--		seq_putc(m, '\n');
--		return;
--	}
--
- 	seq_printf(m,
- 		   "\n        protection: (%ld",
- 		   zone->lowmem_reserve[0]);
-@@ -1655,6 +1649,12 @@ static void zoneinfo_show_print(struct s
- 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
- 	seq_putc(m, ')');
+ /* Returns the number of pages in this potentially compound page. */
+ static inline unsigned long compound_nr(struct page *page)
+ {
+-	return 1UL << compound_order(page);
++	if (!PageHead(page))
++		return 1;
++	return page[1].compound_nr;
+ }
  
-+	/* If unpopulated, no other information is useful */
-+	if (!populated_zone(zone)) {
-+		seq_putc(m, '\n');
-+		return;
-+	}
+ /* Returns the number of bytes in this potentially compound page. */
+--- a/include/linux/mm_types.h~mm-store-compound_nr-as-well-as-compound_order
++++ a/include/linux/mm_types.h
+@@ -134,6 +134,7 @@ struct page {
+ 			unsigned char compound_dtor;
+ 			unsigned char compound_order;
+ 			atomic_t compound_mapcount;
++			unsigned int compound_nr; /* 1 << compound_order */
+ 		};
+ 		struct {	/* Second tail page of compound page */
+ 			unsigned long _compound_pad_1;	/* compound_head */
+--- a/mm/page_alloc.c~mm-store-compound_nr-as-well-as-compound_order
++++ a/mm/page_alloc.c
+@@ -666,8 +666,6 @@ void prep_compound_page(struct page *pag
+ 	int i;
+ 	int nr_pages = 1 << order;
+ 
+-	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
+-	set_compound_order(page, order);
+ 	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++) {
+ 		struct page *p = page + i;
+@@ -675,6 +673,9 @@ void prep_compound_page(struct page *pag
+ 		p->mapping = TAIL_MAPPING;
+ 		set_compound_head(p, page);
+ 	}
 +
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 		seq_printf(m, "\n      %-12s %lu", zone_stat_name(i),
- 			   zone_page_state(zone, i));
++	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
++	set_compound_order(page, order);
+ 	atomic_set(compound_mapcount_ptr(page), -1);
+ 	if (hpage_pincount_available(page))
+ 		atomic_set(compound_pincount_ptr(page), 0);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
