@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84ED4C433E1
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:03:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76C49C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:05:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B507207BB
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:03:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 518DF20738
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 23:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597791795;
-	bh=IukHK+tzawYpI+vctIuLFX93I7e7NGZdEcFTbtu2cDU=;
+	s=default; t=1597791945;
+	bh=xqS/BsBLIjTwh+n+qWSUkPEzbjhrGprWJ+aexA5BU4U=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=xsZOfRLBiTk/k+ijHrhv8g+m4nac+xGA6gavovHUa7P/pwKsMYC6sOvcQMW4eo7nY
-	 dffGmmdVJDFF+XRm5FIQFL4HUMZaeXv0SD0vsz+wV1JJqRX6ztD2ri7LYsayLdGOYx
-	 DT4u/1zn8yk9pB3Ekqfg062S5HrAPtyeVqexknTo=
+	b=w93zkGqYQ609ub19niNUVvOCK4mlcWTHtAmt7iEQSxagpUHNDkgwt52LK4S3/Up6D
+	 Lob9W1tc09qjb3cxkW6FHVsax+1+g5XDCZosv2qIlaud2BaFWbdcvEnb28jhgzpffi
+	 ibS/qbH19ctOqYCTBy+GIQtpQnDHQVVio5OqcrkA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727012AbgHRXDP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 19:03:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36096 "EHLO mail.kernel.org"
+        id S1726980AbgHRXFp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 19:05:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726995AbgHRXDO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 19:03:14 -0400
+        id S1726539AbgHRXFo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 19:05:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A5C3120738;
-        Tue, 18 Aug 2020 23:03:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A53912065D;
+        Tue, 18 Aug 2020 23:05:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597791793;
-        bh=IukHK+tzawYpI+vctIuLFX93I7e7NGZdEcFTbtu2cDU=;
+        s=default; t=1597791944;
+        bh=xqS/BsBLIjTwh+n+qWSUkPEzbjhrGprWJ+aexA5BU4U=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lDzxj833hjOE0OY1cuzhv5I82UAKUFObhNC1UfesyZaSC6dwqkP2xoXZRSYo7GDV2
-         FZ/JhZHFmDjjusV2bQdjWDZoyZe0614DXE6RWz6Mv+5BVlAIbfeoLZf3zd8QXwx514
-         vwZZOAZXBAa/A1kEWhRdC/XXChnP0u5Ao6/1Wlp4=
-Date:   Tue, 18 Aug 2020 16:03:13 -0700
+        b=p0Xehy5We06gQwj1bfJToHnBDTHE39dDme33HQekWbBxj39q6+AyOXK0Le4QeBNVp
+         SYWC8229onND7fBz3w6YiN+TuMucdP1I1r2Y5NjBrIJEK3lMsTa/XiW1sPO6Qwd4/j
+         J9Ao8gmG2FOm7EJkO57brWHsJLSe8zHiSng/vrXo=
+Date:   Tue, 18 Aug 2020 16:05:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     ak@linux.intel.com, corbet@lwn.net, keescook@chromium.org,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        qperret@qperret.net
-Subject:  + mailmap-add-andi-kleen.patch added to -mm tree
-Message-ID: <20200818230313.HQjGniuzh%akpm@linux-foundation.org>
+To:     abdhalee@linux.vnet.ibm.com, arnd@arndb.de,
+        christophe.leroy@csgroup.eu, jcmvbkbc@gmail.com, joro@8bytes.org,
+        luto@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org,
+        rppt@linux.ibm.com, sathnaga@linux.vnet.ibm.com, shorne@gmail.com,
+        willy@infradead.org
+Subject:  + mm-account-pmd-tables-like-pte-tables.patch added to
+ -mm tree
+Message-ID: <20200818230543.H2OAv9kfU%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add Andi Kleen
+     Subject: mm: account PMD tables like PTE tables
 has been added to the -mm tree.  Its filename is
-     mailmap-add-andi-kleen.patch
+     mm-account-pmd-tables-like-pte-tables.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-andi-kleen.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-account-pmd-tables-like-pte-tables.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-andi-kleen.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-account-pmd-tables-like-pte-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,36 +79,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: mailmap: add Andi Kleen
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm: account PMD tables like PTE tables
 
-I keep getting bounce back from the suse.de address.
+We account the PTE level of the page tables to the process in order to
+make smarter OOM decisions and help diagnose why memory is fragmented. 
+For these same reasons, we should account pages allocated for PMDs.  With
+larger process address spaces and ASLR, the number of PMDs in use is
+higher than it used to be so the inaccuracy is starting to matter.
 
-Link: http://lkml.kernel.org/r/20200818203214.659955-1-ndesaulniers@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Quentin Perret <qperret@qperret.net>
+Link: http://lkml.kernel.org/r/20200627184642.GF25039@casper.infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
+Cc: Stafford Horne <shorne@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
---- a/.mailmap~mailmap-add-andi-kleen
-+++ a/.mailmap
-@@ -32,6 +32,7 @@ Alex Shi <alex.shi@linux.alibaba.com> <a
- Alex Shi <alex.shi@linux.alibaba.com> <alex.shi@linaro.org>
- Al Viro <viro@ftp.linux.org.uk>
- Al Viro <viro@zenIV.linux.org.uk>
-+Andi Kleen <ak@linux.intel.com> <ak@suse.de>
- Andi Shyti <andi@etezian.org> <andi.shyti@samsung.com>
- Andreas Herrmann <aherrman@de.ibm.com>
- Andrew Morton <akpm@linux-foundation.org>
+--- a/include/linux/mm.h~mm-account-pmd-tables-like-pte-tables
++++ a/include/linux/mm.h
+@@ -2239,7 +2239,7 @@ static inline spinlock_t *pmd_lockptr(st
+ 	return ptlock_ptr(pmd_to_page(pmd));
+ }
+ 
+-static inline bool pgtable_pmd_page_ctor(struct page *page)
++static inline bool pmd_ptlock_init(struct page *page)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	page->pmd_huge_pte = NULL;
+@@ -2247,7 +2247,7 @@ static inline bool pgtable_pmd_page_ctor
+ 	return ptlock_init(page);
+ }
+ 
+-static inline void pgtable_pmd_page_dtor(struct page *page)
++static inline void pmd_ptlock_free(struct page *page)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	VM_BUG_ON_PAGE(page->pmd_huge_pte, page);
+@@ -2264,8 +2264,8 @@ static inline spinlock_t *pmd_lockptr(st
+ 	return &mm->page_table_lock;
+ }
+ 
+-static inline bool pgtable_pmd_page_ctor(struct page *page) { return true; }
+-static inline void pgtable_pmd_page_dtor(struct page *page) {}
++static inline bool pmd_ptlock_init(struct page *page) { return true; }
++static inline void pmd_ptlock_free(struct page *page) {}
+ 
+ #define pmd_huge_pte(mm, pmd) ((mm)->pmd_huge_pte)
+ 
+@@ -2278,6 +2278,22 @@ static inline spinlock_t *pmd_lock(struc
+ 	return ptl;
+ }
+ 
++static inline bool pgtable_pmd_page_ctor(struct page *page)
++{
++	if (!pmd_ptlock_init(page))
++		return false;
++	__SetPageTable(page);
++	inc_zone_page_state(page, NR_PAGETABLE);
++	return true;
++}
++
++static inline void pgtable_pmd_page_dtor(struct page *page)
++{
++	pmd_ptlock_free(page);
++	__ClearPageTable(page);
++	dec_zone_page_state(page, NR_PAGETABLE);
++}
++
+ /*
+  * No scalability reason to split PUD locks yet, but follow the same pattern
+  * as the PMD locks to make it easier if we decide to.  The VM should not be
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mailmap-add-andi-kleen.patch
+mm-account-pmd-tables-like-pte-tables.patch
 
