@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BFAAC433E1
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B6BFC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E0B9207DA
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36AD520789
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790424;
-	bh=OfDqyTdtn5EIFCJf4Yd0VX4dkneXr6TCivPwjKop8Tc=;
+	s=default; t=1597790426;
+	bh=MMx12fIwsKUJvdChcsN/LKjdtezWj4UhXUL5Zp0Jfrw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=JTtB4KU26ZQ/IJTt7gPGgJJAsQcQItoeX00KvrgbaoNIesKg5wFs4dtoDT2b7JG3/
-	 WU4y6dJdUNhaGKsOajCzZEqX+LLvLv5wRa5uSTHL7KipEMP3Y1rj8pCjwqiJHdMz5O
-	 kSuMVzEaJHgneNJO+7uNO6jni2j2imkuJZJjt7SI=
+	b=PAcECkhze9oAkedaZ8DqXsGXF27tJB7opgHMAH7+RNCB6FAazx4XnY/iAkZAC4V3J
+	 zWR081E5ESEUzJHGMNI8yw92kkTBVHEkW7H5ROVKIIUAMBkbwxnsLT/0HmAO586r13
+	 YczWsE+yFqg1gS9Wqt8eEkCdjYC6DC/xrQVPdKLM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727099AbgHRWkV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:40:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49388 "EHLO mail.kernel.org"
+        id S1726972AbgHRWkW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:40:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726972AbgHRWkT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:40:19 -0400
+        id S1727041AbgHRWkJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:09 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7149720709;
-        Tue, 18 Aug 2020 22:40:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1E63620709;
+        Tue, 18 Aug 2020 22:40:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790419;
-        bh=OfDqyTdtn5EIFCJf4Yd0VX4dkneXr6TCivPwjKop8Tc=;
+        s=default; t=1597790409;
+        bh=MMx12fIwsKUJvdChcsN/LKjdtezWj4UhXUL5Zp0Jfrw=;
         h=Date:From:To:Subject:From;
-        b=LnYvmZmJiho2AoXd8hrIAIZ+mnsF+B7YaCTQ4MzvTN6YoMOpQexGK813pAWBopBNI
-         rnDAknJ13MG3qdRVQ9VO4Q98x5Y9UhpfhwXhskMPLmael4IFpd9SgfN+6tMXUt84ir
-         uyvUV0vuOlAcnaOEkmVdDuj3EiD3A4QLl32P2zm8=
-Date:   Tue, 18 Aug 2020 15:40:19 -0700
+        b=pKXHFtNj3utqD2Tlg8J8aitwqGJ/eQ83GVlPbgxa5QkAZlHbPdBuLsOe1wCCP0yZ3
+         dV+RRh0RUy5M3BKlwbOBtJ9vZAACn2WJ9duwDsEZ8LjTyCf+oo1NX83eltmUXfCaHY
+         fHIhwuDItPkDSrXbsizZ1R3cl5YH4lJ7P6JzCujU=
+Date:   Tue, 18 Aug 2020 15:40:08 -0700
 From:   akpm@linux-foundation.org
-To:     groug@kaod.org, mm-commits@vger.kernel.org
-Subject:  [merged] mailmap-add-entry-for-greg-kurz.patch removed
- from -mm tree
-Message-ID: <20200818224019.93fLeKWKV%akpm@linux-foundation.org>
+To:     lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  [merged]
+ asm-generic-pgalloch-use-correct-ifdef-to-enable-pud_alloc_one.patch
+ removed from -mm tree
+Message-ID: <20200818224008.3blFxPteA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,40 +54,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add entry for Greg Kurz
+     Subject: asm-generic: pgalloc.h: use correct #ifdef to enable pud_alloc_one()
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-greg-kurz.patch
+     asm-generic-pgalloch-use-correct-ifdef-to-enable-pud_alloc_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Kurz <groug@kaod.org>
-Subject: mailmap: add entry for Greg Kurz
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: asm-generic: pgalloc.h: use correct #ifdef to enable pud_alloc_one()
 
-I had stopped using gkurz@linux.vnet.ibm.com a while back already but this
-email address was shutdown last June when I quit IBM.  It's about time to
-map it to groug@kaod.org.
+The #ifdef statement that guards the generic version of pud_alloc_one() by
+mistake used __HAVE_ARCH_PUD_FREE instead of __HAVE_ARCH_PUD_ALLOC_ONE.
 
-Link: http://lkml.kernel.org/r/159724692879.76040.4938578139173154028.stgit@bahia.lan
-Signed-off-by: Greg Kurz <groug@kaod.org>
+Fix it.
+
+Link: http://lkml.kernel.org/r/20200812191415.GE163101@linux.ibm.com
+Fixes: d9e8b929670b ("asm-generic: pgalloc: provide generic pud_alloc_one() and pud_free_one()")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-generic/pgalloc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-entry-for-greg-kurz
-+++ a/.mailmap
-@@ -104,6 +104,7 @@ Gerald Schaefer <gerald.schaefer@linux.i
- Greg Kroah-Hartman <greg@echidna.(none)>
- Greg Kroah-Hartman <gregkh@suse.de>
- Greg Kroah-Hartman <greg@kroah.com>
-+Greg Kurz <groug@kaod.org> <gkurz@linux.vnet.ibm.com>
- Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
- Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
- Heiko Carstens <hca@linux.ibm.com> <h.carstens@de.ibm.com>
+--- a/include/asm-generic/pgalloc.h~asm-generic-pgalloch-use-correct-ifdef-to-enable-pud_alloc_one
++++ a/include/asm-generic/pgalloc.h
+@@ -147,7 +147,7 @@ static inline void pmd_free(struct mm_st
+ 
+ #if CONFIG_PGTABLE_LEVELS > 3
+ 
+-#ifndef __HAVE_ARCH_PUD_FREE
++#ifndef __HAVE_ARCH_PUD_ALLOC_ONE
+ /**
+  * pud_alloc_one - allocate a page for PUD-level page table
+  * @mm: the mm_struct of the current context
 _
 
-Patches currently in -mm which might be from groug@kaod.org are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
 
