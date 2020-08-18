@@ -2,48 +2,51 @@ Return-Path: <SRS0=0jXN=B4=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48C76C433E5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E82FC433E4
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 277112080C
+	by mail.kernel.org (Postfix) with ESMTP id 077A420789
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1597790422;
-	bh=IstXMQOfVFWSt3bpXhY5XyPAqBh4cm4kvTDTNxrW0Dw=;
+	bh=ZwOxL4jGXP1Phmms90roc1vJ7YHpr2xLqvAfX9abmyE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=DF7SPwKyPm1d2PGpaTYwfeJvmIKRp6U1jPyww5DmjgSSXNNjdpnRLvMdssIi9jVV5
-	 sneOA9w0peDOQjW2A7k1T5VFN/smRI0Tq0knAme8XeEPD5f9gG51iPNfI+BEq2acth
-	 kefrrtY/yroDDw8j5+GVXj5l9dvRcfar5+5mSpNc=
+	b=rul0dzAxUhLAXheFLKTuni0d6rrb94HecJ/cDhG/o4XeFuP/VYOgifQKIu5XO85UY
+	 ExqAsTHlLobG3V3H8H0FsJL0XfSHB/ktUKh04KuEE+WCAqB9MGtdKQ7jkADfq9tUL1
+	 E61LgZ/n77t5fU+0GEcM5wQGKVPUcZK0UxT5Dj8M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726957AbgHRWkV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727103AbgHRWkV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 18 Aug 2020 18:40:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49310 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49188 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727097AbgHRWkS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:40:18 -0400
+        id S1727099AbgHRWkO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:14 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7032F207DA;
-        Tue, 18 Aug 2020 22:40:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 69B56207BB;
+        Tue, 18 Aug 2020 22:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790417;
-        bh=IstXMQOfVFWSt3bpXhY5XyPAqBh4cm4kvTDTNxrW0Dw=;
+        s=default; t=1597790413;
+        bh=ZwOxL4jGXP1Phmms90roc1vJ7YHpr2xLqvAfX9abmyE=;
         h=Date:From:To:Subject:From;
-        b=QQVvaee1INhHlBBVHGWq3VQ36TYuJt6jQRWSudZ8oMfEHNVkWOmJIsISmaN5z04nP
-         rAw9xS2Fny5b8Y3HLfDnfYvXFFeBWTKhwa7p96I1f1lySqeA0ddJBmA9r1MkG9axQG
-         zINm+8L6AVCnogUIXxDGQjMhhrMpbYVQUHbG6dLM=
-Date:   Tue, 18 Aug 2020 15:40:17 -0700
+        b=k103MCdzyhQaA0poSgkRnvfRYBixDQ+4LoOoKh1GOSKLknrxDs7TdPx/bYpMGEmJD
+         SEMm1nD1UgaXCSk16D1OskBmRMLTEsRdSivhcdSwsBI3u0UO3sKFHPJLSxzQj6bvW2
+         u/+blrBOrQQp7ipWSZFyDKGjbN16BeomeCb5Sq34=
+Date:   Tue, 18 Aug 2020 15:40:13 -0700
 From:   akpm@linux-foundation.org
-To:     keescook@chromium.org, maz@kernel.org, mm-commits@vger.kernel.org
-Subject:  [merged] selftests-exec-add-file-type-errno-tests.patch
- removed from -mm tree
-Message-ID: <20200818224017.PJ_gy65A1%akpm@linux-foundation.org>
+To:     4sschmid@informatik.uni-hamburg.de, gaoxiang25@huawei.com,
+        gregkh@linuxfoundation.org, mingo@kernel.org,
+        mm-commits@vger.kernel.org, nivedita@alum.mit.edu, terrelln@fb.com,
+        yann.collet.73@gmail.com
+Subject:  [merged] lz4-fix-kernel-decompression-speed.patch removed
+ from -mm tree
+Message-ID: <20200818224013.SHB7gYukH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,259 +56,180 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/exec: add file type errno tests
+     Subject: lz4: fix kernel decompression speed
 has been removed from the -mm tree.  Its filename was
-     selftests-exec-add-file-type-errno-tests.patch
+     lz4-fix-kernel-decompression-speed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: selftests/exec: add file type errno tests
+From: Nick Terrell <terrelln@fb.com>
+Subject: lz4: fix kernel decompression speed
 
-Make sure execve() returns the expected errno values for non-regular
-files.
+This patch replaces all memcpy() calls with LZ4_memcpy() which calls
+__builtin_memcpy() so the compiler can inline it.
 
-Link: http://lkml.kernel.org/r/20200813231723.2725102-3-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Marc Zyngier <maz@kernel.org>
+LZ4 relies heavily on memcpy() with a constant size being inlined.  In x86
+and i386 pre-boot environments memcpy() cannot be inlined because memcpy()
+doesn't get defined as __builtin_memcpy().
+
+An equivalent patch has been applied upstream so that the next import
+won't lose this change [1].
+
+I've measured the kernel decompression speed using QEMU before and after
+this patch for the x86_64 and i386 architectures.  The speed-up is about
+10x as shown below.
+
+Code	Arch	Kernel Size	Time	Speed
+v5.8	x86_64	11504832 B	148 ms	 79 MB/s
+patch	x86_64	11503872 B	 13 ms	885 MB/s
+v5.8	i386	 9621216 B	 91 ms	106 MB/s
+patch	i386	 9620224 B	 10 ms	962 MB/s
+
+I also measured the time to decompress the initramfs on x86_64, i386, and
+arm.  All three show the same decompression speed before and after, as
+expected.
+
+[1] https://github.com/lz4/lz4/pull/890
+
+Link: http://lkml.kernel.org/r/20200803194022.2966806-1-nickrterrell@gmail.com
+Signed-off-by: Nick Terrell <terrelln@fb.com>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Gao Xiang <gaoxiang25@huawei.com>
+Cc: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Arvind Sankar <nivedita@alum.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/exec/.gitignore    |    1 
- tools/testing/selftests/exec/Makefile      |    5 
- tools/testing/selftests/exec/non-regular.c |  196 +++++++++++++++++++
- 3 files changed, 200 insertions(+), 2 deletions(-)
+ lib/lz4/lz4_compress.c   |    4 ++--
+ lib/lz4/lz4_decompress.c |   18 +++++++++---------
+ lib/lz4/lz4defs.h        |   10 ++++++++++
+ lib/lz4/lz4hc_compress.c |    2 +-
+ 4 files changed, 22 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/exec/.gitignore~selftests-exec-add-file-type-errno-tests
-+++ a/tools/testing/selftests/exec/.gitignore
-@@ -10,3 +10,4 @@ execveat.denatured
- /recursion-depth
- xxxxxxxx*
- pipe
-+S_I*.test
---- a/tools/testing/selftests/exec/Makefile~selftests-exec-add-file-type-errno-tests
-+++ a/tools/testing/selftests/exec/Makefile
-@@ -3,7 +3,7 @@ CFLAGS = -Wall
- CFLAGS += -Wno-nonnull
- CFLAGS += -D_GNU_SOURCE
+--- a/lib/lz4/lz4_compress.c~lz4-fix-kernel-decompression-speed
++++ a/lib/lz4/lz4_compress.c
+@@ -446,7 +446,7 @@ _last_literals:
+ 			*op++ = (BYTE)(lastRun << ML_BITS);
+ 		}
  
--TEST_PROGS := binfmt_script
-+TEST_PROGS := binfmt_script non-regular
- TEST_GEN_PROGS := execveat
- TEST_GEN_FILES := execveat.symlink execveat.denatured script subdir pipe
- # Makefile is a run-time dependency, since it's accessed by the execveat test
-@@ -11,7 +11,8 @@ TEST_FILES := Makefile
+-		memcpy(op, anchor, lastRun);
++		LZ4_memcpy(op, anchor, lastRun);
  
- TEST_GEN_PROGS += recursion-depth
+ 		op += lastRun;
+ 	}
+@@ -708,7 +708,7 @@ _last_literals:
+ 		} else {
+ 			*op++ = (BYTE)(lastRunSize<<ML_BITS);
+ 		}
+-		memcpy(op, anchor, lastRunSize);
++		LZ4_memcpy(op, anchor, lastRunSize);
+ 		op += lastRunSize;
+ 	}
  
--EXTRA_CLEAN := $(OUTPUT)/subdir.moved $(OUTPUT)/execveat.moved $(OUTPUT)/xxxxx*
-+EXTRA_CLEAN := $(OUTPUT)/subdir.moved $(OUTPUT)/execveat.moved $(OUTPUT)/xxxxx*	\
-+	       $(OUTPUT)/S_I*.test
+--- a/lib/lz4/lz4_decompress.c~lz4-fix-kernel-decompression-speed
++++ a/lib/lz4/lz4_decompress.c
+@@ -153,7 +153,7 @@ static FORCE_INLINE int LZ4_decompress_g
+ 		   && likely((endOnInput ? ip < shortiend : 1) &
+ 			     (op <= shortoend))) {
+ 			/* Copy the literals */
+-			memcpy(op, ip, endOnInput ? 16 : 8);
++			LZ4_memcpy(op, ip, endOnInput ? 16 : 8);
+ 			op += length; ip += length;
  
- include ../lib.mk
+ 			/*
+@@ -172,9 +172,9 @@ static FORCE_INLINE int LZ4_decompress_g
+ 			    (offset >= 8) &&
+ 			    (dict == withPrefix64k || match >= lowPrefix)) {
+ 				/* Copy the match. */
+-				memcpy(op + 0, match + 0, 8);
+-				memcpy(op + 8, match + 8, 8);
+-				memcpy(op + 16, match + 16, 2);
++				LZ4_memcpy(op + 0, match + 0, 8);
++				LZ4_memcpy(op + 8, match + 8, 8);
++				LZ4_memcpy(op + 16, match + 16, 2);
+ 				op += length + MINMATCH;
+ 				/* Both stages worked, load the next token. */
+ 				continue;
+@@ -263,7 +263,7 @@ static FORCE_INLINE int LZ4_decompress_g
+ 				}
+ 			}
  
---- /dev/null
-+++ a/tools/testing/selftests/exec/non-regular.c
-@@ -0,0 +1,196 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <sys/socket.h>
-+#include <sys/stat.h>
-+#include <sys/sysmacros.h>
-+#include <sys/types.h>
+-			memcpy(op, ip, length);
++			LZ4_memcpy(op, ip, length);
+ 			ip += length;
+ 			op += length;
+ 
+@@ -350,7 +350,7 @@ _copy_match:
+ 				size_t const copySize = (size_t)(lowPrefix - match);
+ 				size_t const restSize = length - copySize;
+ 
+-				memcpy(op, dictEnd - copySize, copySize);
++				LZ4_memcpy(op, dictEnd - copySize, copySize);
+ 				op += copySize;
+ 				if (restSize > (size_t)(op - lowPrefix)) {
+ 					/* overlap copy */
+@@ -360,7 +360,7 @@ _copy_match:
+ 					while (op < endOfMatch)
+ 						*op++ = *copyFrom++;
+ 				} else {
+-					memcpy(op, lowPrefix, restSize);
++					LZ4_memcpy(op, lowPrefix, restSize);
+ 					op += restSize;
+ 				}
+ 			}
+@@ -386,7 +386,7 @@ _copy_match:
+ 				while (op < copyEnd)
+ 					*op++ = *match++;
+ 			} else {
+-				memcpy(op, match, mlen);
++				LZ4_memcpy(op, match, mlen);
+ 			}
+ 			op = copyEnd;
+ 			if (op == oend)
+@@ -400,7 +400,7 @@ _copy_match:
+ 			op[2] = match[2];
+ 			op[3] = match[3];
+ 			match += inc32table[offset];
+-			memcpy(op + 4, match, 4);
++			LZ4_memcpy(op + 4, match, 4);
+ 			match -= dec64table[offset];
+ 		} else {
+ 			LZ4_copy8(op, match);
+--- a/lib/lz4/lz4defs.h~lz4-fix-kernel-decompression-speed
++++ a/lib/lz4/lz4defs.h
+@@ -137,6 +137,16 @@ static FORCE_INLINE void LZ4_writeLE16(v
+ 	return put_unaligned_le16(value, memPtr);
+ }
+ 
++/*
++ * LZ4 relies on memcpy with a constant size being inlined. In freestanding
++ * environments, the compiler can't assume the implementation of memcpy() is
++ * standard compliant, so apply its specialized memcpy() inlining logic. When
++ * possible, use __builtin_memcpy() to tell the compiler to analyze memcpy()
++ * as-if it were standard compliant, so it can inline it in freestanding
++ * environments. This is needed when decompressing the Linux Kernel, for example.
++ */
++#define LZ4_memcpy(dst, src, size) __builtin_memcpy(dst, src, size)
 +
-+#include "../kselftest_harness.h"
-+
-+/* Remove a file, ignoring the result if it didn't exist. */
-+void rm(struct __test_metadata *_metadata, const char *pathname,
-+	int is_dir)
-+{
-+	int rc;
-+
-+	if (is_dir)
-+		rc = rmdir(pathname);
-+	else
-+		rc = unlink(pathname);
-+
-+	if (rc < 0) {
-+		ASSERT_EQ(errno, ENOENT) {
-+			TH_LOG("Not ENOENT: %s", pathname);
-+		}
-+	} else {
-+		ASSERT_EQ(rc, 0) {
-+			TH_LOG("Failed to remove: %s", pathname);
-+		}
-+	}
-+}
-+
-+FIXTURE(file) {
-+	char *pathname;
-+	int is_dir;
-+};
-+
-+FIXTURE_VARIANT(file)
-+{
-+	const char *name;
-+	int expected;
-+	int is_dir;
-+	void (*setup)(struct __test_metadata *_metadata,
-+		      FIXTURE_DATA(file) *self,
-+		      const FIXTURE_VARIANT(file) *variant);
-+	int major, minor, mode; /* for mknod() */
-+};
-+
-+void setup_link(struct __test_metadata *_metadata,
-+		FIXTURE_DATA(file) *self,
-+		const FIXTURE_VARIANT(file) *variant)
-+{
-+	const char * const paths[] = {
-+		"/bin/true",
-+		"/usr/bin/true",
-+	};
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(paths); i++) {
-+		if (access(paths[i], X_OK) == 0) {
-+			ASSERT_EQ(symlink(paths[i], self->pathname), 0);
-+			return;
-+		}
-+	}
-+	ASSERT_EQ(1, 0) {
-+		TH_LOG("Could not find viable 'true' binary");
-+	}
-+}
-+
-+FIXTURE_VARIANT_ADD(file, S_IFLNK)
-+{
-+	.name = "S_IFLNK",
-+	.expected = ELOOP,
-+	.setup = setup_link,
-+};
-+
-+void setup_dir(struct __test_metadata *_metadata,
-+	       FIXTURE_DATA(file) *self,
-+	       const FIXTURE_VARIANT(file) *variant)
-+{
-+	ASSERT_EQ(mkdir(self->pathname, 0755), 0);
-+}
-+
-+FIXTURE_VARIANT_ADD(file, S_IFDIR)
-+{
-+	.name = "S_IFDIR",
-+	.is_dir = 1,
-+	.expected = EACCES,
-+	.setup = setup_dir,
-+};
-+
-+void setup_node(struct __test_metadata *_metadata,
-+		FIXTURE_DATA(file) *self,
-+		const FIXTURE_VARIANT(file) *variant)
-+{
-+	dev_t dev;
-+	int rc;
-+
-+	dev = makedev(variant->major, variant->minor);
-+	rc = mknod(self->pathname, 0755 | variant->mode, dev);
-+	ASSERT_EQ(rc, 0) {
-+		if (errno == EPERM)
-+			SKIP(return, "Please run as root; cannot mknod(%s)",
-+				variant->name);
-+	}
-+}
-+
-+FIXTURE_VARIANT_ADD(file, S_IFBLK)
-+{
-+	.name = "S_IFBLK",
-+	.expected = EACCES,
-+	.setup = setup_node,
-+	/* /dev/loop0 */
-+	.major = 7,
-+	.minor = 0,
-+	.mode = S_IFBLK,
-+};
-+
-+FIXTURE_VARIANT_ADD(file, S_IFCHR)
-+{
-+	.name = "S_IFCHR",
-+	.expected = EACCES,
-+	.setup = setup_node,
-+	/* /dev/zero */
-+	.major = 1,
-+	.minor = 5,
-+	.mode = S_IFCHR,
-+};
-+
-+void setup_fifo(struct __test_metadata *_metadata,
-+		FIXTURE_DATA(file) *self,
-+		const FIXTURE_VARIANT(file) *variant)
-+{
-+	ASSERT_EQ(mkfifo(self->pathname, 0755), 0);
-+}
-+
-+FIXTURE_VARIANT_ADD(file, S_IFIFO)
-+{
-+	.name = "S_IFIFO",
-+	.expected = EACCES,
-+	.setup = setup_fifo,
-+};
-+
-+FIXTURE_SETUP(file)
-+{
-+	ASSERT_GT(asprintf(&self->pathname, "%s.test", variant->name), 6);
-+	self->is_dir = variant->is_dir;
-+
-+	rm(_metadata, self->pathname, variant->is_dir);
-+	variant->setup(_metadata, self, variant);
-+}
-+
-+FIXTURE_TEARDOWN(file)
-+{
-+	rm(_metadata, self->pathname, self->is_dir);
-+}
-+
-+TEST_F(file, exec_errno)
-+{
-+	char * const argv[2] = { (char * const)self->pathname, NULL };
-+
-+	EXPECT_LT(execv(argv[0], argv), 0);
-+	EXPECT_EQ(errno, variant->expected);
-+}
-+
-+/* S_IFSOCK */
-+FIXTURE(sock)
-+{
-+	int fd;
-+};
-+
-+FIXTURE_SETUP(sock)
-+{
-+	self->fd = socket(AF_INET, SOCK_STREAM, 0);
-+	ASSERT_GE(self->fd, 0);
-+}
-+
-+FIXTURE_TEARDOWN(sock)
-+{
-+	if (self->fd >= 0)
-+		ASSERT_EQ(close(self->fd), 0);
-+}
-+
-+TEST_F(sock, exec_errno)
-+{
-+	char * const argv[2] = { " magic socket ", NULL };
-+	char * const envp[1] = { NULL };
-+
-+	EXPECT_LT(fexecve(self->fd, argv, envp), 0);
-+	EXPECT_EQ(errno, EACCES);
-+}
-+
-+TEST_HARNESS_MAIN
+ static FORCE_INLINE void LZ4_copy8(void *dst, const void *src)
+ {
+ #if LZ4_ARCH64
+--- a/lib/lz4/lz4hc_compress.c~lz4-fix-kernel-decompression-speed
++++ a/lib/lz4/lz4hc_compress.c
+@@ -570,7 +570,7 @@ _Search3:
+ 			*op++ = (BYTE) lastRun;
+ 		} else
+ 			*op++ = (BYTE)(lastRun<<ML_BITS);
+-		memcpy(op, anchor, iend - anchor);
++		LZ4_memcpy(op, anchor, iend - anchor);
+ 		op += iend - anchor;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from terrelln@fb.com are
 
 
