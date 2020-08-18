@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63B22C433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FAE2C433DF
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E46420674
+	by mail.kernel.org (Postfix) with ESMTP id 7592520674
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1597790429;
-	bh=7LEvssKcQae38qndF1e0nLLzp+x6bnK3x8d4MSE1Lu4=;
+	bh=RyfbK6oC6lMrOiDaRHPDPPxO0RIMbfJ7HIPDybzDiD0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=P9v0+MTqW0xeqUJj9aP19KGpEWPwhVtlPXmeg4U573kLt6YnvSofjeB1J7wEmrZ4t
-	 gr7vyoc+i78rUUG/cOQ3tTATOZue5Wkh19I1Q6PbHABQ7Z0kWOn7ugvd53qG9GeXj8
-	 J3yTJzweFBhjIuxDbfbgh9U9jSnrMsIvm/JzAp6w=
+	b=1DuoH6STJMyL5c4BcexQq3UwMkhchMD6ywxjC7gW9/LgSHDUxyltYoFw98hTY04I+
+	 zaYMY0OJxAk+O2nFIN10VGUn1EYq5tTrzDpLT/LirUKlQjlMXn0w8yC+IoCLTDfpRf
+	 7vrbelhQ7X0HAXzcN4+1AgE8wYCByetqDTgm0rM8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727110AbgHRWk2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:40:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49430 "EHLO mail.kernel.org"
+        id S1727097AbgHRWk3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:40:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727097AbgHRWkW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:40:22 -0400
+        id S1727106AbgHRWkY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:24 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6AFE520786;
-        Tue, 18 Aug 2020 22:40:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 832F32078D;
+        Tue, 18 Aug 2020 22:40:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790421;
-        bh=7LEvssKcQae38qndF1e0nLLzp+x6bnK3x8d4MSE1Lu4=;
+        s=default; t=1597790423;
+        bh=RyfbK6oC6lMrOiDaRHPDPPxO0RIMbfJ7HIPDybzDiD0=;
         h=Date:From:To:Subject:From;
-        b=qV42h7Cw1mDOd/n8IUqnwiBbFy2fy566ZpaMD1nlDuqDoEg4hw67vWqN+AxTQqvKE
-         fKJrFl7DovOvL5zVrQkijM/UY/tPgqjpnn2HEFziYO64eaMg/JBhZeKhh1q6It+XDe
-         WbX08uRgt6BXF/AqqeQA+nxnsIGl0WsyASAzWK9c=
-Date:   Tue, 18 Aug 2020 15:40:21 -0700
+        b=KFclDexiLC/+ubPEmWtaE8OyEutGzqT6AJ3BPAsq3YDKqEIBeXXGIrxEwJyogYcF0
+         7NlF2y3tfYrL+wK9CJOgopvAfkVDMCwLCO24I+62sp/mr2vtK72/QymjczXEMht+iB
+         n9Bj6MQ5KEXQwqTUphotZfyR7AuVC08yxI+XLPHc=
+Date:   Tue, 18 Aug 2020 15:40:23 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, kirill.shutemov@linux.intel.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         william.kucharski@oracle.com, willy@infradead.org, ziy@nvidia.com
-Subject:  [merged]
- mm-store-compound_nr-as-well-as-compound_order.patch removed from -mm tree
-Message-ID: <20200818224021.AotU_NQcY%akpm@linux-foundation.org>
+Subject:  [merged] mm-move-page-flags-include-to-top-of-file.patch
+ removed from -mm tree
+Message-ID: <20200818224023.1vPIyKvPr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,35 +55,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: store compound_nr as well as compound_order
+     Subject: mm: move page-flags include to top of file
 has been removed from the -mm tree.  Its filename was
-     mm-store-compound_nr-as-well-as-compound_order.patch
+     mm-move-page-flags-include-to-top-of-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: store compound_nr as well as compound_order
+Subject: mm: move page-flags include to top of file
 
-Patch series "THP prep patches".
+Give up on the notion that we can remove page-flags.h from mm.h.  There
+are currently 14 inline functions which use a PageFoo function.  Also, two
+of the files directly included by mm.h include page-flags.h themselves,
+and there are probably more indirect inclusions.  So just include it at
+the top like any other header file.
 
-These are some generic cleanups and improvements, which I would like
-merged into mmotm soon.  The first one should be a performance improvement
-for all users of compound pages, and the others are aimed at getting code
-to compile away when CONFIG_TRANSPARENT_HUGEPAGE is disabled (ie small
-systems).  Also better documented / less confusing than the current prefix
-mixture of compound, hpage and thp.
-
-
-This patch (of 7):
-
-This removes a few instructions from functions which need to know how many
-pages are in a compound page.  The storage used is either page->mapping on
-64-bit or page->index on 32-bit.  Both of these are fine to overlay on
-tail pages.
-
-Link: http://lkml.kernel.org/r/20200629151959.15779-1-willy@infradead.org
-Link: http://lkml.kernel.org/r/20200629151959.15779-2-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200629151959.15779-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -93,61 +81,31 @@ Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    5 ++++-
- include/linux/mm_types.h |    1 +
- mm/page_alloc.c          |    5 +++--
- 3 files changed, 8 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/include/linux/mm.h~mm-store-compound_nr-as-well-as-compound_order
+--- a/include/linux/mm.h~mm-move-page-flags-include-to-top-of-file
 +++ a/include/linux/mm.h
-@@ -922,12 +922,15 @@ static inline int compound_pincount(stru
- static inline void set_compound_order(struct page *page, unsigned int order)
- {
- 	page[1].compound_order = order;
-+	page[1].compound_nr = 1U << order;
- }
+@@ -24,6 +24,7 @@
+ #include <linux/resource.h>
+ #include <linux/page_ext.h>
+ #include <linux/err.h>
++#include <linux/page-flags.h>
+ #include <linux/page_ref.h>
+ #include <linux/memremap.h>
+ #include <linux/overflow.h>
+@@ -668,11 +669,6 @@ int vma_is_stack_for_current(struct vm_a
+ struct mmu_gather;
+ struct inode;
  
- /* Returns the number of pages in this potentially compound page. */
- static inline unsigned long compound_nr(struct page *page)
- {
--	return 1UL << compound_order(page);
-+	if (!PageHead(page))
-+		return 1;
-+	return page[1].compound_nr;
- }
+-/*
+- * FIXME: take this include out, include page-flags.h in
+- * files which need it (119 of them)
+- */
+-#include <linux/page-flags.h>
+ #include <linux/huge_mm.h>
  
- /* Returns the number of bytes in this potentially compound page. */
---- a/include/linux/mm_types.h~mm-store-compound_nr-as-well-as-compound_order
-+++ a/include/linux/mm_types.h
-@@ -134,6 +134,7 @@ struct page {
- 			unsigned char compound_dtor;
- 			unsigned char compound_order;
- 			atomic_t compound_mapcount;
-+			unsigned int compound_nr; /* 1 << compound_order */
- 		};
- 		struct {	/* Second tail page of compound page */
- 			unsigned long _compound_pad_1;	/* compound_head */
---- a/mm/page_alloc.c~mm-store-compound_nr-as-well-as-compound_order
-+++ a/mm/page_alloc.c
-@@ -666,8 +666,6 @@ void prep_compound_page(struct page *pag
- 	int i;
- 	int nr_pages = 1 << order;
- 
--	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
--	set_compound_order(page, order);
- 	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
-@@ -675,6 +673,9 @@ void prep_compound_page(struct page *pag
- 		p->mapping = TAIL_MAPPING;
- 		set_compound_head(p, page);
- 	}
-+
-+	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
-+	set_compound_order(page, order);
- 	atomic_set(compound_mapcount_ptr(page), -1);
- 	if (hpage_pincount_available(page))
- 		atomic_set(compound_pincount_ptr(page), 0);
+ /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
