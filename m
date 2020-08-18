@@ -2,51 +2,48 @@ Return-Path: <SRS0=0jXN=B4=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E82FC433E4
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BFAAC433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 077A420789
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E0B9207DA
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:40:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790422;
-	bh=ZwOxL4jGXP1Phmms90roc1vJ7YHpr2xLqvAfX9abmyE=;
+	s=default; t=1597790424;
+	bh=OfDqyTdtn5EIFCJf4Yd0VX4dkneXr6TCivPwjKop8Tc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=rul0dzAxUhLAXheFLKTuni0d6rrb94HecJ/cDhG/o4XeFuP/VYOgifQKIu5XO85UY
-	 ExqAsTHlLobG3V3H8H0FsJL0XfSHB/ktUKh04KuEE+WCAqB9MGtdKQ7jkADfq9tUL1
-	 E61LgZ/n77t5fU+0GEcM5wQGKVPUcZK0UxT5Dj8M=
+	b=JTtB4KU26ZQ/IJTt7gPGgJJAsQcQItoeX00KvrgbaoNIesKg5wFs4dtoDT2b7JG3/
+	 WU4y6dJdUNhaGKsOajCzZEqX+LLvLv5wRa5uSTHL7KipEMP3Y1rj8pCjwqiJHdMz5O
+	 kSuMVzEaJHgneNJO+7uNO6jni2j2imkuJZJjt7SI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727103AbgHRWkV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727099AbgHRWkV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 18 Aug 2020 18:40:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49188 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727099AbgHRWkO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:40:14 -0400
+        id S1726972AbgHRWkT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:40:19 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 69B56207BB;
-        Tue, 18 Aug 2020 22:40:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7149720709;
+        Tue, 18 Aug 2020 22:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790413;
-        bh=ZwOxL4jGXP1Phmms90roc1vJ7YHpr2xLqvAfX9abmyE=;
+        s=default; t=1597790419;
+        bh=OfDqyTdtn5EIFCJf4Yd0VX4dkneXr6TCivPwjKop8Tc=;
         h=Date:From:To:Subject:From;
-        b=k103MCdzyhQaA0poSgkRnvfRYBixDQ+4LoOoKh1GOSKLknrxDs7TdPx/bYpMGEmJD
-         SEMm1nD1UgaXCSk16D1OskBmRMLTEsRdSivhcdSwsBI3u0UO3sKFHPJLSxzQj6bvW2
-         u/+blrBOrQQp7ipWSZFyDKGjbN16BeomeCb5Sq34=
-Date:   Tue, 18 Aug 2020 15:40:13 -0700
+        b=LnYvmZmJiho2AoXd8hrIAIZ+mnsF+B7YaCTQ4MzvTN6YoMOpQexGK813pAWBopBNI
+         rnDAknJ13MG3qdRVQ9VO4Q98x5Y9UhpfhwXhskMPLmael4IFpd9SgfN+6tMXUt84ir
+         uyvUV0vuOlAcnaOEkmVdDuj3EiD3A4QLl32P2zm8=
+Date:   Tue, 18 Aug 2020 15:40:19 -0700
 From:   akpm@linux-foundation.org
-To:     4sschmid@informatik.uni-hamburg.de, gaoxiang25@huawei.com,
-        gregkh@linuxfoundation.org, mingo@kernel.org,
-        mm-commits@vger.kernel.org, nivedita@alum.mit.edu, terrelln@fb.com,
-        yann.collet.73@gmail.com
-Subject:  [merged] lz4-fix-kernel-decompression-speed.patch removed
+To:     groug@kaod.org, mm-commits@vger.kernel.org
+Subject:  [merged] mailmap-add-entry-for-greg-kurz.patch removed
  from -mm tree
-Message-ID: <20200818224013.SHB7gYukH%akpm@linux-foundation.org>
+Message-ID: <20200818224019.93fLeKWKV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,180 +53,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lz4: fix kernel decompression speed
+     Subject: mailmap: add entry for Greg Kurz
 has been removed from the -mm tree.  Its filename was
-     lz4-fix-kernel-decompression-speed.patch
+     mailmap-add-entry-for-greg-kurz.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nick Terrell <terrelln@fb.com>
-Subject: lz4: fix kernel decompression speed
+From: Greg Kurz <groug@kaod.org>
+Subject: mailmap: add entry for Greg Kurz
 
-This patch replaces all memcpy() calls with LZ4_memcpy() which calls
-__builtin_memcpy() so the compiler can inline it.
+I had stopped using gkurz@linux.vnet.ibm.com a while back already but this
+email address was shutdown last June when I quit IBM.  It's about time to
+map it to groug@kaod.org.
 
-LZ4 relies heavily on memcpy() with a constant size being inlined.  In x86
-and i386 pre-boot environments memcpy() cannot be inlined because memcpy()
-doesn't get defined as __builtin_memcpy().
-
-An equivalent patch has been applied upstream so that the next import
-won't lose this change [1].
-
-I've measured the kernel decompression speed using QEMU before and after
-this patch for the x86_64 and i386 architectures.  The speed-up is about
-10x as shown below.
-
-Code	Arch	Kernel Size	Time	Speed
-v5.8	x86_64	11504832 B	148 ms	 79 MB/s
-patch	x86_64	11503872 B	 13 ms	885 MB/s
-v5.8	i386	 9621216 B	 91 ms	106 MB/s
-patch	i386	 9620224 B	 10 ms	962 MB/s
-
-I also measured the time to decompress the initramfs on x86_64, i386, and
-arm.  All three show the same decompression speed before and after, as
-expected.
-
-[1] https://github.com/lz4/lz4/pull/890
-
-Link: http://lkml.kernel.org/r/20200803194022.2966806-1-nickrterrell@gmail.com
-Signed-off-by: Nick Terrell <terrelln@fb.com>
-Cc: Yann Collet <yann.collet.73@gmail.com>
-Cc: Gao Xiang <gaoxiang25@huawei.com>
-Cc: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Arvind Sankar <nivedita@alum.mit.edu>
+Link: http://lkml.kernel.org/r/159724692879.76040.4938578139173154028.stgit@bahia.lan
+Signed-off-by: Greg Kurz <groug@kaod.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4_compress.c   |    4 ++--
- lib/lz4/lz4_decompress.c |   18 +++++++++---------
- lib/lz4/lz4defs.h        |   10 ++++++++++
- lib/lz4/lz4hc_compress.c |    2 +-
- 4 files changed, 22 insertions(+), 12 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/lz4/lz4_compress.c~lz4-fix-kernel-decompression-speed
-+++ a/lib/lz4/lz4_compress.c
-@@ -446,7 +446,7 @@ _last_literals:
- 			*op++ = (BYTE)(lastRun << ML_BITS);
- 		}
- 
--		memcpy(op, anchor, lastRun);
-+		LZ4_memcpy(op, anchor, lastRun);
- 
- 		op += lastRun;
- 	}
-@@ -708,7 +708,7 @@ _last_literals:
- 		} else {
- 			*op++ = (BYTE)(lastRunSize<<ML_BITS);
- 		}
--		memcpy(op, anchor, lastRunSize);
-+		LZ4_memcpy(op, anchor, lastRunSize);
- 		op += lastRunSize;
- 	}
- 
---- a/lib/lz4/lz4_decompress.c~lz4-fix-kernel-decompression-speed
-+++ a/lib/lz4/lz4_decompress.c
-@@ -153,7 +153,7 @@ static FORCE_INLINE int LZ4_decompress_g
- 		   && likely((endOnInput ? ip < shortiend : 1) &
- 			     (op <= shortoend))) {
- 			/* Copy the literals */
--			memcpy(op, ip, endOnInput ? 16 : 8);
-+			LZ4_memcpy(op, ip, endOnInput ? 16 : 8);
- 			op += length; ip += length;
- 
- 			/*
-@@ -172,9 +172,9 @@ static FORCE_INLINE int LZ4_decompress_g
- 			    (offset >= 8) &&
- 			    (dict == withPrefix64k || match >= lowPrefix)) {
- 				/* Copy the match. */
--				memcpy(op + 0, match + 0, 8);
--				memcpy(op + 8, match + 8, 8);
--				memcpy(op + 16, match + 16, 2);
-+				LZ4_memcpy(op + 0, match + 0, 8);
-+				LZ4_memcpy(op + 8, match + 8, 8);
-+				LZ4_memcpy(op + 16, match + 16, 2);
- 				op += length + MINMATCH;
- 				/* Both stages worked, load the next token. */
- 				continue;
-@@ -263,7 +263,7 @@ static FORCE_INLINE int LZ4_decompress_g
- 				}
- 			}
- 
--			memcpy(op, ip, length);
-+			LZ4_memcpy(op, ip, length);
- 			ip += length;
- 			op += length;
- 
-@@ -350,7 +350,7 @@ _copy_match:
- 				size_t const copySize = (size_t)(lowPrefix - match);
- 				size_t const restSize = length - copySize;
- 
--				memcpy(op, dictEnd - copySize, copySize);
-+				LZ4_memcpy(op, dictEnd - copySize, copySize);
- 				op += copySize;
- 				if (restSize > (size_t)(op - lowPrefix)) {
- 					/* overlap copy */
-@@ -360,7 +360,7 @@ _copy_match:
- 					while (op < endOfMatch)
- 						*op++ = *copyFrom++;
- 				} else {
--					memcpy(op, lowPrefix, restSize);
-+					LZ4_memcpy(op, lowPrefix, restSize);
- 					op += restSize;
- 				}
- 			}
-@@ -386,7 +386,7 @@ _copy_match:
- 				while (op < copyEnd)
- 					*op++ = *match++;
- 			} else {
--				memcpy(op, match, mlen);
-+				LZ4_memcpy(op, match, mlen);
- 			}
- 			op = copyEnd;
- 			if (op == oend)
-@@ -400,7 +400,7 @@ _copy_match:
- 			op[2] = match[2];
- 			op[3] = match[3];
- 			match += inc32table[offset];
--			memcpy(op + 4, match, 4);
-+			LZ4_memcpy(op + 4, match, 4);
- 			match -= dec64table[offset];
- 		} else {
- 			LZ4_copy8(op, match);
---- a/lib/lz4/lz4defs.h~lz4-fix-kernel-decompression-speed
-+++ a/lib/lz4/lz4defs.h
-@@ -137,6 +137,16 @@ static FORCE_INLINE void LZ4_writeLE16(v
- 	return put_unaligned_le16(value, memPtr);
- }
- 
-+/*
-+ * LZ4 relies on memcpy with a constant size being inlined. In freestanding
-+ * environments, the compiler can't assume the implementation of memcpy() is
-+ * standard compliant, so apply its specialized memcpy() inlining logic. When
-+ * possible, use __builtin_memcpy() to tell the compiler to analyze memcpy()
-+ * as-if it were standard compliant, so it can inline it in freestanding
-+ * environments. This is needed when decompressing the Linux Kernel, for example.
-+ */
-+#define LZ4_memcpy(dst, src, size) __builtin_memcpy(dst, src, size)
-+
- static FORCE_INLINE void LZ4_copy8(void *dst, const void *src)
- {
- #if LZ4_ARCH64
---- a/lib/lz4/lz4hc_compress.c~lz4-fix-kernel-decompression-speed
-+++ a/lib/lz4/lz4hc_compress.c
-@@ -570,7 +570,7 @@ _Search3:
- 			*op++ = (BYTE) lastRun;
- 		} else
- 			*op++ = (BYTE)(lastRun<<ML_BITS);
--		memcpy(op, anchor, iend - anchor);
-+		LZ4_memcpy(op, anchor, iend - anchor);
- 		op += iend - anchor;
- 	}
- 
+--- a/.mailmap~mailmap-add-entry-for-greg-kurz
++++ a/.mailmap
+@@ -104,6 +104,7 @@ Gerald Schaefer <gerald.schaefer@linux.i
+ Greg Kroah-Hartman <greg@echidna.(none)>
+ Greg Kroah-Hartman <gregkh@suse.de>
+ Greg Kroah-Hartman <greg@kroah.com>
++Greg Kurz <groug@kaod.org> <gkurz@linux.vnet.ibm.com>
+ Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
+ Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
+ Heiko Carstens <hca@linux.ibm.com> <h.carstens@de.ibm.com>
 _
 
-Patches currently in -mm which might be from terrelln@fb.com are
+Patches currently in -mm which might be from groug@kaod.org are
 
 
