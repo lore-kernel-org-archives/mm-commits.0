@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6836C433E1
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48341C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81EC52078D
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24D632078D
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790480;
-	bh=YDKoMRZPWPrMzawAsBj3Mt/XWgI30wagQ5/UTDsIENg=;
+	s=default; t=1597790482;
+	bh=528jT62P/nUxbzpHbj1bn8L1vyw2/GJgndcoKupB8zQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=u8dP8pOAqAhZ4wgQ1Tfj2PLdpa4jq+BpZLviNPzdfzDdYzX3vmtMd3TNkG7AE/70I
-	 ZuKEb6TaC3K2Jg+ooX2REyUOXcS3k/6g4v5mJGeK7EjV0N2IR5ymwnteRjijEdX+eO
-	 pMBhQYvTnb2uqXgV7ybJu9medMMbViCQkiEJcTRw=
+	b=LG9Vv0nNBXIxwSfdUnntPAdnJz+jmHxcTPqXcHo6UDsfjSyZlFgDmJJDfc08T/MwI
+	 6Dp0r1z7vOgqfr5pESdW47SMWKs3MSpM4T+0HCqFsE1yyxvqcH+MmMFthC9u5iXKcd
+	 81bCKzwqQp0zyE08dHyCZQodF7E/6vhwNph57Gak=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727770AbgHRWlU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:41:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50944 "EHLO mail.kernel.org"
+        id S1727772AbgHRWlV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:41:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51020 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727013AbgHRWlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:41:18 -0400
+        id S1727013AbgHRWlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:41:21 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9AA2A20674;
-        Tue, 18 Aug 2020 22:41:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6991820789;
+        Tue, 18 Aug 2020 22:41:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790478;
-        bh=YDKoMRZPWPrMzawAsBj3Mt/XWgI30wagQ5/UTDsIENg=;
+        s=default; t=1597790480;
+        bh=528jT62P/nUxbzpHbj1bn8L1vyw2/GJgndcoKupB8zQ=;
         h=Date:From:To:Subject:From;
-        b=PuKU2CpCFKC/b1vq/AftjgLVFF016GAoeTON7NEkQJVW41T36tbwE8ArJpVlpMgBh
-         C0PCsZ2IJEdBCcXpzzyeZDw1rBoMeyLLdd4VI4yj4kq0uh1fSyNoxf2CeT8aGyTaQF
-         I9OZms4Pz7d4xhrjCByNe/V0yQxtEgta/io7Yshc=
-Date:   Tue, 18 Aug 2020 15:41:17 -0700
+        b=CduP91ac8EzyLafX9HxC5DAKJZQadl1QRYt1DQUMKaujz340PzLimDkHP9zaR6LBG
+         oaDaCNUQ0JzJNEhZFPLWUX6WaLklmBTKrymAhhmUsNRc2PJR28H3g9BEGyI3jfV1IU
+         iiUe6iWo5+9TsVZcpUtS4vF0Hc/xIdoq22fG9Th4=
+Date:   Tue, 18 Aug 2020 15:41:20 -0700
 From:   akpm@linux-foundation.org
 To:     amodra@gmail.com, bin.meng@windriver.com, chenzhou10@huawei.com,
         dalias@libc.org, geert+renesas@glider.be,
@@ -46,9 +46,9 @@ To:     amodra@gmail.com, bin.meng@windriver.com, chenzhou10@huawei.com,
         kuninori.morimoto.gx@renesas.com, mm-commits@vger.kernel.org,
         romain.naour@gmail.com, sam@ravnborg.org,
         ysato@users.sourceforge.jp
-Subject:  [merged] sh-clkfwk-remove-r8-r16-r32.patch removed from
- -mm tree
-Message-ID: <20200818224117.DQktVBud3%akpm@linux-foundation.org>
+Subject:  [merged] sh-use-generic-strncpy.patch removed from -mm
+ tree
+Message-ID: <20200818224120.B5YV4ejoo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,35 +58,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: clkfwk: remove r8/r16/r32
+     Subject: sh: use generic strncpy()
 has been removed from the -mm tree.  Its filename was
-     sh-clkfwk-remove-r8-r16-r32.patch
+     sh-use-generic-strncpy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: sh: clkfwk: remove r8/r16/r32
+Subject: sh: use generic strncpy()
 
-SH will get below warning
+Current SH will get below warning at strncpy()
 
-${LINUX}/drivers/sh/clk/cpg.c: In function 'r8':
-${LINUX}/drivers/sh/clk/cpg.c:41:17: warning: passing argument 1 of 'ioread8'
- discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-  return ioread8(addr);
-                 ^~~~
-In file included from ${LINUX}/arch/sh/include/asm/io.h:21,
-                 from ${LINUX}/include/linux/io.h:13,
-                 from ${LINUX}/drivers/sh/clk/cpg.c:14:
-${LINUX}/include/asm-generic/iomap.h:29:29: note: expected 'void *' but
-argument is of type 'const void *'
- extern unsigned int ioread8(void __iomem *);
-                             ^~~~~~~~~~~~~~
+In file included from ${LINUX}/arch/sh/include/asm/string.h:3,
+                 from ${LINUX}/include/linux/string.h:20,
+                 from ${LINUX}/include/linux/bitmap.h:9,
+                 from ${LINUX}/include/linux/nodemask.h:95,
+                 from ${LINUX}/include/linux/mmzone.h:17,
+                 from ${LINUX}/include/linux/gfp.h:6,
+                 from ${LINUX}/innclude/linux/slab.h:15,
+                 from ${LINUX}/linux/drivers/mmc/host/vub300.c:38:
+${LINUX}/drivers/mmc/host/vub300.c: In function 'new_system_port_status':
+${LINUX}/arch/sh/include/asm/string_32.h:51:42: warning: array subscript\
+  80 is above array bounds of 'char[26]' [-Warray-bounds]
+   : "0" (__dest), "1" (__src), "r" (__src+__n)
+                                     ~~~~~^~~~
 
-We don't need "const" for r8/r16/r32.  And we don't need r8/r16/r32
-themselvs.  This patch cleanup these.
+In general, strncpy() should behave like below.
 
-X-MARC-Message: https://marc.info/?l=linux-renesas-soc&m=157852973916903
+	char dest[10];
+	char *src = "12345";
+
+	strncpy(dest, src, 10);
+	// dest = {'1', '2', '3', '4', '5',
+	           '\0','\0','\0','\0','\0'}
+
+But, current SH strnpy() has 2 issues.
+1st is it will access to out-of-memory (= src + 10).
+2nd is it needs big fixup for it, and maintenance __asm__
+code is difficult.
+
+To solve these issues, this patch simply uses generic strncpy()
+instead of architecture specific one.
+
+Link: https://marc.info/?l=linux-renesas-soc&m=157664657013309
 Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc: Alan Modra <amodra@gmail.com>
 Cc: Bin Meng <bin.meng@windriver.com>
@@ -101,52 +116,44 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sh/clk/cpg.c |   23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+ arch/sh/include/asm/string_32.h |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
---- a/drivers/sh/clk/cpg.c~sh-clkfwk-remove-r8-r16-r32
-+++ a/drivers/sh/clk/cpg.c
-@@ -36,36 +36,21 @@ static void sh_clk_write(int value, stru
- 		iowrite32(value, clk->mapped_reg);
+--- a/arch/sh/include/asm/string_32.h~sh-use-generic-strncpy
++++ a/arch/sh/include/asm/string_32.h
+@@ -28,32 +28,6 @@ static inline char *strcpy(char *__dest,
+ 	return __xdest;
  }
  
--static unsigned int r8(const void __iomem *addr)
+-#define __HAVE_ARCH_STRNCPY
+-static inline char *strncpy(char *__dest, const char *__src, size_t __n)
 -{
--	return ioread8(addr);
+-	register char *__xdest = __dest;
+-	unsigned long __dummy;
+-
+-	if (__n == 0)
+-		return __xdest;
+-
+-	__asm__ __volatile__(
+-		"1:\n"
+-		"mov.b	@%1+, %2\n\t"
+-		"mov.b	%2, @%0\n\t"
+-		"cmp/eq	#0, %2\n\t"
+-		"bt/s	2f\n\t"
+-		" cmp/eq	%5,%1\n\t"
+-		"bf/s	1b\n\t"
+-		" add	#1, %0\n"
+-		"2:"
+-		: "=r" (__dest), "=r" (__src), "=&z" (__dummy)
+-		: "0" (__dest), "1" (__src), "r" (__src+__n)
+-		: "memory", "t");
+-
+-	return __xdest;
 -}
 -
--static unsigned int r16(const void __iomem *addr)
--{
--	return ioread16(addr);
--}
--
--static unsigned int r32(const void __iomem *addr)
--{
--	return ioread32(addr);
--}
--
- static int sh_clk_mstp_enable(struct clk *clk)
+ #define __HAVE_ARCH_STRCMP
+ static inline int strcmp(const char *__cs, const char *__ct)
  {
- 	sh_clk_write(sh_clk_read(clk) & ~(1 << clk->enable_bit), clk);
- 	if (clk->status_reg) {
--		unsigned int (*read)(const void __iomem *addr);
-+		unsigned int (*read)(void __iomem *addr);
- 		int i;
- 		void __iomem *mapped_status = (phys_addr_t)clk->status_reg -
- 			(phys_addr_t)clk->enable_reg + clk->mapped_reg;
- 
- 		if (clk->flags & CLK_ENABLE_REG_8BIT)
--			read = r8;
-+			read = ioread8;
- 		else if (clk->flags & CLK_ENABLE_REG_16BIT)
--			read = r16;
-+			read = ioread16;
- 		else
--			read = r32;
-+			read = ioread32;
- 
- 		for (i = 1000;
- 		     (read(mapped_status) & (1 << clk->enable_bit)) && i;
 _
 
 Patches currently in -mm which might be from kuninori.morimoto.gx@renesas.com are
