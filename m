@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B07C433E3
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 836CEC433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3C8C20786
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62447207DE
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790469;
-	bh=0Kqs5t7JHY0D4V3W7KCEiiz3wSywZ3twyoGM6LEyovY=;
+	s=default; t=1597790473;
+	bh=bpHjQWzroxW3WUeEK3OaPHed1pNbSrFGbQTg8aCdXBQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dqrqnULuy8qn+iMD6sI+Y5rlAoqgptKdwqEO6wnV4NT2NFiSOapgTcJUYrsv4Y8Sq
-	 hFLAOCG8MceCWnl784a3S2E6JkPA+dOQbr+BmpR9dD70OSHXzRaFMmtGkOS/vt7Xqy
-	 MvG+ybD8COfVMRlaS1YaddDTNPPUq0UclfzS8sz8=
+	b=pKU03azYh3e+V48IHP1rYgladSqiczp6D9Jf5OPFIL/0VWovLzCb6a5PQ02oszthL
+	 SRva20M0CX7/QPWv0Ib3OEu+5BBAIlqa+NLBXhRgZRnH4m6lju3qEd0tdnao1tzNDL
+	 PRdHxtGYqVqEXFU2jwsiIRJf+AkihSrJbjFkYDc0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727081AbgHRWlJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:41:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50684 "EHLO mail.kernel.org"
+        id S1726995AbgHRWlM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:41:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727070AbgHRWlI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:41:08 -0400
+        id S1727013AbgHRWlL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:41:11 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 69E4120674;
-        Tue, 18 Aug 2020 22:41:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9D28D20786;
+        Tue, 18 Aug 2020 22:41:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790468;
-        bh=0Kqs5t7JHY0D4V3W7KCEiiz3wSywZ3twyoGM6LEyovY=;
+        s=default; t=1597790470;
+        bh=bpHjQWzroxW3WUeEK3OaPHed1pNbSrFGbQTg8aCdXBQ=;
         h=Date:From:To:Subject:From;
-        b=scqPup4OZshKQR2VYGwGOo7H0TQNiibgn4WjZP8NQl8m+W/mYBOkQ4TnaGH2DiKrm
-         9WPia16Xjb21fKL9NJPDpt3dwpZ5Nvg8JbGLLSDbNl67ZRv6xZ6bt+MNbqE9JbKZGo
-         7/bPMZgbEvcoPxe8mkbEf2rody32tLPd3QL+4qmw=
-Date:   Tue, 18 Aug 2020 15:41:08 -0700
+        b=Ql1HZAck4MF6GBe0XCBK1H3cnPSb3ooKwdaWQclEJjpbtUOpuHvdXbmdUPpECWDfX
+         +/JAskQNBDwCU9xqN4LlUJGYYDZZC3QgFEw0bXmUgS1vWJ1vvB8uoLGto/2TFEsp/X
+         pc/EcfWerYdPqCzcaOqDubLcSUEDAwRmP7OYzZ8g=
+Date:   Tue, 18 Aug 2020 15:41:10 -0700
 From:   akpm@linux-foundation.org
 To:     cai@lca.pw, elver@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch removed from -mm
+ mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch removed from -mm
  tree
-Message-ID: <20200818224108.XV-jOgZ_D%akpm@linux-foundation.org>
+Message-ID: <20200818224110.vCt5isRpg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,81 +54,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: annotate a data race at tlb_flush_batched
+     Subject: mm/swap.c: annotate data races for lru_rotate_pvecs
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+     mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Qian Cai <cai@lca.pw>
-Subject: mm/rmap: annotate a data race at tlb_flush_batched
+Subject: mm/swap.c: annotate data races for lru_rotate_pvecs
 
-mm->tlb_flush_batched could be accessed concurrently as noticed by
-KCSAN,
+Read to lru_add_pvec->nr could be interrupted and then write to the same
+variable.  The write has local interrupt disabled, but the plain reads
+result in data races.  However, it is unlikely the compilers could do much
+damage here given that lru_add_pvec->nr is a "unsigned char" and there is
+an existing compiler barrier.  Thus, annotate the reads using the
+data_race() macro.  The data races were reported by KCSAN,
 
- BUG: KCSAN: data-race in flush_tlb_batched_pending / try_to_unmap_one
+ BUG: KCSAN: data-race in lru_add_drain_cpu / rotate_reclaimable_page
 
- write to 0xffff93f754880bd0 of 1 bytes by task 822 on cpu 6:
-  try_to_unmap_one+0x59a/0x1ab0
-  set_tlb_ubc_flush_pending at mm/rmap.c:635
-  (inlined by) try_to_unmap_one at mm/rmap.c:1538
-  rmap_walk_anon+0x296/0x650
-  rmap_walk+0xdf/0x100
-  try_to_unmap+0x18a/0x2f0
-  shrink_page_list+0xef6/0x2870
-  shrink_inactive_list+0x316/0x880
-  shrink_lruvec+0x8dc/0x1380
-  shrink_node+0x317/0xd80
-  balance_pgdat+0x652/0xd90
-  kswapd+0x396/0x8d0
-  kthread+0x1e0/0x200
-  ret_from_fork+0x27/0x50
+ write to 0xffff9291ebcb8a40 of 1 bytes by interrupt on cpu 23:
+  rotate_reclaimable_page+0x2df/0x490
+  pagevec_add at include/linux/pagevec.h:81
+  (inlined by) rotate_reclaimable_page at mm/swap.c:259
+  end_page_writeback+0x1b5/0x2b0
+  end_swap_bio_write+0x1d0/0x280
+  bio_endio+0x297/0x560
+  dec_pending+0x218/0x430 [dm_mod]
+  clone_endio+0xe4/0x2c0 [dm_mod]
+  bio_endio+0x297/0x560
+  blk_update_request+0x201/0x920
+  scsi_end_request+0x6b/0x4a0
+  scsi_io_completion+0xb7/0x7e0
+  scsi_finish_command+0x1ed/0x2a0
+  scsi_softirq_done+0x1c9/0x1d0
+  blk_done_softirq+0x181/0x1d0
+  __do_softirq+0xd9/0x57c
+  irq_exit+0xa2/0xc0
+  do_IRQ+0x8b/0x190
+  ret_from_intr+0x0/0x42
+  delay_tsc+0x46/0x80
+  __const_udelay+0x3c/0x40
+  __udelay+0x10/0x20
+  kcsan_setup_watchpoint+0x202/0x3a0
+  __tsan_read1+0xc2/0x100
+  lru_add_drain_cpu+0xb8/0x3f0
+  lru_add_drain+0x25/0x40
+  shrink_active_list+0xe1/0xc80
+  shrink_lruvec+0x766/0xb70
+  shrink_node+0x2d6/0xca0
+  do_try_to_free_pages+0x1f7/0x9a0
+  try_to_free_pages+0x252/0x5b0
+  __alloc_pages_slowpath+0x458/0x1290
+  __alloc_pages_nodemask+0x3bb/0x450
+  alloc_pages_vma+0x8a/0x2c0
+  do_anonymous_page+0x16e/0x6f0
+  __handle_mm_fault+0xcd5/0xd40
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x6f9
+  page_fault+0x34/0x40
 
- read to 0xffff93f754880bd0 of 1 bytes by task 6364 on cpu 4:
-  flush_tlb_batched_pending+0x29/0x90
-  flush_tlb_batched_pending at mm/rmap.c:682
-  change_p4d_range+0x5dd/0x1030
-  change_pte_range at mm/mprotect.c:44
-  (inlined by) change_pmd_range at mm/mprotect.c:212
-  (inlined by) change_pud_range at mm/mprotect.c:240
-  (inlined by) change_p4d_range at mm/mprotect.c:260
-  change_protection+0x222/0x310
-  change_prot_numa+0x3e/0x60
-  task_numa_work+0x219/0x350
-  task_work_run+0xed/0x140
-  prepare_exit_to_usermode+0x2cc/0x2e0
-  ret_from_intr+0x32/0x42
+ read to 0xffff9291ebcb8a40 of 1 bytes by task 37761 on cpu 23:
+  lru_add_drain_cpu+0xb8/0x3f0
+  lru_add_drain_cpu at mm/swap.c:602
+  lru_add_drain+0x25/0x40
+  shrink_active_list+0xe1/0xc80
+  shrink_lruvec+0x766/0xb70
+  shrink_node+0x2d6/0xca0
+  do_try_to_free_pages+0x1f7/0x9a0
+  try_to_free_pages+0x252/0x5b0
+  __alloc_pages_slowpath+0x458/0x1290
+  __alloc_pages_nodemask+0x3bb/0x450
+  alloc_pages_vma+0x8a/0x2c0
+  do_anonymous_page+0x16e/0x6f0
+  __handle_mm_fault+0xcd5/0xd40
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x6f9
+  page_fault+0x34/0x40
+
+ 2 locks held by oom02/37761:
+  #0: ffff9281e5928808 (&mm->mmap_sem#2){++++}, at: do_page_fault
+  #1: ffffffffb3ade380 (fs_reclaim){+.+.}, at: fs_reclaim_acquire.part
+ irq event stamp: 1949217
+ trace_hardirqs_on_thunk+0x1a/0x1c
+ __do_softirq+0x2e7/0x57c
+ __do_softirq+0x34c/0x57c
+ irq_exit+0xa2/0xc0
 
  Reported by Kernel Concurrency Sanitizer on:
- CPU: 4 PID: 6364 Comm: mtest01 Tainted: G        W    L 5.5.0-next-20200210+ #5
- Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
+ CPU: 23 PID: 37761 Comm: oom02 Not tainted 5.6.0-rc3-next-20200226+ #6
+ Hardware name: HP ProLiant BL660c Gen9, BIOS I38 10/17/2018
 
-flush_tlb_batched_pending() is under PTL but the write is not, but
-mm->tlb_flush_batched is only a bool type, so the value is unlikely to be
-shattered.  Thus, mark it as an intentional data race by using the data
-race macro.
-
-Link: http://lkml.kernel.org/r/1581450783-8262-1-git-send-email-cai@lca.pw
+Link: http://lkml.kernel.org/r/20200228044018.1263-1-cai@lca.pw
 Signed-off-by: Qian Cai <cai@lca.pw>
-Cc: Marco Elver <elver@google.com>
+Acked-by: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-annotate-a-data-race-at-tlb_flush_batched
-+++ a/mm/rmap.c
-@@ -672,7 +672,7 @@ static bool should_defer_flush(struct mm
-  */
- void flush_tlb_batched_pending(struct mm_struct *mm)
- {
--	if (mm->tlb_flush_batched) {
-+	if (data_race(mm->tlb_flush_batched)) {
- 		flush_tlb_mm(mm);
+--- a/mm/swap.c~mm-swap-annotate-data-races-for-lru_rotate_pvecs
++++ a/mm/swap.c
+@@ -632,7 +632,8 @@ void lru_add_drain_cpu(int cpu)
+ 		__pagevec_lru_add(pvec);
  
- 		/*
+ 	pvec = &per_cpu(lru_rotate.pvec, cpu);
+-	if (pagevec_count(pvec)) {
++	/* Disabling interrupts below acts as a compiler barrier. */
++	if (data_race(pagevec_count(pvec))) {
+ 		unsigned long flags;
+ 
+ 		/* No harm done if a racing interrupt already did this */
+@@ -793,7 +794,7 @@ void lru_add_drain_all(void)
+ 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
+ 
+ 		if (pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
+-		    pagevec_count(&per_cpu(lru_rotate.pvec, cpu)) ||
++		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
+ 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_pvecs.lru_lazyfree, cpu)) ||
 _
 
 Patches currently in -mm which might be from cai@lca.pw are
