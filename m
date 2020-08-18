@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25221C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6425C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 003E120786
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4B2E20786
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Aug 2020 22:41:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597790463;
-	bh=jqqjol7gZu96R5XgXzsIs2/AOklW6luneGzZBtX3xuk=;
+	s=default; t=1597790464;
+	bh=O4lXj3gIZwLn8fZZM7PLn6cqkTOvdHj91MfS/6MLsKg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=YML5j/9BVAtxOAjyf5MMVQMbvaTG5rqDvfMGZSW1aiCzMr9DolubCEtozHBTNCsDE
-	 FQCAZoFfX3cO2g0ORopPRJAgdLvHNieTyC0Ht/5vgoD+pVpRiBZXfdqbMs3/zqACTj
-	 pFbrzK034l2Jxlra18JNMqU8ggras9uNs4GqYT9c=
+	b=dSqYFWzyKOZmoGPPAFT/KuKGa0ZztQDSNHtuQYVFi3EkSbkVMTL97FYDdQKViUkqz
+	 MTZFPbjOdqsJHvbc3zk71vJ16QgTCAhdebqdOgkSR+S+R71qZECmk+IqRGA1EgvfqP
+	 44XCSKB7AKet/i59kURgShvCGEoQaIGz2nh7lAow=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727123AbgHRWlC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 18:41:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50520 "EHLO mail.kernel.org"
+        id S1727125AbgHRWlE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 18:41:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727070AbgHRWlB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 18:41:01 -0400
+        id S1727070AbgHRWlD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 18:41:03 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 98A6E20786;
-        Tue, 18 Aug 2020 22:41:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 978FC20674;
+        Tue, 18 Aug 2020 22:41:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597790460;
-        bh=jqqjol7gZu96R5XgXzsIs2/AOklW6luneGzZBtX3xuk=;
+        s=default; t=1597790462;
+        bh=O4lXj3gIZwLn8fZZM7PLn6cqkTOvdHj91MfS/6MLsKg=;
         h=Date:From:To:Subject:From;
-        b=UVpWtTecUMYBnyepPYsNyE5Q2+hgsxutZOXgbw1+fstOWxo8A3N5ZpF7CDAhwsp8R
-         dPrb3KVkSrAZH1gFXr6vd7k+eHWr4VdrIPzH8xKAjkKnCNGdu8fjM91d1kzwEqxVCx
-         TOgyG7AiRdweuQ4esuYk/QTNnbtnLnESYiVxc0Qk=
-Date:   Tue, 18 Aug 2020 15:41:00 -0700
+        b=TIWb7gLYwNLEpQJ21WVitQbSEArqR/hoIfvUqb7JxfJxHAiYkERirMSTLPRTNC8HB
+         P+l65/LrNnTL3DJql2euuoLNAJy0Q2SUnaDOBnapixzmh5O5QJh5cbegrYAVH1Os4c
+         wFdshGeMjMrEhs+tYfOnMdmRWqcCgmyVCbOklHbI=
+Date:   Tue, 18 Aug 2020 15:41:02 -0700
 From:   akpm@linux-foundation.org
-To:     cai@lca.pw, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To:     cai@lca.pw, elver@google.com, konrad.wilk@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-memcontrol-fix-a-data-race-in-scan-count.patch removed from -mm tree
-Message-ID: <20200818224100.XLoaKYFP4%akpm@linux-foundation.org>
+ mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch removed from -mm
+ tree
+Message-ID: <20200818224102.1uEinGcP1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,28 +55,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: fix a data race in scan count
+     Subject: mm/list_lru: fix a data race in list_lru_count_one
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-a-data-race-in-scan-count.patch
+     mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Qian Cai <cai@lca.pw>
-Subject: mm/memcontrol: fix a data race in scan count
+Subject: mm/list_lru: fix a data race in list_lru_count_one
 
-struct mem_cgroup_per_node mz.lru_zone_size[zone_idx][lru] could be
-accessed concurrently as noticed by KCSAN,
+struct list_lru_one l.nr_items could be accessed concurrently as noticed
+by KCSAN,
 
- BUG: KCSAN: data-race in lruvec_lru_size / mem_cgroup_update_lru_size
+ BUG: KCSAN: data-race in list_lru_count_one / list_lru_isolate_move
 
- write to 0xffff9c804ca285f8 of 8 bytes by task 50951 on cpu 12:
-  mem_cgroup_update_lru_size+0x11c/0x1d0
-  mem_cgroup_update_lru_size at mm/memcontrol.c:1266
-  isolate_lru_pages+0x6a9/0xf30
-  shrink_active_list+0x123/0xcc0
-  shrink_lruvec+0x8fd/0x1380
-  shrink_node+0x317/0xd80
+ write to 0xffffa102789c4510 of 8 bytes by task 823 on cpu 39:
+  list_lru_isolate_move+0xf9/0x130
+  list_lru_isolate_move at mm/list_lru.c:180
+  inode_lru_isolate+0x12b/0x2a0
+  __list_lru_walk_one+0x122/0x3d0
+  list_lru_walk_one+0x75/0xa0
+  prune_icache_sb+0x8b/0xc0
+  super_cache_scan+0x1b8/0x250
+  do_shrink_slab+0x256/0x6d0
+  shrink_slab+0x41b/0x4a0
+  shrink_node+0x35c/0xd80
+  balance_pgdat+0x652/0xd90
+  kswapd+0x396/0x8d0
+  kthread+0x1e0/0x200
+  ret_from_fork+0x27/0x50
+
+ read to 0xffffa102789c4510 of 8 bytes by task 6345 on cpu 56:
+  list_lru_count_one+0x116/0x2f0
+  list_lru_count_one at mm/list_lru.c:193
+  super_cache_count+0xe8/0x170
+  do_shrink_slab+0x95/0x6d0
+  shrink_slab+0x41b/0x4a0
+  shrink_node+0x35c/0xd80
   do_try_to_free_pages+0x1f7/0xa10
   try_to_free_pages+0x26c/0x5e0
   __alloc_pages_slowpath+0x458/0x1290
@@ -87,62 +104,36 @@ accessed concurrently as noticed by KCSAN,
   do_page_fault+0x263/0x6f9
   page_fault+0x34/0x40
 
- read to 0xffff9c804ca285f8 of 8 bytes by task 50964 on cpu 95:
-  lruvec_lru_size+0xbb/0x270
-  mem_cgroup_get_zone_lru_size at include/linux/memcontrol.h:536
-  (inlined by) lruvec_lru_size at mm/vmscan.c:326
-  shrink_lruvec+0x1d0/0x1380
-  shrink_node+0x317/0xd80
-  do_try_to_free_pages+0x1f7/0xa10
-  try_to_free_pages+0x26c/0x5e0
-  __alloc_pages_slowpath+0x458/0x1290
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_current+0xa6/0x120
-  alloc_slab_page+0x3b1/0x540
-  allocate_slab+0x70/0x660
-  new_slab+0x46/0x70
-  ___slab_alloc+0x4ad/0x7d0
-  __slab_alloc+0x43/0x70
-  kmem_cache_alloc+0x2c3/0x420
-  getname_flags+0x4c/0x230
-  getname+0x22/0x30
-  do_sys_openat2+0x205/0x3b0
-  do_sys_open+0x9a/0xf0
-  __x64_sys_openat+0x62/0x80
-  do_syscall_64+0x91/0xb47
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
  Reported by Kernel Concurrency Sanitizer on:
- CPU: 95 PID: 50964 Comm: cc1 Tainted: G        W  O L    5.5.0-next-20200204+ #6
+ CPU: 56 PID: 6345 Comm: oom01 Tainted: G        W    L 5.5.0-next-20200205+ #4
  Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
 
-The write is under lru_lock, but the read is done as lockless.  The scan
-count is used to determine how aggressively the anon and file LRU lists
-should be scanned.  Load tearing could generate an inefficient heuristic,
-so fix it by adding READ_ONCE() for the read.
+A shattered l.nr_items could affect the shrinker behaviour due to a data
+race. Fix it by adding READ_ONCE() for the read. Since the writes are
+aligned and up to word-size, assume those are safe from data races to
+avoid readability issues of writing WRITE_ONCE(var, var + val).
 
-Link: http://lkml.kernel.org/r/20200206034945.2481-1-cai@lca.pw
+Link: http://lkml.kernel.org/r/1581114679-5488-1-git-send-email-cai@lca.pw
 Signed-off-by: Qian Cai <cai@lca.pw>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
+ mm/list_lru.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-fix-a-data-race-in-scan-count
-+++ a/include/linux/memcontrol.h
-@@ -630,7 +630,7 @@ unsigned long mem_cgroup_get_zone_lru_si
- 	struct mem_cgroup_per_node *mz;
+--- a/mm/list_lru.c~mm-list_lru-fix-a-data-race-in-list_lru_count_one
++++ a/mm/list_lru.c
+@@ -180,7 +180,7 @@ unsigned long list_lru_count_one(struct
  
- 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	return mz->lru_zone_size[zone_idx][lru];
-+	return READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
- }
+ 	rcu_read_lock();
+ 	l = list_lru_from_memcg_idx(nlru, memcg_cache_id(memcg));
+-	count = l->nr_items;
++	count = READ_ONCE(l->nr_items);
+ 	rcu_read_unlock();
  
- void mem_cgroup_handle_over_high(void);
+ 	return count;
 _
 
 Patches currently in -mm which might be from cai@lca.pw are
