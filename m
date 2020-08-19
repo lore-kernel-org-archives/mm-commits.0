@@ -4,52 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC6FEC433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06460C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:18:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C87A6204EC
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D684C207BB
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:18:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597802131;
-	bh=LL9lrEhhVZjQJQJgZwLpE3Ly8SxHF118GHrpIcOiCJ8=;
+	s=default; t=1597803526;
+	bh=DTvzP00JB4bLs9fhk+oXibtsPOxdlN5fCD3Y5A5lhbk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=hYVjnaBXQemfV4Nz7a/rBGCq43OeE+91/Ya58RiJddJo73p6GrBhU6gtRiT3kGkFz
-	 tIMcjAlvi5cy1BhipUpAiMSHffoG86DVPGb5I/7I3V85TMFo+XFJlBnGAMAbEp6Gq6
-	 u7D/c/vHkdBL00oNLaVhtevcWxpbKa7rT+CfCI84=
+	b=cgOH61eqnVMGKyRba2XXO/MPff4PX1pOurL8Y9PeQs2BwiUJaiHJtJctTSpy8YaQG
+	 C23y8ygCfB8/eUtYc7k4+dInMDXoSLgyugrdToq9PwyzylZPozqzX9joL+C614uVjw
+	 iwl3UQQtzmdz3GzxnHnrzqZkH4PJPWSpnilX9980=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726879AbgHSBza (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 21:55:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34358 "EHLO mail.kernel.org"
+        id S1726410AbgHSCSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 22:18:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726367AbgHSBza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 21:55:30 -0400
+        id S1726531AbgHSCSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 22:18:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0DF29205CB;
-        Wed, 19 Aug 2020 01:55:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B5A99205CB;
+        Wed, 19 Aug 2020 02:18:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597802129;
-        bh=LL9lrEhhVZjQJQJgZwLpE3Ly8SxHF118GHrpIcOiCJ8=;
+        s=default; t=1597803523;
+        bh=DTvzP00JB4bLs9fhk+oXibtsPOxdlN5fCD3Y5A5lhbk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cMKgXK0OrcWFu6NuRjj7pyvE6wr0ynEp07XSGt0ntaidUvq2T3R/QPTYsR17w33am
-         relU04yUDAtyZDdov++Zc1sOWdp07gXO6zoJ9MqjJ6t3Nr28+qtDlL46g/oRxG4OwN
-         pclIWbrSs2nomtvyIYmcOKlGCcl+QnAOc6pWcbhw=
-Date:   Tue, 18 Aug 2020 18:55:28 -0700
+        b=f2PP0KloUJEBUe08gxT3clnhYZje4QkG5SAn5Lj6kL4VNL1X1yRFyw+A0nLabprqj
+         E/o18Q9IEZON45cRk7yjX2gfNUcy7yaYzvaGmzmB3fVsCzS5ZyeLf6jR8Y0Wot59JB
+         ed3HW65pzfvAn10Lj0Y9mh9RT28oNMZBIPWbXsVs=
+Date:   Tue, 18 Aug 2020 19:18:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
-        daniel.kiss@arm.com, daniel.m.jordan@oracle.com, dbueso@suse.de,
-        jgg@ziepe.ca, jimmyassarsson@gmail.com, ldufour@linux.ibm.com,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        songliubraving@fb.com, steven.price@arm.com, vbabka@suse.cz,
-        walken@google.com, willy@infradead.org, ying.huang@intel.com
+To:     dhowells@redhat.com, gregkh@linuxfoundation.org, jannh@google.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
 Subject:  +
- mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch added
- to -mm tree
-Message-ID: <20200819015528.LR0vGABge%akpm@linux-foundation.org>
+ romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch added to -mm
+ tree
+Message-ID: <20200819021843.hSn2BuO_-%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -60,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: proc: smaps_rollup: do not stall write attempts on mmap_lock
+     Subject: romfs: fix uninitialized memory leak in romfs_dev_read()
 has been added to the -mm tree.  Its filename is
-     mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch
+     romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,126 +77,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chinwen Chang <chinwen.chang@mediatek.com>
-Subject: mm: proc: smaps_rollup: do not stall write attempts on mmap_lock
+From: Jann Horn <jannh@google.com>
+Subject: romfs: fix uninitialized memory leak in romfs_dev_read()
 
-smaps_rollup will try to grab mmap_lock and go through the whole vma list
-until it finishes the iterating.  When encountering large processes, the
-mmap_lock will be held for a longer time, which may block other write
-requests like mmap and munmap from progressing smoothly.
+romfs has a superblock field that limits the size of the filesystem; data
+beyond that limit is never accessed.
 
-There are upcoming mmap_lock optimizations like range-based locks, but the
-lock applied to smaps_rollup would be the coarse type, which doesn't avoid
-the occurrence of unpleasant contention.
+romfs_dev_read() fetches a caller-supplied number of bytes from the
+backing device.  It returns 0 on success or an error code on failure;
+therefore, its API can't represent short reads, it's all-or-nothing.
 
-To solve aforementioned issue, we add a check which detects whether anyone
-wants to grab mmap_lock for write attempts.
+However, when romfs_dev_read() detects that the requested operation would
+cross the filesystem size limit, it currently silently truncates the
+requested number of bytes.  This e.g.  means that when the content of a
+file with size 0x1000 starts one byte before the filesystem size limit,
+->readpage() will only fill a single byte of the supplied page while
+leaving the rest uninitialized, leaking that uninitialized memory to
+userspace.
 
-Link: http://lkml.kernel.org/r/1597715898-3854-4-git-send-email-chinwen.chang@mediatek.com
-Signed-off-by: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Jimmy Assarsson <jimmyassarsson@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Daniel Kiss <daniel.kiss@arm.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Fix it by returning an error code instead of truncating the read when the
+requested read operation would go beyond the end of the filesystem.
+
+Link: http://lkml.kernel.org/r/20200818013202.2246365-1-jannh@google.com
+Fixes: da4458bda237 ("NOMMU: Make it possible for RomFS to use MTD devices directly")
+Signed-off-by: Jann Horn <jannh@google.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   66 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 65 insertions(+), 1 deletion(-)
+ fs/romfs/storage.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock
-+++ a/fs/proc/task_mmu.c
-@@ -867,9 +867,73 @@ static int show_smaps_rollup(struct seq_
+--- a/fs/romfs/storage.c~romfs-fix-uninitialized-memory-leak-in-romfs_dev_read
++++ a/fs/romfs/storage.c
+@@ -217,10 +217,8 @@ int romfs_dev_read(struct super_block *s
+ 	size_t limit;
  
- 	hold_task_mempolicy(priv);
+ 	limit = romfs_maxsize(sb);
+-	if (pos >= limit)
++	if (pos >= limit || buflen > limit - pos)
+ 		return -EIO;
+-	if (buflen > limit - pos)
+-		buflen = limit - pos;
  
--	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
-+	for (vma = priv->mm->mmap; vma;) {
- 		smap_gather_stats(vma, &mss, 0);
- 		last_vma_end = vma->vm_end;
-+
-+		/*
-+		 * Release mmap_lock temporarily if someone wants to
-+		 * access it for write request.
-+		 */
-+		if (mmap_lock_is_contended(mm)) {
-+			mmap_read_unlock(mm);
-+			ret = mmap_read_lock_killable(mm);
-+			if (ret) {
-+				release_task_mempolicy(priv);
-+				goto out_put_mm;
-+			}
-+
-+			/*
-+			 * After dropping the lock, there are four cases to
-+			 * consider. See the following example for explanation.
-+			 *
-+			 *   +------+------+-----------+
-+			 *   | VMA1 | VMA2 | VMA3      |
-+			 *   +------+------+-----------+
-+			 *   |      |      |           |
-+			 *  4k     8k     16k         400k
-+			 *
-+			 * Suppose we drop the lock after reading VMA2 due to
-+			 * contention, then we get:
-+			 *
-+			 *	last_vma_end = 16k
-+			 *
-+			 * 1) VMA2 is freed, but VMA3 exists:
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return VMA3.
-+			 *    In this case, just continue from VMA3.
-+			 *
-+			 * 2) VMA2 still exists:
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return VMA2.
-+			 *    Iterate the loop like the original one.
-+			 *
-+			 * 3) No more VMAs can be found:
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return NULL.
-+			 *    No more things to do, just break.
-+			 *
-+			 * 4) (last_vma_end - 1) is the middle of a vma (VMA'):
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return VMA' whose range
-+			 *    contains last_vma_end.
-+			 *    Iterate VMA' from last_vma_end.
-+			 */
-+			vma = find_vma(mm, last_vma_end - 1);
-+			/* Case 3 above */
-+			if (!vma)
-+				break;
-+
-+			/* Case 1 above */
-+			if (vma->vm_start >= last_vma_end)
-+				continue;
-+
-+			/* Case 4 above */
-+			if (vma->vm_end > last_vma_end)
-+				smap_gather_stats(vma, &mss, last_vma_end);
-+		}
-+		/* Case 2 above */
-+		vma = vma->vm_next;
- 	}
- 
- 	show_vma_header_prefix(m, priv->mm->mmap->vm_start,
+ #ifdef CONFIG_ROMFS_ON_MTD
+ 	if (sb->s_mtd)
 _
 
-Patches currently in -mm which might be from chinwen.chang@mediatek.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mmap-locking-api-add-mmap_lock_is_contended.patch
-mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
-mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch
+romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
 
