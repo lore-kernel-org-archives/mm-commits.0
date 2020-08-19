@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B87DC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B17FC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E02E42083B
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 416B92078D
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597865237;
-	bh=qu3hTuXbDZObnOSjPivKFVbk7/i+IQUH82A2CAd1Bgg=;
+	s=default; t=1597865241;
+	bh=/dr+i+S4WbGO5oBN91LZqqYehOUMn/B4o1ovKte43Cs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=PMsYBIaILAtnOHF7HPPHkYdD4z7HRr8chxxHjzMwHiSkrYXvsD6P+giEpTCEYQqu3
-	 QH8iLyok4JFK3Znty/fhMhI4MGVfxICSMq9GJ2Z9j2HkJCD4F3Pasi/vf8cSTpYJrH
-	 +ZyJmCu3X0jarzmCqdOLJo2GpMPz8o3gCs2J/hfg=
+	b=0T0U9vMU8jxifXAkMbCQ1sNsVhDCPv1o+LbE4E1YGjNKObnBGQ6ZTWUxMiAs229Ls
+	 kuZv6eAUjiusKxLKJfV3d5p254XAhZL1ED4umr6nEJ23nzKf406yBxf4PYL/tsoQ4W
+	 3aF+2bvK4hTdiObgqRk7biJ772Q/aPjJil7SvlqY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726612AbgHST1R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:27:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35776 "EHLO mail.kernel.org"
+        id S1726466AbgHST1V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:27:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726211AbgHST1P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:27:15 -0400
+        id S1726729AbgHST1T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:27:19 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3F809207BB;
-        Wed, 19 Aug 2020 19:27:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4526F207DA;
+        Wed, 19 Aug 2020 19:27:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597865234;
-        bh=qu3hTuXbDZObnOSjPivKFVbk7/i+IQUH82A2CAd1Bgg=;
+        s=default; t=1597865238;
+        bh=/dr+i+S4WbGO5oBN91LZqqYehOUMn/B4o1ovKte43Cs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Ry6DDuHA/te1wTskXxxIswY4w7mIuFQ+Uisi/mS8jOHh47Nz/iam+Ra/d71GJkarH
-         /R1YI52yVXxc9YnaE1otT8XbeFph8RARM3d91ZapEyv6H0TShfnGtVMUx6S3j8m9sp
-         XtVNsJz9XyFQQHBRlpjrMFFjG3h1/57OPh+WaYrc=
-Date:   Wed, 19 Aug 2020 12:27:12 -0700
+        b=WnUEkXJRueCsVhnZsnWbQ82hUsjWQJa1DL1nhUjCk8xTH0wjsmhBGD0nv0334uI/o
+         dJSuxdDSyPGC3qO00RZ/cnK7Kz9gPruVICmbSS0GJtQxRAPTb5Fy0KyFtCdCW5Wexz
+         dppxsHg2J0VyjQX91JZSIlMG4F4UPQmu9KAKmmuY=
+Date:   Wed, 19 Aug 2020 12:27:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -51,9 +51,10 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         paulus@samba.org, peterz@infradead.org, rppt@linux.ibm.com,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
-Subject:  + dma-contiguous-simplify-cma_early_percent_memory.patch
- added to -mm tree
-Message-ID: <20200819192712.Ej-jW6VOA%akpm@linux-foundation.org>
+Subject:  +
+ arm-xtensa-simplify-initialization-of-high-memory-pages.patch added to -mm
+ tree
+Message-ID: <20200819192716.oPTO3IofM%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -64,14 +65,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-contiguous: simplify cma_early_percent_memory()
+     Subject: arm, xtensa: simplify initialization of high memory pages
 has been added to the -mm tree.  Its filename is
-     dma-contiguous-simplify-cma_early_percent_memory.patch
+     arm-xtensa-simplify-initialization-of-high-memory-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/dma-contiguous-simplify-cma_early_percent_memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm-xtensa-simplify-initialization-of-high-memory-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/dma-contiguous-simplify-cma_early_percent_memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm-xtensa-simplify-initialization-of-high-memory-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,26 +87,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: dma-contiguous: simplify cma_early_percent_memory()
+Subject: arm, xtensa: simplify initialization of high memory pages
 
-The memory size calculation in cma_early_percent_memory() traverses
-memblock.memory rather than simply call memblock_phys_mem_size().  The
-comment in that function suggests that at some point there should have
-been call to memblock_analyze() before memblock_phys_mem_size() could be
-used.  As of now, there is no memblock_analyze() at all and
-memblock_phys_mem_size() can be used as soon as cold-plug memory is
-registered with memblock.
+free_highpages() in both arm and xtensa essentially open-code
+for_each_free_mem_range() loop to detect high memory pages that were not
+reserved and that should be initialized and passed to the buddy allocator.
 
-Replace loop over memblock.memory with a call to memblock_phys_mem_size().
+Replace open-coded implementation of for_each_free_mem_range() with usage
+of memblock API to simplify the code.
 
-Link: https://lkml.kernel.org/r/20200818151634.14343-3-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-4-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>	[xtensa]
+Tested-by: Max Filippov <jcmvbkbc@gmail.com>	[xtensa]
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Axtens <dja@axtens.net>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Emil Renner Berthing <kernel@esmil.dk>
@@ -114,7 +114,6 @@ Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Simek <monstr@monstr.eu>
 Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
@@ -131,29 +130,162 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma/contiguous.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ arch/arm/mm/init.c    |   48 +++++-----------------------------
+ arch/xtensa/mm/init.c |   55 +++++++---------------------------------
+ 2 files changed, 18 insertions(+), 85 deletions(-)
 
---- a/kernel/dma/contiguous.c~dma-contiguous-simplify-cma_early_percent_memory
-+++ a/kernel/dma/contiguous.c
-@@ -73,16 +73,7 @@ early_param("cma", early_cma);
- 
- static phys_addr_t __init __maybe_unused cma_early_percent_memory(void)
- {
--	struct memblock_region *reg;
--	unsigned long total_pages = 0;
--
--	/*
--	 * We cannot use memblock_phys_mem_size() here, because
--	 * memblock_analyze() has not been called yet.
--	 */
--	for_each_memblock(memory, reg)
--		total_pages += memblock_region_memory_end_pfn(reg) -
--			       memblock_region_memory_base_pfn(reg);
-+	unsigned long total_pages = PHYS_PFN(memblock_phys_mem_size());
- 
- 	return (total_pages * CONFIG_CMA_SIZE_PERCENTAGE / 100) << PAGE_SHIFT;
+--- a/arch/arm/mm/init.c~arm-xtensa-simplify-initialization-of-high-memory-pages
++++ a/arch/arm/mm/init.c
+@@ -347,61 +347,29 @@ static void __init free_unused_memmap(vo
+ #endif
  }
+ 
+-#ifdef CONFIG_HIGHMEM
+-static inline void free_area_high(unsigned long pfn, unsigned long end)
+-{
+-	for (; pfn < end; pfn++)
+-		free_highmem_page(pfn_to_page(pfn));
+-}
+-#endif
+-
+ static void __init free_highpages(void)
+ {
+ #ifdef CONFIG_HIGHMEM
+ 	unsigned long max_low = max_low_pfn;
+-	struct memblock_region *mem, *res;
++	phys_addr_t range_start, range_end;
++	u64 i;
+ 
+ 	/* set highmem page free */
+-	for_each_memblock(memory, mem) {
+-		unsigned long start = memblock_region_memory_base_pfn(mem);
+-		unsigned long end = memblock_region_memory_end_pfn(mem);
++	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE,
++				&range_start, &range_end, NULL) {
++		unsigned long start = PHYS_PFN(range_start);
++		unsigned long end = PHYS_PFN(range_end);
+ 
+ 		/* Ignore complete lowmem entries */
+ 		if (end <= max_low)
+ 			continue;
+ 
+-		if (memblock_is_nomap(mem))
+-			continue;
+-
+ 		/* Truncate partial highmem entries */
+ 		if (start < max_low)
+ 			start = max_low;
+ 
+-		/* Find and exclude any reserved regions */
+-		for_each_memblock(reserved, res) {
+-			unsigned long res_start, res_end;
+-
+-			res_start = memblock_region_reserved_base_pfn(res);
+-			res_end = memblock_region_reserved_end_pfn(res);
+-
+-			if (res_end < start)
+-				continue;
+-			if (res_start < start)
+-				res_start = start;
+-			if (res_start > end)
+-				res_start = end;
+-			if (res_end > end)
+-				res_end = end;
+-			if (res_start != start)
+-				free_area_high(start, res_start);
+-			start = res_end;
+-			if (start == end)
+-				break;
+-		}
+-
+-		/* And now free anything which remains */
+-		if (start < end)
+-			free_area_high(start, end);
++		for (; start < end; start++)
++			free_highmem_page(pfn_to_page(start));
+ 	}
+ #endif
+ }
+--- a/arch/xtensa/mm/init.c~arm-xtensa-simplify-initialization-of-high-memory-pages
++++ a/arch/xtensa/mm/init.c
+@@ -79,67 +79,32 @@ void __init zones_init(void)
+ 	free_area_init(max_zone_pfn);
+ }
+ 
+-#ifdef CONFIG_HIGHMEM
+-static void __init free_area_high(unsigned long pfn, unsigned long end)
+-{
+-	for (; pfn < end; pfn++)
+-		free_highmem_page(pfn_to_page(pfn));
+-}
+-
+ static void __init free_highpages(void)
+ {
++#ifdef CONFIG_HIGHMEM
+ 	unsigned long max_low = max_low_pfn;
+-	struct memblock_region *mem, *res;
++	phys_addr_t range_start, range_end;
++	u64 i;
+ 
+-	reset_all_zones_managed_pages();
+ 	/* set highmem page free */
+-	for_each_memblock(memory, mem) {
+-		unsigned long start = memblock_region_memory_base_pfn(mem);
+-		unsigned long end = memblock_region_memory_end_pfn(mem);
++	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE,
++				&range_start, &range_end, NULL) {
++		unsigned long start = PHYS_PFN(range_start);
++		unsigned long end = PHYS_PFN(range_end);
+ 
+ 		/* Ignore complete lowmem entries */
+ 		if (end <= max_low)
+ 			continue;
+ 
+-		if (memblock_is_nomap(mem))
+-			continue;
+-
+ 		/* Truncate partial highmem entries */
+ 		if (start < max_low)
+ 			start = max_low;
+ 
+-		/* Find and exclude any reserved regions */
+-		for_each_memblock(reserved, res) {
+-			unsigned long res_start, res_end;
+-
+-			res_start = memblock_region_reserved_base_pfn(res);
+-			res_end = memblock_region_reserved_end_pfn(res);
+-
+-			if (res_end < start)
+-				continue;
+-			if (res_start < start)
+-				res_start = start;
+-			if (res_start > end)
+-				res_start = end;
+-			if (res_end > end)
+-				res_end = end;
+-			if (res_start != start)
+-				free_area_high(start, res_start);
+-			start = res_end;
+-			if (start == end)
+-				break;
+-		}
+-
+-		/* And now free anything which remains */
+-		if (start < end)
+-			free_area_high(start, end);
++		for (; start < end; start++)
++			free_highmem_page(pfn_to_page(start));
+ 	}
+-}
+-#else
+-static void __init free_highpages(void)
+-{
+-}
+ #endif
++}
+ 
+ /*
+  * Initialize memory pages.
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
