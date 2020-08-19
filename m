@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20BA6C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B87DC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE7E0207BB
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E02E42083B
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597865232;
-	bh=y1lxTQri7DYzDHQw9Hox28iALQENiQl2MfsReXZ2+oY=;
+	s=default; t=1597865237;
+	bh=qu3hTuXbDZObnOSjPivKFVbk7/i+IQUH82A2CAd1Bgg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=c2WlQe/J0Pn6XEW44FjuQAx66bzye222vDIAbF6hdvwGtGNGbGHxzJ0eTBEWOyBA0
-	 MgPiZk36YA8QV4Iot4iikMwq4zlKZ0amDg6DSKZ7mXBZYKJe0zZx4hNE2iJ95XFw4Q
-	 sunHEUaMJuFcrJ/BsVkqiVn8gvcLDaV3Kph5LR4k=
+	b=PMsYBIaILAtnOHF7HPPHkYdD4z7HRr8chxxHjzMwHiSkrYXvsD6P+giEpTCEYQqu3
+	 QH8iLyok4JFK3Znty/fhMhI4MGVfxICSMq9GJ2Z9j2HkJCD4F3Pasi/vf8cSTpYJrH
+	 +ZyJmCu3X0jarzmCqdOLJo2GpMPz8o3gCs2J/hfg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726435AbgHST1L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:27:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35712 "EHLO mail.kernel.org"
+        id S1726612AbgHST1R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:27:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726211AbgHST1L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:27:11 -0400
+        id S1726211AbgHST1P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:27:15 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4E4F82078D;
-        Wed, 19 Aug 2020 19:27:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3F809207BB;
+        Wed, 19 Aug 2020 19:27:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597865230;
-        bh=y1lxTQri7DYzDHQw9Hox28iALQENiQl2MfsReXZ2+oY=;
+        s=default; t=1597865234;
+        bh=qu3hTuXbDZObnOSjPivKFVbk7/i+IQUH82A2CAd1Bgg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vYEOlgisW9F/jqspCaES138au2DItloWnBa+7CISY5iPYpg/rocZR9QdS2wDjB61b
-         1JzOZ4fHZeBfwbl9ts8qruz9KONqJpRqY+dccYyCqu9TZnWhpwPNLduJlBr1tcCTqY
-         b7VcizFQPPeA1qE54MNej88JqG0Z0XV4PW+Nax4U=
-Date:   Wed, 19 Aug 2020 12:27:08 -0700
+        b=Ry6DDuHA/te1wTskXxxIswY4w7mIuFQ+Uisi/mS8jOHh47Nz/iam+Ra/d71GJkarH
+         /R1YI52yVXxc9YnaE1otT8XbeFph8RARM3d91ZapEyv6H0TShfnGtVMUx6S3j8m9sp
+         XtVNsJz9XyFQQHBRlpjrMFFjG3h1/57OPh+WaYrc=
+Date:   Wed, 19 Aug 2020 12:27:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -51,9 +51,9 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         paulus@samba.org, peterz@infradead.org, rppt@linux.ibm.com,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
-Subject:  + kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch added
- to -mm tree
-Message-ID: <20200819192708.mptBJogs8%akpm@linux-foundation.org>
+Subject:  + dma-contiguous-simplify-cma_early_percent_memory.patch
+ added to -mm tree
+Message-ID: <20200819192712.Ej-jW6VOA%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -64,14 +64,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
+     Subject: dma-contiguous: simplify cma_early_percent_memory()
 has been added to the -mm tree.  Its filename is
-     kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
+     dma-contiguous-simplify-cma_early_percent_memory.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/dma-contiguous-simplify-cma_early_percent_memory.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/dma-contiguous-simplify-cma_early_percent_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,90 +86,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
+Subject: dma-contiguous: simplify cma_early_percent_memory()
 
-Patch series "memblock: seasonal cleaning^w cleanup", v3.
-
-These patches simplify several uses of memblock iterators and hide some of
-the memblock implementation details from the rest of the system.
-
-
-This patch (of 17):
-
-The memory size calculation in kvm_cma_reserve() traverses memblock.memory
-rather than simply call memblock_phys_mem_size().  The comment in that
-function suggests that at some point there should have been call to
-memblock_analyze() before memblock_phys_mem_size() could be used.  As of
-now, there is no memblock_analyze() at all and memblock_phys_mem_size()
-can be used as soon as cold-plug memory is registered with memblock.
+The memory size calculation in cma_early_percent_memory() traverses
+memblock.memory rather than simply call memblock_phys_mem_size().  The
+comment in that function suggests that at some point there should have
+been call to memblock_analyze() before memblock_phys_mem_size() could be
+used.  As of now, there is no memblock_analyze() at all and
+memblock_phys_mem_size() can be used as soon as cold-plug memory is
+registered with memblock.
 
 Replace loop over memblock.memory with a call to memblock_phys_mem_size().
 
-Link: https://lkml.kernel.org/r/20200818151634.14343-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20200818151634.14343-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Axtens <dja@axtens.net>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Emil Renner Berthing <kernel@esmil.dk>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Simek <monstr@monstr.eu>
+Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Stafford Horne <shorne@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_builtin.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ kernel/dma/contiguous.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_builtin.c~kvm-ppc-book3s-hv-simplify-kvm_cma_reserve
-+++ a/arch/powerpc/kvm/book3s_hv_builtin.c
-@@ -95,23 +95,15 @@ EXPORT_SYMBOL_GPL(kvm_free_hpt_cma);
- void __init kvm_cma_reserve(void)
- {
- 	unsigned long align_size;
--	struct memblock_region *reg;
--	phys_addr_t selected_size = 0;
-+	phys_addr_t selected_size;
+--- a/kernel/dma/contiguous.c~dma-contiguous-simplify-cma_early_percent_memory
++++ a/kernel/dma/contiguous.c
+@@ -73,16 +73,7 @@ early_param("cma", early_cma);
  
- 	/*
- 	 * We need CMA reservation only when we are in HV mode
- 	 */
- 	if (!cpu_has_feature(CPU_FTR_HVMODE))
- 		return;
+ static phys_addr_t __init __maybe_unused cma_early_percent_memory(void)
+ {
+-	struct memblock_region *reg;
+-	unsigned long total_pages = 0;
+-
 -	/*
 -	 * We cannot use memblock_phys_mem_size() here, because
 -	 * memblock_analyze() has not been called yet.
 -	 */
 -	for_each_memblock(memory, reg)
--		selected_size += memblock_region_memory_end_pfn(reg) -
--				 memblock_region_memory_base_pfn(reg);
+-		total_pages += memblock_region_memory_end_pfn(reg) -
+-			       memblock_region_memory_base_pfn(reg);
++	unsigned long total_pages = PHYS_PFN(memblock_phys_mem_size());
  
--	selected_size = (selected_size * kvm_cma_resv_ratio / 100) << PAGE_SHIFT;
-+	selected_size = PAGE_ALIGN(memblock_phys_mem_size() * kvm_cma_resv_ratio / 100);
- 	if (selected_size) {
- 		pr_info("%s: reserving %ld MiB for global area\n", __func__,
- 			 (unsigned long)selected_size / SZ_1M);
+ 	return (total_pages * CONFIG_CMA_SIZE_PERCENTAGE / 100) << PAGE_SHIFT;
+ }
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
