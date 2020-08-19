@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9D8C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29FF4C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 556E320786
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DEC220758
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597861238;
-	bh=QLSAcN+8g0vhhCeONqM0yGQ1fjJCayoNDebTF5dCwgk=;
+	s=default; t=1597861242;
+	bh=9DEite7y6x33vtmSjH+cun9gaTgTU1XZuwTgcFY13l8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=gjZ3ly6LNMonJ+Xf/QrQ5SkkHINupWY6KWb6QeeucROwezc2jxuEP8d6d/Jf1lId+
-	 HSPDc/8WP3Go8YXXVW23pt4OQNenHhexzjbehChHJRgNJe43/pvn4eVo6Y7Damm/YZ
-	 sdjloIG0dg7LrXpdk44tnobhFbP7ppAsUxPnWMp8=
+	b=Aodgl88oYldPaGbGUgcnrPxiCcSuNZ1/xJDZcnDTvxa+qVVUXw1jI8+PiELygZiWf
+	 DQVR2XXtdsnblidQWCVnj2nW4+m37zs4QUEyp5VOG8AD524AbisYzx/hb+j52jI8Nc
+	 KpMv4Xms66MYuzXfraluWoRYF6hXDEucbBtv8lRs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726609AbgHSSUi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 14:20:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42974 "EHLO mail.kernel.org"
+        id S1726702AbgHSSUl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 14:20:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43060 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726578AbgHSSUh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 14:20:37 -0400
+        id S1726578AbgHSSUk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 14:20:40 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2C79020758;
-        Wed, 19 Aug 2020 18:20:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0B4C62083B;
+        Wed, 19 Aug 2020 18:20:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597861236;
-        bh=QLSAcN+8g0vhhCeONqM0yGQ1fjJCayoNDebTF5dCwgk=;
+        s=default; t=1597861239;
+        bh=9DEite7y6x33vtmSjH+cun9gaTgTU1XZuwTgcFY13l8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=mlleyX6i2useZMQyWk5K3oeTQ+Sf9nqtfbBBuIucRUnL8ZZK4zRmemc4tAK/pRcmE
-         A/kHh1d609kXQEH7qm3l88ta3hNedvvL75ns/7dNu8eKxyWDvm4Me8lcSLTH5vCJtO
-         lTVl5NlJuNWnQGGnJuRapegZ4vT4PdS2J1uwlWu4=
-Date:   Wed, 19 Aug 2020 11:20:35 -0700
+        b=I0DMN9BCVElvmc6rDqYio6rB5S1hgaqFPJPI7y+6PjlDwOESDPT/BOtquL7XAEgcS
+         Q8eczUHLcI/JuZt8+WESvF1Fb+u2HfkjTgbt9lsP05lWJa8pphT2Rh2Y1xfJ474Vei
+         VXh6A/5yhzM6mHQKElJzNhniiFAHRiG+Sc6tHLxw=
+Date:   Wed, 19 Aug 2020 11:20:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     bhe@redhat.com, charante@codeaurora.org, dan.j.williams@intel.com,
         david@redhat.com, fenghua.yu@intel.com, logang@deltatee.com,
@@ -48,9 +48,9 @@ To:     bhe@redhat.com, charante@codeaurora.org, dan.j.williams@intel.com,
         rppt@kernel.org, tony.luck@intel.com, walken@google.com,
         willy@infradead.org
 Subject:  +
- mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch added to
- -mm tree
-Message-ID: <20200819182035.C-avZjgV2%akpm@linux-foundation.org>
+ mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
+ added to -mm tree
+Message-ID: <20200819182038.IlytHwULx%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -61,14 +61,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: inline __offline_pages() into offline_pages()
+     Subject: mm/memory_hotplug: enforce section granularity when onlining/offlining
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch
+     mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -83,35 +83,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: inline __offline_pages() into offline_pages()
+Subject: mm/memory_hotplug: enforce section granularity when onlining/offlining
 
-Patch series "mm/memory_hotplug: online_pages()/offline_pages() cleanups", v2.
+Already two people (including me) tried to offline subsections, because
+the function looks like it can deal with it.  But we really can only
+online/offline full sections that are properly aligned (e.g., we can only
+mark full sections online/offline via SECTION_IS_ONLINE).
 
-These are a bunch of cleanups for online_pages()/offline_pages() and
-related code, mostly getting rid of memory hole handling that is no longer
-necessary.  There is only a single walk_system_ram_range() call left in
-offline_pages(), to make sure we don't have any memory holes.  I had some
-of these patches lying around for a longer time but didn't have time to
-polish them.
+Add a simple safety net to document the restriction now.  Current users
+(core and powernv/memtrace) respect these restrictions.
 
-In addition, the last patch marks all pageblocks of memory to get onlined
-MIGRATE_ISOLATE, so pages that have just been exposed to the buddy cannot
-get allocated before onlining is complete.  Once heavy lifting is done,
-the pageblocks are set to MIGRATE_MOVABLE, such that allocations are
-possible.
-
-I played with DIMMs and virtio-mem on x86-64 and didn't spot any
-surprises.  I verified that the numer of isolated pageblocks is correctly
-handled when onlining/offlining.
-
-
-This patch (of 10):
-
-There is only a single user, offline_pages(). Let's inline, to make
-it look more similar to online_pages().
-
-Link: https://lkml.kernel.org/r/20200819175957.28465-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20200819175957.28465-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20200819175957.28465-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
@@ -123,59 +105,43 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Logan Gunthorpe <logang@deltatee.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Michel Lespinasse <walken@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Tony Luck <tony.luck@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ mm/memory_hotplug.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-inline-__offline_pages-into-offline_pages
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining
 +++ a/mm/memory_hotplug.c
-@@ -1475,11 +1475,10 @@ static int count_system_ram_pages_cb(uns
- 	return 0;
- }
+@@ -801,6 +801,11 @@ int __ref online_pages(unsigned long pfn
+ 	int ret;
+ 	struct memory_notify arg;
  
--static int __ref __offline_pages(unsigned long start_pfn,
--		  unsigned long end_pfn)
-+int __ref offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
--	unsigned long pfn, nr_pages = 0;
--	unsigned long offlined_pages = 0;
-+	const unsigned long end_pfn = start_pfn + nr_pages;
-+	unsigned long pfn, system_ram_pages = 0, offlined_pages = 0;
- 	int ret, node, nr_isolate_pageblock;
- 	unsigned long flags;
- 	struct zone *zone;
-@@ -1496,9 +1495,9 @@ static int __ref __offline_pages(unsigne
- 	 * memory holes PG_reserved, don't need pfn_valid() checks, and can
- 	 * avoid using walk_system_ram_range() later.
- 	 */
--	walk_system_ram_range(start_pfn, end_pfn - start_pfn, &nr_pages,
-+	walk_system_ram_range(start_pfn, nr_pages, &system_ram_pages,
- 			      count_system_ram_pages_cb);
--	if (nr_pages != end_pfn - start_pfn) {
-+	if (system_ram_pages != nr_pages) {
- 		ret = -EINVAL;
- 		reason = "memory holes";
- 		goto failed_removal;
-@@ -1633,11 +1632,6 @@ failed_removal:
- 	return ret;
- }
++	/* We can only online full sections (e.g., SECTION_IS_ONLINE) */
++	if (WARN_ON_ONCE(!nr_pages ||
++			 !IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION)))
++		return -EINVAL;
++
+ 	mem_hotplug_begin();
  
--int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
--{
--	return __offline_pages(start_pfn, start_pfn + nr_pages);
--}
--
- static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
- {
- 	int ret = !is_memblock_offlined(mem);
+ 	/* associate pfn range with the zone */
+@@ -1485,6 +1490,11 @@ int __ref offline_pages(unsigned long st
+ 	struct memory_notify arg;
+ 	char *reason;
+ 
++	/* We can only offline full sections (e.g., SECTION_IS_ONLINE) */
++	if (WARN_ON_ONCE(!nr_pages ||
++			 !IS_ALIGNED(start_pfn | nr_pages, PAGES_PER_SECTION)))
++		return -EINVAL;
++
+ 	mem_hotplug_begin();
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from david@redhat.com are
