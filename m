@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6762C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18467C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:35:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86489207DE
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:33:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEE73207DE
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:35:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597869182;
-	bh=hPYeHFy8jEm2+elPJdkqMJnSmtYq2u0lL0pQ9xkwFEY=;
+	s=default; t=1597869339;
+	bh=bigd0tAc24lYp5ygeIU7i4ZKQ+dBehJviByeyx1/LYU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=aSffFPPzP8HGp+hoMfMmKR7K8/xCJq59Egc0cucOYJpzJrRzjQcYwinFNM5tVsbtB
-	 nza7oBcA1IIO/4ktepQMcegaT6KMUpJjJ7yWK4SdEpRIJBYbLkDxlPCJkPcTTGnVBT
-	 Kpo521Df/Hv6+N+lP+8f6qhoBPeR86wmmfC3dbHU=
+	b=kWYUpidVQvyQf9j4EFoBQhPHl54qxI9y8mMtIBw/icBXTT/Ej4avMLH+MpkG29glc
+	 iopVnyDkmf9udHc0lxaOeCysNCNtgqjChWJrSSU7hKHKTM7x9KOADNGHhsBS/kUj5U
+	 Usa5M1jDJY/rUMiMg0wh+ibpSS87+fOhRmTV8XBY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726617AbgHSUdC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 16:33:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42968 "EHLO mail.kernel.org"
+        id S1726603AbgHSUfj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 16:35:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726689AbgHSUdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 16:33:01 -0400
+        id S1725997AbgHSUfh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 16:35:37 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BD217207DA;
-        Wed, 19 Aug 2020 20:32:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 94FC52063A;
+        Wed, 19 Aug 2020 20:35:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597869179;
-        bh=hPYeHFy8jEm2+elPJdkqMJnSmtYq2u0lL0pQ9xkwFEY=;
+        s=default; t=1597869336;
+        bh=bigd0tAc24lYp5ygeIU7i4ZKQ+dBehJviByeyx1/LYU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vyT++EKIOD81rim81A7hxwUJWQgmTjI9rJ+fyNckmJG290TNP3ZZclLXnLST8Mk7l
-         NLH+H7BRz/TjwfOAqF88+WyGPTWGfFF5zZn6JfqXE4zXLmqXKEnD0HYiXHvvQn0E/s
-         mHfxtNefg2OB+qry3sJQN2eTAejn1j4/LiFR2O0o=
-Date:   Wed, 19 Aug 2020 13:32:58 -0700
+        b=NqWwK8+F3c0zrx7WkWVI7BaJJ7pbsdDUl0F/xe87Rk8OP8bY2zq7DnQNPd45e18Qx
+         sw+Y48nhfnFm6sHjn4+T9dcOhihu/MipRbO7uryBTEJVxlLtuHQaMFlqLPSfX2xHvo
+         LTkY/dLAhxiwhgVIO2hZUp+dgoy7biA4TtvRPGZs=
+Date:   Wed, 19 Aug 2020 13:35:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     cai@lca.pw, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  +
- mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch added to -mm
+To:     andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com,
+        mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com
+Subject:  + bitops-simplify-get_count_order_long.patch added to -mm
  tree
-Message-ID: <20200819203258.hzbX1vX6C%akpm@linux-foundation.org>
+Message-ID: <20200819203536.Ylq1X9QNk%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dump_page: rename head_mapcount() --> head_compound_mapcount()
+     Subject: bitops: simplify get_count_order_long()
 has been added to the -mm tree.  Its filename is
-     mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
+     bitops-simplify-get_count_order_long.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/bitops-simplify-get_count_order_long.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/bitops-simplify-get_count_order_long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,86 +76,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm, dump_page: rename head_mapcount() --> head_compound_mapcount()
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: bitops: simplify get_count_order_long()
 
-Rename head_pincount() --> head_compound_pincount().  These names are more
-accurate (or less misleading) than the original ones.
+These two cases could be unified into one.
 
-Link: https://lkml.kernel.org/r/20200807183358.105097-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
+Link: https://lkml.kernel.org/r/20200807085837.11697-2-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    8 ++++----
- mm/debug.c         |    6 +++---
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/bitops.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/include/linux/mm.h~mm-dump_page-rename-head_mapcount-head_compound_mapcount
-+++ a/include/linux/mm.h
-@@ -776,7 +776,7 @@ static inline void *kvcalloc(size_t n, s
- extern void kvfree(const void *addr);
- extern void kvfree_sensitive(const void *addr, size_t len);
- 
--static inline int head_mapcount(struct page *head)
-+static inline int head_compound_mapcount(struct page *head)
+--- a/include/linux/bitops.h~bitops-simplify-get_count_order_long
++++ a/include/linux/bitops.h
+@@ -206,10 +206,7 @@ static inline int get_count_order_long(u
  {
- 	return atomic_read(compound_mapcount_ptr(head)) + 1;
- }
-@@ -790,7 +790,7 @@ static inline int compound_mapcount(stru
- {
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 	page = compound_head(page);
--	return head_mapcount(page);
-+	return head_compound_mapcount(page);
+ 	if (l == 0UL)
+ 		return -1;
+-	else if (l & (l - 1UL))
+-		return (int)fls_long(l);
+-	else
+-		return (int)fls_long(l) - 1;
++	return (int)fls_long(--l);
  }
  
- /*
-@@ -903,7 +903,7 @@ static inline bool hpage_pincount_availa
- 	return PageCompound(page) && compound_order(page) > 1;
- }
- 
--static inline int head_pincount(struct page *head)
-+static inline int head_compound_pincount(struct page *head)
- {
- 	return atomic_read(compound_pincount_ptr(head));
- }
-@@ -912,7 +912,7 @@ static inline int compound_pincount(stru
- {
- 	VM_BUG_ON_PAGE(!hpage_pincount_available(page), page);
- 	page = compound_head(page);
--	return head_pincount(page);
-+	return head_compound_pincount(page);
- }
- 
- static inline void set_compound_order(struct page *page, unsigned int order)
---- a/mm/debug.c~mm-dump_page-rename-head_mapcount-head_compound_mapcount
-+++ a/mm/debug.c
-@@ -102,12 +102,12 @@ void __dump_page(struct page *page, cons
- 		if (hpage_pincount_available(page)) {
- 			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
- 					head, compound_order(head),
--					head_mapcount(head),
--					head_pincount(head));
-+					head_compound_mapcount(head),
-+					head_compound_pincount(head));
- 		} else {
- 			pr_warn("head:%p order:%u compound_mapcount:%d\n",
- 					head, compound_order(head),
--					head_mapcount(head));
-+					head_compound_mapcount(head));
- 		}
- 	}
- 	if (PageKsm(page))
+ /**
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
+mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch
+mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
+mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+bitops-simplify-get_count_order_long.patch
+bitops-use-the-same-mechanism-for-get_count_order.patch
 
