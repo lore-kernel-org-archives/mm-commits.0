@@ -7,44 +7,53 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90415C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20BA6C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60A8E207DA
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:02:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE7E0207BB
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597863767;
-	bh=smg6mRFkSm4lWG7WEDMGdYprSy/PmBfpILWH4q/4EOs=;
+	s=default; t=1597865232;
+	bh=y1lxTQri7DYzDHQw9Hox28iALQENiQl2MfsReXZ2+oY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=R81R2Wx1T1XXzXzgMgXff7Kb4HjeZyMqlQ2SHRLmicYzxATWwDYjKSt1Fbhp5AILZ
-	 Ga3Ydk9m+fNIwS0Mui78C/By4oxsGv/3Pggb9dR2ck9TMVRQGtNTver19KMQc2N1+O
-	 xR9e+vMCAL9yzUnkxTj8I68SAuqnVSV9C1J+CMdw=
+	b=c2WlQe/J0Pn6XEW44FjuQAx66bzye222vDIAbF6hdvwGtGNGbGHxzJ0eTBEWOyBA0
+	 MgPiZk36YA8QV4Iot4iikMwq4zlKZ0amDg6DSKZ7mXBZYKJe0zZx4hNE2iJ95XFw4Q
+	 sunHEUaMJuFcrJ/BsVkqiVn8gvcLDaV3Kph5LR4k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726786AbgHSTCq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:02:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53944 "EHLO mail.kernel.org"
+        id S1726435AbgHST1L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:27:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726578AbgHSTCq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:02:46 -0400
+        id S1726211AbgHST1L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:27:11 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A567F207DA;
-        Wed, 19 Aug 2020 19:02:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4E4F82078D;
+        Wed, 19 Aug 2020 19:27:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597863765;
-        bh=smg6mRFkSm4lWG7WEDMGdYprSy/PmBfpILWH4q/4EOs=;
+        s=default; t=1597865230;
+        bh=y1lxTQri7DYzDHQw9Hox28iALQENiQl2MfsReXZ2+oY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=VJAcg/LsxlVgjcAzOjS1uYViLPj3kv8/Ee+YNsFyrowBKhOBL3WiWlf3/UZEQWPvC
-         bmfdp41pk78RaGnfIWkcSOE0TFyUClnY3oQPoo/AsVLTrxjgILasdmbhkVLi8ScY6n
-         zRKzHXc9i+iGgMHm0rFWcx4rr5r/vA7qV7OTqopQ=
-Date:   Wed, 19 Aug 2020 12:02:45 -0700
+        b=vYEOlgisW9F/jqspCaES138au2DItloWnBa+7CISY5iPYpg/rocZR9QdS2wDjB61b
+         1JzOZ4fHZeBfwbl9ts8qruz9KONqJpRqY+dccYyCqu9TZnWhpwPNLduJlBr1tcCTqY
+         b7VcizFQPPeA1qE54MNej88JqG0Z0XV4PW+Nax4U=
+Date:   Wed, 19 Aug 2020 12:27:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, ira.weiny@intel.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-highmem-clean-up-endif-comments.patch added to -mm
- tree
-Message-ID: <20200819190245.ETmCa4Vk3%akpm@linux-foundation.org>
+To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
+        catalin.marinas@arm.com, dave.hansen@linux.intel.com,
+        dja@axtens.net, hbathini@linux.ibm.com, hch@lst.de,
+        jcmvbkbc@gmail.com, Jonathan.Cameron@huawei.com, kernel@esmil.dk,
+        linux@armlinux.org.uk, luto@kernel.org, m.szyprowski@samsung.com,
+        miguel.ojeda.sandonis@gmail.com, mingo@kernel.org,
+        mingo@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu,
+        mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com,
+        paulus@samba.org, peterz@infradead.org, rppt@linux.ibm.com,
+        shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
+        will@kernel.org, ysato@users.sourceforge.jp
+Subject:  + kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch added
+ to -mm tree
+Message-ID: <20200819192708.mptBJogs8%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +64,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem.c: clean up endif comments
+     Subject: KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
 has been added to the -mm tree.  Its filename is
-     mm-highmem-clean-up-endif-comments.patch
+     kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-highmem-clean-up-endif-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-highmem-clean-up-endif-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,45 +85,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: mm/highmem.c: clean up endif comments
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
 
-The #endif at the end of the file matches up with the '#if
-defined(HASHED_PAGE_VIRTUAL)' on line 374.  Not the CONFIG_HIGHMEM #if
-earlier.
+Patch series "memblock: seasonal cleaning^w cleanup", v3.
 
-Fix comments on both of the #endif's to indicate the correct end of blocks
-for each.
+These patches simplify several uses of memblock iterators and hide some of
+the memblock implementation details from the rest of the system.
 
-Link: https://lkml.kernel.org/r/20200819184635.112579-1-ira.weiny@intel.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+
+This patch (of 17):
+
+The memory size calculation in kvm_cma_reserve() traverses memblock.memory
+rather than simply call memblock_phys_mem_size().  The comment in that
+function suggests that at some point there should have been call to
+memblock_analyze() before memblock_phys_mem_size() could be used.  As of
+now, there is no memblock_analyze() at all and memblock_phys_mem_size()
+can be used as soon as cold-plug memory is registered with memblock.
+
+Replace loop over memblock.memory with a call to memblock_phys_mem_size().
+
+Link: https://lkml.kernel.org/r/20200818151634.14343-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Daniel Axtens <dja@axtens.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Emil Renner Berthing <kernel@esmil.dk>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/kvm/book3s_hv_builtin.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
---- a/mm/highmem.c~mm-highmem-clean-up-endif-comments
-+++ a/mm/highmem.c
-@@ -369,7 +369,7 @@ void kunmap_high(struct page *page)
- }
+--- a/arch/powerpc/kvm/book3s_hv_builtin.c~kvm-ppc-book3s-hv-simplify-kvm_cma_reserve
++++ a/arch/powerpc/kvm/book3s_hv_builtin.c
+@@ -95,23 +95,15 @@ EXPORT_SYMBOL_GPL(kvm_free_hpt_cma);
+ void __init kvm_cma_reserve(void)
+ {
+ 	unsigned long align_size;
+-	struct memblock_region *reg;
+-	phys_addr_t selected_size = 0;
++	phys_addr_t selected_size;
  
- EXPORT_SYMBOL(kunmap_high);
--#endif
-+#endif	/* CONFIG_HIGHMEM */
+ 	/*
+ 	 * We need CMA reservation only when we are in HV mode
+ 	 */
+ 	if (!cpu_has_feature(CPU_FTR_HVMODE))
+ 		return;
+-	/*
+-	 * We cannot use memblock_phys_mem_size() here, because
+-	 * memblock_analyze() has not been called yet.
+-	 */
+-	for_each_memblock(memory, reg)
+-		selected_size += memblock_region_memory_end_pfn(reg) -
+-				 memblock_region_memory_base_pfn(reg);
  
- #if defined(HASHED_PAGE_VIRTUAL)
- 
-@@ -481,4 +481,4 @@ void __init page_address_init(void)
- 	}
- }
- 
--#endif	/* defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL) */
-+#endif	/* defined(HASHED_PAGE_VIRTUAL) */
+-	selected_size = (selected_size * kvm_cma_resv_ratio / 100) << PAGE_SHIFT;
++	selected_size = PAGE_ALIGN(memblock_phys_mem_size() * kvm_cma_resv_ratio / 100);
+ 	if (selected_size) {
+ 		pr_info("%s: reserving %ld MiB for global area\n", __func__,
+ 			 (unsigned long)selected_size / SZ_1M);
 _
 
-Patches currently in -mm which might be from ira.weiny@intel.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-highmem-clean-up-endif-comments.patch
+kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
+dma-contiguous-simplify-cma_early_percent_memory.patch
+arm-xtensa-simplify-initialization-of-high-memory-pages.patch
+arm64-numa-simplify-dummy_numa_init.patch
+h8300-nds32-openrisc-simplify-detection-of-memory-extents.patch
+riscv-drop-unneeded-node-initialization.patch
+mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
+memblock-make-for_each_memblock_type-iterator-private.patch
+memblock-make-memblock_debug-and-related-functionality-private.patch
+memblock-reduce-number-of-parameters-in-for_each_mem_range.patch
+arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
+x86-setup-simplify-initrd-relocation-and-reservation.patch
+x86-setup-simplify-reserve_crashkernel.patch
+memblock-remove-unused-memblock_mem_size.patch
+memblock-implement-for_each_reserved_mem_region-using-__next_mem_region.patch
+memblock-use-separate-iterators-for-memory-and-reserved-regions.patch
 
