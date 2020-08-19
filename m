@@ -4,46 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF159C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C4EC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD41920855
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:42:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DEE1204EC
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597801363;
-	bh=PGGuID//p+sptN+dfXmDy0NkJG+MeBAUhi6d5dKeJQs=;
+	s=default; t=1597802125;
+	bh=h9wfLQwf2nLot/ORIeeTVWZKPs5fc5GKckHQhKa5ebI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=RgTcWa+0wtluhmeg9P81VYMe6X2w0+UDX+NfBJnzvVHCgf8dLXSSPThkvmL6mKEJU
-	 s3Fs00E+D9NvJv/tLcYzEzFkV81xAmrTN2LE3xkL5YqfgYXDVFk28+Mw+lG1Y7npYC
-	 ucEwAslxNUL2tmkDW8JyIekgXkvkWMzZIprlu1aE=
+	b=zlb4eI4PmaOgv1xmYFWzrEOzvRolIwc9RablpIJrn2uSwA5AulQAPLAEyoDUhxL8d
+	 s5NQ7VPHQY2a1ex2bpMLiihChQEHEBApsWMcdLsyj81ZvDC/NVs66X5EQdggbjyl3B
+	 eMkwOaduPHxD9K1A0l+aQgPTjW0GUcoRH+hPp7tw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727808AbgHSBmn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 21:42:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59864 "EHLO mail.kernel.org"
+        id S1726685AbgHSBzY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 21:55:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726367AbgHSBmm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 21:42:42 -0400
+        id S1726367AbgHSBzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 21:55:24 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 982A92083B;
-        Wed, 19 Aug 2020 01:42:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 131E82067C;
+        Wed, 19 Aug 2020 01:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597801361;
-        bh=PGGuID//p+sptN+dfXmDy0NkJG+MeBAUhi6d5dKeJQs=;
+        s=default; t=1597802123;
+        bh=h9wfLQwf2nLot/ORIeeTVWZKPs5fc5GKckHQhKa5ebI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DlWdJ2z3ZssfiB3ptur7ypDYf0bU++69burYfC4HMF0H6Zz+59kj6I4CdyXDbEJfg
-         ePDMFNE/ksoFd3fu5NAm97dvLcZ+6pglkbaIqkztErkx452VCJHUY27J+4JEEjOx+8
-         SpPA4nvggobPMydRdKCg1sxPrfrJvcWD+hvmFd6Q=
-Date:   Tue, 18 Aug 2020 18:42:41 -0700
+        b=hbE4DNeuYUFxg1P40ytPq3eBo9ew6URuLyXuzxzzWcUPzI09yzELhCOurWQ8cE7vw
+         QB0YO1ZTjz5T4yOGjOngrKhJtIhiKuwp1AJOrsbzJSG9182G62FHgVGmdmp0nhwqTI
+         XF7E7c2rdMbJj1KdlsoJo6dwReH7lNRITlDQPbAs=
+Date:   Tue, 18 Aug 2020 18:55:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     joe@perches.com, mm-commits@vger.kernel.org
-Subject:  + checkpatch-move-repeated-word-test.patch added to -mm
- tree
-Message-ID: <20200819014241.jC2U-SEgZ%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
+        daniel.kiss@arm.com, daniel.m.jordan@oracle.com, dbueso@suse.de,
+        jgg@ziepe.ca, jimmyassarsson@gmail.com, ldufour@linux.ibm.com,
+        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
+        songliubraving@fb.com, steven.price@arm.com, vbabka@suse.cz,
+        walken@google.com, willy@infradead.org, ying.huang@intel.com
+Subject:  + mmap-locking-api-add-mmap_lock_is_contended.patch added
+ to -mm tree
+Message-ID: <20200819015522.vpTX9_1m5%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: move repeated word test
+     Subject: mmap locking API: add mmap_lock_is_contended()
 has been added to the -mm tree.  Its filename is
-     checkpatch-move-repeated-word-test.patch
+     mmap-locking-api-add-mmap_lock_is_contended.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-move-repeated-word-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-add-mmap_lock_is_contended.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-move-repeated-word-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-add-mmap_lock_is_contended.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,113 +80,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: move repeated word test
+From: Chinwen Chang <chinwen.chang@mediatek.com>
+Subject: mmap locking API: add mmap_lock_is_contended()
 
-Currently this test only works on .[ch] files.
+Patch series "Try to release mmap_lock temporarily in smaps_rollup", v4.
 
-Move the test to check more file types and the commit log.
+Recently, we have observed some janky issues caused by unpleasantly long
+contention on mmap_lock which is held by smaps_rollup when probing large
+processes.  To address the problem, we let smaps_rollup detect if anyone
+wants to acquire mmap_lock for write attempts.  If yes, just release the
+lock temporarily to ease the contention.
 
-Link: http://lkml.kernel.org/r/180b3b5677771c902b2e2f7a2b7090ede65fe004.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+smaps_rollup is a procfs interface which allows users to summarize the
+process's memory usage without the overhead of seq_* calls.  Android uses
+it to sample the memory usage of various processes to balance its memory
+pool sizes.  If no one wants to take the lock for write requests,
+smaps_rollup with this patch will behave like the original one.
+
+Although there are on-going mmap_lock optimizations like range-based
+locks, the lock applied to smaps_rollup would be the coarse one, which is
+hard to avoid the occurrence of aforementioned issues.  So the detection
+and temporary release for write attempts on mmap_lock in smaps_rollup is
+still necessary.
+
+
+This patch (of 3):
+
+Add new API to query if someone wants to acquire mmap_lock for write
+attempts.
+
+Using this instead of rwsem_is_contended makes it more tolerant of future
+changes to the lock type.
+
+Link: http://lkml.kernel.org/r/1597715898-3854-1-git-send-email-chinwen.chang@mediatek.com
+Link: http://lkml.kernel.org/r/1597715898-3854-2-git-send-email-chinwen.chang@mediatek.com
+Signed-off-by: Chinwen Chang <chinwen.chang@mediatek.com>
+Reviewed-by: Steven Price <steven.price@arm.com>
+Acked-by: Michel Lespinasse <walken@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Daniel Kiss <daniel.kiss@arm.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jimmy Assarsson <jimmyassarsson@gmail.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   72 ++++++++++++++++++++--------------------
- 1 file changed, 36 insertions(+), 36 deletions(-)
+ include/linux/mmap_lock.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-move-repeated-word-test
-+++ a/scripts/checkpatch.pl
-@@ -2993,6 +2993,42 @@ sub process {
- 			}
- 		}
+--- a/include/linux/mmap_lock.h~mmap-locking-api-add-mmap_lock_is_contended
++++ a/include/linux/mmap_lock.h
+@@ -87,4 +87,9 @@ static inline void mmap_assert_write_loc
+ 	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
+ }
  
-+# check for repeated words separated by a single space
-+		if ($rawline =~ /^\+/ || $in_commit_log) {
-+			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
++static inline int mmap_lock_is_contended(struct mm_struct *mm)
++{
++	return rwsem_is_contended(&mm->mmap_lock);
++}
 +
-+				my $first = $1;
-+				my $second = $2;
-+
-+				if ($first =~ /(?:struct|union|enum)/) {
-+					pos($rawline) += length($first) + length($second) + 1;
-+					next;
-+				}
-+
-+				next if ($first ne $second);
-+				next if ($first eq 'long');
-+
-+				if (WARN("REPEATED_WORD",
-+					 "Possible repeated word: '$first'\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
-+				}
-+			}
-+
-+			# if it's a repeated word on consecutive lines in a comment block
-+			if ($prevline =~ /$;+\s*$/ &&
-+			    $prevrawline =~ /($word_pattern)\s*$/) {
-+				my $last_word = $1;
-+				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
-+					if (WARN("REPEATED_WORD",
-+						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
-+					    $fix) {
-+						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
-+					}
-+				}
-+			}
-+		}
-+
- # ignore non-hunk lines and lines being removed
- 		next if (!$hunk_line || $line =~ /^-/);
- 
-@@ -3316,42 +3352,6 @@ sub process {
- 			}
- 		}
- 
--# check for repeated words separated by a single space
--		if ($rawline =~ /^\+/) {
--			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
--
--				my $first = $1;
--				my $second = $2;
--
--				if ($first =~ /(?:struct|union|enum)/) {
--					pos($rawline) += length($first) + length($second) + 1;
--					next;
--				}
--
--				next if ($first ne $second);
--				next if ($first eq 'long');
--
--				if (WARN("REPEATED_WORD",
--					 "Possible repeated word: '$first'\n" . $herecurr) &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
--				}
--			}
--
--			# if it's a repeated word on consecutive lines in a comment block
--			if ($prevline =~ /$;+\s*$/ &&
--			    $prevrawline =~ /($word_pattern)\s*$/) {
--				my $last_word = $1;
--				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
--					if (WARN("REPEATED_WORD",
--						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
--					    $fix) {
--						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
--					}
--				}
--			}
--		}
--
- # check for space before tabs.
- 		if ($rawline =~ /^\+/ && $rawline =~ / \t/) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ #endif /* _LINUX_MMAP_LOCK_H */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from chinwen.chang@mediatek.com are
 
-checkpatch-test-git_dir-changes.patch
-checkpatch-move-repeated-word-test.patch
+mmap-locking-api-add-mmap_lock_is_contended.patch
+mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
+mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch
 
