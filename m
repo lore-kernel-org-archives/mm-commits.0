@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D33C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:37:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50F38C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:39:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6A4020882
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:37:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34E1C2083B
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:39:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597865845;
-	bh=aS3s4hrzBb5AFFojxkB5/SHmncJZd9phnk4kjdkZFT4=;
+	s=default; t=1597865949;
+	bh=DxbS27PjcrGq47Jy2vOo4fq71i7SBBqm9acMLvSGxHA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=PP8vpEg4CEPh6NysTL6n43ynQ+2xzHultwlDzZwhV79xNUIe48rvhlqxp/29kTuT0
-	 qyhZKy7/WFVdzr1WcZAufoYgRfpSPDA6eKVoop9aFSB6jItdeM4bAw9UYhVTT7CXcJ
-	 RHCLX00Kh26z4HRQ5dMiW2oZQGsVeBNLa6drA9GA=
+	b=jtlWrMbSPhBnAtsjcwIFXQhtdKDNlhXxmuwBdi18BR68lso0OWNno5SzXIyIoQ/Zs
+	 y4D5moeQgT0Oe14EHUpVo+5PS2Urdv1onUd944FpCTtXPBWPmoiZR4yk6xXQuyuRYQ
+	 HFT4A/hBFQJLC5RWXg89McGzQNMmmL3nR3Dz7wXM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726852AbgHSThZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:37:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48070 "EHLO mail.kernel.org"
+        id S1726729AbgHSTjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:39:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725997AbgHSThX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:37:23 -0400
+        id S1726466AbgHSTjH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:39:07 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9F835207BB;
-        Wed, 19 Aug 2020 19:37:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9CA08207BB;
+        Wed, 19 Aug 2020 19:39:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597865843;
-        bh=aS3s4hrzBb5AFFojxkB5/SHmncJZd9phnk4kjdkZFT4=;
+        s=default; t=1597865946;
+        bh=DxbS27PjcrGq47Jy2vOo4fq71i7SBBqm9acMLvSGxHA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0B8gSZMSS0ik3t2+y4lEenZiLA4+z+7Dwt2uJzwvwF/djE0MKTj9JXGd4/cNdOC47
-         T+EUvWx98sa147NWhnidFc6sx+OiFKHFeJ8XNF4czvY1m86RoUyv9G7ZJ6mGEmcC3P
-         hedA34dgBmKttsYZQ8NpvMMlpPkAtLiUWj0MQJOk=
-Date:   Wed, 19 Aug 2020 12:37:22 -0700
+        b=PaNNzIE2SBzinZaOKckMxMr020dXpzS0v0gril98Xh/NEbdeqKKLAelOfLwuJa33I
+         /cWDYJ4AATKBlDXtPBTnEOPyz2Xqndd7CrysMmvwwHiryrgV/EQtOmCP+ubEU+OLhj
+         fedKocMgR0tPKC3D8jxk86aJOrx7r+tSDHtokU2c=
+Date:   Wed, 19 Aug 2020 12:39:06 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, liu.xiang6@zte.com.cn,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, wuyun.wu@huawei.com
-Subject:  + mm-slub-make-add_full-condition-more-explicit.patch
+To:     dan.j.williams@intel.com, ira.weiny@intel.com,
+        mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
+        william.kucharski@oracle.com
+Subject:  + memremap-convert-devmap-static-branch-to-incdec.patch
  added to -mm tree
-Message-ID: <20200819193722.x8Rf_X2Xb%akpm@linux-foundation.org>
+Message-ID: <20200819193906.w1nj95HjC%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: make add_full() condition more explicit
+     Subject: mm/memremap.c: convert devmap static branch to {inc,dec}
 has been added to the -mm tree.  Its filename is
-     mm-slub-make-add_full-condition-more-explicit.patch
+     memremap-convert-devmap-static-branch-to-incdec.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-make-add_full-condition-more-explicit.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memremap-convert-devmap-static-branch-to-incdec.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-make-add_full-condition-more-explicit.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memremap-convert-devmap-static-branch-to-incdec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,55 +77,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Abel Wu <wuyun.wu@huawei.com>
-Subject: mm/slub: make add_full() condition more explicit
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/memremap.c: convert devmap static branch to {inc,dec}
 
-The commit below is incomplete, as it didn't handle the add_full() part. 
-commit a4d3f8916c65 ("slub: remove useless kmem_cache_debug() before
-remove_full()")
+While reviewing Protection Key Supervisor support it was pointed out that
+using a counter to track static branch enable was an anti-pattern which
+was better solved using the provided static_branch_{inc,dec} functions.[1]
 
-This patch checks for SLAB_STORE_USER instead of kmem_cache_debug(), since
-that should be the only context in which we need the list_lock for
-add_full().
+Fix up devmap_managed_key to work the same way.  Also this should be safer
+because there is a very small (very unlikely) race when multiple callers
+try to enable at the same time.
 
-Link: https://lkml.kernel.org/r/20200811020240.1231-1-wuyun.wu@huawei.com
-Signed-off-by: Abel Wu <wuyun.wu@huawei.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Liu Xiang <liu.xiang6@zte.com.cn>
+[1] https://lore.kernel.org/lkml/20200714194031.GI5523@worktop.programming.kicks-ass.net/
+
+Link: https://lkml.kernel.org/r/20200810235319.2796597-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memremap.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/slub.c~mm-slub-make-add_full-condition-more-explicit
-+++ a/mm/slub.c
-@@ -2250,7 +2250,8 @@ redo:
- 		}
- 	} else {
- 		m = M_FULL;
--		if (kmem_cache_debug(s) && !lock) {
-+#ifdef CONFIG_SLUB_DEBUG
-+		if ((s->flags & SLAB_STORE_USER) && !lock) {
- 			lock = 1;
- 			/*
- 			 * This also ensures that the scanning of full
-@@ -2259,6 +2260,7 @@ redo:
- 			 */
- 			spin_lock(&n->list_lock);
- 		}
-+#endif
+--- a/mm/memremap.c~memremap-convert-devmap-static-branch-to-incdec
++++ a/mm/memremap.c
+@@ -40,12 +40,10 @@ EXPORT_SYMBOL_GPL(memremap_compat_align)
+ #ifdef CONFIG_DEV_PAGEMAP_OPS
+ DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
+ EXPORT_SYMBOL(devmap_managed_key);
+-static atomic_t devmap_managed_enable;
+ 
+ static void devmap_managed_enable_put(void)
+ {
+-	if (atomic_dec_and_test(&devmap_managed_enable))
+-		static_branch_disable(&devmap_managed_key);
++	static_branch_dec(&devmap_managed_key);
+ }
+ 
+ static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
+@@ -56,8 +54,7 @@ static int devmap_managed_enable_get(str
+ 		return -EINVAL;
  	}
  
- 	if (l != m) {
+-	if (atomic_inc_return(&devmap_managed_enable) == 1)
+-		static_branch_enable(&devmap_managed_key);
++	static_branch_inc(&devmap_managed_key);
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from wuyun.wu@huawei.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
-mm-slub-branch-optimization-in-free-slowpath.patch
-mm-slub-fix-missing-alloc_slowpath-stat-when-bulk-alloc.patch
-mm-slub-make-add_full-condition-more-explicit.patch
+memremap-convert-devmap-static-branch-to-incdec.patch
+mm-highmem-clean-up-endif-comments.patch
 
