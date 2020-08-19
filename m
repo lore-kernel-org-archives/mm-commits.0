@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A8BC433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5728FC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6446020882
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3832E20888
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597865256;
-	bh=X+X/gXDeK9ajyEn8OJAJQs7ffcYwXTmARhz6tCNMe7o=;
+	s=default; t=1597865260;
+	bh=/SZKVEIjEoV4cGm+TdIeiKKUhjxWcpDjqXTORC9CNbg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=OIlBxf+nVifo5UGcKvkk7K+TtBDImKrs3qFw8WzJSK5BmZnHV65nij+duNAW+L6Ev
-	 Rqwb5kkGJcZe8CkPBEUk5TguEmT93uuj9CBC13DafDoxT0mZMGoo3kwbqOzBbPfq/L
-	 DQEhMqt9M25L6qe9A2u7TYrI94FAO2kbGmPP1PrA=
+	b=mx0XA0+OWVe2Gv40glpAGDPvmy90hnQ0cBQ5osZsCi3IAEG4Rkfcw0Q49GzJzHaMu
+	 fkA6tqXkR9hPP1xaU5bgCp+aB2D1grJhJTQJ/GOv7dBFdmyLlrNmWpDttgmE6LAcCV
+	 k+1TSmItA5HYqDaM06jdEuH4smNX9VIbgFsFmv98=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726884AbgHST1f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:27:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36170 "EHLO mail.kernel.org"
+        id S1726732AbgHST1j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:27:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726853AbgHST1f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:27:35 -0400
+        id S1726852AbgHST1j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:27:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3C677207DA;
-        Wed, 19 Aug 2020 19:27:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 33D5820882;
+        Wed, 19 Aug 2020 19:27:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597865254;
-        bh=X+X/gXDeK9ajyEn8OJAJQs7ffcYwXTmARhz6tCNMe7o=;
+        s=default; t=1597865258;
+        bh=/SZKVEIjEoV4cGm+TdIeiKKUhjxWcpDjqXTORC9CNbg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LBkXBOm4c0ZpFk1B19Euzc13VcZLSbvAsO3gUV2Q29K0r3NVu4426/VJbOcI5DNo7
-         g93/bU2QA/riZ+aYedLdnBqTXbr7gE/Ylx2gcG+HL/Wm3HCmdidhZiiKmfy5lCQH5a
-         OAGSRJv90wsTeCiuQPyVxd+Dv4W/czJic7cROZPE=
-Date:   Wed, 19 Aug 2020 12:27:32 -0700
+        b=rtRsUgA/Y2DT3X6oDauaWwssR2riTH/Jab3gHaQTmmfnCcv8zx+3h+C/Y50iM+pKn
+         a7doXFEoGKaKbF1Ndt4ru0zW0cczQyMVA7E4HaiHB48VfuYYBXel8cLvZz1hsLEEHm
+         4vvHmPVoZdbKLftkuo2Kxc/aLU7OIHsrCMWLohD8=
+Date:   Wed, 19 Aug 2020 12:27:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -52,9 +52,9 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
 Subject:  +
- mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch added to
- -mm tree
-Message-ID: <20200819192732.9ZWFcnBOJ%akpm@linux-foundation.org>
+ memblock-make-for_each_memblock_type-iterator-private.patch added to -mm
+ tree
+Message-ID: <20200819192736.g8dMXtP5N%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -65,14 +65,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mircoblaze: drop unneeded NUMA and sparsemem initializations
+     Subject: memblock: make for_each_memblock_type() iterator private
 has been added to the -mm tree.  Its filename is
-     mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
+     memblock-make-for_each_memblock_type-iterator-private.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memblock-make-for_each_memblock_type-iterator-private.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-make-for_each_memblock_type-iterator-private.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,19 +87,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mircoblaze: drop unneeded NUMA and sparsemem initializations
+Subject: memblock: make for_each_memblock_type() iterator private
 
-microblaze does not support neither NUMA not SPARSMEM, so there is no
-point to call memblock_set_node() and
-sparse_memory_present_with_active_regions() functions during microblaze
-memory initialization.
+for_each_memblock_type() is not used outside mm/memblock.c, move it there
+from include/linux/memblock.h
 
-Remove these calls and the surrounding code.
-
-Link: https://lkml.kernel.org/r/20200818151634.14343-8-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-9-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -129,40 +125,38 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/mm/init.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ include/linux/memblock.h |    5 -----
+ mm/memblock.c            |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/microblaze/mm/init.c~mircoblaze-drop-unneeded-numa-and-sparsemem-initializations
-+++ a/arch/microblaze/mm/init.c
-@@ -105,9 +105,8 @@ static void __init paging_init(void)
+--- a/include/linux/memblock.h~memblock-make-for_each_memblock_type-iterator-private
++++ a/include/linux/memblock.h
+@@ -552,11 +552,6 @@ static inline unsigned long memblock_reg
+ 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+ 	     region++)
  
- void __init setup_memory(void)
- {
--	struct memblock_region *reg;
+-#define for_each_memblock_type(i, memblock_type, rgn)			\
+-	for (i = 0, rgn = &memblock_type->regions[0];			\
+-	     i < memblock_type->cnt;					\
+-	     i++, rgn = &memblock_type->regions[i])
 -
- #ifndef CONFIG_MMU
-+	struct memblock_region *reg;
- 	u32 kernel_align_start, kernel_align_size;
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
+ 				     unsigned long numentries,
+--- a/mm/memblock.c~memblock-make-for_each_memblock_type-iterator-private
++++ a/mm/memblock.c
+@@ -132,6 +132,11 @@ struct memblock_type physmem = {
+ };
+ #endif
  
- 	/* Find main memory where is the kernel */
-@@ -161,17 +160,6 @@ void __init setup_memory(void)
- 	pr_info("%s: max_low_pfn: %#lx\n", __func__, max_low_pfn);
- 	pr_info("%s: max_pfn: %#lx\n", __func__, max_pfn);
- 
--	/* Add active regions with valid PFNs */
--	for_each_memblock(memory, reg) {
--		unsigned long start_pfn, end_pfn;
--
--		start_pfn = memblock_region_memory_base_pfn(reg);
--		end_pfn = memblock_region_memory_end_pfn(reg);
--		memblock_set_node(start_pfn << PAGE_SHIFT,
--				  (end_pfn - start_pfn) << PAGE_SHIFT,
--				  &memblock.memory, 0);
--	}
--
- 	paging_init();
- }
- 
++#define for_each_memblock_type(i, memblock_type, rgn)			\
++	for (i = 0, rgn = &memblock_type->regions[0];			\
++	     i < memblock_type->cnt;					\
++	     i++, rgn = &memblock_type->regions[i])
++
+ int memblock_debug __initdata_memblock;
+ static bool system_has_some_mirror __initdata_memblock = false;
+ static int memblock_can_resize __initdata_memblock;
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
