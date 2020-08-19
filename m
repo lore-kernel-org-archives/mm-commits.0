@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17B4EC433E3
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:28:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9586C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:28:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8AE0214F1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:28:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA92A2078D
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597865291;
-	bh=orNmW2xNug3kuYWFGNz6jjmB7Z5VF1yCSoEkQkE8/3c=;
+	s=default; t=1597865293;
+	bh=cYHqmjegN1Hvdk8EcWLWyp8e9M6GXI6vFTMu8NgDmWw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HwIUudLVfxH55tr7mKlOYmVSNiZa2dbKsRvm+mb9/KYmrrD4MHXitXNAN1i/0BGg0
-	 U6EP6bP5KkrWi+uBgh/BQ5zM24217tihJVXEd+LzGLtnuboYzwb474Y9kMw19RPIsd
-	 GBg/kNMBUvYKfS5cMO6Tg09WQ/vbIzVKN26UV6HM=
+	b=hbzPof7GxWARIItWvQCk8kL1X45cSILND4GFwDZ3fHyV3pkp0T8zeNcWTWawn9E3U
+	 MCUERa7smH2EaeX9ir1ifsYFG/ODY1aRJd6qzXOp+vMgT4gAyYYZJLgTBw4nXaU9oa
+	 VlJ/zIioAISD8fyyEJCxG948br2YA7hBDW57CnSQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726646AbgHST2K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:28:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36746 "EHLO mail.kernel.org"
+        id S1726871AbgHST2N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:28:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726689AbgHST2H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:28:07 -0400
+        id S1726689AbgHST2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:28:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3B8AA207BB;
-        Wed, 19 Aug 2020 19:28:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3B524207DA;
+        Wed, 19 Aug 2020 19:28:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597865287;
-        bh=orNmW2xNug3kuYWFGNz6jjmB7Z5VF1yCSoEkQkE8/3c=;
+        s=default; t=1597865291;
+        bh=cYHqmjegN1Hvdk8EcWLWyp8e9M6GXI6vFTMu8NgDmWw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=y0YNglyXqMO8wrbg+BcaNCvPi32Lmb2m/zO2iKsQX+aOdsgxYRVnnMtEmNxHEk632
-         Xzzbct/q8tc47wl2amSUY9IHzlFqQXVLAN4D3BUWhkYsKYz3jW20y2ZRnFK830j0Sa
-         eNBG6Wofm33YAAWTPGmrNEcXjIW9ReoByeXp1+w8=
-Date:   Wed, 19 Aug 2020 12:28:05 -0700
+        b=Dgy37DTsjO0OL0i3vfEIRn2prNdm+e7jX7jisrOnm6sNyvFe/r82C9/q2BYTtq3MF
+         BtVlgEVwZfSGpIssAiSpRYncIkgv/s1svgzcj9qPasUsu9MYhBLg8ymMlDIQUZl5qp
+         /H5CTv2dZH3ES4wz+Ua/Bs23CKUJ1G8oF6bfESUg=
+Date:   Wed, 19 Aug 2020 12:28:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -51,10 +51,9 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         paulus@samba.org, peterz@infradead.org, rppt@linux.ibm.com,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
-Subject:  +
- x86-setup-simplify-initrd-relocation-and-reservation.patch added to -mm
- tree
-Message-ID: <20200819192805.x7FVwHbgu%akpm@linux-foundation.org>
+Subject:  + x86-setup-simplify-reserve_crashkernel.patch added to
+ -mm tree
+Message-ID: <20200819192809.pV6Ux-Jec%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -65,14 +64,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/setup: simplify initrd relocation and reservation
+     Subject: x86/setup: simplify reserve_crashkernel()
 has been added to the -mm tree.  Its filename is
-     x86-setup-simplify-initrd-relocation-and-reservation.patch
+     x86-setup-simplify-reserve_crashkernel.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-setup-simplify-initrd-relocation-and-reservation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-setup-simplify-reserve_crashkernel.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-setup-simplify-initrd-relocation-and-reservation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-setup-simplify-reserve_crashkernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,24 +86,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: x86/setup: simplify initrd relocation and reservation
+Subject: x86/setup: simplify reserve_crashkernel()
 
-Currently, initrd image is reserved very early during setup and then it
-might be relocated and re-reserved after the initial physical memory
-mapping is created.  The "late" reservation of memblock verifies that
-mapped memory size exceeds the size of initrd, then checks whether the
-relocation required and, if yes, relocates inirtd to a new memory
-allocated from memblock and frees the old location.
+* Replace magic numbers with defines
+* Replace memblock_find_in_range() + memblock_reserve() with
+  memblock_phys_alloc_range()
+* Stop checking for low memory size in reserve_crashkernel_low(). The
+  allocation from limited range will anyway fail if there is no enough
+  memory, so there is no need for extra traversal of memblock.memory
 
-The check for memory size is excessive as memblock allocation will anyway
-fail if there is not enough memory.  Besides, there is no point to
-allocate memory from memblock using memblock_find_in_range() +
-memblock_reserve() when there exists memblock_phys_alloc_range() with
-required functionality.
-
-Remove the redundant check and simplify memblock allocation.
-
-Link: https://lkml.kernel.org/r/20200818151634.14343-14-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-15-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Acked-by: Ingo Molnar <mingo@kernel.org>
 Reviewed-by: Baoquan He <bhe@redhat.com>
@@ -137,58 +128,97 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ arch/x86/kernel/setup.c |   40 +++++++++++++-------------------------
+ 1 file changed, 14 insertions(+), 26 deletions(-)
 
---- a/arch/x86/kernel/setup.c~x86-setup-simplify-initrd-relocation-and-reservation
+--- a/arch/x86/kernel/setup.c~x86-setup-simplify-reserve_crashkernel
 +++ a/arch/x86/kernel/setup.c
-@@ -263,16 +263,12 @@ static void __init relocate_initrd(void)
- 	u64 area_size     = PAGE_ALIGN(ramdisk_size);
- 
- 	/* We need to move the initrd down into directly mapped mem */
--	relocated_ramdisk = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
--						   area_size, PAGE_SIZE);
--
-+	relocated_ramdisk = memblock_phys_alloc_range(area_size, PAGE_SIZE, 0,
-+						      PFN_PHYS(max_pfn_mapped));
- 	if (!relocated_ramdisk)
- 		panic("Cannot find place for new RAMDISK of size %lld\n",
- 		      ramdisk_size);
- 
--	/* Note: this includes all the mem currently occupied by
--	   the initrd, we rely on that fact to keep the data intact. */
--	memblock_reserve(relocated_ramdisk, area_size);
- 	initrd_start = relocated_ramdisk + PAGE_OFFSET;
- 	initrd_end   = initrd_start + ramdisk_size;
- 	printk(KERN_INFO "Allocated new RAMDISK: [mem %#010llx-%#010llx]\n",
-@@ -299,13 +295,13 @@ static void __init early_reserve_initrd(
- 
- 	memblock_reserve(ramdisk_image, ramdisk_end - ramdisk_image);
- }
-+
- static void __init reserve_initrd(void)
+@@ -420,13 +420,13 @@ static int __init reserve_crashkernel_lo
  {
- 	/* Assume only end is not page aligned */
- 	u64 ramdisk_image = get_ramdisk_image();
- 	u64 ramdisk_size  = get_ramdisk_size();
- 	u64 ramdisk_end   = PAGE_ALIGN(ramdisk_image + ramdisk_size);
--	u64 mapped_size;
+ #ifdef CONFIG_X86_64
+ 	unsigned long long base, low_base = 0, low_size = 0;
+-	unsigned long total_low_mem;
++	unsigned long low_mem_limit;
+ 	int ret;
  
- 	if (!boot_params.hdr.type_of_loader ||
- 	    !ramdisk_image || !ramdisk_size)
-@@ -313,12 +309,6 @@ static void __init reserve_initrd(void)
+-	total_low_mem = memblock_mem_size(1UL << (32 - PAGE_SHIFT));
++	low_mem_limit = min(memblock_phys_mem_size(), CRASH_ADDR_LOW_MAX);
  
- 	initrd_start = 0;
+ 	/* crashkernel=Y,low */
+-	ret = parse_crashkernel_low(boot_command_line, total_low_mem, &low_size, &base);
++	ret = parse_crashkernel_low(boot_command_line, low_mem_limit, &low_size, &base);
+ 	if (ret) {
+ 		/*
+ 		 * two parts from kernel/dma/swiotlb.c:
+@@ -444,23 +444,17 @@ static int __init reserve_crashkernel_lo
+ 			return 0;
+ 	}
  
--	mapped_size = memblock_mem_size(max_pfn_mapped);
--	if (ramdisk_size >= (mapped_size>>1))
--		panic("initrd too large to handle, "
--		       "disabling initrd (%lld needed, %lld available)\n",
--		       ramdisk_size, mapped_size>>1);
+-	low_base = memblock_find_in_range(0, 1ULL << 32, low_size, CRASH_ALIGN);
++	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
+ 	if (!low_base) {
+ 		pr_err("Cannot reserve %ldMB crashkernel low memory, please try smaller size.\n",
+ 		       (unsigned long)(low_size >> 20));
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = memblock_reserve(low_base, low_size);
+-	if (ret) {
+-		pr_err("%s: Error reserving crashkernel low memblock.\n", __func__);
+-		return ret;
+-	}
 -
- 	printk(KERN_INFO "RAMDISK: [mem %#010llx-%#010llx]\n", ramdisk_image,
- 			ramdisk_end - 1);
+-	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (System low RAM: %ldMB)\n",
++	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (low RAM limit: %ldMB)\n",
+ 		(unsigned long)(low_size >> 20),
+ 		(unsigned long)(low_base >> 20),
+-		(unsigned long)(total_low_mem >> 20));
++		(unsigned long)(low_mem_limit >> 20));
  
+ 	crashk_low_res.start = low_base;
+ 	crashk_low_res.end   = low_base + low_size - 1;
+@@ -504,13 +498,13 @@ static void __init reserve_crashkernel(v
+ 		 * unless "crashkernel=size[KMG],high" is specified.
+ 		 */
+ 		if (!high)
+-			crash_base = memblock_find_in_range(CRASH_ALIGN,
+-						CRASH_ADDR_LOW_MAX,
+-						crash_size, CRASH_ALIGN);
++			crash_base = memblock_phys_alloc_range(crash_size,
++						CRASH_ALIGN, CRASH_ALIGN,
++						CRASH_ADDR_LOW_MAX);
+ 		if (!crash_base)
+-			crash_base = memblock_find_in_range(CRASH_ALIGN,
+-						CRASH_ADDR_HIGH_MAX,
+-						crash_size, CRASH_ALIGN);
++			crash_base = memblock_phys_alloc_range(crash_size,
++						CRASH_ALIGN, CRASH_ALIGN,
++						CRASH_ADDR_HIGH_MAX);
+ 		if (!crash_base) {
+ 			pr_info("crashkernel reservation failed - No suitable area found.\n");
+ 			return;
+@@ -518,19 +512,13 @@ static void __init reserve_crashkernel(v
+ 	} else {
+ 		unsigned long long start;
+ 
+-		start = memblock_find_in_range(crash_base,
+-					       crash_base + crash_size,
+-					       crash_size, 1 << 20);
++		start = memblock_phys_alloc_range(crash_size, SZ_1M, crash_base,
++						  crash_base + crash_size);
+ 		if (start != crash_base) {
+ 			pr_info("crashkernel reservation failed - memory is in use.\n");
+ 			return;
+ 		}
+ 	}
+-	ret = memblock_reserve(crash_base, crash_size);
+-	if (ret) {
+-		pr_err("%s: Error reserving crashkernel memblock.\n", __func__);
+-		return;
+-	}
+ 
+ 	if (crash_base >= (1ULL << 32) && reserve_crashkernel_low()) {
+ 		memblock_free(crash_base, crash_size);
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
