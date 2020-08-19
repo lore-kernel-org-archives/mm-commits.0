@@ -7,47 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B16C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:39:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED16C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB3252063A
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:39:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECD4D20829
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:50:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597808389;
-	bh=RqEBK9mZg1Iy8pbgPMXGj4mhQci6VFML79/j/Fx0+gI=;
+	s=default; t=1597809039;
+	bh=55jppr0ldwp0aNy+8yVrVgZM1kDLuoqw7GDMqoxdxvo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=XxDhJASt0PQPFAeWlZtx++eY04CyPwwAxzGcufxrBeVLNnIr8xbJz4YTbt/rd3G7O
-	 0xkzIxZRvMB0eD9cW1rida/vIzlIDT90wCSMdIwpIZ7lCcZz06ZMptG8FLrmkNVuLm
-	 5OrNvXjAYDDBYbkc5pxHwyn11go9YgNeSFZZ0UUY=
+	b=qvBL0d0uMCu4uOS+tNZdW4Q5XC64tS9GI4/SiMWcVHLf/puXYjWGKHpJCIiIxRHNe
+	 2+qRO+l5IhxdLL7O9mKgXd/HNVx3HewouMi3UqMl2784DzfvHEmA3y7U074dmY9wf3
+	 ZBrnG86QwmhIwNF9Twf7gppfkJ/5tpqVaHtKQIzY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726636AbgHSDjt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 23:39:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44816 "EHLO mail.kernel.org"
+        id S1726422AbgHSDui (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 23:50:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726495AbgHSDjr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 23:39:47 -0400
+        id S1725903AbgHSDui (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 23:50:38 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B3F842078B;
-        Wed, 19 Aug 2020 03:39:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0939B20709;
+        Wed, 19 Aug 2020 03:50:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597808387;
-        bh=RqEBK9mZg1Iy8pbgPMXGj4mhQci6VFML79/j/Fx0+gI=;
+        s=default; t=1597809037;
+        bh=55jppr0ldwp0aNy+8yVrVgZM1kDLuoqw7GDMqoxdxvo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=RNCwY/mD+uVQgcG3CKL8P+vALsUoW8EgJTs9cV78CiY4bj86X2xGBcjBuYpzt2B7K
-         AvPVM2IuVYGYdOH0ySX1smerz3MmC7abYcYtwWuwSV91rFIUxIeR3jdr7pYNFdtQxf
-         Z8gEE2ZB4DFpjMgiHIzya1aCEQ27e9UIboLuyTn4=
-Date:   Tue, 18 Aug 2020 20:39:46 -0700
+        b=OKIJHCeWWqZL5PWTQgTWpyGKTUJAvnl/b06nOIypPCfjXLqJNyMwQ7cS86i51P3Ai
+         9NKa26Zj7Wvdt1fV5p5ImZc3qfkVr3BPO3CAY83jozJ0+hIAwjexQVmRqbQSnNHNmn
+         +l8p1udf63Xmz0Y5LxTWyoiSYqhvclBWtz0HBCtM=
+Date:   Tue, 18 Aug 2020 20:50:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     cl@linux.com, david@redhat.com, ego@linux.vnet.ibm.com,
-        kirill@shutemov.name, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        sathnaga@linux.vnet.ibm.com, srikar@linux.vnet.ibm.com,
-        vbabka@suse.cz
-Subject:  [to-be-updated]
- powerpc-numa-prefer-node-id-queried-from-vphn.patch removed from -mm tree
-Message-ID: <20200819033946.WBoxLc-_6%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, alex.shi@linux.alibaba.com, guro@fb.com,
+        hannes@cmpxchg.org, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mhocko@kernel.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, vdavydov.dev@gmail.com,
+        willy@infradead.org
+Subject:  +
+ mm-memcg-warning-on-memcg-after-readahead-page-charged.patch added to -mm
+ tree
+Message-ID: <20200819035036.srx4Cy0hh%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,74 +60,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/numa: prefer node id queried from vphn
-has been removed from the -mm tree.  Its filename was
-     powerpc-numa-prefer-node-id-queried-from-vphn.patch
+     Subject: mm/memcg: warning on !memcg after readahead page charged
+has been added to the -mm tree.  Its filename is
+     mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: powerpc/numa: prefer node id queried from vphn
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: warning on !memcg after readahead page charged
 
-Node id queried from the static device tree may not be correct.  For
-example: it may always show 0 on a shared processor.  Hence prefer the
-node id queried from vphn and fallback on the device tree based node id if
-vphn query fails.
+Since readahead page is charged on memcg too, in theory we don't have to
+check this exception now.  Before safely remove them all, add a warning
+for the unexpected !memcg.
 
-Link: http://lkml.kernel.org/r/20200624092846.9194-3-srikar@linux.vnet.ibm.com
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Reviewed-by: Gautham R. Shenoy <ego@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: http://lkml.kernel.org/r/1597144232-11370-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ include/linux/mmdebug.h |   13 +++++++++++++
+ mm/memcontrol.c         |   15 ++++++++-------
+ 2 files changed, 21 insertions(+), 7 deletions(-)
 
---- a/arch/powerpc/mm/numa.c~powerpc-numa-prefer-node-id-queried-from-vphn
-+++ a/arch/powerpc/mm/numa.c
-@@ -724,21 +724,22 @@ static int __init parse_numa_properties(
- 	 */
- 	for_each_present_cpu(i) {
- 		struct device_node *cpu;
--		int nid;
--
--		cpu = of_get_cpu_node(i, NULL);
--		BUG_ON(!cpu);
--		nid = of_node_to_nid_single(cpu);
--		of_node_put(cpu);
-+		int nid = vphn_get_nid(i);
- 
- 		/*
- 		 * Don't fall back to default_nid yet -- we will plug
- 		 * cpus into nodes once the memory scan has discovered
- 		 * the topology.
- 		 */
--		if (nid < 0)
--			continue;
--		node_set_online(nid);
-+		if (nid == NUMA_NO_NODE) {
-+			cpu = of_get_cpu_node(i, NULL);
-+			BUG_ON(!cpu);
-+			nid = of_node_to_nid_single(cpu);
-+			of_node_put(cpu);
-+		}
+--- a/include/linux/mmdebug.h~mm-memcg-warning-on-memcg-after-readahead-page-charged
++++ a/include/linux/mmdebug.h
+@@ -37,6 +37,18 @@ void dump_mm(const struct mm_struct *mm)
+ 			BUG();						\
+ 		}							\
+ 	} while (0)
++#define VM_WARN_ON_ONCE_PAGE(cond, page)	({			\
++	static bool __section(.data.once) __warned;			\
++	int __ret_warn_once = !!(cond);					\
++									\
++	if (unlikely(__ret_warn_once && !__warned)) {			\
++		dump_page(page, "VM_WARN_ON_ONCE_PAGE(" __stringify(cond)")");\
++		__warned = true;					\
++		WARN_ON(1);						\
++	}								\
++	unlikely(__ret_warn_once);					\
++})
 +
-+		if (likely(nid > 0))
-+			node_set_online(nid);
+ #define VM_WARN_ON(cond) (void)WARN_ON(cond)
+ #define VM_WARN_ON_ONCE(cond) (void)WARN_ON_ONCE(cond)
+ #define VM_WARN_ONCE(cond, format...) (void)WARN_ONCE(cond, format)
+@@ -48,6 +60,7 @@ void dump_mm(const struct mm_struct *mm)
+ #define VM_BUG_ON_MM(cond, mm) VM_BUG_ON(cond)
+ #define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
+ #define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
++#define VM_WARN_ON_ONCE_PAGE(cond, page)  BUILD_BUG_ON_INVALID(cond)
+ #define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
+ #define VM_WARN(cond, format...) BUILD_BUG_ON_INVALID(cond)
+ #endif
+--- a/mm/memcontrol.c~mm-memcg-warning-on-memcg-after-readahead-page-charged
++++ a/mm/memcontrol.c
+@@ -1322,10 +1322,8 @@ struct lruvec *mem_cgroup_page_lruvec(st
  	}
  
- 	get_n_mem_cells(&n_mem_addr_cells, &n_mem_size_cells);
+ 	memcg = page->mem_cgroup;
+-	/*
+-	 * Swapcache readahead pages are added to the LRU - and
+-	 * possibly migrated - before they are charged.
+-	 */
++	/* Readahead page is charged too, to see if other page uncharged */
++	VM_WARN_ON_ONCE_PAGE(!memcg, page);
+ 	if (!memcg)
+ 		memcg = root_mem_cgroup;
+ 
+@@ -6906,8 +6904,9 @@ void mem_cgroup_migrate(struct page *old
+ 	if (newpage->mem_cgroup)
+ 		return;
+ 
+-	/* Swapcache readahead pages can get replaced before being charged */
+ 	memcg = oldpage->mem_cgroup;
++	/* Readahead page is charged too, to see if other page uncharged */
++	VM_WARN_ON_ONCE_PAGE(!memcg, oldpage);
+ 	if (!memcg)
+ 		return;
+ 
+@@ -7104,7 +7103,8 @@ void mem_cgroup_swapout(struct page *pag
+ 
+ 	memcg = page->mem_cgroup;
+ 
+-	/* Readahead page, never charged */
++	/* Readahead page is charged too, to see if other page uncharged */
++	VM_WARN_ON_ONCE_PAGE(!memcg, page);
+ 	if (!memcg)
+ 		return;
+ 
+@@ -7168,7 +7168,8 @@ int mem_cgroup_try_charge_swap(struct pa
+ 
+ 	memcg = page->mem_cgroup;
+ 
+-	/* Readahead page, never charged */
++	/* Readahead page is charged too, to see if other page uncharged */
++	VM_WARN_ON_ONCE_PAGE(!memcg, page);
+ 	if (!memcg)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcg-remove-useless-check-on-page-mem_cgroup.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-clean-up-lru_add_page_tail.patch
+mm-thp-remove-code-path-which-never-got-into.patch
+mm-thp-narrow-lru-locking.patch
 
