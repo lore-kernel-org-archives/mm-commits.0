@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5728FC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E1BEC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3832E20888
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1001E20B1F
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 19:27:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597865260;
-	bh=/SZKVEIjEoV4cGm+TdIeiKKUhjxWcpDjqXTORC9CNbg=;
+	s=default; t=1597865265;
+	bh=V2f8GEsVFIR9wzmdRWu9gKElZC0/33wrMgIdS80EeeQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=mx0XA0+OWVe2Gv40glpAGDPvmy90hnQ0cBQ5osZsCi3IAEG4Rkfcw0Q49GzJzHaMu
-	 fkA6tqXkR9hPP1xaU5bgCp+aB2D1grJhJTQJ/GOv7dBFdmyLlrNmWpDttgmE6LAcCV
-	 k+1TSmItA5HYqDaM06jdEuH4smNX9VIbgFsFmv98=
+	b=CyDync1yMQggMhl/NwTwTGxxXNk32IePJN5QdDIqxRLgwYNojMCkC1xrQTui9ZJbn
+	 TjCFSsWe2zlfGmfb8AySoLbvQCeq9Aiw72IHqdS/w7XLdCgPC88vAM029MFiSAHwhp
+	 e7A4QCf86E8Ghw28Rs0gko/WK8tzDxK6QMOr6Cy4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726732AbgHST1j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 15:27:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36250 "EHLO mail.kernel.org"
+        id S1726853AbgHST1n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 15:27:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726852AbgHST1j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 15:27:39 -0400
+        id S1726852AbgHST1n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 15:27:43 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 33D5820882;
-        Wed, 19 Aug 2020 19:27:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3818620888;
+        Wed, 19 Aug 2020 19:27:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597865258;
-        bh=/SZKVEIjEoV4cGm+TdIeiKKUhjxWcpDjqXTORC9CNbg=;
+        s=default; t=1597865262;
+        bh=V2f8GEsVFIR9wzmdRWu9gKElZC0/33wrMgIdS80EeeQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rtRsUgA/Y2DT3X6oDauaWwssR2riTH/Jab3gHaQTmmfnCcv8zx+3h+C/Y50iM+pKn
-         a7doXFEoGKaKbF1Ndt4ru0zW0cczQyMVA7E4HaiHB48VfuYYBXel8cLvZz1hsLEEHm
-         4vvHmPVoZdbKLftkuo2Kxc/aLU7OIHsrCMWLohD8=
-Date:   Wed, 19 Aug 2020 12:27:36 -0700
+        b=FWe/kQIul9vy4yDH21YPCfOf9Xb6R/MWONvd6I0aMu22nZvSZEUdU/A9QvavNMriV
+         N1uhTIvh8WmK1fvWUETm/h+5Ke69CwYbikTeuKePeUcULP1qSJYvroP0oWBTytybBP
+         YjIh4lyWiVXLYeEPx1Uy9/3aqpgldsIiqo3SDzps=
+Date:   Wed, 19 Aug 2020 12:27:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -52,9 +52,9 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
 Subject:  +
- memblock-make-for_each_memblock_type-iterator-private.patch added to -mm
- tree
-Message-ID: <20200819192736.g8dMXtP5N%akpm@linux-foundation.org>
+ memblock-make-memblock_debug-and-related-functionality-private.patch added
+ to -mm tree
+Message-ID: <20200819192740.zAdqB-zhQ%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -65,14 +65,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: make for_each_memblock_type() iterator private
+     Subject: memblock: make memblock_debug and related functionality private
 has been added to the -mm tree.  Its filename is
-     memblock-make-for_each_memblock_type-iterator-private.patch
+     memblock-make-memblock_debug-and-related-functionality-private.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memblock-make-for_each_memblock_type-iterator-private.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memblock-make-memblock_debug-and-related-functionality-private.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-make-for_each_memblock_type-iterator-private.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-make-memblock_debug-and-related-functionality-private.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,12 +87,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memblock: make for_each_memblock_type() iterator private
+Subject: memblock: make memblock_debug and related functionality private
 
-for_each_memblock_type() is not used outside mm/memblock.c, move it there
-from include/linux/memblock.h
+The only user of memblock_dbg() outside memblock was s390 setup code and
+it is converted to use pr_debug() instead.  This allows to stop exposing
+memblock_debug and memblock_dbg() to the rest of the kernel.
 
-Link: https://lkml.kernel.org/r/20200818151634.14343-9-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -125,38 +126,95 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    5 -----
- mm/memblock.c            |    5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/s390/kernel/setup.c |    4 ++--
+ include/linux/memblock.h |   12 +-----------
+ mm/memblock.c            |   13 +++++++++++--
+ 3 files changed, 14 insertions(+), 15 deletions(-)
 
---- a/include/linux/memblock.h~memblock-make-for_each_memblock_type-iterator-private
-+++ a/include/linux/memblock.h
-@@ -552,11 +552,6 @@ static inline unsigned long memblock_reg
- 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
- 	     region++)
+--- a/arch/s390/kernel/setup.c~memblock-make-memblock_debug-and-related-functionality-private
++++ a/arch/s390/kernel/setup.c
+@@ -776,8 +776,8 @@ static void __init memblock_add_mem_dete
+ 	unsigned long start, end;
+ 	int i;
  
--#define for_each_memblock_type(i, memblock_type, rgn)			\
--	for (i = 0, rgn = &memblock_type->regions[0];			\
--	     i < memblock_type->cnt;					\
--	     i++, rgn = &memblock_type->regions[i])
--
- extern void *alloc_large_system_hash(const char *tablename,
- 				     unsigned long bucketsize,
- 				     unsigned long numentries,
---- a/mm/memblock.c~memblock-make-for_each_memblock_type-iterator-private
-+++ a/mm/memblock.c
-@@ -132,6 +132,11 @@ struct memblock_type physmem = {
+-	memblock_dbg("physmem info source: %s (%hhd)\n",
+-		     get_mem_info_source(), mem_detect.info_source);
++	pr_debug("physmem info source: %s (%hhd)\n",
++		 get_mem_info_source(), mem_detect.info_source);
+ 	/* keep memblock lists close to the kernel */
+ 	memblock_set_bottom_up(true);
+ 	for_each_mem_detect_block(i, &start, &end) {
+--- a/include/linux/memblock.h~memblock-make-memblock_debug-and-related-functionality-private
++++ a/include/linux/memblock.h
+@@ -86,7 +86,6 @@ struct memblock {
  };
+ 
+ extern struct memblock memblock;
+-extern int memblock_debug;
+ 
+ #ifndef CONFIG_ARCH_KEEP_MEMBLOCK
+ #define __init_memblock __meminit
+@@ -98,9 +97,6 @@ void memblock_discard(void);
+ static inline void memblock_discard(void) {}
  #endif
  
-+#define for_each_memblock_type(i, memblock_type, rgn)			\
-+	for (i = 0, rgn = &memblock_type->regions[0];			\
-+	     i < memblock_type->cnt;					\
-+	     i++, rgn = &memblock_type->regions[i])
+-#define memblock_dbg(fmt, ...) \
+-	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+-
+ phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
+ 				   phys_addr_t size, phys_addr_t align);
+ void memblock_allow_resize(void);
+@@ -476,13 +472,7 @@ bool memblock_is_region_memory(phys_addr
+ bool memblock_is_reserved(phys_addr_t addr);
+ bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
+ 
+-extern void __memblock_dump_all(void);
+-
+-static inline void memblock_dump_all(void)
+-{
+-	if (memblock_debug)
+-		__memblock_dump_all();
+-}
++void memblock_dump_all(void);
+ 
+ /**
+  * memblock_set_current_limit - Set the current allocation limit to allow
+--- a/mm/memblock.c~memblock-make-memblock_debug-and-related-functionality-private
++++ a/mm/memblock.c
+@@ -137,7 +137,10 @@ struct memblock_type physmem = {
+ 	     i < memblock_type->cnt;					\
+ 	     i++, rgn = &memblock_type->regions[i])
+ 
+-int memblock_debug __initdata_memblock;
++#define memblock_dbg(fmt, ...) \
++	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
 +
- int memblock_debug __initdata_memblock;
++static int memblock_debug __initdata_memblock;
  static bool system_has_some_mirror __initdata_memblock = false;
  static int memblock_can_resize __initdata_memblock;
+ static int memblock_memory_in_slab __initdata_memblock = 0;
+@@ -1920,7 +1923,7 @@ static void __init_memblock memblock_dum
+ 	}
+ }
+ 
+-void __init_memblock __memblock_dump_all(void)
++static void __init_memblock __memblock_dump_all(void)
+ {
+ 	pr_info("MEMBLOCK configuration:\n");
+ 	pr_info(" memory size = %pa reserved size = %pa\n",
+@@ -1934,6 +1937,12 @@ void __init_memblock __memblock_dump_all
+ #endif
+ }
+ 
++void __init_memblock memblock_dump_all(void)
++{
++	if (memblock_debug)
++		__memblock_dump_all();
++}
++
+ void __init memblock_allow_resize(void)
+ {
+ 	memblock_can_resize = 1;
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
