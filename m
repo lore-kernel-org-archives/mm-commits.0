@@ -7,44 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14E39C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:41:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF159C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:42:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3DE92083B
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:41:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD41920855
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:42:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597801287;
-	bh=Rn5r8KN8XNbuX/xF72Wt9Wu6HdAZjqmOJv1oViUs0GQ=;
+	s=default; t=1597801363;
+	bh=PGGuID//p+sptN+dfXmDy0NkJG+MeBAUhi6d5dKeJQs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Skt4aIMOeTygjBg0sUbh99/z2u1RPFgF7fBkatoHTVnYh/U+ezllkYA8Sp2o5zBRQ
-	 oKIiZ3OqQmM2lrnBVICiX9j3YLsBNPsVUKyFCDflF6KD1MKicY0ncnbhywR86IOp7t
-	 Hi4DEpPH5xu/lDNmkjQjL7UbDFVSGaIBW5ijTXvA=
+	b=RgTcWa+0wtluhmeg9P81VYMe6X2w0+UDX+NfBJnzvVHCgf8dLXSSPThkvmL6mKEJU
+	 s3Fs00E+D9NvJv/tLcYzEzFkV81xAmrTN2LE3xkL5YqfgYXDVFk28+Mw+lG1Y7npYC
+	 ucEwAslxNUL2tmkDW8JyIekgXkvkWMzZIprlu1aE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727895AbgHSBl1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 21:41:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48292 "EHLO mail.kernel.org"
+        id S1727808AbgHSBmn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 21:42:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726367AbgHSBlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 21:41:25 -0400
+        id S1726367AbgHSBmm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 21:42:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 41859207BB;
-        Wed, 19 Aug 2020 01:41:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 982A92083B;
+        Wed, 19 Aug 2020 01:42:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597801281;
-        bh=Rn5r8KN8XNbuX/xF72Wt9Wu6HdAZjqmOJv1oViUs0GQ=;
+        s=default; t=1597801361;
+        bh=PGGuID//p+sptN+dfXmDy0NkJG+MeBAUhi6d5dKeJQs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=q6xggnPfQjdKpOo6NL+GyA8rxOc5Iz8NbtxvP8VxHESaw1k/5BY+SPRsFqrax8xTK
-         g+n+q3RSaKWr6tGCL/s03qXqSoCg7aSskKSUSIyLIfxLZkruUnGuNrHFh4hfj65rEB
-         60QZC+HG2ts2C+Z8vqe/0ZNh6306r0ItGlzx2s2A=
-Date:   Tue, 18 Aug 2020 18:41:20 -0700
+        b=DlWdJ2z3ZssfiB3ptur7ypDYf0bU++69burYfC4HMF0H6Zz+59kj6I4CdyXDbEJfg
+         ePDMFNE/ksoFd3fu5NAm97dvLcZ+6pglkbaIqkztErkx452VCJHUY27J+4JEEjOx+8
+         SpPA4nvggobPMydRdKCg1sxPrfrJvcWD+hvmFd6Q=
+Date:   Tue, 18 Aug 2020 18:42:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     gscrivan@redhat.com, mm-commits@vger.kernel.org, tj@kernel.org,
-        vulab@iscas.ac.cn
-Subject:  + hugetlb_cgroup-convert-comma-to-semicolon.patch added
- to -mm tree
-Message-ID: <20200819014120.2eSWpu2BA%akpm@linux-foundation.org>
+To:     joe@perches.com, mm-commits@vger.kernel.org
+Subject:  + checkpatch-move-repeated-word-test.patch added to -mm
+ tree
+Message-ID: <20200819014241.jC2U-SEgZ%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: convert comma to semicolon
+     Subject: checkpatch: move repeated word test
 has been added to the -mm tree.  Its filename is
-     hugetlb_cgroup-convert-comma-to-semicolon.patch
+     checkpatch-move-repeated-word-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-convert-comma-to-semicolon.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-move-repeated-word-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-convert-comma-to-semicolon.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-move-repeated-word-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,45 +75,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xu Wang <vulab@iscas.ac.cn>
-Subject: hugetlb_cgroup: convert comma to semicolon
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: move repeated word test
 
-Replace a comma between expression statements by a semicolon.
+Currently this test only works on .[ch] files.
 
-Link: http://lkml.kernel.org/r/20200818064333.21759-1-vulab@iscas.ac.cn
-Fixes: faced7e0806cf4 ("mm: hugetlb controller for cgroups v2")
-Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Giuseppe Scrivano <gscrivan@redhat.com>
+Move the test to check more file types and the commit log.
+
+Link: http://lkml.kernel.org/r/180b3b5677771c902b2e2f7a2b7090ede65fe004.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   72 ++++++++++++++++++++--------------------
+ 1 file changed, 36 insertions(+), 36 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-convert-comma-to-semicolon
-+++ a/mm/hugetlb_cgroup.c
-@@ -655,7 +655,7 @@ static void __init __hugetlb_cgroup_file
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_events_show;
--	cft->file_offset = offsetof(struct hugetlb_cgroup, events_file[idx]),
-+	cft->file_offset = offsetof(struct hugetlb_cgroup, events_file[idx]);
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
+--- a/scripts/checkpatch.pl~checkpatch-move-repeated-word-test
++++ a/scripts/checkpatch.pl
+@@ -2993,6 +2993,42 @@ sub process {
+ 			}
+ 		}
  
- 	/* Add the events.local file */
-@@ -664,7 +664,7 @@ static void __init __hugetlb_cgroup_file
- 	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_events_local_show;
- 	cft->file_offset = offsetof(struct hugetlb_cgroup,
--				    events_local_file[idx]),
-+				    events_local_file[idx]);
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
++# check for repeated words separated by a single space
++		if ($rawline =~ /^\+/ || $in_commit_log) {
++			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
++
++				my $first = $1;
++				my $second = $2;
++
++				if ($first =~ /(?:struct|union|enum)/) {
++					pos($rawline) += length($first) + length($second) + 1;
++					next;
++				}
++
++				next if ($first ne $second);
++				next if ($first eq 'long');
++
++				if (WARN("REPEATED_WORD",
++					 "Possible repeated word: '$first'\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
++				}
++			}
++
++			# if it's a repeated word on consecutive lines in a comment block
++			if ($prevline =~ /$;+\s*$/ &&
++			    $prevrawline =~ /($word_pattern)\s*$/) {
++				my $last_word = $1;
++				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
++					if (WARN("REPEATED_WORD",
++						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
++					    $fix) {
++						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
++					}
++				}
++			}
++		}
++
+ # ignore non-hunk lines and lines being removed
+ 		next if (!$hunk_line || $line =~ /^-/);
  
- 	/* NULL terminate the last cft */
+@@ -3316,42 +3352,6 @@ sub process {
+ 			}
+ 		}
+ 
+-# check for repeated words separated by a single space
+-		if ($rawline =~ /^\+/) {
+-			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
+-
+-				my $first = $1;
+-				my $second = $2;
+-
+-				if ($first =~ /(?:struct|union|enum)/) {
+-					pos($rawline) += length($first) + length($second) + 1;
+-					next;
+-				}
+-
+-				next if ($first ne $second);
+-				next if ($first eq 'long');
+-
+-				if (WARN("REPEATED_WORD",
+-					 "Possible repeated word: '$first'\n" . $herecurr) &&
+-				    $fix) {
+-					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
+-				}
+-			}
+-
+-			# if it's a repeated word on consecutive lines in a comment block
+-			if ($prevline =~ /$;+\s*$/ &&
+-			    $prevrawline =~ /($word_pattern)\s*$/) {
+-				my $last_word = $1;
+-				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
+-					if (WARN("REPEATED_WORD",
+-						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
+-					    $fix) {
+-						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
+-					}
+-				}
+-			}
+-		}
+-
+ # check for space before tabs.
+ 		if ($rawline =~ /^\+/ && $rawline =~ / \t/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
 _
 
-Patches currently in -mm which might be from vulab@iscas.ac.cn are
+Patches currently in -mm which might be from joe@perches.com are
 
-hugetlb_cgroup-convert-comma-to-semicolon.patch
+checkpatch-test-git_dir-changes.patch
+checkpatch-move-repeated-word-test.patch
 
