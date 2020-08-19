@@ -7,45 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06460C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:18:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B9E0C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:23:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D684C207BB
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:18:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A29F2075E
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:23:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597803526;
-	bh=DTvzP00JB4bLs9fhk+oXibtsPOxdlN5fCD3Y5A5lhbk=;
+	s=default; t=1597803812;
+	bh=hP2jHhHaVWreCUhI+4eF+IFndSo0HWL/VOrzMoDIT7I=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=cgOH61eqnVMGKyRba2XXO/MPff4PX1pOurL8Y9PeQs2BwiUJaiHJtJctTSpy8YaQG
-	 C23y8ygCfB8/eUtYc7k4+dInMDXoSLgyugrdToq9PwyzylZPozqzX9joL+C614uVjw
-	 iwl3UQQtzmdz3GzxnHnrzqZkH4PJPWSpnilX9980=
+	b=jWfuiQzXVLQ/5/8ML+gFWg9pzbz4TwHUEfEZRwjd+d4oInehLsCDgBrqsot8UMDqe
+	 LD0jsZluF4wZMy1Ort5GW7BVndXCIHvonbVxctcnxUzDB5sh8qSQc3zCYNowvOZ8sv
+	 l5K95twZrkGynd+0hZWBOocbAY4FWf0BvKRiaMZs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726410AbgHSCSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 22:18:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41062 "EHLO mail.kernel.org"
+        id S1726809AbgHSCXc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 22:23:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726531AbgHSCSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 22:18:46 -0400
+        id S1726786AbgHSCXb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 22:23:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B5A99205CB;
-        Wed, 19 Aug 2020 02:18:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B1E2A205CB;
+        Wed, 19 Aug 2020 02:23:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597803523;
-        bh=DTvzP00JB4bLs9fhk+oXibtsPOxdlN5fCD3Y5A5lhbk=;
+        s=default; t=1597803810;
+        bh=hP2jHhHaVWreCUhI+4eF+IFndSo0HWL/VOrzMoDIT7I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=f2PP0KloUJEBUe08gxT3clnhYZje4QkG5SAn5Lj6kL4VNL1X1yRFyw+A0nLabprqj
-         E/o18Q9IEZON45cRk7yjX2gfNUcy7yaYzvaGmzmB3fVsCzS5ZyeLf6jR8Y0Wot59JB
-         ed3HW65pzfvAn10Lj0Y9mh9RT28oNMZBIPWbXsVs=
-Date:   Tue, 18 Aug 2020 19:18:43 -0700
+        b=Wz7ndPTKIyBrGIn2M6quUzHgQRQEOH+vWWmOziELAkrM8TryTcbO6AG5OTsq1gn0b
+         fo0ss1R3Sy1BXeinS37/Vz7LugaPvFhubde+1dQYNKdbHLcx1wlWZIez9PA2xR9GtW
+         SzmLXpYIxxjWR/KctQugCp+XigpwyVex3jsa8kL4=
+Date:   Tue, 18 Aug 2020 19:23:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     dhowells@redhat.com, gregkh@linuxfoundation.org, jannh@google.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org
-Subject:  +
- romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch added to -mm
- tree
-Message-ID: <20200819021843.hSn2BuO_-%akpm@linux-foundation.org>
+To:     bgolaszewski@baylibre.com, mm-commits@vger.kernel.org
+Subject:  + mm-util-update-the-kerneldoc-for-kstrdup_const.patch
+ added to -mm tree
+Message-ID: <20200819022330.EjYqn_cBT%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: romfs: fix uninitialized memory leak in romfs_dev_read()
+     Subject: mm/util.c: update the kerneldoc for kstrdup_const()
 has been added to the -mm tree.  Its filename is
-     romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
+     mm-util-update-the-kerneldoc-for-kstrdup_const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-util-update-the-kerneldoc-for-kstrdup_const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-util-update-the-kerneldoc-for-kstrdup_const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,56 +75,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: romfs: fix uninitialized memory leak in romfs_dev_read()
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: mm/util.c: update the kerneldoc for kstrdup_const()
 
-romfs has a superblock field that limits the size of the filesystem; data
-beyond that limit is never accessed.
+Memory allocated with kstrdup_const() must not be passed to regular
+krealloc() as it is not aware of the possibility of the chunk residing in
+.rodata.  Since there are no potential users of krealloc_const() at the
+moment, let's just update the doc to make it explicit.
 
-romfs_dev_read() fetches a caller-supplied number of bytes from the
-backing device.  It returns 0 on success or an error code on failure;
-therefore, its API can't represent short reads, it's all-or-nothing.
-
-However, when romfs_dev_read() detects that the requested operation would
-cross the filesystem size limit, it currently silently truncates the
-requested number of bytes.  This e.g.  means that when the content of a
-file with size 0x1000 starts one byte before the filesystem size limit,
-->readpage() will only fill a single byte of the supplied page while
-leaving the rest uninitialized, leaking that uninitialized memory to
-userspace.
-
-Fix it by returning an error code instead of truncating the read when the
-requested read operation would go beyond the end of the filesystem.
-
-Link: http://lkml.kernel.org/r/20200818013202.2246365-1-jannh@google.com
-Fixes: da4458bda237 ("NOMMU: Make it possible for RomFS to use MTD devices directly")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200817173927.23389-1-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/storage.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/util.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/romfs/storage.c~romfs-fix-uninitialized-memory-leak-in-romfs_dev_read
-+++ a/fs/romfs/storage.c
-@@ -217,10 +217,8 @@ int romfs_dev_read(struct super_block *s
- 	size_t limit;
- 
- 	limit = romfs_maxsize(sb);
--	if (pos >= limit)
-+	if (pos >= limit || buflen > limit - pos)
- 		return -EIO;
--	if (buflen > limit - pos)
--		buflen = limit - pos;
- 
- #ifdef CONFIG_ROMFS_ON_MTD
- 	if (sb->s_mtd)
+--- a/mm/util.c~mm-util-update-the-kerneldoc-for-kstrdup_const
++++ a/mm/util.c
+@@ -69,7 +69,8 @@ EXPORT_SYMBOL(kstrdup);
+  * @s: the string to duplicate
+  * @gfp: the GFP mask used in the kmalloc() call when allocating memory
+  *
+- * Note: Strings allocated by kstrdup_const should be freed by kfree_const.
++ * Note: Strings allocated by kstrdup_const should be freed by kfree_const and
++ * must not be passed to krealloc().
+  *
+  * Return: source string if it is in .rodata section otherwise
+  * fallback to kstrdup.
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
-romfs-fix-uninitialized-memory-leak-in-romfs_dev_read.patch
+mm-util-update-the-kerneldoc-for-kstrdup_const.patch
 
