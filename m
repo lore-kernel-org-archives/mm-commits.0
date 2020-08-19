@@ -7,48 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05C2CC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 21:14:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F4059C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 21:29:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1BA720882
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 21:14:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9C55207FF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 21:29:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597871657;
-	bh=/p8Y8Vvrubcq1mhUVaQ9KFw7Es68Mwgz4KlNKACvdJM=;
+	s=default; t=1597872594;
+	bh=BHyo8Y1ZsxHKEFTEfUdomYxm4tmDp/ILxVXgPB1wUFY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=TqXkTEYUh5fbKba6dnbv/MbMqVoYW2pq97RiXI7r7jKaHXcYTMR0tRpIiKRRbKCH/
-	 wRiZUAmi3F42OGo0QLvnGWVBb7uad4++WPIJ5GRj3/aHvf9le59hXGqHf/pPwtbop5
-	 T0Fe2mcknBeMmSyLPZnD4ig14iK3GiBKd2fk9lrs=
+	b=mWL2GlwQ6WNv8V8bSsS2R7BNb6jVtCgk3oI1MSIH7Zr2CzenD5ojsEgcL4wd+8WFu
+	 NlzWmunn4H1x4yz4O3cgsxSUYTiZxUSCxoaQcrmWoXRVu4ytHXOiinjlWDjSWGnKyn
+	 CPjJNrytC/RmFDXf1o8892I6euidujm2xKxHZ7M4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726646AbgHSVOR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 17:14:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41568 "EHLO mail.kernel.org"
+        id S1726841AbgHSV3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 17:29:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725997AbgHSVOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 17:14:16 -0400
+        id S1726646AbgHSV3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 17:29:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D66BF207FF;
-        Wed, 19 Aug 2020 21:14:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AB1142067C;
+        Wed, 19 Aug 2020 21:29:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597871655;
-        bh=/p8Y8Vvrubcq1mhUVaQ9KFw7Es68Mwgz4KlNKACvdJM=;
+        s=default; t=1597872593;
+        bh=BHyo8Y1ZsxHKEFTEfUdomYxm4tmDp/ILxVXgPB1wUFY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=hIeI2g1f8KsxqiiwUWGvHurHC9CUo7fDaQafc4q8O3O4xSYNfW+4D2ttATtxNFAg9
-         bvyP5PC2psrt7OKeQKNZRexQNsK0IpLRyvl+Z1W1XhAD5XcK6+PZJC/6wdwSVQMAZ9
-         Q9g53qN006Qp+wxxqMjzETHIbhvYL3ss7y4QmHz0=
-Date:   Wed, 19 Aug 2020 14:14:14 -0700
+        b=Eu3OeU2x1R1nRbuDonmiFvjdLAyYcKhqxCcDkjrJUhRHJummfPISu629Yihtfq51q
+         39Nkg6dK+uO2vzXKjVKsowvesf1sdu0OoUDEkIj264QFZ910AoL9EY7jM+TsTLcnTe
+         x1xS2BVH51RVn9zlIRdkKv57zIRLYxvKG9A5RXYs=
+Date:   Wed, 19 Aug 2020 14:29:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aik@ozlabs.ru, aquini@redhat.com, dianders@chromium.org,
-        keescook@chromium.org, mingo@kernel.org,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, tglx@linutronix.de,
-        will@kernel.org
-Subject:  + panic-dump-registers-on-panic_on_warn.patch added to
- -mm tree
-Message-ID: <20200819211414.9DAh-zfFa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, keun-o.park@digital14.com,
+        mm-commits@vger.kernel.org, thgarnie@chromium.org
+Subject:  +
+ =?US-ASCII?Q?mm-slub-re-initialize-randomized-freelist-sequence-in-calcu?=
+ =?US-ASCII?Q?late=5Fsizes-fix.patch?= added to -mm tree
+Message-ID: <20200819212953.zjzLM2Zm-%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: dump registers on panic_on_warn
+     Subject: mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix
 has been added to the -mm tree.  Its filename is
-     panic-dump-registers-on-panic_on_warn.patch
+     mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/panic-dump-registers-on-panic_on_warn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/panic-dump-registers-on-panic_on_warn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,63 +79,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Kardashevskiy <aik@ozlabs.ru>
-Subject: panic: dump registers on panic_on_warn
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix
 
-Currently we print stack and registers for ordinary warnings but we do not
-for panic_on_warn which looks as oversight - panic() will reboot the
-machine but won't print registers.
+simplification, per Thomas
 
-This moves printing of registers and modules earlier.
-
-This does not move the stack dumping as panic() dumps it.
-
-Link: https://lkml.kernel.org/r/20200804095054.68724-1-aik@ozlabs.ru
-Signed-off-by: Alexey Kardashevskiy <aik@ozlabs.ru>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Sahara <keun-o.park@digital14.com>
+Cc: Thomas Garnier <thgarnie@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/slub.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/panic.c~panic-dump-registers-on-panic_on_warn
-+++ a/kernel/panic.c
-@@ -589,6 +589,11 @@ void __warn(const char *file, int line,
- 	if (args)
- 		vprintk(args->fmt, args->args);
- 
-+	print_modules();
-+
-+	if (regs)
-+		show_regs(regs);
-+
- 	if (panic_on_warn) {
- 		/*
- 		 * This thread may hit another WARN() in the panic path.
-@@ -600,12 +605,7 @@ void __warn(const char *file, int line,
- 		panic("panic_on_warn set ...\n");
+--- a/mm/slub.c~mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix
++++ a/mm/slub.c
+@@ -3786,8 +3786,7 @@ static int calculate_sizes(struct kmem_c
+ 	 * free and re-initialize it with re-calculated value.
+ 	 */
+ 	if (slab_state >= UP) {
+-		if (s->random_seq)
+-			cache_random_seq_destroy(s);
++		cache_random_seq_destroy(s);
+ 		if (init_cache_random_seq(s))
+ 			return 0;
  	}
- 
--	print_modules();
--
--	if (regs)
--		show_regs(regs);
--	else
--		dump_stack();
-+	dump_stack();
- 
- 	print_irqtrace_events(current);
- 
 _
 
-Patches currently in -mm which might be from aik@ozlabs.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-panic-dump-registers-on-panic_on_warn.patch
+mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
+mm.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
