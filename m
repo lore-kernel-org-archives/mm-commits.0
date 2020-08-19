@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8F4AC433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B327C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 964C620758
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20E582083B
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 18:20:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597861244;
-	bh=8A9tExD/S4dvPSY38XcM5BxFfpPhL32wJ43tdMb14lc=;
+	s=default; t=1597861248;
+	bh=vMXdarvTVx9hv40HnAEf92uONdxMumNoDvhHlh5QRB4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=qSKzsG5WElB9TodRQIi9Pn71A54F3fuq+gLg9f4kdMZ0pjIboAyHhqJ5DWVpoIYNt
-	 GmQpLjK8FgGTve38Qw8jjqwgjKAPPTPi+ziWg/UZxeivawrHa5g9GV8pYRh57fJj/5
-	 7j1YMPjAtzZWuZZOrnAVQlkXx6t/8V/g4vzCw/6E=
+	b=pYqqOIyivL3fNkC9kk1kWLAz4Cn/+UgZPIqvxB1svNfC9XRpxkTMWHEiYMtkw5FL8
+	 x/k8h+NOQwsMzR2hUDLClRqS0b6uT5KORENG2qIXUZGSidunjtKsI3UipAHULgoZaM
+	 UNBmDu5v7H1hYEHIWtjzws/vKpFGRvy2Rs2VC/Js=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726738AbgHSSUo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 14:20:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43146 "EHLO mail.kernel.org"
+        id S1726766AbgHSSUr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 14:20:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726578AbgHSSUn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 14:20:43 -0400
+        id S1726578AbgHSSUq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 14:20:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1292420882;
-        Wed, 19 Aug 2020 18:20:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DF39B20758;
+        Wed, 19 Aug 2020 18:20:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597861242;
-        bh=8A9tExD/S4dvPSY38XcM5BxFfpPhL32wJ43tdMb14lc=;
+        s=default; t=1597861245;
+        bh=vMXdarvTVx9hv40HnAEf92uONdxMumNoDvhHlh5QRB4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=uhL7tduTvwyc9285uGx02gP1uWRdcNX0oBZ00iKOchc7/APEOi6TiebSfSS/hO+xv
-         n3iv+nt2G0rUBViz+2KkRZf6XnefnnNyogJoo8eLDzFOXNKx1IUbZQxX3BhLk+hvE0
-         RXc4IBdE6b3MZUrb6+euSUjJXCgZLEa2gIqjo+9A=
-Date:   Wed, 19 Aug 2020 11:20:41 -0700
+        b=o8DoO8j1oDL4vcJHh9+UlmzAjw4t1LaWk4KIpT1+ZGiNbZHqzyXy4YLewgB80z3c5
+         JmpqWdmcf3g53nq479qKoH/kkG1ax/s2dwV20we4rAkdxEzfjpot5lPNAm9ZhpCEeJ
+         j3BYCGxHkykdt5roTrpky/5qkYd2ZxSgiZZQwsMU=
+Date:   Wed, 19 Aug 2020 11:20:44 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     bhe@redhat.com, charante@codeaurora.org, dan.j.williams@intel.com,
         david@redhat.com, fenghua.yu@intel.com, logang@deltatee.com,
@@ -47,9 +47,9 @@ To:     bhe@redhat.com, charante@codeaurora.org, dan.j.williams@intel.com,
         pankaj.gupta.linux@gmail.com, richard.weiyang@linux.alibaba.com,
         rppt@kernel.org, tony.luck@intel.com, walken@google.com,
         willy@infradead.org
-Subject:  + mm-memory_hotplug-simplify-page-offlining.patch added
- to -mm tree
-Message-ID: <20200819182041.DBjhaI-SU%akpm@linux-foundation.org>
+Subject:  + mm-page_alloc-simplify-__offline_isolated_pages.patch
+ added to -mm tree
+Message-ID: <20200819182044.maNjp8I92%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -60,14 +60,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: simplify page offlining
+     Subject: mm/page_alloc: simplify __offline_isolated_pages()
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-simplify-page-offlining.patch
+     mm-page_alloc-simplify-__offline_isolated_pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-simplify-page-offlining.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-simplify-__offline_isolated_pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-simplify-page-offlining.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-simplify-__offline_isolated_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,15 +82,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: simplify page offlining
+Subject: mm/page_alloc: simplify __offline_isolated_pages()
 
-We make sure that we cannot have any memory holes right at the beginning
-of offline_pages().  We no longer need walk_system_ram_range() and can
-call test_pages_isolated() and __offline_isolated_pages() directly.
+offline_pages() is the only user.  __offline_isolated_pages() never gets
+called with ranges that contain memory holes and we no longer care about
+the return value.  Drop the return value handling and all pfn_valid()
+checks.
 
-offlined_pages always corresponds to nr_pages, so we can simplify that.
+Update the documentation.
 
-Link: https://lkml.kernel.org/r/20200819175957.28465-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20200819175957.28465-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
@@ -110,87 +111,94 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   46 +++++++++---------------------------------
- 1 file changed, 10 insertions(+), 36 deletions(-)
+ include/linux/memory_hotplug.h |    4 ++--
+ mm/page_alloc.c                |   27 ++++-----------------------
+ 2 files changed, 6 insertions(+), 25 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-simplify-page-offlining
-+++ a/mm/memory_hotplug.c
-@@ -1375,28 +1375,6 @@ do_migrate_range(unsigned long start_pfn
- 	return ret;
- }
+--- a/include/linux/memory_hotplug.h~mm-page_alloc-simplify-__offline_isolated_pages
++++ a/include/linux/memory_hotplug.h
+@@ -103,8 +103,8 @@ extern int online_pages(unsigned long pf
+ 			int online_type, int nid);
+ extern struct zone *test_pages_in_a_zone(unsigned long start_pfn,
+ 					 unsigned long end_pfn);
+-extern unsigned long __offline_isolated_pages(unsigned long start_pfn,
+-						unsigned long end_pfn);
++extern void __offline_isolated_pages(unsigned long start_pfn,
++				     unsigned long end_pfn);
  
--/* Mark all sections offline and remove all free pages from the buddy. */
--static int
--offline_isolated_pages_cb(unsigned long start, unsigned long nr_pages,
--			void *data)
--{
--	unsigned long *offlined_pages = (unsigned long *)data;
--
--	*offlined_pages += __offline_isolated_pages(start, start + nr_pages);
--	return 0;
--}
--
--/*
-- * Check all pages in range, recorded as memory resource, are isolated.
-- */
--static int
--check_pages_isolated_cb(unsigned long start_pfn, unsigned long nr_pages,
--			void *data)
--{
--	return test_pages_isolated(start_pfn, start_pfn + nr_pages,
--				   MEMORY_OFFLINE);
--}
--
- static int __init cmdline_parse_movable_node(char *p)
+ typedef void (*online_page_callback_t)(struct page *page, unsigned int order);
+ 
+--- a/mm/page_alloc.c~mm-page_alloc-simplify-__offline_isolated_pages
++++ a/mm/page_alloc.c
+@@ -8685,35 +8685,21 @@ void zone_pcp_reset(struct zone *zone)
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+- * All pages in the range must be in a single zone and isolated
+- * before calling this.
++ * All pages in the range must be in a single zone, must not contain holes,
++ * must span full sections, and must be isolated before calling this function.
+  */
+-unsigned long
+-__offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
++void __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
  {
- 	movable_node_enabled = true;
-@@ -1483,7 +1461,7 @@ static int count_system_ram_pages_cb(uns
- int __ref offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
- 	const unsigned long end_pfn = start_pfn + nr_pages;
--	unsigned long pfn, system_ram_pages = 0, offlined_pages = 0;
-+	unsigned long pfn, system_ram_pages = 0;
- 	int ret, node, nr_isolate_pageblock;
- 	unsigned long flags;
++	unsigned long pfn = start_pfn;
+ 	struct page *page;
  	struct zone *zone;
-@@ -1581,16 +1559,12 @@ int __ref offline_pages(unsigned long st
- 			reason = "failure to dissolve huge pages";
- 			goto failed_removal_isolated;
- 		}
--		/* check again */
--		ret = walk_system_ram_range(start_pfn, end_pfn - start_pfn,
--					    NULL, check_pages_isolated_cb);
--	} while (ret);
+ 	unsigned int order;
+-	unsigned long pfn;
+ 	unsigned long flags;
+-	unsigned long offlined_pages = 0;
 -
--	/* Ok, all of our target is isolated.
--	   We cannot do rollback at this point. */
--	walk_system_ram_range(start_pfn, end_pfn - start_pfn,
--			      &offlined_pages, offline_isolated_pages_cb);
--	pr_info("Offlined Pages %ld\n", offlined_pages);
-+	} while (test_pages_isolated(start_pfn, end_pfn, MEMORY_OFFLINE));
-+
-+	/* Mark all sections offline and remove free pages from the buddy. */
-+	__offline_isolated_pages(start_pfn, end_pfn);
-+	pr_info("Offlined Pages %ld\n", nr_pages);
-+
- 	/*
- 	 * Onlining will reset pagetype flags and makes migrate type
- 	 * MOVABLE, so just need to decrease the number of isolated
-@@ -1601,11 +1575,11 @@ int __ref offline_pages(unsigned long st
+-	/* find the first valid pfn */
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++)
+-		if (pfn_valid(pfn))
+-			break;
+-	if (pfn == end_pfn)
+-		return offlined_pages;
+ 
+ 	offline_mem_sections(pfn, end_pfn);
+ 	zone = page_zone(pfn_to_page(pfn));
+ 	spin_lock_irqsave(&zone->lock, flags);
+-	pfn = start_pfn;
+ 	while (pfn < end_pfn) {
+-		if (!pfn_valid(pfn)) {
+-			pfn++;
+-			continue;
+-		}
+ 		page = pfn_to_page(pfn);
+ 		/*
+ 		 * The HWPoisoned page may be not in buddy system, and
+@@ -8721,7 +8707,6 @@ __offline_isolated_pages(unsigned long s
+ 		 */
+ 		if (unlikely(!PageBuddy(page) && PageHWPoison(page))) {
+ 			pfn++;
+-			offlined_pages++;
+ 			continue;
+ 		}
+ 		/*
+@@ -8732,20 +8717,16 @@ __offline_isolated_pages(unsigned long s
+ 			BUG_ON(page_count(page));
+ 			BUG_ON(PageBuddy(page));
+ 			pfn++;
+-			offlined_pages++;
+ 			continue;
+ 		}
+ 
+ 		BUG_ON(page_count(page));
+ 		BUG_ON(!PageBuddy(page));
+ 		order = page_order(page);
+-		offlined_pages += 1 << order;
+ 		del_page_from_free_list(page, zone, order);
+ 		pfn += (1 << order);
+ 	}
  	spin_unlock_irqrestore(&zone->lock, flags);
+-
+-	return offlined_pages;
+ }
+ #endif
  
- 	/* removal success */
--	adjust_managed_page_count(pfn_to_page(start_pfn), -offlined_pages);
--	zone->present_pages -= offlined_pages;
-+	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
-+	zone->present_pages -= nr_pages;
- 
- 	pgdat_resize_lock(zone->zone_pgdat, &flags);
--	zone->zone_pgdat->node_present_pages -= offlined_pages;
-+	zone->zone_pgdat->node_present_pages -= nr_pages;
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- 
- 	init_per_zone_wmark_min();
 _
 
 Patches currently in -mm which might be from david@redhat.com are
