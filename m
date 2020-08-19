@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C4EC433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EAD3C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DEE1204EC
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2ED9A205CB
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 01:55:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597802125;
-	bh=h9wfLQwf2nLot/ORIeeTVWZKPs5fc5GKckHQhKa5ebI=;
+	s=default; t=1597802128;
+	bh=OQc2qwvxBkUHs2JCDzTBUVxT0JR8zeWBYbv0hsIqYWk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=zlb4eI4PmaOgv1xmYFWzrEOzvRolIwc9RablpIJrn2uSwA5AulQAPLAEyoDUhxL8d
-	 s5NQ7VPHQY2a1ex2bpMLiihChQEHEBApsWMcdLsyj81ZvDC/NVs66X5EQdggbjyl3B
-	 eMkwOaduPHxD9K1A0l+aQgPTjW0GUcoRH+hPp7tw=
+	b=KNP3+paAcfGA7K7RrOc+/uL/lalsFsqhaJsxyiVpHnb3ET5PEocfzY8dqsB+zXcSO
+	 7sSv7xlnOKEpsL0YMNiJVz/SD/CIWjYKs2IYRaqQCakF5c7/89iz6p0hTeY9eWichV
+	 4/OjI3H2MqA86PzFY/SKv8I9Vtbkat1Pu/0BQQpo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726685AbgHSBzY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 21:55:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33948 "EHLO mail.kernel.org"
+        id S1726786AbgHSBz1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 21:55:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726367AbgHSBzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 21:55:24 -0400
+        id S1726367AbgHSBz1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 21:55:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 131E82067C;
-        Wed, 19 Aug 2020 01:55:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0B095204EC;
+        Wed, 19 Aug 2020 01:55:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597802123;
-        bh=h9wfLQwf2nLot/ORIeeTVWZKPs5fc5GKckHQhKa5ebI=;
+        s=default; t=1597802126;
+        bh=OQc2qwvxBkUHs2JCDzTBUVxT0JR8zeWBYbv0hsIqYWk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=hbE4DNeuYUFxg1P40ytPq3eBo9ew6URuLyXuzxzzWcUPzI09yzELhCOurWQ8cE7vw
-         QB0YO1ZTjz5T4yOGjOngrKhJtIhiKuwp1AJOrsbzJSG9182G62FHgVGmdmp0nhwqTI
-         XF7E7c2rdMbJj1KdlsoJo6dwReH7lNRITlDQPbAs=
-Date:   Tue, 18 Aug 2020 18:55:22 -0700
+        b=yYqUb1GUn6Jkz5iT/utDsxfZccgUrxhxM1p0Eu8qOsa2Ivybdcdlo3I9WVcD2doDs
+         +qU6JKOsiSIghy+nqxTXmD4ap9HnhXh0gndcONrxdQ5z+wNkRsj+amsL1O37iMBfhI
+         20Fh4sYkzJvCkx/IGWamvDsrTmg9PT507YzA3nlQ=
+Date:   Tue, 18 Aug 2020 18:55:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
         daniel.kiss@arm.com, daniel.m.jordan@oracle.com, dbueso@suse.de,
@@ -46,9 +46,10 @@ To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
         matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
         songliubraving@fb.com, steven.price@arm.com, vbabka@suse.cz,
         walken@google.com, willy@infradead.org, ying.huang@intel.com
-Subject:  + mmap-locking-api-add-mmap_lock_is_contended.patch added
- to -mm tree
-Message-ID: <20200819015522.vpTX9_1m5%akpm@linux-foundation.org>
+Subject:  +
+ mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
+ added to -mm tree
+Message-ID: <20200819015525.99itAHyEK%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -59,14 +60,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap locking API: add mmap_lock_is_contended()
+     Subject: mm: smaps*: extend smap_gather_stats to support specified beginning
 has been added to the -mm tree.  Its filename is
-     mmap-locking-api-add-mmap_lock_is_contended.patch
+     mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-add-mmap_lock_is_contended.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-add-mmap_lock_is_contended.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,42 +82,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Chinwen Chang <chinwen.chang@mediatek.com>
-Subject: mmap locking API: add mmap_lock_is_contended()
+Subject: mm: smaps*: extend smap_gather_stats to support specified beginning
 
-Patch series "Try to release mmap_lock temporarily in smaps_rollup", v4.
+Extend smap_gather_stats to support indicated beginning address at which
+it should start gathering.  To achieve the goal, we add a new parameter
+@start assigned by the caller and try to refactor it for simplicity.
 
-Recently, we have observed some janky issues caused by unpleasantly long
-contention on mmap_lock which is held by smaps_rollup when probing large
-processes.  To address the problem, we let smaps_rollup detect if anyone
-wants to acquire mmap_lock for write attempts.  If yes, just release the
-lock temporarily to ease the contention.
+If @start is 0, it will use the range of @vma for gathering.
 
-smaps_rollup is a procfs interface which allows users to summarize the
-process's memory usage without the overhead of seq_* calls.  Android uses
-it to sample the memory usage of various processes to balance its memory
-pool sizes.  If no one wants to take the lock for write requests,
-smaps_rollup with this patch will behave like the original one.
-
-Although there are on-going mmap_lock optimizations like range-based
-locks, the lock applied to smaps_rollup would be the coarse one, which is
-hard to avoid the occurrence of aforementioned issues.  So the detection
-and temporary release for write attempts on mmap_lock in smaps_rollup is
-still necessary.
-
-
-This patch (of 3):
-
-Add new API to query if someone wants to acquire mmap_lock for write
-attempts.
-
-Using this instead of rwsem_is_contended makes it more tolerant of future
-changes to the lock type.
-
-Link: http://lkml.kernel.org/r/1597715898-3854-1-git-send-email-chinwen.chang@mediatek.com
-Link: http://lkml.kernel.org/r/1597715898-3854-2-git-send-email-chinwen.chang@mediatek.com
+Link: http://lkml.kernel.org/r/1597715898-3854-3-git-send-email-chinwen.chang@mediatek.com
 Signed-off-by: Chinwen Chang <chinwen.chang@mediatek.com>
 Reviewed-by: Steven Price <steven.price@arm.com>
-Acked-by: Michel Lespinasse <walken@google.com>
+Cc: Michel Lespinasse <walken@google.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: Daniel Kiss <daniel.kiss@arm.com>
@@ -132,21 +109,78 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/proc/task_mmu.c |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
---- a/include/linux/mmap_lock.h~mmap-locking-api-add-mmap_lock_is_contended
-+++ a/include/linux/mmap_lock.h
-@@ -87,4 +87,9 @@ static inline void mmap_assert_write_loc
- 	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
+--- a/fs/proc/task_mmu.c~mm-smaps-extend-smap_gather_stats-to-support-specified-beginning
++++ a/fs/proc/task_mmu.c
+@@ -723,9 +723,21 @@ static const struct mm_walk_ops smaps_sh
+ 	.pte_hole		= smaps_pte_hole,
+ };
+ 
++/*
++ * Gather mem stats from @vma with the indicated beginning
++ * address @start, and keep them in @mss.
++ *
++ * Use vm_start of @vma as the beginning address if @start is 0.
++ */
+ static void smap_gather_stats(struct vm_area_struct *vma,
+-			     struct mem_size_stats *mss)
++		struct mem_size_stats *mss, unsigned long start)
+ {
++	const struct mm_walk_ops *ops = &smaps_walk_ops;
++
++	/* Invalid start */
++	if (start >= vma->vm_end)
++		return;
++
+ #ifdef CONFIG_SHMEM
+ 	/* In case of smaps_rollup, reset the value from previous vma */
+ 	mss->check_shmem_swap = false;
+@@ -742,18 +754,20 @@ static void smap_gather_stats(struct vm_
+ 		 */
+ 		unsigned long shmem_swapped = shmem_swap_usage(vma);
+ 
+-		if (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
+-					!(vma->vm_flags & VM_WRITE)) {
++		if (!start && (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
++					!(vma->vm_flags & VM_WRITE))) {
+ 			mss->swap += shmem_swapped;
+ 		} else {
+ 			mss->check_shmem_swap = true;
+-			walk_page_vma(vma, &smaps_shmem_walk_ops, mss);
+-			return;
++			ops = &smaps_shmem_walk_ops;
+ 		}
+ 	}
+ #endif
+ 	/* mmap_lock is held in m_start */
+-	walk_page_vma(vma, &smaps_walk_ops, mss);
++	if (!start)
++		walk_page_vma(vma, ops, mss);
++	else
++		walk_page_range(vma->vm_mm, start, vma->vm_end, ops, mss);
  }
  
-+static inline int mmap_lock_is_contended(struct mm_struct *mm)
-+{
-+	return rwsem_is_contended(&mm->mmap_lock);
-+}
-+
- #endif /* _LINUX_MMAP_LOCK_H */
+ #define SEQ_PUT_DEC(str, val) \
+@@ -805,7 +819,7 @@ static int show_smap(struct seq_file *m,
+ 
+ 	memset(&mss, 0, sizeof(mss));
+ 
+-	smap_gather_stats(vma, &mss);
++	smap_gather_stats(vma, &mss, 0);
+ 
+ 	show_map_vma(m, vma);
+ 
+@@ -854,7 +868,7 @@ static int show_smaps_rollup(struct seq_
+ 	hold_task_mempolicy(priv);
+ 
+ 	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
+-		smap_gather_stats(vma, &mss);
++		smap_gather_stats(vma, &mss, 0);
+ 		last_vma_end = vma->vm_end;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from chinwen.chang@mediatek.com are
