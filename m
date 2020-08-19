@@ -4,57 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBE67C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:09:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FF2C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:13:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B32ED2083B
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:09:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A70582078B
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597806551;
-	bh=GvR89N09DxHYvMVbKVHonsMhERR+e9cz9jf7v/owYvA=;
+	s=default; t=1597806813;
+	bh=Q3zDJbnLjzFqrYrv7pRu4yqsIhmiNwq1L1sTe+nUOGg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=hvoOGDY4f6KI7ZTXra8UyUD8Pn9E0nq/wWKiZMmIGPtKHM2/HgndMlrZFBJW8iRJA
-	 tkulqPYLYEuyKq9TX2JNozPAUJDZ1IuOZGKQPHRARPNbqFPe/SmbkXmogpGLXWxUwi
-	 puIy1XKnhOD4irps1fcUo8pSQIHwCgpQa7zeeZjg=
+	b=r+Z94LmQzhNNyaWxTtj5opl9BbOMIqYx3iLOzhvW3iN1A4SheK79VyJt/xhSFfARV
+	 c0yTqmFPGPqs+/gPfRHeMXu8v2fgvK7L3JeGjTBaBgFoh4gYPZZZX6oSRid7mr29LM
+	 VRdjND/FB2AKj9lBpGDCfI5wPTapqFz4GXV4nxgg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727891AbgHSDJK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 23:09:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40488 "EHLO mail.kernel.org"
+        id S1727899AbgHSDNd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 23:13:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726605AbgHSDJG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 23:09:06 -0400
+        id S1727793AbgHSDNc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 23:13:32 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C8F1B2078B;
-        Wed, 19 Aug 2020 03:09:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1016F2065F;
+        Wed, 19 Aug 2020 03:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597806544;
-        bh=GvR89N09DxHYvMVbKVHonsMhERR+e9cz9jf7v/owYvA=;
+        s=default; t=1597806811;
+        bh=Q3zDJbnLjzFqrYrv7pRu4yqsIhmiNwq1L1sTe+nUOGg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SHI+r1YONavxNOb4wUoZUVZCDwVHEBURsaEYuMJvSrOo7JVHN9indRzcItt9FmWhe
-         7lCs5o3kwysgqo284BdSdi3CwYxc2O+fgi6UOnCf+48k5q2XGCf633wsnwOPSfusfx
-         Ph81UANXplfVLr+iKdx04MIb2/W+sy/FiDNO2Aj8=
-Date:   Tue, 18 Aug 2020 20:09:03 -0700
+        b=kzBkWodpmZrVgIaeKLYXVR4qSD5MmGHFU9tra7tUXb0kZ9IMUSJx4oOeyvsGrZAs1
+         qYs+aFj64tU3uky4lMpbQ0BqZcIIIOQPOa3kqtSkJ3D9MsMNxMLHruHP/Q91im6ywt
+         BJ90v1iZlsyjT54rsFFwyC136wDCuksdb5T9XOUk=
+Date:   Tue, 18 Aug 2020 20:13:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com,
-        hch@infradead.org, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com,
-        jhubbard@nvidia.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, shuah@kernel.org,
-        song.bao.hua@hisilicon.com, vbabka@suse.cz,
-        viro@zeniv.linux.org.uk, willy@infradead.org
+To:     adrien+dev@schischi.me, drosen@google.com, groeck@chromium.org,
+        hch@lst.de, mm-commits@vger.kernel.org,
+        nicolas.prochazka@gmail.com, phillip@squashfs.org.uk,
+        pliard@google.com, shimada@walbrix.com, stable@vger.kernel.org
 Subject:  +
- mm-gup_benchmark-use-pin_user_pages-for-foll_longterm-flag.patch added to
- -mm tree
-Message-ID: <20200819030903.ksWiof_uX%akpm@linux-foundation.org>
+ squashfs-avoid-bio_alloc-failure-with-1mbyte-blocks.patch added to -mm tree
+Message-ID: <20200819031330.JnC84oXzt%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -63,16 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup_benchmark: use pin_user_pages for FOLL_LONGTERM flag
+     Subject: squashfs: avoid bio_alloc() failure with 1Mbyte blocks
 has been added to the -mm tree.  Its filename is
-     mm-gup_benchmark-use-pin_user_pages-for-foll_longterm-flag.patch
+     squashfs-avoid-bio_alloc-failure-with-1mbyte-blocks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup_benchmark-use-pin_user_=
-pages-for-foll_longterm-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/squashfs-avoid-bio_alloc-failure-with-1mbyte-blocks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup_benchmark-use-pin_user_=
-pages-for-foll_longterm-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/squashfs-avoid-bio_alloc-failure-with-1mbyte-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,169 +72,61 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm/gup_benchmark: use pin_user_pages for FOLL_LONGTERM flag
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: avoid bio_alloc() failure with 1Mbyte blocks
 
-According to Documentation/core-api/pin_user_pages.rst, FOLL_PIN is a
-prerequisite to FOLL_LONGTERM.  Another way of saying that is,
-FOLL_LONGTERM is a specific case, more restrictive case of FOLL_PIN.
+This is a regression introduced by the patch "migrate from ll_rw_block
+usage to BIO".
 
-Almost all kernel modules are using pin_user_pages() with FOLL_LONGTERM,
-mm/gup_benchmark.c seems to the only exception in which FOLL_PIN is not a
-prerequisite to FOLL_LONGTERM.
+Bio_alloc() is limited to 256 pages (1 Mbyte).  This can cause a failure
+when reading 1 Mbyte block filesystems.  The problem is a datablock can be
+fully (or almost uncompressed), requiring 256 pages, but, because blocks
+are not aligned to page boundaries, it may require 257 pages to read.
 
-Link: http://lkml.kernel.org/r/20200815122056.29508-1-song.bao.hua@hisilico=
-n.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Bio_kmalloc() can handle 1024 pages, and so use this for the edge
+condition.
+
+Link: http://lkml.kernel.org/r/20200815035637.15319-1-phillip@squashfs.org.uk
+Fixes: 93e72b3c612a ("squashfs: migrate from ll_rw_block usage to BIO")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: Nicolas Prochazka <nicolas.prochazka@gmail.com>
+Reported-by: Tomoatsu Shimada <shimada@walbrix.com>
+Reviewed-by: Guenter Roeck <groeck@chromium.org>
+Cc: Philippe Liard <pliard@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Adrien Schildknecht <adrien+dev@schischi.me>
+Cc: Daniel Rosenberg <drosen@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_benchmark.c                         |   23 +++++++++----------
- tools/testing/selftests/vm/gup_benchmark.c |   14 +++++------
- 2 files changed, 19 insertions(+), 18 deletions(-)
+ fs/squashfs/block.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/gup_benchmark.c~mm-gup_benchmark-use-pin_user_pages-for-foll_longt=
-erm-flag
-+++ a/mm/gup_benchmark.c
-@@ -6,10 +6,10 @@
- #include <linux/debugfs.h>
-=20
- #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
--#define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
--#define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
--#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
--#define PIN_BENCHMARK		_IOWR('g', 5, struct gup_benchmark)
-+#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_benchmark)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_benchmark)
-+#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_benchmark)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
-=20
- struct gup_benchmark {
- 	__u64 get_delta_usec;
-@@ -28,7 +28,6 @@ static void put_back_pages(unsigned int
-=20
- 	switch (cmd) {
- 	case GUP_FAST_BENCHMARK:
--	case GUP_LONGTERM_BENCHMARK:
- 	case GUP_BENCHMARK:
- 		for (i =3D 0; i < nr_pages; i++)
- 			put_page(pages[i]);
-@@ -36,6 +35,7 @@ static void put_back_pages(unsigned int
-=20
- 	case PIN_FAST_BENCHMARK:
- 	case PIN_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
- 		unpin_user_pages(pages, nr_pages);
- 		break;
- 	}
-@@ -50,6 +50,7 @@ static void verify_dma_pinned(unsigned i
- 	switch (cmd) {
- 	case PIN_FAST_BENCHMARK:
- 	case PIN_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
- 		for (i =3D 0; i < nr_pages; i++) {
- 			page =3D pages[i];
- 			if (WARN(!page_maybe_dma_pinned(page),
-@@ -101,11 +102,6 @@ static int __gup_benchmark_ioctl(unsigne
- 			nr =3D get_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
--		case GUP_LONGTERM_BENCHMARK:
--			nr =3D get_user_pages(addr, nr,
--					    gup->flags | FOLL_LONGTERM,
--					    pages + i, NULL);
--			break;
- 		case GUP_BENCHMARK:
- 			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
-@@ -118,6 +114,11 @@ static int __gup_benchmark_ioctl(unsigne
- 			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
-+		case PIN_LONGTERM_BENCHMARK:
-+			nr =3D pin_user_pages(addr, nr,
-+					    gup->flags | FOLL_LONGTERM,
-+					    pages + i, NULL);
-+			break;
- 		default:
- 			kvfree(pages);
- 			ret =3D -EINVAL;
-@@ -162,10 +163,10 @@ static long gup_benchmark_ioctl(struct f
-=20
- 	switch (cmd) {
- 	case GUP_FAST_BENCHMARK:
--	case GUP_LONGTERM_BENCHMARK:
- 	case GUP_BENCHMARK:
- 	case PIN_FAST_BENCHMARK:
- 	case PIN_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
- 		break;
- 	default:
- 		return -EINVAL;
---- a/tools/testing/selftests/vm/gup_benchmark.c~mm-gup_benchmark-use-pin_u=
-ser_pages-for-foll_longterm-flag
-+++ a/tools/testing/selftests/vm/gup_benchmark.c
-@@ -15,12 +15,12 @@
- #define PAGE_SIZE sysconf(_SC_PAGESIZE)
-=20
- #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
--#define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
--#define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
-+#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_benchmark)
-=20
- /* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
--#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
--#define PIN_BENCHMARK		_IOWR('g', 5, struct gup_benchmark)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_benchmark)
-+#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_benchmark)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
-=20
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
-@@ -52,6 +52,9 @@ int main(int argc, char **argv)
- 		case 'b':
- 			cmd =3D PIN_BENCHMARK;
- 			break;
-+		case 'L':
-+			cmd =3D PIN_LONGTERM_BENCHMARK;
-+			break;
- 		case 'm':
- 			size =3D atoi(optarg) * MB;
- 			break;
-@@ -67,9 +70,6 @@ int main(int argc, char **argv)
- 		case 'T':
- 			thp =3D 0;
- 			break;
--		case 'L':
--			cmd =3D GUP_LONGTERM_BENCHMARK;
--			break;
- 		case 'U':
- 			cmd =3D GUP_BENCHMARK;
- 			break;
+--- a/fs/squashfs/block.c~squashfs-avoid-bio_alloc-failure-with-1mbyte-blocks
++++ a/fs/squashfs/block.c
+@@ -87,7 +87,11 @@ static int squashfs_bio_read(struct supe
+ 	int error, i;
+ 	struct bio *bio;
+ 
+-	bio = bio_alloc(GFP_NOIO, page_count);
++	if (page_count <= BIO_MAX_PAGES)
++		bio = bio_alloc(GFP_NOIO, page_count);
++	else
++		bio = bio_kmalloc(GFP_NOIO, page_count);
++
+ 	if (!bio)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-gup_benchmark-use-pin_user_pages-for-foll_longterm-flag.patch
+squashfs-avoid-bio_alloc-failure-with-1mbyte-blocks.patch
 
