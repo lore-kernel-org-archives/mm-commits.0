@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DD74C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E073C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:44:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0A10207BB
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:39:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CAA6207BB
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:44:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597804772;
-	bh=1sg34DpK34YvRAIG7NKdmk3vjoU73v2/s/kT2x+SrnY=;
+	s=default; t=1597805093;
+	bh=mSmoFxvjpOFQ3BjF+LJF9gJ4ZExsUtOydObSByBEhTY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=RAkpJd30djyYd/rlRCo7pnTvTPsrRs1mNMbHRKObvrl0SEiL6y6y7DJG3ulIYo4Sx
-	 qDGpHmwq06YTG3SaZOeUSBTEj6hKCzQTRagfoIWqMjsOkbXS1T6nL8gJZoUA2UF0uY
-	 1DST1sGqZvqY028jD0otFe9WdC9nJzvXYAhmSHAM=
+	b=0wVhxmbnTKK1yeEEz6CDeoE/gr6Xsq7Zit7LRGlH4u/ixQcL9nHJqws321vp5td3M
+	 o2SqC8rb6yLXF+L+H6F71waWnGSAf0x4ZKlcrCdef0kYny5nIoXcXhtwDXIMxPCm3b
+	 ODvbCO+HWlSw3UWsO9seya/VwnKWIVxwxl13l1Ls=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727077AbgHSCjb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 22:39:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49140 "EHLO mail.kernel.org"
+        id S1726968AbgHSCow (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 22:44:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727063AbgHSCjb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 22:39:31 -0400
+        id S1726959AbgHSCov (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 22:44:51 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CAA3820639;
-        Wed, 19 Aug 2020 02:39:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2F64120639;
+        Wed, 19 Aug 2020 02:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597804769;
-        bh=1sg34DpK34YvRAIG7NKdmk3vjoU73v2/s/kT2x+SrnY=;
+        s=default; t=1597805091;
+        bh=mSmoFxvjpOFQ3BjF+LJF9gJ4ZExsUtOydObSByBEhTY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h9B/pun1Fu4fTJUzg4OrzT7CtJURLr9CZcZBkVe7imTqLUOgaK6Rg8QNg4d9Sv5hf
-         qZc99DTW/CoSvp4/0ntukhecJNcuDVhDbv8z+5/C2RP9gFYLORNPnSu560scHvJxNz
-         QpKjMCRthODvf3KawAolORLaFvC0dLKIp9PjD14I=
-Date:   Tue, 18 Aug 2020 19:39:28 -0700
+        b=NHQS2AVyVZ21ThO2OX9es8cgtNpQVJ9JBh/THi7qBlEdjP6flWFiqFuFLcDPS4e+x
+         TwN45PDXglfjmYKLe+mvJVeK06XCBHe4rMIZkY7wdMqE/NZYzi3+60aYAUez1LMwWA
+         RL90DJsK3sNSH/vg4ew66UwH1T8Ss/MGRgD60sSQ=
+Date:   Tue, 18 Aug 2020 19:44:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akash.goel@intel.com, chris@chris-wilson.co.uk, dja@axtens.net,
-        hulkci@huawei.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        rientjes@google.com, stable@vger.kernel.org, tglx@linutronix.de,
-        viro@zeniv.linux.org.uk, walken@google.com, weiyongjun1@huawei.com
-Subject:  +
- kernel-relayc-fix-memleak-on-destroy-relay-channel.patch added to -mm tree
-Message-ID: <20200819023928.UDjVfIY4b%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        dave.jiang@intel.com, ira.weiny@intel.com,
+        mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
+        vishal.l.verma@intel.com
+Subject:  + device-dax-fix-mismatches-of-request_mem_region.patch
+ added to -mm tree
+Message-ID: <20200819024450.FTaIjT3Cg%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/relay.c: fix memleak on destroy relay channel
+     Subject: drivers/dax/kmem.c: fix mismatches of request_mem_region()
 has been added to the -mm tree.  Its filename is
-     kernel-relayc-fix-memleak-on-destroy-relay-channel.patch
+     device-dax-fix-mismatches-of-request_mem_region.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-relayc-fix-memleak-on-destroy-relay-channel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/device-dax-fix-mismatches-of-request_mem_region.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-relayc-fix-memleak-on-destroy-relay-channel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/device-dax-fix-mismatches-of-request_mem_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,66 +78,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: kernel/relay.c: fix memleak on destroy relay channel
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: drivers/dax/kmem.c: fix mismatches of request_mem_region()
 
-kmemleak report memory leak as follows:
+For neatness's sake, The resources allocated by request_mem_region()
+should be freed with release_mem_region().  These two functions are
+paired.
 
-unreferenced object 0x607ee4e5f948 (size 8):
-comm "syz-executor.1", pid 2098, jiffies 4295031601 (age 288.468s)
-hex dump (first 8 bytes):
-00 00 00 00 00 00 00 00 ........
-backtrace:
-[<00000000ca1de2fa>] relay_open kernel/relay.c:583 [inline]
-[<00000000ca1de2fa>] relay_open+0xb6/0x970 kernel/relay.c:563
-[<0000000038ae5a4b>] do_blk_trace_setup+0x4a8/0xb20 kernel/trace/blktrace.c:557
-[<00000000d5e778e9>] __blk_trace_setup+0xb6/0x150 kernel/trace/blktrace.c:597
-[<0000000038fdf803>] blk_trace_ioctl+0x146/0x280 kernel/trace/blktrace.c:738
-[<00000000ce25a0ca>] blkdev_ioctl+0xb2/0x6a0 block/ioctl.c:613
-[<00000000579e47e0>] block_ioctl+0xe5/0x120 fs/block_dev.c:1871
-[<00000000b1588c11>] vfs_ioctl fs/ioctl.c:48 [inline]
-[<00000000b1588c11>] __do_sys_ioctl fs/ioctl.c:753 [inline]
-[<00000000b1588c11>] __se_sys_ioctl fs/ioctl.c:739 [inline]
-[<00000000b1588c11>] __x64_sys_ioctl+0x170/0x1ce fs/ioctl.c:739
-[<0000000088fc9942>] do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
-[<000000004f6dd57a>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-'chan->buf' is malloced in relay_open() by alloc_percpu() but not free
-while destroy the relay channel. Fix it by adding free_percpu() before
-return from relay_destroy_channel().
-
-Link: http://lkml.kernel.org/r/20200817122826.48518-1-weiyongjun1@huawei.com
-Fixes: 017c59c042d0 ("relay: Use per CPU constructs for the relay channel buffer pointers")
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Akash Goel <akash.goel@intel.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200817065926.2239-1-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/dax/kmem.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/kernel/relay.c~kernel-relayc-fix-memleak-on-destroy-relay-channel
-+++ a/kernel/relay.c
-@@ -197,6 +197,7 @@ free_buf:
- static void relay_destroy_channel(struct kref *kref)
- {
- 	struct rchan *chan = container_of(kref, struct rchan, kref);
-+	free_percpu(chan->buf);
- 	kfree(chan);
- }
+--- a/drivers/dax/kmem.c~device-dax-fix-mismatches-of-request_mem_region
++++ a/drivers/dax/kmem.c
+@@ -82,8 +82,7 @@ int dev_dax_kmem_probe(struct device *de
+ 	rc = add_memory_driver_managed(numa_node, new_res->start,
+ 				       resource_size(new_res), kmem_name);
+ 	if (rc) {
+-		release_resource(new_res);
+-		kfree(new_res);
++		release_mem_region(kmem_start, kmem_size);
+ 		kfree(new_res_name);
+ 		return rc;
+ 	}
+@@ -118,8 +117,7 @@ static int dev_dax_kmem_remove(struct de
+ 	}
+ 
+ 	/* Release and free dax resources */
+-	release_resource(res);
+-	kfree(res);
++	release_mem_region(kmem_start, kmem_size);
+ 	kfree(res_name);
+ 	dev_dax->dax_kmem_res = NULL;
  
 _
 
-Patches currently in -mm which might be from weiyongjun1@huawei.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
-kernel-relayc-fix-memleak-on-destroy-relay-channel.patch
+device-dax-fix-mismatches-of-request_mem_region.patch
 
