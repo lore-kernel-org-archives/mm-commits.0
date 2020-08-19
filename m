@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B20C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:19:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6762C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:33:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41310207FF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:19:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86489207DE
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:33:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597868389;
-	bh=sQ23Fy+mqLefR3lp8mzW2yqK1s/XFLpwagyztvcidTc=;
+	s=default; t=1597869182;
+	bh=hPYeHFy8jEm2+elPJdkqMJnSmtYq2u0lL0pQ9xkwFEY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dcIBvdOA1lhJADoANwxgu/2O2RrPl4uvAoLstrPZTPrBpU6Emfhxb9vKOVk3W9BN0
-	 oQsvH/Vb2+egpBorxshd7oAPFUksEuFrLcDhbm+yc0gTeuMOYiT6jGNDV3yCAeDgSe
-	 eCJ1mXOvLTripoI4+APAL/jkhnlnM2c/LcLeWS6Q=
+	b=aSffFPPzP8HGp+hoMfMmKR7K8/xCJq59Egc0cucOYJpzJrRzjQcYwinFNM5tVsbtB
+	 nza7oBcA1IIO/4ktepQMcegaT6KMUpJjJ7yWK4SdEpRIJBYbLkDxlPCJkPcTTGnVBT
+	 Kpo521Df/Hv6+N+lP+8f6qhoBPeR86wmmfC3dbHU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726912AbgHSUTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 16:19:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35656 "EHLO mail.kernel.org"
+        id S1726617AbgHSUdC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 16:33:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725275AbgHSUTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 16:19:42 -0400
+        id S1726689AbgHSUdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 16:33:01 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C70AC207DE;
-        Wed, 19 Aug 2020 20:19:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BD217207DA;
+        Wed, 19 Aug 2020 20:32:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597868380;
-        bh=sQ23Fy+mqLefR3lp8mzW2yqK1s/XFLpwagyztvcidTc=;
+        s=default; t=1597869179;
+        bh=hPYeHFy8jEm2+elPJdkqMJnSmtYq2u0lL0pQ9xkwFEY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gkDYdaDLqcXtC8UEN3uu2X+bJZmAA+3YKM00CVTz+Z/QDAB/ANdPVSk7vOvcg9YIn
-         fJoDroinLRlcihcggvjClLeKia/LA+btuRZTjtseHQCIjKR1zAbiJQfQ8eJ0nwpogv
-         osj9jqTkBvUy35WeZ8O64seYYu3DAm7Yp7Wn9AIU=
-Date:   Wed, 19 Aug 2020 13:19:39 -0700
+        b=vyT++EKIOD81rim81A7hxwUJWQgmTjI9rJ+fyNckmJG290TNP3ZZclLXnLST8Mk7l
+         NLH+H7BRz/TjwfOAqF88+WyGPTWGfFF5zZn6JfqXE4zXLmqXKEnD0HYiXHvvQn0E/s
+         mHfxtNefg2OB+qry3sJQN2eTAejn1j4/LiFR2O0o=
+Date:   Wed, 19 Aug 2020 13:32:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     ari-pekka.verta@digital14.com, cl@linux.com,
-        iamjoonsoo.kim@lge.com, keun-o.park@digital14.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, thgarnie@google.com, timo.simola@digital14.com
+To:     cai@lca.pw, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
+        william.kucharski@oracle.com, willy@infradead.org
 Subject:  +
- mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
- added to -mm tree
-Message-ID: <20200819201939.rByM6iuXa%akpm@linux-foundation.org>
+ mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch added to -mm
+ tree
+Message-ID: <20200819203258.hzbX1vX6C%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: re-initialize randomized freelist sequence in calculate_sizes
+     Subject: mm, dump_page: rename head_mapcount() --> head_compound_mapcount()
 has been added to the -mm tree.  Its filename is
-     mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
+     mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,109 +78,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sahara <keun-o.park@digital14.com>
-Subject: mm: slub: re-initialize randomized freelist sequence in calculate_sizes
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm, dump_page: rename head_mapcount() --> head_compound_mapcount()
 
-Slab cache flags are exported to sysfs and are allowed to get modified
-from userspace.  Some of those may call calculate_sizes function because
-the changed flag can take an effect on slab object size and layout, which
-means kmem_cache may have different order and objects.  The freelist
-pointer corruption occurs if some slab flags are modified while
-CONFIG_SLAB_FREELIST_RANDOM is turned on.
+Rename head_pincount() --> head_compound_pincount().  These names are more
+accurate (or less misleading) than the original ones.
 
- $ echo 0 > /sys/kernel/slab/zs_handle/store_user
- $ echo 0 > /sys/kernel/slab/zspage/store_user
- $ mkswap /dev/block/zram0
- $ swapon /dev/block/zram0 -p 32758
-
- =============================================================================
- BUG zs_handle (Not tainted): Freepointer corrupt
- -----------------------------------------------------------------------------
-
- Disabling lock debugging due to kernel taint
- INFO: Slab 0xffffffbf29603600 objects=102 used=102 fp=0x0000000000000000 flags=0x0200
- INFO: Object 0xffffffca580d8d78 @offset=3448 fp=0xffffffca580d8ed0
-
- Redzone 00000000f3cddd6c: bb bb bb bb bb bb bb bb                          ........
- Object 0000000082d5d74e: 6b 6b 6b 6b 6b 6b 6b a5                          kkkkkkk.
- Redzone 000000008fd80359: bb bb bb bb bb bb bb bb                          ........
- Padding 00000000c7f56047: 5a 5a 5a 5a 5a 5a 5a 5a                          ZZZZZZZZ
-
-In this example, an Android device tries to use zram as a swap and to turn
-off store_user in order to reduce the slub object size.  When
-calculate_sizes is called in kmem_cache_open, size, order and objects for
-zs_handle is:
-
- size:360, order:0, objects:22
-However, if the SLAB_STORE_USER bit is cleared in store_user_store:
- size: 56, order:1, objects:73
-
-All the size, order, and objects is changed by calculate_sizes(), but the
-size of the random_seq array is still old value(22).  As a result,
-out-of-bound array access can occur at shuffle_freelist() when slab
-allocation is requested.
-
-This patch fixes the problem by re-allocating the random_seq array with
-re-calculated correct objects value.
-
-Link: https://lkml.kernel.org/r/20200808095030.13368-1-kpark3469@gmail.com
-Fixes: 210e7a43fa905 ("mm: SLUB freelist randomization")
-Reported-by: Ari-Pekka Verta <ari-pekka.verta@digital14.com>
-Reported-by: Timo Simola <timo.simola@digital14.com>
-Signed-off-by: Sahara <keun-o.park@digital14.com>
-Cc: Thomas Garnier <thgarnie@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20200807183358.105097-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ include/linux/mm.h |    8 ++++----
+ mm/debug.c         |    6 +++---
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/slub.c~mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes
-+++ a/mm/slub.c
-@@ -3781,7 +3781,22 @@ static int calculate_sizes(struct kmem_c
- 	if (oo_objects(s->oo) > oo_objects(s->max))
- 		s->max = s->oo;
+--- a/include/linux/mm.h~mm-dump_page-rename-head_mapcount-head_compound_mapcount
++++ a/include/linux/mm.h
+@@ -776,7 +776,7 @@ static inline void *kvcalloc(size_t n, s
+ extern void kvfree(const void *addr);
+ extern void kvfree_sensitive(const void *addr, size_t len);
  
--	return !!oo_objects(s->oo);
-+	if (!oo_objects(s->oo))
-+		return 0;
-+
-+	/*
-+	 * Initialize the pre-computed randomized freelist if slab is up.
-+	 * If the randomized freelist random_seq is already initialized,
-+	 * free and re-initialize it with re-calculated value.
-+	 */
-+	if (slab_state >= UP) {
-+		if (s->random_seq)
-+			cache_random_seq_destroy(s);
-+		if (init_cache_random_seq(s))
-+			return 0;
-+	}
-+
-+	return 1;
+-static inline int head_mapcount(struct page *head)
++static inline int head_compound_mapcount(struct page *head)
+ {
+ 	return atomic_read(compound_mapcount_ptr(head)) + 1;
+ }
+@@ -790,7 +790,7 @@ static inline int compound_mapcount(stru
+ {
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 	page = compound_head(page);
+-	return head_mapcount(page);
++	return head_compound_mapcount(page);
  }
  
- static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
-@@ -3825,12 +3840,6 @@ static int kmem_cache_open(struct kmem_c
- 	s->remote_node_defrag_ratio = 1000;
- #endif
+ /*
+@@ -903,7 +903,7 @@ static inline bool hpage_pincount_availa
+ 	return PageCompound(page) && compound_order(page) > 1;
+ }
  
--	/* Initialize the pre-computed randomized freelist if slab is up */
--	if (slab_state >= UP) {
--		if (init_cache_random_seq(s))
--			goto error;
--	}
--
- 	if (!init_kmem_cache_nodes(s))
- 		goto error;
+-static inline int head_pincount(struct page *head)
++static inline int head_compound_pincount(struct page *head)
+ {
+ 	return atomic_read(compound_pincount_ptr(head));
+ }
+@@ -912,7 +912,7 @@ static inline int compound_pincount(stru
+ {
+ 	VM_BUG_ON_PAGE(!hpage_pincount_available(page), page);
+ 	page = compound_head(page);
+-	return head_pincount(page);
++	return head_compound_pincount(page);
+ }
  
+ static inline void set_compound_order(struct page *page, unsigned int order)
+--- a/mm/debug.c~mm-dump_page-rename-head_mapcount-head_compound_mapcount
++++ a/mm/debug.c
+@@ -102,12 +102,12 @@ void __dump_page(struct page *page, cons
+ 		if (hpage_pincount_available(page)) {
+ 			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
+ 					head, compound_order(head),
+-					head_mapcount(head),
+-					head_pincount(head));
++					head_compound_mapcount(head),
++					head_compound_pincount(head));
+ 		} else {
+ 			pr_warn("head:%p order:%u compound_mapcount:%d\n",
+ 					head, compound_order(head),
+-					head_mapcount(head));
++					head_compound_mapcount(head));
+ 		}
+ 	}
+ 	if (PageKsm(page))
 _
 
-Patches currently in -mm which might be from keun-o.park@digital14.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
+mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
 
