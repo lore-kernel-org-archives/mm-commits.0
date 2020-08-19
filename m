@@ -2,53 +2,59 @@ Return-Path: <SRS0=1kGn=B5=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CA2C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:55:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBE67C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:09:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4B132078B
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:55:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B32ED2083B
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 03:09:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597805718;
-	bh=eSLKJn+9EGFKaqQ2z/aUm1/ogVwKgA3udJf+Hyi4km0=;
+	s=default; t=1597806551;
+	bh=GvR89N09DxHYvMVbKVHonsMhERR+e9cz9jf7v/owYvA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=bPaFrUqBIzEVaDstL6mmIVQV3u5XYo0S2KzwRkrsmaB4LcbBGhSqGEz7RAWc/YQiT
-	 KdNAqdQ3tRY3wqHqVh9Zqnnwz9jV3os1LILjtRT1iCHDaP2mDvTCosoCH2c1SEyHHK
-	 YSp26mS2x9XvXaCwXzkI9vdWwUTrdDenqqrlcNfs=
+	b=hvoOGDY4f6KI7ZTXra8UyUD8Pn9E0nq/wWKiZMmIGPtKHM2/HgndMlrZFBJW8iRJA
+	 tkulqPYLYEuyKq9TX2JNozPAUJDZ1IuOZGKQPHRARPNbqFPe/SmbkXmogpGLXWxUwi
+	 puIy1XKnhOD4irps1fcUo8pSQIHwCgpQa7zeeZjg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727831AbgHSCzS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 22:55:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56560 "EHLO mail.kernel.org"
+        id S1727891AbgHSDJK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 23:09:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726870AbgHSCzR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 22:55:17 -0400
+        id S1726605AbgHSDJG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 23:09:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A8D1F2076E;
-        Wed, 19 Aug 2020 02:55:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C8F1B2078B;
+        Wed, 19 Aug 2020 03:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597805717;
-        bh=eSLKJn+9EGFKaqQ2z/aUm1/ogVwKgA3udJf+Hyi4km0=;
+        s=default; t=1597806544;
+        bh=GvR89N09DxHYvMVbKVHonsMhERR+e9cz9jf7v/owYvA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=exBEpi4R0WU/jRoxg/WAKeW5yE/hM3WM4X2K/QTpwPwfLDkRLw+pVGKDjEDFTGHoI
-         DWGhEDtZGHdzdzKwpRKy7i8szrWwGIZN4Idfhio/jJhwv4lYjoZ0BwndMLI0yz1rQ3
-         mWqt0X6dQrQV1WrSqLr9fZblO0gwEBvFMQgLmaPM=
-Date:   Tue, 18 Aug 2020 19:55:16 -0700
+        b=SHI+r1YONavxNOb4wUoZUVZCDwVHEBURsaEYuMJvSrOo7JVHN9indRzcItt9FmWhe
+         7lCs5o3kwysgqo284BdSdi3CwYxc2O+fgi6UOnCf+48k5q2XGCf633wsnwOPSfusfx
+         Ph81UANXplfVLr+iKdx04MIb2/W+sy/FiDNO2Aj8=
+Date:   Tue, 18 Aug 2020 20:09:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     bhe@redhat.com, cai@lca.pw, david@redhat.com, jasowang@redhat.com,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, mst@redhat.com,
-        pankaj.gupta.linux@gmail.com, rppt@linux.ibm.com
-Subject:  + mm-document-semantics-of-zone_movable.patch added to
+To:     corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com,
+        hch@infradead.org, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com,
+        jhubbard@nvidia.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, shuah@kernel.org,
+        song.bao.hua@hisilicon.com, vbabka@suse.cz,
+        viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  +
+ mm-gup_benchmark-use-pin_user_pages-for-foll_longterm-flag.patch added to
  -mm tree
-Message-ID: <20200819025516.In3Z3ROw4%akpm@linux-foundation.org>
+Message-ID: <20200819030903.ksWiof_uX%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,14 +63,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document semantics of ZONE_MOVABLE
+     Subject: mm/gup_benchmark: use pin_user_pages for FOLL_LONGTERM flag
 has been added to the -mm tree.  Its filename is
-     mm-document-semantics-of-zone_movable.patch
+     mm-gup_benchmark-use-pin_user_pages-for-foll_longterm-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-document-semantics-of-zone_movable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup_benchmark-use-pin_user_=
+pages-for-foll_longterm-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-document-semantics-of-zone_movable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup_benchmark-use-pin_user_=
+pages-for-foll_longterm-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,87 +80,169 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: document semantics of ZONE_MOVABLE
+=46rom: Barry Song <song.bao.hua@hisilicon.com>
+Subject: mm/gup_benchmark: use pin_user_pages for FOLL_LONGTERM flag
 
-Let's document what ZONE_MOVABLE means, how it's used, and which special
-cases we have regarding unmovable pages (memory offlining vs.  migration /
-allocations).
+According to Documentation/core-api/pin_user_pages.rst, FOLL_PIN is a
+prerequisite to FOLL_LONGTERM.  Another way of saying that is,
+FOLL_LONGTERM is a specific case, more restrictive case of FOLL_PIN.
 
-Link: http://lkml.kernel.org/r/20200816125333.7434-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Almost all kernel modules are using pin_user_pages() with FOLL_LONGTERM,
+mm/gup_benchmark.c seems to the only exception in which FOLL_PIN is not a
+prerequisite to FOLL_LONGTERM.
+
+Link: http://lkml.kernel.org/r/20200815122056.29508-1-song.bao.hua@hisilico=
+n.com
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Qian Cai <cai@lca.pw>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ mm/gup_benchmark.c                         |   23 +++++++++----------
+ tools/testing/selftests/vm/gup_benchmark.c |   14 +++++------
+ 2 files changed, 19 insertions(+), 18 deletions(-)
 
---- a/include/linux/mmzone.h~mm-document-semantics-of-zone_movable
-+++ a/include/linux/mmzone.h
-@@ -396,6 +396,41 @@ enum zone_type {
- 	 */
- 	ZONE_HIGHMEM,
- #endif
-+	/*
-+	 * ZONE_MOVABLE is similar to ZONE_NORMAL, except that it contains
-+	 * movable pages with few exceptional cases described below. Main use
-+	 * cases for ZONE_MOVABLE are to make memory offlining/unplug more
-+	 * likely to succeed, and to locally limit unmovable allocations - e.g.,
-+	 * to increase the number of THP/huge pages. Notable special cases are:
-+	 *
-+	 * 1. Pinned pages: (long-term) pinning of movable pages might
-+	 *    essentially turn such pages unmovable. Memory offlining might
-+	 *    retry a long time.
-+	 * 2. memblock allocations: kernelcore/movablecore setups might create
-+	 *    situations where ZONE_MOVABLE contains unmovable allocations
-+	 *    after boot. Memory offlining and allocations fail early.
-+	 * 3. Memory holes: kernelcore/movablecore setups might create very rare
-+	 *    situations where ZONE_MOVABLE contains memory holes after boot,
-+	 *    for example, if we have sections that are only partially
-+	 *    populated. Memory offlining and allocations fail early.
-+	 * 4. PG_hwpoison pages: while poisoned pages can be skipped during
-+	 *    memory offlining, such pages cannot be allocated.
-+	 * 5. Unmovable PG_offline pages: in paravirtualized environments,
-+	 *    hotplugged memory blocks might only partially be managed by the
-+	 *    buddy (e.g., via XEN-balloon, Hyper-V balloon, virtio-mem). The
-+	 *    parts not manged by the buddy are unmovable PG_offline pages. In
-+	 *    some cases (virtio-mem), such pages can be skipped during
-+	 *    memory offlining, however, cannot be moved/allocated. These
-+	 *    techniques might use alloc_contig_range() to hide previously
-+	 *    exposed pages from the buddy again (e.g., to implement some sort
-+	 *    of memory unplug in virtio-mem).
-+	 *
-+	 * In general, no unmovable allocations that degrade memory offlining
-+	 * should end up in ZONE_MOVABLE. Allocators (like alloc_contig_range())
-+	 * have to expect that migrating pages in ZONE_MOVABLE can fail (even
-+	 * if has_unmovable_pages() states that there are no unmovable pages,
-+	 * there can be false negatives).
-+	 */
- 	ZONE_MOVABLE,
- #ifdef CONFIG_ZONE_DEVICE
- 	ZONE_DEVICE,
+--- a/mm/gup_benchmark.c~mm-gup_benchmark-use-pin_user_pages-for-foll_longt=
+erm-flag
++++ a/mm/gup_benchmark.c
+@@ -6,10 +6,10 @@
+ #include <linux/debugfs.h>
+=20
+ #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
+-#define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
+-#define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
+-#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
+-#define PIN_BENCHMARK		_IOWR('g', 5, struct gup_benchmark)
++#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_benchmark)
++#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_benchmark)
++#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_benchmark)
++#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
+=20
+ struct gup_benchmark {
+ 	__u64 get_delta_usec;
+@@ -28,7 +28,6 @@ static void put_back_pages(unsigned int
+=20
+ 	switch (cmd) {
+ 	case GUP_FAST_BENCHMARK:
+-	case GUP_LONGTERM_BENCHMARK:
+ 	case GUP_BENCHMARK:
+ 		for (i =3D 0; i < nr_pages; i++)
+ 			put_page(pages[i]);
+@@ -36,6 +35,7 @@ static void put_back_pages(unsigned int
+=20
+ 	case PIN_FAST_BENCHMARK:
+ 	case PIN_BENCHMARK:
++	case PIN_LONGTERM_BENCHMARK:
+ 		unpin_user_pages(pages, nr_pages);
+ 		break;
+ 	}
+@@ -50,6 +50,7 @@ static void verify_dma_pinned(unsigned i
+ 	switch (cmd) {
+ 	case PIN_FAST_BENCHMARK:
+ 	case PIN_BENCHMARK:
++	case PIN_LONGTERM_BENCHMARK:
+ 		for (i =3D 0; i < nr_pages; i++) {
+ 			page =3D pages[i];
+ 			if (WARN(!page_maybe_dma_pinned(page),
+@@ -101,11 +102,6 @@ static int __gup_benchmark_ioctl(unsigne
+ 			nr =3D get_user_pages_fast(addr, nr, gup->flags,
+ 						 pages + i);
+ 			break;
+-		case GUP_LONGTERM_BENCHMARK:
+-			nr =3D get_user_pages(addr, nr,
+-					    gup->flags | FOLL_LONGTERM,
+-					    pages + i, NULL);
+-			break;
+ 		case GUP_BENCHMARK:
+ 			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
+ 					    NULL);
+@@ -118,6 +114,11 @@ static int __gup_benchmark_ioctl(unsigne
+ 			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
+ 					    NULL);
+ 			break;
++		case PIN_LONGTERM_BENCHMARK:
++			nr =3D pin_user_pages(addr, nr,
++					    gup->flags | FOLL_LONGTERM,
++					    pages + i, NULL);
++			break;
+ 		default:
+ 			kvfree(pages);
+ 			ret =3D -EINVAL;
+@@ -162,10 +163,10 @@ static long gup_benchmark_ioctl(struct f
+=20
+ 	switch (cmd) {
+ 	case GUP_FAST_BENCHMARK:
+-	case GUP_LONGTERM_BENCHMARK:
+ 	case GUP_BENCHMARK:
+ 	case PIN_FAST_BENCHMARK:
+ 	case PIN_BENCHMARK:
++	case PIN_LONGTERM_BENCHMARK:
+ 		break;
+ 	default:
+ 		return -EINVAL;
+--- a/tools/testing/selftests/vm/gup_benchmark.c~mm-gup_benchmark-use-pin_u=
+ser_pages-for-foll_longterm-flag
++++ a/tools/testing/selftests/vm/gup_benchmark.c
+@@ -15,12 +15,12 @@
+ #define PAGE_SIZE sysconf(_SC_PAGESIZE)
+=20
+ #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
+-#define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
+-#define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
++#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_benchmark)
+=20
+ /* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
+-#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
+-#define PIN_BENCHMARK		_IOWR('g', 5, struct gup_benchmark)
++#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_benchmark)
++#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_benchmark)
++#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
+=20
+ /* Just the flags we need, copied from mm.h: */
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+@@ -52,6 +52,9 @@ int main(int argc, char **argv)
+ 		case 'b':
+ 			cmd =3D PIN_BENCHMARK;
+ 			break;
++		case 'L':
++			cmd =3D PIN_LONGTERM_BENCHMARK;
++			break;
+ 		case 'm':
+ 			size =3D atoi(optarg) * MB;
+ 			break;
+@@ -67,9 +70,6 @@ int main(int argc, char **argv)
+ 		case 'T':
+ 			thp =3D 0;
+ 			break;
+-		case 'L':
+-			cmd =3D GUP_LONGTERM_BENCHMARK;
+-			break;
+ 		case 'U':
+ 			cmd =3D GUP_BENCHMARK;
+ 			break;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
 
-mm-page_alloc-tweak-comments-in-has_unmovable_pages.patch
-mm-page_isolation-exit-early-when-pageblock-is-isolated-in-set_migratetype_isolate.patch
-mm-page_isolation-drop-warn_on_once-in-set_migratetype_isolate.patch
-mm-page_isolation-cleanup-set_migratetype_isolate.patch
-virtio-mem-dont-special-case-zone_movable.patch
-mm-document-semantics-of-zone_movable.patch
+mm-gup_benchmark-use-pin_user_pages-for-foll_longterm-flag.patch
 
