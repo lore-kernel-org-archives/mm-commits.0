@@ -4,49 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E073C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51EFBC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:49:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CAA6207BB
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:44:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D9F92076E
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 02:49:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597805093;
-	bh=mSmoFxvjpOFQ3BjF+LJF9gJ4ZExsUtOydObSByBEhTY=;
+	s=default; t=1597805367;
+	bh=2X/sJGtDEDniiMS+r+HT2sjlpCOgn6J32jrlNyi7kII=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0wVhxmbnTKK1yeEEz6CDeoE/gr6Xsq7Zit7LRGlH4u/ixQcL9nHJqws321vp5td3M
-	 o2SqC8rb6yLXF+L+H6F71waWnGSAf0x4ZKlcrCdef0kYny5nIoXcXhtwDXIMxPCm3b
-	 ODvbCO+HWlSw3UWsO9seya/VwnKWIVxwxl13l1Ls=
+	b=AJ4HaLwxD/PnE1kr+dwCw2mtEm3JbzQ8+kOgCSqekIgaL1Fl+aUkbuHRiDK5Ci7Z8
+	 mAY8/ZSPZqfEFZgptIxF2uszcjmhMa0SiavoI89CcTW98QwFAsaxBY/HDUMlUNTb1L
+	 EebG9DEYUWPqAkj1L6MWLEXsksDktyph5TGo9W5w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726968AbgHSCow (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Aug 2020 22:44:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56442 "EHLO mail.kernel.org"
+        id S1727776AbgHSCt0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Aug 2020 22:49:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726959AbgHSCov (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 18 Aug 2020 22:44:51 -0400
+        id S1727110AbgHSCt0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 18 Aug 2020 22:49:26 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2F64120639;
-        Wed, 19 Aug 2020 02:44:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B077B20738;
+        Wed, 19 Aug 2020 02:49:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597805091;
-        bh=mSmoFxvjpOFQ3BjF+LJF9gJ4ZExsUtOydObSByBEhTY=;
+        s=default; t=1597805366;
+        bh=2X/sJGtDEDniiMS+r+HT2sjlpCOgn6J32jrlNyi7kII=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=NHQS2AVyVZ21ThO2OX9es8cgtNpQVJ9JBh/THi7qBlEdjP6flWFiqFuFLcDPS4e+x
-         TwN45PDXglfjmYKLe+mvJVeK06XCBHe4rMIZkY7wdMqE/NZYzi3+60aYAUez1LMwWA
-         RL90DJsK3sNSH/vg4ew66UwH1T8Ss/MGRgD60sSQ=
-Date:   Tue, 18 Aug 2020 19:44:50 -0700
+        b=B4wuAn9e4cUv9MgpappOz48C3yrJD2GoUEeg+KhtLQyYgzTn6JTdwDd2cvmdU2cu4
+         Wo/iKM3fWJIAdqBZCad5OUL1ExkKwg7pJob/oolchQQRxSV0QQzJo0Sn7c8x74q5N1
+         kJ9YheuiQSaxtE3V0FsNPf7mOV3vtfBj3xoO9hNk=
+Date:   Tue, 18 Aug 2020 19:49:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        dave.jiang@intel.com, ira.weiny@intel.com,
-        mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
-        vishal.l.verma@intel.com
-Subject:  + device-dax-fix-mismatches-of-request_mem_region.patch
- added to -mm tree
-Message-ID: <20200819024450.FTaIjT3Cg%akpm@linux-foundation.org>
+To:     hughd@google.com, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, oleg@redhat.com, songliubraving@fb.com,
+        srikar@linux.vnet.ibm.com, stable@vger.kernel.org,
+        syzkaller@googlegroups.com
+Subject:  +
+ uprobes-__replace_page-avoid-bug-in-munlock_vma_page.patch added to -mm
+ tree
+Message-ID: <20200819024925.wmG-vrVrv%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/dax/kmem.c: fix mismatches of request_mem_region()
+     Subject: uprobes: __replace_page() avoid BUG in munlock_vma_page()
 has been added to the -mm tree.  Its filename is
-     device-dax-fix-mismatches-of-request_mem_region.patch
+     uprobes-__replace_page-avoid-bug-in-munlock_vma_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/device-dax-fix-mismatches-of-request_mem_region.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uprobes-__replace_page-avoid-bug-in-munlock_vma_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/device-dax-fix-mismatches-of-request_mem_region.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uprobes-__replace_page-avoid-bug-in-munlock_vma_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,51 +79,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: drivers/dax/kmem.c: fix mismatches of request_mem_region()
+From: Hugh Dickins <hughd@google.com>
+Subject: uprobes: __replace_page() avoid BUG in munlock_vma_page()
 
-For neatness's sake, The resources allocated by request_mem_region()
-should be freed with release_mem_region().  These two functions are
-paired.
+syzbot crashed on the VM_BUG_ON_PAGE(PageTail) in munlock_vma_page(), when
+called from uprobes __replace_page().  Which of many ways to fix it? 
+Settled on not calling when PageCompound (since Head and Tail are equals
+in this context, PageCompound the usual check in uprobes.c, and the prior
+use of FOLL_SPLIT_PMD will have cleared PageMlocked already).
 
-Link: http://lkml.kernel.org/r/20200817065926.2239-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008161338360.20413@eggly.anvils
+Fixes: 5a52c9df62b4 ("uprobe: use FOLL_SPLIT_PMD instead of FOLL_SPLIT")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Acked-by: Song Liu <songliubraving@fb.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[5.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/events/uprobes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/dax/kmem.c~device-dax-fix-mismatches-of-request_mem_region
-+++ a/drivers/dax/kmem.c
-@@ -82,8 +82,7 @@ int dev_dax_kmem_probe(struct device *de
- 	rc = add_memory_driver_managed(numa_node, new_res->start,
- 				       resource_size(new_res), kmem_name);
- 	if (rc) {
--		release_resource(new_res);
--		kfree(new_res);
-+		release_mem_region(kmem_start, kmem_size);
- 		kfree(new_res_name);
- 		return rc;
- 	}
-@@ -118,8 +117,7 @@ static int dev_dax_kmem_remove(struct de
- 	}
+--- a/kernel/events/uprobes.c~uprobes-__replace_page-avoid-bug-in-munlock_vma_page
++++ a/kernel/events/uprobes.c
+@@ -205,7 +205,7 @@ static int __replace_page(struct vm_area
+ 		try_to_free_swap(old_page);
+ 	page_vma_mapped_walk_done(&pvmw);
  
- 	/* Release and free dax resources */
--	release_resource(res);
--	kfree(res);
-+	release_mem_region(kmem_start, kmem_size);
- 	kfree(res_name);
- 	dev_dax->dax_kmem_res = NULL;
+-	if (vma->vm_flags & VM_LOCKED)
++	if ((vma->vm_flags & VM_LOCKED) && !PageCompound(old_page))
+ 		munlock_vma_page(old_page);
+ 	put_page(old_page);
  
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-device-dax-fix-mismatches-of-request_mem_region.patch
+uprobes-__replace_page-avoid-bug-in-munlock_vma_page.patch
+khugepaged-adjust-vm_bug_on_mm-in-__khugepaged_enter.patch
 
