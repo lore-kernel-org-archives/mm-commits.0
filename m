@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C358EC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:14:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B20C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:19:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A52572083B
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:14:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41310207FF
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Aug 2020 20:19:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597868061;
-	bh=OI4QYrK7wLEbw+sPsLD74EWAvGjQ2p2fiBfkt6+SbHU=;
+	s=default; t=1597868389;
+	bh=sQ23Fy+mqLefR3lp8mzW2yqK1s/XFLpwagyztvcidTc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=v6dD597gXGQEfK2qcdNI1zhOOSYeu0mRcOP2TdLIa0/hG4qR1mnwTrY2XRmLSj9Zb
-	 Vlhj+xN4t26GwpStz0z66H2WEPE/Ise5sKCW0XjqbY7O+HEhlhAGGPA7DcekGhC8Y9
-	 CQ8pH7fzqb7Jo5zyevt+VoVgCycntFXlIZWJ0VLU=
+	b=dcIBvdOA1lhJADoANwxgu/2O2RrPl4uvAoLstrPZTPrBpU6Emfhxb9vKOVk3W9BN0
+	 oQsvH/Vb2+egpBorxshd7oAPFUksEuFrLcDhbm+yc0gTeuMOYiT6jGNDV3yCAeDgSe
+	 eCJ1mXOvLTripoI4+APAL/jkhnlnM2c/LcLeWS6Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726948AbgHSUOV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Aug 2020 16:14:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34408 "EHLO mail.kernel.org"
+        id S1726912AbgHSUTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Aug 2020 16:19:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725997AbgHSUOU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Aug 2020 16:14:20 -0400
+        id S1725275AbgHSUTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Aug 2020 16:19:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D37FA207FF;
-        Wed, 19 Aug 2020 20:14:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C70AC207DE;
+        Wed, 19 Aug 2020 20:19:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597868060;
-        bh=OI4QYrK7wLEbw+sPsLD74EWAvGjQ2p2fiBfkt6+SbHU=;
+        s=default; t=1597868380;
+        bh=sQ23Fy+mqLefR3lp8mzW2yqK1s/XFLpwagyztvcidTc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=B2SKphUUT0ePvx/56hGCfxm/fBml5nmIpY+d3J8GIquvcY13PpxhVjlj0IIr8E9SM
-         L55GkzaSXDE7MyjPm1cE1EBGDXHJOptJpAmZnopt7xVYgOo46Tm5HgCT6jcOhD7h9S
-         Tn/TdC9sOpZx8cJGzOO5YsdfbdRFQSuKg+UO31VU=
-Date:   Wed, 19 Aug 2020 13:14:19 -0700
+        b=gkDYdaDLqcXtC8UEN3uu2X+bJZmAA+3YKM00CVTz+Z/QDAB/ANdPVSk7vOvcg9YIn
+         fJoDroinLRlcihcggvjClLeKia/LA+btuRZTjtseHQCIjKR1zAbiJQfQ8eJ0nwpogv
+         osj9jqTkBvUy35WeZ8O64seYYu3DAm7Yp7Wn9AIU=
+Date:   Wed, 19 Aug 2020 13:19:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        richard.weiyang@linux.alibaba.com
+To:     ari-pekka.verta@digital14.com, cl@linux.com,
+        iamjoonsoo.kim@lge.com, keun-o.park@digital14.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, thgarnie@google.com, timo.simola@digital14.com
 Subject:  +
- mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch added
- to -mm tree
-Message-ID: <20200819201419.8vudp9h50%akpm@linux-foundation.org>
+ mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
+ added to -mm tree
+Message-ID: <20200819201939.rByM6iuXa%akpm@linux-foundation.org>
 In-Reply-To: <20200814172939.55d6d80b6e21e4241f1ee1f3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: leverage vma_rb_erase_ignore() to implement vma_rb_erase()
+     Subject: mm: slub: re-initialize randomized freelist sequence in calculate_sizes
 has been added to the -mm tree.  Its filename is
-     mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
+     mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,59 +79,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/mmap: leverage vma_rb_erase_ignore() to implement vma_rb_erase()
+From: Sahara <keun-o.park@digital14.com>
+Subject: mm: slub: re-initialize randomized freelist sequence in calculate_sizes
 
-These two functions share the same logic except ignore a different vma.
+Slab cache flags are exported to sysfs and are allowed to get modified
+from userspace.  Some of those may call calculate_sizes function because
+the changed flag can take an effect on slab object size and layout, which
+means kmem_cache may have different order and objects.  The freelist
+pointer corruption occurs if some slab flags are modified while
+CONFIG_SLAB_FREELIST_RANDOM is turned on.
 
-Let's reuse the code.
+ $ echo 0 > /sys/kernel/slab/zs_handle/store_user
+ $ echo 0 > /sys/kernel/slab/zspage/store_user
+ $ mkswap /dev/block/zram0
+ $ swapon /dev/block/zram0 -p 32758
 
-Link: https://lkml.kernel.org/r/20200809232057.23477-2-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+ =============================================================================
+ BUG zs_handle (Not tainted): Freepointer corrupt
+ -----------------------------------------------------------------------------
+
+ Disabling lock debugging due to kernel taint
+ INFO: Slab 0xffffffbf29603600 objects=102 used=102 fp=0x0000000000000000 flags=0x0200
+ INFO: Object 0xffffffca580d8d78 @offset=3448 fp=0xffffffca580d8ed0
+
+ Redzone 00000000f3cddd6c: bb bb bb bb bb bb bb bb                          ........
+ Object 0000000082d5d74e: 6b 6b 6b 6b 6b 6b 6b a5                          kkkkkkk.
+ Redzone 000000008fd80359: bb bb bb bb bb bb bb bb                          ........
+ Padding 00000000c7f56047: 5a 5a 5a 5a 5a 5a 5a 5a                          ZZZZZZZZ
+
+In this example, an Android device tries to use zram as a swap and to turn
+off store_user in order to reduce the slub object size.  When
+calculate_sizes is called in kmem_cache_open, size, order and objects for
+zs_handle is:
+
+ size:360, order:0, objects:22
+However, if the SLAB_STORE_USER bit is cleared in store_user_store:
+ size: 56, order:1, objects:73
+
+All the size, order, and objects is changed by calculate_sizes(), but the
+size of the random_seq array is still old value(22).  As a result,
+out-of-bound array access can occur at shuffle_freelist() when slab
+allocation is requested.
+
+This patch fixes the problem by re-allocating the random_seq array with
+re-calculated correct objects value.
+
+Link: https://lkml.kernel.org/r/20200808095030.13368-1-kpark3469@gmail.com
+Fixes: 210e7a43fa905 ("mm: SLUB freelist randomization")
+Reported-by: Ari-Pekka Verta <ari-pekka.verta@digital14.com>
+Reported-by: Timo Simola <timo.simola@digital14.com>
+Signed-off-by: Sahara <keun-o.park@digital14.com>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/slub.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase
-+++ a/mm/mmap.c
-@@ -474,8 +474,12 @@ static __always_inline void vma_rb_erase
- {
- 	/*
- 	 * All rb_subtree_gap values must be consistent prior to erase,
--	 * with the possible exception of the "next" vma being erased if
--	 * next->vm_start was reduced.
-+	 * with the possible exception of
-+	 *
-+	 * a. the "next" vma being erased if next->vm_start was reduced in
-+	 *    __vma_adjust() -> __vma_unlink()
-+	 * b. the vma being erased in detach_vmas_to_be_unmapped() ->
-+	 *    vma_rb_erase()
- 	 */
- 	validate_mm_rb(root, ignore);
+--- a/mm/slub.c~mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes
++++ a/mm/slub.c
+@@ -3781,7 +3781,22 @@ static int calculate_sizes(struct kmem_c
+ 	if (oo_objects(s->oo) > oo_objects(s->max))
+ 		s->max = s->oo;
  
-@@ -485,13 +489,7 @@ static __always_inline void vma_rb_erase
- static __always_inline void vma_rb_erase(struct vm_area_struct *vma,
- 					 struct rb_root *root)
- {
--	/*
--	 * All rb_subtree_gap values must be consistent prior to erase,
--	 * with the possible exception of the vma being erased.
--	 */
--	validate_mm_rb(root, vma);
--
--	__vma_rb_erase(vma, root);
-+	vma_rb_erase_ignore(vma, root, vma);
+-	return !!oo_objects(s->oo);
++	if (!oo_objects(s->oo))
++		return 0;
++
++	/*
++	 * Initialize the pre-computed randomized freelist if slab is up.
++	 * If the randomized freelist random_seq is already initialized,
++	 * free and re-initialize it with re-calculated value.
++	 */
++	if (slab_state >= UP) {
++		if (s->random_seq)
++			cache_random_seq_destroy(s);
++		if (init_cache_random_seq(s))
++			return 0;
++	}
++
++	return 1;
  }
  
- /*
+ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
+@@ -3825,12 +3840,6 @@ static int kmem_cache_open(struct kmem_c
+ 	s->remote_node_defrag_ratio = 1000;
+ #endif
+ 
+-	/* Initialize the pre-computed randomized freelist if slab is up */
+-	if (slab_state >= UP) {
+-		if (init_cache_random_seq(s))
+-			goto error;
+-	}
+-
+ 	if (!init_kmem_cache_nodes(s))
+ 		goto error;
+ 
 _
 
-Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
+Patches currently in -mm which might be from keun-o.park@digital14.com are
 
-mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch
-mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
-mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes.patch
 
