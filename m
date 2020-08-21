@@ -7,58 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF34C433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:24:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A70C5C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:48:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E592D207CD
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:24:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8133A2076E
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:48:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598052275;
-	bh=6nF0/Gvhvmg6wenZ8br2QJmhURVY+oWphpnhTiWcnUY=;
+	s=default; t=1598053725;
+	bh=FREbTn2bClyjM/HVdiuadQDpULbl829d1eZ1Ks5e5HM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Fkp9BACxv8jxicXUCUxMWWRvFH6UGFmXl6eiChUGcr09xDDWx4l9WDBMRebzfo3TG
-	 MHFIYOsyUtjLS1D6pG1PkHDU3yaBHlMMI1dAcuILEQ4LnFOqKsgv5Rbbx2frxyr8h6
-	 RtXk9cHpNgb4DPgOS8OQBxeLqSxg2G1THUbqfGfs=
+	b=sno8AsbWJTQm8CQMCFyo6kg2UdimLJK9TtxeAPWsJWSrQ4RntMdgX8kEmQtQzWAvi
+	 07IbmcSJdczfhb0nTQ5Fbz40uUIAZ4teNlfJmF/JuObNWi2EO29UzZakxJ4PE+Efol
+	 8999XQJ5ckSJ5iSJ5hBw2NKV+oyAL7JoEJ4kY9w0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726783AbgHUXYf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Aug 2020 19:24:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60658 "EHLO mail.kernel.org"
+        id S1726719AbgHUXso (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Aug 2020 19:48:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726688AbgHUXYe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 21 Aug 2020 19:24:34 -0400
+        id S1726706AbgHUXso (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 21 Aug 2020 19:48:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E6281207DF;
-        Fri, 21 Aug 2020 23:24:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9ADEA2067C;
+        Fri, 21 Aug 2020 23:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598052273;
-        bh=6nF0/Gvhvmg6wenZ8br2QJmhURVY+oWphpnhTiWcnUY=;
+        s=default; t=1598053723;
+        bh=FREbTn2bClyjM/HVdiuadQDpULbl829d1eZ1Ks5e5HM=;
         h=Date:From:To:Subject:From;
-        b=V9iE/Qw5178NHnNsIYIc5L2EGzLZDRSSB7HriK/JAVss8OYwXRoO8tGykaqZqjCHH
-         pmProOTt87N+q49rpKv4JgGke+bUT8NFLl/BrDpJhDlLfgjLOVkMvhoy4115KHt6Mn
-         EtY4KiwREnLZm5MYwN3xr//r9zOBRAaJr7fffE1s=
-Date:   Fri, 21 Aug 2020 16:24:30 -0700
+        b=PhuKqKluUJpKqKEPqYps4LDpX1izNH3SDcEemd/M7LngFmg5h+NKmFsitzceykzi8
+         5HY5GzBmCwHC9OR1ecvhB/rszertxlXFOayoRmgkTPYE37ieT7lNoBjAJB9ZBdi+b/
+         MMWH8gCkMvJl8MmAk4v+3RLgkDH9Z/Wd0TDocRCA=
+Date:   Fri, 21 Aug 2020 16:48:43 -0700
 From:   akpm@linux-foundation.org
-To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
-        benh@kernel.crashing.org, bp@alien8.de, Brice.Goglin@inria.fr,
-        bskeggs@redhat.com, catalin.marinas@arm.com,
-        dan.j.williams@intel.com, daniel@ffwll.ch,
-        dave.hansen@linux.intel.com, dave.jiang@intel.com,
-        david@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com,
-        ira.weiny@intel.com, jgg@mellanox.com, jmoyer@redhat.com,
-        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
-        justin.he@arm.com, luto@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        pasha.tatashin@soleen.com, paulus@ozlabs.org, peterz@infradead.org,
-        rafael.j.wysocki@intel.com, rafael@kernel.org,
-        richardw.yang@linux.intel.com, rjw@rjwysocki.net,
-        rppt@linux.ibm.com, tglx@linutronix.de, thomas.lendacky@amd.com,
-        vishal.l.verma@intel.com, will@kernel.org
+To:     ckennelly@google.com, mm-commits@vger.kernel.org
 Subject:  +
- device-dax-add-a-range-mapping-allocation-attribute.patch added to -mm tree
-Message-ID: <20200821232430.px_jQkcXy%akpm@linux-foundation.org>
+ =?US-ASCII?Q?fs-binfmt=5Felf-use-pt=5Fload-p=5Falign-values-for-suitabl?=
+ =?US-ASCII?Q?e-start-address-v4.patch?= added to -mm tree
+Message-ID: <20200821234843.KAsipP4rO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -67,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: add a range mapping allocation attribute
+     Subject: fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4
 has been added to the -mm tree.  Its filename is
-     device-dax-add-a-range-mapping-allocation-attribute.patch
+     fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-add-a-range-mapping-allocation-attribute.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-add-a-range-mapping-allocation-attribute.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,164 +77,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: add a range mapping allocation attribute
+From: Chris Kennelly <ckennelly@google.com>
+Subject: fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4
 
-Add a sysfs attribute which denotes a range from the dax region to be
-allocated.  It's an write only @mapping sysfs attribute in the format of
-'<start>-<end>' to allocate a range.  @start and @end use hexadecimal
-values and the @pgoff is implicitly ordered wrt to previous writes to
-@mapping sysfs e.g.  a write of a range of length 1G the pgoff is
-0..1G(-4K), a second write will use @pgoff for 1G+4K..<size>.
+augment comment
 
-This range mapping interface is useful for:
-
- 1) Application which want to implement its own allocation logic,
- and thus pick the desired ranges from dax_region.
-
- 2) For use cases like VMM fast restart[0] where after kexec we
- want to the same gpa<->phys mappings (as originally created
- before kexec).
-
-[0] https://static.sched.com/hosted_files/kvmforum2019/66/VMM-fast-restart_kvmforum2019.pdf
-
-Link: https://lkml.kernel.org/r/159643106970.4062302.10402616567780784722.stgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lore.kernel.org/r/20200716172913.19658-5-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Will Deacon <will@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Link: https://lkml.kernel.org/r/20200821233848.3904680-2-ckennelly@google.com
+Signed-off-by: Chris Kennelly <ckennelly@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |   64 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/dax/bus.c~device-dax-add-a-range-mapping-allocation-attribute
-+++ a/drivers/dax/bus.c
-@@ -1040,6 +1040,67 @@ static ssize_t size_store(struct device
- }
- static DEVICE_ATTR_RW(size);
+--- a/fs/binfmt_elf.c~fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4
++++ a/fs/binfmt_elf.c
+@@ -431,7 +431,7 @@ static unsigned long maximum_alignment(s
+ 		if (cmds[i].p_type == PT_LOAD) {
+ 			unsigned long p_align = cmds[i].p_align;
  
-+static ssize_t range_parse(const char *opt, size_t len, struct range *range)
-+{
-+	unsigned long long addr = 0;
-+	char *start, *end, *str;
-+	ssize_t rc = EINVAL;
-+
-+	str = kstrdup(opt, GFP_KERNEL);
-+	if (!str)
-+		return rc;
-+
-+	end = str;
-+	start = strsep(&end, "-");
-+	if (!start || !end)
-+		goto err;
-+
-+	rc = kstrtoull(start, 16, &addr);
-+	if (rc)
-+		goto err;
-+	range->start = addr;
-+
-+	rc = kstrtoull(end, 16, &addr);
-+	if (rc)
-+		goto err;
-+	range->end = addr;
-+
-+err:
-+	kfree(str);
-+	return rc;
-+}
-+
-+static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct dax_region *dax_region = dev_dax->region;
-+	size_t to_alloc;
-+	struct range r;
-+	ssize_t rc;
-+
-+	rc = range_parse(buf, len, &r);
-+	if (rc)
-+		return rc;
-+
-+	rc = -ENXIO;
-+	device_lock(dax_region->dev);
-+	if (!dax_region->dev->driver) {
-+		device_unlock(dax_region->dev);
-+		return rc;
-+	}
-+	device_lock(dev);
-+
-+	to_alloc = range_len(&r);
-+	if (alloc_is_aligned(dev_dax, to_alloc))
-+		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
-+	device_unlock(dev);
-+	device_unlock(dax_region->dev);
-+
-+	return rc == 0 ? len : rc;
-+}
-+static DEVICE_ATTR_WO(mapping);
-+
- static ssize_t align_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -1172,6 +1233,8 @@ static umode_t dev_dax_visible(struct ko
- 		return 0;
- 	if (a == &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
- 		return 0;
-+	if (a == &dev_attr_mapping.attr && is_static(dax_region))
-+		return 0;
- 	if ((a == &dev_attr_align.attr ||
- 	     a == &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
-@@ -1181,6 +1244,7 @@ static umode_t dev_dax_visible(struct ko
- static struct attribute *dev_dax_attributes[] = {
- 	&dev_attr_modalias.attr,
- 	&dev_attr_size.attr,
-+	&dev_attr_mapping.attr,
- 	&dev_attr_target_node.attr,
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
+-			/* skip non-power of two alignments */
++			/* skip non-power of two alignments as invalid */
+ 			if (!is_power_of_2(p_align))
+ 				continue;
+ 			alignment = max(alignment, p_align);
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from ckennelly@google.com are
 
-device-dax-make-align-a-per-device-property.patch
-device-dax-add-an-align-attribute.patch
-dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
-device-dax-add-a-range-mapping-allocation-attribute.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-v4.patch
+add-self-test-for-verifying-load-alignment.patch
 
