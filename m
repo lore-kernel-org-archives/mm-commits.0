@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA0E7C433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 19:57:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF483C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 19:58:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A353520724
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 19:57:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BD3E20724
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 19:58:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598039853;
-	bh=7GFEAR1N1FkSIbKu0ViQSjxCBamjPrnCjaFsgV/16/E=;
+	s=default; t=1598039910;
+	bh=dW26U1FtWTIAQk4TF2tefXsMe7CukCntkE3wEro+vp8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=byRD4qs9uVfBPm48fi6nfhCktl2DpOErdtdT6J/CiQchQI2WEan+MIt3bwWmrehAE
-	 LaLyuSfCUiHm+nkwRCNLGpKankuTBU0uDSXLOJJ9lXvdNnSEg8uWEl5gy+r6E9k1a1
-	 LxSF/kZzaHIU2J1xX8eVWvrRdj3CP8YhPOjm/3Qg=
+	b=w5Mr0WTyfbAjHyVB875HiJRra94Uk0zp3+o2ruNTVg6hbJW9D1u8XhrkoKui+Zebq
+	 6Jnio2/EM118SPp8nKyOufKZqx6WyP8nc28ekpwj3lztn7Ti2ClXjlTv5eGstrKBUL
+	 c1/XiCuf7R66pTrJltjwoT+YFpalKFYZU40Q2CN8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726852AbgHUT50 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Aug 2020 15:57:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58532 "EHLO mail.kernel.org"
+        id S1727863AbgHUT6a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Aug 2020 15:58:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727793AbgHUT5Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 21 Aug 2020 15:57:24 -0400
+        id S1727113AbgHUT63 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 21 Aug 2020 15:58:29 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A445520724;
-        Fri, 21 Aug 2020 19:57:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id ADDD420724;
+        Fri, 21 Aug 2020 19:58:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598039843;
-        bh=7GFEAR1N1FkSIbKu0ViQSjxCBamjPrnCjaFsgV/16/E=;
+        s=default; t=1598039909;
+        bh=dW26U1FtWTIAQk4TF2tefXsMe7CukCntkE3wEro+vp8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wC+sD6UoXMRBuL0+2MRS5RfpmYwKbSbYO4Pdrm3D2m9RKL/seG/9AcR/mCdL8PvLF
-         Oj751r2bsJnvK0J0KPOxJDDFUVjJHrcAbV5UTD8fNOgiejvT3m18GX1WLoV2sSA2Yl
-         X3nW42SrXM9V5PmQ6q8Td11OhtxBkCDBxnjlMeDM=
-Date:   Fri, 21 Aug 2020 12:57:23 -0700
+        b=oGia0tWLEypJ16TotvW3y4xOHh8/frG1nIEjv6imS7r39jeFCaCkZwBUaxsG78Mdi
+         xZ6asE2Uyj3qzwNRmQ1cvwbzEHUCcYL65wbJuLaATjVPFGwbgftmlQSKjjWv4VsTPI
+         Dl1Cf5L5wk0NjxtI+LnRXon7d8cjIN/u/Brrzw80=
+Date:   Fri, 21 Aug 2020 12:58:28 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     catalin.marinas@arm.com, dave@stgolabs.net, dbueso@suse.de,
-        mm-commits@vger.kernel.org, oleg@redhat.com
-Subject:  + mm-kmemleak-rely-on-rcu-for-task-stack-scanning.patch
- added to -mm tree
-Message-ID: <20200821195723.v40-N6Q-s%akpm@linux-foundation.org>
+To:     davem@davemloft.net, joe@perches.com, mchehab+huawei@kernel.org,
+        mm-commits@vger.kernel.org, robh@kernel.org
+Subject:  +
+ get_maintainer-exclude-maintainers-files-from-git-fallback.patch added to
+ -mm tree
+Message-ID: <20200821195828.8mZmSr0oO%akpm@linux-foundation.org>
 In-Reply-To: <20200820174132.67fd4a7a9359048f807a533b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: rely on rcu for task stack scanning
+     Subject: get_maintainer: exclude MAINTAINERS file(s) from --git-fallback
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-rely-on-rcu-for-task-stack-scanning.patch
+     get_maintainer-exclude-maintainers-files-from-git-fallback.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-rely-on-rcu-for-task-stack-scanning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-exclude-maintainers-files-from-git-fallback.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-rely-on-rcu-for-task-stack-scanning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-exclude-maintainers-files-from-git-fallback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,52 +77,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm/kmemleak: rely on rcu for task stack scanning
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: exclude MAINTAINERS file(s) from --git-fallback
 
-kmemleak_scan() currently relies on the big tasklist_lock hammer to
-stabilize iterating through the tasklist.  Instead, this patch proposes
-simply using rcu along with the rcu-safe for_each_process_thread flavor
-(without changing scan semantics), which doesn't make use of
-next_thread/p->thread_group and thus cannot race with exit.  Furthermore,
-any races with fork() and not seeing the new child should be benign as
-it's not running yet and can also be detected by the next scan.
+MAINTAINERS files generally have no specific maintainer but are updated by
+individuals for subsystems all over the source tree.
 
-Link: https://lkml.kernel.org/r/20200820203902.11308-1-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Exclude MAINTAINERS file(s) from --git-fallback searches so the unlucky
+individuals that update the files the most are not shown by default.
+
+Link: https://lkml.kernel.org/r/2bacb0a9c06fbb6d56a43bf930e808c74243c908.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/get_maintainer.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-rely-on-rcu-for-task-stack-scanning
-+++ a/mm/kmemleak.c
-@@ -1471,15 +1471,15 @@ static void kmemleak_scan(void)
- 	if (kmemleak_stack_scan) {
- 		struct task_struct *p, *g;
+--- a/scripts/get_maintainer.pl~get_maintainer-exclude-maintainers-files-from-git-fallback
++++ a/scripts/get_maintainer.pl
+@@ -954,8 +954,10 @@ sub get_maintainers {
  
--		read_lock(&tasklist_lock);
--		do_each_thread(g, p) {
-+		rcu_read_lock();
-+		for_each_process_thread(g, p) {
- 			void *stack = try_get_task_stack(p);
- 			if (stack) {
- 				scan_block(stack, stack + THREAD_SIZE, NULL);
- 				put_task_stack(p);
- 			}
--		} while_each_thread(g, p);
--		read_unlock(&tasklist_lock);
-+		}
-+		rcu_read_unlock();
+     foreach my $file (@files) {
+ 	if ($email &&
+-	    ($email_git || ($email_git_fallback &&
+-			    !$exact_pattern_match_hash{$file}))) {
++	    ($email_git ||
++	     ($email_git_fallback &&
++	      $file !~ /MAINTAINERS$/ &&
++	      !$exact_pattern_match_hash{$file}))) {
+ 	    vcs_file_signoffs($file);
  	}
- 
- 	/*
+ 	if ($email && $email_git_blame) {
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-kmemleak-rely-on-rcu-for-task-stack-scanning.patch
+checkpatch-test-git_dir-changes.patch
+get_maintainer-exclude-maintainers-files-from-git-fallback.patch
+checkpatch-move-repeated-word-test.patch
+checkpatch-add-test-for-comma-use-that-should-be-semicolon.patch
 
