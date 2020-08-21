@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAECCC433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8547C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75B7B207DF
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A070B20855
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598052164;
-	bh=r4O1OidhCLTtA4EIWBPUeXM2yn81FxJXDb6e1e2eG8o=;
+	s=default; t=1598052168;
+	bh=XRi8XKzG13SyZxdz1wCulR4RsxOWVRv8v9F+pVJNX3Y=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=IJOuYQ+25Eg8epV2OaDaj62U2AkxEoJTfiMpZSoZc96RwzqsgISSWZwMoVesIG/TG
-	 0RnmiZ5DpI4nr4TKDl/h/4jR6wDESbBfdmj9pY2hJt91QQyXcJpk5W99JHDPD0s07y
-	 AGBcR8fJFknULsPw+hhqHM51qxpiPoTm+qB1eFf4=
+	b=BKO/zOz9ONE7eAjw4KX7AvkgdmBIbmYjPa1doXA//4lSr0Q17n1eOo1EZFKt9ni1e
+	 NrobNiQEsAAQY2CO6z9UsUAktN6TfAA2W1yA27ca/R9Qrl1aou5ftlRj1IlmhLj9qf
+	 rYcRbnRWVSGzqw97D3PcLl3C1CCWy0E8d0sfDY7s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726727AbgHUXWo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Aug 2020 19:22:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55888 "EHLO mail.kernel.org"
+        id S1726746AbgHUXWs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Aug 2020 19:22:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726541AbgHUXWl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 21 Aug 2020 19:22:41 -0400
+        id S1726541AbgHUXWq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 21 Aug 2020 19:22:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9E501207C3;
-        Fri, 21 Aug 2020 23:22:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5A78F207CD;
+        Fri, 21 Aug 2020 23:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598052160;
-        bh=r4O1OidhCLTtA4EIWBPUeXM2yn81FxJXDb6e1e2eG8o=;
+        s=default; t=1598052165;
+        bh=XRi8XKzG13SyZxdz1wCulR4RsxOWVRv8v9F+pVJNX3Y=;
         h=Date:From:To:Subject:From;
-        b=wWINj3k/n5nhHI165CHWwMhrBuVjYPDccw4HXduIe6TtYzFzPNg3GR5pRUz1Jbxtt
-         PRtY4ntr5dHOy1BbYjGvN73+SUwqz9hBOrfZUZEMi7GHuow/SPz+syJ+rTCZIuLBxh
-         IYgdtyOjlG4AHFUiN+hQbbxKvc5mxsKS06tB20TI=
-Date:   Fri, 21 Aug 2020 16:22:38 -0700
+        b=JkxT7+KoQtA7WVeEjyOijWpDXosuvHKq0Xr6ivTkJ8ediBHukKUS+bnrhstnANEKu
+         yfmmCXh3CSu5K3DmePABUgG4Ke+ZvJvPAqNORb+y9hShkOqlwVAosEOuzOwwIj1EuA
+         lGuMohQhMrusV2S/CFqQ7ojVFDJXUtnMIVRe4VbI=
+Date:   Fri, 21 Aug 2020 16:22:43 -0700
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         benh@kernel.crashing.org, bp@alien8.de, Brice.Goglin@inria.fr,
@@ -55,10 +55,8 @@ To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         richardw.yang@linux.intel.com, rjw@rjwysocki.net,
         rppt@linux.ibm.com, tglx@linutronix.de, thomas.lendacky@amd.com,
         vishal.l.verma@intel.com, will@kernel.org
-Subject:  +
- x86-numa-cleanup-configuration-dependent-command-line-options.patch added
- to -mm tree
-Message-ID: <20200821232238.fW8c2DRfz%akpm@linux-foundation.org>
+Subject:  + x86-numa-add-nohmat-option.patch added to -mm tree
+Message-ID: <20200821232243.sCDAzlfya%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -68,14 +66,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/numa: cleanup configuration dependent command-line options
+     Subject: x86/numa: add 'nohmat' option
 has been added to the -mm tree.  Its filename is
-     x86-numa-cleanup-configuration-dependent-command-line-options.patch
+     x86-numa-add-nohmat-option.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-numa-cleanup-configuration-dependent-command-line-options.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-numa-add-nohmat-option.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-cleanup-configuration-dependent-command-line-options.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-add-nohmat-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -90,73 +88,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: x86/numa: cleanup configuration dependent command-line options
+Subject: x86/numa: add 'nohmat' option
 
-Patch series "device-dax: Support sub-dividing soft-reserved ranges", v4.
+Disable parsing of the HMAT for debug, to workaround broken platform
+instances, or cases where it is otherwise not wanted.
 
-The device-dax facility allows an address range to be directly mapped
-through a chardev, or optionally hotplugged to the core kernel page
-allocator as System-RAM.  It is the mechanism for converting persistent
-memory (pmem) to be used as another volatile memory pool i.e.  the current
-Memory Tiering hot topic on linux-mm.
-
-In the case of pmem the nvdimm-namespace-label mechanism can sub-divide
-it, but that labeling mechanism is not available / applicable to
-soft-reserved ("EFI specific purpose") memory [3].  This series provides a
-sysfs-mechanism for the daxctl utility to enable provisioning of
-volatile-soft-reserved memory ranges.
-
-The motivations for this facility are:
-
-1/ Allow performance differentiated memory ranges to be split between
-   kernel-managed and directly-accessed use cases.
-
-2/ Allow physical memory to be provisioned along performance relevant
-   address boundaries. For example, divide a memory-side cache [4] along
-   cache-color boundaries.
-
-3/ Parcel out soft-reserved memory to VMs using device-dax as a security
-   / permissions boundary [5]. Specifically I have seen people (ab)using
-   memmap=nn!ss (mark System-RAM as Persistent Memory) just to get the
-   device-dax interface on custom address ranges. A follow-on for the VM
-   use case is to teach device-dax to dynamically allocate 'struct page' at
-   runtime to reduce the duplication of 'struct page' space in both the
-   guest and the host kernel for the same physical pages.
-
-[2]: http://lore.kernel.org/r/20200713160837.13774-11-joao.m.martins@oracle.com
-[3]: http://lore.kernel.org/r/157309097008.1579826.12818463304589384434.stgit@dwillia2-desk3.amr.corp.intel.com
-[4]: http://lore.kernel.org/r/154899811738.3165233.12325692939590944259.stgit@dwillia2-desk3.amr.corp.intel.com
-[5]: http://lore.kernel.org/r/20200110190313.17144-1-joao.m.martins@oracle.com
-
-
-This patch (of 23):
-
-In preparation for adding a new numa= option clean up the existing ones to
-avoid ifdefs in numa_setup(), and provide feedback when the option is
-numa=fake= option is invalid due to kernel config.  The same does not need
-to be done for numa=noacpi, since the capability is already hard disabled
-at compile-time.
-
-Link: https://lkml.kernel.org/r/159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/159643094925.4062302.14979872973043772305.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643095540.4062302.732962081968036212.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Airlie <airlied@linux.ie>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
@@ -167,10 +124,8 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
@@ -178,124 +133,74 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/numa.h  |    8 +++++++-
- arch/x86/mm/numa.c           |    8 ++------
- arch/x86/mm/numa_emulation.c |    3 ++-
- arch/x86/xen/enlighten_pv.c  |    2 +-
- drivers/acpi/numa/srat.c     |    9 +++++++--
- include/acpi/acpi_numa.h     |    6 +++++-
- 6 files changed, 24 insertions(+), 12 deletions(-)
+ Documentation/x86/x86_64/boot-options.rst |    4 ++++
+ arch/x86/mm/numa.c                        |    2 ++
+ drivers/acpi/numa/hmat.c                  |    8 +++++++-
+ include/acpi/acpi_numa.h                  |    8 ++++++++
+ 4 files changed, 21 insertions(+), 1 deletion(-)
 
---- a/arch/x86/include/asm/numa.h~x86-numa-cleanup-configuration-dependent-command-line-options
-+++ a/arch/x86/include/asm/numa.h
-@@ -3,6 +3,7 @@
- #define _ASM_X86_NUMA_H
- 
- #include <linux/nodemask.h>
-+#include <linux/errno.h>
- 
- #include <asm/topology.h>
- #include <asm/apicdef.h>
-@@ -77,7 +78,12 @@ void debug_cpumask_set_cpu(int cpu, int
- #ifdef CONFIG_NUMA_EMU
- #define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
- #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
--void numa_emu_cmdline(char *);
-+int numa_emu_cmdline(char *str);
-+#else /* CONFIG_NUMA_EMU */
-+static inline int numa_emu_cmdline(char *str)
-+{
-+	return -EINVAL;
-+}
- #endif /* CONFIG_NUMA_EMU */
- 
- #endif	/* _ASM_X86_NUMA_H */
---- a/arch/x86/mm/numa.c~x86-numa-cleanup-configuration-dependent-command-line-options
+--- a/arch/x86/mm/numa.c~x86-numa-add-nohmat-option
 +++ a/arch/x86/mm/numa.c
-@@ -37,14 +37,10 @@ static __init int numa_setup(char *opt)
- 		return -EINVAL;
- 	if (!strncmp(opt, "off", 3))
- 		numa_off = 1;
--#ifdef CONFIG_NUMA_EMU
- 	if (!strncmp(opt, "fake=", 5))
--		numa_emu_cmdline(opt + 5);
--#endif
--#ifdef CONFIG_ACPI_NUMA
-+		return numa_emu_cmdline(opt + 5);
+@@ -41,6 +41,8 @@ static __init int numa_setup(char *opt)
+ 		return numa_emu_cmdline(opt + 5);
  	if (!strncmp(opt, "noacpi", 6))
--		acpi_numa = -1;
--#endif
-+		disable_srat();
+ 		disable_srat();
++	if (!strncmp(opt, "nohmat", 6))
++		disable_hmat();
  	return 0;
  }
  early_param("numa", numa_setup);
---- a/arch/x86/mm/numa_emulation.c~x86-numa-cleanup-configuration-dependent-command-line-options
-+++ a/arch/x86/mm/numa_emulation.c
-@@ -13,9 +13,10 @@
- static int emu_nid_to_phys[MAX_NUMNODES];
- static char *emu_cmdline __initdata;
+--- a/Documentation/x86/x86_64/boot-options.rst~x86-numa-add-nohmat-option
++++ a/Documentation/x86/x86_64/boot-options.rst
+@@ -173,6 +173,10 @@ NUMA
+   numa=noacpi
+     Don't parse the SRAT table for NUMA setup
  
--void __init numa_emu_cmdline(char *str)
-+int __init numa_emu_cmdline(char *str)
- {
- 	emu_cmdline = str;
-+	return 0;
- }
- 
- static int __init emu_find_memblk_by_nid(int nid, const struct numa_meminfo *mi)
---- a/arch/x86/xen/enlighten_pv.c~x86-numa-cleanup-configuration-dependent-command-line-options
-+++ a/arch/x86/xen/enlighten_pv.c
-@@ -1302,7 +1302,7 @@ asmlinkage __visible void __init xen_sta
- 	 * any NUMA information the kernel tries to get from ACPI will
- 	 * be meaningless.  Prevent it from trying.
- 	 */
--	acpi_numa = -1;
-+	disable_srat();
- #endif
- 	WARN_ON(xen_cpuhp_setup(xen_cpu_up_prepare_pv, xen_cpu_dead_pv));
- 
---- a/drivers/acpi/numa/srat.c~x86-numa-cleanup-configuration-dependent-command-line-options
-+++ a/drivers/acpi/numa/srat.c
-@@ -27,7 +27,12 @@ static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
- unsigned char acpi_srat_revision __initdata;
--int acpi_numa __initdata;
-+static int acpi_numa __initdata;
++  numa=nohmat
++    Don't parse the HMAT table for NUMA setup, or soft-reserved memory
++    partitioning.
 +
-+void __init disable_srat(void)
+   numa=fake=<size>[MG]
+     If given as a memory unit, fills all system RAM with nodes of
+     size interleaved over physical nodes.
+--- a/drivers/acpi/numa/hmat.c~x86-numa-add-nohmat-option
++++ a/drivers/acpi/numa/hmat.c
+@@ -26,6 +26,12 @@
+ #include <linux/sysfs.h>
+ 
+ static u8 hmat_revision;
++static int hmat_disable __initdata;
++
++void __init disable_hmat(void)
 +{
-+	acpi_numa = -1;
++	hmat_disable = 1;
 +}
  
- int pxm_to_node(int pxm)
- {
-@@ -163,7 +168,7 @@ static int __init slit_valid(struct acpi
- void __init bad_srat(void)
- {
- 	pr_err("SRAT: SRAT not used.\n");
--	acpi_numa = -1;
-+	disable_srat();
- }
+ static LIST_HEAD(targets);
+ static LIST_HEAD(initiators);
+@@ -814,7 +820,7 @@ static __init int hmat_init(void)
+ 	enum acpi_hmat_type i;
+ 	acpi_status status;
  
- int __init srat_disabled(void)
---- a/include/acpi/acpi_numa.h~x86-numa-cleanup-configuration-dependent-command-line-options
+-	if (srat_disabled())
++	if (srat_disabled() || hmat_disable)
+ 		return 0;
+ 
+ 	status = acpi_get_table(ACPI_SIG_SRAT, 0, &tbl);
+--- a/include/acpi/acpi_numa.h~x86-numa-add-nohmat-option
 +++ a/include/acpi/acpi_numa.h
-@@ -17,10 +17,14 @@ extern int pxm_to_node(int);
- extern int node_to_pxm(int);
- extern int acpi_map_pxm_to_node(int);
- extern unsigned char acpi_srat_revision;
--extern int acpi_numa __initdata;
-+extern void disable_srat(void);
- 
- extern void bad_srat(void);
- extern int srat_disabled(void);
- 
-+#else				/* CONFIG_ACPI_NUMA */
-+static inline void disable_srat(void)
+@@ -27,4 +27,12 @@ static inline void disable_srat(void)
+ {
+ }
+ #endif				/* CONFIG_ACPI_NUMA */
++
++#ifdef CONFIG_ACPI_HMAT
++extern void disable_hmat(void);
++#else				/* CONFIG_ACPI_HMAT */
++static inline void disable_hmat(void)
 +{
 +}
- #endif				/* CONFIG_ACPI_NUMA */
++#endif				/* CONFIG_ACPI_HMAT */
  #endif				/* __ACP_NUMA_H */
 _
 
