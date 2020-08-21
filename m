@@ -7,47 +7,58 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE12FC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 22:34:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAECCC433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4A56207CD
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 22:34:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75B7B207DF
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598049270;
-	bh=vMCcvLmB1fGttY0T2cJTmLRhF1zms0Yr2mtvqVPMFZU=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=XqqnfHHopkYgXCg6MVYoLPK7XXnkPI3WNaHiOdvKd6s73lhuqTkuM/ETa8IEZpsG4
-	 2FHqM/FMyseBulMzR2BVdrEh9mXhwpRT8TLDM3USz7cDI0ml7Z/WtNBZ29/ZuY8Dmn
-	 W2/PRmJ+srQWUIXuLLd+t1dsiedCfmp1JzGlHavw=
+	s=default; t=1598052164;
+	bh=r4O1OidhCLTtA4EIWBPUeXM2yn81FxJXDb6e1e2eG8o=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=IJOuYQ+25Eg8epV2OaDaj62U2AkxEoJTfiMpZSoZc96RwzqsgISSWZwMoVesIG/TG
+	 0RnmiZ5DpI4nr4TKDl/h/4jR6wDESbBfdmj9pY2hJt91QQyXcJpk5W99JHDPD0s07y
+	 AGBcR8fJFknULsPw+hhqHM51qxpiPoTm+qB1eFf4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727008AbgHUWea (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Aug 2020 18:34:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36620 "EHLO mail.kernel.org"
+        id S1726727AbgHUXWo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Aug 2020 19:22:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55888 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726358AbgHUWe3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 21 Aug 2020 18:34:29 -0400
+        id S1726541AbgHUXWl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 21 Aug 2020 19:22:41 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA3B920738;
-        Fri, 21 Aug 2020 22:34:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9E501207C3;
+        Fri, 21 Aug 2020 23:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598049267;
-        bh=vMCcvLmB1fGttY0T2cJTmLRhF1zms0Yr2mtvqVPMFZU=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=EFRlN0aWCRaZQEJDDHxuD8n5K/dKUzj0zSdVuo57/Zj4IM8zpXizEJcb/AqTBpayh
-         SpFfT8O37i/7v1i1GhLC1ZDrG+1jvFpa4+z0sH0R5Xjh9nvGrtIG3vLDTeQnsNBrC6
-         uIz//DhB3jaFYTW/TFKGdzeynV6aPeCtFf3kHjus=
-Date:   Fri, 21 Aug 2020 15:34:27 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     chris@chris-wilson.co.uk, jroedel@suse.de,
-        mm-commits@vger.kernel.org, pavel@ucw.cz, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
+        s=default; t=1598052160;
+        bh=r4O1OidhCLTtA4EIWBPUeXM2yn81FxJXDb6e1e2eG8o=;
+        h=Date:From:To:Subject:From;
+        b=wWINj3k/n5nhHI165CHWwMhrBuVjYPDccw4HXduIe6TtYzFzPNg3GR5pRUz1Jbxtt
+         PRtY4ntr5dHOy1BbYjGvN73+SUwqz9hBOrfZUZEMi7GHuow/SPz+syJ+rTCZIuLBxh
+         IYgdtyOjlG4AHFUiN+hQbbxKvc5mxsKS06tB20TI=
+Date:   Fri, 21 Aug 2020 16:22:38 -0700
+From:   akpm@linux-foundation.org
+To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
+        benh@kernel.crashing.org, bp@alien8.de, Brice.Goglin@inria.fr,
+        bskeggs@redhat.com, catalin.marinas@arm.com,
+        dan.j.williams@intel.com, daniel@ffwll.ch,
+        dave.hansen@linux.intel.com, dave.jiang@intel.com,
+        david@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com,
+        ira.weiny@intel.com, jgg@mellanox.com, jmoyer@redhat.com,
+        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
+        justin.he@arm.com, luto@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        pasha.tatashin@soleen.com, paulus@ozlabs.org, peterz@infradead.org,
+        rafael.j.wysocki@intel.com, rafael@kernel.org,
+        richardw.yang@linux.intel.com, rjw@rjwysocki.net,
+        rppt@linux.ibm.com, tglx@linutronix.de, thomas.lendacky@amd.com,
+        vishal.l.verma@intel.com, will@kernel.org
 Subject:  +
- mm-track-page-table-modifications-in-__apply_to_page_range.patch added to
- -mm tree
-Message-ID: <20200821223427.OHtszKWdH%akpm@linux-foundation.org>
-In-Reply-To: <20200820174132.67fd4a7a9359048f807a533b@linux-foundation.org>
+ x86-numa-cleanup-configuration-dependent-command-line-options.patch added
+ to -mm tree
+Message-ID: <20200821232238.fW8c2DRfz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,14 +68,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: track page table modifications in __apply_to_page_range()
+     Subject: x86/numa: cleanup configuration dependent command-line options
 has been added to the -mm tree.  Its filename is
-     mm-track-page-table-modifications-in-__apply_to_page_range.patch
+     x86-numa-cleanup-configuration-dependent-command-line-options.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-track-page-table-modifications-in-__apply_to_page_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-numa-cleanup-configuration-dependent-command-line-options.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-track-page-table-modifications-in-__apply_to_page_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-cleanup-configuration-dependent-command-line-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,231 +89,235 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joerg Roedel <jroedel@suse.de>
-Subject: mm: track page table modifications in __apply_to_page_range()
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: x86/numa: cleanup configuration dependent command-line options
 
-__apply_to_page_range() is also used to change and/or allocate page-table
-pages in the vmalloc area of the address space.  Make sure these changes
-get synchronized to other page-tables in the system by calling
-arch_sync_kernel_mappings() when necessary.
+Patch series "device-dax: Support sub-dividing soft-reserved ranges", v4.
 
-The impact appears limited to x86-32, where apply_to_page_range may miss
-updating the PMD.  That leads to explosions in drivers like
+The device-dax facility allows an address range to be directly mapped
+through a chardev, or optionally hotplugged to the core kernel page
+allocator as System-RAM.  It is the mechanism for converting persistent
+memory (pmem) to be used as another volatile memory pool i.e.  the current
+Memory Tiering hot topic on linux-mm.
 
-[   24.227844] BUG: unable to handle page fault for address: fe036000
-[   24.228076] #PF: supervisor write access in kernel mode
-[   24.228294] #PF: error_code(0x0002) - not-present page
-[   24.228494] *pde = 00000000
-[   24.228640] Oops: 0002 [#1] SMP
-[   24.228788] CPU: 3 PID: 1300 Comm: gem_concurrent_ Not tainted 5.9.0-rc1+ #16
-[   24.228957] Hardware name:  /NUC6i3SYB, BIOS SYSKLi35.86A.0024.2015.1027.2142 10/27/2015
-[   24.229297] EIP: __execlists_context_alloc+0x132/0x2d0 [i915]
-[   24.229462] Code: 31 d2 89 f0 e8 2f 55 02 00 89 45 e8 3d 00 f0 ff ff 0f 87 11 01 00 00 8b 4d e8 03 4b 30 b8 5a 5a 5a 5a ba 01 00 00 00 8d 79 04 <c7> 01 5a 5a 5a 5a c7 81 fc 0f 00 00 5a 5a 5a 5a 83 e7 fc 29 f9 81
-[   24.229759] EAX: 5a5a5a5a EBX: f60ca000 ECX: fe036000 EDX: 00000001
-[   24.229915] ESI: f43b7340 EDI: fe036004 EBP: f6389cb8 ESP: f6389c9c
-[   24.230072] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00010286
-[   24.230229] CR0: 80050033 CR2: fe036000 CR3: 2d361000 CR4: 001506d0
-[   24.230385] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[   24.230539] DR6: fffe0ff0 DR7: 00000400
-[   24.230675] Call Trace:
-[   24.230957]  execlists_context_alloc+0x10/0x20 [i915]
-[   24.231266]  intel_context_alloc_state+0x3f/0x70 [i915]
-[   24.231547]  __intel_context_do_pin+0x117/0x170 [i915]
-[   24.231850]  i915_gem_do_execbuffer+0xcc7/0x2500 [i915]
-[   24.232024]  ? __kmalloc_track_caller+0x54/0x230
-[   24.232181]  ? ktime_get+0x3e/0x120
-[   24.232333]  ? dma_fence_signal+0x34/0x50
-[   24.232617]  i915_gem_execbuffer2_ioctl+0xcd/0x1f0 [i915]
-[   24.232912]  ? i915_gem_execbuffer_ioctl+0x2e0/0x2e0 [i915]
-[   24.233084]  drm_ioctl_kernel+0x8f/0xd0
-[   24.233236]  drm_ioctl+0x223/0x3d0
-[   24.233505]  ? i915_gem_execbuffer_ioctl+0x2e0/0x2e0 [i915]
-[   24.233684]  ? pick_next_task_fair+0x1b5/0x3d0
-[   24.233873]  ? __switch_to_asm+0x36/0x50
-[   24.234021]  ? drm_ioctl_kernel+0xd0/0xd0
-[   24.234167]  __ia32_sys_ioctl+0x1ab/0x760
-[   24.234313]  ? exit_to_user_mode_prepare+0xe5/0x110
-[   24.234453]  ? syscall_exit_to_user_mode+0x23/0x130
-[   24.234601]  __do_fast_syscall_32+0x3f/0x70
-[   24.234744]  do_fast_syscall_32+0x29/0x60
-[   24.234885]  do_SYSENTER_32+0x15/0x20
-[   24.235021]  entry_SYSENTER_32+0x9f/0xf2
-[   24.235157] EIP: 0xb7f28559
-[   24.235288] Code: 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d 76 00 58 b8 77 00 00 00 cd 80 90 8d 76
-[   24.235576] EAX: ffffffda EBX: 00000005 ECX: c0406469 EDX: bf95556c
-[   24.235722] ESI: b7e68000 EDI: c0406469 EBP: 00000005 ESP: bf9554d8
-[   24.235869] DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 007b EFLAGS: 00000296
-[   24.236018] Modules linked in: i915 x86_pkg_temp_thermal intel_powerclamp crc32_pclmul crc32c_intel intel_cstate intel_uncore intel_gtt drm_kms_helper intel_pch_thermal video button autofs4 i2c_i801 i2c_smbus fan
-[   24.236336] CR2: 00000000fe036000
+In the case of pmem the nvdimm-namespace-label mechanism can sub-divide
+it, but that labeling mechanism is not available / applicable to
+soft-reserved ("EFI specific purpose") memory [3].  This series provides a
+sysfs-mechanism for the daxctl utility to enable provisioning of
+volatile-soft-reserved memory ranges.
 
-It looks like kasan, xen and i915 are vulnerable.
+The motivations for this facility are:
 
-Actual impact is "on thinkpad X60 in 5.9-rc1, screen starts blinking after
-30-or-so minutes, and machine is unusable"
+1/ Allow performance differentiated memory ranges to be split between
+   kernel-managed and directly-accessed use cases.
 
-[chris@chris-wilson.co.uk: changelog addition]
-[pavel@ucw.cz: changelog addition]
-Link: https://lkml.kernel.org/r/20200821123746.16904-1-joro@8bytes.org
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Tested-by: Chris Wilson <chris@chris-wilson.co.uk>	[x86-32]
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: <stable@vger.kernel.org>	[5.8+]
+2/ Allow physical memory to be provisioned along performance relevant
+   address boundaries. For example, divide a memory-side cache [4] along
+   cache-color boundaries.
+
+3/ Parcel out soft-reserved memory to VMs using device-dax as a security
+   / permissions boundary [5]. Specifically I have seen people (ab)using
+   memmap=nn!ss (mark System-RAM as Persistent Memory) just to get the
+   device-dax interface on custom address ranges. A follow-on for the VM
+   use case is to teach device-dax to dynamically allocate 'struct page' at
+   runtime to reduce the duplication of 'struct page' space in both the
+   guest and the host kernel for the same physical pages.
+
+[2]: http://lore.kernel.org/r/20200713160837.13774-11-joao.m.martins@oracle.com
+[3]: http://lore.kernel.org/r/157309097008.1579826.12818463304589384434.stgit@dwillia2-desk3.amr.corp.intel.com
+[4]: http://lore.kernel.org/r/154899811738.3165233.12325692939590944259.stgit@dwillia2-desk3.amr.corp.intel.com
+[5]: http://lore.kernel.org/r/20200110190313.17144-1-joao.m.martins@oracle.com
+
+
+This patch (of 23):
+
+In preparation for adding a new numa= option clean up the existing ones to
+avoid ifdefs in numa_setup(), and provide feedback when the option is
+numa=fake= option is invalid due to kernel config.  The same does not need
+to be done for numa=noacpi, since the capability is already hard disabled
+at compile-time.
+
+Link: https://lkml.kernel.org/r/159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643094925.4062302.14979872973043772305.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ arch/x86/include/asm/numa.h  |    8 +++++++-
+ arch/x86/mm/numa.c           |    8 ++------
+ arch/x86/mm/numa_emulation.c |    3 ++-
+ arch/x86/xen/enlighten_pv.c  |    2 +-
+ drivers/acpi/numa/srat.c     |    9 +++++++--
+ include/acpi/acpi_numa.h     |    6 +++++-
+ 6 files changed, 24 insertions(+), 12 deletions(-)
 
---- a/mm/memory.c~mm-track-page-table-modifications-in-__apply_to_page_range
-+++ a/mm/memory.c
-@@ -83,6 +83,7 @@
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
+--- a/arch/x86/include/asm/numa.h~x86-numa-cleanup-configuration-dependent-command-line-options
++++ a/arch/x86/include/asm/numa.h
+@@ -3,6 +3,7 @@
+ #define _ASM_X86_NUMA_H
  
-+#include "pgalloc-track.h"
- #include "internal.h"
+ #include <linux/nodemask.h>
++#include <linux/errno.h>
  
- #if defined(LAST_CPUPID_NOT_IN_PAGE_FLAGS) && !defined(CONFIG_COMPILE_TEST)
-@@ -2206,7 +2207,8 @@ EXPORT_SYMBOL(vm_iomap_memory);
+ #include <asm/topology.h>
+ #include <asm/apicdef.h>
+@@ -77,7 +78,12 @@ void debug_cpumask_set_cpu(int cpu, int
+ #ifdef CONFIG_NUMA_EMU
+ #define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
+ #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
+-void numa_emu_cmdline(char *);
++int numa_emu_cmdline(char *str);
++#else /* CONFIG_NUMA_EMU */
++static inline int numa_emu_cmdline(char *str)
++{
++	return -EINVAL;
++}
+ #endif /* CONFIG_NUMA_EMU */
  
- static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data, bool create)
-+				     pte_fn_t fn, void *data, bool create,
-+				     pgtbl_mod_mask *mask)
+ #endif	/* _ASM_X86_NUMA_H */
+--- a/arch/x86/mm/numa.c~x86-numa-cleanup-configuration-dependent-command-line-options
++++ a/arch/x86/mm/numa.c
+@@ -37,14 +37,10 @@ static __init int numa_setup(char *opt)
+ 		return -EINVAL;
+ 	if (!strncmp(opt, "off", 3))
+ 		numa_off = 1;
+-#ifdef CONFIG_NUMA_EMU
+ 	if (!strncmp(opt, "fake=", 5))
+-		numa_emu_cmdline(opt + 5);
+-#endif
+-#ifdef CONFIG_ACPI_NUMA
++		return numa_emu_cmdline(opt + 5);
+ 	if (!strncmp(opt, "noacpi", 6))
+-		acpi_numa = -1;
+-#endif
++		disable_srat();
+ 	return 0;
+ }
+ early_param("numa", numa_setup);
+--- a/arch/x86/mm/numa_emulation.c~x86-numa-cleanup-configuration-dependent-command-line-options
++++ a/arch/x86/mm/numa_emulation.c
+@@ -13,9 +13,10 @@
+ static int emu_nid_to_phys[MAX_NUMNODES];
+ static char *emu_cmdline __initdata;
+ 
+-void __init numa_emu_cmdline(char *str)
++int __init numa_emu_cmdline(char *str)
  {
- 	pte_t *pte;
- 	int err = 0;
-@@ -2214,7 +2216,7 @@ static int apply_to_pte_range(struct mm_
- 
- 	if (create) {
- 		pte = (mm == &init_mm) ?
--			pte_alloc_kernel(pmd, addr) :
-+			pte_alloc_kernel_track(pmd, addr, mask) :
- 			pte_alloc_map_lock(mm, pmd, addr, &ptl);
- 		if (!pte)
- 			return -ENOMEM;
-@@ -2235,6 +2237,7 @@ static int apply_to_pte_range(struct mm_
- 				break;
- 		}
- 	} while (addr += PAGE_SIZE, addr != end);
-+	*mask |= PGTBL_PTE_MODIFIED;
- 
- 	arch_leave_lazy_mmu_mode();
- 
-@@ -2245,7 +2248,8 @@ static int apply_to_pte_range(struct mm_
- 
- static int apply_to_pmd_range(struct mm_struct *mm, pud_t *pud,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data, bool create)
-+				     pte_fn_t fn, void *data, bool create,
-+				     pgtbl_mod_mask *mask)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -2254,7 +2258,7 @@ static int apply_to_pmd_range(struct mm_
- 	BUG_ON(pud_huge(*pud));
- 
- 	if (create) {
--		pmd = pmd_alloc(mm, pud, addr);
-+		pmd = pmd_alloc_track(mm, pud, addr, mask);
- 		if (!pmd)
- 			return -ENOMEM;
- 	} else {
-@@ -2264,7 +2268,7 @@ static int apply_to_pmd_range(struct mm_
- 		next = pmd_addr_end(addr, end);
- 		if (create || !pmd_none_or_clear_bad(pmd)) {
- 			err = apply_to_pte_range(mm, pmd, addr, next, fn, data,
--						 create);
-+						 create, mask);
- 			if (err)
- 				break;
- 		}
-@@ -2274,14 +2278,15 @@ static int apply_to_pmd_range(struct mm_
- 
- static int apply_to_pud_range(struct mm_struct *mm, p4d_t *p4d,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data, bool create)
-+				     pte_fn_t fn, void *data, bool create,
-+				     pgtbl_mod_mask *mask)
- {
- 	pud_t *pud;
- 	unsigned long next;
- 	int err = 0;
- 
- 	if (create) {
--		pud = pud_alloc(mm, p4d, addr);
-+		pud = pud_alloc_track(mm, p4d, addr, mask);
- 		if (!pud)
- 			return -ENOMEM;
- 	} else {
-@@ -2291,7 +2296,7 @@ static int apply_to_pud_range(struct mm_
- 		next = pud_addr_end(addr, end);
- 		if (create || !pud_none_or_clear_bad(pud)) {
- 			err = apply_to_pmd_range(mm, pud, addr, next, fn, data,
--						 create);
-+						 create, mask);
- 			if (err)
- 				break;
- 		}
-@@ -2301,14 +2306,15 @@ static int apply_to_pud_range(struct mm_
- 
- static int apply_to_p4d_range(struct mm_struct *mm, pgd_t *pgd,
- 				     unsigned long addr, unsigned long end,
--				     pte_fn_t fn, void *data, bool create)
-+				     pte_fn_t fn, void *data, bool create,
-+				     pgtbl_mod_mask *mask)
- {
- 	p4d_t *p4d;
- 	unsigned long next;
- 	int err = 0;
- 
- 	if (create) {
--		p4d = p4d_alloc(mm, pgd, addr);
-+		p4d = p4d_alloc_track(mm, pgd, addr, mask);
- 		if (!p4d)
- 			return -ENOMEM;
- 	} else {
-@@ -2318,7 +2324,7 @@ static int apply_to_p4d_range(struct mm_
- 		next = p4d_addr_end(addr, end);
- 		if (create || !p4d_none_or_clear_bad(p4d)) {
- 			err = apply_to_pud_range(mm, p4d, addr, next, fn, data,
--						 create);
-+						 create, mask);
- 			if (err)
- 				break;
- 		}
-@@ -2331,8 +2337,9 @@ static int __apply_to_page_range(struct
- 				 void *data, bool create)
- {
- 	pgd_t *pgd;
--	unsigned long next;
-+	unsigned long start = addr, next;
- 	unsigned long end = addr + size;
-+	pgtbl_mod_mask mask = 0;
- 	int err = 0;
- 
- 	if (WARN_ON(addr >= end))
-@@ -2343,11 +2350,14 @@ static int __apply_to_page_range(struct
- 		next = pgd_addr_end(addr, end);
- 		if (!create && pgd_none_or_clear_bad(pgd))
- 			continue;
--		err = apply_to_p4d_range(mm, pgd, addr, next, fn, data, create);
-+		err = apply_to_p4d_range(mm, pgd, addr, next, fn, data, create, &mask);
- 		if (err)
- 			break;
- 	} while (pgd++, addr = next, addr != end);
- 
-+	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
-+		arch_sync_kernel_mappings(start, start + size);
-+
- 	return err;
+ 	emu_cmdline = str;
++	return 0;
  }
  
+ static int __init emu_find_memblk_by_nid(int nid, const struct numa_meminfo *mi)
+--- a/arch/x86/xen/enlighten_pv.c~x86-numa-cleanup-configuration-dependent-command-line-options
++++ a/arch/x86/xen/enlighten_pv.c
+@@ -1302,7 +1302,7 @@ asmlinkage __visible void __init xen_sta
+ 	 * any NUMA information the kernel tries to get from ACPI will
+ 	 * be meaningless.  Prevent it from trying.
+ 	 */
+-	acpi_numa = -1;
++	disable_srat();
+ #endif
+ 	WARN_ON(xen_cpuhp_setup(xen_cpu_up_prepare_pv, xen_cpu_dead_pv));
+ 
+--- a/drivers/acpi/numa/srat.c~x86-numa-cleanup-configuration-dependent-command-line-options
++++ a/drivers/acpi/numa/srat.c
+@@ -27,7 +27,12 @@ static int node_to_pxm_map[MAX_NUMNODES]
+ 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+ 
+ unsigned char acpi_srat_revision __initdata;
+-int acpi_numa __initdata;
++static int acpi_numa __initdata;
++
++void __init disable_srat(void)
++{
++	acpi_numa = -1;
++}
+ 
+ int pxm_to_node(int pxm)
+ {
+@@ -163,7 +168,7 @@ static int __init slit_valid(struct acpi
+ void __init bad_srat(void)
+ {
+ 	pr_err("SRAT: SRAT not used.\n");
+-	acpi_numa = -1;
++	disable_srat();
+ }
+ 
+ int __init srat_disabled(void)
+--- a/include/acpi/acpi_numa.h~x86-numa-cleanup-configuration-dependent-command-line-options
++++ a/include/acpi/acpi_numa.h
+@@ -17,10 +17,14 @@ extern int pxm_to_node(int);
+ extern int node_to_pxm(int);
+ extern int acpi_map_pxm_to_node(int);
+ extern unsigned char acpi_srat_revision;
+-extern int acpi_numa __initdata;
++extern void disable_srat(void);
+ 
+ extern void bad_srat(void);
+ extern int srat_disabled(void);
+ 
++#else				/* CONFIG_ACPI_NUMA */
++static inline void disable_srat(void)
++{
++}
+ #endif				/* CONFIG_ACPI_NUMA */
+ #endif				/* __ACP_NUMA_H */
 _
 
-Patches currently in -mm which might be from jroedel@suse.de are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-track-page-table-modifications-in-__apply_to_page_range.patch
+x86-numa-cleanup-configuration-dependent-command-line-options.patch
+x86-numa-add-nohmat-option.patch
+efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance.patch
+acpi-hmat-refactor-hmat_register_target_device-to-hmem_register_device.patch
+resource-report-parent-to-walk_iomem_res_desc-callback.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation.patch
+acpi-hmat-attach-a-device-for-each-soft-reserved-range.patch
+device-dax-drop-the-dax_regionpfn_flags-attribute.patch
+device-dax-move-instance-creation-parameters-to-struct-dev_dax_data.patch
+device-dax-make-pgmap-optional-for-instance-creation.patch
+device-dax-kill-dax_kmem_res.patch
+device-dax-add-an-allocation-interface-for-device-dax-instances.patch
+device-dax-introduce-seed-devices.patch
+drivers-base-make-device_find_child_by_name-compatible-with-sysfs-inputs.patch
+device-dax-add-resize-support.patch
+mm-memremap_pages-convert-to-struct-range.patch
+mm-memremap_pages-support-multiple-ranges-per-invocation.patch
+device-dax-add-dis-contiguous-resource-support.patch
+device-dax-introduce-mapping-devices.patch
 
