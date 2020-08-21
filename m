@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8547C433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22FA9C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A070B20855
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF3C1207DF
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 23:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598052168;
-	bh=XRi8XKzG13SyZxdz1wCulR4RsxOWVRv8v9F+pVJNX3Y=;
+	s=default; t=1598052173;
+	bh=sKLHbJTSz3ktT+ei9afPlvY/f5DUe+4lL79epZPRZvY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BKO/zOz9ONE7eAjw4KX7AvkgdmBIbmYjPa1doXA//4lSr0Q17n1eOo1EZFKt9ni1e
-	 NrobNiQEsAAQY2CO6z9UsUAktN6TfAA2W1yA27ca/R9Qrl1aou5ftlRj1IlmhLj9qf
-	 rYcRbnRWVSGzqw97D3PcLl3C1CCWy0E8d0sfDY7s=
+	b=cIdn47absnHXjCjOnMKBCCCnPDYdAqpj2xIitargMLYUj9nhaJuK4MQL6IVMiCt3s
+	 8R9wz236Xqy7l+77qypYfoWOYM83rd8woOjTHkTNMrMIBDNvYsOZ8eX6ryp20u+QJ4
+	 wTlfs4xP9Mv/S9a4A0NF3ul/QR5lxtJC6tLocvoc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726746AbgHUXWs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Aug 2020 19:22:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56152 "EHLO mail.kernel.org"
+        id S1726753AbgHUXWw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Aug 2020 19:22:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56408 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726541AbgHUXWq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 21 Aug 2020 19:22:46 -0400
+        id S1726541AbgHUXWw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 21 Aug 2020 19:22:52 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5A78F207CD;
-        Fri, 21 Aug 2020 23:22:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 79265207C3;
+        Fri, 21 Aug 2020 23:22:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598052165;
-        bh=XRi8XKzG13SyZxdz1wCulR4RsxOWVRv8v9F+pVJNX3Y=;
+        s=default; t=1598052171;
+        bh=sKLHbJTSz3ktT+ei9afPlvY/f5DUe+4lL79epZPRZvY=;
         h=Date:From:To:Subject:From;
-        b=JkxT7+KoQtA7WVeEjyOijWpDXosuvHKq0Xr6ivTkJ8ediBHukKUS+bnrhstnANEKu
-         yfmmCXh3CSu5K3DmePABUgG4Ke+ZvJvPAqNORb+y9hShkOqlwVAosEOuzOwwIj1EuA
-         lGuMohQhMrusV2S/CFqQ7ojVFDJXUtnMIVRe4VbI=
-Date:   Fri, 21 Aug 2020 16:22:43 -0700
+        b=N88SOHfAstpRMK8msKOKga8cl3LEDlbydERYaz4sx7wwUkfsZ7s7fbwrvpEILaafv
+         u5UTztvoR2xR4n3rWuG8Xo8paHYHxPF4EVmWRxUStgFsuch4WHtu79VdeRwUUJPeEF
+         5xsV0olkdx/6CnlfhiSqNSVdIkg5gqbp7iUGhPlo=
+Date:   Fri, 21 Aug 2020 16:22:48 -0700
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         benh@kernel.crashing.org, bp@alien8.de, Brice.Goglin@inria.fr,
@@ -55,8 +55,10 @@ To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         richardw.yang@linux.intel.com, rjw@rjwysocki.net,
         rppt@linux.ibm.com, tglx@linutronix.de, thomas.lendacky@amd.com,
         vishal.l.verma@intel.com, will@kernel.org
-Subject:  + x86-numa-add-nohmat-option.patch added to -mm tree
-Message-ID: <20200821232243.sCDAzlfya%akpm@linux-foundation.org>
+Subject:  +
+ efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance.patch
+ added to -mm tree
+Message-ID: <20200821232248.GMd9sxNR2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -66,14 +68,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/numa: add 'nohmat' option
+     Subject: efi/fake_mem: arrange for a resource entry per efi_fake_mem instance
 has been added to the -mm tree.  Its filename is
-     x86-numa-add-nohmat-option.patch
+     efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-numa-add-nohmat-option.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-add-nohmat-option.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,28 +90,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: x86/numa: add 'nohmat' option
+Subject: efi/fake_mem: arrange for a resource entry per efi_fake_mem instance
 
-Disable parsing of the HMAT for debug, to workaround broken platform
-instances, or cases where it is otherwise not wanted.
+In preparation for attaching a platform device per iomem resource teach
+the efi_fake_mem code to create an e820 entry per instance.  Similar to
+E820_TYPE_PRAM, bypass merging resource when the e820 map is sanitized.
 
-Link: https://lkml.kernel.org/r/159643095540.4062302.732962081968036212.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643096068.4062302.11590041070221681669.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Ben Skeggs <bskeggs@redhat.com>
 Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Airlie <airlied@linux.ie>
 Cc: David Hildenbrand <david@redhat.com>
@@ -124,8 +125,10 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
@@ -133,75 +136,73 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86/x86_64/boot-options.rst |    4 ++++
- arch/x86/mm/numa.c                        |    2 ++
- drivers/acpi/numa/hmat.c                  |    8 +++++++-
- include/acpi/acpi_numa.h                  |    8 ++++++++
- 4 files changed, 21 insertions(+), 1 deletion(-)
+ arch/x86/kernel/e820.c              |   16 +++++++++++++++-
+ drivers/firmware/efi/x86_fake_mem.c |   12 +++++++++---
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
---- a/arch/x86/mm/numa.c~x86-numa-add-nohmat-option
-+++ a/arch/x86/mm/numa.c
-@@ -41,6 +41,8 @@ static __init int numa_setup(char *opt)
- 		return numa_emu_cmdline(opt + 5);
- 	if (!strncmp(opt, "noacpi", 6))
- 		disable_srat();
-+	if (!strncmp(opt, "nohmat", 6))
-+		disable_hmat();
- 	return 0;
+--- a/arch/x86/kernel/e820.c~efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance
++++ a/arch/x86/kernel/e820.c
+@@ -305,6 +305,20 @@ static int __init cpcompare(const void *
+ 	return (ap->addr != ap->entry->addr) - (bp->addr != bp->entry->addr);
  }
- early_param("numa", numa_setup);
---- a/Documentation/x86/x86_64/boot-options.rst~x86-numa-add-nohmat-option
-+++ a/Documentation/x86/x86_64/boot-options.rst
-@@ -173,6 +173,10 @@ NUMA
-   numa=noacpi
-     Don't parse the SRAT table for NUMA setup
  
-+  numa=nohmat
-+    Don't parse the HMAT table for NUMA setup, or soft-reserved memory
-+    partitioning.
-+
-   numa=fake=<size>[MG]
-     If given as a memory unit, fills all system RAM with nodes of
-     size interleaved over physical nodes.
---- a/drivers/acpi/numa/hmat.c~x86-numa-add-nohmat-option
-+++ a/drivers/acpi/numa/hmat.c
-@@ -26,6 +26,12 @@
- #include <linux/sysfs.h>
- 
- static u8 hmat_revision;
-+static int hmat_disable __initdata;
-+
-+void __init disable_hmat(void)
++static bool e820_nomerge(enum e820_type type)
 +{
-+	hmat_disable = 1;
++	/*
++	 * These types may indicate distinct platform ranges aligned to
++	 * numa node, protection domain, performance domain, or other
++	 * boundaries. Do not merge them.
++	 */
++	if (type == E820_TYPE_PRAM)
++		return true;
++	if (type == E820_TYPE_SOFT_RESERVED)
++		return true;
++	return false;
 +}
- 
- static LIST_HEAD(targets);
- static LIST_HEAD(initiators);
-@@ -814,7 +820,7 @@ static __init int hmat_init(void)
- 	enum acpi_hmat_type i;
- 	acpi_status status;
- 
--	if (srat_disabled())
-+	if (srat_disabled() || hmat_disable)
- 		return 0;
- 
- 	status = acpi_get_table(ACPI_SIG_SRAT, 0, &tbl);
---- a/include/acpi/acpi_numa.h~x86-numa-add-nohmat-option
-+++ a/include/acpi/acpi_numa.h
-@@ -27,4 +27,12 @@ static inline void disable_srat(void)
++
+ int __init e820__update_table(struct e820_table *table)
  {
- }
- #endif				/* CONFIG_ACPI_NUMA */
+ 	struct e820_entry *entries = table->entries;
+@@ -380,7 +394,7 @@ int __init e820__update_table(struct e82
+ 		}
+ 
+ 		/* Continue building up new map based on this information: */
+-		if (current_type != last_type || current_type == E820_TYPE_PRAM) {
++		if (current_type != last_type || e820_nomerge(current_type)) {
+ 			if (last_type != 0)	 {
+ 				new_entries[new_nr_entries].size = change_point[chg_idx]->addr - last_addr;
+ 				/* Move forward only if the new size was non-zero: */
+--- a/drivers/firmware/efi/x86_fake_mem.c~efi-fake_mem-arrange-for-a-resource-entry-per-efi_fake_mem-instance
++++ a/drivers/firmware/efi/x86_fake_mem.c
+@@ -38,7 +38,7 @@ void __init efi_fake_memmap_early(void)
+ 		m_start = mem->range.start;
+ 		m_end = mem->range.end;
+ 		for_each_efi_memory_desc(md) {
+-			u64 start, end;
++			u64 start, end, size;
+ 
+ 			if (md->type != EFI_CONVENTIONAL_MEMORY)
+ 				continue;
+@@ -58,11 +58,17 @@ void __init efi_fake_memmap_early(void)
+ 			 */
+ 			start = max(start, m_start);
+ 			end = min(end, m_end);
++			size = end - start + 1;
+ 
+ 			if (end <= start)
+ 				continue;
+-			e820__range_update(start, end - start + 1, E820_TYPE_RAM,
+-					E820_TYPE_SOFT_RESERVED);
 +
-+#ifdef CONFIG_ACPI_HMAT
-+extern void disable_hmat(void);
-+#else				/* CONFIG_ACPI_HMAT */
-+static inline void disable_hmat(void)
-+{
-+}
-+#endif				/* CONFIG_ACPI_HMAT */
- #endif				/* __ACP_NUMA_H */
++			/*
++			 * Ensure each efi_fake_mem instance results in
++			 * a unique e820 resource
++			 */
++			e820__range_remove(start, size, E820_TYPE_RAM, 1);
++			e820__range_add(start, size, E820_TYPE_SOFT_RESERVED);
+ 			e820__update_table(e820_table);
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
