@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A9A1C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53AE5C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4F502087D
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 349DD20FC3
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597970527;
-	bh=+WvEgrYIHkkeUnjluxstf/SQ+TuZELLSwpag0oqeBFw=;
+	s=default; t=1597970534;
+	bh=VNwKEvb37hsvn1VTMYx2hDqpxy7g2QUUmUb4/3hoNVA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=WwCnjPkZcs09x8fjaQQUTozqQRcrNEWVHTCI+C6Hd1vXHBb2vqDvK6dVdZzGc8vOU
-	 N0FJLJEQ5eAtZIVj7Tu3pdh+yxJsyES633vdl9ba6to/pYe6PXOYEadsuliBt2kPoq
-	 9Nz4Ahwn6PJj1XUYoQHpwq6bSnXjRTLikq3jQDGU=
+	b=yeO/ornujeMfOHIr5rjR1VbJ8U9yLWTcJ+6Ngv2ZQgnp+kCwOT6IASzjALGM8ONG3
+	 8da5KpwAWts6mcpXR20QjjiJimOgRsvvGWywO1tHyHUv1aqXWK3czY95GJsvgnCtDz
+	 i3GFZHFWAIg9Pjiar5wnsRd/r8dNMRTZUsUKNgC4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726956AbgHUAmG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Aug 2020 20:42:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35258 "EHLO mail.kernel.org"
+        id S1727024AbgHUAmN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Aug 2020 20:42:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726918AbgHUAmD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 Aug 2020 20:42:03 -0400
+        id S1726938AbgHUAmG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Aug 2020 20:42:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8F296207DF;
-        Fri, 21 Aug 2020 00:42:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CEA70207BB;
+        Fri, 21 Aug 2020 00:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597970523;
-        bh=+WvEgrYIHkkeUnjluxstf/SQ+TuZELLSwpag0oqeBFw=;
+        s=default; t=1597970526;
+        bh=VNwKEvb37hsvn1VTMYx2hDqpxy7g2QUUmUb4/3hoNVA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nalZHLdnZOpXk7HvdakXtnze4hoQHp4fETpt6OUptZ6lvumiyccmbVnlDXNemqxuQ
-         GvwpfQaBLEL9SdRAiwa/nziUkElcDJSiGrVleDKdSJ59m6/nC6Uw79nW2kPs/FTztD
-         icKdUuIT4p032cgkDIjWPvrrrAO2y9jxZPFRWhPk=
-Date:   Thu, 20 Aug 2020 17:42:02 -0700
+        b=U0cwWhjxeL5oYwkOro+OZgJixZmkY5yldxoffTCTmZ8vuyDqJgZPpW/Y2RLTq7IqX
+         iel6GQ4PDd/BhBnHzBGaF8DhtJ0N1vHUxc4cm4AApCOmxqcXFighHnkrTEWPXWUq2G
+         XZ6neg0SBLMLkTLc7VQhRtOYZk/QZD0+uDpraFdY=
+Date:   Thu, 20 Aug 2020 17:42:05 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        edumazet@google.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, songliubraving@fb.com, stable@vger.kernel.org,
-        syzkaller@googlegroups.com, torvalds@linux-foundation.org
-Subject:  [patch 03/11] khugepaged: adjust VM_BUG_ON_MM() in
- __khugepaged_enter()
-Message-ID: <20200821004202.AP6gJKDLE%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        harish@linux.ibm.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 04/11] mm/vunmap: add cond_resched() in
+ vunmap_pmd_range
+Message-ID: <20200821004205.P4PRreiY4%akpm@linux-foundation.org>
 In-Reply-To: <20200820174132.67fd4a7a9359048f807a533b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,43 +55,58 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: khugepaged: adjust VM_BUG_ON_MM() in __khugepaged_enter()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/vunmap: add cond_resched() in vunmap_pmd_range
 
-syzbot crashes on the VM_BUG_ON_MM(khugepaged_test_exit(mm), mm) in
-__khugepaged_enter(): yes, when one thread is about to dump core, has set
-core_state, and is waiting for others, another might do something calling
-__khugepaged_enter(), which now crashes because I lumped the core_state
-test (known as "mmget_still_valid") into khugepaged_test_exit().  I still
-think it's best to lump them together, so just in this exceptional case,
-check mm->mm_users directly instead of khugepaged_test_exit().
+Like zap_pte_range add cond_resched so that we can avoid softlockups as
+reported below.  On non-preemptible kernel with large I/O map region (like
+the one we get when using persistent memory with sector mode), an unmap of
+the namespace can report below softlockups.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008141503370.18085@eggly.anvils
-Fixes: bbe98f9cadff ("khugepaged: khugepaged_test_exit() check mmget_still_valid()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Acked-by: Yang Shi <shy828301@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: <stable@vger.kernel.org>	[4.8+]
+22724.027334] watchdog: BUG: soft lockup - CPU#49 stuck for 23s! [ndctl:50777]
+ NIP [c0000000000dc224] plpar_hcall+0x38/0x58
+ LR [c0000000000d8898] pSeries_lpar_hpte_invalidate+0x68/0xb0
+ Call Trace:
+ [c0000004e87a7780] [c0000004fb197c00] 0xc0000004fb197c00 (unreliable)
+ [c0000004e87a7810] [c00000000007f4e4] flush_hash_page+0x114/0x200
+ [c0000004e87a7890] [c0000000000833cc] hpte_need_flush+0x2dc/0x540
+ [c0000004e87a7950] [c0000000003f5798] vunmap_page_range+0x538/0x6f0
+ [c0000004e87a7a70] [c0000000003f76d0] free_unmap_vmap_area+0x30/0x70
+ [c0000004e87a7aa0] [c0000000003f7a6c] remove_vm_area+0xfc/0x140
+ [c0000004e87a7ad0] [c0000000003f7dd8] __vunmap+0x68/0x270
+ [c0000004e87a7b50] [c000000000079de4] __iounmap.part.0+0x34/0x60
+ [c0000004e87a7bb0] [c000000000376394] memunmap+0x54/0x70
+ [c0000004e87a7bd0] [c000000000881d7c] release_nodes+0x28c/0x300
+ [c0000004e87a7c40] [c00000000087a65c] device_release_driver_internal+0x16c/0x280
+ [c0000004e87a7c80] [c000000000876fc4] unbind_store+0x124/0x170
+ [c0000004e87a7cd0] [c000000000875be4] drv_attr_store+0x44/0x60
+ [c0000004e87a7cf0] [c00000000057c734] sysfs_kf_write+0x64/0x90
+ [c0000004e87a7d10] [c00000000057bc10] kernfs_fop_write+0x1b0/0x290
+ [c0000004e87a7d60] [c000000000488e6c] __vfs_write+0x3c/0x70
+ [c0000004e87a7d80] [c00000000048c868] vfs_write+0xd8/0x260
+ [c0000004e87a7dd0] [c00000000048ccac] ksys_write+0xdc/0x130
+ [c0000004e87a7e20] [c00000000000b588] system_call+0x5c/0x70
+
+Link: http://lkml.kernel.org/r/20200807075933.310240-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Harish Sriram <harish@linux.ibm.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/khugepaged.c~khugepaged-adjust-vm_bug_on_mm-in-__khugepaged_enter
-+++ a/mm/khugepaged.c
-@@ -466,7 +466,7 @@ int __khugepaged_enter(struct mm_struct
- 		return -ENOMEM;
+--- a/mm/vmalloc.c~mm-vunmap-add-cond_resched-in-vunmap_pmd_range
++++ a/mm/vmalloc.c
+@@ -104,6 +104,8 @@ static void vunmap_pmd_range(pud_t *pud,
+ 		if (pmd_none_or_clear_bad(pmd))
+ 			continue;
+ 		vunmap_pte_range(pmd, addr, next, mask);
++
++		cond_resched();
+ 	} while (pmd++, addr = next, addr != end);
+ }
  
- 	/* __khugepaged_exit() must not run from under us */
--	VM_BUG_ON_MM(khugepaged_test_exit(mm), mm);
-+	VM_BUG_ON_MM(atomic_read(&mm->mm_users) == 0, mm);
- 	if (unlikely(test_and_set_bit(MMF_VM_HUGEPAGE, &mm->flags))) {
- 		free_mm_slot(mm_slot);
- 		return 0;
 _
