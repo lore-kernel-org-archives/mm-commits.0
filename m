@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E14C433E8
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94DB5C433E4
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1098B22B3F
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C637207DF
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Aug 2020 00:42:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597970538;
-	bh=VaUhYJWR/1JwUL0k35caQCtTO9zYWbbKFBoWO/AsmfI=;
+	s=default; t=1597970537;
+	bh=wMiF2axUgwEcrOToR48UFzogQiIhFbXuPlL4odCp9Fk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=cmHgrXl84qRvjmBVIlOABj/CE36JK8fPw2l1WpTGHkZ8ytZAxlh62j41yZRJOIMPh
-	 e3MS5SGvM7nS20SxPZTV0gypeXJQsVs5Vx3J5gChJajHWu2MiZqEQWwT4l91jcYj0t
-	 nmpviitww76SCP8PbFbnRVdZltCnMiWLVz72XALg=
+	b=VXa8spRjS+BRtY3twkwjW87w8MD3ZSmev4FRvTGqyE5k6LMEBogXRD/W5J4FttQLb
+	 W1VHCO2dHg3dM/Mb4FW6iVTtxN4ifGBC1rV8S9j/fABBflGcukkXs3b1E+oP8F1Sy7
+	 8ZYa/1VFXXue/rQJBRV81ycK518eEXVSznOkIjFc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725834AbgHUAmR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Aug 2020 20:42:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35574 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727031AbgHUAmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727013AbgHUAmQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 20 Aug 2020 20:42:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35392 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725834AbgHUAmJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Aug 2020 20:42:09 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1AD44208E4;
-        Fri, 21 Aug 2020 00:42:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D7F99207DF;
+        Fri, 21 Aug 2020 00:42:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597970535;
-        bh=VaUhYJWR/1JwUL0k35caQCtTO9zYWbbKFBoWO/AsmfI=;
+        s=default; t=1597970529;
+        bh=wMiF2axUgwEcrOToR48UFzogQiIhFbXuPlL4odCp9Fk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=eAnPby51eTm033wX5FRWNYvWwPQg5+QdgpvjQ/p8R9wZ1G2d9pUUC/X0pqhdibkVC
-         n1voVaJoNc3kv3ipZXaERkmTlVDiFWA6zqWcN2w9X6+f1ILjZfeWIbQLnnAID287z7
-         jOMs+xpZue+NsXiL+t7ZWdfj3vSSMeC3oLXqykc8=
-Date:   Thu, 20 Aug 2020 17:42:14 -0700
+        b=lSE286sXpCgm9nH+kUWnXwqYoa2gJPGhzmWLk9tGVAkn1dfWCAAsdHM5dVvaCie1W
+         5LHG/cnaMPIZpRjBQv7Sel7HVdw7cLSBQwiK2FoZjj3gRf2NgpcC6yKNjhQCfKdswd
+         WRwIzLomZibUSj9Da0g/GwFEntXT9FLywIsin5BQ=
+Date:   Thu, 20 Aug 2020 17:42:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akash.goel@intel.com, akpm@linux-foundation.org,
-        chris@chris-wilson.co.uk, dja@axtens.net, hulkci@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        rientjes@google.com, stable@vger.kernel.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
-        walken@google.com, weiyongjun1@huawei.com
-Subject:  [patch 07/11] kernel/relay.c: fix memleak on destroy
- relay channel
-Message-ID: <20200821004214.qRMMcztwG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
+        leonro@nvidia.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 05/11] mm/rodata_test.c: fix missing function
+ declaration
+Message-ID: <20200821004208.Pn1y64Ro4%akpm@linux-foundation.org>
 In-Reply-To: <20200820174132.67fd4a7a9359048f807a533b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,61 +54,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: kernel/relay.c: fix memleak on destroy relay channel
+From: Leon Romanovsky <leonro@nvidia.com>
+Subject: mm/rodata_test.c: fix missing function declaration
 
-kmemleak report memory leak as follows:
+The compilation with CONFIG_DEBUG_RODATA_TEST set produces the following
+warning due to the missing include.
 
-unreferenced object 0x607ee4e5f948 (size 8):
-comm "syz-executor.1", pid 2098, jiffies 4295031601 (age 288.468s)
-hex dump (first 8 bytes):
-00 00 00 00 00 00 00 00 ........
-backtrace:
-[<00000000ca1de2fa>] relay_open kernel/relay.c:583 [inline]
-[<00000000ca1de2fa>] relay_open+0xb6/0x970 kernel/relay.c:563
-[<0000000038ae5a4b>] do_blk_trace_setup+0x4a8/0xb20 kernel/trace/blktrace.c:557
-[<00000000d5e778e9>] __blk_trace_setup+0xb6/0x150 kernel/trace/blktrace.c:597
-[<0000000038fdf803>] blk_trace_ioctl+0x146/0x280 kernel/trace/blktrace.c:738
-[<00000000ce25a0ca>] blkdev_ioctl+0xb2/0x6a0 block/ioctl.c:613
-[<00000000579e47e0>] block_ioctl+0xe5/0x120 fs/block_dev.c:1871
-[<00000000b1588c11>] vfs_ioctl fs/ioctl.c:48 [inline]
-[<00000000b1588c11>] __do_sys_ioctl fs/ioctl.c:753 [inline]
-[<00000000b1588c11>] __se_sys_ioctl fs/ioctl.c:739 [inline]
-[<00000000b1588c11>] __x64_sys_ioctl+0x170/0x1ce fs/ioctl.c:739
-[<0000000088fc9942>] do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
-[<000000004f6dd57a>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+ mm/rodata_test.c:15:6: warning: no previous prototype for 'rodata_test' [-Wmissing-prototypes]
+    15 | void rodata_test(void)
+      |      ^~~~~~~~~~~
 
-'chan->buf' is malloced in relay_open() by alloc_percpu() but not free
-while destroy the relay channel. Fix it by adding free_percpu() before
-return from relay_destroy_channel().
-
-Link: http://lkml.kernel.org/r/20200817122826.48518-1-weiyongjun1@huawei.com
-Fixes: 017c59c042d0 ("relay: Use per CPU constructs for the relay channel buffer pointers")
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Akash Goel <akash.goel@intel.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20200819080026.918134-1-leon@kernel.org
+Fixes: 2959a5f726f6 ("mm: add arch-independent testcases for RODATA")
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    1 +
+ mm/rodata_test.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/kernel/relay.c~kernel-relayc-fix-memleak-on-destroy-relay-channel
-+++ a/kernel/relay.c
-@@ -197,6 +197,7 @@ free_buf:
- static void relay_destroy_channel(struct kref *kref)
- {
- 	struct rchan *chan = container_of(kref, struct rchan, kref);
-+	free_percpu(chan->buf);
- 	kfree(chan);
- }
+--- a/mm/rodata_test.c~mm-fix-missing-function-declaration
++++ a/mm/rodata_test.c
+@@ -7,6 +7,7 @@
+  */
+ #define pr_fmt(fmt) "rodata_test: " fmt
+ 
++#include <linux/rodata_test.h>
+ #include <linux/uaccess.h>
+ #include <asm/sections.h>
  
 _
