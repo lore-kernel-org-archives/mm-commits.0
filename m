@@ -7,44 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38435C433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Aug 2020 17:29:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB75C433DF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Aug 2020 17:29:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1813F207DA
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Aug 2020 17:29:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D8062078D
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Aug 2020 17:29:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598117387;
-	bh=t3ElTD3YwxghsH4rfxZ71gaAl3WOC7C6NdFd739WWSE=;
+	s=default; t=1598117391;
+	bh=Z/SJoDT3dMF+/s6KquZ1/W4JOjHQ128HXs7K259xdZM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=oY5hdA8JgJjGzywEo0HhQk5cJ2sF9QhxSCEFJEqEtdkdC7FsuXTW+SLs00qQXsJ+l
-	 1w5Cg4SzYw67rTHBD+r8lWfwLVegmNaQl2X6Ng6NTOuHIz6y5zK5xRNfNHi9vagO6S
-	 h17E3I7TIYH/+zrcxXk9upspwAae4SXjPfLLDn14=
+	b=NSbA4vrMeMY3fr73DrdmLXS1qHxJc8OXFOC+s4oms9stqtflo+k5gIQiAJgwdV21J
+	 AorWcw0YFvhkQwkCCcChive9ElUOw2vQKoZfxHv3FmXe1cQH3voUF/Pr4a7L8RZhVK
+	 M432tnQivbHw+5FHKoHR7cOo+ikKFvlez0mTwp3Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727856AbgHVR3q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Aug 2020 13:29:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53484 "EHLO mail.kernel.org"
+        id S1728173AbgHVR3u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Aug 2020 13:29:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53532 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727945AbgHVR3o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 22 Aug 2020 13:29:44 -0400
+        id S1727945AbgHVR3r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 22 Aug 2020 13:29:47 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 77C0820724;
-        Sat, 22 Aug 2020 17:29:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8DB392078D;
+        Sat, 22 Aug 2020 17:29:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598117384;
-        bh=t3ElTD3YwxghsH4rfxZ71gaAl3WOC7C6NdFd739WWSE=;
+        s=default; t=1598117386;
+        bh=Z/SJoDT3dMF+/s6KquZ1/W4JOjHQ128HXs7K259xdZM=;
         h=Date:From:To:Subject:From;
-        b=x334EAgdMJcBdCFhGUmxKy319lpHHXKz82jpAjT/Dw+VnXmPwT1qFAaX5286Ofv0A
-         Y8tREj1BqiOcr1CJsQBa8W7e/8yn8eXrmiKjbvoFKa8G4W+7q5qKbr1pOTvOI75sEn
-         CsyS5oUbYxIfkYzhEOy2Na9/t5Bv9+1p/ZVt6yLQ=
-Date:   Sat, 22 Aug 2020 10:29:44 -0700
+        b=FxsX/+U/0GwewTPsqF2tepaE/INUkoCvziRqL6TIARQHbVWI4C48LQpFdMsQUjcLa
+         e+9BKt1ulmQJ3QEoAM6dI6+JOGTcuCjzfpXX3jHaFQwmK5mxof2BFbyU68L2jBOImy
+         eLV9QajLcJfh5plamHv5zQNfJVQzF2Lg195pxtsM=
+Date:   Sat, 22 Aug 2020 10:29:46 -0700
 From:   akpm@linux-foundation.org
-To:     gscrivan@redhat.com, mm-commits@vger.kernel.org, tj@kernel.org,
-        vulab@iscas.ac.cn
-Subject:  [merged] hugetlb_cgroup-convert-comma-to-semicolon.patch
- removed from -mm tree
-Message-ID: <20200822172944.favwabTLp%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, edumazet@google.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, shy828301@gmail.com,
+        songliubraving@fb.com, stable@vger.kernel.org,
+        syzkaller@googlegroups.com
+Subject:  [merged]
+ khugepaged-adjust-vm_bug_on_mm-in-__khugepaged_enter.patch removed from -mm
+ tree
+Message-ID: <20200822172946.oZb62PwoZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,51 +58,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: convert comma to semicolon
+     Subject: khugepaged: adjust VM_BUG_ON_MM() in __khugepaged_enter()
 has been removed from the -mm tree.  Its filename was
-     hugetlb_cgroup-convert-comma-to-semicolon.patch
+     khugepaged-adjust-vm_bug_on_mm-in-__khugepaged_enter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xu Wang <vulab@iscas.ac.cn>
-Subject: hugetlb_cgroup: convert comma to semicolon
+From: Hugh Dickins <hughd@google.com>
+Subject: khugepaged: adjust VM_BUG_ON_MM() in __khugepaged_enter()
 
-Replace a comma between expression statements by a semicolon.
+syzbot crashes on the VM_BUG_ON_MM(khugepaged_test_exit(mm), mm) in
+__khugepaged_enter(): yes, when one thread is about to dump core, has set
+core_state, and is waiting for others, another might do something calling
+__khugepaged_enter(), which now crashes because I lumped the core_state
+test (known as "mmget_still_valid") into khugepaged_test_exit().  I still
+think it's best to lump them together, so just in this exceptional case,
+check mm->mm_users directly instead of khugepaged_test_exit().
 
-Link: http://lkml.kernel.org/r/20200818064333.21759-1-vulab@iscas.ac.cn
-Fixes: faced7e0806cf4 ("mm: hugetlb controller for cgroups v2")
-Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Giuseppe Scrivano <gscrivan@redhat.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008141503370.18085@eggly.anvils
+Fixes: bbe98f9cadff ("khugepaged: khugepaged_test_exit() check mmget_still_valid()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: <stable@vger.kernel.org>	[4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-convert-comma-to-semicolon
-+++ a/mm/hugetlb_cgroup.c
-@@ -655,7 +655,7 @@ static void __init __hugetlb_cgroup_file
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_events_show;
--	cft->file_offset = offsetof(struct hugetlb_cgroup, events_file[idx]),
-+	cft->file_offset = offsetof(struct hugetlb_cgroup, events_file[idx]);
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
+--- a/mm/khugepaged.c~khugepaged-adjust-vm_bug_on_mm-in-__khugepaged_enter
++++ a/mm/khugepaged.c
+@@ -466,7 +466,7 @@ int __khugepaged_enter(struct mm_struct
+ 		return -ENOMEM;
  
- 	/* Add the events.local file */
-@@ -664,7 +664,7 @@ static void __init __hugetlb_cgroup_file
- 	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_events_local_show;
- 	cft->file_offset = offsetof(struct hugetlb_cgroup,
--				    events_local_file[idx]),
-+				    events_local_file[idx]);
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
- 	/* NULL terminate the last cft */
+ 	/* __khugepaged_exit() must not run from under us */
+-	VM_BUG_ON_MM(khugepaged_test_exit(mm), mm);
++	VM_BUG_ON_MM(atomic_read(&mm->mm_users) == 0, mm);
+ 	if (unlikely(test_and_set_bit(MMF_VM_HUGEPAGE, &mm->flags))) {
+ 		free_mm_slot(mm_slot);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from vulab@iscas.ac.cn are
+Patches currently in -mm which might be from hughd@google.com are
 
 
