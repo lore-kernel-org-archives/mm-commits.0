@@ -7,42 +7,43 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9117DC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:51:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F2AC433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:51:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 696FD2072D
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:51:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B134A2078D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:51:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598305875;
-	bh=4/xN+Ao0pi0S9RjPc3tVWQ37Wq0ApUmJjiMZluVgmVA=;
+	s=default; t=1598305877;
+	bh=2R58xQq00GRxb9lGgRRnYFxjj3abZHaTVwoOs6+YwYk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=SquqpIha1wq+S2VmPV2jN7pf8Z3TSCwvYPSzZPWwvO0lyfN7OVwddtfrqu5UhnUV7
-	 a1S1Roi4JtyuCnMDVaorkYzb61AkNU3ihiN9D1uefSghciUzZGO+4Ax3FHo8A+fpct
-	 DIzAad+rFySt2d+LnHfZlVdKwXoAAStYyk2S2FFo=
+	b=M0HSjYA4hAkxSXQv57uJJc8X/X1R+PZ1onFNMo4CoAZcJYRIL7LfqZbLV7Idl/2lw
+	 6SZw5QNKNGcJ424DLbuXdMcx+eVcoMqeV2TDlqYZH07tjS5Lb9tLDqWgtDpz18ozvt
+	 XfPdKa82hVLxWG8hgsi5wgirhsY4bRJesJXJg5KA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726303AbgHXVvP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 17:51:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41620 "EHLO mail.kernel.org"
+        id S1726519AbgHXVvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 17:51:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726090AbgHXVvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 17:51:14 -0400
+        id S1726090AbgHXVvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 17:51:16 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E1581204EA;
-        Mon, 24 Aug 2020 21:51:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CC6342072D;
+        Mon, 24 Aug 2020 21:51:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598305874;
-        bh=4/xN+Ao0pi0S9RjPc3tVWQ37Wq0ApUmJjiMZluVgmVA=;
+        s=default; t=1598305876;
+        bh=2R58xQq00GRxb9lGgRRnYFxjj3abZHaTVwoOs6+YwYk=;
         h=Date:From:To:Subject:From;
-        b=K3ONjU7ujxmR3Aux+WkMg/Hpq351r37BHpqaQMirFH0bsl8uELPbUfzxW8TbnSrCe
-         n0eFYjg8HCiA9F6O6WkzI+iTMOO8jyiUlzmZQcYkjlkakrP85hM6ruBRRkXAZHPU8z
-         Rgj1K1dDk0G3xj/QD3S3zHqejqSMW3unu4eS+tIs=
-Date:   Mon, 24 Aug 2020 14:51:13 -0700
+        b=wYlZfKTaiYQxy0TMuHbqI2/fiSBqV5QeLR2PdEnAOMRlIwLjYnOJH2/rIHql6udOB
+         mIyTJiUjJby349jRN6U2pjXflbC6tvdOpJUrdMcgUkEnncJnzWW6xJ9nmfIQGTpFR6
+         muD0MlSYR+YBEkjLS/WRjAjObmVrBdrxs+nsktfg=
+Date:   Mon, 24 Aug 2020 14:51:15 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org, ziy@nvidia.com
-Subject:  + mm-move-pagedoublemap-bit.patch added to -mm tree
-Message-ID: <20200824215113.ItdBXyNor%akpm@linux-foundation.org>
+Subject:  + mm-simplify-pagedoublemap-with-pf_second-policy.patch
+ added to -mm tree
+Message-ID: <20200824215115.Joz3BgipP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move PageDoubleMap bit
+     Subject: mm: simplify PageDoubleMap with PF_SECOND policy
 has been added to the -mm tree.  Its filename is
-     mm-move-pagedoublemap-bit.patch
+     mm-simplify-pagedoublemap-with-pf_second-policy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-pagedoublemap-bit.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-pagedoublemap-with-pf_second-policy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-pagedoublemap-bit.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-pagedoublemap-with-pf_second-policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,45 +75,97 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move PageDoubleMap bit
+Subject: mm: simplify PageDoubleMap with PF_SECOND policy
 
-Patch series "Fix PageDoubleMap".
+Introduce the new page policy of PF_SECOND which lets us use the normal
+pageflags generation machinery to create the various DoubleMap
+manipulation functions.
 
-This is a purely theoretical problem for now as none of the filesystems
-which use PG_private_2 (ie PG_fscache) are being converted at this time,
-but it's confusing to leave it like this.
-
-
-This patch (of 2):
-
-PG_private_2 is defined as being PF_ANY (applicable to tail pages as well
-as regular & head pages).  That means that the first tail page of a
-double-map page will appear to have Private2 set.  Use the Workingset bit
-instead which is defined as PF_HEAD so any attempt to access the
-Workingset bit on a tail page will redirect to the head page's Workingset
-bit.
-
-Link: https://lkml.kernel.org/r/20200629151933.15671-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20200629151933.15671-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200629151933.15671-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/page-flags.h |   40 ++++++++---------------------------
+ 1 file changed, 10 insertions(+), 30 deletions(-)
 
---- a/include/linux/page-flags.h~mm-move-pagedoublemap-bit
+--- a/include/linux/page-flags.h~mm-simplify-pagedoublemap-with-pf_second-policy
 +++ a/include/linux/page-flags.h
-@@ -164,7 +164,7 @@ enum pageflags {
- 	PG_slob_free = PG_private,
+@@ -232,6 +232,9 @@ static inline void page_init_poison(stru
+  *
+  * PF_NO_COMPOUND:
+  *     the page flag is not relevant for compound pages.
++ *
++ * PF_SECOND:
++ *     the page flag is stored in the first tail page.
+  */
+ #define PF_POISONED_CHECK(page) ({					\
+ 		VM_BUG_ON_PGFLAGS(PagePoisoned(page), page);		\
+@@ -247,6 +250,9 @@ static inline void page_init_poison(stru
+ #define PF_NO_COMPOUND(page, enforce) ({				\
+ 		VM_BUG_ON_PGFLAGS(enforce && PageCompound(page), page);	\
+ 		PF_POISONED_CHECK(page); })
++#define PF_SECOND(page, enforce) ({					\
++		VM_BUG_ON_PGFLAGS(!PageHead(page), page);		\
++		PF_POISONED_CHECK(&page[1]); })
  
- 	/* Compound pages. Stored in first tail page's flags */
--	PG_double_map = PG_private_2,
-+	PG_double_map = PG_workingset,
+ /*
+  * Macros to create function definitions for page flags
+@@ -685,42 +691,15 @@ static inline int PageTransTail(struct p
+  *
+  * See also __split_huge_pmd_locked() and page_remove_anon_compound_rmap().
+  */
+-static inline int PageDoubleMap(struct page *page)
+-{
+-	return PageHead(page) && test_bit(PG_double_map, &page[1].flags);
+-}
+-
+-static inline void SetPageDoubleMap(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
+-	set_bit(PG_double_map, &page[1].flags);
+-}
+-
+-static inline void ClearPageDoubleMap(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
+-	clear_bit(PG_double_map, &page[1].flags);
+-}
+-static inline int TestSetPageDoubleMap(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
+-	return test_and_set_bit(PG_double_map, &page[1].flags);
+-}
+-
+-static inline int TestClearPageDoubleMap(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
+-	return test_and_clear_bit(PG_double_map, &page[1].flags);
+-}
+-
++PAGEFLAG(DoubleMap, double_map, PF_SECOND)
++	TESTSCFLAG(DoubleMap, double_map, PF_SECOND)
+ #else
+ TESTPAGEFLAG_FALSE(TransHuge)
+ TESTPAGEFLAG_FALSE(TransCompound)
+ TESTPAGEFLAG_FALSE(TransCompoundMap)
+ TESTPAGEFLAG_FALSE(TransTail)
+ PAGEFLAG_FALSE(DoubleMap)
+-	TESTSETFLAG_FALSE(DoubleMap)
+-	TESTCLEARFLAG_FALSE(DoubleMap)
++	TESTSCFLAG_FALSE(DoubleMap)
+ #endif
  
- 	/* non-lru isolated movable page */
- 	PG_isolated = PG_reclaim,
+ /*
+@@ -885,6 +864,7 @@ static inline int page_has_private(struc
+ #undef PF_ONLY_HEAD
+ #undef PF_NO_TAIL
+ #undef PF_NO_COMPOUND
++#undef PF_SECOND
+ #endif /* !__GENERATING_BOUNDS_H */
+ 
+ #endif	/* PAGE_FLAGS_H */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
