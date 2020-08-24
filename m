@@ -7,46 +7,55 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75430C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:11:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BECB5C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:18:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4AA7E20738
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:11:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 973672074D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:18:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598292696;
-	bh=aAZMcYtKVDdLZjIQVfqWYkgSZgYgy06k+co7lbABP24=;
+	s=default; t=1598293115;
+	bh=91pyHX8xDpU4WVtHqy/9DCLCw5/vUVCpLzyTCOEsowc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=chXKoAfB/nPqNNZPYLyYMItFhfsoLGNytpvGtVQy5lUCZEdYjoXufTNO/auJT+ZrF
-	 FuFlIMN6+AqpMHn7I3Td3kKFmAYCX0lF9VFO9OGiSMPNBnSOXI8eIO62BVQpNRM5jK
-	 WyaMR+KoWR91BxkzzfKUZAfVX5eJFz0o63cLO6GA=
+	b=PY5WIcxozAeBC7IBCX/EAUv6gQldKNGFhfcKQIXufN0Sm8ltx+OFhLyrd9nF2HX7H
+	 /Q31QA8xag2tDJLEyVZ4pUOm7ZPGHiNDh0g/2N3viCEAok+eBkSYGMexJkp9S5CRBJ
+	 XwHe6/l+ttVsZ2hEHcb+fXW0SObJRBUV21nW8r5c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725946AbgHXSLg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 14:11:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51348 "EHLO mail.kernel.org"
+        id S1726840AbgHXSSf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 14:18:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725890AbgHXSLf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 14:11:35 -0400
+        id S1726578AbgHXSSe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 14:18:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B177320702;
-        Mon, 24 Aug 2020 18:11:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0927C206BE;
+        Mon, 24 Aug 2020 18:18:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598292693;
-        bh=aAZMcYtKVDdLZjIQVfqWYkgSZgYgy06k+co7lbABP24=;
+        s=default; t=1598293112;
+        bh=91pyHX8xDpU4WVtHqy/9DCLCw5/vUVCpLzyTCOEsowc=;
         h=Date:From:To:Subject:From;
-        b=zfiP5aXb3fMGcCOkTA5fZu7yby2dYxdfWFYzc4IEj4qpvwcdPQt/5hBY570vxMAVs
-         Bop0IoPp6aWzje/RRP8exxOKaIe6YquiAouUFxx0ycEP6cVsEdoTN8ioflEW0368K+
-         rpcY7/lNymfIO5nPeRyMg0zeT/ltW8mi74uStwWg=
-Date:   Mon, 24 Aug 2020 11:11:33 -0700
+        b=z/Ak2CH2lD5qYx1pb6IZVx05jcYsRn27GKpS8DKLkZiouJZTTe+9xoqxGlxYQ5w84
+         R8GpzAG2Bu5hRJleroWINxYvp7A1GkOFqrU7n/tYS1fikhF32Tndr9sRKtkzcCUSJV
+         zPgLTyLb6I4k+C2bsVf8p3f8D8L9CdTbWmmFJ4CI=
+Date:   Mon, 24 Aug 2020 11:18:31 -0700
 From:   akpm@linux-foundation.org
-To:     dschatzberg@fb.com, guro@fb.com, hannes@cmpxchg.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com
+To:     adobriyan@gmail.com, areber@redhat.com, avagin@gmail.com,
+        bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com,
+        christian@kellner.me, cyphar@cyphar.com,
+        daniel.m.jordan@oracle.com, ebiederm@xmission.com, esyr@redhat.com,
+        gladkov.alexey@gmail.com, john.johansen@canonical.com,
+        laoar.shao@gmail.com, mhocko@kernel.org, minchan@kernel.org,
+        mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
+        peterz@infradead.org, shakeelb@google.com, surenb@google.com,
+        tglx@linutronix.de, timmurray@google.com, walken@google.com
 Subject:  +
- mm-rework-remote-memcg-charging-api-to-support-nesting.patch added to -mm
- tree
-Message-ID: <20200824181133._cKoWvsIq%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-oom=5Fadj-dont-loop-through-tasks-in-=5F=5Fset=5Foom=5F?=
+ =?US-ASCII?Q?adj-when-not-necessary.patch?= added to -mm tree
+Message-ID: <20200824181831.67ecIenxt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +64,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: rework remote charging API to support nesting
+     Subject: mm, oom_adj: don't loop through tasks in __set_oom_adj when not necessary
 has been added to the -mm tree.  Its filename is
-     mm-rework-remote-memcg-charging-api-to-support-nesting.patch
+     mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rework-remote-memcg-charging-api-to-support-nesting.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rework-remote-memcg-charging-api-to-support-nesting.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,212 +85,191 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm, memcg: rework remote charging API to support nesting
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm, oom_adj: don't loop through tasks in __set_oom_adj when not necessary
 
-Currently the remote memcg charging API consists of two functions:
-memalloc_use_memcg() and memalloc_unuse_memcg(), which set and clear the
-memcg value, which overwrites the memcg of the current task.
+Currently __set_oom_adj loops through all processes in the system to keep
+oom_score_adj and oom_score_adj_min in sync between processes sharing
+their mm.  This is done for any task with more that one mm_users, which
+includes processes with multiple threads (sharing mm and signals). 
+However for such processes the loop is unnecessary because their signal
+structure is shared as well.
 
-  memalloc_use_memcg(target_memcg);
-  <...>
-  memalloc_unuse_memcg();
+Android updates oom_score_adj whenever a tasks changes its role
+(background/foreground/...) or binds to/unbinds from a service, making it
+more/less important.  Such operation can happen frequently.  We noticed
+that updates to oom_score_adj became more expensive and after further
+investigation found out that the patch mentioned in "Fixes" introduced a
+regression.  Using Pixel 4 with a typical Android workload, write time to
+oom_score_adj increased from ~3.57us to ~362us.  Moreover this regression
+linearly depends on the number of multi-threaded processes running on the
+system.
 
-It works perfectly for allocations performed from a normal context,
-however an attempt to call it from an interrupt context or just nest two
-remote charging blocks will lead to an incorrect accounting.  On exit from
-the inner block the active memcg will be cleared instead of being
-restored.
+Mark the mm with a new MMF_PROC_SHARED flag bit when task is created with
+(CLONE_VM && !CLONE_THREAD && !CLONE_VFORK).  Change __set_oom_adj to use
+MMF_PROC_SHARED instead of mm_users to decide whether oom_score_adj update
+should be synchronized between multiple processes.  To prevent races
+between clone() and __set_oom_adj(), when oom_score_adj of the process
+being cloned might be modified from userspace, we use oom_adj_mutex.  Its
+scope is changed to global and it is renamed into oom_adj_lock for naming
+consistency with oom_lock.
 
-  memalloc_use_memcg(target_memcg);
+The combination of (CLONE_VM && !CLONE_THREAD) is rarely used except for
+the case of vfork().  To prevent performance regressions of vfork(), we
+skip taking oom_adj_lock and setting MMF_PROC_SHARED when CLONE_VFORK is
+specified.  Clearing the MMF_PROC_SHARED flag (when the last process
+sharing the mm exits) is left out of this patch to keep it simple and
+because it is believed that this threading model is rare.  Should there
+ever be a need for optimizing that case as well, it can be done by hooking
+into the exit path, likely following the mm_update_next_owner pattern.
 
-  memalloc_use_memcg(target_memcg_2);
-    <...>
-    memalloc_unuse_memcg();
+With the combination of (CLONE_VM && !CLONE_THREAD && !CLONE_VFORK) being
+quite rare, the regression is gone after the change is applied.
 
-    Error: allocation here are charged to the memcg of the current
-    process instead of target_memcg.
-
-  memalloc_unuse_memcg();
-
-This patch extends the remote charging API by switching to a single
-function: struct mem_cgroup *set_active_memcg(struct mem_cgroup *memcg),
-which sets the new value and returns the old one.  So a remote charging
-block will look like:
-
-  old_memcg = set_active_memcg(target_memcg);
-  <...>
-  set_active_memcg(old_memcg);
-
-This patch is heavily based on the patch by Johannes Weiner, which can be
-found here: https://lkml.org/lkml/2020/5/28/806 .
-
-Link: https://lkml.kernel.org/r/20200821212056.3769116-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dan Schatzberg <dschatzberg@fb.com>
+Link: https://lkml.kernel.org/r/20200824153036.3201505-1-surenb@google.com
+Fixes: 44a70adec910 ("mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Tim Murray <timmurray@google.com>
+Debugged-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Eugene Syromiatnikov <esyr@redhat.com>
+Cc: Christian Kellner <christian@kellner.me>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                          |    6 ++---
- fs/notify/fanotify/fanotify.c        |    5 ++--
- fs/notify/inotify/inotify_fsnotify.c |    5 ++--
- include/linux/sched/mm.h             |   30 ++++++++-----------------
- mm/memcontrol.c                      |    6 ++---
- 5 files changed, 22 insertions(+), 30 deletions(-)
+ fs/proc/base.c                 |    7 +++----
+ include/linux/oom.h            |    1 +
+ include/linux/sched/coredump.h |    1 +
+ kernel/fork.c                  |   21 +++++++++++++++++++++
+ mm/oom_kill.c                  |    2 ++
+ 5 files changed, 28 insertions(+), 4 deletions(-)
 
---- a/fs/buffer.c~mm-rework-remote-memcg-charging-api-to-support-nesting
-+++ a/fs/buffer.c
-@@ -842,13 +842,13 @@ struct buffer_head *alloc_page_buffers(s
- 	struct buffer_head *bh, *head;
- 	gfp_t gfp = GFP_NOFS | __GFP_ACCOUNT;
- 	long offset;
--	struct mem_cgroup *memcg;
-+	struct mem_cgroup *memcg, *old_memcg;
+--- a/fs/proc/base.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/fs/proc/base.c
+@@ -1055,7 +1055,6 @@ static ssize_t oom_adj_read(struct file
  
- 	if (retry)
- 		gfp |= __GFP_NOFAIL;
+ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
+ {
+-	static DEFINE_MUTEX(oom_adj_mutex);
+ 	struct mm_struct *mm = NULL;
+ 	struct task_struct *task;
+ 	int err = 0;
+@@ -1064,7 +1063,7 @@ static int __set_oom_adj(struct file *fi
+ 	if (!task)
+ 		return -ESRCH;
  
- 	memcg = get_mem_cgroup_from_page(page);
--	memalloc_use_memcg(memcg);
-+	old_memcg = set_active_memcg(memcg);
+-	mutex_lock(&oom_adj_mutex);
++	mutex_lock(&oom_adj_lock);
+ 	if (legacy) {
+ 		if (oom_adj < task->signal->oom_score_adj &&
+ 				!capable(CAP_SYS_RESOURCE)) {
+@@ -1095,7 +1094,7 @@ static int __set_oom_adj(struct file *fi
+ 		struct task_struct *p = find_lock_task_mm(task);
  
- 	head = NULL;
- 	offset = PAGE_SIZE;
-@@ -867,7 +867,7 @@ struct buffer_head *alloc_page_buffers(s
- 		set_bh_page(bh, page, offset);
+ 		if (p) {
+-			if (atomic_read(&p->mm->mm_users) > 1) {
++			if (test_bit(MMF_PROC_SHARED, &p->mm->flags)) {
+ 				mm = p->mm;
+ 				mmgrab(mm);
+ 			}
+@@ -1132,7 +1131,7 @@ static int __set_oom_adj(struct file *fi
+ 		mmdrop(mm);
  	}
- out:
--	memalloc_unuse_memcg();
-+	set_active_memcg(old_memcg);
- 	mem_cgroup_put(memcg);
- 	return head;
+ err_unlock:
+-	mutex_unlock(&oom_adj_mutex);
++	mutex_unlock(&oom_adj_lock);
+ 	put_task_struct(task);
+ 	return err;
+ }
+--- a/include/linux/oom.h~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/include/linux/oom.h
+@@ -55,6 +55,7 @@ struct oom_control {
+ };
+ 
+ extern struct mutex oom_lock;
++extern struct mutex oom_adj_lock;
+ 
+ static inline void set_current_oom_origin(void)
+ {
+--- a/include/linux/sched/coredump.h~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/include/linux/sched/coredump.h
+@@ -72,6 +72,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+ #define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_OOM_REAP_QUEUED	26	/* mm was queued for oom_reaper */
++#define MMF_PROC_SHARED	27	/* mm is shared while sighand is not */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+--- a/kernel/fork.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/kernel/fork.c
+@@ -1808,6 +1808,25 @@ static __always_inline void delayed_free
+ 		free_task(tsk);
+ }
+ 
++static void copy_oom_score_adj(u64 clone_flags, struct task_struct *tsk)
++{
++	/* Skip if kernel thread */
++	if (!tsk->mm)
++		return;
++
++	/* Skip if spawning a thread or using vfork */
++	if ((clone_flags & (CLONE_VM | CLONE_THREAD | CLONE_VFORK)) != CLONE_VM)
++		return;
++
++	/* We need to synchronize with __set_oom_adj */
++	mutex_lock(&oom_adj_lock);
++	set_bit(MMF_PROC_SHARED, &tsk->mm->flags);
++	/* Update the values in case they were changed after copy_signal */
++	tsk->signal->oom_score_adj = current->signal->oom_score_adj;
++	tsk->signal->oom_score_adj_min = current->signal->oom_score_adj_min;
++	mutex_unlock(&oom_adj_lock);
++}
++
  /*
---- a/fs/notify/fanotify/fanotify.c~mm-rework-remote-memcg-charging-api-to-support-nesting
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -531,6 +531,7 @@ static struct fanotify_event *fanotify_a
- 	struct inode *dirid = fanotify_dfid_inode(mask, data, data_type, dir);
- 	const struct path *path = fsnotify_data_path(data, data_type);
- 	unsigned int fid_mode = FAN_GROUP_FLAG(group, FANOTIFY_FID_BITS);
-+	struct mem_cgroup *old_memcg;
- 	struct inode *child = NULL;
- 	bool name_event = false;
+  * This creates a new process as a copy of the old one,
+  * but does not actually start it yet.
+@@ -2280,6 +2299,8 @@ static __latent_entropy struct task_stru
+ 	trace_task_newtask(p, clone_flags);
+ 	uprobe_copy_process(p, clone_flags);
  
-@@ -580,7 +581,7 @@ static struct fanotify_event *fanotify_a
- 		gfp |= __GFP_RETRY_MAYFAIL;
++	copy_oom_score_adj(clone_flags, p);
++
+ 	return p;
  
- 	/* Whoever is interested in the event, pays for the allocation. */
--	memalloc_use_memcg(group->memcg);
-+	old_memcg = set_active_memcg(group->memcg);
- 
- 	if (fanotify_is_perm_event(mask)) {
- 		event = fanotify_alloc_perm_event(path, gfp);
-@@ -608,7 +609,7 @@ static struct fanotify_event *fanotify_a
- 		event->pid = get_pid(task_tgid(current));
- 
- out:
--	memalloc_unuse_memcg();
-+	set_active_memcg(old_memcg);
- 	return event;
- }
- 
---- a/fs/notify/inotify/inotify_fsnotify.c~mm-rework-remote-memcg-charging-api-to-support-nesting
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -66,6 +66,7 @@ static int inotify_one_event(struct fsno
- 	int ret;
- 	int len = 0;
- 	int alloc_len = sizeof(struct inotify_event_info);
-+	struct mem_cgroup *old_memcg;
- 
- 	if ((inode_mark->mask & FS_EXCL_UNLINK) &&
- 	    path && d_unlinked(path->dentry))
-@@ -87,9 +88,9 @@ static int inotify_one_event(struct fsno
- 	 * trigger OOM killer in the target monitoring memcg as it may have
- 	 * security repercussion.
- 	 */
--	memalloc_use_memcg(group->memcg);
-+	old_memcg = set_active_memcg(group->memcg);
- 	event = kmalloc(alloc_len, GFP_KERNEL_ACCOUNT | __GFP_RETRY_MAYFAIL);
--	memalloc_unuse_memcg();
-+	set_active_memcg(old_memcg);
- 
- 	if (unlikely(!event)) {
- 		/*
---- a/include/linux/sched/mm.h~mm-rework-remote-memcg-charging-api-to-support-nesting
-+++ a/include/linux/sched/mm.h
-@@ -305,38 +305,28 @@ static inline void memalloc_nocma_restor
- 
- #ifdef CONFIG_MEMCG
- /**
-- * memalloc_use_memcg - Starts the remote memcg charging scope.
-+ * set_active_memcg - Starts the remote memcg charging scope.
-  * @memcg: memcg to charge.
-  *
-  * This function marks the beginning of the remote memcg charging scope. All the
-  * __GFP_ACCOUNT allocations till the end of the scope will be charged to the
-  * given memcg.
-  *
-- * NOTE: This function is not nesting safe.
-+ * NOTE: This function can nest. Users must save the return value and
-+ * reset the previous value after their own charging scope is over.
+ bad_fork_cancel_cgroup:
+--- a/mm/oom_kill.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/mm/oom_kill.c
+@@ -64,6 +64,8 @@ int sysctl_oom_dump_tasks = 1;
+  * and mark_oom_victim
   */
--static inline void memalloc_use_memcg(struct mem_cgroup *memcg)
-+static inline struct mem_cgroup *
-+set_active_memcg(struct mem_cgroup *memcg)
- {
--	WARN_ON_ONCE(current->active_memcg);
-+	struct mem_cgroup *old = current->active_memcg;
- 	current->active_memcg = memcg;
--}
--
--/**
-- * memalloc_unuse_memcg - Ends the remote memcg charging scope.
-- *
-- * This function marks the end of the remote memcg charging scope started by
-- * memalloc_use_memcg().
-- */
--static inline void memalloc_unuse_memcg(void)
--{
--	current->active_memcg = NULL;
-+	return old;
- }
- #else
--static inline void memalloc_use_memcg(struct mem_cgroup *memcg)
--{
--}
--
--static inline void memalloc_unuse_memcg(void)
-+static inline struct mem_cgroup *
-+set_active_memcg(struct mem_cgroup *memcg)
- {
-+	return NULL;
- }
- #endif
+ DEFINE_MUTEX(oom_lock);
++/* Serializes oom_score_adj and oom_score_adj_min updates */
++DEFINE_MUTEX(oom_adj_lock);
  
---- a/mm/memcontrol.c~mm-rework-remote-memcg-charging-api-to-support-nesting
-+++ a/mm/memcontrol.c
-@@ -5271,12 +5271,12 @@ static struct cgroup_subsys_state * __re
- mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
+ static inline bool is_memcg_oom(struct oom_control *oc)
  {
- 	struct mem_cgroup *parent = mem_cgroup_from_css(parent_css);
--	struct mem_cgroup *memcg;
-+	struct mem_cgroup *memcg, *old_memcg;
- 	long error = -ENOMEM;
- 
--	memalloc_use_memcg(parent);
-+	old_memcg = set_active_memcg(parent);
- 	memcg = mem_cgroup_alloc();
--	memalloc_unuse_memcg();
-+	set_active_memcg(old_memcg);
- 	if (IS_ERR(memcg))
- 		return ERR_CAST(memcg);
- 
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-rework-remote-memcg-charging-api-to-support-nesting.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 
