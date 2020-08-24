@@ -7,45 +7,42 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 385B1C433E1
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:45:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9117DC433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:51:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0989B2072D
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:45:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 696FD2072D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:51:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598305549;
-	bh=1TSmP/1m1hdoBQ3NHqr993xqRk1p/8/mlB3QJBm5g5E=;
+	s=default; t=1598305875;
+	bh=4/xN+Ao0pi0S9RjPc3tVWQ37Wq0ApUmJjiMZluVgmVA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wfk9axt8FADDStJbgPnLIDJswPycD+TZmMMj0fTze8qYkD96p7CU17qKtDsVxZfkz
-	 WnAXbudsi89aHZg/9l2146kEEresTURSUiwo/9UlIFIEpKPuZeAMbynQTmzsD14lyK
-	 218jfw9G1bBp6jPQ//gSFpiM0ck0ow0nFL8REa34=
+	b=SquqpIha1wq+S2VmPV2jN7pf8Z3TSCwvYPSzZPWwvO0lyfN7OVwddtfrqu5UhnUV7
+	 a1S1Roi4JtyuCnMDVaorkYzb61AkNU3ihiN9D1uefSghciUzZGO+4Ax3FHo8A+fpct
+	 DIzAad+rFySt2d+LnHfZlVdKwXoAAStYyk2S2FFo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726551AbgHXVps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 17:45:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39880 "EHLO mail.kernel.org"
+        id S1726303AbgHXVvP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 17:51:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41620 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726532AbgHXVps (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 17:45:48 -0400
+        id S1726090AbgHXVvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 17:51:14 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E733920702;
-        Mon, 24 Aug 2020 21:45:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E1581204EA;
+        Mon, 24 Aug 2020 21:51:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598305548;
-        bh=1TSmP/1m1hdoBQ3NHqr993xqRk1p/8/mlB3QJBm5g5E=;
+        s=default; t=1598305874;
+        bh=4/xN+Ao0pi0S9RjPc3tVWQ37Wq0ApUmJjiMZluVgmVA=;
         h=Date:From:To:Subject:From;
-        b=KYGZTHfrb4wt7p75m4qCj6EpURkjm8K0qsPMynwUjRBi0M5MZB1+Gc1gf7yMaG45f
-         sHHvwG0Wk8WZpNA4qGvnSM6rT5rmA0FRTgytd8rboam7/lDbAPHD2Osn/K8FR6lw8q
-         BLwmg6SV2UykItJjV4XCTHs1OVkvs1kzeZeMKtSs=
-Date:   Mon, 24 Aug 2020 14:45:47 -0700
+        b=K3ONjU7ujxmR3Aux+WkMg/Hpq351r37BHpqaQMirFH0bsl8uELPbUfzxW8TbnSrCe
+         n0eFYjg8HCiA9F6O6WkzI+iTMOO8jyiUlzmZQcYkjlkakrP85hM6ruBRRkXAZHPU8z
+         Rgj1K1dDk0G3xj/QD3S3zHqejqSMW3unu4eS+tIs=
+Date:   Mon, 24 Aug 2020 14:51:13 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org
-Subject:  [to-be-updated]
- mm-mempool-add-else-to-split-mutually-exclusive-case.patch removed from -mm
- tree
-Message-ID: <20200824214547.6gpH9Y2rU%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org, ziy@nvidia.com
+Subject:  + mm-move-pagedoublemap-bit.patch added to -mm tree
+Message-ID: <20200824215113.ItdBXyNor%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,54 +52,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempool: Add 'else' to split mutually exclusive case
-has been removed from the -mm tree.  Its filename was
-     mm-mempool-add-else-to-split-mutually-exclusive-case.patch
+     Subject: mm: move PageDoubleMap bit
+has been added to the -mm tree.  Its filename is
+     mm-move-pagedoublemap-bit.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-pagedoublemap-bit.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-pagedoublemap-bit.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mempool: Add 'else' to split mutually exclusive case
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move PageDoubleMap bit
 
-Add else to split mutually exclusive cases and to avoid some unnecessary
-check.
+Patch series "Fix PageDoubleMap".
 
-akpm: doesn't affect code generation but it's a little cleaner.
+This is a purely theoretical problem for now as none of the filesystems
+which use PG_private_2 (ie PG_fscache) are being converted at this time,
+but it's confusing to leave it like this.
 
-[joe@perches.com: style: braces should be added to the first test]
-  Link: https://lkml.kernel.org/r/37bbda0e0d94d3324210fa807f4061a9e9bd66bc.camel@perches.comLink: https://lkml.kernel.org/r/20200824115354.7879-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+
+This patch (of 2):
+
+PG_private_2 is defined as being PF_ANY (applicable to tail pages as well
+as regular & head pages).  That means that the first tail page of a
+double-map page will appear to have Private2 set.  Use the Workingset bit
+instead which is defined as PF_HEAD so any attempt to access the
+Workingset bit on a tail page will redirect to the head page's Workingset
+bit.
+
+Link: https://lkml.kernel.org/r/20200629151933.15671-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200629151933.15671-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempool.c~mm-mempool-add-else-to-split-mutually-exclusive-case
-+++ a/mm/mempool.c
-@@ -57,12 +57,12 @@ static void __check_element(mempool_t *p
+--- a/include/linux/page-flags.h~mm-move-pagedoublemap-bit
++++ a/include/linux/page-flags.h
+@@ -164,7 +164,7 @@ enum pageflags {
+ 	PG_slob_free = PG_private,
  
- static void check_element(mempool_t *pool, void *element)
- {
--	/* Mempools backed by slab allocator */
--	if (pool->free == mempool_free_slab || pool->free == mempool_kfree)
-+	if (pool->free == mempool_free_slab ||
-+	    pool->free == mempool_kfree) {
-+		/* Mempools backed by slab allocator */
- 		__check_element(pool, element, ksize(element));
--
--	/* Mempools backed by page allocator */
--	if (pool->free == mempool_free_pages) {
-+	} else if (pool->free == mempool_free_pages) {
-+		/* Mempools backed by page allocator */
- 		int order = (int)(long)pool->pool_data;
- 		void *addr = kmap_atomic((struct page *)element);
+ 	/* Compound pages. Stored in first tail page's flags */
+-	PG_double_map = PG_private_2,
++	PG_double_map = PG_workingset,
  
+ 	/* non-lru isolated movable page */
+ 	PG_isolated = PG_reclaim,
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
+mm-debug-do-not-dereference-i_ino-blindly.patch
+mm-account-pmd-tables-like-pte-tables.patch
+mm-move-pagedoublemap-bit.patch
+mm-simplify-pagedoublemap-with-pf_second-policy.patch
+harden-autofs-ioctl-table.patch
 
