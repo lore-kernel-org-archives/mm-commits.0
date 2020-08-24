@@ -7,44 +7,43 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CC68C433E3
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D26A7C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4647E2074D
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EAAD206BE
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598300307;
-	bh=HNilDAcwX/+fZzbtfBxZW4tKRxPcbHEYUMAq/eOJpSQ=;
+	s=default; t=1598300310;
+	bh=DFxsGWKsiKWOknaT6PwLY3eU0F+145yYS0keSy7pZ1g=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=on+TPweY6F3HLwQ/xKydakJta8jxKAsriNUOZHYf+80QSQX6Mfb+mNkwU3d2oAMbu
-	 sm+x4zpYPJMwoenJJcRA+EPFJD9qhm8oaA8bzRCM6rqJYF7AXCtq9Qj/ccsOTr8VVc
-	 iiXSYL1/1O8HWjSL+iBVFQsMZBnhAgzyvRtwA7mA=
+	b=fJKdJJycAwec3XW2k83238t1qYJQzHkfmaaQVsMMC9ovlw2hA0Z4lU68DD41sXEc2
+	 LqrM6DeD93eOHHoXJ2ImSldqjBOaX8jEd1YZ1VXTH3yJRnDM+bb6y/VUMFo+UNZscs
+	 yNcuSLK1it4bMxRG5pgj6CpcfrKAM2jGg44hOZFM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726598AbgHXUS1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 16:18:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41374 "EHLO mail.kernel.org"
+        id S1726617AbgHXUSa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 16:18:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41420 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726531AbgHXUSZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726090AbgHXUSZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 24 Aug 2020 16:18:25 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E1AE52074D;
-        Mon, 24 Aug 2020 20:18:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D5F6720738;
+        Mon, 24 Aug 2020 20:18:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598300303;
-        bh=HNilDAcwX/+fZzbtfBxZW4tKRxPcbHEYUMAq/eOJpSQ=;
+        s=default; t=1598300305;
+        bh=DFxsGWKsiKWOknaT6PwLY3eU0F+145yYS0keSy7pZ1g=;
         h=Date:From:To:Subject:From;
-        b=aCUO481R1acFE2tiGeVpEb1qHNno2AguJjTOHMJhFAf8eSYbluk/1lLChHgYE6xUL
-         aat3im5EjaXt0EP7E7lgXK63S3bwUL5PHraiNLHA4I3QSsxPb8owzWG/CCSWVYFdVL
-         /fj9EoV0PMNGxzoEnXDkxy+xxiXcmc6/wU88xyu0=
-Date:   Mon, 24 Aug 2020 13:18:22 -0700
+        b=lGMllL16A4mcG9Pu6PqnRPTZJsPe2fF55PoXrJD+x1OaDmW3x52mrOmvMLnCeTxfu
+         wqCd7IoYJFAT6A75aIk+Woj8uPgEo7yMH7zuTG/srfyRrHXIL2ab/3lv7aPmHvYTgh
+         HFbCQbTL6QDzagoWIx/xG4kcxEYzmydoVL0VYozM=
+Date:   Mon, 24 Aug 2020 13:18:24 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  +
- lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch added to
+Subject:  + lib-earlycpio-delete-duplicated-words.patch added to
  -mm tree
-Message-ID: <20200824201822.TE4tpElWx%akpm@linux-foundation.org>
+Message-ID: <20200824201824.mmDLfh2SA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: dynamic_queue_limits: delete duplicated words + fix typo
+     Subject: lib: earlycpio: delete duplicated words
 has been added to the -mm tree.  Its filename is
-     lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+     lib-earlycpio-delete-duplicated-words.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-earlycpio-delete-duplicated-words.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-earlycpio-delete-duplicated-words.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,32 +75,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: dynamic_queue_limits: delete duplicated words + fix typo
+Subject: lib: earlycpio: delete duplicated words
 
 Drop the repeated word "the".
-Fix spelling of "excess".
 
-Link: https://lkml.kernel.org/r/20200823040449.25946-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20200823040455.25995-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_queue_limits.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/earlycpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/dynamic_queue_limits.c~lib-dynamic_queue_limits-delete-duplicated-words-fix-typo
-+++ a/lib/dynamic_queue_limits.c
-@@ -60,8 +60,8 @@ void dql_completed(struct dql *dql, unsi
- 		 * A decrease is only considered if the queue has been busy in
- 		 * the whole interval (the check above).
- 		 *
--		 * If there is slack, the amount of execess data queued above
--		 * the the amount needed to prevent starvation, the queue limit
-+		 * If there is slack, the amount of excess data queued above
-+		 * the amount needed to prevent starvation, the queue limit
- 		 * can be decreased.  To avoid hysteresis we consider the
- 		 * minimum amount of slack found over several iterations of the
- 		 * completion routine.
+--- a/lib/earlycpio.c~lib-earlycpio-delete-duplicated-words
++++ a/lib/earlycpio.c
+@@ -42,7 +42,7 @@ enum cpio_fields {
+ /**
+  * cpio_data find_cpio_data - Search for files in an uncompressed cpio
+  * @path:       The directory to search for, including a slash at the end
+- * @data:       Pointer to the the cpio archive or a header inside
++ * @data:       Pointer to the cpio archive or a header inside
+  * @len:        Remaining length of the cpio based on data pointer
+  * @nextoff:    When a matching file is found, this is the offset from the
+  *              beginning of the cpio to the beginning of the next file, not the
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
