@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D26A7C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 091F6C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EAAD206BE
+	by mail.kernel.org (Postfix) with ESMTP id BE04420738
 	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1598300310;
-	bh=DFxsGWKsiKWOknaT6PwLY3eU0F+145yYS0keSy7pZ1g=;
+	bh=mvhz0t84COuEYgyG21zhCtwub9t1cKymguZBYNvccwY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=fJKdJJycAwec3XW2k83238t1qYJQzHkfmaaQVsMMC9ovlw2hA0Z4lU68DD41sXEc2
-	 LqrM6DeD93eOHHoXJ2ImSldqjBOaX8jEd1YZ1VXTH3yJRnDM+bb6y/VUMFo+UNZscs
-	 yNcuSLK1it4bMxRG5pgj6CpcfrKAM2jGg44hOZFM=
+	b=0uXHqpBz9hGIY1CyZGKIQj5JGSkGnwv20ix5MRt/kt5p2MSSSlF9LrUrSW2sMwKWd
+	 0I60V3Q93PD0eGIVAlox4e5Mq+i4LtLjLofa/aty00I3wV/Ygsn2T1e2LE9pt97IhR
+	 j3V4F9mZImw9Dq6upHakSSf/R2u9trGwz/GpBK7E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726617AbgHXUSa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726090AbgHXUSa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Aug 2020 16:18:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41420 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726090AbgHXUSZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 16:18:25 -0400
+        id S1726531AbgHXUS3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 16:18:29 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5F6720738;
-        Mon, 24 Aug 2020 20:18:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D68D8206BE;
+        Mon, 24 Aug 2020 20:18:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598300305;
-        bh=DFxsGWKsiKWOknaT6PwLY3eU0F+145yYS0keSy7pZ1g=;
+        s=default; t=1598300307;
+        bh=mvhz0t84COuEYgyG21zhCtwub9t1cKymguZBYNvccwY=;
         h=Date:From:To:Subject:From;
-        b=lGMllL16A4mcG9Pu6PqnRPTZJsPe2fF55PoXrJD+x1OaDmW3x52mrOmvMLnCeTxfu
-         wqCd7IoYJFAT6A75aIk+Woj8uPgEo7yMH7zuTG/srfyRrHXIL2ab/3lv7aPmHvYTgh
-         HFbCQbTL6QDzagoWIx/xG4kcxEYzmydoVL0VYozM=
-Date:   Mon, 24 Aug 2020 13:18:24 -0700
+        b=p8uEtSFnL5Xq7JgwpLxMp0CCVFiT9XhEkBYrfm9d8zBFW2ADu/eqjPc0EHyvFHXca
+         u8ELQvp44iMkbSG5NDzREy6qf8W0z/TiRoQOLKTsnzHJl7OAxPLetEI2SGxfc3LTIE
+         9A6tXZehBCaG556c1n/CY6l59lV5StDlicGRhIHI=
+Date:   Mon, 24 Aug 2020 13:18:26 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  + lib-earlycpio-delete-duplicated-words.patch added to
+Subject:  + lib-radix-tree-delete-duplicated-words.patch added to
  -mm tree
-Message-ID: <20200824201824.mmDLfh2SA%akpm@linux-foundation.org>
+Message-ID: <20200824201826.TDqf-g1t3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: earlycpio: delete duplicated words
+     Subject: lib: radix-tree: delete duplicated words
 has been added to the -mm tree.  Its filename is
-     lib-earlycpio-delete-duplicated-words.patch
+     lib-radix-tree-delete-duplicated-words.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-earlycpio-delete-duplicated-words.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-radix-tree-delete-duplicated-words.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-earlycpio-delete-duplicated-words.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-tree-delete-duplicated-words.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,29 +75,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: earlycpio: delete duplicated words
+Subject: lib: radix-tree: delete duplicated words
 
-Drop the repeated word "the".
+Drop the repeated word "be".
 
-Link: https://lkml.kernel.org/r/20200823040455.25995-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20200823040508.26086-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/earlycpio.c |    2 +-
+ lib/radix-tree.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/earlycpio.c~lib-earlycpio-delete-duplicated-words
-+++ a/lib/earlycpio.c
-@@ -42,7 +42,7 @@ enum cpio_fields {
- /**
-  * cpio_data find_cpio_data - Search for files in an uncompressed cpio
-  * @path:       The directory to search for, including a slash at the end
-- * @data:       Pointer to the the cpio archive or a header inside
-+ * @data:       Pointer to the cpio archive or a header inside
-  * @len:        Remaining length of the cpio based on data pointer
-  * @nextoff:    When a matching file is found, this is the offset from the
-  *              beginning of the cpio to the beginning of the next file, not the
+--- a/lib/radix-tree.c~lib-radix-tree-delete-duplicated-words
++++ a/lib/radix-tree.c
+@@ -325,7 +325,7 @@ static __must_check int __radix_tree_pre
+ 	int ret = -ENOMEM;
+ 
+ 	/*
+-	 * Nodes preloaded by one cgroup can be be used by another cgroup, so
++	 * Nodes preloaded by one cgroup can be used by another cgroup, so
+ 	 * they should never be accounted to any particular memory cgroup.
+ 	 */
+ 	gfp_mask &= ~__GFP_ACCOUNT;
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
