@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2EE1C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BC6DC433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A382620738
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E52620738
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 20:18:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598300297;
-	bh=irVyoUZi+GHozHBIMdi34Tnw+38Av+/kOq11r24BXHk=;
+	s=default; t=1598300298;
+	bh=Tm9eu+XqO17dwQHJljIp/SUCD1/n4CwQbNIKtHkgjyc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=IpREi91Yi/LqxXRuZRl+1SRkByLu93i+aB3VJDQRVXldtX8id0A/ZvDAmbsB6Qvgw
-	 1ERG9D48LpFYm41JBQKe6NUYfTo7N+CZDujENo0XPpdFgbzedR/1gXE0Bt3M891h//
-	 CiAxJcGk6eXOlRPyzwyK2MBTkAQE0gEmhbeyxJXA=
+	b=cWhxOQJ0kR4zdekhUu75ZTk5yPoB+SyUdQBu9adM27uA5M3g79UYm4UQaRax1FTnj
+	 JPsfJrjj+/baSu1MxxaKZ7o6i4b5WSmek7RURrVdFBwSw2JPi0KAuicCjE9v2S/yB/
+	 X7QbHWvVVz5xvhVPK9Mvwl8wBSLwx3F+i8+NgeG8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726391AbgHXUSR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 16:18:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41074 "EHLO mail.kernel.org"
+        id S1725904AbgHXUSS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 16:18:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725904AbgHXUSQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 16:18:16 -0400
+        id S1726090AbgHXUSR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 16:18:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 02CFA20738;
-        Mon, 24 Aug 2020 20:18:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CB9E22074D;
+        Mon, 24 Aug 2020 20:18:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598300295;
-        bh=irVyoUZi+GHozHBIMdi34Tnw+38Av+/kOq11r24BXHk=;
+        s=default; t=1598300296;
+        bh=Tm9eu+XqO17dwQHJljIp/SUCD1/n4CwQbNIKtHkgjyc=;
         h=Date:From:To:Subject:From;
-        b=yFo7/YFjj1+iuiqHF95gksZq5HXFSQDUMvbc5/YVxqYL2nyMhhOxiJzkA2ICZ0xGE
-         goT3hxPxXYepm/u15KY5bLQTNupHnlUivQQpBV7OESHXJTabbvR5a2mqqgHghDMPts
-         KRhOB5HjPfFlhxOhi49dtvTJRliQgdDnektd2xOY=
-Date:   Mon, 24 Aug 2020 13:18:14 -0700
+        b=AlWA13bQiatTLRjfMZvtWIpd54bZ0SxVFLCOigQ+BGntll9gxCdIqDkx4mCP9dRhe
+         2vgG+LwB+gbgH0cYDVz84vzivyKuFlsoN9TR2xS/MoG/2s4cIal2y0tJY9CsfXaZgL
+         fzm0R9nFAZ5F/Yp0WxXjuS7OqHLco5m3YlwNrkuQ=
+Date:   Mon, 24 Aug 2020 13:18:16 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  + lib-bitmap-delete-duplicated-words.patch added to -mm
- tree
-Message-ID: <20200824201814.mQ53hWQOh%akpm@linux-foundation.org>
+Subject:  + lib-libcrc32c-delete-duplicated-words.patch added to
+ -mm tree
+Message-ID: <20200824201816.sjwQoWZHR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: delete duplicated words
+     Subject: lib: libcrc32c: delete duplicated words
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-delete-duplicated-words.patch
+     lib-libcrc32c-delete-duplicated-words.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-delete-duplicated-words.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-libcrc32c-delete-duplicated-words.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-delete-duplicated-words.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-libcrc32c-delete-duplicated-words.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,29 +75,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: bitmap: delete duplicated words
+Subject: lib: libcrc32c: delete duplicated words
 
-Drop the repeated word "an".
+Drop the repeated word "the".
 
-Link: https://lkml.kernel.org/r/20200823040424.25760-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20200823040430.25807-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    2 +-
+ lib/libcrc32c.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/bitmap.c~lib-bitmap-delete-duplicated-words
-+++ a/lib/bitmap.c
-@@ -23,7 +23,7 @@
- /**
-  * DOC: bitmap introduction
+--- a/lib/libcrc32c.c~lib-libcrc32c-delete-duplicated-words
++++ a/lib/libcrc32c.c
+@@ -12,7 +12,7 @@
+  * pages =        {},
+  * month =        {June},
+  *}
+- * Used by the iSCSI driver, possibly others, and derived from the
++ * Used by the iSCSI driver, possibly others, and derived from
+  * the iscsi-crc.c module of the linux-iscsi driver at
+  * http://linux-iscsi.sourceforge.net.
   *
-- * bitmaps provide an array of bits, implemented using an an
-+ * bitmaps provide an array of bits, implemented using an
-  * array of unsigned longs.  The number of valid bits in a
-  * given bitmap does _not_ need to be an exact multiple of
-  * BITS_PER_LONG.
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
