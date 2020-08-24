@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 960EAC433DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAD16C433E3
 	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 22:19:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 670FD207D3
+	by mail.kernel.org (Postfix) with ESMTP id AB02D207DF
 	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 22:19:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1598307576;
-	bh=iZXcncgoinG5Ywg3XUuPP1s0S8cHl3J4blfKOjGLrP0=;
+	bh=T7bx9cqTT4ELO+4LAdVnWETsj8PnOfijsOv7TQwEdJg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=2Ll5C+MWUjVH2hF9dh8igfnzyi3tvWujZihBK1+0gONIWVxQOhH4s5myPsc0uqxNM
-	 n+Adn56vvVmyrpDtsa4onUK/RX2lMVQdmn3uYX9IS2/0XszqCeva6sJjhhPfuzu1ix
-	 IHUjogG8Y5iC9WPEK50ZgRo2dtYbh21MSO+K76T8=
+	b=1O5EuoBHu/QalwdxvLSTX2GqatFeEHYbi5J0YwJsCqoFnmyOjh+AEhRG+9M7586lC
+	 LRQdXxt0w4nhBoGJdFOM+N3dbVSUW09URndvTIiJ70da0hd/u6z5tZn3i/a6tmeLfY
+	 8SNzFCsX4wrrdTzAjPmcY2M56f8wGABNYXpkmk5w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726977AbgHXWTg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726303AbgHXWTg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Aug 2020 18:19:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60466 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726739AbgHXWTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726617AbgHXWTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 24 Aug 2020 18:19:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CC9182078D;
-        Mon, 24 Aug 2020 22:19:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C47832078A;
+        Mon, 24 Aug 2020 22:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598307574;
-        bh=iZXcncgoinG5Ywg3XUuPP1s0S8cHl3J4blfKOjGLrP0=;
+        s=default; t=1598307572;
+        bh=T7bx9cqTT4ELO+4LAdVnWETsj8PnOfijsOv7TQwEdJg=;
         h=Date:From:To:Subject:From;
-        b=uo7O5+DV7qZSYBofNY//V8HS9n0Bc22o/WUvWyWT2gzkuvYFkp6yj434Sa3j/FWoB
-         RaLp9W5ylLLfi17yrRsfQX8P/yNFejS3yjWt7bY5PYiGT3EEoW92+GCb1MV/WD0+XI
-         5WnRwWm5Y4IRbtgtFY97Z3co8oHrVQLdzHWvblGM=
-Date:   Mon, 24 Aug 2020 15:19:33 -0700
+        b=kzBQKr/R4EFbfrGkG8pyus9wty/zGIdy69O6f2hH2ETmH2kXkcy7yTQvgEGkv8Zt8
+         4EfmHjkv8IlPW68Ss2+uq7wKx82kB1b+sK8awc8lJyVUNETRQ33+0s8fXf4NivqDpz
+         u3PfCpx2fjx3F53HA8WdCJaelBwPvtkTUWNLDpsE=
+Date:   Mon, 24 Aug 2020 15:19:31 -0700
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, bhe@redhat.com, david@redhat.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org
-Subject:  +
- doc-vm-fix-typo-in-the-hugetlb-admin-documentation.patch added to -mm tree
-Message-ID: <20200824221933.Lox9jBTCS%akpm@linux-foundation.org>
+Subject:  + mm-hugetlbc-remove-the-unnecessary-non_swap_entry.patch
+ added to -mm tree
+Message-ID: <20200824221931.jL7nashMS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: doc/vm: fix typo in the hugetlb admin documentation
+     Subject: mm/hugetlb.c: remove the unnecessary non_swap_entry()
 has been added to the -mm tree.  Its filename is
-     doc-vm-fix-typo-in-the-hugetlb-admin-documentation.patch
+     mm-hugetlbc-remove-the-unnecessary-non_swap_entry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/doc-vm-fix-typo-in-the-hugetlb-admin-documentation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbc-remove-the-unnecessary-non_swap_entry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/doc-vm-fix-typo-in-the-hugetlb-admin-documentation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbc-remove-the-unnecessary-non_swap_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,32 +76,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: doc/vm: fix typo in the hugetlb admin documentation
+Subject: mm/hugetlb.c: remove the unnecessary non_swap_entry()
 
-Change 'pecify' to 'Specify'.
+If a swap entry tests positive for either is_[migration|hwpoison]_entry(),
+then its swap_type() is among SWP_MIGRATION_READ, SWP_MIGRATION_WRITE and
+SWP_HWPOISON.  All these types >= MAX_SWAPFILES, exactly what is asserted
+with non_swap_entry().
 
-Link: https://lkml.kernel.org/r/20200723032248.24772-4-bhe@redhat.com
+So the checking non_swap_entry() in is_hugetlb_entry_migration() and
+is_hugetlb_entry_hwpoisoned() is redundant.
+
+Let's remove it to optimize code.
+
+Link: https://lkml.kernel.org/r/20200723032248.24772-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/hugetlbpage.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~doc-vm-fix-typo-in-the-hugetlb-admin-documentation
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -131,7 +131,7 @@ hugepages
- 	parameter is preceded by an invalid hugepagesz parameter, it will
- 	be ignored.
- default_hugepagesz
--	pecify the default huge page size.  This parameter can
-+	Specify the default huge page size.  This parameter can
- 	only be specified once on the command line.  default_hugepagesz can
- 	optionally be followed by the hugepages parameter to preallocate a
- 	specific number of huge pages of default size.  The number of default
+--- a/mm/hugetlb.c~mm-hugetlbc-remove-the-unnecessary-non_swap_entry
++++ a/mm/hugetlb.c
+@@ -3774,7 +3774,7 @@ bool is_hugetlb_entry_migration(pte_t pt
+ 	if (huge_pte_none(pte) || pte_present(pte))
+ 		return false;
+ 	swp = pte_to_swp_entry(pte);
+-	if (non_swap_entry(swp) && is_migration_entry(swp))
++	if (is_migration_entry(swp))
+ 		return true;
+ 	else
+ 		return false;
+@@ -3787,7 +3787,7 @@ static bool is_hugetlb_entry_hwpoisoned(
+ 	if (huge_pte_none(pte) || pte_present(pte))
+ 		return false;
+ 	swp = pte_to_swp_entry(pte);
+-	if (non_swap_entry(swp) && is_hwpoison_entry(swp))
++	if (is_hwpoison_entry(swp))
+ 		return true;
+ 	else
+ 		return false;
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
