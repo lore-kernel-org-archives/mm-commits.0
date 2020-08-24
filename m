@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD6AC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:45:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 385B1C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:45:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF3252072D
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:45:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0989B2072D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 21:45:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598305522;
-	bh=TgnI9DfACm6fOiuEeK5II2OsU5NkReO6aokIdFXiheY=;
+	s=default; t=1598305549;
+	bh=1TSmP/1m1hdoBQ3NHqr993xqRk1p/8/mlB3QJBm5g5E=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=aHyRBdbHARHmVR9kg/3/HaWUbaCAH8KymTdLLq206EyuADb8RgTxh7jiB89yErvSj
-	 JIbllrOZUsYPMLF2aTf12236KRfrUNIlBgDb+uvLGuYJSk3UnFi2NB3xxjX8mqrtMP
-	 /u6nishZIF7wXvqseBVr2SOFExdC0VGDxy83SPsU=
+	b=wfk9axt8FADDStJbgPnLIDJswPycD+TZmMMj0fTze8qYkD96p7CU17qKtDsVxZfkz
+	 WnAXbudsi89aHZg/9l2146kEEresTURSUiwo/9UlIFIEpKPuZeAMbynQTmzsD14lyK
+	 218jfw9G1bBp6jPQ//gSFpiM0ck0ow0nFL8REa34=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726737AbgHXVpW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 17:45:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39618 "EHLO mail.kernel.org"
+        id S1726551AbgHXVps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 17:45:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726090AbgHXVpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 17:45:21 -0400
+        id S1726532AbgHXVps (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 17:45:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0C2EF20702;
-        Mon, 24 Aug 2020 21:45:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E733920702;
+        Mon, 24 Aug 2020 21:45:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598305520;
-        bh=TgnI9DfACm6fOiuEeK5II2OsU5NkReO6aokIdFXiheY=;
+        s=default; t=1598305548;
+        bh=1TSmP/1m1hdoBQ3NHqr993xqRk1p/8/mlB3QJBm5g5E=;
         h=Date:From:To:Subject:From;
-        b=kuoRyTGbo3TJ/79Pn654EglGUC+7IQRlKPr6S74fvEgRJqUIbQ55GfgKigsLMA4bP
-         QC19VmQcWBnTphxP5lZrsqM7QlBdh0cfGXqT0ph2Y+HLNFN7flZnsrPdUJXXj00G6b
-         R4ZaEQQdaSRquclvYzd9mH1JmC431WuXlRcjanxc=
-Date:   Mon, 24 Aug 2020 14:45:19 -0700
+        b=KYGZTHfrb4wt7p75m4qCj6EpURkjm8K0qsPMynwUjRBi0M5MZB1+Gc1gf7yMaG45f
+         sHHvwG0Wk8WZpNA4qGvnSM6rT5rmA0FRTgytd8rboam7/lDbAPHD2Osn/K8FR6lw8q
+         BLwmg6SV2UykItJjV4XCTHs1OVkvs1kzeZeMKtSs=
+Date:   Mon, 24 Aug 2020 14:45:47 -0700
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  [folded-merged]
- mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch removed from
- -mm tree
-Message-ID: <20200824214519.v_ZKnvboL%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org
+Subject:  [to-be-updated]
+ mm-mempool-add-else-to-split-mutually-exclusive-case.patch removed from -mm
+ tree
+Message-ID: <20200824214547.6gpH9Y2rU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,30 +55,34 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mempool-add-else-to-split-mutually-exclusive-case-fix
+     Subject: mm/mempool: Add 'else' to split mutually exclusive case
 has been removed from the -mm tree.  Its filename was
-     mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+     mm-mempool-add-else-to-split-mutually-exclusive-case.patch
 
-This patch was dropped because it was folded into mm-mempool-add-else-to-split-mutually-exclusive-case.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm-mempool-add-else-to-split-mutually-exclusive-case-fix
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mempool: Add 'else' to split mutually exclusive case
 
-style: braces should be added to the first test.
+Add else to split mutually exclusive cases and to avoid some unnecessary
+check.
 
-Link: https://lkml.kernel.org/r/37bbda0e0d94d3324210fa807f4061a9e9bd66bc.camel@perches.com
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+akpm: doesn't affect code generation but it's a little cleaner.
+
+[joe@perches.com: style: braces should be added to the first test]
+  Link: https://lkml.kernel.org/r/37bbda0e0d94d3324210fa807f4061a9e9bd66bc.camel@perches.comLink: https://lkml.kernel.org/r/20200824115354.7879-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/mempool.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/mempool.c~mm-mempool-add-else-to-split-mutually-exclusive-case-fix
+--- a/mm/mempool.c~mm-mempool-add-else-to-split-mutually-exclusive-case
 +++ a/mm/mempool.c
-@@ -57,11 +57,12 @@ static void __check_element(mempool_t *p
+@@ -57,12 +57,12 @@ static void __check_element(mempool_t *p
  
  static void check_element(mempool_t *pool, void *element)
  {
@@ -88,49 +92,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	    pool->free == mempool_kfree) {
 +		/* Mempools backed by slab allocator */
  		__check_element(pool, element, ksize(element));
+-
 -	/* Mempools backed by page allocator */
--	else if (pool->free == mempool_free_pages) {
+-	if (pool->free == mempool_free_pages) {
 +	} else if (pool->free == mempool_free_pages) {
 +		/* Mempools backed by page allocator */
  		int order = (int)(long)pool->pool_data;
  		void *addr = kmap_atomic((struct page *)element);
  
-@@ -83,8 +84,9 @@ static void poison_element(mempool_t *po
- 	/* Mempools backed by slab allocator */
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		__poison_element(element, ksize(element));
-+
- 	/* Mempools backed by page allocator */
--	else if (pool->alloc == mempool_alloc_pages) {
-+	if (pool->alloc == mempool_alloc_pages) {
- 		int order = (int)(long)pool->pool_data;
- 		void *addr = kmap_atomic((struct page *)element);
- 
-@@ -105,7 +107,7 @@ static __always_inline void kasan_poison
- {
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		kasan_poison_kfree(element, _RET_IP_);
--	else if (pool->alloc == mempool_alloc_pages)
-+	if (pool->alloc == mempool_alloc_pages)
- 		kasan_free_pages(element, (unsigned long)pool->pool_data);
- }
- 
-@@ -113,7 +115,7 @@ static void kasan_unpoison_element(mempo
- {
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		kasan_unpoison_slab(element);
--	else if (pool->alloc == mempool_alloc_pages)
-+	if (pool->alloc == mempool_alloc_pages)
- 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
- }
- 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-checkpatch-test-git_dir-changes.patch
-mm-mempool-add-else-to-split-mutually-exclusive-case.patch
-get_maintainer-exclude-maintainers-files-from-git-fallback.patch
-checkpatch-move-repeated-word-test.patch
-checkpatch-add-test-for-comma-use-that-should-be-semicolon.patch
+mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
