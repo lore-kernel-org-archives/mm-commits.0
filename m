@@ -2,51 +2,50 @@ Return-Path: <SRS0=GeP8=CC=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BB26C433E1
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:21:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C716C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:56:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 165D72078D
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:21:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 668F120738
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 18:56:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598293314;
-	bh=vXJYke6oBVEuvvguTiQWNS/NAOVzyH/H4wbRBkEatZY=;
+	s=default; t=1598295373;
+	bh=UpGhHk6URCRrm0oGr3eMFtnWkRh6MXKLCo/Km7SHWZ0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=WRPk4HPsNO1tgeBvZuRjkJA4JgIlM6JLiQ1e4hzDtEA0oGJYXFzZv6D+vbcS+r+Mm
-	 M7S/QUnYHIo5qWPO4/g0zukU0l/AijgNBEFaznKCmDj2Z/dy0a8K9usLV5EWAqdZJz
-	 0wK2d8a2cUCtXx8t51fo/pxLuekhjiIONuydmLJA=
+	b=qoF7cALTY9bwa+na7uk7OVOTfYE+PKwI6lJ4FcL3iXSaBIEN7bnF+vvmECJyyozLd
+	 CZLKpcX8Y8Q12k7XI0LIe9vPMtYaSEJtpEJzqK1bzM56nAk6aEbaOIe3Cmm4UVDHRw
+	 5FqZL2ydjxjyb24XqUeW5ZJAewOwbQ//KsaJp1gQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726912AbgHXSVx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 14:21:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58412 "EHLO mail.kernel.org"
+        id S1726631AbgHXS4N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Aug 2020 14:56:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726222AbgHXSVw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 14:21:52 -0400
+        id S1726611AbgHXS4M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Aug 2020 14:56:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B11D020738;
-        Mon, 24 Aug 2020 18:21:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A29F3206BE;
+        Mon, 24 Aug 2020 18:56:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598293312;
-        bh=vXJYke6oBVEuvvguTiQWNS/NAOVzyH/H4wbRBkEatZY=;
+        s=default; t=1598295371;
+        bh=UpGhHk6URCRrm0oGr3eMFtnWkRh6MXKLCo/Km7SHWZ0=;
         h=Date:From:To:Subject:From;
-        b=gcll2O0HL6BJaG+0joJ5BHn6e2m2ta64v0L6EI1SZV8zQDfi5HrsDOH3jHLCYC5+G
-         AeGGTT5KUo5+YkzBG4cfDuYIO4RFjKQEew1KJlEl9sEKcyC9YmsVPtQnc6s0/KyFbW
-         ZSrCqyyyA5Qs2z6gq+BTyi12W8V6d18JO9rJoaoU=
-Date:   Mon, 24 Aug 2020 11:21:51 -0700
+        b=z+0O6QdSJZGzSHMk06kH6keLMNtfz0dZgNRCk3P+6MSwigJ9DWTTQ4l9Wd27BGA5f
+         tq43gVjeUnCK37yN9UXngXhjjaOuYzvnNofSJvFR6CB+9UfYLi04eeDT7QRNohjOip
+         LzVWnZI93OHKCsJKaSXomwcDm++tsvC5Xu7h44zM=
+Date:   Mon, 24 Aug 2020 11:56:10 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, dongli.zhang@oracle.com, erosca@de.adit-jv.com,
-        iamjoonsoo.kim@lge.com, joe.jin@oracle.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, stable@vger.kernel.org
-Subject:  + mm-slub-fix-conversion-of-freelist_corrupted.patch
- added to -mm tree
-Message-ID: <20200824182151.Ugg3eyuAJ%akpm@linux-foundation.org>
+To:     arnd@arndb.de, bp@alien8.de, gkulkarni@marvell.com, maz@kernel.org,
+        mm-commits@vger.kernel.org, rric@kernel.org, sgoutham@marvell.com,
+        wsa@kernel.org
+Subject:  + maintainers-update-cavium-marvell-entries.patch added
+ to -mm tree
+Message-ID: <20200824185610.BFXs08uSm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: fix conversion of freelist_corrupted()
+     Subject: MAINTAINERS: update Cavium/Marvell entries
 has been added to the -mm tree.  Its filename is
-     mm-slub-fix-conversion-of-freelist_corrupted.patch
+     maintainers-update-cavium-marvell-entries.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-conversion-of-freelist_corrupted.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-cavium-marvell-entries.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-conversion-of-freelist_corrupted.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-cavium-marvell-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,77 +76,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eugeniu Rosca <erosca@de.adit-jv.com>
-Subject: mm: slub: fix conversion of freelist_corrupted()
+From: Robert Richter <rric@kernel.org>
+Subject: MAINTAINERS: update Cavium/Marvell entries
 
-Commit 52f23478081ae0 ("mm/slub.c: fix corrupted freechain in
-deactivate_slab()") suffered an update when picked up from LKML [1].
+I am leaving Marvell and already do not have access to my @marvell.com
+email address.  So switching over to my korg mail address or removing my
+address there another maintainer is already listed.  For the entries there
+no other maintainer is listed I will keep looking into patches for Cavium
+systems for a while until someone from Marvell takes it over.  Since I
+might have limited access to hardware and also limited time I changed
+state to 'Odd Fixes' for those entries.
 
-Specifically, relocating 'freelist = NULL' into 'freelist_corrupted()'
-created a no-op statement.  Fix it by sticking to the behavior intended in
-the original patch [1].  In addition, make freelist_corrupted() immune to
-passing NULL instead of &freelist.
-
-The issue has been spotted via static analysis and code review.
-
-[1] https://lore.kernel.org/linux-mm/20200331031450.12182-1-dongli.zhang@oracle.com/
-
-Link: https://lkml.kernel.org/r/20200824130643.10291-1-erosca@de.adit-jv.com
-Fixes: 52f23478081ae0 ("mm/slub.c: fix corrupted freechain in deactivate_slab()")
-Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
-Cc: Dongli Zhang <dongli.zhang@oracle.com>
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20200824122050.31164-1-rric@kernel.org
+Signed-off-by: Robert Richter <rric@kernel.org>
+Cc: Ganapatrao Kulkarni <gkulkarni@marvell.com>
+Cc: Sunil Goutham <sgoutham@marvell.com>
+CC: Borislav Petkov <bp@alien8.de>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Wolfram Sang <wsa@kernel.org>, 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ MAINTAINERS |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
---- a/mm/slub.c~mm-slub-fix-conversion-of-freelist_corrupted
-+++ a/mm/slub.c
-@@ -672,12 +672,12 @@ static void slab_fix(struct kmem_cache *
- }
+--- a/MAINTAINERS~maintainers-update-cavium-marvell-entries
++++ a/MAINTAINERS
+@@ -1694,7 +1694,6 @@ F:	arch/arm/mach-cns3xxx/
  
- static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
--			       void *freelist, void *nextfree)
-+			       void **freelist, void *nextfree)
- {
- 	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
--	    !check_valid_pointer(s, page, nextfree)) {
--		object_err(s, page, freelist, "Freechain corrupt");
--		freelist = NULL;
-+	    !check_valid_pointer(s, page, nextfree) && freelist) {
-+		object_err(s, page, *freelist, "Freechain corrupt");
-+		*freelist = NULL;
- 		slab_fix(s, "Isolate corrupted freechain");
- 		return true;
- 	}
-@@ -1494,7 +1494,7 @@ static inline void dec_slabs_node(struct
- 							int objects) {}
+ ARM/CAVIUM THUNDER NETWORK DRIVER
+ M:	Sunil Goutham <sgoutham@marvell.com>
+-M:	Robert Richter <rrichter@marvell.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Supported
+ F:	drivers/net/ethernet/cavium/thunder/
+@@ -3931,8 +3930,8 @@ W:	https://wireless.wiki.kernel.org/en/u
+ F:	drivers/net/wireless/ath/carl9170/
  
- static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
--			       void *freelist, void *nextfree)
-+			       void **freelist, void *nextfree)
- {
- 	return false;
- }
-@@ -2184,7 +2184,7 @@ static void deactivate_slab(struct kmem_
- 		 * 'freelist' is already corrupted.  So isolate all objects
- 		 * starting at 'freelist'.
- 		 */
--		if (freelist_corrupted(s, page, freelist, nextfree))
-+		if (freelist_corrupted(s, page, &freelist, nextfree))
- 			break;
+ CAVIUM I2C DRIVER
+-M:	Robert Richter <rrichter@marvell.com>
+-S:	Supported
++M:	Robert Richter <rric@kernel.org>
++S:	Odd Fixes
+ W:	http://www.marvell.com
+ F:	drivers/i2c/busses/i2c-octeon*
+ F:	drivers/i2c/busses/i2c-thunderx*
+@@ -3947,8 +3946,8 @@ W:	http://www.marvell.com
+ F:	drivers/net/ethernet/cavium/liquidio/
  
- 		do {
+ CAVIUM MMC DRIVER
+-M:	Robert Richter <rrichter@marvell.com>
+-S:	Supported
++M:	Robert Richter <rric@kernel.org>
++S:	Odd Fixes
+ W:	http://www.marvell.com
+ F:	drivers/mmc/host/cavium*
+ 
+@@ -3960,9 +3959,9 @@ W:	http://www.marvell.com
+ F:	drivers/crypto/cavium/cpt/
+ 
+ CAVIUM THUNDERX2 ARM64 SOC
+-M:	Robert Richter <rrichter@marvell.com>
++M:	Robert Richter <rric@kernel.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-S:	Maintained
++S:	Odd Fixes
+ F:	Documentation/devicetree/bindings/arm/cavium-thunder2.txt
+ F:	arch/arm64/boot/dts/cavium/thunder2-99xx*
+ 
+@@ -6173,16 +6172,15 @@ F:	drivers/edac/highbank*
+ 
+ EDAC-CAVIUM OCTEON
+ M:	Ralf Baechle <ralf@linux-mips.org>
+-M:	Robert Richter <rrichter@marvell.com>
+ L:	linux-edac@vger.kernel.org
+ L:	linux-mips@vger.kernel.org
+ S:	Supported
+ F:	drivers/edac/octeon_edac*
+ 
+ EDAC-CAVIUM THUNDERX
+-M:	Robert Richter <rrichter@marvell.com>
++M:	Robert Richter <rric@kernel.org>
+ L:	linux-edac@vger.kernel.org
+-S:	Supported
++S:	Odd Fixes
+ F:	drivers/edac/thunderx_edac*
+ 
+ EDAC-CORE
+@@ -6190,7 +6188,7 @@ M:	Borislav Petkov <bp@alien8.de>
+ M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+ M:	Tony Luck <tony.luck@intel.com>
+ R:	James Morse <james.morse@arm.com>
+-R:	Robert Richter <rrichter@marvell.com>
++R:	Robert Richter <rric@kernel.org>
+ L:	linux-edac@vger.kernel.org
+ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ras/ras.git edac-for-next
+@@ -13429,10 +13427,10 @@ F:	Documentation/devicetree/bindings/pci
+ F:	drivers/pci/controller/dwc/*artpec*
+ 
+ PCIE DRIVER FOR CAVIUM THUNDERX
+-M:	Robert Richter <rrichter@marvell.com>
++M:	Robert Richter <rric@kernel.org>
+ L:	linux-pci@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-S:	Supported
++S:	Odd Fixes
+ F:	drivers/pci/controller/pci-thunder-*
+ 
+ PCIE DRIVER FOR HISILICON
+@@ -17214,8 +17212,8 @@ S:	Maintained
+ F:	drivers/net/thunderbolt.c
+ 
+ THUNDERX GPIO DRIVER
+-M:	Robert Richter <rrichter@marvell.com>
+-S:	Maintained
++M:	Robert Richter <rric@kernel.org>
++S:	Odd Fixes
+ F:	drivers/gpio/gpio-thunderx.c
+ 
+ TI AM437X VPFE DRIVER
 _
 
-Patches currently in -mm which might be from erosca@de.adit-jv.com are
+Patches currently in -mm which might be from rric@kernel.org are
 
-mm-slub-fix-conversion-of-freelist_corrupted.patch
+maintainers-update-cavium-marvell-entries.patch
 
