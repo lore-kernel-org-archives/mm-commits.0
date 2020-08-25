@@ -1,54 +1,51 @@
-Return-Path: <SRS0=GeP8=CC=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=wvGk=CD=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5559C433E1
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 23:36:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B3D2C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Aug 2020 21:32:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A48AA20838
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Aug 2020 23:36:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55153206EB
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Aug 2020 21:32:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598312186;
-	bh=0HfVvZ4I+J8d3HDTykLTRl3ko+ZiPSODlS29G1JOeF0=;
+	s=default; t=1598391135;
+	bh=s+FAXZnPBiwWOdQWe95uYL1wYfrgpsYBSu8SDHqLoUM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Et1nurSUE+l4kVvqjPv0o7xMQhevhTmuJEMvwzqv1fc+2ce1pewfvQxOr7/UugYs0
-	 Wst0DsbC1ecPeE29o4J8VLdf3d0u+RH8GYtTRpp3FDWEUCPlADN+JUZWMcOxAY3y+J
-	 bnl+451zhSALxABfeB5K0LWlWEs7Yt7HMtBUlKaI=
+	b=Yrq6KgSZvN9/P327xsHM7bkPn63o89YYrs728fuB+nPkhoL5sFJgfIcdh5sSLpHYL
+	 qvMoHMbW+mYG5Azp/L2t0a2ttVPfQQZAJJ4zm/+DcmNzTcyflL+X2eT2FQjIv6MCdd
+	 MQDh58ItpHsesOzuzP4R9EkEAN1SadYZtnnZTenM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726371AbgHXXg0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Aug 2020 19:36:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43236 "EHLO mail.kernel.org"
+        id S1726336AbgHYVcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Aug 2020 17:32:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36332 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725890AbgHXXg0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Aug 2020 19:36:26 -0400
+        id S1726303AbgHYVcN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 Aug 2020 17:32:13 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B88C9207D3;
-        Mon, 24 Aug 2020 23:36:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 995C5206EB;
+        Tue, 25 Aug 2020 21:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598312185;
-        bh=0HfVvZ4I+J8d3HDTykLTRl3ko+ZiPSODlS29G1JOeF0=;
+        s=default; t=1598391132;
+        bh=s+FAXZnPBiwWOdQWe95uYL1wYfrgpsYBSu8SDHqLoUM=;
         h=Date:From:To:Subject:From;
-        b=VUyLMR2aZUwoaTzssE2yCcuirIwByfhYYpQh/F2OtpGSuknc4POdO+/977kOrTJ9r
-         imvOmgoiOXtYerqrDC3Gq0fi1eyfitIt06t7eYWPAhjJgsSlD//nqSCP5l9FtVJ01r
-         Rzo0UhIzWi5KoOHmNRt7QAbTW/nMAmC7bIt9fNas=
-Date:   Mon, 24 Aug 2020 16:36:24 -0700
+        b=aHqy+o++8mRwM5PxfWW1zbIq3jm0EQWHr35Y5mSALgi7al+aFIGepvAaCtvybDjqD
+         d6LQsQR/o22TkxOUFjAKLAor/7D0E18AXaafVaR8MS6/kwKDQIqesjh8DUgtCjT0I1
+         x+hdG8T5+nIfcIrRFxBnnMVMx7VpxqjXhPalIN5k=
+Date:   Tue, 25 Aug 2020 14:32:12 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, alex.shi@linux.alibaba.com, guro@fb.com,
-        hannes@cmpxchg.org, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mhocko@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, sfr@canb.auug.org.au,
-        vdavydov.dev@gmail.com, willy@infradead.org
-Subject:  [to-be-updated] mm-thp-narrow-lru-locking.patch removed
- from -mm tree
-Message-ID: <20200824233624.rJ5BUYyKA%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        joao.m.martins@oracle.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, vishal.l.verma@intel.com
+Subject:  + device-dax-make-align-a-per-device-property-fix.patch
+ added to -mm tree
+Message-ID: <20200825213212.Jfa82Fl4o%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,140 +55,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: narrow lru locking
-has been removed from the -mm tree.  Its filename was
-     mm-thp-narrow-lru-locking.patch
+     Subject: device-dax-make-align-a-per-device-property-fix
+has been added to the -mm tree.  Its filename is
+     device-dax-make-align-a-per-device-property-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-make-align-a-per-device-property-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-make-align-a-per-device-property-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/thp: narrow lru locking
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: device-dax-make-align-a-per-device-property-fix
 
-lru_lock and page cache xa_lock have no reason with current sequence, put
-them together isn't necessary.  let's narrow the lru locking, but left the
-local_irq_disable to block interrupt re-entry and statistic update.
+remove unused locals dex_region
 
-Hugh Dickins point: split_huge_page_to_list() was already silly,to be
-using the _irqsave variant: it's just been taking sleeping locks, so would
-already be broken if entered with interrupts enabled.  so we can save
-passing flags argument down to __split_huge_page().
-
-Link: http://lkml.kernel.org/r/1597144232-11370-6-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/dax/device.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-narrow-lru-locking
-+++ a/mm/huge_memory.c
-@@ -2397,7 +2397,7 @@ static void __split_huge_page_tail(struc
- }
- 
- static void __split_huge_page(struct page *page, struct list_head *list,
--		pgoff_t end, unsigned long flags)
-+			      pgoff_t end)
+--- a/drivers/dax/device.c~device-dax-make-align-a-per-device-property-fix
++++ a/drivers/dax/device.c
+@@ -108,7 +108,6 @@ static vm_fault_t __dev_dax_pmd_fault(st
  {
- 	struct page *head = compound_head(page);
- 	pg_data_t *pgdat = page_pgdat(head);
-@@ -2406,8 +2406,6 @@ static void __split_huge_page(struct pag
- 	unsigned long offset = 0;
- 	int i;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+-	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+ 	unsigned int fault_size = PMD_SIZE;
+@@ -116,7 +115,6 @@ static vm_fault_t __dev_dax_pmd_fault(st
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
  
--	lruvec = mem_cgroup_page_lruvec(head, pgdat);
--
- 	/* complete memcg works before add pages to LRU */
- 	mem_cgroup_split_huge_fixup(head);
- 
-@@ -2419,6 +2417,11 @@ static void __split_huge_page(struct pag
- 		xa_lock(&swap_cache->i_pages);
- 	}
- 
-+	/* prevent PageLRU to go away from under us, and freeze lru stats */
-+	spin_lock(&pgdat->lru_lock);
-+
-+	lruvec = mem_cgroup_page_lruvec(head, pgdat);
-+
- 	for (i = HPAGE_PMD_NR - 1; i >= 1; i--) {
- 		__split_huge_page_tail(head, i, lruvec, list);
- 		/* Some pages can be beyond i_size: drop them from page cache */
-@@ -2438,6 +2441,8 @@ static void __split_huge_page(struct pag
- 	}
- 
- 	ClearPageCompound(head);
-+	spin_unlock(&pgdat->lru_lock);
-+	/* Caller disabled irqs, so they are still disabled here */
- 
- 	split_page_owner(head, HPAGE_PMD_ORDER);
- 
-@@ -2455,8 +2460,7 @@ static void __split_huge_page(struct pag
- 		page_ref_add(head, 2);
- 		xa_unlock(&head->mapping->i_pages);
- 	}
--
--	spin_unlock_irqrestore(&pgdat->lru_lock, flags);
-+	local_irq_enable();
- 
- 	remap_page(head);
- 
-@@ -2595,12 +2599,10 @@ bool can_split_huge_page(struct page *pa
- int split_huge_page_to_list(struct page *page, struct list_head *list)
+-	dax_region = dev_dax->region;
+ 	if (dev_dax->align > PMD_SIZE) {
+ 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
+ 			dev_dax->align, fault_size);
+@@ -151,7 +149,6 @@ static vm_fault_t __dev_dax_pud_fault(st
  {
- 	struct page *head = compound_head(page);
--	struct pglist_data *pgdata = NODE_DATA(page_to_nid(head));
- 	struct deferred_split *ds_queue = get_deferred_split_queue(head);
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 	int count, mapcount, extra_pins, ret;
--	unsigned long flags;
- 	pgoff_t end;
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+-	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+ 	unsigned int fault_size = PUD_SIZE;
+@@ -160,7 +157,6 @@ static vm_fault_t __dev_dax_pud_fault(st
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
  
- 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
-@@ -2661,9 +2663,8 @@ int split_huge_page_to_list(struct page
- 	unmap_page(head);
- 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
--	/* prevent PageLRU to go away from under us, and freeze lru stats */
--	spin_lock_irqsave(&pgdata->lru_lock, flags);
--
-+	/* block interrupt reentry in xa_lock and spinlock */
-+	local_irq_disable();
- 	if (mapping) {
- 		XA_STATE(xas, &mapping->i_pages, page_index(head));
- 
-@@ -2693,7 +2694,7 @@ int split_huge_page_to_list(struct page
- 				__dec_node_page_state(head, NR_FILE_THPS);
- 		}
- 
--		__split_huge_page(page, list, end, flags);
-+		__split_huge_page(page, list, end);
- 		if (PageSwapCache(head)) {
- 			swp_entry_t entry = { .val = page_private(head) };
- 
-@@ -2712,7 +2713,7 @@ int split_huge_page_to_list(struct page
- 		spin_unlock(&ds_queue->split_queue_lock);
- fail:		if (mapping)
- 			xa_unlock(&mapping->i_pages);
--		spin_unlock_irqrestore(&pgdata->lru_lock, flags);
-+		local_irq_enable();
- 		remap_page(head);
- 		ret = -EBUSY;
- 	}
+-	dax_region = dev_dax->region;
+ 	if (dev_dax->align > PUD_SIZE) {
+ 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
+ 			dev_dax->align, fault_size);
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
+mm.patch
+device-dax-make-align-a-per-device-property-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
