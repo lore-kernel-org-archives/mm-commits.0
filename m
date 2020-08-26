@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA29C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:46:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 053CCC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 01:38:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CE542072D
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:46:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D10242075E
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 01:38:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598402808;
-	bh=SDEROZu0f4j6wELpFzX42uVawjmAc/Ed7sHN3aHCPJM=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=jrNTWFO7FQr4xVMFOYsgTX9mi8lD+KB0U4Y1YIrlQcZsmTDwmCorB5cFuKeX/eW9Z
-	 VdubOPQPa7wGcL5cDPRy2grZUNDQNBKRj54QEYAilZLUyPi+gJ8Twb19tphTO/0I2m
-	 gpF1KAppnvUEl0bYCGNcgUQDB5EPgGqX1Ly4AV9w=
+	s=default; t=1598405916;
+	bh=g9EXZ4djuzoxArOrxaQ4IFqBpGZocWv7PsykQRyxeVs=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=ZRBXQGsPcDyaUj4U6/CtQF3aeIHRcY0/cbTgY0gIVPKy3wtLe9bDPSXMZhGQhW2IH
+	 rUI7s8/nVWWcVjqbJ6kXY2Z4FaqzHZQxZjKu1C8EhvVZeCW5JsYpBcKu03T1xF16GT
+	 8Kig0Gdu2AXreYzY4eQGMKkPZ+Ljpxo5trJK1np4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726627AbgHZAqs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Aug 2020 20:46:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33062 "EHLO mail.kernel.org"
+        id S1726610AbgHZBig (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Aug 2020 21:38:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726570AbgHZAqr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 Aug 2020 20:46:47 -0400
+        id S1726599AbgHZBig (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 Aug 2020 21:38:36 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9A0A52072D;
-        Wed, 26 Aug 2020 00:46:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8FBD12072D;
+        Wed, 26 Aug 2020 01:38:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598402806;
-        bh=SDEROZu0f4j6wELpFzX42uVawjmAc/Ed7sHN3aHCPJM=;
-        h=Date:From:To:Subject:From;
-        b=AjWAUFjyN4TvQifHE2xRsbSnF2RpueQ3Ri1x509wJhnqeF9VfwFgj8Sx3y0hVvkRa
-         6ahWXLCzgGJQjli6iZNYcTMPl4tmPXpNsspU++YnOioNzsbOzIUwRcY8vKKPNNX+Sb
-         vaKB+2ueYp+6RbihPusWQU+w3fKicFd+I8uKKK7U=
-Date:   Tue, 25 Aug 2020 17:46:46 -0700
-From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org
-Subject:  + get_maintainer-add-test-for-file-in-vcs.patch added to
- -mm tree
-Message-ID: <20200826004646.82f9ZMM27%akpm@linux-foundation.org>
+        s=default; t=1598405915;
+        bh=g9EXZ4djuzoxArOrxaQ4IFqBpGZocWv7PsykQRyxeVs=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=ZZfCqIzEMh4yJXoUsjlm35Cj0DR89TNc59wGLdEQu4C8sQSYiuW9OKdG0xVtgfxEu
+         V/2rVKVtc6mTZweFSR3OtlOQ/8jwyycuNYvEFYzK7CGUqCQHSoIubFq7PAWUJjXyis
+         oZ/J8ygNK79SqTwYlUjbq4lOGNf1FC5aR9fgnkXg=
+Date:   Tue, 25 Aug 2020 18:38:35 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     dan.j.williams@intel.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org
+Subject:  + x86-numa-add-nohmat-option-fix.patch added to -mm tree
+Message-ID: <20200826013835.xlIl--_gC%akpm@linux-foundation.org>
+In-Reply-To: <20200820174132.67fd4a7a9359048f807a533b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: add test for file in VCS
+     Subject: x86/numa: fix build when CONFIG_ACPI is not set
 has been added to the -mm tree.  Its filename is
-     get_maintainer-add-test-for-file-in-vcs.patch
+     x86-numa-add-nohmat-option-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-add-test-for-file-in-vcs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-numa-add-nohmat-option-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-add-test-for-file-in-vcs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-add-nohmat-option-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,41 +75,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: add test for file in VCS
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: x86/numa: fix build when CONFIG_ACPI is not set
 
-It's somewhat common for me to ask get_maintainer to tell me who maintains
-a patch file rather than the files modified by the patch.
+Fix build errors when CONFIG_ACPI is not set/enabled by adding
+<acpi/acpi_numa.h> in the #else (!CONFIG_ACPI) block.
 
-Emit a warning if using get_maintainer.pl -f <patchfile>
+../arch/x86/mm/numa.c: In function `numa_setup':
+../arch/x86/mm/numa.c:43:3: error: implicit declaration of function `disable_srat'; did you mean `disable_irq'? [-Werror=implicit-function-declaration]
+   disable_srat();
+   ^~~~~~~~~~~~
+../arch/x86/mm/numa.c:45:3: error: implicit declaration of function `disable_hmat'; did you mean `disable_dma'? [-Werror=implicit-function-declaration]
+   disable_hmat();
+   ^~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/f63229c051567041819f25e76f49d83c6e4c0f71.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/70e5ee34-9809-a997-7b49-499e4be61307@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/acpi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/scripts/get_maintainer.pl~get_maintainer-add-test-for-file-in-vcs
-+++ a/scripts/get_maintainer.pl
-@@ -541,6 +541,9 @@ foreach my $file (@ARGV) {
- 	    die "$P: file '${file}' not found\n";
- 	}
-     }
-+    if ($from_filename && (vcs_exists() && !vcs_file_exists($file))) {
-+	warn "$P: file '$file' not found in version control $!\n";
-+    }
-     if ($from_filename || ($file ne "&STDIN" && vcs_file_exists($file))) {
- 	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
- 	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
+--- a/include/linux/acpi.h~x86-numa-add-nohmat-option-fix
++++ a/include/linux/acpi.h
+@@ -709,6 +709,8 @@ static inline u64 acpi_arch_get_root_poi
+ #define ACPI_HANDLE_FWNODE(fwnode)	(NULL)
+ #define ACPI_DEVICE_CLASS(_cls, _msk)	.cls = (0), .cls_msk = (0),
+ 
++#include <acpi/acpi_numa.h>
++
+ struct fwnode_handle;
+ 
+ static inline bool acpi_dev_found(const char *hid)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-checkpatch-test-git_dir-changes.patch
-get_maintainer-add-test-for-file-in-vcs.patch
-get_maintainer-exclude-maintainers-files-from-git-fallback.patch
-checkpatch-move-repeated-word-test.patch
-checkpatch-add-test-for-comma-use-that-should-be-semicolon.patch
+fs-ocfs2-delete-repeated-words-in-comments.patch
+x86-numa-add-nohmat-option-fix.patch
+fs-configfs-delete-repeated-words-in-comments.patch
+lib-bitmap-delete-duplicated-words.patch
+lib-libcrc32c-delete-duplicated-words.patch
+lib-decompress_bunzip2-delete-duplicated-words.patch
+lib-devres-delete-duplicated-words.patch
+lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+lib-earlycpio-delete-duplicated-words.patch
+lib-radix-tree-delete-duplicated-words.patch
+lib-syscall-delete-duplicated-words.patch
+lib-test_sysctl-delete-duplicated-words.patch
 
