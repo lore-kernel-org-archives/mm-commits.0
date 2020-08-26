@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 056A9C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:38:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB6E0C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:38:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CAC6020737
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:38:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B817620782
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:38:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598402317;
-	bh=8Z9a+WbukkBQcYd76u+i0Ciw0aOZNlq2FBMIrWYUTl4=;
+	s=default; t=1598402320;
+	bh=FTTpw/iHR2T6EVlznk4a/o+pDus8FlyY5Z0rM0R5LNw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ce5UXStoHHDvDi3GvmLQaun8hfvrMplp+VXI8yBGioaaySV2jFOmCMXvdsP7B4fPw
-	 mf8gd9M0xoJ6UXoXYQmuHGIZEbLYIB/GNFLR9mRpcY1YOdIGFg4XDaMnLFLiXm37vu
-	 FFpaAOg+JgHiWepQbGcSUojuOnXDthmlZIFzL0D4=
+	b=k+76D9BzVYi/gvrHNNwU2YoguYkmagCHmXkArwUg4okA+Cp7cI4RhkAnMAFzQGan8
+	 cowuihOkcJSdl6Ik+wkYKGEUbdRDuqRaXgwdKu7gEtEaYYYTrQXE2hRWIY/GUpbZj+
+	 PeU1dV3WHM40c04BvYtnJa81XEqWD9LoRwfTeHH0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726541AbgHZAih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Aug 2020 20:38:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51214 "EHLO mail.kernel.org"
+        id S1726570AbgHZAik (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Aug 2020 20:38:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbgHZAig (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 Aug 2020 20:38:36 -0400
+        id S1726483AbgHZAik (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 Aug 2020 20:38:40 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E446420707;
-        Wed, 26 Aug 2020 00:38:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F168E20737;
+        Wed, 26 Aug 2020 00:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598402316;
-        bh=8Z9a+WbukkBQcYd76u+i0Ciw0aOZNlq2FBMIrWYUTl4=;
+        s=default; t=1598402319;
+        bh=FTTpw/iHR2T6EVlznk4a/o+pDus8FlyY5Z0rM0R5LNw=;
         h=Date:From:To:Subject:From;
-        b=YZk45cRXcG4aNQ9YnxwZXKZ40EeW0osTW6Nth43pevmedw8e/c4ETNYae8uqjqde7
-         bXzuKRsorvYqyoebZJnHuGRQK9W72Q2BJCh7BzpiJ/DbCA/Kx7I/opthusz+ypmNM4
-         GfRVg76bzW7Kw5N8JGTuA2OcnBxbHigMaBxcKLPk=
-Date:   Tue, 25 Aug 2020 17:38:35 -0700
+        b=ARIyR3mqRSOkOvi6FFK+kIvWHs3wNzeWwtPgnPWpJNtn7OtItxRvzraz3yl3W84lg
+         3ZRgIJ7ci0wXv6ybymQhQXuLMZM2wrO1SBbXs7TK1zrs+CHCLcKkDFOaZkKpTxVXfm
+         AEz5+13SMHvHEQMeT6vJ0V1lcYLY/gxUVKpRHyd8=
+Date:   Tue, 25 Aug 2020 17:38:38 -0700
 From:   akpm@linux-foundation.org
 To:     alistair@popple.id.au, jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com, rcampbell@nvidia.com
-Subject:  + mm-migrate-fixup-setting-uffd_wp-flag.patch added to
- -mm tree
-Message-ID: <20200826003835.1ROAQKh-p%akpm@linux-foundation.org>
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        rcampbell@nvidia.com, stable@vger.kernel.org
+Subject:  + mm-rmap-fixup-copying-of-soft-dirty-and-uffd-ptes.patch
+ added to -mm tree
+Message-ID: <20200826003838.aqAgh1Wow%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -57,16 +58,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fixup setting UFFD_WP flag
+     Subject: mm/rmap: fixup copying of soft dirty and uffd ptes
 has been added to the -mm tree.  Its filename is
-     mm-migrate-fixup-setting-uffd_wp-flag.patch
+     mm-rmap-fixup-copying-of-soft-dirty-and-uffd-ptes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fixup-setting-uffd=
-_wp-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fixup-copying-of-soft=
+-dirty-and-uffd-ptes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fixup-setting-uffd=
-_wp-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fixup-copying-of-soft=
+-dirty-and-uffd-ptes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,40 +83,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Alistair Popple <alistair@popple.id.au>
-Subject: mm/migrate: fixup setting UFFD_WP flag
+Subject: mm/rmap: fixup copying of soft dirty and uffd ptes
 
-Commit f45ec5ff16a75 ("userfaultfd: wp: support swap and page migration")
-introduced support for tracking the uffd wp bit during page migration.=20
-However the non-swap PTE variant was used to set the flag for zone device
-private pages which are a type of swap page.
+During memory migration a pte is temporarily replaced with a migration
+swap pte.  Some pte bits from the existing mapping such as the soft-dirty
+and uffd write-protect bits are preserved by copying these to the
+temporary migration swap pte.
 
-This leads to corruption of the swap offset if the original PTE has the
-uffd_wp flag set.
+However these bits are not stored at the same location for swap and
+non-swap ptes.  Therefore testing these bits requires using the
+appropriate helper function for the given pte type.
 
-Link: https://lkml.kernel.org/r/20200825064232.10023-1-alistair@popple.id.au
-Fixes: f45ec5ff16a75 ("userfaultfd: wp: support swap and page migration")
+Unfortunately several code locations were found where the wrong helper
+function is being used to test soft_dirty and uffd_wp bits which leads to
+them getting incorrectly set or cleared during page-migration.
+
+Fix these by using the correct tests based on pte type.
+
+Link: https://lkml.kernel.org/r/20200825064232.10023-2-alistair@popple.id.au
+Fixes: a5430dda8a3a ("mm/migrate: support un-addressable ZONE_DEVICE page i=
+n migration")
+Fixes: 8c3328f1f36a ("mm/migrate: migrate_vma() unmap page from vma while c=
+ollecting pages")
+Fixes: f45ec5ff16a7 ("userfaultfd: wp: support swap and page migration")
 Signed-off-by: Alistair Popple <alistair@popple.id.au>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Alistair Popple <alistair@popple.id.au>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   15 +++++++++++----
+ mm/rmap.c    |    9 +++++++--
+ 2 files changed, 18 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-fixup-setting-uffd_wp-flag
+--- a/mm/migrate.c~mm-rmap-fixup-copying-of-soft-dirty-and-uffd-ptes
 +++ a/mm/migrate.c
-@@ -251,7 +251,7 @@ static bool remove_migration_pte(struct
- 				entry =3D make_device_private_entry(new, pte_write(pte));
- 				pte =3D swp_entry_to_pte(entry);
- 				if (pte_swp_uffd_wp(*pvmw.pte))
--					pte =3D pte_mkuffd_wp(pte);
-+					pte =3D pte_swp_mkuffd_wp(pte);
- 			}
- 		}
+@@ -2427,10 +2427,17 @@ again:
+ 			entry =3D make_migration_entry(page, mpfn &
+ 						     MIGRATE_PFN_WRITE);
+ 			swp_pte =3D swp_entry_to_pte(entry);
+-			if (pte_soft_dirty(pte))
+-				swp_pte =3D pte_swp_mksoft_dirty(swp_pte);
+-			if (pte_uffd_wp(pte))
+-				swp_pte =3D pte_swp_mkuffd_wp(swp_pte);
++			if (pte_present(pte)) {
++				if (pte_soft_dirty(pte))
++					swp_pte =3D pte_swp_mksoft_dirty(swp_pte);
++				if (pte_uffd_wp(pte))
++					swp_pte =3D pte_swp_mkuffd_wp(swp_pte);
++			} else {
++				if (pte_swp_soft_dirty(pte))
++					swp_pte =3D pte_swp_mksoft_dirty(swp_pte);
++				if (pte_swp_uffd_wp(pte))
++					swp_pte =3D pte_swp_mkuffd_wp(swp_pte);
++			}
+ 			set_pte_at(mm, addr, ptep, swp_pte);
 =20
+ 			/*
+--- a/mm/rmap.c~mm-rmap-fixup-copying-of-soft-dirty-and-uffd-ptes
++++ a/mm/rmap.c
+@@ -1511,9 +1511,14 @@ static bool try_to_unmap_one(struct page
+ 			 */
+ 			entry =3D make_migration_entry(page, 0);
+ 			swp_pte =3D swp_entry_to_pte(entry);
+-			if (pte_soft_dirty(pteval))
++
++			/*
++			 * pteval maps a zone device page and is therefore
++			 * a swap pte.
++			 */
++			if (pte_swp_soft_dirty(pteval))
+ 				swp_pte =3D pte_swp_mksoft_dirty(swp_pte);
+-			if (pte_uffd_wp(pteval))
++			if (pte_swp_uffd_wp(pteval))
+ 				swp_pte =3D pte_swp_mkuffd_wp(swp_pte);
+ 			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
+ 			/*
 _
 
 Patches currently in -mm which might be from alistair@popple.id.au are
