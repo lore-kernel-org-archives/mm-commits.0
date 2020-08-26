@@ -4,52 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FD30C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:27:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81924C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:28:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 224D220767
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:27:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C2B120767
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Aug 2020 00:28:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598401643;
-	bh=uq5YB4+fti01yV2UZmKwpBktFwzr847Db4Btw746kzc=;
+	s=default; t=1598401706;
+	bh=Q0DyZHaByD5oiczGyyDfMgBZPkXr3wa3djMMqFDptSs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wtvivVPEy9afh9FcKZzwcJhwqB1raOJzTr4ToRuxfkheDYCgsgwNRaX6UK+PXS2OI
-	 uUGX17NeBBVqC6p4fX+g7sraD68oNTCu55kZrdgfypSGPgoNZQSX3OuWKMRM8cj9wv
-	 etxo51YHS3hbyL1KJm9Vz/iffEKJBa5jE3A7fzyM=
+	b=u4YGQTo4RHR2metZ9zTZz8dS7PQ5XXhKvkn+9VeVKOuFlWK3ZqqUeRSmpkc2TBo9J
+	 CZaeM1/P+7x7t7CaHnPCJ7hrE8MWa+/OZWhStsQrBhwtHby50DqxiRt4ZcSmpkcktc
+	 Y1sLBFA7hcuGAmxLBFAW6I6+5QNyI+8Xz+OjJpRQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726570AbgHZA1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Aug 2020 20:27:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46244 "EHLO mail.kernel.org"
+        id S1726551AbgHZA2Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Aug 2020 20:28:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726541AbgHZA1W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 Aug 2020 20:27:22 -0400
+        id S1726541AbgHZA2Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 Aug 2020 20:28:25 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C8D282075E;
-        Wed, 26 Aug 2020 00:27:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8E0AD2075E;
+        Wed, 26 Aug 2020 00:28:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598401642;
-        bh=uq5YB4+fti01yV2UZmKwpBktFwzr847Db4Btw746kzc=;
+        s=default; t=1598401704;
+        bh=Q0DyZHaByD5oiczGyyDfMgBZPkXr3wa3djMMqFDptSs=;
         h=Date:From:To:Subject:From;
-        b=MtLG/50lTgBQDxnzOLGVvZiXKCfHFRrkAEZiTJjXZrkhvzyDXhW/xCczgKsCklQG/
-         2mS3oehg7SQ1Y9kS0WjwNY6j2nNsU0xeN0seg1JMq3QZlOZuXsmAeqOU6MBF0meFIi
-         rEoWEEVaQW0AoHC7G66Beg8lv3fMxom2rIsk8B6g=
-Date:   Tue, 25 Aug 2020 17:27:21 -0700
+        b=UMVdoMtlYeBlHx/AsBO6/bd1ABp+zE/7WMlLVrLpi9NiZoMP5i4yOkI5SIcJwNvW/
+         jygzvyyfmi6Ana8rnHoG/y9lpfeblbgJ0j21tZgObInU6OHcqF9MkJzYsJ4RsXT4kX
+         7qd9zMga/3sWIz0jkwM9y5qAwop2DlVN/T3ElPqg=
+Date:   Tue, 25 Aug 2020 17:28:24 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, sfr@canb.auug.org.au
+To:     hch@lst.de, mm-commits@vger.kernel.org, tklauser@distanz.ch,
+        viro@zeniv.linux.org.uk
 Subject:  +
- =?US-ASCII?Q?mmhwpoison-refactor-soft=5Foffline=5Fhuge=5Fpage-and-=5F?=
- =?US-ASCII?Q?=5Fsoft=5Foffline=5Fpage-fix.patch?= added to -mm tree
-Message-ID: <20200826002721.1PudimrNs%akpm@linux-foundation.org>
+ fork-adjust-sysctl_max_threads-definition-to-match-prototype.patch added to
+ -mm tree
+Message-ID: <20200826002824.sf9ShHYgI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix
+     Subject: fork: adjust sysctl_max_threads definition to match prototype
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
+     fork-adjust-sysctl_max_threads-definition-to-match-prototype.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fork-adjust-sysctl_max_threads-definition-to-match-prototype.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fork-adjust-sysctl_max_threads-definition-to-match-prototype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,46 +76,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: fork: adjust sysctl_max_threads definition to match prototype
 
-fix bogus conflict resolution
+Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
+changed ctl_table.proc_handler to take a kernel pointer.  Adjust the
+definition of sysctl_max_threads to match its prototype in linux/sysctl.h
+which fixes the following sparse error/warning:
 
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+kernel/fork.c:3050:47: warning: incorrect type in argument 3 (different address spaces)
+kernel/fork.c:3050:47:    expected void *
+kernel/fork.c:3050:47:    got void [noderef] __user *buffer
+kernel/fork.c:3036:5: error: symbol 'sysctl_max_threads' redeclared with different type (incompatible argument 3 (different address spaces)):
+kernel/fork.c:3036:5:    int extern [addressable] [signed] [toplevel] sysctl_max_threads( ... )
+kernel/fork.c: note: in included file (through include/linux/key.h, include/linux/cred.h, include/linux/sched/signal.h, include/linux/sched/cputime.h):
+./include/linux/sysctl.h:242:5: note: previously declared as:
+./include/linux/sysctl.h:242:5:    int extern [addressable] [signed] [toplevel] sysctl_max_threads( ... )
+
+Link: https://lkml.kernel.org/r/20200825093647.24263-1-tklauser@distanz.ch
+Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix
-+++ a/mm/memory-failure.c
-@@ -1762,8 +1762,6 @@ static bool isolate_page(struct page *pa
+--- a/kernel/fork.c~fork-adjust-sysctl_max_threads-definition-to-match-prototype
++++ a/kernel/fork.c
+@@ -3014,7 +3014,7 @@ int unshare_files(struct files_struct **
+ }
  
- 		if (isolated)
- 			list_add(&page->lru, pagelist);
--
--		return -EBUSY;
- 	}
- 
- 	if (isolated && lru)
+ int sysctl_max_threads(struct ctl_table *table, int write,
+-		       void __user *buffer, size_t *lenp, loff_t *ppos)
++		       void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table t;
+ 	int ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
-mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
-mm.patch
-mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
-device-dax-make-align-a-per-device-property-fix.patch
-mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
-memblock-make-memblock_debug-and-related-functionality-private-fix.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+ipc-adjust-proc_ipc_sem_dointvec-definition-to-match-prototype.patch
+fork-adjust-sysctl_max_threads-definition-to-match-prototype.patch
 
