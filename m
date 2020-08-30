@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B5CC433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:30:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ACD8C433E2
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:48:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E3E3208A9
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:30:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04530208A9
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:48:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598819434;
-	bh=dLXp4UiQ8o25W0JNBTeH+xyz1kltRrGPv0bnrfI1CJo=;
+	s=default; t=1598820534;
+	bh=dc/3VRVy/P4hiOehBpXbnhZEPZRet4bJXaXmQ72HC44=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LSKv/1hh8zNBLutms5HRjcrJRmY/jxDjIEnUAhXSthS13OxyeocxB/GcQ4L614pBM
-	 fRFVGZrmTVWEhXtFHRS2z6CWHVNh+WIrEqPobDQ3okNTSq8ZGv7dNyy6N7b4XwsVsU
-	 kZKT/u79Pgh5uRzHqTPLu6tbwTbfsw8xSP+TI3DM=
+	b=l/UsjENIcYd/R7xysJv9RuMXHxib5+iqSZeNHTtKFK+74jmKdN3At3vcjxhB0dKDM
+	 QrSRdSOgPDJEnSYClbBYIqPSF94DemhdqaSNozCCCjVdNyvv+vmgFDmfvnwD5NlgCL
+	 l8BGzZf3W9JbTM2dxwv3LaXKpCHTJfAEyT42M8oU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726179AbgH3Uad (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 16:30:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34778 "EHLO mail.kernel.org"
+        id S1726350AbgH3Usx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 16:48:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726150AbgH3Uab (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 16:30:31 -0400
+        id S1726264AbgH3Usw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 16:48:52 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6C61A20757;
-        Sun, 30 Aug 2020 20:30:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D59C5206FA;
+        Sun, 30 Aug 2020 20:48:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598819430;
-        bh=dLXp4UiQ8o25W0JNBTeH+xyz1kltRrGPv0bnrfI1CJo=;
+        s=default; t=1598820532;
+        bh=dc/3VRVy/P4hiOehBpXbnhZEPZRet4bJXaXmQ72HC44=;
         h=Date:From:To:Subject:From;
-        b=sobJ5/zqyioSH8t6oxKvHCQZZSrfZbHcvzS2Ll0e/Si67CRVRwEgO2irvyFHgGLz1
-         fBdSsNOZKZEYisvVOKaRg42VKbJTk/cErHzegGmQcsFjrv2/LjxwknjaV4OsO9+Suf
-         aQ1TJeG49liGSjRb+l4SxGE8MEr4OCGocVoDPbmA=
-Date:   Sun, 30 Aug 2020 13:30:29 -0700
+        b=lSih3PqaDSuAi+guCeM3IRz3obdao5SOy/MfZn9lGon++GyuSx7/vMskvlICd/jGt
+         uIeOkdMibINkAdGUFFmMOGq/H1Vbuq/DPYtTM5I+1BLrrcm8tn6NG8KHyrnHlMF8g3
+         J/iiBcL0Pbyv361U605MhqX4RwSXz1B/tM3ZAZEU=
+Date:   Sun, 30 Aug 2020 13:48:51 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, axboe@kernel.dk,
-        hirofumi@mail.parknet.co.jp
-Subject:  + fat-avoid-oops-when-bdi-io_pages==0.patch added to -mm
- tree
-Message-ID: <20200830203029.pwefu%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        richard.weiyang@linux.alibaba.com
+Subject:  +
+ =?us-ascii?Q?mm-mmap-leave-adjust=5Fnext-as-virtual-address-instead-of?=
+ =?us-ascii?Q?-page-frame-number.patch?= added to -mm tree
+Message-ID: <20200830204851.8E-W7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: avoid oops when bdi->io_pages==0
+     Subject: mm/mmap: leave adjust_next as virtual address instead of page frame number
 has been added to the -mm tree.  Its filename is
-     fat-avoid-oops-when-bdi-io_pages==0.patch
+     mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-avoid-oops-when-bdi-io_pages%3D%3D0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-avoid-oops-when-bdi-io_pages%3D%3D0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,40 +78,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: avoid oops when bdi->io_pages==0
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mmap: leave adjust_next as virtual address instead of page frame number
 
-On one system, there was bdi->io_pages==0.  This seems to be the bug of a
-driver somewhere, which perhaps failed to initialize io_pages.  We should
-fix it though - it is better to avoid the divide-by-zero Oops.
+Instead of converting adjust_next between virtual address and page frame
+number, let's just store the virtual address into adjust_next.
 
-So add a check for this.
+Also, this patch fixes one typo in the comment of vma_adjust_trans_huge().
 
-Link: http://lkml.kernel.org/r/87ft85osn6.fsf@mail.parknet.co.jp
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>		[5.8+]
+Link: http://lkml.kernel.org/r/20200828081031.11306-1-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fatent.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    4 ++--
+ mm/mmap.c        |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/fat/fatent.c~fat-avoid-oops-when-bdi-io_pages==0
-+++ a/fs/fat/fatent.c
-@@ -660,7 +660,7 @@ static void fat_ra_init(struct super_blo
- 	if (fatent->entry >= ent_limit)
- 		return;
+--- a/mm/huge_memory.c~mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number
++++ a/mm/huge_memory.c
+@@ -2273,13 +2273,13 @@ void vma_adjust_trans_huge(struct vm_are
  
--	if (ra_pages > sb->s_bdi->io_pages)
-+	if (sb->s_bdi->io_pages && ra_pages > sb->s_bdi->io_pages)
- 		ra_pages = rounddown(ra_pages, sb->s_bdi->io_pages);
- 	reada_blocks = ra_pages << (PAGE_SHIFT - sb->s_blocksize_bits + 1);
+ 	/*
+ 	 * If we're also updating the vma->vm_next->vm_start, if the new
+-	 * vm_next->vm_start isn't page aligned and it could previously
++	 * vm_next->vm_start isn't hpage aligned and it could previously
+ 	 * contain an hugepage: check if we need to split an huge pmd.
+ 	 */
+ 	if (adjust_next > 0) {
+ 		struct vm_area_struct *next = vma->vm_next;
+ 		unsigned long nstart = next->vm_start;
+-		nstart += adjust_next << PAGE_SHIFT;
++		nstart += adjust_next;
+ 		if (nstart & ~HPAGE_PMD_MASK &&
+ 		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
+ 		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
+--- a/mm/mmap.c~mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number
++++ a/mm/mmap.c
+@@ -758,7 +758,7 @@ int __vma_adjust(struct vm_area_struct *
+ 			 * vma expands, overlapping part of the next:
+ 			 * mprotect case 5 shifting the boundary up.
+ 			 */
+-			adjust_next = (end - next->vm_start) >> PAGE_SHIFT;
++			adjust_next = (end - next->vm_start);
+ 			exporter = next;
+ 			importer = vma;
+ 			VM_WARN_ON(expand != importer);
+@@ -768,7 +768,7 @@ int __vma_adjust(struct vm_area_struct *
+ 			 * split_vma inserting another: so it must be
+ 			 * mprotect case 4 shifting the boundary down.
+ 			 */
+-			adjust_next = -((vma->vm_end - end) >> PAGE_SHIFT);
++			adjust_next = -(vma->vm_end - end);
+ 			exporter = vma;
+ 			importer = next;
+ 			VM_WARN_ON(expand != importer);
+@@ -840,8 +840,8 @@ again:
+ 	}
+ 	vma->vm_pgoff = pgoff;
+ 	if (adjust_next) {
+-		next->vm_start += adjust_next << PAGE_SHIFT;
+-		next->vm_pgoff += adjust_next;
++		next->vm_start += adjust_next;
++		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
+ 	}
  
+ 	if (root) {
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-fat-avoid-oops-when-bdi-io_pages==0.patch
+mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch
+mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
+mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
+mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+bitops-simplify-get_count_order_long.patch
+bitops-use-the-same-mechanism-for-get_count_order.patch
 
