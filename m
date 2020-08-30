@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FB77C433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:15:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A31BC433E2
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:20:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48CA520693
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:15:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E1AF20738
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:20:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598825735;
-	bh=OQHB+gX75ejRzLp3JCddyarREco/IeI/YqR/koegjl0=;
+	s=default; t=1598826005;
+	bh=aSdFd1ZkRK9yYILTsIzVBH7xaAJgHuPDTO+dyLp8YX8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=b5fU0yNQpsIGc9HGhqu8kecRpNzY2Pw07SD7vuH5XcVaQ76hF8mUeBDBCnSJiCHyE
-	 70fe0ScGqsVGO8qo+vwM/inxUzFDh9quostK2k2u7PLgX3t9Z7AzM+1Efp4n6ZP4+Y
-	 nGP/8NbNT5qnHUQ88QvhQaTCT7p2UG7BevffKQ60=
+	b=BxYf6UPJl20QwrIwwjGyEgyLeTbgNNMliEpER89GcVNIpSrPQQuEEBTyGBBxPqajc
+	 bKGX3xh2FrCII/qdTngm6AxrDo23zlfloV2k3gcA5wLwMDmAbQpe1r8ypsCV0OZjOb
+	 X1gDLNOkaEmf3z4UhwZKLSc67WieM7xbqTH02YwU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726404AbgH3WPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 18:15:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40490 "EHLO mail.kernel.org"
+        id S1726396AbgH3WUE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 18:20:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgH3WPd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 18:15:33 -0400
+        id S1726178AbgH3WUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 18:20:04 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 00CFE20693;
-        Sun, 30 Aug 2020 22:15:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 279B120693;
+        Sun, 30 Aug 2020 22:20:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598825732;
-        bh=OQHB+gX75ejRzLp3JCddyarREco/IeI/YqR/koegjl0=;
+        s=default; t=1598826003;
+        bh=aSdFd1ZkRK9yYILTsIzVBH7xaAJgHuPDTO+dyLp8YX8=;
         h=Date:From:To:Subject:From;
-        b=slCy2dxb+8p3q4aMAjED2MOZQ8BTyLARYUdYBeNHaDZCzI9or8qlKw483R7EssnhM
-         pv55ug2t5635LyWQHLmh+QicExsd3FcADf86LFvotR4tByIYBqM59do6eOyVkIYR3j
-         GtoxXlurhc13s9fiFXio2s4mfhKELnKU/GItfRXA=
-Date:   Sun, 30 Aug 2020 15:15:31 -0700
+        b=W3BcyKB1ENYFkvFlR6OzX7KI0EVGDM/hXH1JN/SOIZ5Xo7QngAyNERimiIXyWFWRc
+         pb9+VtSVXkRG+QG2mIbA7dN8mjqdTnOxDDbLo65Vqr+gmrcWY38I9SCNj9Swhx7/de
+         d2VGHExZ6jLSOyzqzxjGFX6zSftArYqacX2usxNw=
+Date:   Sun, 30 Aug 2020 15:20:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, shakeelb@google.com, mhocko@kernel.org,
-        hannes@cmpxchg.org, guro@fb.com
-Subject:  +
- mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch added to
- -mm tree
-Message-ID: <20200830221531.3YfuH%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com,
+        jglisse@redhat.com, jgg@nvidia.com, hch@lst.de,
+        rcampbell@nvidia.com
+Subject:  + mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
+ added to -mm tree
+Message-ID: <20200830222002.4OCMT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmem: enable kernel memcg accounting from interrupt contexts
+     Subject: mm/migrate: remove cpages-- in migrate_vma_finalize()
 has been added to the -mm tree.  Its filename is
-     mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
+     mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,85 +76,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: kmem: enable kernel memcg accounting from interrupt contexts
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/migrate: remove cpages-- in migrate_vma_finalize()
 
-If a memcg to charge can be determined (using remote charging API), there
-are no reasons to exclude allocations made from an interrupt context from
-the accounting.
+The variable struct migrate_vma->cpages is only used in
+migrate_vma_setup().  There is no need to decrement it in
+migrate_vma_finalize() since it is never checked.
 
-Such allocations will pass even if the resulting memcg size will exceed
-the hard limit, but it will affect the application of the memory pressure
-and an inability to put the workload under the limit will eventually
-trigger the OOM.
-
-To use active_memcg() helper, memcg_kmem_bypass() is moved back to
-memcontrol.c.
-
-Link: http://lkml.kernel.org/r/20200827225843.1270629-5-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/20200827190735.12752-1-rcampbell@nvidia.com
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   12 ------------
- mm/memcontrol.c            |   13 +++++++++++++
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ mm/migrate.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts
-+++ a/include/linux/memcontrol.h
-@@ -1528,18 +1528,6 @@ static inline bool memcg_kmem_enabled(vo
- 	return static_branch_likely(&memcg_kmem_enabled_key);
- }
+--- a/mm/migrate.c~mm-migrate-remove-cpages-in-migrate_vma_finalize
++++ a/mm/migrate.c
+@@ -3077,7 +3077,6 @@ void migrate_vma_finalize(struct migrate
  
--static inline bool memcg_kmem_bypass(void)
--{
--	if (in_interrupt())
--		return true;
--
--	/* Allow remote memcg charging in kthread contexts. */
--	if ((!current->mm || (current->flags & PF_KTHREAD)) &&
--	     !current->active_memcg)
--		return true;
--	return false;
--}
--
- static inline int memcg_kmem_charge_page(struct page *page, gfp_t gfp,
- 					 int order)
- {
---- a/mm/memcontrol.c~mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts
-+++ a/mm/memcontrol.c
-@@ -1098,6 +1098,19 @@ static __always_inline struct mem_cgroup
- 	return memcg;
- }
+ 		remove_migration_ptes(page, newpage, false);
+ 		unlock_page(page);
+-		migrate->cpages--;
  
-+static __always_inline bool memcg_kmem_bypass(void)
-+{
-+	/* Allow remote memcg charging from any context. */
-+	if (unlikely(active_memcg()))
-+		return false;
-+
-+	/* Memcg to charge can't be determined. */
-+	if (in_interrupt() || !current->mm || (current->flags & PF_KTHREAD))
-+		return true;
-+
-+	return false;
-+}
-+
- /**
-  * If active memcg is set, do not fallback to current->mm->memcg.
-  */
+ 		if (is_zone_device_page(page))
+ 			put_page(page);
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
-mm-rework-remote-memcg-charging-api-to-support-nesting.patch
-mm-kmem-move-memcg_kmem_bypass-calls-to-get_mem-obj_cgroup_from_current.patch
-mm-kmem-remove-redundant-checks-from-get_obj_cgroup_from_current.patch
-mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts.patch
-mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
+mm-migrate-remove-obsolete-comment-about-device-public.patch
 
