@@ -2,50 +2,51 @@ Return-Path: <SRS0=GXSN=CI=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 284A2C433E2
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EAEDC433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:19:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0499D204EA
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:15:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0533F20578
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598818557;
-	bh=vKuvxcRhsXcmdOnxZpC+IVE/+GZORlz0okk8ue+VixI=;
+	s=default; t=1598818796;
+	bh=AExmUO9i3wUHOyW12IfGDapmduIKH76ptpQ3Z79uf5c=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=XADiShMMRzZwIzrOvwkPwN8cea1X9fKJt2H5TfOSU5RJ1183etImKYefSQZGhAUps
-	 Hn2420jNw4hrAzMwzgJqP4DOUojSXNjMHWB+u7z2CRwgmV7+3wENnaRwwe68i0Nam1
-	 XMmdukPw2DCKEGXDpBA2f16qN1I6HBI+RgcB483M=
+	b=PH/923X8XPflRMZsA3NXqNg6PZzPg3SMDm3pl4c5K4TGdnq0uS0xbcNqmutrKt4AV
+	 Ptzddmj3sA+smD92vGFZThGkxt9NnvSKHOHwuH8GTuRVWAHSuyUZlTHlIN7ytkNjLJ
+	 Cuy+2FvArpt8cD7ziz+wd52V/iatuk2sxmwu+3CE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726409AbgH3UPz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 16:15:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56494 "EHLO mail.kernel.org"
+        id S1726155AbgH3UTz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 16:19:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726150AbgH3UPy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 16:15:54 -0400
+        id S1726150AbgH3UTz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 16:19:55 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2D37C204EA;
-        Sun, 30 Aug 2020 20:15:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 01A84204EA;
+        Sun, 30 Aug 2020 20:19:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598818553;
-        bh=vKuvxcRhsXcmdOnxZpC+IVE/+GZORlz0okk8ue+VixI=;
+        s=default; t=1598818794;
+        bh=AExmUO9i3wUHOyW12IfGDapmduIKH76ptpQ3Z79uf5c=;
         h=Date:From:To:Subject:From;
-        b=EXa/jbNLQl/COuZmJAwoQLjO39zDXA7q3F/wXZ3VL4vW08Dc4GFzh8ePMeJ92bS3J
-         ryFJfksuN0BGYi8IPQD/lC7HfPV/GJO+BUdH+RFOGqXFjY2mIkLXk2WAV+XFkoHwEs
-         IiCkUQ4PfnOvDsMr8CAlleUNohK4oUIs9u30EInM=
-Date:   Sun, 30 Aug 2020 13:15:52 -0700
+        b=KC4JIuMWSJw5iXG3ekMQ3c4WJM3hlmG58JoC7vwTK18nWfhfixMfEFNYUd0zOd2+h
+         5zvbEX681DA/tTihMPWlRg8dMqoFZVHCWdtsQ+ZciE/iF2Smv4GWPG7WpBpzk8lxeu
+         +kdNIpHbJMjMWhAT20xiN1dVeK+CwkzH51b3IFsE=
+Date:   Sun, 30 Aug 2020 13:19:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        mhocko@kernel.org, guro@fb.com, lixinhai.lxh@gmail.com
+To:     mm-commits@vger.kernel.org, osalvador@suse.de,
+        naoya.horiguchi@nec.com, dan.j.williams@intel.com, cai@lca.pw,
+        songmuchun@bytedance.com
 Subject:  +
- mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+ mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
  added to -mm tree
-Message-ID: <20200830201552.baL4Q%akpm@linux-foundation.org>
+Message-ID: <20200830201953.NYFTD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
+     Subject: mm/memory-failure: fix return wrong value when isolate page fail
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+     mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,53 +77,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/memory-failure: fix return wrong value when isolate page fail
 
-Since commit cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic
-hugepages using cma"), the gigantic page would be allocated from node
-which is not the preferred node, although there are pages available from
-that node.  The reason is that the nid parameter has been ignored in
-alloc_gigantic_page().
+When we isolate page fail, we should not return 0, because we do not
+set page HWPoison on any page.
 
-After this patch, the preferred node is tried first before other allowed
-nodes.
-
-Link: http://lkml.kernel.org/r/20200830140418.605627-1-lixinhai.lxh@gmail.com
-Fixes: cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lore.kernel.org/lkml/20200811220643.GB39857@lca.pw/
+Link: http://lkml.kernel.org/r/20200830081053.64981-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Qian Cai <cai@lca.pw>
+Reviewed-by: Qian Cai <cai@lca.pw>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma
-+++ a/mm/hugetlb.c
-@@ -1256,8 +1256,15 @@ static struct page *alloc_gigantic_page(
- 		struct page *page;
- 		int node;
- 
-+		if (hugetlb_cma[nid]) {
-+			page = cma_alloc(hugetlb_cma[nid], nr_pages,
-+					huge_page_order(h), true);
-+			if (page)
-+				return page;
-+		}
-+
- 		for_each_node_mask(node, *nodemask) {
--			if (!hugetlb_cma[node])
-+			if (node == nid || !hugetlb_cma[node])
- 				continue;
- 
- 			page = cma_alloc(hugetlb_cma[node], nr_pages,
+--- a/mm/memory-failure.c~mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2
++++ a/mm/memory-failure.c
+@@ -1847,6 +1847,7 @@ static int __soft_offline_page(struct pa
+ 	} else {
+ 		pr_info("soft offline: %#lx: %s isolation failed: %d, page count %d, type %lx (%pGp)\n",
+ 			pfn, msg_page[huge], ret, page_count(page), page->flags, &page->flags);
++		ret = -EBUSY;
+ 	}
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
-mm-isolation-avoid-checking-unmovable-pages-across-pageblock-boundary.patch
+mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
 
