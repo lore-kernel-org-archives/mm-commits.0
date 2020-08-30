@@ -2,51 +2,50 @@ Return-Path: <SRS0=GXSN=CI=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EAEDC433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:19:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B5CC433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:30:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0533F20578
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:19:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E3E3208A9
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:30:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598818796;
-	bh=AExmUO9i3wUHOyW12IfGDapmduIKH76ptpQ3Z79uf5c=;
+	s=default; t=1598819434;
+	bh=dLXp4UiQ8o25W0JNBTeH+xyz1kltRrGPv0bnrfI1CJo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=PH/923X8XPflRMZsA3NXqNg6PZzPg3SMDm3pl4c5K4TGdnq0uS0xbcNqmutrKt4AV
-	 Ptzddmj3sA+smD92vGFZThGkxt9NnvSKHOHwuH8GTuRVWAHSuyUZlTHlIN7ytkNjLJ
-	 Cuy+2FvArpt8cD7ziz+wd52V/iatuk2sxmwu+3CE=
+	b=LSKv/1hh8zNBLutms5HRjcrJRmY/jxDjIEnUAhXSthS13OxyeocxB/GcQ4L614pBM
+	 fRFVGZrmTVWEhXtFHRS2z6CWHVNh+WIrEqPobDQ3okNTSq8ZGv7dNyy6N7b4XwsVsU
+	 kZKT/u79Pgh5uRzHqTPLu6tbwTbfsw8xSP+TI3DM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726155AbgH3UTz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 16:19:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59752 "EHLO mail.kernel.org"
+        id S1726179AbgH3Uad (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 16:30:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726150AbgH3UTz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 16:19:55 -0400
+        id S1726150AbgH3Uab (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 16:30:31 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 01A84204EA;
-        Sun, 30 Aug 2020 20:19:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6C61A20757;
+        Sun, 30 Aug 2020 20:30:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598818794;
-        bh=AExmUO9i3wUHOyW12IfGDapmduIKH76ptpQ3Z79uf5c=;
+        s=default; t=1598819430;
+        bh=dLXp4UiQ8o25W0JNBTeH+xyz1kltRrGPv0bnrfI1CJo=;
         h=Date:From:To:Subject:From;
-        b=KC4JIuMWSJw5iXG3ekMQ3c4WJM3hlmG58JoC7vwTK18nWfhfixMfEFNYUd0zOd2+h
-         5zvbEX681DA/tTihMPWlRg8dMqoFZVHCWdtsQ+ZciE/iF2Smv4GWPG7WpBpzk8lxeu
-         +kdNIpHbJMjMWhAT20xiN1dVeK+CwkzH51b3IFsE=
-Date:   Sun, 30 Aug 2020 13:19:53 -0700
+        b=sobJ5/zqyioSH8t6oxKvHCQZZSrfZbHcvzS2Ll0e/Si67CRVRwEgO2irvyFHgGLz1
+         fBdSsNOZKZEYisvVOKaRg42VKbJTk/cErHzegGmQcsFjrv2/LjxwknjaV4OsO9+Suf
+         aQ1TJeG49liGSjRb+l4SxGE8MEr4OCGocVoDPbmA=
+Date:   Sun, 30 Aug 2020 13:30:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, osalvador@suse.de,
-        naoya.horiguchi@nec.com, dan.j.williams@intel.com, cai@lca.pw,
-        songmuchun@bytedance.com
-Subject:  +
- mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
- added to -mm tree
-Message-ID: <20200830201953.NYFTD%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, axboe@kernel.dk,
+        hirofumi@mail.parknet.co.jp
+Subject:  + fat-avoid-oops-when-bdi-io_pages==0.patch added to -mm
+ tree
+Message-ID: <20200830203029.pwefu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: fix return wrong value when isolate page fail
+     Subject: fat: avoid oops when bdi->io_pages==0
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
+     fat-avoid-oops-when-bdi-io_pages==0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-avoid-oops-when-bdi-io_pages%3D%3D0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-avoid-oops-when-bdi-io_pages%3D%3D0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,39 +76,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/memory-failure: fix return wrong value when isolate page fail
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: avoid oops when bdi->io_pages==0
 
-When we isolate page fail, we should not return 0, because we do not
-set page HWPoison on any page.
+On one system, there was bdi->io_pages==0.  This seems to be the bug of a
+driver somewhere, which perhaps failed to initialize io_pages.  We should
+fix it though - it is better to avoid the divide-by-zero Oops.
 
-Link: https://lore.kernel.org/lkml/20200811220643.GB39857@lca.pw/
-Link: http://lkml.kernel.org/r/20200830081053.64981-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Reviewed-by: Qian Cai <cai@lca.pw>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
+So add a check for this.
+
+Link: http://lkml.kernel.org/r/87ft85osn6.fsf@mail.parknet.co.jp
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>		[5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fat/fatent.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2
-+++ a/mm/memory-failure.c
-@@ -1847,6 +1847,7 @@ static int __soft_offline_page(struct pa
- 	} else {
- 		pr_info("soft offline: %#lx: %s isolation failed: %d, page count %d, type %lx (%pGp)\n",
- 			pfn, msg_page[huge], ret, page_count(page), page->flags, &page->flags);
-+		ret = -EBUSY;
- 	}
- 	return ret;
- }
+--- a/fs/fat/fatent.c~fat-avoid-oops-when-bdi-io_pages==0
++++ a/fs/fat/fatent.c
+@@ -660,7 +660,7 @@ static void fat_ra_init(struct super_blo
+ 	if (fatent->entry >= ent_limit)
+ 		return;
+ 
+-	if (ra_pages > sb->s_bdi->io_pages)
++	if (sb->s_bdi->io_pages && ra_pages > sb->s_bdi->io_pages)
+ 		ra_pages = rounddown(ra_pages, sb->s_bdi->io_pages);
+ 	reada_blocks = ra_pages << (PAGE_SHIFT - sb->s_blocksize_bits + 1);
+ 
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-2.patch
+fat-avoid-oops-when-bdi-io_pages==0.patch
 
