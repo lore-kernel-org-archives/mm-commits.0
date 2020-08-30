@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 046F1C433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:15:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FB77C433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:15:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7E4220738
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:15:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48CA520693
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:15:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598825730;
-	bh=E7cgd63nxArOqWS/CHKhQggUTSaFY+U+0wczapKuZk4=;
+	s=default; t=1598825735;
+	bh=OQHB+gX75ejRzLp3JCddyarREco/IeI/YqR/koegjl0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=amiX6RWpeY1clpXcs0NHLrh37ebFrQkrCKct3/Zro/XmYorV+g8Hl2KSmwTBe0+N0
-	 xmDBYK4CE6MR9Z7V2xhktWpMgwNwLRBbrirM3bV22blwTkAWijWRZgL5ogfa4fMupw
-	 RngWY8bOMhBcmBfCcawlIgLqE4QTtxc+WrjRV5PE=
+	b=b5fU0yNQpsIGc9HGhqu8kecRpNzY2Pw07SD7vuH5XcVaQ76hF8mUeBDBCnSJiCHyE
+	 70fe0ScGqsVGO8qo+vwM/inxUzFDh9quostK2k2u7PLgX3t9Z7AzM+1Efp4n6ZP4+Y
+	 nGP/8NbNT5qnHUQ88QvhQaTCT7p2UG7BevffKQ60=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726397AbgH3WPa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 18:15:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40460 "EHLO mail.kernel.org"
+        id S1726404AbgH3WPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 18:15:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgH3WPa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 18:15:30 -0400
+        id S1726178AbgH3WPd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 18:15:33 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F382120BED;
-        Sun, 30 Aug 2020 22:15:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 00CFE20693;
+        Sun, 30 Aug 2020 22:15:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598825729;
-        bh=E7cgd63nxArOqWS/CHKhQggUTSaFY+U+0wczapKuZk4=;
+        s=default; t=1598825732;
+        bh=OQHB+gX75ejRzLp3JCddyarREco/IeI/YqR/koegjl0=;
         h=Date:From:To:Subject:From;
-        b=stxpxqoJ5v1wuE0fd2iUzBOtOd9w764C2mh1YONpl/mohgsrhi4Zff5LoCieQXIYU
-         YeAgUyvvsSc7Bae5tbjSHitWwYwKU7CsL8QvCbaTmMZHopAg2O/4tlnh3vMzi0HIOt
-         QwA79R6HXKgAQgds3xgAmQgBc/bz0N790cyOJheU=
-Date:   Sun, 30 Aug 2020 15:15:28 -0700
+        b=slCy2dxb+8p3q4aMAjED2MOZQ8BTyLARYUdYBeNHaDZCzI9or8qlKw483R7EssnhM
+         pv55ug2t5635LyWQHLmh+QicExsd3FcADf86LFvotR4tByIYBqM59do6eOyVkIYR3j
+         GtoxXlurhc13s9fiFXio2s4mfhKELnKU/GItfRXA=
+Date:   Sun, 30 Aug 2020 15:15:31 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, shakeelb@google.com, mhocko@kernel.org,
         hannes@cmpxchg.org, guro@fb.com
 Subject:  +
- mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts.patch
- added to -mm tree
-Message-ID: <20200830221528.RFvHY%akpm@linux-foundation.org>
+ mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch added to
+ -mm tree
+Message-ID: <20200830221531.3YfuH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmem: prepare remote memcg charging infra for interrupt contexts
+     Subject: mm: kmem: enable kernel memcg accounting from interrupt contexts
 has been added to the -mm tree.  Its filename is
-     mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts.patch
+     mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,32 +77,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: kmem: prepare remote memcg charging infra for interrupt contexts
+Subject: mm: kmem: enable kernel memcg accounting from interrupt contexts
 
-Remote memcg charging API uses current->active_memcg to store the
-currently active memory cgroup, which overwrites the memory cgroup of the
-current process.  It works well for normal contexts, but doesn't work for
-interrupt contexts: indeed, if an interrupt occurs during the execution of
-a section with an active memcg set, all allocations inside the interrupt
-will be charged to the active memcg set (given that we'll enable
-accounting for allocations from an interrupt context).  But because the
-interrupt might have no relation to the active memcg set outside, it's
-obviously wrong from the accounting prospective.
+If a memcg to charge can be determined (using remote charging API), there
+are no reasons to exclude allocations made from an interrupt context from
+the accounting.
 
-To resolve this problem, let's add a global percpu int_active_memcg
-variable, which will be used to store an active memory cgroup which will
-be used from interrupt contexts.  set_active_memcg() will transparently
-use current->active_memcg or int_active_memcg depending on the context.
+Such allocations will pass even if the resulting memcg size will exceed
+the hard limit, but it will affect the application of the memory pressure
+and an inability to put the workload under the limit will eventually
+trigger the OOM.
 
-To make the read part simple and transparent for the caller, let's
-introduce two new functions:
-  - struct mem_cgroup *active_memcg(void),
-  - struct mem_cgroup *get_active_memcg(void).
+To use active_memcg() helper, memcg_kmem_bypass() is moved back to
+memcontrol.c.
 
-They are returning the active memcg if it's set, hiding all implementation
-details: where to get it depending on the current context.
-
-Link: http://lkml.kernel.org/r/20200827225843.1270629-4-guro@fb.com
+Link: http://lkml.kernel.org/r/20200827225843.1270629-5-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -110,118 +99,53 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |   13 ++++++++--
- mm/memcontrol.c          |   48 ++++++++++++++++++++++++++-----------
- 2 files changed, 45 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |   12 ------------
+ mm/memcontrol.c            |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
---- a/include/linux/sched/mm.h~mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts
-+++ a/include/linux/sched/mm.h
-@@ -304,6 +304,7 @@ static inline void memalloc_nocma_restor
- #endif
- 
- #ifdef CONFIG_MEMCG
-+DECLARE_PER_CPU(struct mem_cgroup *, int_active_memcg);
- /**
-  * set_active_memcg - Starts the remote memcg charging scope.
-  * @memcg: memcg to charge.
-@@ -318,8 +319,16 @@ static inline void memalloc_nocma_restor
- static inline struct mem_cgroup *
- set_active_memcg(struct mem_cgroup *memcg)
- {
--	struct mem_cgroup *old = current->active_memcg;
--	current->active_memcg = memcg;
-+	struct mem_cgroup *old;
-+
-+	if (in_interrupt()) {
-+		old = this_cpu_read(int_active_memcg);
-+		this_cpu_write(int_active_memcg, memcg);
-+	} else {
-+		old = current->active_memcg;
-+		current->active_memcg = memcg;
-+	}
-+
- 	return old;
+--- a/include/linux/memcontrol.h~mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts
++++ a/include/linux/memcontrol.h
+@@ -1528,18 +1528,6 @@ static inline bool memcg_kmem_enabled(vo
+ 	return static_branch_likely(&memcg_kmem_enabled_key);
  }
- #else
---- a/mm/memcontrol.c~mm-kmem-prepare-remote-memcg-charging-infra-for-interrupt-contexts
+ 
+-static inline bool memcg_kmem_bypass(void)
+-{
+-	if (in_interrupt())
+-		return true;
+-
+-	/* Allow remote memcg charging in kthread contexts. */
+-	if ((!current->mm || (current->flags & PF_KTHREAD)) &&
+-	     !current->active_memcg)
+-		return true;
+-	return false;
+-}
+-
+ static inline int memcg_kmem_charge_page(struct page *page, gfp_t gfp,
+ 					 int order)
+ {
+--- a/mm/memcontrol.c~mm-kmem-enable-kernel-memcg-accounting-from-interrupt-contexts
 +++ a/mm/memcontrol.c
-@@ -73,6 +73,9 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
- 
- struct mem_cgroup *root_mem_cgroup __read_mostly;
- 
-+/* Active memory cgroup to use from an interrupt context */
-+DEFINE_PER_CPU(struct mem_cgroup *, int_active_memcg);
-+
- /* Socket memory accounting disabled? */
- static bool cgroup_memory_nosocket;
- 
-@@ -1069,26 +1072,43 @@ struct mem_cgroup *get_mem_cgroup_from_p
- }
- EXPORT_SYMBOL(get_mem_cgroup_from_page);
- 
--/**
-- * If current->active_memcg is non-NULL, do not fallback to current->mm->memcg.
-- */
--static __always_inline struct mem_cgroup *get_mem_cgroup_from_current(void)
-+static __always_inline struct mem_cgroup *active_memcg(void)
- {
--	if (memcg_kmem_bypass())
--		return NULL;
-+	if (in_interrupt())
-+		return this_cpu_read(int_active_memcg);
-+	else
-+		return current->active_memcg;
-+}
- 
--	if (unlikely(current->active_memcg)) {
--		struct mem_cgroup *memcg;
-+static __always_inline struct mem_cgroup *get_active_memcg(void)
-+{
-+	struct mem_cgroup *memcg;
- 
--		rcu_read_lock();
-+	rcu_read_lock();
-+	memcg = active_memcg();
-+	if (memcg) {
- 		/* current->active_memcg must hold a ref. */
--		if (WARN_ON_ONCE(!css_tryget(&current->active_memcg->css)))
-+		if (WARN_ON_ONCE(!css_tryget(&memcg->css)))
- 			memcg = root_mem_cgroup;
- 		else
- 			memcg = current->active_memcg;
--		rcu_read_unlock();
--		return memcg;
- 	}
-+	rcu_read_unlock();
-+
-+	return memcg;
-+}
-+
-+/**
-+ * If active memcg is set, do not fallback to current->mm->memcg.
-+ */
-+static __always_inline struct mem_cgroup *get_mem_cgroup_from_current(void)
-+{
-+	if (memcg_kmem_bypass())
-+		return NULL;
-+
-+	if (unlikely(active_memcg()))
-+		return get_active_memcg();
-+
- 	return get_mem_cgroup_from_mm(current->mm);
+@@ -1098,6 +1098,19 @@ static __always_inline struct mem_cgroup
+ 	return memcg;
  }
  
-@@ -2920,8 +2940,8 @@ __always_inline struct obj_cgroup *get_o
- 		return NULL;
- 
- 	rcu_read_lock();
--	if (unlikely(current->active_memcg))
--		memcg = rcu_dereference(current->active_memcg);
++static __always_inline bool memcg_kmem_bypass(void)
++{
++	/* Allow remote memcg charging from any context. */
 +	if (unlikely(active_memcg()))
-+		memcg = active_memcg();
- 	else
- 		memcg = mem_cgroup_from_task(current);
- 
++		return false;
++
++	/* Memcg to charge can't be determined. */
++	if (in_interrupt() || !current->mm || (current->flags & PF_KTHREAD))
++		return true;
++
++	return false;
++}
++
+ /**
+  * If active memcg is set, do not fallback to current->mm->memcg.
+  */
 _
 
 Patches currently in -mm which might be from guro@fb.com are
