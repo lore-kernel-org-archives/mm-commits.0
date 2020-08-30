@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7DEAC433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:20:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 182B9C433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:22:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6D7620738
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:20:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E789020BED
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 22:22:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598826008;
-	bh=19qjQlpB2wxRoPKCCk2sTYfb/LeJtv+HP7lamvRxXGA=;
+	s=default; t=1598826124;
+	bh=7/4jMAN7rQxDsWASRUyTuLeIYawCWgC3CimuJl0hhUM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=1XgRWgtIKR5WnvpxjUzL0WQHxSKhpDARIbXW3ZieK8iA52M5wtM79MSAn0LNYu6rS
-	 FTPqtSIRPLAnC3+Kgv1ilJOJrXkBXO8mezu3wu4kAgf2DEhZRewQd7tOa42+b14dkc
-	 SpcKhdQPyC5BOsgTzsVQex60IjanYGQ1hu0Jb36k=
+	b=aLJPF592JnAD9lTTViZALvRHDcFrHqrlYq7yuUyrFNnQRjnsDjpKW0q+hw4qtELG5
+	 n0ymraCUfIJQo5u3xtB9ldSs1cw3EdJhnrG4UfXIg62rJzje2UC/RwMMVtglnnAXEJ
+	 BywORYngVbpMWFMmG80pvjwXjo9dWaOw5AF30n+A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgH3WUI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 18:20:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43064 "EHLO mail.kernel.org"
+        id S1726412AbgH3WWE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 18:22:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgH3WUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 18:20:07 -0400
+        id S1726178AbgH3WWD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 18:22:03 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D437120693;
-        Sun, 30 Aug 2020 22:20:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 10564206F0;
+        Sun, 30 Aug 2020 22:22:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598826007;
-        bh=19qjQlpB2wxRoPKCCk2sTYfb/LeJtv+HP7lamvRxXGA=;
+        s=default; t=1598826123;
+        bh=7/4jMAN7rQxDsWASRUyTuLeIYawCWgC3CimuJl0hhUM=;
         h=Date:From:To:Subject:From;
-        b=FIcip3buhFQMlycLJU3IvxR8xScnX9xj2/uBDyqbq8JfSgDwDEyo7PJBuDjswl2l9
-         RsCPT5cCGtPjrfhwaYI8Nte2jYJSLvnrMZGAE0QkaUh159FWyZclLyPY51KYzV0goL
-         bUCLsY+2ZsweVay561dQzwFA5MYOaCS013YprzpQ=
-Date:   Sun, 30 Aug 2020 15:20:06 -0700
+        b=TrY1bXOT3wynt7W6fkZSpYrT1p65atsXIExk02XIzqWuQJouO3cXJsuWgvYPMNq4g
+         6gFY19iuqlw7n/ocEHzJeLIQY8UDoqm87PqdnZK9dQVoHigm7EfG2BkSrOGPTemsVG
+         Lmkn4vIYi391DL7r4tpTs53eEGq65RnPlsfLEYgs=
+Date:   Sun, 30 Aug 2020 15:22:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com,
-        jglisse@redhat.com, jgg@nvidia.com, hch@lst.de,
-        rcampbell@nvidia.com
-Subject:  +
- mm-migrate-remove-obsolete-comment-about-device-public.patch added to -mm
- tree
-Message-ID: <20200830222006.3Dx-T%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, jhubbard@nvidia.com,
+        jglisse@redhat.com, jgg@nvidia.com, rcampbell@nvidia.com
+Subject:  + mm-test-use-the-new-skip-macro.patch added to -mm tree
+Message-ID: <20200830222202.qV_sM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: remove obsolete comment about device public
+     Subject: tools/testing/selftests/vm/hmm-tests.c: use the new SKIP() macro
 has been added to the -mm tree.  Its filename is
-     mm-migrate-remove-obsolete-comment-about-device-public.patch
+     mm-test-use-the-new-skip-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-obsolete-comment-about-device-public.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-test-use-the-new-skip-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-obsolete-comment-about-device-public.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-test-use-the-new-skip-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,39 +75,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: remove obsolete comment about device public
+Subject: tools/testing/selftests/vm/hmm-tests.c: use the new SKIP() macro
 
-Device public memory never had an in tree consumer and was removed in
-commit 25b2995a35b6 ("mm: remove MEMORY_DEVICE_PUBLIC support").  Delete
-the obsolete comment.
+Some tests might not be able to be run if resources like huge pages are
+not available.  Mark these tests as skipped instead of simply passing.
 
-Link: http://lkml.kernel.org/r/20200827190735.12752-2-rcampbell@nvidia.com
+Link: http://lkml.kernel.org/r/20200827190400.12608-1-rcampbell@nvidia.com
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/hmm-tests.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-remove-obsolete-comment-about-device-public
-+++ a/mm/migrate.c
-@@ -381,7 +381,7 @@ static int expected_page_refs(struct add
- 	int expected_count = 1;
+--- a/tools/testing/selftests/vm/hmm-tests.c~mm-test-use-the-new-skip-macro
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -680,7 +680,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
  
- 	/*
--	 * Device public or private pages have an extra refcount as they are
-+	 * Device private pages have an extra refcount as they are
- 	 * ZONE_DEVICE pages.
- 	 */
- 	expected_count += is_device_private_page(page);
+ 	n = gethugepagesizes(pagesizes, 4);
+ 	if (n <= 0)
+-		return;
++		SKIP(return, "Huge page size could not be determined");
+ 	for (idx = 0; --n > 0; ) {
+ 		if (pagesizes[n] < pagesizes[idx])
+ 			idx = n;
+@@ -694,7 +694,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
+ 	buffer->ptr = get_hugepage_region(size, GHR_STRICT);
+ 	if (buffer->ptr == NULL) {
+ 		free(buffer);
+-		return;
++		SKIP(return, "Huge page could not be allocated");
+ 	}
+ 
+ 	buffer->fd = -1;
 _
 
 Patches currently in -mm which might be from rcampbell@nvidia.com are
 
+mm-test-use-the-new-skip-macro.patch
 mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
 mm-migrate-remove-obsolete-comment-about-device-public.patch
 
