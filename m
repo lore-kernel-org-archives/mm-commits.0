@@ -7,43 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3214C433E2
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 19:58:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 284A2C433E2
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCBDE20757
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 19:58:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0499D204EA
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Aug 2020 20:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598817529;
-	bh=1VsczWhSQPszi+0xzBgl/vj3piLDBlNHxHeUPewiiHw=;
+	s=default; t=1598818557;
+	bh=vKuvxcRhsXcmdOnxZpC+IVE/+GZORlz0okk8ue+VixI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dyEgUQnjS8RoInI1ZOnMODtaacwupksxAIR/Z4oEU5AfxtGtv8c6L0+Wc7KqmnA6f
-	 vphcHXvY4vSnCuXOMbSPoCxLP/Tejx+vI82lThg7RO+BT0+jmXvth04vngLOjY5BNe
-	 OxndyCV6e1sejT3yScTfP79dUTB3YqQE9ubuRw/4=
+	b=XADiShMMRzZwIzrOvwkPwN8cea1X9fKJt2H5TfOSU5RJ1183etImKYefSQZGhAUps
+	 Hn2420jNw4hrAzMwzgJqP4DOUojSXNjMHWB+u7z2CRwgmV7+3wENnaRwwe68i0Nam1
+	 XMmdukPw2DCKEGXDpBA2f16qN1I6HBI+RgcB483M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726201AbgH3T6t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 15:58:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45568 "EHLO mail.kernel.org"
+        id S1726409AbgH3UPz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 16:15:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726179AbgH3T6s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 15:58:48 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1726150AbgH3UPy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 16:15:54 -0400
+Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3A33A20757;
-        Sun, 30 Aug 2020 19:58:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2D37C204EA;
+        Sun, 30 Aug 2020 20:15:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598817528;
-        bh=1VsczWhSQPszi+0xzBgl/vj3piLDBlNHxHeUPewiiHw=;
+        s=default; t=1598818553;
+        bh=vKuvxcRhsXcmdOnxZpC+IVE/+GZORlz0okk8ue+VixI=;
         h=Date:From:To:Subject:From;
-        b=i4O0c7r7ddMgoZ9PYiW7nnaHgaunjb2jBD97X8j32dS8EAxNeyGbkU9PdXOitTado
-         0jzSZfU4amvL66WxHAFC0J+Za8U7io+BMnLdkMMNMOYeBoCVeSf+AQovnw2vOeSFXF
-         rAX9T2hDdNN6tMpWv6XUrkYUH2UhUq4vAI7mMlmI=
-Date:   Sun, 30 Aug 2020 12:58:47 -0700
+        b=EXa/jbNLQl/COuZmJAwoQLjO39zDXA7q3F/wXZ3VL4vW08Dc4GFzh8ePMeJ92bS3J
+         ryFJfksuN0BGYi8IPQD/lC7HfPV/GJO+BUdH+RFOGqXFjY2mIkLXk2WAV+XFkoHwEs
+         IiCkUQ4PfnOvDsMr8CAlleUNohK4oUIs9u30EInM=
+Date:   Sun, 30 Aug 2020 13:15:52 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20200830195847.3wId5L4qJ%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        mhocko@kernel.org, guro@fb.com, lixinhai.lxh@gmail.com
+Subject:  +
+ mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+ added to -mm tree
+Message-ID: <20200830201552.baL4Q%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,69 +76,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
 
+Since commit cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic
+hugepages using cma"), the gigantic page would be allocated from node
+which is not the preferred node, although there are pages available from
+that node.  The reason is that the nid parameter has been ignored in
+alloc_gigantic_page().
+
+After this patch, the preferred node is tried first before other allowed
+nodes.
+
+Link: http://lkml.kernel.org/r/20200830140418.605627-1-lixinhai.lxh@gmail.com
+Fixes: cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |   23 ------------
- 1 file changed, 23 deletions(-)
+ mm/hugetlb.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3027,28 +3027,6 @@ static int get_brightness_range(const st
- 	}
- 	return 1;
- }
--<<<<<<< HEAD
--
--static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *caps,
--					uint32_t brightness)
--{
--	unsigned min, max;
--
--	if (!get_brightness_range(caps, &min, &max))
--		return brightness;
--
--	// Rescale 0..255 to min..max
--	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
--				       AMDGPU_MAX_BL_LEVEL);
--}
--
--static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *caps,
--				      uint32_t brightness)
--{
--	unsigned min, max;
--
--=======
--
- static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *caps,
- 					uint32_t brightness)
- {
-@@ -3067,7 +3045,6 @@ static u32 convert_brightness_to_user(co
- {
- 	unsigned min, max;
+--- a/mm/hugetlb.c~mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma
++++ a/mm/hugetlb.c
+@@ -1256,8 +1256,15 @@ static struct page *alloc_gigantic_page(
+ 		struct page *page;
+ 		int node;
  
-->>>>>>> linux-next/akpm-base
- 	if (!get_brightness_range(caps, &min, &max))
- 		return brightness;
++		if (hugetlb_cma[nid]) {
++			page = cma_alloc(hugetlb_cma[nid], nr_pages,
++					huge_page_order(h), true);
++			if (page)
++				return page;
++		}
++
+ 		for_each_node_mask(node, *nodemask) {
+-			if (!hugetlb_cma[node])
++			if (node == nid || !hugetlb_cma[node])
+ 				continue;
  
+ 			page = cma_alloc(hugetlb_cma[node], nr_pages,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
-mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
-mm.patch
-mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
-device-dax-make-align-a-per-device-property-fix.patch
-mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
-memblock-make-memblock_debug-and-related-functionality-private-fix.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+mm-isolation-avoid-checking-unmovable-pages-across-pageblock-boundary.patch
 
