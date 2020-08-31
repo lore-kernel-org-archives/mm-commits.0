@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DFB4C433E2
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Aug 2020 18:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEDB9C433E2
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Aug 2020 18:36:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CB4420EDD
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Aug 2020 18:36:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF3D9207DA
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Aug 2020 18:36:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598899000;
-	bh=IHh90jStWTRGOFmRtHLlHfPgBXLMhAOleGFnq3DrrkQ=;
+	s=default; t=1598899003;
+	bh=6p+MYRmmin8r3hAYAsRzfg6yWI9zxmhUO0uS3R+WwpU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=quVVVLL1AAv5RZ82V87SQQZr7j/Vswc5jqItG0r7icnIJubRc/+ZMynK5YrNzpG09
-	 UrOM/lGTifh8dpdOoTAi+C1QTTXrf7cmJxZjtOmKb3NIsvq3Cgo+dKjae3iev5Y6ay
-	 51zcOzHY0uLmwJfl4r6cv2IJIj7vFvwCmy7Kcm58=
+	b=iQUg3NkREckKBdVHeI/I1snc+HbhX3MrtxIUbUlx07xQJbxXjyFxnzEItPsUm4U2+
+	 +Ax0xEye04EirjFu0nTJMOXAcJqKmsPlzSJLGfjZkppuXrU86X1eeugEDEUIKi966J
+	 lFQcoafuJf0BBwoB4KwFzlcWQiQBUi0uNzA0OPbk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729184AbgHaSgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Aug 2020 14:36:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50856 "EHLO mail.kernel.org"
+        id S1729180AbgHaSgn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Aug 2020 14:36:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729102AbgHaSgi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 31 Aug 2020 14:36:38 -0400
+        id S1729102AbgHaSgm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 31 Aug 2020 14:36:42 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8AF562071B;
-        Mon, 31 Aug 2020 18:36:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AC13A20936;
+        Mon, 31 Aug 2020 18:36:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598898997;
-        bh=IHh90jStWTRGOFmRtHLlHfPgBXLMhAOleGFnq3DrrkQ=;
+        s=default; t=1598899001;
+        bh=6p+MYRmmin8r3hAYAsRzfg6yWI9zxmhUO0uS3R+WwpU=;
         h=Date:From:To:Subject:From;
-        b=benYMNtl923dU0KWZSCb10yLWax+k1an5hGCmhJI9KJzPXbmXOqJ06sa7JKZmrZw+
-         UpkeKHXy2EhiPNVWYUgN1MuSAVGjzyDAl4RW/gBwCrFNP6CLZ/FAYejs8hZaU9pN+c
-         swhbDh2UzWL++kJyUbyjTf7OIGjoo70ifhufThgI=
-Date:   Mon, 31 Aug 2020 11:36:35 -0700
+        b=Q/hP+0BXxQyLukl3Ex8aIoREuY7dQGVP+Aw0P+yoXP8MSETncZ9wDNt5jv/GGn/Dh
+         oseGzISvfnFSEZMHWj5tVWfnq1RfsjlxQAb+hpq4r1k41WFWw6nLNMo9lwG16o8VOe
+         +Cje4wnjMSOMm2RZszVu2m8ASF8DVd1cqKfyQH+8=
+Date:   Mon, 31 Aug 2020 11:36:39 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         tglx@linutronix.de, peterz@infradead.org, mingo@redhat.com,
         hpa@zytor.com, hch@lst.de, glider@google.com, elver@google.com,
         dvyukov@google.com, corbet@lwn.net, bp@alien8.de, arnd@arndb.de,
         andreyknvl@google.com, akinobu.mita@gmail.com, alinde@google.com
-Subject:  +
- lib-uaccess-add-failure-injection-to-usercopy-functions.patch added to -mm
- tree
-Message-ID: <20200831183635.mC90S%akpm@linux-foundation.org>
+Subject:  + x86-add-failure-injection-to-get-put-clear_user.patch
+ added to -mm tree
+Message-ID: <20200831183639.MID_Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib, uaccess: add failure injection to usercopy functions
+     Subject: x86: add failure injection to get/put/clear_user
 has been added to the -mm tree.  Its filename is
-     lib-uaccess-add-failure-injection-to-usercopy-functions.patch
+     x86-add-failure-injection-to-get-put-clear_user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-uaccess-add-failure-injection-to-usercopy-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-failure-injection-to-get-put-clear_user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-uaccess-add-failure-injection-to-usercopy-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-failure-injection-to-get-put-clear_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,15 +79,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Albert van der Linde <alinde@google.com>
-Subject: lib, uaccess: add failure injection to usercopy functions
+Subject: x86: add failure injection to get/put/clear_user
 
-To test fault-tolerance of user memory access functions, introduce fault
-injection to usercopy functions.
+To test fault-tolerance of user memory acceses in x86, add support for
+fault injection.
 
-If a failure is expected return either -EFAULT or the total amount of
-bytes that were not copied.
+Make both put_user() and get_user() fail with -EFAULT, and clear_user()
+fail by not clearing any bytes.
 
-Link: http://lkml.kernel.org/r/20200831171733.955393-3-alinde@google.com
+Link: http://lkml.kernel.org/r/20200831171733.955393-4-alinde@google.com
 Signed-off-by: Albert van der Linde <alinde@google.com>
 Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -107,141 +106,121 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |   11 ++++++++++-
- lib/iov_iter.c          |    5 +++++
- lib/strncpy_from_user.c |    3 +++
- lib/usercopy.c          |    5 ++++-
- 4 files changed, 22 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/uaccess.h |   68 +++++++++++++++++--------------
+ arch/x86/lib/usercopy_64.c     |    3 +
+ 2 files changed, 42 insertions(+), 29 deletions(-)
 
---- a/include/linux/uaccess.h~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/include/linux/uaccess.h
-@@ -2,6 +2,7 @@
- #ifndef __LINUX_UACCESS_H__
- #define __LINUX_UACCESS_H__
- 
-+#include <linux/fault-inject-usercopy.h>
- #include <linux/instrumented.h>
- #include <linux/sched.h>
- #include <linux/thread_info.h>
-@@ -83,6 +84,8 @@ static __always_inline __must_check unsi
- __copy_from_user(void *to, const void __user *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	instrument_copy_from_user(to, from, n);
- 	check_object_size(to, n, false);
- 	return raw_copy_from_user(to, from, n);
-@@ -104,6 +107,8 @@ __copy_from_user(void *to, const void __
- static __always_inline __must_check unsigned long
- __copy_to_user_inatomic(void __user *to, const void *from, unsigned long n)
- {
-+	if (should_fail_usercopy())
-+		return n;
- 	instrument_copy_to_user(to, from, n);
- 	check_object_size(from, n, true);
- 	return raw_copy_to_user(to, from, n);
-@@ -113,6 +118,8 @@ static __always_inline __must_check unsi
- __copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	instrument_copy_to_user(to, from, n);
- 	check_object_size(from, n, true);
- 	return raw_copy_to_user(to, from, n);
-@@ -124,7 +131,7 @@ _copy_from_user(void *to, const void __u
- {
- 	unsigned long res = n;
- 	might_fault();
--	if (likely(access_ok(from, n))) {
-+	if (!should_fail_usercopy() && likely(access_ok(from, n))) {
- 		instrument_copy_from_user(to, from, n);
- 		res = raw_copy_from_user(to, from, n);
- 	}
-@@ -142,6 +149,8 @@ static inline __must_check unsigned long
- _copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	if (access_ok(to, n)) {
- 		instrument_copy_to_user(to, from, n);
- 		n = raw_copy_to_user(to, from, n);
---- a/lib/iov_iter.c~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/lib/iov_iter.c
-@@ -2,6 +2,7 @@
- #include <crypto/hash.h>
- #include <linux/export.h>
- #include <linux/bvec.h>
-+#include <linux/fault-inject-usercopy.h>
- #include <linux/uio.h>
- #include <linux/pagemap.h>
- #include <linux/slab.h>
-@@ -139,6 +140,8 @@
- 
- static int copyout(void __user *to, const void *from, size_t n)
- {
-+	if (should_fail_usercopy())
-+		return n;
- 	if (access_ok(to, n)) {
- 		instrument_copy_to_user(to, from, n);
- 		n = raw_copy_to_user(to, from, n);
-@@ -148,6 +151,8 @@ static int copyout(void __user *to, cons
- 
- static int copyin(void *to, const void __user *from, size_t n)
- {
-+	if (should_fail_usercopy())
-+		return n;
- 	if (access_ok(from, n)) {
- 		instrument_copy_from_user(to, from, n);
- 		n = raw_copy_from_user(to, from, n);
---- a/lib/strncpy_from_user.c~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/lib/strncpy_from_user.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
+--- a/arch/x86/include/asm/uaccess.h~x86-add-failure-injection-to-get-put-clear_user
++++ a/arch/x86/include/asm/uaccess.h
+@@ -5,6 +5,7 @@
+  * User space memory access functions
+  */
  #include <linux/compiler.h>
- #include <linux/export.h>
 +#include <linux/fault-inject-usercopy.h>
  #include <linux/kasan-checks.h>
- #include <linux/thread_info.h>
- #include <linux/uaccess.h>
-@@ -99,6 +100,8 @@ long strncpy_from_user(char *dst, const
- 	unsigned long max_addr, src_addr;
+ #include <linux/string.h>
+ #include <asm/asm.h>
+@@ -175,11 +176,16 @@ extern int __get_user_bad(void);
+ 	register __inttype(*(ptr)) __val_gu asm("%"_ASM_DX);		\
+ 	__chk_user_ptr(ptr);						\
+ 	might_fault();							\
+-	asm volatile("call __get_user_%P4"				\
+-		     : "=a" (__ret_gu), "=r" (__val_gu),		\
++	if (should_fail_usercopy()) {					\
++		(x) = 0;						\
++		__ret_gu = -EFAULT;					\
++	} else {							\
++		asm volatile("call __get_user_%P4"			\
++			: "=a" (__ret_gu), "=r" (__val_gu),		\
+ 			ASM_CALL_CONSTRAINT				\
+-		     : "0" (ptr), "i" (sizeof(*(ptr))));		\
+-	(x) = (__force __typeof__(*(ptr))) __val_gu;			\
++			: "0" (ptr), "i" (sizeof(*(ptr))));		\
++		(x) = (__force __typeof__(*(ptr))) __val_gu;		\
++	}								\
+ 	__builtin_expect(__ret_gu, 0);					\
+ })
  
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return -EFAULT;
- 	if (unlikely(count <= 0))
- 		return 0;
+@@ -236,31 +242,35 @@ extern void __put_user_8(void);
+  *
+  * Return: zero on success, or -EFAULT on error.
+  */
+-#define put_user(x, ptr)					\
+-({								\
+-	int __ret_pu;						\
+-	__typeof__(*(ptr)) __pu_val;				\
+-	__chk_user_ptr(ptr);					\
+-	might_fault();						\
+-	__pu_val = x;						\
+-	switch (sizeof(*(ptr))) {				\
+-	case 1:							\
+-		__put_user_x(1, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	case 2:							\
+-		__put_user_x(2, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	case 4:							\
+-		__put_user_x(4, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	case 8:							\
+-		__put_user_x8(__pu_val, ptr, __ret_pu);		\
+-		break;						\
+-	default:						\
+-		__put_user_x(X, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	}							\
+-	__builtin_expect(__ret_pu, 0);				\
++#define put_user(x, ptr)						\
++({									\
++	int __ret_pu;							\
++	__typeof__(*(ptr)) __pu_val;					\
++	__chk_user_ptr(ptr);						\
++	might_fault();							\
++	__pu_val = x;							\
++	if (should_fail_usercopy()) {					\
++		__ret_pu = -EFAULT;					\
++	} else {							\
++		switch (sizeof(*(ptr))) {				\
++		case 1:							\
++			__put_user_x(1, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		case 2:							\
++			__put_user_x(2, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		case 4:							\
++			__put_user_x(4, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		case 8:							\
++			__put_user_x8(__pu_val, ptr, __ret_pu);		\
++			break;						\
++		default:						\
++			__put_user_x(X, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		}							\
++	}								\
++	__builtin_expect(__ret_pu, 0);					\
+ })
  
---- a/lib/usercopy.c~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/lib/usercopy.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bitops.h>
+ #define __put_user_size(x, ptr, size, label)				\
+--- a/arch/x86/lib/usercopy_64.c~x86-add-failure-injection-to-get-put-clear_user
++++ a/arch/x86/lib/usercopy_64.c
+@@ -7,6 +7,7 @@
+  * Copyright 2002 Andi Kleen <ak@suse.de>
+  */
+ #include <linux/export.h>
 +#include <linux/fault-inject-usercopy.h>
- #include <linux/instrumented.h>
  #include <linux/uaccess.h>
+ #include <linux/highmem.h>
  
-@@ -10,7 +11,7 @@ unsigned long _copy_from_user(void *to,
+@@ -50,6 +51,8 @@ EXPORT_SYMBOL(__clear_user);
+ 
+ unsigned long clear_user(void __user *to, unsigned long n)
  {
- 	unsigned long res = n;
- 	might_fault();
--	if (likely(access_ok(from, n))) {
-+	if (!should_fail_usercopy() && likely(access_ok(from, n))) {
- 		instrument_copy_from_user(to, from, n);
- 		res = raw_copy_from_user(to, from, n);
- 	}
-@@ -25,6 +26,8 @@ EXPORT_SYMBOL(_copy_from_user);
- unsigned long _copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- 	might_fault();
 +	if (should_fail_usercopy())
 +		return n;
- 	if (likely(access_ok(to, n))) {
- 		instrument_copy_to_user(to, from, n);
- 		n = raw_copy_to_user(to, from, n);
+ 	if (access_ok(to, n))
+ 		return __clear_user(to, n);
+ 	return n;
 _
 
 Patches currently in -mm which might be from alinde@google.com are
