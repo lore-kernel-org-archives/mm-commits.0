@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48FB2C433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99359C433E6
 	for <mm-commits@archiver.kernel.org>; Mon, 31 Aug 2020 01:30:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2767620DD4
+	by mail.kernel.org (Postfix) with ESMTP id 7C4C72076D
 	for <mm-commits@archiver.kernel.org>; Mon, 31 Aug 2020 01:30:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1598837439;
-	bh=cXWxrjDOhBQVT3Bc2AFhoTyEYoX+B7Tjq4GFOymmzH4=;
+	bh=3q5zx5NrN7iJiCtEsbxwOApIA4HEf9AdROpBGBl/dls=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=So6CBPkRwDoXYgQzObx4ZpUbcDLkn77qVcB4PM9gY9MWDNZr0qcaf6WNtwrTlQUyO
-	 YgTeg+8MqLelk3pPUzu7n0oDGbaYN3hjXKZMruOP3TXOPiPTnNMt/r5hgWla9bE4oL
-	 YkkalGtvOhi8TdVGy4Euan4GCIgOFhZwggdOzGE0=
+	b=H3vy9VmXwBPeGLPpUhnGsY6Qa1BGBoy2o83bPt3j1L0h/7n3kaWxHfcjqefcgnuPs
+	 +OW3XZgeVvKUDN99aN3ndFtteR0MIBITAf5zNxKRVIUjOSQC2KQc9Gk+elO+aRIS9B
+	 XJztd2byQ9b2f1tnlQk0CB1XFzfy0UDTrk/X0mmY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727781AbgHaBah (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Aug 2020 21:30:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56812 "EHLO mail.kernel.org"
+        id S1727802AbgHaBaj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 30 Aug 2020 21:30:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56916 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727806AbgHaBa0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 30 Aug 2020 21:30:26 -0400
+        id S1727814AbgHaBa3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 30 Aug 2020 21:30:29 -0400
 Received: from X1 (unknown [65.49.58.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EE19B2083E;
-        Mon, 31 Aug 2020 01:30:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F34C820E65;
+        Mon, 31 Aug 2020 01:30:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598837425;
-        bh=cXWxrjDOhBQVT3Bc2AFhoTyEYoX+B7Tjq4GFOymmzH4=;
+        s=default; t=1598837428;
+        bh=3q5zx5NrN7iJiCtEsbxwOApIA4HEf9AdROpBGBl/dls=;
         h=Date:From:To:Subject:From;
-        b=C6weKJwwrmkTfGjh4dq9KBePKF+1GA0kE0JAd6GL14C2eUxYHd2h9msnP9LSOONKv
-         G8ubLNE3pXlQFhyP3EylY0EpJ3QioPVWL5UMLYBuHkfFNAh/ldJgyVU0qEBmUH4r35
-         ssOQOf8sOt9onUpM+727Wlw/decopWnk9BhwhDvE=
-Date:   Sun, 30 Aug 2020 18:30:24 -0700
+        b=gI0qNJ0XQR4hidCdzhaDw/8DlDMnOJWrL4/OoTEOIyFr+eFI9BouaCvPzdD2lMCnB
+         qOSikouZhake5t6KZLMfBoYOla2Tg/6SAN9cW9/PGdHxtIBvSFrZYh4C3EEpWRFaXN
+         xZK8AXUuW20Hn9csOq+JvpDfdFtvxlSNWu2Nc94c=
+Date:   Sun, 30 Aug 2020 18:30:27 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, shakeelb@google.com,
         mike.kravetz@oracle.com, mhocko@suse.com, hannes@cmpxchg.org,
         cai@lca.pw, alex.shi@linux.alibaba.com, hughd@google.com
-Subject:  + mm-fix-check_move_unevictable_pages-on-thp.patch added to
- -mm tree
-Message-ID: <20200831013024.jPs3o%akpm@linux-foundation.org>
+Subject:  + mlock-fix-unevictable_pgs-event-counts-on-thp.patch added
+ to -mm tree
+Message-ID: <20200831013027.XS2QG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix check_move_unevictable_pages() on THP
+     Subject: mlock: fix unevictable_pgs event counts on THP
 has been added to the -mm tree.  Its filename is
-     mm-fix-check_move_unevictable_pages-on-thp.patch
+     mlock-fix-unevictable_pgs-event-counts-on-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-check_move_unevictable_pages-on-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mlock-fix-unevictable_pgs-event-counts-on-thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-check_move_unevictable_pages-on-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mlock-fix-unevictable_pgs-event-counts-on-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,27 +77,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix check_move_unevictable_pages() on THP
-
-check_move_unevictable_pages() is used in making unevictable shmem pages
-evictable: by shmem_unlock_mapping(), drm_gem_check_release_pagevec() and
-i915/gem check_release_pagevec().  Those may pass down subpages of a huge
-page, when /sys/kernel/mm/transparent_hugepage/shmem_enabled is "force".
-
-That does not crash or warn at present, but the accounting of vmstats
-unevictable_pgs_scanned and unevictable_pgs_rescued is inconsistent:
-scanned being incremented on each subpage, rescued only on the head (since
-tails already appear evictable once the head has been updated).
+Subject: mlock: fix unevictable_pgs event counts on THP
 
 5.8 commit 5d91f31faf8e ("mm: swap: fix vmstats for huge page") has
-established that vm_events in general (and unevictable_pgs_rescued in
-particular) should count every subpage: so follow that precedent here.
+established that vm_events should count every subpage of a THP, including
+unevictable_pgs_culled and unevictable_pgs_rescued; but
+lru_cache_add_inactive_or_unevictable() was not doing so for
+unevictable_pgs_mlocked, and mm/mlock.c was not doing so for
+unevictable_pgs mlocked, munlocked, cleared and stranded.
 
-Do this in such a way that if mem_cgroup_page_lruvec() is made stricter
-(to check page->mem_cgroup is always set), no problem: skip the tails
-before calling it, and add thp_nr_pages() to vmstats on the head.
+Fix them; but THPs don't go the pagevec way in mlock.c, so no fixes needed
+on that path.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301405000.5954@eggly.anvils
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301408230.5954@eggly.anvils
+Fixes: 5d91f31faf8e ("mm: swap: fix vmstats for huge page")
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -108,36 +101,96 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/mlock.c |   24 +++++++++++++++---------
+ mm/swap.c  |    6 +++---
+ 2 files changed, 18 insertions(+), 12 deletions(-)
 
---- a/mm/vmscan.c~mm-fix-check_move_unevictable_pages-on-thp
-+++ a/mm/vmscan.c
-@@ -4268,8 +4268,14 @@ void check_move_unevictable_pages(struct
- 	for (i = 0; i < pvec->nr; i++) {
- 		struct page *page = pvec->pages[i];
- 		struct pglist_data *pagepgdat = page_pgdat(page);
-+		int nr_pages;
+--- a/mm/mlock.c~mlock-fix-unevictable_pgs-event-counts-on-thp
++++ a/mm/mlock.c
+@@ -58,11 +58,14 @@ EXPORT_SYMBOL(can_do_mlock);
+  */
+ void clear_page_mlock(struct page *page)
+ {
++	int nr_pages;
 +
-+		if (PageTransTail(page))
-+			continue;
-+
-+		nr_pages = thp_nr_pages(page);
-+		pgscanned += nr_pages;
+ 	if (!TestClearPageMlocked(page))
+ 		return;
  
--		pgscanned++;
- 		if (pagepgdat != pgdat) {
- 			if (pgdat)
- 				spin_unlock_irq(&pgdat->lru_lock);
-@@ -4288,7 +4294,7 @@ void check_move_unevictable_pages(struct
- 			ClearPageUnevictable(page);
- 			del_page_from_lru_list(page, lruvec, LRU_UNEVICTABLE);
- 			add_page_to_lru_list(page, lruvec, lru);
--			pgrescued++;
-+			pgrescued += nr_pages;
- 		}
+-	mod_zone_page_state(page_zone(page), NR_MLOCK, -thp_nr_pages(page));
+-	count_vm_event(UNEVICTABLE_PGCLEARED);
++	nr_pages = thp_nr_pages(page);
++	mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
++	count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
+ 	/*
+ 	 * The previous TestClearPageMlocked() corresponds to the smp_mb()
+ 	 * in __pagevec_lru_add_fn().
+@@ -76,7 +79,7 @@ void clear_page_mlock(struct page *page)
+ 		 * We lost the race. the page already moved to evictable list.
+ 		 */
+ 		if (PageUnevictable(page))
+-			count_vm_event(UNEVICTABLE_PGSTRANDED);
++			count_vm_events(UNEVICTABLE_PGSTRANDED, nr_pages);
  	}
+ }
  
+@@ -93,9 +96,10 @@ void mlock_vma_page(struct page *page)
+ 	VM_BUG_ON_PAGE(PageCompound(page) && PageDoubleMap(page), page);
+ 
+ 	if (!TestSetPageMlocked(page)) {
+-		mod_zone_page_state(page_zone(page), NR_MLOCK,
+-				    thp_nr_pages(page));
+-		count_vm_event(UNEVICTABLE_PGMLOCKED);
++		int nr_pages = thp_nr_pages(page);
++
++		mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
++		count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
+ 	}
+@@ -138,7 +142,7 @@ static void __munlock_isolated_page(stru
+ 
+ 	/* Did try_to_unlock() succeed or punt? */
+ 	if (!PageMlocked(page))
+-		count_vm_event(UNEVICTABLE_PGMUNLOCKED);
++		count_vm_events(UNEVICTABLE_PGMUNLOCKED, thp_nr_pages(page));
+ 
+ 	putback_lru_page(page);
+ }
+@@ -154,10 +158,12 @@ static void __munlock_isolated_page(stru
+  */
+ static void __munlock_isolation_failed(struct page *page)
+ {
++	int nr_pages = thp_nr_pages(page);
++
+ 	if (PageUnevictable(page))
+-		__count_vm_event(UNEVICTABLE_PGSTRANDED);
++		__count_vm_events(UNEVICTABLE_PGSTRANDED, nr_pages);
+ 	else
+-		__count_vm_event(UNEVICTABLE_PGMUNLOCKED);
++		__count_vm_events(UNEVICTABLE_PGMUNLOCKED, nr_pages);
+ }
+ 
+ /**
+--- a/mm/swap.c~mlock-fix-unevictable_pgs-event-counts-on-thp
++++ a/mm/swap.c
+@@ -494,14 +494,14 @@ void lru_cache_add_inactive_or_unevictab
+ 
+ 	unevictable = (vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) == VM_LOCKED;
+ 	if (unlikely(unevictable) && !TestSetPageMlocked(page)) {
++		int nr_pages = thp_nr_pages(page);
+ 		/*
+ 		 * We use the irq-unsafe __mod_zone_page_stat because this
+ 		 * counter is not modified from interrupt context, and the pte
+ 		 * lock is held(spinlock), which implies preemption disabled.
+ 		 */
+-		__mod_zone_page_state(page_zone(page), NR_MLOCK,
+-				    thp_nr_pages(page));
+-		count_vm_event(UNEVICTABLE_PGMLOCKED);
++		__mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
++		count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+ 	}
+ 	lru_cache_add(page);
+ }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
