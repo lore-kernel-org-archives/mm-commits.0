@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ADFEC433E2
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:33:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A993C43461
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:33:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43D8D208C7
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:33:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20950206D4
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:33:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599168837;
-	bh=1QG02/4Ffi7JdeMOzwQpqDa4LGwxQOTeC9r03RYnomk=;
+	s=default; t=1599168839;
+	bh=LfSJdcA89MJlYpIAKzYFnKJUCAZh+zWIvy4ZiTR3pMA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=WVhlAz9D/b0CCPmHkWaVdz5bb1EDTV30PKE4RkHS5XM//M/WdwrpsUIOc9fllyLdK
-	 NbNTCMh5TOp8irhW0luau4geyY1NBre+9ExJrZM7Ip7PPfNRLWnruNMkUOpeYf69+B
-	 jXZ5ispYN7KQdoNCikb2zF+UvWn/C+7G+g+TYtD4=
+	b=onRyS89rQO51jKB4tOIvM1TN2ZYie8Zm4Ymnpab/VwWz+THG/N/YT+NWgTa39FUwy
+	 XLMYFV3v5yejyfPZsaJh4uNweYgCBgmbku0twODAV532MhECE88SYxevVu8IQAkGKZ
+	 cmuxZlQsVZ2dE3EFuGXBptQxi80XRucwpQJVpO1g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726679AbgICVd4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 17:33:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40076 "EHLO mail.kernel.org"
+        id S1726397AbgICVd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:33:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40118 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726397AbgICVdy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 17:33:54 -0400
+        id S1726323AbgICVd4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:33:56 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9361D20797;
-        Thu,  3 Sep 2020 21:33:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 96D54206D4;
+        Thu,  3 Sep 2020 21:33:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599168833;
-        bh=1QG02/4Ffi7JdeMOzwQpqDa4LGwxQOTeC9r03RYnomk=;
+        s=default; t=1599168835;
+        bh=LfSJdcA89MJlYpIAKzYFnKJUCAZh+zWIvy4ZiTR3pMA=;
         h=Date:From:To:Subject:From;
-        b=RT+itvOyzi0ab0F89AzUV65K2a1ahEkP04EpgCES9wDvZunuQ4sHqUmbXBPIzHdma
-         yng8sLTCTbtrXCfJr0srSY8JI4WmFZBp7U8pKqtQQo990tf4rI7E6tC7KU4XoXb57x
-         l3jwf8/4I2+bwqMimqKOn5RuhNGC1qRx5g02FaeE=
-Date:   Thu, 03 Sep 2020 14:33:53 -0700
+        b=CRq0yZRkCUKzazytADQ4nusdy4wvYYVAvD/xzv0tD+tmL7E6hVIByP086hK3BwnMn
+         0rN58AE+7UVDOwqivPqksNNdYXgGWJD6C4Bn6wcA3XbUR8utou/37zXngQsyG0dXQt
+         tdti9skpnWZWRs5u5N6TKMpogb3JbfVeoTISsFDY=
+Date:   Thu, 03 Sep 2020 14:33:55 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
-        osalvador@suse.com, naoya.horiguchi@nec.com, mhocko@kernel.org,
-        osalvador@suse.de
-Subject:  + mmhwpoison-refactor-madvise_inject_error.patch added to
- -mm tree
-Message-ID: <20200903213353.GAp_c%akpm@linux-foundation.org>
+        naoya.horiguchi@nec.com, mhocko@kernel.org, osalvador@suse.de
+Subject:  +
+ =?us-ascii?Q?mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-?=
+ =?us-ascii?Q?zero-refcount-page.patch?= added to -mm tree
+Message-ID: <20200903213355.Fs4sh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: refactor madvise_inject_error
+     Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-refactor-madvise_inject_error.patch
+     mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-madvise_inject_error.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-madvise_inject_error.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,77 +79,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: refactor madvise_inject_error
+Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
 
-Make a proper if-else condition for {hard,soft}-offline.
+A page with 0-refcount and !PageBuddy could perfectly be a pcppage. 
+Currently, we bail out with an error if we encounter such a page, meaning
+that we do not handle pcppages neither from hard-offline nor from
+soft-offline path.
 
-Link: https://lkml.kernel.org/r/20200902094510.10727-3-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.com>
+Fix this by draining pcplists whenever we find this kind of page and retry
+the check again.  It might be that pcplists have been spilled into the
+buddy allocator and so we can handle it.
+
+Link: https://lkml.kernel.org/r/20200902094510.10727-4-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+ mm/memory-failure.c |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mmhwpoison-refactor-madvise_inject_error
-+++ a/mm/madvise.c
-@@ -869,7 +869,6 @@ static long madvise_remove(struct vm_are
- static int madvise_inject_error(int behavior,
- 		unsigned long start, unsigned long end)
+--- a/mm/memory-failure.c~mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page
++++ a/mm/memory-failure.c
+@@ -950,13 +950,13 @@ static int page_action(struct page_state
+ }
+ 
+ /**
+- * get_hwpoison_page() - Get refcount for memory error handling:
++ * __get_hwpoison_page() - Get refcount for memory error handling:
+  * @page:	raw error page (hit by memory error)
+  *
+  * Return: return 0 if failed to grab the refcount, otherwise true (some
+  * non-zero value.)
+  */
+-static int get_hwpoison_page(struct page *page)
++static int __get_hwpoison_page(struct page *page)
  {
--	struct page *page;
- 	struct zone *zone;
- 	unsigned long size;
+ 	struct page *head = compound_head(page);
  
-@@ -879,6 +878,7 @@ static int madvise_inject_error(int beha
+@@ -986,6 +986,26 @@ static int get_hwpoison_page(struct page
+ 	return 0;
+ }
  
- 	for (; start < end; start += size) {
- 		unsigned long pfn;
-+		struct page *page;
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &page);
-@@ -895,25 +895,21 @@ static int madvise_inject_error(int beha
- 
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
--					pfn, start);
--
-+				 pfn, start);
- 			ret = soft_offline_page(pfn, MF_COUNT_INCREASED);
--			if (ret)
--				return ret;
--			continue;
-+		} else {
-+			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
-+				 pfn, start);
-+			/*
-+			 * Drop the page reference taken by get_user_pages_fast(). In
-+			 * the absence of MF_COUNT_INCREASED the memory_failure()
-+			 * routine is responsible for pinning the page to prevent it
-+			 * from being released back to the page allocator.
-+			 */
-+			put_page(page);
-+			ret = memory_failure(pfn, 0);
- 		}
- 
--		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
--				pfn, start);
--
--		/*
--		 * Drop the page reference taken by get_user_pages_fast(). In
--		 * the absence of MF_COUNT_INCREASED the memory_failure()
--		 * routine is responsible for pinning the page to prevent it
--		 * from being released back to the page allocator.
--		 */
--		put_page(page);
--		ret = memory_failure(pfn, 0);
- 		if (ret)
- 			return ret;
- 	}
++static int get_hwpoison_page(struct page *p)
++{
++	int ret;
++	bool drained = false;
++
++retry:
++	ret = __get_hwpoison_page(p);
++	if (!ret && !is_free_buddy_page(p) && !page_count(p) && !drained) {
++		/*
++		 * The page might be in a pcplist, so try to drain those
++		 * and see if we are lucky.
++		 */
++		drain_all_pages(page_zone(p));
++		drained = true;
++		goto retry;
++	}
++
++	return ret;
++}
++
+ /*
+  * Do all that is necessary to remove user space mappings. Unmap
+  * the pages and send SIGBUS to the processes if the data was dirty.
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
