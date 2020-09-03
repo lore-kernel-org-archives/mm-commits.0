@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1091BC2BD11
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87CA1C43461
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4B9320BED
+	by mail.kernel.org (Postfix) with ESMTP id 65CA2208FE
 	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1599164124;
-	bh=XyQRWstUufLVeMfYJzRIjMT/CzJg6hpe3heXjLpZBv8=;
+	bh=s415jrBM/wGppm032s+6i6ourvhXI2A90zptcr9N0Ew=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=lXV//V5JTrd57N61D6snSUif/fKSReuWdXeTodmLN+EGNEHftQfVe2RoIXCK2/veb
-	 dheVYWCGJvc7kA3YocJCuVh8y3fZjOQK0j0kx6okBujd0RUhnY5TKSXAJPuoVwG2gR
-	 bPblQIG9UYEXqEPl2p08wUUD4qchOwpNaN76v42A=
+	b=AmPd8RzDNzovLSTWWk/uV65ZtLNLbyYHBVGqtMEhLL0C3dT/DgNAmL/S8JzOyR00O
+	 TuLq8BD+9C6fWfdP/aez2nrc23d4lBX0ypsfMG8p6m0fxv1fXj3ROiwhfHh4he4NJo
+	 0Sgc+rr9BEGdJFXm0awQDLL9N3lhZPHywkr9Z2Ig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727065AbgICUPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1729020AbgICUPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 3 Sep 2020 16:15:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58450 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728975AbgICUPY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 16:15:24 -0400
+        id S1727065AbgICUPW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 16:15:22 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B235A208CA;
-        Thu,  3 Sep 2020 20:15:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C1DD9208C7;
+        Thu,  3 Sep 2020 20:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599164123;
-        bh=XyQRWstUufLVeMfYJzRIjMT/CzJg6hpe3heXjLpZBv8=;
+        s=default; t=1599164121;
+        bh=s415jrBM/wGppm032s+6i6ourvhXI2A90zptcr9N0Ew=;
         h=Date:From:To:Subject:From;
-        b=yD8Oy5z9EZQ+XuSOQRVXA16568Jk+pNXdCcsVWAuo46l8VM0X4+No6f6dhMbKcD9M
-         FENDpurlW8PhaZ781MUL3wc53VFEslSwfXMZiMZxv8MDXa4psU6elJCerofcTFzZsj
-         hXjQDWEJuNzmZlP0krswNzeRuOP9ZJAzZ2dvv4sU=
-Date:   Thu, 03 Sep 2020 13:15:22 -0700
+        b=kusAxT0Mt7z6uP87qPI8ZdDTQWzPWgllVhdWGHv4cq9uw4G2qN6tqWRLsyk/mqezS
+         uuOny40yXtQn5VCYxATpl2+tvljiX1TvVPLYK7EIT+4VsZ//z67LWdlys5QVqBqlcP
+         oQ/9R8FBm8KLAQwbmL//fzFCo7g9R7fGhbc72T4Y=
+Date:   Thu, 03 Sep 2020 13:15:20 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, sedat.dilek@gmail.com,
@@ -47,9 +47,9 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         elver@google.com, daniel@iogearbox.net, ast@kernel.org,
         andreyknvl@google.com, ndesaulniers@google.com
 Subject:  +
- revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch added to -mm
- tree
-Message-ID: <20200903201522.C0N0G%akpm@linux-foundation.org>
+ revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch added
+ to -mm tree
+Message-ID: <20200903201520.Q4nzS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "arm64: vdso: Fix compilation with clang older than 8"
+     Subject: Revert "arm64: bti: Require clang >= 10.0.1 for in-kernel BTI support"
 has been added to the -mm tree.  Its filename is
-     revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
+     revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-arm64-bti-require-clang-%3D-1001-for-in-kernel-bti-support.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-arm64-bti-require-clang-%3D-1001-for-in-kernel-bti-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,13 +81,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Revert "arm64: vdso: Fix compilation with clang older than 8"
+Subject: Revert "arm64: bti: Require clang >= 10.0.1 for in-kernel BTI support"
 
-This reverts commit 3acf4be235280f14d838581a750532219d67facc.
+This reverts commit b9249cba25a5dce5de87e5404503a5e11832c2dd.
 
-The minimum supported version of clang is clang 10.0.1.
+The minimum supported version of clang is now 10.0.1.
 
-Link: https://lkml.kernel.org/r/20200902225911.209899-5-ndesaulniers@google.com
+Link: https://lkml.kernel.org/r/20200902225911.209899-4-ndesaulniers@google.com
 Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
 Suggested-by: Nathan Chancellor <natechancellor@gmail.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
@@ -105,25 +105,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/vdso/Makefile |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/arm64/Kconfig |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/arm64/kernel/vdso/Makefile~revert-arm64-vdso-fix-compilation-with-clang-older-than-8
-+++ a/arch/arm64/kernel/vdso/Makefile
-@@ -43,13 +43,6 @@ ifneq ($(c-gettimeofday-y),)
-   CFLAGS_vgettimeofday.o += -include $(c-gettimeofday-y)
- endif
- 
--# Clang versions less than 8 do not support -mcmodel=tiny
--ifeq ($(CONFIG_CC_IS_CLANG), y)
--  ifeq ($(shell test $(CONFIG_CLANG_VERSION) -lt 80000; echo $$?),0)
--    CFLAGS_REMOVE_vgettimeofday.o += -mcmodel=tiny
--  endif
--endif
--
- # Disable gcov profiling for VDSO code
- GCOV_PROFILE := n
- 
+--- a/arch/arm64/Kconfig~revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support
++++ a/arch/arm64/Kconfig
+@@ -1630,8 +1630,6 @@ config ARM64_BTI_KERNEL
+ 	depends on CC_HAS_BRANCH_PROT_PAC_RET_BTI
+ 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94697
+ 	depends on !CC_IS_GCC || GCC_VERSION >= 100100
+-	# https://reviews.llvm.org/rGb8ae3fdfa579dbf366b1bb1cbfdbf8c51db7fa55
+-	depends on !CC_IS_CLANG || CLANG_VERSION >= 100001
+ 	depends on !(CC_IS_CLANG && GCOV_KERNEL)
+ 	depends on (!FUNCTION_GRAPH_TRACER || DYNAMIC_FTRACE_WITH_REGS)
+ 	help
 _
 
 Patches currently in -mm which might be from ndesaulniers@google.com are
