@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DBC5C433E2
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:16:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B42DC433E9
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:24:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49EAC2083B
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:16:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5880220C09
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:24:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599160569;
-	bh=igwKqbR9RpUGJHxPEl533znc0rLqOInivDfz2rTPsPE=;
+	s=default; t=1599161091;
+	bh=+IA4of5IPDU7oIuJFUZbb3wYlivToMtFdz2Vv0m15OU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=GpPl0dcZm9foKzxFVyILzZUWFxSk9yHZWt68roSbAh4WXDALUwUB8Oni/Gaw8L6eL
-	 bFgL08PUzJ/FfTivB1MccAOxCqliwivCCOg9B2oGyf7AaOHhoTUJ7d0pCFPVR2Ph8H
-	 Fw3T/HXwlUlndveKLYsDTFfxRVajdzEWlzpdz4cE=
+	b=sY5O6/DtCy3cGjd2r+mfOztHVGuCLGgJyRGg0RGF77mpMrOG7g/LcDGeNeWZs7tCC
+	 tD6MGchR7/V5lWjQCVSwXufWg8sYuiOCoI8pkAXcCR2YIOb1l73w71zkMbvYLug/rc
+	 4f0NO29ANvw25pwLM15bpZqfKEcgrZAdxAfRURZw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728312AbgICTQJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 15:16:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37122 "EHLO mail.kernel.org"
+        id S1729092AbgICTYu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 15:24:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728304AbgICTQG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 15:16:06 -0400
+        id S1728719AbgICTYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 15:24:48 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB9442098B;
-        Thu,  3 Sep 2020 19:16:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C0DF02098B;
+        Thu,  3 Sep 2020 19:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599160565;
-        bh=igwKqbR9RpUGJHxPEl533znc0rLqOInivDfz2rTPsPE=;
+        s=default; t=1599161087;
+        bh=+IA4of5IPDU7oIuJFUZbb3wYlivToMtFdz2Vv0m15OU=;
         h=Date:From:To:Subject:From;
-        b=my+jVS2X/dJx6KiCqnPwW9a+MZCB5s7DLq1OaH2jn1jiDioU6ci0lvZeYK+6vhCBh
-         pzC2PmsQqbVZokU/wxMmJ20Zy+gdSskQN64uACFz70SI4Rw9Iy5vjUVrxEo07W4NCE
-         IRF7rSblL3skh8u7gdSo2sSG8KKUyRfODuuNosWE=
-Date:   Thu, 03 Sep 2020 12:16:05 -0700
+        b=u+LHGtTPWBe5xmXcWC1fibggPa92K550C82anbiytXV+iLhZnoiPvl37qhCVwBGCd
+         KdY0LWZLxRGN5fbUqmjoJvnmKyzvlHpc8YiOJil1hJ+44LcDtcJdqQnfmb+HVEopnK
+         GIQHIk5QvLgCBr1i/MzIRRK6uyB32uOEchlkuJjU=
+Date:   Thu, 03 Sep 2020 12:24:47 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songliubraving@fb.com, shy828301@gmail.com,
-        pankaj.gupta.linux@gmail.com, ebiggers@google.com,
-        dhowells@redhat.com
-Subject:  + fix-khugepageds-request-size-in-collapse_file.patch added
- to -mm tree
-Message-ID: <20200903191605.fyhfB%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ebiggers@google.com,
+        dhowells@redhat.com, willy@infradead.org
+Subject:  + mm-readahead-add-define_readahead.patch added to -mm tree
+Message-ID: <20200903192447.eUqaJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged.c: fix khugepaged's request size in collapse_file
+     Subject: mm/readahead: add DEFINE_READAHEAD
 has been added to the -mm tree.  Its filename is
-     fix-khugepageds-request-size-in-collapse_file.patch
+     mm-readahead-add-define_readahead.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fix-khugepageds-request-size-in-collapse_file.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-readahead-add-define_readahead.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fix-khugepageds-request-size-in-collapse_file.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-readahead-add-define_readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,44 +74,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: mm/khugepaged.c: fix khugepaged's request size in collapse_file
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/readahead: add DEFINE_READAHEAD
 
-collapse_file() in khugepaged passes PAGE_SIZE as the number of pages to
-be read to page_cache_sync_readahead().  The intent was probably to read a
-single page.  Fix it to use the number of pages to the end of the window
-instead.
+Patch series "Readahead patches for 5.9/5.10".
 
-Link: https://lkml.kernel.org/r/20200903140844.14194-2-willy@infradead.org
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: David Howells <dhowells@redhat.com>
+These are infrastructure for both the THP patchset and for the fscache
+rewrite,
+
+
+This patch (of 8):
+
+Allow for a more concise definition of a struct readahead_control.
+
+Link: https://lkml.kernel.org/r/20200903140844.14194-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200903140844.14194-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Song Liu <songliubraving@fb.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Eric Biggers <ebiggers@google.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pagemap.h |    7 +++++++
+ mm/readahead.c          |    6 +-----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~fix-khugepageds-request-size-in-collapse_file
-+++ a/mm/khugepaged.c
-@@ -1709,7 +1709,7 @@ static void collapse_file(struct mm_stru
- 				xas_unlock_irq(&xas);
- 				page_cache_sync_readahead(mapping, &file->f_ra,
- 							  file, index,
--							  PAGE_SIZE);
-+							  end - index);
- 				/* drain pagevecs to help isolate_lru_page() */
- 				lru_add_drain();
- 				page = find_lock_page(mapping, index);
+--- a/include/linux/pagemap.h~mm-readahead-add-define_readahead
++++ a/include/linux/pagemap.h
+@@ -749,6 +749,13 @@ struct readahead_control {
+ 	unsigned int _batch_count;
+ };
+ 
++#define DEFINE_READAHEAD(rac, f, m, i)					\
++	struct readahead_control rac = {				\
++		.file = f,						\
++		.mapping = m,						\
++		._index = i,						\
++	}
++
+ /**
+  * readahead_page - Get the next page to read.
+  * @rac: The current readahead request.
+--- a/mm/readahead.c~mm-readahead-add-define_readahead
++++ a/mm/readahead.c
+@@ -179,11 +179,7 @@ void page_cache_readahead_unbounded(stru
+ {
+ 	LIST_HEAD(page_pool);
+ 	gfp_t gfp_mask = readahead_gfp_mask(mapping);
+-	struct readahead_control rac = {
+-		.mapping = mapping,
+-		.file = file,
+-		._index = index,
+-	};
++	DEFINE_READAHEAD(rac, file, mapping, index);
+ 	unsigned long i;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-fix-khugepageds-request-size-in-collapse_file.patch
-mutex-subsystem-synchro-test-module.patch
+mm-debug-do-not-dereference-i_ino-blindly.patch
+mm-account-pmd-tables-like-pte-tables.patch
+mm-move-pagedoublemap-bit.patch
+mm-simplify-pagedoublemap-with-pf_second-policy.patch
+xarray-add-xa_get_order.patch
+xarray-add-xas_split.patch
+mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
+mm-readahead-add-define_readahead.patch
+mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
+mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
+mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
+harden-autofs-ioctl-table.patch
 
