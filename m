@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63607C433E9
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:04:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB1E0C433E9
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:08:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D40A20C09
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:04:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8F1020BED
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:08:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599159840;
-	bh=/91ZT5xI7R5lmHRqLhofH1LPy1hDW0DCBOWY/lJABRY=;
+	s=default; t=1599160108;
+	bh=FqVHco18iCxEjg5N9nPUq4j47hMc+YWeJI46LVfAuYU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=FMkyeMBmEZunYarFiNgmbasoRf+BW7tI9aJ0l5qcpYU0Bu9J0K/Na5unTQA9wx1yO
-	 xRODUoWvHAD/o8ovDHN4FTmbM3BtAH6ZR/tU07jeZkskZjjDI/HVOv1NXU/qzX6FD8
-	 4/Xs3yqqFqPT0ouZIBzY/ea18+XebjqC0XzqsABw=
+	b=jEiF3apoTiOWzyT116+5suOQ/2nfruVHLpYQ6eljQRA0/8O+ovCueK7l+yIvsQ+fN
+	 B74fj10cDhpYVSJx8AaO2YUPRgg4GfuqaGvGOQinp4vtc9bepYcmFcq1wk0AcjOTQg
+	 eVjTEh/6gW6eTszpmzwr8QkItMTjr18Ug9TCMuI8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726678AbgICTD6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 15:03:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60076 "EHLO mail.kernel.org"
+        id S1728304AbgICTI2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 15:08:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728677AbgICTDy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 15:03:54 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1726678AbgICTI1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 15:08:27 -0400
+Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9806A2098B;
-        Thu,  3 Sep 2020 19:03:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id ECF7D2098B;
+        Thu,  3 Sep 2020 19:08:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599159833;
-        bh=/91ZT5xI7R5lmHRqLhofH1LPy1hDW0DCBOWY/lJABRY=;
+        s=default; t=1599160106;
+        bh=FqVHco18iCxEjg5N9nPUq4j47hMc+YWeJI46LVfAuYU=;
         h=Date:From:To:Subject:From;
-        b=QiEi7UIcEdvqET5IDPBhA/PJPA3cOsIiFgirsP4JaEpvQqDfo7wi/UzpEmQkhj+0H
-         v7wFzo+X36OIh0qh9f0Jcja+JyB4/8iwmQyhXsPQNLeQ/8xU6V4NNfEgL2EGqs2V2H
-         4WBifJvw4PSHkDPN8wPU3LSc3HlLB4pGD+A8Nsr4=
-Date:   Thu, 03 Sep 2020 12:03:53 -0700
+        b=rYaQjIKVerTmvvs0uZsuhxuoHjnSD1895jw2se0JAS9uA8umqclhjnQ1NS9Cjy0YF
+         jxtnNQUAALlDGPU4zQeotaQLdC2f7J44j6GDrjXT7gND3pr62BMxg4yHXVnoew6hsI
+         mgavOfQBuZiBCArfE/jas183Tri1zk9AWNsEXEfE=
+Date:   Thu, 03 Sep 2020 12:08:25 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, jan.kiszka@siemens.com,
-        john.ogness@linutronix.de, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com, pmladek@suse.com
-Subject:  [merged]
- scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes.patch
- removed from -mm tree
-Message-ID: <20200903190353.HXgulcIrf%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, stable@vger.kernel.org,
+        shy828301@gmail.com, shuah@kernel.org, jhubbard@nvidia.com,
+        jglisse@redhat.com, jgg@nvidia.com, hch@lst.de, bskeggs@redhat.com,
+        bharata@linux.ibm.com, apopple@nvidia.com, rcampbell@nvidia.com
+Subject:  +
+ mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch added to -mm tree
+Message-ID: <20200903190825.sSiVk%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,66 +56,134 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes.patch
+     Subject: mm/thp: fix __split_huge_pmd_locked() for migration PMD
+has been added to the -mm tree.  Its filename is
+     mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/thp: fix __split_huge_pmd_locked() for migration PMD
 
-WARNING: Possible repeated word: 'the'
-#190: FILE: Documentation/admin-guide/kdump/gdbmacros.txt:292:
-+	sequence number, the the second is optional and specifies the
+A migrating transparent huge page has to already be unmapped.  Otherwise,
+the page could be modified while it is being copied to a new page and data
+could be lost.  The function __split_huge_pmd() checks for a PMD migration
+entry before calling __split_huge_pmd_locked() leading one to think that
+__split_huge_pmd_locked() can handle splitting a migrating PMD.
 
-total: 0 errors, 1 warnings, 357 lines checked
+However, the code always increments the page->_mapcount and adjusts the
+memory control group accounting assuming the page is mapped.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+Also, if the PMD entry is a migration PMD entry, the call to
+is_huge_zero_pmd(*pmd) is incorrect because it calls pmd_pfn(pmd) instead
+of migration_entry_to_pfn(pmd_to_swp_entry(pmd)).  Fix these problems by
+checking for a PMD migration entry.
 
-./patches/scripts-gdb-update-for-lockless-printk-ringbuffer.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
+Link: https://lkml.kernel.org/r/20200903183140.19055-1-rcampbell@nvidia.com
+Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Bharata B Rao <bharata@linux.ibm.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/gdbmacros.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   42 +++++++++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
 
---- a/Documentation/admin-guide/kdump/gdbmacros.txt~scripts-gdb-update-for-lockless-printk-ringbuffer-checkpatch-fixes
-+++ a/Documentation/admin-guide/kdump/gdbmacros.txt
-@@ -289,7 +289,7 @@ define dump_record
- end
- document dump_record
- 	Dump a single record. The first parameter is the descriptor
--	sequence number, the the second is optional and specifies the
-+	sequence number, the second is optional and specifies the
- 	previous record's flags, used for properly formatting
- 	continued lines.
- end
+--- a/mm/huge_memory.c~mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd
++++ a/mm/huge_memory.c
+@@ -2021,7 +2021,7 @@ static void __split_huge_pmd_locked(stru
+ 		put_page(page);
+ 		add_mm_counter(mm, mm_counter_file(page), -HPAGE_PMD_NR);
+ 		return;
+-	} else if (is_huge_zero_pmd(*pmd)) {
++	} else if (pmd_trans_huge(*pmd) && is_huge_zero_pmd(*pmd)) {
+ 		/*
+ 		 * FIXME: Do we want to invalidate secondary mmu by calling
+ 		 * mmu_notifier_invalidate_range() see comments below inside
+@@ -2115,30 +2115,34 @@ static void __split_huge_pmd_locked(stru
+ 		pte = pte_offset_map(&_pmd, addr);
+ 		BUG_ON(!pte_none(*pte));
+ 		set_pte_at(mm, addr, pte, entry);
+-		atomic_inc(&page[i]._mapcount);
+-		pte_unmap(pte);
+-	}
+-
+-	/*
+-	 * Set PG_double_map before dropping compound_mapcount to avoid
+-	 * false-negative page_mapped().
+-	 */
+-	if (compound_mapcount(page) > 1 && !TestSetPageDoubleMap(page)) {
+-		for (i = 0; i < HPAGE_PMD_NR; i++)
++		if (!pmd_migration)
+ 			atomic_inc(&page[i]._mapcount);
++		pte_unmap(pte);
+ 	}
+ 
+-	lock_page_memcg(page);
+-	if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
+-		/* Last compound_mapcount is gone. */
+-		__dec_lruvec_page_state(page, NR_ANON_THPS);
+-		if (TestClearPageDoubleMap(page)) {
+-			/* No need in mapcount reference anymore */
++	if (!pmd_migration) {
++		/*
++		 * Set PG_double_map before dropping compound_mapcount to avoid
++		 * false-negative page_mapped().
++		 */
++		if (compound_mapcount(page) > 1 &&
++		    !TestSetPageDoubleMap(page)) {
+ 			for (i = 0; i < HPAGE_PMD_NR; i++)
+-				atomic_dec(&page[i]._mapcount);
++				atomic_inc(&page[i]._mapcount);
++		}
++
++		lock_page_memcg(page);
++		if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
++			/* Last compound_mapcount is gone. */
++			__dec_lruvec_page_state(page, NR_ANON_THPS);
++			if (TestClearPageDoubleMap(page)) {
++				/* No need in mapcount reference anymore */
++				for (i = 0; i < HPAGE_PMD_NR; i++)
++					atomic_dec(&page[i]._mapcount);
++			}
+ 		}
++		unlock_page_memcg(page);
+ 	}
+-	unlock_page_memcg(page);
+ 
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
-mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
-mm.patch
-mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
-device-dax-make-align-a-per-device-property-fix.patch
-mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
-memblock-make-memblock_debug-and-related-functionality-private-fix.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+mm-test-use-the-new-skip-macro.patch
+mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
+mm-migrate-remove-obsolete-comment-about-device-public.patch
 
