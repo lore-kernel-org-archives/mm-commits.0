@@ -2,50 +2,50 @@ Return-Path: <SRS0=UrOV=CM=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC86C433E9
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F943C43461
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:02:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 749D6208C7
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:59:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCDA6208FE
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599163154;
-	bh=TemimDKil+1enUNBK7fqlz+oIJrNpXb51aJUO3XRpiQ=;
+	s=default; t=1599163378;
+	bh=gYIFAS7Q4EwihsdGAJRgPY7rjj3pUyvytBzXQlYZ9Xc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=GrajbKPZHO3J0M/L4t9ClFCW6g5g2aN/XwwLDoEjg4TVPsKFVJFqRjL4lS2lLzFU+
-	 m2qfoWe8ymPRev5antrn0OmbwVIUduXmcv4/e+2WDnSNcFNdmgUVZQFl4CrlQqETtN
-	 NhFba8eHLFEiJPRnHiVAFrv22TgvEf7Pl+XC+ez8=
+	b=yS0Nn/DsizqGTuuKshH7N2j3t6zyTBxcZG1qcL0ZpNrBjfsJJtvjZWIm+wquHhXTh
+	 KphXL7zOVTg0hKeXeR20i6Yrz/UV05jg1krRRpf1026V4Fb4vDzQ91cCCy2RCAgwt/
+	 H+UVJi+76owevXQ9boXQ7S3S5xnxqVC9uppUeDrU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728129AbgICT7O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 15:59:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51698 "EHLO mail.kernel.org"
+        id S1729405AbgICUCu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 16:02:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53916 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727065AbgICT7N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 15:59:13 -0400
+        id S1728988AbgICUCo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 16:02:44 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AC75C20716;
-        Thu,  3 Sep 2020 19:59:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9033E208C7;
+        Thu,  3 Sep 2020 20:02:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599163152;
-        bh=TemimDKil+1enUNBK7fqlz+oIJrNpXb51aJUO3XRpiQ=;
+        s=default; t=1599163363;
+        bh=gYIFAS7Q4EwihsdGAJRgPY7rjj3pUyvytBzXQlYZ9Xc=;
         h=Date:From:To:Subject:From;
-        b=UOrUsufIRbnUNynK51z8RBHCsAtm5PBaOOggLdWu91aGOsgB8mTNcyU/93ZIDiZ8g
-         EjPyjKw7twpVlTuwjqRT2H1s7Mw4ATxrz5O2sw9bj9nzZX+rCOO710jmFiGgtlZm3S
-         vAow6gi57WMPXJilq2NyG3slyiZaplZwo+SDCz6E=
-Date:   Thu, 03 Sep 2020 12:59:11 -0700
+        b=onwRyamNlPqr1mT1GTMZDeS7fdBN4WFmpos6hYqC51hnnlqYOwOd9DDmJm4pi722h
+         USeELAJSjHq9g79tnFuQ4sNRZXoZxdzJa80J/3eKJ7GhFM3Ow2PIU9EQfQ/+QnBgMC
+         pFtTnT5VsFiugVyNo/KjC+QOc/6bgYOdr/0Bp0co=
+Date:   Thu, 03 Sep 2020 13:02:43 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        mhocko@kernel.org, guro@fb.com, lixinhai.lxh@gmail.com
-Subject:  [to-be-updated]
+        mhocko@suse.com, guro@fb.com, lixinhai.lxh@gmail.com
+Subject:  +
  mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
- removed from -mm tree
-Message-ID: <20200903195911.vpLmH%akpm@linux-foundation.org>
+ added to -mm tree
+Message-ID: <20200903200243.N7mIF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,10 +56,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Li Xinhai <lixinhai.lxh@gmail.com>
@@ -71,43 +85,72 @@ which is not the preferred node, although there are pages available from
 that node.  The reason is that the nid parameter has been ignored in
 alloc_gigantic_page().
 
-After this patch, the preferred node is tried first before other allowed
-nodes.
+Besides, the __GFP_THISNODE also need be checked if user required to alloc
+only from the preferred node.
 
-Link: http://lkml.kernel.org/r/20200830140418.605627-1-lixinhai.lxh@gmail.com
+After this patch, the preferred node is tried first before other allowed
+nodes, and don't try to allocate from other nodes if __GFP_THISNODE is
+specified.  If user don't specify the preferred node, the current node
+will be used as preferred node, which makes sure consistent behavior of
+allocating gigantic and non-gigantic hugetlb page.
+
+Link: https://lkml.kernel.org/r/20200902025016.697260-1-lixinhai.lxh@gmail.com
 Fixes: cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
 Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Roman Gushchin <guro@fb.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
 --- a/mm/hugetlb.c~mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma
 +++ a/mm/hugetlb.c
-@@ -1256,8 +1256,15 @@ static struct page *alloc_gigantic_page(
+@@ -1250,21 +1250,32 @@ static struct page *alloc_gigantic_page(
+ 		int nid, nodemask_t *nodemask)
+ {
+ 	unsigned long nr_pages = 1UL << huge_page_order(h);
++	if (nid == NUMA_NO_NODE)
++		nid = numa_mem_id();
+ 
+ #ifdef CONFIG_CMA
+ 	{
  		struct page *page;
  		int node;
  
+-		for_each_node_mask(node, *nodemask) {
+-			if (!hugetlb_cma[node])
+-				continue;
+-
+-			page = cma_alloc(hugetlb_cma[node], nr_pages,
+-					 huge_page_order(h), true);
 +		if (hugetlb_cma[nid]) {
 +			page = cma_alloc(hugetlb_cma[nid], nr_pages,
 +					huge_page_order(h), true);
-+			if (page)
-+				return page;
-+		}
+ 			if (page)
+ 				return page;
+ 		}
 +
- 		for_each_node_mask(node, *nodemask) {
--			if (!hugetlb_cma[node])
-+			if (node == nid || !hugetlb_cma[node])
- 				continue;
++		if (!(gfp_mask & __GFP_THISNODE)) {
++			for_each_node_mask(node, *nodemask) {
++				if (node == nid || !hugetlb_cma[node])
++					continue;
++
++				page = cma_alloc(hugetlb_cma[node], nr_pages,
++						huge_page_order(h), true);
++				if (page)
++					return page;
++			}
++		}
+ 	}
+ #endif
  
- 			page = cma_alloc(hugetlb_cma[node], nr_pages,
 _
 
 Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
+mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
 mm-isolation-avoid-checking-unmovable-pages-across-pageblock-boundary.patch
 
