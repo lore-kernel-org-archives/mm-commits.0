@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1118C43461
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC61C433E2
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD63A206E7
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72B98206E7
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599168352;
-	bh=QPi9MW3Z83sEfyi0G71KJlpyMPtQZhKNh4wrwbgmCjw=;
+	s=default; t=1599168354;
+	bh=5h88aW0/eeMwzpel+fiuqIelT3O1yImjMeVDEH929Zw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tFnBkn8xK8b21xnzpUDQNR3uiqjLMd7b8Hg5E/1HRMBsYp1vMx+2Aj3uE40qddvZN
-	 RErEdN0ZhkCoLMG3+1FIyjSBQ/P+BtYeBMy2QPy8Xp7uNNfPvKBf0qubSD37OwOtr6
-	 OSWmXsXCE1m+YkaNTeR3e3ZJD7BzfYJQh/Tw3pyo=
+	b=DIMcmd2lCbx+ujP6PkE4MjrNyttCp+pJNiAQ6q10vT0lg1/gp0f+oMA2MSKGhdWqR
+	 8hT5QhVGDDvTyPVjfISa9URc2zQVznOp1cdnohUm/Fx21oIq9ohz+3rDHyGTWG3WkS
+	 60rDUZ2477SvfAc/9e1l6EZt9JA6awaYQltjm5UU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728582AbgICVZv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 17:25:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36406 "EHLO mail.kernel.org"
+        id S1726397AbgICVZy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:25:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726397AbgICVZv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 17:25:51 -0400
+        id S1728436AbgICVZx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:25:53 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A2E70206CA;
-        Thu,  3 Sep 2020 21:25:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 96D82206D4;
+        Thu,  3 Sep 2020 21:25:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599168350;
-        bh=QPi9MW3Z83sEfyi0G71KJlpyMPtQZhKNh4wrwbgmCjw=;
+        s=default; t=1599168352;
+        bh=5h88aW0/eeMwzpel+fiuqIelT3O1yImjMeVDEH929Zw=;
         h=Date:From:To:Subject:From;
-        b=K5DpaFjvYQvu3vLp35fMLN2RzGSiqdSdinZAsJE9dI9YJReCQuXMArd2LnYu6Oxb8
-         e+TdYTiV0J4Ma7ERapLDwDO5fT3FdeOJrRk3ZYApSpK7mH3X8+cg3/HHP3LwpTOPgO
-         8yYBQrxSpE6Ug0Q0NF0CTY/6YFRgv+T+5ASMW/Q4=
-Date:   Thu, 03 Sep 2020 14:25:50 -0700
+        b=lfvUfrctkYgj9A6rHDA3nbJrQe5UmAggs5Sxx4cR5KWbRlX/dEQxWEl1WDHgaVhF5
+         u5MdED9KrTkd1wkU7LLeo4y6qVU0CfRagB3F2HU+CHzSbVw6hTFgC0S0mY1qDwNwET
+         KV2ei37zmiOeBNpRoR9UEkFxu37OzB8SgA2iWQ98=
+Date:   Thu, 03 Sep 2020 14:25:52 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
         aneesh.kumar@linux.ibm.com
 Subject:  +
- mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch added to -mm
- tree
-Message-ID: <20200903212550.viHk7%akpm@linux-foundation.org>
+ mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch added
+ to -mm tree
+Message-ID: <20200903212552.o4Xct%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable/locks: take correct page table lock
+     Subject: mm/debug_vm_pgtable/thp: use page table depost/withdraw with THP
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch
+     mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,11 +78,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable/locks: take correct page table lock
+Subject: mm/debug_vm_pgtable/thp: use page table depost/withdraw with THP
 
-Make sure we call pte accessors with correct lock held.
+Architectures like ppc64 use deposited page table while updating the huge
+pte entries.
 
-Link: https://lkml.kernel.org/r/20200902114222.181353-10-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-11-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -90,64 +91,56 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ mm/debug_vm_pgtable.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-locks-take-correct-page-table-lock
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp
 +++ a/mm/debug_vm_pgtable.c
-@@ -1035,30 +1035,39 @@ static int __init debug_vm_pgtable(void)
+@@ -154,7 +154,7 @@ static void __init pmd_basic_tests(unsig
+ static void __init pmd_advanced_tests(struct mm_struct *mm,
+ 				      struct vm_area_struct *vma, pmd_t *pmdp,
+ 				      unsigned long pfn, unsigned long vaddr,
+-				      pgprot_t prot)
++				      pgprot_t prot, pgtable_t pgtable)
+ {
+ 	pmd_t pmd;
  
- 	hugetlb_basic_tests(pte_aligned, prot);
+@@ -165,6 +165,8 @@ static void __init pmd_advanced_tests(st
+ 	/* Align the address wrt HPAGE_PMD_SIZE */
+ 	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
  
--	pte_clear_tests(mm, ptep, vaddr);
--	pmd_clear_tests(mm, pmdp);
--	pud_clear_tests(mm, pudp);
--	p4d_clear_tests(mm, p4dp);
--	pgd_clear_tests(mm, pgdp);
-+	/*
-+	 * Page table modifying tests. They need to hold
-+	 * proper page table lock.
-+	 */
- 
- 	ptl = pte_lockptr(mm, pmdp);
- 	spin_lock(ptl);
--
-+	pte_clear_tests(mm, ptep, vaddr);
- 	pte_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
--	pmd_advanced_tests(mm, vma, pmdp, pmd_aligned, vaddr, prot);
--	pud_advanced_tests(mm, vma, pudp, pud_aligned, vaddr, prot);
--	hugetlb_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
--
-+	pte_unmap_unlock(ptep, ptl);
- 
-+	ptl = pmd_lock(mm, pmdp);
-+	pmd_clear_tests(mm, pmdp);
-+	pmd_advanced_tests(mm, vma, pmdp, pmd_aligned, vaddr, prot);
- 	pmd_huge_tests(pmdp, pmd_aligned, prot);
-+	pmd_populate_tests(mm, pmdp, saved_ptep);
-+	spin_unlock(ptl);
++	pgtable_trans_huge_deposit(mm, pmdp, pgtable);
 +
-+	ptl = pud_lock(mm, pudp);
-+	pud_clear_tests(mm, pudp);
-+	pud_advanced_tests(mm, vma, pudp, pud_aligned, vaddr, prot);
- 	pud_huge_tests(pudp, pud_aligned, prot);
-+	pud_populate_tests(mm, pudp, saved_pmdp);
-+	spin_unlock(ptl);
+ 	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+ 	pmdp_set_wrprotect(mm, vaddr, pmdp);
+@@ -193,6 +195,8 @@ static void __init pmd_advanced_tests(st
+ 	pmdp_test_and_clear_young(vma, vaddr, pmdp);
+ 	pmd = READ_ONCE(*pmdp);
+ 	WARN_ON(pmd_young(pmd));
++
++	pgtable = pgtable_trans_huge_withdraw(mm, pmdp);
+ }
  
--	pte_unmap_unlock(ptep, ptl);
-+	hugetlb_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
+ static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot)
+@@ -371,7 +375,7 @@ static void __init pud_basic_tests(unsig
+ static void __init pmd_advanced_tests(struct mm_struct *mm,
+ 				      struct vm_area_struct *vma, pmd_t *pmdp,
+ 				      unsigned long pfn, unsigned long vaddr,
+-				      pgprot_t prot)
++				      pgprot_t prot, pgtable_t pgtable)
+ {
+ }
+ static void __init pud_advanced_tests(struct mm_struct *mm,
+@@ -1048,7 +1052,7 @@ static int __init debug_vm_pgtable(void)
  
--	pmd_populate_tests(mm, pmdp, saved_ptep);
--	pud_populate_tests(mm, pudp, saved_pmdp);
-+	spin_lock(&mm->page_table_lock);
-+	p4d_clear_tests(mm, p4dp);
-+	pgd_clear_tests(mm, pgdp);
- 	p4d_populate_tests(mm, p4dp, saved_pudp);
- 	pgd_populate_tests(mm, pgdp, saved_p4dp);
-+	spin_unlock(&mm->page_table_lock);
- 
- 	p4d_free(mm, saved_p4dp);
- 	pud_free(mm, saved_pudp);
+ 	ptl = pmd_lock(mm, pmdp);
+ 	pmd_clear_tests(mm, pmdp);
+-	pmd_advanced_tests(mm, vma, pmdp, pmd_aligned, vaddr, prot);
++	pmd_advanced_tests(mm, vma, pmdp, pmd_aligned, vaddr, prot, saved_ptep);
+ 	pmd_huge_tests(pmdp, pmd_aligned, prot);
+ 	pmd_populate_tests(mm, pmdp, saved_ptep);
+ 	spin_unlock(ptl);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
