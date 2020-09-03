@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8CCBC2D0A5
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E513AC2D0A6
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 983BF206C0
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6A30206C0
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599164129;
-	bh=zmzJV1e25Qmj1B5CFFKZbxNm49t5/z+gPxQoYsMkl+A=;
+	s=default; t=1599164131;
+	bh=U0hgphvPXN+PEuZqf6MExllm6dlNPYr1UUBI5Ym4DMo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ltgGx3WACMGiG7UXOKw0Iit06CZwJvcfuFfSwrK5rlR/MUYBWLsVc0PC7fy4ooXiF
-	 mFJhVDnqcJuLP92nMp3bB1sEBfeRPUenYKMa0oC3sd2/LG3ZIGNW3AUfsiZmB35OWh
-	 tT++xW3SoiVanMhY8eF+3w+jgSDi1ycgsBWO8Gcs=
+	b=hTD0/okEZMZoQH8Y9lLBIsyiHX3Yews2vlXnCVdJvgPIxONsd05gOvew9h1fv/h4G
+	 EFguFkzC/7KwaoyN9m6XFGPbjZErgCIhGct/Ox5vMRUL+Z6USbqmM5bZZmP0Q2DkIk
+	 kCCjAHanvuc4o0GCay0AIvU0ij+OOTA7NcLXaNH4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729037AbgICUP3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 16:15:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58514 "EHLO mail.kernel.org"
+        id S1729043AbgICUPb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 16:15:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728975AbgICUP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 16:15:28 -0400
+        id S1728975AbgICUPb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 16:15:31 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B69DA20BED;
-        Thu,  3 Sep 2020 20:15:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B1B942071B;
+        Thu,  3 Sep 2020 20:15:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599164127;
-        bh=zmzJV1e25Qmj1B5CFFKZbxNm49t5/z+gPxQoYsMkl+A=;
+        s=default; t=1599164130;
+        bh=U0hgphvPXN+PEuZqf6MExllm6dlNPYr1UUBI5Ym4DMo=;
         h=Date:From:To:Subject:From;
-        b=ARUu+1yMsE07VIPsBK18iz0Q8wOMbkcD2hiMFkDf01TSHUYyIoIcenkvTzj4xUBm5
-         VghIS5vgJuJGzx2eQ8e8KrPJ5yQtG1m5WcwGi8K/0vFlIajDthX8FZsG+8I9UY3Ule
-         VHECDkkceQMZdH/l2OtNjSaU55XHaP46QxDZW1Es=
-Date:   Thu, 03 Sep 2020 13:15:26 -0700
+        b=NPLoQDdj4mIlSsWF1I6ntXHBkj2bQWBHzmX4X/Tdv/0qhc9ic8eHyqP/yHxFAnv+X
+         j3LiFWaB0DHXQhBqeAUYGHFeNf08PgqCvQtbp87SeAYSPpcXCXuWR2yBcUKJ2gFzYw
+         XE6WAOxW7/FeeglXp7d8EQkMvdQEcvDGp/up4k3s=
+Date:   Thu, 03 Sep 2020 13:15:29 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, sedat.dilek@gmail.com,
-        ndesaulniers@google.com, natechancellor@gmail.com,
-        miguel.ojeda.sandonis@gmail.com, maskray@google.com,
-        masahiroy@kernel.org, keescook@chromium.org, daniel@iogearbox.net,
-        ast@kernel.org, andreyknvl@google.com, elver@google.com
-Subject:  + kasan-remove-mentions-of-unsupported-clang-versions.patch
- added to -mm tree
-Message-ID: <20200903201526.CCLnr%akpm@linux-foundation.org>
+        natechancellor@gmail.com, miguel.ojeda.sandonis@gmail.com,
+        maskray@google.com, masahiroy@kernel.org, keescook@chromium.org,
+        elver@google.com, daniel@iogearbox.net, ast@kernel.org,
+        andreyknvl@google.com, ndesaulniers@google.com
+Subject:  + compiler-gcc-improve-version-error.patch added to -mm
+ tree
+Message-ID: <20200903201529.JM72w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: remove mentions of unsupported Clang versions
+     Subject: compiler-gcc: improve version error
 has been added to the -mm tree.  Its filename is
-     kasan-remove-mentions-of-unsupported-clang-versions.patch
+     compiler-gcc-improve-version-error.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-mentions-of-unsupported-clang-versions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/compiler-gcc-improve-version-error.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-mentions-of-unsupported-clang-versions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/compiler-gcc-improve-version-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,21 +79,28 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan: remove mentions of unsupported Clang versions
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: compiler-gcc: improve version error
 
-Since the kernel now requires at least Clang 10.0.1, remove any mention of
-old Clang versions and simplify the documentation.
+As Kees suggests, doing so provides developers with two useful pieces of
+information:
+- The kernel build was attempting to use GCC.
+  (Maybe they accidentally poked the wrong configs in a CI.)
+- They need 4.9 or better.
+  ("Upgrade to what version?" doesn't need to be dug out of documentation,
+   headers, etc.)
 
-Link: https://lkml.kernel.org/r/20200902225911.209899-7-ndesaulniers@google.com
-Signed-off-by: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20200902225911.209899-8-ndesaulniers@google.com
 Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
 Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Reviewed-by: Sedat Dilek <sedat.dilek@gmail.com>
+Suggested-by: Kees Cook <keescook@chromium.org>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Cc: Fangrui Song <maskray@google.com>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
@@ -102,53 +109,30 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    4 ++--
- lib/Kconfig.kasan                 |    9 ++++-----
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ include/linux/compiler-gcc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-remove-mentions-of-unsupported-clang-versions
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -13,10 +13,10 @@ KASAN uses compile-time instrumentation
- memory access, and therefore requires a compiler version that supports that.
+--- a/include/linux/compiler-gcc.h~compiler-gcc-improve-version-error
++++ a/include/linux/compiler-gcc.h
+@@ -12,7 +12,7 @@
  
- Generic KASAN is supported in both GCC and Clang. With GCC it requires version
--8.3.0 or later. With Clang it requires version 7.0.0 or later, but detection of
-+8.3.0 or later. Any supported Clang version is compatible, but detection of
- out-of-bounds accesses for global variables is only supported since Clang 11.
+ /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58145 */
+ #if GCC_VERSION < 40900
+-# error Sorry, your compiler is too old - please upgrade it.
++# error Sorry, your version of GCC is too old - please use 4.9 or newer.
+ #endif
  
--Tag-based KASAN is only supported in Clang and requires version 7.0.0 or later.
-+Tag-based KASAN is only supported in Clang.
- 
- Currently generic KASAN is supported for the x86_64, arm64, xtensa, s390 and
- riscv architectures, and tag-based KASAN is supported only for arm64.
---- a/lib/Kconfig.kasan~kasan-remove-mentions-of-unsupported-clang-versions
-+++ a/lib/Kconfig.kasan
-@@ -54,9 +54,9 @@ config KASAN_GENERIC
- 	  Enables generic KASAN mode.
- 
- 	  This mode is supported in both GCC and Clang. With GCC it requires
--	  version 8.3.0 or later. With Clang it requires version 7.0.0 or
--	  later, but detection of out-of-bounds accesses for global variables
--	  is supported only since Clang 11.
-+	  version 8.3.0 or later. Any supported Clang version is compatible,
-+	  but detection of out-of-bounds accesses for global variables is
-+	  supported only since Clang 11.
- 
- 	  This mode consumes about 1/8th of available memory at kernel start
- 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
-@@ -78,8 +78,7 @@ config KASAN_SW_TAGS
- 	  Enables software tag-based KASAN mode.
- 
- 	  This mode requires Top Byte Ignore support by the CPU and therefore
--	  is only supported for arm64. This mode requires Clang version 7.0.0
--	  or later.
-+	  is only supported for arm64. This mode requires Clang.
- 
- 	  This mode consumes about 1/16th of available memory at kernel start
- 	  and introduces an overhead of ~20% for the rest of the allocations.
+ /* Optimization barrier */
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-kasan-remove-mentions-of-unsupported-clang-versions.patch
+maintainers-add-llvm-maintainers.patch
+lib-stringc-implement-stpcpy.patch
+compiler-clang-add-build-check-for-clang-1001.patch
+revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
+revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
+revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
+partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
+compiler-gcc-improve-version-error.patch
 
