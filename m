@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82F56C433E2
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B86F5C43461
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D8E9206D4
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 837DC206EF
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599168342;
-	bh=4RhG3MwaL+HWMwJeZ7kmI6DxzRWdHnNUn/jLU3RuFT8=;
+	s=default; t=1599168345;
+	bh=0gNMpziw3coxd0nvlP6N74ALBGRFJ90PThBN5JgYPW0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=uvYftHURgV6alrUPosdlo2avfq4zMyKQLw5+jgL00UiaIic2v6TgvGGCghikkbNzZ
-	 pEuQKtKvZnRyYqgZPzdrCWPCuHLw9LkHKSWT16QSEMjBbfwcXhf8PjIjlNXtIq4e5z
-	 UcuQ3ZoCtnqbv9stFL1FfH8lNE+cr2fgtYP2XRsg=
+	b=qd/BRH9iurm/KkUMKQ7nsWV+FOwkWC1KTDEF+vBuSRxiH4AJ6NK7x+e2U7TB4HgsA
+	 KNZPB6FvlENFFAAsm9e8GV1zuCDfQa5IoqzuDnXyrRv2Nrmr3Kj8/lc5yxml4RZcDJ
+	 QUk8siUi70QaRWV4D5Wdu2gUmFF6tf0ulh1uNq5w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729037AbgICVZm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 17:25:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36180 "EHLO mail.kernel.org"
+        id S1726891AbgICVZo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:25:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726397AbgICVZl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 17:25:41 -0400
+        id S1726397AbgICVZn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:25:43 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A1778206CA;
-        Thu,  3 Sep 2020 21:25:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A6464206D4;
+        Thu,  3 Sep 2020 21:25:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599168340;
-        bh=4RhG3MwaL+HWMwJeZ7kmI6DxzRWdHnNUn/jLU3RuFT8=;
+        s=default; t=1599168342;
+        bh=0gNMpziw3coxd0nvlP6N74ALBGRFJ90PThBN5JgYPW0=;
         h=Date:From:To:Subject:From;
-        b=OnjOcY205DgmatZ8S2wr5+0wSbFg6bDNaypzYzR0iapEBdasR2sRam9pXy+yPqkEq
-         Fxlt6CyEgGWUx9OOJxc6Y/a4247jm5emzLJIxz/c1UN4o85Fx7RwtNrdV6N5KCq91C
-         cj+vYMHP/CwhSvvxPjiPllXIe5LZlYSrFwnywoLk=
-Date:   Thu, 03 Sep 2020 14:25:40 -0700
+        b=X4xTO1BDDRTAoobQYMV/ELuRnIKrDxTlAqwEzw0neQsW4LTCP2PXzedpJngfB0jXd
+         40nq8IlbyE1xuPOFM3CAXnJBqkK5pZNWs6kkFx9AgCR21pGVA5m/qgXJPVXR7E5+My
+         /tqek42zBUFHnMBZX+r2bhPvXSZMSkhSskzASk0U=
+Date:   Thu, 03 Sep 2020 14:25:42 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
         aneesh.kumar@linux.ibm.com
 Subject:  +
- =?us-ascii?Q?mm-debug=5Fvm=5Fpgtables-hugevmap-use-the-arch-helper-to-?=
- =?us-ascii?Q?identify-huge-vmap-support.patch?= added to -mm tree
-Message-ID: <20200903212540.X8UKq%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-savedwrite-enable-savedwrite-test-?=
+ =?us-ascii?Q?with-config=5Fnuma=5Fbalancing.patch?= added to -mm tree
+Message-ID: <20200903212542.B75Xn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtables/hugevmap: use the arch helper to identify huge vmap support.
+     Subject: mm/debug_vm_pgtable/savedwrite: enable savedwrite test with CONFIG_NUMA_BALANCING
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support.patch
+     mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,12 +80,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtables/hugevmap: use the arch helper to identify huge vmap support.
+Subject: mm/debug_vm_pgtable/savedwrite: enable savedwrite test with CONFIG_NUMA_BALANCING
 
-ppc64 supports huge vmap only with radix translation.  Hence use arch
-helper to determine the huge vmap support.
+Saved write support was added to track the write bit of a pte after
+marking the pte protnone.  This was done so that AUTONUMA can convert a
+write pte to protnone and still track the old write bit.  When converting
+it back we set the pte write bit correctly thereby avoiding a write fault
+again.  Hence enable the test only when CONFIG_NUMA_BALANCING is enabled
+and use protnone protflags.
 
-Link: https://lkml.kernel.org/r/20200902114222.181353-5-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-6-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -93,68 +97,47 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/debug_vm_pgtable.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing
 +++ a/mm/debug_vm_pgtable.c
-@@ -28,6 +28,7 @@
- #include <linux/swapops.h>
- #include <linux/start_kernel.h>
- #include <linux/sched/mm.h>
-+#include <linux/io.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- 
-@@ -206,11 +207,12 @@ static void __init pmd_leaf_tests(unsign
- 	WARN_ON(!pmd_leaf(pmd));
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
- static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+@@ -119,10 +119,14 @@ static void __init pte_savedwrite_tests(
  {
- 	pmd_t pmd;
+ 	pte_t pte = pfn_pte(pfn, prot);
  
--	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
-+	if (!arch_ioremap_pmd_supported())
- 		return;
- 
- 	pr_debug("Validating PMD huge\n");
-@@ -224,6 +226,9 @@ static void __init pmd_huge_tests(pmd_t
- 	pmd = READ_ONCE(*pmdp);
- 	WARN_ON(!pmd_none(pmd));
- }
-+#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
-+static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot) { }
-+#endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
- 
- static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
- {
-@@ -320,11 +325,12 @@ static void __init pud_leaf_tests(unsign
- 	WARN_ON(!pud_leaf(pud));
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
- static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
- {
- 	pud_t pud;
- 
--	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
-+	if (!arch_ioremap_pud_supported())
- 		return;
- 
- 	pr_debug("Validating PUD huge\n");
-@@ -338,6 +344,10 @@ static void __init pud_huge_tests(pud_t
- 	pud = READ_ONCE(*pudp);
- 	WARN_ON(!pud_none(pud));
- }
-+#else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
-+static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
-+#endif /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
++	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
++		return;
 +
- #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot) { }
- static void __init pud_advanced_tests(struct mm_struct *mm,
+ 	pr_debug("Validating PTE saved write\n");
+ 	WARN_ON(!pte_savedwrite(pte_mk_savedwrite(pte_clear_savedwrite(pte))));
+ 	WARN_ON(pte_savedwrite(pte_clear_savedwrite(pte_mk_savedwrite(pte))));
+ }
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static void __init pmd_basic_tests(unsigned long pfn, pgprot_t prot)
+ {
+@@ -234,6 +238,9 @@ static void __init pmd_savedwrite_tests(
+ {
+ 	pmd_t pmd = pfn_pmd(pfn, prot);
+ 
++	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
++		return;
++
+ 	pr_debug("Validating PMD saved write\n");
+ 	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
+ 	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
+@@ -1019,8 +1026,8 @@ static int __init debug_vm_pgtable(void)
+ 	pmd_huge_tests(pmdp, pmd_aligned, prot);
+ 	pud_huge_tests(pudp, pud_aligned, prot);
+ 
+-	pte_savedwrite_tests(pte_aligned, prot);
+-	pmd_savedwrite_tests(pmd_aligned, prot);
++	pte_savedwrite_tests(pte_aligned, protnone);
++	pmd_savedwrite_tests(pmd_aligned, protnone);
+ 
+ 	pte_unmap_unlock(ptep, ptl);
+ 
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
