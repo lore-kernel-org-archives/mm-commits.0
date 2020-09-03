@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A993C43461
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D128DC2BD0F
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:34:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20950206D4
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:33:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACA5F2083B
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:34:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599168839;
-	bh=LfSJdcA89MJlYpIAKzYFnKJUCAZh+zWIvy4ZiTR3pMA=;
+	s=default; t=1599168840;
+	bh=2lCx+kuyPv3bj6xLebyk/4G3coUSlAa/UeU3GqgSvQI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=onRyS89rQO51jKB4tOIvM1TN2ZYie8Zm4Ymnpab/VwWz+THG/N/YT+NWgTa39FUwy
-	 XLMYFV3v5yejyfPZsaJh4uNweYgCBgmbku0twODAV532MhECE88SYxevVu8IQAkGKZ
-	 cmuxZlQsVZ2dE3EFuGXBptQxi80XRucwpQJVpO1g=
+	b=oLF3E/yUDsLNTYUr3Q6Qi+DGZU2uDYXAfMzOZGN3qgABFAneHhBHX1p+A8oo2jKhX
+	 VpWNSYw1yPSJMGWuRbwB95K+/9XFdSPV7Dul9XixYeKX4T/gNBpg8NjAbc4CXKy9oU
+	 Lye6OpJoi0eu+78dmcNKA1kGp8Oxf5W+c6cJXVfc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726397AbgICVd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 17:33:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40118 "EHLO mail.kernel.org"
+        id S1728311AbgICVeA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:34:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40166 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726323AbgICVd4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 17:33:56 -0400
+        id S1727065AbgICVd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:33:58 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 96D54206D4;
-        Thu,  3 Sep 2020 21:33:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 95A0C206E7;
+        Thu,  3 Sep 2020 21:33:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599168835;
-        bh=LfSJdcA89MJlYpIAKzYFnKJUCAZh+zWIvy4ZiTR3pMA=;
+        s=default; t=1599168837;
+        bh=2lCx+kuyPv3bj6xLebyk/4G3coUSlAa/UeU3GqgSvQI=;
         h=Date:From:To:Subject:From;
-        b=CRq0yZRkCUKzazytADQ4nusdy4wvYYVAvD/xzv0tD+tmL7E6hVIByP086hK3BwnMn
-         0rN58AE+7UVDOwqivPqksNNdYXgGWJD6C4Bn6wcA3XbUR8utou/37zXngQsyG0dXQt
-         tdti9skpnWZWRs5u5N6TKMpogb3JbfVeoTISsFDY=
-Date:   Thu, 03 Sep 2020 14:33:55 -0700
+        b=sc52n/6DWYO2BNkn16gtJliRjLR8wgfH6ZjKPOejAX8L1Hvy7vC1auhDVs02dUh4z
+         ybZ5qkbGrChOn34v93VrAX3U09I5mg+s39S3+ZgvKqweH3UaxLD+ZiDblIOACo8ioz
+         jykknMjmuqB9tKDw8Jx5ZhuYnp/zHgL+Eb8Keaj0=
+Date:   Thu, 03 Sep 2020 14:33:57 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
         naoya.horiguchi@nec.com, mhocko@kernel.org, osalvador@suse.de
-Subject:  +
- =?us-ascii?Q?mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-?=
- =?us-ascii?Q?zero-refcount-page.patch?= added to -mm tree
-Message-ID: <20200903213355.Fs4sh%akpm@linux-foundation.org>
+Subject:  + mmhwpoison-drop-unneeded-pcplist-draining.patch added to
+ -mm tree
+Message-ID: <20200903213357.swOXm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
+     Subject: mm,hwpoison: drop unneeded pcplist draining
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+     mmhwpoison-drop-unneeded-pcplist-draining.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-drop-unneeded-pcplist-draining.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-drop-unneeded-pcplist-draining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,18 +76,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
+Subject: mm,hwpoison: drop unneeded pcplist draining
 
-A page with 0-refcount and !PageBuddy could perfectly be a pcppage. 
-Currently, we bail out with an error if we encounter such a page, meaning
-that we do not handle pcppages neither from hard-offline nor from
-soft-offline path.
+memory_failure and soft_offline_path paths now drain pcplists by calling
+get_hwpoison_page.
 
-Fix this by draining pcplists whenever we find this kind of page and retry
-the check again.  It might be that pcplists have been spilled into the
-buddy allocator and so we can handle it.
+memory_failure flags the page as HWPoison before, so that page cannot
+longer go into a pcplist, and soft_offline_page only flags a page as
+HWPoison if 1) we took the page off a buddy freelist 2) the page was
+in-use and we migrated it 3) was a clean pagecache.
 
-Link: https://lkml.kernel.org/r/20200902094510.10727-4-osalvador@suse.de
+Because of that, a page cannot longer be poisoned and be in a pcplist.
+
+Link: https://lkml.kernel.org/r/20200902094510.10727-5-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
@@ -98,54 +96,22 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ mm/madvise.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page
-+++ a/mm/memory-failure.c
-@@ -950,13 +950,13 @@ static int page_action(struct page_state
- }
+--- a/mm/madvise.c~mmhwpoison-drop-unneeded-pcplist-draining
++++ a/mm/madvise.c
+@@ -914,10 +914,6 @@ static int madvise_inject_error(int beha
+ 			return ret;
+ 	}
  
- /**
-- * get_hwpoison_page() - Get refcount for memory error handling:
-+ * __get_hwpoison_page() - Get refcount for memory error handling:
-  * @page:	raw error page (hit by memory error)
-  *
-  * Return: return 0 if failed to grab the refcount, otherwise true (some
-  * non-zero value.)
-  */
--static int get_hwpoison_page(struct page *page)
-+static int __get_hwpoison_page(struct page *page)
- {
- 	struct page *head = compound_head(page);
- 
-@@ -986,6 +986,26 @@ static int get_hwpoison_page(struct page
+-	/* Ensure that all poisoned pages are removed from per-cpu lists */
+-	for_each_populated_zone(zone)
+-		drain_all_pages(zone);
+-
  	return 0;
  }
- 
-+static int get_hwpoison_page(struct page *p)
-+{
-+	int ret;
-+	bool drained = false;
-+
-+retry:
-+	ret = __get_hwpoison_page(p);
-+	if (!ret && !is_free_buddy_page(p) && !page_count(p) && !drained) {
-+		/*
-+		 * The page might be in a pcplist, so try to drain those
-+		 * and see if we are lucky.
-+		 */
-+		drain_all_pages(page_zone(p));
-+		drained = true;
-+		goto retry;
-+	}
-+
-+	return ret;
-+}
-+
- /*
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
+ #endif
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
