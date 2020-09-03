@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30A59C433E2
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:25:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4C6EC43461
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:29:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17DAF20FC3
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:25:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87DDC206EF
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:29:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599161105;
-	bh=tyfJHC5OoddQ7lc5e4knnTK8rcoPtylpw2EMGEw0cZ8=;
+	s=default; t=1599161353;
+	bh=sMCKS+E6u2EB80XPD2BBSYYo9l/B/+fP5653BznJWVQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dnGyHCcoirT62zxvNxuo20di72N3vYUdf5qFT7WzjIL+vRksQl/2L0JKQA/XPGS3P
-	 cFR4PdS/htVpBOb40OaPksDumGoAfwk5h3Yy0HN2u+G3/8Ej9T5BdCtRFdLWojSLLP
-	 0YqX6/BXWXBepghSr9Cty07oxSxjI6YF1sOxG4P4=
+	b=TlPxBJHqdy96IM9WOy7LF/OdPrx+UQqXbNFJB673QXOzje8GKlrttPhpKP/yN04/o
+	 jbkS/v3W7SJEM2AI5MwvGxi6kd0x9hqYO8wIptj5ffgJyr2mJeYDqDgxQp4eyAdKuf
+	 aXn/ji2olueyx95wnK+0fvV8xlIzAWgI/mOZ2Bu0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729096AbgICTZE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 15:25:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40106 "EHLO mail.kernel.org"
+        id S1729092AbgICT3L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 15:29:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729115AbgICTZD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 15:25:03 -0400
+        id S1728358AbgICT3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 15:29:03 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A6FBC20BED;
-        Thu,  3 Sep 2020 19:25:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DC5FB206EF;
+        Thu,  3 Sep 2020 19:29:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599161102;
-        bh=tyfJHC5OoddQ7lc5e4knnTK8rcoPtylpw2EMGEw0cZ8=;
+        s=default; t=1599161342;
+        bh=sMCKS+E6u2EB80XPD2BBSYYo9l/B/+fP5653BznJWVQ=;
         h=Date:From:To:Subject:From;
-        b=BRJxsDwPWvS/eITaHvD7kUa3zhj+tyOsQd+ja+ilcvB6LOqcgBaCiCJIjlN/MKR3D
-         4rriDkFQUQUlS9R5/3SCTH1LZKkw7eOAOYqKqEnZMQnyxS319eAxurtATrx1Zh8EIs
-         lu3d9/lC1ezxNNQM2AQ6uxRvKo1UaxDrngeBSZ6U=
-Date:   Thu, 03 Sep 2020 12:25:02 -0700
+        b=Jqzj+40dDjkGxuUueBPENnX4xazqzQFgL/zaMIk7GaqU9zFt7RF5yNJMJLdbrR5GY
+         qlaFMFq0an/8BqG/+K3mboIiAdzsfWcVl/jWnUh7ouabZ15Ok6afYWsWIewkQXIovj
+         tzNpSzWIwlfNXUTjonM15DJQ1r+sLWqULEUQpET0=
+Date:   Thu, 03 Sep 2020 12:29:01 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        ebiggers@google.com, dhowells@redhat.com
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
+        rientjes@google.com, richard.weiyang@gmail.com, osalvador@suse.de,
+        mhocko@suse.com, david@redhat.com, pasha.tatashin@soleen.com
 Subject:  +
- mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra.patch added to -mm
- tree
-Message-ID: <20200903192502.64H_Y%akpm@linux-foundation.org>
+ mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline.patch added
+ to -mm tree
+Message-ID: <20200903192901.PWYfu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/readahead: pass a file_ra_state into force_page_cache_ra
+     Subject: mm/memory_hotplug: drain per-cpu pages again during memory offline
 has been added to the -mm tree.  Its filename is
-     mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra.patch
+     mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,75 +77,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: mm/readahead: pass a file_ra_state into force_page_cache_ra
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: mm/memory_hotplug: drain per-cpu pages again during memory offline
 
-The file_ra_state being passed into page_cache_sync_readahead() was being
-ignored in favour of using the one embedded in the struct file.  The only
-caller for which this makes a difference is the fsverity code if the file
-has been marked as POSIX_FADV_RANDOM, but it's confusing and worth fixing.
+There is a race during page offline that can lead to infinite loop:
+a page never ends up on a buddy list and __offline_pages() keeps
+retrying infinitely or until a termination signal is received.
 
-Link: https://lkml.kernel.org/r/20200903140844.14194-10-willy@infradead.org
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Eric Biggers <ebiggers@google.com>
+Thread#1 - a new process:
+
+load_elf_binary
+ begin_new_exec
+  exec_mmap
+   mmput
+    exit_mmap
+     tlb_finish_mmu
+      tlb_flush_mmu
+       release_pages
+        free_unref_page_list
+         free_unref_page_prepare
+          set_pcppage_migratetype(page, migratetype);
+             // Set page->index migration type below  MIGRATE_PCPTYPES
+
+Thread#2 - hot-removes memory
+__offline_pages
+  start_isolate_page_range
+    set_migratetype_isolate
+      set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+        Set migration type to MIGRATE_ISOLATE-> set
+        drain_all_pages(zone);
+             // drain per-cpu page lists to buddy allocator.
+
+Thread#1 - continue
+         free_unref_page_commit
+           migratetype = get_pcppage_migratetype(page);
+              // get old migration type
+           list_add(&page->lru, &pcp->lists[migratetype]);
+              // add new page to already drained pcp list
+
+Thread#2
+Never drains pcp again, and therefore gets stuck in the loop.
+
+The fix is to try to drain per-cpu lists again after
+check_pages_isolated_cb() fails.
+
+Link: https://lkml.kernel.org/r/20200903140032.380431-1-pasha.tatashin@soleen.com
+Fixes: c52e75935f8d ("mm: remove extra drain pages on pcp list")
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h  |    5 +++--
- mm/readahead.c |    5 ++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/memory_hotplug.c |   14 ++++++++++++++
+ mm/page_isolation.c |    8 ++++++++
+ 2 files changed, 22 insertions(+)
 
---- a/mm/internal.h~mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra
-+++ a/mm/internal.h
-@@ -51,12 +51,13 @@ void unmap_page_range(struct mmu_gather
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline
++++ a/mm/memory_hotplug.c
+@@ -1575,6 +1575,20 @@ static int __ref __offline_pages(unsigne
+ 		/* check again */
+ 		ret = walk_system_ram_range(start_pfn, end_pfn - start_pfn,
+ 					    NULL, check_pages_isolated_cb);
++		/*
++		 * per-cpu pages are drained in start_isolate_page_range, but if
++		 * there are still pages that are not free, make sure that we
++		 * drain again, because when we isolated range we might
++		 * have raced with another thread that was adding pages to pcp
++		 * list.
++		 *
++		 * Forward progress should be still guaranteed because
++		 * pages on the pcp list can only belong to MOVABLE_ZONE
++		 * because has_unmovable_pages explicitly checks for
++		 * PageBuddy on freed pages on other zones.
++		 */
++		if (ret)
++			drain_all_pages(zone);
+ 	} while (ret);
  
- void do_page_cache_ra(struct readahead_control *, unsigned long nr_to_read,
- 		unsigned long lookahead_size);
--void force_page_cache_ra(struct readahead_control *, unsigned long nr);
-+void force_page_cache_ra(struct readahead_control *, struct file_ra_state *,
-+		unsigned long nr);
- static inline void force_page_cache_readahead(struct address_space *mapping,
- 		struct file *file, pgoff_t index, unsigned long nr_to_read)
- {
- 	DEFINE_READAHEAD(ractl, file, mapping, index);
--	force_page_cache_ra(&ractl, nr_to_read);
-+	force_page_cache_ra(&ractl, &file->f_ra, nr_to_read);
- }
- 
- /**
---- a/mm/readahead.c~mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra
-+++ a/mm/readahead.c
-@@ -272,11 +272,10 @@ void do_page_cache_ra(struct readahead_c
-  * memory at once.
+ 	/* Ok, all of our target is isolated.
+--- a/mm/page_isolation.c~mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline
++++ a/mm/page_isolation.c
+@@ -170,6 +170,14 @@ __first_valid_page(unsigned long pfn, un
+  * pageblocks we may have modified and return -EBUSY to caller. This
+  * prevents two threads from simultaneously working on overlapping ranges.
+  *
++ * Please note that there is no strong synchronization with the page allocator
++ * either. Pages might be freed while their page blocks are marked ISOLATED.
++ * In some cases pages might still end up on pcp lists and that would allow
++ * for their allocation even when they are in fact isolated already. Depending
++ * on how strong of a guarantee the caller needs drain_all_pages might be needed
++ * (e.g. __offline_pages will need to call it after check for isolated range for
++ * a next retry).
++ *
+  * Return: the number of isolated pageblocks on success and -EBUSY if any part
+  * of range cannot be isolated.
   */
- void force_page_cache_ra(struct readahead_control *ractl,
--		unsigned long nr_to_read)
-+		struct file_ra_state *ra, unsigned long nr_to_read)
- {
- 	struct address_space *mapping = ractl->mapping;
- 	struct backing_dev_info *bdi = inode_to_bdi(mapping->host);
--	struct file_ra_state *ra = &ractl->file->f_ra;
- 	unsigned long max_pages, index;
- 
- 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages &&
-@@ -562,7 +561,7 @@ void page_cache_sync_ra(struct readahead
- 
- 	/* be dumb */
- 	if (ractl->file && (ractl->file->f_mode & FMODE_RANDOM)) {
--		force_page_cache_ra(ractl, req_count);
-+		force_page_cache_ra(ractl, ra, req_count);
- 		return;
- 	}
- 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-fix-khugepageds-request-size-in-collapse_file.patch
-mm-readahead-make-ondemand_readahead-take-a-readahead_control.patch
-mm-readahead-pass-readahead_control-to-force_page_cache_ra.patch
-mm-filemap-fold-ra_submit-into-do_sync_mmap_readahead.patch
-mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra.patch
-mutex-subsystem-synchro-test-module.patch
+mm-memory_hotplug-drain-per-cpu-pages-again-during-memory-offline.patch
 
