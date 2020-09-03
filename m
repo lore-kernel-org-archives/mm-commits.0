@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB1E0C433E9
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:08:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C048C433E9
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:12:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8F1020BED
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:08:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 102F2208CA
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 19:12:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599160108;
-	bh=FqVHco18iCxEjg5N9nPUq4j47hMc+YWeJI46LVfAuYU=;
+	s=default; t=1599160372;
+	bh=3o11MKyPBV/JzWPuYj+9HVifrAQhNnk1TjEGgMgFceo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=jEiF3apoTiOWzyT116+5suOQ/2nfruVHLpYQ6eljQRA0/8O+ovCueK7l+yIvsQ+fN
-	 B74fj10cDhpYVSJx8AaO2YUPRgg4GfuqaGvGOQinp4vtc9bepYcmFcq1wk0AcjOTQg
-	 eVjTEh/6gW6eTszpmzwr8QkItMTjr18Ug9TCMuI8=
+	b=wXjtG2ykubTVhsKy+PDHSNKKjDpBOv0FEBXHJZyz+OYF/1HDfX/DTmhnoVOWReKVM
+	 aXmrKBcSsKqMWyvA7KuYR0u1B17sMcAVQNsHKD62hJqfq15B2V3EvPWxEbVZndL8C+
+	 Q4dhSQUtwerybbymD+VZvG2dSX6sQ6INxEdjv+9Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728304AbgICTI2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 15:08:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33994 "EHLO mail.kernel.org"
+        id S1728312AbgICTMv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 15:12:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726678AbgICTI1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 15:08:27 -0400
+        id S1726678AbgICTMu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 15:12:50 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id ECF7D2098B;
-        Thu,  3 Sep 2020 19:08:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AAC1820658;
+        Thu,  3 Sep 2020 19:12:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599160106;
-        bh=FqVHco18iCxEjg5N9nPUq4j47hMc+YWeJI46LVfAuYU=;
+        s=default; t=1599160369;
+        bh=3o11MKyPBV/JzWPuYj+9HVifrAQhNnk1TjEGgMgFceo=;
         h=Date:From:To:Subject:From;
-        b=rYaQjIKVerTmvvs0uZsuhxuoHjnSD1895jw2se0JAS9uA8umqclhjnQ1NS9Cjy0YF
-         jxtnNQUAALlDGPU4zQeotaQLdC2f7J44j6GDrjXT7gND3pr62BMxg4yHXVnoew6hsI
-         mgavOfQBuZiBCArfE/jas183Tri1zk9AWNsEXEfE=
-Date:   Thu, 03 Sep 2020 12:08:25 -0700
+        b=1IsxpXNkDeSP/g3bHrYE+t/CYlz049QNQaETTpOg01I1KSoY0ROtt424Qh5+6Vc2o
+         nH2+i+kjn6yQd2HSxFzNNPOMPZ0xwuamUGKwjS726W97rOzwyJ59YRAK8M2S7lGtO6
+         bQj5DiHCGqoc8hf13TrECP+LOaZBl4KpHlY0d6hA=
+Date:   Thu, 03 Sep 2020 12:12:49 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, stable@vger.kernel.org,
-        shy828301@gmail.com, shuah@kernel.org, jhubbard@nvidia.com,
-        jglisse@redhat.com, jgg@nvidia.com, hch@lst.de, bskeggs@redhat.com,
-        bharata@linux.ibm.com, apopple@nvidia.com, rcampbell@nvidia.com
-Subject:  +
- mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch added to -mm tree
-Message-ID: <20200903190825.sSiVk%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, songliubraving@fb.com,
+        kirill@shutemov.name, cai@lca.pw, willy@infradead.org
+Subject:  + xarray-add-xa_get_order.patch added to -mm tree
+Message-ID: <20200903191249.YXkjV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: fix __split_huge_pmd_locked() for migration PMD
+     Subject: XArray: add xa_get_order
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+     xarray-add-xa_get_order.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/xarray-add-xa_get_order.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/xarray-add-xa_get_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,113 +74,158 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/thp: fix __split_huge_pmd_locked() for migration PMD
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: XArray: add xa_get_order
 
-A migrating transparent huge page has to already be unmapped.  Otherwise,
-the page could be modified while it is being copied to a new page and data
-could be lost.  The function __split_huge_pmd() checks for a PMD migration
-entry before calling __split_huge_pmd_locked() leading one to think that
-__split_huge_pmd_locked() can handle splitting a migrating PMD.
+Patch series "Fix read-only THP for non-tmpfs filesystems".
 
-However, the code always increments the page->_mapcount and adjusts the
-memory control group accounting assuming the page is mapped.
+As described more verbosely in the [3/3] changelog, we can inadvertently
+put an order-0 page in the page cache which occupies 512 consecutive
+entries.  Users are running into this if they enable the
+READ_ONLY_THP_FOR_FS config option; see
+https://bugzilla.kernel.org/show_bug.cgi?id=206569 and Qian Cai has also
+reported it here:
+https://lore.kernel.org/lkml/20200616013309.GB815@lca.pw/
 
-Also, if the PMD entry is a migration PMD entry, the call to
-is_huge_zero_pmd(*pmd) is incorrect because it calls pmd_pfn(pmd) instead
-of migration_entry_to_pfn(pmd_to_swp_entry(pmd)).  Fix these problems by
-checking for a PMD migration entry.
+This is a rather intrusive way of fixing the problem, but has the
+advantage that I've actually been testing it with the THP patches, which
+means that it sees far more use than it does upstream -- indeed, Song has
+been entirely unable to reproduce it.  It also has the advantage that it
+removes a few patches from my gargantuan backlog of THP patches.
 
-Link: https://lkml.kernel.org/r/20200903183140.19055-1-rcampbell@nvidia.com
-Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.14+]
+
+This patch (of 3):
+
+This function returns the order of the entry at the index.  We need this
+because there isn't space in the shadow entry to encode its order.
+
+Link: https://lkml.kernel.org/r/20200903183029.14930-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200903183029.14930-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   42 +++++++++++++++++++++++-------------------
- 1 file changed, 23 insertions(+), 19 deletions(-)
+ include/linux/xarray.h |    9 +++++++++
+ lib/test_xarray.c      |   21 +++++++++++++++++++++
+ lib/xarray.c           |   39 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
 
---- a/mm/huge_memory.c~mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd
-+++ a/mm/huge_memory.c
-@@ -2021,7 +2021,7 @@ static void __split_huge_pmd_locked(stru
- 		put_page(page);
- 		add_mm_counter(mm, mm_counter_file(page), -HPAGE_PMD_NR);
- 		return;
--	} else if (is_huge_zero_pmd(*pmd)) {
-+	} else if (pmd_trans_huge(*pmd) && is_huge_zero_pmd(*pmd)) {
- 		/*
- 		 * FIXME: Do we want to invalidate secondary mmu by calling
- 		 * mmu_notifier_invalidate_range() see comments below inside
-@@ -2115,30 +2115,34 @@ static void __split_huge_pmd_locked(stru
- 		pte = pte_offset_map(&_pmd, addr);
- 		BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, entry);
--		atomic_inc(&page[i]._mapcount);
--		pte_unmap(pte);
--	}
--
--	/*
--	 * Set PG_double_map before dropping compound_mapcount to avoid
--	 * false-negative page_mapped().
--	 */
--	if (compound_mapcount(page) > 1 && !TestSetPageDoubleMap(page)) {
--		for (i = 0; i < HPAGE_PMD_NR; i++)
-+		if (!pmd_migration)
- 			atomic_inc(&page[i]._mapcount);
-+		pte_unmap(pte);
- 	}
+--- a/include/linux/xarray.h~xarray-add-xa_get_order
++++ a/include/linux/xarray.h
+@@ -1505,6 +1505,15 @@ void xas_pause(struct xa_state *);
  
--	lock_page_memcg(page);
--	if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
--		/* Last compound_mapcount is gone. */
--		__dec_lruvec_page_state(page, NR_ANON_THPS);
--		if (TestClearPageDoubleMap(page)) {
--			/* No need in mapcount reference anymore */
-+	if (!pmd_migration) {
-+		/*
-+		 * Set PG_double_map before dropping compound_mapcount to avoid
-+		 * false-negative page_mapped().
-+		 */
-+		if (compound_mapcount(page) > 1 &&
-+		    !TestSetPageDoubleMap(page)) {
- 			for (i = 0; i < HPAGE_PMD_NR; i++)
--				atomic_dec(&page[i]._mapcount);
-+				atomic_inc(&page[i]._mapcount);
-+		}
+ void xas_create_range(struct xa_state *);
+ 
++#ifdef CONFIG_XARRAY_MULTI
++int xa_get_order(struct xarray *, unsigned long index);
++#else
++static inline int xa_get_order(struct xarray *xa, unsigned long index)
++{
++	return 0;
++}
++#endif
 +
-+		lock_page_memcg(page);
-+		if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
-+			/* Last compound_mapcount is gone. */
-+			__dec_lruvec_page_state(page, NR_ANON_THPS);
-+			if (TestClearPageDoubleMap(page)) {
-+				/* No need in mapcount reference anymore */
-+				for (i = 0; i < HPAGE_PMD_NR; i++)
-+					atomic_dec(&page[i]._mapcount);
-+			}
- 		}
-+		unlock_page_memcg(page);
- 	}
--	unlock_page_memcg(page);
+ /**
+  * xas_reload() - Refetch an entry from the xarray.
+  * @xas: XArray operation state.
+--- a/lib/test_xarray.c~xarray-add-xa_get_order
++++ a/lib/test_xarray.c
+@@ -1649,6 +1649,26 @@ static noinline void check_account(struc
+ #endif
+ }
  
- 	smp_wmb(); /* make pte visible before pmd */
- 	pmd_populate(mm, pmd, pgtable);
++static noinline void check_get_order(struct xarray *xa)
++{
++	unsigned int max_order = IS_ENABLED(CONFIG_XARRAY_MULTI) ? 20 : 1;
++	unsigned int order;
++	unsigned long i, j;
++
++	for (i = 0; i < 3; i++)
++		XA_BUG_ON(xa, xa_get_order(xa, i) != 0);
++
++	for (order = 0; order < max_order; order++) {
++		for (i = 0; i < 10; i++) {
++			xa_store_order(xa, i << order, order,
++					xa_mk_index(i << order), GFP_KERNEL);
++			for (j = i << order; j < (i + 1) << order; j++)
++				XA_BUG_ON(xa, xa_get_order(xa, j) != order);
++			xa_erase(xa, i << order);
++		}
++	}
++}
++
+ static noinline void check_destroy(struct xarray *xa)
+ {
+ 	unsigned long index;
+@@ -1697,6 +1717,7 @@ static int xarray_checks(void)
+ 	check_reserve(&array);
+ 	check_reserve(&xa0);
+ 	check_multi_store(&array);
++	check_get_order(&array);
+ 	check_xa_alloc();
+ 	check_find(&array);
+ 	check_find_entry(&array);
+--- a/lib/xarray.c~xarray-add-xa_get_order
++++ a/lib/xarray.c
+@@ -1592,6 +1592,45 @@ unlock:
+ 	return xas_result(&xas, NULL);
+ }
+ EXPORT_SYMBOL(xa_store_range);
++
++/**
++ * xa_get_order() - Get the order of an entry.
++ * @xa: XArray.
++ * @index: Index of the entry.
++ *
++ * Return: A number between 0 and 63 indicating the order of the entry.
++ */
++int xa_get_order(struct xarray *xa, unsigned long index)
++{
++	XA_STATE(xas, xa, index);
++	void *entry;
++	int order = 0;
++
++	rcu_read_lock();
++	entry = xas_load(&xas);
++
++	if (!entry)
++		goto unlock;
++
++	if (!xas.xa_node)
++		goto unlock;
++
++	for (;;) {
++		unsigned int slot = xas.xa_offset + (1 << order);
++
++		if (slot >= XA_CHUNK_SIZE)
++			break;
++		if (!xa_is_sibling(xas.xa_node->slots[slot]))
++			break;
++		order++;
++	}
++
++	order += xas.xa_node->shift;
++unlock:
++	rcu_read_unlock();
++
++	return order;
++}
+ #endif /* CONFIG_XARRAY_MULTI */
+ 
+ /**
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
-mm-test-use-the-new-skip-macro.patch
-mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
-mm-migrate-remove-obsolete-comment-about-device-public.patch
+mm-debug-do-not-dereference-i_ino-blindly.patch
+mm-account-pmd-tables-like-pte-tables.patch
+mm-move-pagedoublemap-bit.patch
+mm-simplify-pagedoublemap-with-pf_second-policy.patch
+xarray-add-xa_get_order.patch
+xarray-add-xas_split.patch
+mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
+harden-autofs-ioctl-table.patch
 
