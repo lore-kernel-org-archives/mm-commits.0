@@ -2,57 +2,51 @@ Return-Path: <SRS0=UrOV=CM=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA78C2BC0E
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2CCC433E2
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 650A920BED
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 20:15:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42C0D206E7
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599164126;
-	bh=oPLU6JNIFSJkbFOOnyN4GHqKTcL5v5LxyNk13dlYWdU=;
+	s=default; t=1599168334;
+	bh=HefU+0fWOIo4P2pT1IHwxQIGJJXBZeG2+CjQ0otAXFs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=VSlqSgpN1Gr1j5V7V41Dhz5IBJDiAWkx6DTjSeh32JDxYyjqupiZN1eFTjLWek2Al
-	 AzdsvYr3mCeYVDSWMO9m5E8jVuQMKC4R/FQqCyNOz/JhiWUN+fxK6nVWzZ6tug9bHg
-	 U9pde/u913jXA0B1fLcbTUI3WB5Zdcay85z4MAlI=
+	b=TDI95uF2mFU+bZ1JiLtPgsJ7fmwI4sVEafHGw2K6N7LeMkTe/JXZGlC6OXqzD3VTR
+	 RMeyOUNCk7YVv6EQuy83QtNwvHIpl+L/Md+b6/MMxakNOcU4IChhgy1Ez06ZQNMQAc
+	 6ESSTjMi7I0sfWSMMjyFBtjvQ6SL58rYlCHNPYUs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729036AbgICUP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 16:15:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58472 "EHLO mail.kernel.org"
+        id S1728127AbgICVZd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:25:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728975AbgICUP0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 16:15:26 -0400
+        id S1726397AbgICVZd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:25:33 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BF74A208FE;
-        Thu,  3 Sep 2020 20:15:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AD6A4206CA;
+        Thu,  3 Sep 2020 21:25:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599164125;
-        bh=oPLU6JNIFSJkbFOOnyN4GHqKTcL5v5LxyNk13dlYWdU=;
+        s=default; t=1599168332;
+        bh=HefU+0fWOIo4P2pT1IHwxQIGJJXBZeG2+CjQ0otAXFs=;
         h=Date:From:To:Subject:From;
-        b=W4OVtGqquMXbu8oZh9xCvwMghgQNOntWJoiNotnoT+HBgkBu6n9T5LLX951xOZeTM
-         A7h+tSyeJzSM4hufQkbgz8uj7Tf/jOc8N0LVaKAbYf8bzT1cZRRJMA3i3JPAyr2xKJ
-         PYaF5uZBJ3tpAYjmKr2S7/eiZO3a+WEQA0WLhEUw=
-Date:   Thu, 03 Sep 2020 13:15:24 -0700
+        b=rzGXL4p5nP/ob+3SfxoyvilPQ4r2vY45egCwTH4k2c8szxx6f4VeJAZS0GaBPYrkv
+         7+Jbd9vEmqTzMTGJPlGZOBmslLWiDREb1ut8w0U1nsMAH+n2glXzlA1y1rRSFZtk0/
+         LHN78+WDQVHARux6+jL7TO9npxk/9eNYWDj0OjsM=
+Date:   Thu, 03 Sep 2020 14:25:31 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, sedat.dilek@gmail.com,
-        natechancellor@gmail.com, miguel.ojeda.sandonis@gmail.com,
-        maskray@google.com, masahiroy@kernel.org, keescook@chromium.org,
-        elver@google.com, daniel@iogearbox.net, ast@kernel.org,
-        andreyknvl@google.com, ndesaulniers@google.com
-Subject:  +
- =?us-ascii?Q?partially-revert-arm-8905-1-emit-=5F=5Fgnu=5Fmcount=5Fnc-?=
- =?us-ascii?Q?when-using-clang-1000-or-newer.patch?= added to -mm tree
-Message-ID: <20200903201524.sReq6%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
+        aneesh.kumar@linux.ibm.com
+Subject:  + powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch added to
+ -mm tree
+Message-ID: <20200903212531.KGgxo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -61,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Partially revert "ARM: 8905/1: Emit __gnu_mcount_nc when using Clang 10.0.0 or newer"
+     Subject: powerpc/mm: add DEBUG_VM WARN for pmd_clear
 has been added to the -mm tree.  Its filename is
-     partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
+     powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,56 +76,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Partially revert "ARM: 8905/1: Emit __gnu_mcount_nc when using Clang 10.0.0 or newer"
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: powerpc/mm: add DEBUG_VM WARN for pmd_clear
 
-This partially reverts commit b0fe66cf095016e0b238374c10ae366e1f087d11.
+Patch series "mm/debug_vm_pgtable fixes", v4.
 
-The minimum supported version of clang is now clang 10.0.1. We still
-want to pass -meabi=gnu.
+This patch series includes fixes for debug_vm_pgtable test code so that
+they follow page table updates rules correctly.  The first two patches
+introduce changes w.r.t ppc64.
 
-Link: https://lkml.kernel.org/r/20200902225911.209899-6-ndesaulniers@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Suggested-by: Nathan Chancellor <natechancellor@gmail.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Fangrui Song <maskray@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Hugetlb test is disabled on ppc64 because that needs larger change to satisfy
+page table update rules.
+
+These tests are broken w.r.t page table update rules and results in kernel
+crash as below. 
+
+[   21.083519] kernel BUG at arch/powerpc/mm/pgtable.c:304!
+cpu 0x0: Vector: 700 (Program Check) at [c000000c6d1e76c0]
+    pc: c00000000009a5ec: assert_pte_locked+0x14c/0x380
+    lr: c0000000005eeeec: pte_update+0x11c/0x190
+    sp: c000000c6d1e7950
+   msr: 8000000002029033
+  current = 0xc000000c6d172c80
+  paca    = 0xc000000003ba0000   irqmask: 0x03   irq_happened: 0x01
+    pid   = 1, comm = swapper/0
+kernel BUG at arch/powerpc/mm/pgtable.c:304!
+[link register   ] c0000000005eeeec pte_update+0x11c/0x190
+[c000000c6d1e7950] 0000000000000001 (unreliable)
+[c000000c6d1e79b0] c0000000005eee14 pte_update+0x44/0x190
+[c000000c6d1e7a10] c000000001a2ca9c pte_advanced_tests+0x160/0x3d8
+[c000000c6d1e7ab0] c000000001a2d4fc debug_vm_pgtable+0x7e8/0x1338
+[c000000c6d1e7ba0] c0000000000116ec do_one_initcall+0xac/0x5f0
+[c000000c6d1e7c80] c0000000019e4fac kernel_init_freeable+0x4dc/0x5a4
+[c000000c6d1e7db0] c000000000012474 kernel_init+0x24/0x160
+[c000000c6d1e7e20] c00000000000cbd0 ret_from_kernel_thread+0x5c/0x6c
+
+With DEBUG_VM disabled
+
+[   20.530152] BUG: Kernel NULL pointer dereference on read at 0x00000000
+[   20.530183] Faulting instruction address: 0xc0000000000df330
+cpu 0x33: Vector: 380 (Data SLB Access) at [c000000c6d19f700]
+    pc: c0000000000df330: memset+0x68/0x104
+    lr: c00000000009f6d8: hash__pmdp_huge_get_and_clear+0xe8/0x1b0
+    sp: c000000c6d19f990
+   msr: 8000000002009033
+   dar: 0
+  current = 0xc000000c6d177480
+  paca    = 0xc00000001ec4f400   irqmask: 0x03   irq_happened: 0x01
+    pid   = 1, comm = swapper/0
+[link register   ] c00000000009f6d8 hash__pmdp_huge_get_and_clear+0xe8/0x1b0
+[c000000c6d19f990] c00000000009f748 hash__pmdp_huge_get_and_clear+0x158/0x1b0 (unreliable)
+[c000000c6d19fa10] c0000000019ebf30 pmd_advanced_tests+0x1f0/0x378
+[c000000c6d19fab0] c0000000019ed088 debug_vm_pgtable+0x79c/0x1244
+[c000000c6d19fba0] c0000000000116ec do_one_initcall+0xac/0x5f0
+[c000000c6d19fc80] c0000000019a4fac kernel_init_freeable+0x4dc/0x5a4
+[c000000c6d19fdb0] c000000000012474 kernel_init+0x24/0x160
+[c000000c6d19fe20] c00000000000cbd0 ret_from_kernel_thread+0x5c/0x6c
+
+
+This patch (of 13):
+
+With the hash page table, the kernel should not use pmd_clear for clearing
+huge pte entries.  Add a DEBUG_VM WARN to catch the wrong usage.
+
+Link: https://lkml.kernel.org/r/20200902114222.181353-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/arch/arm/Kconfig~partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer
-+++ a/arch/arm/Kconfig
-@@ -83,7 +83,7 @@ config ARM
- 	select HAVE_FAST_GUP if ARM_LPAE
- 	select HAVE_FTRACE_MCOUNT_RECORD if !XIP_KERNEL
- 	select HAVE_FUNCTION_GRAPH_TRACER if !THUMB2_KERNEL && !CC_IS_CLANG
--	select HAVE_FUNCTION_TRACER if !XIP_KERNEL && (CC_IS_GCC || CLANG_VERSION >= 100000)
-+	select HAVE_FUNCTION_TRACER if !XIP_KERNEL
- 	select HAVE_GCC_PLUGINS
- 	select HAVE_HW_BREAKPOINT if PERF_EVENTS && (CPU_V6 || CPU_V6K || CPU_V7)
- 	select HAVE_IDE if PCI || ISA || PCMCIA
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-add-debug_vm-warn-for-pmd_clear
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -866,6 +866,13 @@ static inline bool pte_ci(pte_t pte)
+ 
+ static inline void pmd_clear(pmd_t *pmdp)
+ {
++	if (IS_ENABLED(CONFIG_DEBUG_VM) && !radix_enabled()) {
++		/*
++		 * Don't use this if we can possibly have a hash page table
++		 * entry mapping this.
++		 */
++		WARN_ON((pmd_val(*pmdp) & (H_PAGE_HASHPTE | _PAGE_PTE)) == (H_PAGE_HASHPTE | _PAGE_PTE));
++	}
+ 	*pmdp = __pmd(0);
+ }
+ 
+@@ -914,6 +921,13 @@ static inline int pmd_bad(pmd_t pmd)
+ 
+ static inline void pud_clear(pud_t *pudp)
+ {
++	if (IS_ENABLED(CONFIG_DEBUG_VM) && !radix_enabled()) {
++		/*
++		 * Don't use this if we can possibly have a hash page table
++		 * entry mapping this.
++		 */
++		WARN_ON((pud_val(*pudp) & (H_PAGE_HASHPTE | _PAGE_PTE)) == (H_PAGE_HASHPTE | _PAGE_PTE));
++	}
+ 	*pudp = __pud(0);
+ }
+ 
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-maintainers-add-llvm-maintainers.patch
-lib-stringc-implement-stpcpy.patch
-compiler-clang-add-build-check-for-clang-1001.patch
-revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
-revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
-revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
-partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
-compiler-gcc-improve-version-error.patch
+powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte.patch
+mm-debug_vm_pgtable-ppc64-avoid-setting-top-bits-in-radom-value.patch
+mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support.patch
+mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
+mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
+mm-debug_vm_pgtable-set_pte-pmd-pud-dont-use-set__at-to-update-an-existing-pte-entry.patch
+mm-debug_vm_pgtable-locks-move-non-page-table-modifying-test-together.patch
+mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch
+mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
+mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
+mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
+mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch
 
