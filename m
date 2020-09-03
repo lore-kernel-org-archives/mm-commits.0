@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EA40C43461
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04272C433E2
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:26:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E92DD206D4
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3590206CA
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:26:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599168356;
-	bh=Ds4zZluGoug3StNQdlOkhstqyPswnjI07rHXfXS5pME=;
+	s=default; t=1599168360;
+	bh=NReKMLymysu4YgU8IBYt8zCGhkEJOdhrHuE9yB9e0UA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=VTZApi42IYc64AZXZ4ClX82I4e9X+uD1hIDp9oEAVNkpx8xNTrlQ1eOqUxpztZK08
-	 mBfpokOVCMNABwyYwMbExREbH59WGfa7zwRfs12mIju75k4PmcG6ho3T+9mpPJ1nFV
-	 uS2xBJB0v7GESUDI9pRxSPb8zQg/vDU2UZB0Q/OU=
+	b=wtzWiEqg5kdc1XTE2DgIjtycuXDk9pD5DQCsMStlpoHln4cyOubMdISHf+b0itEUw
+	 xflurqss15dPcXRjRx5zbVCfL7BiwXDWJEArfgRuNv4yWbtHh/82GJBDvq3Wmj7/it
+	 GM00G33axb58pAnWiMjb151qp+6odSw124PI0P+8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728294AbgICVZ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 17:25:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36490 "EHLO mail.kernel.org"
+        id S1728309AbgICVZ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:25:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728311AbgICVZz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 17:25:55 -0400
+        id S1728311AbgICVZ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:25:57 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9DBC8206EF;
-        Thu,  3 Sep 2020 21:25:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 999B5206CA;
+        Thu,  3 Sep 2020 21:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599168354;
-        bh=Ds4zZluGoug3StNQdlOkhstqyPswnjI07rHXfXS5pME=;
+        s=default; t=1599168356;
+        bh=NReKMLymysu4YgU8IBYt8zCGhkEJOdhrHuE9yB9e0UA=;
         h=Date:From:To:Subject:From;
-        b=cSS4nkyMdRrc0qoXANDIDqT2q85ZlpGuP3k6QpL0mFeByYmjxGLAHanY68pDAJh8K
-         ejBxPi+AIPBowBklfXqgnG26mt5UGa8sxeyh/T0XrLFPMTY2vA3S2+KYxSRkeh7izP
-         KU0IMRbbDHdlmvoYDzy74Q9jq474OjE9mV4nlv70=
-Date:   Thu, 03 Sep 2020 14:25:54 -0700
+        b=OZMVW8gz6Hc7GpuXyLq1CeYo6JKCTnMXvkyXcwo5Xhr96j5PNlKC3NMJ9LExAs7ES
+         xGrsjsk8aAfGjgnpIUFZ0SiWAb56I1aj+HrY4rl5FUCCl4SRUr2IwI/LINVbN4nn5y
+         P/bJ8JaVDllAS10xehaoiZwDEXkfei8qzNs6XVLs=
+Date:   Thu, 03 Sep 2020 14:25:56 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
         aneesh.kumar@linux.ibm.com
 Subject:  +
- mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
- added to -mm tree
-Message-ID: <20200903212554.MGXJa%akpm@linux-foundation.org>
+ mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch added to -mm
+ tree
+Message-ID: <20200903212556.Z_-mb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable/pmd_clear: don't use pmd/pud_clear on pte entries
+     Subject: mm/debug_vm_pgtable/hugetlb: disable hugetlb test on ppc64
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
+     mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,11 +78,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable/pmd_clear: don't use pmd/pud_clear on pte entries
+Subject: mm/debug_vm_pgtable/hugetlb: disable hugetlb test on ppc64
 
-pmd_clear() should not be used to clear pmd level pte entries.
+The seems to be missing quite a lot of details w.r.t allocating the
+correct pgtable_t page (huge_pte_alloc()), holding the right lock
+(huge_pte_lock()) etc.  The vma used is also not a hugetlb VMA.
 
-Link: https://lkml.kernel.org/r/20200902114222.181353-12-aneesh.kumar@linux.ibm.com
+ppc64 do have runtime checks within CONFIG_DEBUG_VM for most of these. 
+Hence disable the test on ppc64.
+
+Link: https://lkml.kernel.org/r/20200902114222.181353-13-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -90,46 +95,37 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/debug_vm_pgtable.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64
 +++ a/mm/debug_vm_pgtable.c
-@@ -196,6 +196,8 @@ static void __init pmd_advanced_tests(st
- 	pmd = READ_ONCE(*pmdp);
- 	WARN_ON(pmd_young(pmd));
- 
-+	/*  Clear the pte entries  */
-+	pmdp_huge_get_and_clear(mm, vaddr, pmdp);
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmdp);
+@@ -811,6 +811,7 @@ static void __init hugetlb_basic_tests(u
+ #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
  }
  
-@@ -319,6 +321,8 @@ static void __init pud_advanced_tests(st
- 	pudp_test_and_clear_young(vma, vaddr, pudp);
- 	pud = READ_ONCE(*pudp);
- 	WARN_ON(pud_young(pud));
-+
-+	pudp_huge_get_and_clear(mm, vaddr, pudp);
++#ifndef CONFIG_PPC_BOOK3S_64
+ static void __init hugetlb_advanced_tests(struct mm_struct *mm,
+ 					  struct vm_area_struct *vma,
+ 					  pte_t *ptep, unsigned long pfn,
+@@ -853,6 +854,7 @@ static void __init hugetlb_advanced_test
+ 	pte = huge_ptep_get(ptep);
+ 	WARN_ON(!(huge_pte_write(pte) && huge_pte_dirty(pte)));
  }
++#endif
+ #else  /* !CONFIG_HUGETLB_PAGE */
+ static void __init hugetlb_basic_tests(unsigned long pfn, pgprot_t prot) { }
+ static void __init hugetlb_advanced_tests(struct mm_struct *mm,
+@@ -1065,7 +1067,9 @@ static int __init debug_vm_pgtable(void)
+ 	pud_populate_tests(mm, pudp, saved_pmdp);
+ 	spin_unlock(ptl);
  
- static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot)
-@@ -442,8 +446,6 @@ static void __init pud_populate_tests(st
- 	 * This entry points to next level page table page.
- 	 * Hence this must not qualify as pud_bad().
- 	 */
--	pmd_clear(pmdp);
--	pud_clear(pudp);
- 	pud_populate(mm, pudp, pmdp);
- 	pud = READ_ONCE(*pudp);
- 	WARN_ON(pud_bad(pud));
-@@ -575,7 +577,6 @@ static void __init pmd_populate_tests(st
- 	 * This entry points to next level page table page.
- 	 * Hence this must not qualify as pmd_bad().
- 	 */
--	pmd_clear(pmdp);
- 	pmd_populate(mm, pmdp, pgtable);
- 	pmd = READ_ONCE(*pmdp);
- 	WARN_ON(pmd_bad(pmd));
++#ifndef CONFIG_PPC_BOOK3S_64
+ 	hugetlb_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
++#endif
+ 
+ 	spin_lock(&mm->page_table_lock);
+ 	p4d_clear_tests(mm, p4dp);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
