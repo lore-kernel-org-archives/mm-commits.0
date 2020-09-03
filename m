@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B86F5C43461
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B89BC433E2
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 837DC206EF
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8CD320709
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Sep 2020 21:25:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599168345;
-	bh=0gNMpziw3coxd0nvlP6N74ALBGRFJ90PThBN5JgYPW0=;
+	s=default; t=1599168346;
+	bh=Bu+BQOr0rOyIDOxzU0/A4e4SNNleBK2OXHdlSl1yB8M=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=qd/BRH9iurm/KkUMKQ7nsWV+FOwkWC1KTDEF+vBuSRxiH4AJ6NK7x+e2U7TB4HgsA
-	 KNZPB6FvlENFFAAsm9e8GV1zuCDfQa5IoqzuDnXyrRv2Nrmr3Kj8/lc5yxml4RZcDJ
-	 QUk8siUi70QaRWV4D5Wdu2gUmFF6tf0ulh1uNq5w=
+	b=jLXTCSMCDh4bzdFbeE4JkyqPGdXoiF6vvPfobFbgbFAHYLcn20ujXFK96gsKkMmW9
+	 EnaoS/PDQhK1Zcz6NMpO9a0B9sdVusXZWI9PW7ES2O57MqgnsgAd0O9qYN6f2KThN7
+	 sqbEr3Y/IUlMOyMAVUgyAICDqEEL/50pgYJzYiws=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726891AbgICVZo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Sep 2020 17:25:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36222 "EHLO mail.kernel.org"
+        id S1728692AbgICVZq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Sep 2020 17:25:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726397AbgICVZn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Sep 2020 17:25:43 -0400
+        id S1728271AbgICVZp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Sep 2020 17:25:45 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A6464206D4;
-        Thu,  3 Sep 2020 21:25:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A26F2206E7;
+        Thu,  3 Sep 2020 21:25:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599168342;
-        bh=0gNMpziw3coxd0nvlP6N74ALBGRFJ90PThBN5JgYPW0=;
+        s=default; t=1599168344;
+        bh=Bu+BQOr0rOyIDOxzU0/A4e4SNNleBK2OXHdlSl1yB8M=;
         h=Date:From:To:Subject:From;
-        b=X4xTO1BDDRTAoobQYMV/ELuRnIKrDxTlAqwEzw0neQsW4LTCP2PXzedpJngfB0jXd
-         40nq8IlbyE1xuPOFM3CAXnJBqkK5pZNWs6kkFx9AgCR21pGVA5m/qgXJPVXR7E5+My
-         /tqek42zBUFHnMBZX+r2bhPvXSZMSkhSskzASk0U=
-Date:   Thu, 03 Sep 2020 14:25:42 -0700
+        b=I8ZOv45C3/odk4Ee27QiPOH1G9UYkS2PRFNl4KyOfcz3NGi+t0+fN/oA3LUaOEDqs
+         l/ElhkFTfLT9HHgW1sQOMSp/5U/wkyxZ5VdvM1SYx4D823UaeOSiKgu2DKd1YltiLF
+         UnPPrduvGnDFcOJ3+BDClRhinklp9ptDk7luXubA=
+Date:   Thu, 03 Sep 2020 14:25:44 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
         aneesh.kumar@linux.ibm.com
 Subject:  +
- =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-savedwrite-enable-savedwrite-test-?=
- =?us-ascii?Q?with-config=5Fnuma=5Fbalancing.patch?= added to -mm tree
-Message-ID: <20200903212542.B75Xn%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-thp-mark-the-pte-entry-huge-befor?=
+ =?us-ascii?Q?e-using-set=5Fpmd-pud=5Fat.patch?= added to -mm tree
+Message-ID: <20200903212544.dNr0M%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable/savedwrite: enable savedwrite test with CONFIG_NUMA_BALANCING
+     Subject: mm/debug_vm_pgtable/THP: mark the pte entry huge before using set_pmd/pud_at
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
+     mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,16 +80,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable/savedwrite: enable savedwrite test with CONFIG_NUMA_BALANCING
+Subject: mm/debug_vm_pgtable/THP: mark the pte entry huge before using set_pmd/pud_at
 
-Saved write support was added to track the write bit of a pte after
-marking the pte protnone.  This was done so that AUTONUMA can convert a
-write pte to protnone and still track the old write bit.  When converting
-it back we set the pte write bit correctly thereby avoiding a write fault
-again.  Hence enable the test only when CONFIG_NUMA_BALANCING is enabled
-and use protnone protflags.
+kernel expects entries to be marked huge before we use
+set_pmd_at()/set_pud_at().
 
-Link: https://lkml.kernel.org/r/20200902114222.181353-6-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-7-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -97,47 +93,92 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/debug_vm_pgtable.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at
 +++ a/mm/debug_vm_pgtable.c
-@@ -119,10 +119,14 @@ static void __init pte_savedwrite_tests(
+@@ -155,7 +155,7 @@ static void __init pmd_advanced_tests(st
+ 				      unsigned long pfn, unsigned long vaddr,
+ 				      pgprot_t prot)
  {
- 	pte_t pte = pfn_pte(pfn, prot);
+-	pmd_t pmd = pfn_pmd(pfn, prot);
++	pmd_t pmd;
  
-+	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
-+		return;
-+
- 	pr_debug("Validating PTE saved write\n");
- 	WARN_ON(!pte_savedwrite(pte_mk_savedwrite(pte_clear_savedwrite(pte))));
- 	WARN_ON(pte_savedwrite(pte_clear_savedwrite(pte_mk_savedwrite(pte))));
- }
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static void __init pmd_basic_tests(unsigned long pfn, pgprot_t prot)
+ 	if (!has_transparent_hugepage())
+ 		return;
+@@ -164,19 +164,19 @@ static void __init pmd_advanced_tests(st
+ 	/* Align the address wrt HPAGE_PMD_SIZE */
+ 	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
+ 
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+ 	pmdp_set_wrprotect(mm, vaddr, pmdp);
+ 	pmd = READ_ONCE(*pmdp);
+ 	WARN_ON(pmd_write(pmd));
+ 
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+ 	pmdp_huge_get_and_clear(mm, vaddr, pmdp);
+ 	pmd = READ_ONCE(*pmdp);
+ 	WARN_ON(!pmd_none(pmd));
+ 
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	pmd = pmd_wrprotect(pmd);
+ 	pmd = pmd_mkclean(pmd);
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+@@ -236,7 +236,7 @@ static void __init pmd_huge_tests(pmd_t
+ 
+ static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
  {
-@@ -234,6 +238,9 @@ static void __init pmd_savedwrite_tests(
+-	pmd_t pmd = pfn_pmd(pfn, prot);
++	pmd_t pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 
+ 	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
+ 		return;
+@@ -276,7 +276,7 @@ static void __init pud_advanced_tests(st
+ 				      unsigned long pfn, unsigned long vaddr,
+ 				      pgprot_t prot)
  {
- 	pmd_t pmd = pfn_pmd(pfn, prot);
+-	pud_t pud = pfn_pud(pfn, prot);
++	pud_t pud;
  
-+	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
-+		return;
+ 	if (!has_transparent_hugepage())
+ 		return;
+@@ -285,25 +285,27 @@ static void __init pud_advanced_tests(st
+ 	/* Align the address wrt HPAGE_PUD_SIZE */
+ 	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
+ 
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_set_wrprotect(mm, vaddr, pudp);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(pud_write(pud));
+ 
+ #ifndef __PAGETABLE_PMD_FOLDED
+-	pud = pfn_pud(pfn, prot);
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_huge_get_and_clear(mm, vaddr, pudp);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(!pud_none(pud));
+ 
+-	pud = pfn_pud(pfn, prot);
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_huge_get_and_clear_full(mm, vaddr, pudp, 1);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(!pud_none(pud));
+ #endif /* __PAGETABLE_PMD_FOLDED */
+-	pud = pfn_pud(pfn, prot);
 +
- 	pr_debug("Validating PMD saved write\n");
- 	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
- 	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
-@@ -1019,8 +1026,8 @@ static int __init debug_vm_pgtable(void)
- 	pmd_huge_tests(pmdp, pmd_aligned, prot);
- 	pud_huge_tests(pudp, pud_aligned, prot);
- 
--	pte_savedwrite_tests(pte_aligned, prot);
--	pmd_savedwrite_tests(pmd_aligned, prot);
-+	pte_savedwrite_tests(pte_aligned, protnone);
-+	pmd_savedwrite_tests(pmd_aligned, protnone);
- 
- 	pte_unmap_unlock(ptep, ptl);
- 
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	pud = pud_wrprotect(pud);
+ 	pud = pud_mkclean(pud);
+ 	set_pud_at(mm, vaddr, pudp, pud);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
