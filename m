@@ -7,49 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3EB8C43461
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 19:20:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B9EC43461
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 19:23:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B52B9206A5
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 19:20:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 432272083B
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 19:23:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599247224;
-	bh=Vz0GsSgDO8q8xBMI4DkeNCOSUSuiO0p2JyZZ6rGt+aA=;
+	s=default; t=1599247389;
+	bh=Gcp17D8SsYGJcde6ftn43oCmlZr0lns5gSj3EMCJ90I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=c/M8lXueWanoLJ12A4145yW6EWXS2e9x6r8ygy2fI68KhPpuogk4Dn3F/xnrn8hbV
-	 l+eeR0nr5Z+iwo5LOkGT5BM3ujQ+5xLjipgfR/x8Z8aqpDjQjbG4tFL9pwBQqi8V8/
-	 ypd5wdm4dM6pd8fbDwbZC8PJO97RbUkE9Wh9Rn+E=
+	b=rypP4QpVaOxumb+4YzWrogdj/P16wRM2daAOxTmHqDDry5Oq0HIJ1Qr2N1iYN5sQj
+	 1doSHIntuguLP4bb4fXZd5ZAGH7+cuh8qxaII8OruC9ZedJalo0qRDINvHJPQQ+n3h
+	 hyUOmIwuTmoO3uAIBY60TtbJVGjzMnXOeqwuJTEk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726406AbgIDTUY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Sep 2020 15:20:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55262 "EHLO mail.kernel.org"
+        id S1726317AbgIDTXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Sep 2020 15:23:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726135AbgIDTUY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Sep 2020 15:20:24 -0400
+        id S1726221AbgIDTXG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Sep 2020 15:23:06 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D373D20684;
-        Fri,  4 Sep 2020 19:20:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9DB15207EA;
+        Fri,  4 Sep 2020 19:23:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599247223;
-        bh=Vz0GsSgDO8q8xBMI4DkeNCOSUSuiO0p2JyZZ6rGt+aA=;
+        s=default; t=1599247385;
+        bh=Gcp17D8SsYGJcde6ftn43oCmlZr0lns5gSj3EMCJ90I=;
         h=Date:From:To:Subject:From;
-        b=eDoAbdqUDbptwx5IfeiOMAnydlJA2gbGIzIZ11Hj1b2ln3uR+78SgPMdUMnwEZT+s
-         3OGaCjr9sbf58hG99q+1Qo9KAQ0eEQRHH+kvDDTzD2mMapZPjbbc/XmF9TyfacXBi3
-         0FiCLeAttkMTvjHqf4IngqlrXxJEQZsHpKAhLxbM=
-Date:   Fri, 04 Sep 2020 12:20:20 -0700
+        b=rtElOr+U6PjNbDm0gqLSTgFsV9YyW7gyfj4LYHTtOwqlYFH3Y/McCaFXWMuAXSzSE
+         qaPPUGP8grXzQsr/42oHKxC0kl7IEKsAdPYXcdl/bfvQeLE2wPtc2eLeVf1gvSA5zJ
+         CP2f28zJ3F8nQkaxvV7x/jjgnGIi25QrJ/Fq77D8=
+Date:   Fri, 04 Sep 2020 12:23:05 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, walken@google.com,
-        tony.luck@intel.com, rppt@kernel.org,
-        richard.weiyang@linux.alibaba.com, pankaj.gupta.linux@gmail.com,
-        osalvador@suse.de, mhocko@suse.com, mgorman@techsingularity.net,
-        mgorman@suse.de, logang@deltatee.com, fenghua.yu@intel.com,
-        david@redhat.com, dan.j.williams@intel.com,
-        charante@codeaurora.org, bhe@redhat.com, akpm@linux-foundation.org
-Subject:  + mm-memory_hotplug-simplify-page-offlining-fix.patch added
- to -mm tree
-Message-ID: <20200904192020.AuiIV%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rafael@kernel.org, OSalvador@suse.com,
+        nathanl@linux.ibm.com, mhocko@kernel.org,
+        gregkh@linuxfoundation.org, david@redhat.com,
+        cheloha@linux.ibm.com, ldufour@linux.ibm.com
+Subject:  [nacked] mm-check-for-memorys-node-later-during-boot.patch
+ removed from -mm tree
+Message-ID: <20200904192305.hVaHl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,88 +56,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-simplify-page-offlining-fix
-has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-simplify-page-offlining-fix.patch
+     Subject: mm: check for memory's node later during boot
+has been removed from the -mm tree.  Its filename was
+     mm-check-for-memorys-node-later-during-boot.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-simplify-page-offlining-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-simplify-page-offlining-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory_hotplug-simplify-page-offlining-fix
+From: Laurent Dufour <ldufour@linux.ibm.com>
+Subject: mm: check for memory's node later during boot
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+register_mem_sect_under_nodem() is checking the memory block's node id
+only if the system state is "SYSTEM_BOOTING".  On PowerPC, the memory
+blocks are registered while the system state is "SYSTEM_SCHEDULING", the
+one before SYSTEM_RUNNING.
+
+The consequence on PowerPC guest with interleaved memory node's ranges is
+that some memory block could be assigned to multiple nodes on sysfs.  This
+lately prevents some memory hot-plug and hot-unplug to succeed because
+links are remaining.  Such a panic is then displayed:
+
+------------[ cut here ]------------
+kernel BUG at /Users/laurent/src/linux-ppc/mm/memory_hotplug.c:1084!
+Oops: Exception in kernel mode, sig: 5 [#1]
+LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
+Modules linked in: rpadlpar_io rpaphp pseries_rng rng_core vmx_crypto gf128mul binfmt_misc ip_tables x_tables xfs libcrc32c crc32c_vpmsum autofs4
+CPU: 8 PID: 10256 Comm: drmgr Not tainted 5.9.0-rc1+ #25
+NIP:  c000000000403f34 LR: c000000000403f2c CTR: 0000000000000000
+REGS: c0000004876e3660 TRAP: 0700   Not tainted  (5.9.0-rc1+)
+MSR:  800000000282b033 <SF,VEC,VSX,EE,FP,ME,IR,DR,RI,LE>  CR: 24000448  XER: 20040000
+CFAR: c000000000846d20 IRQMASK: 0
+GPR00: c000000000403f2c c0000004876e38f0 c0000000012f6f00 ffffffffffffffef
+GPR04: 0000000000000227 c0000004805ae680 0000000000000000 00000004886f0000
+GPR08: 0000000000000226 0000000000000003 0000000000000002 fffffffffffffffd
+GPR12: 0000000088000484 c00000001ec96280 0000000000000000 0000000000000000
+GPR16: 0000000000000000 0000000000000000 0000000000000004 0000000000000003
+GPR20: c00000047814ffe0 c0000007ffff7c08 0000000000000010 c0000000013332c8
+GPR24: 0000000000000000 c0000000011f6cc0 0000000000000000 0000000000000000
+GPR28: ffffffffffffffef 0000000000000001 0000000150000000 0000000010000000
+NIP [c000000000403f34] add_memory_resource+0x244/0x340
+LR [c000000000403f2c] add_memory_resource+0x23c/0x340
+Call Trace:
+[c0000004876e38f0] [c000000000403f2c] add_memory_resource+0x23c/0x340 (unreliable)
+[c0000004876e39c0] [c00000000040408c] __add_memory+0x5c/0xf0
+[c0000004876e39f0] [c0000000000e2b94] dlpar_add_lmb+0x1b4/0x500
+[c0000004876e3ad0] [c0000000000e3888] dlpar_memory+0x1f8/0xb80
+[c0000004876e3b60] [c0000000000dc0d0] handle_dlpar_errorlog+0xc0/0x190
+[c0000004876e3bd0] [c0000000000dc398] dlpar_store+0x198/0x4a0
+[c0000004876e3c90] [c00000000072e630] kobj_attr_store+0x30/0x50
+[c0000004876e3cb0] [c00000000051f954] sysfs_kf_write+0x64/0x90
+[c0000004876e3cd0] [c00000000051ee40] kernfs_fop_write+0x1b0/0x290
+[c0000004876e3d20] [c000000000438dd8] vfs_write+0xe8/0x290
+[c0000004876e3d70] [c0000000004391ac] ksys_write+0xdc/0x130
+[c0000004876e3dc0] [c000000000034e40] system_call_exception+0x160/0x270
+[c0000004876e3e20] [c00000000000d740] system_call_common+0xf0/0x27c
+Instruction dump:
+48442e35 60000000 0b030000 3cbe0001 7fa3eb78 7bc48402 38a5fffe 7ca5fa14
+78a58402 48442db1 60000000 7c7c1b78 <0b030000> 7f23cb78 4bda371d 60000000
+---[ end trace 562fd6c109cd0fb2 ]---
+
+To prevent this multiple links, make the node checking done for states
+prior to SYSTEM_RUNNING.
+
+Link: https://lkml.kernel.org/r/20200902090911.11363-1-ldufour@linux.ibm.com
+Fixes: 4fbce633910e ("mm/memory_hotplug.c: make register_mem_sect_under_node() a callback of walk_memory_range()")
+Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Oscar Salvador <OSalvador@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/node.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-simplify-page-offlining-fix
-+++ a/mm/memory_hotplug.c
-@@ -1580,9 +1580,10 @@ int __ref offline_pages(unsigned long st
- 		 * because has_unmovable_pages explicitly checks for
- 		 * PageBuddy on freed pages on other zones.
+--- a/drivers/base/node.c~mm-check-for-memorys-node-later-during-boot
++++ a/drivers/base/node.c
+@@ -789,7 +789,7 @@ static int register_mem_sect_under_node(
+ 		 * case, during hotplug we know that all pages in the memory
+ 		 * block belong to the same node.
  		 */
-+		ret = test_pages_isolated(start_pfn, end_pfn, MEMORY_OFFLINE);
- 		if (ret)
- 			drain_all_pages(zone);
--	} while (test_pages_isolated(start_pfn, end_pfn, MEMORY_OFFLINE));
-+	} while (ret);
- 
- 	/* Mark all sections offline and remove free pages from the buddy. */
- 	__offline_isolated_pages(start_pfn, end_pfn);
+-		if (system_state == SYSTEM_BOOTING) {
++		if (system_state < SYSTEM_RUNNING) {
+ 			page_nid = get_nid_for_pfn(pfn);
+ 			if (page_nid < 0)
+ 				continue;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ldufour@linux.ibm.com are
 
-mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
-mm.patch
-mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
-device-dax-make-align-a-per-device-property-fix.patch
-powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
-mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
-mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
-memblock-make-memblock_debug-and-related-functionality-private-fix.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
-xarray-add-xa_get_order-fix.patch
-xarray-add-xas_split-fix.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
-mmhwpoison-drop-unneeded-pcplist-draining-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-mm-memory_hotplug-simplify-page-offlining-fix.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-arch-x86-makefile-use-config_shell.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
