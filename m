@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53870C433E2
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF6D3C43461
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:36:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 141B7208C7
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:36:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6D58208C7
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:36:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599262569;
-	bh=XFcbUquuVZKhTfux06RZiOgOdM1c4My4s7e0Hn0J5B0=;
+	s=default; t=1599262572;
+	bh=tHoI2OKKbnDdQoI4H40lRqwLc+rBI1kpurzOITT55yk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=FkQAb79UysM7waX8+Jzy3UdsCOPmX2zuwDIH/0kDx3GZidZ3DtWwWkrfTbr8rjQS0
-	 6fodB+ARZ13NTBm8QzfUk6QgSKRzDOsMO0gHTkKNOyvHy5WOLzLaPfFYffEYb2ouhu
-	 0AEVM2l2h/DFE7D8yACmVHXnKWk2iL5LoHRTD21A=
+	b=ON4EoL5YugEujAXp5NgJBdUitGxEMF41oH8mVA/+ZQMTIMBA+i8GJgJOkriRo9OPk
+	 fWkLE20ElyqU2++1COD2hXGkvBfIistHkP3EBCEk1wHzeoC/38uDuxmsy5UP+XIBw0
+	 cM0z9yZDjnu3MmdCcrmXG4uA/uwt8OmiTLHAEt0I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728257AbgIDXgI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Sep 2020 19:36:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39178 "EHLO mail.kernel.org"
+        id S1728258AbgIDXgM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Sep 2020 19:36:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726456AbgIDXgI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Sep 2020 19:36:08 -0400
+        id S1726456AbgIDXgL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Sep 2020 19:36:11 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 97FB42087C;
-        Fri,  4 Sep 2020 23:36:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 822272078E;
+        Fri,  4 Sep 2020 23:36:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599262567;
-        bh=XFcbUquuVZKhTfux06RZiOgOdM1c4My4s7e0Hn0J5B0=;
+        s=default; t=1599262570;
+        bh=tHoI2OKKbnDdQoI4H40lRqwLc+rBI1kpurzOITT55yk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=b7snsfFoaWJK1OYU07GjQ2/9oz2fIWzKHdRSevSIG23efeE1iNQt5y9n3yR6rvLhX
-         Fl2+h0xHSE9bz6nhLt13KXjuLPS6Y6X4/mvZEERTECYzq148X9e9kbUxxlVe8Kw6sJ
-         iPG+rhtlJbRy7SJPwWdFwMHAruhhBttWygjW5/iU=
-Date:   Fri, 04 Sep 2020 16:36:07 -0700
+        b=coSTLQ8q/IUuHE0BRuefvr+nkFD5C7o8ldVN9ekfR9HsxUzprTtca6dKvVpCKB1fk
+         7/SNl1850WRVYXWfnzxCBcleKwCxL+tKdavzIvIKk6mNJXZs+RavMTudUb3H2WQTCv
+         bRKM0yLoMyzhf5sq322OX5A/bFoF1sKNPmn8Hv1Q=
+Date:   Fri, 04 Sep 2020 16:36:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, apopple@nvidia.com,
-        bharata@linux.ibm.com, hch@lst.de, jgg@nvidia.com,
-        jglisse@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, torvalds@linux-foundation.org
-Subject:  [patch 15/19] mm/migrate: preserve soft dirty in
- remove_migration_pte()
-Message-ID: <20200904233607.3awgBCtEU%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, linux-mm@kvack.org,
+        lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 16/19] mm/hugetlb: try preferred node first when
+ alloc gigantic page from cma
+Message-ID: <20200904233610.-O0mh69Ys%akpm@linux-foundation.org>
 In-Reply-To: <20200904163454.4db0e6ce0c4584d2653678a3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,37 +54,75 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: preserve soft dirty in remove_migration_pte()
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
 
-The code to remove a migration PTE and replace it with a device private
-PTE was not copying the soft dirty bit from the migration entry.  This
-could lead to page contents not being marked dirty when faulting the page
-back from device private memory.
+Since commit cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic
+hugepages using cma"), the gigantic page would be allocated from node
+which is not the preferred node, although there are pages available from
+that node.  The reason is that the nid parameter has been ignored in
+alloc_gigantic_page().
 
-Link: https://lkml.kernel.org/r/20200831212222.22409-3-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
+Besides, the __GFP_THISNODE also need be checked if user required to alloc
+only from the preferred node.
+
+After this patch, the preferred node is tried first before other allowed
+nodes, and don't try to allocate from other nodes if __GFP_THISNODE is
+specified.  If user don't specify the preferred node, the current node
+will be used as preferred node, which makes sure consistent behavior of
+allocating gigantic and non-gigantic hugetlb page.
+
+Link: https://lkml.kernel.org/r/20200902025016.697260-1-lixinhai.lxh@gmail.com
+Fixes: cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-preserve-soft-dirty-in-remove_migration_pte
-+++ a/mm/migrate.c
-@@ -249,6 +249,8 @@ static bool remove_migration_pte(struct
- 		if (unlikely(is_device_private_page(new))) {
- 			entry = make_device_private_entry(new, pte_write(pte));
- 			pte = swp_entry_to_pte(entry);
-+			if (pte_swp_soft_dirty(*pvmw.pte))
-+				pte = pte_swp_mksoft_dirty(pte);
- 			if (pte_swp_uffd_wp(*pvmw.pte))
- 				pte = pte_swp_mkuffd_wp(pte);
+--- a/mm/hugetlb.c~mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma
++++ a/mm/hugetlb.c
+@@ -1250,21 +1250,32 @@ static struct page *alloc_gigantic_page(
+ 		int nid, nodemask_t *nodemask)
+ {
+ 	unsigned long nr_pages = 1UL << huge_page_order(h);
++	if (nid == NUMA_NO_NODE)
++		nid = numa_mem_id();
+ 
+ #ifdef CONFIG_CMA
+ 	{
+ 		struct page *page;
+ 		int node;
+ 
+-		for_each_node_mask(node, *nodemask) {
+-			if (!hugetlb_cma[node])
+-				continue;
+-
+-			page = cma_alloc(hugetlb_cma[node], nr_pages,
+-					 huge_page_order(h), true);
++		if (hugetlb_cma[nid]) {
++			page = cma_alloc(hugetlb_cma[nid], nr_pages,
++					huge_page_order(h), true);
+ 			if (page)
+ 				return page;
  		}
++
++		if (!(gfp_mask & __GFP_THISNODE)) {
++			for_each_node_mask(node, *nodemask) {
++				if (node == nid || !hugetlb_cma[node])
++					continue;
++
++				page = cma_alloc(hugetlb_cma[node], nr_pages,
++						huge_page_order(h), true);
++				if (page)
++					return page;
++			}
++		}
+ 	}
+ #endif
+ 
 _
