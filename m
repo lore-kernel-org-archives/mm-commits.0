@@ -7,47 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 037B4C31E49
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2D9C54F4D
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 18:10:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D4302542C
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 18:05:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC7EC206B7
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 18:05:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599242736;
-	bh=ReyH01DVXibzes3JFaHMMTPQatCfpse8lGIyEphOT3s=;
+	s=default; t=1599242730;
+	bh=yumMNElZvLQ5w7B3rg7wiliAmq4jbYKcQqhRYlzY4Is=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=u0OMa6XvP92BnavBiYp4L9RAJWk2AYV8X2pQgY+qyHPERWpoiIL5b/M1EDNn14CMb
-	 2xQtXJS2gFgDuew9YLxZDmHJZst42SDPhmfkMr1e8bbQGsDihYM48FzjpmSuZ5zT1i
-	 p3ow7ZU7yX23szukDCG7POZpNBQ2Mo7YnFwK0Lk0=
+	b=Xc04pug/+gTorb6j47/nSaf/KN9jvt2/CECx2OeKXxdTqjAbki69UZhiUIe1VbdZY
+	 cps16gRcmOmhc1o0grzidIdpePl+P74BhM1tWg37VGLEv1R62fT5CVLxN1579DluuT
+	 BuOvzPSJHsPzhVoTcSFeIy+zg/Jixdm3r/hWGiiQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726029AbgIDSFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Sep 2020 14:05:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39944 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726047AbgIDSF3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726267AbgIDSF3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 4 Sep 2020 14:05:29 -0400
-Received: from X1 (unknown [162.218.216.4])
+Received: from mail.kernel.org ([198.145.29.99]:39952 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725984AbgIDSF2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Sep 2020 14:05:28 -0400
+Received: from localhost.localdomain (unknown [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 916E62166E;
-        Fri,  4 Sep 2020 17:27:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0D55021775;
+        Fri,  4 Sep 2020 17:45:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599240444;
-        bh=ReyH01DVXibzes3JFaHMMTPQatCfpse8lGIyEphOT3s=;
+        s=default; t=1599241543;
+        bh=yumMNElZvLQ5w7B3rg7wiliAmq4jbYKcQqhRYlzY4Is=;
         h=Date:From:To:Subject:From;
-        b=jo1G2c2Tjm+X3E4w9KG0IBn0q2orxOaTEYQ/CsWOwXrAPJ6qaDSQb9GiA00BTplkM
-         cORaTqRcTXEXTIUOxtF1GhI4g3EdlW1G7U6X5w/6XKoA0eGYhgeGk2kI7xbAUu3Ms9
-         aeMVxt4t+0fYccvXuriSu3M5n5D9cOSqmdvdbvsg=
-Date:   Fri, 04 Sep 2020 10:27:20 -0700
+        b=s2x5zy9q/XyiMkDabBtVe29SzRe2fXfBfhq0fKfNFATx09k4Q1P7UlXJevVazTwsq
+         hFCUgHKWM8ePGuCq0HOU6okFllYWenYSPc8kru9El34OXP7BQ30ubxsPSZVlouYkNg
+         Prfwr5VZ7DCVekFvE5tV+0Nv6gyzrMEALMC3c6Vg=
+Date:   Fri, 04 Sep 2020 10:45:40 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, fw@deneb.enyo.de, minchan@kernel.org
-Subject:  +
- =?us-ascii?Q?mm-madvise-introduce-process=5Fmadvise-syscall-an-external-?=
- =?us-ascii?Q?memory-hinting-api-fix.patch?= added to -mm tree
-Message-ID: <20200904172720.D7vgl%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20200904174540.2gGYRhSMD%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,57 +73,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-make process_madvise() vlen arg have type size_t, per Florian
-
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Florian Weimer <fw@deneb.enyo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/syscalls.h |    2 +-
- mm/madvise.c             |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/ibm/ibmvnic.c |   10 ----------
+ net/ipv4/raw.c                     |    5 -----
+ 2 files changed, 15 deletions(-)
 
---- a/include/linux/syscalls.h~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix
-+++ a/include/linux/syscalls.h
-@@ -880,7 +880,7 @@ asmlinkage long sys_mincore(unsigned lon
- 				unsigned char __user * vec);
- asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
- asmlinkage long sys_process_madvise(int pidfd, const struct iovec __user *vec,
--			unsigned long vlen, int behavior, unsigned int flags);
-+			size_t vlen, int behavior, unsigned int flags);
- asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
- 			unsigned long prot, unsigned long pgoff,
- 			unsigned long flags);
---- a/mm/madvise.c~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix
-+++ a/mm/madvise.c
-@@ -1225,7 +1225,7 @@ put_pid:
- 	return ret;
- }
+--- a/drivers/net/ethernet/ibm/ibmvnic.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/ibm/ibmvnic.c
+@@ -473,12 +473,6 @@ static int reset_rx_pools(struct ibmvnic
  
--static inline int madv_import_iovec(int type, const struct iovec __user *uvec, unsigned int nr_segs,
-+static inline int madv_import_iovec(int type, const struct iovec __user *uvec, size_t nr_segs,
- 		unsigned int fast_segs, struct iovec **iov, struct iov_iter *i)
- {
- #ifdef CONFIG_COMPAT
-@@ -1238,7 +1238,7 @@ static inline int madv_import_iovec(int
- }
+ 	if (!adapter->rx_pool)
+ 		return -1;
+-<<<<<<< HEAD
+-
+-	size_array = (u64 *)((u8 *)(adapter->login_rsp_buf) +
+-		be32_to_cpu(adapter->login_rsp_buf->off_rxadd_buff_size));
+-=======
+->>>>>>> linux-next/akpm-base
  
- SYSCALL_DEFINE5(process_madvise, int, pidfd, const struct iovec __user *, vec,
--		unsigned long, vlen, int, behavior, unsigned int, flags)
-+		size_t, vlen, int, behavior, unsigned int, flags)
- {
- 	ssize_t ret;
- 	struct iovec iovstack[UIO_FASTIOV];
+ 	buff_size = adapter->cur_rx_buf_sz;
+ 	rx_scrqs = adapter->num_active_rx_pools;
+@@ -649,11 +643,7 @@ static int reset_tx_pools(struct ibmvnic
+ 	if (!adapter->tx_pool)
+ 		return -1;
+ 
+-<<<<<<< HEAD
+-	tx_scrqs = be32_to_cpu(adapter->login_rsp_buf->num_txsubm_subcrqs);
+-=======
+ 	tx_scrqs = adapter->num_active_tx_pools;
+->>>>>>> linux-next/akpm-base
+ 	for (i = 0; i < tx_scrqs; i++) {
+ 		rc = reset_one_tx_pool(adapter, &adapter->tso_pool[i]);
+ 		if (rc)
+--- a/net/ipv4/raw.c~linux-next-git-rejects
++++ a/net/ipv4/raw.c
+@@ -611,13 +611,8 @@ static int raw_sendmsg(struct sock *sk,
+ 	} else if (!ipc.oif) {
+ 		ipc.oif = inet->uc_index;
+ 	} else if (ipv4_is_lbcast(daddr) && inet->uc_index) {
+-<<<<<<< HEAD
+-		/* oif is set, packet is to local broadcast
+-		 * and uc_index is set. oif is most likely set
+-=======
+ 		/* oif is set, packet is to local broadcast and
+ 		 * uc_index is set. oif is most likely set
+->>>>>>> linux-next/akpm-base
+ 		 * by sk_bound_dev_if. If uc_index != oif check if the
+ 		 * oif is an L3 master and uc_index is an L3 slave.
+ 		 * If so, we want to allow the send using the uc_index.
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-madvise-pass-mm-to-do_madvise.patch
-pid-move-pidfd_get_pid-to-pidc.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+mm-slub-re-initialize-randomized-freelist-sequence-in-calculate_sizes-fix.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+device-dax-make-align-a-per-device-property-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
+mmhwpoison-drop-unneeded-pcplist-draining-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+arch-x86-makefile-use-config_shell.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
 
