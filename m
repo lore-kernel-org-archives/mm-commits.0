@@ -7,47 +7,50 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 743F8C433E2
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 04:49:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED09CC43461
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 04:51:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47E2A20748
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 04:49:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE566206E7
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 04:51:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599194966;
-	bh=24owoGzJwJIQr7JwFGXX0RwfND4VMHGoGB2DwnJd3VE=;
+	s=default; t=1599195097;
+	bh=qk+/bCfFwcFfqAu4dZZtpVR138ppp0iqDB4xb+weH8Q=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HlOKM3O2vy+WSDz7rth+dzrmWlDYRpfCiD00bHI26u0QzsuaatzumBrzo8FlXXjHJ
-	 1a/v8P1eIi8wRzRkAo+OVkm737si4Jszdoh+bwH6MseF6UGFqvrYZo1u4JKs0f3Y1l
-	 wBwC+CL1TqihhKT4tvFttPpHAX57LUWLmxy8w2ec=
+	b=wS3DBxMglCaSy+9GxFH93QCO1PVShAjZzIyQRbQuFsZ9awgvoSkFZoQN4Rp7PwTC0
+	 smhhWLpizhUlwnGIJVhmMkIv1e6dOZ67j6j1i+y0DV+iFAn3vADSDqabqJas+3CSHS
+	 zkCwNwo3YWfPcPeA1OYzoDL2UYYnryFXKLZp0Cig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726032AbgIDEtZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Sep 2020 00:49:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45506 "EHLO mail.kernel.org"
+        id S1725812AbgIDEvh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Sep 2020 00:51:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725812AbgIDEtZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Sep 2020 00:49:25 -0400
+        id S1725765AbgIDEvg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Sep 2020 00:51:36 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9E747206F2;
-        Fri,  4 Sep 2020 04:49:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 898D7206E7;
+        Fri,  4 Sep 2020 04:51:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599194964;
-        bh=24owoGzJwJIQr7JwFGXX0RwfND4VMHGoGB2DwnJd3VE=;
+        s=default; t=1599195095;
+        bh=qk+/bCfFwcFfqAu4dZZtpVR138ppp0iqDB4xb+weH8Q=;
         h=Date:From:To:Subject:From;
-        b=EfKpSigVbE3kcxE/UPfsn7DSUXh63rTVi70a3OoMZs55fpb4f8nJ4QQryh07JNIZT
-         AJ2uixmfx207vdEfJfVQBbpwKwQscJmvOjztfh+bI15THziQPE6NuTx7MH6XlFj8iy
-         WSoZdpL/BGDE7ORXiDflmuX9uUcgp5+Ra/8gHrfQ=
-Date:   Thu, 03 Sep 2020 21:49:24 -0700
+        b=GZQChtvJzUj0Cxzu/qraBXqRtLEt8E5o9awNarTGX0gzthFZUCxypUEA9GCd0BPRZ
+         4v2ZnphNSrEBQko0kzfnGs9FH7RlUknFtSDmnAavOU2F4pPXpUOp8xoyuRUOf0LRWz
+         eWe7UDfKDBeYvGgmsbFtqWfH2sB31LTxaodXP8es=
+Date:   Thu, 03 Sep 2020 21:51:35 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, jglisse@redhat.com, jgg@nvidia.com,
-        hch@lst.de, bharata@linux.ibm.com, apopple@nvidia.com,
-        rcampbell@nvidia.com
+To:     mm-commits@vger.kernel.org, manivannan.sadhasivam@linaro.org,
+        linus.walleij@linaro.org, joe@perches.com, afaerber@suse.de,
+        rikard.falkeborn@gmail.com
 Subject:  +
- mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch added to -mm
+ const_structscheckpatch-add-pinctrl_ops-and-pinmux_ops.patch added to -mm
  tree
-Message-ID: <20200904044924.RCEUu%akpm@linux-foundation.org>
+Message-ID: <20200904045135.IY0ip%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +59,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: preserve soft dirty in remove_migration_pte()
+     Subject: const_structs.checkpatch: add pinctrl_ops and pinmux_ops
 has been added to the -mm tree.  Its filename is
-     mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch
+     const_structscheckpatch-add-pinctrl_ops-and-pinmux_ops.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/const_structscheckpatch-add-p=
+inctrl_ops-and-pinmux_ops.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/const_structscheckpatch-add-p=
+inctrl_ops-and-pinmux_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,53 +76,50 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: preserve soft dirty in remove_migration_pte()
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: const_structs.checkpatch: add pinctrl_ops and pinmux_ops
 
-The code to remove a migration PTE and replace it with a device private
-PTE was not copying the soft dirty bit from the migration entry.  This
-could lead to page contents not being marked dirty when faulting the page
-back from device private memory.
+All usages of include/linux of these are const pointers, and all instances
+in the kernel except one, that are not const can be made const (patches
+have been posted for those separately).
 
-Link: https://lkml.kernel.org/r/20200831212222.22409-3-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20200830224352.37114-1-rikard.falkeborn@gma=
+il.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Acked-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andreas F=C3=A4rber <afaerber@suse.de
+Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 ++
+ scripts/const_structs.checkpatch |    2 ++
  1 file changed, 2 insertions(+)
 
---- a/mm/migrate.c~mm-migrate-preserve-soft-dirty-in-remove_migration_pte
-+++ a/mm/migrate.c
-@@ -249,6 +249,8 @@ static bool remove_migration_pte(struct
- 		if (unlikely(is_device_private_page(new))) {
- 			entry = make_device_private_entry(new, pte_write(pte));
- 			pte = swp_entry_to_pte(entry);
-+			if (pte_swp_soft_dirty(*pvmw.pte))
-+				pte = pte_swp_mksoft_dirty(pte);
- 			if (pte_swp_uffd_wp(*pvmw.pte))
- 				pte = pte_swp_mkuffd_wp(pte);
- 		}
+--- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-pinctrl_=
+ops-and-pinmux_ops
++++ a/scripts/const_structs.checkpatch
+@@ -40,6 +40,8 @@ nvkm_device_chip
+ of_device_id
+ pci_raw_ops
+ phy_ops
++pinctrl_ops
++pinmux_ops
+ pipe_buf_operations
+ platform_hibernation_ops
+ platform_suspend_ops
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
 
-mm-migrate-remove-unnecessary-is_zone_device_page-check.patch
-mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch
-mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
-mm-test-use-the-new-skip-macro.patch
-mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
-mm-migrate-remove-obsolete-comment-about-device-public.patch
+const_structscheckpatch-add-phy_ops.patch
+const_structscheckpatch-add-pinctrl_ops-and-pinmux_ops.patch
 
