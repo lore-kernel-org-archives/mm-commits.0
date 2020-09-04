@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 001C1C43461
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:35:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD182C2BB84
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:35:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B525A208C7
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:35:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC35B20C09
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:35:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599262551;
-	bh=Mnr9anBUyRw4Nw5T3QhBFrDHFr9FXHh+qIzIvxlgVNo=;
+	s=default; t=1599262553;
+	bh=6WT/eIjHIIiMrlzdI/sZtAds5GrfVF+meLSclJlcCyk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=c3PaHmPvxPIOXvm523Cdx8dNK0HeMBHewCTrWdT2uK8rhcnQXgR8FlUUcTCTSxr3r
-	 lVmE5Ch0+MXNHbHyRDquy/gRUSN3iMkQNgk+DVVmjrEDSRvuVIX+lBGF4gb+/oRgJL
-	 +6sDaxeOBLedCqGHZGfwZrtchBmU4n/lLSIfpMjA=
+	b=JMcb9VWQoYXuInhroYj2pvpqpqrIOP39TAcE9IaQ7k7iVoiesKbJOBa2WLjrUaFlo
+	 a+ZIn9h96FIaA0VzhrRNuVYOPb3Rxrhq+v1sftdj3b5GjDbDuOQNtVBrS2HqrFwjCO
+	 /o1dxXqseDFg+G9AxNRu/6Rksrxhqtv6ryNjUHsE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728163AbgIDXfv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Sep 2020 19:35:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38814 "EHLO mail.kernel.org"
+        id S1728186AbgIDXfx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Sep 2020 19:35:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726456AbgIDXfu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Sep 2020 19:35:50 -0400
+        id S1726456AbgIDXfx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Sep 2020 19:35:53 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6B4E0208FE;
-        Fri,  4 Sep 2020 23:35:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 58E80208C7;
+        Fri,  4 Sep 2020 23:35:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599262549;
-        bh=Mnr9anBUyRw4Nw5T3QhBFrDHFr9FXHh+qIzIvxlgVNo=;
+        s=default; t=1599262552;
+        bh=6WT/eIjHIIiMrlzdI/sZtAds5GrfVF+meLSclJlcCyk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ELwvi10StNI7NthwxdgjAQui7x2z+Dj+0IgjdEjhitKIG7r974/4u2H4YevedeSoO
-         eEobwQ9Ho5hLKPGfkPDCBDR4it/EyKw/XvdobGtvUygZjgSscq5v2Us5GB+v0OLSKB
-         TdSlPvr4OTeTuIEfg0ujOSw9wHO/JsYwALoCEOzw=
-Date:   Fri, 04 Sep 2020 16:35:49 -0700
+        b=NXdkWHIV/r+nGvtWJ5kG09Tp7QrwfBezrOztZLvGe+8apdj68uXoi4xZbCXvdgEZA
+         FQARw7MuyZUFDqnSva3ym8cfOHVyRMC0Qi7UWrg5eNsg3nFCdbZKOZK5GsloHwgmO0
+         oyQv8aLVJXsXb7CpOCtE/c7GCntFOSafVjqzXgmQ=
+Date:   Fri, 04 Sep 2020 16:35:52 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, tklauser@distanz.ch,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 09/19] fork: adjust sysctl_max_threads definition
- to match prototype
-Message-ID: <20200904233549.BMYcHF_T9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
+        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
+        mrinalmni@gmail.com, torvalds@linux-foundation.org
+Subject:  [patch 10/19] checkpatch: fix the usage of capture group
+ ( ... )
+Message-ID: <20200904233552.kLq6B7QPc%akpm@linux-foundation.org>
 In-Reply-To: <20200904163454.4db0e6ce0c4584d2653678a3@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,43 +54,54 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: fork: adjust sysctl_max_threads definition to match prototype
+From: Mrinal Pandey <mrinalmni@gmail.com>
+Subject: checkpatch: fix the usage of capture group ( ... )
 
-Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-changed ctl_table.proc_handler to take a kernel pointer.  Adjust the
-definition of sysctl_max_threads to match its prototype in linux/sysctl.h
-which fixes the following sparse error/warning:
+The usage of "capture group (...)" in the immediate condition after `&&`
+results in `$1` being uninitialized.  This issues a warning "Use of
+uninitialized value $1 in regexp compilation at ./scripts/checkpatch.pl
+line 2638".
 
-kernel/fork.c:3050:47: warning: incorrect type in argument 3 (different address spaces)
-kernel/fork.c:3050:47:    expected void *
-kernel/fork.c:3050:47:    got void [noderef] __user *buffer
-kernel/fork.c:3036:5: error: symbol 'sysctl_max_threads' redeclared with different type (incompatible argument 3 (different address spaces)):
-kernel/fork.c:3036:5:    int extern [addressable] [signed] [toplevel] sysctl_max_threads( ... )
-kernel/fork.c: note: in included file (through include/linux/key.h, include/linux/cred.h, include/linux/sched/signal.h, include/linux/sched/cputime.h):
-./include/linux/sysctl.h:242:5: note: previously declared as:
-./include/linux/sysctl.h:242:5:    int extern [addressable] [signed] [toplevel] sysctl_max_threads( ... )
+I noticed this bug while running checkpatch on the set of commits from
+v5.7 to v5.8-rc1 of the kernel on the commits with a diff content in their
+commit message.
 
-Link: https://lkml.kernel.org/r/20200825093647.24263-1-tklauser@distanz.ch
-Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+This bug was introduced in the script by commit e518e9a59ec3 ("checkpatch:
+emit an error when there's a diff in a changelog").  It has been in the
+script since then.
+
+The author intended to store the match made by capture group in variable
+`$1`.  This should have contained the name of the file as `[\w/]+`
+matched.  However, this couldn't be accomplished due to usage of capture
+group and `$1` in the same regular expression.
+
+Fix this by placing the capture group in the condition before `&&`.  Thus,
+`$1` can be initialized to the text that capture group matches thereby
+setting it to the desired and required value.
+
+Link: https://lkml.kernel.org/r/20200714032352.f476hanaj2dlmiot@mrinalpandey
+Fixes: e518e9a59ec3 ("checkpatch: emit an error when there's a diff in a changelog")
+Signed-off-by: Mrinal Pandey <mrinalmni@gmail.com>
+Reviewed-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Tested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/fork.c~fork-adjust-sysctl_max_threads-definition-to-match-prototype
-+++ a/kernel/fork.c
-@@ -3014,7 +3014,7 @@ int unshare_files(struct files_struct **
- }
+--- a/scripts/checkpatch.pl~checkpatch-fix-the-usage-of-capture-group
++++ a/scripts/checkpatch.pl
+@@ -2639,8 +2639,8 @@ sub process {
  
- int sysctl_max_threads(struct ctl_table *table, int write,
--		       void __user *buffer, size_t *lenp, loff_t *ppos)
-+		       void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	struct ctl_table t;
- 	int ret;
+ # Check if the commit log has what seems like a diff which can confuse patch
+ 		if ($in_commit_log && !$commit_log_has_diff &&
+-		    (($line =~ m@^\s+diff\b.*a/[\w/]+@ &&
+-		      $line =~ m@^\s+diff\b.*a/([\w/]+)\s+b/$1\b@) ||
++		    (($line =~ m@^\s+diff\b.*a/([\w/]+)@ &&
++		      $line =~ m@^\s+diff\b.*a/[\w/]+\s+b/$1\b@) ||
+ 		     $line =~ m@^\s*(?:\-\-\-\s+a/|\+\+\+\s+b/)@ ||
+ 		     $line =~ m/^\s*\@\@ \-\d+,\d+ \+\d+,\d+ \@\@/)) {
+ 			ERROR("DIFF_IN_COMMIT_MSG",
 _
