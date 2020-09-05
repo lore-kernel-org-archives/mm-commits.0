@@ -7,48 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72029C43461
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Sep 2020 20:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F52C433E2
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Sep 2020 20:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D0352074B
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Sep 2020 20:32:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86F0320796
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Sep 2020 20:33:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599337934;
-	bh=kIMRa9ZohKp611u7j7OEGMBximYVkZl16EWgAzUzce0=;
+	s=default; t=1599338026;
+	bh=pjte/MsdvDUoy9kxUwig9RZ7vgAFxe9QXxv1SX1Eif8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wsB2Dp9pjsLztddzq3djbI88uBUSB80VrbcWRhXv+4Y/JuUD9zg+UEVQSZBCjUBAc
-	 pPEoW8GZwv6soF5vT231ALvCmDu7k/jTYv4ZIlAbWiYydn/nB0Lh58tsDo2xIV41J/
-	 rxOZW7GtuWNF6Alo75Wgi7LrjrLTu/pSrAr8MLpQ=
+	b=W0pr07LNnmRi/WdpogKaDE8jfBelRriHtnUYa6Hp/phA+YjOU6dWqpz7F3sF1yAii
+	 pL9EKXRNuiEdMdXSR9JABt4dmo0lwxBIsTyVz0HlAwW1ACEfPRVbfizHa6FqnP0i8A
+	 1HVMk/yll3a/GVbgQsy1EOw/MC8uRsSsNJ10+C74=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728327AbgIEUcN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 5 Sep 2020 16:32:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44462 "EHLO mail.kernel.org"
+        id S1728327AbgIEUdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 5 Sep 2020 16:33:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727875AbgIEUcN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 5 Sep 2020 16:32:13 -0400
+        id S1728103AbgIEUdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 5 Sep 2020 16:33:46 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D104520738;
-        Sat,  5 Sep 2020 20:32:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6A8D820738;
+        Sat,  5 Sep 2020 20:33:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599337932;
-        bh=kIMRa9ZohKp611u7j7OEGMBximYVkZl16EWgAzUzce0=;
+        s=default; t=1599338025;
+        bh=pjte/MsdvDUoy9kxUwig9RZ7vgAFxe9QXxv1SX1Eif8=;
         h=Date:From:To:Subject:From;
-        b=nnsOrRal1TmtkePnHxXLOxtxurUFLkLgdNtPeXACDE46l43T48MxiK611pqih6UCe
-         22m+Tm50xwPGix9u0zP7MHwmPyIrYgoiWs1n23qi8CEE0XXKuSuw1F6/iAVZHho4dX
-         u9yWGOLXU28ySeKpPvx6U2zkrXQ/eW7vtexZ6SWs=
-Date:   Sat, 05 Sep 2020 13:32:12 -0700
+        b=SgEaEoHixP19iafJsD5OMPsdc8ke5XaUPPW0GWS5Qz2MHaB9PMOOqL8zFm2jLbWlY
+         cpIfjkNktV25bLiebxFv9cwWxCu7JOw6Uw1kaKuI/oZUhow2dFTGAWAXEFzgh2zYfR
+         cXvgiG9Y81tGb6YRLKYdsq9dpT1R5VtBtt+3bl74=
+Date:   Sat, 05 Sep 2020 13:33:44 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, minchan@kernel.org,
-        sfr@canb.auug.org.au
-Subject:  +
- =?us-ascii?Q?mm-madvise-introduce-process=5Fmadvise-syscall-an-external-?=
- =?us-ascii?Q?memory-hinting-api-fix-fix-fix.patch?= added to -mm tree
-Message-ID: <20200905203212.zeCap%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        linmiaohe@huawei.com
+Subject:  + mm-vmstat-use-helper-macro-abs.patch added to -mm tree
+Message-ID: <20200905203344.BWfS1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject:  mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
+     Subject: mm/vmstat.c: use helper macro abs()
 has been added to the -mm tree.  Its filename is
-     mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+     mm-vmstat-use-helper-macro-abs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-use-helper-macro-abs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-use-helper-macro-abs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,44 +74,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject:  mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/vmstat.c: use helper macro abs()
 
-Link: https://lkml.kernel.org/r/20200905142639.49fc3f1a@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Minchan Kim <minchan@kernel.org>
+Use helper macro abs() to simplify the "x > t || x < -t" cmp.
+
+Link: https://lkml.kernel.org/r/20200905084008.15748-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd32.h |    2 +-
- include/uapi/asm-generic/unistd.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/unistd32.h~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -889,7 +889,7 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
- __SYSCALL(__NR_faccessat2, sys_faccessat2)
- #define __NR_watch_mount 440
- __SYSCALL(__NR_watch_mount, sys_watch_mount)
--#define __NR_watch_mount 441
-+#define __NR_process_madvise 441
- __SYSCALL(__NR_process_madvise, sys_process_madvise)
+--- a/mm/vmstat.c~mm-vmstat-use-helper-macro-abs
++++ a/mm/vmstat.c
+@@ -329,7 +329,7 @@ void __mod_zone_page_state(struct zone *
  
- /*
---- a/include/uapi/asm-generic/unistd.h~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -861,7 +861,7 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
- __SYSCALL(__NR_faccessat2, sys_faccessat2)
- #define __NR_watch_mount 440
- __SYSCALL(__NR_watch_mount, sys_watch_mount)
--#define __NR_watch_mount 441
-+#define __NR_process_madvise 441
- __SYSCALL(__NR_process_madvise, sys_process_madvise)
+ 	t = __this_cpu_read(pcp->stat_threshold);
  
- #undef __NR_syscalls
+-	if (unlikely(x > t || x < -t)) {
++	if (unlikely(abs(x) > t)) {
+ 		zone_page_state_add(x, zone, item);
+ 		x = 0;
+ 	}
+@@ -354,7 +354,7 @@ void __mod_node_page_state(struct pglist
+ 
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 
+-	if (unlikely(x > t || x < -t)) {
++	if (unlikely(abs(x) > t)) {
+ 		node_page_state_add(x, pgdat, item);
+ 		x = 0;
+ 	}
+@@ -515,7 +515,7 @@ static inline void mod_zone_state(struct
+ 		o = this_cpu_read(*p);
+ 		n = delta + o;
+ 
+-		if (n > t || n < -t) {
++		if (abs(n) > t) {
+ 			int os = overstep_mode * (t >> 1) ;
+ 
+ 			/* Overflow must be added to zone counters */
+@@ -577,7 +577,7 @@ static inline void mod_node_state(struct
+ 		o = this_cpu_read(*p);
+ 		n = delta + o;
+ 
+-		if (n > t || n < -t) {
++		if (abs(n) > t) {
+ 			int os = overstep_mode * (t >> 1) ;
+ 
+ 			/* Overflow must be added to node counters */
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+mm-vmstat-use-helper-macro-abs.patch
+mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
