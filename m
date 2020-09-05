@@ -1,4 +1,4 @@
-Return-Path: <SRS0=2RlJ=CN=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=50af=CO=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,75 +7,115 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A774C433E2
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:36:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72029C43461
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Sep 2020 20:32:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 611B32084D
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Sep 2020 23:36:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D0352074B
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Sep 2020 20:32:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599262581;
-	bh=9T7F3+ZA9+rwxl23x0cEp45CnkCE1T/D6iaqdGZC4Do=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=w0XUX9bD3Lk45nB/wr2oW0cOygAS+AnkGf3IOBUDOngCE5BSEB8lHZ+1qByB8W+pl
-	 G33GObkY6sp/+JkJMA6rJNy1GBffS4V8acfR4M8ZmXBX71xjzyF+5EycBDgNvjVGik
-	 ARBywOOTTzpex6xOIePSY5SYk/RbFGaZv/J7MWww=
+	s=default; t=1599337934;
+	bh=kIMRa9ZohKp611u7j7OEGMBximYVkZl16EWgAzUzce0=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=wsB2Dp9pjsLztddzq3djbI88uBUSB80VrbcWRhXv+4Y/JuUD9zg+UEVQSZBCjUBAc
+	 pPEoW8GZwv6soF5vT231ALvCmDu7k/jTYv4ZIlAbWiYydn/nB0Lh58tsDo2xIV41J/
+	 rxOZW7GtuWNF6Alo75Wgi7LrjrLTu/pSrAr8MLpQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726833AbgIDXgV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Sep 2020 19:36:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39394 "EHLO mail.kernel.org"
+        id S1728327AbgIEUcN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 5 Sep 2020 16:32:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726456AbgIDXgU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Sep 2020 19:36:20 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1727875AbgIEUcN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 5 Sep 2020 16:32:13 -0400
+Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8A55C2078E;
-        Fri,  4 Sep 2020 23:36:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D104520738;
+        Sat,  5 Sep 2020 20:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599262579;
-        bh=9T7F3+ZA9+rwxl23x0cEp45CnkCE1T/D6iaqdGZC4Do=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=uAqRgdLMxAWDtQDcR7Zjq/HHdzrmgDOdy2Dlq3wmKVPOQa6y6byzcoBxxlydqF6/L
-         dKGNlpu+TypyAApuj29HSdk+TbluhzKcv+2vhU+NIsurq3sdNCN6X6TVGELfQLcWbe
-         XbORkllEyTUN9p0/ZJWSnwQsSa+5HJouKfT6oGyI=
-Date:   Fri, 04 Sep 2020 16:36:19 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jgg@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 19/19] include/linux/log2.h: add missing () around
- n in roundup_pow_of_two()
-Message-ID: <20200904233619.zbFSnj4Eh%akpm@linux-foundation.org>
-In-Reply-To: <20200904163454.4db0e6ce0c4584d2653678a3@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=default; t=1599337932;
+        bh=kIMRa9ZohKp611u7j7OEGMBximYVkZl16EWgAzUzce0=;
+        h=Date:From:To:Subject:From;
+        b=nnsOrRal1TmtkePnHxXLOxtxurUFLkLgdNtPeXACDE46l43T48MxiK611pqih6UCe
+         22m+Tm50xwPGix9u0zP7MHwmPyIrYgoiWs1n23qi8CEE0XXKuSuw1F6/iAVZHho4dX
+         u9yWGOLXU28ySeKpPvx6U2zkrXQ/eW7vtexZ6SWs=
+Date:   Sat, 05 Sep 2020 13:32:12 -0700
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        sfr@canb.auug.org.au
+Subject:  +
+ =?us-ascii?Q?mm-madvise-introduce-process=5Fmadvise-syscall-an-external-?=
+ =?us-ascii?Q?memory-hinting-api-fix-fix-fix.patch?= added to -mm tree
+Message-ID: <20200905203212.zeCap%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: include/linux/log2.h: add missing () around n in roundup_pow_of_two()
 
-Otherwise gcc generates warnings if the expression is complicated.
+The patch titled
+     Subject:  mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
+has been added to the -mm tree.  Its filename is
+     mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
 
-Link: https://lkml.kernel.org/r/0-v1-8a2697e3c003+41165-log_brackets_jgg@nvidia.com
-Fixes: 312a0c170945 ("[PATCH] LOG2: Alter roundup_pow_of_two() so that it can use a ilog2() on a constant")
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject:  mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
+
+Link: https://lkml.kernel.org/r/20200905142639.49fc3f1a@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/unistd32.h |    2 +-
+ include/uapi/asm-generic/unistd.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/log2.h~log2-add-missing-around-n-in-roundup_pow_of_two
-+++ a/include/linux/log2.h
-@@ -173,7 +173,7 @@ unsigned long __rounddown_pow_of_two(uns
- #define roundup_pow_of_two(n)			\
- (						\
- 	__builtin_constant_p(n) ? (		\
--		(n == 1) ? 1 :			\
-+		((n) == 1) ? 1 :		\
- 		(1UL << (ilog2((n) - 1) + 1))	\
- 				   ) :		\
- 	__roundup_pow_of_two(n)			\
+--- a/arch/arm64/include/asm/unistd32.h~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -889,7 +889,7 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+ #define __NR_watch_mount 440
+ __SYSCALL(__NR_watch_mount, sys_watch_mount)
+-#define __NR_watch_mount 441
++#define __NR_process_madvise 441
+ __SYSCALL(__NR_process_madvise, sys_process_madvise)
+ 
+ /*
+--- a/include/uapi/asm-generic/unistd.h~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix
++++ a/include/uapi/asm-generic/unistd.h
+@@ -861,7 +861,7 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+ #define __NR_watch_mount 440
+ __SYSCALL(__NR_watch_mount, sys_watch_mount)
+-#define __NR_watch_mount 441
++#define __NR_process_madvise 441
+ __SYSCALL(__NR_process_madvise, sys_process_madvise)
+ 
+ #undef __NR_syscalls
 _
+
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
+
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix.patch
+
