@@ -2,51 +2,50 @@ Return-Path: <SRS0=X2ny=CV=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF48C43461
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B309DC43461
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B809221E5
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C5C22184D
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599927843;
-	bh=Y8874xJbj6B7xujTRhSd8sFHzsFjmxLgqTnI2zfQaX4=;
+	s=default; t=1599927845;
+	bh=mnhA4LY+jKtISrf4EHDeipJS7LGxxxgV0uTH66i8YuE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=MTBWUaMxzkjZqaPOYU7qJHk9mqn81Ah3KXKilN+/ZyYXm2yRK2nMS/P2PB+yDIRjF
-	 dTXosqG6v02GoFYAQYTam2wrClr75g0RvYc5yZsFfRAy8/x1RVfL165Lsi+oj6uJ0A
-	 5Lakq260tg0aXyoUUNan/nd7VStRT7KeCTc5lFds=
+	b=WO6lHCRgw30X6b1f9WbwqZcrrhq36aaZoMZe0aW39hXnyfJiKftfFKBEDPbuomMDl
+	 nKw32SOM8Wn9WFdlFIKr9w7sGnt4KpbHgx3Fe8KCkBzbBxS19tOR5C/J5yGMMlrj/f
+	 SCxmwtDwulMvS5L5dn5JUaoy85Su/PrWQdTqBD90=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725863AbgILQXp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:23:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59626 "EHLO mail.kernel.org"
+        id S1725873AbgILQXt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:23:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725873AbgILQXn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:23:43 -0400
+        id S1725868AbgILQXk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:23:40 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 79B6F2087C;
-        Sat, 12 Sep 2020 16:23:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8EAD52083E;
+        Sat, 12 Sep 2020 16:23:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927822;
-        bh=Y8874xJbj6B7xujTRhSd8sFHzsFjmxLgqTnI2zfQaX4=;
+        s=default; t=1599927819;
+        bh=mnhA4LY+jKtISrf4EHDeipJS7LGxxxgV0uTH66i8YuE=;
         h=Date:From:To:Subject:From;
-        b=ki+7Rxfm8YpW6d1bHUPOG9lYjluqkGmdlGv/PTJyMeKVJG9nJxtHS9h9EfKR4b7qT
-         AXlPzuRqIYbQiNbLyvX76Z95nUD5iO09KpDNaAjCPrktKcGwOHnz1XNwudBEiHHAr+
-         ex4mXiMbkqNgNZUxCrwWywavNv9nzo17DNuvdx3s=
-Date:   Sat, 12 Sep 2020 09:23:42 -0700
+        b=ihf/5+k85NCmDYdqYfb4QKdfskZGxD8eIfqTi2O6SaAxlCTDo35ZfnTG00QF1m7uU
+         dTXwX/yGhYKKv+Aa7A7+iBeQbMsNHKbuXEKoZ3JL8qRIjU3QJ9S9tdFUQX4Z1YXrAc
+         QBZEhD6V3y6t9veKT9CuKjAPaE645N6hPTMzekpc=
+Date:   Sat, 12 Sep 2020 09:23:39 -0700
 From:   akpm@linux-foundation.org
-To:     lukas.bulwahn@gmail.com, masahiroy@kernel.org,
-        miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ndesaulniers@google.com,
-        sedat.dilek@gmail.com
-Subject:  [merged] maintainers-add-llvm-maintainers.patch removed
- from -mm tree
-Message-ID: <20200912162342.ZmlznXNBI%akpm@linux-foundation.org>
+To:     arnd@arndb.de, bp@alien8.de, gkulkarni@marvell.com, maz@kernel.org,
+        mm-commits@vger.kernel.org, rric@kernel.org, sgoutham@marvell.com,
+        wsa@kernel.org
+Subject:  [merged] maintainers-update-cavium-marvell-entries.patch
+ removed from -mm tree
+Message-ID: <20200912162339.rBZsuwzXO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,55 +55,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add LLVM maintainers
+     Subject: MAINTAINERS: update Cavium/Marvell entries
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-llvm-maintainers.patch
+     maintainers-update-cavium-marvell-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: MAINTAINERS: add LLVM maintainers
+From: Robert Richter <rric@kernel.org>
+Subject: MAINTAINERS: update Cavium/Marvell entries
 
-Nominate Nathan and myself to be point of contact for clang/LLVM related
-support, after a poll at the LLVM BoF at Linux Plumbers Conf 2020.
+I am leaving Marvell and already do not have access to my @marvell.com
+email address.  So switching over to my korg mail address or removing my
+address there another maintainer is already listed.  For the entries there
+no other maintainer is listed I will keep looking into patches for Cavium
+systems for a while until someone from Marvell takes it over.  Since I
+might have limited access to hardware and also limited time I changed
+state to 'Odd Fixes' for those entries.
 
-While corporate sponsorship is beneficial, its important to not entrust
-the keys to the nukes with any one entity.  Should Nathan and I find
-ourselves at the same employer, I would gladly step down.
-
-Link: https://lkml.kernel.org/r/20200825143540.2948637-1-ndesaulniers@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Acked-by: Nathan Chancellor <natechancellor@gmail.com>
-Reviewed-by: Sedat Dilek <sedat.dilek@gmail.com>
-Acked-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org
+Link: https://lkml.kernel.org/r/20200824122050.31164-1-rric@kernel.org
+Signed-off-by: Robert Richter <rric@kernel.org>
+Cc: Ganapatrao Kulkarni <gkulkarni@marvell.com>
+Cc: Sunil Goutham <sgoutham@marvell.com>
+CC: Borislav Petkov <bp@alien8.de>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Wolfram Sang <wsa@kernel.org>, 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-llvm-maintainers
+--- a/MAINTAINERS~maintainers-update-cavium-marvell-entries
 +++ a/MAINTAINERS
-@@ -4257,6 +4257,8 @@ S:	Maintained
- F:	.clang-format
+@@ -1694,7 +1694,6 @@ F:	arch/arm/mach-cns3xxx/
  
- CLANG/LLVM BUILD SUPPORT
-+M:	Nathan Chancellor <natechancellor@gmail.com>
-+M:	Nick Desaulniers <ndesaulniers@google.com>
- L:	clang-built-linux@googlegroups.com
+ ARM/CAVIUM THUNDER NETWORK DRIVER
+ M:	Sunil Goutham <sgoutham@marvell.com>
+-M:	Robert Richter <rrichter@marvell.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
  S:	Supported
- W:	https://clangbuiltlinux.github.io/
+ F:	drivers/net/ethernet/cavium/thunder/
+@@ -3948,8 +3947,8 @@ W:	https://wireless.wiki.kernel.org/en/u
+ F:	drivers/net/wireless/ath/carl9170/
+ 
+ CAVIUM I2C DRIVER
+-M:	Robert Richter <rrichter@marvell.com>
+-S:	Supported
++M:	Robert Richter <rric@kernel.org>
++S:	Odd Fixes
+ W:	http://www.marvell.com
+ F:	drivers/i2c/busses/i2c-octeon*
+ F:	drivers/i2c/busses/i2c-thunderx*
+@@ -3964,8 +3963,8 @@ W:	http://www.marvell.com
+ F:	drivers/net/ethernet/cavium/liquidio/
+ 
+ CAVIUM MMC DRIVER
+-M:	Robert Richter <rrichter@marvell.com>
+-S:	Supported
++M:	Robert Richter <rric@kernel.org>
++S:	Odd Fixes
+ W:	http://www.marvell.com
+ F:	drivers/mmc/host/cavium*
+ 
+@@ -3977,9 +3976,9 @@ W:	http://www.marvell.com
+ F:	drivers/crypto/cavium/cpt/
+ 
+ CAVIUM THUNDERX2 ARM64 SOC
+-M:	Robert Richter <rrichter@marvell.com>
++M:	Robert Richter <rric@kernel.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-S:	Maintained
++S:	Odd Fixes
+ F:	Documentation/devicetree/bindings/arm/cavium-thunder2.txt
+ F:	arch/arm64/boot/dts/cavium/thunder2-99xx*
+ 
+@@ -6191,16 +6190,15 @@ F:	drivers/edac/highbank*
+ 
+ EDAC-CAVIUM OCTEON
+ M:	Ralf Baechle <ralf@linux-mips.org>
+-M:	Robert Richter <rrichter@marvell.com>
+ L:	linux-edac@vger.kernel.org
+ L:	linux-mips@vger.kernel.org
+ S:	Supported
+ F:	drivers/edac/octeon_edac*
+ 
+ EDAC-CAVIUM THUNDERX
+-M:	Robert Richter <rrichter@marvell.com>
++M:	Robert Richter <rric@kernel.org>
+ L:	linux-edac@vger.kernel.org
+-S:	Supported
++S:	Odd Fixes
+ F:	drivers/edac/thunderx_edac*
+ 
+ EDAC-CORE
+@@ -6208,7 +6206,7 @@ M:	Borislav Petkov <bp@alien8.de>
+ M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+ M:	Tony Luck <tony.luck@intel.com>
+ R:	James Morse <james.morse@arm.com>
+-R:	Robert Richter <rrichter@marvell.com>
++R:	Robert Richter <rric@kernel.org>
+ L:	linux-edac@vger.kernel.org
+ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ras/ras.git edac-for-next
+@@ -13446,10 +13444,10 @@ F:	Documentation/devicetree/bindings/pci
+ F:	drivers/pci/controller/dwc/*artpec*
+ 
+ PCIE DRIVER FOR CAVIUM THUNDERX
+-M:	Robert Richter <rrichter@marvell.com>
++M:	Robert Richter <rric@kernel.org>
+ L:	linux-pci@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-S:	Supported
++S:	Odd Fixes
+ F:	drivers/pci/controller/pci-thunder-*
+ 
+ PCIE DRIVER FOR HISILICON
+@@ -17237,8 +17235,8 @@ S:	Maintained
+ F:	drivers/net/thunderbolt.c
+ 
+ THUNDERX GPIO DRIVER
+-M:	Robert Richter <rrichter@marvell.com>
+-S:	Maintained
++M:	Robert Richter <rric@kernel.org>
++S:	Odd Fixes
+ F:	drivers/gpio/gpio-thunderx.c
+ 
+ TI AM437X VPFE DRIVER
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from rric@kernel.org are
 
-compiler-clang-add-build-check-for-clang-1001.patch
-revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
-revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
-revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
-partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
-compiler-gcc-improve-version-error.patch
 
