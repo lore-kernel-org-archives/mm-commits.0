@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6887CC43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D51C433E2
 	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:24:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B487217BA
+	by mail.kernel.org (Postfix) with ESMTP id 5207321D6C
 	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:24:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1599953062;
-	bh=FYFR8YtfPM+cDsLBsuEKW2WP1ji1vYIwtHnDnc38yHA=;
+	bh=wlQqfycMybmH8R6S4AB/wtHfvBwJZA8PS/Trjl1ZOtU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=09SAuAui98IOu43vHpdHzazDe1EDWP14LocyThU5K9x+4vPgNbW2NJH41ifIZ5tC1
-	 b/4/8x7eT9VPc0ip9JOyqtk0cirp8shHiKA1E/kVGFKMoyiZ/ARN5zTigxqrMVwkxn
-	 wSo2dSiVC7rJRyjNgF3w0MxFm1pG3o0cggxV9jkY=
+	b=Ju6TWT7vZUIUOVNMMjG2zfGEFprtQa1m6Nbp8OiCtqhj+ssOtzieuz/VTyqFqzzJJ
+	 UZDCJ+ojP0UOa1LDPuOjb1yrEu6Sywtej8F9YaZtxmH1UYojxh4YQZwKmrgmZR248I
+	 4zmcEVLvFuHmyMhJzWtOcxS8pVJJSFZDxS7eYq7o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725910AbgILXYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 19:24:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47486 "EHLO mail.kernel.org"
+        id S1725903AbgILXYW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 19:24:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725903AbgILXYQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 19:24:16 -0400
+        id S1725906AbgILXYS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 19:24:18 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BAA4F21775;
-        Sat, 12 Sep 2020 23:24:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A8F8A21789;
+        Sat, 12 Sep 2020 23:24:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599953056;
-        bh=FYFR8YtfPM+cDsLBsuEKW2WP1ji1vYIwtHnDnc38yHA=;
+        s=default; t=1599953057;
+        bh=wlQqfycMybmH8R6S4AB/wtHfvBwJZA8PS/Trjl1ZOtU=;
         h=Date:From:To:Subject:From;
-        b=pJEe97sYh27V+11zuUe5Q5NBuZ7pzU5kmbfCOuuFz6SkBmIeAKJb6HUCLXgUgYRW5
-         8uD6Wzg4WEW7jFOqf1v2MukXnJZTwt9HeJ12OWMlrWJLEMHLVuG0Bnyu2tzYm0U0DH
-         Ae+SjcV0DRTIX+O+QWb+Knhz1Whi7f7MWC1yhg/k=
-Date:   Sat, 12 Sep 2020 16:24:15 -0700
+        b=BTk2Mz2FZrRobUz3FOa+5rusWwZDyMcDddqGZ4z+hNCwl/3mHqHPf1CAWpAXTkxwa
+         btzH478C9P5Gloqu468uL+nByVp2AvrCwqfjcOsJK0jekmCd4fHwBXoLUSjWLHzdoi
+         ipq4K069wo/+TSoSftlr6YINhSupPnwILDyMT9kw=
+Date:   Sat, 12 Sep 2020 16:24:17 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         william.kucharski@oracle.com, matthew.auld@intel.com,
         jani.nikula@linux.intel.com, hughd@google.com, hannes@cmpxchg.org,
         chris@chris-wilson.co.uk, adobriyan@gmail.com, willy@infradead.org
-Subject:  + mm-use-find_get_incore_page-in-memcontrol.patch added to
- -mm tree
-Message-ID: <20200912232415.IeXB-%akpm@linux-foundation.org>
+Subject:  + mm-optimise-madvise-willneed.patch added to -mm tree
+Message-ID: <20200912232417.8JI_-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use find_get_incore_page in memcontrol
+     Subject: mm: optimise madvise WILLNEED
 has been added to the -mm tree.  Its filename is
-     mm-use-find_get_incore_page-in-memcontrol.patch
+     mm-optimise-madvise-willneed.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-find_get_incore_page-in-memcontrol.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-optimise-madvise-willneed.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-find_get_incore_page-in-memcontrol.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-optimise-madvise-willneed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,68 +77,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use find_get_incore_page in memcontrol
+Subject: mm: optimise madvise WILLNEED
 
-The current code does not protect against swapoff of the underlying
-swap device, so this is a bug fix as well as a worthwhile reduction in
-code complexity.
+Instead of calling find_get_entry() for every page index, use an XArray
+iterator to skip over NULL entries, and avoid calling get_page(),
+because we only want the swap entries.
 
-Link: https://lkml.kernel.org/r/20200910183318.20139-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200910183318.20139-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Auld <matthew.auld@intel.com>
 Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ mm/madvise.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~mm-use-find_get_incore_page-in-memcontrol
-+++ a/mm/memcontrol.c
-@@ -5539,35 +5539,15 @@ static struct page *mc_handle_swap_pte(s
- static struct page *mc_handle_file_pte(struct vm_area_struct *vma,
- 			unsigned long addr, pte_t ptent, swp_entry_t *entry)
+--- a/mm/madvise.c~mm-optimise-madvise-willneed
++++ a/mm/madvise.c
+@@ -224,25 +224,28 @@ static void force_shm_swapin_readahead(s
+ 		unsigned long start, unsigned long end,
+ 		struct address_space *mapping)
  {
--	struct page *page = NULL;
--	struct address_space *mapping;
--	pgoff_t pgoff;
--
- 	if (!vma->vm_file) /* anonymous vma */
- 		return NULL;
- 	if (!(mc.flags & MOVE_FILE))
- 		return NULL;
+-	pgoff_t index;
++	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
++	pgoff_t end_index = end / PAGE_SIZE;
+ 	struct page *page;
+-	swp_entry_t swap;
  
--	mapping = vma->vm_file->f_mapping;
--	pgoff = linear_page_index(vma, addr);
--
- 	/* page is moved even if it's not RSS of this task(page-faulted). */
--#ifdef CONFIG_SWAP
- 	/* shmem/tmpfs may report page out on swap: account for that too. */
--	if (shmem_mapping(mapping)) {
--		page = find_get_entry(mapping, pgoff);
--		if (xa_is_value(page)) {
--			swp_entry_t swp = radix_to_swp_entry(page);
--			*entry = swp;
--			page = find_get_page(swap_address_space(swp),
--					     swp_offset(swp));
+-	for (; start < end; start += PAGE_SIZE) {
+-		index = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
++	rcu_read_lock();
++	xas_for_each(&xas, page, end_index) {
++		swp_entry_t swap;
+ 
+-		page = find_get_entry(mapping, index);
+-		if (!xa_is_value(page)) {
+-			if (page)
+-				put_page(page);
++		if (!xa_is_value(page))
+ 			continue;
 -		}
--	} else
--		page = find_get_page(mapping, pgoff);
--#else
--	page = find_get_page(mapping, pgoff);
--#endif
--	return page;
-+	return find_get_incore_page(vma->vm_file->f_mapping,
-+			linear_page_index(vma, addr));
- }
++		rcu_read_unlock();
++
+ 		swap = radix_to_swp_entry(page);
+ 		page = read_swap_cache_async(swap, GFP_HIGHUSER_MOVABLE,
+ 							NULL, 0, false);
+ 		if (page)
+ 			put_page(page);
++
++		rcu_read_lock();
++		xas_reset(&xas);
+ 	}
++	rcu_read_unlock();
  
- /**
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
