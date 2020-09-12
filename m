@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC512C43461
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C047CC433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97C7E21D6C
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 887F52083E
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599927824;
-	bh=hulqML4vOxWDBzE2aGY1AmVquDZe2x5hE1QqSSZtnGw=;
+	s=default; t=1599927826;
+	bh=U57xxXFlAxk2CsiGr+tYchhJJA00x8CGFnbL5xI8xCc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=t1+KTUxyLVEhQr+2ZPI8NKb+Rc5B0lZqwp1SzT1/bIOj1m2tBmIg604AFP5SqLOCu
-	 HzOEg4jdTmi33pEyXpa+aE7vupN5/5T/sWCXbO0O3IRlyh+cH4txmYvxZLktUFWxcN
-	 qhT3vTzlwbVScHH/akqtW7InbX/+ndJZs4l+qjVc=
+	b=EXdrkHRgxbchAX0t6DlfAHmk0YvaEF0nPZc2PW5qV0GMOfD4C/8TK03CO9eflOHsm
+	 v73+wpzc53n0KZROrzzogg+weFztWJYlr9dnOxnLKIphJwag4sX7pjWKbRxnzICLHR
+	 sc7j1tO2jzM2izOhcuMx953QOgOTDepVvepeLHlY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725871AbgILQXm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:23:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59302 "EHLO mail.kernel.org"
+        id S1725846AbgILQXn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:23:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725846AbgILQXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:23:33 -0400
+        id S1725860AbgILQXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:23:36 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C41AA2083E;
-        Sat, 12 Sep 2020 16:23:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8CB392087C;
+        Sat, 12 Sep 2020 16:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927813;
-        bh=hulqML4vOxWDBzE2aGY1AmVquDZe2x5hE1QqSSZtnGw=;
+        s=default; t=1599927815;
+        bh=U57xxXFlAxk2CsiGr+tYchhJJA00x8CGFnbL5xI8xCc=;
         h=Date:From:To:Subject:From;
-        b=hb/hQEQZGzlYd/jbFPbtBEWzoxQOZGQfbG/3r8eSOIXYU2ItIEokU98xQRE00yatE
-         tmOJcc6gzCzpoeas4jshTbvvAWCqTOG8VNidNlOEbhUD3VsPSII9KoMjiMqgy7k5Ed
-         h0CGDLXuzsZIIrxENOmnv8zYJRPAynfnrieBUhxY=
-Date:   Sat, 12 Sep 2020 09:23:32 -0700
+        b=YHoABcjoSfVQzkUS04x38mr2XP3LJKAIg1mdF0FSeTGArZz7HXmROhHWCguADvnGw
+         xpd80Lag/1eD2Y3rumJ+2FCKq3mCK7/nTwP55DobkbBsY6ZaV3lXQ/h+uSuZ15Foil
+         pKEJfxZ8QWBWs4+y0W/uVk3gqY1H91FSI6ekf+3M=
+Date:   Sat, 12 Sep 2020 09:23:35 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  [merged] memcg-fix-use-after-free-in-uncharge_batch.patch
+To:     chris@chrisdown.name, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, xlpang@linux.alibaba.com
+Subject:  [merged] mm-memcg-fix-memcg-reclaim-soft-lockup.patch
  removed from -mm tree
-Message-ID: <20200912162332.mzYiPtJYf%akpm@linux-foundation.org>
+Message-ID: <20200912162335._IDWt0zSG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,113 +54,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix use-after-free in uncharge_batch
+     Subject: mm: memcg: fix memcg reclaim soft lockup
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-use-after-free-in-uncharge_batch.patch
+     mm-memcg-fix-memcg-reclaim-soft-lockup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: memcg: fix use-after-free in uncharge_batch
+From: Xunlei Pang <xlpang@linux.alibaba.com>
+Subject: mm: memcg: fix memcg reclaim soft lockup
 
-syzbot has reported an use-after-free in the uncharge_batch path
+We've met softlockup with "CONFIG_PREEMPT_NONE=y", when the target memcg
+doesn't have any reclaimable memory.
 
-BUG: KASAN: use-after-free in instrument_atomic_write include/linux/instrumented.h:71 [inline]
-BUG: KASAN: use-after-free in atomic64_sub_return include/asm-generic/atomic-instrumented.h:970 [inline]
-BUG: KASAN: use-after-free in atomic_long_sub_return include/asm-generic/atomic-long.h:113 [inline]
-BUG: KASAN: use-after-free in page_counter_cancel mm/page_counter.c:54 [inline]
-BUG: KASAN: use-after-free in page_counter_uncharge+0x3d/0xc0 mm/page_counter.c:155
-Write of size 8 at addr ffff8880371c0148 by task syz-executor.0/9304
+It can be easily reproduced as below:
+ watchdog: BUG: soft lockup - CPU#0 stuck for 111s![memcg_test:2204]
+ CPU: 0 PID: 2204 Comm: memcg_test Not tainted 5.9.0-rc2+ #12
+ Call Trace:
+  shrink_lruvec+0x49f/0x640
+  shrink_node+0x2a6/0x6f0
+  do_try_to_free_pages+0xe9/0x3e0
+  try_to_free_mem_cgroup_pages+0xef/0x1f0
+  try_charge+0x2c1/0x750
+  mem_cgroup_charge+0xd7/0x240
+  __add_to_page_cache_locked+0x2fd/0x370
+  add_to_page_cache_lru+0x4a/0xc0
+  pagecache_get_page+0x10b/0x2f0
+  filemap_fault+0x661/0xad0
+  ext4_filemap_fault+0x2c/0x40
+  __do_fault+0x4d/0xf9
+  handle_mm_fault+0x1080/0x1790
 
-CPU: 0 PID: 9304 Comm: syz-executor.0 Not tainted 5.8.0-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x1f0/0x31e lib/dump_stack.c:118
- print_address_description+0x66/0x620 mm/kasan/report.c:383
- __kasan_report mm/kasan/report.c:513 [inline]
- kasan_report+0x132/0x1d0 mm/kasan/report.c:530
- check_memory_region_inline mm/kasan/generic.c:183 [inline]
- check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:192
- instrument_atomic_write include/linux/instrumented.h:71 [inline]
- atomic64_sub_return include/asm-generic/atomic-instrumented.h:970 [inline]
- atomic_long_sub_return include/asm-generic/atomic-long.h:113 [inline]
- page_counter_cancel mm/page_counter.c:54 [inline]
- page_counter_uncharge+0x3d/0xc0 mm/page_counter.c:155
- uncharge_batch+0x6c/0x350 mm/memcontrol.c:6764
- uncharge_page+0x115/0x430 mm/memcontrol.c:6796
- uncharge_list mm/memcontrol.c:6835 [inline]
- mem_cgroup_uncharge_list+0x70/0xe0 mm/memcontrol.c:6877
- release_pages+0x13a2/0x1550 mm/swap.c:911
- tlb_batch_pages_flush mm/mmu_gather.c:49 [inline]
- tlb_flush_mmu_free mm/mmu_gather.c:242 [inline]
- tlb_flush_mmu+0x780/0x910 mm/mmu_gather.c:249
- tlb_finish_mmu+0xcb/0x200 mm/mmu_gather.c:328
- exit_mmap+0x296/0x550 mm/mmap.c:3185
- __mmput+0x113/0x370 kernel/fork.c:1076
- exit_mm+0x4cd/0x550 kernel/exit.c:483
- do_exit+0x576/0x1f20 kernel/exit.c:793
- do_group_exit+0x161/0x2d0 kernel/exit.c:903
- get_signal+0x139b/0x1d30 kernel/signal.c:2743
- arch_do_signal+0x33/0x610 arch/x86/kernel/signal.c:811
- exit_to_user_mode_loop kernel/entry/common.c:135 [inline]
- exit_to_user_mode_prepare+0x8d/0x1b0 kernel/entry/common.c:166
- syscall_exit_to_user_mode+0x5e/0x1a0 kernel/entry/common.c:241
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+It only happens on our 1-vcpu instances, because there's no chance for oom
+reaper to run to reclaim the to-be-killed process.
 
-1a3e1f40962c ("mm: memcontrol: decouple reference counting from page
-accounting") has reworked the memcg lifetime to be bound the the struct
-page rather than charges.  It has also removed the css_put_many from
-uncharge_batch and that is causing the above splat.  uncharge_batch is
-supposed to uncharge accumulated charges for all pages freed from the same
-memcg.  The queuing is done by uncharge_page which however drops the memcg
-reference after it adds charges to the batch.  If the current page happens
-to be the last one holding the reference for its memcg then the memcg is
-OK to go and the next page to be freed will trigger batched uncharge which
-needs to access the memcg which is gone already.
+Add a cond_resched() at the upper shrink_node_memcgs() to solve this
+issue, this will mean that we will get a scheduling point for each memcg
+in the reclaimed hierarchy without any dependency on the reclaimable
+memory in that memcg thus making it more predictable.
 
-Fix the issue by taking a reference for the memcg in the current batch.
-
-Link: https://lkml.kernel.org/r/20200820090341.GC5033@dhcp22.suse.cz
-Fixes: 1a3e1f40962c ("mm: memcontrol: decouple reference counting from page accounting")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: syzbot+b305848212deec86eabe@syzkaller.appspotmail.com
-Reported-by: syzbot+b5ea6fb6f139c8b9482b@syzkaller.appspotmail.com
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Link: http://lkml.kernel.org/r/1598495549-67324-1-git-send-email-xlpang@linux.alibaba.com
+Signed-off-by: Xunlei Pang <xlpang@linux.alibaba.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/vmscan.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/memcontrol.c~memcg-fix-use-after-free-in-uncharge_batch
-+++ a/mm/memcontrol.c
-@@ -6774,6 +6774,9 @@ static void uncharge_batch(const struct
- 	__this_cpu_add(ug->memcg->vmstats_percpu->nr_page_events, ug->nr_pages);
- 	memcg_check_events(ug->memcg, ug->dummy_page);
- 	local_irq_restore(flags);
-+
-+	/* drop reference from uncharge_page */
-+	css_put(&ug->memcg->css);
- }
+--- a/mm/vmscan.c~mm-memcg-fix-memcg-reclaim-soft-lockup
++++ a/mm/vmscan.c
+@@ -2615,6 +2615,14 @@ static void shrink_node_memcgs(pg_data_t
+ 		unsigned long reclaimed;
+ 		unsigned long scanned;
  
- static void uncharge_page(struct page *page, struct uncharge_gather *ug)
-@@ -6797,6 +6800,9 @@ static void uncharge_page(struct page *p
- 			uncharge_gather_clear(ug);
- 		}
- 		ug->memcg = page->mem_cgroup;
++		/*
++		 * This loop can become CPU-bound when target memcgs
++		 * aren't eligible for reclaim - either because they
++		 * don't have any reclaimable pages, or because their
++		 * memory is explicitly protected. Avoid soft lockups.
++		 */
++		cond_resched();
 +
-+		/* pairs with css_put in uncharge_batch */
-+		css_get(&ug->memcg->css);
- 	}
+ 		mem_cgroup_calculate_protection(target_memcg, memcg);
  
- 	nr_pages = compound_nr(page);
+ 		if (mem_cgroup_below_min(memcg)) {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from xlpang@linux.alibaba.com are
 
 
