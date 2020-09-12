@@ -2,49 +2,51 @@ Return-Path: <SRS0=X2ny=CV=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63595C10DAA
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF6E4C433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 204562087C
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CF5F2083E
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599927889;
-	bh=c0ltLMTXtbecnLN0Jg5bLBtD/kqF1kF1e/u27YQU4RE=;
+	s=default; t=1599927891;
+	bh=FiL9jwMN50h8NqXpwNO4P2u5WHlCjUtLkpUz19wm5VY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yzSPDVZ8Ba6L8oZ7khUUs1hhgk5M6TtsTTmHfNJIWODBgRZh+uYmdCfWotacCZtFf
-	 3MzcCRuuUT754zfPwRV8B7z8UQJ8P8OdVvxLJ4FDo/DAw8NZCQe50NLc25CMW+A+qe
-	 qA35LAuGwZA6ovD/i4EkqDRUSGfTHDEnwfI7BatE=
+	b=yIGkKhIpeWa9HFl0B0YdQ+khr5e7NNPZFkSGbywEPHj1kgT8FN+nQR46Rn+CDoQuY
+	 btlSU5e0WbOjT12ccRTjyfz+QpF+mk7IY/PyiNvQ2wAa2kNf+fw8bhyRGm55yvyo8Q
+	 HzGsu0wiCWE2DbCbLMR68NVzqLAZ+2shHU+tVeQo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725899AbgILQY1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:24:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59676 "EHLO mail.kernel.org"
+        id S1725846AbgILQYr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:24:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725878AbgILQXp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:23:45 -0400
+        id S1725888AbgILQYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:24:04 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 725CA21655;
-        Sat, 12 Sep 2020 16:23:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6163E2087C;
+        Sat, 12 Sep 2020 16:24:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927824;
-        bh=c0ltLMTXtbecnLN0Jg5bLBtD/kqF1kF1e/u27YQU4RE=;
+        s=default; t=1599927844;
+        bh=FiL9jwMN50h8NqXpwNO4P2u5WHlCjUtLkpUz19wm5VY=;
         h=Date:From:To:Subject:From;
-        b=J+6vG1pj5zgRWk8w1JKBIhrCPuKq5VednLIvJhmXI5rZWrJ5a9FvevVNEykHLwFiQ
-         V12HijIyD86ro4zbjRxtl1Ckz6rMYwmwKt605eJCCGsKhqMe5SN7Fk4RklRgE1ADui
-         CtZ0H4gebsCH9Ke5K4aJ4dQ7ApBj0ESgyqFSMrxA=
-Date:   Sat, 12 Sep 2020 09:23:44 -0700
+        b=TLOllqN8558mOZQCaraHGGq0ZleRoBN2sJxpksiiouJ2U8YfFQ9hrPVlh6sgBnFgB
+         nS/LdMUPOXgLwPNeNMYHaz8FAQGql41UrGDkXqaPOzjpEza//liaC88Shg4meQ9uQJ
+         y2wCKN018MmZm3wR5+438n35aGECPpXbGuQlH0wY=
+Date:   Sat, 12 Sep 2020 09:24:04 -0700
 From:   akpm@linux-foundation.org
-To:     fenghua.yu@intel.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, tony.luck@intel.com
+To:     apopple@nvidia.com, bharata@linux.ibm.com, hch@lst.de,
+        jgg@nvidia.com, jglisse@redhat.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com
 Subject:  [merged]
- maintainers-ia64-mark-status-as-odd-fixes-only.patch removed from -mm tree
-Message-ID: <20200912162344.Ajw4h0UXu%akpm@linux-foundation.org>
+ mm-migrate-remove-unnecessary-is_zone_device_page-check.patch removed from
+ -mm tree
+Message-ID: <20200912162404.UwxvHamDf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,54 +56,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: IA64: mark Status as Odd Fixes only
+     Subject: mm/migrate: remove unnecessary is_zone_device_page() check
 has been removed from the -mm tree.  Its filename was
-     maintainers-ia64-mark-status-as-odd-fixes-only.patch
+     mm-migrate-remove-unnecessary-is_zone_device_page-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: MAINTAINERS: IA64: mark Status as Odd Fixes only
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/migrate: remove unnecessary is_zone_device_page() check
 
-IA64 isn't really being maintained, so mark it as Odd Fixes only.
+Patch series "mm/migrate: preserve soft dirty in remove_migration_pte()".
 
-Link: http://lkml.kernel.org/r/7e719139-450f-52c2-59a2-7964a34eda1f@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+I happened to notice this from code inspection after seeing Alistair
+Popple's patch ("mm/rmap: Fixup copying of soft dirty and uffd ptes").
+
+
+This patch (of 2):
+
+The check for is_zone_device_page() and is_device_private_page() is
+unnecessary since the latter is sufficient to determine if the page is a
+device private page.  Simplify the code for easier reading.
+
+Link: https://lkml.kernel.org/r/20200831212222.22409-1-rcampbell@nvidia.com
+Link: https://lkml.kernel.org/r/20200831212222.22409-2-rcampbell@nvidia.com
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Bharata B Rao <bharata@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/MAINTAINERS~maintainers-ia64-mark-status-as-odd-fixes-only
-+++ a/MAINTAINERS
-@@ -8272,7 +8272,7 @@ IA64 (Itanium) PLATFORM
- M:	Tony Luck <tony.luck@intel.com>
- M:	Fenghua Yu <fenghua.yu@intel.com>
- L:	linux-ia64@vger.kernel.org
--S:	Maintained
-+S:	Odd Fixes
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux.git
- F:	Documentation/ia64/
- F:	arch/ia64/
+--- a/mm/migrate.c~mm-migrate-remove-unnecessary-is_zone_device_page-check
++++ a/mm/migrate.c
+@@ -246,13 +246,11 @@ static bool remove_migration_pte(struct
+ 		else if (pte_swp_uffd_wp(*pvmw.pte))
+ 			pte = pte_mkuffd_wp(pte);
+ 
+-		if (unlikely(is_zone_device_page(new))) {
+-			if (is_device_private_page(new)) {
+-				entry = make_device_private_entry(new, pte_write(pte));
+-				pte = swp_entry_to_pte(entry);
+-				if (pte_swp_uffd_wp(*pvmw.pte))
+-					pte = pte_swp_mkuffd_wp(pte);
+-			}
++		if (unlikely(is_device_private_page(new))) {
++			entry = make_device_private_entry(new, pte_write(pte));
++			pte = swp_entry_to_pte(entry);
++			if (pte_swp_uffd_wp(*pvmw.pte))
++				pte = pte_swp_mkuffd_wp(pte);
+ 		}
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
-fs-ocfs2-delete-repeated-words-in-comments.patch
-fs-xattrc-fix-kernel-doc-warnings-for-setxattr-removexattr.patch
-x86-numa-add-nohmat-option-fix.patch
-fs-configfs-delete-repeated-words-in-comments.patch
-lib-bitmap-delete-duplicated-words.patch
-lib-libcrc32c-delete-duplicated-words.patch
-lib-decompress_bunzip2-delete-duplicated-words.patch
-lib-devres-delete-duplicated-words.patch
-lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
-lib-earlycpio-delete-duplicated-words.patch
-lib-radix-tree-delete-duplicated-words.patch
-lib-syscall-delete-duplicated-words.patch
-lib-test_sysctl-delete-duplicated-words.patch
+mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
+mm-test-use-the-new-skip-macro.patch
+mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
+mm-migrate-remove-obsolete-comment-about-device-public.patch
 
