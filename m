@@ -7,43 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A231C433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:18:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A69C5C433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:20:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47476207C3
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:18:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B3382078D
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599938303;
-	bh=olkkwReA0WnnyujkJTosl6pmaiCkRITwroNPcXsWv8Y=;
+	s=default; t=1599938432;
+	bh=klJZq1gtZmAmAoQAMeuBLYpuAsYvAh45WhKRg0wfRKM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=gP5V680oy4QG/ZSr4pCZMKgP1kf+2xGXKLgUw62cXqMU5zJFX1Vw7gD0vVW0hXEn5
-	 A5vEKXXjjirVUoOy1wESq8dVrYsijD3cuPNbbwFNZ+aBFii6qoV4AUuMXqHslnkNDY
-	 RPUbJUk1BVAJfyvobUTakFbiM0sN25+0tgf3GGqQ=
+	b=mtIbeJB1d+YjEGkvD2O+/15IrR393P1YBmG9Qdymo5oAL5WOwLPC0tglhx7ks12Nd
+	 70RSYgOBRYFFJlCohmL6GdywN3bVrVrCgWCBsZZ5Xf0R2THkuXMj9gYbAV73z+KhET
+	 mbEhfWXHhndqpiEefwgqNuwDnUrWHFEoGSOGE53o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725872AbgILTSW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 15:18:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34810 "EHLO mail.kernel.org"
+        id S1725872AbgILTUb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 15:20:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35586 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725838AbgILTSV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 15:18:21 -0400
+        id S1725838AbgILTUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 15:20:30 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A4087207C3;
-        Sat, 12 Sep 2020 19:18:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B097E207C3;
+        Sat, 12 Sep 2020 19:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599938300;
-        bh=olkkwReA0WnnyujkJTosl6pmaiCkRITwroNPcXsWv8Y=;
+        s=default; t=1599938429;
+        bh=klJZq1gtZmAmAoQAMeuBLYpuAsYvAh45WhKRg0wfRKM=;
         h=Date:From:To:Subject:From;
-        b=FhwmZNGRtNmR6c4sE6Ee5eapq3hYQ/36/9Hl9PPN9QJLUAn+w0QcM+wrNhgqSj+WV
-         p7p1mltTWWwGyWVnIM7uw77W4ngg4OShwnWtbbROaNVzGr+S/XuFJu81v2Xz5DAkon
-         og1A9JBV4JWIv6GTK2X5QNlnxdoOEBMRqVWCN2J0=
-Date:   Sat, 12 Sep 2020 12:18:20 -0700
+        b=xQ/uMgy0+A6YSfGxqXEpl/QsI60hjrO4ygV/Jk6OcjlGpIDcSiduSedUapX5KJZZu
+         rB83V9pVNSDBP0WdBO+8Z9N4Rj87YF7akTvJwcOUJG4IDTGS2gYy5JaoQtxcVdeFlf
+         TwavqJ3acIJ38sRhGveDqh4BG6Wl50fGHde4k8K0=
+Date:   Sat, 12 Sep 2020 12:20:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  + mm-memoryc-fix-spello-of-function.patch added to -mm tree
-Message-ID: <20200912191820.msyD6%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, lkp@intel.com, minchan@kernel.org
+Subject:  +
+ =?us-ascii?Q?mm-madvise-introduce-process=5Fmadvise-syscall-an-external-?=
+ =?us-ascii?Q?memory-hinting-api-fix-fix-fix-fix-fix.patch?= added to -mm
+ tree
+Message-ID: <20200912192029.Oq09-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix spello of "function"
+     Subject: mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-memoryc-fix-spello-of-function.patch
+     mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memoryc-fix-spello-of-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memoryc-fix-spello-of-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,47 +78,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/memory.c: fix spello of "function"
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix
 
-Fix typo/spello of "function".
+fix mips build
 
-Link: https://lkml.kernel.org/r/e7bf180e-c558-b1d5-9a15-6d9708823c9c@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+warning: #warning syscall process_madvise not implemented [-Wcpp]
+warning: #warning syscall process_madvise not implemented [-Wcpp]
+
+Link: https://lkml.kernel.org/r/20200909173655.GC2435453@google.com
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/kernel/syscalls/syscall_n64.tbl |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory.c~mm-memoryc-fix-spello-of-function
-+++ a/mm/memory.c
-@@ -3608,7 +3608,7 @@ static vm_fault_t do_set_pmd(struct vm_f
- 
- /**
-  * alloc_set_pte - setup new PTE entry for given page and add reverse page
-- * mapping. If needed, the fucntion allocates page table or use pre-allocated.
-+ * mapping. If needed, the function allocates page table or use pre-allocated.
-  *
-  * @vmf: fault environment
-  * @page: page to map
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -355,3 +355,4 @@
+ 438	n64	pidfd_getfd			sys_pidfd_getfd
+ 439	n64	faccessat2			sys_faccessat2
+ 440	n64	watch_mount			sys_watch_mount
++441	n64	process_madvise			sys_process_madvise
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-fs-ocfs2-delete-repeated-words-in-comments.patch
-fs-xattrc-fix-kernel-doc-warnings-for-setxattr-removexattr.patch
-x86-numa-add-nohmat-option-fix.patch
-mm-memoryc-fix-spello-of-function.patch
-fs-configfs-delete-repeated-words-in-comments.patch
-lib-bitmap-delete-duplicated-words.patch
-lib-libcrc32c-delete-duplicated-words.patch
-lib-decompress_bunzip2-delete-duplicated-words.patch
-lib-devres-delete-duplicated-words.patch
-lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
-lib-earlycpio-delete-duplicated-words.patch
-lib-radix-tree-delete-duplicated-words.patch
-lib-syscall-delete-duplicated-words.patch
-lib-test_sysctl-delete-duplicated-words.patch
-lib-mpi-fix-spello-of-functions.patch
+mm-madvise-pass-mm-to-do_madvise.patch
+pid-move-pidfd_get_pid-to-pidc.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix.patch
 
