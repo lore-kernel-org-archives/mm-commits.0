@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE115C43461
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF48C43461
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 72D782083E
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B809221E5
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599927829;
-	bh=kwP53eH5IqCxm9HudNRxwpgr+1zS/nqL+D0AXpaGH7A=;
+	s=default; t=1599927843;
+	bh=Y8874xJbj6B7xujTRhSd8sFHzsFjmxLgqTnI2zfQaX4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=GA5NBtYg6boXCJ4hGWmU8prq8fwIFb1RbQuOpMaSWQi6O13VfPnoDHwcuB3uD9l1L
-	 +/VJ1btijQ5Y/SMbxb009RlZRABgifPD0quLmVZoNZ60+XJa7zAr41r44TswtMCMqA
-	 4aZ4hyPszEr+PwLqNHsOIdUOFTOqoRszKdvqDTtg=
+	b=MTBWUaMxzkjZqaPOYU7qJHk9mqn81Ah3KXKilN+/ZyYXm2yRK2nMS/P2PB+yDIRjF
+	 dTXosqG6v02GoFYAQYTam2wrClr75g0RvYc5yZsFfRAy8/x1RVfL165Lsi+oj6uJ0A
+	 5Lakq260tg0aXyoUUNan/nd7VStRT7KeCTc5lFds=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725876AbgILQXo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:23:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59458 "EHLO mail.kernel.org"
+        id S1725863AbgILQXp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:23:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgILQXi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:23:38 -0400
+        id S1725873AbgILQXn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:23:43 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9148121655;
-        Sat, 12 Sep 2020 16:23:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 79B6F2087C;
+        Sat, 12 Sep 2020 16:23:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927817;
-        bh=kwP53eH5IqCxm9HudNRxwpgr+1zS/nqL+D0AXpaGH7A=;
+        s=default; t=1599927822;
+        bh=Y8874xJbj6B7xujTRhSd8sFHzsFjmxLgqTnI2zfQaX4=;
         h=Date:From:To:Subject:From;
-        b=iNENi7+MWvPdSrq0K9lxYNjwct5an2djn9jN/jv9q8pcS2jSannV12Bt8XRbiWjRi
-         +Dg+7u8O/Inb5+uCgH1jbcV/vtNTAkAoG/dUj5Ho6IuIvxRT0Ersuz1WfjeCxdRUe5
-         TKo5sNScfJJFhdfB+/BdUXhQySYeszcP/mvRnhb0=
-Date:   Sat, 12 Sep 2020 09:23:37 -0700
+        b=ki+7Rxfm8YpW6d1bHUPOG9lYjluqkGmdlGv/PTJyMeKVJG9nJxtHS9h9EfKR4b7qT
+         AXlPzuRqIYbQiNbLyvX76Z95nUD5iO09KpDNaAjCPrktKcGwOHnz1XNwudBEiHHAr+
+         ex4mXiMbkqNgNZUxCrwWywavNv9nzo17DNuvdx3s=
+Date:   Sat, 12 Sep 2020 09:23:42 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, dongli.zhang@oracle.com, erosca@de.adit-jv.com,
-        iamjoonsoo.kim@lge.com, joe.jin@oracle.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, stable@vger.kernel.org
-Subject:  [merged]
- mm-slub-fix-conversion-of-freelist_corrupted.patch removed from -mm tree
-Message-ID: <20200912162337.1a6lzB3j8%akpm@linux-foundation.org>
+To:     lukas.bulwahn@gmail.com, masahiroy@kernel.org,
+        miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, ndesaulniers@google.com,
+        sedat.dilek@gmail.com
+Subject:  [merged] maintainers-add-llvm-maintainers.patch removed
+ from -mm tree
+Message-ID: <20200912162342.ZmlznXNBI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,83 +56,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: fix conversion of freelist_corrupted()
+     Subject: MAINTAINERS: add LLVM maintainers
 has been removed from the -mm tree.  Its filename was
-     mm-slub-fix-conversion-of-freelist_corrupted.patch
+     maintainers-add-llvm-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eugeniu Rosca <erosca@de.adit-jv.com>
-Subject: mm: slub: fix conversion of freelist_corrupted()
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: MAINTAINERS: add LLVM maintainers
 
-Commit 52f23478081ae0 ("mm/slub.c: fix corrupted freechain in
-deactivate_slab()") suffered an update when picked up from LKML [1].
+Nominate Nathan and myself to be point of contact for clang/LLVM related
+support, after a poll at the LLVM BoF at Linux Plumbers Conf 2020.
 
-Specifically, relocating 'freelist = NULL' into 'freelist_corrupted()'
-created a no-op statement.  Fix it by sticking to the behavior intended in
-the original patch [1].  In addition, make freelist_corrupted() immune to
-passing NULL instead of &freelist.
+While corporate sponsorship is beneficial, its important to not entrust
+the keys to the nukes with any one entity.  Should Nathan and I find
+ourselves at the same employer, I would gladly step down.
 
-The issue has been spotted via static analysis and code review.
-
-[1] https://lore.kernel.org/linux-mm/20200331031450.12182-1-dongli.zhang@oracle.com/
-
-Link: https://lkml.kernel.org/r/20200824130643.10291-1-erosca@de.adit-jv.com
-Fixes: 52f23478081ae0 ("mm/slub.c: fix corrupted freechain in deactivate_slab()")
-Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
-Cc: Dongli Zhang <dongli.zhang@oracle.com>
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20200825143540.2948637-1-ndesaulniers@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Acked-by: Nathan Chancellor <natechancellor@gmail.com>
+Reviewed-by: Sedat Dilek <sedat.dilek@gmail.com>
+Acked-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/slub.c~mm-slub-fix-conversion-of-freelist_corrupted
-+++ a/mm/slub.c
-@@ -672,12 +672,12 @@ static void slab_fix(struct kmem_cache *
- }
+--- a/MAINTAINERS~maintainers-add-llvm-maintainers
++++ a/MAINTAINERS
+@@ -4257,6 +4257,8 @@ S:	Maintained
+ F:	.clang-format
  
- static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
--			       void *freelist, void *nextfree)
-+			       void **freelist, void *nextfree)
- {
- 	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
--	    !check_valid_pointer(s, page, nextfree)) {
--		object_err(s, page, freelist, "Freechain corrupt");
--		freelist = NULL;
-+	    !check_valid_pointer(s, page, nextfree) && freelist) {
-+		object_err(s, page, *freelist, "Freechain corrupt");
-+		*freelist = NULL;
- 		slab_fix(s, "Isolate corrupted freechain");
- 		return true;
- 	}
-@@ -1494,7 +1494,7 @@ static inline void dec_slabs_node(struct
- 							int objects) {}
- 
- static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
--			       void *freelist, void *nextfree)
-+			       void **freelist, void *nextfree)
- {
- 	return false;
- }
-@@ -2184,7 +2184,7 @@ static void deactivate_slab(struct kmem_
- 		 * 'freelist' is already corrupted.  So isolate all objects
- 		 * starting at 'freelist'.
- 		 */
--		if (freelist_corrupted(s, page, freelist, nextfree))
-+		if (freelist_corrupted(s, page, &freelist, nextfree))
- 			break;
- 
- 		do {
+ CLANG/LLVM BUILD SUPPORT
++M:	Nathan Chancellor <natechancellor@gmail.com>
++M:	Nick Desaulniers <ndesaulniers@google.com>
+ L:	clang-built-linux@googlegroups.com
+ S:	Supported
+ W:	https://clangbuiltlinux.github.io/
 _
 
-Patches currently in -mm which might be from erosca@de.adit-jv.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
+compiler-clang-add-build-check-for-clang-1001.patch
+revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
+revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
+revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
+partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
+compiler-gcc-improve-version-error.patch
 
