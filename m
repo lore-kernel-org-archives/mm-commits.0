@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38874C43461
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B61FC10DAA
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05B9C21531
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 595EB21D40
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599937911;
-	bh=A+VJ1jwmYP3oZSXo8N87h9KzyatUfV+JfEJowxVnBQg=;
+	s=default; t=1599937912;
+	bh=gNffaV88shvBO+dICEdYhNTUqJAYpZLrOscdzGUoolA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=05ph6vbC6hkSt1/BwwFXW5tNJdrk6MRdHKdZ3Fxv0S9CdW/TxoMlrxIwdSiB0Ap7c
-	 cefRjI4oafiy4e+8Bj6qy4YksZzVpQ7zXyV3RxyO+yJ+ert3hPBFGGgzgjNleOWjF7
-	 s4mwYJtaAQC7aStPZiQT0ay8tj93910zBnfxkCKY=
+	b=C4gLAx4dyORfwFgjDmek/MSMBAvExI8Kt8INt8wDliQZx8htuVm/wXmIaXB5eknmu
+	 eGepDJFjqwLGxAlJSMmxWUNxolJ4sPYu/CLbHLQ8yB2lGiZ/AgK3b4VBFW8FJyDGK1
+	 vksURgfWzYvrbPOI25NLH72JsyMD1RL/Q/HNl18w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725899AbgILTLu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 15:11:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33120 "EHLO mail.kernel.org"
+        id S1725888AbgILTLw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 15:11:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33150 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725885AbgILTLt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 15:11:49 -0400
+        id S1725885AbgILTLv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 15:11:51 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A2880207C3;
-        Sat, 12 Sep 2020 19:11:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BDC1B207C3;
+        Sat, 12 Sep 2020 19:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599937908;
-        bh=A+VJ1jwmYP3oZSXo8N87h9KzyatUfV+JfEJowxVnBQg=;
+        s=default; t=1599937910;
+        bh=gNffaV88shvBO+dICEdYhNTUqJAYpZLrOscdzGUoolA=;
         h=Date:From:To:Subject:From;
-        b=uSBIxomp0Kzwy8bTk7myf6hAhe6Ux+M5DO4EDd/7rIleZyqSOGY/+Ik/19Swu03p2
-         G8bBn79UbntBLV9l1tTxB/0l3uAqFwSbcxCxVNWOSUUgk8vI9sbiU0DhQNl6fzlucx
-         oZ1BgebZIC82HzT5gzYbVirxq/Leso0OrkF0rYjs=
-Date:   Sat, 12 Sep 2020 12:11:48 -0700
+        b=sWdy08U8SynODdEbo8HHLoa5AjgIAhax/uNhPJOkezf1rPn4uyCdaK8vguZCBynb7
+         sewV0p0bfl2fbZsy4nWYKYagXMwplZdgEk4zNcItlxnotSSSTSvyFEcV2THzUkG9Dj
+         Payn2E2YMZlKmVWmCgbv1zBY3syEz/X94eTF95bI=
+Date:   Sat, 12 Sep 2020 12:11:50 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         kirill.shutemov@linux.intel.com, willy@infradead.org
 Subject:  +
- mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch added to
- -mm tree
-Message-ID: <20200912191148.5LTLS%akpm@linux-foundation.org>
+ mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch added to -mm tree
+Message-ID: <20200912191150.9N4Dz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback: support tail pages in wait_for_stable_page
+     Subject: mm/vmscan: allow arbitrary sized pages to be paged out
 has been added to the -mm tree.  Its filename is
-     mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
+     mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,31 +76,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page-writeback: support tail pages in wait_for_stable_page
+Subject: mm/vmscan: allow arbitrary sized pages to be paged out
 
-page->mapping is undefined for tail pages, so operate exclusively on the
-head page.
+Remove the assumption that a compound page has HPAGE_PMD_NR pins from the
+page cache.
 
-Link: https://lkml.kernel.org/r/20200908195539.25896-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page-writeback.c~mm-page-writeback-support-tail-pages-in-wait_for_stable_page
-+++ a/mm/page-writeback.c
-@@ -2849,6 +2849,7 @@ EXPORT_SYMBOL_GPL(wait_on_page_writeback
-  */
- void wait_for_stable_page(struct page *page)
- {
-+	page = thp_head(page);
- 	if (bdi_cap_stable_pages_required(inode_to_bdi(page->mapping->host)))
- 		wait_on_page_writeback(page);
+--- a/mm/vmscan.c~mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out
++++ a/mm/vmscan.c
+@@ -722,8 +722,7 @@ static inline int is_page_cache_freeable
+ 	 * that isolated the page, the page cache and optional buffer
+ 	 * heads at page->private.
+ 	 */
+-	int page_cache_pins = PageTransHuge(page) && PageSwapCache(page) ?
+-		HPAGE_PMD_NR : 1;
++	int page_cache_pins = thp_nr_pages(page);
+ 	return page_count(page) - page_has_private(page) == 1 + page_cache_pins;
  }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
