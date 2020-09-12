@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D1BCC433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D630C43461
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:38:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33DC821655
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:37:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 553B120758
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599953821;
-	bh=0jftaNERMKK9mhKTPZouChRraUQ6Ozr7mZLZLa9SUKE=;
+	s=default; t=1599953914;
+	bh=zvstKSRhzRz4/7Bc08839whZEz0TnVE7xhASt48wVxw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=vqH+/bN7T1KNobwu1Mcs/LwaW7DkhMLQcrG3GbFlZeTjTtOsduVlxUwtKvK3qr+wZ
-	 CNmGj3hio15v65y764Sd56s+3CqSkiiU5HyXg6FqP3LxRH0932wr0Q84KBG5uwGaMF
-	 drYyrrdoZkeGhWXV0pbWC1vezoy9Y+b97MZAEhY8=
+	b=eUw0AHtc4ps7+3eo+tWS2iGK3HRH1/UBWGpSfg1lPmOfc+nHbtVv9AvoWvcmx1bso
+	 VOv/V9FtBaKUBX167nXGnO9kz2Dq2TkqM3d2WAkwU86DDVzlXtu6x+ZsXRzdYB/10Z
+	 rSPIErHBA51qQZT9oHc9e8pTKy4iGeVikrTeEUgE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725906AbgILXhA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 19:37:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50798 "EHLO mail.kernel.org"
+        id S1725907AbgILXic (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 19:38:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725905AbgILXg7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 19:36:59 -0400
+        id S1725905AbgILXib (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 19:38:31 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B3B0620758;
-        Sat, 12 Sep 2020 23:36:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E0EC420758;
+        Sat, 12 Sep 2020 23:38:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599953818;
-        bh=0jftaNERMKK9mhKTPZouChRraUQ6Ozr7mZLZLa9SUKE=;
+        s=default; t=1599953911;
+        bh=zvstKSRhzRz4/7Bc08839whZEz0TnVE7xhASt48wVxw=;
         h=Date:From:To:Subject:From;
-        b=OsKOkGmTzXlNxsufBA3haqmmP/1CPdPPkF78OQ821pZcMTyzVF1kxOqAeAycfU5DI
-         32XYT8Dq8IoNDddDJIJDnWBZnWKlstZGO/g97op0oDAuM44afiS/ojXP78dM+7CuQw
-         bdtG5GQNO0Y092DpkAlz+ivMZKxUJHiDZRla7iJU=
-Date:   Sat, 12 Sep 2020 16:36:58 -0700
+        b=CeZB7BN8BkG2LHYSOCu0fXRoVFqVndLWLO7KcRYWjKA8GdP+SGHzqkl0/MaQAaXLn
+         qZTiphNDKb4sDroZ0vewdiajCu4Hq/uGAmFs/KHpkrnDZPe4r1sxzi6Px3DIrEcxp9
+         5iN/pjVVluC6/VXm/RG6gTfL2bREyNuNFVUQ1Ba0=
+Date:   Sat, 12 Sep 2020 16:38:30 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, keescook@chromium.org,
-        jannh@google.com, lenaptr@google.com
-Subject:  +
- schedh-drop-in_ubsan-field-when-ubsan-is-in-trap-mode.patch added to -mm tree
-Message-ID: <20200912233658.ZsOjM%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, joe@perches.com, corbet@lwn.net,
+        keescook@chromium.org
+Subject:  + mailmap-add-older-email-addresses-for-kees-cook.patch
+ added to -mm tree
+Message-ID: <20200912233830.-z3pM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched.h: drop in_ubsan field when UBSAN is in trap mode
+     Subject: mailmap: add older email addresses for Kees Cook
 has been added to the -mm tree.  Its filename is
-     schedh-drop-in_ubsan-field-when-ubsan-is-in-trap-mode.patch
+     mailmap-add-older-email-addresses-for-kees-cook.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/schedh-drop-in_ubsan-field-when-ubsan-is-in-trap-mode.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-older-email-addresses-for-kees-cook.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/schedh-drop-in_ubsan-field-when-ubsan-is-in-trap-mode.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-older-email-addresses-for-kees-cook.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,40 +75,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Elena Petrova <lenaptr@google.com>
-Subject: sched.h: drop in_ubsan field when UBSAN is in trap mode
+From: Kees Cook <keescook@chromium.org>
+Subject: mailmap: add older email addresses for Kees Cook
 
-in_ubsan field of task_struct is only used in lib/ubsan.c, which in its
-turn is used only `ifneq ($(CONFIG_UBSAN_TRAP),y)`.
+This adds explicit mailmap entries for my older/other email addresses.
 
-Removing unnecessary field from a task_struct will help preserve the ABI
-between vanilla and CONFIG_UBSAN_TRAP'ed kernels.  In particular, this
-will help enabling bounds sanitizer transparently for Android's GKI.
-
-Link: https://lkml.kernel.org/r/20200910134802.3160311-1-lenaptr@google.com
-Signed-off-by: Elena Petrova <lenaptr@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20200910193939.3798377-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/sched.h~schedh-drop-in_ubsan-field-when-ubsan-is-in-trap-mode
-+++ a/include/linux/sched.h
-@@ -1009,7 +1009,7 @@ struct task_struct {
- 	struct held_lock		held_locks[MAX_LOCK_DEPTH];
- #endif
- 
--#ifdef CONFIG_UBSAN
-+#if defined(CONFIG_UBSAN) && !defined(CONFIG_UBSAN_TRAP)
- 	unsigned int			in_ubsan;
- #endif
- 
+--- a/.mailmap~mailmap-add-older-email-addresses-for-kees-cook
++++ a/.mailmap
+@@ -169,6 +169,10 @@ Juha Yrjola <juha.yrjola@solidboot.com>
+ Julien Thierry <julien.thierry.kdev@gmail.com> <julien.thierry@arm.com>
+ Kamil Konieczny <k.konieczny@samsung.com> <k.konieczny@partner.samsung.com>
+ Kay Sievers <kay.sievers@vrfy.org>
++Kees Cook <keescook@chromium.org> <kees.cook@canonical.com>
++Kees Cook <keescook@chromium.org> <keescook@google.com>
++Kees Cook <keescook@chromium.org> <kees@outflux.net>
++Kees Cook <keescook@chromium.org> <kees@ubuntu.com>
+ Kenneth W Chen <kenneth.w.chen@intel.com>
+ Konstantin Khlebnikov <koct9i@gmail.com> <khlebnikov@yandex-team.ru>
+ Konstantin Khlebnikov <koct9i@gmail.com> <k.khlebnikov@samsung.com>
 _
 
-Patches currently in -mm which might be from lenaptr@google.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-schedh-drop-in_ubsan-field-when-ubsan-is-in-trap-mode.patch
+mailmap-add-older-email-addresses-for-kees-cook.patch
 
