@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0475AC433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:43:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB04BC433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:52:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B253B21531
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:43:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75BCB21655
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 23:52:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599954215;
-	bh=qYbyxnvxN0lJa8kTZmD+mch8GHQVFhGDUibgPFOw64c=;
+	s=default; t=1599954746;
+	bh=8xnUxL5mALPXaVDKqcxvlYGvmGYv382IrfYgONTKEd8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=RGm2/0At9krAV7+lBzvFiAXQfHSeGmpuJFciNMoz9m6vEuq4MjOu+0HlU3iM/asxJ
-	 gemRFceY9RgE6qCIU7PR3kPS6+NRF3prqxJQmt21RaRQasKdYwb1K08u6kKJSRZm5I
-	 7DZ9LOEjtLc5GOLADY2X4uBsjaT6LN5ThVzXJODo=
+	b=DphuoRLPQwRHLy7uBo4IWC2m8p4p5UVkQxA+Jhg0Eswza7EeKdEX/w5+IMMhq6sPF
+	 Soe4Ff3pa+T+bKY1ojvv29id05Ry83tlm8sprHaYJJxVcNgLieNvPtBFlfXGvC+JcX
+	 b+GSU4lvzG3qT7n/WxZjP3OPlnRXRfwL7UXi6EP0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725906AbgILXnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 19:43:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52020 "EHLO mail.kernel.org"
+        id S1725906AbgILXwY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 19:52:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725905AbgILXne (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 19:43:34 -0400
+        id S1725905AbgILXwX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 19:52:23 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EEDDC20758;
-        Sat, 12 Sep 2020 23:43:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1583320855;
+        Sat, 12 Sep 2020 23:52:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599954214;
-        bh=qYbyxnvxN0lJa8kTZmD+mch8GHQVFhGDUibgPFOw64c=;
+        s=default; t=1599954743;
+        bh=8xnUxL5mALPXaVDKqcxvlYGvmGYv382IrfYgONTKEd8=;
         h=Date:From:To:Subject:From;
-        b=fne5HmLe2ArHPsxIvQWkUkyfNQcu0raHOdMFe7rUS/wdqhGpVpx0ut9jHJzl5booP
-         66YuZFh4zew8IJvyCL1sYUAz60h9OP7LwKCL+C2/zY1Wym5sqfwgNXIs732IwMqcch
-         xV1N0YXeIU7f6rlegwymMceBUCr0LvEGsmH5MN0s=
-Date:   Sat, 12 Sep 2020 16:43:33 -0700
+        b=vpRjSThMeKU4zhoHUTJusHJWWFF8snQMeRmX3/JFPDe81l/R/GD3tHipKLteM10z/
+         kkOG8QEUAC4oUXKM4ZaPvyQqgwRkeqRl+MiuzkqFR8eT5mHSCfRVo8YgLPGCoDUuBj
+         3Pl/WsPhNhHQfNUd5i3YtLLlcgHC2MomgA0AVt64=
+Date:   Sat, 12 Sep 2020 16:52:22 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, william.kucharski@oracle.com,
-        kirill.shutemov@linux.intel.com, willy@infradead.org
-Subject:  + mm-filemap-fix-filemap_map_pages-for-thp.patch added to
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        mateusznosek0@gmail.com
+Subject:  +
+ mm-page_allocc-micro-optimization-remove-unnecessary-branch.patch added to
  -mm tree
-Message-ID: <20200912234333.Z41LB%akpm@linux-foundation.org>
+Message-ID: <20200912235222.TA9Te%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: fix filemap_map_pages for THP
+     Subject: mm/page_alloc.c: micro-optimization remove unnecessary branch
 has been added to the -mm tree.  Its filename is
-     mm-filemap-fix-filemap_map_pages-for-thp.patch
+     mm-page_allocc-micro-optimization-remove-unnecessary-branch.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-fix-filemap_map_pages-for-thp.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-micro-optimization-remove-unnecessary-branch.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-fix-filemap_map_pages-for-thp.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-micro-optimization-remove-unnecessary-branch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,140 +76,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: fix filemap_map_pages for THP
+From: mateusznosek0@gmail.com
+Subject: mm/page_alloc.c: micro-optimization remove unnecessary branch
 
-We dereference page->mapping and page->index directly after calling
-find_subpage() and these fields are not valid for tail pages.  While
-commit 4101196b19d7 ("mm: page cache: store only head pages in i_pages")
-introduced the call to find_subpage(), the problem existed prior to this;
-I'm going to suggest all the way back to when THPs first existed.
 
-The user-visible effects of this are almost negligible.  To hit it, you
-have to mmap a tmpfs file at an unaligned address and then it's only a
-disabled optimisation causing page faults to happen more frequently than
-they otherwise would.
+Previously flags check was separated into two separated checks with two
+separated branches. In case of presence of any of two mentioned flags,
+the same effect on flow occurs. Therefore checks can be merged and one
+branch can be avoided.
 
-Fix this by keeping both head and page pointers and checking the
-appropriate one.  We could use page_mapping() and page_to_index(), but
-that's higher overhead.
-
-Link: https://lkml.kernel.org/r/20200911012532.24761-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
+Link: https://lkml.kernel.org/r/20200911092310.31136-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ mm/page_alloc.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-filemap_map_pages-for-thp
-+++ a/mm/filemap.c
-@@ -2691,42 +2691,42 @@ void filemap_map_pages(struct vm_fault *
- 	pgoff_t last_pgoff = start_pgoff;
- 	unsigned long max_idx;
- 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
--	struct page *page;
-+	struct page *head, *page;
- 	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
+--- a/mm/page_alloc.c~mm-page_allocc-micro-optimization-remove-unnecessary-branch
++++ a/mm/page_alloc.c
+@@ -3972,8 +3972,10 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	 * success so it is time to admit defeat. We will skip the OOM killer
+ 	 * because it is very likely that the caller has a more reasonable
+ 	 * fallback than shooting a random task.
++	 *
++	 * The OOM killer may not free memory on a specific node.
+ 	 */
+-	if (gfp_mask & __GFP_RETRY_MAYFAIL)
++	if (gfp_mask & (__GFP_RETRY_MAYFAIL | __GFP_THISNODE))
+ 		goto out;
+ 	/* The OOM killer does not needlessly kill tasks for lowmem */
+ 	if (ac->highest_zoneidx < ZONE_NORMAL)
+@@ -3990,10 +3992,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	 * failures more gracefully we should just bail out here.
+ 	 */
  
- 	rcu_read_lock();
--	xas_for_each(&xas, page, end_pgoff) {
--		if (xas_retry(&xas, page))
-+	xas_for_each(&xas, head, end_pgoff) {
-+		if (xas_retry(&xas, head))
- 			continue;
--		if (xa_is_value(page))
-+		if (xa_is_value(head))
- 			goto next;
- 
- 		/*
- 		 * Check for a locked page first, as a speculative
- 		 * reference may adversely influence page migration.
- 		 */
--		if (PageLocked(page))
-+		if (PageLocked(head))
- 			goto next;
--		if (!page_cache_get_speculative(page))
-+		if (!page_cache_get_speculative(head))
- 			goto next;
- 
- 		/* Has the page moved or been split? */
--		if (unlikely(page != xas_reload(&xas)))
-+		if (unlikely(head != xas_reload(&xas)))
- 			goto skip;
--		page = find_subpage(page, xas.xa_index);
-+		page = find_subpage(head, xas.xa_index);
- 
--		if (!PageUptodate(page) ||
-+		if (!PageUptodate(head) ||
- 				PageReadahead(page) ||
- 				PageHWPoison(page))
- 			goto skip;
--		if (!trylock_page(page))
-+		if (!trylock_page(head))
- 			goto skip;
- 
--		if (page->mapping != mapping || !PageUptodate(page))
-+		if (head->mapping != mapping || !PageUptodate(head))
- 			goto unlock;
- 
- 		max_idx = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
--		if (page->index >= max_idx)
-+		if (xas.xa_index >= max_idx)
- 			goto unlock;
- 
- 		if (mmap_miss > 0)
-@@ -2738,12 +2738,12 @@ void filemap_map_pages(struct vm_fault *
- 		last_pgoff = xas.xa_index;
- 		if (alloc_set_pte(vmf, page))
- 			goto unlock;
--		unlock_page(page);
-+		unlock_page(head);
- 		goto next;
- unlock:
--		unlock_page(page);
-+		unlock_page(head);
- skip:
--		put_page(page);
-+		put_page(head);
- next:
- 		/* Huge page is mapped? No need to proceed. */
- 		if (pmd_trans_huge(*vmf->pmd))
+-	/* The OOM killer may not free memory on a specific node */
+-	if (gfp_mask & __GFP_THISNODE)
+-		goto out;
+-
+ 	/* Exhausted what can be done so it's blame time */
+ 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
+ 		*did_some_progress = 1;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mateusznosek0@gmail.com are
 
-mm-debug-do-not-dereference-i_ino-blindly.patch
-mm-factor-find_get_incore_page-out-of-mincore_page.patch
-mm-use-find_get_incore_page-in-memcontrol.patch
-mm-optimise-madvise-willneed.patch
-proc-optimise-smaps-for-shmem-entries.patch
-i915-use-find_lock_page-instead-of-find_lock_entry.patch
-mm-convert-find_get_entry-to-return-the-head-page.patch
-mm-shmem-return-head-page-from-find_lock_entry.patch
-mm-add-find_lock_head.patch
-mm-filemap-fix-filemap_map_pages-for-thp.patch
-mm-account-pmd-tables-like-pte-tables.patch
-mm-move-pagedoublemap-bit.patch
-mm-simplify-pagedoublemap-with-pf_second-policy.patch
-xarray-add-xa_get_order.patch
-xarray-add-xas_split.patch
-xarray-add-xas_split-fix-2.patch
-mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
-mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
-mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
-mm-page_owner-change-split_page_owner-to-take-a-count.patch
-mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
-mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
-mm-rmap-fix-assumptions-of-thp-size.patch
-mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
-mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
-mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
-mm-readahead-add-define_readahead.patch
-mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
-mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
-mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
-harden-autofs-ioctl-table.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization.patch
+mm-page_allocc-micro-optimization-remove-unnecessary-branch.patch
 
