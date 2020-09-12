@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A420C433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A36EAC433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:25:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0734C2083E
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A0EC2087C
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:25:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599927895;
-	bh=G+cRBEMRkdkptnurY2P6TvN2a2nDZDPL4wn3fycs7PA=;
+	s=default; t=1599927900;
+	bh=Dv1BQx8OEAL5W41eygD+yQ/yrgnXlmhGZ+iAICOJcBk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=CZuSoc3N5QLTdjMpx92E90zWun7zMRnHmf7bwcub3fOpX2z/ORwgm2i8aMqT+/prH
-	 22U+/Fhr51xC9oum3eeZTwdRtK5IqzHbuBaeGiIRBX26wDDQ19rakNE6C0HYnZfjJQ
-	 JlsF9Pint4T71nplj/U1x7+431m6E9599JxGU20U=
+	b=Qr/5f8U14r72VodlNlldVB/AYzlLGGDHCjy+5pYw0WpOx73a+8AI+WhsgjlVYbArB
+	 PlwfO1/y6094I26j7TImDfWEB1oEpHFasrLw3DTJR84oFqgwz/wMLs0Z5wSp3i3Ngk
+	 qTg4LENomY1hp4jm2PADah9Oxo9avP5/mhLbRr/g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725854AbgILQYt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:24:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60344 "EHLO mail.kernel.org"
+        id S1725871AbgILQYv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:24:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725889AbgILQYH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:24:07 -0400
+        id S1725891AbgILQYK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:24:10 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7B4B82083E;
-        Sat, 12 Sep 2020 16:24:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 873762184D;
+        Sat, 12 Sep 2020 16:24:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927846;
-        bh=G+cRBEMRkdkptnurY2P6TvN2a2nDZDPL4wn3fycs7PA=;
+        s=default; t=1599927849;
+        bh=Dv1BQx8OEAL5W41eygD+yQ/yrgnXlmhGZ+iAICOJcBk=;
         h=Date:From:To:Subject:From;
-        b=nbv3IPDYzkzFGbMAr+hLCxON7cwrig0dDJ17VDSPVBUuKZ98ygsC+IY93cjbI0juW
-         qttCzpUuOMSADVoC3JDFhilvBaOQ7Bnfs5DIVkudpTbsnLukJ8sdkaeFfxqs28VeJg
-         lCTD4TXq2YfNhks4GIjjcr0SvQI9BQFXeRl6Rips=
-Date:   Sat, 12 Sep 2020 09:24:06 -0700
+        b=UEvJT1mtJaMufEFv5dJ2TIXozwdQkwMQ/Jbeao1eq21JxmbjhOgwbT2Kgo6A3kUgy
+         R6YaLW8XC3nRyD2EQHDlkL9Ohm9kPvbHI1k/8vDTtcoz5XYmwHiwBGbxH9rmbfwfRe
+         vnpf4Xre1JxvKgTCw+WaJcqY2jdmgn4REyHM2scU=
+Date:   Sat, 12 Sep 2020 09:24:09 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, bharata@linux.ibm.com, hch@lst.de,
-        jgg@nvidia.com, jglisse@redhat.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com
+To:     guro@fb.com, lixinhai.lxh@gmail.com, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch removed from
- -mm tree
-Message-ID: <20200912162406.YmgBWMWkb%akpm@linux-foundation.org>
+ mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
+ removed from -mm tree
+Message-ID: <20200912162409.-g8Imkaj-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,52 +55,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: preserve soft dirty in remove_migration_pte()
+     Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-preserve-soft-dirty-in-remove_migration_pte.patch
+     mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: preserve soft dirty in remove_migration_pte()
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/hugetlb: try preferred node first when alloc gigantic page from cma
 
-The code to remove a migration PTE and replace it with a device private
-PTE was not copying the soft dirty bit from the migration entry.  This
-could lead to page contents not being marked dirty when faulting the page
-back from device private memory.
+Since commit cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic
+hugepages using cma"), the gigantic page would be allocated from node
+which is not the preferred node, although there are pages available from
+that node.  The reason is that the nid parameter has been ignored in
+alloc_gigantic_page().
 
-Link: https://lkml.kernel.org/r/20200831212222.22409-3-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
+Besides, the __GFP_THISNODE also need be checked if user required to alloc
+only from the preferred node.
+
+After this patch, the preferred node is tried first before other allowed
+nodes, and don't try to allocate from other nodes if __GFP_THISNODE is
+specified.  If user don't specify the preferred node, the current node
+will be used as preferred node, which makes sure consistent behavior of
+allocating gigantic and non-gigantic hugetlb page.
+
+Link: https://lkml.kernel.org/r/20200902025016.697260-1-lixinhai.lxh@gmail.com
+Fixes: cf11e85fc08cc6a4 ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-preserve-soft-dirty-in-remove_migration_pte
-+++ a/mm/migrate.c
-@@ -249,6 +249,8 @@ static bool remove_migration_pte(struct
- 		if (unlikely(is_device_private_page(new))) {
- 			entry = make_device_private_entry(new, pte_write(pte));
- 			pte = swp_entry_to_pte(entry);
-+			if (pte_swp_soft_dirty(*pvmw.pte))
-+				pte = pte_swp_mksoft_dirty(pte);
- 			if (pte_swp_uffd_wp(*pvmw.pte))
- 				pte = pte_swp_mkuffd_wp(pte);
+--- a/mm/hugetlb.c~mm-hugetlb-try-preferred-node-first-when-alloc-gigantic-page-from-cma
++++ a/mm/hugetlb.c
+@@ -1250,21 +1250,32 @@ static struct page *alloc_gigantic_page(
+ 		int nid, nodemask_t *nodemask)
+ {
+ 	unsigned long nr_pages = 1UL << huge_page_order(h);
++	if (nid == NUMA_NO_NODE)
++		nid = numa_mem_id();
+ 
+ #ifdef CONFIG_CMA
+ 	{
+ 		struct page *page;
+ 		int node;
+ 
+-		for_each_node_mask(node, *nodemask) {
+-			if (!hugetlb_cma[node])
+-				continue;
+-
+-			page = cma_alloc(hugetlb_cma[node], nr_pages,
+-					 huge_page_order(h), true);
++		if (hugetlb_cma[nid]) {
++			page = cma_alloc(hugetlb_cma[nid], nr_pages,
++					huge_page_order(h), true);
+ 			if (page)
+ 				return page;
  		}
++
++		if (!(gfp_mask & __GFP_THISNODE)) {
++			for_each_node_mask(node, *nodemask) {
++				if (node == nid || !hugetlb_cma[node])
++					continue;
++
++				page = cma_alloc(hugetlb_cma[node], nr_pages,
++						huge_page_order(h), true);
++				if (page)
++					return page;
++			}
++		}
+ 	}
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
-mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
-mm-test-use-the-new-skip-macro.patch
-mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
-mm-migrate-remove-obsolete-comment-about-device-public.patch
+mm-isolation-avoid-checking-unmovable-pages-across-pageblock-boundary.patch
 
