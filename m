@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3300C43461
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 20:02:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2406AC433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 20:02:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7230221D6C
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 20:02:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7CC421D91
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 20:02:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599940932;
-	bh=knK6POYoxd+0XsaZkbq58ZNAtRpbdubZQjA3aJwYtAk=;
+	s=default; t=1599940935;
+	bh=gihTg2GOM/+QyMycf+7zMK/y4+K5cXHIJCnl3sXLyy4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Gsu+BS9byO3PDS9TwDQ5ewJatBDjdQsdDj2nuBP5+5PPwIK5JDThdG/V+0UKpau7Y
-	 Oh8ekx7Fan6cZumAomtw04o9wZSJn4wSZ/Fo7Uv0QUA22l7/I/OqukUUgmvWo+cLeR
-	 8LbLRKPKe7PC325aCG0l8Yxt8POMwYakDKv0RUxQ=
+	b=zBWh5uLarflx/lM2esqSAUq2vEgS0KfmhSsOhmCEuD5wJOfCviMa2Ww0SgJLV8ERU
+	 AVVqn2WzD13k6RsrVMSFqTf+2Ox53Gzp2FA9S8J/zFj8RvMrhAN11IPgLi3cK4u29K
+	 /bwuqjqTGbMeGiAwY0m/6vMWKo6ySiNszb0oYnss=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725903AbgILUCL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 16:02:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59552 "EHLO mail.kernel.org"
+        id S1725872AbgILUCN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 16:02:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725872AbgILUCJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 16:02:09 -0400
+        id S1725891AbgILUCL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 16:02:11 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F2AAE2151B;
-        Sat, 12 Sep 2020 20:02:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B5DB921531;
+        Sat, 12 Sep 2020 20:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599940928;
-        bh=knK6POYoxd+0XsaZkbq58ZNAtRpbdubZQjA3aJwYtAk=;
+        s=default; t=1599940931;
+        bh=gihTg2GOM/+QyMycf+7zMK/y4+K5cXHIJCnl3sXLyy4=;
         h=Date:From:To:Subject:From;
-        b=m0WLBIscff72wjqBgOS58KIzlNAIValUAjQt+vbUJ6bRaFpYvM3bhg3mUuI6B09hU
-         4CzvLC5W8Wmv6hnxK2id1jCvAGA0iJIeqpRbXdY63PxEmAc1EiSm2944fP9eyPOit0
-         aywwD/nHrSyeYpXGumKp/isc0AgEN1OidesL0Qkw=
-Date:   Sat, 12 Sep 2020 13:02:07 -0700
+        b=BkJhCcCf0MrfzIZwd+to290MgzaO8ozdCWeWccZO/dhRiRBRm8BJwnYiZbWBPDV3U
+         fLfxJB8hjDTn+zg+WOFn0N/nF+AWpJjuvcCSHZBwSUJkmNzk6xLHyHOt+s6D4QJ5ZG
+         vJUEb9nmP+ZgVFW3rwlikqGoKXnoZZ0M/MoL8MFw=
+Date:   Sat, 12 Sep 2020 13:02:10 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vincent.guittot@linaro.org,
         shuah@kernel.org, mingo@redhat.com, juri.lelli@redhat.com,
         dvyukov@google.com, davidgow@google.com, brendanhiggins@google.com,
         aryabinin@virtuozzo.com, a.p.zijlstra@chello.nl,
         andreyknvl@google.com, trishalfonso@google.com
-Subject:  + add-kunit-struct-to-current-task.patch added to -mm tree
-Message-ID: <20200912200207.oaKVf%akpm@linux-foundation.org>
+Subject:  + kunit-kasan-integration.patch added to -mm tree
+Message-ID: <20200912200210.bB4dl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan/kunit: add KUnit Struct to Current Task
+     Subject: KUnit: KASAN Integration
 has been added to the -mm tree.  Its filename is
-     add-kunit-struct-to-current-task.patch
+     kunit-kasan-integration.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/add-kunit-struct-to-current-task.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kunit-kasan-integration.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/add-kunit-struct-to-current-task.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kunit-kasan-integration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,62 +78,254 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Patricia Alfonso <trishalfonso@google.com>
-Subject: kasan/kunit: add KUnit Struct to Current Task
+Subject: KUnit: KASAN Integration
 
-Patch series "KASAN-KUnit Integration", v13.
+Integrate KASAN into KUnit testing framework.
 
-This patchset contains everything needed to integrate KASAN and KUnit.
+        - Fail tests when KASAN reports an error that is not expected
+        - Use KUNIT_EXPECT_KASAN_FAIL to expect a KASAN error in KASAN
+	  tests
+        - Expected KASAN reports pass tests and are still printed when run
+          without kunit_tool (kunit_tool still bypasses the report due to the
+          test passing)
+	- KUnit struct in current task used to keep track of the current
+	  test from KASAN code
 
-KUnit will be able to:
-(1) Fail tests when an unexpected KASAN error occurs
-(2) Pass tests when an expected KASAN error occurs
+Make use of "[PATCH v3 kunit-next 1/2] kunit: generalize kunit_resource
+API beyond allocated resources" and "[PATCH v3 kunit-next 2/2] kunit: add
+support for named resources" from Alan Maguire [1]
 
-Convert KASAN tests to KUnit with the exception of copy_user_test because
-KUnit is unable to test those.
+        - A named resource is added to a test when a KASAN report is
+          expected
+        - This resource contains a struct for kasan_data containing
+          booleans representing if a KASAN report is expected and if a
+          KASAN report is found
 
-Add documentation on how to run the KASAN tests with KUnit and what to
-expect when running these tests.
+[1] (https://lore.kernel.org/linux-kselftest/1583251361-12748-1-git-send-email-alan.maguire@oracle.com/T/#t)
 
-
-This patch (of 5):
-
-In order to integrate debugging tools like KASAN into the KUnit framework,
-add KUnit struct to the current task to keep track of the current KUnit
-test.
-
-Link: https://lkml.kernel.org/r/20200910070331.3358048-1-davidgow@google.com
-Link: https://lkml.kernel.org/r/20200910070331.3358048-2-davidgow@google.com
+Link: https://lkml.kernel.org/r/20200910070331.3358048-3-davidgow@google.com
 Signed-off-by: Patricia Alfonso <trishalfonso@google.com>
 Signed-off-by: David Gow <davidgow@google.com>
-Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Brendan Higgins <brendanhiggins@google.com>
 Tested-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/kunit/test.h  |    5 ++++
+ include/linux/kasan.h |    6 +++++
+ lib/kunit/test.c      |   13 ++++++-----
+ lib/test_kasan.c      |   47 ++++++++++++++++++++++++++++++++++++++--
+ mm/kasan/report.c     |   32 +++++++++++++++++++++++++++
+ 5 files changed, 96 insertions(+), 7 deletions(-)
 
---- a/include/linux/sched.h~add-kunit-struct-to-current-task
-+++ a/include/linux/sched.h
-@@ -1203,6 +1203,10 @@ struct task_struct {
- #endif
- #endif
+--- a/include/kunit/test.h~kunit-kasan-integration
++++ a/include/kunit/test.h
+@@ -224,6 +224,11 @@ struct kunit {
+ 	struct list_head resources; /* Protected by lock. */
+ };
+ 
++static inline void kunit_set_failure(struct kunit *test)
++{
++	WRITE_ONCE(test->success, false);
++}
++
+ void kunit_init_test(struct kunit *test, const char *name, char *log);
+ 
+ int kunit_run_tests(struct kunit_suite *suite);
+--- a/include/linux/kasan.h~kunit-kasan-integration
++++ a/include/linux/kasan.h
+@@ -14,6 +14,12 @@ struct task_struct;
+ #include <linux/pgtable.h>
+ #include <asm/kasan.h>
+ 
++/* kasan_data struct is used in KUnit tests for KASAN expected failures */
++struct kunit_kasan_expectation {
++	bool report_expected;
++	bool report_found;
++};
++
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+ extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
+ extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+--- a/lib/kunit/test.c~kunit-kasan-integration
++++ a/lib/kunit/test.c
+@@ -10,16 +10,12 @@
+ #include <linux/kernel.h>
+ #include <linux/kref.h>
+ #include <linux/sched/debug.h>
++#include <linux/sched.h>
+ 
+ #include "debugfs.h"
+ #include "string-stream.h"
+ #include "try-catch-impl.h"
+ 
+-static void kunit_set_failure(struct kunit *test)
+-{
+-	WRITE_ONCE(test->success, false);
+-}
+-
+ static void kunit_print_tap_version(void)
+ {
+ 	static bool kunit_has_printed_tap_version;
+@@ -288,6 +284,10 @@ static void kunit_try_run_case(void *dat
+ 	struct kunit_suite *suite = ctx->suite;
+ 	struct kunit_case *test_case = ctx->test_case;
+ 
++#if (IS_ENABLED(CONFIG_KASAN) && IS_ENABLED(CONFIG_KUNIT))
++	current->kunit_test = test;
++#endif /* IS_ENABLED(CONFIG_KASAN) && IS_ENABLED(CONFIG_KUNIT) */
++
+ 	/*
+ 	 * kunit_run_case_internal may encounter a fatal error; if it does,
+ 	 * abort will be called, this thread will exit, and finally the parent
+@@ -602,6 +602,9 @@ void kunit_cleanup(struct kunit *test)
+ 		spin_unlock(&test->lock);
+ 		kunit_remove_resource(test, res);
+ 	}
++#if (IS_ENABLED(CONFIG_KASAN) && IS_ENABLED(CONFIG_KUNIT))
++	current->kunit_test = NULL;
++#endif /* IS_ENABLED(CONFIG_KASAN) && IS_ENABLED(CONFIG_KUNIT)*/
+ }
+ EXPORT_SYMBOL_GPL(kunit_cleanup);
+ 
+--- a/lib/test_kasan.c~kunit-kasan-integration
++++ a/lib/test_kasan.c
+@@ -23,6 +23,8 @@
+ 
+ #include <asm/page.h>
+ 
++#include <kunit/test.h>
++
+ #include "../mm/kasan/kasan.h"
+ 
+ #define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_SHADOW_SCALE_SIZE)
+@@ -32,14 +34,55 @@
+  * are not eliminated as dead code.
+  */
+ 
+-int kasan_int_result;
+ void *kasan_ptr_result;
++int kasan_int_result;
++
++static struct kunit_resource resource;
++static struct kunit_kasan_expectation fail_data;
++static bool multishot;
++
++static int kasan_test_init(struct kunit *test)
++{
++	/*
++	 * Temporarily enable multi-shot mode and set panic_on_warn=0.
++	 * Otherwise, we'd only get a report for the first case.
++	 */
++	multishot = kasan_save_enable_multi_shot();
++
++	return 0;
++}
++
++static void kasan_test_exit(struct kunit *test)
++{
++	kasan_restore_multi_shot(multishot);
++}
++
++/**
++ * KUNIT_EXPECT_KASAN_FAIL() - Causes a test failure when the expression does
++ * not cause a KASAN error. This uses a KUnit resource named "kasan_data." Do
++ * Do not use this name for a KUnit resource outside here.
++ *
++ */
++#define KUNIT_EXPECT_KASAN_FAIL(test, condition) do { \
++	fail_data.report_expected = true; \
++	fail_data.report_found = false; \
++	kunit_add_named_resource(test, \
++				NULL, \
++				NULL, \
++				&resource, \
++				"kasan_data", &fail_data); \
++	condition; \
++	KUNIT_EXPECT_EQ(test, \
++			fail_data.report_expected, \
++			fail_data.report_found); \
++} while (0)
++
++
+ 
+ /*
+  * Note: test functions are marked noinline so that their names appear in
+  * reports.
+  */
+-
+ static noinline void __init kmalloc_oob_right(void)
+ {
+ 	char *ptr;
+--- a/mm/kasan/report.c~kunit-kasan-integration
++++ a/mm/kasan/report.c
+@@ -33,6 +33,8 @@
+ 
+ #include <asm/sections.h>
+ 
++#include <kunit/test.h>
++
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+@@ -464,12 +466,37 @@ static bool report_enabled(void)
+ 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
+ }
  
 +#if IS_ENABLED(CONFIG_KUNIT)
-+	struct kunit			*kunit_test;
-+#endif
++static void kasan_update_kunit_status(struct kunit *cur_test)
++{
++	struct kunit_resource *resource;
++	struct kunit_kasan_expectation *kasan_data;
 +
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
- 	/* Index of current stored address in ret_stack: */
- 	int				curr_ret_stack;
++	resource = kunit_find_named_resource(cur_test, "kasan_data");
++
++	if (!resource) {
++		kunit_set_failure(cur_test);
++		return;
++	}
++
++	kasan_data = (struct kunit_kasan_expectation *)resource->data;
++	kasan_data->report_found = true;
++	kunit_put_resource(resource);
++}
++#endif /* IS_ENABLED(CONFIG_KUNIT) */
++
+ void kasan_report_invalid_free(void *object, unsigned long ip)
+ {
+ 	unsigned long flags;
+ 	u8 tag = get_tag(object);
+ 
+ 	object = reset_tag(object);
++
++#if IS_ENABLED(CONFIG_KUNIT)
++	if (current->kunit_test)
++		kasan_update_kunit_status(current->kunit_test);
++#endif /* IS_ENABLED(CONFIG_KUNIT) */
++
+ 	start_report(&flags);
+ 	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", (void *)ip);
+ 	print_tags(tag, object);
+@@ -488,6 +515,11 @@ static void __kasan_report(unsigned long
+ 	void *untagged_addr;
+ 	unsigned long flags;
+ 
++#if IS_ENABLED(CONFIG_KUNIT)
++	if (current->kunit_test)
++		kasan_update_kunit_status(current->kunit_test);
++#endif /* IS_ENABLED(CONFIG_KUNIT) */
++
+ 	disable_trace_on_warning();
+ 
+ 	tagged_addr = (void *)addr;
 _
 
 Patches currently in -mm which might be from trishalfonso@google.com are
