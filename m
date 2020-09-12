@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF282C433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:32:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 105E8C43461
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:49:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5B2721531
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:32:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC1B621D40
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:49:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599939140;
-	bh=uVJBX/baGr6EWRZwxwhRCBVCLw7Ah6K9o88ObiOVMEg=;
+	s=default; t=1599940180;
+	bh=EuJ92Y0R6JprhH3Gdg054fayGfDA6jl3ih1CSRvnAbQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tXp4JicQJDplOuH/eOY7ZhCnVSt4cvmoSJbWT2rvvrO5TIih4+XQnzvIsFrGdZ/cl
-	 Di5Xh9hHwXbDGZk5XYfCOqxZ7U13AjsnBPDS8nkG4h38nMPgYfYigMoxDqNZVpIy4e
-	 PNCIEcRx56hq51oHOoGtGkb9IFcjf8oEpec+nYGM=
+	b=JFcbzcALu+k+IsCRIpPMtc3zaLDX4Hx9O6LtupnvnGlzATM4faRA7unAJSlckcxW0
+	 b2rWGN+RBfHteRYnXntZRTjxdGvPBj/+eD+vbVGb/wVO5ETzBkcahtfvBivvgl1Sna
+	 qZJqReI8RDf2dHKNoWywZLhUAYM4Vw+HyNkckWzU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725873AbgILTcT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 15:32:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41526 "EHLO mail.kernel.org"
+        id S1725875AbgILTtj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 15:49:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725838AbgILTcS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 15:32:18 -0400
+        id S1725872AbgILTti (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 15:49:38 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 06C27207C3;
-        Sat, 12 Sep 2020 19:32:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E3AE62087C;
+        Sat, 12 Sep 2020 19:49:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599939138;
-        bh=uVJBX/baGr6EWRZwxwhRCBVCLw7Ah6K9o88ObiOVMEg=;
+        s=default; t=1599940178;
+        bh=EuJ92Y0R6JprhH3Gdg054fayGfDA6jl3ih1CSRvnAbQ=;
         h=Date:From:To:Subject:From;
-        b=xYINwlMIuFUDcEcf4IhO3P4hpOl3nM5tK1rtngEBrxMGg+KkV9qTcUHsK5aFeTNdk
-         v9QFjSWxO55ZMC1EZ/Zzx6LAbnH3dd2aC+k7WFL5hcQgJkjL33LzthyyCC6OnfPqtE
-         RWYSYbw6MIB0D37k5nDDHdLbFdPoUVXU1D86c1XE=
-Date:   Sat, 12 Sep 2020 12:32:17 -0700
+        b=jssWOdTMW7fIVtEAN1JfxNQzVaLaI1SVyAzsourVnbS38ESlQ1FvFYxHj3alFJtRR
+         olZ0efwS5+rwhgAwiT3bGLcQDyLGNEUydLu2255PhCSzohlvVnm32Axz+sggqO2Db9
+         1JnaMjh/1H8R0KAwkshdr/9hZtsi7dtW+du7R1lM=
+Date:   Sat, 12 Sep 2020 12:49:37 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        songmuchun@bytedance.com, chris@chrisdown.name,
-        zangchunxin@bytedance.com
-Subject:  + mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch added
+To:     mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com,
+        sjpark@amazon.de, rientjes@google.com, mkoutny@suse.com,
+        mhocko@kernel.org, hannes@cmpxchg.org, guro@fb.com,
+        gthelen@google.com, shakeelb@google.com
+Subject:  + memcg-introduce-per-memcg-reclaim-interface.patch added
  to -mm tree
-Message-ID: <20200912193217.2uMto%akpm@linux-foundation.org>
+Message-ID: <20200912194937.taUz1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -58,16 +59,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: fix infinite loop in drop_slab_node
+     Subject: memcg: introduce per-memcg reclaim interface
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch
+     memcg-introduce-per-memcg-reclaim-interface.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-infinite-loop-i=
-n-drop_slab_node.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-introduce-per-memcg-rec=
+laim-interface.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-infinite-loop-i=
-n-drop_slab_node.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-introduce-per-memcg-rec=
+laim-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,87 +83,198 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chunxin Zang <zangchunxin@bytedance.com>
-Subject: mm/vmscan: fix infinite loop in drop_slab_node
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: introduce per-memcg reclaim interface
 
-On our server, there are about 10k memcg in one machine.  They use memory
-very frequently.  When I tigger drop caches=EF=BC=8Cthe process will infini=
-te
-loop in drop_slab_node.
+Introduce an memcg interface to trigger memory reclaim on a memory cgroup.
 
-There are two reasons:
+Use cases:
+----------
 
-1. We have too many memcgs, even though one object freed in one memcg,
-   the sum of object is bigger than 10.
+1) Per-memcg uswapd:
 
-2. We spend a lot of time in traverse memcg once.  So, the memcg who
-   traversed at the first have been freed many objects.  Traverse memcg
-   next time, the freed count bigger than 10 again.
+   Usually applications consists of combination of latency sensitive
+   and latency tolerant tasks.  For example, tasks serving user requests
+   vs tasks doing data backup for a database application.  At the moment
+   the kernel does not differentiate between such tasks when the
+   application hits the memcg limits.  So, potentially a latency sensitive
+   user facing task can get stuck in high reclaim and be throttled by the
+   kernel.
 
-We can get the following info through 'ps':
+   Similarly there are cases of single process applications having two
+   set of thread pools where threads from one pool have high scheduling
+   priority and low latency requirement.  One concrete example from our
+   production is the VMM which have high priority low latency thread pool
+   for the VCPUs while separate thread pool for stats reporting, I/O
+   emulation, health checks and other managerial operations.  The kernel
+   memory reclaim does not differentiate between VCPU thread or a
+   non-latency sensitive thread and a VCPU thread can get stuck in high
+   reclaim.
 
-  root:~# ps -aux | grep drop
-  root  357956 ... R    Aug25 21119854:55 echo 3 > /proc/sys/vm/drop_caches
-  root 1771385 ... R    Aug16 21146421:17 echo 3 > /proc/sys/vm/drop_caches
-  root 1986319 ... R    18:56 117:27 echo 3 > /proc/sys/vm/drop_caches
-  root 2002148 ... R    Aug24 5720:39 echo 3 > /proc/sys/vm/drop_caches
-  root 2564666 ... R    18:59 113:58 echo 3 > /proc/sys/vm/drop_caches
-  root 2639347 ... R    Sep03 2383:39 echo 3 > /proc/sys/vm/drop_caches
-  root 3904747 ... R    03:35 993:31 echo 3 > /proc/sys/vm/drop_caches
-  root 4016780 ... R    Aug21 7882:18 echo 3 > /proc/sys/vm/drop_caches
+   One way to resolve this issue is to preemptively trigger the memory
+   reclaim from a latency tolerant task (uswapd) when the application is
+   near the limits.  Finding 'near the limits' situation is an orthogonal
+   problem.
 
-Use bpftrace follow 'freed' value in drop_slab_node:
+2) Proactive reclaim:
 
-  root:~# bpftrace -e 'kprobe:drop_slab_node+70 {@ret=3Dhist(reg("bp")); }'
-  Attaching 1 probe...
-  ^B^C
+   This is a similar to the previous use-case, the difference is
+   instead of waiting for the application to be near its limit to trigger
+   memory reclaim, continuously pressuring the memcg to reclaim a small
+   amount of memory.  This gives more accurate and uptodate workingset
+   estimation as the LRUs are continuously sorted and can potentially
+   provide more deterministic memory overcommit behavior.  The memory
+   overcommit controller can provide more proactive response to the
+   changing behavior of the running applications instead of being
+   reactive.
 
-  @ret:
-  [64, 128)        1 |                                                    |
-  [128, 256)      28 |                                                    |
-  [256, 512)     107 |@                                                   |
-  [512, 1K)      298 |@@@                                                 |
-  [1K, 2K)       613 |@@@@@@@                                             |
-  [2K, 4K)      4435 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|
-  [4K, 8K)       442 |@@@@@                                               |
-  [8K, 16K)      299 |@@@                                                 |
-  [16K, 32K)     100 |@                                                   |
-  [32K, 64K)     139 |@                                                   |
-  [64K, 128K)     56 |                                                    |
-  [128K, 256K)    26 |                                                    |
-  [256K, 512K)     2 |                                                    |
+Benefit of user space solution:
+-------------------------------
 
-In the while loop, we can check whether the TASK_KILLABLE signal is set,
-if so, we should break the loop.
+1) More flexible on who should be charged for the cpu of the memory
+   reclaim.  For proactive reclaim, it makes more sense to centralized the
+   overhead while for uswapd, it makes more sense for the application to
+   pay for the cpu of the memory reclaim.
 
-Link: https://lkml.kernel.org/r/20200909152047.27905-1-zangchunxin@bytedanc=
-e.com
-Signed-off-by: Chunxin Zang <zangchunxin@bytedance.com>
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
+2) More flexible on dedicating the resources (like cpu).  The memory
+   overcommit controller can balance the cost between the cpu usage and
+   the memory reclaimed.
+
+3) Provides a way to the applications to keep their LRUs sorted, so,
+   under memory pressure better reclaim candidates are selected.  This
+   also gives more accurate and uptodate notion of working set for an
+   application.
+
+Questions:
+----------
+
+1) Why memory.high is not enough?
+
+   memory.high can be used to trigger reclaim in a memcg and can
+   potentially be used for proactive reclaim as well as uswapd use cases.=
+=20
+   However there is a big negative in using memory.high.  It can
+   potentially introduce high reclaim stalls in the target application as
+   the allocations from the processes or the threads of the application
+   can hit the temporary memory.high limit.
+
+   Another issue with memory.high is that it is not delegatable.  To
+   actually use this interface for uswapd, the application has to
+   introduce another layer of cgroup on whose memory.high it has write
+   access.
+
+2) Why uswapd safe from self induced reclaim?
+
+   This is very similar to the scenario of oomd under global memory
+   pressure.  We can use the similar mechanisms to protect uswapd from
+   self induced reclaim i.e.  memory.min and mlock.
+
+Interface options:
+------------------
+
+Introducing a very simple memcg interface 'echo 10M > memory.reclaim' to
+trigger reclaim in the target memory cgroup.
+
+In future we might want to reclaim specific type of memory from a memcg,
+so, this interface can be extended to allow that. e.g.
+
+$ echo 10M [all|anon|file|kmem] > memory.reclaim
+
+However that should be when we have concrete use-cases for such
+functionality. Keep things simple for now.
+
+Link: https://lkml.kernel.org/r/20200909215752.1725525-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: SeongJae Park <sjpark@amazon.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Michal Koutn=C3=BD" <mkoutny@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/admin-guide/cgroup-v2.rst |    9 +++++
+ mm/memcontrol.c                         |   37 ++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-fix-infinite-loop-in-drop_slab_node
-+++ a/mm/vmscan.c
-@@ -699,6 +699,9 @@ void drop_slab_node(int nid)
- 	do {
- 		struct mem_cgroup *memcg =3D NULL;
+--- a/Documentation/admin-guide/cgroup-v2.rst~memcg-introduce-per-memcg-rec=
+laim-interface
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1181,6 +1181,15 @@ PAGE_SIZE multiple when read back.
+ 	high limit is used and monitored properly, this limit's
+ 	utility is limited to providing the final safety net.
 =20
-+		if (fatal_signal_pending(current))
-+			return;
++  memory.reclaim
++	A write-only file which exists on non-root cgroups.
 +
- 		freed =3D 0;
- 		memcg =3D mem_cgroup_iter(NULL, NULL, NULL);
- 		do {
++	This is a simple interface to trigger memory reclaim in the
++	target cgroup. Write the number of bytes to reclaim to this
++	file and the kernel will try to reclaim that much memory.
++	Please note that the kernel can over or under reclaim from
++	the target cgroup.
++
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+ 	cgroups.  The default value is "0".
+--- a/mm/memcontrol.c~memcg-introduce-per-memcg-reclaim-interface
++++ a/mm/memcontrol.c
+@@ -6423,6 +6423,38 @@ static ssize_t memory_oom_group_write(st
+ 	return nbytes;
+ }
+=20
++static ssize_t memory_reclaim(struct kernfs_open_file *of, char *buf,
++			      size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg =3D mem_cgroup_from_css(of_css(of));
++	unsigned int nr_retries =3D MAX_RECLAIM_RETRIES;
++	unsigned long nr_to_reclaim, nr_reclaimed =3D 0;
++	int err;
++
++	buf =3D strstrip(buf);
++	err =3D page_counter_memparse(buf, "", &nr_to_reclaim);
++	if (err)
++		return err;
++
++	while (nr_reclaimed < nr_to_reclaim) {
++		unsigned long reclaimed;
++
++		if (signal_pending(current))
++			break;
++
++		reclaimed =3D try_to_free_mem_cgroup_pages(memcg,
++						nr_to_reclaim - nr_reclaimed,
++						GFP_KERNEL, true);
++
++		if (!reclaimed && !nr_retries--)
++			break;
++
++		nr_reclaimed +=3D reclaimed;
++	}
++
++	return nbytes;
++}
++
+ static struct cftype memory_files[] =3D {
+ 	{
+ 		.name =3D "current",
+@@ -6475,6 +6507,11 @@ static struct cftype memory_files[] =3D {
+ 		.seq_show =3D memory_oom_group_show,
+ 		.write =3D memory_oom_group_write,
+ 	},
++	{
++		.name =3D "reclaim",
++		.flags =3D CFTYPE_NOT_ON_ROOT | CFTYPE_NS_DELEGATABLE,
++		.write =3D memory_reclaim,
++	},
+ 	{ }	/* terminate */
+ };
+=20
 _
 
-Patches currently in -mm which might be from zangchunxin@bytedance.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch
+memcg-introduce-per-memcg-reclaim-interface.patch
 
