@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B22C433E2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB08C10DAA
 	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 421E821655
+	by mail.kernel.org (Postfix) with ESMTP id 74F87221E3
 	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1599927847;
-	bh=n+LGTKqz8CyWkQpUY9B5wNT9T8lKEh0BF9qAYRu9YJ4=;
+	bh=3mXsINsAZyrbwhjNssPcQE1bLOcEEUX+/yqQysz22sA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ahyp1kwd9y/Fu2oQTzOdZUINsUPKbSb5SWVqPKv9v0Xethm/Natzx3q9z7Ftn5JCm
-	 DwIypCS9uSDOswKlpJgpxWdpLxlsbMyFubCYXf71GyT2Ws35EKNo8WeRlBCM4wXJVb
-	 P9QvKeLqX9a0qf66V8Nb3HguHfnr6BFpbJZ9BALs=
+	b=HSDyRsoy/Jsea0pALxhT5Jymkot0lMB+N9RDZd119jabwLD0F5VWD2T4g1Mr/rTrc
+	 mfk1ifoJ4ESXcG30LW8EeEJ/UmodvEyyWpkMtZlTYnD/d63HnAnbQ1gQBAPmH2AHwT
+	 YDUrET38cqOX7DpokY4Wk3CZKUpiug8qsc2jLolA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725887AbgILQYE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:24:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59878 "EHLO mail.kernel.org"
+        id S1725881AbgILQYF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:24:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725881AbgILQXu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:23:50 -0400
+        id S1725877AbgILQXz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:23:55 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8891721D6C;
-        Sat, 12 Sep 2020 16:23:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8BDF82087C;
+        Sat, 12 Sep 2020 16:23:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927829;
-        bh=n+LGTKqz8CyWkQpUY9B5wNT9T8lKEh0BF9qAYRu9YJ4=;
+        s=default; t=1599927834;
+        bh=3mXsINsAZyrbwhjNssPcQE1bLOcEEUX+/yqQysz22sA=;
         h=Date:From:To:Subject:From;
-        b=RQAyfUQOtDZlXnQZF0z+LfI/zV0uK7eBPJjZn+y4XWz5Y42/NIcain58LwUWkPZDA
-         PVxgMbUUuhGEW+RzuJ2njN7ygiC5pwqBke1Yaz+bgspT3yXB1oAPd9o4FHQQMnYzNy
-         QC1R0tmOWz4XdZQFksNooKfWw+AF94rVbbP/4nw4=
-Date:   Sat, 12 Sep 2020 09:23:49 -0700
+        b=vdw1l6BlyEVPUhoqUP4h/JDoIu68AliB2lQf+ZaBstvPqt0pKFmuQgAYCurZamFxC
+         eo4EhjjYqsF8vn7/XIsf5uktVp9U5Df+l87V/QLKxbEC+Oa+sQ8GVK/sonb5/jV7ba
+         dQHkT6ZRbVqiO+W834hBx0b1pPX1z/q4NRPYyY5o=
+Date:   Sat, 12 Sep 2020 09:23:54 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, mm-commits@vger.kernel.org, tklauser@distanz.ch,
-        viro@zeniv.linux.org.uk
-Subject:  [merged]
- ipc-adjust-proc_ipc_sem_dointvec-definition-to-match-prototype.patch
+To:     joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, mrinalmni@gmail.com
+Subject:  [merged] checkpatch-fix-the-usage-of-capture-group.patch
  removed from -mm tree
-Message-ID: <20200912162349.mr_UYJcu-%akpm@linux-foundation.org>
+Message-ID: <20200912162354.Z-B04casn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,52 +54,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: adjust proc_ipc_sem_dointvec definition to match prototype
+     Subject: checkpatch: fix the usage of capture group ( ... )
 has been removed from the -mm tree.  Its filename was
-     ipc-adjust-proc_ipc_sem_dointvec-definition-to-match-prototype.patch
+     checkpatch-fix-the-usage-of-capture-group.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: ipc: adjust proc_ipc_sem_dointvec definition to match prototype
+From: Mrinal Pandey <mrinalmni@gmail.com>
+Subject: checkpatch: fix the usage of capture group ( ... )
 
-Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-changed ctl_table.proc_handler to take a kernel pointer.  Adjust the
-signature of proc_ipc_sem_dointvec to match ctl_table.proc_handler which
-fixes the following sparse error/warning:
+The usage of "capture group (...)" in the immediate condition after `&&`
+results in `$1` being uninitialized.  This issues a warning "Use of
+uninitialized value $1 in regexp compilation at ./scripts/checkpatch.pl
+line 2638".
 
-ipc/ipc_sysctl.c:94:47: warning: incorrect type in argument 3 (different address spaces)
-ipc/ipc_sysctl.c:94:47:    expected void *buffer
-ipc/ipc_sysctl.c:94:47:    got void [noderef] __user *buffer
-ipc/ipc_sysctl.c:194:35: warning: incorrect type in initializer (incompatible argument 3 (different address spaces))
-ipc/ipc_sysctl.c:194:35:    expected int ( [usertype] *proc_handler )( ... )
-ipc/ipc_sysctl.c:194:35:    got int ( * )( ... )
+I noticed this bug while running checkpatch on the set of commits from
+v5.7 to v5.8-rc1 of the kernel on the commits with a diff content in their
+commit message.
 
-Link: https://lkml.kernel.org/r/20200825105846.5193-1-tklauser@distanz.ch
-Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+This bug was introduced in the script by commit e518e9a59ec3 ("checkpatch:
+emit an error when there's a diff in a changelog").  It has been in the
+script since then.
+
+The author intended to store the match made by capture group in variable
+`$1`.  This should have contained the name of the file as `[\w/]+`
+matched.  However, this couldn't be accomplished due to usage of capture
+group and `$1` in the same regular expression.
+
+Fix this by placing the capture group in the condition before `&&`.  Thus,
+`$1` can be initialized to the text that capture group matches thereby
+setting it to the desired and required value.
+
+Link: https://lkml.kernel.org/r/20200714032352.f476hanaj2dlmiot@mrinalpandey
+Fixes: e518e9a59ec3 ("checkpatch: emit an error when there's a diff in a changelog")
+Signed-off-by: Mrinal Pandey <mrinalmni@gmail.com>
+Reviewed-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Tested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/ipc_sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/ipc/ipc_sysctl.c~ipc-adjust-proc_ipc_sem_dointvec-definition-to-match-prototype
-+++ a/ipc/ipc_sysctl.c
-@@ -85,7 +85,7 @@ static int proc_ipc_auto_msgmni(struct c
- }
+--- a/scripts/checkpatch.pl~checkpatch-fix-the-usage-of-capture-group
++++ a/scripts/checkpatch.pl
+@@ -2639,8 +2639,8 @@ sub process {
  
- static int proc_ipc_sem_dointvec(struct ctl_table *table, int write,
--	void __user *buffer, size_t *lenp, loff_t *ppos)
-+	void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret, semmni;
- 	struct ipc_namespace *ns = current->nsproxy->ipc_ns;
+ # Check if the commit log has what seems like a diff which can confuse patch
+ 		if ($in_commit_log && !$commit_log_has_diff &&
+-		    (($line =~ m@^\s+diff\b.*a/[\w/]+@ &&
+-		      $line =~ m@^\s+diff\b.*a/([\w/]+)\s+b/$1\b@) ||
++		    (($line =~ m@^\s+diff\b.*a/([\w/]+)@ &&
++		      $line =~ m@^\s+diff\b.*a/[\w/]+\s+b/$1\b@) ||
+ 		     $line =~ m@^\s*(?:\-\-\-\s+a/|\+\+\+\s+b/)@ ||
+ 		     $line =~ m/^\s*\@\@ \-\d+,\d+ \+\d+,\d+ \@\@/)) {
+ 			ERROR("DIFF_IN_COMMIT_MSG",
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from mrinalmni@gmail.com are
 
 
