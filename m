@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 582D6C43461
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91082C433E2
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D7C421531
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C9ED21531
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599937894;
-	bh=lzSTnPPApjKmmS16rgO4tdyRGknHpVZpPvoi1rS5h8k=;
+	s=default; t=1599937896;
+	bh=BdlUvw1LkJcdXEKdRINL+1xTDe0zrq+3XFrDfpQ9G+c=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=kLav3URyJ5i3AO1JGuiPc5m54wfxhHK71OKOG61rgXUjVA4zcX7Xe0p1Gp1l/hHFq
-	 EGoFmB0pm7ZS5AufSsue2n2pvT03tZ2mkiq60uQSCCpOoC61T4OIQzMWdtSoeB0iyI
-	 GLx1LisNOOr518HW9hraaT6+FsUjt4NWIihHjZJY=
+	b=T7i/smovtEVvyz7oR44gcNDvjGIE0w82FJnoFUxd9QV7OmQ2YZzG+dm+6nh75CmGR
+	 YGwQvrBohbGuwPlxxXSrFgUpzLsla94hep5qx0MehctH46x2E6jp8+W/obwySSYjmi
+	 LKNzXaTsD5G5bufLRbJKhyYyUgVSh+5ld5egpVi0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725877AbgILTLd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 15:11:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32844 "EHLO mail.kernel.org"
+        id S1725878AbgILTLf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 15:11:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32876 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725838AbgILTLc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 15:11:32 -0400
+        id S1725838AbgILTLe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 15:11:34 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A8C8721531;
-        Sat, 12 Sep 2020 19:11:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BA1DC207C3;
+        Sat, 12 Sep 2020 19:11:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599937891;
-        bh=lzSTnPPApjKmmS16rgO4tdyRGknHpVZpPvoi1rS5h8k=;
+        s=default; t=1599937893;
+        bh=BdlUvw1LkJcdXEKdRINL+1xTDe0zrq+3XFrDfpQ9G+c=;
         h=Date:From:To:Subject:From;
-        b=W72cFNzFJkstWgvNR0bfW2zXo7VCvf2wTvtmbphey9pjP7GrCTlvrghSxK+2E2PEI
-         WqT2HRbqTAH4LphVR3tBsBXlfuz78TyXOxAg47q2AMRWVwuxA3NlmkfT7afNQVCod8
-         e2KLwYRG0qdM/nu0yRVeAfARj0RKZxf0L8AB2zOw=
-Date:   Sat, 12 Sep 2020 12:11:31 -0700
+        b=PNrSUWlGyBTCjx1F3dX+HOghdYAcCmKHW2vWI4nihWjwLwPj1hUEvGZbXISWXtU5c
+         fI6ud+rwnmq910Fefe6IPF/8JHnoWbsh+K1FM7hvg9o+zkp2olpmtfCTW9wpky8kCh
+         KcVH6Ae9VQjVgmY+J40ePuAdXeTeXvoHvivLx/8U=
+Date:   Sat, 12 Sep 2020 12:11:33 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         kirill.shutemov@linux.intel.com, willy@infradead.org
 Subject:  +
- mm-memory-remove-page-fault-assumption-of-compound-page-size.patch added to
- -mm tree
-Message-ID: <20200912191131.hWKQM%akpm@linux-foundation.org>
+ mm-page_owner-change-split_page_owner-to-take-a-count.patch added to -mm tree
+Message-ID: <20200912191133.2k0xr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory: remove page fault assumption of compound page size
+     Subject: mm/page_owner: change split_page_owner to take a count
 has been added to the -mm tree.  Its filename is
-     mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
+     mm-page_owner-change-split_page_owner-to-take-a-count.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-change-split_page_owner-to-take-a-count.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-change-split_page_owner-to-take-a-count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,41 +76,80 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory: remove page fault assumption of compound page size
+Subject: mm/page_owner: change split_page_owner to take a count
 
-A compound page in the page cache will not necessarily be of PMD size,
-so check explicitly.
+The implementation of split_page_owner() prefers a count rather than the
+old order of the page.  When we support a variable size THP, we won't
+have the order at this point, but we will have the number of pages.
+So change the interface to what the caller and callee would prefer.
 
-Link: https://lkml.kernel.org/r/20200908195539.25896-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Huang Ying <ying.huang@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/page_owner.h |    6 +++---
+ mm/huge_memory.c           |    2 +-
+ mm/page_owner.c            |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memory.c~mm-memory-remove-page-fault-assumption-of-compound-page-size
-+++ a/mm/memory.c
-@@ -3549,13 +3549,14 @@ static vm_fault_t do_set_pmd(struct vm_f
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
- 	pmd_t entry;
+--- a/include/linux/page_owner.h~mm-page_owner-change-split_page_owner-to-take-a-count
++++ a/include/linux/page_owner.h
+@@ -11,7 +11,7 @@ extern struct page_ext_operations page_o
+ extern void __reset_page_owner(struct page *page, unsigned int order);
+ extern void __set_page_owner(struct page *page,
+ 			unsigned int order, gfp_t gfp_mask);
+-extern void __split_page_owner(struct page *page, unsigned int order);
++extern void __split_page_owner(struct page *page, unsigned int nr);
+ extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
+ extern void __set_page_owner_migrate_reason(struct page *page, int reason);
+ extern void __dump_page_owner(struct page *page);
+@@ -31,10 +31,10 @@ static inline void set_page_owner(struct
+ 		__set_page_owner(page, order, gfp_mask);
+ }
+ 
+-static inline void split_page_owner(struct page *page, unsigned int order)
++static inline void split_page_owner(struct page *page, unsigned int nr)
+ {
+ 	if (static_branch_unlikely(&page_owner_inited))
+-		__split_page_owner(page, order);
++		__split_page_owner(page, nr);
+ }
+ static inline void copy_page_owner(struct page *oldpage, struct page *newpage)
+ {
+--- a/mm/huge_memory.c~mm-page_owner-change-split_page_owner-to-take-a-count
++++ a/mm/huge_memory.c
+@@ -2425,7 +2425,7 @@ static void __split_huge_page(struct pag
+ 
+ 	ClearPageCompound(head);
+ 
+-	split_page_owner(head, HPAGE_PMD_ORDER);
++	split_page_owner(head, HPAGE_PMD_NR);
+ 
+ 	/* See comment in __split_huge_page_tail() */
+ 	if (PageAnon(head)) {
+--- a/mm/page_owner.c~mm-page_owner-change-split_page_owner-to-take-a-count
++++ a/mm/page_owner.c
+@@ -204,7 +204,7 @@ void __set_page_owner_migrate_reason(str
+ 	page_owner->last_migrate_reason = reason;
+ }
+ 
+-void __split_page_owner(struct page *page, unsigned int order)
++void __split_page_owner(struct page *page, unsigned int nr)
+ {
  	int i;
--	vm_fault_t ret;
-+	vm_fault_t ret = VM_FAULT_FALLBACK;
+ 	struct page_ext *page_ext = lookup_page_ext(page);
+@@ -213,7 +213,7 @@ void __split_page_owner(struct page *pag
+ 	if (unlikely(!page_ext))
+ 		return;
  
- 	if (!transhuge_vma_suitable(vma, haddr))
--		return VM_FAULT_FALLBACK;
-+		return ret;
- 
--	ret = VM_FAULT_FALLBACK;
- 	page = compound_head(page);
-+	if (page_order(page) != HPAGE_PMD_ORDER)
-+		return ret;
- 
- 	/*
- 	 * Archs like ppc64 need additonal space to store information
+-	for (i = 0; i < (1 << order); i++) {
++	for (i = 0; i < nr; i++) {
+ 		page_owner = get_page_owner(page_ext);
+ 		page_owner->order = 0;
+ 		page_ext = page_ext_next(page_ext);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
