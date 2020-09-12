@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89FD4C433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC512C43461
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DE872087C
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97C7E21D6C
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 16:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599927803;
-	bh=DqwEo6mO4UlNALCVSRzCY1SXo1J7QUSn/LWgsUdv1og=;
+	s=default; t=1599927824;
+	bh=hulqML4vOxWDBzE2aGY1AmVquDZe2x5hE1QqSSZtnGw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yLPMC8V/AaWnN8FMA1uExu3YIO7i1Bg+rvmnZXBA74gfhOuKjDc7Rzck115KidN4g
-	 GGOTfrWKXbqvVI9MNwWdxGL06XTE/i75F85/810S2F11CkvZ8KHQmNqbVA8LGcj8Xl
-	 D7Jb2aKOcT4Yc8eV+3llZGXeQbv+1LRtWzK+E6o0=
+	b=t1+KTUxyLVEhQr+2ZPI8NKb+Rc5B0lZqwp1SzT1/bIOj1m2tBmIg604AFP5SqLOCu
+	 HzOEg4jdTmi33pEyXpa+aE7vupN5/5T/sWCXbO0O3IRlyh+cH4txmYvxZLktUFWxcN
+	 qhT3vTzlwbVScHH/akqtW7InbX/+ndJZs4l+qjVc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725854AbgILQXV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 12:23:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58918 "EHLO mail.kernel.org"
+        id S1725871AbgILQXm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 12:23:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725846AbgILQXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 12:23:20 -0400
+        id S1725846AbgILQXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 12:23:33 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 095E22083E;
-        Sat, 12 Sep 2020 16:23:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C41AA2083E;
+        Sat, 12 Sep 2020 16:23:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599927800;
-        bh=DqwEo6mO4UlNALCVSRzCY1SXo1J7QUSn/LWgsUdv1og=;
+        s=default; t=1599927813;
+        bh=hulqML4vOxWDBzE2aGY1AmVquDZe2x5hE1QqSSZtnGw=;
         h=Date:From:To:Subject:From;
-        b=zmyTb1YxObYZn3glJnqAb9S0XblRn4dbtx4sDfOsfAiTFbhVRClVj3IvEZbgKjJku
-         q3iNsw/hM+QDQ1u9Hk2TbeUgu+D+TCIKGkzVQMfor6Ggvb+SwiN8iLnPBijCunwQxn
-         4jYpcaKYGzAI7uNq24kxZaj6O/hPCx7ZXN/5XhGo=
-Date:   Sat, 12 Sep 2020 09:23:19 -0700
+        b=hb/hQEQZGzlYd/jbFPbtBEWzoxQOZGQfbG/3r8eSOIXYU2ItIEokU98xQRE00yatE
+         tmOJcc6gzCzpoeas4jshTbvvAWCqTOG8VNidNlOEbhUD3VsPSII9KoMjiMqgy7k5Ed
+         h0CGDLXuzsZIIrxENOmnv8zYJRPAynfnrieBUhxY=
+Date:   Sat, 12 Sep 2020 09:23:32 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, bp@suse.de, mliska@suse.cz,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com
-Subject:  [obsolete] arch-x86-makefile-use-config_shell.patch
+To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  [merged] memcg-fix-use-after-free-in-uncharge_batch.patch
  removed from -mm tree
-Message-ID: <20200912162319.UzBEHhxzt%akpm@linux-foundation.org>
+Message-ID: <20200912162332.mzYiPtJYf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,64 +54,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/Makefile: use $(CONFIG_SHELL)
+     Subject: memcg: fix use-after-free in uncharge_batch
 has been removed from the -mm tree.  Its filename was
-     arch-x86-makefile-use-config_shell.patch
+     memcg-fix-use-after-free-in-uncharge_batch.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/Makefile: use $(CONFIG_SHELL)
+From: Michal Hocko <mhocko@suse.com>
+Subject: memcg: fix use-after-free in uncharge_batch
 
-Fix this:
+syzbot has reported an use-after-free in the uncharge_batch path
 
-y:/usr/src/25> make mrproper
-make: execvp: ./scripts/x86-check-compiler.sh: Permission denied
+BUG: KASAN: use-after-free in instrument_atomic_write include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in atomic64_sub_return include/asm-generic/atomic-instrumented.h:970 [inline]
+BUG: KASAN: use-after-free in atomic_long_sub_return include/asm-generic/atomic-long.h:113 [inline]
+BUG: KASAN: use-after-free in page_counter_cancel mm/page_counter.c:54 [inline]
+BUG: KASAN: use-after-free in page_counter_uncharge+0x3d/0xc0 mm/page_counter.c:155
+Write of size 8 at addr ffff8880371c0148 by task syz-executor.0/9304
 
-Fixes: 73da86741e7f75 ("x86/build: Check whether the compiler is sane")
-Cc: Martin Lika <mliska@suse.cz>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+CPU: 0 PID: 9304 Comm: syz-executor.0 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1f0/0x31e lib/dump_stack.c:118
+ print_address_description+0x66/0x620 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report+0x132/0x1d0 mm/kasan/report.c:530
+ check_memory_region_inline mm/kasan/generic.c:183 [inline]
+ check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:192
+ instrument_atomic_write include/linux/instrumented.h:71 [inline]
+ atomic64_sub_return include/asm-generic/atomic-instrumented.h:970 [inline]
+ atomic_long_sub_return include/asm-generic/atomic-long.h:113 [inline]
+ page_counter_cancel mm/page_counter.c:54 [inline]
+ page_counter_uncharge+0x3d/0xc0 mm/page_counter.c:155
+ uncharge_batch+0x6c/0x350 mm/memcontrol.c:6764
+ uncharge_page+0x115/0x430 mm/memcontrol.c:6796
+ uncharge_list mm/memcontrol.c:6835 [inline]
+ mem_cgroup_uncharge_list+0x70/0xe0 mm/memcontrol.c:6877
+ release_pages+0x13a2/0x1550 mm/swap.c:911
+ tlb_batch_pages_flush mm/mmu_gather.c:49 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:242 [inline]
+ tlb_flush_mmu+0x780/0x910 mm/mmu_gather.c:249
+ tlb_finish_mmu+0xcb/0x200 mm/mmu_gather.c:328
+ exit_mmap+0x296/0x550 mm/mmap.c:3185
+ __mmput+0x113/0x370 kernel/fork.c:1076
+ exit_mm+0x4cd/0x550 kernel/exit.c:483
+ do_exit+0x576/0x1f20 kernel/exit.c:793
+ do_group_exit+0x161/0x2d0 kernel/exit.c:903
+ get_signal+0x139b/0x1d30 kernel/signal.c:2743
+ arch_do_signal+0x33/0x610 arch/x86/kernel/signal.c:811
+ exit_to_user_mode_loop kernel/entry/common.c:135 [inline]
+ exit_to_user_mode_prepare+0x8d/0x1b0 kernel/entry/common.c:166
+ syscall_exit_to_user_mode+0x5e/0x1a0 kernel/entry/common.c:241
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+1a3e1f40962c ("mm: memcontrol: decouple reference counting from page
+accounting") has reworked the memcg lifetime to be bound the the struct
+page rather than charges.  It has also removed the css_put_many from
+uncharge_batch and that is causing the above splat.  uncharge_batch is
+supposed to uncharge accumulated charges for all pages freed from the same
+memcg.  The queuing is done by uncharge_page which however drops the memcg
+reference after it adds charges to the batch.  If the current page happens
+to be the last one holding the reference for its memcg then the memcg is
+OK to go and the next page to be freed will trigger batched uncharge which
+needs to access the memcg which is gone already.
+
+Fix the issue by taking a reference for the memcg in the current batch.
+
+Link: https://lkml.kernel.org/r/20200820090341.GC5033@dhcp22.suse.cz
+Fixes: 1a3e1f40962c ("mm: memcontrol: decouple reference counting from page accounting")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: syzbot+b305848212deec86eabe@syzkaller.appspotmail.com
+Reported-by: syzbot+b5ea6fb6f139c8b9482b@syzkaller.appspotmail.com
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/arch/x86/Makefile~arch-x86-makefile-use-config_shell
-+++ a/arch/x86/Makefile
-@@ -2,7 +2,7 @@
- # Unified Makefile for i386 and x86_64
+--- a/mm/memcontrol.c~memcg-fix-use-after-free-in-uncharge_batch
++++ a/mm/memcontrol.c
+@@ -6774,6 +6774,9 @@ static void uncharge_batch(const struct
+ 	__this_cpu_add(ug->memcg->vmstats_percpu->nr_page_events, ug->nr_pages);
+ 	memcg_check_events(ug->memcg, ug->dummy_page);
+ 	local_irq_restore(flags);
++
++	/* drop reference from uncharge_page */
++	css_put(&ug->memcg->css);
+ }
  
- #  Check the compiler
--sane_compiler := $(shell $(srctree)/scripts/x86-check-compiler.sh $(CC))
-+sane_compiler := $($(CONFIG_SHELL) $(srctree)/scripts/x86-check-compiler.sh $(CC))
- $(if $(sane_compiler),$(error $(CC) check failed. Aborting),)
+ static void uncharge_page(struct page *page, struct uncharge_gather *ug)
+@@ -6797,6 +6800,9 @@ static void uncharge_page(struct page *p
+ 			uncharge_gather_clear(ug);
+ 		}
+ 		ug->memcg = page->mem_cgroup;
++
++		/* pairs with css_put in uncharge_batch */
++		css_get(&ug->memcg->css);
+ 	}
  
- # select defconfig based on actual architecture
+ 	nr_pages = compound_nr(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm.patch
-mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
-device-dax-make-align-a-per-device-property-fix.patch
-powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
-mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
-mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
-memblock-make-memblock_debug-and-related-functionality-private-fix.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
-xarray-add-xa_get_order-fix.patch
-xarray-add-xas_split-fix.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
-mmhwpoison-drop-unneeded-pcplist-draining-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-mm-memory_hotplug-simplify-page-offlining-fix.patch
-checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
