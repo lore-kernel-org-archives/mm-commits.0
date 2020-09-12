@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30C64C433E2
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38874C43461
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F204D21D40
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05B9C21531
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Sep 2020 19:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599937909;
-	bh=PhppgLWJ+/XGXNLdEjitq4WfbTfWmD6CQIq7IRg1Aks=;
+	s=default; t=1599937911;
+	bh=A+VJ1jwmYP3oZSXo8N87h9KzyatUfV+JfEJowxVnBQg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=N0KEtgStpPksS0h2Tr6f0hcwBVO+N9idGj8MLXr8UVaMY71qYHu+FBe3a/vsNunZ+
-	 3IHAGBkSNPdCGUEZoX/HUn8j2LW1xbHdCMe5ZQ+lGZF7kRbI2jeR3PAmeKVif1m0pR
-	 +wClyK5lPU2idPUGEDyzaXQM6OP7gHv0ixLQfxrI=
+	b=05ph6vbC6hkSt1/BwwFXW5tNJdrk6MRdHKdZ3Fxv0S9CdW/TxoMlrxIwdSiB0Ap7c
+	 cefRjI4oafiy4e+8Bj6qy4YksZzVpQ7zXyV3RxyO+yJ+ert3hPBFGGgzgjNleOWjF7
+	 s4mwYJtaAQC7aStPZiQT0ay8tj93910zBnfxkCKY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725896AbgILTLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 15:11:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33090 "EHLO mail.kernel.org"
+        id S1725899AbgILTLu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 15:11:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725885AbgILTLr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 15:11:47 -0400
+        id S1725885AbgILTLt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 15:11:49 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA1AE21D40;
-        Sat, 12 Sep 2020 19:11:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A2880207C3;
+        Sat, 12 Sep 2020 19:11:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599937906;
-        bh=PhppgLWJ+/XGXNLdEjitq4WfbTfWmD6CQIq7IRg1Aks=;
+        s=default; t=1599937908;
+        bh=A+VJ1jwmYP3oZSXo8N87h9KzyatUfV+JfEJowxVnBQg=;
         h=Date:From:To:Subject:From;
-        b=Jgh2wHm7Eb4Q+wViV0etiTuo87+rNPh+I2fdBSZ6BYvrLUz/SHtldFWaN8CUIbkeN
-         rHwB9GOX44q0Y63BHnGH8xnDRHjj1j88QdsIiWNE0sfoXoDNoODDmlXn6EwKa4Z9vw
-         ZVdIIKBrjx6GInHS5AggN85BROP0GM4d1StNO1s4=
-Date:   Sat, 12 Sep 2020 12:11:46 -0700
+        b=uSBIxomp0Kzwy8bTk7myf6hAhe6Ux+M5DO4EDd/7rIleZyqSOGY/+Ik/19Swu03p2
+         G8bBn79UbntBLV9l1tTxB/0l3uAqFwSbcxCxVNWOSUUgk8vI9sbiU0DhQNl6fzlucx
+         oZ1BgebZIC82HzT5gzYbVirxq/Leso0OrkF0rYjs=
+Date:   Sat, 12 Sep 2020 12:11:48 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         kirill.shutemov@linux.intel.com, willy@infradead.org
 Subject:  +
- mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch added to -mm
- tree
-Message-ID: <20200912191146.v5EI8%akpm@linux-foundation.org>
+ mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch added to
+ -mm tree
+Message-ID: <20200912191148.5LTLS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/truncate: fix truncation for pages of arbitrary size
+     Subject: mm/page-writeback: support tail pages in wait_for_stable_page
 has been added to the -mm tree.  Its filename is
-     mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
+     mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,47 +77,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/truncate: fix truncation for pages of arbitrary size
+Subject: mm/page-writeback: support tail pages in wait_for_stable_page
 
-Remove the assumption that a compound page is HPAGE_PMD_SIZE, and the
-assumption that any page is PAGE_SIZE.
+page->mapping is undefined for tail pages, so operate exclusively on the
+head page.
 
-Link: https://lkml.kernel.org/r/20200908195539.25896-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/truncate.c~mm-truncate-fix-truncation-for-pages-of-arbitrary-size
-+++ a/mm/truncate.c
-@@ -168,7 +168,7 @@ void do_invalidatepage(struct page *page
-  * becomes orphaned.  It will be left on the LRU and may even be mapped into
-  * user pagetables if we're racing with filemap_fault().
-  *
-- * We need to bale out if page->mapping is no longer equal to the original
-+ * We need to bail out if page->mapping is no longer equal to the original
-  * mapping.  This happens a) when the VM reclaimed the page while we waited on
-  * its lock, b) when a concurrent invalidate_mapping_pages got there first and
-  * c) when tmpfs swizzles a page between a tmpfs inode and swapper_space.
-@@ -177,12 +177,12 @@ static void
- truncate_cleanup_page(struct address_space *mapping, struct page *page)
+--- a/mm/page-writeback.c~mm-page-writeback-support-tail-pages-in-wait_for_stable_page
++++ a/mm/page-writeback.c
+@@ -2849,6 +2849,7 @@ EXPORT_SYMBOL_GPL(wait_on_page_writeback
+  */
+ void wait_for_stable_page(struct page *page)
  {
- 	if (page_mapped(page)) {
--		pgoff_t nr = PageTransHuge(page) ? HPAGE_PMD_NR : 1;
-+		unsigned int nr = thp_nr_pages(page);
- 		unmap_mapping_pages(mapping, page->index, nr, false);
- 	}
- 
- 	if (page_has_private(page))
--		do_invalidatepage(page, 0, PAGE_SIZE);
-+		do_invalidatepage(page, 0, thp_size(page));
- 
- 	/*
- 	 * Some filesystems seem to re-dirty the page even after
++	page = thp_head(page);
+ 	if (bdi_cap_stable_pages_required(inode_to_bdi(page->mapping->host)))
+ 		wait_on_page_writeback(page);
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
