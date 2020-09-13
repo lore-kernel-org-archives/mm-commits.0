@@ -7,63 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02A92C43461
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:01:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D555C43461
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:17:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4A4221655
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:01:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B21C21775
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:17:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599955309;
-	bh=lVrK3UZdm8ntUYENLJs/lQ1NSQrejRhqNHkTkD+nGuQ=;
+	s=default; t=1599956268;
+	bh=di1cPZEtbjANPqPURXO/4Z0uf8PgZPqThMF//tL3PMg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=0z8oyDH/RxJyw4MJlOqnuSWMrCd2asUx4duaVBh6EPnmcbclV9LkDMbYVltr1UswR
-	 a9i3hugXLyzTqFrxIW+nxn6hZxd+DrjywI629RFvKdayh823vXhS29f+jTVSmGdyMP
-	 3+IMCG+nSjqdLOnsFVILRIjlI0k/t+qONt+eX910=
+	b=udTxfUdJnxX/YM3UzDJTveOt488WFQ5mC8DJUfc+exOQy6PRUPbMFBN1tL4bQQWdx
+	 VJ3wpDe5W3G8QVMQ5kUPBtD1Mxe8TUj/1BBCKTLp4Q5Y6SWXJcfxUzMyLKvq/YTij6
+	 wgMSxsxrGK2Mzkh+tYWChi6gUiln9zaA5aKGowvk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725906AbgIMABs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 20:01:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58056 "EHLO mail.kernel.org"
+        id S1725906AbgIMARr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 20:17:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725911AbgIMABE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 20:01:04 -0400
+        id S1725905AbgIMARp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 20:17:45 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F0CE4217A0;
-        Sun, 13 Sep 2020 00:01:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1FB762087C;
+        Sun, 13 Sep 2020 00:17:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599955263;
-        bh=lVrK3UZdm8ntUYENLJs/lQ1NSQrejRhqNHkTkD+nGuQ=;
+        s=default; t=1599956264;
+        bh=di1cPZEtbjANPqPURXO/4Z0uf8PgZPqThMF//tL3PMg=;
         h=Date:From:To:Subject:From;
-        b=pwtA33edAhGzsdLl4burMZoBw93r6kYyFdZCzjHX8IGnqzvOCkqTLPVKATqYXQVCP
-         uvsrfUwr95DB1Hj9AO9q422KnpxqJOj8y+PYoCp7Y3jCa6GRHRqFMfuwWKBkbBCVQx
-         7IesSovabpLl1ftPb+hHUOlKUxj60eU6ATuCD+Zg=
-Date:   Sat, 12 Sep 2020 17:01:01 -0700
+        b=om7XT7LDR9kZd5vY6mJgTk4K4MXMBo1tqmIyDdd6haHfsJkItwVEBvKjZUYAK1fEG
+         7Zy68Pof6GjY2tTXKKam5qA1Yz0aWYLV2UyDLGE4MgdM0uL044lx787X0PfT1oUIp3
+         f8EbJSaYnrbYnThnS5WRIfNgDJ4N5ebGETHdzyuo=
+Date:   Sat, 12 Sep 2020 17:17:43 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, wei.liu@kernel.org,
-        vishal.l.verma@intel.com, tglx@linutronix.de,
-        sthemmin@microsoft.com, sstabellini@kernel.org,
-        roger.pau@citrix.com, rjw@rjwysocki.net,
-        richardw.yang@linux.intel.com, paulus@samba.org,
-        pankaj.gupta.linux@gmail.com, oohall@gmail.com,
-        nathanl@linux.ibm.com, mst@redhat.com, mpe@ellerman.id.au,
-        mhocko@suse.com, lpechacek@suse.cz, leobras.c@gmail.com,
-        lenb@kernel.org, kys@microsoft.com, kernelfans@gmail.com,
-        keescook@chromium.org, julien@xen.org, jgross@suse.com,
-        jgg@ziepe.ca, jasowang@redhat.com, hca@linux.ibm.com,
-        haiyangz@microsoft.com, gregkh@linuxfoundation.org,
-        gor@linux.ibm.com, ebiederm@xmission.com, dave.jiang@intel.com,
-        dan.j.williams@intel.com, borntraeger@de.ibm.com,
-        boris.ostrovsky@oracle.com, bhe@redhat.com,
-        benh@kernel.crashing.org, ardb@kernel.org, anton@ozlabs.org,
-        david@redhat.com
-Subject:  + xen-balloon-try-to-merge-system-ram-resources.patch added
+To:     mm-commits@vger.kernel.org, willy@infradead.org, mhocko@kernel.org,
+        kirill.shutemov@linux.intel.com, dave@stgolabs.net,
+        mike.kravetz@oracle.com
+Subject:  +
+ hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch added
  to -mm tree
-Message-ID: <20200913000101.0TngL%akpm@linux-foundation.org>
+Message-ID: <20200913001743.XmcqN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -72,16 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xen/balloon: try to merge system ram resources
+     Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
 has been added to the -mm tree.  Its filename is
-     xen-balloon-try-to-merge-system-ram-resources.patch
+     hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/xen-balloon-try-to-merge-syst=
-em-ram-resources.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/xen-balloon-try-to-merge-syst=
-em-ram-resources.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -89,106 +71,71 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: xen/balloon: try to merge system ram resources
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
 
-Let's try to merge system ram resources we add, to minimize the number of
-resources in /proc/iomem.  We don't care about the boundaries of
-individual chunks we added.
+As a debugging aid, huge_pmd_share should make sure i_mmap_rwsem is held
+if necessary.  To clarify the 'if necessary', expand the comment block at
+the beginning of huge_pmd_share.
 
-Link: https://lkml.kernel.org/r/20200911103459.10306-8-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
-Cc: Julien Grall <julien@xen.org>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Leonardo Bras <leobras.c@gmail.com>
-Cc: Libor Pechacek <lpechacek@suse.cz>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Nathan Lynch <nathanl@linux.ibm.com>
-Cc: "Oliver O'Halloran" <oohall@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Pingfan Liu <kernelfans@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+No functional change.  The added i_mmap_assert_locked() call is only
+enabled if CONFIG_LOCKDEP.
+
+Ideally, this should have been included with commit 34ae204f1851
+("hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem").
+
+Link: https://lkml.kernel.org/r/20200911201248.88537-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/balloon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/drivers/xen/balloon.c~xen-balloon-try-to-merge-system-ram-resources
-+++ a/drivers/xen/balloon.c
-@@ -331,7 +331,7 @@ static enum bp_state reserve_additional_
- 	mutex_unlock(&balloon_mutex);
- 	/* add_memory_resource() requires the device_hotplug lock */
- 	lock_device_hotplug();
--	rc =3D add_memory_resource(nid, resource, MHP_NONE);
-+	rc =3D add_memory_resource(nid, resource, MEMHP_MERGE_RESOURCE);
- 	unlock_device_hotplug();
- 	mutex_lock(&balloon_mutex);
-=20
+--- a/mm/hugetlb.c~hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share
++++ a/mm/hugetlb.c
+@@ -5337,10 +5337,16 @@ void adjust_range_if_pmd_sharing_possibl
+  * !shared pmd case because we can allocate the pmd later as well, it makes the
+  * code much cleaner.
+  *
+- * This routine must be called with i_mmap_rwsem held in at least read mode.
+- * For hugetlbfs, this prevents removal of any page table entries associated
+- * with the address space.  This is important as we are setting up sharing
+- * based on existing page table entries (mappings).
++ * This routine must be called with i_mmap_rwsem held in at least read mode if
++ * sharing is possible.  For hugetlbfs, this prevents removal of any page
++ * table entries associated with the address space.  This is important as we
++ * are setting up sharing based on existing page table entries (mappings).
++ *
++ * NOTE: This routine is only called from huge_pte_alloc.  Some callers of
++ * huge_pte_alloc know that sharing is not possible and do not take
++ * i_mmap_rwsem as a performance optimization.  This is handled by the
++ * if !vma_shareable check at the beginning of the routine. i_mmap_rwsem is
++ * only required for subsequent processing.
+  */
+ pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
+ {
+@@ -5357,6 +5363,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	if (!vma_shareable(vma, addr))
+ 		return (pte_t *)pmd_alloc(mm, pud, addr);
+ 
++	i_mmap_assert_locked(mapping);
+ 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
+ 		if (svma == vma)
+ 			continue;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-page_alloc-tweak-comments-in-has_unmovable_pages.patch
-mm-page_isolation-exit-early-when-pageblock-is-isolated-in-set_migratetype_=
-isolate.patch
-mm-page_isolation-drop-warn_on_once-in-set_migratetype_isolate.patch
-mm-page_isolation-cleanup-set_migratetype_isolate.patch
-virtio-mem-dont-special-case-zone_movable.patch
-mm-document-semantics-of-zone_movable.patch
-mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch
-mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
-mm-memory_hotplug-simplify-page-offlining.patch
-mm-page_alloc-simplify-__offline_isolated_pages.patch
-mm-memory_hotplug-drop-nr_isolate_pageblock-in-offline_pages.patch
-mm-page_isolation-simplify-return-value-of-start_isolate_page_range.patch
-mm-memory_hotplug-simplify-page-onlining.patch
-mm-page_alloc-drop-stale-pageblock-comment-in-memmap_init_zone.patch
-mm-pass-migratetype-into-memmap_init_zone-and-move_pfn_range_to_zone.patch
-mm-memory_hotplug-mark-pageblocks-migrate_isolate-while-onlining-memory.pat=
-ch
-kernel-resource-make-release_mem_region_adjustable-never-fail.patch
-kernel-resource-move-and-rename-ioresource_mem_driver_managed.patch
-mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.patch
-mm-memory_hotplug-prepare-passing-flags-to-add_memory-and-friends.patch
-mm-memory_hotplug-memhp_merge_resource-to-specify-merging-of-system-ram-res=
-ources.patch
-virtio-mem-try-to-merge-system-ram-resources.patch
-xen-balloon-try-to-merge-system-ram-resources.patch
-hv_balloon-try-to-merge-system-ram-resources.patch
+hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
 
