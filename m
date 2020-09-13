@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A34BC433E2
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:00:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D6DCC43461
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:00:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18DFF21775
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:00:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56A0521775
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:00:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599955247;
-	bh=9LCaYwcINaD0Jv+nIJKehIUVC9EVJThexrjgW8HYKjU=;
+	s=default; t=1599955248;
+	bh=46PP9qEJ2GbBkyGEfhWDgradjxhhGvNRsyfYnkf9qds=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=pFu448f/vN1wEBki1IQFzKCUbJlaRYY7SDlMQs7twf0zTqNYbQy657HRmQO9vIY+8
-	 1hwexveHZ8QImoGql6R8hDZrUmHYiayEchKtz+m6fDM3lxulRbEoQt5/0+Pq5k1gQh
-	 zKn+xMVzHM069GTFzKweIAW39ws2MG+gVBHHMvqk=
+	b=GRB6qB5BlpeL8Cu8rvozHdgx7Pm1GfncNd0Lf2g97jXYo6gwEHy5BQQOQF96+xYD6
+	 tXGoeZQ68Ea3LARyscZRsaFHdoHrClmh344ch27CxUfI+Ipkfero/bvbnalPV8TcyU
+	 qWonuTyoA+gcXB3Q5D8uR0L/nL6TxC2Y/190pOfc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725908AbgIMAAq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 20:00:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57438 "EHLO mail.kernel.org"
+        id S1725905AbgIMAAs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 20:00:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725905AbgIMAAn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 20:00:43 -0400
+        id S1725907AbgIMAAq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 20:00:46 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5E5D62087C;
-        Sun, 13 Sep 2020 00:00:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E53ED21531;
+        Sun, 13 Sep 2020 00:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599955242;
-        bh=9LCaYwcINaD0Jv+nIJKehIUVC9EVJThexrjgW8HYKjU=;
+        s=default; t=1599955246;
+        bh=46PP9qEJ2GbBkyGEfhWDgradjxhhGvNRsyfYnkf9qds=;
         h=Date:From:To:Subject:From;
-        b=bZY8RcAG9damxCbRO1gSSLrB9qLB9oOhkXMkBlc7eJSLAvIRJMPEAgFskv6kkYMwP
-         +klKZ1oZ2GvA4hsS9vUz1HAwg350T67mC/570RBXlP8fW4CnBU92F+O8r0td1vckCz
-         YzPV9BvLrVsgROaxZa8pl4GzFEIn5AfIzA5defCg=
-Date:   Sat, 12 Sep 2020 17:00:40 -0700
+        b=AiYGY6IoEsEoBxfOXz9HnJZQgswMVvsj0x9QTli0u6lcwWeZrwwC5seFl5cYFYVea
+         tw/e7u9zKkBqCFgMuXJVjyOUvZ8Z11F984jEE/zCr2VX+SvbElSDgySBxdVJyBBlQB
+         y0QHipWwbXNmPK0QU2nJQ5qyvui02oRi96LDC1TA=
+Date:   Sat, 12 Sep 2020 17:00:44 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, wei.liu@kernel.org,
         vishal.l.verma@intel.com, tglx@linutronix.de,
@@ -58,9 +58,9 @@ To:     mm-commits@vger.kernel.org, wei.liu@kernel.org,
         benh@kernel.crashing.org, ardb@kernel.org, anton@ozlabs.org,
         david@redhat.com
 Subject:  +
- kernel-resource-move-and-rename-ioresource_mem_driver_managed.patch added to
- -mm tree
-Message-ID: <20200913000040.h08f0%akpm@linux-foundation.org>
+ mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.patch
+ added to -mm tree
+Message-ID: <20200913000044.e3GN_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -73,16 +73,18 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
+     Subject: mm/memory_hotplug: guard more declarations by CONFIG_MEMORY_H=
+OTPLUG
 has been added to the -mm tree.  Its filename is
-     kernel-resource-move-and-rename-ioresource_mem_driver_managed.patch
+     mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.pat=
+ch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-resource-move-and-rena=
-me-ioresource_mem_driver_managed.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-guard-more-=
+declarations-by-config_memory_hotplug.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-resource-move-and-rena=
-me-ioresource_mem_driver_managed.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-guard-more-=
+declarations-by-config_memory_hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -98,40 +100,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
+Subject: mm/memory_hotplug: guard more declarations by CONFIG_MEMORY_HOTPLUG
 
-IORESOURCE_MEM_DRIVER_MANAGED currently uses an unused PnP bit, which is
-always set to 0 by hardware.  This is far from beautiful (and confusing),
-and the bit only applies to SYSRAM.  So let's move it out of the
-bus-specific (PnP) defined bits.
+We soon want to pass flags via a new type to add_memory() and friends.=20
+That revealed that we currently don't guard some declarations by
+CONFIG_MEMORY_HOTPLUG.
 
-We'll add another SYSRAM specific bit soon.  If we ever need more bits for
-other purposes, we can steal some from "desc", or reshuffle/regroup what
-we have.
+While some definitions could be moved to different places, let's keep it
+minimal for now and use CONFIG_MEMORY_HOTPLUG for all functions only
+compiled with CONFIG_MEMORY_HOTPLUG.
 
-Link: https://lkml.kernel.org/r/20200911103459.10306-3-david@redhat.com
+Wrap sparse_decode_mem_map() into CONFIG_MEMORY_HOTPLUG, it's only called
+from CONFIG_MEMORY_HOTPLUG code.
+
+While at it, remove allow_online_pfn_range(), which is no longer around,
+and mhp_notimplemented(), which is unused.
+
+Link: https://lkml.kernel.org/r/20200911103459.10306-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Anton Blanchard <anton@ozlabs.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Julien Grall <julien@xen.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Leonardo Bras <leobras.c@gmail.com>
@@ -146,75 +152,76 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    4 +++-
- kernel/kexec_file.c    |    2 +-
- mm/memory_hotplug.c    |    4 ++--
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ include/linux/memory_hotplug.h |   12 +++---------
+ mm/sparse.c                    |    2 ++
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
---- a/include/linux/ioport.h~kernel-resource-move-and-rename-ioresource_mem=
-_driver_managed
-+++ a/include/linux/ioport.h
-@@ -58,6 +58,9 @@ struct resource {
- #define IORESOURCE_EXT_TYPE_BITS 0x01000000	/* Resource extended types */
- #define IORESOURCE_SYSRAM	0x01000000	/* System RAM (modifier) */
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-guard-more-declarati=
+ons-by-config_memory_hotplug
++++ a/include/linux/memory_hotplug.h
+@@ -247,13 +247,6 @@ static inline void zone_span_writelock(s
+ static inline void zone_span_writeunlock(struct zone *zone) {}
+ static inline void zone_seqlock_init(struct zone *zone) {}
 =20
-+/* IORESOURCE_SYSRAM specific bits. */
-+#define IORESOURCE_SYSRAM_DRIVER_MANAGED	0x02000000 /* Always detected via=
- a driver. */
+-static inline int mhp_notimplemented(const char *func)
+-{
+-	printk(KERN_WARNING "%s() called, with CONFIG_MEMORY_HOTPLUG disabled\n",=
+ func);
+-	dump_stack();
+-	return -ENOSYS;
+-}
+-
+ static inline void register_page_bootmem_info_node(struct pglist_data *pgd=
+at)
+ {
+ }
+@@ -344,6 +337,7 @@ static inline void __remove_memory(int n
+ extern void set_zone_contiguous(struct zone *zone);
+ extern void clear_zone_contiguous(struct zone *zone);
+=20
++#ifdef CONFIG_MEMORY_HOTPLUG
+ extern void __ref free_area_init_core_hotplug(int nid);
+ extern int __add_memory(int nid, u64 start, u64 size);
+ extern int add_memory(int nid, u64 start, u64 size);
+@@ -364,8 +358,8 @@ extern void sparse_remove_section(struct
+ 		unsigned long map_offset, struct vmem_altmap *altmap);
+ extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+ 					  unsigned long pnum);
+-extern bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned lo=
+ng nr_pages,
+-		int online_type);
+ extern struct zone *zone_for_pfn_range(int online_type, int nid, unsigned =
+start_pfn,
+ 		unsigned long nr_pages);
++#endif /* CONFIG_MEMORY_HOTPLUG */
 +
- #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resou=
-rce */
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+--- a/mm/sparse.c~mm-memory_hotplug-guard-more-declarations-by-config_memor=
+y_hotplug
++++ a/mm/sparse.c
+@@ -312,6 +312,7 @@ static unsigned long sparse_encode_mem_m
+ 	return coded_mem_map;
+ }
 =20
- #define IORESOURCE_DISABLED	0x10000000
-@@ -103,7 +106,6 @@ struct resource {
- #define IORESOURCE_MEM_32BIT		(3<<3)
- #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
- #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
--#define IORESOURCE_MEM_DRIVER_MANAGED	(1<<7)
++#ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+  * Decode mem_map from the coded memmap
+  */
+@@ -321,6 +322,7 @@ struct page *sparse_decode_mem_map(unsig
+ 	coded_mem_map &=3D SECTION_MAP_MASK;
+ 	return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum);
+ }
++#endif /* CONFIG_MEMORY_HOTPLUG */
 =20
- /* PnP I/O specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
---- a/kernel/kexec_file.c~kernel-resource-move-and-rename-ioresource_mem_dr=
-iver_managed
-+++ a/kernel/kexec_file.c
-@@ -520,7 +520,7 @@ static int locate_mem_hole_callback(stru
- 	/* Returning 0 will take to next memory range */
-=20
- 	/* Don't use memory that will be detected and handled by a driver. */
--	if (res->flags & IORESOURCE_MEM_DRIVER_MANAGED)
-+	if (res->flags & IORESOURCE_SYSRAM_DRIVER_MANAGED)
- 		return 0;
-=20
- 	if (sz < kbuf->memsz)
---- a/mm/memory_hotplug.c~kernel-resource-move-and-rename-ioresource_mem_dr=
-iver_managed
-+++ a/mm/memory_hotplug.c
-@@ -105,7 +105,7 @@ static struct resource *register_memory_
- 	unsigned long flags =3D  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
-=20
- 	if (strcmp(resource_name, "System RAM"))
--		flags |=3D IORESOURCE_MEM_DRIVER_MANAGED;
-+		flags |=3D IORESOURCE_SYSRAM_DRIVER_MANAGED;
-=20
- 	/*
- 	 * Make sure value parsed from 'mem=3D' only restricts memory adding
-@@ -1160,7 +1160,7 @@ EXPORT_SYMBOL_GPL(add_memory);
-  *
-  * For this memory, no entries in /sys/firmware/memmap ("raw firmware-prov=
-ided
-  * memory map") are created. Also, the created memory resource is flagged
-- * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-case
-+ * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-c=
-ase
-  * this memory as well (esp., not place kexec images onto it).
-  *
-  * The resource_name (visible via /proc/iomem) has to have the format
+ static void __meminit sparse_init_one_section(struct mem_section *ms,
+ 		unsigned long pnum, struct page *mem_map,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
