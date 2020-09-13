@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A06C2D0E0
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:01:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31887C433E2
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:01:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68E8F21789
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:01:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8FDF217A0
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599955282;
-	bh=HqGYniZy/hn52RsuLw1eCxJAAxLj7OqFbPYJ+l11iuI=;
+	s=default; t=1599955310;
+	bh=EJ0GSwbi3HlO3myyAAAuB2dauuDxk7dtgroauNRa4ZI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dZr55sQ2U5/aO/UKObYWQyA825BVGy9xytZgU647oQvmw0GGwrciceGJJHE6bD1bT
-	 i8i0NKkWCfjno9+rUKOa6JX/semOhCvXBMmvF3MfGqAHisdBfrtc6R9CNYxeSAwxvy
-	 MjEZ5qeFbGpPlX17dCahVPx/Yu69BNmWZ0YO9618=
+	b=rDdCcz8gxrHnTVr44SLYlypqIlk6UkSIsjWOeICnjGvhr94si59eUzJhf22/mjqVq
+	 AD8baM2E+Bn+qdVKDXSyppJu87xSd2YjuLiN9uqZwV6MDMVVZjajfiwlDHD35X6LVe
+	 i49JPl65ffG3SGvC5UDsmfc7SGhttxh6yUzGDhZE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725909AbgIMABV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 20:01:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57898 "EHLO mail.kernel.org"
+        id S1725908AbgIMABt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 20:01:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725910AbgIMABA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 20:01:00 -0400
+        id S1725912AbgIMABH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 20:01:07 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0DADF21789;
-        Sun, 13 Sep 2020 00:00:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E4F3621531;
+        Sun, 13 Sep 2020 00:01:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599955259;
-        bh=HqGYniZy/hn52RsuLw1eCxJAAxLj7OqFbPYJ+l11iuI=;
+        s=default; t=1599955267;
+        bh=EJ0GSwbi3HlO3myyAAAuB2dauuDxk7dtgroauNRa4ZI=;
         h=Date:From:To:Subject:From;
-        b=O6JEunsy1Z8U6aEGdtZyIOQRRDiKmB0QTvWR1/meuSWBr1HEKwyMZpvAEd6JoixAd
-         sy+vB1ncEuXvsuohN0N2jGXinJIiJvZn8ezkh5leeMNyaD+x1wXYjz9zgHTrA1IO2J
-         lfyQPB/0kygUsN7UX6W3GhvFEHqtqSGfxfBQ5was=
-Date:   Sat, 12 Sep 2020 17:00:57 -0700
+        b=PKl+zfzO6sY8RUb12hGdw2MhOVTdAcWC/zxizRADGpRgdJEsjv/9vaIUPjGsOdIvu
+         oaFeKReNnYmvmQ39U/4n35nqqGPR1fkicVAXNiZeNsZmZ/+wKh8Waga1l6pCmnKfU0
+         xj9DaU5GnJiBWNaQqHGh6L0VV3Tuz+8QUq4PlVCE=
+Date:   Sat, 12 Sep 2020 17:01:05 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, wei.liu@kernel.org,
         vishal.l.verma@intel.com, tglx@linutronix.de,
@@ -57,9 +57,9 @@ To:     mm-commits@vger.kernel.org, wei.liu@kernel.org,
         boris.ostrovsky@oracle.com, bhe@redhat.com,
         benh@kernel.crashing.org, ardb@kernel.org, anton@ozlabs.org,
         david@redhat.com
-Subject:  + virtio-mem-try-to-merge-system-ram-resources.patch added
+Subject:  + hv_balloon-try-to-merge-system-ram-resources.patch added
  to -mm tree
-Message-ID: <20200913000057.bNoKg%akpm@linux-foundation.org>
+Message-ID: <20200913000105.nRAfo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -72,15 +72,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio-mem: try to merge system ram resources
+     Subject: hv_balloon: try to merge system ram resources
 has been added to the -mm tree.  Its filename is
-     virtio-mem-try-to-merge-system-ram-resources.patch
+     hv_balloon-try-to-merge-system-ram-resources.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/virtio-mem-try-to-merge-syste=
+    https://ozlabs.org/~akpm/mmots/broken-out/hv_balloon-try-to-merge-syste=
 m-ram-resources.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/virtio-mem-try-to-merge-syste=
+    https://ozlabs.org/~akpm/mmotm/broken-out/hv_balloon-try-to-merge-syste=
 m-ram-resources.patch
 
 Before you just go and hit "reply", please:
@@ -97,59 +97,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: virtio-mem: try to merge system ram resources
+Subject: hv_balloon: try to merge system ram resources
 
-virtio-mem adds memory in memory block granularity, to be able to remove
-it in the same granularity again later, and to grow slowly on demand.=20
-This, however, results in quite a lot of resources when adding a lot of
-memory.  Resources are effectively stored in a list-based tree.  Having a
-lot of resources not only wastes memory, it also makes traversing that
-tree more expensive, and makes /proc/iomem explode in size (e.g.,
-requiring kexec-tools to manually merge resources later when e.g., trying
-to create a kdump header).
+Let's try to merge system ram resources we add, to minimize the number of
+resources in /proc/iomem.  We don't care about the boundaries of
+individual chunks we added.
 
-Before this patch, we get (/proc/iomem) when hotplugging 2G via virtio-mem
-on x86-64:
-        [...]
-        100000000-13fffffff : System RAM
-        140000000-33fffffff : virtio0
-          140000000-147ffffff : System RAM (virtio_mem)
-          148000000-14fffffff : System RAM (virtio_mem)
-          150000000-157ffffff : System RAM (virtio_mem)
-          158000000-15fffffff : System RAM (virtio_mem)
-          160000000-167ffffff : System RAM (virtio_mem)
-          168000000-16fffffff : System RAM (virtio_mem)
-          170000000-177ffffff : System RAM (virtio_mem)
-          178000000-17fffffff : System RAM (virtio_mem)
-          180000000-187ffffff : System RAM (virtio_mem)
-          188000000-18fffffff : System RAM (virtio_mem)
-          190000000-197ffffff : System RAM (virtio_mem)
-          198000000-19fffffff : System RAM (virtio_mem)
-          1a0000000-1a7ffffff : System RAM (virtio_mem)
-          1a8000000-1afffffff : System RAM (virtio_mem)
-          1b0000000-1b7ffffff : System RAM (virtio_mem)
-          1b8000000-1bfffffff : System RAM (virtio_mem)
-        3280000000-32ffffffff : PCI Bus 0000:00
-
-With this patch, we get (/proc/iomem):
-        [...]
-        fffc0000-ffffffff : Reserved
-        100000000-13fffffff : System RAM
-        140000000-33fffffff : virtio0
-          140000000-1bfffffff : System RAM (virtio_mem)
-        3280000000-32ffffffff : PCI Bus 0000:00
-
-Of course, with more hotplugged memory, it gets worse.  When unplugging
-memory blocks again, try_remove_memory() (via offline_and_remove_memory())
-will properly split the resource up again.
-
-Link: https://lkml.kernel.org/r/20200911103459.10306-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20200911103459.10306-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Reviewed-by: Wei Liu <wei.liu@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
 Cc: Anton Blanchard <anton@ozlabs.org>
@@ -157,20 +119,21 @@ Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jason Wang <jasowang@redhat.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Julien Grall <julien@xen.org>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Leonardo Bras <leobras.c@gmail.com>
 Cc: Libor Pechacek <lpechacek@suse.cz>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Nathan Lynch <nathanl@linux.ibm.com>
 Cc: "Oliver O'Halloran" <oohall@gmail.com>
 Cc: Paul Mackerras <paulus@samba.org>
@@ -178,30 +141,26 @@ Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/hv/hv_balloon.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/virtio/virtio_mem.c~virtio-mem-try-to-merge-system-ram-resour=
-ces
-+++ a/drivers/virtio/virtio_mem.c
-@@ -424,7 +424,8 @@ static int virtio_mem_mb_add(struct virt
+--- a/drivers/hv/hv_balloon.c~hv_balloon-try-to-merge-system-ram-resources
++++ a/drivers/hv/hv_balloon.c
+@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long
 =20
- 	dev_dbg(&vm->vdev->dev, "adding memory block: %lu\n", mb_id);
- 	return add_memory_driver_managed(nid, addr, memory_block_size_bytes(),
--					 vm->resource_name, MHP_NONE);
-+					 vm->resource_name,
-+					 MEMHP_MERGE_RESOURCE);
- }
+ 		nid =3D memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret =3D add_memory(nid, PFN_PHYS((start_pfn)),
+-				(HA_CHUNK << PAGE_SHIFT), MHP_NONE);
++				(HA_CHUNK << PAGE_SHIFT), MEMHP_MERGE_RESOURCE);
 =20
- /*
+ 		if (ret) {
+ 			pr_err("hot_add memory failed error is %d\n", ret);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
