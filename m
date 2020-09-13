@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D555C43461
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:17:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1290C43461
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:21:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B21C21775
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:17:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CA002087C
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Sep 2020 00:21:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599956268;
-	bh=di1cPZEtbjANPqPURXO/4Z0uf8PgZPqThMF//tL3PMg=;
+	s=default; t=1599956477;
+	bh=OaOuTQnW8C7R+t4zjCAUTUxmzhPrLYRA0iWJomrn/H4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=udTxfUdJnxX/YM3UzDJTveOt488WFQ5mC8DJUfc+exOQy6PRUPbMFBN1tL4bQQWdx
-	 VJ3wpDe5W3G8QVMQ5kUPBtD1Mxe8TUj/1BBCKTLp4Q5Y6SWXJcfxUzMyLKvq/YTij6
-	 wgMSxsxrGK2Mzkh+tYWChi6gUiln9zaA5aKGowvk=
+	b=H2Kisxu1ZtZmG35Kw/MAGCLVtb585eVYz9oLYXFvq7p7uYLjhBGpEJpymfB56931c
+	 mK9RQvnLHndb03al/0xoo69nppkxOThQCFLZuIQbEF94vFcT0fPXXNUgxkUI2abiAw
+	 SXyUtt1Ypd/v7mMlr7YYFOirM4Vd8i/JGgkybOTQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725906AbgIMARr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Sep 2020 20:17:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40926 "EHLO mail.kernel.org"
+        id S1725908AbgIMAVQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Sep 2020 20:21:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725905AbgIMARp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 12 Sep 2020 20:17:45 -0400
+        id S1725907AbgIMAVP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 12 Sep 2020 20:21:15 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1FB762087C;
-        Sun, 13 Sep 2020 00:17:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E821B20796;
+        Sun, 13 Sep 2020 00:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599956264;
-        bh=di1cPZEtbjANPqPURXO/4Z0uf8PgZPqThMF//tL3PMg=;
+        s=default; t=1599956475;
+        bh=OaOuTQnW8C7R+t4zjCAUTUxmzhPrLYRA0iWJomrn/H4=;
         h=Date:From:To:Subject:From;
-        b=om7XT7LDR9kZd5vY6mJgTk4K4MXMBo1tqmIyDdd6haHfsJkItwVEBvKjZUYAK1fEG
-         7Zy68Pof6GjY2tTXKKam5qA1Yz0aWYLV2UyDLGE4MgdM0uL044lx787X0PfT1oUIp3
-         f8EbJSaYnrbYnThnS5WRIfNgDJ4N5ebGETHdzyuo=
-Date:   Sat, 12 Sep 2020 17:17:43 -0700
+        b=Hxsx60n56ladvydmlyqkokMZnrpj0lYYdt3PCQ7f6+5OjSVYaLlz7gkDixLjXPxPo
+         4kB2sWlWZ7JdXC8BoGYEg6j5foI9G1Z2EOhyWXpzW2MGsLVjQKq8UU2w6jpePpgxZU
+         lDx0NngRf9TNWyU82KLWXe8q736PeXhAotdUuEWo=
+Date:   Sat, 12 Sep 2020 17:21:14 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, mhocko@kernel.org,
-        kirill.shutemov@linux.intel.com, dave@stgolabs.net,
-        mike.kravetz@oracle.com
-Subject:  +
- hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch added
- to -mm tree
-Message-ID: <20200913001743.XmcqN%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, hulkci@huawei.com, yanaijie@huawei.com
+Subject:  + device-dax-make-dev_dax_kmem_probe-static.patch added to
+ -mm tree
+Message-ID: <20200913002114.AFxQ7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
+     Subject: device-dax: make dev_dax_kmem_probe() static
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
+     device-dax-make-dev_dax_kmem_probe-static.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-make-dev_dax_kmem_probe-static.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-make-dev_dax_kmem_probe-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,65 +74,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
+From: Jason Yan <yanaijie@huawei.com>
+Subject: device-dax: make dev_dax_kmem_probe() static
 
-As a debugging aid, huge_pmd_share should make sure i_mmap_rwsem is held
-if necessary.  To clarify the 'if necessary', expand the comment block at
-the beginning of huge_pmd_share.
+This eliminates the following sparse warning:
 
-No functional change.  The added i_mmap_assert_locked() call is only
-enabled if CONFIG_LOCKDEP.
+drivers/dax/kmem.c:38:5: warning: symbol 'dev_dax_kmem_probe' was not
+declared. Should it be static?
 
-Ideally, this should have been included with commit 34ae204f1851
-("hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem").
-
-Link: https://lkml.kernel.org/r/20200911201248.88537-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Link: https://lkml.kernel.org/r/20200912033901.143382-1-yanaijie@huawei.com
+Signed-off-by: Jason Yan <yanaijie@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/dax/kmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share
-+++ a/mm/hugetlb.c
-@@ -5337,10 +5337,16 @@ void adjust_range_if_pmd_sharing_possibl
-  * !shared pmd case because we can allocate the pmd later as well, it makes the
-  * code much cleaner.
-  *
-- * This routine must be called with i_mmap_rwsem held in at least read mode.
-- * For hugetlbfs, this prevents removal of any page table entries associated
-- * with the address space.  This is important as we are setting up sharing
-- * based on existing page table entries (mappings).
-+ * This routine must be called with i_mmap_rwsem held in at least read mode if
-+ * sharing is possible.  For hugetlbfs, this prevents removal of any page
-+ * table entries associated with the address space.  This is important as we
-+ * are setting up sharing based on existing page table entries (mappings).
-+ *
-+ * NOTE: This routine is only called from huge_pte_alloc.  Some callers of
-+ * huge_pte_alloc know that sharing is not possible and do not take
-+ * i_mmap_rwsem as a performance optimization.  This is handled by the
-+ * if !vma_shareable check at the beginning of the routine. i_mmap_rwsem is
-+ * only required for subsequent processing.
-  */
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
- {
-@@ -5357,6 +5363,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (!vma_shareable(vma, addr))
- 		return (pte_t *)pmd_alloc(mm, pud, addr);
+--- a/drivers/dax/kmem.c~device-dax-make-dev_dax_kmem_probe-static
++++ a/drivers/dax/kmem.c
+@@ -35,7 +35,7 @@ static int dax_kmem_range(struct dev_dax
+ 	return 0;
+ }
  
-+	i_mmap_assert_locked(mapping);
- 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
- 		if (svma == vma)
- 			continue;
+-int dev_dax_kmem_probe(struct dev_dax *dev_dax)
++static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+ 	int numa_node = dev_dax->target_node;
+ 	struct device *dev = &dev_dax->dev;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from yanaijie@huawei.com are
 
-hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
+device-dax-make-dev_dax_kmem_probe-static.patch
 
