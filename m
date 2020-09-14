@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE6BFC43461
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:06:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47ACFC433E2
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 756AA208FE
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:06:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BCE52177B
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600052791;
-	bh=O8CCfKR7iHvHCywFbjrFCrkSORumTCcmN/WkGHSTqkc=;
+	s=default; t=1600053390;
+	bh=xJuCAyq4jjGz1uHUue1LZXdha1w2PhTIaHDW+CxWDHA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=s+3JOSD8Ee6kHXytrM9045aITGBV9xf4Q5SkKw3HSLl078U5SpERw5tr2LhvpzyQn
-	 UjMtFLDTN9yg6ogZnHyGQN4Nc+anai6JCoY/ngp7dne+fKBIzKZ6T2SXIywekJkBy1
-	 s+VPKuIenQnieni+LZ2IKSWAePI+a0hgE35cRR/M=
+	b=simx6OczUOFlCGwAFFfluRQlR/WtaXVI8BcYJPVfsd6PYH1uL6XDSp/UdQaKMdQTI
+	 9wq+5Hzp2L1Eg4bIgbQbPr5NThlSmkO8uDZqEefnCJhRfhmNc3KT+qNPBtHyDVpV08
+	 UkdmwnIxdLKPFZgupz3h/eyC2Ii1Ke0MFjgJsDS0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725994AbgINDGa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 23:06:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52840 "EHLO mail.kernel.org"
+        id S1725991AbgINDQ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 23:16:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60904 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726199AbgINDGV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 23:06:21 -0400
+        id S1725972AbgINDQ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 23:16:28 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B273E221E3;
-        Mon, 14 Sep 2020 03:06:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1CDD6208C7;
+        Mon, 14 Sep 2020 03:16:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600052778;
-        bh=O8CCfKR7iHvHCywFbjrFCrkSORumTCcmN/WkGHSTqkc=;
+        s=default; t=1600053387;
+        bh=xJuCAyq4jjGz1uHUue1LZXdha1w2PhTIaHDW+CxWDHA=;
         h=Date:From:To:Subject:From;
-        b=aU7Hg8BqP/+6h0b5ueFGALm7HATki0zYfNUHPWG2zj5h+U3fCgNrUWTz5hLBmmiOC
-         JSRJ5Rzu6dT+WiGnT3jP8RZHeGE1DjudDle32zudyv4BHf2GMcpK/rE3xgTM08HgTc
-         j58tUqVWbuwHCvp7zPUjj0wds8+pXHo4VdASdQ58=
-Date:   Sun, 13 Sep 2020 20:06:17 -0700
+        b=jFpDy/U1W2owCRlUSb3D8B8+Pai/8ImeZUCjf8sZerR+5/lwHdCqntTlzMJ1WqbAK
+         KEbRazEFDG6N4vOB6HuZ1wnxTIDmLoLsjq4TUBowAsobDZTsLYdSJaIUxyo9m0bHSW
+         Y5Lf4ySTuqnq6ovuG/AzAdgIz7/KYcsw7kHKNIsQ=
+Date:   Sun, 13 Sep 2020 20:16:26 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        rostedt@goodmis.org, rjw@rjwysocki.net, linux@rasmusvillemoes.dk,
-        joe@perches.com, andriy.shevchenko@linux.intel.com
-Subject:  + kernelh-split-out-min-max-et-al-helpers.patch added to
- -mm tree
-Message-ID: <20200914030617.tiE0O%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        osalvador@suse.com, naoya.horiguchi@nec.com, mhocko@kernel.org,
+        cai@lca.pw, osalvador@suse.de
+Subject:  + mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
+ added to -mm tree
+Message-ID: <20200914031626.vpJYM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: split out min()/max() et al. helpers
+     Subject: mm,hwpoison: take free pages off the buddy freelists
 has been added to the -mm tree.  Its filename is
-     kernelh-split-out-min-max-et-al-helpers.patch
+     mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernelh-split-out-min-max-et-al-helpers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernelh-split-out-min-max-et-al-helpers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,486 +76,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kernel.h: split out min()/max() et al. helpers
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: take free pages off the buddy freelists
 
-kernel.h is being used as a dump for all kinds of stuff for a long time. 
-Here is the attempt to start cleaning it up by splitting out min()/max()
-et al.  helpers.
+Patch series "HWpoison: further fixes and cleanups", v2.
 
-At the same time convert users in header and lib folder to use new header.
-Though for time being include new header back to kernel.h to avoid
-twisted indirected includes for other existing users.
+The important bit of this patchset is patch#1, which is a fix to take off
+HWPoison pages off a buddy freelist since it can lead us to having
+HWPoison pages back in the game without no one noticing it.  So fix it (we
+did that already for soft_offline_page [1]).
 
-Link: https://lkml.kernel.org/r/20200910164152.GA1891694@smile.fi.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Joe Perches <joe@perches.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+The other patches are clean-ups and not that important.
+
+
+This patch (of 5):
+
+The crux of the matter is that historically we left poisoned pages in the
+buddy system because we have some checks in place when allocating a page
+that a gatekeeper for poisoned pages.  Unfortunately, we do have other
+users (e.g: compaction [1]) that scan buddy freelists and try to get a
+page from there without checking whether the page is HWPoison.
+
+As I stated already, I think it is fundamentally wrong to keep HWPoison
+pages within the buddy systems, checks in place or not.
+
+Let us fix this we same way we did for soft_offline [2], and take the page
+off the buddy freelist, so it is completely unreachable.
+
+Note that this is fairly simple to trigger, as we only need to poison free
+buddy pages (madvise MADV_HWPOISON) and then we need to run some sort of
+memory stress system.
+
+Just for a matter of reference, I put a dump_page in compaction_alloc to
+trigger for HWPoison patches:
+
+kernel: page:0000000012b2982b refcount:1 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x1d5db
+kernel: flags: 0xfffffc0800000(hwpoison)
+kernel: raw: 000fffffc0800000 ffffea00007573c8 ffffc90000857de0 0000000000000000
+kernel: raw: 0000000000000001 0000000000000000 00000001ffffffff 0000000000000000
+kernel: page dumped because: compaction_alloc
+
+kernel: CPU: 4 PID: 123 Comm: kcompactd0 Tainted: G            E     5.9.0-rc2-mm1-1-default+ #5
+kernel: Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.10.2-0-g5f4c7b1-prebuilt.qemu-project.org 04/01/2014
+kernel: Call Trace:
+kernel:  dump_stack+0x6d/0x8b
+kernel:  compaction_alloc+0xb2/0xc0
+kernel:  migrate_pages+0x2a6/0x12a0
+kernel:  ? isolate_freepages+0xc80/0xc80
+kernel:  ? __ClearPageMovable+0xb0/0xb0
+kernel:  compact_zone+0x5eb/0x11c0
+kernel:  ? finish_task_switch+0x74/0x300
+kernel:  ? lock_timer_base+0xa8/0x170
+kernel:  proactive_compact_node+0x89/0xf0
+kernel:  ? kcompactd+0x2d0/0x3a0
+kernel:  kcompactd+0x2d0/0x3a0
+kernel:  ? finish_wait+0x80/0x80
+kernel:  ? kcompactd_do_work+0x350/0x350
+kernel:  kthread+0x118/0x130
+kernel:  ? kthread_associate_blkcg+0xa0/0xa0
+kernel:  ret_from_fork+0x22/0x30
+
+After that, if e.g: someone faults in the page, that someone will get
+killed unexpectedly.
+
+While we are at it, I also changed the action result for such cases.  I
+think that MF_DELAYED is a bit misleading, because in case we could
+contain the page and take it off the buddy, such a page is not to be used
+again unless it is unpoison, so we "fixed" the situation.
+
+So unless I am missing something, I strongly think that we should report
+MF_RECOVERED.
+
+[1] https://lore.kernel.org/linux-mm/20190826104144.GA7849@linux/T/#u
+[2] https://patchwork.kernel.org/patch/11694847/
+
+Link: https://lkml.kernel.org/r/20200908075626.11976-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20200908075626.11976-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Oscar Salvador <osalvador@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blkdev.h    |    1 
- include/linux/bvec.h      |    6 +
- include/linux/jiffies.h   |    3 
- include/linux/kernel.h    |  150 -----------------------------------
- include/linux/minmax.h    |  153 ++++++++++++++++++++++++++++++++++++
- include/linux/nodemask.h  |    2 
- include/linux/uaccess.h   |    1 
- kernel/range.c            |    3 
- lib/find_bit.c            |    1 
- lib/hexdump.c             |    1 
- lib/math/rational.c       |    2 
- lib/math/reciprocal_div.c |    1 
- 12 files changed, 170 insertions(+), 154 deletions(-)
+ mm/memory-failure.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
---- a/include/linux/blkdev.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/blkdev.h
-@@ -8,6 +8,7 @@
- #include <linux/genhd.h>
- #include <linux/list.h>
- #include <linux/llist.h>
-+#include <linux/minmax.h>
- #include <linux/timer.h>
- #include <linux/workqueue.h>
- #include <linux/pagemap.h>
---- a/include/linux/bvec.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/bvec.h
-@@ -7,10 +7,14 @@
- #ifndef __LINUX_BVEC_ITER_H
- #define __LINUX_BVEC_ITER_H
+--- a/mm/memory-failure.c~mmhwpoison-take-free-pages-off-the-buddy-freelists
++++ a/mm/memory-failure.c
+@@ -1321,8 +1321,9 @@ int memory_failure(unsigned long pfn, in
+ 	struct page *hpage;
+ 	struct page *orig_head;
+ 	struct dev_pagemap *pgmap;
+-	int res;
+ 	unsigned long page_flags;
++	int res = 0;
++	bool retry = true;
  
--#include <linux/kernel.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
-+#include <linux/limits.h>
-+#include <linux/minmax.h>
- #include <linux/mm.h>
-+#include <linux/types.h>
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1362,10 +1363,21 @@ int memory_failure(unsigned long pfn, in
+ 	 * In fact it's dangerous to directly bump up page count from 0,
+ 	 * that may make page_ref_freeze()/page_ref_unfreeze() mismatch.
+ 	 */
++try_again:
+ 	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
+ 		if (is_free_buddy_page(p)) {
+-			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+-			return 0;
++			if (take_page_off_buddy(p)) {
++				action_result(pfn, MF_MSG_BUDDY, MF_RECOVERED);
++				return 0;
++			} else {
++				/* We lost the race, try again */
++				if (retry) {
++					retry = false;
++					goto try_again;
++				}
++				action_result(pfn, MF_MSG_BUDDY, MF_IGNORED);
++				return -EBUSY;
++			}
+ 		} else {
+ 			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
+ 			return -EBUSY;
+@@ -1391,11 +1403,15 @@ int memory_failure(unsigned long pfn, in
+ 	shake_page(p, 0);
+ 	/* shake_page could have turned it free. */
+ 	if (!PageLRU(p) && is_free_buddy_page(p)) {
++		if (!take_page_off_buddy(p))
++			res = -EBUSY;
 +
-+struct page;
+ 		if (flags & MF_COUNT_INCREASED)
+-			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
++			action_result(pfn, MF_MSG_BUDDY, res ? MF_IGNORED : MF_RECOVERED);
+ 		else
+-			action_result(pfn, MF_MSG_BUDDY_2ND, MF_DELAYED);
+-		return 0;
++			action_result(pfn, MF_MSG_BUDDY_2ND, res ? MF_IGNORED : MF_RECOVERED);
++
++		return res;
+ 	}
  
- /**
-  * struct bio_vec - a contiguous range of physical memory addresses
---- a/include/linux/jiffies.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/jiffies.h
-@@ -3,8 +3,9 @@
- #define _LINUX_JIFFIES_H
- 
- #include <linux/cache.h>
-+#include <linux/limits.h>
- #include <linux/math64.h>
--#include <linux/kernel.h>
-+#include <linux/minmax.h>
- #include <linux/types.h>
- #include <linux/time.h>
- #include <linux/timex.h>
---- a/include/linux/kernel.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/kernel.h
-@@ -11,6 +11,7 @@
- #include <linux/compiler.h>
- #include <linux/bitops.h>
- #include <linux/log2.h>
-+#include <linux/minmax.h>
- #include <linux/typecheck.h>
- #include <linux/printk.h>
- #include <linux/build_bug.h>
-@@ -834,155 +835,6 @@ ftrace_vprintk(const char *fmt, va_list
- static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
- #endif /* CONFIG_TRACING */
- 
--/*
-- * min()/max()/clamp() macros must accomplish three things:
-- *
-- * - avoid multiple evaluations of the arguments (so side-effects like
-- *   "x++" happen only once) when non-constant.
-- * - perform strict type-checking (to generate warnings instead of
-- *   nasty runtime surprises). See the "unnecessary" pointer comparison
-- *   in __typecheck().
-- * - retain result as a constant expressions when called with only
-- *   constant expressions (to avoid tripping VLA warnings in stack
-- *   allocation usage).
-- */
--#define __typecheck(x, y) \
--		(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
--
--/*
-- * This returns a constant expression while determining if an argument is
-- * a constant expression, most importantly without evaluating the argument.
-- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-- */
--#define __is_constexpr(x) \
--	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
--
--#define __no_side_effects(x, y) \
--		(__is_constexpr(x) && __is_constexpr(y))
--
--#define __safe_cmp(x, y) \
--		(__typecheck(x, y) && __no_side_effects(x, y))
--
--#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
--
--#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
--		typeof(x) unique_x = (x);		\
--		typeof(y) unique_y = (y);		\
--		__cmp(unique_x, unique_y, op); })
--
--#define __careful_cmp(x, y, op) \
--	__builtin_choose_expr(__safe_cmp(x, y), \
--		__cmp(x, y, op), \
--		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
--
--/**
-- * min - return minimum of two values of the same or compatible types
-- * @x: first value
-- * @y: second value
-- */
--#define min(x, y)	__careful_cmp(x, y, <)
--
--/**
-- * max - return maximum of two values of the same or compatible types
-- * @x: first value
-- * @y: second value
-- */
--#define max(x, y)	__careful_cmp(x, y, >)
--
--/**
-- * min3 - return minimum of three values
-- * @x: first value
-- * @y: second value
-- * @z: third value
-- */
--#define min3(x, y, z) min((typeof(x))min(x, y), z)
--
--/**
-- * max3 - return maximum of three values
-- * @x: first value
-- * @y: second value
-- * @z: third value
-- */
--#define max3(x, y, z) max((typeof(x))max(x, y), z)
--
--/**
-- * min_not_zero - return the minimum that is _not_ zero, unless both are zero
-- * @x: value1
-- * @y: value2
-- */
--#define min_not_zero(x, y) ({			\
--	typeof(x) __x = (x);			\
--	typeof(y) __y = (y);			\
--	__x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); })
--
--/**
-- * clamp - return a value clamped to a given range with strict typechecking
-- * @val: current value
-- * @lo: lowest allowable value
-- * @hi: highest allowable value
-- *
-- * This macro does strict typechecking of @lo/@hi to make sure they are of the
-- * same type as @val.  See the unnecessary pointer comparisons.
-- */
--#define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
--
--/*
-- * ..and if you can't take the strict
-- * types, you can specify one yourself.
-- *
-- * Or not use min/max/clamp at all, of course.
-- */
--
--/**
-- * min_t - return minimum of two values, using the specified type
-- * @type: data type to use
-- * @x: first value
-- * @y: second value
-- */
--#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
--
--/**
-- * max_t - return maximum of two values, using the specified type
-- * @type: data type to use
-- * @x: first value
-- * @y: second value
-- */
--#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
--
--/**
-- * clamp_t - return a value clamped to a given range using a given type
-- * @type: the type of variable to use
-- * @val: current value
-- * @lo: minimum allowable value
-- * @hi: maximum allowable value
-- *
-- * This macro does no typechecking and uses temporary variables of type
-- * @type to make all the comparisons.
-- */
--#define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
--
--/**
-- * clamp_val - return a value clamped to a given range using val's type
-- * @val: current value
-- * @lo: minimum allowable value
-- * @hi: maximum allowable value
-- *
-- * This macro does no typechecking and uses temporary variables of whatever
-- * type the input argument @val is.  This is useful when @val is an unsigned
-- * type and @lo and @hi are literals that will otherwise be assigned a signed
-- * integer type.
-- */
--#define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
--
--
--/**
-- * swap - swap values of @a and @b
-- * @a: first value
-- * @b: second value
-- */
--#define swap(a, b) \
--	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
--
- /* This counts to 12. Any more, it will return 13th argument. */
- #define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
- #define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
---- /dev/null
-+++ a/include/linux/minmax.h
-@@ -0,0 +1,153 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_MINMAX_H
-+#define _LINUX_MINMAX_H
-+
-+/*
-+ * min()/max()/clamp() macros must accomplish three things:
-+ *
-+ * - avoid multiple evaluations of the arguments (so side-effects like
-+ *   "x++" happen only once) when non-constant.
-+ * - perform strict type-checking (to generate warnings instead of
-+ *   nasty runtime surprises). See the "unnecessary" pointer comparison
-+ *   in __typecheck().
-+ * - retain result as a constant expressions when called with only
-+ *   constant expressions (to avoid tripping VLA warnings in stack
-+ *   allocation usage).
-+ */
-+#define __typecheck(x, y) \
-+	(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-+
-+/*
-+ * This returns a constant expression while determining if an argument is
-+ * a constant expression, most importantly without evaluating the argument.
-+ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-+ */
-+#define __is_constexpr(x) \
-+	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
-+
-+#define __no_side_effects(x, y) \
-+		(__is_constexpr(x) && __is_constexpr(y))
-+
-+#define __safe_cmp(x, y) \
-+		(__typecheck(x, y) && __no_side_effects(x, y))
-+
-+#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
-+
-+#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
-+		typeof(x) unique_x = (x);		\
-+		typeof(y) unique_y = (y);		\
-+		__cmp(unique_x, unique_y, op); })
-+
-+#define __careful_cmp(x, y, op) \
-+	__builtin_choose_expr(__safe_cmp(x, y), \
-+		__cmp(x, y, op), \
-+		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
-+
-+/**
-+ * min - return minimum of two values of the same or compatible types
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define min(x, y)	__careful_cmp(x, y, <)
-+
-+/**
-+ * max - return maximum of two values of the same or compatible types
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define max(x, y)	__careful_cmp(x, y, >)
-+
-+/**
-+ * min3 - return minimum of three values
-+ * @x: first value
-+ * @y: second value
-+ * @z: third value
-+ */
-+#define min3(x, y, z) min((typeof(x))min(x, y), z)
-+
-+/**
-+ * max3 - return maximum of three values
-+ * @x: first value
-+ * @y: second value
-+ * @z: third value
-+ */
-+#define max3(x, y, z) max((typeof(x))max(x, y), z)
-+
-+/**
-+ * min_not_zero - return the minimum that is _not_ zero, unless both are zero
-+ * @x: value1
-+ * @y: value2
-+ */
-+#define min_not_zero(x, y) ({			\
-+	typeof(x) __x = (x);			\
-+	typeof(y) __y = (y);			\
-+	__x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); })
-+
-+/**
-+ * clamp - return a value clamped to a given range with strict typechecking
-+ * @val: current value
-+ * @lo: lowest allowable value
-+ * @hi: highest allowable value
-+ *
-+ * This macro does strict typechecking of @lo/@hi to make sure they are of the
-+ * same type as @val.  See the unnecessary pointer comparisons.
-+ */
-+#define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
-+
-+/*
-+ * ..and if you can't take the strict
-+ * types, you can specify one yourself.
-+ *
-+ * Or not use min/max/clamp at all, of course.
-+ */
-+
-+/**
-+ * min_t - return minimum of two values, using the specified type
-+ * @type: data type to use
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
-+
-+/**
-+ * max_t - return maximum of two values, using the specified type
-+ * @type: data type to use
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
-+
-+/**
-+ * clamp_t - return a value clamped to a given range using a given type
-+ * @type: the type of variable to use
-+ * @val: current value
-+ * @lo: minimum allowable value
-+ * @hi: maximum allowable value
-+ *
-+ * This macro does no typechecking and uses temporary variables of type
-+ * @type to make all the comparisons.
-+ */
-+#define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
-+
-+/**
-+ * clamp_val - return a value clamped to a given range using val's type
-+ * @val: current value
-+ * @lo: minimum allowable value
-+ * @hi: maximum allowable value
-+ *
-+ * This macro does no typechecking and uses temporary variables of whatever
-+ * type the input argument @val is.  This is useful when @val is an unsigned
-+ * type and @lo and @hi are literals that will otherwise be assigned a signed
-+ * integer type.
-+ */
-+#define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
-+
-+/**
-+ * swap - swap values of @a and @b
-+ * @a: first value
-+ * @b: second value
-+ */
-+#define swap(a, b) \
-+	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
-+
-+#endif	/* _LINUX_MINMAX_H */
---- a/include/linux/nodemask.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/nodemask.h
-@@ -90,9 +90,9 @@
-  * for such situations. See below and CPUMASK_ALLOC also.
-  */
- 
--#include <linux/kernel.h>
- #include <linux/threads.h>
- #include <linux/bitmap.h>
-+#include <linux/minmax.h>
- #include <linux/numa.h>
- 
- typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
---- a/include/linux/uaccess.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/uaccess.h
-@@ -3,6 +3,7 @@
- #define __LINUX_UACCESS_H__
- 
- #include <linux/instrumented.h>
-+#include <linux/minmax.h>
- #include <linux/sched.h>
- #include <linux/thread_info.h>
- 
---- a/kernel/range.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/kernel/range.c
-@@ -2,8 +2,9 @@
- /*
-  * Range add and subtract
-  */
--#include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/minmax.h>
-+#include <linux/printk.h>
- #include <linux/sort.h>
- #include <linux/string.h>
- #include <linux/range.h>
---- a/lib/find_bit.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/find_bit.c
-@@ -16,6 +16,7 @@
- #include <linux/bitmap.h>
- #include <linux/export.h>
- #include <linux/kernel.h>
-+#include <linux/minmax.h>
- 
- #if !defined(find_next_bit) || !defined(find_next_zero_bit) ||			\
- 	!defined(find_next_bit_le) || !defined(find_next_zero_bit_le) ||	\
---- a/lib/hexdump.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/hexdump.c
-@@ -7,6 +7,7 @@
- #include <linux/ctype.h>
- #include <linux/errno.h>
- #include <linux/kernel.h>
-+#include <linux/minmax.h>
- #include <linux/export.h>
- #include <asm/unaligned.h>
- 
---- a/lib/math/rational.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/math/rational.c
-@@ -11,7 +11,7 @@
- #include <linux/rational.h>
- #include <linux/compiler.h>
- #include <linux/export.h>
--#include <linux/kernel.h>
-+#include <linux/minmax.h>
- 
- /*
-  * calculate best rational approximation for a given fraction
---- a/lib/math/reciprocal_div.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/math/reciprocal_div.c
-@@ -4,6 +4,7 @@
- #include <asm/div64.h>
- #include <linux/reciprocal_div.h>
- #include <linux/export.h>
-+#include <linux/minmax.h>
- 
- /*
-  * For a description of the algorithm please have a look at
+ 	lock_page(p);
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-dmapoolc-replace-open-coded-list_for_each_entry_safe.patch
-mm-dmapoolc-replace-hard-coded-function-name-with-__func__.patch
-kernelh-split-out-min-max-et-al-helpers.patch
+mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
+mmhwpoison-kill-put_hwpoison_page.patch
+mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+mmhwpoison-rework-soft-offline-for-free-pages.patch
+mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
+mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
+mmhwpoison-refactor-madvise_inject_error.patch
+mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+mmhwpoison-drop-unneeded-pcplist-draining.patch
+mmhwpoison-remove-stale-code.patch
 
