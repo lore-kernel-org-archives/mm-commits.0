@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CA66C43461
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:33:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA96C433E2
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:38:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EA9921D1A
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:33:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECDF621BE5
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600043620;
-	bh=iU1EBZY1XUQ/fC011sa3lENBqE94yIH0spxd6v1SD3s=;
+	s=default; t=1600043933;
+	bh=44TpdO0Lv/36dz5wFjU89mfsvkImLSUhsmHNBydQVf4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=YAdoKNAe0V5RvO89NL+c1erWEaWRpulDCTpym5ZI6i21kfFJG5f7+mqF2XHw9jWHT
-	 Q6gf/ZUNmTtdOfk8GRtKwMk+TYqjfo+vQddX3su2Y0ZqYx7zWPamL74vuDZMIKmxVq
-	 bGUy2Piy+2ZWcuYAnNtcvS2292r5H7/ZsSotcGwU=
+	b=piWaooQ6TuzNlRb1LWRPiJhkWHhZ2KUUbgI8M6IQ4/1Q0lyqwTZ2HKVzG3HjHFGRv
+	 mwFAGysDA6FzTjjLFfRnbw1hthApWApFZpRjcdgmJDGJ6I7D6ilxGE8v/i5cQBpJGO
+	 1C7mPkNCfsfBXF87bNITRYzuhSOsc+akVveJCzTE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725962AbgINAdj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 20:33:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60322 "EHLO mail.kernel.org"
+        id S1725982AbgINAiw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 20:38:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60638 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbgINAdj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 20:33:39 -0400
+        id S1725965AbgINAiv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 20:38:51 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B719721D80;
-        Mon, 14 Sep 2020 00:33:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D7C9A21897;
+        Mon, 14 Sep 2020 00:38:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600043618;
-        bh=iU1EBZY1XUQ/fC011sa3lENBqE94yIH0spxd6v1SD3s=;
+        s=default; t=1600043931;
+        bh=44TpdO0Lv/36dz5wFjU89mfsvkImLSUhsmHNBydQVf4=;
         h=Date:From:To:Subject:From;
-        b=zUfPlrTLxwiDfkWVzbTQti1A9ZDmnpdo7IioAaieoVdsjampnaUsgtyxWvl9+B//r
-         Y24FrEnkqQ0IjqAcUl8GLQYqsGPL8bN/TKS6VqQf55i/xyn6zNPjpbpcR/xKwSiRv7
-         D/HgZfq6mYuTcvQABueDEevfKSjgQkOyRcYx5lGU=
-Date:   Sun, 13 Sep 2020 17:33:38 -0700
+        b=Au8NQ6OnUDVgufvNasf1my992yw3YvOP38cSzoBm2g+IFBZsqew0rY3k5PSCwiOQm
+         I1p/2nxlBSRnYP28OYpUhd3gcWpzvteAcpm04fkbaYv8hZa6l6PNldP+oEmuMHEpFa
+         3bTdWa9XaTWfD0tPFGXJrQ7CQtNnicXH3rjI/gkQ=
+Date:   Sun, 13 Sep 2020 17:38:50 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
-        richard.weiyang@linux.alibaba.com
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com,
+        mgorman@suse.de, iamjoonsoo.kim@lge.com, akpm@linux-foundation.org,
+        mateusznosek0@gmail.com
 Subject:  +
- mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
- added to -mm tree
-Message-ID: <20200914003338.e35ZI%akpm@linux-foundation.org>
+ mm-compactionc-micro-optimization-remove-unnecessary-branch.patch added to
+ -mm tree
+Message-ID: <20200914003850.wVRe7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: check on file instead of the rb_root_cached of its address_space
+     Subject: mm/compaction.c: micro-optimization remove unnecessary branch
 has been added to the -mm tree.  Its filename is
-     mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
+     mm-compactionc-micro-optimization-remove-unnecessary-branch.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compactionc-micro-optimization-remove-unnecessary-branch.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compactionc-micro-optimization-remove-unnecessary-branch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,73 +77,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/mmap: check on file instead of the rb_root_cached of its address_space
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm/compaction.c: micro-optimization remove unnecessary branch
 
-In __vma_adjust(), we do the check on *root* to decide whether to adjust
-the address_space.  It seems to be more meaningful to do the check on
-*file* itself.  This means we are adjusting some data because it is a file
-backed vma.
+The same code can work both for 'zone->compact_considered > defer_limit'
+and 'zone->compact_considered >= defer_limit'.  In the latter there is one
+branch less which is more effective considering performance.
 
-Since we seem to assume the address_space is valid if it is a file backed
-vma, let's just replace *root* with *file* here.
-
-Link: https://lkml.kernel.org/r/20200913133631.37781-2-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20200913190448.28649-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/compaction.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space
-+++ a/mm/mmap.c
-@@ -823,7 +823,7 @@ again:
- 			anon_vma_interval_tree_pre_update_vma(next);
- 	}
+--- a/mm/compaction.c~mm-compactionc-micro-optimization-remove-unnecessary-branch
++++ a/mm/compaction.c
+@@ -180,11 +180,10 @@ bool compaction_deferred(struct zone *zo
+ 		return false;
  
--	if (root) {
-+	if (file) {
- 		flush_dcache_mmap_lock(mapping);
- 		vma_interval_tree_remove(vma, root);
- 		if (adjust_next)
-@@ -844,7 +844,7 @@ again:
- 		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
- 	}
+ 	/* Avoid possible overflow */
+-	if (++zone->compact_considered > defer_limit)
++	if (++zone->compact_considered >= defer_limit) {
+ 		zone->compact_considered = defer_limit;
+-
+-	if (zone->compact_considered >= defer_limit)
+ 		return false;
++	}
  
--	if (root) {
-+	if (file) {
- 		if (adjust_next)
- 			vma_interval_tree_insert(next, root);
- 		vma_interval_tree_insert(vma, root);
-@@ -896,7 +896,7 @@ again:
- 		anon_vma_unlock_write(anon_vma);
- 	}
- 
--	if (root) {
-+	if (file) {
- 		i_mmap_unlock_write(mapping);
- 		uprobe_mmap(vma);
+ 	trace_mm_compaction_deferred(zone, order);
  
 _
 
-Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
+Patches currently in -mm which might be from mateusznosek0@gmail.com are
 
-mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch
-mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
-mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
-mm-mmap-not-necessary-to-check-mapping-separately.patch
-mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
-mm-hugetlb-not-necessary-to-coalesce-regions-recursively.patch
-mm-hugetlb-remove-vm_bug_onnrg-in-get_file_region_entry_from_cache.patch
-mm-hugetlb-use-list_splice-to-merge-two-list-at-once.patch
-mm-hugetlb-count-file_region-to-be-added-when-regions_needed-=-null.patch
-mm-hugetlb-a-page-from-buddy-is-not-on-any-list.patch
-mm-hugetlb-narrow-the-hugetlb_lock-protection-area-during-preparing-huge-page.patch
-mm-hugetlb-take-the-free-hpage-during-the-iteration-directly.patch
-mm-hugetlb-take-the-free-hpage-during-the-iteration-directly-v4.patch
-mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization.patch
+mm-page_allocc-micro-optimization-remove-unnecessary-branch.patch
+mm-compactionc-micro-optimization-remove-unnecessary-branch.patch
 
