@@ -2,49 +2,50 @@ Return-Path: <SRS0=BOB0=CX=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03BECC2D0F6
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D30D3C2BC11
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C272321D1B
+	by mail.kernel.org (Postfix) with ESMTP id 9DD0E2177B
 	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1600053397;
-	bh=Fn4DIPD3URiH9zicPU0v+C8loLVH5cOP8PHDD0/FMtI=;
+	bh=VbhgfAPAR6YiqY/4mgCklQrWCQ4+9L0fFuDGgHmDyw0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=SNxXm5zaXthlYjPyBH0GWUlIe5HInx468PskK3lBCLnfLPz8cwnIgrUh/R4C9cGlV
-	 5rzyJaSwv0TvfzTh16WbPtRVX8+S7HJybWeUfY5D/KwtLbsXbmff+4mXz+T3J0WsnS
-	 WmweZnv+uBOmupTo8LffBAYSOk3poGFZp64ATkdk=
+	b=LU9eor2hR7ayT8c7gpV9shp0qxuRb4zmrT4PXdiSRxh8pMTgQosbiL9Yb/qhyNz63
+	 lR+ah6mpSh7daH9dj3Y4MPNacOHnfAwSEQJ+lUiWb80MIUjzsG3iqiEWCs7wIxm+8F
+	 DOHvgcRsxnzVm9+pv6uvqFXV/nTwy56SPOHmyVpM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725972AbgINDQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725994AbgINDQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 13 Sep 2020 23:16:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32868 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725973AbgINDQg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 23:16:36 -0400
+        id S1725972AbgINDQe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 23:16:34 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AB586208C7;
-        Mon, 14 Sep 2020 03:16:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B173A2168B;
+        Mon, 14 Sep 2020 03:16:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600053395;
-        bh=Fn4DIPD3URiH9zicPU0v+C8loLVH5cOP8PHDD0/FMtI=;
+        s=default; t=1600053393;
+        bh=VbhgfAPAR6YiqY/4mgCklQrWCQ4+9L0fFuDGgHmDyw0=;
         h=Date:From:To:Subject:From;
-        b=S6ItMeE/nUvCuRCRaqxYnnz7k2qZMUw5YVqTAHs4Y2m3sVmmjKchcK9mja/D0kuMQ
-         8zDCixCm+o78gdF23i3hXlweM/lSGwxjwuJtdwLoqabiJNepPMBQhT3DF3cTFVTIcU
-         8rKlCWdeaVFf9PejjjyBPe6NVyd+7PYEUpDWnjco=
-Date:   Sun, 13 Sep 2020 20:16:35 -0700
+        b=egty6F0kNjXgYN9Naimszm8vHGK+peqlrNp/rW5ZRK4E26DYN0Uj7f0jz6XFntOvK
+         KwvJCro1MpxtHocTrQYtUy0we07IZP1s8DkBvpsHVKrTBPcPLKKdsHgvxhPDSA18r7
+         +ETlZNeNdY1PekwEnxWUbXP18DuOouvHFpi07dL0=
+Date:   Sun, 13 Sep 2020 20:16:33 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
         osalvador@suse.com, naoya.horiguchi@nec.com, mhocko@kernel.org,
         cai@lca.pw, osalvador@suse.de
-Subject:  + mmhwpoison-remove-stale-code.patch added to -mm tree
-Message-ID: <20200914031635.pH1LK%akpm@linux-foundation.org>
+Subject:  + mmhwpoison-drop-unneeded-pcplist-draining.patch added to
+ -mm tree
+Message-ID: <20200914031633.BMMdL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: remove stale code
+     Subject: mm,hwpoison: drop unneeded pcplist draining
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-remove-stale-code.patch
+     mmhwpoison-drop-unneeded-pcplist-draining.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-remove-stale-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-drop-unneeded-pcplist-draining.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-remove-stale-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-drop-unneeded-pcplist-draining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,17 +77,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: remove stale code
+Subject: mm,hwpoison: drop unneeded pcplist draining
 
-Currently we call shake_page and then check whether the page is Buddy
-because shake_page calls drain_all_pages, which sends pcp-pages back to
-the buddy freelists, so we could have a chance to handle free pages.
+memory_failure and soft_offline_path paths now drain pcplists by calling
+get_hwpoison_page.
 
-get_hwpoison_page already calls drain_all_pages, and we do call
-get_hwpoison_page right before coming here, so we should be on the safe
-side.
+memory_failure flags the page as HWPoison before, so that page cannot
+longer go into a pcplist, and soft_offline_page only flags a page as
+HWPoison if 1) we took the page off a buddy freelist 2) the page was
+in-use and we migrated it 3) was a clean pagecache.
 
-Link: https://lkml.kernel.org/r/20200908075626.11976-6-osalvador@suse.de
+Because of that, a page cannot longer be poisoned and be in a pcplist.
+
+Link: https://lkml.kernel.org/r/20200908075626.11976-5-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
@@ -96,30 +99,22 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ mm/madvise.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-remove-stale-code
-+++ a/mm/memory-failure.c
-@@ -1421,18 +1421,6 @@ try_again:
- 	 * walked by the page reclaim code, however that's not a big loss.
- 	 */
- 	shake_page(p, 0);
--	/* shake_page could have turned it free. */
--	if (!PageLRU(p) && is_free_buddy_page(p)) {
--		if (!take_page_off_buddy(p))
--			res = -EBUSY;
--
--		if (flags & MF_COUNT_INCREASED)
--			action_result(pfn, MF_MSG_BUDDY, res ? MF_IGNORED : MF_RECOVERED);
--		else
--			action_result(pfn, MF_MSG_BUDDY_2ND, res ? MF_IGNORED : MF_RECOVERED);
--
--		return res;
--	}
+--- a/mm/madvise.c~mmhwpoison-drop-unneeded-pcplist-draining
++++ a/mm/madvise.c
+@@ -917,10 +917,6 @@ static int madvise_inject_error(int beha
+ 			return ret;
+ 	}
  
- 	lock_page(p);
- 
+-	/* Ensure that all poisoned pages are removed from per-cpu lists */
+-	for_each_populated_zone(zone)
+-		drain_all_pages(zone);
+-
+ 	return 0;
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
