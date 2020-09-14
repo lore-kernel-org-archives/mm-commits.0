@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F8BC43461
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ECE2C43461
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:04:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F8E2221E8
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:03:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE12F221E3
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:04:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600052637;
-	bh=XOv4wgDtY8SkkcUsDE8DeRq0y6hSGaXlRo2OemI+qaY=;
+	s=default; t=1600052645;
+	bh=EhVxNpPib20vaFRzMsG4i8bqALH704rco1PgERicojU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LRsSlA66maOinMsdkdwSYXDv7EvTMenI51CGKz0Av4vN5DG2+wXbvRNg3PiUvITC+
-	 Jcr8zrTGDWF0okK5O052y8qGrpraL3F6OlgoQoktcznobdk/4yxwJfAyYSoPaSzD7/
-	 30cwcSEPw66pReZshKn6O74xQiT6ujhIPdHE6PO4=
+	b=b5V0L+fi+K76P0HuHHh8BL6iUUbfmKm2ceOPkeJMM9TAIGhQwoudvWeiUId6wap5n
+	 dCh70WwRiN1OIN6JqXSINCsITJvTTesf9q6bn+d8Ucxdjs1LSgsy3YWtBUe/IVZOSr
+	 O4fTYHoXlftYTGcsguKpQ/Ub0scnQEY9/fF/GBXg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725974AbgINDD4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 23:03:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49618 "EHLO mail.kernel.org"
+        id S1725996AbgINDEE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 23:04:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725994AbgINDDz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 23:03:55 -0400
+        id S1726020AbgINDD7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 23:03:59 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CCD8621D1B;
-        Mon, 14 Sep 2020 03:03:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CA30F221E7;
+        Mon, 14 Sep 2020 03:03:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600052635;
-        bh=XOv4wgDtY8SkkcUsDE8DeRq0y6hSGaXlRo2OemI+qaY=;
+        s=default; t=1600052639;
+        bh=EhVxNpPib20vaFRzMsG4i8bqALH704rco1PgERicojU=;
         h=Date:From:To:Subject:From;
-        b=n5vuVWWvVzSq3vyhL4+p2ag+paDYeXgSNMC/5plvzcN8zj5IGVDUifJXXFn28bGiy
-         lpTq8tOe34h4f77y9wJ/2zXd36QOBFp1D5xzXT3Btg02vGTRkuS1yj38z0yYXkLRII
-         joHlufloh1CRDNu7UaAm/GI+kSDA4tMSL2gYAI/k=
-Date:   Sun, 13 Sep 2020 20:03:54 -0700
+        b=sESlmbgog8TWUL8Z4GHD4GeaZKOmuc/TMvF5Q0T/77Oe9Rcc0MP9lxlpZRVdkDzZJ
+         mFbbfWSW46yHDSPq6P+3cajhBbiubBe3B2bYexD3cmaJeFy4NJuHhOF2augw+PT8+y
+         lQi3DTob1UTwAHjz+FZg+mvf8ba2F9HokqqYhEuo=
+Date:   Sun, 13 Sep 2020 20:03:58 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, tj@kernel.org,
         shakeelb@google.com, mhocko@kernel.org, laoar.shao@gmail.com,
         hannes@cmpxchg.org, guro@fb.com, chris@chrisdown.name,
         longman@redhat.com
-Subject:  + mm-memcg-clean-up-obsolete-enum-charge_type.patch added
+Subject:  + mm-memcg-unify-swap-and-memsw-page-counters.patch added
  to -mm tree
-Message-ID: <20200914030354.cyQu8%akpm@linux-foundation.org>
+Message-ID: <20200914030358.o1j37%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: clean up obsolete enum charge_type
+     Subject: mm/memcg: unify swap and memsw page counters
 has been added to the -mm tree.  Its filename is
-     mm-memcg-clean-up-obsolete-enum-charge_type.patch
+     mm-memcg-unify-swap-and-memsw-page-counters.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-clean-up-obsolete-enum-charge_type.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-unify-swap-and-memsw-page-counters.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-clean-up-obsolete-enum-charge_type.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-unify-swap-and-memsw-page-counters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,52 +78,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: mm/memcg: clean up obsolete enum charge_type
+Subject: mm/memcg: unify swap and memsw page counters
 
-Patch series "mm/memcg: Miscellaneous cleanups and streamlining", v2.
+The swap page counter is v2 only while memsw is v1 only.  As v1 and v2
+controllers cannot be active at the same time, there is no point to keep
+both swap and memsw page counters in mem_cgroup.  The previous patch has
+made sure that memsw page counter is updated and accessed only when in v1
+code paths.  So it is now safe to alias the v1 memsw page counter to v2
+swap page counter.  This saves 14 long's in the size of mem_cgroup.  This
+is a saving of 112 bytes for 64-bit archs.
 
+While at it, also document which page counters are used in v1 and/or v2.
 
-This patch (of 3):
-
-Since commit 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API") and
-commit 00501b531c47 ("mm: memcontrol: rewrite charge API") in v3.17, the
-enum charge_type was no longer used anywhere.  However, the enum itself
-was not removed at that time.  Remove the obsolete enum charge_type now.
-
-Link: https://lkml.kernel.org/r/20200914024452.19167-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20200914024452.19167-2-longman@redhat.com
+Link: https://lkml.kernel.org/r/20200914024452.19167-4-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Chris Down <chris@chrisdown.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 --------
- 1 file changed, 8 deletions(-)
+ include/linux/memcontrol.h |   13 ++++++++-----
+ mm/memcontrol.c            |    3 ---
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-clean-up-obsolete-enum-charge_type
-+++ a/mm/memcontrol.c
-@@ -197,14 +197,6 @@ static struct move_charge_struct {
- #define	MEM_CGROUP_MAX_RECLAIM_LOOPS		100
- #define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	2
+--- a/include/linux/memcontrol.h~mm-memcg-unify-swap-and-memsw-page-counters
++++ a/include/linux/memcontrol.h
+@@ -215,13 +215,16 @@ struct mem_cgroup {
+ 	struct mem_cgroup_id id;
  
--enum charge_type {
--	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
--	MEM_CGROUP_CHARGE_TYPE_ANON,
--	MEM_CGROUP_CHARGE_TYPE_SWAPOUT,	/* for accounting swapcache */
--	MEM_CGROUP_CHARGE_TYPE_DROP,	/* a page was unused swap cache */
--	NR_CHARGE_TYPE,
--};
--
- /* for encoding cft->private value on file */
- enum res_type {
- 	_MEM,
+ 	/* Accounted resources */
+-	struct page_counter memory;
+-	struct page_counter swap;
++	struct page_counter memory;		/* Both v1 & v2 */
++
++	union {
++		struct page_counter swap;	/* v2 only */
++		struct page_counter memsw;	/* v1 only */
++	};
+ 
+ 	/* Legacy consumer-oriented counters */
+-	struct page_counter memsw;
+-	struct page_counter kmem;
+-	struct page_counter tcpmem;
++	struct page_counter kmem;		/* v1 only */
++	struct page_counter tcpmem;		/* v1 only */
+ 
+ 	/* Range enforcement for interrupt charges */
+ 	struct work_struct high_work;
+--- a/mm/memcontrol.c~mm-memcg-unify-swap-and-memsw-page-counters
++++ a/mm/memcontrol.c
+@@ -5293,13 +5293,11 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		memcg->use_hierarchy = true;
+ 		page_counter_init(&memcg->memory, &parent->memory);
+ 		page_counter_init(&memcg->swap, &parent->swap);
+-		page_counter_init(&memcg->memsw, &parent->memsw);
+ 		page_counter_init(&memcg->kmem, &parent->kmem);
+ 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
+ 	} else {
+ 		page_counter_init(&memcg->memory, NULL);
+ 		page_counter_init(&memcg->swap, NULL);
+-		page_counter_init(&memcg->memsw, NULL);
+ 		page_counter_init(&memcg->kmem, NULL);
+ 		page_counter_init(&memcg->tcpmem, NULL);
+ 		/*
+@@ -5428,7 +5426,6 @@ static void mem_cgroup_css_reset(struct
+ 
+ 	page_counter_set_max(&memcg->memory, PAGE_COUNTER_MAX);
+ 	page_counter_set_max(&memcg->swap, PAGE_COUNTER_MAX);
+-	page_counter_set_max(&memcg->memsw, PAGE_COUNTER_MAX);
+ 	page_counter_set_max(&memcg->kmem, PAGE_COUNTER_MAX);
+ 	page_counter_set_max(&memcg->tcpmem, PAGE_COUNTER_MAX);
+ 	page_counter_set_min(&memcg->memory, 0);
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
