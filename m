@@ -7,42 +7,45 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBAE7C433E2
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:22:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD91C43461
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:24:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 801ED20771
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:22:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF28820756
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:24:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600042961;
-	bh=YU/x9RjJUXSr8iR9UO6FyVFnLzjXMtL6dzKdtiybVIA=;
+	s=default; t=1600043098;
+	bh=SJqbntx88D3fXFdhqBGSJzuP8BHb/JamQItMR4DGJak=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wcE5sxZEln/Du+lkpX+1JDHBRuqw73P5HuWFHo9S/lOkxATaPMSrqelhzSVFE3rzV
-	 Tdyw8BIM7zTrHfeJZ9uF4m2ShWgotT28S/he8sBmXIBFgNQoz92SYh8dtLPt9RZe+P
-	 kKQVb321FL0Jbq71WSIcFMu+HcUAJf1/F+i4atr4=
+	b=dnMzKKUHdbrrPlwHSJ9Dk2pFv+k0/TVBi6T76qzUYRON6fIZD+JpOwP+pbC6yO2sU
+	 3SfjzPZtWz45I6FO1FuOKUyKrENh1TvT2ZXz+xyqGmwcHeP12u5SftOxf+88ftL3D7
+	 VTF5umfloAZCi6EakcBFqOZZjeJjsHIr6lDTc3Vs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725962AbgINAWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 20:22:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57650 "EHLO mail.kernel.org"
+        id S1725962AbgINAY6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 20:24:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725950AbgINAWj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 20:22:39 -0400
+        id S1725950AbgINAYz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 20:24:55 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B484B20756;
-        Mon, 14 Sep 2020 00:22:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1E31120756;
+        Mon, 14 Sep 2020 00:24:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600042958;
-        bh=YU/x9RjJUXSr8iR9UO6FyVFnLzjXMtL6dzKdtiybVIA=;
+        s=default; t=1600043095;
+        bh=SJqbntx88D3fXFdhqBGSJzuP8BHb/JamQItMR4DGJak=;
         h=Date:From:To:Subject:From;
-        b=2DnflQghJXktXFSkFnVKI1/Mt8bNeaAAmJllw7u+VhoeQZPbA04d8l9VqcwQfnEcP
-         plqxZU8Sp2p0kPiSOPOeLminuY7+J/BGOoHDuLFM7SN4vS0QzQwk9y23iq2Dh7+9oZ
-         kiCnSk8iFEw6snlfb0bwRh/28n2sWpQJc3Uj77Z4=
-Date:   Sun, 13 Sep 2020 17:22:38 -0700
+        b=RSgubVz16r+Rc+XRdrY8BXhH4Qh8DyEwZjulDkRvh7SZMKKgZr3oIwCeBaEJE+yCd
+         5KTmCK58776w9pKjHUTfJOs5MgIqoblh31oeGc7ScirvyuPNYNFZhLXm7vGMnR75oD
+         8Btzc3hkN0xqSn/v2z/8e7hpj6N9/0NCXb9tpWWw=
+Date:   Sun, 13 Sep 2020 17:24:54 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com
-Subject:  + mm-fix-some-broken-comments.patch added to -mm tree
-Message-ID: <20200914002238.K9wQ_%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, lkp@intel.com,
+        aneesh.kumar@linux.ibm.com
+Subject:  [to-be-updated]
+ mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
+ removed from -mm tree
+Message-ID: <20200914002454.yk1Al%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,80 +55,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix some broken comments
-has been added to the -mm tree.  Its filename is
-     mm-fix-some-broken-comments.patch
+     Subject: mm/debug_vm_pgtable: Avoid doing memory allocation with pgtable_t mapped
+has been removed from the -mm tree.  Its filename was
+     mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-some-broken-comments.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-some-broken-comments.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: fix some broken comments
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/debug_vm_pgtable: Avoid doing memory allocation with pgtable_t mapped
 
-Fix some broken comments including typo, grammar error and wrong function
-name.
+With highmem, pte_alloc_map() keep the level4 page table mapped using
+kmap_atomic().  Avoid doing new memory allocation with page table mapped
+like above.
 
-Link: https://lkml.kernel.org/r/20200913095456.54873-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+[    9.409233] BUG: sleeping function called from invalid context at mm/page_alloc.c:4822
+[    9.410557] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper
+[    9.411932] no locks held by swapper/1.
+[    9.412595] CPU: 0 PID: 1 Comm: swapper Not tainted 5.9.0-rc3-00323-gc50eb1ed654b5 #2
+[    9.413824] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
+[    9.415207] Call Trace:
+[    9.415651]  ? ___might_sleep.cold+0xa7/0xcc
+[    9.416367]  ? __alloc_pages_nodemask+0x14c/0x5b0
+[    9.417055]  ? swap_migration_tests+0x50/0x293
+[    9.417704]  ? debug_vm_pgtable+0x4bc/0x708
+[    9.418287]  ? swap_migration_tests+0x293/0x293
+[    9.418911]  ? do_one_initcall+0x82/0x3cb
+[    9.419465]  ? parse_args+0x1bd/0x280
+[    9.419983]  ? rcu_read_lock_sched_held+0x36/0x60
+[    9.420673]  ? trace_initcall_level+0x1f/0xf3
+[    9.421279]  ? trace_initcall_level+0xbd/0xf3
+[    9.421881]  ? do_basic_setup+0x9d/0xdd
+[    9.422410]  ? do_basic_setup+0xc3/0xdd
+[    9.422938]  ? kernel_init_freeable+0x72/0xa3
+[    9.423539]  ? rest_init+0x134/0x134
+[    9.424055]  ? kernel_init+0x5/0x12c
+[    9.424574]  ? ret_from_fork+0x19/0x30
+
+Link: https://lkml.kernel.org/r/87wo0yw0gk.fsf@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c    |    4 ++--
- mm/swap_state.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/debug_vm_pgtable.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/filemap.c~mm-fix-some-broken-comments
-+++ a/mm/filemap.c
-@@ -1347,7 +1347,7 @@ static inline bool clear_bit_unlock_is_n
-  * unlock_page - unlock a locked page
-  * @page: the page
-  *
-- * Unlocks the page and wakes up sleepers in ___wait_on_page_locked().
-+ * Unlocks the page and wakes up sleepers in wait_on_page_locked().
-  * Also wakes sleepers in wait_on_page_writeback() because the wakeup
-  * mechanism between PageLocked pages and PageWriteback pages is shared.
-  * But that's OK - sleepers in wait_on_page_writeback() just go back to sleep.
-@@ -2902,7 +2902,7 @@ filler:
- 		goto out;
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped
++++ a/mm/debug_vm_pgtable.c
+@@ -994,7 +994,10 @@ static int __init debug_vm_pgtable(void)
+ 	p4dp = p4d_alloc(mm, pgdp, vaddr);
+ 	pudp = pud_alloc(mm, p4dp, vaddr);
+ 	pmdp = pmd_alloc(mm, pudp, vaddr);
+-	ptep = pte_alloc_map(mm, pmdp, vaddr);
++	/*
++	 * Allocate pgtable_t
++	 */
++	pte_alloc(mm, pmdp);
  
  	/*
--	 * Page is not up to date and may be locked due one of the following
-+	 * Page is not up to date and may be locked due to one of the following
- 	 * case a: Page is being filled and the page lock is held
- 	 * case b: Read/write error clearing the page uptodate status
- 	 * case c: Truncation in progress (page locked)
---- a/mm/swap_state.c~mm-fix-some-broken-comments
-+++ a/mm/swap_state.c
-@@ -246,7 +246,7 @@ int add_to_swap(struct page *page)
- 		goto fail;
- 	/*
- 	 * Normally the page will be dirtied in unmap because its pte should be
--	 * dirty. A special case is MADV_FREE page. The page'e pte could have
-+	 * dirty. A special case is MADV_FREE page. The page's pte could have
- 	 * dirty bit cleared but the page's SwapBacked bit is still set because
- 	 * clearing the dirty bit and SwapBacked bit has no lock protected. For
- 	 * such page, unmap will not set dirty bit for it, so page reclaim will
+ 	 * Save all the page table page addresses as the page table
+@@ -1048,8 +1051,7 @@ static int __init debug_vm_pgtable(void)
+ 	 * proper page table lock.
+ 	 */
+ 
+-	ptl = pte_lockptr(mm, pmdp);
+-	spin_lock(ptl);
++	ptep = pte_offset_map_lock(mm, pmdp, vaddr, &ptl);
+ 	pte_clear_tests(mm, ptep, pte_aligned, vaddr, prot);
+ 	pte_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
+ 	pte_unmap_unlock(ptep, ptl);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-swap-fix-confusing-comment-in-release_pages.patch
-mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
-mm-vmstat-use-helper-macro-abs.patch
-mm-fix-some-broken-comments.patch
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
+powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte.patch
+mm-debug_vm_pgtable-ppc64-avoid-setting-top-bits-in-radom-value.patch
+mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support.patch
+mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
+mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
+mm-debug_vm_pgtable-set_pte-pmd-pud-dont-use-set__at-to-update-an-existing-pte-entry.patch
+mm-debug_vm_pgtable-locks-move-non-page-table-modifying-test-together.patch
+mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch
+mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
+mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
+mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
+mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch
 
