@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5483BC43461
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:21:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A25C433E2
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:22:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16E6F21548
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:21:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F2B2208E4
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:22:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600053685;
-	bh=icOjV/2bhDY+dPcHpuL6p3cYaERGiWBvJ6uPIFZoP70=;
+	s=default; t=1600053732;
+	bh=vDuRWU/j59SuS4GwiMlvFFL7MbqVcw/K9PPBq0uFaak=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=YQhGp8Q4xxEeMG7/lpfviZMRJMkf1ie+SLRmmlgf+eZD6IYc/cWWEWfixD7JyyGz6
-	 jS9APXR+a8gU8kY/DKBsnGclF7660Y3xMfOHBCtWgbtuGNeJBLPTkqeoaOrzmqc4XM
-	 1jjoP+xyFiaexKvV0/UvIHfIR7hu6gOi7Xsn7j0o=
+	b=ns/NXRWxC1rFXe4Jpio8M5V+df7dj8l5IYmDzNZoxB+At3PqchrOoA57DPV2c6gfT
+	 M/EECZ4cHFvoA6B4G+OB57rAYyBJDpf3xD15Fx94BMpcfOveLOq5lKU8LpWJZCrRKc
+	 guSMVdiISsBWE5tVGOQUMWbm700xnmwDZgxylQB8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725976AbgINDVY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 23:21:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34170 "EHLO mail.kernel.org"
+        id S1725973AbgINDWL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 23:22:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbgINDVY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 23:21:24 -0400
+        id S1725972AbgINDWK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 23:22:10 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB4D8208E4;
-        Mon, 14 Sep 2020 03:21:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 89B99208DB;
+        Mon, 14 Sep 2020 03:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600053683;
-        bh=icOjV/2bhDY+dPcHpuL6p3cYaERGiWBvJ6uPIFZoP70=;
+        s=default; t=1600053729;
+        bh=vDuRWU/j59SuS4GwiMlvFFL7MbqVcw/K9PPBq0uFaak=;
         h=Date:From:To:Subject:From;
-        b=ru+AGxSK5EY2nVWl12z0Xo55rH0xZI2xQOscRFYSMFXr+7jt3AdqR+y6KD7NnDkGJ
-         4BEBD6jAjP3Ub1+OmK9NaBHJ/f1lQt7CbBRRU43e5kkKtqrdgkU19mAfU9nOEXzABe
-         fDEHzS8aSIo0qvBXVH3eVnlbx3K35k/Vu1b08Xrk=
-Date:   Sun, 13 Sep 2020 20:21:23 -0700
+        b=r9PjuYpG+RW1R+G0/Td9vgSKbgHSOq3S4IJmJwOXSJotulRb2DKNeS6ThKCHI1vpZ
+         gndamfa8z6MPKG1mHHEAlW9DeyoU5TCbRp4ZLZnQRmNEDwHVQIs0wpVuCevTueygM+
+         X5hlClvDW87HQ7vlLXbV6jfkXQ+wTArDeizSYv2s=
+Date:   Sun, 13 Sep 2020 20:22:09 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, hch@lst.de,
-        tklauser@distanz.ch
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz,
+        hch@lst.de, tklauser@distanz.ch
 Subject:  +
- stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer.patch added
- to -mm tree
-Message-ID: <20200914032123.a2yje%akpm@linux-foundation.org>
+ fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
+ added to -mm tree
+Message-ID: <20200914032209.cF9p9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stackleak: let stack_erasing_sysctl take a kernel pointer buffer
+     Subject: fs/fs-writeback.c: adjust dirtytime_interval_handler definition to match prototype
 has been added to the -mm tree.  Its filename is
-     stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer.patch
+     fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,55 +77,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tobias Klauser <tklauser@distanz.ch>
-Subject: stackleak: let stack_erasing_sysctl take a kernel pointer buffer
+Subject: fs/fs-writeback.c: adjust dirtytime_interval_handler definition to match prototype
 
 Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
 changed ctl_table.proc_handler to take a kernel pointer.  Adjust the
-signature of stack_erasing_sysctl to match ctl_table.proc_handler which
-fixes the following sparse warning:
+definition of dirtytime_interval_handler to match its prototype in
+linux/writeback.h which fixes the following sparse error/warning:
 
-kernel/stackleak.c:31:50: warning: incorrect type in argument 3 (different address spaces)
-kernel/stackleak.c:31:50:    expected void *
-kernel/stackleak.c:31:50:    got void [noderef] __user *buffer
+fs/fs-writeback.c:2189:50: warning: incorrect type in argument 3 (different address spaces)
+fs/fs-writeback.c:2189:50:    expected void *
+fs/fs-writeback.c:2189:50:    got void [noderef] __user *buffer
+fs/fs-writeback.c:2184:5: error: symbol 'dirtytime_interval_handler' redeclared with different type (incompatible argument 3 (different address spaces)):
+fs/fs-writeback.c:2184:5:    int extern [addressable] [signed] [toplevel] dirtytime_interval_handler( ... )
+fs/fs-writeback.c: note: in included file:
+./include/linux/writeback.h:374:5: note: previously declared as:
+./include/linux/writeback.h:374:5:    int extern [addressable] [signed] [toplevel] dirtytime_interval_handler( ... )
 
-Link: https://lkml.kernel.org/r/20200907093253.13656-1-tklauser@distanz.ch
+Link: https://lkml.kernel.org/r/20200907093140.13434-1-tklauser@distanz.ch
 Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
 Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackleak.h |    2 +-
- kernel/stackleak.c        |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/stackleak.h~stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer
-+++ a/include/linux/stackleak.h
-@@ -25,7 +25,7 @@ static inline void stackleak_task_init(s
+--- a/fs/fs-writeback.c~fs-adjust-dirtytime_interval_handler-definition-to-match-prototype
++++ a/fs/fs-writeback.c
+@@ -2184,7 +2184,7 @@ static int __init start_dirtytime_writeb
+ __initcall(start_dirtytime_writeback);
  
- #ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
- int stack_erasing_sysctl(struct ctl_table *table, int write,
--			void __user *buffer, size_t *lenp, loff_t *ppos);
-+			void *buffer, size_t *lenp, loff_t *ppos);
- #endif
- 
- #else /* !CONFIG_GCC_PLUGIN_STACKLEAK */
---- a/kernel/stackleak.c~stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer
-+++ a/kernel/stackleak.c
-@@ -20,7 +20,7 @@
- static DEFINE_STATIC_KEY_FALSE(stack_erasing_bypass);
- 
- int stack_erasing_sysctl(struct ctl_table *table, int write,
--			void __user *buffer, size_t *lenp, loff_t *ppos)
-+			void *buffer, size_t *lenp, loff_t *ppos)
+ int dirtytime_interval_handler(struct ctl_table *table, int write,
+-			       void __user *buffer, size_t *lenp, loff_t *ppos)
++			       void *buffer, size_t *lenp, loff_t *ppos)
  {
- 	int ret = 0;
- 	int state = !static_branch_unlikely(&stack_erasing_bypass);
+ 	int ret;
+ 
 _
 
 Patches currently in -mm which might be from tklauser@distanz.ch are
 
 ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer.patch
 stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer.patch
+fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
 
