@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD91C43461
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:24:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E68AEC433E2
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:25:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF28820756
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:24:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB52120756
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 00:25:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600043098;
-	bh=SJqbntx88D3fXFdhqBGSJzuP8BHb/JamQItMR4DGJak=;
+	s=default; t=1600043140;
+	bh=OxJcMK7sdlPjZUNNInqbcMeu7Gc+MWbZLuUaCvVREB0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dnMzKKUHdbrrPlwHSJ9Dk2pFv+k0/TVBi6T76qzUYRON6fIZD+JpOwP+pbC6yO2sU
-	 3SfjzPZtWz45I6FO1FuOKUyKrENh1TvT2ZXz+xyqGmwcHeP12u5SftOxf+88ftL3D7
-	 VTF5umfloAZCi6EakcBFqOZZjeJjsHIr6lDTc3Vs=
+	b=l4cAAS5TwgvrUnnlZKFh0HqAUtA/C7TyNMPyD7FP5WpW/304eaFn2wWIic1VtTOi3
+	 D2y0O+9desoZV1tfMaaLyhsvdPzi9DT7OVqgJYbcejNW057jyIMBYDjOE+Nq//UVAv
+	 FdjaUumuT2suMMwe/SDZx4dMjTtwg4hsCTY9yg+M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725962AbgINAY6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 20:24:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57760 "EHLO mail.kernel.org"
+        id S1725965AbgINAZk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 20:25:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725950AbgINAYz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 20:24:55 -0400
+        id S1725950AbgINAZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 20:25:39 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E31120756;
-        Mon, 14 Sep 2020 00:24:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B3C7E206DC;
+        Mon, 14 Sep 2020 00:25:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600043095;
-        bh=SJqbntx88D3fXFdhqBGSJzuP8BHb/JamQItMR4DGJak=;
+        s=default; t=1600043138;
+        bh=OxJcMK7sdlPjZUNNInqbcMeu7Gc+MWbZLuUaCvVREB0=;
         h=Date:From:To:Subject:From;
-        b=RSgubVz16r+Rc+XRdrY8BXhH4Qh8DyEwZjulDkRvh7SZMKKgZr3oIwCeBaEJE+yCd
-         5KTmCK58776w9pKjHUTfJOs5MgIqoblh31oeGc7ScirvyuPNYNFZhLXm7vGMnR75oD
-         8Btzc3hkN0xqSn/v2z/8e7hpj6N9/0NCXb9tpWWw=
-Date:   Sun, 13 Sep 2020 17:24:54 -0700
+        b=wKTGKl1/QNKtgEzcm85W6gIgjMATAVFiyfzk7echc2wuEbtJ+6vuQCm48SgfLAPCl
+         5RR2KgtxWXjALOU5SP1pGGzDzTr2vbXjxNY+r4xx+njOgmKkULQgPzL5qhueJs0FDC
+         wDq9jUUg99gpLlh88NtmzgzkOUpZEbqLu17eQF/g=
+Date:   Sun, 13 Sep 2020 17:25:38 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, lkp@intel.com,
         aneesh.kumar@linux.ibm.com
-Subject:  [to-be-updated]
+Subject:  +
  mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
- removed from -mm tree
-Message-ID: <20200914002454.yk1Al%akpm@linux-foundation.org>
+ added to -mm tree
+Message-ID: <20200914002538.osnqb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,15 +55,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: Avoid doing memory allocation with pgtable_t mapped
-has been removed from the -mm tree.  Its filename was
+     Subject: mm/debug_vm_pgtable: avoid doing memory allocation with pgtable_t mapped.
+has been added to the -mm tree.  Its filename is
      mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: Avoid doing memory allocation with pgtable_t mapped
+Subject: mm/debug_vm_pgtable: avoid doing memory allocation with pgtable_t mapped.
 
 With highmem, pte_alloc_map() keep the level4 page table mapped using
 kmap_atomic().  Avoid doing new memory allocation with page table mapped
@@ -92,18 +106,18 @@ like above.
 [    9.424055]  ? kernel_init+0x5/0x12c
 [    9.424574]  ? ret_from_fork+0x19/0x30
 
-Link: https://lkml.kernel.org/r/87wo0yw0gk.fsf@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200913110327.645310-1-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/debug_vm_pgtable.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
 --- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped
 +++ a/mm/debug_vm_pgtable.c
-@@ -994,7 +994,10 @@ static int __init debug_vm_pgtable(void)
+@@ -994,7 +994,13 @@ static int __init debug_vm_pgtable(void)
  	p4dp = p4d_alloc(mm, pgdp, vaddr);
  	pudp = pud_alloc(mm, p4dp, vaddr);
  	pmdp = pmd_alloc(mm, pudp, vaddr);
@@ -111,11 +125,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	/*
 +	 * Allocate pgtable_t
 +	 */
-+	pte_alloc(mm, pmdp);
++	if (pte_alloc(mm, pmdp)) {
++		pr_err("pgtable allocation failed\n");
++		return 1;
++	}
  
  	/*
  	 * Save all the page table page addresses as the page table
-@@ -1048,8 +1051,7 @@ static int __init debug_vm_pgtable(void)
+@@ -1048,8 +1054,7 @@ static int __init debug_vm_pgtable(void)
  	 * proper page table lock.
  	 */
  
@@ -142,4 +159,5 @@ mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
 mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
 mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
 mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch
+mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
 
