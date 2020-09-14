@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D30D3C2BC11
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A365CC433E2
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:21:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DD0E2177B
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:16:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6712C208E4
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Sep 2020 03:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600053397;
-	bh=VbhgfAPAR6YiqY/4mgCklQrWCQ4+9L0fFuDGgHmDyw0=;
+	s=default; t=1600053682;
+	bh=fFy40A1ioSH+I96+RukHrdD1i8TeW4NXM7z6LAJAV20=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LU9eor2hR7ayT8c7gpV9shp0qxuRb4zmrT4PXdiSRxh8pMTgQosbiL9Yb/qhyNz63
-	 lR+ah6mpSh7daH9dj3Y4MPNacOHnfAwSEQJ+lUiWb80MIUjzsG3iqiEWCs7wIxm+8F
-	 DOHvgcRsxnzVm9+pv6uvqFXV/nTwy56SPOHmyVpM=
+	b=rUVFIjXmrODSHBUEdRMrcSUZszgEkxMv8A6ulT5jOkUtr4h80LRnayZA7N9+CbvvM
+	 IjvSJMjVP0gKlSuD8VRCa1i/M6ioGJ3AVh2zrP6JBp4PiwypoWe5lCAS15cDm5cfeB
+	 nFNPxFBu2yP6Q6uGVZBNniyIEgLw/8G9Uqroqd9Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725994AbgINDQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Sep 2020 23:16:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32824 "EHLO mail.kernel.org"
+        id S1725973AbgINDVV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Sep 2020 23:21:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725972AbgINDQe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Sep 2020 23:16:34 -0400
+        id S1725965AbgINDVV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Sep 2020 23:21:21 -0400
 Received: from X1 (unknown [209.33.215.130])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B173A2168B;
-        Mon, 14 Sep 2020 03:16:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E1368208DB;
+        Mon, 14 Sep 2020 03:21:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600053393;
-        bh=VbhgfAPAR6YiqY/4mgCklQrWCQ4+9L0fFuDGgHmDyw0=;
+        s=default; t=1600053681;
+        bh=fFy40A1ioSH+I96+RukHrdD1i8TeW4NXM7z6LAJAV20=;
         h=Date:From:To:Subject:From;
-        b=egty6F0kNjXgYN9Naimszm8vHGK+peqlrNp/rW5ZRK4E26DYN0Uj7f0jz6XFntOvK
-         KwvJCro1MpxtHocTrQYtUy0we07IZP1s8DkBvpsHVKrTBPcPLKKdsHgvxhPDSA18r7
-         +ETlZNeNdY1PekwEnxWUbXP18DuOouvHFpi07dL0=
-Date:   Sun, 13 Sep 2020 20:16:33 -0700
+        b=xqRp8krktasdxzSHdHh2IPjIsa4w7AQE+9VZQWHN1CfvU7oT3Ktm++xGxNbaw5m2R
+         0RTj3D+guNjRdhoWbiMhZr3N9Zj27Za0MaBwl2ZeY+znLuAKRtTvg4jgCY2dAqgXPA
+         2GXdLvSikT6r1QIhypzN5hqWToZjKXEozBc1ihPI=
+Date:   Sun, 13 Sep 2020 20:21:20 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
-        osalvador@suse.com, naoya.horiguchi@nec.com, mhocko@kernel.org,
-        cai@lca.pw, osalvador@suse.de
-Subject:  + mmhwpoison-drop-unneeded-pcplist-draining.patch added to
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, hch@lst.de,
+        tklauser@distanz.ch
+Subject:  +
+ ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer.patch added to
  -mm tree
-Message-ID: <20200914031633.BMMdL%akpm@linux-foundation.org>
+Message-ID: <20200914032120.BwVYn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: drop unneeded pcplist draining
+     Subject: ftrace: let ftrace_enable_sysctl take a kernel pointer buffer
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-drop-unneeded-pcplist-draining.patch
+     ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-drop-unneeded-pcplist-draining.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-drop-unneeded-pcplist-draining.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,59 +76,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: drop unneeded pcplist draining
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: ftrace: let ftrace_enable_sysctl take a kernel pointer buffer
 
-memory_failure and soft_offline_path paths now drain pcplists by calling
-get_hwpoison_page.
+Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
+changed ctl_table.proc_handler to take a kernel pointer.  Adjust the
+signature of ftrace_enable_sysctl to match ctl_table.proc_handler which
+fixes the following sparse warning:
 
-memory_failure flags the page as HWPoison before, so that page cannot
-longer go into a pcplist, and soft_offline_page only flags a page as
-HWPoison if 1) we took the page off a buddy freelist 2) the page was
-in-use and we migrated it 3) was a clean pagecache.
+kernel/trace/ftrace.c:7544:43: warning: incorrect type in argument 3 (different address spaces)
+kernel/trace/ftrace.c:7544:43:    expected void *
+kernel/trace/ftrace.c:7544:43:    got void [noderef] __user *buffer
 
-Because of that, a page cannot longer be poisoned and be in a pcplist.
-
-Link: https://lkml.kernel.org/r/20200908075626.11976-5-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/20200907093207.13540-1-tklauser@distanz.ch
+Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/ftrace.h |    3 +--
+ kernel/trace/ftrace.c  |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/madvise.c~mmhwpoison-drop-unneeded-pcplist-draining
-+++ a/mm/madvise.c
-@@ -917,10 +917,6 @@ static int madvise_inject_error(int beha
- 			return ret;
- 	}
+--- a/include/linux/ftrace.h~ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer
++++ a/include/linux/ftrace.h
+@@ -85,8 +85,7 @@ static inline int ftrace_mod_get_kallsym
+ extern int ftrace_enabled;
+ extern int
+ ftrace_enable_sysctl(struct ctl_table *table, int write,
+-		     void __user *buffer, size_t *lenp,
+-		     loff_t *ppos);
++		     void *buffer, size_t *lenp, loff_t *ppos);
  
--	/* Ensure that all poisoned pages are removed from per-cpu lists */
--	for_each_populated_zone(zone)
--		drain_all_pages(zone);
--
- 	return 0;
- }
- #endif
+ struct ftrace_ops;
+ 
+--- a/kernel/trace/ftrace.c~ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer
++++ a/kernel/trace/ftrace.c
+@@ -7531,8 +7531,7 @@ static bool is_permanent_ops_registered(
+ 
+ int
+ ftrace_enable_sysctl(struct ctl_table *table, int write,
+-		     void __user *buffer, size_t *lenp,
+-		     loff_t *ppos)
++		     void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int ret = -ENODEV;
+ 
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
-mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
-mmhwpoison-kill-put_hwpoison_page.patch
-mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
-mmhwpoison-rework-soft-offline-for-free-pages.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
-mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
-mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
-mmhwpoison-refactor-madvise_inject_error.patch
-mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
-mmhwpoison-drop-unneeded-pcplist-draining.patch
-mmhwpoison-remove-stale-code.patch
+ftrace-let-ftrace_enable_sysctl-take-a-kernel-pointer-buffer.patch
+stackleak-let-stack_erasing_sysctl-take-a-kernel-pointer-buffer.patch
 
