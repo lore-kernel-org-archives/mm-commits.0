@@ -7,47 +7,53 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CB5AC43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:31:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE036C43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:36:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2A792076B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:31:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86A80207DE
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:36:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600216307;
-	bh=HDnD7GwPvNSr2UketcRKwwvKAojAsrUEQEPMrzUJiCM=;
+	s=default; t=1600216581;
+	bh=/FjpwMazlryP1/fZjXhNwEHhm4imm7WYgs/BQnDa1zE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dTO2P6oXpeSqyzHs9SLJ87JQoX/AUOuGaPCU8roB1kAXnWzLDdbeVCJu/Di4A89Ak
-	 10VSuurO9xtsGBU6oWWZE9JqyUwpulx++8MgvrMuMLPyBUvRp6TKIzJzDWeTaRffju
-	 McbGYqaXYaXV3V7AByVj81ptx9L88AgWwEALRJzc=
+	b=bAE1Pclbq8LjrBHTL6+NbBmsKUdeIIjV4rU56jGVMHTobG4GMenw4DLEoN9TzXS/K
+	 QKe/U4YM9yoCfF/PBvQDP4lEXbv+UKppeKzF3DMbr1sDHwnl3t3bKBNMHUyFuyI230
+	 m1aFs7O0lWV6DB4JbXIu/e3RNseg95dZYPriwyzw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726885AbgIPAbr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:31:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36920 "EHLO mail.kernel.org"
+        id S1726493AbgIPAgU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 20:36:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726853AbgIPAbf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 20:31:35 -0400
+        id S1726625AbgIPAgP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 20:36:15 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 390C22076B;
-        Wed, 16 Sep 2020 00:31:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 215482078E;
+        Wed, 16 Sep 2020 00:36:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600216291;
-        bh=HDnD7GwPvNSr2UketcRKwwvKAojAsrUEQEPMrzUJiCM=;
+        s=default; t=1600216570;
+        bh=/FjpwMazlryP1/fZjXhNwEHhm4imm7WYgs/BQnDa1zE=;
         h=Date:From:To:Subject:From;
-        b=MEhLWgNmVCz/Qk0NeUienQ+DyK9zFSsjqV505NKD0/w4p6eWSbJ5WcQZogkeEJ2iR
-         k8LBj9jheJtcVRopW7O9eaweDT72nU8vt0DSX1vrINeyNSrQax/0H5WQS2hxtvDW4a
-         xm14+so2lte+JtYTNGuJhmKh66c5GfoKhkm68jMM=
-Date:   Tue, 15 Sep 2020 17:31:30 -0700
+        b=tJgD4o5Oq48L0aHCbgRFpnB4s7/UNRtQAsCvN+dbH4uU0syIEpT25zwavLHhZILvx
+         lclJqzffeqZSe5esGcktzLFZV2JHSrwzruYmb/ekONijNV4c961fIsCnxlQ5LS5dHy
+         4FQ2X9SvLCUQnezC6FH0Z5kbppYZ9FxLHX/SgfAc=
+Date:   Tue, 15 Sep 2020 17:36:08 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com,
-        rppt@kernel.org, riel@surriel.com, mhocko@kernel.org,
-        js1304@gmail.com, guro@fb.com, aslan@fb.com,
-        mike.kravetz@oracle.com
-Subject:  +
- cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch added to
- -mm tree
-Message-ID: <20200916003130.Eywaa%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        torvalds@linux-foundation.org, tglx@linutronix.de,
+        stable@vger.kernel.org, rppt@linux.ibm.com, richard@nod.at,
+        peterz@infradead.org, paulus@samba.org, mpe@ellerman.id.au,
+        mingo@redhat.com, luto@kernel.org, linux@armlinux.org.uk,
+        jgg@nvidia.com, jdike@addtoit.com, imbrenda@linux.ibm.com,
+        hca@linux.ibm.com, gerald.schaefer@linux.ibm.com,
+        dave.hansen@linux.intel.com, dave.hansen@intel.com,
+        catalin.marinas@arm.com, bp@alien8.de, borntraeger@de.ibm.com,
+        benh@kernel.crashing.org, aryabinin@virtuozzo.com, arnd@arndb.de,
+        agordeev@linux.ibm.com, gor@linux.ibm.com
+Subject:  + mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
+ added to -mm tree
+Message-ID: <20200916003608.ib4Ln%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,14 +63,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: make number of CMA areas dynamic, remove CONFIG_CMA_AREAS
+     Subject: mm/gup: fix gup_fast with dynamic page table folding
 has been added to the -mm tree.  Its filename is
-     cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
+     mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,276 +84,262 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/cma: make number of CMA areas dynamic, remove CONFIG_CMA_AREAS
+From: Vasily Gorbik <gor@linux.ibm.com>
+Subject: mm/gup: fix gup_fast with dynamic page table folding
 
-The number of distinct CMA areas is limited by the constant
-CONFIG_CMA_AREAS.  In most environments, this was set to a default
-value of 7.  Not too long ago, support was added to allocate hugetlb
-gigantic pages from CMA.  More recent changes to make dma_alloc_coherent
-NUMA-aware on arm64 added more potential users of CMA areas.  Along
-with the dma_alloc_coherent changes, the default value of CMA_AREAS
-was bumped up to 19 if NUMA is enabled.
+Currently to make sure that every page table entry is read just once
+gup_fast walks perform READ_ONCE and pass pXd value down to the next
+gup_pXd_range function by value e.g.:
 
-It seems that the number of CMA users is likely to grow.  Instead of
-using a static array for cma areas, use a simple linked list.  These
-areas are used before normal memory allocators, so use the memblock
-allocator.
+static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+                         unsigned int flags, struct page **pages, int *nr)
+...
+        pudp = pud_offset(&p4d, addr);
 
-Link: https://lkml.kernel.org/r/20200915205703.34572-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Aslan Bakirov <aslan@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+This function passes a reference on that local value copy to pXd_offset,
+and might get the very same pointer in return.  This happens when the
+level is folded (on most arches), and that pointer should not be iterated.
+
+On s390 due to the fact that each task might have different 5,4 or 3-level
+address translation and hence different levels folded the logic is more
+complex and non-iteratable pointer to a local copy leads to severe
+problems.
+
+Here is an example of what happens with gup_fast on s390, for a task with
+3-levels paging, crossing a 2 GB pud boundary:
+
+// addr = 0x1007ffff000, end = 0x10080001000
+static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+                         unsigned int flags, struct page **pages, int *nr)
+{
+        unsigned long next;
+        pud_t *pudp;
+
+        // pud_offset returns &p4d itself (a pointer to a value on stack)
+        pudp = pud_offset(&p4d, addr);
+        do {
+                // on second iteratation reading "random" stack value
+                pud_t pud = READ_ONCE(*pudp);
+
+                // next = 0x10080000000, due to PUD_SIZE/MASK != PGDIR_SIZE/MASK on s390
+                next = pud_addr_end(addr, end);
+                ...
+        } while (pudp++, addr = next, addr != end); // pudp++ iterating over stack
+
+        return 1;
+}
+
+This happens since s390 moved to common gup code with commit d1874a0c2805
+("s390/mm: make the pxd_offset functions more robust") and commit
+1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast code").
+s390 tried to mimic static level folding by changing pXd_offset
+primitives to always calculate top level page table offset in pgd_offset
+and just return the value passed when pXd_offset has to act as folded.
+
+What is crucial for gup_fast and what has been overlooked is that
+PxD_SIZE/MASK and thus pXd_addr_end should also change correspondingly. 
+And the latter is not possible with dynamic folding.
+
+To fix the issue in addition to pXd values pass original pXdp pointers
+down to gup_pXd_range functions.  And introduce pXd_offset_lockless
+helpers, which take an additional pXd entry value parameter.  This has
+already been discussed in
+https://lkml.kernel.org/r/20190418100218.0a4afd51@mschwideX1
+
+Link: https://lkml.kernel.org/r/patch.git-943f1e5dcff2.your-ad-here.call-01599856292-ext-8676@work.hours
+Fixes: 1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast code")
+Signed-off-by: Vasily Gorbik <gor@linux.ibm.com>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: <stable@vger.kernel.org>	[5.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/dma-mapping.c              |   28 +++++++++++------
- arch/mips/configs/cu1000-neo_defconfig |    1 
- arch/mips/configs/cu1830-neo_defconfig |    1 
- include/linux/cma.h                    |   12 -------
- mm/Kconfig                             |   11 ------
- mm/cma.c                               |   37 +++++++++--------------
- mm/cma.h                               |    4 +-
- mm/cma_debug.c                         |    6 +--
- 8 files changed, 39 insertions(+), 61 deletions(-)
+ arch/s390/include/asm/pgtable.h |   42 +++++++++++++++++++++---------
+ include/linux/pgtable.h         |   10 +++++++
+ mm/gup.c                        |   18 ++++++------
+ 3 files changed, 49 insertions(+), 21 deletions(-)
 
---- a/arch/arm/mm/dma-mapping.c~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -383,25 +383,33 @@ postcore_initcall(atomic_pool_init);
- struct dma_contig_early_reserve {
- 	phys_addr_t base;
- 	unsigned long size;
-+	struct list_head areas;
- };
+--- a/arch/s390/include/asm/pgtable.h~mm-gup-fix-gup_fast-with-dynamic-page-table-folding
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1260,26 +1260,44 @@ static inline pgd_t *pgd_offset_raw(pgd_
  
--static struct dma_contig_early_reserve dma_mmu_remap[MAX_CMA_AREAS] __initdata;
--
--static int dma_mmu_remap_num __initdata;
-+static __initdata LIST_HEAD(dma_mmu_remap_areas);
+ #define pgd_offset(mm, address) pgd_offset_raw(READ_ONCE((mm)->pgd), address)
  
- void __init dma_contiguous_early_fixup(phys_addr_t base, unsigned long size)
+-static inline p4d_t *p4d_offset(pgd_t *pgd, unsigned long address)
++static inline p4d_t *p4d_offset_lockless(pgd_t *pgdp, pgd_t pgd, unsigned long address)
  {
--	dma_mmu_remap[dma_mmu_remap_num].base = base;
--	dma_mmu_remap[dma_mmu_remap_num].size = size;
--	dma_mmu_remap_num++;
-+	struct dma_contig_early_reserve *d;
-+
-+	d = memblock_alloc(sizeof(*d), sizeof(void *));
-+	if (!d) {
-+		pr_err("Unable to allocate dma_contig_early_reserve struct!\n");
-+		return;
-+	}
-+
-+	d->base = base;
-+	d->size = size;
-+	list_add_tail(&d->areas, &dma_mmu_remap_areas);
+-	if ((pgd_val(*pgd) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R1)
+-		return (p4d_t *) pgd_deref(*pgd) + p4d_index(address);
+-	return (p4d_t *) pgd;
++	if ((pgd_val(pgd) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R1)
++		return (p4d_t *) pgd_deref(pgd) + p4d_index(address);
++	return (p4d_t *) pgdp;
  }
++#define p4d_offset_lockless p4d_offset_lockless
  
- void __init dma_contiguous_remap(void)
+-static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
++static inline p4d_t *p4d_offset(pgd_t *pgdp, unsigned long address)
  {
--	int i;
--	for (i = 0; i < dma_mmu_remap_num; i++) {
--		phys_addr_t start = dma_mmu_remap[i].base;
--		phys_addr_t end = start + dma_mmu_remap[i].size;
-+	struct dma_contig_early_reserve *d;
+-	if ((p4d_val(*p4d) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R2)
+-		return (pud_t *) p4d_deref(*p4d) + pud_index(address);
+-	return (pud_t *) p4d;
++	return p4d_offset_lockless(pgdp, *pgdp, address);
++}
 +
-+	list_for_each_entry(d, &dma_mmu_remap_areas, areas) {
-+		phys_addr_t start = d->base;
-+		phys_addr_t end = start + d->size;
- 		struct map_desc map;
- 		unsigned long addr;
- 
---- a/arch/mips/configs/cu1000-neo_defconfig~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/arch/mips/configs/cu1000-neo_defconfig
-@@ -31,7 +31,6 @@ CONFIG_HZ_100=y
- # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
- # CONFIG_COMPACTION is not set
- CONFIG_CMA=y
--CONFIG_CMA_AREAS=7
- CONFIG_NET=y
- CONFIG_PACKET=y
- CONFIG_UNIX=y
---- a/arch/mips/configs/cu1830-neo_defconfig~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/arch/mips/configs/cu1830-neo_defconfig
-@@ -31,7 +31,6 @@ CONFIG_HZ_100=y
- # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
- # CONFIG_COMPACTION is not set
- CONFIG_CMA=y
--CONFIG_CMA_AREAS=7
- CONFIG_NET=y
- CONFIG_PACKET=y
- CONFIG_UNIX=y
---- a/include/linux/cma.h~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/include/linux/cma.h
-@@ -6,18 +6,6 @@
- #include <linux/types.h>
- #include <linux/numa.h>
- 
--/*
-- * There is always at least global CMA area and a few optional
-- * areas configured in kernel .config.
-- */
--#ifdef CONFIG_CMA_AREAS
--#define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
--
--#else
--#define MAX_CMA_AREAS	(0)
--
--#endif
--
- struct cma;
- 
- extern unsigned long totalcma_pages;
---- a/mm/cma.c~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/mm/cma.c
-@@ -36,8 +36,9 @@
- 
- #include "cma.h"
- 
--struct cma cma_areas[MAX_CMA_AREAS];
--unsigned cma_area_count;
-+/* modify here */
-+LIST_HEAD(cma_areas);
-+static unsigned int cma_area_count;
- static DEFINE_MUTEX(cma_mutex);
- 
- phys_addr_t cma_get_base(const struct cma *cma)
-@@ -143,10 +144,10 @@ out_error:
- 
- static int __init cma_init_reserved_areas(void)
- {
--	int i;
-+	struct cma *c;
- 
--	for (i = 0; i < cma_area_count; i++)
--		cma_activate_area(&cma_areas[i]);
-+	list_for_each_entry(c, &cma_areas, areas)
-+		cma_activate_area(c);
- 
- 	return 0;
- }
-@@ -172,12 +173,6 @@ int __init cma_init_reserved_mem(phys_ad
- 	struct cma *cma;
- 	phys_addr_t alignment;
- 
--	/* Sanity checks */
--	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
--		pr_err("Not enough slots for CMA reserved regions!\n");
--		return -ENOSPC;
--	}
--
- 	if (!size || !memblock_is_region_reserved(base, size))
- 		return -EINVAL;
- 
-@@ -192,12 +187,17 @@ int __init cma_init_reserved_mem(phys_ad
- 	if (ALIGN(base, alignment) != base || ALIGN(size, alignment) != size)
- 		return -EINVAL;
- 
-+	cma = memblock_alloc(sizeof(*cma), sizeof(long));
-+	if (!cma) {
-+		pr_err("Unable to allocate CMA descriptor!\n");
-+		return -ENOSPC;
-+	}
-+	list_add_tail(&cma->areas, &cma_areas);
++static inline pud_t *pud_offset_lockless(p4d_t *p4dp, p4d_t p4d, unsigned long address)
++{
++	if ((p4d_val(p4d) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R2)
++		return (pud_t *) p4d_deref(p4d) + pud_index(address);
++	return (pud_t *) p4dp;
++}
++#define pud_offset_lockless pud_offset_lockless
 +
- 	/*
- 	 * Each reserved area must be initialised later, when more kernel
- 	 * subsystems (like slab allocator) are available.
- 	 */
--	cma = &cma_areas[cma_area_count];
--
- 	if (name)
- 		snprintf(cma->name, CMA_MAX_NAME, name);
- 	else
-@@ -253,11 +253,6 @@ int __init cma_declare_contiguous_nid(ph
- 	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
- 		__func__, &size, &base, &limit, &alignment);
- 
--	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
--		pr_err("Not enough slots for CMA reserved regions!\n");
--		return -ENOSPC;
--	}
--
- 	if (!size)
- 		return -EINVAL;
- 
-@@ -530,10 +525,10 @@ bool cma_release(struct cma *cma, const
- 
- int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
- {
--	int i;
-+	struct cma *c;
- 
--	for (i = 0; i < cma_area_count; i++) {
--		int ret = it(&cma_areas[i], data);
-+	list_for_each_entry(c, &cma_areas, areas) {
-+		int ret = it(c, data);
- 
- 		if (ret)
- 			return ret;
---- a/mm/cma_debug.c~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/mm/cma_debug.c
-@@ -188,12 +188,12 @@ static void cma_debugfs_add_one(struct c
- static int __init cma_debugfs_init(void)
- {
- 	struct dentry *cma_debugfs_root;
--	int i;
-+	struct cma *c;
- 
- 	cma_debugfs_root = debugfs_create_dir("cma", NULL);
- 
--	for (i = 0; i < cma_area_count; i++)
--		cma_debugfs_add_one(&cma_areas[i], cma_debugfs_root);
-+	list_for_each_entry(c, &cma_areas, areas)
-+		cma_debugfs_add_one(c, cma_debugfs_root);
- 
- 	return 0;
++static inline pud_t *pud_offset(p4d_t *p4dp, unsigned long address)
++{
++	return pud_offset_lockless(p4dp, *p4dp, address);
  }
---- a/mm/cma.h~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/mm/cma.h
-@@ -17,11 +17,11 @@ struct cma {
- 	spinlock_t mem_head_lock;
- 	struct debugfs_u32_array dfs_bitmap;
+ #define pud_offset pud_offset
+ 
+-static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
++static inline pmd_t *pmd_offset_lockless(pud_t *pudp, pud_t pud, unsigned long address)
++{
++	if ((pud_val(pud) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R3)
++		return (pmd_t *) pud_deref(pud) + pmd_index(address);
++	return (pmd_t *) pudp;
++}
++#define pmd_offset_lockless pmd_offset_lockless
++
++static inline pmd_t *pmd_offset(pud_t *pudp, unsigned long address)
+ {
+-	if ((pud_val(*pud) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R3)
+-		return (pmd_t *) pud_deref(*pud) + pmd_index(address);
+-	return (pmd_t *) pud;
++	return pmd_offset_lockless(pudp, *pudp, address);
+ }
+ #define pmd_offset pmd_offset
+ 
+--- a/include/linux/pgtable.h~mm-gup-fix-gup_fast-with-dynamic-page-table-folding
++++ a/include/linux/pgtable.h
+@@ -1427,6 +1427,16 @@ typedef unsigned int pgtbl_mod_mask;
+ #define mm_pmd_folded(mm)	__is_defined(__PAGETABLE_PMD_FOLDED)
  #endif
-+	struct list_head areas;
- 	char name[CMA_MAX_NAME];
- };
  
--extern struct cma cma_areas[MAX_CMA_AREAS];
--extern unsigned cma_area_count;
-+extern struct list_head cma_areas;
++#ifndef p4d_offset_lockless
++#define p4d_offset_lockless(pgdp, pgd, address) p4d_offset(&(pgd), address)
++#endif
++#ifndef pud_offset_lockless
++#define pud_offset_lockless(p4dp, p4d, address) pud_offset(&(p4d), address)
++#endif
++#ifndef pmd_offset_lockless
++#define pmd_offset_lockless(pudp, pud, address) pmd_offset(&(pud), address)
++#endif
++
+ /*
+  * p?d_leaf() - true if this entry is a final mapping to a physical address.
+  * This differs from p?d_huge() by the fact that they are always available (if
+--- a/mm/gup.c~mm-gup-fix-gup_fast-with-dynamic-page-table-folding
++++ a/mm/gup.c
+@@ -2485,13 +2485,13 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 	return 1;
+ }
  
- static inline unsigned long cma_bitmap_maxno(struct cma *cma)
+-static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
++static int gup_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr, unsigned long end,
+ 		unsigned int flags, struct page **pages, int *nr)
  {
---- a/mm/Kconfig~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
-+++ a/mm/Kconfig
-@@ -513,17 +513,6 @@ config CMA_DEBUGFS
- 	help
- 	  Turns on the DebugFS interface for CMA.
+ 	unsigned long next;
+ 	pmd_t *pmdp;
  
--config CMA_AREAS
--	int "Maximum count of the CMA areas"
--	depends on CMA
--	default 7
--	help
--	  CMA allows to create CMA areas for particular purpose, mainly,
--	  used as device private area. This parameter sets the maximum
--	  number of CMA area in the system.
--
--	  If unsure, leave the default value "7".
--
- config MEM_SOFT_DIRTY
- 	bool "Track memory changes"
- 	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
+-	pmdp = pmd_offset(&pud, addr);
++	pmdp = pmd_offset_lockless(pudp, pud, addr);
+ 	do {
+ 		pmd_t pmd = READ_ONCE(*pmdp);
+ 
+@@ -2528,13 +2528,13 @@ static int gup_pmd_range(pud_t pud, unsi
+ 	return 1;
+ }
+ 
+-static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
++static int gup_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr, unsigned long end,
+ 			 unsigned int flags, struct page **pages, int *nr)
+ {
+ 	unsigned long next;
+ 	pud_t *pudp;
+ 
+-	pudp = pud_offset(&p4d, addr);
++	pudp = pud_offset_lockless(p4dp, p4d, addr);
+ 	do {
+ 		pud_t pud = READ_ONCE(*pudp);
+ 
+@@ -2549,20 +2549,20 @@ static int gup_pud_range(p4d_t p4d, unsi
+ 			if (!gup_huge_pd(__hugepd(pud_val(pud)), addr,
+ 					 PUD_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pmd_range(pud, addr, next, flags, pages, nr))
++		} else if (!gup_pmd_range(pudp, pud, addr, next, flags, pages, nr))
+ 			return 0;
+ 	} while (pudp++, addr = next, addr != end);
+ 
+ 	return 1;
+ }
+ 
+-static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
++static int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr, unsigned long end,
+ 			 unsigned int flags, struct page **pages, int *nr)
+ {
+ 	unsigned long next;
+ 	p4d_t *p4dp;
+ 
+-	p4dp = p4d_offset(&pgd, addr);
++	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
+ 	do {
+ 		p4d_t p4d = READ_ONCE(*p4dp);
+ 
+@@ -2574,7 +2574,7 @@ static int gup_p4d_range(pgd_t pgd, unsi
+ 			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
+ 					 P4D_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pud_range(p4d, addr, next, flags, pages, nr))
++		} else if (!gup_pud_range(p4dp, p4d, addr, next, flags, pages, nr))
+ 			return 0;
+ 	} while (p4dp++, addr = next, addr != end);
+ 
+@@ -2602,7 +2602,7 @@ static void gup_pgd_range(unsigned long
+ 			if (!gup_huge_pd(__hugepd(pgd_val(pgd)), addr,
+ 					 PGDIR_SHIFT, next, flags, pages, nr))
+ 				return;
+-		} else if (!gup_p4d_range(pgd, addr, next, flags, pages, nr))
++		} else if (!gup_p4d_range(pgdp, pgd, addr, next, flags, pages, nr))
+ 			return;
+ 	} while (pgdp++, addr = next, addr != end);
+ }
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from gor@linux.ibm.com are
 
-hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
-cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
+mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
 
