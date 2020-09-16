@@ -7,53 +7,42 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE036C43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:36:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C25AC43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:38:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86A80207DE
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:36:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4ADA2080C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600216581;
-	bh=/FjpwMazlryP1/fZjXhNwEHhm4imm7WYgs/BQnDa1zE=;
+	s=default; t=1600216686;
+	bh=OIEmM1GlWkPdeXkZ2zxotOMzyDP+fFc+XRnh28PQT6Y=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bAE1Pclbq8LjrBHTL6+NbBmsKUdeIIjV4rU56jGVMHTobG4GMenw4DLEoN9TzXS/K
-	 QKe/U4YM9yoCfF/PBvQDP4lEXbv+UKppeKzF3DMbr1sDHwnl3t3bKBNMHUyFuyI230
-	 m1aFs7O0lWV6DB4JbXIu/e3RNseg95dZYPriwyzw=
+	b=lDicmlAqIDvOhEmSRtFjxlJtBhKMSAGrgyv7QebSKykeNgmvsomkOs7y/Jj4QtvfE
+	 339TtTDS8lsr1c+FP3l4lHyYddK4VKI5DQp5NQsFtVCq4ZwKxynruLWWGwyiR3JImh
+	 cZWrp9fM+r2Y0wxoEP71ctR2OccKE+miVYIDj/u4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726493AbgIPAgU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:36:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38684 "EHLO mail.kernel.org"
+        id S1726689AbgIPAhy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 20:37:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726625AbgIPAgP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 20:36:15 -0400
+        id S1726726AbgIPAhg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 20:37:36 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 215482078E;
-        Wed, 16 Sep 2020 00:36:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D574720732;
+        Wed, 16 Sep 2020 00:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600216570;
-        bh=/FjpwMazlryP1/fZjXhNwEHhm4imm7WYgs/BQnDa1zE=;
+        s=default; t=1600216656;
+        bh=OIEmM1GlWkPdeXkZ2zxotOMzyDP+fFc+XRnh28PQT6Y=;
         h=Date:From:To:Subject:From;
-        b=tJgD4o5Oq48L0aHCbgRFpnB4s7/UNRtQAsCvN+dbH4uU0syIEpT25zwavLHhZILvx
-         lclJqzffeqZSe5esGcktzLFZV2JHSrwzruYmb/ekONijNV4c961fIsCnxlQ5LS5dHy
-         4FQ2X9SvLCUQnezC6FH0Z5kbppYZ9FxLHX/SgfAc=
-Date:   Tue, 15 Sep 2020 17:36:08 -0700
+        b=seqm8H+2ArhWQRnwBrfzD/Ihw4aCFKDxvL6NTaF4VyqwkIP2VlkPMCqjcuxXoQzhX
+         tSGf5HsiyAOjfflXLQTAhd7Jb9K4rq2qpkZHBsbV2WzygZHNRYejBAn5RmkMRpgVZL
+         u1ayat+36MKdD8/YmZhrqnkqMXsXKjjQVoaboNF0=
+Date:   Tue, 15 Sep 2020 17:37:35 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        torvalds@linux-foundation.org, tglx@linutronix.de,
-        stable@vger.kernel.org, rppt@linux.ibm.com, richard@nod.at,
-        peterz@infradead.org, paulus@samba.org, mpe@ellerman.id.au,
-        mingo@redhat.com, luto@kernel.org, linux@armlinux.org.uk,
-        jgg@nvidia.com, jdike@addtoit.com, imbrenda@linux.ibm.com,
-        hca@linux.ibm.com, gerald.schaefer@linux.ibm.com,
-        dave.hansen@linux.intel.com, dave.hansen@intel.com,
-        catalin.marinas@arm.com, bp@alien8.de, borntraeger@de.ibm.com,
-        benh@kernel.crashing.org, aryabinin@virtuozzo.com, arnd@arndb.de,
-        agordeev@linux.ibm.com, gor@linux.ibm.com
-Subject:  + mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
- added to -mm tree
-Message-ID: <20200916003608.ib4Ln%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, chentao3@hotmail.com
+Subject:  + mm-fix-some-comments-formatting.patch added to -mm tree
+Message-ID: <20200916003735.IWs6C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -63,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: fix gup_fast with dynamic page table folding
+     Subject: mm: fix some comments formatting
 has been added to the -mm tree.  Its filename is
-     mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
+     mm-fix-some-comments-formatting.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-some-comments-formatting.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-some-comments-formatting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -84,262 +73,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Gorbik <gor@linux.ibm.com>
-Subject: mm/gup: fix gup_fast with dynamic page table folding
+From: Chen Tao <chentao3@hotmail.com>
+Subject: mm: fix some comments formatting
 
-Currently to make sure that every page table entry is read just once
-gup_fast walks perform READ_ONCE and pass pXd value down to the next
-gup_pXd_range function by value e.g.:
+Correct one function name "get_partials" with "get_partial".  Update the
+old struct name of list3 with kmem_cache_node.
 
-static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
-                         unsigned int flags, struct page **pages, int *nr)
-...
-        pudp = pud_offset(&p4d, addr);
-
-This function passes a reference on that local value copy to pXd_offset,
-and might get the very same pointer in return.  This happens when the
-level is folded (on most arches), and that pointer should not be iterated.
-
-On s390 due to the fact that each task might have different 5,4 or 3-level
-address translation and hence different levels folded the logic is more
-complex and non-iteratable pointer to a local copy leads to severe
-problems.
-
-Here is an example of what happens with gup_fast on s390, for a task with
-3-levels paging, crossing a 2 GB pud boundary:
-
-// addr = 0x1007ffff000, end = 0x10080001000
-static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
-                         unsigned int flags, struct page **pages, int *nr)
-{
-        unsigned long next;
-        pud_t *pudp;
-
-        // pud_offset returns &p4d itself (a pointer to a value on stack)
-        pudp = pud_offset(&p4d, addr);
-        do {
-                // on second iteratation reading "random" stack value
-                pud_t pud = READ_ONCE(*pudp);
-
-                // next = 0x10080000000, due to PUD_SIZE/MASK != PGDIR_SIZE/MASK on s390
-                next = pud_addr_end(addr, end);
-                ...
-        } while (pudp++, addr = next, addr != end); // pudp++ iterating over stack
-
-        return 1;
-}
-
-This happens since s390 moved to common gup code with commit d1874a0c2805
-("s390/mm: make the pxd_offset functions more robust") and commit
-1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast code").
-s390 tried to mimic static level folding by changing pXd_offset
-primitives to always calculate top level page table offset in pgd_offset
-and just return the value passed when pXd_offset has to act as folded.
-
-What is crucial for gup_fast and what has been overlooked is that
-PxD_SIZE/MASK and thus pXd_addr_end should also change correspondingly. 
-And the latter is not possible with dynamic folding.
-
-To fix the issue in addition to pXd values pass original pXdp pointers
-down to gup_pXd_range functions.  And introduce pXd_offset_lockless
-helpers, which take an additional pXd entry value parameter.  This has
-already been discussed in
-https://lkml.kernel.org/r/20190418100218.0a4afd51@mschwideX1
-
-Link: https://lkml.kernel.org/r/patch.git-943f1e5dcff2.your-ad-here.call-01599856292-ext-8676@work.hours
-Fixes: 1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast code")
-Signed-off-by: Vasily Gorbik <gor@linux.ibm.com>
-Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: <stable@vger.kernel.org>	[5.2+]
+Link: https://lkml.kernel.org/r/Message-ID:
+Signed-off-by: Chen Tao <chentao3@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |   42 +++++++++++++++++++++---------
- include/linux/pgtable.h         |   10 +++++++
- mm/gup.c                        |   18 ++++++------
- 3 files changed, 49 insertions(+), 21 deletions(-)
+ mm/slab.c |    2 +-
+ mm/slub.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/s390/include/asm/pgtable.h~mm-gup-fix-gup_fast-with-dynamic-page-table-folding
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1260,26 +1260,44 @@ static inline pgd_t *pgd_offset_raw(pgd_
- 
- #define pgd_offset(mm, address) pgd_offset_raw(READ_ONCE((mm)->pgd), address)
- 
--static inline p4d_t *p4d_offset(pgd_t *pgd, unsigned long address)
-+static inline p4d_t *p4d_offset_lockless(pgd_t *pgdp, pgd_t pgd, unsigned long address)
- {
--	if ((pgd_val(*pgd) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R1)
--		return (p4d_t *) pgd_deref(*pgd) + p4d_index(address);
--	return (p4d_t *) pgd;
-+	if ((pgd_val(pgd) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R1)
-+		return (p4d_t *) pgd_deref(pgd) + p4d_index(address);
-+	return (p4d_t *) pgdp;
- }
-+#define p4d_offset_lockless p4d_offset_lockless
- 
--static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
-+static inline p4d_t *p4d_offset(pgd_t *pgdp, unsigned long address)
- {
--	if ((p4d_val(*p4d) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R2)
--		return (pud_t *) p4d_deref(*p4d) + pud_index(address);
--	return (pud_t *) p4d;
-+	return p4d_offset_lockless(pgdp, *pgdp, address);
-+}
-+
-+static inline pud_t *pud_offset_lockless(p4d_t *p4dp, p4d_t p4d, unsigned long address)
-+{
-+	if ((p4d_val(p4d) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R2)
-+		return (pud_t *) p4d_deref(p4d) + pud_index(address);
-+	return (pud_t *) p4dp;
-+}
-+#define pud_offset_lockless pud_offset_lockless
-+
-+static inline pud_t *pud_offset(p4d_t *p4dp, unsigned long address)
-+{
-+	return pud_offset_lockless(p4dp, *p4dp, address);
- }
- #define pud_offset pud_offset
- 
--static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
-+static inline pmd_t *pmd_offset_lockless(pud_t *pudp, pud_t pud, unsigned long address)
-+{
-+	if ((pud_val(pud) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R3)
-+		return (pmd_t *) pud_deref(pud) + pmd_index(address);
-+	return (pmd_t *) pudp;
-+}
-+#define pmd_offset_lockless pmd_offset_lockless
-+
-+static inline pmd_t *pmd_offset(pud_t *pudp, unsigned long address)
- {
--	if ((pud_val(*pud) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R3)
--		return (pmd_t *) pud_deref(*pud) + pmd_index(address);
--	return (pmd_t *) pud;
-+	return pmd_offset_lockless(pudp, *pudp, address);
- }
- #define pmd_offset pmd_offset
- 
---- a/include/linux/pgtable.h~mm-gup-fix-gup_fast-with-dynamic-page-table-folding
-+++ a/include/linux/pgtable.h
-@@ -1427,6 +1427,16 @@ typedef unsigned int pgtbl_mod_mask;
- #define mm_pmd_folded(mm)	__is_defined(__PAGETABLE_PMD_FOLDED)
- #endif
- 
-+#ifndef p4d_offset_lockless
-+#define p4d_offset_lockless(pgdp, pgd, address) p4d_offset(&(pgd), address)
-+#endif
-+#ifndef pud_offset_lockless
-+#define pud_offset_lockless(p4dp, p4d, address) pud_offset(&(p4d), address)
-+#endif
-+#ifndef pmd_offset_lockless
-+#define pmd_offset_lockless(pudp, pud, address) pmd_offset(&(pud), address)
-+#endif
-+
- /*
-  * p?d_leaf() - true if this entry is a final mapping to a physical address.
-  * This differs from p?d_huge() by the fact that they are always available (if
---- a/mm/gup.c~mm-gup-fix-gup_fast-with-dynamic-page-table-folding
-+++ a/mm/gup.c
-@@ -2485,13 +2485,13 @@ static int gup_huge_pgd(pgd_t orig, pgd_
- 	return 1;
- }
- 
--static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
-+static int gup_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr, unsigned long end,
- 		unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	pmd_t *pmdp;
- 
--	pmdp = pmd_offset(&pud, addr);
-+	pmdp = pmd_offset_lockless(pudp, pud, addr);
- 	do {
- 		pmd_t pmd = READ_ONCE(*pmdp);
- 
-@@ -2528,13 +2528,13 @@ static int gup_pmd_range(pud_t pud, unsi
- 	return 1;
- }
- 
--static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
-+static int gup_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr, unsigned long end,
- 			 unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	pud_t *pudp;
- 
--	pudp = pud_offset(&p4d, addr);
-+	pudp = pud_offset_lockless(p4dp, p4d, addr);
- 	do {
- 		pud_t pud = READ_ONCE(*pudp);
- 
-@@ -2549,20 +2549,20 @@ static int gup_pud_range(p4d_t p4d, unsi
- 			if (!gup_huge_pd(__hugepd(pud_val(pud)), addr,
- 					 PUD_SHIFT, next, flags, pages, nr))
- 				return 0;
--		} else if (!gup_pmd_range(pud, addr, next, flags, pages, nr))
-+		} else if (!gup_pmd_range(pudp, pud, addr, next, flags, pages, nr))
- 			return 0;
- 	} while (pudp++, addr = next, addr != end);
- 
- 	return 1;
- }
- 
--static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
-+static int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr, unsigned long end,
- 			 unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	p4d_t *p4dp;
- 
--	p4dp = p4d_offset(&pgd, addr);
-+	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
- 	do {
- 		p4d_t p4d = READ_ONCE(*p4dp);
- 
-@@ -2574,7 +2574,7 @@ static int gup_p4d_range(pgd_t pgd, unsi
- 			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
- 					 P4D_SHIFT, next, flags, pages, nr))
- 				return 0;
--		} else if (!gup_pud_range(p4d, addr, next, flags, pages, nr))
-+		} else if (!gup_pud_range(p4dp, p4d, addr, next, flags, pages, nr))
- 			return 0;
- 	} while (p4dp++, addr = next, addr != end);
- 
-@@ -2602,7 +2602,7 @@ static void gup_pgd_range(unsigned long
- 			if (!gup_huge_pd(__hugepd(pgd_val(pgd)), addr,
- 					 PGDIR_SHIFT, next, flags, pages, nr))
- 				return;
--		} else if (!gup_p4d_range(pgd, addr, next, flags, pages, nr))
-+		} else if (!gup_p4d_range(pgdp, pgd, addr, next, flags, pages, nr))
- 			return;
- 	} while (pgdp++, addr = next, addr != end);
- }
+--- a/mm/slab.c~mm-fix-some-comments-formatting
++++ a/mm/slab.c
+@@ -1062,7 +1062,7 @@ int slab_prepare_cpu(unsigned int cpu)
+  * Even if all the cpus of a node are down, we don't free the
+  * kmem_cache_node of any cache. This to avoid a race between cpu_down, and
+  * a kmalloc allocation from another cpu for memory from the node of
+- * the cpu going down.  The list3 structure is usually allocated from
++ * the cpu going down.  The kmem_cache_node structure is usually allocated from
+  * kmem_cache_create() and gets destroyed at kmem_cache_destroy().
+  */
+ int slab_dead_cpu(unsigned int cpu)
+--- a/mm/slub.c~mm-fix-some-comments-formatting
++++ a/mm/slub.c
+@@ -1960,7 +1960,7 @@ static void *get_partial_node(struct kme
+ 	/*
+ 	 * Racy check. If we mistakenly see no partial slabs then we
+ 	 * just allocate an empty slab. If we mistakenly try to get a
+-	 * partial slab and there is none available then get_partials()
++	 * partial slab and there is none available then get_partial()
+ 	 * will return NULL.
+ 	 */
+ 	if (!n || !n->nr_partial)
 _
 
-Patches currently in -mm which might be from gor@linux.ibm.com are
+Patches currently in -mm which might be from chentao3@hotmail.com are
 
-mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
+mm-fix-some-comments-formatting.patch
 
