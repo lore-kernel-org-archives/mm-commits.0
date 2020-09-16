@@ -7,43 +7,46 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C7FBC43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:11:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75827C433E2
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:12:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43136208E4
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:11:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FFC9208E4
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:12:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600218717;
-	bh=k1MCxkH3f8Q+zD3SCco1PxIjxieqzug5UJ9naw1QdCA=;
+	s=default; t=1600218739;
+	bh=KNS+WXfTXAYASUNorJK5gfgGMWh+1vn61DSBgca1EB4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=N9Ya71HjRiQ7B+1aJu6nAncAJKEpgPUdq6DiaJDH5U2UF6SmK5Ms4WQ+qX0NFXX2e
-	 /3F2JtziKHzapigJSiqcEODBAclMaPiF76XvixgLDC05up//dt+hQ2yTmTGZ1tUR2d
-	 dN3yNP+/jsAPZZuX+MGYBlms9PKW76xbL/h3djMA=
+	b=Y/18XyOmWhJ+09DR7WtqGX5eHTk5y2V+o4y84GoE97AaYiq4T5WlgCupJaBcpYrQR
+	 0h+DGmrxtjh2EjJu+d00PWGeM1/i5AQ5eQGP94/FYqYrJnN6UOjPbB/XlTOM/40o30
+	 HC9oATYvY2dAbhhmWPZGBdgj01WMdLmrb6UjrEL8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726106AbgIPBL4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 21:11:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51692 "EHLO mail.kernel.org"
+        id S1726134AbgIPBMS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 21:12:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726102AbgIPBLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 21:11:55 -0400
+        id S1726102AbgIPBMR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 21:12:17 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3AA6B20715;
-        Wed, 16 Sep 2020 01:11:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DBE4420715;
+        Wed, 16 Sep 2020 01:12:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600218714;
-        bh=k1MCxkH3f8Q+zD3SCco1PxIjxieqzug5UJ9naw1QdCA=;
+        s=default; t=1600218736;
+        bh=KNS+WXfTXAYASUNorJK5gfgGMWh+1vn61DSBgca1EB4=;
         h=Date:From:To:Subject:From;
-        b=R4AMGu/MjgFcGghu5Rp7rG+6XPoTGKXyP+x5WmGK5LUFrgCB6mwTWaGPQX8lPFDX6
-         pXMVgoWrJw8XQYVcWxYFdAVX/9r5qYwVDsenXJBlctQYt4AeLtFWoyLx7viTxWAfhb
-         7/O4psJtuYQlwkPhFNlmJ5q9SHTndcrbQVraJ5dM=
-Date:   Tue, 15 Sep 2020 18:11:53 -0700
+        b=LeD4W3WmZwcpxfMUDKqvQzdUp/RVOtW32GNX12HDZhPivL4Seu/IhkFnJQkJfTLki
+         o6yYKI7a79uLNkr3ZnX5zFfeugO4yqAaoRJUnSWVJCWnWOOBU5flSWoO+iDIvtxDpL
+         q8LOtOGNvOggu0OcxSCC5O73hW1Ud5yQnFMGX5Mk=
+Date:   Tue, 15 Sep 2020 18:12:15 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, lkp@intel.com, willy@infradead.org
-Subject:  +
- mm-convert-find_get_entry-to-return-the-head-page-fix.patch added to -mm tree
-Message-ID: <20200916011153.43AiL%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com, rafael@kernel.org,
+        osalvador@suse.de, nathanl@linux.ibm.com, mhocko@suse.com,
+        gregkh@linuxfoundation.org, fenghua.yu@intel.com, david@redhat.com,
+        cheloha@linux.ibm.com, ldufour@linux.ibm.com
+Subject:  + mm-dont-panic-when-links-cant-be-created-in-sysfs.patch
+ added to -mm tree
+Message-ID: <20200916011215.3eTHe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-convert-find_get_entry-to-return-the-head-page-fix
+     Subject: mm: don't panic when links can't be created in sysfs
 has been added to the -mm tree.  Its filename is
-     mm-convert-find_get_entry-to-return-the-head-page-fix.patch
+     mm-dont-panic-when-links-cant-be-created-in-sysfs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-convert-find_get_entry-to-return-the-head-page-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-dont-panic-when-links-cant-be-created-in-sysfs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-find_get_entry-to-return-the-head-page-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-panic-when-links-cant-be-created-in-sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,63 +77,171 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-convert-find_get_entry-to-return-the-head-page-fix
+From: Laurent Dufour <ldufour@linux.ibm.com>
+Subject: mm: don't panic when links can't be created in sysfs
 
-Link: https://lkml.kernel.org/r/20200914112738.GM6583@casper.infradead.org
-Reported-by: kernel test robot <lkp@intel.com>
+At boot time, or when doing memory hot-add operations, if the links in
+sysfs can't be created, the system is still able to run, so just report
+the error in the kernel log rather than BUG_ON and potentially make system
+unusable because the callpath can be called with locks held.
+
+Since the number of memory blocks managed could be high, the messages are
+rate limited.
+
+As a consequence, link_mem_sections() has no status to report anymore.
+
+Link: https://lkml.kernel.org/r/20200915094143.79181-4-ldufour@linux.ibm.com
+Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/base/node.c  |   33 +++++++++++++++++++++------------
+ include/linux/node.h |   16 +++++++---------
+ mm/memory_hotplug.c  |    5 ++---
+ 3 files changed, 30 insertions(+), 24 deletions(-)
 
---- a/mm/swap_state.c~mm-convert-find_get_entry-to-return-the-head-page-fix
-+++ a/mm/swap_state.c
-@@ -431,6 +431,8 @@ struct page *find_get_incore_page(struct
- 	struct swap_info_struct *si;
- 	struct page *page = find_get_entry(mapping, index);
+--- a/drivers/base/node.c~mm-dont-panic-when-links-cant-be-created-in-sysfs
++++ a/drivers/base/node.c
+@@ -761,8 +761,8 @@ static int __ref get_nid_for_pfn(unsigne
+ 	return pfn_to_nid(pfn);
+ }
  
-+	if (!page)
-+		return page;
- 	if (!xa_is_value(page))
- 		return find_subpage(page, index);
- 	if (!shmem_mapping(mapping))
+-static int do_register_memory_block_under_node(int nid,
+-					       struct memory_block *mem_blk)
++static void do_register_memory_block_under_node(int nid,
++						struct memory_block *mem_blk)
+ {
+ 	int ret;
+ 
+@@ -775,12 +775,19 @@ static int do_register_memory_block_unde
+ 	ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
+ 				       &mem_blk->dev.kobj,
+ 				       kobject_name(&mem_blk->dev.kobj));
+-	if (ret)
+-		return ret;
++	if (ret && ret != -EEXIST)
++		dev_err_ratelimited(&node_devices[nid]->dev,
++				    "can't create link to %s in sysfs (%d)\n",
++				    kobject_name(&mem_blk->dev.kobj), ret);
+ 
+-	return sysfs_create_link_nowarn(&mem_blk->dev.kobj,
++	ret = sysfs_create_link_nowarn(&mem_blk->dev.kobj,
+ 				&node_devices[nid]->dev.kobj,
+ 				kobject_name(&node_devices[nid]->dev.kobj));
++	if (ret && ret != -EEXIST)
++		dev_err_ratelimited(&mem_blk->dev,
++				    "can't create link to %s in sysfs (%d)\n",
++				    kobject_name(&node_devices[nid]->dev.kobj),
++				    ret);
+ }
+ 
+ /* register memory section under specified node if it spans that node */
+@@ -816,7 +823,8 @@ static int register_mem_block_under_node
+ 		if (page_nid != nid)
+ 			continue;
+ 
+-		return do_register_memory_block_under_node(nid, mem_blk);
++		do_register_memory_block_under_node(nid, mem_blk);
++		return 0;
+ 	}
+ 	/* mem section does not span the specified node */
+ 	return 0;
+@@ -831,7 +839,8 @@ static int register_mem_block_under_node
+ {
+ 	int nid = *(int *)arg;
+ 
+-	return do_register_memory_block_under_node(nid, mem_blk);
++	do_register_memory_block_under_node(nid, mem_blk);
++	return 0;
+ }
+ 
+ /*
+@@ -849,8 +858,8 @@ void unregister_memory_block_under_nodes
+ 			  kobject_name(&node_devices[mem_blk->nid]->dev.kobj));
+ }
+ 
+-int link_mem_sections(int nid, unsigned long start_pfn, unsigned long end_pfn,
+-		      enum meminit_context context)
++void link_mem_sections(int nid, unsigned long start_pfn, unsigned long end_pfn,
++		       enum meminit_context context)
+ {
+ 	walk_memory_blocks_func_t func;
+ 
+@@ -859,9 +868,9 @@ int link_mem_sections(int nid, unsigned
+ 	else
+ 		func = register_mem_block_under_node_early;
+ 
+-	return walk_memory_blocks(PFN_PHYS(start_pfn),
+-				  PFN_PHYS(end_pfn - start_pfn), (void *)&nid,
+-				  func);
++	walk_memory_blocks(PFN_PHYS(start_pfn), PFN_PHYS(end_pfn - start_pfn),
++			   (void *)&nid, func);
++	return;
+ }
+ 
+ #ifdef CONFIG_HUGETLBFS
+--- a/include/linux/node.h~mm-dont-panic-when-links-cant-be-created-in-sysfs
++++ a/include/linux/node.h
+@@ -99,15 +99,14 @@ extern struct node *node_devices[];
+ typedef  void (*node_registration_func_t)(struct node *);
+ 
+ #if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_NUMA)
+-int link_mem_sections(int nid, unsigned long start_pfn,
+-		      unsigned long end_pfn,
+-		      enum meminit_context context);
++void link_mem_sections(int nid, unsigned long start_pfn,
++		       unsigned long end_pfn,
++		       enum meminit_context context);
+ #else
+-static inline int link_mem_sections(int nid, unsigned long start_pfn,
+-				    unsigned long end_pfn,
+-				    enum meminit_context context)
++static inline void link_mem_sections(int nid, unsigned long start_pfn,
++				     unsigned long end_pfn,
++				     enum meminit_context context)
+ {
+-	return 0;
+ }
+ #endif
+ 
+@@ -130,8 +129,7 @@ static inline int register_one_node(int
+ 		if (error)
+ 			return error;
+ 		/* link memory sections under this node */
+-		error = link_mem_sections(nid, start_pfn, end_pfn,
+-					  MEMINIT_EARLY);
++		link_mem_sections(nid, start_pfn, end_pfn, MEMINIT_EARLY);
+ 	}
+ 
+ 	return error;
+--- a/mm/memory_hotplug.c~mm-dont-panic-when-links-cant-be-created-in-sysfs
++++ a/mm/memory_hotplug.c
+@@ -1094,9 +1094,8 @@ int __ref add_memory_resource(int nid, s
+ 	}
+ 
+ 	/* link memory sections under this node.*/
+-	ret = link_mem_sections(nid, PFN_DOWN(start), PFN_UP(start + size - 1),
+-				MEMINIT_HOTPLUG);
+-	BUG_ON(ret);
++	link_mem_sections(nid, PFN_DOWN(start), PFN_UP(start + size - 1),
++			  MEMINIT_HOTPLUG);
+ 
+ 	/* create new memmap entry */
+ 	if (!strcmp(res->name, "System RAM"))
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ldufour@linux.ibm.com are
 
-mm-debug-do-not-dereference-i_ino-blindly.patch
-mm-factor-find_get_incore_page-out-of-mincore_page.patch
-mm-use-find_get_incore_page-in-memcontrol.patch
-mm-optimise-madvise-willneed.patch
-mm-optimise-madvise-willneed-fix.patch
-proc-optimise-smaps-for-shmem-entries.patch
-i915-use-find_lock_page-instead-of-find_lock_entry.patch
-mm-convert-find_get_entry-to-return-the-head-page.patch
-mm-convert-find_get_entry-to-return-the-head-page-fix.patch
-mm-shmem-return-head-page-from-find_lock_entry.patch
-mm-add-find_lock_head.patch
-mm-filemap-fix-filemap_map_pages-for-thp.patch
-mm-account-pmd-tables-like-pte-tables.patch
-mm-move-pagedoublemap-bit.patch
-mm-simplify-pagedoublemap-with-pf_second-policy.patch
-xarray-add-xa_get_order.patch
-xarray-add-xas_split.patch
-xarray-add-xas_split-fix-2.patch
-mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
-mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
-mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
-mm-page_owner-change-split_page_owner-to-take-a-count.patch
-mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
-mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
-mm-rmap-fix-assumptions-of-thp-size.patch
-mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
-mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
-mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
-mm-readahead-add-define_readahead.patch
-mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
-mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
-mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
-harden-autofs-ioctl-table.patch
+mm-replace-memmap_context-by-meminit_context.patch
+mm-dont-rely-on-system-state-to-detect-hot-plug-operations.patch
+mm-dont-panic-when-links-cant-be-created-in-sysfs.patch
 
