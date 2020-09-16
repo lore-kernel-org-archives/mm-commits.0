@@ -7,54 +7,50 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFE5C43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:20:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C127C43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:32:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B84B022209
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:20:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA0E622209
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:32:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600298459;
-	bh=DMMvuk+xRS/svmzjK5svzuMca2AuUIacP1TOgBrD5MU=;
+	s=default; t=1600299139;
+	bh=rL9HZKvCibbrccj+0y3WW8f3MwfaBcp4qzqIMHvB4VA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=MKzLCwlwqOWCQIa331z2qvtnC2QxzkmG3ddo6txkCApsvXuJF4wqsYGxL9FZiNFSi
-	 wDxFlDcWRr62aacLNjJzGs34BCd+CIWefOse9EIESZQeAOKB4hL0WYP5gdLCzk2i6m
-	 xHUbR0HOMCIVKs6W7SGx8oPjhMYfccfLh6kv91WQ=
+	b=dTa0cSPD9oqJrMKWbeKrsHgxMNrEw3bdfGX2pp9aW8stDES6vePYy0CnkXfL4KeMc
+	 Xo/1iMwCIiLUz4ukXy0Ay63+nBiUHH3xtPrk7omvT0vuRnGUIdt20ikAYvfKlAI7TD
+	 apIFD66mqJV/Py+6V5wreXstvnoYO08e2x2fBaS0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726812AbgIPXU7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Sep 2020 19:20:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40908 "EHLO mail.kernel.org"
+        id S1726309AbgIPXcS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Sep 2020 19:32:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726084AbgIPXU7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Sep 2020 19:20:59 -0400
+        id S1726084AbgIPXcR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Sep 2020 19:32:17 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 09E5822205;
-        Wed, 16 Sep 2020 23:20:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2060722207;
+        Wed, 16 Sep 2020 23:32:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600298457;
-        bh=DMMvuk+xRS/svmzjK5svzuMca2AuUIacP1TOgBrD5MU=;
+        s=default; t=1600299136;
+        bh=rL9HZKvCibbrccj+0y3WW8f3MwfaBcp4qzqIMHvB4VA=;
         h=Date:From:To:Subject:From;
-        b=V2ftxXDeTepYbkVwYMIU7w19UlL8Lh+xn48cEOyJ0j4pGAOYVvcOq6uvF9qwNJ99n
-         2NUKSF08eEesZDhW41RyAfbimn4gLRXjuT7FoL6h+/jJwdUlYV3lgZS8oULX6qExjc
-         gNkJLvVERJmnJBqbXcyJkMJVNq74gNgrYKc9vodo=
-Date:   Wed, 16 Sep 2020 16:20:55 -0700
+        b=HZnPfd+G/12idZ35oJ4eqc7I+XmBoFTJw3elP9O/nHoy1fBjhBc12Umr6BZqbWCZU
+         laSjC8TK4GuudWhOACvqJYc/MXkq4V5bYm1Kv6A9QxpEY/EUoApaW7iySX7Sm1hFyz
+         0oIpzGWX8Opnpah58VeaHub1gQs4AxuBo1pu/y3Q=
+Date:   Wed, 16 Sep 2020 16:32:15 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        viro@zeniv.linux.org.uk, tycho@tycho.ws, tglx@linutronix.de,
-        peterz@infradead.org, paul.walmsley@sifive.com,
-        palmerdabbelt@google.com, palmer@dabbelt.com,
-        mtk.manpages@gmail.com, mingo@redhat.com, mark.rutland@arm.com,
-        luto@kernel.org, kirill@shutemov.name, jejb@linux.ibm.com,
-        idan.yaniv@ibm.com, hpa@zytor.com, elena.reshetova@intel.com,
-        david@redhat.com, dave.hansen@linux.intel.com,
-        dan.j.williams@intel.com, cl@linux.com, catalin.marinas@arm.com,
-        bp@alien8.de, arnd@arndb.de, rppt@linux.ibm.com
+To:     mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
+        pankaj.gupta.linux@gmail.com, mhocko@suse.com,
+        keescook@chromium.org, jgg@ziepe.ca, dan.j.williams@intel.com,
+        bhe@redhat.com, ardb@kernel.org, david@redhat.com
 Subject:  +
- mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
- added to -mm tree
-Message-ID: <20200916232055.FNLid%akpm@linux-foundation.org>
+ =?us-ascii?Q?kernel-resource-make-iomem=5Fresource-implicit-in-release?=
+ =?us-ascii?Q?=5Fmem=5Fregion=5Fadjustable.patch?= added to -mm tree
+Message-ID: <20200916233215.LoIFt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -62,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: secretmem: use PMD-size pages to amortize direct map fragmentation
+     Subject: kernel/resource: make iomem_resource implicit in release_mem_region_adjustable()
 has been added to the -mm tree.  Its filename is
-     mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+     kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -83,271 +79,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: secretmem: use PMD-size pages to amortize direct map fragmentation
+From: David Hildenbrand <david@redhat.com>
+Subject: kernel/resource: make iomem_resource implicit in release_mem_region_adjustable()
 
-Removing a PAGE_SIZE page from the direct map every time such page is
-allocated for a secret memory mapping will cause severe fragmentation of
-the direct map.  This fragmentation can be reduced by using PMD-size pages
-as a pool for small pages for secret memory mappings.
+"mem" in the name already indicates the root, similar to
+release_mem_region() and devm_request_mem_region().  Make it implicit. 
+The only single caller always passes iomem_resource, other parents are not
+applicable.
 
-Add a gen_pool per secretmem inode and lazily populate this pool with
-PMD-size pages.
-
-Link: https://lkml.kernel.org/r/20200916073539.3552-6-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
+Link: https://lkml.kernel.org/r/20200916073041.10355-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Elena Reshetova <elena.reshetova@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Idan Yaniv <idan.yaniv@ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tycho Andersen <tycho@tycho.ws>
-Cc: Will Deacon <will@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |  107 ++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 88 insertions(+), 19 deletions(-)
+ include/linux/ioport.h |    3 +--
+ kernel/resource.c      |    5 ++---
+ mm/memory_hotplug.c    |    2 +-
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/secretmem.c~mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation
-+++ a/mm/secretmem.c
-@@ -12,6 +12,7 @@
- #include <linux/bitops.h>
- #include <linux/printk.h>
- #include <linux/pagemap.h>
-+#include <linux/genalloc.h>
- #include <linux/syscalls.h>
- #include <linux/pseudo_fs.h>
- #include <linux/set_memory.h>
-@@ -40,24 +41,66 @@
- #define SECRETMEM_FLAGS_MASK	SECRETMEM_MODE_MASK
- 
- struct secretmem_ctx {
-+	struct gen_pool *pool;
- 	unsigned int mode;
- };
- 
--static struct page *secretmem_alloc_page(gfp_t gfp)
-+static int secretmem_pool_increase(struct secretmem_ctx *ctx, gfp_t gfp)
+--- a/include/linux/ioport.h~kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable
++++ a/include/linux/ioport.h
+@@ -251,8 +251,7 @@ extern struct resource * __request_regio
+ extern void __release_region(struct resource *, resource_size_t,
+ 				resource_size_t);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-extern void release_mem_region_adjustable(struct resource *, resource_size_t,
+-					  resource_size_t);
++extern void release_mem_region_adjustable(resource_size_t, resource_size_t);
+ #endif
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ extern void merge_system_ram_resource(struct resource *res);
+--- a/kernel/resource.c~kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable
++++ a/kernel/resource.c
+@@ -1240,7 +1240,6 @@ EXPORT_SYMBOL(__release_region);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /**
+  * release_mem_region_adjustable - release a previously reserved memory region
+- * @parent: parent resource descriptor
+  * @start: resource start address
+  * @size: resource region size
+  *
+@@ -1258,9 +1257,9 @@ EXPORT_SYMBOL(__release_region);
+  *   assumes that all children remain in the lower address entry for
+  *   simplicity.  Enhance this logic when necessary.
+  */
+-void release_mem_region_adjustable(struct resource *parent,
+-				   resource_size_t start, resource_size_t size)
++void release_mem_region_adjustable(resource_size_t start, resource_size_t size)
  {
--	/*
--	 * FIXME: use a cache of large pages to reduce the direct map
--	 * fragmentation
--	 */
--	return alloc_page(gfp);
-+	unsigned long nr_pages = (1 << PMD_PAGE_ORDER);
-+	struct gen_pool *pool = ctx->pool;
-+	unsigned long addr;
-+	struct page *page;
-+	int err;
-+
-+	page = alloc_pages(gfp, PMD_PAGE_ORDER);
-+	if (!page)
-+		return -ENOMEM;
-+
-+	addr = (unsigned long)page_address(page);
-+	split_page(page, PMD_PAGE_ORDER);
-+
-+	err = gen_pool_add(pool, addr, PMD_SIZE, NUMA_NO_NODE);
-+	if (err) {
-+		__free_pages(page, PMD_PAGE_ORDER);
-+		return err;
-+	}
-+
-+	__kernel_map_pages(page, nr_pages, 0);
-+
-+	return 0;
-+}
-+
-+static struct page *secretmem_alloc_page(struct secretmem_ctx *ctx,
-+					 gfp_t gfp)
-+{
-+	struct gen_pool *pool = ctx->pool;
-+	unsigned long addr;
-+	struct page *page;
-+	int err;
-+
-+	if (gen_pool_avail(pool) < PAGE_SIZE) {
-+		err = secretmem_pool_increase(ctx, gfp);
-+		if (err)
-+			return NULL;
-+	}
-+
-+	addr = gen_pool_alloc(pool, PAGE_SIZE);
-+	if (!addr)
-+		return NULL;
-+
-+	page = virt_to_page(addr);
-+	get_page(page);
-+
-+	return page;
- }
- 
- static vm_fault_t secretmem_fault(struct vm_fault *vmf)
- {
-+	struct secretmem_ctx *ctx = vmf->vma->vm_file->private_data;
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	pgoff_t offset = vmf->pgoff;
--	unsigned long addr;
- 	struct page *page;
- 	int ret = 0;
- 
-@@ -66,7 +109,7 @@ static vm_fault_t secretmem_fault(struct
- 
- 	page = find_get_entry(mapping, offset);
- 	if (!page) {
--		page = secretmem_alloc_page(vmf->gfp_mask);
-+		page = secretmem_alloc_page(ctx, vmf->gfp_mask);
- 		if (!page)
- 			return vmf_error(-ENOMEM);
- 
-@@ -74,14 +117,8 @@ static vm_fault_t secretmem_fault(struct
- 		if (unlikely(ret))
- 			goto err_put_page;
- 
--		ret = set_direct_map_invalid_noflush(page);
--		if (ret)
--			goto err_del_page_cache;
--
--		addr = (unsigned long)page_address(page);
--		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
--
- 		__SetPageUptodate(page);
-+		set_page_private(page, (unsigned long)ctx);
- 
- 		ret = VM_FAULT_LOCKED;
++	struct resource *parent = &iomem_resource;
+ 	struct resource *new_res = NULL;
+ 	bool alloc_nofail = false;
+ 	struct resource **p;
+--- a/mm/memory_hotplug.c~kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable
++++ a/mm/memory_hotplug.c
+@@ -1769,7 +1769,7 @@ static int __ref try_remove_memory(int n
+ 		memblock_remove(start, size);
  	}
-@@ -89,8 +126,6 @@ static vm_fault_t secretmem_fault(struct
- 	vmf->page = page;
- 	return ret;
  
--err_del_page_cache:
--	delete_from_page_cache(page);
- err_put_page:
- 	put_page(page);
- 	return vmf_error(ret);
-@@ -138,7 +173,11 @@ static int secretmem_migratepage(struct
+-	release_mem_region_adjustable(&iomem_resource, start, size);
++	release_mem_region_adjustable(start, size);
  
- static void secretmem_freepage(struct page *page)
- {
--	set_direct_map_default_noflush(page);
-+	unsigned long addr = (unsigned long)page_address(page);
-+	struct secretmem_ctx *ctx = (struct secretmem_ctx *)page_private(page);
-+	struct gen_pool *pool = ctx->pool;
-+
-+	gen_pool_free(pool, addr, PAGE_SIZE);
- }
+ 	try_offline_node(nid);
  
- static const struct address_space_operations secretmem_aops = {
-@@ -163,13 +202,18 @@ static struct file *secretmem_file_creat
- 	if (!ctx)
- 		goto err_free_inode;
- 
-+	ctx->pool = gen_pool_create(PAGE_SHIFT, NUMA_NO_NODE);
-+	if (!ctx->pool)
-+		goto err_free_ctx;
-+
- 	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem",
- 				 O_RDWR, &secretmem_fops);
- 	if (IS_ERR(file))
--		goto err_free_ctx;
-+		goto err_free_pool;
- 
- 	mapping_set_unevictable(inode->i_mapping);
- 
-+	inode->i_private = ctx;
- 	inode->i_mapping->private_data = ctx;
- 	inode->i_mapping->a_ops = &secretmem_aops;
- 
-@@ -183,6 +227,8 @@ static struct file *secretmem_file_creat
- 
- 	return file;
- 
-+err_free_pool:
-+	gen_pool_destroy(ctx->pool);
- err_free_ctx:
- 	kfree(ctx);
- err_free_inode:
-@@ -221,11 +267,34 @@ err_put_fd:
- 	return err;
- }
- 
-+static void secretmem_cleanup_chunk(struct gen_pool *pool,
-+				    struct gen_pool_chunk *chunk, void *data)
-+{
-+	unsigned long start = chunk->start_addr;
-+	unsigned long end = chunk->end_addr;
-+	unsigned long nr_pages, addr;
-+
-+	nr_pages = (end - start + 1) / PAGE_SIZE;
-+	__kernel_map_pages(virt_to_page(start), nr_pages, 1);
-+
-+	for (addr = start; addr < end; addr += PAGE_SIZE)
-+		put_page(virt_to_page(addr));
-+}
-+
-+static void secretmem_cleanup_pool(struct secretmem_ctx *ctx)
-+{
-+	struct gen_pool *pool = ctx->pool;
-+
-+	gen_pool_for_each_chunk(pool, secretmem_cleanup_chunk, ctx);
-+	gen_pool_destroy(pool);
-+}
-+
- static void secretmem_evict_inode(struct inode *inode)
- {
- 	struct secretmem_ctx *ctx = inode->i_private;
- 
- 	truncate_inode_pages_final(&inode->i_data);
-+	secretmem_cleanup_pool(ctx);
- 	clear_inode(inode);
- 	kfree(ctx);
- }
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-account-pmd-tables-like-pte-tables-fix.patch
-kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
-dma-contiguous-simplify-cma_early_percent_memory.patch
-arm-xtensa-simplify-initialization-of-high-memory-pages.patch
-arm64-numa-simplify-dummy_numa_init.patch
-h8300-nds32-openrisc-simplify-detection-of-memory-extents.patch
-riscv-drop-unneeded-node-initialization.patch
-mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
-memblock-make-for_each_memblock_type-iterator-private.patch
-memblock-make-memblock_debug-and-related-functionality-private.patch
-memblock-reduce-number-of-parameters-in-for_each_mem_range.patch
-arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix-2.patch
-x86-setup-simplify-initrd-relocation-and-reservation.patch
-x86-setup-simplify-reserve_crashkernel.patch
-memblock-remove-unused-memblock_mem_size.patch
-memblock-implement-for_each_reserved_mem_region-using-__next_mem_region.patch
-memblock-use-separate-iterators-for-memory-and-reserved-regions.patch
-mm-add-definition-of-pmd_page_order.patch
-mmap-make-mlock_future_check-global.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
-mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+mm-page_alloc-tweak-comments-in-has_unmovable_pages.patch
+mm-page_isolation-exit-early-when-pageblock-is-isolated-in-set_migratetype_isolate.patch
+mm-page_isolation-drop-warn_on_once-in-set_migratetype_isolate.patch
+mm-page_isolation-cleanup-set_migratetype_isolate.patch
+virtio-mem-dont-special-case-zone_movable.patch
+mm-document-semantics-of-zone_movable.patch
+mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch
+mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
+mm-memory_hotplug-simplify-page-offlining.patch
+mm-page_alloc-simplify-__offline_isolated_pages.patch
+mm-memory_hotplug-drop-nr_isolate_pageblock-in-offline_pages.patch
+mm-page_isolation-simplify-return-value-of-start_isolate_page_range.patch
+mm-memory_hotplug-simplify-page-onlining.patch
+mm-page_alloc-drop-stale-pageblock-comment-in-memmap_init_zone.patch
+mm-pass-migratetype-into-memmap_init_zone-and-move_pfn_range_to_zone.patch
+mm-memory_hotplug-mark-pageblocks-migrate_isolate-while-onlining-memory.patch
+kernel-resource-make-release_mem_region_adjustable-never-fail.patch
+kernel-resource-move-and-rename-ioresource_mem_driver_managed.patch
+mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.patch
+mm-memory_hotplug-prepare-passing-flags-to-add_memory-and-friends.patch
+mm-memory_hotplug-memhp_merge_resource-to-specify-merging-of-system-ram-resources.patch
+virtio-mem-try-to-merge-system-ram-resources.patch
+xen-balloon-try-to-merge-system-ram-resources.patch
+hv_balloon-try-to-merge-system-ram-resources.patch
+kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable.patch
 
