@@ -4,54 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E606C2D0E3
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:10:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CB5AC43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:31:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B48E20739
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:10:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2A792076B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:31:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600215001;
-	bh=hYZK/bgXFqVldxBI+j0G33gBSXVhJ4Kam8PoUuSeBW4=;
+	s=default; t=1600216307;
+	bh=HDnD7GwPvNSr2UketcRKwwvKAojAsrUEQEPMrzUJiCM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=o86X2P8eteIR1ujhitT5QddRd/eY8X0mvnxM86SeZ1oGa9MKdC+SjqW+x9n9/B2N2
-	 FB0zSIXF88H2sHV0P6+I5+eOj6qUNRJUReotc1T+r98WY+HAxaFTNIXcXnw3rTbG31
-	 2j+2OURdshMsiFA17dy8z6y0gFWSxt0ssc7lvbvQ=
+	b=dTO2P6oXpeSqyzHs9SLJ87JQoX/AUOuGaPCU8roB1kAXnWzLDdbeVCJu/Di4A89Ak
+	 10VSuurO9xtsGBU6oWWZE9JqyUwpulx++8MgvrMuMLPyBUvRp6TKIzJzDWeTaRffju
+	 McbGYqaXYaXV3V7AByVj81ptx9L88AgWwEALRJzc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727351AbgIPAJ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:09:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56264 "EHLO mail.kernel.org"
+        id S1726885AbgIPAbr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 20:31:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727142AbgIPAJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 20:09:51 -0400
+        id S1726853AbgIPAbf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 20:31:35 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C736220739;
-        Wed, 16 Sep 2020 00:09:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 390C22076B;
+        Wed, 16 Sep 2020 00:31:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600214990;
-        bh=hYZK/bgXFqVldxBI+j0G33gBSXVhJ4Kam8PoUuSeBW4=;
+        s=default; t=1600216291;
+        bh=HDnD7GwPvNSr2UketcRKwwvKAojAsrUEQEPMrzUJiCM=;
         h=Date:From:To:Subject:From;
-        b=r1Xm0J+hFz+0UP3k8b8ieGFThd2AC+PYwMMPGdTi3CM8SxJcuoD0jMuINbbTxmuDq
-         mWDGYzGUooxsaouh7s5gg7cYTB3JVkMwB0oKr1+NqqW8HU+bbknZoA73lYz6AJFqud
-         uD6lgfHveefYgpTztW8fTdf4eKsKqCOwKkOgvFUI=
-Date:   Tue, 15 Sep 2020 17:09:48 -0700
+        b=MEhLWgNmVCz/Qk0NeUienQ+DyK9zFSsjqV505NKD0/w4p6eWSbJ5WcQZogkeEJ2iR
+         k8LBj9jheJtcVRopW7O9eaweDT72nU8vt0DSX1vrINeyNSrQax/0H5WQS2hxtvDW4a
+         xm14+so2lte+JtYTNGuJhmKh66c5GfoKhkm68jMM=
+Date:   Tue, 15 Sep 2020 17:31:30 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songliubraving@fb.com, pasha.tatashin@soleen.com, oleg@redhat.com,
-        mhocko@suse.com, kirill.shutemov@linux.intel.com,
-        apais@microsoft.com, aarcange@redhat.com,
-        vijayb@linux.microsoft.com
+To:     mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com,
+        rppt@kernel.org, riel@surriel.com, mhocko@kernel.org,
+        js1304@gmail.com, guro@fb.com, aslan@fb.com,
+        mike.kravetz@oracle.com
 Subject:  +
- =?us-ascii?Q?mm-khugepaged-recalculate-min=5Ffree=5Fkbytes-after-memory?=
- =?us-ascii?Q?-hotplug-as-expected-by-khugepaged.patch?= added to -mm tree
-Message-ID: <20200916000948.N0vvr%akpm@linux-foundation.org>
+ cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch added to
+ -mm tree
+Message-ID: <20200916003130.Eywaa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -60,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
+     Subject: mm/cma: make number of CMA areas dynamic, remove CONFIG_CMA_AREAS
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+     cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,120 +78,276 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Subject: mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/cma: make number of CMA areas dynamic, remove CONFIG_CMA_AREAS
 
-When memory is hotplug added or removed the min_free_kbytes must be
-recalculated based on what is expected by khugepaged.  Currently after
-hotplug, min_free_kbytes will be set to a lower default and higher default
-set when THP enabled is lost.  This leaves the system with small
-min_free_kbytes which isn't suitable for systems especially with network
-intensive loads.  Typical failure symptoms include HW WATCHDOG reset, soft
-lockup hang notices, NETDEVICE WATCHDOG timeouts, and OOM process kills.
+The number of distinct CMA areas is limited by the constant
+CONFIG_CMA_AREAS.  In most environments, this was set to a default
+value of 7.  Not too long ago, support was added to allocate hugetlb
+gigantic pages from CMA.  More recent changes to make dma_alloc_coherent
+NUMA-aware on arm64 added more potential users of CMA areas.  Along
+with the dma_alloc_coherent changes, the default value of CMA_AREAS
+was bumped up to 19 if NUMA is enabled.
 
-Link: https://lkml.kernel.org/r/1600204258-13683-1-git-send-email-vijayb@linux.microsoft.com
-Fixes: f000565adb77 ("thp: set recommended min free kbytes")
-Signed-off-by: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Allen Pais <apais@microsoft.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: <stable@vger.kernel.org>
+It seems that the number of CMA users is likely to grow.  Instead of
+using a static array for cma areas, use a simple linked list.  These
+areas are used before normal memory allocators, so use the memblock
+allocator.
+
+Link: https://lkml.kernel.org/r/20200915205703.34572-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Aslan Bakirov <aslan@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/khugepaged.h |    5 +++++
- mm/khugepaged.c            |   13 +++++++++++--
- mm/memory_hotplug.c        |    3 +++
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ arch/arm/mm/dma-mapping.c              |   28 +++++++++++------
+ arch/mips/configs/cu1000-neo_defconfig |    1 
+ arch/mips/configs/cu1830-neo_defconfig |    1 
+ include/linux/cma.h                    |   12 -------
+ mm/Kconfig                             |   11 ------
+ mm/cma.c                               |   37 +++++++++--------------
+ mm/cma.h                               |    4 +-
+ mm/cma_debug.c                         |    6 +--
+ 8 files changed, 39 insertions(+), 61 deletions(-)
 
---- a/include/linux/khugepaged.h~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
-+++ a/include/linux/khugepaged.h
-@@ -15,6 +15,7 @@ extern int __khugepaged_enter(struct mm_
- extern void __khugepaged_exit(struct mm_struct *mm);
- extern int khugepaged_enter_vma_merge(struct vm_area_struct *vma,
- 				      unsigned long vm_flags);
-+extern void khugepaged_min_free_kbytes_update(void);
- #ifdef CONFIG_SHMEM
- extern void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr);
- #else
-@@ -85,6 +86,10 @@ static inline void collapse_pte_mapped_t
- 					   unsigned long addr)
+--- a/arch/arm/mm/dma-mapping.c~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/arch/arm/mm/dma-mapping.c
+@@ -383,25 +383,33 @@ postcore_initcall(atomic_pool_init);
+ struct dma_contig_early_reserve {
+ 	phys_addr_t base;
+ 	unsigned long size;
++	struct list_head areas;
+ };
+ 
+-static struct dma_contig_early_reserve dma_mmu_remap[MAX_CMA_AREAS] __initdata;
+-
+-static int dma_mmu_remap_num __initdata;
++static __initdata LIST_HEAD(dma_mmu_remap_areas);
+ 
+ void __init dma_contiguous_early_fixup(phys_addr_t base, unsigned long size)
  {
+-	dma_mmu_remap[dma_mmu_remap_num].base = base;
+-	dma_mmu_remap[dma_mmu_remap_num].size = size;
+-	dma_mmu_remap_num++;
++	struct dma_contig_early_reserve *d;
++
++	d = memblock_alloc(sizeof(*d), sizeof(void *));
++	if (!d) {
++		pr_err("Unable to allocate dma_contig_early_reserve struct!\n");
++		return;
++	}
++
++	d->base = base;
++	d->size = size;
++	list_add_tail(&d->areas, &dma_mmu_remap_areas);
  }
-+
-+static inline void khugepaged_min_free_kbytes_update(void)
-+{
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- #endif /* _LINUX_KHUGEPAGED_H */
---- a/mm/khugepaged.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
-+++ a/mm/khugepaged.c
-@@ -56,6 +56,9 @@ enum scan_result {
- #define CREATE_TRACE_POINTS
- #include <trace/events/huge_memory.h>
- 
-+static struct task_struct *khugepaged_thread __read_mostly;
-+static DEFINE_MUTEX(khugepaged_mutex);
-+
- /* default scan 8*512 pte (or vmas) every 30 second */
- static unsigned int khugepaged_pages_to_scan __read_mostly;
- static unsigned int khugepaged_pages_collapsed;
-@@ -2292,8 +2295,6 @@ static void set_recommended_min_free_kby
- 
- int start_stop_khugepaged(void)
+ void __init dma_contiguous_remap(void)
  {
--	static struct task_struct *khugepaged_thread __read_mostly;
--	static DEFINE_MUTEX(khugepaged_mutex);
- 	int err = 0;
- 
- 	mutex_lock(&khugepaged_mutex);
-@@ -2320,3 +2321,11 @@ fail:
- 	mutex_unlock(&khugepaged_mutex);
- 	return err;
- }
+-	int i;
+-	for (i = 0; i < dma_mmu_remap_num; i++) {
+-		phys_addr_t start = dma_mmu_remap[i].base;
+-		phys_addr_t end = start + dma_mmu_remap[i].size;
++	struct dma_contig_early_reserve *d;
 +
-+void khugepaged_min_free_kbytes_update(void)
-+{
-+	mutex_lock(&khugepaged_mutex);
-+	if (khugepaged_enabled() && khugepaged_thread)
-+		set_recommended_min_free_kbytes();
-+	mutex_unlock(&khugepaged_mutex);
-+}
---- a/mm/memory_hotplug.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
-+++ a/mm/memory_hotplug.c
-@@ -36,6 +36,7 @@
- #include <linux/memblock.h>
- #include <linux/compaction.h>
- #include <linux/rmap.h>
-+#include <linux/khugepaged.h>
++	list_for_each_entry(d, &dma_mmu_remap_areas, areas) {
++		phys_addr_t start = d->base;
++		phys_addr_t end = start + d->size;
+ 		struct map_desc map;
+ 		unsigned long addr;
  
- #include <asm/tlbflush.h>
+--- a/arch/mips/configs/cu1000-neo_defconfig~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/arch/mips/configs/cu1000-neo_defconfig
+@@ -31,7 +31,6 @@ CONFIG_HZ_100=y
+ # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
+ # CONFIG_COMPACTION is not set
+ CONFIG_CMA=y
+-CONFIG_CMA_AREAS=7
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+--- a/arch/mips/configs/cu1830-neo_defconfig~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/arch/mips/configs/cu1830-neo_defconfig
+@@ -31,7 +31,6 @@ CONFIG_HZ_100=y
+ # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
+ # CONFIG_COMPACTION is not set
+ CONFIG_CMA=y
+-CONFIG_CMA_AREAS=7
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+--- a/include/linux/cma.h~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/include/linux/cma.h
+@@ -6,18 +6,6 @@
+ #include <linux/types.h>
+ #include <linux/numa.h>
  
-@@ -857,6 +858,7 @@ int __ref online_pages(unsigned long pfn
- 	zone_pcp_update(zone);
+-/*
+- * There is always at least global CMA area and a few optional
+- * areas configured in kernel .config.
+- */
+-#ifdef CONFIG_CMA_AREAS
+-#define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
+-
+-#else
+-#define MAX_CMA_AREAS	(0)
+-
+-#endif
+-
+ struct cma;
  
- 	init_per_zone_wmark_min();
-+	khugepaged_min_free_kbytes_update();
+ extern unsigned long totalcma_pages;
+--- a/mm/cma.c~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/mm/cma.c
+@@ -36,8 +36,9 @@
  
- 	kswapd_run(nid);
- 	kcompactd_run(nid);
-@@ -1614,6 +1616,7 @@ static int __ref __offline_pages(unsigne
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ #include "cma.h"
  
- 	init_per_zone_wmark_min();
-+	khugepaged_min_free_kbytes_update();
+-struct cma cma_areas[MAX_CMA_AREAS];
+-unsigned cma_area_count;
++/* modify here */
++LIST_HEAD(cma_areas);
++static unsigned int cma_area_count;
+ static DEFINE_MUTEX(cma_mutex);
  
- 	if (!populated_zone(zone)) {
- 		zone_pcp_reset(zone);
+ phys_addr_t cma_get_base(const struct cma *cma)
+@@ -143,10 +144,10 @@ out_error:
+ 
+ static int __init cma_init_reserved_areas(void)
+ {
+-	int i;
++	struct cma *c;
+ 
+-	for (i = 0; i < cma_area_count; i++)
+-		cma_activate_area(&cma_areas[i]);
++	list_for_each_entry(c, &cma_areas, areas)
++		cma_activate_area(c);
+ 
+ 	return 0;
+ }
+@@ -172,12 +173,6 @@ int __init cma_init_reserved_mem(phys_ad
+ 	struct cma *cma;
+ 	phys_addr_t alignment;
+ 
+-	/* Sanity checks */
+-	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
+-		pr_err("Not enough slots for CMA reserved regions!\n");
+-		return -ENOSPC;
+-	}
+-
+ 	if (!size || !memblock_is_region_reserved(base, size))
+ 		return -EINVAL;
+ 
+@@ -192,12 +187,17 @@ int __init cma_init_reserved_mem(phys_ad
+ 	if (ALIGN(base, alignment) != base || ALIGN(size, alignment) != size)
+ 		return -EINVAL;
+ 
++	cma = memblock_alloc(sizeof(*cma), sizeof(long));
++	if (!cma) {
++		pr_err("Unable to allocate CMA descriptor!\n");
++		return -ENOSPC;
++	}
++	list_add_tail(&cma->areas, &cma_areas);
++
+ 	/*
+ 	 * Each reserved area must be initialised later, when more kernel
+ 	 * subsystems (like slab allocator) are available.
+ 	 */
+-	cma = &cma_areas[cma_area_count];
+-
+ 	if (name)
+ 		snprintf(cma->name, CMA_MAX_NAME, name);
+ 	else
+@@ -253,11 +253,6 @@ int __init cma_declare_contiguous_nid(ph
+ 	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
+ 		__func__, &size, &base, &limit, &alignment);
+ 
+-	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
+-		pr_err("Not enough slots for CMA reserved regions!\n");
+-		return -ENOSPC;
+-	}
+-
+ 	if (!size)
+ 		return -EINVAL;
+ 
+@@ -530,10 +525,10 @@ bool cma_release(struct cma *cma, const
+ 
+ int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
+ {
+-	int i;
++	struct cma *c;
+ 
+-	for (i = 0; i < cma_area_count; i++) {
+-		int ret = it(&cma_areas[i], data);
++	list_for_each_entry(c, &cma_areas, areas) {
++		int ret = it(c, data);
+ 
+ 		if (ret)
+ 			return ret;
+--- a/mm/cma_debug.c~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/mm/cma_debug.c
+@@ -188,12 +188,12 @@ static void cma_debugfs_add_one(struct c
+ static int __init cma_debugfs_init(void)
+ {
+ 	struct dentry *cma_debugfs_root;
+-	int i;
++	struct cma *c;
+ 
+ 	cma_debugfs_root = debugfs_create_dir("cma", NULL);
+ 
+-	for (i = 0; i < cma_area_count; i++)
+-		cma_debugfs_add_one(&cma_areas[i], cma_debugfs_root);
++	list_for_each_entry(c, &cma_areas, areas)
++		cma_debugfs_add_one(c, cma_debugfs_root);
+ 
+ 	return 0;
+ }
+--- a/mm/cma.h~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/mm/cma.h
+@@ -17,11 +17,11 @@ struct cma {
+ 	spinlock_t mem_head_lock;
+ 	struct debugfs_u32_array dfs_bitmap;
+ #endif
++	struct list_head areas;
+ 	char name[CMA_MAX_NAME];
+ };
+ 
+-extern struct cma cma_areas[MAX_CMA_AREAS];
+-extern unsigned cma_area_count;
++extern struct list_head cma_areas;
+ 
+ static inline unsigned long cma_bitmap_maxno(struct cma *cma)
+ {
+--- a/mm/Kconfig~cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas
++++ a/mm/Kconfig
+@@ -513,17 +513,6 @@ config CMA_DEBUGFS
+ 	help
+ 	  Turns on the DebugFS interface for CMA.
+ 
+-config CMA_AREAS
+-	int "Maximum count of the CMA areas"
+-	depends on CMA
+-	default 7
+-	help
+-	  CMA allows to create CMA areas for particular purpose, mainly,
+-	  used as device private area. This parameter sets the maximum
+-	  number of CMA area in the system.
+-
+-	  If unsure, leave the default value "7".
+-
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
+ 	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
 _
 
-Patches currently in -mm which might be from vijayb@linux.microsoft.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
-mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
+hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
+cma-make-number-of-cma-areas-dynamic-remove-config_cma_areas.patch
 
