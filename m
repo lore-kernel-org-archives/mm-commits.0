@@ -7,42 +7,43 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7338C43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C7FBC43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:11:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D8C0208E4
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:08:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43136208E4
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:11:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600218519;
-	bh=tPNuDBYev0YNqnp6KUi4M7Tyl+SUPPqUAj4cyWXRZ5M=;
+	s=default; t=1600218717;
+	bh=k1MCxkH3f8Q+zD3SCco1PxIjxieqzug5UJ9naw1QdCA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HaWwA1OFO7JKcWwX3dXyMxgItvaRPQmZKEovtHIVjuxEo3jC+YeteLD2yfMncz93Z
-	 nhEFr6U84WB8kFMwqCfQi7gyVQQOWk3GPlthrHIafJRJijfa1x1BObZens0t9gyzYN
-	 uejXf/Vhpy0cY0ZX1oPpgRJnRfKvjsdDi1FT4wkk=
+	b=N9Ya71HjRiQ7B+1aJu6nAncAJKEpgPUdq6DiaJDH5U2UF6SmK5Ms4WQ+qX0NFXX2e
+	 /3F2JtziKHzapigJSiqcEODBAclMaPiF76XvixgLDC05up//dt+hQ2yTmTGZ1tUR2d
+	 dN3yNP+/jsAPZZuX+MGYBlms9PKW76xbL/h3djMA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726028AbgIPBIh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 21:08:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50750 "EHLO mail.kernel.org"
+        id S1726106AbgIPBL4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 21:11:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726130AbgIPBIh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 21:08:37 -0400
+        id S1726102AbgIPBLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 21:11:55 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1F5FA20715;
-        Wed, 16 Sep 2020 01:08:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3AA6B20715;
+        Wed, 16 Sep 2020 01:11:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600218517;
-        bh=tPNuDBYev0YNqnp6KUi4M7Tyl+SUPPqUAj4cyWXRZ5M=;
+        s=default; t=1600218714;
+        bh=k1MCxkH3f8Q+zD3SCco1PxIjxieqzug5UJ9naw1QdCA=;
         h=Date:From:To:Subject:From;
-        b=actB+xx1hP7Z4FzWMfUIE/qj/qiPS63yBwp8Rkp5AABsia11h4+Uinem/UVf5cTjS
-         oFRKE+WM/uAAKfOc5l0m/aH0Lnrf4YVyMnnGQ6V0QkBi32pWKVDZ6VwZ8PsnxmPihr
-         ubcnvOPdOz3lVfya1z49DUkqBNeLjHDOYrh+uqDo=
-Date:   Tue, 15 Sep 2020 18:08:36 -0700
+        b=R4AMGu/MjgFcGghu5Rp7rG+6XPoTGKXyP+x5WmGK5LUFrgCB6mwTWaGPQX8lPFDX6
+         pXMVgoWrJw8XQYVcWxYFdAVX/9r5qYwVDsenXJBlctQYt4AeLtFWoyLx7viTxWAfhb
+         7/O4psJtuYQlwkPhFNlmJ5q9SHTndcrbQVraJ5dM=
+Date:   Tue, 15 Sep 2020 18:11:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, cai@redhat.com, willy@infradead.org
-Subject:  + mm-optimise-madvise-willneed-fix.patch added to -mm tree
-Message-ID: <20200916010836.pwUBS%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, lkp@intel.com, willy@infradead.org
+Subject:  +
+ mm-convert-find_get_entry-to-return-the-head-page-fix.patch added to -mm tree
+Message-ID: <20200916011153.43AiL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-optimise-madvise-willneed-fix
+     Subject: mm-convert-find_get_entry-to-return-the-head-page-fix
 has been added to the -mm tree.  Its filename is
-     mm-optimise-madvise-willneed-fix.patch
+     mm-convert-find_get_entry-to-return-the-head-page-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-optimise-madvise-willneed-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-convert-find_get_entry-to-return-the-head-page-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-optimise-madvise-willneed-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-find_get_entry-to-return-the-head-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,41 +75,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-optimise-madvise-willneed-fix
+Subject: mm-convert-find_get_entry-to-return-the-head-page-fix
 
-On Mon, Sep 14, 2020 at 12:17:07PM -0400, Qian Cai wrote:
-> Reverting the "Return head pages from find_*_entry" patchset [1] up to this
-> patch fixed the issue that LTP madvise06 test [2] would trigger endless soft-
-> lockups below. It does not help after applied patches fixed other separate
-> issues in the patchset [3][4].
-
-Link: https://lkml.kernel.org/r/20200914165032.GS6583@casper.infradead.org
-Reported-by: Qian Cai <cai@redhat.com>
-Tested-by: Qian Cai <cai@redhat.com>
+Link: https://lkml.kernel.org/r/20200914112738.GM6583@casper.infradead.org
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/madvise.c~mm-optimise-madvise-willneed-fix
-+++ a/mm/madvise.c
-@@ -234,6 +234,7 @@ static void force_shm_swapin_readahead(s
+--- a/mm/swap_state.c~mm-convert-find_get_entry-to-return-the-head-page-fix
++++ a/mm/swap_state.c
+@@ -431,6 +431,8 @@ struct page *find_get_incore_page(struct
+ 	struct swap_info_struct *si;
+ 	struct page *page = find_get_entry(mapping, index);
  
- 		if (!xa_is_value(page))
- 			continue;
-+		xas_pause(&xas);
- 		rcu_read_unlock();
- 
- 		swap = radix_to_swp_entry(page);
-@@ -243,7 +244,6 @@ static void force_shm_swapin_readahead(s
- 			put_page(page);
- 
- 		rcu_read_lock();
--		xas_reset(&xas);
- 	}
- 	rcu_read_unlock();
- 
++	if (!page)
++		return page;
+ 	if (!xa_is_value(page))
+ 		return find_subpage(page, index);
+ 	if (!shmem_mapping(mapping))
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -121,6 +108,7 @@ mm-optimise-madvise-willneed-fix.patch
 proc-optimise-smaps-for-shmem-entries.patch
 i915-use-find_lock_page-instead-of-find_lock_entry.patch
 mm-convert-find_get_entry-to-return-the-head-page.patch
+mm-convert-find_get_entry-to-return-the-head-page-fix.patch
 mm-shmem-return-head-page-from-find_lock_entry.patch
 mm-add-find_lock_head.patch
 mm-filemap-fix-filemap_map_pages-for-thp.patch
