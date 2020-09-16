@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39918C43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:11:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FDFAC433E2
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:23:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E5ABB20BED
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:11:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0B4721655
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600222262;
-	bh=xXfJ32CdFpyejTCwAJcxtdsGGLVCaA43bS9S4wwJivw=;
+	s=default; t=1600223038;
+	bh=EXPJRSVGoGzvVuKmxSJ1ZwINk9xeXb3lbMfXFD5mC74=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=R9K2YCscCnGH/wy9SSZPhLIYQLtZRh4cUOmt6viC+I+dxi6oueLMFDm9S33Pp4C+I
-	 PENfeAT4+GJESrVmEfgkK5nlkpUnWQQHA6cR5+78qFrD9kiwuAUlNKKzm5+efLNhXF
-	 bGHpstuSI09U45Zw5SFgfKh5nD4hNJgRUCUIVyMs=
+	b=ajhODoNarqgEyftUiazyj2eW4EcLkCcybBM84CnBeyi3CchAGI18a9BpZdmrxDSqg
+	 Phu2v2uEA7x1L8tYe6TSEUjTC/H2aO2BhDE10GF1uqRMtqalyP7c8bomk4WGbqK1uS
+	 IaYAKjt6H/wUOrGU8LPtyehWWN4Oa8JhHBqAJ1jo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726137AbgIPCLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 22:11:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52178 "EHLO mail.kernel.org"
+        id S1726360AbgIPCX5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 22:23:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54840 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726028AbgIPCLB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 22:11:01 -0400
+        id S1726343AbgIPCX4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 22:23:56 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4E36C206C9;
-        Wed, 16 Sep 2020 02:11:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 198C5206C9;
+        Wed, 16 Sep 2020 02:23:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600222260;
-        bh=xXfJ32CdFpyejTCwAJcxtdsGGLVCaA43bS9S4wwJivw=;
+        s=default; t=1600223036;
+        bh=EXPJRSVGoGzvVuKmxSJ1ZwINk9xeXb3lbMfXFD5mC74=;
         h=Date:From:To:Subject:From;
-        b=Wta6iK1oFf7XQ8R8WXx4/9KKq/cLPFP+ocFKD+UgisXolQJ43/4A5OkVrx+X3WiP8
-         KAyLNJMca8IVdTTv7mZ9CiNmkHKkJCZTKnyS5nZhT4+3+xjsURxx7hLGt6P024UAeP
-         Xbcq0Yqxg3wHA6bwRwYG8I6/mWZWSGTbIvYhv10g=
-Date:   Tue, 15 Sep 2020 19:10:59 -0700
+        b=b+2gSigpjvLZc4biezA5Xxajb2XbCwgxNobWNjrcb9LSjzy+Pt4HUQMngiWFV4CQ5
+         rTE1U/NDC9gfNQZoMMzzNiSMSrdyVeuL5/35w2GWSxOOCYFSmBp0VHTGpPFMN2LqtE
+         aTUW3mb99fG/Des+Nks58tgp/g21QN3KxUCK4bDA=
+Date:   Tue, 15 Sep 2020 19:23:55 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, tj@kernel.org,
-        shakeelb@google.com, mhocko@suse.com, laoar.shao@gmail.com,
-        hannes@cmpxchg.org, guro@fb.com, chris@chrisdown.name,
-        longman@redhat.com
-Subject:  + mm-memcg-simplify-mem_cgroup_get_max-v4.patch added to
- -mm tree
-Message-ID: <20200916021059.4ZynN%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        tiantao6@hisilicon.com
+Subject:  + mm-remove-duplicate-include-statement-in-mmuc.patch added
+ to -mm tree
+Message-ID: <20200916022355.H7RzR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-simplify-mem_cgroup_get_max-v4
+     Subject: mm: remove duplicate include statement in mmu.c
 has been added to the -mm tree.  Its filename is
-     mm-memcg-simplify-mem_cgroup_get_max-v4.patch
+     mm-remove-duplicate-include-statement-in-mmuc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-simplify-mem_cgroup_get_max-v4.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-duplicate-include-statement-in-mmuc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-simplify-mem_cgroup_get_max-v4.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-duplicate-include-statement-in-mmuc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,48 +75,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm-memcg-simplify-mem_cgroup_get_max-v4
+From: Tian Tao <tiantao6@hisilicon.com>
+Subject: mm: remove duplicate include statement in mmu.c
 
-Link: https://lkml.kernel.org/r/20200914150928.7841-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+asm/sections.h is included more than once, Remove the one that isn't
+necessary.
+
+Link: https://lkml.kernel.org/r/1600088607-17327-1-git-send-email-tiantao6@hisilicon.com
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/mm/mmu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-simplify-mem_cgroup_get_max-v4
-+++ a/mm/memcontrol.c
-@@ -1642,8 +1642,12 @@ unsigned long mem_cgroup_get_max(struct
- 			max += min(READ_ONCE(memcg->swap.max),
- 				   (unsigned long)total_swap_pages);
- 	} else { /* v1 */
--		if (mem_cgroup_swappiness(memcg))
--			max = memcg->memsw.max;
-+		if (mem_cgroup_swappiness(memcg)) {
-+			/* Calculate swap excess capacity from memsw limit */
-+			unsigned long swap = READ_ONCE(memcg->memsw.max) - max;
-+
-+			max += min(swap, (unsigned long)total_swap_pages);
-+		}
- 	}
- 	return max;
- }
+--- a/arch/arm/mm/mmu.c~mm-remove-duplicate-include-statement-in-mmuc
++++ a/arch/arm/mm/mmu.c
+@@ -17,7 +17,6 @@
+ 
+ #include <asm/cp15.h>
+ #include <asm/cputype.h>
+-#include <asm/sections.h>
+ #include <asm/cachetype.h>
+ #include <asm/fixmap.h>
+ #include <asm/sections.h>
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from tiantao6@hisilicon.com are
 
-mm-memcg-clean-up-obsolete-enum-charge_type.patch
-mm-memcg-simplify-mem_cgroup_get_max.patch
-mm-memcg-simplify-mem_cgroup_get_max-v4.patch
-mm-memcg-unify-swap-and-memsw-page-counters.patch
+mm-remove-duplicate-include-statement-in-mmuc.patch
 
