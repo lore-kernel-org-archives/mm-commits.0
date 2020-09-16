@@ -2,51 +2,51 @@ Return-Path: <SRS0=oQto=CZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 655EFC433E2
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39918C43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:11:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E5C320771
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:05:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5ABB20BED
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:11:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600221949;
-	bh=zB9At3gqbDQJc5nlSk1U+gQnfACXhOX1qnpaxlWwmqs=;
+	s=default; t=1600222262;
+	bh=xXfJ32CdFpyejTCwAJcxtdsGGLVCaA43bS9S4wwJivw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wq5ws1Hy6WqE8O0SH3OJdT2GjMo9MlSiSaiBpGOQa654QLiIdF/Qr4QKDloCHo6RF
-	 B7rKIaCszqY7gbX9uibm93f0OPGa1M9L5OXUsLkODI5IS8BR7gd0XbXETTCKIsbkBE
-	 GI1GUmyw2W7XZWkoITz9SJlVENBQ9Wc+EqZWDeg0=
+	b=R9K2YCscCnGH/wy9SSZPhLIYQLtZRh4cUOmt6viC+I+dxi6oueLMFDm9S33Pp4C+I
+	 PENfeAT4+GJESrVmEfgkK5nlkpUnWQQHA6cR5+78qFrD9kiwuAUlNKKzm5+efLNhXF
+	 bGHpstuSI09U45Zw5SFgfKh5nD4hNJgRUCUIVyMs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726068AbgIPCFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 22:05:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51182 "EHLO mail.kernel.org"
+        id S1726137AbgIPCLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 22:11:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726028AbgIPCFq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 22:05:46 -0400
+        id S1726028AbgIPCLB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 22:11:01 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 963FB206B6;
-        Wed, 16 Sep 2020 02:05:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4E36C206C9;
+        Wed, 16 Sep 2020 02:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600221946;
-        bh=zB9At3gqbDQJc5nlSk1U+gQnfACXhOX1qnpaxlWwmqs=;
+        s=default; t=1600222260;
+        bh=xXfJ32CdFpyejTCwAJcxtdsGGLVCaA43bS9S4wwJivw=;
         h=Date:From:To:Subject:From;
-        b=vBdrHBhTv9bNt+Og0gorQjzckdg5h6Lpgk03PK0pTy/hrnkBy7Cyh3CKG0mTujQs+
-         3mCVK+XgS7gmnGYFdxmFnRtl5b0U5STKeTHLGvAnTjOPhR7ktdlwD6Uhhd+zx1TDmM
-         n1DWv24IGEJd/5G4rvxaBrf3KQ0aDAIW6ksCQmKI=
-Date:   Tue, 15 Sep 2020 19:05:44 -0700
+        b=Wta6iK1oFf7XQ8R8WXx4/9KKq/cLPFP+ocFKD+UgisXolQJ43/4A5OkVrx+X3WiP8
+         KAyLNJMca8IVdTTv7mZ9CiNmkHKkJCZTKnyS5nZhT4+3+xjsURxx7hLGt6P024UAeP
+         Xbcq0Yqxg3wHA6bwRwYG8I6/mWZWSGTbIvYhv10g=
+Date:   Tue, 15 Sep 2020 19:10:59 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        samitolvanen@google.com, nivedita@alum.mit.edu,
-        natechancellor@gmail.com, masahiroy@kernel.org,
-        linux@rasmusvillemoes.dk, keescook@chromium.org, joe@perches.com,
-        andy.lavr@gmail.com, ndesaulniers@google.com
-Subject:  + lib-stringc-implement-stpcpy.patch added to -mm tree
-Message-ID: <20200916020544.MjKZf%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, tj@kernel.org,
+        shakeelb@google.com, mhocko@suse.com, laoar.shao@gmail.com,
+        hannes@cmpxchg.org, guro@fb.com, chris@chrisdown.name,
+        longman@redhat.com
+Subject:  + mm-memcg-simplify-mem_cgroup_get_max-v4.patch added to
+ -mm tree
+Message-ID: <20200916021059.4ZynN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string.c: implement stpcpy
+     Subject: mm-memcg-simplify-mem_cgroup_get_max-v4
 has been added to the -mm tree.  Its filename is
-     lib-stringc-implement-stpcpy.patch
+     mm-memcg-simplify-mem_cgroup_get_max-v4.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-implement-stpcpy.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-simplify-mem_cgroup_get_max-v4.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-implement-stpcpy.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-simplify-mem_cgroup_get_max-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,129 +77,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: lib/string.c: implement stpcpy
+From: Waiman Long <longman@redhat.com>
+Subject: mm-memcg-simplify-mem_cgroup_get_max-v4
 
-LLVM implemented a recent "libcall optimization" that lowers calls to
-`sprintf(dest, "%s", str)` where the return value is used to `stpcpy(dest,
-str) - dest`.  This generally avoids the machinery involved in parsing
-format strings.  `stpcpy` is just like `strcpy` except it returns the
-pointer to the new tail of `dest`.  This optimization was introduced into
-clang-12.
-
-Implement this so that we don't observe linkage failures due to missing
-symbol definitions for `stpcpy`.
-
-Similar to last year's fire drill with:
-commit 5f074f3e192f ("lib/string.c: implement a basic bcmp")
-
-The kernel is somewhere between a "freestanding" environment (no full
-libc) and "hosted" environment (many symbols from libc exist with the same
-type, function signature, and semantics).
-
-As H.  Peter Anvin notes, there's not really a great way to inform the
-compiler that you're targeting a freestanding environment but would like
-to opt-in to some libcall optimizations (see pr/47280 below), rather than
-opt-out.
-
-Arvind notes, -fno-builtin-* behaves slightly differently between GCC
-and Clang, and Clang is missing many __builtin_* definitions, which I
-consider a bug in Clang and am working on fixing.
-
-Masahiro summarizes the subtle distinction between compilers justly:
-  To prevent transformation from foo() into bar(), there are two ways in
-  Clang to do that; -fno-builtin-foo, and -fno-builtin-bar.  There is
-  only one in GCC; -fno-buitin-foo.
-
-(Any difference in that behavior in Clang is likely a bug from a missing
-__builtin_* definition.)
-
-Masahiro also notes:
-  We want to disable optimization from foo() to bar(),
-  but we may still benefit from the optimization from
-  foo() into something else. If GCC implements the same transform, we
-  would run into a problem because it is not -fno-builtin-bar, but
-  -fno-builtin-foo that disables that optimization.
-
-  In this regard, -fno-builtin-foo would be more future-proof than
-  -fno-built-bar, but -fno-builtin-foo is still potentially overkill. We
-  may want to prevent calls from foo() being optimized into calls to
-  bar(), but we still may want other optimization on calls to foo().
-
-It seems that compilers today don't quite provide the fine grain control
-over which libcall optimizations pseudo-freestanding environments would
-prefer.
-
-Finally, Kees notes that this interface is unsafe, so we should not
-encourage its use.  As such, I've removed the declaration from any
-header, but it still needs to be exported to avoid linkage errors in
-modules.
-
-Link: https://lkml.kernel.org/r/20200914161643.938408-1-ndesaulniers@google.com
-Link: https://bugs.llvm.org/show_bug.cgi?id=47162
-Link: https://bugs.llvm.org/show_bug.cgi?id=47280
-Link: https://github.com/ClangBuiltLinux/linux/issues/1126
-Link: https://man7.org/linux/man-pages/man3/stpcpy.3.html
-Link: https://pubs.opengroup.org/onlinepubs/9699919799/functions/stpcpy.html
-Link: https://reviews.llvm.org/D85963
-Reported-by: Sami Tolvanen <samitolvanen@google.com>
-Suggested-by: Andy Lavr <andy.lavr@gmail.com>
-Suggested-by: Arvind Sankar <nivedita@alum.mit.edu>
-Suggested-by: Joe Perches <joe@perches.com>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Masahiro Yamada <masahiroy@kernel.org>
-Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20200914150928.7841-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/memcontrol.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/lib/string.c~lib-stringc-implement-stpcpy
-+++ a/lib/string.c
-@@ -272,6 +272,30 @@ ssize_t strscpy_pad(char *dest, const ch
- }
- EXPORT_SYMBOL(strscpy_pad);
- 
-+/**
-+ * stpcpy - copy a string from src to dest returning a pointer to the new end
-+ *          of dest, including src's %NUL-terminator. May overrun dest.
-+ * @dest: pointer to end of string being copied into. Must be large enough
-+ *        to receive copy.
-+ * @src: pointer to the beginning of string being copied from. Must not overlap
-+ *       dest.
-+ *
-+ * stpcpy differs from strcpy in a key way: the return value is a pointer
-+ * to the new %NUL-terminating character in @dest. (For strcpy, the return
-+ * value is a pointer to the start of @dest). This interface is considered
-+ * unsafe as it doesn't perform bounds checking of the inputs. As such it's
-+ * not recommended for usage. Instead, its definition is provided in case
-+ * the compiler lowers other libcalls to stpcpy.
-+ */
-+char *stpcpy(char *__restrict__ dest, const char *__restrict__ src);
-+char *stpcpy(char *__restrict__ dest, const char *__restrict__ src)
-+{
-+	while ((*dest++ = *src++) != '\0')
-+		/* nothing */;
-+	return --dest;
-+}
-+EXPORT_SYMBOL(stpcpy);
+--- a/mm/memcontrol.c~mm-memcg-simplify-mem_cgroup_get_max-v4
++++ a/mm/memcontrol.c
+@@ -1642,8 +1642,12 @@ unsigned long mem_cgroup_get_max(struct
+ 			max += min(READ_ONCE(memcg->swap.max),
+ 				   (unsigned long)total_swap_pages);
+ 	} else { /* v1 */
+-		if (mem_cgroup_swappiness(memcg))
+-			max = memcg->memsw.max;
++		if (mem_cgroup_swappiness(memcg)) {
++			/* Calculate swap excess capacity from memsw limit */
++			unsigned long swap = READ_ONCE(memcg->memsw.max) - max;
 +
- #ifndef __HAVE_ARCH_STRCAT
- /**
-  * strcat - Append one %NUL-terminated string to another
++			max += min(swap, (unsigned long)total_swap_pages);
++		}
+ 	}
+ 	return max;
+ }
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-lib-stringc-implement-stpcpy.patch
-compiler-clang-add-build-check-for-clang-1001.patch
-revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
-revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
-revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
-partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
-compiler-gcc-improve-version-error.patch
+mm-memcg-clean-up-obsolete-enum-charge_type.patch
+mm-memcg-simplify-mem_cgroup_get_max.patch
+mm-memcg-simplify-mem_cgroup_get_max-v4.patch
+mm-memcg-unify-swap-and-memsw-page-counters.patch
 
