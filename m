@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93505C31E49
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E606C2D0E3
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:10:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6005D221E3
+	by mail.kernel.org (Postfix) with ESMTP id 3B48E20739
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 00:10:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1600215001;
-	bh=TF6V1bxq21EUIMwY2MmEe3lgZQi/mJ3atRjPsoIDF24=;
+	bh=hYZK/bgXFqVldxBI+j0G33gBSXVhJ4Kam8PoUuSeBW4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=pdjFcIoU09TWoXRX00Hv/2OUrso4H6vL4BGB4sZC94AajRSYv+8bp3YHghNKZFf2a
-	 JW7Wr4Ushw5KO0u3G3nUfZSiK1qaqWPF3Un9SI+EllLHfyR0J/wHOsejz+KbjMJKcS
-	 CQVCtFXqnt0dMhYCw+3BsB2YSbB+a+O98BcD5B2E=
+	b=o86X2P8eteIR1ujhitT5QddRd/eY8X0mvnxM86SeZ1oGa9MKdC+SjqW+x9n9/B2N2
+	 FB0zSIXF88H2sHV0P6+I5+eOj6qUNRJUReotc1T+r98WY+HAxaFTNIXcXnw3rTbG31
+	 2j+2OURdshMsiFA17dy8z6y0gFWSxt0ssc7lvbvQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727142AbgIPAJ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:09:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56304 "EHLO mail.kernel.org"
+        id S1727351AbgIPAJ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 20:09:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727014AbgIPAJy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 20:09:54 -0400
+        id S1727142AbgIPAJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 20:09:51 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0A34A20756;
-        Wed, 16 Sep 2020 00:09:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C736220739;
+        Wed, 16 Sep 2020 00:09:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600214993;
-        bh=TF6V1bxq21EUIMwY2MmEe3lgZQi/mJ3atRjPsoIDF24=;
+        s=default; t=1600214990;
+        bh=hYZK/bgXFqVldxBI+j0G33gBSXVhJ4Kam8PoUuSeBW4=;
         h=Date:From:To:Subject:From;
-        b=osQPsSWI5m2Xmm9xY8QFCtFmpwCq42Xc6VvGhAIHcolBGaofBp8rqhXD1nUGl2cNh
-         Um9Ackm6obWbJCXnP0z/7tkwQbbhgtJl08Q7OXroLaMpOWX3F13SgyijR0D9AhWBl1
-         vXqNOBWlhV5elCw6QWTZY3pMe5DpEgMjTXiCV+tY=
-Date:   Tue, 15 Sep 2020 17:09:52 -0700
+        b=r1Xm0J+hFz+0UP3k8b8ieGFThd2AC+PYwMMPGdTi3CM8SxJcuoD0jMuINbbTxmuDq
+         mWDGYzGUooxsaouh7s5gg7cYTB3JVkMwB0oKr1+NqqW8HU+bbknZoA73lYz6AJFqud
+         uD6lgfHveefYgpTztW8fTdf4eKsKqCOwKkOgvFUI=
+Date:   Tue, 15 Sep 2020 17:09:48 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
         songliubraving@fb.com, pasha.tatashin@soleen.com, oleg@redhat.com,
@@ -46,10 +46,12 @@ To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
         apais@microsoft.com, aarcange@redhat.com,
         vijayb@linux.microsoft.com
 Subject:  +
- mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch added to -mm
- tree
-Message-ID: <20200916000952.tEvho%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-khugepaged-recalculate-min=5Ffree=5Fkbytes-after-memory?=
+ =?us-ascii?Q?-hotplug-as-expected-by-khugepaged.patch?= added to -mm tree
+Message-ID: <20200916000948.N0vvr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +60,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: avoid overriding min_free_kbytes set by user
+     Subject: mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
+     mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,58 +82,115 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Subject: mm: khugepaged: avoid overriding min_free_kbytes set by user
+Subject: mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
 
-set_recommended_min_free_kbytes need to honor min_free_kbytes set by the
-user.  Post start-of-day THP enable or memory hotplug operations can lose
-user specified min_free_kbytes, in particular when it is higher than
-calculated recommended value.  Also modifying "recommended_min" variable
-type to "int" from "unsigned long" to avoid undesired result noticed
-during testing.  It is due to comparing "unsigned long" with "int" type.
+When memory is hotplug added or removed the min_free_kbytes must be
+recalculated based on what is expected by khugepaged.  Currently after
+hotplug, min_free_kbytes will be set to a lower default and higher default
+set when THP enabled is lost.  This leaves the system with small
+min_free_kbytes which isn't suitable for systems especially with network
+intensive loads.  Typical failure symptoms include HW WATCHDOG reset, soft
+lockup hang notices, NETDEVICE WATCHDOG timeouts, and OOM process kills.
 
-Link: https://lkml.kernel.org/r/1600204258-13683-2-git-send-email-vijayb@linux.microsoft.com
+Link: https://lkml.kernel.org/r/1600204258-13683-1-git-send-email-vijayb@linux.microsoft.com
+Fixes: f000565adb77 ("thp: set recommended min free kbytes")
 Signed-off-by: Vijay Balakrishna <vijayb@linux.microsoft.com>
 Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Allen Pais <apais@microsoft.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Song Liu <songliubraving@fb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Allen Pais <apais@microsoft.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/khugepaged.h |    5 +++++
+ mm/khugepaged.c            |   13 +++++++++++--
+ mm/memory_hotplug.c        |    3 +++
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user
-+++ a/mm/khugepaged.c
-@@ -2253,7 +2253,7 @@ static void set_recommended_min_free_kby
+--- a/include/linux/khugepaged.h~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
++++ a/include/linux/khugepaged.h
+@@ -15,6 +15,7 @@ extern int __khugepaged_enter(struct mm_
+ extern void __khugepaged_exit(struct mm_struct *mm);
+ extern int khugepaged_enter_vma_merge(struct vm_area_struct *vma,
+ 				      unsigned long vm_flags);
++extern void khugepaged_min_free_kbytes_update(void);
+ #ifdef CONFIG_SHMEM
+ extern void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr);
+ #else
+@@ -85,6 +86,10 @@ static inline void collapse_pte_mapped_t
+ 					   unsigned long addr)
  {
- 	struct zone *zone;
- 	int nr_zones = 0;
--	unsigned long recommended_min;
-+	int recommended_min;
+ }
++
++static inline void khugepaged_min_free_kbytes_update(void)
++{
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- 	for_each_populated_zone(zone) {
- 		/*
-@@ -2280,12 +2280,12 @@ static void set_recommended_min_free_kby
+ #endif /* _LINUX_KHUGEPAGED_H */
+--- a/mm/khugepaged.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
++++ a/mm/khugepaged.c
+@@ -56,6 +56,9 @@ enum scan_result {
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/huge_memory.h>
  
- 	/* don't ever allow to reserve more than 5% of the lowmem */
- 	recommended_min = min(recommended_min,
--			      (unsigned long) nr_free_buffer_pages() / 20);
-+			      (int) nr_free_buffer_pages() / 20);
- 	recommended_min <<= (PAGE_SHIFT-10);
++static struct task_struct *khugepaged_thread __read_mostly;
++static DEFINE_MUTEX(khugepaged_mutex);
++
+ /* default scan 8*512 pte (or vmas) every 30 second */
+ static unsigned int khugepaged_pages_to_scan __read_mostly;
+ static unsigned int khugepaged_pages_collapsed;
+@@ -2292,8 +2295,6 @@ static void set_recommended_min_free_kby
  
--	if (recommended_min > min_free_kbytes) {
-+	if (recommended_min > user_min_free_kbytes) {
- 		if (user_min_free_kbytes >= 0)
--			pr_info("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
-+			pr_info("raising min_free_kbytes from %d to %d to help transparent hugepage allocations\n",
- 				min_free_kbytes, recommended_min);
+ int start_stop_khugepaged(void)
+ {
+-	static struct task_struct *khugepaged_thread __read_mostly;
+-	static DEFINE_MUTEX(khugepaged_mutex);
+ 	int err = 0;
  
- 		min_free_kbytes = recommended_min;
+ 	mutex_lock(&khugepaged_mutex);
+@@ -2320,3 +2321,11 @@ fail:
+ 	mutex_unlock(&khugepaged_mutex);
+ 	return err;
+ }
++
++void khugepaged_min_free_kbytes_update(void)
++{
++	mutex_lock(&khugepaged_mutex);
++	if (khugepaged_enabled() && khugepaged_thread)
++		set_recommended_min_free_kbytes();
++	mutex_unlock(&khugepaged_mutex);
++}
+--- a/mm/memory_hotplug.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
++++ a/mm/memory_hotplug.c
+@@ -36,6 +36,7 @@
+ #include <linux/memblock.h>
+ #include <linux/compaction.h>
+ #include <linux/rmap.h>
++#include <linux/khugepaged.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -857,6 +858,7 @@ int __ref online_pages(unsigned long pfn
+ 	zone_pcp_update(zone);
+ 
+ 	init_per_zone_wmark_min();
++	khugepaged_min_free_kbytes_update();
+ 
+ 	kswapd_run(nid);
+ 	kcompactd_run(nid);
+@@ -1614,6 +1616,7 @@ static int __ref __offline_pages(unsigne
+ 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ 
+ 	init_per_zone_wmark_min();
++	khugepaged_min_free_kbytes_update();
+ 
+ 	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
 _
 
 Patches currently in -mm which might be from vijayb@linux.microsoft.com are
