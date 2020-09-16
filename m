@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A1EC433E2
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:49:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF42C43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0913222210
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:49:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC1312072E
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600300172;
-	bh=e4k+GPY+g4nMplr1NpQxBc9kxCpp/HNpdML6P3uRR/M=;
+	s=default; t=1600300490;
+	bh=IlQhzdW3uN/hfLbOnmBrF7fdVz0yqRo3xyRS013Ecng=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=d5rCVr5qgg0E6e4Xogpc57e45QkBH0EpPyaSRh7lpL6OGdy2xOX0CCLR/ClYe2jAe
-	 DDhNha32G6mja+NnA3pBZpxiw6e6vMksgnf2XcJZ7HI0eu2q3hQ/LJlQH/JhGQoMiz
-	 2WbbzpQ1PaLRtQloBttYNzwFi5uiujo7Oa/uI31w=
+	b=YNDMxfEAbYTL7ehfyUON+SuJaMNutDJOBuHOhXscjqt8AYVEmkQyIUOmuNaBqSidz
+	 4FzaQezWMuzhb6qOhtgNdaMjnTnZ18h02EbrDWV+ALUAa09Wkccwb4QXT9rZcd+1DT
+	 /0Z0rgL9C4wejdWyRQ99MpQeGNj6zfrj0XmDFBYM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726511AbgIPXtb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Sep 2020 19:49:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57272 "EHLO mail.kernel.org"
+        id S1726610AbgIPXyu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Sep 2020 19:54:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726084AbgIPXta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Sep 2020 19:49:30 -0400
+        id S1726409AbgIPXyt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Sep 2020 19:54:49 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 294702220B;
-        Wed, 16 Sep 2020 23:49:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 595C32065C;
+        Wed, 16 Sep 2020 23:54:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600300169;
-        bh=e4k+GPY+g4nMplr1NpQxBc9kxCpp/HNpdML6P3uRR/M=;
+        s=default; t=1600300488;
+        bh=IlQhzdW3uN/hfLbOnmBrF7fdVz0yqRo3xyRS013Ecng=;
         h=Date:From:To:Subject:From;
-        b=j3WemaqX6LwWlKTJ4+KCGbeS9jHC03C5NOcUWlOe8ohgJeiboBzS7OKxSp035t1al
-         5sQh75XRZps5BJiQIer1sN4afhoU08dJy+dejuTLLQdauh1nOR7yQ/vakNMZhf5A62
-         Bp9A9p/Dbx54460Mlv3mqBHLm0LRsshiE4U753zs=
-Date:   Wed, 16 Sep 2020 16:49:28 -0700
+        b=nGgRI6tLOMHxUCAwmOKj0uBgViipd+kBMHQDbJ/Z0ecAkwpxSaLIRyRosiEI9HRVt
+         ceYERAgTH2CYuSD6jPy243s40pWrF6Dj89OzUXK1UB9PVQjC7bAVmqdl7GKEXTViEP
+         P6/QzMqXCXpDZXd+s8yg/ejwe21hklKw033HQ544=
+Date:   Wed, 16 Sep 2020 16:54:47 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mporter@kernel.crashing.org, madhuparnabhowmik10@gmail.com,
-        jhubbard@nvidia.com, ira.weiny@intel.com, gustavoars@kernel.org,
-        dan.carpenter@oracle.com, alex.bou9@gmail.com, jrdr.linux@gmail.com
-Subject:  + rapidio-fix-error-handling-path.patch added to -mm tree
-Message-ID: <20200916234928.f1YPh%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        songliubraving@fb.com, riel@surriel.com,
+        kirill.shutemov@linux.intel.com, hughd@google.com,
+        hch@infradead.org, hannes@cmpxchg.org, dchinner@redhat.com,
+        willy@infradead.org
+Subject:  + fs-add-a-filesystem-flag-for-thps.patch added to -mm tree
+Message-ID: <20200916235447.GiTD_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: fix error handling path
+     Subject: fs: add a filesystem flag for THPs
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-error-handling-path.patch
+     fs-add-a-filesystem-flag-for-thps.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/rapidio-fix-error-handling-path.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-add-a-filesystem-flag-for-thps.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/rapidio-fix-error-handling-path.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-add-a-filesystem-flag-for-thps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,67 +76,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: rapidio: fix error handling path
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: fs: add a filesystem flag for THPs
 
-rio_dma_transfer() attempts to clamp the return value of
-pin_user_pages_fast() to be >= 0.  However, the attempt fails because
-nr_pages is overridden a few lines later, and restored to the undesirable
--ERRNO value.
+The page cache needs to know whether the filesystem supports THPs so that
+it doesn't send THPs to filesystems which can't handle them.  Dave Chinner
+points out that getting from the page mapping to the filesystem type is
+too many steps (mapping->host->i_sb->s_type->fs_flags) so cache that
+information in the address space flags.
 
-The return value is ultimately stored in nr_pages, which in turn is passed
-to unpin_user_pages(), which expects nr_pages >= 0, else, disaster.
-
-Fix this by fixing the nesting of the assignment to nr_pages: nr_pages
-should be clamped to zero if pin_user_pages_fast() returns -ERRNO, or set
-to the return value of pin_user_pages_fast(), otherwise.
-
-[jhubbard@nvidia.com: new changelog]
-Link: https://lkml.kernel.org/r/1600227737-20785-1-git-send-email-jrdr.linux@gmail.com
-Fixes: e8de370188d09 ("rapidio: add mport char device driver")
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Link: https://lkml.kernel.org/r/20200916032717.22917-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ fs/inode.c              |    2 ++
+ include/linux/fs.h      |    1 +
+ include/linux/pagemap.h |    6 ++++++
+ mm/shmem.c              |    2 +-
+ 4 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-error-handling-path
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -871,15 +871,16 @@ rio_dma_transfer(struct file *filp, u32
- 				rmcd_error("pin_user_pages_fast err=%ld",
- 					   pinned);
- 				nr_pages = 0;
--			} else
-+			} else {
- 				rmcd_error("pinned %ld out of %ld pages",
- 					   pinned, nr_pages);
-+				/*
-+				 * Set nr_pages up to mean "how many pages to unpin, in
-+				 * the error handler:
-+				 */
-+				nr_pages = pinned;
-+			}
- 			ret = -EFAULT;
--			/*
--			 * Set nr_pages up to mean "how many pages to unpin, in
--			 * the error handler:
--			 */
--			nr_pages = pinned;
- 			goto err_pg;
- 		}
+--- a/fs/inode.c~fs-add-a-filesystem-flag-for-thps
++++ a/fs/inode.c
+@@ -181,6 +181,8 @@ int inode_init_always(struct super_block
+ 	mapping->a_ops = &empty_aops;
+ 	mapping->host = inode;
+ 	mapping->flags = 0;
++	if (sb->s_type->fs_flags & FS_THP_SUPPORT)
++		__set_bit(AS_THP_SUPPORT, &mapping->flags);
+ 	mapping->wb_err = 0;
+ 	atomic_set(&mapping->i_mmap_writable, 0);
+ #ifdef CONFIG_READ_ONLY_THP_FOR_FS
+--- a/include/linux/fs.h~fs-add-a-filesystem-flag-for-thps
++++ a/include/linux/fs.h
+@@ -2219,6 +2219,7 @@ struct file_system_type {
+ #define FS_HAS_SUBTYPE		4
+ #define FS_USERNS_MOUNT		8	/* Can be mounted by userns root */
+ #define FS_DISALLOW_NOTIFY_PERM	16	/* Disable fanotify permission events */
++#define FS_THP_SUPPORT		8192	/* Remove once all fs converted */
+ #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move() during rename() internally. */
+ 	int (*init_fs_context)(struct fs_context *);
+ 	const struct fs_parameter_spec *parameters;
+--- a/include/linux/pagemap.h~fs-add-a-filesystem-flag-for-thps
++++ a/include/linux/pagemap.h
+@@ -29,6 +29,7 @@ enum mapping_flags {
+ 	AS_EXITING	= 4, 	/* final truncate in progress */
+ 	/* writeback related tags are not used */
+ 	AS_NO_WRITEBACK_TAGS = 5,
++	AS_THP_SUPPORT = 6,	/* THPs supported */
+ };
  
+ /**
+@@ -119,6 +120,11 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
+ }
+ 
++static inline bool mapping_thp_support(struct address_space *mapping)
++{
++	return test_bit(AS_THP_SUPPORT, &mapping->flags);
++}
++
+ void release_pages(struct page **pages, int nr);
+ 
+ /*
+--- a/mm/shmem.c~fs-add-a-filesystem-flag-for-thps
++++ a/mm/shmem.c
+@@ -3983,7 +3983,7 @@ static struct file_system_type shmem_fs_
+ 	.parameters	= shmem_fs_parameters,
+ #endif
+ 	.kill_sb	= kill_litter_super,
+-	.fs_flags	= FS_USERNS_MOUNT,
++	.fs_flags	= FS_USERNS_MOUNT | FS_THP_SUPPORT,
+ };
+ 
+ int __init shmem_init(void)
 _
 
-Patches currently in -mm which might be from jrdr.linux@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-rapidio-fix-error-handling-path.patch
+mm-debug-do-not-dereference-i_ino-blindly.patch
+mm-factor-find_get_incore_page-out-of-mincore_page.patch
+mm-use-find_get_incore_page-in-memcontrol.patch
+mm-optimise-madvise-willneed.patch
+mm-optimise-madvise-willneed-fix.patch
+proc-optimise-smaps-for-shmem-entries.patch
+i915-use-find_lock_page-instead-of-find_lock_entry.patch
+mm-convert-find_get_entry-to-return-the-head-page.patch
+mm-convert-find_get_entry-to-return-the-head-page-fix.patch
+mm-shmem-return-head-page-from-find_lock_entry.patch
+mm-shmem-return-head-page-from-find_lock_entry-fix.patch
+mm-add-find_lock_head.patch
+mm-filemap-fix-filemap_map_pages-for-thp.patch
+mm-account-pmd-tables-like-pte-tables.patch
+mm-move-pagedoublemap-bit.patch
+mm-simplify-pagedoublemap-with-pf_second-policy.patch
+xarray-add-xa_get_order.patch
+xarray-add-xas_split.patch
+xarray-add-xas_split-fix-2.patch
+mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
+mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
+mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
+mm-page_owner-change-split_page_owner-to-take-a-count.patch
+mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
+mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
+mm-rmap-fix-assumptions-of-thp-size.patch
+mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
+mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
+mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
+fs-add-a-filesystem-flag-for-thps.patch
+fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
+mm-readahead-add-define_readahead.patch
+mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
+mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
+mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
+harden-autofs-ioctl-table.patch
 
