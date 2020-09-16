@@ -2,49 +2,51 @@ Return-Path: <SRS0=oQto=CZ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-14.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74B34C433E2
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:57:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 655EFC433E2
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:05:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 412082087D
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 01:57:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E5C320771
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 02:05:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600221434;
-	bh=mBcXocW0t/4ij9EQWW4DcJLFcGxLHllJl6aQSWN1+/4=;
+	s=default; t=1600221949;
+	bh=zB9At3gqbDQJc5nlSk1U+gQnfACXhOX1qnpaxlWwmqs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=t+WvO/1mte88H3OM/TPSriYlWLR6m04WdVeV9GWg0RfOxrNzje0vKAeTz4c73ksct
-	 4QmWi9wAMCsfSZjYm6W58aJlNXF6Om9SLnKpOXwaDBCAuaP1rCcTYoJk+aSf0CLbf6
-	 B48OxlSA+pJk2A2Db7s/imWNTDh6LOO8afDOnwXA=
+	b=wq5ws1Hy6WqE8O0SH3OJdT2GjMo9MlSiSaiBpGOQa654QLiIdF/Qr4QKDloCHo6RF
+	 B7rKIaCszqY7gbX9uibm93f0OPGa1M9L5OXUsLkODI5IS8BR7gd0XbXETTCKIsbkBE
+	 GI1GUmyw2W7XZWkoITz9SJlVENBQ9Wc+EqZWDeg0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726129AbgIPB5N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Sep 2020 21:57:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48162 "EHLO mail.kernel.org"
+        id S1726068AbgIPCFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Sep 2020 22:05:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726061AbgIPB5N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Sep 2020 21:57:13 -0400
+        id S1726028AbgIPCFq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Sep 2020 22:05:46 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 096592087D;
-        Wed, 16 Sep 2020 01:57:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 963FB206B6;
+        Wed, 16 Sep 2020 02:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600221431;
-        bh=mBcXocW0t/4ij9EQWW4DcJLFcGxLHllJl6aQSWN1+/4=;
+        s=default; t=1600221946;
+        bh=zB9At3gqbDQJc5nlSk1U+gQnfACXhOX1qnpaxlWwmqs=;
         h=Date:From:To:Subject:From;
-        b=xJTgjzG2zH3E5+baqoxm3o8UKI5nkbDNCnwPigEK91ZmyHSeynjEaJLwhN4Iv0F06
-         e61kVJJntuPhCXajXIMNYTBU9vrtBjpyOH69BJNCklLF65QgaVD6MmqX8C8MiY5HLH
-         zWRG0Allj7Ip6bsvG/liOZ9UBaxfR7mLvP7uUGTg=
-Date:   Tue, 15 Sep 2020 18:57:10 -0700
+        b=vBdrHBhTv9bNt+Og0gorQjzckdg5h6Lpgk03PK0pTy/hrnkBy7Cyh3CKG0mTujQs+
+         3mCVK+XgS7gmnGYFdxmFnRtl5b0U5STKeTHLGvAnTjOPhR7ktdlwD6Uhhd+zx1TDmM
+         n1DWv24IGEJd/5G4rvxaBrf3KQ0aDAIW6ksCQmKI=
+Date:   Tue, 15 Sep 2020 19:05:44 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, jglisse@redhat.com,
-        rcampbell@nvidia.com
-Subject:  + hmm-test-remove-unused-dmirror_zero_page.patch added to
- -mm tree
-Message-ID: <20200916015710.dbzWy%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        samitolvanen@google.com, nivedita@alum.mit.edu,
+        natechancellor@gmail.com, masahiroy@kernel.org,
+        linux@rasmusvillemoes.dk, keescook@chromium.org, joe@perches.com,
+        andy.lavr@gmail.com, ndesaulniers@google.com
+Subject:  + lib-stringc-implement-stpcpy.patch added to -mm tree
+Message-ID: <20200916020544.MjKZf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_hmm.c: remove unused dmirror_zero_page
+     Subject: lib/string.c: implement stpcpy
 has been added to the -mm tree.  Its filename is
-     hmm-test-remove-unused-dmirror_zero_page.patch
+     lib-stringc-implement-stpcpy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hmm-test-remove-unused-dmirror_zero_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-implement-stpcpy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hmm-test-remove-unused-dmirror_zero_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-implement-stpcpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,68 +77,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: lib/test_hmm.c: remove unused dmirror_zero_page
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: lib/string.c: implement stpcpy
 
-The variable dmirror_zero_page is unused in the HMM self test driver which
-was probably intended to demonstrate how a driver could use
-migrate_vma_setup() to share a single read-only device private zero page
-similar to how the CPU does.  However, this isn't needed for the self
-tests so remove it.
+LLVM implemented a recent "libcall optimization" that lowers calls to
+`sprintf(dest, "%s", str)` where the return value is used to `stpcpy(dest,
+str) - dest`.  This generally avoids the machinery involved in parsing
+format strings.  `stpcpy` is just like `strcpy` except it returns the
+pointer to the new tail of `dest`.  This optimization was introduced into
+clang-12.
 
-Link: https://lkml.kernel.org/r/20200914213801.16520-1-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
+Implement this so that we don't observe linkage failures due to missing
+symbol definitions for `stpcpy`.
+
+Similar to last year's fire drill with:
+commit 5f074f3e192f ("lib/string.c: implement a basic bcmp")
+
+The kernel is somewhere between a "freestanding" environment (no full
+libc) and "hosted" environment (many symbols from libc exist with the same
+type, function signature, and semantics).
+
+As H.  Peter Anvin notes, there's not really a great way to inform the
+compiler that you're targeting a freestanding environment but would like
+to opt-in to some libcall optimizations (see pr/47280 below), rather than
+opt-out.
+
+Arvind notes, -fno-builtin-* behaves slightly differently between GCC
+and Clang, and Clang is missing many __builtin_* definitions, which I
+consider a bug in Clang and am working on fixing.
+
+Masahiro summarizes the subtle distinction between compilers justly:
+  To prevent transformation from foo() into bar(), there are two ways in
+  Clang to do that; -fno-builtin-foo, and -fno-builtin-bar.  There is
+  only one in GCC; -fno-buitin-foo.
+
+(Any difference in that behavior in Clang is likely a bug from a missing
+__builtin_* definition.)
+
+Masahiro also notes:
+  We want to disable optimization from foo() to bar(),
+  but we may still benefit from the optimization from
+  foo() into something else. If GCC implements the same transform, we
+  would run into a problem because it is not -fno-builtin-bar, but
+  -fno-builtin-foo that disables that optimization.
+
+  In this regard, -fno-builtin-foo would be more future-proof than
+  -fno-built-bar, but -fno-builtin-foo is still potentially overkill. We
+  may want to prevent calls from foo() being optimized into calls to
+  bar(), but we still may want other optimization on calls to foo().
+
+It seems that compilers today don't quite provide the fine grain control
+over which libcall optimizations pseudo-freestanding environments would
+prefer.
+
+Finally, Kees notes that this interface is unsafe, so we should not
+encourage its use.  As such, I've removed the declaration from any
+header, but it still needs to be exported to avoid linkage errors in
+modules.
+
+Link: https://lkml.kernel.org/r/20200914161643.938408-1-ndesaulniers@google.com
+Link: https://bugs.llvm.org/show_bug.cgi?id=47162
+Link: https://bugs.llvm.org/show_bug.cgi?id=47280
+Link: https://github.com/ClangBuiltLinux/linux/issues/1126
+Link: https://man7.org/linux/man-pages/man3/stpcpy.3.html
+Link: https://pubs.opengroup.org/onlinepubs/9699919799/functions/stpcpy.html
+Link: https://reviews.llvm.org/D85963
+Reported-by: Sami Tolvanen <samitolvanen@google.com>
+Suggested-by: Andy Lavr <andy.lavr@gmail.com>
+Suggested-by: Arvind Sankar <nivedita@alum.mit.edu>
+Suggested-by: Joe Perches <joe@perches.com>
+Suggested-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Masahiro Yamada <masahiroy@kernel.org>
+Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ lib/string.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/lib/test_hmm.c~hmm-test-remove-unused-dmirror_zero_page
-+++ a/lib/test_hmm.c
-@@ -36,7 +36,6 @@
- static const struct dev_pagemap_ops dmirror_devmem_ops;
- static const struct mmu_interval_notifier_ops dmirror_min_ops;
- static dev_t dmirror_dev;
--static struct page *dmirror_zero_page;
+--- a/lib/string.c~lib-stringc-implement-stpcpy
++++ a/lib/string.c
+@@ -272,6 +272,30 @@ ssize_t strscpy_pad(char *dest, const ch
+ }
+ EXPORT_SYMBOL(strscpy_pad);
  
- struct dmirror_device;
- 
-@@ -1127,17 +1126,6 @@ static int __init hmm_dmirror_init(void)
- 			goto err_chrdev;
- 	}
- 
--	/*
--	 * Allocate a zero page to simulate a reserved page of device private
--	 * memory which is always zero. The zero_pfn page isn't used just to
--	 * make the code here simpler (i.e., we need a struct page for it).
--	 */
--	dmirror_zero_page = alloc_page(GFP_HIGHUSER | __GFP_ZERO);
--	if (!dmirror_zero_page) {
--		ret = -ENOMEM;
--		goto err_chrdev;
--	}
--
- 	pr_info("HMM test module loaded. This is only for testing HMM.\n");
- 	return 0;
- 
-@@ -1153,8 +1141,6 @@ static void __exit hmm_dmirror_exit(void
- {
- 	int id;
- 
--	if (dmirror_zero_page)
--		__free_page(dmirror_zero_page);
- 	for (id = 0; id < DMIRROR_NDEVICES; id++)
- 		dmirror_device_remove(dmirror_devices + id);
- 	unregister_chrdev_region(dmirror_dev, DMIRROR_NDEVICES);
++/**
++ * stpcpy - copy a string from src to dest returning a pointer to the new end
++ *          of dest, including src's %NUL-terminator. May overrun dest.
++ * @dest: pointer to end of string being copied into. Must be large enough
++ *        to receive copy.
++ * @src: pointer to the beginning of string being copied from. Must not overlap
++ *       dest.
++ *
++ * stpcpy differs from strcpy in a key way: the return value is a pointer
++ * to the new %NUL-terminating character in @dest. (For strcpy, the return
++ * value is a pointer to the start of @dest). This interface is considered
++ * unsafe as it doesn't perform bounds checking of the inputs. As such it's
++ * not recommended for usage. Instead, its definition is provided in case
++ * the compiler lowers other libcalls to stpcpy.
++ */
++char *stpcpy(char *__restrict__ dest, const char *__restrict__ src);
++char *stpcpy(char *__restrict__ dest, const char *__restrict__ src)
++{
++	while ((*dest++ = *src++) != '\0')
++		/* nothing */;
++	return --dest;
++}
++EXPORT_SYMBOL(stpcpy);
++
+ #ifndef __HAVE_ARCH_STRCAT
+ /**
+  * strcat - Append one %NUL-terminated string to another
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-mm-thp-fix-__split_huge_pmd_locked-for-migration-pmd.patch
-mm-test-use-the-new-skip-macro.patch
-hmm-test-remove-unused-dmirror_zero_page.patch
-mm-migrate-remove-cpages-in-migrate_vma_finalize.patch
-mm-migrate-remove-obsolete-comment-about-device-public.patch
+lib-stringc-implement-stpcpy.patch
+compiler-clang-add-build-check-for-clang-1001.patch
+revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
+revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
+revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
+partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
+compiler-gcc-improve-version-error.patch
 
