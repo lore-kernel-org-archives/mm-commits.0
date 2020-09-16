@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF42C43461
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:54:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F38BCC43461
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:54:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC1312072E
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:54:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 982502220B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Sep 2020 23:54:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600300490;
-	bh=IlQhzdW3uN/hfLbOnmBrF7fdVz0yqRo3xyRS013Ecng=;
+	s=default; t=1600300494;
+	bh=63CQmrPNFQJR/BL6UU7W3Wxmd/a+V/1bhWeCj7zwnPg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=YNDMxfEAbYTL7ehfyUON+SuJaMNutDJOBuHOhXscjqt8AYVEmkQyIUOmuNaBqSidz
-	 4FzaQezWMuzhb6qOhtgNdaMjnTnZ18h02EbrDWV+ALUAa09Wkccwb4QXT9rZcd+1DT
-	 /0Z0rgL9C4wejdWyRQ99MpQeGNj6zfrj0XmDFBYM=
+	b=uJ9komovQ8sauL1CTaq2f4nO1bL07u5tnM0KNEutpRp6ajEycXab4+/V/cUFPuXFX
+	 U1UqkgCCGOz1BKktNmso5hTCIFJ52v24Sq87LgH+uJ50Dbtcj3+EdawbSGo1K7UpZC
+	 IVRS9hsrtEodU3Nhp4LAtVhTTJRyc0GLycS2PG9w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726610AbgIPXyu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Sep 2020 19:54:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32966 "EHLO mail.kernel.org"
+        id S1726409AbgIPXyy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Sep 2020 19:54:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726409AbgIPXyt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Sep 2020 19:54:49 -0400
+        id S1726761AbgIPXyx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Sep 2020 19:54:53 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 595C32065C;
-        Wed, 16 Sep 2020 23:54:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EE9832072E;
+        Wed, 16 Sep 2020 23:54:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600300488;
-        bh=IlQhzdW3uN/hfLbOnmBrF7fdVz0yqRo3xyRS013Ecng=;
+        s=default; t=1600300492;
+        bh=63CQmrPNFQJR/BL6UU7W3Wxmd/a+V/1bhWeCj7zwnPg=;
         h=Date:From:To:Subject:From;
-        b=nGgRI6tLOMHxUCAwmOKj0uBgViipd+kBMHQDbJ/Z0ecAkwpxSaLIRyRosiEI9HRVt
-         ceYERAgTH2CYuSD6jPy243s40pWrF6Dj89OzUXK1UB9PVQjC7bAVmqdl7GKEXTViEP
-         P6/QzMqXCXpDZXd+s8yg/ejwe21hklKw033HQ544=
-Date:   Wed, 16 Sep 2020 16:54:47 -0700
+        b=Eb4Kl9zSUDSFHm7n1CK7smxELSSWyK1jGS1eF572xXM9ucbRBHTrx5M3wH/iEXmFJ
+         xwE47UJouD30eoUku1mwWF0UcfhHm/duWXWda/CCxeGccW8IbX2ofxiwCZV6jadF3d
+         d7DyCw8y7zZU/lS0QO+4iyL4X9Zm9YJb6QVyKkiY=
+Date:   Wed, 16 Sep 2020 16:54:51 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         songliubraving@fb.com, riel@surriel.com,
         kirill.shutemov@linux.intel.com, hughd@google.com,
         hch@infradead.org, hannes@cmpxchg.org, dchinner@redhat.com,
         willy@infradead.org
-Subject:  + fs-add-a-filesystem-flag-for-thps.patch added to -mm tree
-Message-ID: <20200916235447.GiTD_%akpm@linux-foundation.org>
+Subject:  +
+ fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch added to -mm
+ tree
+Message-ID: <20200916235451.qMr7q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: add a filesystem flag for THPs
+     Subject: fs: do not update nr_thps for mappings which support THPs
 has been added to the -mm tree.  Its filename is
-     fs-add-a-filesystem-flag-for-thps.patch
+     fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-add-a-filesystem-flag-for-thps.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-add-a-filesystem-flag-for-thps.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,15 +79,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: add a filesystem flag for THPs
+Subject: fs: do not update nr_thps for mappings which support THPs
 
-The page cache needs to know whether the filesystem supports THPs so that
-it doesn't send THPs to filesystems which can't handle them.  Dave Chinner
-points out that getting from the page mapping to the filesystem type is
-too many steps (mapping->host->i_sb->s_type->fs_flags) so cache that
-information in the address space flags.
+The nr_thps counter is to support THPs in the page cache when the
+filesystem doesn't understand THPs.  Eventually it will be removed, but we
+should still support filesystems which do not understand THPs yet.  Move
+the nr_thp manipulation functions to filemap.h since they're page-cache
+specific.
 
-Link: https://lkml.kernel.org/r/20200916032717.22917-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200916032717.22917-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
@@ -99,66 +101,84 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c              |    2 ++
- include/linux/fs.h      |    1 +
- include/linux/pagemap.h |    6 ++++++
- mm/shmem.c              |    2 +-
- 4 files changed, 10 insertions(+), 1 deletion(-)
+ include/linux/fs.h      |   27 ---------------------------
+ include/linux/pagemap.h |   29 +++++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+), 27 deletions(-)
 
---- a/fs/inode.c~fs-add-a-filesystem-flag-for-thps
-+++ a/fs/inode.c
-@@ -181,6 +181,8 @@ int inode_init_always(struct super_block
- 	mapping->a_ops = &empty_aops;
- 	mapping->host = inode;
- 	mapping->flags = 0;
-+	if (sb->s_type->fs_flags & FS_THP_SUPPORT)
-+		__set_bit(AS_THP_SUPPORT, &mapping->flags);
- 	mapping->wb_err = 0;
- 	atomic_set(&mapping->i_mmap_writable, 0);
- #ifdef CONFIG_READ_ONLY_THP_FOR_FS
---- a/include/linux/fs.h~fs-add-a-filesystem-flag-for-thps
+--- a/include/linux/fs.h~fs-do-not-update-nr_thps-for-mappings-which-support-thps
 +++ a/include/linux/fs.h
-@@ -2219,6 +2219,7 @@ struct file_system_type {
- #define FS_HAS_SUBTYPE		4
- #define FS_USERNS_MOUNT		8	/* Can be mounted by userns root */
- #define FS_DISALLOW_NOTIFY_PERM	16	/* Disable fanotify permission events */
-+#define FS_THP_SUPPORT		8192	/* Remove once all fs converted */
- #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move() during rename() internally. */
- 	int (*init_fs_context)(struct fs_context *);
- 	const struct fs_parameter_spec *parameters;
---- a/include/linux/pagemap.h~fs-add-a-filesystem-flag-for-thps
-+++ a/include/linux/pagemap.h
-@@ -29,6 +29,7 @@ enum mapping_flags {
- 	AS_EXITING	= 4, 	/* final truncate in progress */
- 	/* writeback related tags are not used */
- 	AS_NO_WRITEBACK_TAGS = 5,
-+	AS_THP_SUPPORT = 6,	/* THPs supported */
- };
- 
- /**
-@@ -119,6 +120,11 @@ static inline void mapping_set_gfp_mask(
- 	m->gfp_mask = mask;
+@@ -2703,33 +2703,6 @@ static inline errseq_t file_sample_sb_er
+ 	return errseq_sample(&file->f_path.dentry->d_sb->s_wb_err);
  }
  
-+static inline bool mapping_thp_support(struct address_space *mapping)
+-static inline int filemap_nr_thps(struct address_space *mapping)
+-{
+-#ifdef CONFIG_READ_ONLY_THP_FOR_FS
+-	return atomic_read(&mapping->nr_thps);
+-#else
+-	return 0;
+-#endif
+-}
+-
+-static inline void filemap_nr_thps_inc(struct address_space *mapping)
+-{
+-#ifdef CONFIG_READ_ONLY_THP_FOR_FS
+-	atomic_inc(&mapping->nr_thps);
+-#else
+-	WARN_ON_ONCE(1);
+-#endif
+-}
+-
+-static inline void filemap_nr_thps_dec(struct address_space *mapping)
+-{
+-#ifdef CONFIG_READ_ONLY_THP_FOR_FS
+-	atomic_dec(&mapping->nr_thps);
+-#else
+-	WARN_ON_ONCE(1);
+-#endif
+-}
+-
+ extern int vfs_fsync_range(struct file *file, loff_t start, loff_t end,
+ 			   int datasync);
+ extern int vfs_fsync(struct file *file, int datasync);
+--- a/include/linux/pagemap.h~fs-do-not-update-nr_thps-for-mappings-which-support-thps
++++ a/include/linux/pagemap.h
+@@ -125,6 +125,35 @@ static inline bool mapping_thp_support(s
+ 	return test_bit(AS_THP_SUPPORT, &mapping->flags);
+ }
+ 
++static inline int filemap_nr_thps(struct address_space *mapping)
 +{
-+	return test_bit(AS_THP_SUPPORT, &mapping->flags);
++#ifdef CONFIG_READ_ONLY_THP_FOR_FS
++	return atomic_read(&mapping->nr_thps);
++#else
++	return 0;
++#endif
++}
++
++static inline void filemap_nr_thps_inc(struct address_space *mapping)
++{
++#ifdef CONFIG_READ_ONLY_THP_FOR_FS
++	if (!mapping_thp_support(mapping))
++		atomic_inc(&mapping->nr_thps);
++#else
++	WARN_ON_ONCE(1);
++#endif
++}
++
++static inline void filemap_nr_thps_dec(struct address_space *mapping)
++{
++#ifdef CONFIG_READ_ONLY_THP_FOR_FS
++	if (!mapping_thp_support(mapping))
++		atomic_dec(&mapping->nr_thps);
++#else
++	WARN_ON_ONCE(1);
++#endif
 +}
 +
  void release_pages(struct page **pages, int nr);
  
  /*
---- a/mm/shmem.c~fs-add-a-filesystem-flag-for-thps
-+++ a/mm/shmem.c
-@@ -3983,7 +3983,7 @@ static struct file_system_type shmem_fs_
- 	.parameters	= shmem_fs_parameters,
- #endif
- 	.kill_sb	= kill_litter_super,
--	.fs_flags	= FS_USERNS_MOUNT,
-+	.fs_flags	= FS_USERNS_MOUNT | FS_THP_SUPPORT,
- };
- 
- int __init shmem_init(void)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
