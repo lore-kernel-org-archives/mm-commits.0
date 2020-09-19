@@ -7,45 +7,49 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E04ABC43463
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 03:30:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB2A2C43463
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 03:31:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BD9021707
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 03:30:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6617721897
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 03:31:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600486202;
-	bh=cczKYMWOYDUkxakBqpC0P5BRovB5e48Fr2UeRac9y+s=;
+	s=default; t=1600486319;
+	bh=ZbfBNFZd1Bm6qm+eSJT3eI8OMJKujjp7GZtQQcSNRo8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=oo7JWCcnmCJy3Q2EQ67S9VAstNhGrMIYy7E0kpKlwS258KV+9Vw6WhA2QHDLXAIjk
-	 m55jLwBrkXrQApjKdYpzo48I67IhbTxfRS7lUAG5S/c9pyJY6z8scGj83e8CZvbqjo
-	 0UmBohYIG3h/9WrWKExlkkMQR26ygNo8foq8CFyU=
+	b=HsYibtwFpSaBq9KKwJowljiPjo9TPVB3ImUvYnxMoH4OOLyfznPRkqgRSmcZRWxE2
+	 jUr4DsMrOt+PgCw6qVRXlnvw0rnDCtW4WJePx+tmcAkHQXsJpbJk9nGdrBFIIFOX5u
+	 i/dBo4U1j2uSio4DKx2NElF8S4MTH+NR9XFZhNis=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726119AbgISDaC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Sep 2020 23:30:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46082 "EHLO mail.kernel.org"
+        id S1726119AbgISDb7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Sep 2020 23:31:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726104AbgISDaB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Sep 2020 23:30:01 -0400
+        id S1726104AbgISDb6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Sep 2020 23:31:58 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 102CB21534;
-        Sat, 19 Sep 2020 03:30:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 51713206FB;
+        Sat, 19 Sep 2020 03:31:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600486201;
-        bh=cczKYMWOYDUkxakBqpC0P5BRovB5e48Fr2UeRac9y+s=;
+        s=default; t=1600486318;
+        bh=ZbfBNFZd1Bm6qm+eSJT3eI8OMJKujjp7GZtQQcSNRo8=;
         h=Date:From:To:Subject:From;
-        b=yg65e6IGX4s27cJQJAoZEMKS97k38yQK5S46z8mUckSG1NZlUQsMI7ABVJJxcsXbE
-         96lcM+oXztluMjSx0QoWzt1tInFFoVsqn95v//giotK0VT2de4UxBvWqLxUlj14VIK
-         6DnSR6xghkRe6xklaTdRZHikyL7rcns2qEF5ZHAc=
-Date:   Fri, 18 Sep 2020 20:30:00 -0700
+        b=ppjd2q3jn4dYtObDOCuKxiym2X5NxieRa57AcXFwpaalUvst44W+mfx9CcswOdW4g
+         wsaDwLqRe5wsI3mM0snvZ3JFeHOc9SHXLB1JLkPXOH34ej9XYKzq8omMrO2ErCMMOi
+         ZYBk2QL4fMZawgekutTOHf9AB6dd7RYTjHoaIewI=
+Date:   Fri, 18 Sep 2020 20:31:57 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, cai@redhat.com
+To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org, guro@fb.com,
+        linmiaohe@huawei.com
 Subject:  +
- arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch added to -mm
+ =?us-ascii?Q?mm-page=5Fcounter-correct-the-obsolete-func-name-in-the-comm?=
+ =?us-ascii?Q?ent-of-page=5Fcounter=5Ftry=5Fcharge.patch?= added to -mm
  tree
-Message-ID: <20200919033000.xvLdK%akpm@linux-foundation.org>
+Message-ID: <20200919033157.hMm1k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix
+     Subject: mm/page_counter: correct the obsolete func name in the comment of page_counter_try_charge()
 has been added to the -mm tree.  Its filename is
-     arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+     mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,38 +78,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@redhat.com>
-Subject: arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/page_counter: correct the obsolete func name in the comment of page_counter_try_charge()
 
-<stdin>:1532:2: warning: #warning syscall memfd_secret not implemented [-Wcpp]
+Since commit bbec2e15170a ("mm: rename page_counter's count/limit into
+usage/max"), page_counter_limit() is renamed to page_counter_set_max().
+So replace page_counter_limit with page_counter_set_max in comment.
 
-wire up powerpc
-
-Link: https://lkml.kernel.org/r/fdd0240c187f974fccc553acea895f638d5e822a.camel@redhat.com
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-
+Link: https://lkml.kernel.org/r/20200917113629.14382-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checksyscalls.sh |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checksyscalls.sh~arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix
-+++ a/scripts/checksyscalls.sh
-@@ -40,6 +40,10 @@ cat << EOF
- #define __IGNORE_setrlimit	/* setrlimit */
- #endif
- 
-+#ifndef __ARCH_WANT_MEMFD_SECRET
-+#define __IGNORE_memfd_secret
-+#endif
-+
- /* Missing flags argument */
- #define __IGNORE_renameat	/* renameat2 */
- 
+--- a/mm/page_counter.c~mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge
++++ a/mm/page_counter.c
+@@ -109,7 +109,7 @@ bool page_counter_try_charge(struct page
+ 		 *
+ 		 * The atomic_long_add_return() implies a full memory
+ 		 * barrier between incrementing the count and reading
+-		 * the limit.  When racing with page_counter_limit(),
++		 * the limit.  When racing with page_counter_set_max(),
+ 		 * we either see the new limit or the setter sees the
+ 		 * counter has changed and retries.
+ 		 */
 _
 
-Patches currently in -mm which might be from cai@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+mm-swap-fix-confusing-comment-in-release_pages.patch
+mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
+mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
+mm-vmstat-use-helper-macro-abs.patch
+mm-fix-some-broken-comments.patch
+mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
