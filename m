@@ -7,47 +7,48 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1420DC43463
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFEADC43464
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D32C8221EC
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A687621D7F
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600475085;
-	bh=gW3MkLqE2sZHv4lQ/DwG9KbnpnNE5D4Zxw2pmHUDTUk=;
+	s=default; t=1600475088;
+	bh=3vGvao9y5Km6AuadK2kkgxtODaB0cVr74M/1zNxjzP8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=RZSPgDOqYtgNmovHIKNp5bJ4fXs8Nx8bVLjaYx20gFXFZUtojWhYY5T0RBph3YgNF
-	 cFi7xo6OrerlKtyPHwEP9borWlIOcAVw9Mqn9TgcRlGgRpG2kZvfFLyhxCe06ePnda
-	 5zOtiViepy+BZs2u1Ibx/bh8FLyw9rChd+AJK3Hc=
+	b=w8PFHwGIrwb3vtzeRDaO7CGGgxk65aoYqtBxaLnxYvZZ0BXFhAZTTqC8q2LP2wc2W
+	 UyDfCoK06z3sPS70z6hG5lNzN4E+OyjfT+84rZYL/XpJyj425q1iFZV5tjTaIHuhIk
+	 247aMC2TLUO2H3ssgNOQgm+uQ3x+QqixHCanhzpM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726064AbgISAYp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Sep 2020 20:24:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56252 "EHLO mail.kernel.org"
+        id S1726154AbgISAYs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Sep 2020 20:24:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726009AbgISAYp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Sep 2020 20:24:45 -0400
+        id S1726009AbgISAYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Sep 2020 20:24:48 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 186F221D43;
-        Sat, 19 Sep 2020 00:24:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1673521D7B;
+        Sat, 19 Sep 2020 00:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600475084;
-        bh=gW3MkLqE2sZHv4lQ/DwG9KbnpnNE5D4Zxw2pmHUDTUk=;
+        s=default; t=1600475087;
+        bh=3vGvao9y5Km6AuadK2kkgxtODaB0cVr74M/1zNxjzP8=;
         h=Date:From:To:Subject:From;
-        b=XSGomvX8JshW7dty9qM1ey7RMwhs9vXElKTE+UJjG3yXoGnkE+z2+/bBkuVHRtCjT
-         He4LgJ71aSZ/0hisDuBrEfjdJJmK2AMpuBDssXkN2r4zZMl/h392jithSQHF0zY3Os
-         aVV9CEkvDPVq4i+e59opBgQUY0xAi44itElgyfHY=
-Date:   Fri, 18 Sep 2020 17:24:43 -0700
+        b=vi+1uguLy915LQ+yCpGya4DWlYxd5hK+IfQNGoGCPJ4i+SUE1L+id9GlxJVEnqJgH
+         rD4BMptvLzE71eBF2Iws0G+h/59rjWoZwRzTQMnfgjs0fzU886VlpktGmTwN9U+1jh
+         DRODwTQ6BRmBUoQmYgQo4LfTLz63yqN+9U06LkPA=
+Date:   Fri, 18 Sep 2020 17:24:46 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, zeil@yandex-team.ru,
-        tony.luck@intel.com, osalvador@suse.com, mike.kravetz@oracle.com,
-        mhocko@kernel.org, david@redhat.com, dave.hansen@intel.com,
-        cai@lca.pw, aneesh.kumar@linux.vnet.ibm.com,
+        tony.luck@intel.com, osalvador@suse.de, osalvador@suse.com,
+        mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com,
+        dave.hansen@intel.com, cai@lca.pw, aneesh.kumar@linux.vnet.ibm.com,
         aneesh.kumar@linux.ibm.com, naoya.horiguchi@nec.com
 Subject:  [to-be-updated]
- mmhwpoison-introduce-mf_msg_unsplit_thp.patch removed from -mm tree
-Message-ID: <20200919002443.WFaVw%akpm@linux-foundation.org>
+ mmhwpoison-double-check-page-count-in-__get_any_page.patch removed from -mm
+ tree
+Message-ID: <20200919002446.LaGdX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,25 +57,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
+     Subject: mm,hwpoison: double-check page count in __get_any_page()
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+     mmhwpoison-double-check-page-count-in-__get_any_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
+Subject: mm,hwpoison: double-check page count in __get_any_page()
 
-memory_failure() is supposed to call action_result() when it handles a
-memory error event, but there's one missing case.  So let's add it.
+Soft offlining could fail with EIO due to the race condition with hugepage
+migration.  This issuse became visible due to the change by previous patch
+that makes soft offline handler take page refcount by its own.  We have no
+way to directly pin zero refcount page, and the page considered as a zero
+refcount page could be allocated just after the first check.
 
-I find that include/ras/ras_event.h has some other MF_MSG_* undefined, so
-this patch also adds them.
+This patch adds the second check to find the race and gives us chance to
+handle it more reliably.
 
-Link: http://lkml.kernel.org/r/20200806184923.7007-12-nao.horiguchi@gmail.com
+Link: http://lkml.kernel.org/r/20200806184923.7007-13-nao.horiguchi@gmail.com
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Signed-off-by: Oscar Salvador <osalvador@suse.com>
+Reported-by: Qian Cai <cai@lca.pw>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -82,70 +87,38 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Yakunin <zeil@yandex-team.ru>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Qian Cai <cai@lca.pw>
+Cc: Oscar Salvador <osalvador@suse.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 +
- include/ras/ras_event.h |    3 +++
- mm/memory-failure.c     |    5 ++++-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/mm.h~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/include/linux/mm.h
-@@ -3054,6 +3054,7 @@ enum mf_action_page_type {
- 	MF_MSG_BUDDY,
- 	MF_MSG_BUDDY_2ND,
- 	MF_MSG_DAX,
-+	MF_MSG_UNSPLIT_THP,
- 	MF_MSG_UNKNOWN,
- };
- 
---- a/include/ras/ras_event.h~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/include/ras/ras_event.h
-@@ -361,6 +361,7 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
- 	EM ( MF_MSG_HUGE, "huge page" )					\
- 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
-+	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
- 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
- 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
- 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
-@@ -373,6 +374,8 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
- 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
- 	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
-+	EM ( MF_MSG_DAX, "dax page" )					\
-+	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
- 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
- 
- /*
---- a/mm/memory-failure.c~mmhwpoison-introduce-mf_msg_unsplit_thp
+--- a/mm/memory-failure.c~mmhwpoison-double-check-page-count-in-__get_any_page
 +++ a/mm/memory-failure.c
-@@ -584,6 +584,7 @@ static const char * const action_page_ty
- 	[MF_MSG_BUDDY]			= "free buddy page",
- 	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
- 	[MF_MSG_DAX]			= "dax page",
-+	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
- 	[MF_MSG_UNKNOWN]		= "unknown page",
- };
+@@ -1709,6 +1709,9 @@ static int __get_any_page(struct page *p
+ 		} else if (is_free_buddy_page(p)) {
+ 			pr_info("%s: %#lx free buddy page\n", __func__, pfn);
+ 			ret = 0;
++		} else if (page_count(p)) {
++			/* raced with allocation */
++			ret = -EBUSY;
+ 		} else {
+ 			pr_info("%s: %#lx: unknown zero refcount page type %lx\n",
+ 				__func__, pfn, p->flags);
+@@ -1725,6 +1728,9 @@ static int get_any_page(struct page *pag
+ {
+ 	int ret = __get_any_page(page, pfn, flags);
  
-@@ -1372,8 +1373,10 @@ int memory_failure(unsigned long pfn, in
- 	}
- 
- 	if (PageTransHuge(hpage)) {
--		if (try_to_split_thp_page(p, "Memory Failure") < 0)
-+		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
-+			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
- 			return -EBUSY;
-+		}
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 	}
- 
++	if (ret == -EBUSY)
++		ret = __get_any_page(page, pfn, flags);
++
+ 	if (ret == 1 && !PageHuge(page) &&
+ 	    !PageLRU(page) && !__PageMovable(page)) {
+ 		/*
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mmhwpoison-double-check-page-count-in-__get_any_page.patch
 
