@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11616C43463
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE079C43464
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CED3721D7B
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC8C021D7F
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600475058;
-	bh=ajZdL6f/zfQshTou3hcW2I6FWLzruUFI0j4yDELuIWc=;
+	s=default; t=1600475061;
+	bh=4kGAcx1WQesEV/cufJgd25n3JDZmLSLz9nk+WG43mv8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=iG7CLNR2Vacxi2RmrOFrcOXPBkMsyN0/eXs6rYTnFWBb0RIdYkArV806pPiirMwb0
-	 kjRNI033jk6mdUMI6SSeQgqxJ+YN8RIL3XBj/N6J0X9HurapJRKmp2V3anRrzRzfGV
-	 u7d983/A01GstOkV1xWtnwCaLGBdtdcCu0s7gttc=
+	b=QcsLzdjCcaVPjJ828xz06+ii7paSoORGKJGnA735nyptU9PSx5gLdI2b82IKRkZ4a
+	 LEnTQDMIDwQqZkpwo+OAfal1yHIbeBbdED1vghX9MSjfXm1uPMSmcay3IgEpybWuI5
+	 PO8Beu2+W27yX1o98xBWgc1Qb5fW6/xEWq8AVXtA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726267AbgISAYS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Sep 2020 20:24:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55536 "EHLO mail.kernel.org"
+        id S1726269AbgISAYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Sep 2020 20:24:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726009AbgISAYS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Sep 2020 20:24:18 -0400
+        id S1726009AbgISAYV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Sep 2020 20:24:21 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 10D7221D20;
-        Sat, 19 Sep 2020 00:24:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EEA6421D43;
+        Sat, 19 Sep 2020 00:24:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600475057;
-        bh=ajZdL6f/zfQshTou3hcW2I6FWLzruUFI0j4yDELuIWc=;
+        s=default; t=1600475060;
+        bh=4kGAcx1WQesEV/cufJgd25n3JDZmLSLz9nk+WG43mv8=;
         h=Date:From:To:Subject:From;
-        b=DQ8fS0zwBgIXnE/Y/slYBLDY8RBuVz7+hAnkX0bCICh9UIIMRfgXP9nzQi73a/SBf
-         JaZUNWn/kBlcsWkK3ExFucKcD04Rs5Ykl9m4UUB6u/2y7Nok/tFZaWXjHRgLlWB4JL
-         /18CfZ5bS1T4vw4nNemdccHuY02EM+cYgc116ZQk=
-Date:   Fri, 18 Sep 2020 17:24:16 -0700
+        b=JnArd973eR2ZPQapMyfZz2UxbJEpJuNgkD8uGnz9uxgwxO54XFJcaXEri69cxqMoo
+         b0VHNUEi76oeiqDg4UeRPQVR0gCx/T9z8AEt3YBk4f5RN3kJdTMOTGAHLFhV8lcp55
+         5tX/0ebMpyp/5Q0BdLqYPJ+R0OvVsJPpPYDws1rc=
+Date:   Fri, 18 Sep 2020 17:24:19 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, zeil@yandex-team.ru,
         tony.luck@intel.com, naoya.horiguchi@nec.com,
         mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com,
         dave.hansen@intel.com, cai@lca.pw, aneesh.kumar@linux.vnet.ibm.com,
         aneesh.kumar@linux.ibm.com, osalvador@suse.de
-Subject:  [to-be-updated]
- mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch removed from
- -mm tree
-Message-ID: <20200919002416.plQjm%akpm@linux-foundation.org>
+Subject:  [to-be-updated] mmhwpoison-kill-put_hwpoison_page.patch
+ removed from -mm tree
+Message-ID: <20200919002419.NMHj5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,20 +56,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: unexport get_hwpoison_page and make it static
+     Subject: mm,hwpoison: kill put_hwpoison_page
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
+     mmhwpoison-kill-put_hwpoison_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: unexport get_hwpoison_page and make it static
+Subject: mm,hwpoison: kill put_hwpoison_page
 
-Since get_hwpoison_page is only used in memory-failure code now, let us
-un-export it and make it private to that code.
+After commit 4e41a30c6d50 ("mm: hwpoison: adjust for new thp
+refcounting"), put_hwpoison_page got reduced to a put_page.  Let us just
+use put_page instead.
 
-Link: http://lkml.kernel.org/r/20200806184923.7007-5-nao.horiguchi@gmail.com
+Link: http://lkml.kernel.org/r/20200806184923.7007-6-nao.horiguchi@gmail.com
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
@@ -86,43 +86,153 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/mm.h  |    1 -
- mm/memory-failure.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/memory-failure.c |   30 +++++++++++++++---------------
+ 2 files changed, 15 insertions(+), 16 deletions(-)
 
---- a/include/linux/mm.h~mmhwpoison-un-export-get_hwpoison_page-and-make-it-static
+--- a/include/linux/mm.h~mmhwpoison-kill-put_hwpoison_page
 +++ a/include/linux/mm.h
 @@ -3015,7 +3015,6 @@ extern int memory_failure(unsigned long
  extern void memory_failure_queue(unsigned long pfn, int flags);
  extern void memory_failure_queue_kick(int cpu);
  extern int unpoison_memory(unsigned long pfn);
--extern int get_hwpoison_page(struct page *page);
- #define put_hwpoison_page(page)	put_page(page)
+-#define put_hwpoison_page(page)	put_page(page)
  extern int sysctl_memory_failure_early_kill;
  extern int sysctl_memory_failure_recovery;
---- a/mm/memory-failure.c~mmhwpoison-un-export-get_hwpoison_page-and-make-it-static
+ extern void shake_page(struct page *p, int access);
+--- a/mm/memory-failure.c~mmhwpoison-kill-put_hwpoison_page
 +++ a/mm/memory-failure.c
-@@ -924,7 +924,7 @@ static int page_action(struct page_state
-  * Return: return 0 if failed to grab the refcount, otherwise true (some
-  * non-zero value.)
-  */
--int get_hwpoison_page(struct page *page)
-+static int get_hwpoison_page(struct page *page)
- {
- 	struct page *head = compound_head(page);
+@@ -1143,7 +1143,7 @@ static int memory_failure_hugetlb(unsign
+ 		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
+ 		num_poisoned_pages_dec();
+ 		unlock_page(head);
+-		put_hwpoison_page(head);
++		put_page(head);
+ 		return 0;
+ 	}
  
-@@ -953,7 +953,6 @@ int get_hwpoison_page(struct page *page)
+@@ -1335,7 +1335,7 @@ int memory_failure(unsigned long pfn, in
+ 					pfn);
+ 			if (TestClearPageHWPoison(p))
+ 				num_poisoned_pages_dec();
+-			put_hwpoison_page(p);
++			put_page(p);
+ 			return -EBUSY;
+ 		}
+ 		unlock_page(p);
+@@ -1388,14 +1388,14 @@ int memory_failure(unsigned long pfn, in
+ 		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
+ 		num_poisoned_pages_dec();
+ 		unlock_page(p);
+-		put_hwpoison_page(p);
++		put_page(p);
+ 		return 0;
+ 	}
+ 	if (hwpoison_filter(p)) {
+ 		if (TestClearPageHWPoison(p))
+ 			num_poisoned_pages_dec();
+ 		unlock_page(p);
+-		put_hwpoison_page(p);
++		put_page(p);
+ 		return 0;
+ 	}
+ 
+@@ -1629,9 +1629,9 @@ int unpoison_memory(unsigned long pfn)
+ 	}
+ 	unlock_page(page);
+ 
+-	put_hwpoison_page(page);
++	put_page(page);
+ 	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
+-		put_hwpoison_page(page);
++		put_page(page);
  
  	return 0;
  }
--EXPORT_SYMBOL_GPL(get_hwpoison_page);
+@@ -1692,7 +1692,7 @@ static int get_any_page(struct page *pag
+ 		/*
+ 		 * Try to free it.
+ 		 */
+-		put_hwpoison_page(page);
++		put_page(page);
+ 		shake_page(page, 1);
  
- /*
-  * Do all that is necessary to remove user space mappings. Unmap
+ 		/*
+@@ -1701,7 +1701,7 @@ static int get_any_page(struct page *pag
+ 		ret = __get_any_page(page, pfn, 0);
+ 		if (ret == 1 && !PageLRU(page)) {
+ 			/* Drop page reference which is from __get_any_page() */
+-			put_hwpoison_page(page);
++			put_page(page);
+ 			pr_info("soft_offline: %#lx: unknown non LRU page type %lx (%pGp)\n",
+ 				pfn, page->flags, &page->flags);
+ 			return -EIO;
+@@ -1724,7 +1724,7 @@ static int soft_offline_huge_page(struct
+ 	lock_page(hpage);
+ 	if (PageHWPoison(hpage)) {
+ 		unlock_page(hpage);
+-		put_hwpoison_page(hpage);
++		put_page(hpage);
+ 		pr_info("soft offline: %#lx hugepage already poisoned\n", pfn);
+ 		return -EBUSY;
+ 	}
+@@ -1735,7 +1735,7 @@ static int soft_offline_huge_page(struct
+ 	 * get_any_page() and isolate_huge_page() takes a refcount each,
+ 	 * so need to drop one here.
+ 	 */
+-	put_hwpoison_page(hpage);
++	put_page(hpage);
+ 	if (!ret) {
+ 		pr_info("soft offline: %#lx hugepage failed to isolate\n", pfn);
+ 		return -EBUSY;
+@@ -1784,7 +1784,7 @@ static int __soft_offline_page(struct pa
+ 	wait_on_page_writeback(page);
+ 	if (PageHWPoison(page)) {
+ 		unlock_page(page);
+-		put_hwpoison_page(page);
++		put_page(page);
+ 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
+ 		return -EBUSY;
+ 	}
+@@ -1799,7 +1799,7 @@ static int __soft_offline_page(struct pa
+ 	 * would need to fix isolation locking first.
+ 	 */
+ 	if (ret == 1) {
+-		put_hwpoison_page(page);
++		put_page(page);
+ 		pr_info("soft_offline: %#lx: invalidated\n", pfn);
+ 		SetPageHWPoison(page);
+ 		num_poisoned_pages_inc();
+@@ -1819,7 +1819,7 @@ static int __soft_offline_page(struct pa
+ 	 * Drop page reference which is came from get_any_page()
+ 	 * successful isolate_lru_page() already took another one.
+ 	 */
+-	put_hwpoison_page(page);
++	put_page(page);
+ 	if (!ret) {
+ 		LIST_HEAD(pagelist);
+ 		/*
+@@ -1863,7 +1863,7 @@ static int soft_offline_in_use_page(stru
+ 				pr_info("soft offline: %#lx: non anonymous thp\n", page_to_pfn(page));
+ 			else
+ 				pr_info("soft offline: %#lx: thp split failed\n", page_to_pfn(page));
+-			put_hwpoison_page(page);
++			put_page(page);
+ 			return -EBUSY;
+ 		}
+ 		unlock_page(page);
+@@ -1936,7 +1936,7 @@ int soft_offline_page(unsigned long pfn,
+ 	if (PageHWPoison(page)) {
+ 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
+ 		if (flags & MF_COUNT_INCREASED)
+-			put_hwpoison_page(page);
++			put_page(page);
+ 		return -EBUSY;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
 
-mmhwpoison-kill-put_hwpoison_page.patch
 mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
 mmhwpoison-rework-soft-offline-for-free-pages.patch
 mmhwpoison-rework-soft-offline-for-in-use-pages.patch
