@@ -7,42 +7,43 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 606B9C43465
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:08:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F438C43463
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:08:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 251EB22208
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:08:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18AB621D7B
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:08:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600474125;
-	bh=zcSSPYEZw8uqBx847eRu5sGdkmhxutylvKEx1l0KQKM=;
+	s=default; t=1600474128;
+	bh=V1LwCJ5m6vB8Va0mFpvekpABlY5mKsDkY+6S71QXlDw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=awB7Zbti2eYZx2jdIXrZCBaSqr64hQNaVuJFUfV5Q/vgBryoprvPqmqcBBNLP8GNy
-	 Ubz1TPcrvcY11AbX7RV2qLvu5sXRcIWl/LJaTwJn+3jowIzVYPhhEWNXp24UDdJ3RP
-	 daoV/998tIUuKobv6wBTHfYNJPvg7nZNTsTBskk4=
+	b=e0kRJYHFgmBplGQryyhukRHlE6IsMDuBV3qBTdw1by7HK4v5ycOyQdzDFgDaXsT5c
+	 gsGnbpT1sQmgrbd61ZWyUegUTN/EPMS0XpScLptGELA0TzERdgNb19EXGLKDxxpNc8
+	 lpb0qoq/Z3QNt1uzwhVMa+dA3F2qefI74l5tkit4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726154AbgISAIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Sep 2020 20:08:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50934 "EHLO mail.kernel.org"
+        id S1726192AbgISAIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Sep 2020 20:08:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50964 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726009AbgISAIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Sep 2020 20:08:44 -0400
+        id S1726009AbgISAIr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Sep 2020 20:08:47 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1A41E221EC;
-        Sat, 19 Sep 2020 00:08:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0BF0721D43;
+        Sat, 19 Sep 2020 00:08:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600474124;
-        bh=zcSSPYEZw8uqBx847eRu5sGdkmhxutylvKEx1l0KQKM=;
+        s=default; t=1600474127;
+        bh=V1LwCJ5m6vB8Va0mFpvekpABlY5mKsDkY+6S71QXlDw=;
         h=Date:From:To:Subject:From;
-        b=weH0VwHI/yWX60tU6O/aJ8ZGrFWYtWIFVeXIo20G1hyh2dNIdCjbH8+24NtCgEol/
-         GGQoo5/zd6iCr8zm1AXE+QbP3BoFyGjbU/0cuYWyTEqiE60ROg9WvO0EmQ4nNZ/bJs
-         BSFgr/SmhlwfGcoamNzZOh4u+npz+NL1OLaKP0T0=
-Date:   Fri, 18 Sep 2020 17:08:43 -0700
+        b=rfqRbey46kOsTsJLTWK4OSJxaQ3hdbMJtqsEurA+ZTLAyyNhjox4L6f8OAoU8ln5z
+         FUpehejsxihM24fLJNgG5F2gJ/mfiJasEf0wr4gqVfs+/QdBp3Ty8fRGkKeOMKz/Kd
+         bwac8lDeTgp7h1BuaqihTPQGmrX97L/DQeO1mp9A=
+Date:   Fri, 18 Sep 2020 17:08:46 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, hch@lst.de
-Subject:  + mm-add-a-vmap_pfn-function.patch added to -mm tree
-Message-ID: <20200919000843.ADe2T%akpm@linux-foundation.org>
+Subject:  + drm-i915-use-vmap-in-shmem_pin_map.patch added to -mm
+ tree
+Message-ID: <20200919000846.Ux4AO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add a vmap_pfn function
+     Subject: drm/i915: use vmap in shmem_pin_map
 has been added to the -mm tree.  Its filename is
-     mm-add-a-vmap_pfn-function.patch
+     drm-i915-use-vmap-in-shmem_pin_map.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-vmap_pfn-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/drm-i915-use-vmap-in-shmem_pin_map.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-vmap_pfn-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-use-vmap-in-shmem_pin_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,98 +74,142 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: add a vmap_pfn function
+Subject: drm/i915: use vmap in shmem_pin_map
 
-Add a proper helper to remap PFNs into kernel virtual space so that
-drivers don't have to abuse alloc_vm_area and open coded PTE manipulation
-for it.
+shmem_pin_map somewhat awkwardly reimplements vmap using alloc_vm_area and
+manual pte setup.  The only practical difference is that alloc_vm_area
+prefeaults the vmalloc area PTEs, which doesn't seem to be required here
+(and could be added to vmap using a flag if actually required).
 
-Link: https://lkml.kernel.org/r/20200918163724.2511-3-hch@lst.de
+Link: https://lkml.kernel.org/r/20200918163724.2511-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 
- mm/Kconfig              |    3 ++
- mm/vmalloc.c            |   45 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 49 insertions(+)
+ drivers/gpu/drm/i915/gt/shmem_utils.c |   90 ++++++++++--------------
+ 1 file changed, 38 insertions(+), 52 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-add-a-vmap_pfn-function
-+++ a/include/linux/vmalloc.h
-@@ -121,6 +121,7 @@ extern void vfree_atomic(const void *add
- 
- extern void *vmap(struct page **pages, unsigned int count,
- 			unsigned long flags, pgprot_t prot);
-+void *vmap_pfn(unsigned long *pfns, unsigned int count, pgprot_t prot);
- extern void vunmap(const void *addr);
- 
- extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
---- a/mm/Kconfig~mm-add-a-vmap_pfn-function
-+++ a/mm/Kconfig
-@@ -815,6 +815,9 @@ config DEVICE_PRIVATE
- 	  memory; i.e., memory that is only accessible from the device (or
- 	  group of devices). You likely also want to select HMM_MIRROR.
- 
-+config VMAP_PFN
-+	bool
-+
- config FRAME_VECTOR
- 	bool
- 
---- a/mm/vmalloc.c~mm-add-a-vmap_pfn-function
-+++ a/mm/vmalloc.c
-@@ -2407,6 +2407,51 @@ void *vmap(struct page **pages, unsigned
+--- a/drivers/gpu/drm/i915/gt/shmem_utils.c~drm-i915-use-vmap-in-shmem_pin_map
++++ a/drivers/gpu/drm/i915/gt/shmem_utils.c
+@@ -49,80 +49,66 @@ struct file *shmem_create_from_object(st
+ 	return file;
  }
- EXPORT_SYMBOL(vmap);
  
-+#ifdef CONFIG_VMAP_PFN
-+struct vmap_pfn_data {
-+	unsigned long	*pfns;
-+	pgprot_t	prot;
-+	unsigned int	idx;
-+};
-+
-+static int vmap_pfn_apply(pte_t *pte, unsigned long addr, void *private)
-+{
-+	struct vmap_pfn_data *data = private;
-+
-+	if (WARN_ON_ONCE(pfn_valid(data->pfns[data->idx])))
-+		return -EINVAL;
-+	*pte = pte_mkspecial(pfn_pte(data->pfns[data->idx++], data->prot));
-+	return 0;
-+}
-+
-+/**
-+ * vmap_pfn - map an array of PFNs into virtually contiguous space
-+ * @pfns: array of PFNs
-+ * @count: number of pages to map
-+ * @prot: page protection for the mapping
-+ *
-+ * Maps @count PFNs from @pfns into contiguous kernel virtual space and returns
-+ * the start address of the mapping.
-+ */
-+void *vmap_pfn(unsigned long *pfns, unsigned int count, pgprot_t prot)
-+{
-+	struct vmap_pfn_data data = { .pfns = pfns, .prot = pgprot_nx(prot) };
-+	struct vm_struct *area;
-+
-+	area = get_vm_area_caller(count * PAGE_SIZE, VM_IOREMAP,
-+			__builtin_return_address(0));
-+	if (!area)
-+		return NULL;
-+	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
-+			count * PAGE_SIZE, vmap_pfn_apply, &data)) {
-+		free_vm_area(area);
-+		return NULL;
-+	}
-+	return area->addr;
-+}
-+EXPORT_SYMBOL_GPL(vmap_pfn);
-+#endif /* CONFIG_VMAP_PFN */
-+
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node)
+-static size_t shmem_npte(struct file *file)
++static size_t shmem_npages(struct file *file)
  {
+ 	return file->f_mapping->host->i_size >> PAGE_SHIFT;
+ }
+ 
+-static void __shmem_unpin_map(struct file *file, void *ptr, size_t n_pte)
+-{
+-	unsigned long pfn;
+-
+-	vunmap(ptr);
+-
+-	for (pfn = 0; pfn < n_pte; pfn++) {
+-		struct page *page;
+-
+-		page = shmem_read_mapping_page_gfp(file->f_mapping, pfn,
+-						   GFP_KERNEL);
+-		if (!WARN_ON(IS_ERR(page))) {
+-			put_page(page);
+-			put_page(page);
+-		}
+-	}
+-}
+-
+ void *shmem_pin_map(struct file *file)
+ {
+-	const size_t n_pte = shmem_npte(file);
+-	pte_t *stack[32], **ptes, **mem;
+-	struct vm_struct *area;
+-	unsigned long pfn;
+-
+-	mem = stack;
+-	if (n_pte > ARRAY_SIZE(stack)) {
+-		mem = kvmalloc_array(n_pte, sizeof(*mem), GFP_KERNEL);
+-		if (!mem)
++	const size_t n_pages = shmem_npages(file);
++	struct page **pages, *stack[32];
++	void *vaddr;
++	long i;
++
++	pages = stack;
++	if (n_pages > ARRAY_SIZE(stack)) {
++		pages = kvmalloc_array(n_pages, sizeof(*pages), GFP_KERNEL);
++		if (!pages)
+ 			return NULL;
+ 	}
+ 
+-	area = alloc_vm_area(n_pte << PAGE_SHIFT, mem);
+-	if (!area) {
+-		if (mem != stack)
+-			kvfree(mem);
+-		return NULL;
+-	}
+-
+-	ptes = mem;
+-	for (pfn = 0; pfn < n_pte; pfn++) {
+-		struct page *page;
+-
+-		page = shmem_read_mapping_page_gfp(file->f_mapping, pfn,
+-						   GFP_KERNEL);
+-		if (IS_ERR(page))
++	for (i = 0; i < n_pages; i++) {
++		pages[i] = shmem_read_mapping_page_gfp(file->f_mapping, i,
++						       GFP_KERNEL);
++		if (IS_ERR(pages[i]))
+ 			goto err_page;
+-
+-		**ptes++ = mk_pte(page,  PAGE_KERNEL);
+ 	}
+ 
+-	if (mem != stack)
+-		kvfree(mem);
++	vaddr = vmap(pages, n_pages, 0, PAGE_KERNEL);
++	if (!vaddr)
++		goto err_page;
+ 
++	if (pages != stack)
++		kvfree(pages);
+ 	mapping_set_unevictable(file->f_mapping);
+-	return area->addr;
++	return vaddr;
+ 
+ err_page:
+-	if (mem != stack)
+-		kvfree(mem);
+-
+-	__shmem_unpin_map(file, area->addr, pfn);
++	while (--i >= 0)
++		put_page(pages[i]);
++	if (pages != stack)
++		kvfree(pages);
+ 	return NULL;
+ }
+ 
+ void shmem_unpin_map(struct file *file, void *ptr)
+ {
++	long i = shmem_npages(file);
++
+ 	mapping_clear_unevictable(file->f_mapping);
+-	__shmem_unpin_map(file, ptr, shmem_npte(file));
++	vunmap(ptr);
++
++	for (i = 0; i < shmem_npages(file); i++) {
++		struct page *page;
++
++		page = shmem_read_mapping_page_gfp(file->f_mapping, i,
++						   GFP_KERNEL);
++		if (!WARN_ON(IS_ERR(page))) {
++			put_page(page);
++			put_page(page);
++		}
++	}
+ }
+ 
+ static int __shmem_rw(struct file *file, loff_t off,
 _
 
 Patches currently in -mm which might be from hch@lst.de are
