@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0685CC43467
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:20:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 868ECC43465
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:20:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCF0D21D43
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:20:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 426B0221EC
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:20:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600489207;
-	bh=9kSdiw0ny/FcrZvET4z9QLA/jBc+j0BQJerrEReSSQ0=;
+	s=default; t=1600489211;
+	bh=41YxocmAsZxH5HSeesZDPmKWXspsdtu9QFhZ4cINIiI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=z2hhUuwIy2oLN6SLs7QalmhMzwnRc32LtkeBhegKYjyv8qU7Fc02HmArqerjP8ail
-	 xHNNvGO4BvXcHFkVvYBWiBzJ0shARqedjlK5/6+2W/G1NNQEKfbNJy+mdFF74dprvZ
-	 bfwTUVUTrtZxExBov332Cx3/+tB5i5kS/UwGuPg0=
+	b=EG16/LZXJoNPLdeaVLih9cdhpPwxRAij0fg3TQgNt5A6czro4k3XX8zAJxtIZZXyG
+	 fyAKRZCBQ26T0HlwtHG/bjXOsUNleQmFsCMbQCJ6Xe5Ocx2jwwxX4YlScMK/Dfrf+M
+	 lwsiwLxCUgSF2xbYyLrFce7/qLUSd/3xiw1ehWTo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726157AbgISEUH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Sep 2020 00:20:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54448 "EHLO mail.kernel.org"
+        id S1726192AbgISEUL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Sep 2020 00:20:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726009AbgISEUH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Sep 2020 00:20:07 -0400
+        id S1726009AbgISEUK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Sep 2020 00:20:10 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C7CB8221EC;
-        Sat, 19 Sep 2020 04:20:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D975520874;
+        Sat, 19 Sep 2020 04:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600489207;
-        bh=9kSdiw0ny/FcrZvET4z9QLA/jBc+j0BQJerrEReSSQ0=;
+        s=default; t=1600489210;
+        bh=41YxocmAsZxH5HSeesZDPmKWXspsdtu9QFhZ4cINIiI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=o7JuTSw1F55slcFCR6DKOUGAZnSSLh0FG81XgVaa4K5/1g4w9Kpm6Go1LavUU/2DE
-         ydSgwDYdAD0gL/GLH9GRO1NecmV6RG+wnfvTRCP++zdlyWoaRK/ajdQrrk/Q3ZTwQH
-         CPH2gPPvqk2tteUKgJwKOqKba0GuD0HGnGMuCekc=
-Date:   Fri, 18 Sep 2020 21:20:06 -0700
+        b=f48y29IGXBGqYz4BRglywcvewToQmfymmgbkxC3jqTRpE/uxKcrWyo/piw/cW2m81
+         QPylw6B9hxJTYSrv5ctbn1WSaJQvbApzB7U/ELkhKn4My1aeKprRvH89aDSi8iaAAl
+         Y9ryj4hmTE7sDcOJlmGGejKkWRwt5RIJ6Syr7veI=
+Date:   Fri, 18 Sep 2020 21:20:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com, cai@lca.pw,
-        hannes@cmpxch.org, hughd@google.com, linux-mm@kvack.org,
+        hannes@cmpxchg.org, hughd@google.com, linux-mm@kvack.org,
         mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, shakeelb@google.com,
+        shy828301@gmail.com, stable@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 03/15] mm: migration of hugetlbfs page skip memcg
-Message-ID: <20200919042006.EMz72lT2P%akpm@linux-foundation.org>
+Subject:  [patch 04/15] shmem: shmem_writepage() split unlikely
+ i915 THP
+Message-ID: <20200919042009.bomzxmrg7%akpm@linux-foundation.org>
 In-Reply-To: <20200918211925.7e97f0ef63d92f5cfe5ccbc5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,38 +57,53 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: migration of hugetlbfs page skip memcg
+Subject: shmem: shmem_writepage() split unlikely i915 THP
 
-hugetlbfs pages do not participate in memcg: so although they do find most
-of migrate_page_states() useful, it would be better if they did not call
-into mem_cgroup_migrate() - where Qian Cai reported that LTP's
-move_pages12 triggers the warning in Alex Shi's prospective commit
-"mm/memcg: warning on !memcg after readahead page charged".
+drivers/gpu/drm/i915/gem/i915_gem_shmem.c contains a shmem_writeback()
+which calls shmem_writepage() from a shrinker: that usually works well
+enough; but if /sys/kernel/mm/transparent_hugepage/shmem_enabled has been
+set to "force" (documented as "Force the huge option on for all - very
+useful for testing"), shmem_writepage() is surprised to be called with a
+huge page, and crashes on the VM_BUG_ON_PAGE(PageCompound) (I did not find
+out where the crash happens when CONFIG_DEBUG_VM is off).
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301359460.5954@eggly.anvils
+LRU page reclaim always splits the shmem huge page first: I'd prefer not
+to demand that of i915, so check and split compound in shmem_writepage().
+
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301401390.5954@eggly.anvils
+Fixes: 2d6692e642e7 ("drm/i915: Start writeback from the shrinker")
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxch.org>
+Acked-by: Yang Shi <shy828301@gmail.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Qian Cai <cai@lca.pw>
+Cc: <stable@vger.kernel.org>	[5.3+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/shmem.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migration-of-hugetlbfs-page-skip-memcg
-+++ a/mm/migrate.c
-@@ -668,7 +668,8 @@ void migrate_page_states(struct page *ne
+--- a/mm/shmem.c~shmem-shmem_writepage-split-unlikely-i915-thp
++++ a/mm/shmem.c
+@@ -1362,7 +1362,15 @@ static int shmem_writepage(struct page *
+ 	swp_entry_t swap;
+ 	pgoff_t index;
  
- 	copy_page_owner(page, newpage);
- 
--	mem_cgroup_migrate(page, newpage);
-+	if (!PageHuge(page))
-+		mem_cgroup_migrate(page, newpage);
- }
- EXPORT_SYMBOL(migrate_page_states);
- 
+-	VM_BUG_ON_PAGE(PageCompound(page), page);
++	/*
++	 * If /sys/kernel/mm/transparent_hugepage/shmem_enabled is "force",
++	 * then drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
++	 * and its shmem_writeback() needs them to be split when swapping.
++	 */
++	if (PageTransCompound(page))
++		if (split_huge_page(page) < 0)
++			goto redirty;
++
+ 	BUG_ON(!PageLocked(page));
+ 	mapping = page->mapping;
+ 	index = page->index;
 _
