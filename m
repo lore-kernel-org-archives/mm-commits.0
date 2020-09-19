@@ -7,47 +7,43 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5961C43463
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 03:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6F47C43464
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:04:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76ABF21D42
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 03:37:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96C0921D7B
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600486626;
-	bh=hNBFEmkKMa6Mb1AbM3tl5a2PsNuws+6IPtroYyeTNdM=;
+	s=default; t=1600488295;
+	bh=reVU3pFpz5AYha2NbHKT7YJB+f0RqQVp9s2iBIWLF7I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bBwwyNltNdhbM3HYikYb+p3x2afqx6Kuv8wEF5WZtLqAXG2relcUE5lNxcS5xJEqa
-	 dODVP8SrJGZsLC62aoUw2h0fRxAgKhjqfWIiM4LAZeQ5CYNZMmEIiZdu9+475cvlSf
-	 NmIGBUUWVeukkg5dubH+tZos3ePGpxWwDmRz3Vh0=
+	b=r2q5NODE0pJCkxVIalpVgAvFOlZBtaoUl3Zzyy5aUmARYx5v0nQwZnFzlTzKySMxi
+	 YpHApk185fz8kUqEeMRpxPF8NyDBtoyjPEcm5xNTt3XvKkj7I5x/VqNdiNfnrnqa3/
+	 kfNCprt+lmfY+4dXN2BTvDDXM/KccDYniQcf4Q+M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726104AbgISDhF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Sep 2020 23:37:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46694 "EHLO mail.kernel.org"
+        id S1726314AbgISEEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Sep 2020 00:04:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48534 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726097AbgISDhF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Sep 2020 23:37:05 -0400
+        id S1726152AbgISEEy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Sep 2020 00:04:54 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5DE2721897;
-        Sat, 19 Sep 2020 03:37:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DD2421897;
+        Sat, 19 Sep 2020 04:04:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600486624;
-        bh=hNBFEmkKMa6Mb1AbM3tl5a2PsNuws+6IPtroYyeTNdM=;
+        s=default; t=1600488294;
+        bh=reVU3pFpz5AYha2NbHKT7YJB+f0RqQVp9s2iBIWLF7I=;
         h=Date:From:To:Subject:From;
-        b=HX8jquEgySQreoLttXrirDxl2eUz50XvKlhcrzaJ7EEBpvAcspfFPUumZxneC27C0
-         10SZbj7QNVNlekyNoM2MR9P3pJ8we5e/JwTwR3ZNO420T6lLDrBfFLVoC0e/zOa6ES
-         FqjQOM5+KnfSoxksPGwwlBxgcRYrMRwG72cKVpCk=
-Date:   Fri, 18 Sep 2020 20:37:03 -0700
+        b=m3IqNRw2Ml2IzCOAB0nbz1+GRa5SZ0c9G8UfH3hhnJq58BsTTLdxhpsEAamT/bDAd
+         WJm8ukw14LAxP6bPXg7nDQJV2EZoQK5UwOEJOS9azrbUEaeRw02BpA/1TmeUkRbX71
+         RQrF9eXGaJH1rUSMiHWF3Rki1CHUoRog5rDIxJVc=
+Date:   Fri, 18 Sep 2020 21:04:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rafael@kernel.org,
-        mike.kravetz@oracle.com, julia.lawall@inria.fr,
-        gregkh@linuxfoundation.org, efremov@linux.com,
-        alex.dewar90@gmail.com, joe@perches.com
-Subject:  [to-be-updated]
- mm-and-drivers-core-convert-hugetlb_report_node_meminfo-to-sysfs_emit.patch
- removed from -mm tree
-Message-ID: <20200919033703.T3TC8%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, tanxiaofei@huawei.com
+Subject:  + mm-fix-some-doc-warnings-in-workingsetc.patch added to
+ -mm tree
+Message-ID: <20200919040453.AAdgm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,106 +52,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: and drivers core: convert hugetlb_report_node_meminfo to sysfs_emit
-has been removed from the -mm tree.  Its filename was
-     mm-and-drivers-core-convert-hugetlb_report_node_meminfo-to-sysfs_emit.patch
+     Subject: mm/workingset.c: fix some doc warnings
+has been added to the -mm tree.  Its filename is
+     mm-fix-some-doc-warnings-in-workingsetc.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-some-doc-warnings-in-workingsetc.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-some-doc-warnings-in-workingsetc.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm: and drivers core: convert hugetlb_report_node_meminfo to sysfs_emit
+From: Xiaofei Tan <tanxiaofei@huawei.com>
+Subject: mm/workingset.c: fix some doc warnings
 
-Convert the unbound sprintf in hugetlb_report_node_meminfo to use
-sysfs_emit_at so that no possible overrun of a PAGE_SIZE buf can occur.
+Fix following warnings caused by mismatch bewteen function parameters and
+comments.
 
-Link: https://lkml.kernel.org/r/894b351b82da6013cde7f36ff4b5493cd0ec30d0.1600285923.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J.Wysocki" <rafael@kernel.org>
-Cc: Denis Efremov <efremov@linux.com>
-Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Alex Dewar <alex.dewar90@gmail.com>
+mm/workingset.c:228: warning: Function parameter or member 'lruvec' not described in 'workingset_age_nonresident'
+mm/workingset.c:228: warning: Excess function parameter 'memcg' description in 'workingset_age_nonresident'
+
+Link: https://lkml.kernel.org/r/1600485913-11192-1-git-send-email-tanxiaofei@huawei.com
+Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c     |    2 +-
- include/linux/hugetlb.h |    4 ++--
- mm/hugetlb.c            |   18 ++++++++++--------
- 3 files changed, 13 insertions(+), 11 deletions(-)
+ mm/workingset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/base/node.c~mm-and-drivers-core-convert-hugetlb_report_node_meminfo-to-sysfs_emit
-+++ a/drivers/base/node.c
-@@ -467,7 +467,7 @@ static ssize_t node_read_meminfo(struct
- 				       HPAGE_PMD_NR)
- #endif
- 		       );
--	n += hugetlb_report_node_meminfo(nid, buf + n);
-+	n += hugetlb_report_node_meminfo(buf, n, nid);
- 	return n;
- }
+--- a/mm/workingset.c~mm-fix-some-doc-warnings-in-workingsetc
++++ a/mm/workingset.c
+@@ -216,7 +216,7 @@ static void unpack_shadow(void *shadow,
  
---- a/include/linux/hugetlb.h~mm-and-drivers-core-convert-hugetlb_report_node_meminfo-to-sysfs_emit
-+++ a/include/linux/hugetlb.h
-@@ -129,7 +129,7 @@ void __unmap_hugepage_range(struct mmu_g
- 				unsigned long start, unsigned long end,
- 				struct page *ref_page);
- void hugetlb_report_meminfo(struct seq_file *);
--int hugetlb_report_node_meminfo(int, char *);
-+int hugetlb_report_node_meminfo(char *buf, int len, int nid);
- void hugetlb_show_meminfo(void);
- unsigned long hugetlb_total_pages(void);
- vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
-@@ -245,7 +245,7 @@ static inline void hugetlb_report_meminf
- {
- }
- 
--static inline int hugetlb_report_node_meminfo(int nid, char *buf)
-+static inline int hugetlb_report_node_meminfo(char *buf, int len, int nid)
- {
- 	return 0;
- }
---- a/mm/hugetlb.c~mm-and-drivers-core-convert-hugetlb_report_node_meminfo-to-sysfs_emit
-+++ a/mm/hugetlb.c
-@@ -3582,18 +3582,20 @@ void hugetlb_report_meminfo(struct seq_f
- 	seq_printf(m, "Hugetlb:        %8lu kB\n", total / 1024);
- }
- 
--int hugetlb_report_node_meminfo(int nid, char *buf)
-+int hugetlb_report_node_meminfo(char *buf, int len, int nid)
- {
- 	struct hstate *h = &default_hstate;
-+
- 	if (!hugepages_supported())
- 		return 0;
--	return sprintf(buf,
--		"Node %d HugePages_Total: %5u\n"
--		"Node %d HugePages_Free:  %5u\n"
--		"Node %d HugePages_Surp:  %5u\n",
--		nid, h->nr_huge_pages_node[nid],
--		nid, h->free_huge_pages_node[nid],
--		nid, h->surplus_huge_pages_node[nid]);
-+
-+	return sysfs_emit_at(buf, len,
-+			     "Node %d HugePages_Total: %5u\n"
-+			     "Node %d HugePages_Free:  %5u\n"
-+			     "Node %d HugePages_Surp:  %5u\n",
-+			     nid, h->nr_huge_pages_node[nid],
-+			     nid, h->free_huge_pages_node[nid],
-+			     nid, h->surplus_huge_pages_node[nid]);
- }
- 
- void hugetlb_show_meminfo(void)
+ /**
+  * workingset_age_nonresident - age non-resident entries as LRU ages
+- * @memcg: the lruvec that was aged
++ * @lruvec: the lruvec that was aged
+  * @nr_pages: the number of pages to count
+  *
+  * As in-memory pages are aged, non-resident pages need to be aged as
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from tanxiaofei@huawei.com are
 
-checkpatch-test-git_dir-changes.patch
-get_maintainer-add-test-for-file-in-vcs.patch
-get_maintainer-exclude-maintainers-files-from-git-fallback.patch
-checkpatch-move-repeated-word-test.patch
-checkpatch-add-test-for-comma-use-that-should-be-semicolon.patch
-checkpatch-warn-on-self-assignments.patch
-checkpatch-allow-not-using-f-with-files-that-are-in-git.patch
+mm-fix-some-doc-warnings-in-workingsetc.patch
 
