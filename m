@@ -2,123 +2,131 @@ Return-Path: <SRS0=2Wpt=C4=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AE02C43464
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:06:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60B39C43463
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:19:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4994E21D43
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:06:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EEEF21D43
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 04:19:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600488377;
-	bh=WLrj/cvIQsp2utr7BvuYDjfd3wWd3iRAiUX22PqgJRQ=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=OntyxPmvZIv+nl67PFITor5804Fda7nh0TWxqpfNHc0dvJrzTB9YVXgbhsxITDi15
-	 SsPQpKedCsnXRrb/rm27XlXeBQhJVcAIu2ilBizrvNf57zHtbkrCtRcbd9sv/3iE+R
-	 KkwmkqS6TPj2OwYPf+O7xJro+vtHZPhEQSk/hkqQ=
+	s=default; t=1600489168;
+	bh=y/2RKh7AQVLahh2AO4WjOeOE0zquyjzDvuyOghtlybs=;
+	h=Date:From:To:Cc:Subject:Reply-To:List-ID:From;
+	b=hVv5KIDLwBceXdYAEfSJYvaeKs4MWxLdEPQqLF0dBdkn5algbVsnPONVPStufL30e
+	 YyYDvcYalPAY4ouewvlPpK3JRel/QTpp7i/GwCO/oehCNWy+Q1HKdwb+GjoT2p1BjQ
+	 glvHXlz8MpdBwMiBg60544Ii1lZQz0d0KQD+9Z+I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726157AbgISEGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Sep 2020 00:06:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48714 "EHLO mail.kernel.org"
+        id S1726054AbgISET1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Sep 2020 00:19:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726152AbgISEGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Sep 2020 00:06:16 -0400
+        id S1726009AbgISET1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Sep 2020 00:19:27 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 03FA621897;
-        Sat, 19 Sep 2020 04:06:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A07A320874;
+        Sat, 19 Sep 2020 04:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600488376;
-        bh=WLrj/cvIQsp2utr7BvuYDjfd3wWd3iRAiUX22PqgJRQ=;
-        h=Date:From:To:Subject:From;
-        b=MwaedCvzX8UrKHUfwUnFwrKIdXmwqSIo81PZNMcc/V+5MitqIvi2FAhCHK29+vCFO
-         CCF9rrc6nZ8iyN2tA9TH45y5AsTQbMFb6rJLEhmPRxUShy1qC+dCM1fy4/dFTCdD2I
-         144Z4qL6M5wC5Ss5SkhOj7mqPfArpnTA5DJ9hjLo=
-Date:   Fri, 18 Sep 2020 21:06:14 -0700
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, jrdr.linux@gmail.com,
-        ira.weiny@intel.com, dan.carpenter@oracle.com, jhubbard@nvidia.com
-Subject:  +
- mm-gup-protect-unpin_user_pages-against-npages==-errno.patch added to -mm
- tree
-Message-ID: <20200919040614.EWADC%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        s=default; t=1600489166;
+        bh=y/2RKh7AQVLahh2AO4WjOeOE0zquyjzDvuyOghtlybs=;
+        h=Date:From:To:Cc:Subject:From;
+        b=lmo1+ws+qwbd5QkP4wEt/nDBr/C9zW0fpzkyxY3lxGJIJslO8LIod4KRi0gb+7iz2
+         KU9SuSBZvrCT9XiuxdiTf1plWO9GhKzQumV34N+1VyD7O2x+Av316Flo7J+AdpAonj
+         cbW0LZIMJqDeqcj7aKQaaopbuM4lTjxSClQ6Bu3w=
+Date:   Fri, 18 Sep 2020 21:19:25 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20200918211925.7e97f0ef63d92f5cfe5ccbc5@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+15 patches, based on 92ab97adeefccf375de7ebaad9d5b75d4125fe8b.
 
-The patch titled
-     Subject: mm/gup: protect unpin_user_pages() against npages==-ERRNO
-has been added to the -mm tree.  Its filename is
-     mm-gup-protect-unpin_user_pages-against-npages==-errno.patch
+Subsystems affected by this patch series:
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-protect-unpin_user_pages-against-npages%3D%3D-errno.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-protect-unpin_user_pages-against-npages%3D%3D-errno.patch
+  mailmap
+  mm/hotfixes
+  mm/thp
+  mm/memory-hotplug
+  misc
+  kcsan
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Subsystem: mailmap
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+    Kees Cook <keescook@chromium.org>:
+      mailmap: add older email addresses for Kees Cook
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+Subsystem: mm/hotfixes
 
-------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: protect unpin_user_pages() against npages==-ERRNO
+    Hugh Dickins <hughd@google.com>:
+    Patch series "mm: fixes to past from future testing":
+      ksm: reinstate memcg charge on copied pages
+      mm: migration of hugetlbfs page skip memcg
+      shmem: shmem_writepage() split unlikely i915 THP
+      mm: fix check_move_unevictable_pages() on THP
+      mlock: fix unevictable_pgs event counts on THP
 
-As suggested by Dan Carpenter, fortify unpin_user_pages() just a bit,
-against a typical caller mistake: check if the npages arg is really a
--ERRNO value, which would blow up the unpinning loop: WARN and return.
+    Byron Stanoszek <gandalf@winds.org>:
+      tmpfs: restore functionality of nr_inodes=0
 
-If this new WARN_ON() fires, then the system *might* be leaking pages (by
-leaving them pinned), but probably not.  More likely, gup/pup returned a
-hard -ERRNO error to the caller, who erroneously passed it here.
+    Muchun Song <songmuchun@bytedance.com>:
+      kprobes: fix kill kprobe which has been marked as gone
 
-Link: https://lkml.kernel.org/r/20200917065706.409079-1-jhubbard@nvidia.com
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Subsystem: mm/thp
 
- mm/gup.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+    Ralph Campbell <rcampbell@nvidia.com>:
+      mm/thp: fix __split_huge_pmd_locked() for migration PMD
 
---- a/mm/gup.c~mm-gup-protect-unpin_user_pages-against-npages==-errno
-+++ a/mm/gup.c
-@@ -329,6 +329,13 @@ void unpin_user_pages(struct page **page
- 	unsigned long index;
- 
- 	/*
-+	 * If this WARN_ON() fires, then the system *might* be leaking pages (by
-+	 * leaving them pinned), but probably not. More likely, gup/pup returned
-+	 * a hard -ERRNO error to the caller, who erroneously passed it here.
-+	 */
-+	if (WARN_ON(IS_ERR_VALUE(npages)))
-+		return;
-+	/*
- 	 * TODO: this can be optimized for huge pages: if a series of pages is
- 	 * physically contiguous and part of the same compound page, then a
- 	 * single operation to the head page should suffice.
-_
+    Christophe Leroy <christophe.leroy@csgroup.eu>:
+      selftests/vm: fix display of page size in map_hugetlb
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Subsystem: mm/memory-hotplug
 
-mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
-mm-gup-protect-unpin_user_pages-against-npages==-errno.patch
-selftests-vm-fix-false-build-success-on-the-second-and-later-attempts.patch
-selftests-vm-fix-incorrect-gcc-invocation-in-some-cases.patch
+    Pavel Tatashin <pasha.tatashin@soleen.com>:
+      mm/memory_hotplug: drain per-cpu pages again during memory offline
+
+Subsystem: misc
+
+    Tobias Klauser <tklauser@distanz.ch>:
+      ftrace: let ftrace_enable_sysctl take a kernel pointer buffer
+      stackleak: let stack_erasing_sysctl take a kernel pointer buffer
+      fs/fs-writeback.c: adjust dirtytime_interval_handler definition to match prototype
+
+Subsystem: kcsan
+
+    Changbin Du <changbin.du@gmail.com>:
+      kcsan: kconfig: move to menu 'Generic Kernel Debugging Instruments'
+
+ .mailmap                                 |    4 ++
+ fs/fs-writeback.c                        |    2 -
+ include/linux/ftrace.h                   |    3 --
+ include/linux/stackleak.h                |    2 -
+ kernel/kprobes.c                         |    9 +++++-
+ kernel/stackleak.c                       |    2 -
+ kernel/trace/ftrace.c                    |    3 --
+ lib/Kconfig.debug                        |    4 --
+ mm/huge_memory.c                         |   42 ++++++++++++++++---------------
+ mm/ksm.c                                 |    4 ++
+ mm/memory_hotplug.c                      |   14 ++++++++++
+ mm/migrate.c                             |    3 +-
+ mm/mlock.c                               |   24 +++++++++++------
+ mm/page_isolation.c                      |    8 +++++
+ mm/shmem.c                               |   20 +++++++++++---
+ mm/swap.c                                |    6 ++--
+ mm/vmscan.c                              |   10 +++++--
+ tools/testing/selftests/vm/map_hugetlb.c |    2 -
+ 18 files changed, 111 insertions(+), 51 deletions(-)
 
