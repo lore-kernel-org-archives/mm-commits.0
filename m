@@ -7,48 +7,44 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFEADC43464
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38B9FC43463
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:33:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A687621D7F
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:24:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E360521D43
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Sep 2020 00:33:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600475088;
-	bh=3vGvao9y5Km6AuadK2kkgxtODaB0cVr74M/1zNxjzP8=;
+	s=default; t=1600475593;
+	bh=meTG4P3nb92b3dKo0tdIovAb4pIxsJK3nUyksDN31k4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=w8PFHwGIrwb3vtzeRDaO7CGGgxk65aoYqtBxaLnxYvZZ0BXFhAZTTqC8q2LP2wc2W
-	 UyDfCoK06z3sPS70z6hG5lNzN4E+OyjfT+84rZYL/XpJyj425q1iFZV5tjTaIHuhIk
-	 247aMC2TLUO2H3ssgNOQgm+uQ3x+QqixHCanhzpM=
+	b=KFbEfeboPCuHqt9NfKm9q1S8jeBBcuOljR/oVLh1qIN9sg1W+FadmkFQ402IcX1S0
+	 wTaFB4ZFB0P8XgurJ+copWf+5V7g6lWOlAoq0AH9AZmCefNcytsTHBTggLgzXr9x9E
+	 kLnWgnO6Ken8QzqNRgz5OGhVFHPn7w+B6cBeofOQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726154AbgISAYs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Sep 2020 20:24:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56334 "EHLO mail.kernel.org"
+        id S1726022AbgISAdN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Sep 2020 20:33:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726009AbgISAYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Sep 2020 20:24:48 -0400
+        id S1726009AbgISAdN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Sep 2020 20:33:13 -0400
 Received: from X1 (unknown [67.22.170.76])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1673521D7B;
-        Sat, 19 Sep 2020 00:24:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F38E321D20;
+        Sat, 19 Sep 2020 00:33:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600475087;
-        bh=3vGvao9y5Km6AuadK2kkgxtODaB0cVr74M/1zNxjzP8=;
+        s=default; t=1600475592;
+        bh=meTG4P3nb92b3dKo0tdIovAb4pIxsJK3nUyksDN31k4=;
         h=Date:From:To:Subject:From;
-        b=vi+1uguLy915LQ+yCpGya4DWlYxd5hK+IfQNGoGCPJ4i+SUE1L+id9GlxJVEnqJgH
-         rD4BMptvLzE71eBF2Iws0G+h/59rjWoZwRzTQMnfgjs0fzU886VlpktGmTwN9U+1jh
-         DRODwTQ6BRmBUoQmYgQo4LfTLz63yqN+9U06LkPA=
-Date:   Fri, 18 Sep 2020 17:24:46 -0700
+        b=LEaCUn0w1MSXfzxGMWR7rJTZzQl4wb1TYmm18ln9yYt7N7+TV2SHqnrc4zKb3NOhj
+         MuS+N0K6hmyRnNuvuEOnf7uQJqoWJqJuJGMB0mF+J8NOhQkI1hPDoBwIL2+AJsiS3s
+         07Ydeap8YI16rLW4aewhURn3Bet0698NF/RktGXo=
+Date:   Fri, 18 Sep 2020 17:33:11 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, zeil@yandex-team.ru,
-        tony.luck@intel.com, osalvador@suse.de, osalvador@suse.com,
-        mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com,
-        dave.hansen@intel.com, cai@lca.pw, aneesh.kumar@linux.vnet.ibm.com,
-        aneesh.kumar@linux.ibm.com, naoya.horiguchi@nec.com
-Subject:  [to-be-updated]
- mmhwpoison-double-check-page-count-in-__get_any_page.patch removed from -mm
- tree
-Message-ID: <20200919002446.LaGdX%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        tiantao6@hisilicon.com
+Subject:  +
+ documentation-remove-cmas-dependency-on-architecture.patch added to -mm tree
+Message-ID: <20200919003311.ZYpu2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,68 +53,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: double-check page count in __get_any_page()
-has been removed from the -mm tree.  Its filename was
-     mmhwpoison-double-check-page-count-in-__get_any_page.patch
+     Subject: Documentation: remove CMA's dependency on architecture
+has been added to the -mm tree.  Its filename is
+     documentation-remove-cmas-dependency-on-architecture.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/documentation-remove-cmas-dependency-on-architecture.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-remove-cmas-dependency-on-architecture.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: double-check page count in __get_any_page()
+From: Tian Tao <tiantao6@hisilicon.com>
+Subject: Documentation: remove CMA's dependency on architecture
 
-Soft offlining could fail with EIO due to the race condition with hugepage
-migration.  This issuse became visible due to the change by previous patch
-that makes soft offline handler take page refcount by its own.  We have no
-way to directly pin zero refcount page, and the page considered as a zero
-refcount page could be allocated just after the first check.
+CMA only depends on MMU.  It doesn't depend on arch too much.  such as
+ARM, ARM64, X86, MIPS etc.  so We remove the dependency of cma about the
+architecture in kernel-parameters.txt.
 
-This patch adds the second check to find the race and gives us chance to
-handle it more reliably.
-
-Link: http://lkml.kernel.org/r/20200806184923.7007-13-nao.horiguchi@gmail.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Yakunin <zeil@yandex-team.ru>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/1600412758-60545-1-git-send-email-tiantao6@hisilicon.com
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/admin-guide/kernel-parameters.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mmhwpoison-double-check-page-count-in-__get_any_page
-+++ a/mm/memory-failure.c
-@@ -1709,6 +1709,9 @@ static int __get_any_page(struct page *p
- 		} else if (is_free_buddy_page(p)) {
- 			pr_info("%s: %#lx free buddy page\n", __func__, pfn);
- 			ret = 0;
-+		} else if (page_count(p)) {
-+			/* raced with allocation */
-+			ret = -EBUSY;
- 		} else {
- 			pr_info("%s: %#lx: unknown zero refcount page type %lx\n",
- 				__func__, pfn, p->flags);
-@@ -1725,6 +1728,9 @@ static int get_any_page(struct page *pag
- {
- 	int ret = __get_any_page(page, pfn, flags);
+--- a/Documentation/admin-guide/kernel-parameters.txt~documentation-remove-cmas-dependency-on-architecture
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -591,7 +591,7 @@
+ 			some critical bits.
  
-+	if (ret == -EBUSY)
-+		ret = __get_any_page(page, pfn, flags);
-+
- 	if (ret == 1 && !PageHuge(page) &&
- 	    !PageLRU(page) && !__PageMovable(page)) {
- 		/*
+ 	cma=nn[MG]@[start[MG][-end[MG]]]
+-			[ARM,X86,KNL]
++			[KNL,CMA]
+ 			Sets the size of kernel global memory area for
+ 			contiguous memory allocations and optionally the
+ 			placement constraint by the physical address range of
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from tiantao6@hisilicon.com are
 
+mm-remove-duplicate-include-statement-in-mmuc.patch
+documentation-remove-cmas-dependency-on-architecture.patch
 
