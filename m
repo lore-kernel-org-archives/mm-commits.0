@@ -2,75 +2,260 @@ Return-Path: <SRS0=iiPm=C7=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53425C4363D
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:34:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BE2C4363D
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05F4A2311C
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:34:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 132A523600
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:36:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600796057;
-	bh=cwkQtjTlUawHnfi1R9kwlgW90Y2s8e5YmR1TzoxWoX4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:Reply-To:List-ID:
-	 From;
-	b=GrMHT+0NT++j+0wJ1rr+tsjgZTVInNSXQFQHmiteW7Ng1W2sBrUSCN1ncoVLRb2P0
-	 C9eQCMzN8+ssV0gqbsxZfCoC3IdSvok9Ck25zDMv96EMyILp6VvWcmJ0Z8bC8wojNo
-	 FGd7H/biAXTe1QkbipcQvOr8aG5aPAGZLTC46HMc=
+	s=default; t=1600796160;
+	bh=fRV0dwkZiX5T4Rrt9jT88IeZNqES6AH/yOyZaKedZIY=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=etsyh1areLHOkQujqRGxQsE8kPE1WG2qmS8AusGBMWtxvBVizmpfiHIGaCRzpV5jE
+	 iPbPivqtuRsIx7dVkB+Yyig1Z45NINixNk/VBLqKMt9oUuiGgrNxlL8v0dVNR/+/ej
+	 b/WsAqajnzvQwKlMTrik9I7Kvy0yP/TO9REf+R58=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726652AbgIVReQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Sep 2020 13:34:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41984 "EHLO mail.kernel.org"
+        id S1726566AbgIVRf7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Sep 2020 13:35:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726631AbgIVReQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Sep 2020 13:34:16 -0400
+        id S1726563AbgIVRf7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Sep 2020 13:35:59 -0400
 Received: from X1 (unknown [216.241.194.61])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BF0F622206;
-        Tue, 22 Sep 2020 17:34:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4282222206;
+        Tue, 22 Sep 2020 17:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600796056;
-        bh=cwkQtjTlUawHnfi1R9kwlgW90Y2s8e5YmR1TzoxWoX4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=NtABOmRhI/lLt3P/0Z45VobBRiHnFsd6Z/NQM6nms7rGpHewDKWloZPyl8k/bdBQA
-         Ldc876ha/tw3FGMsyCYinpggBfyUH2CbblXa+vXBV9GR/33CkA2ekBXcEvUnkExO43
-         qDst/GIadN2d0nqzHSs6NxVgEQ+ofsmV2oZHaeAM=
-Date:   Tue, 22 Sep 2020 10:34:13 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Christian Borntraeger <borntraeger@de.ibm.com>
-Cc:     mm-commits@vger.kernel.org, will@kernel.org,
-        torvalds@linux-foundation.org, tglx@linutronix.de,
-        stable@vger.kernel.org, rppt@linux.ibm.com, richard@nod.at,
-        peterz@infradead.org, paulus@samba.org, mpe@ellerman.id.au,
-        mingo@redhat.com, luto@kernel.org, linux@armlinux.org.uk,
-        jgg@nvidia.com, jdike@addtoit.com, imbrenda@linux.ibm.com,
-        hca@linux.ibm.com, gerald.schaefer@linux.ibm.com,
-        dave.hansen@linux.intel.com, dave.hansen@intel.com,
-        catalin.marinas@arm.com, bp@alien8.de, benh@kernel.crashing.org,
-        aryabinin@virtuozzo.com, arnd@arndb.de, agordeev@linux.ibm.com,
-        gor@linux.ibm.com
-Subject: Re: + mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
- added to -mm tree
-Message-Id: <20200922103413.5e410c70c33577c8ca6d94cd@linux-foundation.org>
-In-Reply-To: <eac62020-0526-cbc9-18d3-499526ef7a14@de.ibm.com>
-References: <20200916003608.ib4Ln%akpm@linux-foundation.org>
-        <eac62020-0526-cbc9-18d3-499526ef7a14@de.ibm.com>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        s=default; t=1600796158;
+        bh=fRV0dwkZiX5T4Rrt9jT88IeZNqES6AH/yOyZaKedZIY=;
+        h=Date:From:To:Subject:From;
+        b=Eikmd4jBRZIcDF/HSXh0BF8NfzpCcDsT9YxUD55WzpXjl0xRSD1raWxhcywbTwiSf
+         66KxPoOZUvuQ8fOJUHDXN+0mF7Eo4UkdsRIs0Z5a+QI1b6v7xIvh4SqkU8jj9HEi7X
+         qeB29xN7PTzRkZXdRuzKW+xlmI6166/qrnzrRjc8=
+Date:   Tue, 22 Sep 2020 10:35:57 -0700
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com,
+        sjpark@amazon.de, rientjes@google.com, mkoutny@suse.com,
+        mhocko@kernel.org, hannes@cmpxchg.org, guro@fb.com,
+        gthelen@google.com, shakeelb@google.com
+Subject:  [nacked] memcg-introduce-per-memcg-reclaim-interface.patch
+ removed from -mm tree
+Message-ID: <20200922173557.PH5fv%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, 21 Sep 2020 19:37:14 +0200 Christian Borntraeger <borntraeger@de.ibm.com> wrote:
 
-> now that this is part of next, what are the plans for merging this in 5.9?
-> It does fix a data corruption issue on s390.
+The patch titled
+     Subject: memcg: introduce per-memcg reclaim interface
+has been removed from the -mm tree.  Its filename was
+     memcg-introduce-per-memcg-reclaim-interface.patch
 
-It'll be in this week's hotfix pile for Linus.
+This patch was dropped because it was nacked
+
+------------------------------------------------------
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: introduce per-memcg reclaim interface
+
+Introduce an memcg interface to trigger memory reclaim on a memory cgroup.
+
+Use cases:
+----------
+
+1) Per-memcg uswapd:
+
+   Usually applications consists of combination of latency sensitive
+   and latency tolerant tasks.  For example, tasks serving user requests
+   vs tasks doing data backup for a database application.  At the moment
+   the kernel does not differentiate between such tasks when the
+   application hits the memcg limits.  So, potentially a latency sensitive
+   user facing task can get stuck in high reclaim and be throttled by the
+   kernel.
+
+   Similarly there are cases of single process applications having two
+   set of thread pools where threads from one pool have high scheduling
+   priority and low latency requirement.  One concrete example from our
+   production is the VMM which have high priority low latency thread pool
+   for the VCPUs while separate thread pool for stats reporting, I/O
+   emulation, health checks and other managerial operations.  The kernel
+   memory reclaim does not differentiate between VCPU thread or a
+   non-latency sensitive thread and a VCPU thread can get stuck in high
+   reclaim.
+
+   One way to resolve this issue is to preemptively trigger the memory
+   reclaim from a latency tolerant task (uswapd) when the application is
+   near the limits.  Finding 'near the limits' situation is an orthogonal
+   problem.
+
+2) Proactive reclaim:
+
+   This is a similar to the previous use-case, the difference is
+   instead of waiting for the application to be near its limit to trigger
+   memory reclaim, continuously pressuring the memcg to reclaim a small
+   amount of memory.  This gives more accurate and uptodate workingset
+   estimation as the LRUs are continuously sorted and can potentially
+   provide more deterministic memory overcommit behavior.  The memory
+   overcommit controller can provide more proactive response to the
+   changing behavior of the running applications instead of being
+   reactive.
+
+Benefit of user space solution:
+-------------------------------
+
+1) More flexible on who should be charged for the cpu of the memory
+   reclaim.  For proactive reclaim, it makes more sense to centralized the
+   overhead while for uswapd, it makes more sense for the application to
+   pay for the cpu of the memory reclaim.
+
+2) More flexible on dedicating the resources (like cpu).  The memory
+   overcommit controller can balance the cost between the cpu usage and
+   the memory reclaimed.
+
+3) Provides a way to the applications to keep their LRUs sorted, so,
+   under memory pressure better reclaim candidates are selected.  This
+   also gives more accurate and uptodate notion of working set for an
+   application.
+
+Questions:
+----------
+
+1) Why memory.high is not enough?
+
+   memory.high can be used to trigger reclaim in a memcg and can
+   potentially be used for proactive reclaim as well as uswapd use cases.=
+=20
+   However there is a big negative in using memory.high.  It can
+   potentially introduce high reclaim stalls in the target application as
+   the allocations from the processes or the threads of the application
+   can hit the temporary memory.high limit.
+
+   Another issue with memory.high is that it is not delegatable.  To
+   actually use this interface for uswapd, the application has to
+   introduce another layer of cgroup on whose memory.high it has write
+   access.
+
+2) Why uswapd safe from self induced reclaim?
+
+   This is very similar to the scenario of oomd under global memory
+   pressure.  We can use the similar mechanisms to protect uswapd from
+   self induced reclaim i.e.  memory.min and mlock.
+
+Interface options:
+------------------
+
+Introducing a very simple memcg interface 'echo 10M > memory.reclaim' to
+trigger reclaim in the target memory cgroup.
+
+In future we might want to reclaim specific type of memory from a memcg,
+so, this interface can be extended to allow that. e.g.
+
+$ echo 10M [all|anon|file|kmem] > memory.reclaim
+
+However that should be when we have concrete use-cases for such
+functionality. Keep things simple for now.
+
+Link: https://lkml.kernel.org/r/20200909215752.1725525-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: SeongJae Park <sjpark@amazon.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Michal Koutn=C3=BD" <mkoutny@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/cgroup-v2.rst |    9 +++++
+ mm/memcontrol.c                         |   37 ++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
+
+--- a/Documentation/admin-guide/cgroup-v2.rst~memcg-introduce-per-memcg-rec=
+laim-interface
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1181,6 +1181,15 @@ PAGE_SIZE multiple when read back.
+ 	high limit is used and monitored properly, this limit's
+ 	utility is limited to providing the final safety net.
+=20
++  memory.reclaim
++	A write-only file which exists on non-root cgroups.
++
++	This is a simple interface to trigger memory reclaim in the
++	target cgroup. Write the number of bytes to reclaim to this
++	file and the kernel will try to reclaim that much memory.
++	Please note that the kernel can over or under reclaim from
++	the target cgroup.
++
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+ 	cgroups.  The default value is "0".
+--- a/mm/memcontrol.c~memcg-introduce-per-memcg-reclaim-interface
++++ a/mm/memcontrol.c
+@@ -6403,6 +6403,38 @@ static ssize_t memory_oom_group_write(st
+ 	return nbytes;
+ }
+=20
++static ssize_t memory_reclaim(struct kernfs_open_file *of, char *buf,
++			      size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg =3D mem_cgroup_from_css(of_css(of));
++	unsigned int nr_retries =3D MAX_RECLAIM_RETRIES;
++	unsigned long nr_to_reclaim, nr_reclaimed =3D 0;
++	int err;
++
++	buf =3D strstrip(buf);
++	err =3D page_counter_memparse(buf, "", &nr_to_reclaim);
++	if (err)
++		return err;
++
++	while (nr_reclaimed < nr_to_reclaim) {
++		unsigned long reclaimed;
++
++		if (signal_pending(current))
++			break;
++
++		reclaimed =3D try_to_free_mem_cgroup_pages(memcg,
++						nr_to_reclaim - nr_reclaimed,
++						GFP_KERNEL, true);
++
++		if (!reclaimed && !nr_retries--)
++			break;
++
++		nr_reclaimed +=3D reclaimed;
++	}
++
++	return nbytes;
++}
++
+ static struct cftype memory_files[] =3D {
+ 	{
+ 		.name =3D "current",
+@@ -6455,6 +6487,11 @@ static struct cftype memory_files[] =3D {
+ 		.seq_show =3D memory_oom_group_show,
+ 		.write =3D memory_oom_group_write,
+ 	},
++	{
++		.name =3D "reclaim",
++		.flags =3D CFTYPE_NOT_ON_ROOT | CFTYPE_NS_DELEGATABLE,
++		.write =3D memory_reclaim,
++	},
+ 	{ }	/* terminate */
+ };
+=20
+_
+
+Patches currently in -mm which might be from shakeelb@google.com are
+
+
