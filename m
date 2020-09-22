@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78ACDC2D0E2
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 19:43:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96044C4727D
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 19:43:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28652238D6
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 19:43:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48CF7238A1
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 19:43:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600803804;
-	bh=Q+XPYM45cH8Zwq1BUmUErEZ9T7Zk1cQtHrzTdCyXds4=;
+	s=default; t=1600803806;
+	bh=GlxmB7oGQvBwYcAIppMQakLSfB5LCpPStJztPcVZNtk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=otEFrRD6CMPlvyxxSb/Fv47jLuI6IKH66jo864n1HjIgqXkSjsFGy8CPqGOhjZEo5
-	 wKDVLl09zx7EdAdeI7UawXzK96hWcFXrLa1rbZ+WzTPcElRTMO2VIZ27dqosOTv2at
-	 UkD5XG1I8zRqn6SCr0biF++z3XCjvEvFDNlOUaLI=
+	b=lgLAVCs3b7MDgPKPU0+u6HIn10TwNFlRZAExwWROOJOz5Me4Nr/KEfmy/dj9Y2lgr
+	 bMFphkY1Q2QDpLiD9H+1uT5jXzf0w7BCPVsxRdkYpeYK94WhfDgdYxmBllhDd9Ffuq
+	 0foZ6MKAd0wKJenLEwFX9qxq+AQiO+45v+4JgKlY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726643AbgIVTnX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Sep 2020 15:43:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58630 "EHLO mail.kernel.org"
+        id S1726652AbgIVTn0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Sep 2020 15:43:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726607AbgIVTnX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Sep 2020 15:43:23 -0400
+        id S1726607AbgIVTnZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Sep 2020 15:43:25 -0400
 Received: from X1 (unknown [216.241.194.61])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E6E3D23787;
-        Tue, 22 Sep 2020 19:43:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EE91A2158C;
+        Tue, 22 Sep 2020 19:43:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600803803;
-        bh=Q+XPYM45cH8Zwq1BUmUErEZ9T7Zk1cQtHrzTdCyXds4=;
+        s=default; t=1600803805;
+        bh=GlxmB7oGQvBwYcAIppMQakLSfB5LCpPStJztPcVZNtk=;
         h=Date:From:To:Subject:From;
-        b=Y/2vxfCW9l6ej4JUS+/F6g65GdZ/hmve31nH5gGk6Hy3hHCP8JuEdFzCkuerwgZJn
-         GgMbRqVCuMbhz0D3a3iiPDC547G5RNf+ZVl5ygXoyVAGT4hgLg3zdFQczr5XNJ/Sng
-         16TRCNal7To+uF/vmJ4qkzH/kVIBNfOReSIi56w8=
-Date:   Tue, 22 Sep 2020 12:43:22 -0700
+        b=Jm33rRkCWL3g+zv/EHEfKzL1j6TE+20ad5K6QN3+kU4sDIscvMVLp9yRILro8dO5F
+         D1Eb+uqyPtPUOn1HyQZiv3xqUgjxisccNlxwKPj03JUWxI9WAtiqMi8/gJytdnPCgr
+         MBk0YLYbb55p56cbGlQYC4Em9/VZJT0WYtFn50Hw=
+Date:   Tue, 22 Sep 2020 12:43:24 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com, osalvador@suse.de,
         osalvador@suse.com, naoya.horiguchi@nec.com, mhocko@kernel.org,
-        cai@lca.pw, osalvador@suse.de
+        cai@lca.pw, akpm@linux-foundation.org
 Subject:  [to-be-updated]
- mmhwpoison-drop-unneeded-pcplist-draining.patch removed from -mm tree
-Message-ID: <20200922194322.b_3L8%akpm@linux-foundation.org>
+ mmhwpoison-drop-unneeded-pcplist-draining-fix.patch removed from -mm tree
+Message-ID: <20200922194324.ipf-2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,64 +54,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: drop unneeded pcplist draining
+     Subject: mmhwpoison-drop-unneeded-pcplist-draining-fix
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-drop-unneeded-pcplist-draining.patch
+     mmhwpoison-drop-unneeded-pcplist-draining-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: drop unneeded pcplist draining
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmhwpoison-drop-unneeded-pcplist-draining-fix
 
-memory_failure and soft_offline_path paths now drain pcplists by calling
-get_hwpoison_page.
+remove unused local `zone'
 
-memory_failure flags the page as HWPoison before, so that page cannot
-longer go into a pcplist, and soft_offline_page only flags a page as
-HWPoison if 1) we took the page off a buddy freelist 2) the page was
-in-use and we migrated it 3) was a clean pagecache.
-
-Because of that, a page cannot longer be poisoned and be in a pcplist.
-
-Link: https://lkml.kernel.org/r/20200908075626.11976-5-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Oscar Salvador <osalvador@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Qian Cai <cai@lca.pw>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/madvise.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/madvise.c~mmhwpoison-drop-unneeded-pcplist-draining
+--- a/mm/madvise.c~mmhwpoison-drop-unneeded-pcplist-draining-fix
 +++ a/mm/madvise.c
-@@ -917,10 +917,6 @@ static int madvise_inject_error(int beha
- 			return ret;
- 	}
+@@ -872,7 +872,6 @@ static long madvise_remove(struct vm_are
+ static int madvise_inject_error(int behavior,
+ 		unsigned long start, unsigned long end)
+ {
+-	struct zone *zone;
+ 	unsigned long size;
  
--	/* Ensure that all poisoned pages are removed from per-cpu lists */
--	for_each_populated_zone(zone)
--		drain_all_pages(zone);
--
- 	return 0;
- }
- #endif
+ 	if (!capable(CAP_SYS_ADMIN))
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmhwpoison-unexport-get_hwpoison_page-and-make-it-static.patch
-mmhwpoison-refactor-madvise_inject_error.patch
-mmhwpoison-kill-put_hwpoison_page.patch
-mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
-mmhwpoison-rework-soft-offline-for-free-pages.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
-mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
-mmhwpoison-try-to-narrow-window-race-for-free-pages.patch
-mmhwpoison-remove-stale-code.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+device-dax-make-pgmap-optional-for-instance-creation-fix.patch
+mm-memremap_pages-support-multiple-ranges-per-invocation-fix.patch
+device-dax-make-align-a-per-device-property-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
