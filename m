@@ -2,128 +2,75 @@ Return-Path: <SRS0=iiPm=C7=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6BFDC4363D
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:10:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53425C4363D
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:34:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7492B207C3
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:10:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05F4A2311C
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Sep 2020 17:34:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600794653;
-	bh=yYgr0KECvVMqDm5HVxk0pBVahHNoJPUb8vmJoqzfxYQ=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xhv9eCbNBFLVzZ80RZWWVPKy89y204sq+T6ByH7sWNqiQMDSr/w7eMYcwmJL3pgHF
-	 ZJaeIJ7wtaFKboSo8+OnMUBWU2Pg6atR0hF0zgr7E4LebSrg5RJBw+aDo8lp1LVW22
-	 3vhsa1RDYgNjxhVeave5pNpIa8d7odmbcyU4THvM=
+	s=default; t=1600796057;
+	bh=cwkQtjTlUawHnfi1R9kwlgW90Y2s8e5YmR1TzoxWoX4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Reply-To:List-ID:
+	 From;
+	b=GrMHT+0NT++j+0wJ1rr+tsjgZTVInNSXQFQHmiteW7Ng1W2sBrUSCN1ncoVLRb2P0
+	 C9eQCMzN8+ssV0gqbsxZfCoC3IdSvok9Ck25zDMv96EMyILp6VvWcmJ0Z8bC8wojNo
+	 FGd7H/biAXTe1QkbipcQvOr8aG5aPAGZLTC46HMc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726566AbgIVRKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Sep 2020 13:10:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51932 "EHLO mail.kernel.org"
+        id S1726652AbgIVReQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Sep 2020 13:34:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726558AbgIVRKx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Sep 2020 13:10:53 -0400
+        id S1726631AbgIVReQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Sep 2020 13:34:16 -0400
 Received: from X1 (unknown [216.241.194.61])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6C18420672;
-        Tue, 22 Sep 2020 17:10:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BF0F622206;
+        Tue, 22 Sep 2020 17:34:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600794652;
-        bh=yYgr0KECvVMqDm5HVxk0pBVahHNoJPUb8vmJoqzfxYQ=;
-        h=Date:From:To:Subject:From;
-        b=AM3s3hC/O8eO2NtbWrwT2W283VkXyHB8FhFA9gqnHo46G291j0YHfVebyATz+7Gtm
-         cWA+ysa0DReksZBOg6c6XVIDUPpRPi0FqPC3nTNeSVUKNp69jUZW3PqwG8sQG1LEE2
-         gca7XZiDZ0ERtyP5RwQEU6FXF8tzj2iABL/SEw58=
-Date:   Tue, 22 Sep 2020 10:10:51 -0700
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, david@redhat.com,
-        natechancellor@gmail.com
-Subject:  +
- kernel-resource-make-release_mem_region_adjustable-never-fail-fix.patch added
- to -mm tree
-Message-ID: <20200922171051.u_Jcf%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        s=default; t=1600796056;
+        bh=cwkQtjTlUawHnfi1R9kwlgW90Y2s8e5YmR1TzoxWoX4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=NtABOmRhI/lLt3P/0Z45VobBRiHnFsd6Z/NQM6nms7rGpHewDKWloZPyl8k/bdBQA
+         Ldc876ha/tw3FGMsyCYinpggBfyUH2CbblXa+vXBV9GR/33CkA2ekBXcEvUnkExO43
+         qDst/GIadN2d0nqzHSs6NxVgEQ+ofsmV2oZHaeAM=
+Date:   Tue, 22 Sep 2020 10:34:13 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Christian Borntraeger <borntraeger@de.ibm.com>
+Cc:     mm-commits@vger.kernel.org, will@kernel.org,
+        torvalds@linux-foundation.org, tglx@linutronix.de,
+        stable@vger.kernel.org, rppt@linux.ibm.com, richard@nod.at,
+        peterz@infradead.org, paulus@samba.org, mpe@ellerman.id.au,
+        mingo@redhat.com, luto@kernel.org, linux@armlinux.org.uk,
+        jgg@nvidia.com, jdike@addtoit.com, imbrenda@linux.ibm.com,
+        hca@linux.ibm.com, gerald.schaefer@linux.ibm.com,
+        dave.hansen@linux.intel.com, dave.hansen@intel.com,
+        catalin.marinas@arm.com, bp@alien8.de, benh@kernel.crashing.org,
+        aryabinin@virtuozzo.com, arnd@arndb.de, agordeev@linux.ibm.com,
+        gor@linux.ibm.com
+Subject: Re: + mm-gup-fix-gup_fast-with-dynamic-page-table-folding.patch
+ added to -mm tree
+Message-Id: <20200922103413.5e410c70c33577c8ca6d94cd@linux-foundation.org>
+In-Reply-To: <eac62020-0526-cbc9-18d3-499526ef7a14@de.ibm.com>
+References: <20200916003608.ib4Ln%akpm@linux-foundation.org>
+        <eac62020-0526-cbc9-18d3-499526ef7a14@de.ibm.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Mon, 21 Sep 2020 19:37:14 +0200 Christian Borntraeger <borntraeger@de.ibm.com> wrote:
 
-The patch titled
-     Subject: kernel/resource: fix use of ternary condition in release_mem_region_adjustable
-has been added to the -mm tree.  Its filename is
-     kernel-resource-make-release_mem_region_adjustable-never-fail-fix.patch
+> now that this is part of next, what are the plans for merging this in 5.9?
+> It does fix a data corruption issue on s390.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-resource-make-release_mem_region_adjustable-never-fail-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-resource-make-release_mem_region_adjustable-never-fail-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: kernel/resource: fix use of ternary condition in release_mem_region_adjustable
-
-Clang warns:
-
-kernel/resource.c:1281:53: warning: operator '?:' has lower precedence
-than '|'; '|' will be evaluated first
-[-Wbitwise-conditional-parentheses]
-        new_res = alloc_resource(GFP_KERNEL | alloc_nofail ? __GFP_NOFAIL : 0);
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~~ ^
-kernel/resource.c:1281:53: note: place parentheses around the '|'
-expression to silence this warning
-        new_res = alloc_resource(GFP_KERNEL | alloc_nofail ? __GFP_NOFAIL : 0);
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~~ ^
-kernel/resource.c:1281:53: note: place parentheses around the '?:'
-expression to evaluate it first
-        new_res = alloc_resource(GFP_KERNEL | alloc_nofail ? __GFP_NOFAIL : 0);
-                                                           ^
-                                              (                              )
-1 warning generated.
-
-Add the parentheses as it was clearly intended for the ternary condition
-to be evaluated first.
-
-Link: https://lkml.kernel.org/r/20200922060748.2452056-1-natechancellor@gmail.com
-Fixes: 5fd23bd0d739 ("kernel/resource: make release_mem_region_adjustable() never fail")
-Link: https://github.com/ClangBuiltLinux/linux/issues/1159
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/kernel/resource.c~kernel-resource-make-release_mem_region_adjustable-never-fail-fix
-+++ a/kernel/resource.c
-@@ -1279,7 +1279,7 @@ void release_mem_region_adjustable(struc
- 	 * similarly).
- 	 */
- retry:
--	new_res = alloc_resource(GFP_KERNEL | alloc_nofail ? __GFP_NOFAIL : 0);
-+	new_res = alloc_resource(GFP_KERNEL | (alloc_nofail ? __GFP_NOFAIL : 0));
- 
- 	p = &parent->child;
- 	write_lock(&resource_lock);
-_
-
-Patches currently in -mm which might be from natechancellor@gmail.com are
-
-kernel-resource-make-release_mem_region_adjustable-never-fail-fix.patch
-
+It'll be in this week's hotfix pile for Linus.
