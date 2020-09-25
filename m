@@ -7,44 +7,42 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7C4FC4346E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AACC4346E
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:57:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74FAE21481
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:55:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C39B20888
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:57:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601002514;
-	bh=0928Hhr5r6owJMddPtDvkbl+1+QDEdLcZfjl7WYRLQ0=;
+	s=default; t=1601002647;
+	bh=OtreFy8hfeU/11hfh8JZgUvIpZmxxanADXKulK7j94I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=IWK0S53gr6E6PryvIqvPc5n+wBXhpauqxVAEFehSSvCQRBJGryWxOohV8GL1sg/Yu
-	 weYPkCZ2osSRhJrQef0XwQPFRDGT8pkCzzXC+/+4ttzrOfNdfsnDwfm7lcEEPrCrOL
-	 04pbXhmW6mOrVxUqRdSFOZxRhs5ZI5xXl4ocwucY=
+	b=xTZaDBCrq5Oi/71x9zWJJQGqHtFUypGntMMPw/F3HxkWjjjDZEHo1FZAdDa4Uw9hW
+	 bgVnPeXYl0bK5EuONJ52HoqZ2OSQAXyEL+59sNXxM3wDfhnSIN43FVlHFfX5wv1lJa
+	 cyjwi2e138P3kvOJSlencvJgFQCtaPs8977uS4HQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726867AbgIYCzO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Sep 2020 22:55:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50784 "EHLO mail.kernel.org"
+        id S1726704AbgIYC51 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Sep 2020 22:57:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726706AbgIYCzM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Sep 2020 22:55:12 -0400
+        id S1726676AbgIYC51 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Sep 2020 22:57:27 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B64CF20888;
-        Fri, 25 Sep 2020 02:55:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9DF6F20838;
+        Fri, 25 Sep 2020 02:57:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601002512;
-        bh=0928Hhr5r6owJMddPtDvkbl+1+QDEdLcZfjl7WYRLQ0=;
+        s=default; t=1601002646;
+        bh=OtreFy8hfeU/11hfh8JZgUvIpZmxxanADXKulK7j94I=;
         h=Date:From:To:Subject:From;
-        b=jo+jmzkHJ0fOlqMOrygd3ca+n5585dxq1CbQ47vj1QFqaX8qTXLDNDYTbzQwhcey4
-         MdEBKGsZxNmn2cYM3gtVjCiJHvK5hqB0E8aq1T4NLPcdrCKzOiAEZ191H8JQ07XM++
-         QB1UopOW85OJISh9zjh7Rz+6FzfvezOvdhvcWMfI=
-Date:   Thu, 24 Sep 2020 19:55:11 -0700
+        b=lTVBXB3WlG7v+ovUk6cYkPg5s00HDU+SVpr6/CwH/zkWows/8iwDBsd3u7EQ7S8EZ
+         6r9JdcVdx1zJIYc7w1JOPaZjsVO+RknmHVLRtdCSVZuZPs+wm+mF1Y0QKYEG8CWQ1S
+         s/yAmvz0a2Z1joE5iWErKeWVoGYuO1dUiroVPN7I=
+Date:   Thu, 24 Sep 2020 19:57:26 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mchehab+huawei@kernel.org,
-        krzk@kernel.org, corbet@lwn.net, kernel@cdqe.de
-Subject:  +
- lib-crc32c-fix-trivial-typo-in-preprocessor-condition.patch added to -mm tree
-Message-ID: <20200925025511.iPPZO%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  + mm-remove-unused-early_pfn_valid.patch added to -mm tree
+Message-ID: <20200925025726.bQoBs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/crc32.c: fix trivial typo in preprocessor condition
+     Subject: include/linux/mmzone.h: remove unused early_pfn_valid()
 has been added to the -mm tree.  Its filename is
-     lib-crc32c-fix-trivial-typo-in-preprocessor-condition.patch
+     mm-remove-unused-early_pfn_valid.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-crc32c-fix-trivial-typo-in-preprocessor-condition.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unused-early_pfn_valid.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-crc32c-fix-trivial-typo-in-preprocessor-condition.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unused-early_pfn_valid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,42 +72,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tobias Jordan <kernel@cdqe.de>
-Subject: lib/crc32.c: fix trivial typo in preprocessor condition
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: include/linux/mmzone.h: remove unused early_pfn_valid()
 
-Whether crc32_be needs a lookup table is chosen based on CRC_LE_BITS. 
-Obviously, the _be function should be governed by the _BE_ define.
+The early_pfn_valid() macro is defined but it is never used.  Remove it.
 
-This probably never pops up as it's hard to come up with a configuration
-where CRC_BE_BITS isn't the same as CRC_LE_BITS and as nobody is using
-bitwise CRC anyway.
-
-Link: https://lkml.kernel.org/r/20200923182122.GA3338@agrajag.zerfleddert.de
-Fixes: 46c5801eaf86 ("crc32: bolt on crc32c")
-Signed-off-by: Tobias Jordan <kernel@cdqe.de>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Link: https://lkml.kernel.org/r/20200923162915.26935-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmzone.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/lib/crc32.c~lib-crc32c-fix-trivial-typo-in-preprocessor-condition
-+++ a/lib/crc32.c
-@@ -331,7 +331,7 @@ static inline u32 __pure crc32_be_generi
- 	return crc;
- }
+--- a/include/linux/mmzone.h~mm-remove-unused-early_pfn_valid
++++ a/include/linux/mmzone.h
+@@ -1420,7 +1420,6 @@ static inline unsigned long next_present
+ #define pfn_to_nid(pfn)		(0)
+ #endif
  
--#if CRC_LE_BITS == 1
-+#if CRC_BE_BITS == 1
- u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
- 	return crc32_be_generic(crc, p, len, NULL, CRC32_POLY_BE);
+-#define early_pfn_valid(pfn)	pfn_valid(pfn)
+ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+@@ -1440,10 +1439,6 @@ struct mminit_pfnnid_cache {
+ 	int last_nid;
+ };
+ 
+-#ifndef early_pfn_valid
+-#define early_pfn_valid(pfn)	(1)
+-#endif
+-
+ /*
+  * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
+  * need to check pfn validity within that MAX_ORDER_NR_PAGES block.
 _
 
-Patches currently in -mm which might be from kernel@cdqe.de are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-lib-crc32c-fix-trivial-typo-in-preprocessor-condition.patch
+mm-account-pmd-tables-like-pte-tables-fix.patch
+kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
+dma-contiguous-simplify-cma_early_percent_memory.patch
+arm-xtensa-simplify-initialization-of-high-memory-pages.patch
+arm64-numa-simplify-dummy_numa_init.patch
+h8300-nds32-openrisc-simplify-detection-of-memory-extents.patch
+riscv-drop-unneeded-node-initialization.patch
+mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
+memblock-make-for_each_memblock_type-iterator-private.patch
+memblock-make-memblock_debug-and-related-functionality-private.patch
+memblock-reduce-number-of-parameters-in-for_each_mem_range.patch
+arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix-2.patch
+x86-setup-simplify-initrd-relocation-and-reservation.patch
+x86-setup-simplify-reserve_crashkernel.patch
+memblock-remove-unused-memblock_mem_size.patch
+memblock-implement-for_each_reserved_mem_region-using-__next_mem_region.patch
+memblock-use-separate-iterators-for-memory-and-reserved-regions.patch
+mm-remove-unused-early_pfn_valid.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
