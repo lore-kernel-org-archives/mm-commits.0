@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3754C4346E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:41:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E903C4346E
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:41:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 706652137B
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:41:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15A7320809
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:41:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601001670;
-	bh=3haN7B/AcRR+lBZerZGhBOyEHYaf6qzRUH5WXrWJYc8=;
+	s=default; t=1601001674;
+	bh=4kQnrCxZ0rvQnpOrEfRXALnZsFrmrzZYilPKafJOzv0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=1aVQPBNcjqnDWOvE7UJQgVg66pVDEtz7GK5jB6eCqvT8uiXXleETf6+168RRfxYva
-	 YRAAt91xCe5fW8r48d655proiWOM16mTAWZWUY+eEBOdZRKDICwSMeZSWS009tfe+A
-	 jhDR2lGtWc2/1JuQhgqQuJh12LV70ZDW+jlGHTLE=
+	b=WiuhAyb9qJvuBeRqOjY87IFdAT557scKEJgRcHX+SoGPdV1J01Ak7D2RQJRZJHEz1
+	 CYTnyBsrI5OEaAaHG2Yog/Ji2nLGXPRXAq4+9ef8ff27/4TNZbLeQ8Q9mfkVBQqrkL
+	 SqqQ4JrR9IcVGVloLGLGL2g3Rzg705wwE8biwcQw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726928AbgIYClK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Sep 2020 22:41:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49110 "EHLO mail.kernel.org"
+        id S1726992AbgIYClN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Sep 2020 22:41:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726925AbgIYClJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Sep 2020 22:41:09 -0400
+        id S1726676AbgIYClL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Sep 2020 22:41:11 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BFE2D20809;
-        Fri, 25 Sep 2020 02:41:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BCF8B2137B;
+        Fri, 25 Sep 2020 02:41:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601001668;
-        bh=3haN7B/AcRR+lBZerZGhBOyEHYaf6qzRUH5WXrWJYc8=;
+        s=default; t=1601001671;
+        bh=4kQnrCxZ0rvQnpOrEfRXALnZsFrmrzZYilPKafJOzv0=;
         h=Date:From:To:Subject:From;
-        b=YR8YwlQink9abKKQj5glg2C2PAlu9NlwegBHPK3hLgUckvQT43zivwRUP8viGj7Nr
-         0k/mV8uwMI6DRr3XSW511nscEDq+qq0BRcS/zx/01XneySrBXc58b5NYVSq2qfZHuf
-         KK2LGmxDAldv9O/43RN3DBrv9Yk4c1yAO8JTBcpY=
-Date:   Thu, 24 Sep 2020 19:41:08 -0700
+        b=pGkyjw34LOcsIKKhXKleAFtykoXe1Ajz+B8c0TTvn/+Xm/RjXS0xU0TY4om+fOKVx
+         MwZNxTo1TctZCCVvl/FCMVvkiMrt1iydreF1ygcoHyxv5Al005KzFJehKmr6i+aLCh
+         Umfis4d3Zl8i9J+vVSPnnBxwCCIXjcf3dCRAcyAo=
+Date:   Thu, 24 Sep 2020 19:41:10 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 Subject:  +
- mm-mempool-add-else-to-split-mutually-exclusive-case.patch added to -mm tree
-Message-ID: <20200925024108.aLvwD%akpm@linux-foundation.org>
+ mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch added to -mm
+ tree
+Message-ID: <20200925024110.1NMEP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempool: Add 'else' to split mutually exclusive case
+     Subject: mm-mempool-add-else-to-split-mutually-exclusive-case-fix
 has been added to the -mm tree.  Its filename is
-     mm-mempool-add-else-to-split-mutually-exclusive-case.patch
+     mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-add-else-to-split-mutually-exclusive-case.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-add-else-to-split-mutually-exclusive-case.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,83 +75,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mempool: Add 'else' to split mutually exclusive case
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mempool-add-else-to-split-mutually-exclusive-case-fix
 
-Add else to split mutually exclusive case and avoid some unnecessary check.
-It doesn't seem to change code generation (compiler is smart), but I think
-it helps readability.
+fix comment location
 
-Link: https://lkml.kernel.org/r/20200924111641.28922-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ mm/mempool.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mempool.c~mm-mempool-add-else-to-split-mutually-exclusive-case
+--- a/mm/mempool.c~mm-mempool-add-else-to-split-mutually-exclusive-case-fix
 +++ a/mm/mempool.c
-@@ -58,11 +58,10 @@ static void __check_element(mempool_t *p
- static void check_element(mempool_t *pool, void *element)
- {
+@@ -60,8 +60,8 @@ static void check_element(mempool_t *poo
  	/* Mempools backed by slab allocator */
--	if (pool->free == mempool_free_slab || pool->free == mempool_kfree)
-+	if (pool->free == mempool_free_slab || pool->free == mempool_kfree) {
+ 	if (pool->free == mempool_free_slab || pool->free == mempool_kfree) {
  		__check_element(pool, element, ksize(element));
--
- 	/* Mempools backed by page allocator */
--	if (pool->free == mempool_free_pages) {
-+	} else if (pool->free == mempool_free_pages) {
+-	/* Mempools backed by page allocator */
+ 	} else if (pool->free == mempool_free_pages) {
++		/* Mempools backed by page allocator */
  		int order = (int)(long)pool->pool_data;
  		void *addr = kmap_atomic((struct page *)element);
  
-@@ -82,11 +81,10 @@ static void __poison_element(void *eleme
- static void poison_element(mempool_t *pool, void *element)
- {
+@@ -83,8 +83,8 @@ static void poison_element(mempool_t *po
  	/* Mempools backed by slab allocator */
--	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc) {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc) {
  		__poison_element(element, ksize(element));
--
- 	/* Mempools backed by page allocator */
--	if (pool->alloc == mempool_alloc_pages) {
-+	} else if (pool->alloc == mempool_alloc_pages) {
+-	/* Mempools backed by page allocator */
+ 	} else if (pool->alloc == mempool_alloc_pages) {
++		/* Mempools backed by page allocator */
  		int order = (int)(long)pool->pool_data;
  		void *addr = kmap_atomic((struct page *)element);
- 
-@@ -107,7 +105,7 @@ static __always_inline void kasan_poison
- {
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		kasan_poison_kfree(element, _RET_IP_);
--	if (pool->alloc == mempool_alloc_pages)
-+	else if (pool->alloc == mempool_alloc_pages)
- 		kasan_free_pages(element, (unsigned long)pool->pool_data);
- }
- 
-@@ -115,7 +113,7 @@ static void kasan_unpoison_element(mempo
- {
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
- 		kasan_unpoison_slab(element);
--	if (pool->alloc == mempool_alloc_pages)
-+	else if (pool->alloc == mempool_alloc_pages)
- 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
- }
  
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swap-fix-confusing-comment-in-release_pages.patch
-mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
-mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
-mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
-mm-memcontrol-remove-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
-mm-use-helper-function-mapping_allow_writable.patch
-mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct.patch
-mm-mempool-add-else-to-split-mutually-exclusive-case.patch
-mm-vmstat-use-helper-macro-abs.patch
-mm-fix-some-broken-comments.patch
-mm-use-helper-function-put_write_access.patch
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+device-dax-make-pgmap-optional-for-instance-creation-fix.patch
+mm-memremap_pages-support-multiple-ranges-per-invocation-fix.patch
+device-dax-make-align-a-per-device-property-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
