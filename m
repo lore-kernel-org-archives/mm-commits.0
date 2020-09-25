@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F00F5C4346E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:51:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35028C4346E
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:52:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B55A72137B
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:51:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB28721481
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601002318;
-	bh=xqm2lalNg8FQUKFuYmadKW1lLJUWtO5xVDUN7WfzjTU=;
+	s=default; t=1601002354;
+	bh=s/HdbBS1UehdyeCCPAL4AWwE5WTWtA8TK6q/2tWhzGQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=DgSjtFYlrRmIFQgbsajoLuUmRui39e+u1p+/NkMuZJrZuew7MG61OdfTyjxWk7LaA
-	 a0xuopPNiY4FmZrV+mj3fiO8fX3oREjXJkuedm5+if7opOiHtN/OVMpIPbQiCsaZ9C
-	 CX2OV+tO1rtcglN/QQD9p9YPvi+Ww02MqV+Klbds=
+	b=nJYpX4jdWSZB7H5FtUr0HZVBpYPHSK4i6Rfhlq6uwvcKTTNYRG5UoxJQ0WKwduvbJ
+	 UusUDp8Bi93e26jdGDPCS2hGyG1MSlMOBb5qklWtPjJd206pkmjjEaisTR14br5tT0
+	 caewzoGtWEFIC/ANcPoXWxZjIyg4f5E+YzGJoMwc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726843AbgIYCv6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Sep 2020 22:51:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50424 "EHLO mail.kernel.org"
+        id S1726867AbgIYCwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Sep 2020 22:52:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726738AbgIYCv6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Sep 2020 22:51:58 -0400
+        id S1726704AbgIYCwe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Sep 2020 22:52:34 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AC26F20888;
-        Fri, 25 Sep 2020 02:51:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 54FFF20888;
+        Fri, 25 Sep 2020 02:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601002317;
-        bh=xqm2lalNg8FQUKFuYmadKW1lLJUWtO5xVDUN7WfzjTU=;
+        s=default; t=1601002353;
+        bh=s/HdbBS1UehdyeCCPAL4AWwE5WTWtA8TK6q/2tWhzGQ=;
         h=Date:From:To:Subject:From;
-        b=zhvow99k015blVe7KYYAXoL0qMcnVin001d2SaQ1JTY5IWOjlkeSvAhILDDU1PRjH
-         54/0Nm45qGpL83db/2mJd7qGRLTlsBFrOS0bpnsZDUQeRnKY3NXTzFOipSeBbeEr+8
-         ryWDZ2jj8IzA1PRe+se+//ede7hdYz1ZcVj4K3Ek=
-Date:   Thu, 24 Sep 2020 19:51:56 -0700
+        b=TiMYoJieFr0pCKTRvwNW/ZwYITLiuLIc96XgO47a8/ZAsoX3VgQLaNT5uW6W0rOHX
+         v99ZIOv/mMit1KAgzOQZRSllLQgZSrN+yb+Ix9f8Q5aI6zVCDrsc4deXD5RTUSbK4o
+         SfIjCEhpMBx6pmxahOUPKlCcBL0yZNuk50jqqbZY=
+Date:   Thu, 24 Sep 2020 19:52:32 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
         songliubraving@fb.com, pasha.tatashin@soleen.com, oleg@redhat.com,
         mhocko@suse.com, kirill.shutemov@linux.intel.com,
         apais@microsoft.com, aarcange@redhat.com,
         vijayb@linux.microsoft.com
-Subject:  +
- mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch added to -mm
- tree
-Message-ID: <20200925025156.Q7pMC%akpm@linux-foundation.org>
+Subject:  [to-be-updated]
+ mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch removed from
+ -mm tree
+Message-ID: <20200925025232._Ro5x%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,24 +58,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm: khugepaged: avoid overriding min_free_kbytes set by user
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Vijay Balakrishna <vijayb@linux.microsoft.com>
@@ -132,5 +118,4 @@ _
 Patches currently in -mm which might be from vijayb@linux.microsoft.com are
 
 mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
-mm-khugepaged-avoid-overriding-min_free_kbytes-set-by-user.patch
 
