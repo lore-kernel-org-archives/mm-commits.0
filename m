@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F4AFC4346E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:36:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F5CC4346E
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:37:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C953F20EDD
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:36:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B925420EDD
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:37:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601001410;
-	bh=cxGR7vpRosRqY5ey9HZlw9vbDY7bVqt70RoXJ96nrIQ=;
+	s=default; t=1601001469;
+	bh=Lc+ty4px+9TVZ2zJRp0uCz1OGTN7lNiCJkorfgk6ERM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=08wBOcHctCFtdfnAUmAV8+GLd/djweaq2+ScnVaxP5nMNrFcfQvm1ODQJuiO1uI4d
-	 Nje/5vo2mMIbm5aTHrT9kTM/cdOO/2KhEvmJViHAzSE+ttDDcExFRfoeG55aGZs1bt
-	 /EZv4dNdUjheKyoOQ8pF4XoKJXVEepldIGCZ8/3Q=
+	b=NYrrPHCo4fXOsMVlvnPbUCgpC8YB+7kJ94K0NeRDZGu8bSM/FlMptVxAonMsSgy2I
+	 MSyo8vtMQMOtdCGEu3suUyBp0ktD2eMSevp45LKvhfCNciV1TyJgtquklN8ZY55Q3b
+	 cwrAotwpQDeW2noa8K3ZjuBqDYre64jVcnNKTZoc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726758AbgIYCgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Sep 2020 22:36:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48590 "EHLO mail.kernel.org"
+        id S1726694AbgIYCht (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Sep 2020 22:37:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726448AbgIYCgu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Sep 2020 22:36:50 -0400
+        id S1726676AbgIYCht (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Sep 2020 22:37:49 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A83D5207C4;
-        Fri, 25 Sep 2020 02:36:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AC25E207C4;
+        Fri, 25 Sep 2020 02:37:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601001409;
-        bh=cxGR7vpRosRqY5ey9HZlw9vbDY7bVqt70RoXJ96nrIQ=;
+        s=default; t=1601001468;
+        bh=Lc+ty4px+9TVZ2zJRp0uCz1OGTN7lNiCJkorfgk6ERM=;
         h=Date:From:To:Subject:From;
-        b=W2WLILjJUxcuBjMyR+CWTp/PtkSAfY1UCpPuG2QssKvB0YN5reRgeZvDZPClPA756
-         yEPfffX8ZvheXRCK+FG+9z5ChWrQS9QsD1OWSdtjQLG0GfJOh+As5p7syXEHiw2CtJ
-         yvQbTBWVnPikfAbycIeZCQJPbEXYrhHlguSWJ5Qk=
-Date:   Thu, 24 Sep 2020 19:36:49 -0700
+        b=qvvwA9vlmOJ5Lcfaea6C//jl/2VCExiahy9LMJmPc/lJWhmqU/zB3VnWgIXtlSKeK
+         GkMmq5h4BA2QXSXtlMv891aSvHRyeYwTFY0ue845uOphtj7M2Ngy7LejBs0VBV4Z2A
+         Nx1Xt3B3AiEgopyN68EQRw2dUPa7o1DST93jNI9U=
+Date:   Thu, 24 Sep 2020 19:37:48 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com
-Subject:  + mm-use-helper-function-put_write_access.patch added to
- -mm tree
-Message-ID: <20200925023649.TfAoA%akpm@linux-foundation.org>
+Subject:  +
+ =?us-ascii?Q?mm-swap=5Fslotsc-remove-always-zero-and-unused-return-value-?=
+ =?us-ascii?Q?of-enable=5Fswap=5Fslots=5Fcache.patch?= added to -mm tree
+Message-ID: <20200925023748.uTpnC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use helper function put_write_access()
+     Subject: mm/swap_slots.c: remove always zero and unused return value of enable_swap_slots_cache()
 has been added to the -mm tree.  Its filename is
-     mm-use-helper-function-put_write_access.patch
+     mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-helper-function-put_write_access.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-helper-function-put_write_access.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,48 +77,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: use helper function put_write_access()
+Subject: mm/swap_slots.c: remove always zero and unused return value of enable_swap_slots_cache()
 
-In commit 1da177e4c3f4 ("Linux-2.6.12-rc2"), the helper put_write_access()
-came with the atomic_dec operation of the i_writecount field.  But it
-forgot to use this helper in __vma_link_file() and dup_mmap().
+enable_swap_slots_cache() always return zero and its return value is just
+ignored by the caller.  So make enable_swap_slots_cache() void.
 
-Link: https://lkml.kernel.org/r/20200924115235.5111-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20200924113554.50614-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- mm/mmap.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swap_slots.h |    2 +-
+ mm/swap_slots.c            |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/kernel/fork.c~mm-use-helper-function-put_write_access
-+++ a/kernel/fork.c
-@@ -555,7 +555,7 @@ static __latent_entropy int dup_mmap(str
+--- a/include/linux/swap_slots.h~mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache
++++ a/include/linux/swap_slots.h
+@@ -23,7 +23,7 @@ struct swap_slots_cache {
  
- 			get_file(file);
- 			if (tmp->vm_flags & VM_DENYWRITE)
--				atomic_dec(&inode->i_writecount);
-+				put_write_access(inode);
- 			i_mmap_lock_write(mapping);
- 			if (tmp->vm_flags & VM_SHARED)
- 				mapping_allow_writable(mapping);
---- a/mm/mmap.c~mm-use-helper-function-put_write_access
-+++ a/mm/mmap.c
-@@ -619,7 +619,7 @@ static void __vma_link_file(struct vm_ar
- 		struct address_space *mapping = file->f_mapping;
+ void disable_swap_slots_cache_lock(void);
+ void reenable_swap_slots_cache_unlock(void);
+-int enable_swap_slots_cache(void);
++void enable_swap_slots_cache(void);
+ int free_swap_slot(swp_entry_t entry);
  
- 		if (vma->vm_flags & VM_DENYWRITE)
--			atomic_dec(&file_inode(file)->i_writecount);
-+			put_write_access(file_inode(file));
- 		if (vma->vm_flags & VM_SHARED)
- 			mapping_allow_writable(mapping);
+ extern bool swap_slot_cache_enabled;
+--- a/mm/swap_slots.c~mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache
++++ a/mm/swap_slots.c
+@@ -237,7 +237,7 @@ static int free_slot_cache(unsigned int
+ 	return 0;
+ }
  
+-int enable_swap_slots_cache(void)
++void enable_swap_slots_cache(void)
+ {
+ 	mutex_lock(&swap_slots_cache_enable_mutex);
+ 	if (!swap_slot_cache_initialized) {
+@@ -255,7 +255,6 @@ int enable_swap_slots_cache(void)
+ 	__reenable_swap_slots_cache();
+ out_unlock:
+ 	mutex_unlock(&swap_slots_cache_enable_mutex);
+-	return 0;
+ }
+ 
+ /* called with swap slot cache's alloc lock held */
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 mm-swap-fix-confusing-comment-in-release_pages.patch
+mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
 mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
 mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
 mm-memcontrol-remove-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
