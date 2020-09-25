@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27BBBC4346E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:36:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2798DC4363D
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:36:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD29A2137B
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:36:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D83762137B
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Sep 2020 02:36:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601001364;
-	bh=PVJXEN1Ps60Vq0rZbN63sEFzN3pMg7tnzdbHa08w0qQ=;
+	s=default; t=1601001368;
+	bh=BRPHZ7ZO0cPhDK3X4obWOQfZiGkpOwpPzLx2lA+9tHY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=s6WgO3GqNVr2fbXn/BSIgREKoN5aL8FQtjxkr7evxpBBEuXjr9b4QwEuCnD79FBNI
-	 NqJ7CWCiYWHppNojoMJl2ACwG9P6HyIP/zkpe1Gg4igHfMc3unjgcBy0+/VLvDgoK7
-	 76uQgFRzw14seg9fmHrmqddMRSLz5FgsYLYPVTPs=
+	b=SVH6PyYo9ehj9WDHvRxLDpFcuvV6fYsqqOd2Jl8Ic57D135bh5f3oZmlDL3m+0Y0n
+	 8+U/NGlFGSz6oMk/v5G95xYsdvcxlgd4tnv3SlQiiY/nE9AwzV18iWlVNdMCJug7oH
+	 lPS1qEugtQyHGaiQ4VsBkkMPhYvPfF+uULaylBGU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726973AbgIYCgE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Sep 2020 22:36:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48430 "EHLO mail.kernel.org"
+        id S1726764AbgIYCgI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Sep 2020 22:36:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726764AbgIYCgE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 24 Sep 2020 22:36:04 -0400
+        id S1726718AbgIYCgI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 24 Sep 2020 22:36:08 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 00F3020EDD;
-        Fri, 25 Sep 2020 02:36:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F0C4420888;
+        Fri, 25 Sep 2020 02:36:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601001363;
-        bh=PVJXEN1Ps60Vq0rZbN63sEFzN3pMg7tnzdbHa08w0qQ=;
+        s=default; t=1601001367;
+        bh=BRPHZ7ZO0cPhDK3X4obWOQfZiGkpOwpPzLx2lA+9tHY=;
         h=Date:From:To:Subject:From;
-        b=hVXO+kq1XvyCIWWD9uT3D7zLEjyQs+Hc27HQrC1osUfYv5hRnA0qQ1bD3E8vz6sog
-         q7F8sNTY5z9hgOGoRotBr7V2GqtcVqXed3IYn4LeVq36EySylROOEFCTgkIgy52BHL
-         HB/mQdtV5bXDe+e6JflzOAH79QuPisESwVNHSqjU=
-Date:   Thu, 24 Sep 2020 19:36:01 -0700
+        b=Ogzkzhx8OPgCVTYsc01wjqkrkUIqSfV9pqSDgDKZSPlIyV2EwazlF106gxca0uEsL
+         8sf90Ppvbb/NftSXautMJoLmoUPae5WM78QcBR7AXcIwKkjDfa1JXbj1EY48+yWTWk
+         5CWHnzQY4aNpGvEf4NyrQ/rLMCjjGMixznbCznaw=
+Date:   Thu, 24 Sep 2020 19:36:05 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         viro@zeniv.linux.org.uk, tycho@tycho.ws, tglx@linutronix.de,
@@ -50,10 +50,9 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         david@redhat.com, dave.hansen@linux.intel.com,
         dan.j.williams@intel.com, cl@linux.com, catalin.marinas@arm.com,
         bp@alien8.de, arnd@arndb.de, rppt@linux.ibm.com
-Subject:  +
- mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+Subject:  + secretmem-test-add-basic-selftest-for-memfd_secret2.patch
  added to -mm tree
-Message-ID: <20200925023601.QaHKr%akpm@linux-foundation.org>
+Message-ID: <20200925023605.8gyWL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -62,14 +61,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: secretmem: use PMD-size pages to amortize direct map fragmentation
+     Subject: secretmem: test: add basic selftest for memfd_secret(2)
 has been added to the -mm tree.  Its filename is
-     mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+     secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -84,17 +83,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: secretmem: use PMD-size pages to amortize direct map fragmentation
+Subject: secretmem: test: add basic selftest for memfd_secret(2)
 
-Removing a PAGE_SIZE page from the direct map every time such page is
-allocated for a secret memory mapping will cause severe fragmentation of
-the direct map.  This fragmentation can be reduced by using PMD-size pages
-as a pool for small pages for secret memory mappings.
+The test verifies that file descriptor created with memfd_secret does not
+allow read/write operations, that secret memory mappings respect
+RLIMIT_MEMLOCK and that remote accesses with process_vm_read() and
+ptrace() to the secret memory fail.
 
-Add a gen_pool per secretmem inode and lazily populate this pool with
-PMD-size pages.
-
-Link: https://lkml.kernel.org/r/20200924132904.1391-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200924132904.1391-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -125,204 +121,363 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |  107 ++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 88 insertions(+), 19 deletions(-)
+ tools/testing/selftests/vm/.gitignore     |    1 
+ tools/testing/selftests/vm/Makefile       |    3 
+ tools/testing/selftests/vm/memfd_secret.c |  301 ++++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests    |   17 +
+ 4 files changed, 321 insertions(+), 1 deletion(-)
 
---- a/mm/secretmem.c~mm-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation
-+++ a/mm/secretmem.c
-@@ -12,6 +12,7 @@
- #include <linux/bitops.h>
- #include <linux/printk.h>
- #include <linux/pagemap.h>
-+#include <linux/genalloc.h>
- #include <linux/syscalls.h>
- #include <linux/pseudo_fs.h>
- #include <linux/set_memory.h>
-@@ -40,24 +41,66 @@
- #define SECRETMEM_FLAGS_MASK	SECRETMEM_MODE_MASK
+--- a/tools/testing/selftests/vm/.gitignore~secretmem-test-add-basic-selftest-for-memfd_secret2
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -20,3 +20,4 @@ va_128TBswitch
+ map_fixed_noreplace
+ write_to_hugetlbfs
+ hmm-tests
++memfd_secret
+--- a/tools/testing/selftests/vm/Makefile~secretmem-test-add-basic-selftest-for-memfd_secret2
++++ a/tools/testing/selftests/vm/Makefile
+@@ -38,6 +38,7 @@ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+ TEST_GEN_FILES += khugepaged
++TEST_GEN_FILES += memfd_secret
  
- struct secretmem_ctx {
-+	struct gen_pool *pool;
- 	unsigned int mode;
- };
+ ifeq ($(ARCH),x86_64)
+ CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bit_program.c -m32)
+@@ -129,4 +130,4 @@ endif
  
--static struct page *secretmem_alloc_page(gfp_t gfp)
-+static int secretmem_pool_increase(struct secretmem_ctx *ctx, gfp_t gfp)
- {
--	/*
--	 * FIXME: use a cache of large pages to reduce the direct map
--	 * fragmentation
--	 */
--	return alloc_page(gfp);
-+	unsigned long nr_pages = (1 << PMD_PAGE_ORDER);
-+	struct gen_pool *pool = ctx->pool;
-+	unsigned long addr;
-+	struct page *page;
-+	int err;
+ $(OUTPUT)/userfaultfd: LDLIBS += -lpthread
+ 
+-$(OUTPUT)/mlock-random-test: LDLIBS += -lcap
++$(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+--- /dev/null
++++ a/tools/testing/selftests/vm/memfd_secret.c
+@@ -0,0 +1,301 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright 2020, Mike Rapoport, IBM Corporation.
++ */
 +
-+	page = alloc_pages(gfp, PMD_PAGE_ORDER);
-+	if (!page)
-+		return -ENOMEM;
++#define _GNU_SOURCE
++#include <sys/uio.h>
++#include <sys/mman.h>
++#include <sys/wait.h>
++#include <sys/types.h>
++#include <sys/ptrace.h>
++#include <sys/syscall.h>
++#include <sys/resource.h>
++#include <sys/capability.h>
 +
-+	addr = (unsigned long)page_address(page);
-+	split_page(page, PMD_PAGE_ORDER);
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <errno.h>
++#include <stdio.h>
 +
-+	err = gen_pool_add(pool, addr, PMD_SIZE, NUMA_NO_NODE);
-+	if (err) {
-+		__free_pages(page, PMD_PAGE_ORDER);
-+		return err;
++#include "../kselftest.h"
++
++#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
++#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
++#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
++
++#ifdef __NR_memfd_secret
++
++#include <linux/secretmem.h>
++
++#define PATTERN	0x55
++
++static const int prot = PROT_READ | PROT_WRITE;
++static const int mode = MAP_SHARED;
++
++static unsigned long page_size;
++static unsigned long mlock_limit_cur;
++static unsigned long mlock_limit_max;
++
++static int memfd_secret(unsigned long flags)
++{
++	return syscall(__NR_memfd_secret, flags);
++}
++
++static void test_file_apis(int fd)
++{
++	char buf[64];
++
++	if ((read(fd, buf, sizeof(buf)) >= 0) ||
++	    (write(fd, buf, sizeof(buf)) >= 0) ||
++	    (pread(fd, buf, sizeof(buf), 0) >= 0) ||
++	    (pwrite(fd, buf, sizeof(buf), 0) >= 0))
++		fail("unexpected file IO\n");
++	else
++		pass("file IO is blocked as expected\n");
++}
++
++static void test_mlock_limit(int fd)
++{
++	size_t len;
++	char *mem;
++
++	len = mlock_limit_cur;
++	mem = mmap(NULL, len, prot, mode, fd, 0);
++	if (mem == MAP_FAILED) {
++		fail("unable to mmap secret memory\n");
++		return;
++	}
++	munmap(mem, len);
++
++	len = mlock_limit_max * 2;
++	mem = mmap(NULL, len, prot, mode, fd, 0);
++	if (mem != MAP_FAILED) {
++		fail("unexpected mlock limit violation\n");
++		munmap(mem, len);
++		return;
 +	}
 +
-+	__kernel_map_pages(page, nr_pages, 0);
++	pass("mlock limit is respected\n");
++}
++
++static void try_process_vm_read(int fd, int pipefd[2])
++{
++	struct iovec liov, riov;
++	char buf[64];
++	char *mem;
++
++	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
++		fail("pipe write: %s\n", strerror(errno));
++		exit(KSFT_FAIL);
++	}
++
++	liov.iov_len = riov.iov_len = sizeof(buf);
++	liov.iov_base = buf;
++	riov.iov_base = mem;
++
++	if (process_vm_readv(getppid(), &liov, 1, &riov, 1, 0) < 0) {
++		if (errno == ENOSYS)
++			exit(KSFT_SKIP);
++		exit(KSFT_PASS);
++	}
++
++	exit(KSFT_FAIL);
++}
++
++static void try_ptrace(int fd, int pipefd[2])
++{
++	pid_t ppid = getppid();
++	int status;
++	char *mem;
++	long ret;
++
++	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
++		perror("pipe write");
++		exit(KSFT_FAIL);
++	}
++
++	ret = ptrace(PTRACE_ATTACH, ppid, 0, 0);
++	if (ret) {
++		perror("ptrace_attach");
++		exit(KSFT_FAIL);
++	}
++
++	ret = waitpid(ppid, &status, WUNTRACED);
++	if ((ret != ppid) || !(WIFSTOPPED(status))) {
++		fprintf(stderr, "weird waitppid result %ld stat %x\n",
++			ret, status);
++		exit(KSFT_FAIL);
++	}
++
++	/* this access should fail and the task should be killed */
++	ret = ptrace(PTRACE_PEEKDATA, ppid, mem, 0);
++	if (ret < 0) {
++		perror("ptrace_peek");
++		exit(KSFT_FAIL);
++	}
++
++	/* we shouldn't survive PTRACE_PEEKDATA */
++	exit(KSFT_FAIL);
++}
++
++static void check_child_status(pid_t pid, const char *name)
++{
++	int status;
++
++	waitpid(pid, &status, 0);
++
++	if (WIFEXITED(status) && WEXITSTATUS(status) == KSFT_SKIP) {
++		skip("%s is not supported\n", name);
++		return;
++	}
++
++	if ((WIFEXITED(status) && WEXITSTATUS(status) == KSFT_PASS) ||
++	    WIFSIGNALED(status)) {
++		pass("%s failed as expected\n", name);
++		return;
++	}
++
++	fail("%s: unexpected memory access\n", name);
++}
++
++static void test_remote_access(int fd, const char *name,
++			       void (*func)(int fd, int pipefd[2]))
++{
++	int pipefd[2];
++	pid_t pid;
++	char *mem;
++
++	if (pipe(pipefd)) {
++		fail("pipe failed: %s\n", strerror(errno));
++		return;
++	}
++
++	pid = fork();
++	if (pid < 0) {
++		fail("fork failed: %s\n", strerror(errno));
++		return;
++	}
++
++	if (pid == 0) {
++		func(fd, pipefd);
++		return;
++	}
++
++	mem = mmap(NULL, page_size, prot, mode, fd, 0);
++	if (mem == MAP_FAILED) {
++		fail("Unable to mmap secret memory\n");
++		return;
++	}
++
++	ftruncate(fd, page_size);
++	memset(mem, PATTERN, page_size);
++
++	if (write(pipefd[1], &mem, sizeof(mem)) < 0) {
++		fail("pipe write: %s\n", strerror(errno));
++		return;
++	}
++
++	check_child_status(pid, name);
++}
++
++static void test_process_vm_read(int fd)
++{
++	test_remote_access(fd, "process_vm_read", try_process_vm_read);
++}
++
++static void test_ptrace(int fd)
++{
++	test_remote_access(fd, "ptrace", try_ptrace);
++}
++
++static int set_cap_limits(rlim_t max)
++{
++	struct rlimit new;
++	cap_t cap = cap_init();
++
++	new.rlim_cur = max;
++	new.rlim_max = max;
++	if (setrlimit(RLIMIT_MEMLOCK, &new)) {
++		perror("setrlimit() returns error");
++		return -1;
++	}
++
++	/* drop capabilities including CAP_IPC_LOCK */
++	if (cap_set_proc(cap)) {
++		perror("cap_set_proc() returns error");
++		return -2;
++	}
 +
 +	return 0;
 +}
 +
-+static struct page *secretmem_alloc_page(struct secretmem_ctx *ctx,
-+					 gfp_t gfp)
++static void prepare(void)
 +{
-+	struct gen_pool *pool = ctx->pool;
-+	unsigned long addr;
-+	struct page *page;
-+	int err;
++	struct rlimit rlim;
 +
-+	if (gen_pool_avail(pool) < PAGE_SIZE) {
-+		err = secretmem_pool_increase(ctx, gfp);
-+		if (err)
-+			return NULL;
++	page_size = sysconf(_SC_PAGE_SIZE);
++	if (!page_size)
++		ksft_exit_fail_msg("Failed to get page size %s\n",
++				   strerror(errno));
++
++	if (getrlimit(RLIMIT_MEMLOCK, &rlim))
++		ksft_exit_fail_msg("Unable to detect mlock limit: %s\n",
++				   strerror(errno));
++
++	mlock_limit_cur = rlim.rlim_cur;
++	mlock_limit_max = rlim.rlim_max;
++
++	printf("page_size: %ld, mlock.soft: %ld, mlock.hard: %ld\n",
++	       page_size, mlock_limit_cur, mlock_limit_max);
++
++	if (page_size > mlock_limit_cur)
++		mlock_limit_cur = page_size;
++	if (page_size > mlock_limit_max)
++		mlock_limit_max = page_size;
++
++	if (set_cap_limits(mlock_limit_max))
++		ksft_exit_fail_msg("Unable to set mlock limit: %s\n",
++				   strerror(errno));
++}
++
++#define NUM_TESTS 4
++
++int main(int argc, char *argv[])
++{
++	int fd;
++
++	prepare();
++
++	ksft_print_header();
++	ksft_set_plan(NUM_TESTS);
++
++	fd = memfd_secret(0);
++	if (fd < 0) {
++		if (errno == ENOSYS)
++			ksft_exit_skip("memfd_secret is not supported\n");
++		else
++			ksft_exit_fail_msg("memfd_secret failed: %s\n",
++					   strerror(errno));
 +	}
 +
-+	addr = gen_pool_alloc(pool, PAGE_SIZE);
-+	if (!addr)
-+		return NULL;
++	test_mlock_limit(fd);
++	test_file_apis(fd);
++	test_process_vm_read(fd);
++	test_ptrace(fd);
 +
-+	page = virt_to_page(addr);
-+	get_page(page);
++	close(fd);
 +
-+	return page;
- }
- 
- static vm_fault_t secretmem_fault(struct vm_fault *vmf)
- {
-+	struct secretmem_ctx *ctx = vmf->vma->vm_file->private_data;
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	pgoff_t offset = vmf->pgoff;
--	unsigned long addr;
- 	struct page *page;
- 	int ret = 0;
- 
-@@ -66,7 +109,7 @@ static vm_fault_t secretmem_fault(struct
- 
- 	page = find_get_entry(mapping, offset);
- 	if (!page) {
--		page = secretmem_alloc_page(vmf->gfp_mask);
-+		page = secretmem_alloc_page(ctx, vmf->gfp_mask);
- 		if (!page)
- 			return vmf_error(-ENOMEM);
- 
-@@ -74,14 +117,8 @@ static vm_fault_t secretmem_fault(struct
- 		if (unlikely(ret))
- 			goto err_put_page;
- 
--		ret = set_direct_map_invalid_noflush(page);
--		if (ret)
--			goto err_del_page_cache;
--
--		addr = (unsigned long)page_address(page);
--		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
--
- 		__SetPageUptodate(page);
-+		set_page_private(page, (unsigned long)ctx);
- 
- 		ret = VM_FAULT_LOCKED;
- 	}
-@@ -89,8 +126,6 @@ static vm_fault_t secretmem_fault(struct
- 	vmf->page = page;
- 	return ret;
- 
--err_del_page_cache:
--	delete_from_page_cache(page);
- err_put_page:
- 	put_page(page);
- 	return vmf_error(ret);
-@@ -138,7 +173,11 @@ static int secretmem_migratepage(struct
- 
- static void secretmem_freepage(struct page *page)
- {
--	set_direct_map_default_noflush(page);
-+	unsigned long addr = (unsigned long)page_address(page);
-+	struct secretmem_ctx *ctx = (struct secretmem_ctx *)page_private(page);
-+	struct gen_pool *pool = ctx->pool;
-+
-+	gen_pool_free(pool, addr, PAGE_SIZE);
- }
- 
- static const struct address_space_operations secretmem_aops = {
-@@ -163,13 +202,18 @@ static struct file *secretmem_file_creat
- 	if (!ctx)
- 		goto err_free_inode;
- 
-+	ctx->pool = gen_pool_create(PAGE_SHIFT, NUMA_NO_NODE);
-+	if (!ctx->pool)
-+		goto err_free_ctx;
-+
- 	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem",
- 				 O_RDWR, &secretmem_fops);
- 	if (IS_ERR(file))
--		goto err_free_ctx;
-+		goto err_free_pool;
- 
- 	mapping_set_unevictable(inode->i_mapping);
- 
-+	inode->i_private = ctx;
- 	inode->i_mapping->private_data = ctx;
- 	inode->i_mapping->a_ops = &secretmem_aops;
- 
-@@ -183,6 +227,8 @@ static struct file *secretmem_file_creat
- 
- 	return file;
- 
-+err_free_pool:
-+	gen_pool_destroy(ctx->pool);
- err_free_ctx:
- 	kfree(ctx);
- err_free_inode:
-@@ -221,11 +267,34 @@ err_put_fd:
- 	return err;
- }
- 
-+static void secretmem_cleanup_chunk(struct gen_pool *pool,
-+				    struct gen_pool_chunk *chunk, void *data)
-+{
-+	unsigned long start = chunk->start_addr;
-+	unsigned long end = chunk->end_addr;
-+	unsigned long nr_pages, addr;
-+
-+	nr_pages = (end - start + 1) / PAGE_SIZE;
-+	__kernel_map_pages(virt_to_page(start), nr_pages, 1);
-+
-+	for (addr = start; addr < end; addr += PAGE_SIZE)
-+		put_page(virt_to_page(addr));
++	ksft_exit(!ksft_get_fail_cnt());
 +}
 +
-+static void secretmem_cleanup_pool(struct secretmem_ctx *ctx)
-+{
-+	struct gen_pool *pool = ctx->pool;
++#else /* __NR_memfd_secret */
 +
-+	gen_pool_for_each_chunk(pool, secretmem_cleanup_chunk, ctx);
-+	gen_pool_destroy(pool);
++int main(int argc, char *argv[])
++{
++	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
++	return KSFT_SKIP;
 +}
 +
- static void secretmem_evict_inode(struct inode *inode)
- {
- 	struct secretmem_ctx *ctx = inode->i_private;
++#endif /* __NR_memfd_secret */
+--- a/tools/testing/selftests/vm/run_vmtests~secretmem-test-add-basic-selftest-for-memfd_secret2
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -323,4 +323,21 @@ else
+ 	exitcode=1
+ fi
  
- 	truncate_inode_pages_final(&inode->i_data);
-+	secretmem_cleanup_pool(ctx);
- 	clear_inode(inode);
- 	kfree(ctx);
- }
++echo "running memfd_secret test"
++echo "------------------------------------"
++./memfd_secret
++ret_val=$?
++
++if [ $ret_val -eq 0 ]; then
++	echo "[PASS]"
++elif [ $ret_val -eq $ksft_skip ]; then
++	echo "[SKIP]"
++	exitcode=$ksft_skip
++else
++	echo "[FAIL]"
++	exitcode=1
++fi
++
++exit $exitcode
++
+ exit $exitcode
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
