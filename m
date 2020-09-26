@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E863C4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FF4C4727D
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 292F620BED
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34FE321741
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601087120;
-	bh=x/LlRRc6/Clb4ExYuLZJssx6oY1g5alz+e8WMNEQtt0=;
+	s=default; t=1601087126;
+	bh=dhr6UKZ48O9Q+lf0mIgp5eNfxFVNn4LMPK0cx14XBio=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=DHDHESJ/OqKBOhG5eI1cJiXpPTvNYI4axknwHcu75Ymk8EFdWFQPiNNkUOorjJa8B
-	 YOMKtQoRfF4EtQ/2Npnw4n1ievIjxbekQUkVN8xdHJ1q3gYY05SmYs+REoaKWdwnEV
-	 D0MVV3lNUSTD5pFS/jnYzkmz5ny9RszyCv3FVYuE=
+	b=Gb1iRK/J5Bz9/TZWkM1aDmCZ8BiOAqutq8DAjvGBK1z7gDiUm1v/O6f2mziV5kTre
+	 h0c4HLAfd+wNX4nMcb3lKn70X3beE9tPKgbuccqHqHeGzqvxrwok1VI2aNj3MmaRIf
+	 qLSsmx0qZhELR0hTE0PuaKbg46jRefm11qb80wgs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729605AbgIZCZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 22:25:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49014 "EHLO mail.kernel.org"
+        id S1729942AbgIZCZZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 22:25:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728871AbgIZCZT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 22:25:19 -0400
+        id S1728871AbgIZCZZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 22:25:25 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3C7AD20866;
-        Sat, 26 Sep 2020 02:25:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2C53D2087D;
+        Sat, 26 Sep 2020 02:25:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601087116;
-        bh=x/LlRRc6/Clb4ExYuLZJssx6oY1g5alz+e8WMNEQtt0=;
+        s=default; t=1601087123;
+        bh=dhr6UKZ48O9Q+lf0mIgp5eNfxFVNn4LMPK0cx14XBio=;
         h=Date:From:To:Subject:From;
-        b=nUOY8KSkrRirXzEfGXmLlOnuw0biybB2xy146Enzkx6hNF4HfIyJstV9AMSbmPA+P
-         fT15Sr/hyL3E+AgKhvHPbaAwQNKKbsbrSREMDBw7V+9kkdS2CsfM7bQNCDOLlIPXQZ
-         WH6M5dQP1Oa2Wuo+iGXAWrAiqspYB8jsOV0ucCmM=
-Date:   Fri, 25 Sep 2020 19:25:13 -0700
+        b=vDmj65hzkfIkR1qnJF16t68+tj/69ys0Koxv5z1+YMHraYtlPkk1hJHtH9dfIOy/Z
+         pWC3c57tQckhswZPRISIGJOFXEKGEvcghHiuaBg1KmTVKHFJJe02/gbco2BAIFvQeE
+         Xn3jgCeaU16s50yghoELqypsQ53zr77h283AlkBs=
+Date:   Fri, 25 Sep 2020 19:25:20 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, yanaijie@huawei.com, will@kernel.org,
         vishal.l.verma@intel.com, vgoyal@redhat.com,
@@ -50,18 +50,19 @@ To:     mm-commits@vger.kernel.org, yanaijie@huawei.com, will@kernel.org,
         mingo@redhat.com, luto@kernel.org, lkp@intel.com,
         justin.he@arm.com, Jonathan.Cameron@huawei.com,
         joao.m.martins@oracle.com, jmoyer@redhat.com, jgross@suse.com,
-        jglisse@redhat.com, jgg@mellanox.com, ira.weiny@intel.com,
-        hulkci@huawei.com, hpa@zytor.com, gregkh@linuxfoundation.org,
-        david@redhat.com, dave.jiang@intel.com,
+        jglisse@redhat.com, jglisse@redhat.co, jgg@mellanox.com,
+        ira.weiny@intel.com, hulkci@huawei.com, hpa@zytor.com,
+        gregkh@linuxfoundation.org, david@redhat.com, dave.jiang@intel.com,
         dave.hansen@linux.intel.com, daniel@ffwll.ch,
         catalin.marinas@arm.com, bskeggs@redhat.com, Brice.Goglin@inria.fr,
         bp@alien8.de, boris.ostrovsky@oracle.com, bhelgaas@google.com,
         benh@kernel.crashing.org, ardb@kernel.org,
         ard.biesheuvel@linaro.org, airlied@linux.ie,
         dan.j.williams@intel.com
-Subject:  + mm-memremap_pages-convert-to-struct-range.patch added to
- -mm tree
-Message-ID: <20200926022513.QALe-%akpm@linux-foundation.org>
+Subject:  +
+ mm-memremap_pages-support-multiple-ranges-per-invocation.patch added to -mm
+ tree
+Message-ID: <20200926022520.9EF06%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -73,16 +74,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap_pages: convert to 'struct range'
+     Subject: mm/memremap_pages: support multiple ranges per invocation
 has been added to the -mm tree.  Its filename is
-     mm-memremap_pages-convert-to-struct-range.patch
+     mm-memremap_pages-support-multiple-ranges-per-invocation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memremap_pages-convert-to-=
-struct-range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memremap_pages-support-mul=
+tiple-ranges-per-invocation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memremap_pages-convert-to-=
-struct-range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memremap_pages-support-mul=
+tiple-ranges-per-invocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -98,26 +99,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memremap_pages: convert to 'struct range'
+Subject: mm/memremap_pages: support multiple ranges per invocation
 
-The 'struct resource' in 'struct dev_pagemap' is only used for holding
-resource span information.  The other fields, 'name', 'flags', 'desc',
-'parent', 'sibling', and 'child' are all unused wasted space.
+In support of device-dax growing the ability to front physically
+dis-contiguous ranges of memory, update devm_memremap_pages() to track
+multiple ranges with a single reference counter and devm instance.
 
-This is in preparation for introducing a multi-range extension of
-devm_memremap_pages().
+Convert all [devm_]memremap_pages() users to specify the number of ranges
+they are mapping in their 'struct dev_pagemap' instance.
 
-The bulk of this change is unwinding all the places internal to libnvdimm
-that used 'struct resource' unnecessarily, and replacing instances of
-'struct dev_pagemap'.res with 'struct dev_pagemap'.range.
-
-P2PDMA had a minor usage of the resource flags field, but only to report
-failures with "%pR".  That is replaced with an open coded print of the
-range.
-
-Link: https://lkml.kernel.org/r/159643103173.4062302.768998885691711532.stg=
-it@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/160106115761.30709.13539840236873663620.stg=
+Link: https://lkml.kernel.org/r/159643103789.4062302.18426128170217903785.s=
+tgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/160106116293.30709.13350662794915396198.stg=
 it@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
@@ -134,7 +127,7 @@ Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.co
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -150,6 +143,7 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jason Yan <yanaijie@huawei.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
 Cc: Jia He <justin.he@arm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
@@ -166,969 +160,513 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c     |   13 ++-
- drivers/dax/bus.c                      |   10 +-
- drivers/dax/bus.h                      |    2=20
- drivers/dax/dax-private.h              |    5 -
- drivers/dax/device.c                   |    3=20
- drivers/dax/hmem/hmem.c                |    5 +
- drivers/dax/pmem/core.c                |   12 +--
- drivers/gpu/drm/nouveau/nouveau_dmem.c |   14 ++--
- drivers/nvdimm/badrange.c              |   26 +++----
- drivers/nvdimm/claim.c                 |   13 ++-
- drivers/nvdimm/nd.h                    |    3=20
- drivers/nvdimm/pfn_devs.c              |   12 +--
- drivers/nvdimm/pmem.c                  |   26 ++++---
- drivers/nvdimm/region.c                |   21 +++---
- drivers/pci/p2pdma.c                   |   11 +--
- drivers/xen/unpopulated-alloc.c        |   44 ++++++++-----
- include/linux/memremap.h               |    5 -
- include/linux/range.h                  |    6 +
- lib/test_hmm.c                         |   14 ++--
- mm/memremap.c                          |   77 +++++++++++------------
- tools/testing/nvdimm/test/iomap.c      |    2=20
- 21 files changed, 177 insertions(+), 147 deletions(-)
+ arch/powerpc/kvm/book3s_hv_uvmem.c     |    1=20
+ drivers/dax/device.c                   |    1=20
+ drivers/gpu/drm/nouveau/nouveau_dmem.c |    1=20
+ drivers/nvdimm/pfn_devs.c              |    1=20
+ drivers/nvdimm/pmem.c                  |    1=20
+ drivers/pci/p2pdma.c                   |    1=20
+ drivers/xen/unpopulated-alloc.c        |    1=20
+ include/linux/memremap.h               |   10=20
+ lib/test_hmm.c                         |    1=20
+ mm/memremap.c                          |  258 +++++++++++++----------
+ 10 files changed, 166 insertions(+), 110 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-memremap_pages-convert-to-struc=
-t-range
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-memremap_pages-support-multiple=
+-ranges-per-invocation
 +++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -687,9 +687,9 @@ static struct page *kvmppc_uvmem_get_pag
- 	struct kvmppc_uvmem_page_pvt *pvt;
- 	unsigned long pfn_last, pfn_first;
-=20
--	pfn_first =3D kvmppc_uvmem_pgmap.res.start >> PAGE_SHIFT;
-+	pfn_first =3D kvmppc_uvmem_pgmap.range.start >> PAGE_SHIFT;
- 	pfn_last =3D pfn_first +
--		   (resource_size(&kvmppc_uvmem_pgmap.res) >> PAGE_SHIFT);
-+		   (range_len(&kvmppc_uvmem_pgmap.range) >> PAGE_SHIFT);
-=20
- 	spin_lock(&kvmppc_uvmem_bitmap_lock);
- 	bit =3D find_first_zero_bit(kvmppc_uvmem_bitmap,
-@@ -1007,7 +1007,7 @@ static vm_fault_t kvmppc_uvmem_migrate_t
- static void kvmppc_uvmem_page_free(struct page *page)
- {
- 	unsigned long pfn =3D page_to_pfn(page) -
--			(kvmppc_uvmem_pgmap.res.start >> PAGE_SHIFT);
-+			(kvmppc_uvmem_pgmap.range.start >> PAGE_SHIFT);
- 	struct kvmppc_uvmem_page_pvt *pvt;
-=20
- 	spin_lock(&kvmppc_uvmem_bitmap_lock);
-@@ -1170,7 +1170,8 @@ int kvmppc_uvmem_init(void)
- 	}
-=20
+@@ -1172,6 +1172,7 @@ int kvmppc_uvmem_init(void)
  	kvmppc_uvmem_pgmap.type =3D MEMORY_DEVICE_PRIVATE;
--	kvmppc_uvmem_pgmap.res =3D *res;
-+	kvmppc_uvmem_pgmap.range.start =3D res->start;
-+	kvmppc_uvmem_pgmap.range.end =3D res->end;
+ 	kvmppc_uvmem_pgmap.range.start =3D res->start;
+ 	kvmppc_uvmem_pgmap.range.end =3D res->end;
++	kvmppc_uvmem_pgmap.nr_range =3D 1;
  	kvmppc_uvmem_pgmap.ops =3D &kvmppc_uvmem_ops;
  	/* just one global instance: */
  	kvmppc_uvmem_pgmap.owner =3D &kvmppc_uvmem_pgmap;
-@@ -1205,7 +1206,7 @@ void kvmppc_uvmem_free(void)
- 		return;
-=20
- 	memunmap_pages(&kvmppc_uvmem_pgmap);
--	release_mem_region(kvmppc_uvmem_pgmap.res.start,
--			   resource_size(&kvmppc_uvmem_pgmap.res));
-+	release_mem_region(kvmppc_uvmem_pgmap.range.start,
-+			   range_len(&kvmppc_uvmem_pgmap.range));
- 	kfree(kvmppc_uvmem_bitmap);
- }
---- a/drivers/dax/bus.c~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/dax/bus.c
-@@ -515,7 +515,7 @@ static void dax_region_unregister(void *
- }
-=20
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
--		struct resource *res, int target_node, unsigned int align,
-+		struct range *range, int target_node, unsigned int align,
- 		unsigned long flags)
- {
- 	struct dax_region *dax_region;
-@@ -530,8 +530,8 @@ struct dax_region *alloc_dax_region(stru
- 		return NULL;
- 	}
-=20
--	if (!IS_ALIGNED(res->start, align)
--			|| !IS_ALIGNED(resource_size(res), align))
-+	if (!IS_ALIGNED(range->start, align)
-+			|| !IS_ALIGNED(range_len(range), align))
- 		return NULL;
-=20
- 	dax_region =3D kzalloc(sizeof(*dax_region), GFP_KERNEL);
-@@ -546,8 +546,8 @@ struct dax_region *alloc_dax_region(stru
- 	dax_region->target_node =3D target_node;
- 	ida_init(&dax_region->ida);
- 	dax_region->res =3D (struct resource) {
--		.start =3D res->start,
--		.end =3D res->end,
-+		.start =3D range->start,
-+		.end =3D range->end,
- 		.flags =3D IORESOURCE_MEM | flags,
- 	};
-=20
---- a/drivers/dax/bus.h~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/dax/bus.h
-@@ -13,7 +13,7 @@ void dax_region_put(struct dax_region *d
-=20
- #define IORESOURCE_DAX_STATIC (1UL << 0)
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
--		struct resource *res, int target_node, unsigned int align,
-+		struct range *range, int target_node, unsigned int align,
- 		unsigned long flags);
-=20
- enum dev_dax_subsys {
---- a/drivers/dax/dax-private.h~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/dax/dax-private.h
-@@ -61,11 +61,6 @@ struct dev_dax {
- 	struct range range;
- };
-=20
--static inline u64 range_len(struct range *range)
--{
--	return range->end - range->start + 1;
--}
--
- static inline struct dev_dax *to_dev_dax(struct device *dev)
- {
- 	return container_of(dev, struct dev_dax, dev);
---- a/drivers/dax/device.c~mm-memremap_pages-convert-to-struct-range
+--- a/drivers/dax/device.c~mm-memremap_pages-support-multiple-ranges-per-in=
+vocation
 +++ a/drivers/dax/device.c
-@@ -416,8 +416,7 @@ int dev_dax_probe(struct dev_dax *dev_da
- 		pgmap =3D devm_kzalloc(dev, sizeof(*pgmap), GFP_KERNEL);
+@@ -417,6 +417,7 @@ int dev_dax_probe(struct dev_dax *dev_da
  		if (!pgmap)
  			return -ENOMEM;
--		pgmap->res.start =3D range->start;
--		pgmap->res.end =3D range->end;
-+		pgmap->range =3D *range;
+ 		pgmap->range =3D *range;
++		pgmap->nr_range =3D 1;
  	}
  	pgmap->type =3D MEMORY_DEVICE_GENERIC;
  	addr =3D devm_memremap_pages(dev, pgmap);
---- a/drivers/dax/hmem/hmem.c~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/dax/hmem/hmem.c
-@@ -13,13 +13,16 @@ static int dax_hmem_probe(struct platfor
- 	struct dev_dax_data data;
- 	struct dev_dax *dev_dax;
- 	struct resource *res;
-+	struct range range;
-=20
- 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENOMEM;
-=20
- 	mri =3D dev->platform_data;
--	dax_region =3D alloc_dax_region(dev, pdev->id, res, mri->target_node,
-+	range.start =3D res->start;
-+	range.end =3D res->end;
-+	dax_region =3D alloc_dax_region(dev, pdev->id, &range, mri->target_node,
- 			PMD_SIZE, 0);
- 	if (!dax_region)
- 		return -ENOMEM;
---- a/drivers/dax/pmem/core.c~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/dax/pmem/core.c
-@@ -9,7 +9,7 @@
-=20
- struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys s=
-ubsys)
- {
--	struct resource res;
-+	struct range range;
- 	int rc, id, region_id;
- 	resource_size_t offset;
- 	struct nd_pfn_sb *pfn_sb;
-@@ -50,10 +50,10 @@ struct dev_dax *__dax_pmem_probe(struct
- 	if (rc !=3D 2)
- 		return ERR_PTR(-EINVAL);
-=20
--	/* adjust the dax_region resource to the start of data */
--	memcpy(&res, &pgmap.res, sizeof(res));
--	res.start +=3D offset;
--	dax_region =3D alloc_dax_region(dev, region_id, &res,
-+	/* adjust the dax_region range to the start of data */
-+	range =3D pgmap.range;
-+	range.start +=3D offset,
-+	dax_region =3D alloc_dax_region(dev, region_id, &range,
- 			nd_region->target_node, le32_to_cpu(pfn_sb->align),
- 			IORESOURCE_DAX_STATIC);
- 	if (!dax_region)
-@@ -64,7 +64,7 @@ struct dev_dax *__dax_pmem_probe(struct
- 		.id =3D id,
- 		.pgmap =3D &pgmap,
- 		.subsys =3D subsys,
--		.size =3D resource_size(&res),
-+		.size =3D range_len(&range),
- 	};
- 	dev_dax =3D devm_create_dev_dax(&data);
-=20
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-memremap_pages-convert-to-s=
-truct-range
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-memremap_pages-support-mult=
+iple-ranges-per-invocation
 +++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -101,7 +101,7 @@ unsigned long nouveau_dmem_page_addr(str
- {
- 	struct nouveau_dmem_chunk *chunk =3D nouveau_page_to_chunk(page);
- 	unsigned long off =3D (page_to_pfn(page) << PAGE_SHIFT) -
--				chunk->pagemap.res.start;
-+				chunk->pagemap.range.start;
-=20
- 	return chunk->bo->offset + off;
- }
-@@ -249,7 +249,8 @@ nouveau_dmem_chunk_alloc(struct nouveau_
-=20
- 	chunk->drm =3D drm;
+@@ -251,6 +251,7 @@ nouveau_dmem_chunk_alloc(struct nouveau_
  	chunk->pagemap.type =3D MEMORY_DEVICE_PRIVATE;
--	chunk->pagemap.res =3D *res;
-+	chunk->pagemap.range.start =3D res->start;
-+	chunk->pagemap.range.end =3D res->end;
+ 	chunk->pagemap.range.start =3D res->start;
+ 	chunk->pagemap.range.end =3D res->end;
++	chunk->pagemap.nr_range =3D 1;
  	chunk->pagemap.ops =3D &nouveau_dmem_pagemap_ops;
  	chunk->pagemap.owner =3D drm->dev;
 =20
-@@ -273,7 +274,7 @@ nouveau_dmem_chunk_alloc(struct nouveau_
- 	list_add(&chunk->list, &drm->dmem->chunks);
- 	mutex_unlock(&drm->dmem->mutex);
-=20
--	pfn_first =3D chunk->pagemap.res.start >> PAGE_SHIFT;
-+	pfn_first =3D chunk->pagemap.range.start >> PAGE_SHIFT;
- 	page =3D pfn_to_page(pfn_first);
- 	spin_lock(&drm->dmem->lock);
- 	for (i =3D 0; i < DMEM_CHUNK_NPAGES - 1; ++i, ++page) {
-@@ -294,8 +295,7 @@ out_bo_unpin:
- out_bo_free:
- 	nouveau_bo_ref(NULL, &chunk->bo);
- out_release:
--	release_mem_region(chunk->pagemap.res.start,
--			   resource_size(&chunk->pagemap.res));
-+	release_mem_region(chunk->pagemap.range.start, range_len(&chunk->pagemap.=
-range));
- out_free:
- 	kfree(chunk);
- out:
-@@ -382,8 +382,8 @@ nouveau_dmem_fini(struct nouveau_drm *dr
- 		nouveau_bo_ref(NULL, &chunk->bo);
- 		list_del(&chunk->list);
- 		memunmap_pages(&chunk->pagemap);
--		release_mem_region(chunk->pagemap.res.start,
--				   resource_size(&chunk->pagemap.res));
-+		release_mem_region(chunk->pagemap.range.start,
-+				   range_len(&chunk->pagemap.range));
- 		kfree(chunk);
- 	}
-=20
---- a/drivers/nvdimm/badrange.c~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/nvdimm/badrange.c
-@@ -211,7 +211,7 @@ static void __add_badblock_range(struct
- }
-=20
- static void badblocks_populate(struct badrange *badrange,
--		struct badblocks *bb, const struct resource *res)
-+		struct badblocks *bb, const struct range *range)
- {
- 	struct badrange_entry *bre;
-=20
-@@ -222,34 +222,34 @@ static void badblocks_populate(struct ba
- 		u64 bre_end =3D bre->start + bre->length - 1;
-=20
- 		/* Discard intervals with no intersection */
--		if (bre_end < res->start)
-+		if (bre_end < range->start)
- 			continue;
--		if (bre->start >  res->end)
-+		if (bre->start > range->end)
- 			continue;
- 		/* Deal with any overlap after start of the namespace */
--		if (bre->start >=3D res->start) {
-+		if (bre->start >=3D range->start) {
- 			u64 start =3D bre->start;
- 			u64 len;
-=20
--			if (bre_end <=3D res->end)
-+			if (bre_end <=3D range->end)
- 				len =3D bre->length;
- 			else
--				len =3D res->start + resource_size(res)
-+				len =3D range->start + range_len(range)
- 					- bre->start;
--			__add_badblock_range(bb, start - res->start, len);
-+			__add_badblock_range(bb, start - range->start, len);
- 			continue;
- 		}
- 		/*
- 		 * Deal with overlap for badrange starting before
- 		 * the namespace.
- 		 */
--		if (bre->start < res->start) {
-+		if (bre->start < range->start) {
- 			u64 len;
-=20
--			if (bre_end < res->end)
--				len =3D bre->start + bre->length - res->start;
-+			if (bre_end < range->end)
-+				len =3D bre->start + bre->length - range->start;
- 			else
--				len =3D resource_size(res);
-+				len =3D range_len(range);
- 			__add_badblock_range(bb, 0, len);
- 		}
- 	}
-@@ -267,7 +267,7 @@ static void badblocks_populate(struct ba
-  * and add badblocks entries for all matching sub-ranges
-  */
- void nvdimm_badblocks_populate(struct nd_region *nd_region,
--		struct badblocks *bb, const struct resource *res)
-+		struct badblocks *bb, const struct range *range)
- {
- 	struct nvdimm_bus *nvdimm_bus;
-=20
-@@ -279,7 +279,7 @@ void nvdimm_badblocks_populate(struct nd
- 	nvdimm_bus =3D walk_to_nvdimm_bus(&nd_region->dev);
-=20
- 	nvdimm_bus_lock(&nvdimm_bus->dev);
--	badblocks_populate(&nvdimm_bus->badrange, bb, res);
-+	badblocks_populate(&nvdimm_bus->badrange, bb, range);
- 	nvdimm_bus_unlock(&nvdimm_bus->dev);
- }
- EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
---- a/drivers/nvdimm/claim.c~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/nvdimm/claim.c
-@@ -303,13 +303,16 @@ static int nsio_rw_bytes(struct nd_names
- int devm_nsio_enable(struct device *dev, struct nd_namespace_io *nsio,
- 		resource_size_t size)
- {
--	struct resource *res =3D &nsio->res;
- 	struct nd_namespace_common *ndns =3D &nsio->common;
-+	struct range range =3D {
-+		.start =3D nsio->res.start,
-+		.end =3D nsio->res.end,
-+	};
-=20
- 	nsio->size =3D size;
--	if (!devm_request_mem_region(dev, res->start, size,
-+	if (!devm_request_mem_region(dev, range.start, size,
- 				dev_name(&ndns->dev))) {
--		dev_warn(dev, "could not reserve region %pR\n", res);
-+		dev_warn(dev, "could not reserve region %pR\n", &nsio->res);
- 		return -EBUSY;
- 	}
-=20
-@@ -317,9 +320,9 @@ int devm_nsio_enable(struct device *dev,
- 	if (devm_init_badblocks(dev, &nsio->bb))
- 		return -ENOMEM;
- 	nvdimm_badblocks_populate(to_nd_region(ndns->dev.parent), &nsio->bb,
--			&nsio->res);
-+			&range);
-=20
--	nsio->addr =3D devm_memremap(dev, res->start, size, ARCH_MEMREMAP_PMEM);
-+	nsio->addr =3D devm_memremap(dev, range.start, size, ARCH_MEMREMAP_PMEM);
-=20
- 	return PTR_ERR_OR_ZERO(nsio->addr);
- }
---- a/drivers/nvdimm/nd.h~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/nvdimm/nd.h
-@@ -377,8 +377,9 @@ int nvdimm_namespace_detach_btt(struct n
- const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
- 		char *name);
- unsigned int pmem_sector_size(struct nd_namespace_common *ndns);
-+struct range;
- void nvdimm_badblocks_populate(struct nd_region *nd_region,
--		struct badblocks *bb, const struct resource *res);
-+		struct badblocks *bb, const struct range *range);
- int devm_namespace_enable(struct device *dev, struct nd_namespace_common *=
-ndns,
- 		resource_size_t size);
- void devm_namespace_disable(struct device *dev,
---- a/drivers/nvdimm/pfn_devs.c~mm-memremap_pages-convert-to-struct-range
+--- a/drivers/nvdimm/pfn_devs.c~mm-memremap_pages-support-multiple-ranges-p=
+er-invocation
 +++ a/drivers/nvdimm/pfn_devs.c
-@@ -672,7 +672,7 @@ static unsigned long init_altmap_reserve
-=20
- static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *p=
-gmap)
- {
--	struct resource *res =3D &pgmap->res;
-+	struct range *range =3D &pgmap->range;
- 	struct vmem_altmap *altmap =3D &pgmap->altmap;
- 	struct nd_pfn_sb *pfn_sb =3D nd_pfn->pfn_sb;
- 	u64 offset =3D le64_to_cpu(pfn_sb->dataoff);
-@@ -689,16 +689,16 @@ static int __nvdimm_setup_pfn(struct nd_
- 		.end_pfn =3D PHYS_PFN(end),
+@@ -693,6 +693,7 @@ static int __nvdimm_setup_pfn(struct nd_
+ 		.start =3D nsio->res.start + start_pad,
+ 		.end =3D nsio->res.end - end_trunc,
  	};
-=20
--	memcpy(res, &nsio->res, sizeof(*res));
--	res->start +=3D start_pad;
--	res->end -=3D end_trunc;
--
-+	*range =3D (struct range) {
-+		.start =3D nsio->res.start + start_pad,
-+		.end =3D nsio->res.end - end_trunc,
-+	};
++	pgmap->nr_range =3D 1;
  	if (nd_pfn->mode =3D=3D PFN_MODE_RAM) {
  		if (offset < reserve)
  			return -EINVAL;
- 		nd_pfn->npfns =3D le64_to_cpu(pfn_sb->npfns);
- 	} else if (nd_pfn->mode =3D=3D PFN_MODE_PMEM) {
--		nd_pfn->npfns =3D PHYS_PFN((resource_size(res) - offset));
-+		nd_pfn->npfns =3D PHYS_PFN((range_len(range) - offset));
- 		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
- 			dev_info(&nd_pfn->dev,
- 					"number of pfns truncated from %lld to %ld\n",
---- a/drivers/nvdimm/pmem.c~mm-memremap_pages-convert-to-struct-range
+--- a/drivers/nvdimm/pmem.c~mm-memremap_pages-support-multiple-ranges-per-i=
+nvocation
 +++ a/drivers/nvdimm/pmem.c
-@@ -376,7 +376,7 @@ static int pmem_attach_disk(struct devic
- 	struct nd_region *nd_region =3D to_nd_region(dev->parent);
- 	int nid =3D dev_to_node(dev), fua;
- 	struct resource *res =3D &nsio->res;
--	struct resource bb_res;
-+	struct range bb_range;
- 	struct nd_pfn *nd_pfn =3D NULL;
- 	struct dax_device *dax_dev;
- 	struct nd_pfn_sb *pfn_sb;
-@@ -435,24 +435,26 @@ static int pmem_attach_disk(struct devic
- 		pfn_sb =3D nd_pfn->pfn_sb;
- 		pmem->data_offset =3D le64_to_cpu(pfn_sb->dataoff);
- 		pmem->pfn_pad =3D resource_size(res) -
--			resource_size(&pmem->pgmap.res);
-+			range_len(&pmem->pgmap.range);
- 		pmem->pfn_flags |=3D PFN_MAP;
--		memcpy(&bb_res, &pmem->pgmap.res, sizeof(bb_res));
--		bb_res.start +=3D pmem->data_offset;
-+		bb_range =3D pmem->pgmap.range;
-+		bb_range.start +=3D pmem->data_offset;
+@@ -442,6 +442,7 @@ static int pmem_attach_disk(struct devic
  	} else if (pmem_should_map_pages(dev)) {
--		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
-+		pmem->pgmap.range.start =3D res->start;
-+		pmem->pgmap.range.end =3D res->end;
+ 		pmem->pgmap.range.start =3D res->start;
+ 		pmem->pgmap.range.end =3D res->end;
++		pmem->pgmap.nr_range =3D 1;
  		pmem->pgmap.type =3D MEMORY_DEVICE_FS_DAX;
  		pmem->pgmap.ops =3D &fsdax_pagemap_ops;
  		addr =3D devm_memremap_pages(dev, &pmem->pgmap);
- 		pmem->pfn_flags |=3D PFN_MAP;
--		memcpy(&bb_res, &pmem->pgmap.res, sizeof(bb_res));
-+		bb_range =3D pmem->pgmap.range;
- 	} else {
- 		if (devm_add_action_or_reset(dev, pmem_release_queue,
- 					&pmem->pgmap))
- 			return -ENOMEM;
- 		addr =3D devm_memremap(dev, pmem->phys_addr,
- 				pmem->size, ARCH_MEMREMAP_PMEM);
--		memcpy(&bb_res, &nsio->res, sizeof(bb_res));
-+		bb_range.start =3D  res->start;
-+		bb_range.end =3D res->end;
- 	}
-=20
- 	if (IS_ERR(addr))
-@@ -482,7 +484,7 @@ static int pmem_attach_disk(struct devic
- 			/ 512);
- 	if (devm_init_badblocks(dev, &pmem->bb))
- 		return -ENOMEM;
--	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
-+	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_range);
- 	disk->bb =3D &pmem->bb;
-=20
- 	if (is_nvdimm_sync(nd_region))
-@@ -593,8 +595,8 @@ static void nd_pmem_notify(struct device
- 	resource_size_t offset =3D 0, end_trunc =3D 0;
- 	struct nd_namespace_common *ndns;
- 	struct nd_namespace_io *nsio;
--	struct resource res;
- 	struct badblocks *bb;
-+	struct range range;
- 	struct kernfs_node *bb_state;
-=20
- 	if (event !=3D NVDIMM_REVALIDATE_POISON)
-@@ -630,9 +632,9 @@ static void nd_pmem_notify(struct device
- 		nsio =3D to_nd_namespace_io(&ndns->dev);
- 	}
-=20
--	res.start =3D nsio->res.start + offset;
--	res.end =3D nsio->res.end - end_trunc;
--	nvdimm_badblocks_populate(nd_region, bb, &res);
-+	range.start =3D nsio->res.start + offset;
-+	range.end =3D nsio->res.end - end_trunc;
-+	nvdimm_badblocks_populate(nd_region, bb, &range);
- 	if (bb_state)
- 		sysfs_notify_dirent(bb_state);
- }
---- a/drivers/nvdimm/region.c~mm-memremap_pages-convert-to-struct-range
-+++ a/drivers/nvdimm/region.c
-@@ -35,7 +35,10 @@ static int nd_region_probe(struct device
- 		return rc;
-=20
- 	if (is_memory(&nd_region->dev)) {
--		struct resource ndr_res;
-+		struct range range =3D {
-+			.start =3D nd_region->ndr_start,
-+			.end =3D nd_region->ndr_start + nd_region->ndr_size - 1,
-+		};
-=20
- 		if (devm_init_badblocks(dev, &nd_region->bb))
- 			return -ENODEV;
-@@ -44,9 +47,7 @@ static int nd_region_probe(struct device
- 		if (!nd_region->bb_state)
- 			dev_warn(&nd_region->dev,
- 					"'badblocks' notification disabled\n");
--		ndr_res.start =3D nd_region->ndr_start;
--		ndr_res.end =3D nd_region->ndr_start + nd_region->ndr_size - 1;
--		nvdimm_badblocks_populate(nd_region, &nd_region->bb, &ndr_res);
-+		nvdimm_badblocks_populate(nd_region, &nd_region->bb, &range);
- 	}
-=20
- 	rc =3D nd_region_register_namespaces(nd_region, &err);
-@@ -121,14 +122,16 @@ static void nd_region_notify(struct devi
- {
- 	if (event =3D=3D NVDIMM_REVALIDATE_POISON) {
- 		struct nd_region *nd_region =3D to_nd_region(dev);
--		struct resource res;
-=20
- 		if (is_memory(&nd_region->dev)) {
--			res.start =3D nd_region->ndr_start;
--			res.end =3D nd_region->ndr_start +
--				nd_region->ndr_size - 1;
-+			struct range range =3D {
-+				.start =3D nd_region->ndr_start,
-+				.end =3D nd_region->ndr_start +
-+					nd_region->ndr_size - 1,
-+			};
-+
- 			nvdimm_badblocks_populate(nd_region,
--					&nd_region->bb, &res);
-+					&nd_region->bb, &range);
- 			if (nd_region->bb_state)
- 				sysfs_notify_dirent(nd_region->bb_state);
- 		}
---- a/drivers/pci/p2pdma.c~mm-memremap_pages-convert-to-struct-range
+--- a/drivers/pci/p2pdma.c~mm-memremap_pages-support-multiple-ranges-per-in=
+vocation
 +++ a/drivers/pci/p2pdma.c
-@@ -185,9 +185,8 @@ int pci_p2pdma_add_resource(struct pci_d
- 		return -ENOMEM;
-=20
+@@ -187,6 +187,7 @@ int pci_p2pdma_add_resource(struct pci_d
  	pgmap =3D &p2p_pgmap->pgmap;
--	pgmap->res.start =3D pci_resource_start(pdev, bar) + offset;
--	pgmap->res.end =3D pgmap->res.start + size - 1;
--	pgmap->res.flags =3D pci_resource_flags(pdev, bar);
-+	pgmap->range.start =3D pci_resource_start(pdev, bar) + offset;
-+	pgmap->range.end =3D pgmap->range.start + size - 1;
+ 	pgmap->range.start =3D pci_resource_start(pdev, bar) + offset;
+ 	pgmap->range.end =3D pgmap->range.start + size - 1;
++	pgmap->nr_range =3D 1;
  	pgmap->type =3D MEMORY_DEVICE_PCI_P2PDMA;
 =20
  	p2p_pgmap->provider =3D pdev;
-@@ -202,13 +201,13 @@ int pci_p2pdma_add_resource(struct pci_d
-=20
- 	error =3D gen_pool_add_owner(pdev->p2pdma->pool, (unsigned long)addr,
- 			pci_bus_address(pdev, bar) + offset,
--			resource_size(&pgmap->res), dev_to_node(&pdev->dev),
-+			range_len(&pgmap->range), dev_to_node(&pdev->dev),
- 			pgmap->ref);
- 	if (error)
- 		goto pages_free;
-=20
--	pci_info(pdev, "added peer-to-peer DMA memory %pR\n",
--		 &pgmap->res);
-+	pci_info(pdev, "added peer-to-peer DMA memory %#llx-%#llx\n",
-+		 pgmap->range.start, pgmap->range.end);
-=20
- 	return 0;
-=20
---- a/drivers/xen/unpopulated-alloc.c~mm-memremap_pages-convert-to-struct-r=
-ange
+--- a/drivers/xen/unpopulated-alloc.c~mm-memremap_pages-support-multiple-ra=
+nges-per-invocation
 +++ a/drivers/xen/unpopulated-alloc.c
-@@ -18,27 +18,37 @@ static unsigned int list_count;
- static int fill_list(unsigned int nr_pages)
- {
- 	struct dev_pagemap *pgmap;
-+	struct resource *res;
- 	void *vaddr;
- 	unsigned int i, alloc_pages =3D round_up(nr_pages, PAGES_PER_SECTION);
--	int ret;
-+	int ret =3D -ENOMEM;
-+
-+	res =3D kzalloc(sizeof(*res), GFP_KERNEL);
-+	if (!res)
-+		return -ENOMEM;
+@@ -47,6 +47,7 @@ static int fill_list(unsigned int nr_pag
+ 		.start =3D res->start,
+ 		.end =3D res->end,
+ 	};
++	pgmap->nr_range =3D 1;
+ 	pgmap->owner =3D res;
 =20
- 	pgmap =3D kzalloc(sizeof(*pgmap), GFP_KERNEL);
- 	if (!pgmap)
--		return -ENOMEM;
-+		goto err_pgmap;
-=20
- 	pgmap->type =3D MEMORY_DEVICE_GENERIC;
--	pgmap->res.name =3D "Xen scratch";
--	pgmap->res.flags =3D IORESOURCE_MEM | IORESOURCE_BUSY;
-+	res->name =3D "Xen scratch";
-+	res->flags =3D IORESOURCE_MEM | IORESOURCE_BUSY;
-=20
--	ret =3D allocate_resource(&iomem_resource, &pgmap->res,
-+	ret =3D allocate_resource(&iomem_resource, res,
- 				alloc_pages * PAGE_SIZE, 0, -1,
- 				PAGES_PER_SECTION * PAGE_SIZE, NULL, NULL);
- 	if (ret < 0) {
- 		pr_err("Cannot allocate new IOMEM resource\n");
--		kfree(pgmap);
--		return ret;
-+		goto err_resource;
- 	}
-=20
-+	pgmap->range =3D (struct range) {
-+		.start =3D res->start,
-+		.end =3D res->end,
-+	};
-+	pgmap->owner =3D res;
-+
  #ifdef CONFIG_XEN_HAVE_PVMMU
-         /*
-          * memremap will build page tables for the new memory so
-@@ -50,14 +60,13 @@ static int fill_list(unsigned int nr_pag
-          * conflict with any devices.
-          */
- 	if (!xen_feature(XENFEAT_auto_translated_physmap)) {
--		xen_pfn_t pfn =3D PFN_DOWN(pgmap->res.start);
-+		xen_pfn_t pfn =3D PFN_DOWN(res->start);
-=20
- 		for (i =3D 0; i < alloc_pages; i++) {
- 			if (!set_phys_to_machine(pfn + i, INVALID_P2M_ENTRY)) {
- 				pr_warn("set_phys_to_machine() failed, no memory added\n");
--				release_resource(&pgmap->res);
--				kfree(pgmap);
--				return -ENOMEM;
-+				ret =3D -ENOMEM;
-+				goto err_memremap;
- 			}
-                 }
- 	}
-@@ -66,9 +75,8 @@ static int fill_list(unsigned int nr_pag
- 	vaddr =3D memremap_pages(pgmap, NUMA_NO_NODE);
- 	if (IS_ERR(vaddr)) {
- 		pr_err("Cannot remap memory range\n");
--		release_resource(&pgmap->res);
--		kfree(pgmap);
--		return PTR_ERR(vaddr);
-+		ret =3D PTR_ERR(vaddr);
-+		goto err_memremap;
- 	}
-=20
- 	for (i =3D 0; i < alloc_pages; i++) {
-@@ -80,6 +88,14 @@ static int fill_list(unsigned int nr_pag
- 	}
-=20
- 	return 0;
-+
-+err_memremap:
-+	release_resource(res);
-+err_resource:
-+	kfree(pgmap);
-+err_pgmap:
-+	kfree(res);
-+	return ret;
- }
-=20
- /**
---- a/include/linux/memremap.h~mm-memremap_pages-convert-to-struct-range
+--- a/include/linux/memremap.h~mm-memremap_pages-support-multiple-ranges-pe=
+r-invocation
 +++ a/include/linux/memremap.h
-@@ -1,6 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef _LINUX_MEMREMAP_H_
- #define _LINUX_MEMREMAP_H_
-+#include <linux/range.h>
- #include <linux/ioport.h>
- #include <linux/percpu-refcount.h>
-=20
-@@ -93,7 +94,7 @@ struct dev_pagemap_ops {
+@@ -94,7 +94,6 @@ struct dev_pagemap_ops {
  /**
   * struct dev_pagemap - metadata for ZONE_DEVICE mappings
   * @altmap: pre-allocated/reserved memory for vmemmap allocations
-- * @res: physical address range covered by @ref
-+ * @range: physical address range covered by @ref
+- * @range: physical address range covered by @ref
   * @ref: reference count that pins the devm_memremap_pages() mapping
   * @internal_ref: internal reference if @ref is not provided by the caller
   * @done: completion for @internal_ref
-@@ -106,7 +107,7 @@ struct dev_pagemap_ops {
+@@ -104,10 +103,12 @@ struct dev_pagemap_ops {
+  * @owner: an opaque pointer identifying the entity that manages this
+  *	instance.  Used by various helpers to make sure that no
+  *	foreign ZONE_DEVICE memory is accessed.
++ * @nr_range: number of ranges to be mapped
++ * @range: range to be mapped when nr_range =3D=3D 1
++ * @ranges: array of ranges to be mapped when nr_range > 1
   */
  struct dev_pagemap {
  	struct vmem_altmap altmap;
--	struct resource res;
-+	struct range range;
+-	struct range range;
  	struct percpu_ref *ref;
  	struct percpu_ref internal_ref;
  	struct completion done;
---- a/include/linux/range.h~mm-memremap_pages-convert-to-struct-range
-+++ a/include/linux/range.h
-@@ -1,12 +1,18 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef _LINUX_RANGE_H
- #define _LINUX_RANGE_H
-+#include <linux/types.h>
-=20
- struct range {
- 	u64   start;
- 	u64   end;
+@@ -115,6 +116,11 @@ struct dev_pagemap {
+ 	unsigned int flags;
+ 	const struct dev_pagemap_ops *ops;
+ 	void *owner;
++	int nr_range;
++	union {
++		struct range range;
++		struct range ranges[0];
++	};
  };
 =20
-+static inline u64 range_len(const struct range *range)
-+{
-+	return range->end - range->start + 1;
-+}
-+
- int add_range(struct range *range, int az, int nr_range,
- 		u64 start, u64 end);
-=20
---- a/lib/test_hmm.c~mm-memremap_pages-convert-to-struct-range
+ static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
+--- a/lib/test_hmm.c~mm-memremap_pages-support-multiple-ranges-per-invocati=
+on
 +++ a/lib/test_hmm.c
-@@ -487,7 +487,8 @@ static bool dmirror_allocate_chunk(struc
- 		goto err_release;
-=20
+@@ -489,6 +489,7 @@ static bool dmirror_allocate_chunk(struc
  	devmem->pagemap.type =3D MEMORY_DEVICE_PRIVATE;
--	devmem->pagemap.res =3D *res;
-+	devmem->pagemap.range.start =3D res->start;
-+	devmem->pagemap.range.end =3D res->end;
+ 	devmem->pagemap.range.start =3D res->start;
+ 	devmem->pagemap.range.end =3D res->end;
++	devmem->pagemap.nr_range =3D 1;
  	devmem->pagemap.ops =3D &dmirror_devmem_ops;
  	devmem->pagemap.owner =3D mdevice;
 =20
-@@ -496,9 +497,8 @@ static bool dmirror_allocate_chunk(struc
- 		goto err_free;
-=20
- 	devmem->mdevice =3D mdevice;
--	pfn_first =3D devmem->pagemap.res.start >> PAGE_SHIFT;
--	pfn_last =3D pfn_first +
--		(resource_size(&devmem->pagemap.res) >> PAGE_SHIFT);
-+	pfn_first =3D devmem->pagemap.range.start >> PAGE_SHIFT;
-+	pfn_last =3D pfn_first + (range_len(&devmem->pagemap.range) >> PAGE_SHIFT=
-);
- 	mdevice->devmem_chunks[mdevice->devmem_count++] =3D devmem;
-=20
- 	mutex_unlock(&mdevice->devmem_lock);
-@@ -528,7 +528,7 @@ static bool dmirror_allocate_chunk(struc
- err_free:
- 	kfree(devmem);
- err_release:
--	release_mem_region(res->start, resource_size(res));
-+	release_mem_region(devmem->pagemap.range.start, range_len(&devmem->pagema=
-p.range));
- err:
- 	mutex_unlock(&mdevice->devmem_lock);
- 	return false;
-@@ -1100,8 +1100,8 @@ static void dmirror_device_remove(struct
- 				mdevice->devmem_chunks[i];
-=20
- 			memunmap_pages(&devmem->pagemap);
--			release_mem_region(devmem->pagemap.res.start,
--					   resource_size(&devmem->pagemap.res));
-+			release_mem_region(devmem->pagemap.range.start,
-+					   range_len(&devmem->pagemap.range));
- 			kfree(devmem);
- 		}
- 		kfree(mdevice->devmem_chunks);
---- a/mm/memremap.c~mm-memremap_pages-convert-to-struct-range
+--- a/mm/memremap.c~mm-memremap_pages-support-multiple-ranges-per-invocation
 +++ a/mm/memremap.c
-@@ -70,24 +70,24 @@ static void devmap_managed_enable_put(vo
- }
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
-=20
--static void pgmap_array_delete(struct resource *res)
-+static void pgmap_array_delete(struct range *range)
- {
--	xa_store_range(&pgmap_array, PHYS_PFN(res->start), PHYS_PFN(res->end),
-+	xa_store_range(&pgmap_array, PHYS_PFN(range->start), PHYS_PFN(range->end),
- 			NULL, GFP_KERNEL);
+@@ -77,15 +77,19 @@ static void pgmap_array_delete(struct ra
  	synchronize_rcu();
  }
 =20
- static unsigned long pfn_first(struct dev_pagemap *pgmap)
+-static unsigned long pfn_first(struct dev_pagemap *pgmap)
++static unsigned long pfn_first(struct dev_pagemap *pgmap, int range_id)
  {
--	return PHYS_PFN(pgmap->res.start) +
-+	return PHYS_PFN(pgmap->range.start) +
- 		vmem_altmap_offset(pgmap_altmap(pgmap));
+-	return PHYS_PFN(pgmap->range.start) +
+-		vmem_altmap_offset(pgmap_altmap(pgmap));
++	struct range *range =3D &pgmap->ranges[range_id];
++	unsigned long pfn =3D PHYS_PFN(range->start);
++
++	if (range_id)
++		return pfn;
++	return pfn + vmem_altmap_offset(pgmap_altmap(pgmap));
  }
 =20
- static unsigned long pfn_end(struct dev_pagemap *pgmap)
+-static unsigned long pfn_end(struct dev_pagemap *pgmap)
++static unsigned long pfn_end(struct dev_pagemap *pgmap, int range_id)
  {
--	const struct resource *res =3D &pgmap->res;
-+	const struct range *range =3D &pgmap->range;
+-	const struct range *range =3D &pgmap->range;
++	const struct range *range =3D &pgmap->ranges[range_id];
 =20
--	return (res->start + resource_size(res)) >> PAGE_SHIFT;
-+	return (range->start + range_len(range)) >> PAGE_SHIFT;
+ 	return (range->start + range_len(range)) >> PAGE_SHIFT;
+ }
+@@ -117,8 +121,8 @@ bool pfn_zone_device_reserved(unsigned l
+ 	return ret;
  }
 =20
- static unsigned long pfn_next(unsigned long pfn)
-@@ -146,7 +146,7 @@ static void dev_pagemap_cleanup(struct d
+-#define for_each_device_pfn(pfn, map) \
+-	for (pfn =3D pfn_first(map); pfn < pfn_end(map); pfn =3D pfn_next(pfn))
++#define for_each_device_pfn(pfn, map, i) \
++	for (pfn =3D pfn_first(map, i); pfn < pfn_end(map, i); pfn =3D pfn_next(p=
+fn))
 =20
- void memunmap_pages(struct dev_pagemap *pgmap)
+ static void dev_pagemap_kill(struct dev_pagemap *pgmap)
  {
--	struct resource *res =3D &pgmap->res;
-+	struct range *range =3D &pgmap->range;
+@@ -144,20 +148,14 @@ static void dev_pagemap_cleanup(struct d
+ 		pgmap->ref =3D NULL;
+ }
+=20
+-void memunmap_pages(struct dev_pagemap *pgmap)
++static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
+ {
+-	struct range *range =3D &pgmap->range;
++	struct range *range =3D &pgmap->ranges[range_id];
  	struct page *first_page;
- 	unsigned long pfn;
+-	unsigned long pfn;
  	int nid;
-@@ -163,20 +163,20 @@ void memunmap_pages(struct dev_pagemap *
+=20
+-	dev_pagemap_kill(pgmap);
+-	for_each_device_pfn(pfn, pgmap)
+-		put_page(pfn_to_page(pfn));
+-	dev_pagemap_cleanup(pgmap);
+-
+ 	/* make sure to access a memmap that was actually initialized */
+-	first_page =3D pfn_to_page(pfn_first(pgmap));
++	first_page =3D pfn_to_page(pfn_first(pgmap, range_id));
+=20
+ 	/* pages are dead and unused, undo the arch mapping */
  	nid =3D page_to_nid(first_page);
+@@ -177,6 +175,22 @@ void memunmap_pages(struct dev_pagemap *
 =20
- 	mem_hotplug_begin();
--	remove_pfn_range_from_zone(page_zone(first_page), PHYS_PFN(res->start),
--				   PHYS_PFN(resource_size(res)));
-+	remove_pfn_range_from_zone(page_zone(first_page), PHYS_PFN(range->start),
-+				   PHYS_PFN(range_len(range)));
- 	if (pgmap->type =3D=3D MEMORY_DEVICE_PRIVATE) {
--		__remove_pages(PHYS_PFN(res->start),
--			       PHYS_PFN(resource_size(res)), NULL);
-+		__remove_pages(PHYS_PFN(range->start),
-+			       PHYS_PFN(range_len(range)), NULL);
- 	} else {
--		arch_remove_memory(nid, res->start, resource_size(res),
-+		arch_remove_memory(nid, range->start, range_len(range),
- 				pgmap_altmap(pgmap));
--		kasan_remove_zero_shadow(__va(res->start), resource_size(res));
-+		kasan_remove_zero_shadow(__va(range->start), range_len(range));
- 	}
- 	mem_hotplug_done();
-=20
--	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
--	pgmap_array_delete(res);
-+	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
-+	pgmap_array_delete(range);
+ 	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
+ 	pgmap_array_delete(range);
++}
++
++void memunmap_pages(struct dev_pagemap *pgmap)
++{
++	unsigned long pfn;
++	int i;
++
++	dev_pagemap_kill(pgmap);
++	for (i =3D 0; i < pgmap->nr_range; i++)
++		for_each_device_pfn(pfn, pgmap, i)
++			put_page(pfn_to_page(pfn));
++	dev_pagemap_cleanup(pgmap);
++
++	for (i =3D 0; i < pgmap->nr_range; i++)
++		pageunmap_range(pgmap, i);
++
  	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
  	devmap_managed_enable_put();
  }
-@@ -202,7 +202,7 @@ static void dev_pagemap_percpu_release(s
-  */
- void *memremap_pages(struct dev_pagemap *pgmap, int nid)
+@@ -195,96 +209,29 @@ static void dev_pagemap_percpu_release(s
+ 	complete(&pgmap->done);
+ }
+=20
+-/*
+- * Not device managed version of dev_memremap_pages, undone by
+- * memunmap_pages().  Please use dev_memremap_pages if you have a struct
+- * device available.
+- */
+-void *memremap_pages(struct dev_pagemap *pgmap, int nid)
++static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *par=
+ams,
++		int range_id, int nid)
  {
--	struct resource *res =3D &pgmap->res;
-+	struct range *range =3D &pgmap->range;
+-	struct range *range =3D &pgmap->range;
++	struct range *range =3D &pgmap->ranges[range_id];
  	struct dev_pagemap *conflict_pgmap;
- 	struct mhp_params params =3D {
- 		/*
-@@ -271,7 +271,7 @@ void *memremap_pages(struct dev_pagemap
- 			return ERR_PTR(error);
- 	}
+-	struct mhp_params params =3D {
+-		/*
+-		 * We do not want any optional features only our own memmap
+-		 */
+-		.altmap =3D pgmap_altmap(pgmap),
+-		.pgprot =3D PAGE_KERNEL,
+-	};
+ 	int error, is_ram;
+-	bool need_devmap_managed =3D true;
+-
+-	switch (pgmap->type) {
+-	case MEMORY_DEVICE_PRIVATE:
+-		if (!IS_ENABLED(CONFIG_DEVICE_PRIVATE)) {
+-			WARN(1, "Device private memory not supported\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
+-			WARN(1, "Missing migrate_to_ram method\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-		if (!pgmap->owner) {
+-			WARN(1, "Missing owner\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-		break;
+-	case MEMORY_DEVICE_FS_DAX:
+-		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
+-		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
+-			WARN(1, "File system DAX not supported\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-		break;
+-	case MEMORY_DEVICE_GENERIC:
+-		need_devmap_managed =3D false;
+-		break;
+-	case MEMORY_DEVICE_PCI_P2PDMA:
+-		params.pgprot =3D pgprot_noncached(params.pgprot);
+-		need_devmap_managed =3D false;
+-		break;
+-	default:
+-		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
+-		break;
+-	}
+-
+-	if (!pgmap->ref) {
+-		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
+-			return ERR_PTR(-EINVAL);
 =20
--	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(res->start), NULL);
-+	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->start), NULL);
+-		init_completion(&pgmap->done);
+-		error =3D percpu_ref_init(&pgmap->internal_ref,
+-				dev_pagemap_percpu_release, 0, GFP_KERNEL);
+-		if (error)
+-			return ERR_PTR(error);
+-		pgmap->ref =3D &pgmap->internal_ref;
+-	} else {
+-		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
+-			WARN(1, "Missing reference count teardown definition\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-	}
+-
+-	if (need_devmap_managed) {
+-		error =3D devmap_managed_enable_get(pgmap);
+-		if (error)
+-			return ERR_PTR(error);
+-	}
++	if (WARN_ONCE(pgmap_altmap(pgmap) && range_id > 0,
++				"altmap not supported for multiple ranges\n"))
++		return -EINVAL;
+=20
+ 	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->start), NULL);
  	if (conflict_pgmap) {
  		WARN(1, "Conflicting mapping in same section\n");
  		put_dev_pagemap(conflict_pgmap);
-@@ -279,7 +279,7 @@ void *memremap_pages(struct dev_pagemap
- 		goto err_array;
+-		error =3D -ENOMEM;
+-		goto err_array;
++		return -ENOMEM;
  	}
 =20
--	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(res->end), NULL);
-+	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->end), NULL);
+ 	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->end), NULL);
  	if (conflict_pgmap) {
  		WARN(1, "Conflicting mapping in same section\n");
  		put_dev_pagemap(conflict_pgmap);
-@@ -287,26 +287,27 @@ void *memremap_pages(struct dev_pagemap
- 		goto err_array;
+-		error =3D -ENOMEM;
+-		goto err_array;
++		return -ENOMEM;
  	}
 =20
--	is_ram =3D region_intersects(res->start, resource_size(res),
-+	is_ram =3D region_intersects(range->start, range_len(range),
- 		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
-=20
- 	if (is_ram !=3D REGION_DISJOINT) {
--		WARN_ONCE(1, "%s attempted on %s region %pr\n", __func__,
--				is_ram =3D=3D REGION_MIXED ? "mixed" : "ram", res);
-+		WARN_ONCE(1, "attempted on %s region %#llx-%#llx\n",
-+				is_ram =3D=3D REGION_MIXED ? "mixed" : "ram",
-+				range->start, range->end);
- 		error =3D -ENXIO;
- 		goto err_array;
+ 	is_ram =3D region_intersects(range->start, range_len(range),
+@@ -294,19 +241,18 @@ void *memremap_pages(struct dev_pagemap
+ 		WARN_ONCE(1, "attempted on %s region %#llx-%#llx\n",
+ 				is_ram =3D=3D REGION_MIXED ? "mixed" : "ram",
+ 				range->start, range->end);
+-		error =3D -ENXIO;
+-		goto err_array;
++		return -ENXIO;
  	}
 =20
--	error =3D xa_err(xa_store_range(&pgmap_array, PHYS_PFN(res->start),
--				PHYS_PFN(res->end), pgmap, GFP_KERNEL));
-+	error =3D xa_err(xa_store_range(&pgmap_array, PHYS_PFN(range->start),
-+				PHYS_PFN(range->end), pgmap, GFP_KERNEL));
+ 	error =3D xa_err(xa_store_range(&pgmap_array, PHYS_PFN(range->start),
+ 				PHYS_PFN(range->end), pgmap, GFP_KERNEL));
  	if (error)
- 		goto err_array;
+-		goto err_array;
++		return error;
 =20
  	if (nid < 0)
  		nid =3D numa_mem_id();
 =20
--	error =3D track_pfn_remap(NULL, &params.pgprot, PHYS_PFN(res->start),
--				0, resource_size(res));
-+	error =3D track_pfn_remap(NULL, &params.pgprot, PHYS_PFN(range->start), 0,
-+			range_len(range));
+-	error =3D track_pfn_remap(NULL, &params.pgprot, PHYS_PFN(range->start), 0,
++	error =3D track_pfn_remap(NULL, &params->pgprot, PHYS_PFN(range->start), =
+0,
+ 			range_len(range));
  	if (error)
  		goto err_pfn_remap;
-=20
-@@ -324,16 +325,16 @@ void *memremap_pages(struct dev_pagemap
- 	 * arch_add_memory().
+@@ -326,7 +272,7 @@ void *memremap_pages(struct dev_pagemap
  	 */
  	if (pgmap->type =3D=3D MEMORY_DEVICE_PRIVATE) {
--		error =3D add_pages(nid, PHYS_PFN(res->start),
--				PHYS_PFN(resource_size(res)), &params);
-+		error =3D add_pages(nid, PHYS_PFN(range->start),
-+				PHYS_PFN(range_len(range)), &params);
+ 		error =3D add_pages(nid, PHYS_PFN(range->start),
+-				PHYS_PFN(range_len(range)), &params);
++				PHYS_PFN(range_len(range)), params);
  	} else {
--		error =3D kasan_add_zero_shadow(__va(res->start), resource_size(res));
-+		error =3D kasan_add_zero_shadow(__va(range->start), range_len(range));
+ 		error =3D kasan_add_zero_shadow(__va(range->start), range_len(range));
  		if (error) {
- 			mem_hotplug_done();
- 			goto err_kasan;
+@@ -335,7 +281,7 @@ void *memremap_pages(struct dev_pagemap
  		}
 =20
--		error =3D arch_add_memory(nid, res->start, resource_size(res),
-+		error =3D arch_add_memory(nid, range->start, range_len(range),
- 					&params);
+ 		error =3D arch_add_memory(nid, range->start, range_len(range),
+-					&params);
++					params);
  	}
 =20
-@@ -341,8 +342,8 @@ void *memremap_pages(struct dev_pagemap
- 		struct zone *zone;
+ 	if (!error) {
+@@ -343,7 +289,7 @@ void *memremap_pages(struct dev_pagemap
 =20
  		zone =3D &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
--		move_pfn_range_to_zone(zone, PHYS_PFN(res->start),
--				PHYS_PFN(resource_size(res)), params.altmap);
-+		move_pfn_range_to_zone(zone, PHYS_PFN(range->start),
-+				PHYS_PFN(range_len(range)), params.altmap);
+ 		move_pfn_range_to_zone(zone, PHYS_PFN(range->start),
+-				PHYS_PFN(range_len(range)), params.altmap);
++				PHYS_PFN(range_len(range)), params->altmap);
  	}
 =20
  	mem_hotplug_done();
-@@ -354,17 +355,17 @@ void *memremap_pages(struct dev_pagemap
- 	 * to allow us to do the work while not holding the hotplug lock.
- 	 */
+@@ -357,20 +303,116 @@ void *memremap_pages(struct dev_pagemap
  	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
--				PHYS_PFN(res->start),
--				PHYS_PFN(resource_size(res)), pgmap);
-+				PHYS_PFN(range->start),
-+				PHYS_PFN(range_len(range)), pgmap);
- 	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap) - pfn_first(pgmap));
--	return __va(res->start);
-+	return __va(range->start);
+ 				PHYS_PFN(range->start),
+ 				PHYS_PFN(range_len(range)), pgmap);
+-	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap) - pfn_first(pgmap));
+-	return __va(range->start);
++	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
++			- pfn_first(pgmap, range_id));
++	return 0;
 =20
-  err_add_memory:
--	kasan_remove_zero_shadow(__va(res->start), resource_size(res));
-+	kasan_remove_zero_shadow(__va(range->start), range_len(range));
-  err_kasan:
--	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
-+	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
-  err_pfn_remap:
--	pgmap_array_delete(res);
-+	pgmap_array_delete(range);
-  err_array:
- 	dev_pagemap_kill(pgmap);
- 	dev_pagemap_cleanup(pgmap);
-@@ -389,7 +390,7 @@ EXPORT_SYMBOL_GPL(memremap_pages);
-  *    'live' on entry and will be killed and reaped at
-  *    devm_memremap_pages_release() time, or if this routine fails.
-  *
-- * 4/ res is expected to be a host memory range that could feasibly be
-+ * 4/ range is expected to be a host memory range that could feasibly be
-  *    treated as a "System RAM" range, i.e. not a device mmio range, but
-  *    this is not enforced.
-  */
-@@ -446,7 +447,7 @@ struct dev_pagemap *get_dev_pagemap(unsi
- 	 * In the cached case we're already holding a live reference.
- 	 */
- 	if (pgmap) {
--		if (phys >=3D pgmap->res.start && phys <=3D pgmap->res.end)
-+		if (phys >=3D pgmap->range.start && phys <=3D pgmap->range.end)
- 			return pgmap;
- 		put_dev_pagemap(pgmap);
- 	}
---- a/tools/testing/nvdimm/test/iomap.c~mm-memremap_pages-convert-to-struct=
--range
-+++ a/tools/testing/nvdimm/test/iomap.c
-@@ -126,7 +126,7 @@ static void dev_pagemap_percpu_release(s
- void *__wrap_devm_memremap_pages(struct device *dev, struct dev_pagemap *p=
-gmap)
- {
- 	int error;
--	resource_size_t offset =3D pgmap->res.start;
-+	resource_size_t offset =3D pgmap->range.start;
- 	struct nfit_test_resource *nfit_res =3D get_nfit_res(offset);
+- err_add_memory:
++err_add_memory:
+ 	kasan_remove_zero_shadow(__va(range->start), range_len(range));
+- err_kasan:
++err_kasan:
+ 	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
+- err_pfn_remap:
++err_pfn_remap:
+ 	pgmap_array_delete(range);
+- err_array:
+-	dev_pagemap_kill(pgmap);
+-	dev_pagemap_cleanup(pgmap);
+-	devmap_managed_enable_put();
+-	return ERR_PTR(error);
++	return error;
++}
++
++
++/*
++ * Not device managed version of dev_memremap_pages, undone by
++ * memunmap_pages().  Please use dev_memremap_pages if you have a struct
++ * device available.
++ */
++void *memremap_pages(struct dev_pagemap *pgmap, int nid)
++{
++	struct mhp_params params =3D {
++		.altmap =3D pgmap_altmap(pgmap),
++		.pgprot =3D PAGE_KERNEL,
++	};
++	const int nr_range =3D pgmap->nr_range;
++	bool need_devmap_managed =3D true;
++	int error, i;
++
++	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
++		return ERR_PTR(-EINVAL);
++
++	switch (pgmap->type) {
++	case MEMORY_DEVICE_PRIVATE:
++		if (!IS_ENABLED(CONFIG_DEVICE_PRIVATE)) {
++			WARN(1, "Device private memory not supported\n");
++			return ERR_PTR(-EINVAL);
++		}
++		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
++			WARN(1, "Missing migrate_to_ram method\n");
++			return ERR_PTR(-EINVAL);
++		}
++		if (!pgmap->owner) {
++			WARN(1, "Missing owner\n");
++			return ERR_PTR(-EINVAL);
++		}
++		break;
++	case MEMORY_DEVICE_FS_DAX:
++		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
++		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
++			WARN(1, "File system DAX not supported\n");
++			return ERR_PTR(-EINVAL);
++		}
++		break;
++	case MEMORY_DEVICE_GENERIC:
++		need_devmap_managed =3D false;
++		break;
++	case MEMORY_DEVICE_PCI_P2PDMA:
++		params.pgprot =3D pgprot_noncached(params.pgprot);
++		need_devmap_managed =3D false;
++		break;
++	default:
++		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
++		break;
++	}
++
++	if (!pgmap->ref) {
++		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
++			return ERR_PTR(-EINVAL);
++
++		init_completion(&pgmap->done);
++		error =3D percpu_ref_init(&pgmap->internal_ref,
++				dev_pagemap_percpu_release, 0, GFP_KERNEL);
++		if (error)
++			return ERR_PTR(error);
++		pgmap->ref =3D &pgmap->internal_ref;
++	} else {
++		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
++			WARN(1, "Missing reference count teardown definition\n");
++			return ERR_PTR(-EINVAL);
++		}
++	}
++
++	if (need_devmap_managed) {
++		error =3D devmap_managed_enable_get(pgmap);
++		if (error)
++			return ERR_PTR(error);
++	}
++
++	/*
++	 * Clear the pgmap nr_range as it will be incremented for each
++	 * successfully processed range. This communicates how many
++	 * regions to unwind in the abort case.
++	 */
++	pgmap->nr_range =3D 0;
++	error =3D 0;
++	for (i =3D 0; i < nr_range; i++) {
++		error =3D pagemap_range(pgmap, &params, i, nid);
++		if (error)
++			break;
++		pgmap->nr_range++;
++	}
++
++	if (i < nr_range) {
++		memunmap_pages(pgmap);
++		pgmap->nr_range =3D nr_range;
++		return ERR_PTR(error);
++	}
++
++	return __va(pgmap->ranges[0].start);
+ }
+ EXPORT_SYMBOL_GPL(memremap_pages);
 =20
- 	if (!nfit_res)
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
