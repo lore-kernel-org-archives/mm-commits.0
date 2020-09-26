@@ -7,44 +7,48 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06C8DC4727C
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B54C4727D
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB7FF20936
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7BB020936
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601085486;
-	bh=0vAaC6daGFXVyykJySwypyMT0S6G/u6MkRNpMWpoozA=;
+	s=default; t=1601085490;
+	bh=lW+h60mQehOfV6L6n3TAUxrGnIpl0G//yZIy+1x0y2Q=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=iHu5pr/H7txpHKpU1i127NweLrn2w5lCVzJ6TH7PLOAAec8JoQAvd/2n0vo2lB5d0
-	 IcA0R+0u2eMgd7Xv9CXWA0mUXeHulGFIuTlHhOgRvnufEQmsd1JA+oZKtCMoJ9XnX1
-	 /+vIkD+kZPc801U/gltV6ln2cBp6nr4x+2hRoPns=
+	b=Wz91LGcAItvtvJllDjrSV5BomvELYVWRUfsdXxW6DE2YveEIqeUaoumYwM/YnX/D7
+	 TFz7Qb2J+Kl3O78c3Vrx3ioVnzr4As7+Diq3U7fTV5llWw29xotiQiwECDpd/r8N6W
+	 0lSsabgOnaR0GNs+6PS8XQNpiwgKC/etg6YZsT4g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729947AbgIZB6G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 21:58:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40442 "EHLO mail.kernel.org"
+        id S1729950AbgIZB6J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 21:58:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727495AbgIZB6G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 21:58:06 -0400
+        id S1727495AbgIZB6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 21:58:09 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 95814207EA;
-        Sat, 26 Sep 2020 01:58:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7D2932087D;
+        Sat, 26 Sep 2020 01:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601085485;
-        bh=0vAaC6daGFXVyykJySwypyMT0S6G/u6MkRNpMWpoozA=;
+        s=default; t=1601085488;
+        bh=lW+h60mQehOfV6L6n3TAUxrGnIpl0G//yZIy+1x0y2Q=;
         h=Date:From:To:Subject:From;
-        b=ErUpjchjNrDJOmfQx63zZeb5UUZozlBbQlqmM4qaA4e2M6IfZyv6d5cq82FUj4xAh
-         ylmpJg3Xuwaizz2r5FqZas4HeExHjRVo9Znml9azeQgbm/UOCEFyYKFyNHIa5Tlsya
-         VorxDaAvOJsi3+rti8R20RNBkvUhDtNdhanV0Dyo=
-Date:   Fri, 25 Sep 2020 18:58:05 -0700
+        b=QqVCr6RYRU68yNSUc7xA2b74zGTixYCTBPSkAbvwSLTt3dTLiRkmJD5N+YFnf4InZ
+         u8fjJEGW9rCNgDw5PmQ+q2t6dHJ0gWDVPK+FA0QVeWbkim3F33Gr6hWEpu/kIUENgU
+         3qQCXPFBlznsN00ABJMqiUsSSVulx5Gnp4HpTVQM=
+Date:   Fri, 25 Sep 2020 18:58:08 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, gandalf@winds.org, hughd@google.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged] tmpfs-restore-functionality-of-nr_inodes=0.patch
- removed from -mm tree
-Message-ID: <20200926015805.zRx0dUaOe%akpm@linux-foundation.org>
+To:     anil.s.keshavamurthy@intel.com, davem@davemloft.net,
+        mhiramat@kernel.org, mm-commits@vger.kernel.org,
+        naveen.n.rao@linux.ibm.com, rostedt@goodmis.org,
+        songliubraving@fb.com, songmuchun@bytedance.com,
+        stable@vger.kernel.org, zhouchengming@bytedance.com
+Subject:  [merged]
+ kprobes-fix-kill-kprobe-which-has-been-marked-as-gone.patch removed from
+ -mm tree
+Message-ID: <20200926015808.ScNJv8sRj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,59 +57,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: restore functionality of nr_inodes=0
+     Subject: kprobes: fix kill kprobe which has been marked as gone
 has been removed from the -mm tree.  Its filename was
-     tmpfs-restore-functionality-of-nr_inodes=0.patch
+     kprobes-fix-kill-kprobe-which-has-been-marked-as-gone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Byron Stanoszek <gandalf@winds.org>
-Subject: tmpfs: restore functionality of nr_inodes=0
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: kprobes: fix kill kprobe which has been marked as gone
 
-Commit e809d5f0b5c9 ("tmpfs: per-superblock i_ino support") made changes
-to shmem_reserve_inode() in mm/shmem.c, however the original test for
-(sbinfo->max_inodes) got dropped.  This causes mounting tmpfs with option
-nr_inodes=0 to fail:
+If a kprobe is marked as gone, we should not kill it again.  Otherwise, we
+can disarm the kprobe more than once.  In that case, the statistics of
+kprobe_ftrace_enabled can unbalance which can lead to that kprobe do not
+work.
 
-  # mount -ttmpfs -onr_inodes=0 none /ext0
-  mount: /ext0: mount(2) system call failed: Cannot allocate memory.
-
-This patch restores the nr_inodes=0 functionality.
-
-Link: https://lkml.kernel.org/r/20200902035715.16414-1-gandalf@winds.org
-Fixes: e809d5f0b5c9 ("tmpfs: per-superblock i_ino support")
-Signed-off-by: Byron Stanoszek <gandalf@winds.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Chris Down <chris@chrisdown.name>	
+Link: https://lkml.kernel.org/r/20200822030055.32383-1-songmuchun@bytedance.com
+Fixes: e8386a0cb22f ("kprobes: support probing module __exit function")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Co-developed-by: Chengming Zhou <zhouchengming@bytedance.com>
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ kernel/kprobes.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~tmpfs-restore-functionality-of-nr_inodes=0
-+++ a/mm/shmem.c
-@@ -279,11 +279,13 @@ static int shmem_reserve_inode(struct su
+--- a/kernel/kprobes.c~kprobes-fix-kill-kprobe-which-has-been-marked-as-gone
++++ a/kernel/kprobes.c
+@@ -2140,6 +2140,9 @@ static void kill_kprobe(struct kprobe *p
  
- 	if (!(sb->s_flags & SB_KERNMOUNT)) {
- 		spin_lock(&sbinfo->stat_lock);
--		if (!sbinfo->free_inodes) {
--			spin_unlock(&sbinfo->stat_lock);
--			return -ENOSPC;
-+		if (sbinfo->max_inodes) {
-+			if (!sbinfo->free_inodes) {
-+				spin_unlock(&sbinfo->stat_lock);
-+				return -ENOSPC;
-+			}
-+			sbinfo->free_inodes--;
- 		}
--		sbinfo->free_inodes--;
- 		if (inop) {
- 			ino = sbinfo->next_ino++;
- 			if (unlikely(is_zero_ino(ino)))
+ 	lockdep_assert_held(&kprobe_mutex);
+ 
++	if (WARN_ON_ONCE(kprobe_gone(p)))
++		return;
++
+ 	p->flags |= KPROBE_FLAG_GONE;
+ 	if (kprobe_aggrprobe(p)) {
+ 		/*
+@@ -2419,7 +2422,10 @@ static int kprobes_module_callback(struc
+ 	mutex_lock(&kprobe_mutex);
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+-		hlist_for_each_entry(p, head, hlist)
++		hlist_for_each_entry(p, head, hlist) {
++			if (kprobe_gone(p))
++				continue;
++
+ 			if (within_module_init((unsigned long)p->addr, mod) ||
+ 			    (checkcore &&
+ 			     within_module_core((unsigned long)p->addr, mod))) {
+@@ -2436,6 +2442,7 @@ static int kprobes_module_callback(struc
+ 				 */
+ 				kill_kprobe(p);
+ 			}
++		}
+ 	}
+ 	if (val == MODULE_STATE_GOING)
+ 		remove_module_kprobe_blacklist(mod);
 _
 
-Patches currently in -mm which might be from gandalf@winds.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-memcontrol-fix-missing-suffix-of-workingset_restore.patch
+mm-memcontrol-add-the-missing-numa_stat-interface-for-cgroup-v2.patch
 
