@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E05FEC4727C
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5B14C4727D
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1A2E20BED
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5BB821741
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601087150;
-	bh=TpSjhzycyNXvNc2nhpu+vmaIIWj7HLGXvkElUMmdZHc=;
+	s=default; t=1601087155;
+	bh=EESpEC7qiaOCM4yrBj6sRVczpsl/0GbcJ5jsdTBs8is=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=m/gGJfcGLp/DSnuJv30hOoDEZOVzl1+RTI+5iT76ktgFYRtOosXVsIjGbgEW2o5Pu
-	 7CTmGzm75+IaPiLPIX1dHNloxRz+S7lTWWfvKO227cU4tw3NE0uY7/5yX//Apap8w3
-	 2V2z3tk5avX+UVwUdc3umGccZ8INlyjwLLUrozCE=
+	b=LqLbmE7+H+PiZpTkQgJ58zxCmA3ZH/HTKlNJ7FINactom2+xTPP3B+Vb+4KA0KIob
+	 LIY9ijo1O8Hgk9ySlIn4DPaSQ92w6EF8outxNyriK08/bngGM/xlxTZn9SRn+eL0V3
+	 rZPjTAjxMZ/2V5HJZZ9qOGx/DyG/7TN2HhA2WM74=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729968AbgIZCZu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 22:25:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49584 "EHLO mail.kernel.org"
+        id S1729969AbgIZCZz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 22:25:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729960AbgIZCZu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 22:25:50 -0400
+        id S1729960AbgIZCZz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 22:25:55 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1C80A20866;
-        Sat, 26 Sep 2020 02:25:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 159162087D;
+        Sat, 26 Sep 2020 02:25:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601087149;
-        bh=TpSjhzycyNXvNc2nhpu+vmaIIWj7HLGXvkElUMmdZHc=;
+        s=default; t=1601087154;
+        bh=EESpEC7qiaOCM4yrBj6sRVczpsl/0GbcJ5jsdTBs8is=;
         h=Date:From:To:Subject:From;
-        b=uhEOrS2RslJicvmietf9b7NO7r/03VrUXvMOy7rp1mIp3LDRzB91+nNVqjCjZk1ny
-         7n64ldSnUzXjZHB/LzV1boSQZkJ8y4yeHDpPVxhljKoAugAQeeO9kroZvHYy6GeAos
-         XlkaoOu0anHbc0dA4jk6p4WI4nGITHlXgfjxyVhs=
-Date:   Fri, 25 Sep 2020 19:25:46 -0700
+        b=zvuF4VWqjsJILA46aIpsE1dgmIP3TxgOrV2XDBos/fg7IHNCt+Hz+SYxkYXfJnAVc
+         HvKqKyYDZgdmJyRHh+6LMIgMHmJ7eLj8V1G8+fkR7Osg7EonFaz8SFk/xU6eo9/05M
+         s66cUOH/zQaobymIXM6jnzNHkn0Rr2ua8OdsrS1w=
+Date:   Fri, 25 Sep 2020 19:25:51 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, yanaijie@huawei.com, will@kernel.org,
         vishal.l.verma@intel.com, vgoyal@redhat.com,
@@ -58,9 +58,9 @@ To:     mm-commits@vger.kernel.org, yanaijie@huawei.com, will@kernel.org,
         bhelgaas@google.com, benh@kernel.crashing.org, ardb@kernel.org,
         ard.biesheuvel@linaro.org, airlied@linux.ie,
         joao.m.martins@oracle.com
-Subject:  + dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
+Subject:  + device-dax-add-a-range-mapping-allocation-attribute.patch
  added to -mm tree
-Message-ID: <20200926022546.84plV%akpm@linux-foundation.org>
+Message-ID: <20200926022551.9VDiO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -72,16 +72,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax/hmem: introduce dax_hmem.region_idle parameter
+     Subject: device-dax: add a range mapping allocation attribute
 has been added to the -mm tree.  Its filename is
-     dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
+     device-dax-add-a-range-mapping-allocation-attribute.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/dax-hmem-introduce-dax_hmemre=
-gion_idle-parameter.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-add-a-range-mappin=
+g-allocation-attribute.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/dax-hmem-introduce-dax_hmemre=
-gion_idle-parameter.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-add-a-range-mappin=
+g-allocation-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -97,21 +97,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: dax/hmem: introduce dax_hmem.region_idle parameter
+Subject: device-dax: add a range mapping allocation attribute
 
-Introduce a new module parameter for dax_hmem which initializes all region
-devices as free, rather than allocating a pagemap for the region by
-default.
+Add a sysfs attribute which denotes a range from the dax region to be
+allocated.  It's an write only @mapping sysfs attribute in the format of
+'<start>-<end>' to allocate a range.  @start and @end use hexadecimal
+values and the @pgoff is implicitly ordered wrt to previous writes to
+@mapping sysfs e.g.  a write of a range of length 1G the pgoff is
+0..1G(-4K), a second write will use @pgoff for 1G+4K..<size>.
 
-All hmem devices created with dax_hmem.region_idle=3D1 will have full
-available size for creating dynamic dax devices.
+This range mapping interface is useful for:
 
-Link: https://lkml.kernel.org/r/159643106460.4062302.5868522341307530091.st=
-git@dwillia2-desk3.amr.corp.intel.com
-Link: https://lore.kernel.org/r/20200716172913.19658-4-joao.m.martins@oracl=
+ 1) Application which want to implement its own allocation logic, and
+    thus pick the desired ranges from dax_region.
+
+ 2) For use cases like VMM fast restart[0] where after kexec we want
+    to the same gpa<->phys mappings (as originally created before kexec).
+
+[0] https://static.sched.com/hosted_files/kvmforum2019/66/VMM-fast-restart_=
+kvmforum2019.pdf
+
+Link: https://lkml.kernel.org/r/159643106970.4062302.10402616567780784722.s=
+tgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lore.kernel.org/r/20200716172913.19658-5-joao.m.martins@oracl=
 e.com
-Link: https://lkml.kernel.org/r/160106119033.30709.11249962152222193448.stg=
-it@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/160106119570.30709.4548889722645210610.stgi=
+t@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -159,31 +170,98 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/hmem/hmem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/dax/bus.c |   64 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
---- a/drivers/dax/hmem/hmem.c~dax-hmem-introduce-dax_hmemregion_idle-parame=
-ter
-+++ a/drivers/dax/hmem/hmem.c
-@@ -5,6 +5,9 @@
- #include <linux/pfn_t.h>
- #include "../bus.h"
+--- a/drivers/dax/bus.c~device-dax-add-a-range-mapping-allocation-attribute
++++ a/drivers/dax/bus.c
+@@ -1043,6 +1043,67 @@ static ssize_t size_store(struct device
+ }
+ static DEVICE_ATTR_RW(size);
 =20
-+static bool region_idle;
-+module_param_named(region_idle, region_idle, bool, 0644);
++static ssize_t range_parse(const char *opt, size_t len, struct range *rang=
+e)
++{
++	unsigned long long addr =3D 0;
++	char *start, *end, *str;
++	ssize_t rc =3D EINVAL;
 +
- static int dax_hmem_probe(struct platform_device *pdev)
++	str =3D kstrdup(opt, GFP_KERNEL);
++	if (!str)
++		return rc;
++
++	end =3D str;
++	start =3D strsep(&end, "-");
++	if (!start || !end)
++		goto err;
++
++	rc =3D kstrtoull(start, 16, &addr);
++	if (rc)
++		goto err;
++	range->start =3D addr;
++
++	rc =3D kstrtoull(end, 16, &addr);
++	if (rc)
++		goto err;
++	range->end =3D addr;
++
++err:
++	kfree(str);
++	return rc;
++}
++
++static ssize_t mapping_store(struct device *dev, struct device_attribute *=
+attr,
++		const char *buf, size_t len)
++{
++	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++	struct dax_region *dax_region =3D dev_dax->region;
++	size_t to_alloc;
++	struct range r;
++	ssize_t rc;
++
++	rc =3D range_parse(buf, len, &r);
++	if (rc)
++		return rc;
++
++	rc =3D -ENXIO;
++	device_lock(dax_region->dev);
++	if (!dax_region->dev->driver) {
++		device_unlock(dax_region->dev);
++		return rc;
++	}
++	device_lock(dev);
++
++	to_alloc =3D range_len(&r);
++	if (alloc_is_aligned(dev_dax, to_alloc))
++		rc =3D alloc_dev_dax_range(dev_dax, r.start, to_alloc);
++	device_unlock(dev);
++	device_unlock(dax_region->dev);
++
++	return rc =3D=3D 0 ? len : rc;
++}
++static DEVICE_ATTR_WO(mapping);
++
+ static ssize_t align_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	struct device *dev =3D &pdev->dev;
-@@ -30,7 +33,7 @@ static int dax_hmem_probe(struct platfor
- 	data =3D (struct dev_dax_data) {
- 		.dax_region =3D dax_region,
- 		.id =3D -1,
--		.size =3D resource_size(res),
-+		.size =3D region_idle ? 0 : resource_size(res),
- 	};
- 	dev_dax =3D devm_create_dev_dax(&data);
- 	if (IS_ERR(dev_dax))
+@@ -1175,6 +1236,8 @@ static umode_t dev_dax_visible(struct ko
+ 		return 0;
+ 	if (a =3D=3D &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
+ 		return 0;
++	if (a =3D=3D &dev_attr_mapping.attr && is_static(dax_region))
++		return 0;
+ 	if ((a =3D=3D &dev_attr_align.attr ||
+ 	     a =3D=3D &dev_attr_size.attr) && is_static(dax_region))
+ 		return 0444;
+@@ -1184,6 +1247,7 @@ static umode_t dev_dax_visible(struct ko
+ static struct attribute *dev_dax_attributes[] =3D {
+ 	&dev_attr_modalias.attr,
+ 	&dev_attr_size.attr,
++	&dev_attr_mapping.attr,
+ 	&dev_attr_target_node.attr,
+ 	&dev_attr_align.attr,
+ 	&dev_attr_resource.attr,
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
