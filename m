@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 708B5C4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:18:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A83DC4727C
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:19:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38E3820936
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:18:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 441032087D
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:19:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601086689;
-	bh=o+vxYxHspLKkx90gGv8X72Xjda3OXk+u/F7ykifqRY8=;
+	s=default; t=1601086746;
+	bh=NjgYjBG+udEknBUDP9zYay4frscZjrJm8KtZBPbTWEU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LvSEYwOM5YOJ0PzMmUmaq9cl9Cw9M6XUgkAU96qh5NXH/IR+wiQu12ahB/VBpYmf+
-	 uz8+6dcPNRdbR6MT1HbW9oaNbVF2xTNceOEcIjWEEFn2j3GyGg1Ugxm8jITaPq8eii
-	 A4NLkKJtEo0YTnTIF3ScoZ+d3mX9rxM6GNYje8VI=
+	b=Vas70sLpcsz5Vr3GL+Y461ext/bR2Hqo0zUeZ8zMxvvNCB1jST+7HHC5eq6pij+RM
+	 07fMFOMlBPIw4OnLjwLE0au2Z8Sxb8QNbubRMpew+jH6nb3TM/WJXOAj0J/5yapPnL
+	 SCns6wh8SbSJ6x5bPbDRuQytdO4obdohBL7omFic=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729897AbgIZCSJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 22:18:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46820 "EHLO mail.kernel.org"
+        id S1728967AbgIZCTG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 22:19:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726305AbgIZCSI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 22:18:08 -0400
+        id S1727495AbgIZCTF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 22:19:05 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7459520866;
-        Sat, 26 Sep 2020 02:18:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9247C20866;
+        Sat, 26 Sep 2020 02:19:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601086687;
-        bh=o+vxYxHspLKkx90gGv8X72Xjda3OXk+u/F7ykifqRY8=;
+        s=default; t=1601086743;
+        bh=NjgYjBG+udEknBUDP9zYay4frscZjrJm8KtZBPbTWEU=;
         h=Date:From:To:Subject:From;
-        b=weDvoiGfJH8d9pt25knOQYRTczuBfTjS8a2CpUvNSfR5aoZXqV2xQq/NUH8rVZ49j
-         VmyQ37lgPq4y1uq4OeE2CaftnDCvj3AoDWEN+b8Xj7xNf0oDyhSQZccksrEv2HChoW
-         kZtHddZQDbpfsfoAy5zOBfVbdAPB5AtrWD20OLFA=
-Date:   Fri, 25 Sep 2020 19:18:06 -0700
+        b=1hmnUM2LeZY3Ev/FZrf7fBkiaSCZ7lewd/pnVROduryU4RxsBXl+meGHLnM0iFDtn
+         RAwrGCKnAbhXjmrmvFpzpOOBGXOCFTpHnQ6lBTjh62glSZaHPUTIu5X1YtaXOaMeZT
+         //6t11Npg7OowpoAUIU3YPpEorz2aAUDiMiiElAE=
+Date:   Fri, 25 Sep 2020 19:19:03 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
-        lkp@intel.com, dan.j.williams@intel.com, joao.m.martins@oracle.com
+        joao.m.martins@oracle.com, dan.j.williams@intel.com,
+        akpm@linux-foundation.org
 Subject:  [folded-merged]
- device-dax-add-an-align-attribute-fixpatch.patch removed from -mm tree
-Message-ID: <20200926021806.7TbbB%akpm@linux-foundation.org>
+ device-dax-make-pgmap-optional-for-instance-creation-fix.patch removed from
+ -mm tree
+Message-ID: <20200926021903.J_U16%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,104 +55,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: fix dax_align_valid() to work on PAGE_SHIFT>=14
+     Subject: device-dax-make-pgmap-optional-for-instance-creation-fix
 has been removed from the -mm tree.  Its filename was
-     device-dax-add-an-align-attribute-fixpatch.patch
+     device-dax-make-pgmap-optional-for-instance-creation-fix.patch
 
-This patch was dropped because it was folded into device-dax-add-an-align-attribute.patch
+This patch was dropped because it was folded into device-dax-make-pgmap-optional-for-instance-creation.patch
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: fix dax_align_valid() to work on PAGE_SHIFT>=14
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: device-dax-make-pgmap-optional-for-instance-creation-fix
 
-With ARM64_PAGE_SHIFT=14, we get:
+MEMORY_DEVICE_DEVDAX was renamed to MEMORY_DEVICE_GENERIC
 
-In file included from drivers/dax/device.c:14:
-drivers/dax/dax-private.h:94:12: warning: result of comparison of constant 68719476736
-with expression of type 'unsigned int' is always false
-[-Wtautological-constant-out-of-range-compare]
-        if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-            ~~~~~ ^  ~~~~~~~~
-In file included from drivers/dax/super.c:18:
-drivers/dax/dax-private.h:94:12: warning: result of comparison of constant 68719476736
-with expression of type 'unsigned int' is always false
-[-Wtautological-constant-out-of-range-compare]
-        if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-            ~~~~~ ^  ~~~~~~~~
-In file included from drivers/dax/bus.c:10:
-drivers/dax/dax-private.h:94:12: warning: result of comparison of constant 68719476736
-with expression of type 'unsigned int' is always false
-[-Wtautological-constant-out-of-range-compare]
-        if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-            ~~~~~ ^  ~~~~~~~~
-
-Or with ARM64_PAGE_SHIFT=16 && ARM64_VA_BITS_52=y:
-
-In file included from drivers/dax/device.c:14:
-drivers/dax/dax-private.h:94:12: warning: result of comparison of constant 4398046511104
-with expression of type 'unsigned int' is always false
-[-Wtautological-constant-out-of-range-compare]
-        if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-            ~~~~~ ^  ~~~~~~~~
-In file included from drivers/dax/super.c:18:
-drivers/dax/dax-private.h:94:12: warning: result of comparison of constant 4398046511104
-with expression of type 'unsigned int' is always false
-[-Wtautological-constant-out-of-range-compare]
-        if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-In file included from drivers/dax/bus.c:10:
-drivers/dax/dax-private.h:94:12: warning: result of comparison of constant 4398046511104
-with expression of type 'unsigned int' is always false
-[-Wtautological-constant-out-of-range-compare]
-        if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-            ~~~~~ ^  ~~~~~~~~
-
-Change dax_align_valid() to unsigned long (dax_align_valid()
-already is unsigned long). Note that in practice
-CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD is only set on x86,
-so a dax_align_valid(PUD_SIZE) check always return false.
-An alternative would be to invert the check to:
-
-	if (IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) && align == PUD_SIZE)
-
-Link: http://lkml.kernel.org/r/435778c3-65c2-7e5d-578d-68cf89ae19bd@oracle.com
-Link: https://lore.kernel.org/linux-mm/202008280906.WPrik7QQ%25lkp@intel.com/
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reported-by: kernel test robot <lkp@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/dax-private.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/dax/device.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/dax/dax-private.h~device-dax-add-an-align-attribute-fixpatch
-+++ a/drivers/dax/dax-private.h
-@@ -89,7 +89,7 @@ static inline struct dax_mapping *to_dax
- phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff, unsigned long size);
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static inline bool dax_align_valid(unsigned int align)
-+static inline bool dax_align_valid(unsigned long align)
- {
- 	if (align == PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
- 		return true;
-@@ -100,7 +100,7 @@ static inline bool dax_align_valid(unsig
- 	return false;
- }
- #else
--static inline bool dax_align_valid(unsigned int align)
-+static inline bool dax_align_valid(unsigned long align)
- {
- 	return align == PAGE_SIZE;
- }
+--- a/drivers/dax/device.c~device-dax-make-pgmap-optional-for-instance-creation-fix
++++ a/drivers/dax/device.c
+@@ -419,7 +419,7 @@ int dev_dax_probe(struct device *dev)
+ 		pgmap->res.start = range->start;
+ 		pgmap->res.end = range->end;
+ 	}
+-	pgmap->type = MEMORY_DEVICE_DEVDAX;
++	pgmap->type = MEMORY_DEVICE_GENERIC;
+ 	addr = devm_memremap_pages(dev, pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-hmat-refactor-hmat_register_target_device-to-hmem_register_device-fix.patch
-acpi-hmat-attach-a-device-for-each-soft-reserved-range-fix.patch
-device-dax-make-align-a-per-device-property.patch
-dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
-device-dax-add-a-range-mapping-allocation-attribute.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
