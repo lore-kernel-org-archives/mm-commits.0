@@ -2,50 +2,53 @@ Return-Path: <SRS0=7eMQ=DD=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D78B6C4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CA7C2D0A8
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 939B32078B
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72C8020882
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601093957;
-	bh=9u43UOtPeXYOn2SAd52yJxsE9rs6wq54p1naXXmefTI=;
+	s=default; t=1601093960;
+	bh=gqjbGqJ1joxLFctcB/Msx4e1CUN0FUkvjKq/zP4B4zM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=V2MEcCzUsYB7A7wSNzfmKIfY6qR+3ii2aVN8X0cf6+m0rbVsDkFbJU7z8JVuIXtN6
-	 q42XRjgnlQ3cfV37AnVvEue2CSXbeDXlnWzGnEzCI8gVr1z9T2eFXB2B6LlNvp1gFA
-	 EsTfOFvJGUNdukRa+kAVawiLFdey0+8ss5aw5uc0=
+	b=zFLlJ8fxBRcvQRiWIgbV3HXHwjjdmJ2oLxsMUWZExdGtg8tmUscVayL59V5oJYCgN
+	 9wZiwvHLGuD6ww3skgySt4G5eUR3VAimKdXf/AN16o1BIkV5z0r26ckgD+uzUtG0RO
+	 BfAHTQuAgmR5R5hBydD8o5e1Xxi9Q34mn3m7JQvg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730028AbgIZETR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 26 Sep 2020 00:19:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51832 "EHLO mail.kernel.org"
+        id S1730029AbgIZETU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 26 Sep 2020 00:19:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729035AbgIZETQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 26 Sep 2020 00:19:16 -0400
+        id S1729035AbgIZETU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 26 Sep 2020 00:19:20 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 666E12080A;
-        Sat, 26 Sep 2020 04:19:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BEF012078B;
+        Sat, 26 Sep 2020 04:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601093955;
-        bh=9u43UOtPeXYOn2SAd52yJxsE9rs6wq54p1naXXmefTI=;
+        s=default; t=1601093959;
+        bh=gqjbGqJ1joxLFctcB/Msx4e1CUN0FUkvjKq/zP4B4zM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=v3sh1qqiMSmEFOL/yDNG06CSyJqEShYwTy6vEW13fuZvAWNvqjQO04eNosEmTuEBM
-         TaNCzJXzmirgMw2x0Vh/jY8cmEViyT1xO6gZ/GHbqGerZtP3D9NxW9q+vKv+bUIRNh
-         +7FPzZJSFZK4W5ixn3IC4Yspu2IVzefmiJim80UY=
-Date:   Fri, 25 Sep 2020 21:19:14 -0700
+        b=glp2xNOyJhKoRYpO+EPEp1Wz4yZampURWRfsCERI3F0fWG1GW292568BAd9RwJFcE
+         qyvUK+UV60w93FDkCeLJe5SdrdEOh5VJBT+02DORAVykWjps9YDpBjt/+Y+dEIkEkc
+         IZ3qxC8QmFZMNKiM1HY9QXoz6HMjpb2Sr4BTzzZ0=
+Date:   Fri, 25 Sep 2020 21:19:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        daniel.m.jordan@oracle.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        ziy@nvidia.com
-Subject:  [patch 4/9] mm/migrate: correct thp migration stats
-Message-ID: <20200926041914.Hj7iz37ld%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andy.lavr@gmail.com, joe@perches.com,
+        keescook@chromium.org, linux-mm@kvack.org,
+        linux@rasmusvillemoes.dk, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ndesaulniers@google.com, nivedita@alum.mit.edu,
+        samitolvanen@google.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 5/9] lib/string.c: implement stpcpy
+Message-ID: <20200926041918.OfR3GXvLc%akpm@linux-foundation.org>
 In-Reply-To: <20200925211725.0fea54be9e9715486efea21f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,54 +56,118 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/migrate: correct thp migration stats
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: lib/string.c: implement stpcpy
 
-PageTransHuge returns true for both thp and hugetlb, so thp stats was
-counting both thp and hugetlb migrations.  Exclude hugetlb migration by
-setting is_thp variable right.
+LLVM implemented a recent "libcall optimization" that lowers calls to
+`sprintf(dest, "%s", str)` where the return value is used to `stpcpy(dest,
+str) - dest`.  This generally avoids the machinery involved in parsing
+format strings.  `stpcpy` is just like `strcpy` except it returns the
+pointer to the new tail of `dest`.  This optimization was introduced into
+clang-12.
 
-Clean up thp handling code too when we are there.
+Implement this so that we don't observe linkage failures due to missing
+symbol definitions for `stpcpy`.
 
-Link: https://lkml.kernel.org/r/20200917210413.1462975-1-zi.yan@sent.com
-Fixes: 1a5bae25e3cf ("mm/vmstat: add events for THP migration without split")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Similar to last year's fire drill with:
+commit 5f074f3e192f ("lib/string.c: implement a basic bcmp")
+
+The kernel is somewhere between a "freestanding" environment (no full
+libc) and "hosted" environment (many symbols from libc exist with the same
+type, function signature, and semantics).
+
+As H.  Peter Anvin notes, there's not really a great way to inform the
+compiler that you're targeting a freestanding environment but would like
+to opt-in to some libcall optimizations (see pr/47280 below), rather than
+opt-out.
+
+Arvind notes, -fno-builtin-* behaves slightly differently between GCC
+and Clang, and Clang is missing many __builtin_* definitions, which I
+consider a bug in Clang and am working on fixing.
+
+Masahiro summarizes the subtle distinction between compilers justly:
+  To prevent transformation from foo() into bar(), there are two ways in
+  Clang to do that; -fno-builtin-foo, and -fno-builtin-bar.  There is
+  only one in GCC; -fno-buitin-foo.
+
+(Any difference in that behavior in Clang is likely a bug from a missing
+__builtin_* definition.)
+
+Masahiro also notes:
+  We want to disable optimization from foo() to bar(),
+  but we may still benefit from the optimization from
+  foo() into something else. If GCC implements the same transform, we
+  would run into a problem because it is not -fno-builtin-bar, but
+  -fno-builtin-foo that disables that optimization.
+
+  In this regard, -fno-builtin-foo would be more future-proof than
+  -fno-built-bar, but -fno-builtin-foo is still potentially overkill. We
+  may want to prevent calls from foo() being optimized into calls to
+  bar(), but we still may want other optimization on calls to foo().
+
+It seems that compilers today don't quite provide the fine grain control
+over which libcall optimizations pseudo-freestanding environments would
+prefer.
+
+Finally, Kees notes that this interface is unsafe, so we should not
+encourage its use.  As such, I've removed the declaration from any
+header, but it still needs to be exported to avoid linkage errors in
+modules.
+
+Link: https://lkml.kernel.org/r/20200914161643.938408-1-ndesaulniers@google.com
+Link: https://bugs.llvm.org/show_bug.cgi?id=47162
+Link: https://bugs.llvm.org/show_bug.cgi?id=47280
+Link: https://github.com/ClangBuiltLinux/linux/issues/1126
+Link: https://man7.org/linux/man-pages/man3/stpcpy.3.html
+Link: https://pubs.opengroup.org/onlinepubs/9699919799/functions/stpcpy.html
+Link: https://reviews.llvm.org/D85963
+Reported-by: Sami Tolvanen <samitolvanen@google.com>
+Suggested-by: Andy Lavr <andy.lavr@gmail.com>
+Suggested-by: Arvind Sankar <nivedita@alum.mit.edu>
+Suggested-by: Joe Perches <joe@perches.com>
+Suggested-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Masahiro Yamada <masahiroy@kernel.org>
+Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/string.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/mm/migrate.c~mm-migrate-correct-thp-migration-stats
-+++ a/mm/migrate.c
-@@ -1446,7 +1446,7 @@ retry:
- 			 * Capture required information that might get lost
- 			 * during migration.
- 			 */
--			is_thp = PageTransHuge(page);
-+			is_thp = PageTransHuge(page) && !PageHuge(page);
- 			nr_subpages = thp_nr_pages(page);
- 			cond_resched();
+--- a/lib/string.c~lib-stringc-implement-stpcpy
++++ a/lib/string.c
+@@ -272,6 +272,30 @@ ssize_t strscpy_pad(char *dest, const ch
+ }
+ EXPORT_SYMBOL(strscpy_pad);
  
-@@ -1472,7 +1472,7 @@ retry:
- 				 * we encounter them after the rest of the list
- 				 * is processed.
- 				 */
--				if (PageTransHuge(page) && !PageHuge(page)) {
-+				if (is_thp) {
- 					lock_page(page);
- 					rc = split_huge_page_to_list(page, from);
- 					unlock_page(page);
-@@ -1481,8 +1481,7 @@ retry:
- 						nr_thp_split++;
- 						goto retry;
- 					}
--				}
--				if (is_thp) {
++/**
++ * stpcpy - copy a string from src to dest returning a pointer to the new end
++ *          of dest, including src's %NUL-terminator. May overrun dest.
++ * @dest: pointer to end of string being copied into. Must be large enough
++ *        to receive copy.
++ * @src: pointer to the beginning of string being copied from. Must not overlap
++ *       dest.
++ *
++ * stpcpy differs from strcpy in a key way: the return value is a pointer
++ * to the new %NUL-terminating character in @dest. (For strcpy, the return
++ * value is a pointer to the start of @dest). This interface is considered
++ * unsafe as it doesn't perform bounds checking of the inputs. As such it's
++ * not recommended for usage. Instead, its definition is provided in case
++ * the compiler lowers other libcalls to stpcpy.
++ */
++char *stpcpy(char *__restrict__ dest, const char *__restrict__ src);
++char *stpcpy(char *__restrict__ dest, const char *__restrict__ src)
++{
++	while ((*dest++ = *src++) != '\0')
++		/* nothing */;
++	return --dest;
++}
++EXPORT_SYMBOL(stpcpy);
 +
- 					nr_thp_failed++;
- 					nr_failed += nr_subpages;
- 					goto out;
+ #ifndef __HAVE_ARCH_STRCAT
+ /**
+  * strcat - Append one %NUL-terminated string to another
 _
