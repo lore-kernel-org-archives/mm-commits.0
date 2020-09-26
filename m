@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D6CC4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C6F2C4727E
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C2B2221EB
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5654B221EB
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601085504;
-	bh=XJE38d24374ivFYcq9s0lypNPkQWY/x6TbLEMhGO4YI=;
+	s=default; t=1601085506;
+	bh=INPQ+O5lewkVs3l1/aahQ81qvqEPkL0Rrx/WvrK149s=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=rNVwy/1DzD9UhHaswZ/YZpHoqHIXWRC/BnEPY/YFN1ZnzWXc89DBDm/YLIm8amJ5I
-	 np8zxz15Dw8BdeiJaa3ceOLrF9NH19/CCsEIC+uWdQQo4D0KvG3IiIFJJiM7hsji9Y
-	 2DywB70rLtVRWme6vcHklMC+z/nV10m03EognZ8w=
+	b=NM7HW0O7ZgowUdp+XqRiPsvP9T9IBCt0IJByvC00J4DbqGPnd6tplQJz3NTb4R3sL
+	 AUZVVjyJmU5k7rMboRmQazFU5z0hBFcFW4tM9DtJHRM/AKu3pOAZFPu7TJ7fwvNJeD
+	 /BtbbHkDjzvhBKwk/pUqJeFQozFXQh38CDWP8PEI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729966AbgIZB6Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 21:58:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40730 "EHLO mail.kernel.org"
+        id S1729968AbgIZB60 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 21:58:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729961AbgIZB6Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 21:58:24 -0400
+        id S1729961AbgIZB6Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 21:58:25 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 87ADC20936;
-        Sat, 26 Sep 2020 01:58:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6486520BED;
+        Sat, 26 Sep 2020 01:58:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601085503;
-        bh=XJE38d24374ivFYcq9s0lypNPkQWY/x6TbLEMhGO4YI=;
+        s=default; t=1601085505;
+        bh=INPQ+O5lewkVs3l1/aahQ81qvqEPkL0Rrx/WvrK149s=;
         h=Date:From:To:Subject:From;
-        b=qUG5rtLiuVzFP/T5wEpEu0SxKsNRas2Q7KPWRd4vBF/4wRMWizLt8SSGksb6NFcf+
-         U+hvO6LR0d4hz0dNAO07i3sEEz3gpVVh2yp7jPJRAsqBAYW0R0VZsZ735Jx7Zki8wv
-         1WLODQ7Zg976hq6mCk40vf+dlGU3M/ASK+4iVk18=
-Date:   Fri, 25 Sep 2020 18:58:23 -0700
+        b=Oacnys7qX3r2uRZVjG4HGglfLztOyBZ7JCsy3QcWSCD8N62lb1jAxo+aivQR71meG
+         DnZ+GaZBQ20S0E628OAras5Wts9Vk4Cnv8uA8aVpPxkbNpn+CWVVld0zz81R1A/75E
+         ukRPPriei6Da6SlFW3JomrD6of7N7KEhzKvfE7yc=
+Date:   Fri, 25 Sep 2020 18:58:25 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, jack@suse.cz, mm-commits@vger.kernel.org,
-        tklauser@distanz.ch, viro@zeniv.linux.org.uk
+To:     changbin.du@gmail.com, elver@google.com,
+        gregkh@linuxfoundation.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org
 Subject:  [merged]
- fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
+ kcsan-kconfig-move-to-menu-generic-kernel-debugging-instruments.patch
  removed from -mm tree
-Message-ID: <20200926015823.FhFdRVtYJ%akpm@linux-foundation.org>
+Message-ID: <20200926015825.rL50GjVHL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,55 +55,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fs-writeback.c: adjust dirtytime_interval_handler definition to match prototype
+     Subject: kcsan: kconfig: move to menu 'Generic Kernel Debugging Instruments'
 has been removed from the -mm tree.  Its filename was
-     fs-adjust-dirtytime_interval_handler-definition-to-match-prototype.patch
+     kcsan-kconfig-move-to-menu-generic-kernel-debugging-instruments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: fs/fs-writeback.c: adjust dirtytime_interval_handler definition to match prototype
+From: Changbin Du <changbin.du@gmail.com>
+Subject: kcsan: kconfig: move to menu 'Generic Kernel Debugging Instruments'
 
-Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-changed ctl_table.proc_handler to take a kernel pointer.  Adjust the
-definition of dirtytime_interval_handler to match its prototype in
-linux/writeback.h which fixes the following sparse error/warning:
+This moves the KCSAN kconfig items under menu 'Generic Kernel Debugging
+Instruments' where UBSAN resides.
 
-fs/fs-writeback.c:2189:50: warning: incorrect type in argument 3 (different address spaces)
-fs/fs-writeback.c:2189:50:    expected void *
-fs/fs-writeback.c:2189:50:    got void [noderef] __user *buffer
-fs/fs-writeback.c:2184:5: error: symbol 'dirtytime_interval_handler' redeclared with different type (incompatible argument 3 (different address spaces)):
-fs/fs-writeback.c:2184:5:    int extern [addressable] [signed] [toplevel] dirtytime_interval_handler( ... )
-fs/fs-writeback.c: note: in included file:
-./include/linux/writeback.h:374:5: note: previously declared as:
-./include/linux/writeback.h:374:5:    int extern [addressable] [signed] [toplevel] dirtytime_interval_handler( ... )
-
-Link: https://lkml.kernel.org/r/20200907093140.13434-1-tklauser@distanz.ch
-Fixes: 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/20200904152224.5570-1-changbin.du@gmail.com
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/fs-writeback.c~fs-adjust-dirtytime_interval_handler-definition-to-match-prototype
-+++ a/fs/fs-writeback.c
-@@ -2184,7 +2184,7 @@ static int __init start_dirtytime_writeb
- __initcall(start_dirtytime_writeback);
+--- a/lib/Kconfig.debug~kcsan-kconfig-move-to-menu-generic-kernel-debugging-instruments
++++ a/lib/Kconfig.debug
+@@ -520,8 +520,8 @@ config DEBUG_FS_ALLOW_NONE
+ endchoice
  
- int dirtytime_interval_handler(struct ctl_table *table, int write,
--			       void __user *buffer, size_t *lenp, loff_t *ppos)
-+			       void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret;
+ source "lib/Kconfig.kgdb"
+-
+ source "lib/Kconfig.ubsan"
++source "lib/Kconfig.kcsan"
+ 
+ endmenu
+ 
+@@ -1620,8 +1620,6 @@ config PROVIDE_OHCI1394_DMA_INIT
+ 
+ source "samples/Kconfig"
+ 
+-source "lib/Kconfig.kcsan"
+-
+ config ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	bool
  
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from changbin.du@gmail.com are
 
 
