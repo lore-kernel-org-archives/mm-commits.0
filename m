@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67058C4727C
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:57:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEFE2C4727E
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:57:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30CA220936
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:57:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8AFA20BED
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601085475;
-	bh=nNYXXG8CmdNa0dataxSs+WwxzEM65kjutU3uMb9U8ig=;
+	s=default; t=1601085477;
+	bh=L3UyT7YvO23fYozf7OOQh6TgT5SD2NtXNafepjlq5eU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=TOi+yqv6MQTJ00nmnkTs3q4bp2iBbxNw7Wsrf4qMV6ebAnYRWJYhhGlCBSn3uscj2
-	 dP7rZEE2IF36/22il9UYYD49zxSZfLVJPxKwDkC2UYxSFqzGGy7ZtfsABJfF79t5bh
-	 ne47l+3rncyxVLOK1W2almzwgQJPikHBPTL8EMu0=
+	b=nvb5zmmDRcBrLcsR9625O2RBNAl6lzHJfEwXNjg9b2o0mzIZkBaRsspOYVIpha5b6
+	 gaUBnPDXJMttMEZit2eNOZGkYy8qkb6e2F8DafRXkjOuxibDhmJG8+Qc0ZI4omlDhv
+	 oxq3qkecEDQkqsbqua2ApS2CQgvrMdkc5zC3S9zo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729942AbgIZB5y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 21:57:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40262 "EHLO mail.kernel.org"
+        id S1729944AbgIZB55 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 21:57:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727495AbgIZB5y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 21:57:54 -0400
+        id S1729943AbgIZB55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 21:57:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A0143207EA;
-        Sat, 26 Sep 2020 01:57:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8FD592087D;
+        Sat, 26 Sep 2020 01:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601085474;
-        bh=nNYXXG8CmdNa0dataxSs+WwxzEM65kjutU3uMb9U8ig=;
+        s=default; t=1601085476;
+        bh=L3UyT7YvO23fYozf7OOQh6TgT5SD2NtXNafepjlq5eU=;
         h=Date:From:To:Subject:From;
-        b=uW1B19QLqbQl6fqD3reNrfOGMZIWsWOY3rbDDYsAs3NLzyVLCuYJpvAu/zAMxR7Ca
-         P8q+aS1QuHSBqHnSxaccxdAXx5A3yuwcDVYVSdHKmOZ8zEl/UU5Fz9e1ugFCBJiBcW
-         tElk/UM+b6+LIEA7BWAHUdyG/ft3eCGJBt1Eq1S4=
-Date:   Fri, 25 Sep 2020 18:57:53 -0700
+        b=LTbcKuVIXbKyxWWSH/4buUzPh9b1DslOI5+cc6nZjJcF5W0pRny5n7IWU2pNBhjHS
+         Q1GA+RwQShD4P5WxuLzdEurTYX4KYe/vvMvEKoyJ+S22HJE00V2OI6PFwwDoJRgbek
+         GIoOZQbeqhSDKzyt6f9+ExATIozbr4UJ4a/iCSHI=
+Date:   Fri, 25 Sep 2020 18:57:56 -0700
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, cai@lca.pw, hannes@cmpxchg.org,
+To:     alex.shi@linux.alibaba.com, cai@lca.pw, hannes@cmpxch.org,
         hughd@google.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        stable@vger.kernel.org
-Subject:  [merged] ksm-reinstate-memcg-charge-on-copied-pages.patch
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  [merged] mm-migration-of-hugetlbfs-page-skip-memcg.patch
  removed from -mm tree
-Message-ID: <20200926015753.jM6OK4VA3%akpm@linux-foundation.org>
+Message-ID: <20200926015756.RNmt5patw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,73 +54,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: reinstate memcg charge on copied pages
+     Subject: mm: migration of hugetlbfs page skip memcg
 has been removed from the -mm tree.  Its filename was
-     ksm-reinstate-memcg-charge-on-copied-pages.patch
+     mm-migration-of-hugetlbfs-page-skip-memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ksm: reinstate memcg charge on copied pages
+Subject: mm: migration of hugetlbfs page skip memcg
 
-Patch series "mm: fixes to past from future testing".
+hugetlbfs pages do not participate in memcg: so although they do find most
+of migrate_page_states() useful, it would be better if they did not call
+into mem_cgroup_migrate() - where Qian Cai reported that LTP's
+move_pages12 triggers the warning in Alex Shi's prospective commit
+"mm/memcg: warning on !memcg after readahead page charged".
 
-Here's a set of independent fixes against 5.9-rc2: prompted by
-testing Alex Shi's "warning on !memcg" and lru_lock series, but
-I think fit for 5.9 - though maybe only the first for stable.
-
-
-This patch (of 5):
-
-In 5.8 some instances of memcg charging in do_swap_page() and unuse_pte()
-were removed, on the understanding that swap cache is now already charged
-at those points; but a case was missed, when ksm_might_need_to_copy() has
-decided it must allocate a substitute page: such pages were never charged.
-Fix it inside ksm_might_need_to_copy().
-
-This was discovered by Alex Shi's prospective commit "mm/memcg: warning on
-!memcg after readahead page charged".
-
-But there is a another surprise: this also fixes some rarer uncharged
-PageAnon cases, when KSM is configured in, but has never been activated. 
-ksm_might_need_to_copy()'s anon_vma->root and linear_page_index() check
-sometimes catches a case which would need to have been copied if KSM were
-turned on.  Or that's my optimistic interpretation (of my own old code),
-but it leaves some doubt as to whether everything is working as intended
-there - might it hint at rare anon ptes which rmap cannot find?  A
-question not easily answered: put in the fix for missed memcg charges.
-
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301343270.5954@eggly.anvils
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301358020.5954@eggly.anvils
-Fixes: 4c6355b25e8b ("mm: memcontrol: charge swapin pages on instantiation")
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008301359460.5954@eggly.anvils
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxch.org>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc; Matthew Wilcox <willy@infradead.org>
 Cc: Qian Cai <cai@lca.pw>
-Cc: <stable@vger.kernel.org>	[5.8]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/migrate.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/ksm.c~ksm-reinstate-memcg-charge-on-copied-pages
-+++ a/mm/ksm.c
-@@ -2586,6 +2586,10 @@ struct page *ksm_might_need_to_copy(stru
- 		return page;		/* let do_swap_page report the error */
+--- a/mm/migrate.c~mm-migration-of-hugetlbfs-page-skip-memcg
++++ a/mm/migrate.c
+@@ -668,7 +668,8 @@ void migrate_page_states(struct page *ne
  
- 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-+	if (new_page && mem_cgroup_charge(new_page, vma->vm_mm, GFP_KERNEL)) {
-+		put_page(new_page);
-+		new_page = NULL;
-+	}
- 	if (new_page) {
- 		copy_user_highpage(new_page, page, address, vma);
+ 	copy_page_owner(page, newpage);
+ 
+-	mem_cgroup_migrate(page, newpage);
++	if (!PageHuge(page))
++		mem_cgroup_migrate(page, newpage);
+ }
+ EXPORT_SYMBOL(migrate_page_states);
  
 _
 
