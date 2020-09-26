@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B95AC4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4106C4727C
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:17:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01ED220BED
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:04:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D4D620866
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:17:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601085846;
-	bh=RdIGZ+rTEJeYIVTZIu2lhaDGyVa86L3+PGjco8S0PcU=;
+	s=default; t=1601086661;
+	bh=GzlOtWo9+zTy7zt5gP+d+opBXQrMSSt0NsZd352iu/g=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BfNnzELulOVbfsx6eLpQXpv+gf3fmuVYfK3KMLBP0umcSERs+KhZ2TDkSEKZgwUVO
-	 h6rZlU0JHf2SW7IH4X8m9EsMK9NgF3bWpfosi37mWZ8tNo4ZkA0DRnDW69k1s4ti3d
-	 Zfy+WYQBcjBlI7Jm5VzX0DRUWIeG9lBEA0M3no2U=
+	b=KYmeaTByeAs2anfWx7pQkmmx5YpnVUfAjibw2kE5MmVk8x8GFk++5ee7V1CPRKLsF
+	 2+5oTJQ72VO30xPVFN3XRZRr1Kto6q2/6IsUU4O7kKsrPYVKFA8erruCRcaqW0w1cj
+	 SyfOkV3qMiMuUwj03ty+6Ezs4nRL9V4/sh2DkL7E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729426AbgIZCEF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 22:04:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42458 "EHLO mail.kernel.org"
+        id S1727495AbgIZCRl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 22:17:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728871AbgIZCEF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 22:04:05 -0400
+        id S1726305AbgIZCRl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 22:17:41 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C09F32087D;
-        Sat, 26 Sep 2020 02:04:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A76FD20866;
+        Sat, 26 Sep 2020 02:17:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601085845;
-        bh=RdIGZ+rTEJeYIVTZIu2lhaDGyVa86L3+PGjco8S0PcU=;
+        s=default; t=1601086658;
+        bh=GzlOtWo9+zTy7zt5gP+d+opBXQrMSSt0NsZd352iu/g=;
         h=Date:From:To:Subject:From;
-        b=LVSV9apvRUQLZfjQi4sPmVZnSSkpn9xJskXzH+H2T/UjFGv+Xh2FER/MLjDxQj9sL
-         8sIG7KDGZycRNAcSgkeeReqZedxLnLA6ook9LarMIUvlONNA4T1E9ccnsnuB8+WgFR
-         bPJwp4aXmVwpb+B1WRi/sTlhzW+a/aIIRvOZTJQ4=
-Date:   Fri, 25 Sep 2020 19:04:04 -0700
+        b=j3CTJGpdOCob/t35daNXvx6bkMEN7ziv7HA9YCbX49KrAwuYvrTY5Dvhv+QaPvpqD
+         Q7zlmR0PSnyrKAeq35Kl4wrGhKqpVPzR2ZwgVpGUgkKV/v90n6Z54GOy5NsLgmCMRx
+         /jboGMm8qzyO6nU/5GKS8sHIMjXz5qUGDAhDGThA=
+Date:   Fri, 25 Sep 2020 19:17:38 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, xndchn@gmail.com, sjpark@amazon.de,
-        luca@lucaceresoli.net, joe@perches.com, j.neuschaefer@gmx.net,
-        colin.king@canonical.com, wangqing@vivo.com
-Subject:  + increase-error-prone-spell-checking.patch added to -mm
- tree
-Message-ID: <20200926020404.yX9_2%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
+        joao.m.martins@oracle.com, dan.j.williams@intel.com,
+        akpm@linux-foundation.org
+Subject:  [folded-merged]
+ mm-memremap_pages-support-multiple-ranges-per-invocation-fix.patch removed
+ from -mm tree
+Message-ID: <20200926021738.WFLcc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,76 +55,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: increase error-prone spell checking
-has been added to the -mm tree.  Its filename is
-     increase-error-prone-spell-checking.patch
+     Subject: mm-memremap_pages-support-multiple-ranges-per-invocation-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memremap_pages-support-multiple-ranges-per-invocation-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/increase-error-prone-spell-checking.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/increase-error-prone-spell-checking.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-memremap_pages-support-multiple-ranges-per-invocation.patch
 
 ------------------------------------------------------
-From: Wang Qing <wangqing@vivo.com>
-Subject: scripts/spelling.txt: increase error-prone spell checking
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memremap_pages-support-multiple-ranges-per-invocation-fix
 
-Increase direcly,ununsed,manger spelling error check
+MEMORY_DEVICE_DEVDAX was renamed to MEMORY_DEVICE_GENERIC
 
-Link: https://lkml.kernel.org/r/1601085397-27586-1-git-send-email-wangqing@vivo.com
-Signed-off-by: Wang Qing <wangqing@vivo.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Wang Qing <wangqing@vivo.com>
-Cc: Xiong <xndchn@gmail.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Jonathan Neuschfer <j.neuschaefer@gmx.net>
-Cc: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: Joe Perches <joe@perches.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/spelling.txt~increase-error-prone-spell-checking
-+++ a/scripts/spelling.txt
-@@ -482,6 +482,7 @@ disgest||digest
- dispalying||displaying
- diplay||display
- directon||direction
-+direcly||directly
- direectly||directly
- diregard||disregard
- disassocation||disassociation
-@@ -871,6 +872,7 @@ malplace||misplace
- managable||manageable
- managment||management
- mangement||management
-+manger||manager
- manoeuvering||maneuvering
- manufaucturing||manufacturing
- mappping||mapping
-@@ -1478,6 +1480,7 @@ unsolicitied||unsolicited
- unsuccessfull||unsuccessful
- unsuported||unsupported
- untill||until
-+ununsed||unused
- unuseful||useless
- unvalid||invalid
- upate||update
+--- a/mm/memremap.c~mm-memremap_pages-support-multiple-ranges-per-invocation-fix
++++ a/mm/memremap.c
+@@ -357,7 +357,7 @@ void *memremap_pages(struct dev_pagemap
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 		break;
+-	case MEMORY_DEVICE_DEVDAX:
++	case MEMORY_DEVICE_GENERIC:
+ 		need_devmap_managed = false;
+ 		break;
+ 	case MEMORY_DEVICE_PCI_P2PDMA:
 _
 
-Patches currently in -mm which might be from wangqing@vivo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-increase-error-prone-spell-checking.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+device-dax-make-align-a-per-device-property-fix.patch
+device-dax-make-pgmap-optional-for-instance-creation-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
