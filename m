@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89B67C4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B95AC4727D
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:04:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 510DE21D7F
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 01:58:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01ED220BED
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:04:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601085508;
-	bh=7QpnDWlS3vRktDqfT2OXfBYBb4K3OU9wjXDHtjwK4Ug=;
+	s=default; t=1601085846;
+	bh=RdIGZ+rTEJeYIVTZIu2lhaDGyVa86L3+PGjco8S0PcU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=odchINZHQdaU6oC7IYu8qbJRh5Pa31o6GejRLNlLuevcySFDYutlKqBpuaFwTgPkU
-	 JUgsfA9OvlBS7IUfg36naSySlSmMwG7CyWtpDj6FhmcoDT/Nn3NycbkIfJndP8xd/B
-	 4juoU7ABcJ5h97ci7lepAQQl8Y4uuzf4O4wl6C5A=
+	b=BfNnzELulOVbfsx6eLpQXpv+gf3fmuVYfK3KMLBP0umcSERs+KhZ2TDkSEKZgwUVO
+	 h6rZlU0JHf2SW7IH4X8m9EsMK9NgF3bWpfosi37mWZ8tNo4ZkA0DRnDW69k1s4ti3d
+	 Zfy+WYQBcjBlI7Jm5VzX0DRUWIeG9lBEA0M3no2U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729969AbgIZB62 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 21:58:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40780 "EHLO mail.kernel.org"
+        id S1729426AbgIZCEF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 22:04:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729961AbgIZB61 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 21:58:27 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1728871AbgIZCEF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 22:04:05 -0400
+Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 75AA321741;
-        Sat, 26 Sep 2020 01:58:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C09F32087D;
+        Sat, 26 Sep 2020 02:04:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601085507;
-        bh=7QpnDWlS3vRktDqfT2OXfBYBb4K3OU9wjXDHtjwK4Ug=;
+        s=default; t=1601085845;
+        bh=RdIGZ+rTEJeYIVTZIu2lhaDGyVa86L3+PGjco8S0PcU=;
         h=Date:From:To:Subject:From;
-        b=FYpiDgAieHGRy8clNgRiTCuozCg6NZuyw2Fc4W8wPIFhty8yYRQSXWfZ3a/8FL3Sf
-         OtLumAr2Ef2L7uWuW849RBuqUJm0JG4xd2koX8OY9THV4XzzYEQYt3j6ajOswsgqtK
-         10SojWepmp/Isa/Do1rC9rCVoL1rF9WbxIBogT00=
-Date:   Fri, 25 Sep 2020 18:58:27 -0700
+        b=LVSV9apvRUQLZfjQi4sPmVZnSSkpn9xJskXzH+H2T/UjFGv+Xh2FER/MLjDxQj9sL
+         8sIG7KDGZycRNAcSgkeeReqZedxLnLA6ook9LarMIUvlONNA4T1E9ccnsnuB8+WgFR
+         bPJwp4aXmVwpb+B1WRi/sTlhzW+a/aIIRvOZTJQ4=
+Date:   Fri, 25 Sep 2020 19:04:04 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        tiantao6@hisilicon.com
-Subject:  [merged]
- documentation-remove-cmas-dependency-on-architecture.patch removed from -mm
+To:     mm-commits@vger.kernel.org, xndchn@gmail.com, sjpark@amazon.de,
+        luca@lucaceresoli.net, joe@perches.com, j.neuschaefer@gmx.net,
+        colin.king@canonical.com, wangqing@vivo.com
+Subject:  + increase-error-prone-spell-checking.patch added to -mm
  tree
-Message-ID: <20200926015827.mZ-OihbSB%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Message-ID: <20200926020404.yX9_2%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,43 +54,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: remove CMA's dependency on architecture
-has been removed from the -mm tree.  Its filename was
-     documentation-remove-cmas-dependency-on-architecture.patch
+     Subject: scripts/spelling.txt: increase error-prone spell checking
+has been added to the -mm tree.  Its filename is
+     increase-error-prone-spell-checking.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/increase-error-prone-spell-checking.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/increase-error-prone-spell-checking.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tian Tao <tiantao6@hisilicon.com>
-Subject: Documentation: remove CMA's dependency on architecture
+From: Wang Qing <wangqing@vivo.com>
+Subject: scripts/spelling.txt: increase error-prone spell checking
 
-CMA only depends on MMU.  It doesn't depend on arch too much.  such as
-ARM, ARM64, X86, MIPS etc.  so We remove the dependency of cma about the
-architecture in kernel-parameters.txt.
+Increase direcly,ununsed,manger spelling error check
 
-Link: https://lkml.kernel.org/r/1600412758-60545-1-git-send-email-tiantao6@hisilicon.com
-Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/1601085397-27586-1-git-send-email-wangqing@vivo.com
+Signed-off-by: Wang Qing <wangqing@vivo.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Wang Qing <wangqing@vivo.com>
+Cc: Xiong <xndchn@gmail.com>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Jonathan Neuschfer <j.neuschaefer@gmx.net>
+Cc: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/spelling.txt |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~documentation-remove-cmas-dependency-on-architecture
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -591,7 +591,7 @@
- 			some critical bits.
- 
- 	cma=nn[MG]@[start[MG][-end[MG]]]
--			[ARM,X86,KNL]
-+			[KNL,CMA]
- 			Sets the size of kernel global memory area for
- 			contiguous memory allocations and optionally the
- 			placement constraint by the physical address range of
+--- a/scripts/spelling.txt~increase-error-prone-spell-checking
++++ a/scripts/spelling.txt
+@@ -482,6 +482,7 @@ disgest||digest
+ dispalying||displaying
+ diplay||display
+ directon||direction
++direcly||directly
+ direectly||directly
+ diregard||disregard
+ disassocation||disassociation
+@@ -871,6 +872,7 @@ malplace||misplace
+ managable||manageable
+ managment||management
+ mangement||management
++manger||manager
+ manoeuvering||maneuvering
+ manufaucturing||manufacturing
+ mappping||mapping
+@@ -1478,6 +1480,7 @@ unsolicitied||unsolicited
+ unsuccessfull||unsuccessful
+ unsuported||unsupported
+ untill||until
++ununsed||unused
+ unuseful||useless
+ unvalid||invalid
+ upate||update
 _
 
-Patches currently in -mm which might be from tiantao6@hisilicon.com are
+Patches currently in -mm which might be from wangqing@vivo.com are
 
-mm-remove-duplicate-include-statement-in-mmuc.patch
+increase-error-prone-spell-checking.patch
 
