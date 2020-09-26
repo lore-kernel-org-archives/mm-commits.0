@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FF4C4727D
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0347C4727C
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 34FE321741
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80A6621741
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 02:25:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601087126;
-	bh=dhr6UKZ48O9Q+lf0mIgp5eNfxFVNn4LMPK0cx14XBio=;
+	s=default; t=1601087132;
+	bh=Lfd3k5k/Sx5fNU/dDjIKcgtz6vIQ/z7tmVctqVlki5A=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Gb1iRK/J5Bz9/TZWkM1aDmCZ8BiOAqutq8DAjvGBK1z7gDiUm1v/O6f2mziV5kTre
-	 h0c4HLAfd+wNX4nMcb3lKn70X3beE9tPKgbuccqHqHeGzqvxrwok1VI2aNj3MmaRIf
-	 qLSsmx0qZhELR0hTE0PuaKbg46jRefm11qb80wgs=
+	b=NFfW7KAHpKWFw9uOJ8uEYMHVWWXEvSIdn4O58yOVWui/8nACkXsWJA5avpN68TNyn
+	 jLsNUAh6ACP8eyrMbI1BnvYZcBktuH10KkChxq2/XJjKOV+HxKp3bu0xK2oGiCFc/N
+	 W2dujKZ12jm6i1RL+3TQQasd2n3GDFmSgXbnN+L0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729942AbgIZCZZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Sep 2020 22:25:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49096 "EHLO mail.kernel.org"
+        id S1729959AbgIZCZc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Sep 2020 22:25:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49188 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728871AbgIZCZZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 25 Sep 2020 22:25:25 -0400
+        id S1729956AbgIZCZc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 25 Sep 2020 22:25:32 -0400
 Received: from X1 (unknown [104.245.68.101])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2C53D2087D;
-        Sat, 26 Sep 2020 02:25:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 30E4C20BED;
+        Sat, 26 Sep 2020 02:25:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601087123;
-        bh=dhr6UKZ48O9Q+lf0mIgp5eNfxFVNn4LMPK0cx14XBio=;
+        s=default; t=1601087129;
+        bh=Lfd3k5k/Sx5fNU/dDjIKcgtz6vIQ/z7tmVctqVlki5A=;
         h=Date:From:To:Subject:From;
-        b=vDmj65hzkfIkR1qnJF16t68+tj/69ys0Koxv5z1+YMHraYtlPkk1hJHtH9dfIOy/Z
-         pWC3c57tQckhswZPRISIGJOFXEKGEvcghHiuaBg1KmTVKHFJJe02/gbco2BAIFvQeE
-         Xn3jgCeaU16s50yghoELqypsQ53zr77h283AlkBs=
-Date:   Fri, 25 Sep 2020 19:25:20 -0700
+        b=ejwwVJzMVqRBdzTlRn2sVEnxLmVeiR3s4DtU4OiDScQcTpwRR6K9o4kS/CM8gm097
+         mvD31JUUAq5nGfjriyPU+qyzBvC8yCqC+CA4nhfs4D1RJpvBE6fbCHw1kNRieFURQ8
+         xDl5Au26WBreUP1NLu59PfgUzwbmLrC1DsZBYKh0=
+Date:   Fri, 25 Sep 2020 19:25:26 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, yanaijie@huawei.com, will@kernel.org,
         vishal.l.verma@intel.com, vgoyal@redhat.com,
@@ -50,19 +50,18 @@ To:     mm-commits@vger.kernel.org, yanaijie@huawei.com, will@kernel.org,
         mingo@redhat.com, luto@kernel.org, lkp@intel.com,
         justin.he@arm.com, Jonathan.Cameron@huawei.com,
         joao.m.martins@oracle.com, jmoyer@redhat.com, jgross@suse.com,
-        jglisse@redhat.com, jglisse@redhat.co, jgg@mellanox.com,
-        ira.weiny@intel.com, hulkci@huawei.com, hpa@zytor.com,
-        gregkh@linuxfoundation.org, david@redhat.com, dave.jiang@intel.com,
+        jglisse@redhat.com, jgg@mellanox.com, ira.weiny@intel.com,
+        hulkci@huawei.com, hpa@zytor.com, gregkh@linuxfoundation.org,
+        david@redhat.com, dave.jiang@intel.com,
         dave.hansen@linux.intel.com, daniel@ffwll.ch,
         catalin.marinas@arm.com, bskeggs@redhat.com, Brice.Goglin@inria.fr,
         bp@alien8.de, boris.ostrovsky@oracle.com, bhelgaas@google.com,
         benh@kernel.crashing.org, ardb@kernel.org,
         ard.biesheuvel@linaro.org, airlied@linux.ie,
         dan.j.williams@intel.com
-Subject:  +
- mm-memremap_pages-support-multiple-ranges-per-invocation.patch added to -mm
- tree
-Message-ID: <20200926022520.9EF06%akpm@linux-foundation.org>
+Subject:  + device-dax-add-dis-contiguous-resource-support.patch
+ added to -mm tree
+Message-ID: <20200926022526.2Q0nl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -74,16 +73,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap_pages: support multiple ranges per invocation
+     Subject: device-dax: add dis-contiguous resource support
 has been added to the -mm tree.  Its filename is
-     mm-memremap_pages-support-multiple-ranges-per-invocation.patch
+     device-dax-add-dis-contiguous-resource-support.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memremap_pages-support-mul=
-tiple-ranges-per-invocation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-add-dis-contiguous=
+-resource-support.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memremap_pages-support-mul=
-tiple-ranges-per-invocation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-add-dis-contiguous=
+-resource-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -99,574 +98,798 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memremap_pages: support multiple ranges per invocation
+Subject: device-dax: add dis-contiguous resource support
 
-In support of device-dax growing the ability to front physically
-dis-contiguous ranges of memory, update devm_memremap_pages() to track
-multiple ranges with a single reference counter and devm instance.
+Break the requirement that device-dax instances are physically contiguous.
+With this constraint removed it allows fragmented available capacity to
+be fully allocated.
 
-Convert all [devm_]memremap_pages() users to specify the number of ranges
-they are mapping in their 'struct dev_pagemap' instance.
+This capability is useful to mitigate the "noisy neighbor" problem with
+memory-side-cache management for virtual machines, or any other scenario
+where a platform address boundary also designates a performance boundary.=
+=20
+For example a direct mapped memory side cache might rotate cache colors at
+1GB boundaries.  With dis-contiguous allocations a device-dax instance
+could be configured to contain only 1 cache color.
 
-Link: https://lkml.kernel.org/r/159643103789.4062302.18426128170217903785.s=
+It also satisfies Joao's use case (see link) for partitioning memory for
+exclusive guest access.  It allows for a future potential mode where the
+host kernel need not allocate 'struct page' capacity up-front.
+
+Link: https://lore.kernel.org/lkml/20200110190313.17144-1-joao.m.martins@or=
+acle.com/
+Link: https://lkml.kernel.org/r/159643104304.4062302.16561669534797528660.s=
 tgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/160106116293.30709.13350662794915396198.stg=
+Link: https://lkml.kernel.org/r/160106116875.30709.11456649969327399771.stg=
 it@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.co
+Reported-by: Joao Martins <joao.m.martins@oracle.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Airlie <airlied@linux.ie>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Hulk Robot <hulkci@huawei.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jason Yan <yanaijie@huawei.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
 Cc: Jia He <justin.he@arm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Juergen Gross <jgross@suse.com>
 Cc: kernel test robot <lkp@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c     |    1=20
- drivers/dax/device.c                   |    1=20
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    1=20
- drivers/nvdimm/pfn_devs.c              |    1=20
- drivers/nvdimm/pmem.c                  |    1=20
- drivers/pci/p2pdma.c                   |    1=20
- drivers/xen/unpopulated-alloc.c        |    1=20
- include/linux/memremap.h               |   10=20
- lib/test_hmm.c                         |    1=20
- mm/memremap.c                          |  258 +++++++++++++----------
- 10 files changed, 166 insertions(+), 110 deletions(-)
+ drivers/dax/bus.c              |  231 +++++++++++++++++++++++--------
+ drivers/dax/dax-private.h      |    9 -
+ drivers/dax/device.c           |   53 ++++---
+ drivers/dax/kmem.c             |  130 +++++++++++------
+ tools/testing/nvdimm/dax-dev.c |   20 +-
+ 5 files changed, 321 insertions(+), 122 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-memremap_pages-support-multiple=
--ranges-per-invocation
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -1172,6 +1172,7 @@ int kvmppc_uvmem_init(void)
- 	kvmppc_uvmem_pgmap.type =3D MEMORY_DEVICE_PRIVATE;
- 	kvmppc_uvmem_pgmap.range.start =3D res->start;
- 	kvmppc_uvmem_pgmap.range.end =3D res->end;
-+	kvmppc_uvmem_pgmap.nr_range =3D 1;
- 	kvmppc_uvmem_pgmap.ops =3D &kvmppc_uvmem_ops;
- 	/* just one global instance: */
- 	kvmppc_uvmem_pgmap.owner =3D &kvmppc_uvmem_pgmap;
---- a/drivers/dax/device.c~mm-memremap_pages-support-multiple-ranges-per-in=
-vocation
-+++ a/drivers/dax/device.c
-@@ -417,6 +417,7 @@ int dev_dax_probe(struct dev_dax *dev_da
- 		if (!pgmap)
- 			return -ENOMEM;
- 		pgmap->range =3D *range;
-+		pgmap->nr_range =3D 1;
- 	}
- 	pgmap->type =3D MEMORY_DEVICE_GENERIC;
- 	addr =3D devm_memremap_pages(dev, pgmap);
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-memremap_pages-support-mult=
-iple-ranges-per-invocation
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -251,6 +251,7 @@ nouveau_dmem_chunk_alloc(struct nouveau_
- 	chunk->pagemap.type =3D MEMORY_DEVICE_PRIVATE;
- 	chunk->pagemap.range.start =3D res->start;
- 	chunk->pagemap.range.end =3D res->end;
-+	chunk->pagemap.nr_range =3D 1;
- 	chunk->pagemap.ops =3D &nouveau_dmem_pagemap_ops;
- 	chunk->pagemap.owner =3D drm->dev;
-=20
---- a/drivers/nvdimm/pfn_devs.c~mm-memremap_pages-support-multiple-ranges-p=
-er-invocation
-+++ a/drivers/nvdimm/pfn_devs.c
-@@ -693,6 +693,7 @@ static int __nvdimm_setup_pfn(struct nd_
- 		.start =3D nsio->res.start + start_pad,
- 		.end =3D nsio->res.end - end_trunc,
- 	};
-+	pgmap->nr_range =3D 1;
- 	if (nd_pfn->mode =3D=3D PFN_MODE_RAM) {
- 		if (offset < reserve)
- 			return -EINVAL;
---- a/drivers/nvdimm/pmem.c~mm-memremap_pages-support-multiple-ranges-per-i=
-nvocation
-+++ a/drivers/nvdimm/pmem.c
-@@ -442,6 +442,7 @@ static int pmem_attach_disk(struct devic
- 	} else if (pmem_should_map_pages(dev)) {
- 		pmem->pgmap.range.start =3D res->start;
- 		pmem->pgmap.range.end =3D res->end;
-+		pmem->pgmap.nr_range =3D 1;
- 		pmem->pgmap.type =3D MEMORY_DEVICE_FS_DAX;
- 		pmem->pgmap.ops =3D &fsdax_pagemap_ops;
- 		addr =3D devm_memremap_pages(dev, &pmem->pgmap);
---- a/drivers/pci/p2pdma.c~mm-memremap_pages-support-multiple-ranges-per-in=
-vocation
-+++ a/drivers/pci/p2pdma.c
-@@ -187,6 +187,7 @@ int pci_p2pdma_add_resource(struct pci_d
- 	pgmap =3D &p2p_pgmap->pgmap;
- 	pgmap->range.start =3D pci_resource_start(pdev, bar) + offset;
- 	pgmap->range.end =3D pgmap->range.start + size - 1;
-+	pgmap->nr_range =3D 1;
- 	pgmap->type =3D MEMORY_DEVICE_PCI_P2PDMA;
-=20
- 	p2p_pgmap->provider =3D pdev;
---- a/drivers/xen/unpopulated-alloc.c~mm-memremap_pages-support-multiple-ra=
-nges-per-invocation
-+++ a/drivers/xen/unpopulated-alloc.c
-@@ -47,6 +47,7 @@ static int fill_list(unsigned int nr_pag
- 		.start =3D res->start,
- 		.end =3D res->end,
- 	};
-+	pgmap->nr_range =3D 1;
- 	pgmap->owner =3D res;
-=20
- #ifdef CONFIG_XEN_HAVE_PVMMU
---- a/include/linux/memremap.h~mm-memremap_pages-support-multiple-ranges-pe=
-r-invocation
-+++ a/include/linux/memremap.h
-@@ -94,7 +94,6 @@ struct dev_pagemap_ops {
- /**
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-- * @range: physical address range covered by @ref
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-  * @internal_ref: internal reference if @ref is not provided by the caller
-  * @done: completion for @internal_ref
-@@ -104,10 +103,12 @@ struct dev_pagemap_ops {
-  * @owner: an opaque pointer identifying the entity that manages this
-  *	instance.  Used by various helpers to make sure that no
-  *	foreign ZONE_DEVICE memory is accessed.
-+ * @nr_range: number of ranges to be mapped
-+ * @range: range to be mapped when nr_range =3D=3D 1
-+ * @ranges: array of ranges to be mapped when nr_range > 1
-  */
- struct dev_pagemap {
- 	struct vmem_altmap altmap;
--	struct range range;
- 	struct percpu_ref *ref;
- 	struct percpu_ref internal_ref;
- 	struct completion done;
-@@ -115,6 +116,11 @@ struct dev_pagemap {
- 	unsigned int flags;
- 	const struct dev_pagemap_ops *ops;
- 	void *owner;
-+	int nr_range;
-+	union {
-+		struct range range;
-+		struct range ranges[0];
-+	};
- };
-=20
- static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
---- a/lib/test_hmm.c~mm-memremap_pages-support-multiple-ranges-per-invocati=
-on
-+++ a/lib/test_hmm.c
-@@ -489,6 +489,7 @@ static bool dmirror_allocate_chunk(struc
- 	devmem->pagemap.type =3D MEMORY_DEVICE_PRIVATE;
- 	devmem->pagemap.range.start =3D res->start;
- 	devmem->pagemap.range.end =3D res->end;
-+	devmem->pagemap.nr_range =3D 1;
- 	devmem->pagemap.ops =3D &dmirror_devmem_ops;
- 	devmem->pagemap.owner =3D mdevice;
-=20
---- a/mm/memremap.c~mm-memremap_pages-support-multiple-ranges-per-invocation
-+++ a/mm/memremap.c
-@@ -77,15 +77,19 @@ static void pgmap_array_delete(struct ra
- 	synchronize_rcu();
+--- a/drivers/dax/bus.c~device-dax-add-dis-contiguous-resource-support
++++ a/drivers/dax/bus.c
+@@ -136,15 +136,27 @@ static bool is_static(struct dax_region
+ 	return (dax_region->res.flags & IORESOURCE_DAX_STATIC) !=3D 0;
  }
 =20
--static unsigned long pfn_first(struct dev_pagemap *pgmap)
-+static unsigned long pfn_first(struct dev_pagemap *pgmap, int range_id)
- {
--	return PHYS_PFN(pgmap->range.start) +
--		vmem_altmap_offset(pgmap_altmap(pgmap));
-+	struct range *range =3D &pgmap->ranges[range_id];
-+	unsigned long pfn =3D PHYS_PFN(range->start);
-+
-+	if (range_id)
-+		return pfn;
-+	return pfn + vmem_altmap_offset(pgmap_altmap(pgmap));
- }
-=20
--static unsigned long pfn_end(struct dev_pagemap *pgmap)
-+static unsigned long pfn_end(struct dev_pagemap *pgmap, int range_id)
- {
--	const struct range *range =3D &pgmap->range;
-+	const struct range *range =3D &pgmap->ranges[range_id];
-=20
- 	return (range->start + range_len(range)) >> PAGE_SHIFT;
- }
-@@ -117,8 +121,8 @@ bool pfn_zone_device_reserved(unsigned l
- 	return ret;
- }
-=20
--#define for_each_device_pfn(pfn, map) \
--	for (pfn =3D pfn_first(map); pfn < pfn_end(map); pfn =3D pfn_next(pfn))
-+#define for_each_device_pfn(pfn, map, i) \
-+	for (pfn =3D pfn_first(map, i); pfn < pfn_end(map, i); pfn =3D pfn_next(p=
-fn))
-=20
- static void dev_pagemap_kill(struct dev_pagemap *pgmap)
- {
-@@ -144,20 +148,14 @@ static void dev_pagemap_cleanup(struct d
- 		pgmap->ref =3D NULL;
- }
-=20
--void memunmap_pages(struct dev_pagemap *pgmap)
-+static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
- {
--	struct range *range =3D &pgmap->range;
-+	struct range *range =3D &pgmap->ranges[range_id];
- 	struct page *first_page;
--	unsigned long pfn;
- 	int nid;
-=20
--	dev_pagemap_kill(pgmap);
--	for_each_device_pfn(pfn, pgmap)
--		put_page(pfn_to_page(pfn));
--	dev_pagemap_cleanup(pgmap);
--
- 	/* make sure to access a memmap that was actually initialized */
--	first_page =3D pfn_to_page(pfn_first(pgmap));
-+	first_page =3D pfn_to_page(pfn_first(pgmap, range_id));
-=20
- 	/* pages are dead and unused, undo the arch mapping */
- 	nid =3D page_to_nid(first_page);
-@@ -177,6 +175,22 @@ void memunmap_pages(struct dev_pagemap *
-=20
- 	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
- 	pgmap_array_delete(range);
-+}
-+
-+void memunmap_pages(struct dev_pagemap *pgmap)
++static u64 dev_dax_size(struct dev_dax *dev_dax)
 +{
-+	unsigned long pfn;
++	u64 size =3D 0;
 +	int i;
 +
-+	dev_pagemap_kill(pgmap);
-+	for (i =3D 0; i < pgmap->nr_range; i++)
-+		for_each_device_pfn(pfn, pgmap, i)
-+			put_page(pfn_to_page(pfn));
-+	dev_pagemap_cleanup(pgmap);
++	device_lock_assert(&dev_dax->dev);
 +
-+	for (i =3D 0; i < pgmap->nr_range; i++)
-+		pageunmap_range(pgmap, i);
++	for (i =3D 0; i < dev_dax->nr_range; i++)
++		size +=3D range_len(&dev_dax->ranges[i].range);
 +
- 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
- 	devmap_managed_enable_put();
- }
-@@ -195,96 +209,29 @@ static void dev_pagemap_percpu_release(s
- 	complete(&pgmap->done);
- }
-=20
--/*
-- * Not device managed version of dev_memremap_pages, undone by
-- * memunmap_pages().  Please use dev_memremap_pages if you have a struct
-- * device available.
-- */
--void *memremap_pages(struct dev_pagemap *pgmap, int nid)
-+static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *par=
-ams,
-+		int range_id, int nid)
- {
--	struct range *range =3D &pgmap->range;
-+	struct range *range =3D &pgmap->ranges[range_id];
- 	struct dev_pagemap *conflict_pgmap;
--	struct mhp_params params =3D {
--		/*
--		 * We do not want any optional features only our own memmap
--		 */
--		.altmap =3D pgmap_altmap(pgmap),
--		.pgprot =3D PAGE_KERNEL,
--	};
- 	int error, is_ram;
--	bool need_devmap_managed =3D true;
--
--	switch (pgmap->type) {
--	case MEMORY_DEVICE_PRIVATE:
--		if (!IS_ENABLED(CONFIG_DEVICE_PRIVATE)) {
--			WARN(1, "Device private memory not supported\n");
--			return ERR_PTR(-EINVAL);
--		}
--		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
--			WARN(1, "Missing migrate_to_ram method\n");
--			return ERR_PTR(-EINVAL);
--		}
--		if (!pgmap->owner) {
--			WARN(1, "Missing owner\n");
--			return ERR_PTR(-EINVAL);
--		}
--		break;
--	case MEMORY_DEVICE_FS_DAX:
--		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
--		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
--			WARN(1, "File system DAX not supported\n");
--			return ERR_PTR(-EINVAL);
--		}
--		break;
--	case MEMORY_DEVICE_GENERIC:
--		need_devmap_managed =3D false;
--		break;
--	case MEMORY_DEVICE_PCI_P2PDMA:
--		params.pgprot =3D pgprot_noncached(params.pgprot);
--		need_devmap_managed =3D false;
--		break;
--	default:
--		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
--		break;
--	}
--
--	if (!pgmap->ref) {
--		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
--			return ERR_PTR(-EINVAL);
-=20
--		init_completion(&pgmap->done);
--		error =3D percpu_ref_init(&pgmap->internal_ref,
--				dev_pagemap_percpu_release, 0, GFP_KERNEL);
--		if (error)
--			return ERR_PTR(error);
--		pgmap->ref =3D &pgmap->internal_ref;
--	} else {
--		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
--			WARN(1, "Missing reference count teardown definition\n");
--			return ERR_PTR(-EINVAL);
--		}
--	}
--
--	if (need_devmap_managed) {
--		error =3D devmap_managed_enable_get(pgmap);
--		if (error)
--			return ERR_PTR(error);
--	}
-+	if (WARN_ONCE(pgmap_altmap(pgmap) && range_id > 0,
-+				"altmap not supported for multiple ranges\n"))
-+		return -EINVAL;
-=20
- 	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->start), NULL);
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
--		error =3D -ENOMEM;
--		goto err_array;
-+		return -ENOMEM;
- 	}
-=20
- 	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->end), NULL);
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
--		error =3D -ENOMEM;
--		goto err_array;
-+		return -ENOMEM;
- 	}
-=20
- 	is_ram =3D region_intersects(range->start, range_len(range),
-@@ -294,19 +241,18 @@ void *memremap_pages(struct dev_pagemap
- 		WARN_ONCE(1, "attempted on %s region %#llx-%#llx\n",
- 				is_ram =3D=3D REGION_MIXED ? "mixed" : "ram",
- 				range->start, range->end);
--		error =3D -ENXIO;
--		goto err_array;
-+		return -ENXIO;
- 	}
-=20
- 	error =3D xa_err(xa_store_range(&pgmap_array, PHYS_PFN(range->start),
- 				PHYS_PFN(range->end), pgmap, GFP_KERNEL));
- 	if (error)
--		goto err_array;
-+		return error;
-=20
- 	if (nid < 0)
- 		nid =3D numa_mem_id();
-=20
--	error =3D track_pfn_remap(NULL, &params.pgprot, PHYS_PFN(range->start), 0,
-+	error =3D track_pfn_remap(NULL, &params->pgprot, PHYS_PFN(range->start), =
-0,
- 			range_len(range));
- 	if (error)
- 		goto err_pfn_remap;
-@@ -326,7 +272,7 @@ void *memremap_pages(struct dev_pagemap
- 	 */
- 	if (pgmap->type =3D=3D MEMORY_DEVICE_PRIVATE) {
- 		error =3D add_pages(nid, PHYS_PFN(range->start),
--				PHYS_PFN(range_len(range)), &params);
-+				PHYS_PFN(range_len(range)), params);
- 	} else {
- 		error =3D kasan_add_zero_shadow(__va(range->start), range_len(range));
- 		if (error) {
-@@ -335,7 +281,7 @@ void *memremap_pages(struct dev_pagemap
- 		}
-=20
- 		error =3D arch_add_memory(nid, range->start, range_len(range),
--					&params);
-+					params);
- 	}
-=20
- 	if (!error) {
-@@ -343,7 +289,7 @@ void *memremap_pages(struct dev_pagemap
-=20
- 		zone =3D &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
- 		move_pfn_range_to_zone(zone, PHYS_PFN(range->start),
--				PHYS_PFN(range_len(range)), params.altmap);
-+				PHYS_PFN(range_len(range)), params->altmap);
- 	}
-=20
- 	mem_hotplug_done();
-@@ -357,20 +303,116 @@ void *memremap_pages(struct dev_pagemap
- 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				PHYS_PFN(range->start),
- 				PHYS_PFN(range_len(range)), pgmap);
--	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap) - pfn_first(pgmap));
--	return __va(range->start);
-+	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
-+			- pfn_first(pgmap, range_id));
-+	return 0;
-=20
-- err_add_memory:
-+err_add_memory:
- 	kasan_remove_zero_shadow(__va(range->start), range_len(range));
-- err_kasan:
-+err_kasan:
- 	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
-- err_pfn_remap:
-+err_pfn_remap:
- 	pgmap_array_delete(range);
-- err_array:
--	dev_pagemap_kill(pgmap);
--	dev_pagemap_cleanup(pgmap);
--	devmap_managed_enable_put();
--	return ERR_PTR(error);
-+	return error;
++	return size;
 +}
 +
+ static int dax_bus_probe(struct device *dev)
+ {
+ 	struct dax_device_driver *dax_drv =3D to_dax_drv(dev->driver);
+ 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
+ 	struct dax_region *dax_region =3D dev_dax->region;
+-	struct range *range =3D &dev_dax->range;
+ 	int rc;
+=20
+-	if (range_len(range) =3D=3D 0 || dev_dax->id < 0)
++	if (dev_dax_size(dev_dax) =3D=3D 0 || dev_dax->id < 0)
+ 		return -ENXIO;
+=20
+ 	rc =3D dax_drv->probe(dev_dax);
+@@ -354,15 +366,19 @@ void kill_dev_dax(struct dev_dax *dev_da
+ }
+ EXPORT_SYMBOL_GPL(kill_dev_dax);
+=20
+-static void free_dev_dax_range(struct dev_dax *dev_dax)
++static void free_dev_dax_ranges(struct dev_dax *dev_dax)
+ {
+ 	struct dax_region *dax_region =3D dev_dax->region;
+-	struct range *range =3D &dev_dax->range;
++	int i;
+=20
+ 	device_lock_assert(dax_region->dev);
+-	if (range_len(range))
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		struct range *range =3D &dev_dax->ranges[i].range;
++
+ 		__release_region(&dax_region->res, range->start,
+ 				range_len(range));
++	}
++	dev_dax->nr_range =3D 0;
+ }
+=20
+ static void unregister_dev_dax(void *dev)
+@@ -372,7 +388,7 @@ static void unregister_dev_dax(void *dev
+ 	dev_dbg(dev, "%s\n", __func__);
+=20
+ 	kill_dev_dax(dev_dax);
+-	free_dev_dax_range(dev_dax);
++	free_dev_dax_ranges(dev_dax);
+ 	device_del(dev);
+ 	put_device(dev);
+ }
+@@ -423,7 +439,7 @@ static ssize_t delete_store(struct devic
+ 	device_lock(dev);
+ 	device_lock(victim);
+ 	dev_dax =3D to_dev_dax(victim);
+-	if (victim->driver || range_len(&dev_dax->range))
++	if (victim->driver || dev_dax_size(dev_dax))
+ 		rc =3D -EBUSY;
+ 	else {
+ 		/*
+@@ -569,51 +585,86 @@ static int alloc_dev_dax_range(struct de
+ 	struct dax_region *dax_region =3D dev_dax->region;
+ 	struct resource *res =3D &dax_region->res;
+ 	struct device *dev =3D &dev_dax->dev;
++	struct dev_dax_range *ranges;
++	unsigned long pgoff =3D 0;
+ 	struct resource *alloc;
++	int i;
+=20
+ 	device_lock_assert(dax_region->dev);
+=20
+ 	/* handle the seed alloc special case */
+ 	if (!size) {
+-		dev_dax->range =3D (struct range) {
+-			.start =3D res->start,
+-			.end =3D res->start - 1,
+-		};
++		if (dev_WARN_ONCE(dev, dev_dax->nr_range,
++					"0-size allocation must be first\n"))
++			return -EBUSY;
++		/* nr_range =3D=3D 0 is elsewhere special cased as 0-size device */
+ 		return 0;
+ 	}
+=20
++	ranges =3D krealloc(dev_dax->ranges, sizeof(*ranges)
++			* (dev_dax->nr_range + 1), GFP_KERNEL);
++	if (!ranges)
++		return -ENOMEM;
++
+ 	alloc =3D __request_region(res, start, size, dev_name(dev), 0);
+-	if (!alloc)
++	if (!alloc) {
++		/*
++		 * If this was an empty set of ranges nothing else
++		 * will release @ranges, so do it now.
++		 */
++		if (!dev_dax->nr_range) {
++			kfree(ranges);
++			ranges =3D NULL;
++		}
++		dev_dax->ranges =3D ranges;
+ 		return -ENOMEM;
++	}
+=20
+-	dev_dax->range =3D (struct range) {
+-		.start =3D alloc->start,
+-		.end =3D alloc->end,
++	for (i =3D 0; i < dev_dax->nr_range; i++)
++		pgoff +=3D PHYS_PFN(range_len(&ranges[i].range));
++	dev_dax->ranges =3D ranges;
++	ranges[dev_dax->nr_range++] =3D (struct dev_dax_range) {
++		.pgoff =3D pgoff,
++		.range =3D {
++			.start =3D alloc->start,
++			.end =3D alloc->end,
++		},
+ 	};
+=20
++	dev_dbg(dev, "alloc range[%d]: %pa:%pa\n", dev_dax->nr_range - 1,
++			&alloc->start, &alloc->end);
++
+ 	return 0;
+ }
+=20
+ static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *=
+res, resource_size_t size)
+ {
++	int last_range =3D dev_dax->nr_range - 1;
++	struct dev_dax_range *dax_range =3D &dev_dax->ranges[last_range];
+ 	struct dax_region *dax_region =3D dev_dax->region;
+-	struct range *range =3D &dev_dax->range;
+-	int rc =3D 0;
++	bool is_shrink =3D resource_size(res) > size;
++	struct range *range =3D &dax_range->range;
++	struct device *dev =3D &dev_dax->dev;
++	int rc;
+=20
+ 	device_lock_assert(dax_region->dev);
+=20
+-	if (size)
+-		rc =3D adjust_resource(res, range->start, size);
+-	else
+-		__release_region(&dax_region->res, range->start, range_len(range));
++	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
++		return -EINVAL;
++
++	rc =3D adjust_resource(res, range->start, size);
+ 	if (rc)
+ 		return rc;
+=20
+-	dev_dax->range =3D (struct range) {
++	*range =3D (struct range) {
+ 		.start =3D range->start,
+ 		.end =3D range->start + size - 1,
+ 	};
+=20
++	dev_dbg(dev, "%s range[%d]: %#llx:%#llx\n", is_shrink ? "shrink" : "exten=
+d",
++			last_range, (unsigned long long) range->start,
++			(unsigned long long) range->end);
++
+ 	return 0;
+ }
+=20
+@@ -621,7 +672,11 @@ static ssize_t size_show(struct device *
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
+-	unsigned long long size =3D range_len(&dev_dax->range);
++	unsigned long long size;
++
++	device_lock(dev);
++	size =3D dev_dax_size(dev_dax);
++	device_unlock(dev);
+=20
+ 	return sprintf(buf, "%llu\n", size);
+ }
+@@ -639,32 +694,82 @@ static bool alloc_is_aligned(struct dax_
+=20
+ static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
+ {
++	resource_size_t to_shrink =3D dev_dax_size(dev_dax) - size;
+ 	struct dax_region *dax_region =3D dev_dax->region;
+-	struct range *range =3D &dev_dax->range;
+-	struct resource *res, *adjust =3D NULL;
+ 	struct device *dev =3D &dev_dax->dev;
++	int i;
+=20
+-	for_each_dax_region_resource(dax_region, res)
+-		if (strcmp(res->name, dev_name(dev)) =3D=3D 0
+-				&& res->start =3D=3D range->start) {
+-			adjust =3D res;
+-			break;
++	for (i =3D dev_dax->nr_range - 1; i >=3D 0; i--) {
++		struct range *range =3D &dev_dax->ranges[i].range;
++		struct resource *adjust =3D NULL, *res;
++		resource_size_t shrink;
++
++		shrink =3D min_t(u64, to_shrink, range_len(range));
++		if (shrink >=3D range_len(range)) {
++			__release_region(&dax_region->res, range->start,
++					range_len(range));
++			dev_dax->nr_range--;
++			dev_dbg(dev, "delete range[%d]: %#llx:%#llx\n", i,
++					(unsigned long long) range->start,
++					(unsigned long long) range->end);
++			to_shrink -=3D shrink;
++			if (!to_shrink)
++				break;
++			continue;
+ 		}
+=20
+-	if (dev_WARN_ONCE(dev, !adjust, "failed to find matching resource\n"))
+-		return -ENXIO;
+-	return adjust_dev_dax_range(dev_dax, adjust, size);
++		for_each_dax_region_resource(dax_region, res)
++			if (strcmp(res->name, dev_name(dev)) =3D=3D 0
++					&& res->start =3D=3D range->start) {
++				adjust =3D res;
++				break;
++			}
++
++		if (dev_WARN_ONCE(dev, !adjust || i !=3D dev_dax->nr_range - 1,
++					"failed to find matching resource\n"))
++			return -ENXIO;
++		return adjust_dev_dax_range(dev_dax, adjust, range_len(range)
++				- shrink);
++	}
++	return 0;
++}
 +
 +/*
-+ * Not device managed version of dev_memremap_pages, undone by
-+ * memunmap_pages().  Please use dev_memremap_pages if you have a struct
-+ * device available.
++ * Only allow adjustments that preserve the relative pgoff of existing
++ * allocations. I.e. the dev_dax->ranges array is ordered by increasing pg=
+off.
 + */
-+void *memremap_pages(struct dev_pagemap *pgmap, int nid)
++static bool adjust_ok(struct dev_dax *dev_dax, struct resource *res)
 +{
-+	struct mhp_params params =3D {
-+		.altmap =3D pgmap_altmap(pgmap),
-+		.pgprot =3D PAGE_KERNEL,
-+	};
-+	const int nr_range =3D pgmap->nr_range;
-+	bool need_devmap_managed =3D true;
-+	int error, i;
++	struct dev_dax_range *last;
++	int i;
 +
-+	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
-+		return ERR_PTR(-EINVAL);
++	if (dev_dax->nr_range =3D=3D 0)
++		return false;
++	if (strcmp(res->name, dev_name(&dev_dax->dev)) !=3D 0)
++		return false;
++	last =3D &dev_dax->ranges[dev_dax->nr_range - 1];
++	if (last->range.start !=3D res->start || last->range.end !=3D res->end)
++		return false;
++	for (i =3D 0; i < dev_dax->nr_range - 1; i++) {
++		struct dev_dax_range *dax_range =3D &dev_dax->ranges[i];
 +
-+	switch (pgmap->type) {
-+	case MEMORY_DEVICE_PRIVATE:
-+		if (!IS_ENABLED(CONFIG_DEVICE_PRIVATE)) {
-+			WARN(1, "Device private memory not supported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
-+			WARN(1, "Missing migrate_to_ram method\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (!pgmap->owner) {
-+			WARN(1, "Missing owner\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		break;
-+	case MEMORY_DEVICE_FS_DAX:
-+		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
-+		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
-+			WARN(1, "File system DAX not supported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		break;
-+	case MEMORY_DEVICE_GENERIC:
-+		need_devmap_managed =3D false;
-+		break;
-+	case MEMORY_DEVICE_PCI_P2PDMA:
-+		params.pgprot =3D pgprot_noncached(params.pgprot);
-+		need_devmap_managed =3D false;
-+		break;
-+	default:
-+		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
-+		break;
++		if (dax_range->pgoff > last->pgoff)
++			return false;
 +	}
 +
-+	if (!pgmap->ref) {
-+		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
-+			return ERR_PTR(-EINVAL);
-+
-+		init_completion(&pgmap->done);
-+		error =3D percpu_ref_init(&pgmap->internal_ref,
-+				dev_pagemap_percpu_release, 0, GFP_KERNEL);
-+		if (error)
-+			return ERR_PTR(error);
-+		pgmap->ref =3D &pgmap->internal_ref;
-+	} else {
-+		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
-+			WARN(1, "Missing reference count teardown definition\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+	}
-+
-+	if (need_devmap_managed) {
-+		error =3D devmap_managed_enable_get(pgmap);
-+		if (error)
-+			return ERR_PTR(error);
-+	}
-+
-+	/*
-+	 * Clear the pgmap nr_range as it will be incremented for each
-+	 * successfully processed range. This communicates how many
-+	 * regions to unwind in the abort case.
-+	 */
-+	pgmap->nr_range =3D 0;
-+	error =3D 0;
-+	for (i =3D 0; i < nr_range; i++) {
-+		error =3D pagemap_range(pgmap, &params, i, nid);
-+		if (error)
-+			break;
-+		pgmap->nr_range++;
-+	}
-+
-+	if (i < nr_range) {
-+		memunmap_pages(pgmap);
-+		pgmap->nr_range =3D nr_range;
-+		return ERR_PTR(error);
-+	}
-+
-+	return __va(pgmap->ranges[0].start);
++	return true;
  }
- EXPORT_SYMBOL_GPL(memremap_pages);
 =20
+ static ssize_t dev_dax_resize(struct dax_region *dax_region,
+ 		struct dev_dax *dev_dax, resource_size_t size)
+ {
+ 	resource_size_t avail =3D dax_region_avail_size(dax_region), to_alloc;
+-	resource_size_t dev_size =3D range_len(&dev_dax->range);
++	resource_size_t dev_size =3D dev_dax_size(dev_dax);
+ 	struct resource *region_res =3D &dax_region->res;
+ 	struct device *dev =3D &dev_dax->dev;
+-	const char *name =3D dev_name(dev);
+ 	struct resource *res, *first;
++	resource_size_t alloc =3D 0;
++	int rc;
+=20
+ 	if (dev->driver)
+ 		return -EBUSY;
+@@ -685,35 +790,47 @@ static ssize_t dev_dax_resize(struct dax
+ 	 * may involve adjusting the end of an existing resource, or
+ 	 * allocating a new resource.
+ 	 */
++retry:
+ 	first =3D region_res->child;
+ 	if (!first)
+ 		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
+-	for (res =3D first; to_alloc && res; res =3D res->sibling) {
++
++	rc =3D -ENOSPC;
++	for (res =3D first; res; res =3D res->sibling) {
+ 		struct resource *next =3D res->sibling;
+-		resource_size_t free;
+=20
+ 		/* space at the beginning of the region */
+-		free =3D 0;
+-		if (res =3D=3D first && res->start > dax_region->res.start)
+-			free =3D res->start - dax_region->res.start;
+-		if (free >=3D to_alloc && dev_size =3D=3D 0)
+-			return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
++		if (res =3D=3D first && res->start > dax_region->res.start) {
++			alloc =3D min(res->start - dax_region->res.start, to_alloc);
++			rc =3D alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
++			break;
++		}
+=20
+-		free =3D 0;
++		alloc =3D 0;
+ 		/* space between allocations */
+ 		if (next && next->start > res->end + 1)
+-			free =3D next->start - res->end + 1;
++			alloc =3D min(next->start - (res->end + 1), to_alloc);
+=20
+ 		/* space at the end of the region */
+-		if (free < to_alloc && !next && res->end < region_res->end)
+-			free =3D region_res->end - res->end;
++		if (!alloc && !next && res->end < region_res->end)
++			alloc =3D min(region_res->end - res->end, to_alloc);
+=20
+-		if (free >=3D to_alloc && strcmp(name, res->name) =3D=3D 0)
+-			return adjust_dev_dax_range(dev_dax, res, resource_size(res) + to_alloc=
+);
+-		else if (free >=3D to_alloc && dev_size =3D=3D 0)
+-			return alloc_dev_dax_range(dev_dax, res->end + 1, to_alloc);
++		if (!alloc)
++			continue;
++
++		if (adjust_ok(dev_dax, res)) {
++			rc =3D adjust_dev_dax_range(dev_dax, res, resource_size(res) + alloc);
++			break;
++		}
++		rc =3D alloc_dev_dax_range(dev_dax, res->end + 1, alloc);
++		break;
+ 	}
+-	return -ENOSPC;
++	if (rc)
++		return rc;
++	to_alloc -=3D alloc;
++	if (to_alloc)
++		goto retry;
++	return 0;
+ }
+=20
+ static ssize_t size_store(struct device *dev, struct device_attribute *att=
+r,
+@@ -767,8 +884,15 @@ static ssize_t resource_show(struct devi
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++	struct dax_region *dax_region =3D dev_dax->region;
++	unsigned long long start;
++
++	if (dev_dax->nr_range < 1)
++		start =3D dax_region->res.start;
++	else
++		start =3D dev_dax->ranges[0].range.start;
+=20
+-	return sprintf(buf, "%#llx\n", dev_dax->range.start);
++	return sprintf(buf, "%#llx\n", start);
+ }
+ static DEVICE_ATTR(resource, 0400, resource_show, NULL);
+=20
+@@ -833,6 +957,7 @@ static void dev_dax_release(struct devic
+ 	put_dax(dax_dev);
+ 	free_dev_dax_id(dev_dax);
+ 	dax_region_put(dax_region);
++	kfree(dev_dax->ranges);
+ 	kfree(dev_dax->pgmap);
+ 	kfree(dev_dax);
+ }
+@@ -941,7 +1066,7 @@ struct dev_dax *devm_create_dev_dax(stru
+ err_alloc_dax:
+ 	kfree(dev_dax->pgmap);
+ err_pgmap:
+-	free_dev_dax_range(dev_dax);
++	free_dev_dax_ranges(dev_dax);
+ err_range:
+ 	free_dev_dax_id(dev_dax);
+ err_id:
+--- a/drivers/dax/dax-private.h~device-dax-add-dis-contiguous-resource-supp=
+ort
++++ a/drivers/dax/dax-private.h
+@@ -49,7 +49,8 @@ struct dax_region {
+  * @id: ida allocated id
+  * @dev - device core
+  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+- * @range: resource range for the instance
++ * @nr_range: size of @ranges
++ * @ranges: resource-span + pgoff tuples for the instance
+  */
+ struct dev_dax {
+ 	struct dax_region *region;
+@@ -58,7 +59,11 @@ struct dev_dax {
+ 	int id;
+ 	struct device dev;
+ 	struct dev_pagemap *pgmap;
+-	struct range range;
++	int nr_range;
++	struct dev_dax_range {
++		unsigned long pgoff;
++		struct range range;
++	} *ranges;
+ };
+=20
+ static inline struct dev_dax *to_dev_dax(struct device *dev)
+--- a/drivers/dax/device.c~device-dax-add-dis-contiguous-resource-support
++++ a/drivers/dax/device.c
+@@ -55,15 +55,22 @@ static int check_vma(struct dev_dax *dev
+ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgof=
+f,
+ 		unsigned long size)
+ {
+-	struct range *range =3D &dev_dax->range;
+-	phys_addr_t phys;
++	int i;
+=20
+-	phys =3D pgoff * PAGE_SIZE + range->start;
+-	if (phys >=3D range->start && phys <=3D range->end) {
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		struct dev_dax_range *dax_range =3D &dev_dax->ranges[i];
++		struct range *range =3D &dax_range->range;
++		unsigned long long pgoff_end;
++		phys_addr_t phys;
++
++		pgoff_end =3D dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
++		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
++			continue;
++		phys =3D PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+ 		if (phys + size - 1 <=3D range->end)
+ 			return phys;
++		break;
+ 	}
+-
+ 	return -1;
+ }
+=20
+@@ -395,30 +402,40 @@ static void dev_dax_kill(void *dev_dax)
+ int dev_dax_probe(struct dev_dax *dev_dax)
+ {
+ 	struct dax_device *dax_dev =3D dev_dax->dax_dev;
+-	struct range *range =3D &dev_dax->range;
+ 	struct device *dev =3D &dev_dax->dev;
+ 	struct dev_pagemap *pgmap;
+ 	struct inode *inode;
+ 	struct cdev *cdev;
+ 	void *addr;
+-	int rc;
+-
+-	/* 1:1 map region resource range to device-dax instance range */
+-	if (!devm_request_mem_region(dev, range->start, range_len(range),
+-				dev_name(dev))) {
+-		dev_warn(dev, "could not reserve range: %#llx - %#llx\n",
+-				range->start, range->end);
+-		return -EBUSY;
+-	}
++	int rc, i;
+=20
+ 	pgmap =3D dev_dax->pgmap;
++	if (dev_WARN_ONCE(dev, pgmap && dev_dax->nr_range > 1,
++			"static pgmap / multi-range device conflict\n"))
++		return -EINVAL;
++
+ 	if (!pgmap) {
+-		pgmap =3D devm_kzalloc(dev, sizeof(*pgmap), GFP_KERNEL);
++		pgmap =3D devm_kzalloc(dev, sizeof(*pgmap) + sizeof(struct range)
++				* (dev_dax->nr_range - 1), GFP_KERNEL);
+ 		if (!pgmap)
+ 			return -ENOMEM;
+-		pgmap->range =3D *range;
+-		pgmap->nr_range =3D 1;
++		pgmap->nr_range =3D dev_dax->nr_range;
++	}
++
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		struct range *range =3D &dev_dax->ranges[i].range;
++
++		if (!devm_request_mem_region(dev, range->start,
++					range_len(range), dev_name(dev))) {
++			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve range\n",
++					i, range->start, range->end);
++			return -EBUSY;
++		}
++		/* don't update the range for static pgmap */
++		if (!dev_dax->pgmap)
++			pgmap->ranges[i] =3D *range;
+ 	}
++
+ 	pgmap->type =3D MEMORY_DEVICE_GENERIC;
+ 	addr =3D devm_memremap_pages(dev, pgmap);
+ 	if (IS_ERR(addr))
+--- a/drivers/dax/kmem.c~device-dax-add-dis-contiguous-resource-support
++++ a/drivers/dax/kmem.c
+@@ -19,24 +19,28 @@ static const char *kmem_name;
+ /* Set if any memory will remain added when the driver will be unloaded. */
+ static bool any_hotremove_failed;
+=20
+-static struct range dax_kmem_range(struct dev_dax *dev_dax)
++static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+ {
+-	struct range range;
++	struct dev_dax_range *dax_range =3D &dev_dax->ranges[i];
++	struct range *range =3D &dax_range->range;
+=20
+ 	/* memory-block align the hotplug range */
+-	range.start =3D ALIGN(dev_dax->range.start, memory_block_size_bytes());
+-	range.end =3D ALIGN_DOWN(dev_dax->range.end + 1, memory_block_size_bytes(=
+)) - 1;
+-	return range;
++	r->start =3D ALIGN(range->start, memory_block_size_bytes());
++	r->end =3D ALIGN_DOWN(range->end + 1, memory_block_size_bytes()) - 1;
++	if (r->start >=3D r->end) {
++		r->start =3D range->start;
++		r->end =3D range->end;
++		return -ENOSPC;
++	}
++	return 0;
+ }
+=20
+ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+-	struct range range =3D dax_kmem_range(dev_dax);
+ 	struct device *dev =3D &dev_dax->dev;
+-	struct resource *res;
++	int i, mapped =3D 0;
+ 	char *res_name;
+ 	int numa_node;
+-	int rc;
+=20
+ 	/*
+ 	 * Ensure good NUMA information for the persistent memory.
+@@ -55,31 +59,58 @@ static int dev_dax_kmem_probe(struct dev
+ 	if (!res_name)
+ 		return -ENOMEM;
+=20
+-	/* Region is permanently reserved if hotremove fails. */
+-	res =3D request_mem_region(range.start, range_len(&range), res_name);
+-	if (!res) {
+-		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n", range.start, r=
+ange.end);
+-		kfree(res_name);
+-		return -EBUSY;
+-	}
+-
+-	/*
+-	 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
+-	 * so that add_memory() can add a child resource.  Do not
+-	 * inherit flags from the parent since it may set new flags
+-	 * unknown to us that will break add_memory() below.
+-	 */
+-	res->flags =3D IORESOURCE_SYSTEM_RAM;
+-
+-	/*
+-	 * Ensure that future kexec'd kernels will not treat this as RAM
+-	 * automatically.
+-	 */
+-	rc =3D add_memory_driver_managed(numa_node, range.start, range_len(&range=
+), kmem_name);
+-	if (rc) {
+-		release_mem_region(range.start, range_len(&range));
+-		kfree(res_name);
+-		return rc;
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		struct resource *res;
++		struct range range;
++		int rc;
++
++		rc =3D dax_kmem_range(dev_dax, i, &range);
++		if (rc) {
++			dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
++					i, range.start, range.end);
++			continue;
++		}
++
++		/* Region is permanently reserved if hotremove fails. */
++		res =3D request_mem_region(range.start, range_len(&range), res_name);
++		if (!res) {
++			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve region\n",
++					i, range.start, range.end);
++			/*
++			 * Once some memory has been onlined we can't
++			 * assume that it can be un-onlined safely.
++			 */
++			if (mapped)
++				continue;
++			kfree(res_name);
++			return -EBUSY;
++		}
++
++		/*
++		 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
++		 * so that add_memory() can add a child resource.  Do not
++		 * inherit flags from the parent since it may set new flags
++		 * unknown to us that will break add_memory() below.
++		 */
++		res->flags =3D IORESOURCE_SYSTEM_RAM;
++
++		/*
++		 * Ensure that future kexec'd kernels will not treat
++		 * this as RAM automatically.
++		 */
++		rc =3D add_memory_driver_managed(numa_node, range.start,
++				range_len(&range), kmem_name);
++
++		if (rc) {
++			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
++					i, range.start, range.end);
++			release_mem_region(range.start, range_len(&range));
++			if (mapped)
++				continue;
++			kfree(res_name);
++			return rc;
++		}
++		mapped++;
+ 	}
+=20
+ 	dev_set_drvdata(dev, res_name);
+@@ -90,9 +121,8 @@ static int dev_dax_kmem_probe(struct dev
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ static int dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ {
+-	int rc;
++	int i, success =3D 0;
+ 	struct device *dev =3D &dev_dax->dev;
+-	struct range range =3D dax_kmem_range(dev_dax);
+ 	const char *res_name =3D dev_get_drvdata(dev);
+=20
+ 	/*
+@@ -101,17 +131,31 @@ static int dev_dax_kmem_remove(struct de
+ 	 * there is no way to hotremove this memory until reboot because device
+ 	 * unbind will succeed even if we return failure.
+ 	 */
+-	rc =3D remove_memory(dev_dax->target_node, range.start, range_len(&range)=
+);
+-	if (rc) {
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		struct range range;
++		int rc;
++
++		rc =3D dax_kmem_range(dev_dax, i, &range);
++		if (rc)
++			continue;
++
++		rc =3D remove_memory(dev_dax->target_node, range.start,
++				range_len(&range));
++		if (rc =3D=3D 0) {
++			release_mem_region(range.start, range_len(&range));
++			success++;
++			continue;
++		}
+ 		any_hotremove_failed =3D true;
+-		dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
+-				range.start, range.end);
+-		return rc;
++		dev_err(dev,
++			"mapping%d: %#llx-%#llx cannot be hotremoved until the next reboot\n",
++				i, range.start, range.end);
+ 	}
+=20
+-	/* Release and free dax resources */
+-	release_mem_region(range.start, range_len(&range));
+-	kfree(res_name);
++	if (success >=3D dev_dax->nr_range) {
++		kfree(res_name);
++		dev_set_drvdata(dev, NULL);
++	}
+=20
+ 	return 0;
+ }
+--- a/tools/testing/nvdimm/dax-dev.c~device-dax-add-dis-contiguous-resource=
+-support
++++ a/tools/testing/nvdimm/dax-dev.c
+@@ -9,11 +9,18 @@
+ phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 		unsigned long size)
+ {
+-	struct range *range =3D &dev_dax->range;
+-	phys_addr_t addr;
++	int i;
+=20
+-	addr =3D pgoff * PAGE_SIZE + range->start;
+-	if (addr >=3D range->start && addr <=3D range->end) {
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		struct dev_dax_range *dax_range =3D &dev_dax->ranges[i];
++		struct range *range =3D &dax_range->range;
++		unsigned long long pgoff_end;
++		phys_addr_t addr;
++
++		pgoff_end =3D dax_range->pgoff + PHYS_PFN(range_len(range)) - 1;
++		if (pgoff < dax_range->pgoff || pgoff > pgoff_end)
++			continue;
++		addr =3D PFN_PHYS(pgoff - dax_range->pgoff) + range->start;
+ 		if (addr + size - 1 <=3D range->end) {
+ 			if (get_nfit_res(addr)) {
+ 				struct page *page;
+@@ -23,9 +30,10 @@ phys_addr_t dax_pgoff_to_phys(struct dev
+=20
+ 				page =3D vmalloc_to_page((void *)addr);
+ 				return PFN_PHYS(page_to_pfn(page));
+-			} else
+-				return addr;
++			}
++			return addr;
+ 		}
++		break;
+ 	}
+ 	return -1;
+ }
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
