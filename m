@@ -7,44 +7,49 @@ X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2F0AC4741F
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B32D1C4741F
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE8E4207C4
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78416208FE
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Sep 2020 04:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601093962;
-	bh=CZGQ/IPtIHlW48+y+j6behOl57FkpS5nsvTS70xhlrI=;
+	s=default; t=1601093966;
+	bh=4XYbOkZD/X+maFrZDRd5RAzqJJ9LoJUpJToY3T3h3R0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=P+M1LXYnfY7jpZQXylzFsj+/9kkyHNJORaJJQSGwFgF2O79AI9F4MyudzPP2H4/og
-	 S7FIXIVn8+PAoDdJKCzkWu1L5KFCPISWguJcVhLc2Zgznwb1iafC9omCR3F+OuMrGl
-	 Kb3rgMyUvHKcNEfG8jZAjTKsnBOOoIIkOmiCT9t8=
+	b=0OjTe+COY0QbO2FP/yJi5tuY5CYV8IfSrpcuMwH7JHSVtjNXUSiWOUTfRyx2NFYr8
+	 5++Vg2fljktz75atWHhlKJIyKB9Z5oMEQgDkoZslPWh3YVM8/dcz/VfKYXZ0dvgmBO
+	 ywDX7eKIMEwE3wKXmEBSENS0q7VEY0vlQVAn2Uvc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730031AbgIZETW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 26 Sep 2020 00:19:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51958 "EHLO mail.kernel.org"
+        id S1730015AbgIZET0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 26 Sep 2020 00:19:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729035AbgIZETW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 26 Sep 2020 00:19:22 -0400
+        id S1729035AbgIZET0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 26 Sep 2020 00:19:26 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CC50A20882;
-        Sat, 26 Sep 2020 04:19:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DF92D207C4;
+        Sat, 26 Sep 2020 04:19:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601093962;
-        bh=CZGQ/IPtIHlW48+y+j6behOl57FkpS5nsvTS70xhlrI=;
+        s=default; t=1601093965;
+        bh=4XYbOkZD/X+maFrZDRd5RAzqJJ9LoJUpJToY3T3h3R0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=F//Nz6di/fbaRVR5cs4WfZ0oo1+G6Bz+F8KkJguT8yC/C5Z5rHv2LInDPXTwthxR5
-         B75tXbMi+w784JReE7nIDWd5oDAMMmSMjPy4/ZB6zZiht5F0jr6O/T5QAZupU/Ar+Y
-         8HdbRwSZaC3clAo1MnP3JkafH5Bgea3vv6mBXAPo=
-Date:   Fri, 25 Sep 2020 21:19:21 -0700
+        b=ARY3by6ITqp2ZnsjOsPvXl+rGGDcHv8XbLOpId2hoXAJYDuU33VhrEDACHeGCnZjR
+         9n91SUl1xCKp3tjXuT8Qf0r7v9lmsrcvsunSEVd4++RIROvmA21hg5jWaBnCAd9vFX
+         cwn6ysHBq1VfNYgqtGTRudh+891wxKG0QhjTznM0=
+Date:   Fri, 25 Sep 2020 21:19:24 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hulkci@huawei.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        yanaijie@huawei.com
-Subject:  [patch 6/9] lib/memregion.c: include memregion.h
-Message-ID: <20200926041921.kOd2RwU5v%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dan.j.wiilliams@intel.com, hch@lst.de,
+        hpa@zytor.com, jack@suse.cz, jmoyer@redhat.com, linux-mm@kvack.org,
+        mawilcox@microsoft.com, mingo@elte.hu, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpatocka@redhat.com,
+        ross.zwisler@linux.intel.com, stable@vger.kernel.org,
+        tglx@linutronix.de, torvalds@linux-foundation.org,
+        toshi.kani@hpe.com, viro@zeniv.linux.org.uk
+Subject:  [patch 7/9] arch/x86/lib/usercopy_64.c: fix 
+ __copy_user_flushcache() cache writeback
+Message-ID: <20200926041924.JrUcL1D_9%akpm@linux-foundation.org>
 In-Reply-To: <20200925211725.0fea54be9e9715486efea21f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,33 +57,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jason Yan <yanaijie@huawei.com>
-Subject: lib/memregion.c: include memregion.h
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: arch/x86/lib/usercopy_64.c: fix  __copy_user_flushcache() cache writeback
 
-This addresses the following sparse warning:
+If we copy less than 8 bytes and if the destination crosses a cache line,
+__copy_user_flushcache would invalidate only the first cache line.  This
+patch makes it invalidate the second cache line as well.
 
-lib/memregion.c:8:5: warning: symbol 'memregion_alloc' was not declared.
-Should it be static?
-lib/memregion.c:14:6: warning: symbol 'memregion_free' was not declared.
-Should it be static?
-
-Link: https://lkml.kernel.org/r/20200921142852.875312-1-yanaijie@huawei.com
-Signed-off-by: Jason Yan <yanaijie@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
+Link: https://lkml.kernel.org/r/alpine.LRH.2.02.2009161451140.21915@file01.intranet.prod.int.rdu2.redhat.com
+Fixes: 0aed55af88345b ("x86, uaccess: introduce copy_from_iter_flushcache for pmem / cache-bypass operations")
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Reviewed-by: Dan Williams <dan.j.wiilliams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/memregion.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/lib/usercopy_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/memregion.c~lib-include-memregionh-in-memregionc
-+++ a/lib/memregion.c
-@@ -2,6 +2,7 @@
- /* identifiers for device / performance-differentiated memory regions */
- #include <linux/idr.h>
- #include <linux/types.h>
-+#include <linux/memregion.h>
- 
- static DEFINE_IDA(memregion_ids);
- 
+--- a/arch/x86/lib/usercopy_64.c~arch-x86-lib-usercopy_64c-fix-__copy_user_flushcache-cache-writeback
++++ a/arch/x86/lib/usercopy_64.c
+@@ -120,7 +120,7 @@ long __copy_user_flushcache(void *dst, c
+ 	 */
+ 	if (size < 8) {
+ 		if (!IS_ALIGNED(dest, 4) || size != 4)
+-			clean_cache_range(dst, 1);
++			clean_cache_range(dst, size);
+ 	} else {
+ 		if (!IS_ALIGNED(dest, 8)) {
+ 			dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
 _
