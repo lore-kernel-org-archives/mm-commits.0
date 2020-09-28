@@ -7,48 +7,44 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9D1FC4727C
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Sep 2020 21:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69CADC4741F
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Sep 2020 21:14:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 958A621531
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Sep 2020 21:14:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1972021531
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Sep 2020 21:14:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601327678;
-	bh=se3X6NKLh8AArP6MU96k5kHgo80p2Jh4i8BLOkO3Sok=;
+	s=default; t=1601327684;
+	bh=Gme2FatNJYo3lkEdVcR3XRN2CO41EpQwscs6tR6YgBA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=gnYyu9IuzA0x1XPCHFzXQn8dAsj+VhWEhNhOSH3EFnTihulHdNJ+6UD8sthPum0sF
-	 xTCUz6M+a4m4Df9ZKS+aDvdO/H57uMB+UPCCTr0EYfRnKOoyUJOoQdxq+q2yOlWIah
-	 saKqDtPtXzrSC8JODhxefzYaTnxzfAGqBpTF25h8=
+	b=RWZM89QtYGR66Al1Vx3EuZFP1ikd2MTBMh5H/ziNpehWngWzdmNiix9afPSwxSF5W
+	 V7pZ1VJl3cW5eYrX2JTXf3ipf4Z5PYlSmwfX5PxXjc9BNE8ZYpKy1OOZ9RUO/djHWa
+	 PD3g4EOBiHbTDqBw0agc4liLkoW/3yzkKNivjfbA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726915AbgI1VOi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Sep 2020 17:14:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58346 "EHLO mail.kernel.org"
+        id S1726920AbgI1VOn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Sep 2020 17:14:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbgI1VOi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Sep 2020 17:14:38 -0400
+        id S1726565AbgI1VOn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Sep 2020 17:14:43 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C6043208FE;
-        Mon, 28 Sep 2020 21:14:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B2DBB2083B;
+        Mon, 28 Sep 2020 21:14:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601327676;
-        bh=se3X6NKLh8AArP6MU96k5kHgo80p2Jh4i8BLOkO3Sok=;
+        s=default; t=1601327682;
+        bh=Gme2FatNJYo3lkEdVcR3XRN2CO41EpQwscs6tR6YgBA=;
         h=Date:From:To:Subject:From;
-        b=rjvoFaoNXwwPdYjfwMyk/SZi0n6h3eJQaOUCpU0hXdOA9f8u9go+Xue2M1LzVZpOy
-         D4TROE6ftuD3I6XVD6NZMo9J6EdoL9j7DLoUPA2VM1WBc4YbHWFU/OE8tlbt1P/3kK
-         qP9EqQktkPfiZ7wLs03V6gWWfVajkaAYV34HZYfg=
-Date:   Mon, 28 Sep 2020 14:14:35 -0700
+        b=DMdFAtSEKIAU2PYLaPLmlbRGYDocpI77sRTAecB4wANZTBqo9/oOJVVQ39byxXGx4
+         zPNOUAR2Jzc1rG9j+6ny0p4VFV4QdJ9lm3PZmwN/bl0qhzpwEvEco++irShj0HgoBI
+         Lg9EWxAqi6jz/0DROlu+ANu4e063ELotSn5OAeJ8=
+Date:   Mon, 28 Sep 2020 14:14:42 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, guro@fb.com, hannes@cmpxchg.org,
-        iamjoonsoo.kim@lge.com, lizefan@huawei.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com
-Subject:  [merged]
- mm-memcontrol-fix-missing-suffix-of-workingset_restore.patch removed from
- -mm tree
-Message-ID: <20200928211435.OT7vifDAj%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, daniel.m.jordan@oracle.com,
+        mm-commits@vger.kernel.org, ziy@nvidia.com
+Subject:  [merged] mm-migrate-correct-thp-migration-stats.patch
+ removed from -mm tree
+Message-ID: <20200928211442.i8SVwx33f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,93 +53,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix missing suffix of workingset_restore
+     Subject: mm/migrate: correct thp migration stats
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-missing-suffix-of-workingset_restore.patch
+     mm-migrate-correct-thp-migration-stats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix missing suffix of workingset_restore
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: correct thp migration stats
 
-We forget to add the suffix to the workingset_restore string, so fix it. 
-And also update the documentation of cgroup-v2.rst.
+PageTransHuge returns true for both thp and hugetlb, so thp stats was
+counting both thp and hugetlb migrations.  Exclude hugetlb migration by
+setting is_thp variable right.
 
-Link: https://lkml.kernel.org/r/20200916100030.71698-1-songmuchun@bytedance.com
-Fixes: 170b04b7ae49 ("mm/workingset: prepare the workingset detection infrastructure for anon LRU")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Clean up thp handling code too when we are there.
+
+Link: https://lkml.kernel.org/r/20200917210413.1462975-1-zi.yan@sent.com
+Fixes: 1a5bae25e3cf ("mm/vmstat: add events for THP migration without split")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   25 +++++++++++++++-------
- mm/memcontrol.c                         |    4 +--
- 2 files changed, 20 insertions(+), 9 deletions(-)
+ mm/migrate.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-fix-missing-suffix-of-workingset_restore
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1324,15 +1324,26 @@ PAGE_SIZE multiple when read back.
- 	  pgmajfault
- 		Number of major page faults incurred
+--- a/mm/migrate.c~mm-migrate-correct-thp-migration-stats
++++ a/mm/migrate.c
+@@ -1446,7 +1446,7 @@ retry:
+ 			 * Capture required information that might get lost
+ 			 * during migration.
+ 			 */
+-			is_thp = PageTransHuge(page);
++			is_thp = PageTransHuge(page) && !PageHuge(page);
+ 			nr_subpages = thp_nr_pages(page);
+ 			cond_resched();
  
--	  workingset_refault
--		Number of refaults of previously evicted pages
-+	  workingset_refault_anon
-+		Number of refaults of previously evicted anonymous pages.
- 
--	  workingset_activate
--		Number of refaulted pages that were immediately activated
-+	  workingset_refault_file
-+		Number of refaults of previously evicted file pages.
- 
--	  workingset_restore
--		Number of restored pages which have been detected as an active
--		workingset before they got reclaimed.
-+	  workingset_activate_anon
-+		Number of refaulted anonymous pages that were immediately
-+		activated.
+@@ -1472,7 +1472,7 @@ retry:
+ 				 * we encounter them after the rest of the list
+ 				 * is processed.
+ 				 */
+-				if (PageTransHuge(page) && !PageHuge(page)) {
++				if (is_thp) {
+ 					lock_page(page);
+ 					rc = split_huge_page_to_list(page, from);
+ 					unlock_page(page);
+@@ -1481,8 +1481,7 @@ retry:
+ 						nr_thp_split++;
+ 						goto retry;
+ 					}
+-				}
+-				if (is_thp) {
 +
-+	  workingset_activate_file
-+		Number of refaulted file pages that were immediately activated.
-+
-+	  workingset_restore_anon
-+		Number of restored anonymous pages which have been detected as
-+		an active workingset before they got reclaimed.
-+
-+	  workingset_restore_file
-+		Number of restored file pages which have been detected as an
-+		active workingset before they got reclaimed.
- 
- 	  workingset_nodereclaim
- 		Number of times a shadow node has been reclaimed
---- a/mm/memcontrol.c~mm-memcontrol-fix-missing-suffix-of-workingset_restore
-+++ a/mm/memcontrol.c
-@@ -1538,9 +1538,9 @@ static char *memory_stat_format(struct m
- 		       memcg_page_state(memcg, WORKINGSET_ACTIVATE_ANON));
- 	seq_buf_printf(&s, "workingset_activate_file %lu\n",
- 		       memcg_page_state(memcg, WORKINGSET_ACTIVATE_FILE));
--	seq_buf_printf(&s, "workingset_restore %lu\n",
-+	seq_buf_printf(&s, "workingset_restore_anon %lu\n",
- 		       memcg_page_state(memcg, WORKINGSET_RESTORE_ANON));
--	seq_buf_printf(&s, "workingset_restore %lu\n",
-+	seq_buf_printf(&s, "workingset_restore_file %lu\n",
- 		       memcg_page_state(memcg, WORKINGSET_RESTORE_FILE));
- 	seq_buf_printf(&s, "workingset_nodereclaim %lu\n",
- 		       memcg_page_state(memcg, WORKINGSET_NODERECLAIM));
+ 					nr_thp_failed++;
+ 					nr_failed += nr_subpages;
+ 					goto out;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-memcontrol-add-the-missing-numa_stat-interface-for-cgroup-v2.patch
 
