@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 186FCC2D0A8
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 01:03:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 931CDC2D0A8
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 01:06:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE1A0208FE
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 01:03:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4787C208FE
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 01:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601341434;
-	bh=VQv+RbHOWabOsan3yiU41hgGD6qUX2sRCiGvhVW8VB4=;
+	s=default; t=1601341583;
+	bh=DavXGwD5yexLSdjMQQCQrBBe43lPqWKkB+CTA5vq6Cw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HfBwQtybOVtrEDAmRKNgbBqVQ7LQVhIOiToRvT/Om3iXGsIZ4Mzk4x7cMeARRxBrA
-	 Ox7UAr2lU60msD2dVVZl83K3i27AfANX6zg9/PW4qEuZ0kvje8qynPPAzY+iktgePT
-	 BvxBUzQvYFolyMOqQVQkNbGSd/dW8tz50NNjsCVY=
+	b=syAR6M373n14QUni5TqssKc4gXx59WteEH8htbncPDcsKFMOmsmhOQaHYAe/JlD6N
+	 L1ON+DVFzaQf3U0n2YWKvu3QQqB9jyEyi3OWC7LGXSYr/4sXAslV/QrSof3eRyBCz8
+	 Ab2truX2qjW7o6SgVRcCAbLfLOYvX2gX4fts1urU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727178AbgI2BDy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Sep 2020 21:03:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33360 "EHLO mail.kernel.org"
+        id S1727174AbgI2BGW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Sep 2020 21:06:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727043AbgI2BDy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 28 Sep 2020 21:03:54 -0400
+        id S1726924AbgI2BGW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 28 Sep 2020 21:06:22 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D0BDD207C4;
-        Tue, 29 Sep 2020 01:03:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 281AF207C4;
+        Tue, 29 Sep 2020 01:06:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601341432;
-        bh=VQv+RbHOWabOsan3yiU41hgGD6qUX2sRCiGvhVW8VB4=;
+        s=default; t=1601341580;
+        bh=DavXGwD5yexLSdjMQQCQrBBe43lPqWKkB+CTA5vq6Cw=;
         h=Date:From:To:Subject:From;
-        b=lPGriK5PfdNtzonqOt/H+aKMwMigyBR7rO4ikEqRPo+x3jZAmsiEz0YtRr+q6yYcG
-         wxbU37QWH9d+FtrrRqGNDt/NajxCrNcDTuEJNGXHmg9NWO+Rn/TBWgL4enx5PolJsx
-         WB6EdqWR2zdibe33SkPQNGgKkKhVhjMxsUUXSCWY=
-Date:   Mon, 28 Sep 2020 18:03:51 -0700
+        b=otoujcImgYBcBnR6QsR9pHS7QCMsU+r8hnAdTdVS/5rqiaR9BapeOZH1V0EWAXcRx
+         hHlI07q3ul08eLvZfci2Cxu8ijoW4NacJS3zJayudbarFpnYjttyOi2i4vq2ZkmCcS
+         Uz5tHRQaV4vVmW7UzBLVK3FMNJnCcSqj88c+bvw8=
+Date:   Mon, 28 Sep 2020 18:06:19 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        peterz@infradead.org, willy@infradead.org
-Subject:  + page_alloc-fix-freeing-non-compound-pages.patch added
- to -mm tree
-Message-ID: <20200929010351.1aZ9Es30h%akpm@linux-foundation.org>
+To:     dhowells@redhat.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  + ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
+ added to -mm tree
+Message-ID: <20200929010619.PWuNzzkJn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix freeing non-compound pages
+     Subject: ramfs: fix nommu mmap with gaps in the page cache
 has been added to the -mm tree.  Its filename is
-     page_alloc-fix-freeing-non-compound-pages.patch
+     ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/page_alloc-fix-freeing-non-compound-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/page_alloc-fix-freeing-non-compound-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,130 +74,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page_alloc.c: fix freeing non-compound pages
+From: Matthew Wilcox (Oracle) <willy@infradead.org>
+Subject: ramfs: fix nommu mmap with gaps in the page cache
 
-Here is a very rare race which leaks memory:
+ramfs needs to check that pages are both physically contiguous and
+contiguous in the file.  If the page cache happens to have, eg, page A for
+index 0 of the file, no page for index 1, and page A+1 for index 2, then
+an mmap of the first two pages of the file will succeed when it should
+fail.
 
-Page P0 is allocated to the page cache.  Page P1 is free.
-
-Thread A                Thread B                Thread C
-find_get_entry():
-xas_load() returns P0
-						Removes P0 from page cache
-						P0 finds its buddy P1
-			alloc_pages(GFP_KERNEL, 1) returns P0
-			P0 has refcount 1
-page_cache_get_speculative(P0)
-P0 has refcount 2
-			__free_pages(P0)
-			P0 has refcount 1
-put_page(P0)
-P1 is not freed
-
-Fix this by freeing all the pages in __free_pages() that won't be freed
-by the call to put_page().  It's usually not a good idea to split a page,
-but this is a very unlikely scenario.
-
-Link: https://lkml.kernel.org/r/20200926213919.26642-1-willy@infradead.org
-Fixes: e286781d5f2e ("mm: speculative page references")
+Link: https://lkml.kernel.org/r/20200914122239.GO6583@casper.infradead.org
+Fixes: 642fb4d1f1dd ("[PATCH] NOMMU: Provide shared-writable mmap support on ramfs")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug     |    9 ++++++++
- lib/Makefile          |    1 
- lib/test_free_pages.c |   42 ++++++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c       |    3 ++
- 4 files changed, 55 insertions(+)
+ fs/ramfs/file-nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~page_alloc-fix-freeing-non-compound-pages
-+++ a/lib/Kconfig.debug
-@@ -2367,6 +2367,15 @@ config TEST_HMM
+--- a/fs/ramfs/file-nommu.c~ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache
++++ a/fs/ramfs/file-nommu.c
+@@ -224,7 +224,7 @@ static unsigned long ramfs_nommu_get_unm
+ 	if (!pages)
+ 		goto out_free;
  
- 	  If unsure, say N.
- 
-+config TEST_FREE_PAGES
-+	tristate "Test freeing pages"
-+	help
-+	  Test that a memory leak does not occur due to a race between
-+	  freeing a block of pages and a speculative page reference.
-+	  Loading this module is safe if your kernel has the bug fixed.
-+	  If the bug is not fixed, it will leak gigabytes of memory and
-+	  probably OOM your system.
-+
- config TEST_FPU
- 	tristate "Test floating point operations in kernel space"
- 	depends on X86 && !KCOV_INSTRUMENT_ALL
---- a/lib/Makefile~page_alloc-fix-freeing-non-compound-pages
-+++ a/lib/Makefile
-@@ -101,6 +101,7 @@ obj-$(CONFIG_TEST_BLACKHOLE_DEV) += test
- obj-$(CONFIG_TEST_MEMINIT) += test_meminit.o
- obj-$(CONFIG_TEST_LOCKUP) += test_lockup.o
- obj-$(CONFIG_TEST_HMM) += test_hmm.o
-+obj-$(CONFIG_TEST_FREE_PAGES) += test_free_pages.o
- 
- #
- # CFLAGS for compiling floating point code inside the kernel. x86/Makefile turns
---- /dev/null
-+++ a/lib/test_free_pages.c
-@@ -0,0 +1,42 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * test_free_pages.c: Check that free_pages() doesn't leak memory
-+ * Copyright (c) 2020 Oracle
-+ * Author: Matthew Wilcox <willy@infradead.org>
-+ */
-+
-+#include <linux/gfp.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+
-+static void test_free_pages(gfp_t gfp)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < 1000 * 1000; i++) {
-+		unsigned long addr = __get_free_pages(gfp, 3);
-+		struct page *page = virt_to_page(addr);
-+
-+		/* Simulate page cache getting a speculative reference */
-+		get_page(page);
-+		free_pages(addr, 3);
-+		put_page(page);
-+	}
-+}
-+
-+static int m_in(void)
-+{
-+	test_free_pages(GFP_KERNEL);
-+	test_free_pages(GFP_KERNEL | __GFP_COMP);
-+
-+	return 0;
-+}
-+
-+static void m_ex(void)
-+{
-+}
-+
-+module_init(m_in);
-+module_exit(m_ex);
-+MODULE_AUTHOR("Matthew Wilcox <willy@infradead.org>");
-+MODULE_LICENSE("GPL");
---- a/mm/page_alloc.c~page_alloc-fix-freeing-non-compound-pages
-+++ a/mm/page_alloc.c
-@@ -4938,6 +4938,9 @@ void __free_pages(struct page *page, uns
- {
- 	if (put_page_testzero(page))
- 		free_the_page(page, order);
-+	else if (!PageHead(page))
-+		while (order-- > 0)
-+			free_the_page(page + (1 << order), order);
- }
- EXPORT_SYMBOL(__free_pages);
+-	nr = find_get_pages(inode->i_mapping, &pgoff, lpages, pages);
++	nr = find_get_pages_contig(inode->i_mapping, pgoff, lpages, pages);
+ 	if (nr != lpages)
+ 		goto out_free_pages; /* leave if some pages were missing */
  
 _
 
@@ -239,5 +144,6 @@ mm-readahead-add-define_readahead.patch
 mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
 mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
 mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
+ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
 harden-autofs-ioctl-table.patch
 
