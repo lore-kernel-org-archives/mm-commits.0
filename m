@@ -2,53 +2,57 @@ Return-Path: <SRS0=qjDH=DG=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6471C4727C
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 20:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D958C4727C
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 20:06:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E62320848
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 20:02:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCB85208B8
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 20:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601409758;
-	bh=3aTi1rFE1mR7AD+GsJUzn3hFhCfZls2Wf6yMSOlnqXQ=;
+	s=default; t=1601409983;
+	bh=MgkDxdhBMowd5jXoEvot8GmRj5AvJnoeDIsDFyxvu8I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=D+vSgfZwJVdRgRakaD1w1yiETfYaMtV2afCLFA6oGBChMfIIup7fhyzUz2bUYcdB8
-	 c7/hTCkLsoGZyBmRCzeOPubVCqy/rzhfO33lQYJlbrIOrQ+Tui0ilLaiAxu0Vy0uOC
-	 SwfLDxXtvhOHHVHk3P4cTTimqMFoozuf1TastlqA=
+	b=l6ymU4Gi9UyYbNe9hDZ9hXb3rxxB+3Yyn9uOFM9GGQ7vKYel6VnYn68indoaRshrK
+	 A5Cmk8KE/PcYMvdxEh6aGwGRBaKNa6BR8W+8J1R8t+njy1Wy4vhFcXzg/vSD9sLc95
+	 LCAonnNwmzI98waht8nbEzbtQi9tnaV1WA3R79no=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728650AbgI2UCi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Sep 2020 16:02:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52616 "EHLO mail.kernel.org"
+        id S1728957AbgI2UGX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Sep 2020 16:06:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728499AbgI2UCh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Sep 2020 16:02:37 -0400
+        id S1728952AbgI2UGX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Sep 2020 16:06:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 21EAF20679;
-        Tue, 29 Sep 2020 20:02:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DC662076A;
+        Tue, 29 Sep 2020 20:06:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601409755;
-        bh=3aTi1rFE1mR7AD+GsJUzn3hFhCfZls2Wf6yMSOlnqXQ=;
+        s=default; t=1601409982;
+        bh=MgkDxdhBMowd5jXoEvot8GmRj5AvJnoeDIsDFyxvu8I=;
         h=Date:From:To:Subject:From;
-        b=gfc8Yb9hjZnUTbfT7KSFoj/LPuZ+7FDIxjvAmFL++sxDcMe2Z9cehZVJ1oMqH9NWR
-         EvnNpJsS9OYzNmhhRkEYonHOYzGJN0J06wqxWdNeBq0Sya+U1uJCWogVhoMz3fPD71
-         o/WmQb9ccZ/qukwV8aN9AB9H5Row7y1asij/4JZ4=
-Date:   Tue, 29 Sep 2020 13:02:34 -0700
+        b=iz76TOilL5L8zsnPYRvdkiLISAfHayLcidpZjfLlVb6aORTXwwQHBCCuSMvUuKi0m
+         /hUuiDp6HNyClfVMvz1Z2p9ggvuRpieLQDPH116vjkGAteBTj67nwHLy7gfrvegwSx
+         urNEB6kxeaf5hQcwNIuYkBELstop1SKYeVFWaMO0=
+Date:   Tue, 29 Sep 2020 13:06:21 -0700
 From:   akpm@linux-foundation.org
-To:     gregkh@linuxfoundation.org, jeyu@kernel.org, keescook@chromium.org,
-        lkp@intel.com, maennich@google.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ndesaulniers@google.com, will@kernel.org,
-        yamada.masahiro@socionext.com
+To:     aarcange@redhat.com, apais@microsoft.com,
+        kirill.shutemov@linux.intel.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, oleg@redhat.com,
+        pasha.tatashin@soleen.com, songliubraving@fb.com,
+        stable@vger.kernel.org, vijayb@linux.microsoft.com
 Subject:  +
- exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang.patch added
- to -mm tree
-Message-ID: <20200929200234.h_AUrSmiN%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-khugepaged-recalculate-min=5Ffree=5Fkbytes-after-memor?=
+ =?US-ASCII?Q?y-hotplug-as-expected-by-khugepaged-v5.patch?= added to -mm
+ tree
+Message-ID: <20200929200621.F1WOHZJsG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,14 +60,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: export.h: fix section name for CONFIG_TRIM_UNUSED_KSYMS for Clang
+     Subject: mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
 has been added to the -mm tree.  Its filename is
-     exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang.patch
+     mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,62 +81,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: export.h: fix section name for CONFIG_TRIM_UNUSED_KSYMS for Clang
+From: Vijay Balakrishna <vijayb@linux.microsoft.com>
+Subject: mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
 
-When enabling CONFIG_TRIM_UNUSED_KSYMS, the linker will warn about the
-orphan sections:
+made changes to move khugepaged_min_free_kbytes_update into
+init_per_zone_wmark_min and rested changes
 
-(".discard.ksym") is being placed in '".discard.ksym"'
-
-repeatedly when linking vmlinux.  This is because the stringification
-operator, `#`, in the preprocessor escapes strings.  GCC and Clang differ
-in how they treat section names that contain \".
-
-The portable solution is to not use a string literal with the preprocessor
-stringification operator.
-
-Link: https://bugs.llvm.org/show_bug.cgi?id=42950
-Link: https://github.com/ClangBuiltLinux/linux/issues/1166
-Link: https://lkml.kernel.org/r/20200929190701.398762-1-ndesaulniers@google.com
-Fixes: commit bbda5ec671d3 ("kbuild: simplify dependency generation for CONFIG_TRIM_UNUSED_KSYMS")
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Maennich <maennich@google.com>
-Cc: Jessica Yu <jeyu@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/1601398153-5517-1-git-send-email-vijayb@linux.microsoft.com
+Fixes: f000565adb77 ("thp: set recommended min free kbytes")
+Signed-off-by: Vijay Balakrishna <vijayb@linux.microsoft.com>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Allen Pais <apais@microsoft.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/export.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    3 ---
+ mm/page_alloc.c     |    3 +++
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/export.h~exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang
-+++ a/include/linux/export.h
-@@ -130,7 +130,7 @@ struct kernel_symbol {
-  * discarded in the final link stage.
-  */
- #define __ksym_marker(sym)	\
--	static int __ksym_marker_##sym[0] __section(".discard.ksym") __used
-+	static int __ksym_marker_##sym[0] __section(.discard.ksym) __used
+--- a/mm/memory_hotplug.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
++++ a/mm/memory_hotplug.c
+@@ -36,7 +36,6 @@
+ #include <linux/memblock.h>
+ #include <linux/compaction.h>
+ #include <linux/rmap.h>
+-#include <linux/khugepaged.h>
  
- #define __EXPORT_SYMBOL(sym, sec, ns)					\
- 	__ksym_marker(sym);						\
+ #include <asm/tlbflush.h>
+ 
+@@ -858,7 +857,6 @@ int __ref online_pages(unsigned long pfn
+ 	zone_pcp_update(zone);
+ 
+ 	init_per_zone_wmark_min();
+-	khugepaged_min_free_kbytes_update();
+ 
+ 	kswapd_run(nid);
+ 	kcompactd_run(nid);
+@@ -1617,7 +1615,6 @@ static int __ref __offline_pages(unsigne
+ 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ 
+ 	init_per_zone_wmark_min();
+-	khugepaged_min_free_kbytes_update();
+ 
+ 	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
+--- a/mm/page_alloc.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
++++ a/mm/page_alloc.c
+@@ -69,6 +69,7 @@
+ #include <linux/nmi.h>
+ #include <linux/psi.h>
+ #include <linux/padata.h>
++#include <linux/khugepaged.h>
+ 
+ #include <asm/sections.h>
+ #include <asm/tlbflush.h>
+@@ -7891,6 +7892,8 @@ int __meminit init_per_zone_wmark_min(vo
+ 	setup_min_slab_ratio();
+ #endif
+ 
++	khugepaged_min_free_kbytes_update();
++
+ 	return 0;
+ }
+ postcore_initcall(init_per_zone_wmark_min)
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from vijayb@linux.microsoft.com are
 
-compiler-clang-add-build-check-for-clang-1001.patch
-revert-kbuild-disable-clangs-default-use-of-fmerge-all-constants.patch
-revert-arm64-bti-require-clang-=-1001-for-in-kernel-bti-support.patch
-revert-arm64-vdso-fix-compilation-with-clang-older-than-8.patch
-partially-revert-arm-8905-1-emit-__gnu_mcount_nc-when-using-clang-1000-or-newer.patch
-compiler-gcc-improve-version-error.patch
-compilerh-avoid-escaped-section-names.patch
-exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang.patch
+mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5.patch
 
