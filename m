@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57DD5C4727C
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 20:57:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FE70C4727D
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 22:00:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAF4B208B8
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 20:57:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF646207F7
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Sep 2020 22:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601413025;
-	bh=M7FOw35xFh7QLXPFRymx+YQMYALSSVeYmFeInXCRk5Q=;
+	s=default; t=1601416834;
+	bh=S1HTK9v+BFSY3Ai3vA9ghq1Gk2FPP0csvTi14GDXEEk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=seaRW1AmH9xatJ5638zkT/T1xEeTKBsE9enb3+k/Zb5NRcWRFNJ6F2+fulROnsMm7
-	 ZhAR/X0oUQNv11VNMyW3JxTwrGKSVzvxfM2208CJIRG06rold3xGnuEXJ65SCldQ63
-	 XsxD2piO2KKG+0cUUodKixUv3GfYdiCuQZikbjps=
+	b=VAws/QAkOla3dQ+la5XqOT2rK4vMCMWdbRQAe6Ow1/BoVSEExcq9PpMbaRMc8fZ+G
+	 oIS/iWVaoBh14p8xLKC2mLuJtj5h/vkx/ztTDC/NpbhMKVVaBo8qGR1OouTzA7Kibq
+	 57iVDIzE4qoI1/a9fwWbNM2YWkbuFhRCE8E0h1o8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728362AbgI2U5E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Sep 2020 16:57:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46080 "EHLO mail.kernel.org"
+        id S1728041AbgI2WAd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Sep 2020 18:00:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726643AbgI2U5E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Sep 2020 16:57:04 -0400
+        id S1727922AbgI2WAd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Sep 2020 18:00:33 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E2D0A20757;
-        Tue, 29 Sep 2020 20:57:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4200320789;
+        Tue, 29 Sep 2020 22:00:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601413022;
-        bh=M7FOw35xFh7QLXPFRymx+YQMYALSSVeYmFeInXCRk5Q=;
+        s=default; t=1601416832;
+        bh=S1HTK9v+BFSY3Ai3vA9ghq1Gk2FPP0csvTi14GDXEEk=;
         h=Date:From:To:Subject:From;
-        b=j9LS1hiUCTdlp/4Ik6qv4sRwNRycd0yRfaUg4KbU4SWMD+pEqkBmDb9VRrxD7KtHE
-         nDHzdyw9j3wmU0t8TSxFWomc3rUcoXQaM+/oDE5FA3SI88zsAAg8ep6EmK1AjRfnE8
-         nHkX9hlp+adnwcrywhrQnTTAVBlEihyq8K5BaV74=
-Date:   Tue, 29 Sep 2020 13:57:01 -0700
+        b=tQXXB8Bs8wTxxyW+3AZOi3+qcJs8P36rj4xGrX/kKYBRec753/f78SOV71892l/+N
+         5K09mAi6K7/qzhWXHm/PxFVXwyMhme01MTWyINLBvX3WFOTOO05kV4AbIMcZgtuRgg
+         bFERnM8SD3gfAnORzD0i1trgnwMIMQ2PZCIwcLQI=
+Date:   Tue, 29 Sep 2020 15:00:31 -0700
 From:   akpm@linux-foundation.org
-To:     chenxiang66@hisilicon.com, david@redhat.com, ddstreet@ieee.org,
-        mm-commits@vger.kernel.org, sjenning@redhat.com
-Subject:  + mm-zbud-remove-redundant-initialization.patch added to
- -mm tree
-Message-ID: <20200929205701.T0oFCInV6%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bo.liu@linux.alibaba.com,
+        dan.j.williams@intel.com, dgilbert@redhat.com,
+        mm-commits@vger.kernel.org, mszeredi@redhat.com,
+        sebastien.boeuf@intel.com, stefanha@redhat.com, vgoyal@redhat.com
+Subject:  +
+ fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
+ added to -mm tree
+Message-ID: <20200929220031.xAGgIIdZ4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zbud: remove redundant initialization
+     Subject: fs/fuse/virtio_fs.c: fix for "mm/memremap_pages: convert to 'struct range'"
 has been added to the -mm tree.  Its filename is
-     mm-zbud-remove-redundant-initialization.patch
+     fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-remove-redundant-initialization.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-remove-redundant-initialization.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,36 +77,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiang Chen <chenxiang66@hisilicon.com>
-Subject: mm/zbud: remove redundant initialization
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/fuse/virtio_fs.c: fix for "mm/memremap_pages: convert to 'struct range'"
 
-zhdr is already initialized in the front of the function, so remove
-redundant initialization here.
+Fix interaction with 22f3787e9d95e ("virtiofs: set up virtio_fs
+dax_device").
 
-Link: https://lkml.kernel.org/r/1600419885-191907-1-git-send-email-chenxiang66@hisilicon.com
-Signed-off-by: Xiang Chen <chenxiang66@hisilicon.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Stefan Hajnoczi <stefanha@redhat.com>
+Cc: Dr. David Alan Gilbert <dgilbert@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Sebastien Boeuf <sebastien.boeuf@intel.com>
+Cc: Liu Bo <bo.liu@linux.alibaba.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zbud.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/fuse/virtio_fs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/zbud.c~mm-zbud-remove-redundant-initialization
-+++ a/mm/zbud.c
-@@ -367,7 +367,6 @@ int zbud_alloc(struct zbud_pool *pool, s
- 	spin_lock(&pool->lock);
- 
- 	/* First, try to find an unbuddied zbud page. */
--	zhdr = NULL;
- 	for_each_unbuddied_list(i, chunks) {
- 		if (!list_empty(&pool->unbuddied[i])) {
- 			zhdr = list_first_entry(&pool->unbuddied[i],
+--- a/fs/fuse/virtio_fs.c~fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range
++++ a/fs/fuse/virtio_fs.c
+@@ -835,8 +835,7 @@ static int virtio_fs_setup_dax(struct vi
+ 	 * initialize a struct resource from scratch (only the start
+ 	 * and end fields will be used).
+ 	 */
+-	pgmap->res = (struct resource){
+-		.name = "virtio-fs dax window",
++	pgmap->range = (struct range){
+ 		.start = (phys_addr_t) cache_reg.addr,
+ 		.end = (phys_addr_t) cache_reg.addr + cache_reg.len - 1,
+ 	};
 _
 
-Patches currently in -mm which might be from chenxiang66@hisilicon.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-zbud-remove-redundant-initialization.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
 
