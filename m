@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 996F5C4363D
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:40:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63240C4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:40:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B44520888
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:40:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 147AE2076A
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:40:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601502020;
-	bh=O8sSAwJuBXq5Tpj8OtRQ4Ismf092jXT6ZSK0ohag+44=;
+	s=default; t=1601502043;
+	bh=QsG6Mjw2lou/7K9meH588y0mk+9qCGakKPqxyg9yFls=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=EnF05R37h4M1qWxUnyM70tgDHHnTDaxtjnv/kXWj+1GUWrLoALTY8/s2qtRAib0vN
-	 alZOrXo8anS8qDh3PGKKclaYLnjyW0O8d4U4CaDebpLJqI8S2r2nmL2varWhO0AMwV
-	 c9FkJYqZZ7xb7oakKFJp2m1SGMpuwnvfNhbv9GWs=
+	b=dZKv1Ss9inN6OtEDsxQkC7r/h97ErM0SCWP7hsW1qYZUOP5w5GHF07w+g3kMkNdo0
+	 qNBI5pZByG8wCZdnXlOwlBauR4ag9JHnzDxcO461JJRG8xEJRRRjafw/glHdbmECnb
+	 ZyeSL2IcsABSKsiWPm2s+qf8Sr9DfTqNob8S+fzQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730528AbgI3VkU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Sep 2020 17:40:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35378 "EHLO mail.kernel.org"
+        id S1729912AbgI3Vkm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Sep 2020 17:40:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729912AbgI3VkT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Sep 2020 17:40:19 -0400
+        id S1730633AbgI3Vkm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Sep 2020 17:40:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 05FF12076B;
-        Wed, 30 Sep 2020 21:40:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AE2F220739;
+        Wed, 30 Sep 2020 21:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601502017;
-        bh=O8sSAwJuBXq5Tpj8OtRQ4Ismf092jXT6ZSK0ohag+44=;
+        s=default; t=1601502040;
+        bh=QsG6Mjw2lou/7K9meH588y0mk+9qCGakKPqxyg9yFls=;
         h=Date:From:To:Subject:From;
-        b=yl7jQJV3lSVVYRyMbZA/zUNHbxufhJbyqIT4qAVhX/gaMUe5lEIngWn9MwnKTCfPU
-         GJZX+VeL2DPTnXx3RJbSw6z7cigN34kAVio4FgLWBPeq9NVqW3ogsgGRP2PZhZUTnb
-         M187FUyKtBtXixiT6LFglKhOW0a6aHpYEwx1/aDc=
-Date:   Wed, 30 Sep 2020 14:40:16 -0700
+        b=QJfS9HkEObNHn4VI13Nz1VAhBgdG5si6yqTqe8kDmwQfV2caVBiu1pClFRC4I8Zge
+         iJxue2HIxhXOoSq1lZh2f0eQ6Oa+0vibHJMQNUbSR7tU3uRwCXY8TZU99xzkZWEt76
+         eYCloBX7DQTsFVIG77LImf8Fw7mhgtejGYe8Hc9E=
+Date:   Wed, 30 Sep 2020 14:40:40 -0700
 From:   akpm@linux-foundation.org
-To:     boris.ostrovsky@oracle.com, chris@chris-wilson.co.uk, hch@lst.de,
-        jani.nikula@linux.intel.com, jgross@suse.com,
-        joonas.lahtinen@linux.intel.com, matthew.auld@intel.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org,
-        peterz@infradead.org, rodrigo.vivi@intel.com,
-        sstabellini@kernel.org, tvrtko.ursulin@intel.com,
-        willy@infradead.org
-Subject:  + mm-remove-alloc_vm_area.patch added to -mm tree
-Message-ID: <20200930214016.B-NqA4hnW%akpm@linux-foundation.org>
+To:     colin.king@canonical.com, dhowells@redhat.com,
+        herbert@gondor.apana.org.au, longman@redhat.com,
+        mm-commits@vger.kernel.org, tianjia.zhang@linux.alibaba.com
+Subject:  [to-be-updated]
+ lib-mpi-fix-off-by-one-check-on-index-no.patch removed from -mm tree
+Message-ID: <20200930214040.GgQLthv5k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,160 +54,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove alloc_vm_area
-has been added to the -mm tree.  Its filename is
-     mm-remove-alloc_vm_area.patch
+     Subject: lib/mpi: fix off-by-one check on index "no"
+has been removed from the -mm tree.  Its filename was
+     lib-mpi-fix-off-by-one-check-on-index-no.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-alloc_vm_area.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-alloc_vm_area.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove alloc_vm_area
+From: Colin Ian King <colin.king@canonical.com>
+Subject: lib/mpi: fix off-by-one check on index "no"
 
-All users are gone now.
+There is an off-by-one range check on the upper limit of index "no".  Fix
+this by changing the > comparison to >=.
 
-Link: https://lkml.kernel.org/r/20200930175133.1252382-11-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Matthew Auld <matthew.auld@intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Addresses-Coverity: ("Out-of-bounds read")
+Link: https://lkml.kernel.org/r/20200929131828.155691-1-colin.king@canonical.com
+Fixes: a8ea8bdd9df9 ("lib/mpi: Extend the MPI library")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    5 ---
- mm/nommu.c              |    7 -----
- mm/vmalloc.c            |   48 --------------------------------------
- 3 files changed, 1 insertion(+), 59 deletions(-)
+ lib/mpi/mpiutil.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/vmalloc.h~mm-remove-alloc_vm_area
-+++ a/include/linux/vmalloc.h
-@@ -169,6 +169,7 @@ extern struct vm_struct *__get_vm_area_c
- 					unsigned long flags,
- 					unsigned long start, unsigned long end,
- 					const void *caller);
-+void free_vm_area(struct vm_struct *area);
- extern struct vm_struct *remove_vm_area(const void *addr);
- extern struct vm_struct *find_vm_area(const void *addr);
- 
-@@ -204,10 +205,6 @@ static inline void set_vm_flush_reset_pe
- }
- #endif
- 
--/* Allocate/destroy a 'vmalloc' VM area. */
--extern struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes);
--extern void free_vm_area(struct vm_struct *area);
--
- /* for /dev/kmem */
- extern long vread(char *buf, char *addr, unsigned long count);
- extern long vwrite(char *buf, char *addr, unsigned long count);
---- a/mm/nommu.c~mm-remove-alloc_vm_area
-+++ a/mm/nommu.c
-@@ -354,13 +354,6 @@ void vm_unmap_aliases(void)
- }
- EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- 
--struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes)
--{
--	BUG();
--	return NULL;
--}
--EXPORT_SYMBOL_GPL(alloc_vm_area);
--
- void free_vm_area(struct vm_struct *area)
+--- a/lib/mpi/mpiutil.c~lib-mpi-fix-off-by-one-check-on-index-no
++++ a/lib/mpi/mpiutil.c
+@@ -69,7 +69,7 @@ postcore_initcall(mpi_init);
+  */
+ MPI mpi_const(enum gcry_mpi_constants no)
  {
- 	BUG();
---- a/mm/vmalloc.c~mm-remove-alloc_vm_area
-+++ a/mm/vmalloc.c
-@@ -3083,54 +3083,6 @@ int remap_vmalloc_range(struct vm_area_s
- }
- EXPORT_SYMBOL(remap_vmalloc_range);
- 
--static int f(pte_t *pte, unsigned long addr, void *data)
--{
--	pte_t ***p = data;
--
--	if (p) {
--		*(*p) = pte;
--		(*p)++;
--	}
--	return 0;
--}
--
--/**
-- * alloc_vm_area - allocate a range of kernel address space
-- * @size:	   size of the area
-- * @ptes:	   returns the PTEs for the address space
-- *
-- * Returns:	NULL on failure, vm_struct on success
-- *
-- * This function reserves a range of kernel address space, and
-- * allocates pagetables to map that range.  No actual mappings
-- * are created.
-- *
-- * If @ptes is non-NULL, pointers to the PTEs (in init_mm)
-- * allocated for the VM area are returned.
-- */
--struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes)
--{
--	struct vm_struct *area;
--
--	area = get_vm_area_caller(size, VM_IOREMAP,
--				__builtin_return_address(0));
--	if (area == NULL)
--		return NULL;
--
--	/*
--	 * This ensures that page tables are constructed for this region
--	 * of kernel virtual address space and mapped into init_mm.
--	 */
--	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
--				size, f, ptes ? &ptes : NULL)) {
--		free_vm_area(area);
--		return NULL;
--	}
--
--	return area;
--}
--EXPORT_SYMBOL_GPL(alloc_vm_area);
--
- void free_vm_area(struct vm_struct *area)
- {
- 	struct vm_struct *ret;
+-	if ((int)no < 0 || no > MPI_NUMBER_OF_CONSTANTS)
++	if ((int)no < 0 || no >= MPI_NUMBER_OF_CONSTANTS)
+ 		pr_err("MPI: invalid mpi_const selector %d\n", no);
+ 	if (!constants[no])
+ 		pr_err("MPI: MPI subsystem not initialized\n");
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-mm-add-a-vm_map_put_pages-flag-for-vmap.patch
-mm-add-a-vmap_pfn-function.patch
-mm-allow-a-null-fn-callback-in-apply_to_page_range.patch
-zsmalloc-switch-from-alloc_vm_area-to-get_vm_area.patch
-drm-i915-use-vmap-in-shmem_pin_map.patch
-drm-i915-use-vmap-in-i915_gem_object_map.patch
-xen-xenbus-use-apply_to_page_range-directly-in-xenbus_map_ring_pv.patch
-x86-xen-open-code-alloc_vm_area-in-arch_gnttab_valloc.patch
-mm-remove-alloc_vm_area.patch
 
