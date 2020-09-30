@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DA91C4363D
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:52:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC454C4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:52:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C252C2074A
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:52:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 814FD2074A
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:52:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601506324;
-	bh=OnNhgFIbH7Fx0jafZmxoQMMrskOfvQGs3fda9/nf/VI=;
+	s=default; t=1601506328;
+	bh=D4fEWq1hGCnBVvs20PXpGl7L6jfb9TrKGoc8itO7JZM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wjlrHgsh0xcTdEK9N7z/vxTosaou1pd2oKLFaxf0D9Bknts3yzyESBxQa288ANxCX
-	 MJOsThU9A32qQk3ea0tkUNO7fAxUkh3vRSmigspo3yyTuNVWi+IZGuBMUrHR8/a0L8
-	 SWQTDkpPwVArtPxYZlclgU2HJNN/LUQWKwD14450=
+	b=WzK1Dxf0u6UZMU4k7OyazpBWSKZJmSiHQ8d41sLkNUTOg3DR3V1V506qEYWv7DUPT
+	 GDRDDA9qRU0Q8fXZXE4j1+B4qeN5Bdi6/ISQPTYzgwpVDKbcMgle3nO4EhOWdPtQNW
+	 BW79MMqGWy9RHtWIyxVGcCbAWvXqxU2HvLhglqe4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731915AbgI3WwE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Sep 2020 18:52:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59882 "EHLO mail.kernel.org"
+        id S1731912AbgI3WwI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Sep 2020 18:52:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731808AbgI3WwB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Sep 2020 18:52:01 -0400
+        id S1731913AbgI3WwI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Sep 2020 18:52:08 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1ED362074A;
-        Wed, 30 Sep 2020 22:52:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DC20E20719;
+        Wed, 30 Sep 2020 22:52:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601506320;
-        bh=OnNhgFIbH7Fx0jafZmxoQMMrskOfvQGs3fda9/nf/VI=;
+        s=default; t=1601506326;
+        bh=D4fEWq1hGCnBVvs20PXpGl7L6jfb9TrKGoc8itO7JZM=;
         h=Date:From:To:Subject:From;
-        b=FSNcJItNrB1U2ZGQIUaTJ6FmSI6xu+XnUjJm9VkpiPRMHrLGuCgkMcdZynLnawDHB
-         ntbiPgAFmxe5BhXmKCnky2q3dVU0yN2EZtOIHc7VvzsePagysu0pxlgkYfAdOgM1Sv
-         cYpB3FZISnsW1QUiYxz5eM9WOOtCGjSoqJjahYts=
-Date:   Wed, 30 Sep 2020 15:51:59 -0700
+        b=nhBXE5Jznz01rI84gWGUh6YojqnkmhxYBltBxXJETJci6TNfSY6GMVzL6fE0JAd27
+         eLfZqQxHdcIxtescQPKA0qeht2Pyi7HerXLxI/HXoYq2lIBwbCSU4zEgJa7QFvuNMk
+         5wwMym9aIj1HIlBmuTWCYKRxgsvQkn8y0CTeNFKQ=
+Date:   Wed, 30 Sep 2020 15:52:05 -0700
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
         mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
-Subject:  + selftests-vm-use-a-common-gup_testh.patch added to -mm
- tree
-Message-ID: <20200930225159.B_Dr7Hmko%akpm@linux-foundation.org>
+Subject:  + selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
+ added to -mm tree
+Message-ID: <20200930225205.O-_4qJd2d%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -56,16 +56,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: use a common gup_test.h
+     Subject: selftests/vm: minor cleanup: Makefile and gup_test.c
 has been added to the -mm tree.  Its filename is
-     selftests-vm-use-a-common-gup_testh.patch
+     selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-use-a-common-gup=
-_testh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-minor-cleanup-ma=
+kefile-and-gup_testc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-use-a-common-gup=
-_testh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-minor-cleanup-ma=
+kefile-and-gup_testc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,29 +81,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: use a common gup_test.h
+Subject: selftests/vm: minor cleanup: Makefile and gup_test.c
 
-Avoid the need to copy-paste the gup_test ioctl commands and the struct
-gup_test definition, between the kernel and the user space application, by
-providing a new header file for these.  This allows easier and safer
-adding of new ioctl calls, as well as reducing the overall line count.
+A few cleanups that don't deserve separate patches, but that also should
+not clutter up other functional changes:
 
-Details: The header file has to be able to compile independently, because
-of the arguably unfortunate way that the Makefile is written: the Makefile
-tries to build all of its prerequisites, when really it should be only
-building the .c files, and leaving the other prerequisites (LOCAL_HDRS) as
-pure dependencies.
+1. Remove an unnecessary #include <prctl.h>
 
-That Makefile limitation is probably not worth fixing, but it explains why
-one of the includes had to be moved into the new header file.
+2. Restore the sorted order of TEST_GEN_FILES.
 
-Also: simplify the ioctl struct (struct gup_test), by deleting the unused
-__expansion[10] field.  This sort of thing is what you might see in a
-stable ABI, but this low-level, kernel-developer-oriented selftests/vm
-system is very much not subject to ABI stability.  So "expansion" and
-"reserved" fields are unnecessary here.
+3. Add -lpthread to the common LDLIBS, as it is harmless and several
+   tests use it. This gets rid of one special rule already.
 
-Link: https://lkml.kernel.org/r/20200929212747.251804-3-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20200929212747.251804-5-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -112,116 +102,69 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c                         |   17 +----------------
- mm/gup_test.h                         |   22 ++++++++++++++++++++++
- tools/testing/selftests/vm/Makefile   |    2 ++
- tools/testing/selftests/vm/gup_test.c |   22 +---------------------
- 4 files changed, 26 insertions(+), 37 deletions(-)
+ tools/testing/selftests/vm/Makefile   |   10 ++++------
+ tools/testing/selftests/vm/gup_test.c |    1 -
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-use-a-common-gup_testh
-+++ a/mm/gup_test.c
-@@ -4,22 +4,7 @@
- #include <linux/uaccess.h>
- #include <linux/ktime.h>
- #include <linux/debugfs.h>
--
--#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
--
--struct gup_test {
--	__u64 get_delta_usec;
--	__u64 put_delta_usec;
--	__u64 addr;
--	__u64 size;
--	__u32 nr_pages_per_call;
--	__u32 flags;
--	__u64 expansion[10];	/* For future use */
--};
-+#include "../../../../mm/gup_test.h"
-=20
- static void put_back_pages(unsigned int cmd, struct page **pages,
- 			   unsigned long nr_pages)
---- /dev/null
-+++ a/mm/gup_test.h
-@@ -0,0 +1,22 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef __GUP_TEST_H
-+#define __GUP_TEST_H
-+
-+#include <linux/types.h>
-+
-+#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
-+#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
-+#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
-+
-+struct gup_test {
-+	__u64 get_delta_usec;
-+	__u64 put_delta_usec;
-+	__u64 addr;
-+	__u64 size;
-+	__u32 nr_pages_per_call;
-+	__u32 flags;
-+};
-+
-+#endif	/* __GUP_TEST_H */
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-use-a-common-gup_t=
-esth
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-minor-cleanup-make=
+file-and-gup_testc
 +++ a/tools/testing/selftests/vm/gup_test.c
-@@ -2,39 +2,19 @@
- #include <stdio.h>
- #include <stdlib.h>
+@@ -4,7 +4,6 @@
  #include <unistd.h>
--
  #include <sys/ioctl.h>
  #include <sys/mman.h>
- #include <sys/prctl.h>
+-#include <sys/prctl.h>
  #include <sys/stat.h>
  #include <sys/types.h>
--
--#include <linux/types.h>
-+#include "../../../../mm/gup_test.h"
-=20
- #define MB (1UL << 20)
- #define PAGE_SIZE sysconf(_SC_PAGESIZE)
-=20
--#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
--
--/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
--
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
-=20
--struct gup_test {
--	__u64 get_delta_usec;
--	__u64 put_delta_usec;
--	__u64 addr;
--	__u64 size;
--	__u32 nr_pages_per_call;
--	__u32 flags;
--	__u64 expansion[10];	/* For future use */
--};
--
- int main(int argc, char **argv)
- {
- 	struct gup_test gup;
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-use-a-common-gup_tes=
-th
+ #include "../../../../mm/gup_test.h"
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-minor-cleanup-makefi=
+le-and-gup_testc
 +++ a/tools/testing/selftests/vm/Makefile
-@@ -130,3 +130,5 @@ endif
- $(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
+@@ -21,14 +21,15 @@ MACHINE ?=3D $(shell echo $(uname_M) | sed
+ MAKEFLAGS +=3D --no-builtin-rules
 =20
+ CFLAGS =3D -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
+-LDLIBS =3D -lrt
++LDLIBS =3D -lrt -lpthread
+ TEST_GEN_FILES =3D compaction_test
+ TEST_GEN_FILES +=3D gup_test
+ TEST_GEN_FILES +=3D hmm-tests
+ TEST_GEN_FILES +=3D hugepage-mmap
+ TEST_GEN_FILES +=3D hugepage-shm
+-TEST_GEN_FILES +=3D map_hugetlb
++TEST_GEN_FILES +=3D khugepaged
+ TEST_GEN_FILES +=3D map_fixed_noreplace
++TEST_GEN_FILES +=3D map_hugetlb
+ TEST_GEN_FILES +=3D map_populate
+ TEST_GEN_FILES +=3D mlock-random-test
+ TEST_GEN_FILES +=3D mlock2-tests
+@@ -37,7 +38,6 @@ TEST_GEN_FILES +=3D on-fault-limit
+ TEST_GEN_FILES +=3D thuge-gen
+ TEST_GEN_FILES +=3D transhuge-stress
+ TEST_GEN_FILES +=3D userfaultfd
+-TEST_GEN_FILES +=3D khugepaged
+=20
+ ifeq ($(ARCH),x86_64)
+ CAN_BUILD_I386 :=3D $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bi=
+t_program.c -m32)
+@@ -76,7 +76,7 @@ TEST_FILES :=3D test_vmalloc.sh
+ KSFT_KHDR_INSTALL :=3D 1
+ include ../lib.mk
+=20
+-$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs -lpthread
++$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
+=20
+ ifeq ($(ARCH),x86_64)
+ BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
+@@ -127,8 +127,6 @@ warn_32bit_failure:
+ endif
+ endif
+=20
+-$(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
+-
  $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
-+
-+$(OUTPUT)/gup_test: ../../../../mm/gup_test.h
+=20
+ $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
