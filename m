@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DAA8C4741F
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:29:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E05DAC4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:41:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA8342076A
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:29:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A53362072E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601504987;
-	bh=+oZbuEfbhYktbYzxoK4BaArzWcM2e/wx3Z/7mkDF+Dw=;
+	s=default; t=1601505684;
+	bh=XFLgLFw0ekykcewAWMMfl0VJx/mNRqS11v53Fdjq1vU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=PKziwyuB3VyoCPM3O6wLfCTb+Ot1b2W/pC6lurk9y+KyzdFwlbrWb9xClfqVK0dpu
-	 FKn08AL21TAE+SRirWkrhYRo46869VBfm1H19dBrhDnI7+KwWBPxQIVM7vsdfN40A8
-	 0INRiN1q/yQFyIMGrcy0r/Rtc2kYiZhlPAGhhaxI=
+	b=WcArr0C1au+obv3IBPDzqkka41Y4W/1T6CZ75mT8GJ/owo9jWy1lVVklFsRfPQE+l
+	 3MwMkj3LDTBaLxywi1PdF5joz4bznyKWQylQA1f8zd/V8aMe1Y7SfXmYj6Yer/jL96
+	 TkowJgshd97+1uHG7lw2fcV2NU5EwOesR16ovyIM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730211AbgI3W3r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Sep 2020 18:29:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57042 "EHLO mail.kernel.org"
+        id S1730271AbgI3WlY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Sep 2020 18:41:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730310AbgI3W3q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Sep 2020 18:29:46 -0400
+        id S1730640AbgI3WlR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Sep 2020 18:41:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CBF4A20719;
-        Wed, 30 Sep 2020 22:29:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 03A732075F;
+        Wed, 30 Sep 2020 22:41:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601504986;
-        bh=+oZbuEfbhYktbYzxoK4BaArzWcM2e/wx3Z/7mkDF+Dw=;
+        s=default; t=1601505676;
+        bh=XFLgLFw0ekykcewAWMMfl0VJx/mNRqS11v53Fdjq1vU=;
         h=Date:From:To:Subject:From;
-        b=xhIV0+XwrhtdLcUzB3fPiqAQ4axkyJyI+uuDEMs4v8Dq9UqNFnYL8Zj2gR6ODd2DN
-         Cv9ZH+Ql41n2+Ovu/uUG224sNIGtMxpzrgg+uBlHoTD1Up8noj2K+kreFvj/OUXOZy
-         W7uH+c3UA5VFRI1mSrp+E0St/FVAeVTAlducsMZU=
-Date:   Wed, 30 Sep 2020 15:29:45 -0700
+        b=eFm3bypAruJnZx7BKCp8isySrA7D02gwXl7sNDDVoJVnXgEd4N1w7OoXY5cK0N2+Z
+         dMcf1qcDFn5YEJtwAHBBFhVIr5oLVX0wTHMZS0ccH7+PHFlBa40v2WcQJi1rBk9VtG
+         2KmjFSBniVQi59nq4BBFbwjvp5BIX5PePcNi2aCM=
+Date:   Wed, 30 Sep 2020 15:41:15 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, iamjoonsoo.kim@lge.com,
-        mgorman@techsingularity.net, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
+To:     ebiederm@xmission.com, jannh@google.com, jgg@nvidia.com,
+        jhubbard@nvidia.com, mchehab@kernel.org,
+        mm-commits@vger.kernel.org, sakari.ailus@linux.intel.com,
+        walken@google.com
 Subject:  +
- =?US-ASCII?Q?mm-page=5Falloc-handle-a-missing-case-for-memalloc=5Fnocma?=
- =?US-ASCII?Q?=5Fsave-restore-apis.patch?= added to -mm tree
-Message-ID: <20200930222945.MEBzYUxZP%akpm@linux-foundation.org>
+ mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch added to
+ -mm tree
+Message-ID: <20200930224115.PVA64nQaE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: handle a missing case for memalloc_nocma_{save/restore} APIs
+     Subject: mm/gup: assert that the mmap lock is held in __get_user_pages()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-handle-a-missing-case-for-memalloc_nocma_save-restore-apis.patch
+     mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-handle-a-missing-case-for-memalloc_nocma_save-restore-apis.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-handle-a-missing-case-for-memalloc_nocma_save-restore-apis.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,81 +77,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: handle a missing case for memalloc_nocma_{save/restore} APIs
+From: Jann Horn <jannh@google.com>
+Subject: mm/gup: assert that the mmap lock is held in __get_user_pages()
 
-memalloc_nocma_{save/restore} APIs can be used to skip page allocation on
-CMA area, but, there is a missing case and the page on CMA area could be
-allocated even if APIs are used.  This patch handles this case to fix the
-potential issue.
+After having cleaned up all GUP callers (except for the atomisp staging
+driver, which currently gets mmap locking completely wrong [1]) to always
+ensure that they hold the mmap lock when calling into GUP (unless the mm
+is not yet globally visible), add an assertion to make sure it stays that
+way going forward.
 
-For now, these APIs are used to prevent long-term pinning on the CMA page.
-When the long-term pinning is requested on the CMA page, it is migrated
-to the non-CMA page before pinning.  This non-CMA page is allocated by
-using memalloc_nocma_{save/restore} APIs.  If APIs doesn't work as
-intended, the CMA page is allocated and it is pinned for a long time. 
-This long-term pin for the CMA page causes cma_alloc() failure and it
-could result in wrong behaviour on the device driver who uses the
-cma_alloc().
+[1] https://lore.kernel.org/lkml/CAG48ez3tZAb9JVhw4T5e-i=h2_DUZxfNRTDsagSRCVazNXx5qA@mail.gmail.com/
 
-Missing case is an allocation from the pcplist.  MIGRATE_MOVABLE pcplist
-could have the pages on CMA area so we need to skip it if ALLOC_CMA isn't
-specified.
-
-Link: https://lkml.kernel.org/r/1601429472-12599-1-git-send-email-iamjoonsoo.kim@lge.com
-Fixes: 8510e69c8efe (mm/page_alloc: fix memalloc_nocma_{save/restore} APIs)
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/CAG48ez1GM==OnHpS=ghqZNJPn02FCDUEHc7GQmGRMXUD_aKudg@mail.gmail.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ mm/gup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-handle-a-missing-case-for-memalloc_nocma_save-restore-apis
-+++ a/mm/page_alloc.c
-@@ -3368,9 +3368,16 @@ struct page *rmqueue(struct zone *prefer
- 	struct page *page;
+--- a/mm/gup.c~mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages
++++ a/mm/gup.c
+@@ -1027,6 +1027,8 @@ static long __get_user_pages(struct mm_s
+ 	struct vm_area_struct *vma = NULL;
+ 	struct follow_page_context ctx = { NULL };
  
- 	if (likely(order == 0)) {
--		page = rmqueue_pcplist(preferred_zone, zone, gfp_flags,
-+		/*
-+		 * MIGRATE_MOVABLE pcplist could have the pages on CMA area and
-+		 * we need to skip it when CMA area isn't allowed.
-+		 */
-+		if (!IS_ENABLED(CONFIG_CMA) || alloc_flags & ALLOC_CMA ||
-+				migratetype != MIGRATE_MOVABLE) {
-+			page = rmqueue_pcplist(preferred_zone, zone, gfp_flags,
- 					migratetype, alloc_flags);
--		goto out;
-+			goto out;
-+		}
- 	}
++	mmap_assert_locked(mm);
++
+ 	if (!nr_pages)
+ 		return 0;
  
- 	/*
-@@ -3382,7 +3389,13 @@ struct page *rmqueue(struct zone *prefer
- 
- 	do {
- 		page = NULL;
--		if (alloc_flags & ALLOC_HARDER) {
-+		/*
-+		 * order-0 request can reach here when the pcplist is skipped
-+		 * due to non-CMA allocation context. HIGHATOMIC area is
-+		 * reserved for high-order atomic allocation, so order-0
-+		 * request should skip it.
-+		 */
-+		if (order > 0 && alloc_flags & ALLOC_HARDER) {
- 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
- 			if (page)
- 				trace_mm_page_alloc_zone_locked(page, order, migratetype);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-page_alloc-handle-a-missing-case-for-memalloc_nocma_save-restore-apis.patch
-mm-memory-failure-remove-a-wrapper-for-alloc_migration_target.patch
-mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
+mm-mmu_notifier-fix-mmget-assert-in-__mmu_interval_notifier_insert.patch
+binfmt_elf_fdpic-stop-using-dump_emit-on-user-pointers-on-mmu.patch
+coredump-let-dump_emit-bail-out-on-short-writes.patch
+coredump-refactor-page-range-dumping-into-common-helper.patch
+coredump-rework-elf-elf_fdpic-vma_dump_size-into-common-helper.patch
+binfmt_elf-binfmt_elf_fdpic-use-a-vma-list-snapshot.patch
+mm-gup-take-mmap_lock-in-get_dump_page.patch
+mm-remove-the-now-unnecessary-mmget_still_valid-hack.patch
+mm-gup_benchmark-take-the-mmap-lock-around-gup.patch
+binfmt_elf-take-the-mmap-lock-around-find_extend_vma.patch
+mmap-locking-api-dont-check-locking-if-the-mm-isnt-live-yet.patch
+mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
 
