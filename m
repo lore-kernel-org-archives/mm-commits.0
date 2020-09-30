@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34014C47420
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:55:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C929C4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:56:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 037612076B
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:55:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 093DA20888
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:56:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601502923;
-	bh=SAGbDCwBaI7zW0lPV+gox0v1bkArr7HnK3WKOz7OUBY=;
+	s=default; t=1601502967;
+	bh=M07D8S+zdMn3CMW9xZv+pl/TWiSsZiFiBIyl76mTYxU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=cE1fuW5nsorsdk2/VsABAb8v1Me1aisr40VylPOUnLYSKw7TUg6i/sF77IR41x46i
-	 oGPTXzBT5VoV2t0DBxg48r2ulzGZgfyv42euqmHAx4v1RbaUkLlVhlm875A+Hafjp8
-	 +x4q5MyQ0p2cUc4u6nliJTj+o0Kcsp/aeKGL9968=
+	b=wCRGl+lheXmyr2S8vRD7ZdIDnr/HbPe12qzC+OYqxM6g0pZm6PWRmLZ/xIQcxuVD2
+	 9Z3jlxKkBTj9dkeJN0G2bu/YTZwTrgVoaIkTm/DM/LRBkgjqeexK9IDrZk2uLYrwnk
+	 LOCBRVU8yL/XF0AbNCJnVp5iR+eftGjIQi97YMb8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731316AbgI3VzW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Sep 2020 17:55:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55820 "EHLO mail.kernel.org"
+        id S1730873AbgI3V4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Sep 2020 17:56:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731212AbgI3VzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Sep 2020 17:55:18 -0400
+        id S1730817AbgI3V4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Sep 2020 17:56:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A297620848;
-        Wed, 30 Sep 2020 21:55:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 96D362064E;
+        Wed, 30 Sep 2020 21:56:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601502917;
-        bh=SAGbDCwBaI7zW0lPV+gox0v1bkArr7HnK3WKOz7OUBY=;
+        s=default; t=1601502965;
+        bh=M07D8S+zdMn3CMW9xZv+pl/TWiSsZiFiBIyl76mTYxU=;
         h=Date:From:To:Subject:From;
-        b=Cm809tXk6GNukYDTnaM9Xjl0mcqWgENmYI1Nb/y3YQMLUOfoCbnp1IfjYYrVeAkg+
-         nzdfYY4QnHdGwbTB8otwo20tzC+LvQOgdAZkZ89zkZqeg8zfuF+X7vkkIPsMIk4BwJ
-         Apw8VPdjOYdrGOYnoQoqPrdM31WH0IeZSP+bzl2k=
-Date:   Wed, 30 Sep 2020 14:55:17 -0700
+        b=fspMmeWrLUFI/KdwPbsMv3/9p1JlumV05GtoV3YHuMN/gmnbuoKb/zJic9IyemAvO
+         lafAHuLHgxGovoogxFI+tmbXTgonnILuaFOWaqghf8yNMzd3sFDE8rMS0IkVcEB38V
+         bOUf/XgD6I1trT2eZfMzok/MYIz0uUvrks/pGsrs=
+Date:   Wed, 30 Sep 2020 14:56:05 -0700
 From:   akpm@linux-foundation.org
-To:     darrick.wong@oracle.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-fix-potential-memory-leak-in-sys_swapon.patch added
- to -mm tree
-Message-ID: <20200930215517.LYYnFStCv%akpm@linux-foundation.org>
+To:     hannes@cmpxchg.org, linmiaohe@huawei.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+Subject:  +
+ mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
+ added to -mm tree
+Message-ID: <20200930215605.DNH_ycLdp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile.c: fix potential memory leak in sys_swapon
+     Subject: mm: memcontrol: reword obsolete comment of mem_cgroup_unmark_under_oom()
 has been added to the -mm tree.  Its filename is
-     mm-fix-potential-memory-leak-in-sys_swapon.patch
+     mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-potential-memory-leak-in-sys_swapon.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-potential-memory-leak-in-sys_swapon.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,41 +76,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile.c: fix potential memory leak in sys_swapon
+Subject: mm: memcontrol: reword obsolete comment of mem_cgroup_unmark_under_oom()
 
-If we failed to drain inode, we would forget to free the swap address
-space allocated by init_swap_address_space() above.
+Since commit 79dfdaccd1d5 ("memcg: make oom_lock 0 and 1 based rather than
+counter"), the mem_cgroup_unmark_under_oom() is added and the comment of
+the mem_cgroup_oom_unlock() is moved here.  But this comment make no sense
+here because mem_cgroup_oom_lock() does not operate on under_oom field. 
+So we reword the comment as this would be helpful.  [Thanks Michal Hocko
+for rewording this comment.]
 
-Link: https://lkml.kernel.org/r/20200930101803.53884-1-linmiaohe@huawei.com
-Fixes: dc617f29dbe5 ("vfs: don't allow writes to swap files")
+Link: https://lkml.kernel.org/r/20200930095336.21323-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-fix-potential-memory-leak-in-sys_swapon
-+++ a/mm/swapfile.c
-@@ -3338,7 +3338,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	error = inode_drain_writes(inode);
- 	if (error) {
- 		inode->i_flags &= ~S_SWAPFILE;
--		goto bad_swap_unlock_inode;
-+		goto free_swap_address_space;
- 	}
+--- a/mm/memcontrol.c~mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom
++++ a/mm/memcontrol.c
+@@ -1826,8 +1826,8 @@ static void mem_cgroup_unmark_under_oom(
+ 	struct mem_cgroup *iter;
  
- 	mutex_lock(&swapon_mutex);
-@@ -3363,6 +3363,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 
- 	error = 0;
- 	goto out;
-+free_swap_address_space:
-+	exit_swap_address_space(p->type);
- bad_swap_unlock_inode:
- 	inode_unlock(inode);
- bad_swap:
+ 	/*
+-	 * When a new child is created while the hierarchy is under oom,
+-	 * mem_cgroup_oom_lock() may not be called. Watch for underflow.
++	 * Be careful about under_oom underflows becase a child memcg
++	 * could have been added after mem_cgroup_mark_under_oom.
+ 	 */
+ 	spin_lock(&memcg_oom_lock);
+ 	for_each_mem_cgroup_tree(iter, memcg)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -122,6 +121,7 @@ mm-remove-unnecessary-goto-out-in-_swap_info_get.patch
 mm-fix-potential-memory-leak-in-sys_swapon.patch
 mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
 mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
+mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
 mm-use-helper-function-mapping_allow_writable.patch
 mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct.patch
 mm-mempool-add-else-to-split-mutually-exclusive-case.patch
