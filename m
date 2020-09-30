@@ -7,48 +7,49 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0AE8C4363D
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:39:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C0BBC4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:40:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8378920789
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:39:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B14520789
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:40:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601501997;
-	bh=mqLXoq1XPAlQntCiujBdXi7cXpMPP60yJ1FQV7iBA8Y=;
+	s=default; t=1601502000;
+	bh=ZnrO0vSCzXROlBwcmLFVmK+fuPLFVrCMYhc9KMnvejM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=o8FbQ9ohN13tX8UoC64Rm0I9bl6IgmpM+ZUaRM1rVGfvHkRWHpO5mrNoqNQlDeCxI
-	 WIFVMJOk1nxy9xoa3N1hndGp7aiYSAE8X+GLAdMshlTlB4KvBrEVsKPliHl0sdvOFc
-	 2xbNUz9Ow4fZ2VbxLpcSsa3z+TgKT4Q0IHXUn26I=
+	b=2oFNkhs6iUM80UZ6HVMx5a9l4keb33NMRB+FYrcPW7nXsi3LTnKxKC/mgF2gjAicU
+	 uWjSoyWGo4+Q+7snWDqpusKPxFi2urngs5wzMqC8HljEQM2ZqbG05Q8Zv4g1Vod1AH
+	 gWRkSDGeh8Bv1qyGG3djtYZes3pplMqzE0wYoI5s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730770AbgI3Vj5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Sep 2020 17:39:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34520 "EHLO mail.kernel.org"
+        id S1730457AbgI3VkA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Sep 2020 17:40:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730457AbgI3Vj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Sep 2020 17:39:57 -0400
+        id S1730784AbgI3Vj7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Sep 2020 17:39:59 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F28DD2076A;
-        Wed, 30 Sep 2020 21:39:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 076EB20759;
+        Wed, 30 Sep 2020 21:39:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601501996;
-        bh=mqLXoq1XPAlQntCiujBdXi7cXpMPP60yJ1FQV7iBA8Y=;
+        s=default; t=1601501999;
+        bh=ZnrO0vSCzXROlBwcmLFVmK+fuPLFVrCMYhc9KMnvejM=;
         h=Date:From:To:Subject:From;
-        b=WZ2PLihhwX/ZAmJiBDIGSv5GCHP4XoB8HLJRFFsdgJ9FniD8+Y4EHjFqUwgUcgxfO
-         EQPgIQjBsUG4lbunjMyqaJcNNx7CMOjYtWKmaOi3JKPCQUsSAhp2dLyBegAORReoCz
-         Z30e0Xgd3wjvo8ertlJit0ceJTuvQ5PEGpOli6v4=
-Date:   Wed, 30 Sep 2020 14:39:55 -0700
+        b=VRDcUgRC+ZEFv+iKkDZrmrlQ4a5lPm0mPl0wMCybVRgy1nWSoPDixsVb4h1J12F55
+         cnHsGhMVFWvO47+ZQvowbepa/7z1b/jPChqMG/4abnQl1K/1YusJiN2U/eRJAKBMV9
+         tq/GIO+W+RvpSQkHAAcV6DphG6BUvmE1h8GWY8U0=
+Date:   Wed, 30 Sep 2020 14:39:58 -0700
 From:   akpm@linux-foundation.org
 To:     boris.ostrovsky@oracle.com, chris@chris-wilson.co.uk, hch@lst.de,
         jani.nikula@linux.intel.com, jgross@suse.com,
         joonas.lahtinen@linux.intel.com, matthew.auld@intel.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org,
+        mm-commits@vger.kernel.org, ngupta@vflare.org,
         peterz@infradead.org, rodrigo.vivi@intel.com,
         sstabellini@kernel.org, tvrtko.ursulin@intel.com,
         willy@infradead.org
-Subject:  + mm-add-a-vmap_pfn-function.patch added to -mm tree
-Message-ID: <20200930213955.6zP0RBfcW%akpm@linux-foundation.org>
+Subject:  +
+ mm-allow-a-null-fn-callback-in-apply_to_page_range.patch added to -mm tree
+Message-ID: <20200930213958.TAlrxK2R5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add a vmap_pfn function
+     Subject: mm: allow a NULL fn callback in apply_to_page_range
 has been added to the -mm tree.  Its filename is
-     mm-add-a-vmap_pfn-function.patch
+     mm-allow-a-null-fn-callback-in-apply_to_page_range.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-vmap_pfn-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-allow-a-null-fn-callback-in-apply_to_page_range.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-vmap_pfn-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-a-null-fn-callback-in-apply_to_page_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,13 +80,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: add a vmap_pfn function
+Subject: mm: allow a NULL fn callback in apply_to_page_range
 
-Add a proper helper to remap PFNs into kernel virtual space so that
-drivers don't have to abuse alloc_vm_area and open coded PTE manipulation
-for it.
+Besides calling the callback on each page, apply_to_page_range also has
+the effect of pre-faulting all PTEs for the range.  To support callers
+that only need the pre-faulting, make the callback optional.
 
-Link: https://lkml.kernel.org/r/20200930175133.1252382-4-hch@lst.de
+Based on a patch from Minchan Kim <minchan@kernel.org>.
+
+Link: https://lkml.kernel.org/r/20200930175133.1252382-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
@@ -94,7 +97,6 @@ Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Matthew Auld <matthew.auld@intel.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
@@ -103,87 +105,34 @@ Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 
- mm/Kconfig              |    3 ++
- mm/vmalloc.c            |   45 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 49 insertions(+)
+ mm/memory.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-add-a-vmap_pfn-function
-+++ a/include/linux/vmalloc.h
-@@ -122,6 +122,7 @@ extern void vfree_atomic(const void *add
+--- a/mm/memory.c~mm-allow-a-null-fn-callback-in-apply_to_page_range
++++ a/mm/memory.c
+@@ -2421,13 +2421,15 @@ static int apply_to_pte_range(struct mm_
  
- extern void *vmap(struct page **pages, unsigned int count,
- 			unsigned long flags, pgprot_t prot);
-+void *vmap_pfn(unsigned long *pfns, unsigned int count, pgprot_t prot);
- extern void vunmap(const void *addr);
+ 	arch_enter_lazy_mmu_mode();
  
- extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
---- a/mm/Kconfig~mm-add-a-vmap_pfn-function
-+++ a/mm/Kconfig
-@@ -816,6 +816,9 @@ config DEVICE_PRIVATE
- 	  memory; i.e., memory that is only accessible from the device (or
- 	  group of devices). You likely also want to select HMM_MIRROR.
- 
-+config VMAP_PFN
-+	bool
-+
- config FRAME_VECTOR
- 	bool
- 
---- a/mm/vmalloc.c~mm-add-a-vmap_pfn-function
-+++ a/mm/vmalloc.c
-@@ -2413,6 +2413,51 @@ void *vmap(struct page **pages, unsigned
- }
- EXPORT_SYMBOL(vmap);
- 
-+#ifdef CONFIG_VMAP_PFN
-+struct vmap_pfn_data {
-+	unsigned long	*pfns;
-+	pgprot_t	prot;
-+	unsigned int	idx;
-+};
-+
-+static int vmap_pfn_apply(pte_t *pte, unsigned long addr, void *private)
-+{
-+	struct vmap_pfn_data *data = private;
-+
-+	if (WARN_ON_ONCE(pfn_valid(data->pfns[data->idx])))
-+		return -EINVAL;
-+	*pte = pte_mkspecial(pfn_pte(data->pfns[data->idx++], data->prot));
-+	return 0;
-+}
-+
-+/**
-+ * vmap_pfn - map an array of PFNs into virtually contiguous space
-+ * @pfns: array of PFNs
-+ * @count: number of pages to map
-+ * @prot: page protection for the mapping
-+ *
-+ * Maps @count PFNs from @pfns into contiguous kernel virtual space and returns
-+ * the start address of the mapping.
-+ */
-+void *vmap_pfn(unsigned long *pfns, unsigned int count, pgprot_t prot)
-+{
-+	struct vmap_pfn_data data = { .pfns = pfns, .prot = pgprot_nx(prot) };
-+	struct vm_struct *area;
-+
-+	area = get_vm_area_caller(count * PAGE_SIZE, VM_IOREMAP,
-+			__builtin_return_address(0));
-+	if (!area)
-+		return NULL;
-+	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
-+			count * PAGE_SIZE, vmap_pfn_apply, &data)) {
-+		free_vm_area(area);
-+		return NULL;
+-	do {
+-		if (create || !pte_none(*pte)) {
+-			err = fn(pte++, addr, data);
+-			if (err)
+-				break;
+-		}
+-	} while (addr += PAGE_SIZE, addr != end);
++	if (fn) {
++		do {
++			if (create || !pte_none(*pte)) {
++				err = fn(pte++, addr, data);
++				if (err)
++					break;
++			}
++		} while (addr += PAGE_SIZE, addr != end);
 +	}
-+	return area->addr;
-+}
-+EXPORT_SYMBOL_GPL(vmap_pfn);
-+#endif /* CONFIG_VMAP_PFN */
-+
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node)
- {
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ 
+ 	arch_leave_lazy_mmu_mode();
 _
 
 Patches currently in -mm which might be from hch@lst.de are
