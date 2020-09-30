@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C929C4363D
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:56:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD994C4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:04:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 093DA20888
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 21:56:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 679A020719
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Sep 2020 22:04:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601502967;
-	bh=M07D8S+zdMn3CMW9xZv+pl/TWiSsZiFiBIyl76mTYxU=;
+	s=default; t=1601503494;
+	bh=cXZyOuJ20tt7eZhjYYBKfpsuSw5Q/aobMbBmLlc87Ns=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wCRGl+lheXmyr2S8vRD7ZdIDnr/HbPe12qzC+OYqxM6g0pZm6PWRmLZ/xIQcxuVD2
-	 9Z3jlxKkBTj9dkeJN0G2bu/YTZwTrgVoaIkTm/DM/LRBkgjqeexK9IDrZk2uLYrwnk
-	 LOCBRVU8yL/XF0AbNCJnVp5iR+eftGjIQi97YMb8=
+	b=L8Vu6BdIzplpzePXSNHsbkOZ1ZtB8IaA3dYX/g7OHmCxODPv448vzNUI9hazUPT8Q
+	 iJlOZm8fE4HPFO0VMrxaHyRljzM7rmFsuXs2HO7I/Hkpo6zFAcm6RJZJc60CWTsORA
+	 ZEKbhEMQ/VG616ZL/6/6JkqsDhE9havU2bVjkBZ4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730873AbgI3V4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Sep 2020 17:56:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57208 "EHLO mail.kernel.org"
+        id S1730854AbgI3WEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Sep 2020 18:04:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730817AbgI3V4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 30 Sep 2020 17:56:06 -0400
+        id S1729912AbgI3WEy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 30 Sep 2020 18:04:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 96D362064E;
-        Wed, 30 Sep 2020 21:56:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE6BD206CA;
+        Wed, 30 Sep 2020 22:04:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601502965;
-        bh=M07D8S+zdMn3CMW9xZv+pl/TWiSsZiFiBIyl76mTYxU=;
+        s=default; t=1601503493;
+        bh=cXZyOuJ20tt7eZhjYYBKfpsuSw5Q/aobMbBmLlc87Ns=;
         h=Date:From:To:Subject:From;
-        b=fspMmeWrLUFI/KdwPbsMv3/9p1JlumV05GtoV3YHuMN/gmnbuoKb/zJic9IyemAvO
-         lafAHuLHgxGovoogxFI+tmbXTgonnILuaFOWaqghf8yNMzd3sFDE8rMS0IkVcEB38V
-         bOUf/XgD6I1trT2eZfMzok/MYIz0uUvrks/pGsrs=
-Date:   Wed, 30 Sep 2020 14:56:05 -0700
+        b=ehi3adrGB6q5Z93a9I7+e8F48v+2Fh2zXrMn4ErtAcOf3j70niUPjhh3kuKP+3ijw
+         UZlq8EozL7Kw9t3vhnUdtAU4XC83NqGMQLv31jM1CVeEOQyxglqqS8y8eYvXBAOWtF
+         8uRu5Nse2JJyVupemL5h8RviDqYM5MPaC0SXh+l8=
+Date:   Wed, 30 Sep 2020 15:04:52 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, linmiaohe@huawei.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
-Subject:  +
- mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
- added to -mm tree
-Message-ID: <20200930215605.DNH_ycLdp%akpm@linux-foundation.org>
+To:     chris@chrisdown.name, david@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        zangchunxin@bytedance.com
+Subject:  [obsolete]
+ mm-vmscan-add-a-fatal-signals-check-in-drop_slab_node.patch removed from
+ -mm tree
+Message-ID: <20200930220452.xAek1FZQj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,80 +55,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: reword obsolete comment of mem_cgroup_unmark_under_oom()
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
+     Subject: mm/vmscan: add a fatal signals check in drop_slab_node
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-add-a-fatal-signals-check-in-drop_slab_node.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memcontrol: reword obsolete comment of mem_cgroup_unmark_under_oom()
+From: Chunxin Zang <zangchunxin@bytedance.com>
+Subject: mm/vmscan: add a fatal signals check in drop_slab_node
 
-Since commit 79dfdaccd1d5 ("memcg: make oom_lock 0 and 1 based rather than
-counter"), the mem_cgroup_unmark_under_oom() is added and the comment of
-the mem_cgroup_oom_unlock() is moved here.  But this comment make no sense
-here because mem_cgroup_oom_lock() does not operate on under_oom field. 
-So we reword the comment as this would be helpful.  [Thanks Michal Hocko
-for rewording this comment.]
+On our server, there are about 10k memcg in one machine.  They use memory
+very frequently.  We have observed that drop_caches can take a
+considerable amount of time, and can't stop it.
 
-Link: https://lkml.kernel.org/r/20200930095336.21323-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+There are two reasons:
+1. There is somebody constantly generating more objects to reclaim
+  on drop_caches, result the 'freed' always bigger than 10.
+2. The process has no chance to process signals.
+
+We can get the following info through 'ps':
+
+ root:~# ps -aux | grep drop
+ root  357956 ... R    Aug25 21119854:55 echo 3 > /proc/sys/vm/drop_caches
+ root 1771385 ... R    Aug16 21146421:17 echo 3 > /proc/sys/vm/drop_caches
+
+Add a bail out on the fatal signals in the main loop so that the
+operation can be terminated by userspace.
+
+Link: https://lkml.kernel.org/r/20200916025359.70203-1-zangchunxin@bytedance.com
+Signed-off-by: Chunxin Zang <zangchunxin@bytedance.com>
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom
-+++ a/mm/memcontrol.c
-@@ -1826,8 +1826,8 @@ static void mem_cgroup_unmark_under_oom(
- 	struct mem_cgroup *iter;
+--- a/mm/vmscan.c~mm-vmscan-add-a-fatal-signals-check-in-drop_slab_node
++++ a/mm/vmscan.c
+@@ -702,6 +702,9 @@ void drop_slab_node(int nid)
+ 		if (fatal_signal_pending(current))
+ 			return;
  
- 	/*
--	 * When a new child is created while the hierarchy is under oom,
--	 * mem_cgroup_oom_lock() may not be called. Watch for underflow.
-+	 * Be careful about under_oom underflows becase a child memcg
-+	 * could have been added after mem_cgroup_mark_under_oom.
- 	 */
- 	spin_lock(&memcg_oom_lock);
- 	for_each_mem_cgroup_tree(iter, memcg)
++		if (fatal_signal_pending(current))
++			return;
++
+ 		freed = 0;
+ 		memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 		do {
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from zangchunxin@bytedance.com are
 
-mm-swap-fix-confusing-comment-in-release_pages.patch
-mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
-mm-remove-useless-out-label-in-__swap_writepage.patch
-mm-fix-incomplete-comment-in-lru_cache_add_inactive_or_unevictable.patch
-mm-remove-unnecessary-goto-out-in-_swap_info_get.patch
-mm-fix-potential-memory-leak-in-sys_swapon.patch
-mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
-mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
-mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
-mm-use-helper-function-mapping_allow_writable.patch
-mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct.patch
-mm-mempool-add-else-to-split-mutually-exclusive-case.patch
-mm-vmstat-use-helper-macro-abs.patch
-mm-fix-some-broken-comments.patch
-mm-use-helper-function-put_write_access.patch
-percpu_counter-use-helper-macro-abs.patch
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
+mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch
 
