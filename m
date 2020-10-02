@@ -7,45 +7,55 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99F54C4363D
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:11:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7DA5C35257
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:17:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58B38206DB
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:11:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9FF98207EA
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:17:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601673062;
-	bh=sRoiZM6xLzG//wn0AZB7ylbBdvvr1VI0PY+xSsZtpSk=;
+	s=default; t=1601673469;
+	bh=yRGwmaw1uZd40IuDNPeONRMyGFHnfDb4JViLJmNGztw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bsL009C1FQta43DxLT/OKN8ioUigphrq7OTgiRt7ONn/FeDiD+cQ0W/4SJg6H114U
-	 EctH0i4kvfXZhaYFtt2NTgPWmE68GSamJXWYEU3mOAFQ0okqKuN51g8LejstRv3cQ7
-	 geFzBnnauV25q4lszWjfQMYewSiv5+cfH055zKX8=
+	b=kZ1VLrliCPQETm71L6hw5rZqLaY2L/tUmEAJfaSn7XQpIhrpUXaOrFpsIoB3oWBil
+	 3zordsSbKOTZTR1uyg72zCPk++LPOPHCCuq6ggFwt7LP2BTaHLos9LE65i6pSU9zsL
+	 2ZxD/5wgS8YhCPw2Toyr305eWGDBVPokRlMJUFTo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725601AbgJBVLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Oct 2020 17:11:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34344 "EHLO mail.kernel.org"
+        id S1725772AbgJBVRs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Oct 2020 17:17:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgJBVLB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Oct 2020 17:11:01 -0400
+        id S1725283AbgJBVRs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Oct 2020 17:17:48 -0400
 Received: from X1 (c-76-21-107-111.hsd1.ca.comcast.net [76.21.107.111])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1A134206DB;
-        Fri,  2 Oct 2020 21:10:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7FF5B206DD;
+        Fri,  2 Oct 2020 21:17:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601673059;
-        bh=sRoiZM6xLzG//wn0AZB7ylbBdvvr1VI0PY+xSsZtpSk=;
+        s=default; t=1601673467;
+        bh=yRGwmaw1uZd40IuDNPeONRMyGFHnfDb4JViLJmNGztw=;
         h=Date:From:To:Subject:From;
-        b=EjDOHJyhIvumn6oI7wDMCFvj/kNumNBaaFpjOOfJhPNdHscWWSON7oLCA/WH4XlDL
-         XRfV8thiC0zSWd38r83COvbOI1YQNGcTVYnf4FoTr5Ls6LmNSCU9x6K7DFFYbZtL54
-         KkkeznvhmwTSfGZTpJ6OU0hdbXA5Kjm0rr9q9nQA=
-Date:   Fri, 02 Oct 2020 14:10:58 -0700
+        b=KEZKtMQMGIu42nhzuFBpKf9fWbxbhDK/9nxhkL+2om9qh42UUnNUKsCxoTu9U65qN
+         WeSXRb83jZdxgGN9IoO9A+w9zZlJvp6TX2VjwzjfP1usMYvo41RN/aIZdhzv1lQ2UM
+         W3JLa+v1oM0vX5WIei+qeOrd4V16R9yIX1fWjsDQ=
+Date:   Fri, 02 Oct 2020 14:17:45 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, kirill@shutemov.name, jgg@ziepe.ca,
-        peterx@redhat.com
-Subject:  +
- mm-remove-src-dst-mm-parameter-in-copy_page_range-v2.patch added to -mm tree
-Message-ID: <20201002211058.B41W8%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ttayar@habana.ai, tfiga@chromium.org,
+        sw0312.kim@samsung.com, ppiskorski@habana.ai, pawel@osciak.com,
+        oshpigelman@habana.ai, oded.gabbay@gmail.com,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        krzk@kernel.org, kgene@kernel.org, jy0922.shim@samsung.com,
+        jhubbard@nvidia.com, jglisse@redhat.com, jgg@ziepe.ca,
+        jack@suse.cz, inki.dae@samsung.com, gregkh@linuxfoundation.org,
+        dan.j.williams@intel.com, daniel.vetter@intel.com,
+        akpm@linux-foundation.org, daniel.vetter@ffwll.ch
+Subject:  + mm-frame-vec-drop-gup_flags-from-get_vaddr_frames.patch
+ added to -mm tree
+Message-ID: <20201002211745.o8K6c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +63,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-remove-src-dst-mm-parameter-in-copy_page_range-v2
+     Subject: mm/frame-vec: drop gup_flags from get_vaddr_frames()
 has been added to the -mm tree.  Its filename is
-     mm-remove-src-dst-mm-parameter-in-copy_page_range-v2.patch
+     mm-frame-vec-drop-gup_flags-from-get_vaddr_frames.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-src-dst-mm-parameter-in-copy_page_range-v2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-frame-vec-drop-gup_flags-f=
+rom-get_vaddr_frames.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-src-dst-mm-parameter-in-copy_page_range-v2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-frame-vec-drop-gup_flags-f=
+rom-get_vaddr_frames.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,357 +80,140 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm-remove-src-dst-mm-parameter-in-copy_page_range-v2
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: mm/frame-vec: drop gup_flags from get_vaddr_frames()
 
-further reorder some parameters and line format, per Jason
+FOLL_WRITE | FOLL_FORCE is really the only reasonable thing to do for
+simple dma device that can't guarantee write protection.  Which is also
+what all the callers are using.
 
-Link: https://lkml.kernel.org/r/20201002192647.7161-1-peterx@redhat.com
-Reported-by: Kirill A. Shutemov <kirill@shutemov.name>
-Signed-off-by: Peter Xu <peterx@redhat.com>
+So just simplify this.
+
+Link: https://lkml.kernel.org/r/20201002175303.390363-1-daniel.vetter@ffwll=
+.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Tomasz Figa <tfiga@chromium.org>	[drivers/media/common/videobuf2/]
+Acked-by: Oded Gabbay <oded.gabbay@gmail.com>	[drivers/misc/habanalabs]
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kukjin Kim <kgene@kernel.org>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: Omer Shpigelman <oshpigelman@habana.ai>
+Cc: Tomer Tayar <ttayar@habana.ai>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pawel Piskorski <ppiskorski@habana.ai>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 
- kernel/fork.c      |    2 
- mm/memory.c        |  140 ++++++++++++++++++++++---------------------
- 3 files changed, 76 insertions(+), 69 deletions(-)
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c           |    3 +--
+ drivers/media/common/videobuf2/videobuf2-memops.c |    3 +--
+ drivers/misc/habanalabs/common/memory.c           |    3 +--
+ include/linux/mm.h                                |    2 +-
+ mm/frame_vector.c                                 |    4 ++--
+ 5 files changed, 6 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-src-dst-mm-parameter-in-copy_page_range-v2
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c~mm-frame-vec-drop-gup_flags-f=
+rom-get_vaddr_frames
++++ a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -480,8 +480,7 @@ static dma_addr_t *g2d_userptr_get_dma_a
+ 		goto err_free;
+ 	}
+=20
+-	ret =3D get_vaddr_frames(start, npages, FOLL_FORCE | FOLL_WRITE,
+-		g2d_userptr->vec);
++	ret =3D get_vaddr_frames(start, npages, g2d_userptr->vec);
+ 	if (ret !=3D npages) {
+ 		DRM_DEV_ERROR(g2d->dev,
+ 			      "failed to get user pages from userptr.\n");
+--- a/drivers/media/common/videobuf2/videobuf2-memops.c~mm-frame-vec-drop-g=
+up_flags-from-get_vaddr_frames
++++ a/drivers/media/common/videobuf2/videobuf2-memops.c
+@@ -40,7 +40,6 @@ struct frame_vector *vb2_create_framevec
+ 	unsigned long first, last;
+ 	unsigned long nr;
+ 	struct frame_vector *vec;
+-	unsigned int flags =3D FOLL_FORCE | FOLL_WRITE;
+=20
+ 	first =3D start >> PAGE_SHIFT;
+ 	last =3D (start + length - 1) >> PAGE_SHIFT;
+@@ -48,7 +47,7 @@ struct frame_vector *vb2_create_framevec
+ 	vec =3D frame_vector_create(nr);
+ 	if (!vec)
+ 		return ERR_PTR(-ENOMEM);
+-	ret =3D get_vaddr_frames(start & PAGE_MASK, nr, flags, vec);
++	ret =3D get_vaddr_frames(start & PAGE_MASK, nr, vec);
+ 	if (ret < 0)
+ 		goto out_destroy;
+ 	/* We accept only complete set of PFNs */
+--- a/drivers/misc/habanalabs/common/memory.c~mm-frame-vec-drop-gup_flags-f=
+rom-get_vaddr_frames
++++ a/drivers/misc/habanalabs/common/memory.c
+@@ -1287,8 +1287,7 @@ static int get_user_memory(struct hl_dev
+ 		return -ENOMEM;
+ 	}
+=20
+-	rc =3D get_vaddr_frames(start, npages, FOLL_FORCE | FOLL_WRITE,
+-				userptr->vec);
++	rc =3D get_vaddr_frames(start, npages, userptr->vec);
+=20
+ 	if (rc !=3D npages) {
+ 		dev_err(hdev->dev,
+--- a/include/linux/mm.h~mm-frame-vec-drop-gup_flags-from-get_vaddr_frames
 +++ a/include/linux/mm.h
-@@ -1645,7 +1645,8 @@ struct mmu_notifier_range;
- 
- void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
--int copy_page_range(struct vm_area_struct *vma, struct vm_area_struct *new);
-+int
-+copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
- int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
- 		   struct mmu_notifier_range *range,
- 		   pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
---- a/kernel/fork.c~mm-remove-src-dst-mm-parameter-in-copy_page_range-v2
-+++ a/kernel/fork.c
-@@ -589,7 +589,7 @@ static __latent_entropy int dup_mmap(str
- 
- 		mm->map_count++;
- 		if (!(tmp->vm_flags & VM_WIPEONFORK))
--			retval = copy_page_range(mpnt, tmp);
-+			retval = copy_page_range(tmp, mpnt);
- 
- 		if (tmp->vm_ops && tmp->vm_ops->open)
- 			tmp->vm_ops->open(tmp);
---- a/mm/memory.c~mm-remove-src-dst-mm-parameter-in-copy_page_range-v2
-+++ a/mm/memory.c
-@@ -794,15 +794,15 @@ copy_nonpresent_pte(struct mm_struct *ds
-  * lock.
+@@ -1757,7 +1757,7 @@ struct frame_vector {
+ struct frame_vector *frame_vector_create(unsigned int nr_frames);
+ void frame_vector_destroy(struct frame_vector *vec);
+ int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
+-		     unsigned int gup_flags, struct frame_vector *vec);
++		     struct frame_vector *vec);
+ void put_vaddr_frames(struct frame_vector *vec);
+ int frame_vector_to_pages(struct frame_vector *vec);
+ void frame_vector_to_pfns(struct frame_vector *vec);
+--- a/mm/frame_vector.c~mm-frame-vec-drop-gup_flags-from-get_vaddr_frames
++++ a/mm/frame_vector.c
+@@ -12,7 +12,6 @@
+  * get_vaddr_frames() - map virtual addresses to pfns
+  * @start:	starting user address
+  * @nr_frames:	number of pages / pfns from start to map
+- * @gup_flags:	flags modifying lookup behaviour
+  * @vec:	structure which receives pages / pfns of the addresses mapped.
+  *		It should have space for at least nr_frames entries.
+  *
+@@ -32,10 +31,11 @@
+  * This function takes care of grabbing mmap_lock as necessary.
   */
- static inline int
--copy_present_page(struct mm_struct *dst_mm, struct mm_struct *src_mm,
--		pte_t *dst_pte, pte_t *src_pte,
--		struct vm_area_struct *vma, struct vm_area_struct *new,
--		unsigned long addr, int *rss, struct page **prealloc,
--		pte_t pte, struct page *page)
-+copy_present_page(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+		  pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
-+		  struct page **prealloc, pte_t pte, struct page *page)
+ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+-		     unsigned int gup_flags, struct frame_vector *vec)
++		     struct frame_vector *vec)
  {
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
-+	struct mm_struct *src_mm = src_vma->vm_mm;
- 	struct page *new_page;
- 
--	if (!is_cow_mapping(vma->vm_flags))
-+	if (!is_cow_mapping(src_vma->vm_flags))
- 		return 1;
- 
- 	/*
-@@ -865,15 +865,15 @@ copy_present_page(struct mm_struct *dst_
- 	 * over and copy the page & arm it.
- 	 */
- 	*prealloc = NULL;
--	copy_user_highpage(new_page, page, addr, vma);
-+	copy_user_highpage(new_page, page, addr, src_vma);
- 	__SetPageUptodate(new_page);
--	page_add_new_anon_rmap(new_page, new, addr, false);
--	lru_cache_add_inactive_or_unevictable(new_page, new);
-+	page_add_new_anon_rmap(new_page, dst_vma, addr, false);
-+	lru_cache_add_inactive_or_unevictable(new_page, dst_vma);
- 	rss[mm_counter(new_page)]++;
- 
- 	/* All done, just insert the new page copy in the child */
--	pte = mk_pte(new_page, new->vm_page_prot);
--	pte = maybe_mkwrite(pte_mkdirty(pte), new);
-+	pte = mk_pte(new_page, dst_vma->vm_page_prot);
-+	pte = maybe_mkwrite(pte_mkdirty(pte), dst_vma);
- 	set_pte_at(dst_mm, addr, dst_pte, pte);
- 	return 0;
- }
-@@ -883,24 +883,22 @@ copy_present_page(struct mm_struct *dst_
-  * is required to copy this pte.
-  */
- static inline int
--copy_present_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
--		pte_t *dst_pte, pte_t *src_pte, struct vm_area_struct *vma,
--		struct vm_area_struct *new,
--		unsigned long addr, int *rss, struct page **prealloc)
-+copy_present_pte(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+		 pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
-+		 struct page **prealloc)
- {
--	unsigned long vm_flags = vma->vm_flags;
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
-+	struct mm_struct *src_mm = src_vma->vm_mm;
-+	unsigned long vm_flags = src_vma->vm_flags;
- 	pte_t pte = *src_pte;
- 	struct page *page;
- 
--	page = vm_normal_page(vma, addr, pte);
-+	page = vm_normal_page(src_vma, addr, pte);
- 	if (page) {
- 		int retval;
- 
--		retval = copy_present_page(dst_mm, src_mm,
--			dst_pte, src_pte,
--			vma, new,
--			addr, rss, prealloc,
--			pte, page);
-+		retval = copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
-+					   addr, rss, prealloc, pte, page);
- 		if (retval <= 0)
- 			return retval;
- 
-@@ -957,12 +955,13 @@ page_copy_prealloc(struct mm_struct *src
- 	return new_page;
- }
- 
--static int copy_pte_range(pmd_t *dst_pmd, pmd_t *src_pmd,
--		   struct vm_area_struct *vma, struct vm_area_struct *new,
--		   unsigned long addr, unsigned long end)
-+static int
-+copy_pte_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+	       pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
-+	       unsigned long end)
- {
--	struct mm_struct *dst_mm = new->vm_mm;
--	struct mm_struct *src_mm = vma->vm_mm;
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
-+	struct mm_struct *src_mm = src_vma->vm_mm;
- 	pte_t *orig_src_pte, *orig_dst_pte;
- 	pte_t *src_pte, *dst_pte;
- 	spinlock_t *src_ptl, *dst_ptl;
-@@ -1005,15 +1004,15 @@ again:
- 		if (unlikely(!pte_present(*src_pte))) {
- 			entry.val = copy_nonpresent_pte(dst_mm, src_mm,
- 							dst_pte, src_pte,
--							vma, addr, rss);
-+							src_vma, addr, rss);
- 			if (entry.val)
- 				break;
- 			progress += 8;
- 			continue;
- 		}
- 		/* copy_present_pte() will clear `*prealloc' if consumed */
--		ret = copy_present_pte(dst_mm, src_mm, dst_pte, src_pte,
--				       vma, new, addr, rss, &prealloc);
-+		ret = copy_present_pte(dst_vma, src_vma, dst_pte, src_pte,
-+				       addr, rss, &prealloc);
- 		/*
- 		 * If we need a pre-allocated page for this pte, drop the
- 		 * locks, allocate, and try again.
-@@ -1048,7 +1047,7 @@ again:
- 		entry.val = 0;
- 	} else if (ret) {
- 		WARN_ON_ONCE(ret != -EAGAIN);
--		prealloc = page_copy_prealloc(src_mm, vma, addr);
-+		prealloc = page_copy_prealloc(src_mm, src_vma, addr);
- 		if (!prealloc)
- 			return -ENOMEM;
- 		/* We've captured and resolved the error. Reset, try again. */
-@@ -1062,12 +1061,13 @@ out:
- 	return ret;
- }
- 
--static inline int copy_pmd_range(pud_t *dst_pud, pud_t *src_pud,
--		struct vm_area_struct *vma, struct vm_area_struct *new,
--		unsigned long addr, unsigned long end)
-+static inline int
-+copy_pmd_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+	       pud_t *dst_pud, pud_t *src_pud, unsigned long addr,
-+	       unsigned long end)
- {
--	struct mm_struct *dst_mm = new->vm_mm;
--	struct mm_struct *src_mm = vma->vm_mm;
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
-+	struct mm_struct *src_mm = src_vma->vm_mm;
- 	pmd_t *src_pmd, *dst_pmd;
- 	unsigned long next;
- 
-@@ -1080,9 +1080,9 @@ static inline int copy_pmd_range(pud_t *
- 		if (is_swap_pmd(*src_pmd) || pmd_trans_huge(*src_pmd)
- 			|| pmd_devmap(*src_pmd)) {
- 			int err;
--			VM_BUG_ON_VMA(next-addr != HPAGE_PMD_SIZE, vma);
-+			VM_BUG_ON_VMA(next-addr != HPAGE_PMD_SIZE, src_vma);
- 			err = copy_huge_pmd(dst_mm, src_mm,
--					    dst_pmd, src_pmd, addr, vma);
-+					    dst_pmd, src_pmd, addr, src_vma);
- 			if (err == -ENOMEM)
- 				return -ENOMEM;
- 			if (!err)
-@@ -1091,18 +1091,20 @@ static inline int copy_pmd_range(pud_t *
- 		}
- 		if (pmd_none_or_clear_bad(src_pmd))
- 			continue;
--		if (copy_pte_range(dst_pmd, src_pmd, vma, new, addr, next))
-+		if (copy_pte_range(dst_vma, src_vma, dst_pmd, src_pmd,
-+				   addr, next))
- 			return -ENOMEM;
- 	} while (dst_pmd++, src_pmd++, addr = next, addr != end);
- 	return 0;
- }
- 
--static inline int copy_pud_range(p4d_t *dst_p4d, p4d_t *src_p4d,
--		struct vm_area_struct *vma, struct vm_area_struct *new,
--		unsigned long addr, unsigned long end)
-+static inline int
-+copy_pud_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+	       p4d_t *dst_p4d, p4d_t *src_p4d, unsigned long addr,
-+	       unsigned long end)
- {
--	struct mm_struct *dst_mm = new->vm_mm;
--	struct mm_struct *src_mm = vma->vm_mm;
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
-+	struct mm_struct *src_mm = src_vma->vm_mm;
- 	pud_t *src_pud, *dst_pud;
- 	unsigned long next;
- 
-@@ -1115,9 +1117,9 @@ static inline int copy_pud_range(p4d_t *
- 		if (pud_trans_huge(*src_pud) || pud_devmap(*src_pud)) {
- 			int err;
- 
--			VM_BUG_ON_VMA(next-addr != HPAGE_PUD_SIZE, vma);
-+			VM_BUG_ON_VMA(next-addr != HPAGE_PUD_SIZE, src_vma);
- 			err = copy_huge_pud(dst_mm, src_mm,
--					    dst_pud, src_pud, addr, vma);
-+					    dst_pud, src_pud, addr, src_vma);
- 			if (err == -ENOMEM)
- 				return -ENOMEM;
- 			if (!err)
-@@ -1126,17 +1128,19 @@ static inline int copy_pud_range(p4d_t *
- 		}
- 		if (pud_none_or_clear_bad(src_pud))
- 			continue;
--		if (copy_pmd_range(dst_pud, src_pud, vma, new, addr, next))
-+		if (copy_pmd_range(dst_vma, src_vma, dst_pud, src_pud,
-+				   addr, next))
- 			return -ENOMEM;
- 	} while (dst_pud++, src_pud++, addr = next, addr != end);
- 	return 0;
- }
- 
--static inline int copy_p4d_range(pgd_t *dst_pgd, pgd_t *src_pgd,
--		struct vm_area_struct *vma, struct vm_area_struct *new,
--		unsigned long addr, unsigned long end)
-+static inline int
-+copy_p4d_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+	       pgd_t *dst_pgd, pgd_t *src_pgd, unsigned long addr,
-+	       unsigned long end)
- {
--	struct mm_struct *dst_mm = new->vm_mm;
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
- 	p4d_t *src_p4d, *dst_p4d;
- 	unsigned long next;
- 
-@@ -1148,20 +1152,22 @@ static inline int copy_p4d_range(pgd_t *
- 		next = p4d_addr_end(addr, end);
- 		if (p4d_none_or_clear_bad(src_p4d))
- 			continue;
--		if (copy_pud_range(dst_p4d, src_p4d, vma, new, addr, next))
-+		if (copy_pud_range(dst_vma, src_vma, dst_p4d, src_p4d,
-+				   addr, next))
- 			return -ENOMEM;
- 	} while (dst_p4d++, src_p4d++, addr = next, addr != end);
- 	return 0;
- }
- 
--int copy_page_range(struct vm_area_struct *vma, struct vm_area_struct *new)
-+int
-+copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
- {
- 	pgd_t *src_pgd, *dst_pgd;
- 	unsigned long next;
--	unsigned long addr = vma->vm_start;
--	unsigned long end = vma->vm_end;
--	struct mm_struct *dst_mm = new->vm_mm;
--	struct mm_struct *src_mm = vma->vm_mm;
-+	unsigned long addr = src_vma->vm_start;
-+	unsigned long end = src_vma->vm_end;
-+	struct mm_struct *dst_mm = dst_vma->vm_mm;
-+	struct mm_struct *src_mm = src_vma->vm_mm;
- 	struct mmu_notifier_range range;
- 	bool is_cow;
- 	int ret;
-@@ -1172,19 +1178,19 @@ int copy_page_range(struct vm_area_struc
- 	 * readonly mappings. The tradeoff is that copy_page_range is more
- 	 * efficient than faulting.
- 	 */
--	if (!(vma->vm_flags & (VM_HUGETLB | VM_PFNMAP | VM_MIXEDMAP)) &&
--			!vma->anon_vma)
-+	if (!(src_vma->vm_flags & (VM_HUGETLB | VM_PFNMAP | VM_MIXEDMAP)) &&
-+	    !src_vma->anon_vma)
- 		return 0;
- 
--	if (is_vm_hugetlb_page(vma))
--		return copy_hugetlb_page_range(dst_mm, src_mm, vma);
-+	if (is_vm_hugetlb_page(src_vma))
-+		return copy_hugetlb_page_range(dst_mm, src_mm, src_vma);
- 
--	if (unlikely(vma->vm_flags & VM_PFNMAP)) {
-+	if (unlikely(src_vma->vm_flags & VM_PFNMAP)) {
- 		/*
- 		 * We do not free on error cases below as remove_vma
- 		 * gets called on error from higher level routine
- 		 */
--		ret = track_pfn_copy(vma);
-+		ret = track_pfn_copy(src_vma);
- 		if (ret)
- 			return ret;
- 	}
-@@ -1195,11 +1201,11 @@ int copy_page_range(struct vm_area_struc
- 	 * parent mm. And a permission downgrade will only happen if
- 	 * is_cow_mapping() returns true.
- 	 */
--	is_cow = is_cow_mapping(vma->vm_flags);
-+	is_cow = is_cow_mapping(src_vma->vm_flags);
- 
- 	if (is_cow) {
- 		mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
--					0, vma, src_mm, addr, end);
-+					0, src_vma, src_mm, addr, end);
- 		mmu_notifier_invalidate_range_start(&range);
- 	}
- 
-@@ -1210,8 +1216,8 @@ int copy_page_range(struct vm_area_struc
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(src_pgd))
- 			continue;
--		if (unlikely(copy_p4d_range(dst_pgd, src_pgd,
--					    vma, new, addr, next))) {
-+		if (unlikely(copy_p4d_range(dst_vma, src_vma, dst_pgd, src_pgd,
-+					    addr, next))) {
- 			ret = -ENOMEM;
- 			break;
- 		}
+ 	struct mm_struct *mm =3D current->mm;
+ 	struct vm_area_struct *vma;
++	unsigned int gup_flags =3D FOLL_WRITE | FOLL_FORCE;
+ 	int ret =3D 0;
+ 	int err;
+ 	int locked;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
-mm-remove-src-dst-mm-parameter-in-copy_page_range.patch
-mm-remove-src-dst-mm-parameter-in-copy_page_range-v2.patch
+mm-frame-vec-drop-gup_flags-from-get_vaddr_frames.patch
+mm-frame-vec-use-foll_longterm.patch
 
