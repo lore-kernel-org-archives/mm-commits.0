@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E43E9C35257
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:29:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72DCEC35257
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 22:07:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B077321789
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:29:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2592620754
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 22:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601674173;
-	bh=c85NQ47ruLK3TQUqWi5qg4Vg2CaLSrzf70Vpecr5NAM=;
+	s=default; t=1601676441;
+	bh=VmrtmSeCMMTwOEfHRx0X11n/H6kNTfeNouTYudQ2v8I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=B2+W78g/BF4Gi4SCP0XZMCHaSspFsQz93yfAEna4PKH7ZBcWdcsgFQAO9YOMPYHMv
-	 MGRlgx5Qr6BomxEN3dJcE2x2d37pEdNj2xddLynacxlENBUGcyENNT/pG3XxTo3mIV
-	 l/VvsKodPRWXc1kQQZcEV/Hbu5aNKU7C9qO32Jkk=
+	b=DYTvCpPGelMJgeqy88UMZMenxu0HQ34CFOzFh7aR3Nu4eOezwBjiqaYkIkGc8oidk
+	 P73KjQC3RR8tyoPdKOeNU4xNoVQg68ScTRsYj3u05R/3aMWl0eJl3V4Oqkjx2dl+lv
+	 EpwfN6zU4NDqCd1u8r1AvU5MyO969RTBORM0Uabg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725774AbgJBV3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Oct 2020 17:29:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43270 "EHLO mail.kernel.org"
+        id S1725601AbgJBWHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Oct 2020 18:07:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725768AbgJBV3d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Oct 2020 17:29:33 -0400
+        id S1725446AbgJBWHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Oct 2020 18:07:20 -0400
 Received: from X1 (c-76-21-107-111.hsd1.ca.comcast.net [76.21.107.111])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AC6C721707;
-        Fri,  2 Oct 2020 21:29:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DBDCF20719;
+        Fri,  2 Oct 2020 22:07:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601674172;
-        bh=c85NQ47ruLK3TQUqWi5qg4Vg2CaLSrzf70Vpecr5NAM=;
+        s=default; t=1601676440;
+        bh=VmrtmSeCMMTwOEfHRx0X11n/H6kNTfeNouTYudQ2v8I=;
         h=Date:From:To:Subject:From;
-        b=Q6njLSxl9UAblNLFPYDB1wROjmIUluif/OLBkiDA78FUbi4kkEXm806rvitMmpE5I
-         o38aCmF65ZNizaDNKHFy/fgb6xnmTda4MvR9zDhApkNBgJ4gic+HmR68vllaXvEDRr
-         iIpfBe3Oyy3P6LwNRfLFnthVKddmkofvnb1GuLsc=
-Date:   Fri, 02 Oct 2020 14:29:32 -0700
+        b=Dbbr3zkY2Wx0i2JPjdWLWxgREZnJgd8qCIKTNmWCElcr6nH2kjMkMl9nDlc6O+k9o
+         qPxq7gwtvq9EPnpM/daCTK8vTbt5/PKskzzvMWK+9ur+Qp007t3SkR92phiLwilct0
+         I+Qn4w08FV217DRLfDNNT7O7Ng9Q5hsxtb1kZV7Q=
+Date:   Fri, 02 Oct 2020 15:07:19 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, hch@lst.de
-Subject:  +
- mm-remove-the-filename-in-the-top-of-file-comment-in-vmallocc.patch added to
+To:     mm-commits@vger.kernel.org, sjayaram@akamai.com, shuah@kernel.org,
+        mgorman@techsingularity.net, jhubbard@nvidia.com
+Subject:  + selftests-vm-8x-compaction_test-speedup.patch added to
  -mm tree
-Message-ID: <20201002212932.bMTNN%akpm@linux-foundation.org>
+Message-ID: <20201002220719.8cX5r%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove the filename in the top of file comment in vmalloc.c
+     Subject: selftests/vm: 8x compaction_test speedup
 has been added to the -mm tree.  Its filename is
-     mm-remove-the-filename-in-the-top-of-file-comment-in-vmallocc.patch
+     selftests-vm-8x-compaction_test-speedup.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-the-filename-in-the-top-of-file-comment-in-vmallocc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-8x-compaction_test-speedup.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-the-filename-in-the-top-of-file-comment-in-vmallocc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-8x-compaction_test-speedup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,44 +74,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove the filename in the top of file comment in vmalloc.c
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: 8x compaction_test speedup
 
-No point in having the filename inside the file.
+This patch reduces the running time for compaction_test from about 27 sec,
+to 3.3 sec, which is about an 8x speedup.
 
-Link: https://lkml.kernel.org/r/20201002124035.1539300-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+These numbers are for an Intel x86_64 system with 32 GB of DRAM.
+
+The compaction_test.c program was spending most of its time doing mmap(),
+1 MB at a time, on about 25 GB of memory.
+
+Instead, do the mmaps 100 MB at a time.  (Going past 100 MB doesn't make
+things go much faster, because other parts of the program are using the
+remaining time.)
+
+Link: https://lkml.kernel.org/r/20201002080621.551044-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sri Jayaramappa <sjayaram@akamai.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ tools/testing/selftests/vm/compaction_test.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/vmalloc.c~mm-remove-the-filename-in-the-top-of-file-comment-in-vmallocc
-+++ a/mm/vmalloc.c
-@@ -1,7 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /*
-- *  linux/mm/vmalloc.c
-- *
-  *  Copyright (C) 1993  Linus Torvalds
-  *  Support of BIGMEM added by Gerhard Wichert, Siemens AG, July 1999
-  *  SMP-safe vmalloc/vfree/ioremap, Tigran Aivazian <tigran@veritas.com>, May 2000
+--- a/tools/testing/selftests/vm/compaction_test.c~selftests-vm-8x-compaction_test-speedup
++++ a/tools/testing/selftests/vm/compaction_test.c
+@@ -18,7 +18,8 @@
+ 
+ #include "../kselftest.h"
+ 
+-#define MAP_SIZE 1048576
++#define MAP_SIZE_MB	100
++#define MAP_SIZE	(MAP_SIZE_MB * 1024 * 1024)
+ 
+ struct map_list {
+ 	void *map;
+@@ -165,7 +166,7 @@ int main(int argc, char **argv)
+ 	void *map = NULL;
+ 	unsigned long mem_free = 0;
+ 	unsigned long hugepage_size = 0;
+-	unsigned long mem_fragmentable = 0;
++	long mem_fragmentable_MB = 0;
+ 
+ 	if (prereq() != 0) {
+ 		printf("Either the sysctl compact_unevictable_allowed is not\n"
+@@ -190,9 +191,9 @@ int main(int argc, char **argv)
+ 		return -1;
+ 	}
+ 
+-	mem_fragmentable = mem_free * 0.8 / 1024;
++	mem_fragmentable_MB = mem_free * 0.8 / 1024;
+ 
+-	while (mem_fragmentable > 0) {
++	while (mem_fragmentable_MB > 0) {
+ 		map = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
+ 			   MAP_ANONYMOUS | MAP_PRIVATE | MAP_LOCKED, -1, 0);
+ 		if (map == MAP_FAILED)
+@@ -213,7 +214,7 @@ int main(int argc, char **argv)
+ 		for (i = 0; i < MAP_SIZE; i += page_size)
+ 			*(unsigned long *)(map + i) = (unsigned long)map + i;
+ 
+-		mem_fragmentable--;
++		mem_fragmentable_MB -= MAP_SIZE_MB;
+ 	}
+ 
+ 	for (entry = list; entry != NULL; entry = entry->next) {
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-add-a-vm_map_put_pages-flag-for-vmap.patch
-mm-add-a-vmap_pfn-function.patch
-mm-allow-a-null-fn-callback-in-apply_to_page_range.patch
-zsmalloc-switch-from-alloc_vm_area-to-get_vm_area.patch
-drm-i915-use-vmap-in-shmem_pin_map.patch
-drm-i915-stop-using-kmap-in-i915_gem_object_map.patch
-drm-i915-use-vmap-in-i915_gem_object_map.patch
-xen-xenbus-use-apply_to_page_range-directly-in-xenbus_map_ring_pv.patch
-x86-xen-open-code-alloc_vm_area-in-arch_gnttab_valloc.patch
-mm-remove-alloc_vm_area.patch
-mm-cleanup-the-gfp_mask-handling-in-__vmalloc_area_node.patch
-mm-remove-the-filename-in-the-top-of-file-comment-in-vmallocc.patch
+mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
+mm-gup-protect-unpin_user_pages-against-npages==-errno.patch
+selftests-vm-fix-false-build-success-on-the-second-and-later-attempts.patch
+selftests-vm-fix-incorrect-gcc-invocation-in-some-cases.patch
+selftests-vm-8x-compaction_test-speedup.patch
 
