@@ -7,42 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F22A9C35257
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 22:09:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9F4EC35257
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 22:11:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9ADC020738
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 22:09:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 913892068E
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 22:11:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601676596;
-	bh=TWQu0ezLRdA/s8Mel8+6pr8oCxweH0eJxUOD2ORmo2E=;
+	s=default; t=1601676691;
+	bh=MO4fbe3NEqKTW4PEltHPgL7VOQ3rFpKzgVEjaz8FC/c=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=cgkdQDb3XKtuhb7HTW+kqK+kwYLlFE7U5wFGHTfT1lACVeE5J8zFnDj8eV0SZhioe
-	 0CzE2fhmJlWm8Rlb27zFVQAHhXWTRn+4c/Cv325GuN/6aY3KnL+9KFL5GyFOWGJZh9
-	 OftSMPGBiA8dATQZ/fNAdYK6jAfjWZAJf4STV45E=
+	b=Ijw949mDS3levjMkh1lueKKc6KNrWXxcJJT8+K3a95bfXE1RESZ2nldZu5hjA8j+/
+	 HIh6GCDU88R80gw0YZ2VoI6G6izY/g5wNFWUsVAdDO/Yrzl1cOVXrR8zBlgm9nF+Gn
+	 UoazUdu+9ElYZkJk6Y3qngxZNyqGzyw0ZlwbQv10=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725769AbgJBWJ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Oct 2020 18:09:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36436 "EHLO mail.kernel.org"
+        id S1725446AbgJBWLa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Oct 2020 18:11:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725283AbgJBWJ4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Oct 2020 18:09:56 -0400
+        id S1725355AbgJBWLa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Oct 2020 18:11:30 -0400
 Received: from X1 (c-76-21-107-111.hsd1.ca.comcast.net [76.21.107.111])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0A6C720719;
-        Fri,  2 Oct 2020 22:09:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B54B02068E;
+        Fri,  2 Oct 2020 22:11:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601676595;
-        bh=TWQu0ezLRdA/s8Mel8+6pr8oCxweH0eJxUOD2ORmo2E=;
+        s=default; t=1601676689;
+        bh=MO4fbe3NEqKTW4PEltHPgL7VOQ3rFpKzgVEjaz8FC/c=;
         h=Date:From:To:Subject:From;
-        b=dckmP1NAo2pu8ocWTy8x41CAgT1ja8dgRgggxXBwmE7EYmRpzImBjlljuS3hnvlsE
-         smQ3WMBYUBOwmvjXcXTJ6vAOxW4Pzkr503hj6Y4b9K0JymOXgQHcoiln9piClmM9rG
-         36z+o3E6IOln5PW1aUD+RNBf1hUcDBP+v1uHUVEI=
-Date:   Fri, 02 Oct 2020 15:09:54 -0700
+        b=kafkzqr4hUGQW2fe7Y2LqtXCuUt2Xzsp/BZug7qEJxgOTZVPMznHcu8NLPpkvUgfL
+         PmYh9jcJQX5Vu2bmIFGmH2+Sy1l0MhRQP2BObCrfdaVtqOhjNY9n2GglA8up0kU4Ve
+         /K/Wes1645e8FHbOOa2KLs+ilFPATwp5+R5X41bk=
+Date:   Fri, 02 Oct 2020 15:11:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + xarray-add-xas_split-fix-3patch.patch added to -mm tree
-Message-ID: <20201002220954.JlUBD%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, joe@perches.com
+Subject:  + checkpatch-emit-a-warning-on-embedded-filenames.patch
+ added to -mm tree
+Message-ID: <20201002221129.Di_V-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix xarray
+     Subject: checkpatch: emit a warning on embedded filenames
 has been added to the -mm tree.  Its filename is
-     xarray-add-xas_split-fix-3patch.patch
+     checkpatch-emit-a-warning-on-embedded-filenames.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/xarray-add-xas_split-fix-3patch.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-emit-a-warning-on-embedded-filenames.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/xarray-add-xas_split-fix-3patch.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-emit-a-warning-on-embedded-filenames.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,76 +73,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fix xarray
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: emit a warning on embedded filenames
 
-Testing today revealed a rather annoying bug where we can free an
-initialised node back to the slab cache without zeroing it first.  That
-ends up creating a corrupted XArray ...  whichever XArray happens to
-allocate that node next.
+Embedding the complete filename path inside the file isn't particularly
+useful as often the path is moved around and becomes incorrect.
 
-Link: https://lkml.kernel.org/r/20201001233943.GW20115@casper.infradead.org
+Emit a warning when the source contains the filename.
 
+Link: https://lkml.kernel.org/r/1fd5f9188a14acdca703ca00301ee323de672a8d.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/lib/xarray.c~xarray-add-xas_split-fix-3patch
-+++ a/lib/xarray.c
-@@ -271,8 +271,7 @@ static void xas_destroy(struct xa_state
- 	while (node) {
- 		XA_NODE_BUG_ON(node, !list_empty(&node->private_list));
- 		next = rcu_dereference_raw(node->parent);
--		/* XXX: need to free children */
--		kmem_cache_free(radix_tree_node_cachep, node);
-+		radix_tree_node_rcu_free(&node->rcu_head);
- 		xas->xa_alloc = node = next;
- 	}
- }
+--- a/scripts/checkpatch.pl~checkpatch-emit-a-warning-on-embedded-filenames
++++ a/scripts/checkpatch.pl
+@@ -3273,6 +3273,12 @@ sub process {
+ 			}
+ 		}
+ 
++# check for embedded filenames
++		if ($rawline =~ /^\+.*\Q$realfile\E/) { di
++			WARN("EMBEDDED_FILENAME",
++			     "It's generally not useful to have the filename in the file\n" . $herecurr);
++		}
++
+ # check we are in a valid source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c|s|S|sh|dtsi|dts)$/);
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-debug-do-not-dereference-i_ino-blindly.patch
-mm-factor-find_get_incore_page-out-of-mincore_page.patch
-mm-use-find_get_incore_page-in-memcontrol.patch
-mm-optimise-madvise-willneed.patch
-mm-optimise-madvise-willneed-fix.patch
-proc-optimise-smaps-for-shmem-entries.patch
-i915-use-find_lock_page-instead-of-find_lock_entry.patch
-mm-convert-find_get_entry-to-return-the-head-page.patch
-mm-convert-find_get_entry-to-return-the-head-page-fix.patch
-mm-shmem-return-head-page-from-find_lock_entry.patch
-mm-shmem-return-head-page-from-find_lock_entry-fix.patch
-mm-add-find_lock_head.patch
-mm-filemap-fix-filemap_map_pages-for-thp.patch
-mm-account-pmd-tables-like-pte-tables.patch
-mm-move-pagedoublemap-bit.patch
-mm-simplify-pagedoublemap-with-pf_second-policy.patch
-page_alloc-fix-freeing-non-compound-pages.patch
-xarray-add-xa_get_order.patch
-xarray-add-xas_split.patch
-xarray-add-xas_split-fix-2.patch
-xarray-add-xas_split-fix-3patch.patch
-mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
-mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
-mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
-mm-page_owner-change-split_page_owner-to-take-a-count.patch
-mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
-mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
-mm-rmap-fix-assumptions-of-thp-size.patch
-mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
-mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
-mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
-fs-add-a-filesystem-flag-for-thps.patch
-fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
-mm-readahead-add-define_readahead.patch
-mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
-mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
-mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
-ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
-harden-autofs-ioctl-table.patch
-mm-update-the-documentation-for-vfree.patch
+get_maintainer-add-test-for-file-in-vcs.patch
+get_maintainer-exclude-maintainers-files-from-git-fallback.patch
+checkpatch-move-repeated-word-test.patch
+checkpatch-add-test-for-comma-use-that-should-be-semicolon.patch
+checkpatch-warn-on-self-assignments.patch
+checkpatch-allow-not-using-f-with-files-that-are-in-git.patch
+checkpatch-allow-not-using-f-with-files-that-are-in-git-fix.patch
+checkpatch-test-git_dir-changes.patch
+checkpatch-emit-a-warning-on-embedded-filenames.patch
 
