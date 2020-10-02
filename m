@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD158C4363D
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:29:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F275C35257
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:29:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9609208C7
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:29:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13854208C7
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 21:29:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601674156;
-	bh=D+odAPunAbTgfiYEV4XCpHPsJ+LGVFXGYAC9aYYBwO4=;
+	s=default; t=1601674158;
+	bh=9RxdCTo6teBh6xRgSe9AxtljwCZ+cs+2VLYH7UdoLug=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=gjygusuI8U8+WkOOCj/+ICOlqNtGvQTZicwXdAIEaJ+PhM+PJFyVDpsBgD3ueIHxc
-	 cgoy+rKClGTvo1ZXUouygp7R1O80eNVzw9Ts5TmIMUrobWgkmeJuamwUZ59DDbuxNT
-	 IemDtXkgpEFs9JlVzVmGuPotEzvqkdd2wjtFdiBQ=
+	b=cl8cFUOrMbcio78zFMD3dlaoWl18UYUxeNrbLlymaOBdVlmLnTYq3/VJQRbHn46ST
+	 9sH/V358tvhu5r2eQrNg5UkU9MoKdju1MhcoVUlR3z/fIQ/W6QsZU7AdKQjykcKMhD
+	 pj6EUMypjwJN395qB1Zzh2MVtymfceVw2arJ+OsQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725765AbgJBV3Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Oct 2020 17:29:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42908 "EHLO mail.kernel.org"
+        id S1725767AbgJBV3R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Oct 2020 17:29:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgJBV3Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Oct 2020 17:29:16 -0400
+        id S1725355AbgJBV3R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Oct 2020 17:29:17 -0400
 Received: from X1 (c-76-21-107-111.hsd1.ca.comcast.net [76.21.107.111])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C052720796;
-        Fri,  2 Oct 2020 21:29:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C19162145D;
+        Fri,  2 Oct 2020 21:29:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601674154;
-        bh=D+odAPunAbTgfiYEV4XCpHPsJ+LGVFXGYAC9aYYBwO4=;
+        s=default; t=1601674157;
+        bh=9RxdCTo6teBh6xRgSe9AxtljwCZ+cs+2VLYH7UdoLug=;
         h=Date:From:To:Subject:From;
-        b=gKhvm+oyIZMTkN/egatGRWNQ3DKaQJihl740zst6T8gFw1v8+t9mYd7YYoXXJ6yiw
-         P78AzwOybf4zhm1uFhL0eYeJQ9gI3XgRC8hNrXiMVRysqZMZbi0do27Ht/Gcr2hLtq
-         Ef5F5d67Q7sR0KEzui0pTnozV4cbSzK9hsrTwvUk=
-Date:   Fri, 02 Oct 2020 14:29:13 -0700
+        b=gbPgwFdW0yuSMp/puDNWSZcZ6RdcDcegNlpopl9w4XhwA57mWCvTdw1wbL7wu+F6H
+         NRD8XL9lvfzvV6FkirRBdTDC4LlykS86cb2rum+Xdglh6pkS9e3dqGNj9MXw/jZIng
+         tTu7SJYbJiLI0LHOwi2iL2HUYECEis/iwIONgVwo=
+Date:   Fri, 02 Oct 2020 14:29:16 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
         tvrtko.ursulin@intel.com, sstabellini@kernel.org,
@@ -47,9 +47,9 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
         joonas.lahtinen@linux.intel.com, jgross@suse.com,
         jani.nikula@linux.intel.com, chris@chris-wilson.co.uk,
         boris.ostrovsky@oracle.com, hch@lst.de
-Subject:  + drm-i915-use-vmap-in-shmem_pin_map.patch added to -mm
- tree
-Message-ID: <20201002212913.TyE-i%akpm@linux-foundation.org>
+Subject:  + drm-i915-stop-using-kmap-in-i915_gem_object_map.patch
+ added to -mm tree
+Message-ID: <20201002212916.vcKB-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/i915: use vmap in shmem_pin_map
+     Subject: drm/i915: stop using kmap in i915_gem_object_map
 has been added to the -mm tree.  Its filename is
-     drm-i915-use-vmap-in-shmem_pin_map.patch
+     drm-i915-stop-using-kmap-in-i915_gem_object_map.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/drm-i915-use-vmap-in-shmem_pin_map.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/drm-i915-stop-using-kmap-in-i915_gem_object_map.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-use-vmap-in-shmem_pin_map.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-stop-using-kmap-in-i915_gem_object_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,16 +80,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: drm/i915: use vmap in shmem_pin_map
+Subject: drm/i915: stop using kmap in i915_gem_object_map
 
-shmem_pin_map somewhat awkwardly reimplements vmap using alloc_vm_area and
-manual pte setup.  The only practical difference is that alloc_vm_area
-prefeaults the vmalloc area PTEs, which doesn't seem to be required here
-(and could be added to vmap using a flag if actually required).  Switch to
-use vmap, and use vfree to free both the vmalloc mapping and the page
-array, as well as dropping the references to each page.
+kmap for !PageHighmem is just a convoluted way to say page_address, and
+kunmap is a no-op in that case.
 
-Link: https://lkml.kernel.org/r/20201002122204.1534411-7-hch@lst.de
+Link: https://lkml.kernel.org/r/20201002122204.1534411-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
@@ -108,111 +104,34 @@ Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gt/shmem_utils.c |   78 +++++-------------------
- 1 file changed, 19 insertions(+), 59 deletions(-)
+ drivers/gpu/drm/i915/gem/i915_gem_pages.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/drivers/gpu/drm/i915/gt/shmem_utils.c~drm-i915-use-vmap-in-shmem_pin_map
-+++ a/drivers/gpu/drm/i915/gt/shmem_utils.c
-@@ -49,80 +49,40 @@ struct file *shmem_create_from_object(st
- 	return file;
+--- a/drivers/gpu/drm/i915/gem/i915_gem_pages.c~drm-i915-stop-using-kmap-in-i915_gem_object_map
++++ a/drivers/gpu/drm/i915/gem/i915_gem_pages.c
+@@ -162,8 +162,6 @@ static void unmap_object(struct drm_i915
+ {
+ 	if (is_vmalloc_addr(ptr))
+ 		vunmap(ptr);
+-	else
+-		kunmap(kmap_to_page(ptr));
  }
  
--static size_t shmem_npte(struct file *file)
--{
--	return file->f_mapping->host->i_size >> PAGE_SHIFT;
--}
--
--static void __shmem_unpin_map(struct file *file, void *ptr, size_t n_pte)
--{
--	unsigned long pfn;
--
--	vunmap(ptr);
--
--	for (pfn = 0; pfn < n_pte; pfn++) {
--		struct page *page;
--
--		page = shmem_read_mapping_page_gfp(file->f_mapping, pfn,
--						   GFP_KERNEL);
--		if (!WARN_ON(IS_ERR(page))) {
--			put_page(page);
--			put_page(page);
--		}
--	}
--}
--
- void *shmem_pin_map(struct file *file)
- {
--	const size_t n_pte = shmem_npte(file);
--	pte_t *stack[32], **ptes, **mem;
--	struct vm_struct *area;
--	unsigned long pfn;
--
--	mem = stack;
--	if (n_pte > ARRAY_SIZE(stack)) {
--		mem = kvmalloc_array(n_pte, sizeof(*mem), GFP_KERNEL);
--		if (!mem)
--			return NULL;
--	}
--
--	area = alloc_vm_area(n_pte << PAGE_SHIFT, mem);
--	if (!area) {
--		if (mem != stack)
--			kvfree(mem);
-+	struct page **pages;
-+	size_t n_pages, i;
-+	void *vaddr;
-+
-+	n_pages = file->f_mapping->host->i_size >> PAGE_SHIFT;
-+	pages = kvmalloc_array(n_pages, sizeof(*pages), GFP_KERNEL);
-+	if (!pages)
- 		return NULL;
--	}
- 
--	ptes = mem;
--	for (pfn = 0; pfn < n_pte; pfn++) {
--		struct page *page;
--
--		page = shmem_read_mapping_page_gfp(file->f_mapping, pfn,
--						   GFP_KERNEL);
--		if (IS_ERR(page))
-+	for (i = 0; i < n_pages; i++) {
-+		pages[i] = shmem_read_mapping_page_gfp(file->f_mapping, i,
-+						       GFP_KERNEL);
-+		if (IS_ERR(pages[i]))
- 			goto err_page;
--
--		**ptes++ = mk_pte(page,  PAGE_KERNEL);
+ struct sg_table *
+@@ -277,11 +275,10 @@ static void *i915_gem_object_map(struct
+ 		 * forever.
+ 		 *
+ 		 * So if the page is beyond the 32b boundary, make an explicit
+-		 * vmap. On 64b, this check will be optimised away as we can
+-		 * directly kmap any page on the system.
++		 * vmap.
+ 		 */
+ 		if (!PageHighMem(page))
+-			return kmap(page);
++			return page_address(page);
  	}
  
--	if (mem != stack)
--		kvfree(mem);
--
-+	vaddr = vmap(pages, n_pages, VM_MAP_PUT_PAGES, PAGE_KERNEL);
-+	if (!vaddr)
-+		goto err_page;
- 	mapping_set_unevictable(file->f_mapping);
--	return area->addr;
--
-+	return vaddr;
- err_page:
--	if (mem != stack)
--		kvfree(mem);
--
--	__shmem_unpin_map(file, area->addr, pfn);
-+	while (--i >= 0)
-+		put_page(pages[i]);
-+	kvfree(pages);
- 	return NULL;
- }
- 
- void shmem_unpin_map(struct file *file, void *ptr)
- {
- 	mapping_clear_unevictable(file->f_mapping);
--	__shmem_unpin_map(file, ptr, shmem_npte(file));
-+	vfree(ptr);
- }
- 
- static int __shmem_rw(struct file *file, loff_t off,
+ 	mem = stack;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
