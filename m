@@ -1,4 +1,4 @@
-Return-Path: <SRS0=hqm6=DJ=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=eNRM=DK=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A4B2C35257
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 23:43:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C2CC4363C
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Oct 2020 01:00:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B41A20796
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Oct 2020 23:43:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3828F206FA
+	for <mm-commits@archiver.kernel.org>; Sat,  3 Oct 2020 01:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601682227;
-	bh=wBftZ2wis/3YjDRHhsaZU8mfTjEl+b0v0U3AK7kQess=;
+	s=default; t=1601686856;
+	bh=x3gAE/nOYInd+iPttFaupiNFpGv9PNTRZ3qKZCTo0jk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=hPiTAHQKWVy2qIgj5oqttfNVU71Q+GZ0NoYcSqHA4+4TrE9ImUHH0RRxB0SLHxcdz
-	 bplCoOndmrRxR7vEvnveiz9GERwpc1eHH+NH77oZc2ynikYMp9HdV/iIPXfCAZCVe6
-	 g1m1tSnrf2FnNh5S3RGNFR/tnno+xG16LAIyTHIQ=
+	b=ZbL1r1vJP443VX4YJYXf+I6B06Gpg1aZuFREHcJIkhRUL0qqSrq3De6NZiocMbQPk
+	 +IEDH1Vw6amYLJ2pOqTaV3UHoh9C26MuPN4mpLhOUAJM/idwkq3PJLWp/Q7IR1zRbe
+	 FUaJSC6RlYSZkVX6G1b876m6qafeNkbiP0aASZWU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725536AbgJBXnr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Oct 2020 19:43:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38328 "EHLO mail.kernel.org"
+        id S1725763AbgJCBAz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Oct 2020 21:00:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgJBXnq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 2 Oct 2020 19:43:46 -0400
+        id S1725283AbgJCBAz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 2 Oct 2020 21:00:55 -0400
 Received: from X1 (c-76-21-107-111.hsd1.ca.comcast.net [76.21.107.111])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C0C93206A2;
-        Fri,  2 Oct 2020 23:43:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E9988206F8;
+        Sat,  3 Oct 2020 01:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601682226;
-        bh=wBftZ2wis/3YjDRHhsaZU8mfTjEl+b0v0U3AK7kQess=;
+        s=default; t=1601686855;
+        bh=x3gAE/nOYInd+iPttFaupiNFpGv9PNTRZ3qKZCTo0jk=;
         h=Date:From:To:Subject:From;
-        b=0xo7Gp5pUDSrDjscUHlob2ZaUjhnTmIOV2gbaSqzmIkdSwaKkSdezwFBCgH36WJWa
-         FAHGSTqIS17dv7d7oAI3//Js/gREM4apj3bYf8JJm/aqrB6cygho/F0fxSpJ0LJp4w
-         dcgQMyyESKvpOot92B0Hp7whfotndMHH3OJe46is=
-Date:   Fri, 02 Oct 2020 16:43:45 -0700
+        b=cBFrILz7tEWvN2ZiHBnP7zuzaqqLrGBwE4x0yzQCtuyyNejmmmYoAPbW8BuXIocZQ
+         P9147XK11uKx3tgQ4VHZftNLuU2A8/ecr4+81O+RAW4HO9NO7R38PJAAxm7IWfWI3o
+         k5opps8z2LC6cFHstuJ2wfr8obP0dOzo2zx9YNDM=
+Date:   Fri, 02 Oct 2020 18:00:54 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ujjwalkumar0501@gmail.com,
-        michal.lkml@markovi.net, masahiroy@kernel.org,
-        keescook@chromium.org, corbet@lwn.net, akpm@linux-foundation.org,
-        lukas.bulwahn@gmail.com
-Subject:  + kbuild-doc-describe-proper-script-invocation.patch added
- to -mm tree
-Message-ID: <20201002234345.8Qp4z%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com
+Subject:  +
+ selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch added to
+ -mm tree
+Message-ID: <20201003010054.M-moQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: doc: describe proper script invocation
+     Subject: selftests/vm: fix an improper dependency upon executable script permissions
 has been added to the -mm tree.  Its filename is
-     kbuild-doc-describe-proper-script-invocation.patch
+     selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kbuild-doc-describe-proper-script-invocation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kbuild-doc-describe-proper-script-invocation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,81 +74,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: kbuild: doc: describe proper script invocation
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: fix an improper dependency upon executable script permissions
 
-During an investigation to fix up the execute bits of scripts in the
-kernel repository, Andrew Morton and Kees Cook pointed out that the
-execute bit should not matter, and that build scripts cannot rely on that.
-Kees could not point to any documentation, though.
+commit 30fb9454ab23 ("selftests/vm: hmm-tests: remove the libhugetlbfs
+dependency") created the new check_config.sh file without the execute bit
+set.  This is a problem because that same commit caused the Makefile to
+invoke it "./check_config.sh", so now "make" is failing in that directory.
 
-Masahiro Yamada explained the convention of setting execute bits to make
-it easier for manual script invocation.
+Scripts are not supposed to depend on the executable bit being set,
+because patch(1) doesn't set it, and using patch to install a kernel is
+supported.  Therefore, this fix involves two parts:
 
-Provide some basic documentation how the build shall invoke scripts, such
-that the execute bits do not matter, and acknowledge that execute bits are
-useful nonetheless.
+1) Invoke the new script via /bin/sh, to fix the problem, and
 
-This serves as reference for further clean-up patches in the future.
+2) As an nice touch, make check_config.sh executable as well.
 
-Link: https://lore.kernel.org/lkml/20200830174409.c24c3f67addcce0cea9a9d4c@linux-foundation.org/
-Link: https://lore.kernel.org/lkml/202008271102.FEB906C88@keescook/
-Link: https://lore.kernel.org/linux-kbuild/CAK7LNAQdrvMkDA6ApDJCGr+5db8SiPo=G+p8EiOvnnGvEN80gA@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20201001075723.24246-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ujjwal Kumar <ujjwalkumar0501@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Link: https://lkml.kernel.org/r/20201003002142.32671-2-jhubbard@nvidia.com
+Fixes: commit 30fb9454ab23 ("selftests/vm: hmm-tests: remove the libhugetlbfs dependency")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kbuild/makefiles.rst |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ tools/testing/selftests/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/kbuild/makefiles.rst~kbuild-doc-describe-proper-script-invocation
-+++ a/Documentation/kbuild/makefiles.rst
-@@ -21,6 +21,7 @@ This document describes the Linux kernel
- 	   --- 3.10 Special Rules
- 	   --- 3.11 $(CC) support functions
- 	   --- 3.12 $(LD) support functions
-+	   --- 3.13 Script Invocation
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix
++++ a/tools/testing/selftests/vm/Makefile
+@@ -138,7 +138,7 @@ $(OUTPUT)/hmm-tests: local_config.h
+ $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXTRA_LIBS)
  
- 	=== 4 Host Program support
- 	   --- 4.1 Simple Host Program
-@@ -605,6 +606,25 @@ more details, with real examples.
- 		#Makefile
- 		LDFLAGS_vmlinux += $(call ld-option, -X)
+ local_config.mk local_config.h: check_config.sh
+-	./check_config.sh $(CC)
++	/bin/sh ./check_config.sh $(CC)
  
-+3.13 Script invocation
-+----------------------
-+
-+	Make rules may invoke scripts to build the kernel. The rules shall
-+	always provide the appropriate interpreter to execute the script. They
-+	shall not rely on the execute bits being set, and shall not invoke the
-+	script directly. For the convenience of manual script invocation, such
-+	as invoking ./scripts/checkpatch.pl, it is recommended to set execute
-+	bits on the scripts nonetheless.
-+
-+	Kbuild provides variables $(CONFIG_SHELL), $(AWK), $(PERL),
-+	$(PYTHON) and $(PYTHON3) to refer to interpreters for the respective
-+	scripts.
-+
-+	Example::
-+
-+		#Makefile
-+		cmd_depmod = $(CONFIG_SHELL) $(srctree)/scripts/depmod.sh $(DEPMOD) \
-+			     $(KERNELRELEASE)
+ EXTRA_CLEAN += local_config.mk local_config.h
  
- 4 Host Program support
- ======================
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-kbuild-doc-describe-proper-script-invocation.patch
+mm-dump_page-rename-head_mapcount-head_compound_mapcount.patch
+mm-gup-protect-unpin_user_pages-against-npages==-errno.patch
+selftests-vm-fix-false-build-success-on-the-second-and-later-attempts.patch
+selftests-vm-fix-incorrect-gcc-invocation-in-some-cases.patch
+selftests-vm-8x-compaction_test-speedup.patch
+mm-gup_benchmark-rename-to-mm-gup_test.patch
+selftests-vm-use-a-common-gup_testh.patch
+selftests-vm-rename-run_vmtests-run_vmtestssh.patch
+selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
+selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
+selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
+selftests-vm-run_vmtestsh-update-and-clean-up-gup_test-invocation.patch
+selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
+selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
 
