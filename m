@@ -7,51 +7,43 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40B39C41604
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 05:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B271C41604
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 21:11:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6F52208C3
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 05:15:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9395720897
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 21:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601961356;
-	bh=zTM5VSuKUGr7+FSQKbQw+VwpMY2ZUBKhqQ6euha1RCI=;
+	s=default; t=1602018680;
+	bh=fjnDNT1KRGPP2N8NFbMfAe0L0hvhQwlI/O9FqBlFtUM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Ys8WpQZHBwsHGO8OtJOScyhkMnCtf4QX73Q0RMU6JRCSiT+RZfpVKoHqypnDnv/u2
-	 DkamZ4d5TlW4RENBG95bj7KM3t8gRZpYMEQSfqbVNVVCe+g0ycQuHefjdZw7ulxN2Q
-	 5JhP+TSj5su8GiCz1cpV/J7fhOQaGgKbz75aullE=
+	b=tQqOHa19JQwmIq/amTIXkulvesZQPzWyN744gF/GbygoYqWXK5ldtGLwUCFCvf3ku
+	 Ih4gBHiFSiKLeg/swLRNFC96FziSUz9HAahHh+fhiAH0zN3G/nk+VLTf7kjfc5NaCc
+	 n4wJllvq9irMdFqZ1NV/So8R/6+8sttx0DjaDw3A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725922AbgJFFP4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Oct 2020 01:15:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48742 "EHLO mail.kernel.org"
+        id S1727166AbgJFVLU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Oct 2020 17:11:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725912AbgJFFP4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Oct 2020 01:15:56 -0400
-Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
+        id S1727345AbgJFVLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Oct 2020 17:11:20 -0400
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2F07320870;
-        Tue,  6 Oct 2020 05:15:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 988D52087E;
+        Tue,  6 Oct 2020 21:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601961355;
-        bh=zTM5VSuKUGr7+FSQKbQw+VwpMY2ZUBKhqQ6euha1RCI=;
+        s=default; t=1602018678;
+        bh=fjnDNT1KRGPP2N8NFbMfAe0L0hvhQwlI/O9FqBlFtUM=;
         h=Date:From:To:Subject:From;
-        b=jeKBt74NSeTqM3ItYWG33x7dNyMCZ4jrNSEQ7ku0g089L1nO3c5e0a+8HgCXOTb3U
-         G/AeZvsiUrFcM7+xrcnqRTiL5l5v/r3Twqw4qNCzkWA0NkpkCGSZo8Mu7XBxpPsI1u
-         bNqs2h8Ze206CrYA8q4DsrfsBK/PmEYKfs8A06kc=
-Date:   Mon, 05 Oct 2020 22:15:53 -0700
+        b=Vzr9y0cfh72uM5nQvysD1j1kowg/8IjJnQCy7U6sgD3jgsl1TIzrKOMkxBY2rvH0F
+         sOVh/Rz2eaS4UrMUg3y0q8OlFqlo67iXMkJtBlf+TFJ4dgK/Wv1lR/jXD3fbSz+kd4
+         nI1mMk31hbpYxAm5OJlZ6xjV+EWTJqVshOfvkwIA=
+Date:   Tue, 06 Oct 2020 14:11:17 -0700
 From:   akpm@linux-foundation.org
-To:     alexander.h.duyck@linux.intel.com, cheloha@linux.ibm.com,
-        dave.hansen@intel.com, david@redhat.com, haiyangz@microsoft.com,
-        kys@microsoft.com, mgorman@techsingularity.net, mhocko@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        osalvador@suse.de, pankaj.gupta.linux@gmail.com,
-        richard.weiyang@linux.alibaba.com, rppt@kernel.org,
-        sthemmin@microsoft.com, vbabka@suse.cz, wei.liu@kernel.org,
-        willy@infradead.org
-Subject:  +
- mm-page_alloc-convert-report-flag-of-__free_one_page-to-a-proper-flag.patch
- added to -mm tree
-Message-ID: <20201006051553.9kRAwOg9S%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20201006211117.ASrC6G8EP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -60,310 +52,494 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: convert "report" flag of __free_one_page() to a proper flag
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-convert-report-flag-of-__free_one_page-to-a-proper-flag.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-convert-report-flag-of-__free_one_page-to-a-proper-flag.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-convert-report-flag-of-__free_one_page-to-a-proper-flag.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: convert "report" flag of __free_one_page() to a proper flag
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Patch series "mm: place pages to the freelist tail when onlining and undoing isolation", v2.
-
-When adding separate memory blocks via add_memory*() and onlining them
-immediately, the metadata (especially the memmap) of the next block will
-be placed onto one of the just added+onlined block.  This creates a chain
-of unmovable allocations: If the last memory block cannot get
-offlined+removed() so will all dependent ones.  We directly have unmovable
-allocations all over the place.
-
-This can be observed quite easily using virtio-mem, however, it can also
-be observed when using DIMMs.  The freshly onlined pages will usually be
-placed to the head of the freelists, meaning they will be allocated next,
-turning the just-added memory usually immediately un-removable.  The fresh
-pages are cold, prefering to allocate others (that might be hot) also
-feels to be the natural thing to do.
-
-It also applies to the hyper-v balloon xen-balloon, and ppc64 dlpar: when
-adding separate, successive memory blocks, each memory block will have
-unmovable allocations on them - for example gigantic pages will fail to
-allocate.
-
-While the ZONE_NORMAL doesn't provide any guarantees that memory can get
-offlined+removed again (any kind of fragmentation with unmovable
-allocations is possible), there are many scenarios (hotplugging a lot of
-memory, running workload, hotunplug some memory/as much as possible) where
-we can offline+remove quite a lot with this patchset.
-
-a) To visualize the problem, a very simple example:
-
-Start a VM with 4GB and 8GB of virtio-mem memory:
-
- [root@localhost ~]# lsmem
- RANGE                                 SIZE  STATE REMOVABLE  BLOCK
- 0x0000000000000000-0x00000000bfffffff   3G online       yes   0-23
- 0x0000000100000000-0x000000033fffffff   9G online       yes 32-103
-
- Memory block size:       128M
- Total online memory:      12G
- Total offline memory:      0B
-
-Then try to unplug as much as possible using virtio-mem. Observe which
-memory blocks are still around. Without this patch set:
-
- [root@localhost ~]# lsmem
- RANGE                                  SIZE  STATE REMOVABLE   BLOCK
- 0x0000000000000000-0x00000000bfffffff    3G online       yes    0-23
- 0x0000000100000000-0x000000013fffffff    1G online       yes   32-39
- 0x0000000148000000-0x000000014fffffff  128M online       yes      41
- 0x0000000158000000-0x000000015fffffff  128M online       yes      43
- 0x0000000168000000-0x000000016fffffff  128M online       yes      45
- 0x0000000178000000-0x000000017fffffff  128M online       yes      47
- 0x0000000188000000-0x0000000197ffffff  256M online       yes   49-50
- 0x00000001a0000000-0x00000001a7ffffff  128M online       yes      52
- 0x00000001b0000000-0x00000001b7ffffff  128M online       yes      54
- 0x00000001c0000000-0x00000001c7ffffff  128M online       yes      56
- 0x00000001d0000000-0x00000001d7ffffff  128M online       yes      58
- 0x00000001e0000000-0x00000001e7ffffff  128M online       yes      60
- 0x00000001f0000000-0x00000001f7ffffff  128M online       yes      62
- 0x0000000200000000-0x0000000207ffffff  128M online       yes      64
- 0x0000000210000000-0x0000000217ffffff  128M online       yes      66
- 0x0000000220000000-0x0000000227ffffff  128M online       yes      68
- 0x0000000230000000-0x0000000237ffffff  128M online       yes      70
- 0x0000000240000000-0x0000000247ffffff  128M online       yes      72
- 0x0000000250000000-0x0000000257ffffff  128M online       yes      74
- 0x0000000260000000-0x0000000267ffffff  128M online       yes      76
- 0x0000000270000000-0x0000000277ffffff  128M online       yes      78
- 0x0000000280000000-0x0000000287ffffff  128M online       yes      80
- 0x0000000290000000-0x0000000297ffffff  128M online       yes      82
- 0x00000002a0000000-0x00000002a7ffffff  128M online       yes      84
- 0x00000002b0000000-0x00000002b7ffffff  128M online       yes      86
- 0x00000002c0000000-0x00000002c7ffffff  128M online       yes      88
- 0x00000002d0000000-0x00000002d7ffffff  128M online       yes      90
- 0x00000002e0000000-0x00000002e7ffffff  128M online       yes      92
- 0x00000002f0000000-0x00000002f7ffffff  128M online       yes      94
- 0x0000000300000000-0x0000000307ffffff  128M online       yes      96
- 0x0000000310000000-0x0000000317ffffff  128M online       yes      98
- 0x0000000320000000-0x0000000327ffffff  128M online       yes     100
- 0x0000000330000000-0x000000033fffffff  256M online       yes 102-103
-
- Memory block size:       128M
- Total online memory:     8.1G
- Total offline memory:      0B
-
-With this patch set:
-
- [root@localhost ~]# lsmem
- RANGE                                 SIZE  STATE REMOVABLE BLOCK
- 0x0000000000000000-0x00000000bfffffff   3G online       yes  0-23
- 0x0000000100000000-0x000000013fffffff   1G online       yes 32-39
-
- Memory block size:       128M
- Total online memory:       4G
- Total offline memory:      0B
-
-All memory can get unplugged, all memory block can get removed.  Of
-course, no workload ran and the system was basically idle, but it
-highlights the issue - the fairly deterministic chain of unmovable
-allocations.  When a huge page for the 2MB memmap is needed, a
-just-onlined 4MB page will be split.  The remaining 2MB page will be used
-for the memmap of the next memory block.  So one memory block will hold
-the memmap of the two following memory blocks.  Finally the pages of the
-last-onlined memory block will get used for the next bigger allocations -
-if any allocation is unmovable, all dependent memory blocks cannot get
-unplugged and removed until that allocation is gone.
-
-Note that with bigger memory blocks (e.g., 256MB), *all* memory
-blocks are dependent and none can get unplugged again!
-
-b) Experiment with memory intensive workload
-
-I performed an experiment with an older version of this patch set (before
-we used undo_isolate_page_range() in online_pages(): Hotplug 56GB to a VM
-with an initial 4GB, onlining all memory to ZONE_NORMAL right from the
-kernel when adding it.  I then run various memory intensive workloads that
-consume most system memory for a total of 45 minutes.  Once finished, I
-try to unplug as much memory as possible.
-
-With this change, I am able to remove via virtio-mem (adding individual
-128MB memory blocks) 413 out of 448 added memory blocks.  Via individual
-(256MB) DIMMs 380 out of 448 added memory blocks.  (I don't have any
-numbers without this patchset, but looking at the above example, it's at
-most half of the 448 memory blocks for virtio-mem, and most probably none
-for DIMMs).
-
-Again, there are workloads that might behave very differently due to the
-nature of ZONE_NORMAL.
-
-This change also affects (besides memory onlining):
-- Other users of undo_isolate_page_range(): Pages are always placed to the
-  tail.
--- When memory offlining fails
--- When memory isolation fails after having isolated some pageblocks
--- When alloc_contig_range() either succeeds or fails
-- Other users of __putback_isolated_page(): Pages are always placed to the
-  tail.
--- Free page reporting
-- Other users of __free_pages_core()
--- AFAIKs, any memory that is getting exposed to the buddy during boot.
-   IIUC we will now usually allocate memory from lower addresses within
-   a zone first (especially during boot).
-- Other users of generic_online_page()
--- Hyper-V balloon
-
-
-This patch (of 5):
-
-Let's prepare for additional flags and avoid long parameter lists of
-bools.  Follow-up patches will also make use of the flags in
-__free_pages_ok().
-
-Link: https://lkml.kernel.org/r/20201005121534.15649-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20201005121534.15649-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ drivers/gpio/gpio-mockup.c                           |    8 
+ drivers/net/ethernet/realtek/r8169_main.c            |    7 
+ drivers/net/ethernet/stmicro/stmmac/stmmac_ethtool.c |   16 
+ drivers/net/phy/Kconfig                              |  244 ----------
+ drivers/net/phy/realtek.c                            |    3 
+ fs/btrfs/dev-replace.c                               |   20 
+ net/mptcp/protocol.c                                 |    6 
+ net/mptcp/protocol.h                                 |    3 
+ tools/lib/bpf/btf.c                                  |   10 
+ 9 files changed, 317 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-convert-report-flag-of-__free_one_page-to-a-proper-flag
-+++ a/mm/page_alloc.c
-@@ -78,6 +78,22 @@
- #include "shuffle.h"
- #include "page_reporting.h"
+--- a/drivers/gpio/gpio-mockup.c~linux-next-git-rejects
++++ a/drivers/gpio/gpio-mockup.c
+@@ -577,11 +577,7 @@ static int __init gpio_mockup_init(void)
  
-+/* Free Page Internal flags: for internal, non-pcp variants of free_pages(). */
-+typedef int __bitwise fpi_t;
-+
-+/* No special request */
-+#define FPI_NONE		((__force fpi_t)0)
-+
-+/*
-+ * Skip free page reporting notification for the (possibly merged) page.
-+ * This does not hinder free page reporting from grabbing the page,
-+ * reporting it and marking it "reported" -  it only skips notifying
-+ * the free page reporting infrastructure about a newly freed page. For
-+ * example, used when temporarily pulling a page from a freelist and
-+ * putting it back unmodified.
-+ */
-+#define FPI_SKIP_REPORT_NOTIFY	((__force fpi_t)BIT(0))
-+
- /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_FRACTION	(8)
-@@ -952,7 +968,7 @@ buddy_merge_likely(unsigned long pfn, un
- static inline void __free_one_page(struct page *page,
- 		unsigned long pfn,
- 		struct zone *zone, unsigned int order,
--		int migratetype, bool report)
-+		int migratetype, fpi_t fpi_flags)
- {
- 	struct capture_control *capc = task_capc(zone);
- 	unsigned long buddy_pfn;
-@@ -1039,7 +1055,7 @@ done_merging:
- 		add_to_free_list(page, zone, order, migratetype);
- 
- 	/* Notify page reporting subsystem of freed page */
--	if (report)
-+	if (!(fpi_flags & FPI_SKIP_REPORT_NOTIFY))
- 		page_reporting_notify_free(order);
- }
- 
-@@ -1380,7 +1396,7 @@ static void free_pcppages_bulk(struct zo
- 		if (unlikely(isolated_pageblocks))
- 			mt = get_pageblock_migratetype(page);
- 
--		__free_one_page(page, page_to_pfn(page), zone, 0, mt, true);
-+		__free_one_page(page, page_to_pfn(page), zone, 0, mt, FPI_NONE);
- 		trace_mm_page_pcpu_drain(page, 0, mt);
+ 	err = platform_driver_register(&gpio_mockup_driver);
+ 	if (err) {
+-<<<<<<< HEAD
+-		gpio_mockup_err("error registering platform driver\n");
+-=======
+ 		pr_err("error registering platform driver\n");
+->>>>>>> linux-next/akpm-base
+ 		debugfs_remove_recursive(gpio_mockup_dbg_dir);
+ 		return err;
  	}
- 	spin_unlock(&zone->lock);
-@@ -1396,7 +1412,7 @@ static void free_one_page(struct zone *z
- 		is_migrate_isolate(migratetype))) {
- 		migratetype = get_pfnblock_migratetype(page, pfn);
+@@ -592,11 +588,7 @@ static int __init gpio_mockup_init(void)
+ 			platform_driver_unregister(&gpio_mockup_driver);
+ 			gpio_mockup_unregister_pdevs();
+ 			debugfs_remove_recursive(gpio_mockup_dbg_dir);
+-<<<<<<< HEAD
+-			return PTR_ERR(pdev);
+-=======
+ 			return err;
+->>>>>>> linux-next/akpm-base
+ 		}
  	}
--	__free_one_page(page, pfn, zone, order, migratetype, true);
-+	__free_one_page(page, pfn, zone, order, migratetype, FPI_NONE);
- 	spin_unlock(&zone->lock);
+ 
+--- a/fs/btrfs/dev-replace.c~linux-next-git-rejects
++++ a/fs/btrfs/dev-replace.c
+@@ -593,8 +593,6 @@ static void btrfs_rm_dev_replace_unblock
+ 	wake_up(&fs_info->dev_replace.replace_wait);
  }
  
-@@ -3289,7 +3305,8 @@ void __putback_isolated_page(struct page
- 	lockdep_assert_held(&zone->lock);
- 
- 	/* Return isolated page to tail of freelist. */
--	__free_one_page(page, page_to_pfn(page), zone, order, mt, false);
-+	__free_one_page(page, page_to_pfn(page), zone, order, mt,
-+			FPI_SKIP_REPORT_NOTIFY);
+-<<<<<<< HEAD
+-=======
+ static void btrfs_dev_replace_update_device_in_mapping_tree(
+ 						struct btrfs_fs_info *fs_info,
+ 						struct btrfs_device *srcdev,
+@@ -621,7 +619,6 @@ static void btrfs_dev_replace_update_dev
+ 	write_unlock(&em_tree->lock);
  }
  
+->>>>>>> linux-next/akpm-base
  /*
+  * When finishing the device replace, before swapping the source device with the
+  * target device we must update the chunk allocation state in the target device,
+@@ -818,23 +815,6 @@ error:
+ 	mutex_unlock(&dev_replace->lock_finishing_cancel_unmount);
+ 
+ 	btrfs_rm_dev_replace_free_srcdev(src_device);
+-<<<<<<< HEAD
+-
+-	return 0;
+-}
+-
+-static void btrfs_dev_replace_update_device_in_mapping_tree(
+-						struct btrfs_fs_info *fs_info,
+-						struct btrfs_device *srcdev,
+-						struct btrfs_device *tgtdev)
+-{
+-	struct extent_map_tree *em_tree = &fs_info->mapping_tree;
+-	struct extent_map *em;
+-	struct map_lookup *map;
+-	u64 start = 0;
+-	int i;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	return 0;
+ }
+--- a/drivers/net/ethernet/realtek/r8169_main.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/realtek/r8169_main.c
+@@ -4848,13 +4848,6 @@ static int __maybe_unused rtl8169_resume
+ 	if (!device_may_wakeup(tp_to_dev(tp)))
+ 		clk_prepare_enable(tp->clk);
+ 
+-<<<<<<< HEAD
+-	/* Reportedly at least Asus X453MA truncates packets otherwise */
+-	if (tp->mac_version == RTL_GIGA_MAC_VER_37)
+-		rtl_init_rxcfg(tp);
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	return rtl8169_net_resume(tp);
+ }
+ 
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac_ethtool.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/stmicro/stmmac/stmmac_ethtool.c
+@@ -706,13 +706,6 @@ static int stmmac_ethtool_op_set_eee(str
+ 	if (!priv->dma_cap.eee)
+ 		return -EOPNOTSUPP;
+ 
+-<<<<<<< HEAD
+-	if (priv->tx_lpi_enabled != edata->tx_lpi_enabled)
+-		netdev_warn(priv->dev,
+-			    "Setting EEE tx-lpi is not supported\n");
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	if (!edata->eee_enabled)
+ 		stmmac_disable_eee_mode(priv);
+ 
+@@ -720,16 +713,7 @@ static int stmmac_ethtool_op_set_eee(str
+ 	if (ret)
+ 		return ret;
+ 
+-<<<<<<< HEAD
+-	if (edata->eee_enabled &&
+-	    priv->tx_lpi_timer != edata->tx_lpi_timer) {
+-		priv->tx_lpi_timer = edata->tx_lpi_timer;
+-		stmmac_eee_init(priv);
+-	}
+-
+-=======
+ 	priv->tx_lpi_timer = edata->tx_lpi_timer;
+->>>>>>> linux-next/akpm-base
+ 	return 0;
+ }
+ 
+--- a/drivers/net/phy/Kconfig~linux-next-git-rejects
++++ a/drivers/net/phy/Kconfig
+@@ -3,250 +3,6 @@
+ # PHY Layer Configuration
+ #
+ 
+-<<<<<<< HEAD
+-menuconfig MDIO_DEVICE
+-	tristate "MDIO bus device drivers"
+-	help
+-	  MDIO devices and driver infrastructure code.
+-
+-if MDIO_DEVICE
+-
+-config MDIO_BUS
+-	tristate
+-	default m if PHYLIB=m
+-	default MDIO_DEVICE
+-	help
+-	  This internal symbol is used for link time dependencies and it
+-	  reflects whether the mdio_bus/mdio_device code is built as a
+-	  loadable module or built-in.
+-
+-if MDIO_BUS
+-
+-config MDIO_DEVRES
+-	tristate
+-
+-config MDIO_ASPEED
+-	tristate "ASPEED MDIO bus controller"
+-	depends on ARCH_ASPEED || COMPILE_TEST
+-	depends on OF_MDIO && HAS_IOMEM
+-	help
+-	  This module provides a driver for the independent MDIO bus
+-	  controllers found in the ASPEED AST2600 SoC. This is a driver for the
+-	  third revision of the ASPEED MDIO register interface - the first two
+-	  revisions are the "old" and "new" interfaces found in the AST2400 and
+-	  AST2500, embedded in the MAC. For legacy reasons, FTGMAC100 driver
+-	  continues to drive the embedded MDIO controller for the AST2400 and
+-	  AST2500 SoCs, so say N if AST2600 support is not required.
+-
+-config MDIO_BCM_IPROC
+-	tristate "Broadcom iProc MDIO bus controller"
+-	depends on ARCH_BCM_IPROC || COMPILE_TEST
+-	depends on HAS_IOMEM && OF_MDIO
+-	default ARCH_BCM_IPROC
+-	help
+-	  This module provides a driver for the MDIO busses found in the
+-	  Broadcom iProc SoC's.
+-
+-config MDIO_BCM_UNIMAC
+-	tristate "Broadcom UniMAC MDIO bus controller"
+-	depends on HAS_IOMEM
+-	help
+-	  This module provides a driver for the Broadcom UniMAC MDIO busses.
+-	  This hardware can be found in the Broadcom GENET Ethernet MAC
+-	  controllers as well as some Broadcom Ethernet switches such as the
+-	  Starfighter 2 switches.
+-
+-config MDIO_BITBANG
+-	tristate "Bitbanged MDIO buses"
+-	help
+-	  This module implements the MDIO bus protocol in software,
+-	  for use by low level drivers that export the ability to
+-	  drive the relevant pins.
+-
+-	  If in doubt, say N.
+-
+-config MDIO_BUS_MUX
+-	tristate
+-	depends on OF_MDIO
+-	help
+-	  This module provides a driver framework for MDIO bus
+-	  multiplexers which connect one of several child MDIO busses
+-	  to a parent bus.  Switching between child busses is done by
+-	  device specific drivers.
+-
+-config MDIO_BUS_MUX_BCM_IPROC
+-	tristate "Broadcom iProc based MDIO bus multiplexers"
+-	depends on OF && OF_MDIO && (ARCH_BCM_IPROC || COMPILE_TEST)
+-	select MDIO_BUS_MUX
+-	default ARCH_BCM_IPROC
+-	help
+-	  This module provides a driver for MDIO bus multiplexers found in
+-	  iProc based Broadcom SoCs. This multiplexer connects one of several
+-	  child MDIO bus to a parent bus. Buses could be internal as well as
+-	  external and selection logic lies inside the same multiplexer.
+-
+-config MDIO_BUS_MUX_GPIO
+-	tristate "GPIO controlled MDIO bus multiplexers"
+-	depends on OF_GPIO && OF_MDIO
+-	select MDIO_BUS_MUX
+-	help
+-	  This module provides a driver for MDIO bus multiplexers that
+-	  are controlled via GPIO lines.  The multiplexer connects one of
+-	  several child MDIO busses to a parent bus.  Child bus
+-	  selection is under the control of GPIO lines.
+-
+-config MDIO_BUS_MUX_MESON_G12A
+-	tristate "Amlogic G12a based MDIO bus multiplexer"
+-	depends on ARCH_MESON || COMPILE_TEST
+-	depends on OF_MDIO && HAS_IOMEM && COMMON_CLK
+-	select MDIO_BUS_MUX
+-	default m if ARCH_MESON
+-	help
+-	  This module provides a driver for the MDIO multiplexer/glue of
+-	  the amlogic g12a SoC. The multiplexers connects either the external
+-	  or the internal MDIO bus to the parent bus.
+-
+-config MDIO_BUS_MUX_MMIOREG
+-	tristate "MMIO device-controlled MDIO bus multiplexers"
+-	depends on OF_MDIO && HAS_IOMEM
+-	select MDIO_BUS_MUX
+-	help
+-	  This module provides a driver for MDIO bus multiplexers that
+-	  are controlled via a simple memory-mapped device, like an FPGA.
+-	  The multiplexer connects one of several child MDIO busses to a
+-	  parent bus.  Child bus selection is under the control of one of
+-	  the FPGA's registers.
+-
+-	  Currently, only 8/16/32 bits registers are supported.
+-
+-config MDIO_BUS_MUX_MULTIPLEXER
+-	tristate "MDIO bus multiplexer using kernel multiplexer subsystem"
+-	depends on OF_MDIO
+-	select MULTIPLEXER
+-	select MDIO_BUS_MUX
+-	help
+-	  This module provides a driver for MDIO bus multiplexer
+-	  that is controlled via the kernel multiplexer subsystem. The
+-	  bus multiplexer connects one of several child MDIO busses to
+-	  a parent bus.  Child bus selection is under the control of
+-	  the kernel multiplexer subsystem.
+-
+-config MDIO_CAVIUM
+-	tristate
+-
+-config MDIO_GPIO
+-	tristate "GPIO lib-based bitbanged MDIO buses"
+-	depends on MDIO_BITBANG
+-	depends on GPIOLIB || COMPILE_TEST
+-	help
+-	  Supports GPIO lib-based MDIO busses.
+-
+-	  To compile this driver as a module, choose M here: the module
+-	  will be called mdio-gpio.
+-
+-config MDIO_HISI_FEMAC
+-	tristate "Hisilicon FEMAC MDIO bus controller"
+-	depends on HAS_IOMEM && OF_MDIO
+-	help
+-	  This module provides a driver for the MDIO busses found in the
+-	  Hisilicon SoC that have an Fast Ethernet MAC.
+-
+-config MDIO_I2C
+-	tristate
+-	depends on I2C
+-	help
+-	  Support I2C based PHYs.  This provides a MDIO bus bridged
+-	  to I2C to allow PHYs connected in I2C mode to be accessed
+-	  using the existing infrastructure.
+-
+-	  This is library mode.
+-
+-config MDIO_IPQ4019
+-	tristate "Qualcomm IPQ4019 MDIO interface support"
+-	depends on HAS_IOMEM && OF_MDIO
+-	help
+-	  This driver supports the MDIO interface found in Qualcomm
+-	  IPQ40xx series Soc-s.
+-
+-config MDIO_IPQ8064
+-	tristate "Qualcomm IPQ8064 MDIO interface support"
+-	depends on HAS_IOMEM && OF_MDIO
+-	depends on MFD_SYSCON
+-	help
+-	  This driver supports the MDIO interface found in the network
+-	  interface units of the IPQ8064 SoC
+-
+-config MDIO_MOXART
+-	tristate "MOXA ART MDIO interface support"
+-	depends on ARCH_MOXART || COMPILE_TEST
+-	help
+-	  This driver supports the MDIO interface found in the network
+-	  interface units of the MOXA ART SoC
+-
+-config MDIO_MSCC_MIIM
+-	tristate "Microsemi MIIM interface support"
+-	depends on HAS_IOMEM
+-	select MDIO_DEVRES
+-	help
+-	  This driver supports the MIIM (MDIO) interface found in the network
+-	  switches of the Microsemi SoCs; it is recommended to switch on
+-	  CONFIG_HIGH_RES_TIMERS
+-
+-config MDIO_MVUSB
+-	tristate "Marvell USB to MDIO Adapter"
+-	depends on USB
+-	select MDIO_DEVRES
+-	help
+-	  A USB to MDIO converter present on development boards for
+-	  Marvell's Link Street family of Ethernet switches.
+-
+-config MDIO_OCTEON
+-	tristate "Octeon and some ThunderX SOCs MDIO buses"
+-	depends on (64BIT && OF_MDIO) || COMPILE_TEST
+-	depends on HAS_IOMEM
+-	select MDIO_CAVIUM
+-	help
+-	  This module provides a driver for the Octeon and ThunderX MDIO
+-	  buses. It is required by the Octeon and ThunderX ethernet device
+-	  drivers on some systems.
+-
+-config MDIO_SUN4I
+-	tristate "Allwinner sun4i MDIO interface support"
+-	depends on ARCH_SUNXI || COMPILE_TEST
+-	help
+-	  This driver supports the MDIO interface found in the network
+-	  interface units of the Allwinner SoC that have an EMAC (A10,
+-	  A12, A10s, etc.)
+-
+-config MDIO_THUNDER
+-	tristate "ThunderX SOCs MDIO buses"
+-	depends on 64BIT
+-	depends on PCI
+-	select MDIO_CAVIUM
+-	select MDIO_DEVRES
+-	help
+-	  This driver supports the MDIO interfaces found on Cavium
+-	  ThunderX SoCs when the MDIO bus device appears as a PCI
+-	  device.
+-
+-config MDIO_XGENE
+-	tristate "APM X-Gene SoC MDIO bus controller"
+-	depends on ARCH_XGENE || COMPILE_TEST
+-	help
+-	  This module provides a driver for the MDIO busses found in the
+-	  APM X-Gene SoC's.
+-
+-config MDIO_XPCS
+-	tristate "Synopsys DesignWare XPCS controller"
+-	help
+-	  This module provides helper functions for Synopsys DesignWare XPCS
+-	  controllers.
+-
+-endif
+-endif
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ config PHYLINK
+ 	tristate
+ 	depends on NETDEVICES
+--- a/drivers/net/phy/realtek.c~linux-next-git-rejects
++++ a/drivers/net/phy/realtek.c
+@@ -32,13 +32,10 @@
+ #define RTL8211F_TX_DELAY			BIT(8)
+ #define RTL8211F_RX_DELAY			BIT(3)
+ 
+-<<<<<<< HEAD
+-=======
+ #define RTL8211F_ALDPS_PLL_OFF			BIT(1)
+ #define RTL8211F_ALDPS_ENABLE			BIT(2)
+ #define RTL8211F_ALDPS_XTAL_OFF			BIT(12)
+ 
+->>>>>>> linux-next/akpm-base
+ #define RTL8211E_CTRL_DELAY			BIT(13)
+ #define RTL8211E_TX_DELAY			BIT(12)
+ #define RTL8211E_RX_DELAY			BIT(11)
+--- a/net/mptcp/protocol.c~linux-next-git-rejects
++++ a/net/mptcp/protocol.c
+@@ -182,11 +182,6 @@ static void mptcp_data_queue_ofo(struct
+ 		goto end;
+ 	}
+ 
+-<<<<<<< HEAD
+-	skb_ext_reset(skb);
+-	skb_orphan(skb);
+-	WRITE_ONCE(msk->ack_seq, msk->ack_seq + copy_len);
+-=======
+ 	/* with 2 subflows, adding at end of ooo queue is quite likely
+ 	 * Use of ooo_last_skb avoids the O(Log(N)) rbtree lookup.
+ 	 */
+@@ -195,7 +190,6 @@ static void mptcp_data_queue_ofo(struct
+ 		MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_OFOQUEUETAIL);
+ 		return;
+ 	}
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* Can avoid an rbtree lookup if we are adding skb after ooo_last_skb */
+ 	if (!before64(seq, MPTCP_SKB_CB(msk->ooo_last_skb)->end_seq)) {
+--- a/net/mptcp/protocol.h~linux-next-git-rejects
++++ a/net/mptcp/protocol.h
+@@ -408,10 +408,7 @@ bool mptcp_finish_join(struct sock *sk);
+ void mptcp_data_acked(struct sock *sk);
+ void mptcp_subflow_eof(struct sock *sk);
+ bool mptcp_update_rcv_data_fin(struct mptcp_sock *msk, u64 data_fin_seq, bool use_64bit);
+-<<<<<<< HEAD
+-=======
+ void mptcp_destroy_common(struct mptcp_sock *msk);
+->>>>>>> linux-next/akpm-base
+ 
+ void __init mptcp_token_init(void);
+ static inline void mptcp_token_init_request(struct request_sock *req)
+--- a/tools/lib/bpf/btf.c~linux-next-git-rejects
++++ a/tools/lib/bpf/btf.c
+@@ -933,17 +933,7 @@ struct btf *btf__parse_raw(const char *p
+ 		err = -EIO;
+ 		goto err_out;
+ 	}
+-<<<<<<< HEAD
+-	if (magic == __bswap_16(BTF_MAGIC)) {
+-		/* non-native endian raw BTF */
+-		pr_warn("non-native BTF endianness is not supported\n");
+-		err = -LIBBPF_ERRNO__ENDIAN;
+-		goto err_out;
+-	}
+-	if (magic != BTF_MAGIC) {
+-=======
+ 	if (magic != BTF_MAGIC && magic != bswap_16(BTF_MAGIC)) {
+->>>>>>> linux-next/akpm-base
+ 		/* definitely not a raw BTF */
+ 		err = -EPROTO;
+ 		goto err_out;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-tweak-comments-in-has_unmovable_pages.patch
-mm-page_isolation-exit-early-when-pageblock-is-isolated-in-set_migratetype_isolate.patch
-mm-page_isolation-drop-warn_on_once-in-set_migratetype_isolate.patch
-mm-page_isolation-cleanup-set_migratetype_isolate.patch
-virtio-mem-dont-special-case-zone_movable.patch
-mm-document-semantics-of-zone_movable.patch
-mm-memory_hotplug-inline-__offline_pages-into-offline_pages.patch
-mm-memory_hotplug-enforce-section-granularity-when-onlining-offlining.patch
-mm-memory_hotplug-simplify-page-offlining.patch
-mm-page_alloc-simplify-__offline_isolated_pages.patch
-mm-memory_hotplug-drop-nr_isolate_pageblock-in-offline_pages.patch
-mm-page_isolation-simplify-return-value-of-start_isolate_page_range.patch
-mm-memory_hotplug-simplify-page-onlining.patch
-mm-page_alloc-drop-stale-pageblock-comment-in-memmap_init_zone.patch
-mm-pass-migratetype-into-memmap_init_zone-and-move_pfn_range_to_zone.patch
-mm-memory_hotplug-mark-pageblocks-migrate_isolate-while-onlining-memory.patch
-kernel-resource-make-release_mem_region_adjustable-never-fail.patch
-kernel-resource-move-and-rename-ioresource_mem_driver_managed.patch
-mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.patch
-mm-memory_hotplug-prepare-passing-flags-to-add_memory-and-friends.patch
-mm-memory_hotplug-memhp_merge_resource-to-specify-merging-of-system-ram-resources.patch
-virtio-mem-try-to-merge-system-ram-resources.patch
-xen-balloon-try-to-merge-system-ram-resources.patch
-hv_balloon-try-to-merge-system-ram-resources.patch
-kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable.patch
-mm-page_alloc-convert-report-flag-of-__free_one_page-to-a-proper-flag.patch
-mm-page_alloc-place-pages-to-tail-in-__putback_isolated_page.patch
-mm-page_alloc-move-pages-to-tail-in-move_to_free_list.patch
-mm-page_alloc-place-pages-to-tail-in-__free_pages_core.patch
-mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch
+mm.patch
+mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
