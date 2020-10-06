@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9C5C41604
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 04:57:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7D48C47095
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 04:57:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A65820782
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 04:57:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B80A20B80
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 04:57:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601960245;
-	bh=jNDgjem52mgt/qyb3I4QTN0+m9AlMv9pdwSNTRMTnVU=;
+	s=default; t=1601960251;
+	bh=WzAS/M/TwOTufPo3wQzwNYfdSwRtfR5IMzffUxSqcMo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=VSFudrzfU5DQ8pZ08s0vypd75SJZKOZXa0qeUVieA+pBgwwwJX5YOjvaH4k1dDg7U
-	 N/Jp80kiRuwQSUquieA0axbB83RKLvqHofQQQiT8Sd1/9/1jXUJu9riT6FAA6RfFXI
-	 5wN+wES06D1xnIZB4hHazAvjH2HyYx4nA00s/+K0=
+	b=BPw4Jl1W12LKX8KBd9igpwn8dERcpvskH5bL9d0YNtIIWZIIE/fMITFhiwHnL+xZR
+	 y9OGgBC0iPfdPVuQ3v7onEgru8npVpts7TA3BKj1m7tqMWNNrZsfXzUmWTWRsRJ4nY
+	 ZL3ioXg3yWdR2BS/VJ+yckUb7hg1+Rgqmfn10234=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725997AbgJFE5Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Oct 2020 00:57:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42552 "EHLO mail.kernel.org"
+        id S1725912AbgJFE5b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Oct 2020 00:57:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725912AbgJFE5Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Oct 2020 00:57:24 -0400
+        id S1726007AbgJFE5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Oct 2020 00:57:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2C2C8208C3;
-        Tue,  6 Oct 2020 04:57:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 144A2208B6;
+        Tue,  6 Oct 2020 04:57:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601960243;
-        bh=jNDgjem52mgt/qyb3I4QTN0+m9AlMv9pdwSNTRMTnVU=;
+        s=default; t=1601960249;
+        bh=WzAS/M/TwOTufPo3wQzwNYfdSwRtfR5IMzffUxSqcMo=;
         h=Date:From:To:Subject:From;
-        b=QyIOjIki92rwp6YHmHnX4PVc6cXWzwOg+RF+V+AVzvBshXYh9FyWun0FNKeoO9T10
-         TpXuV+I7/y9y4BrZt1RAiiVmJdBFRI23ts4c6Bv/P0ujDIx2XtowshsjfJ3vLd8hbY
-         UbxxWcixA7pUf3Su/g4UZxqr4ebya8a3S6TYKkv4=
-Date:   Mon, 05 Oct 2020 21:57:21 -0700
+        b=jcbiqRbsCpgFkq0jJDRHmUwnNO514ZhjVnUyJ9AEasps2uTGl8Bkq26c19r3lV86+
+         yR2FnEA24tH1gDPJba6CmsAdpIVkNC4RhxFnb3ozvh3KC0IT6ySSDNjzdoauJsX3sp
+         vZqCaKKBMWKCEigzWoCMZNUtD9ilShW80r7iBXOU=
+Date:   Mon, 05 Oct 2020 21:57:28 -0700
 From:   akpm@linux-foundation.org
 To:     alexander.h.duyck@linux.intel.com, cheloha@linux.ibm.com,
         dave.hansen@intel.com, david@redhat.com, haiyangz@microsoft.com,
@@ -49,9 +49,9 @@ To:     alexander.h.duyck@linux.intel.com, cheloha@linux.ibm.com,
         sthemmin@microsoft.com, vbabka@suse.cz, wei.liu@kernel.org,
         willy@infradead.org
 Subject:  +
- mm-page_alloc-move-pages-to-tail-in-move_to_free_list.patch added to -mm
- tree
-Message-ID: <20201006045721.0WBozzWGR%akpm@linux-foundation.org>
+ mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch added to
+ -mm tree
+Message-ID: <20201006045728.g9OLFIdbb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -60,14 +60,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: move pages to tail in move_to_free_list()
+     Subject: mm/memory_hotplug: update comment regarding zone shuffling
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-move-pages-to-tail-in-move_to_free_list.patch
+     mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-move-pages-to-tail-in-move_to_free_list.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-move-pages-to-tail-in-move_to_free_list.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,103 +82,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: move pages to tail in move_to_free_list()
+Subject: mm/memory_hotplug: update comment regarding zone shuffling
 
-Whenever we move pages between freelists via move_to_free_list()/
-move_freepages_block(), we don't actually touch the pages:
-1. Page isolation doesn't actually touch the pages, it simply isolates
-   pageblocks and moves all free pages to the MIGRATE_ISOLATE freelist.
-   When undoing isolation, we move the pages back to the target list.
-2. Page stealing (steal_suitable_fallback()) moves free pages directly
-   between lists without touching them.
-3. reserve_highatomic_pageblock()/unreserve_highatomic_pageblock() moves
-   free pages directly between freelists without touching them.
+As we no longer shuffle via generic_online_page() and when undoing
+isolation, we can simplify the comment.
 
-We already place pages to the tail of the freelists when undoing isolation
-via __putback_isolated_page(), let's do it in any case (e.g., if order <=
-pageblock_order) and document the behavior. To simplify, let's move the
-pages to the tail for all move_to_free_list()/move_freepages_block() users.
+We now effectively shuffle only once (properly) when onlining new memory.
 
-In 2., the target list is empty, so there should be no change.  In 3., we
-might observe a change, however, highatomic is more concerned about
-allocations succeeding than cache hotness - if we ever realize this change
-degrades a workload, we can special-case this instance and add a proper
-comment.
-
-This change results in all pages getting onlined via online_pages() to be
-placed to the tail of the freelist.
-
-Link: https://lkml.kernel.org/r/20201005121534.15649-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20201005121534.15649-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
 Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |   10 +++++++---
- mm/page_isolation.c |    5 +++++
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-move-pages-to-tail-in-move_to_free_list
-+++ a/mm/page_alloc.c
-@@ -901,13 +901,17 @@ static inline void add_to_free_list_tail
- 	area->nr_free++;
- }
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-update-comment-regarding-zone-shuffling
++++ a/mm/memory_hotplug.c
+@@ -858,13 +858,10 @@ int __ref online_pages(unsigned long pfn
+ 	undo_isolate_page_range(pfn, pfn + nr_pages, MIGRATE_MOVABLE);
  
--/* Used for pages which are on another list */
-+/*
-+ * Used for pages which are on another list. Move the pages to the tail
-+ * of the list - so the moved pages won't immediately be considered for
-+ * allocation again (e.g., optimization for memory onlining).
-+ */
- static inline void move_to_free_list(struct page *page, struct zone *zone,
- 				     unsigned int order, int migratetype)
- {
- 	struct free_area *area = &zone->free_area[order];
- 
--	list_move(&page->lru, &area->free_list[migratetype]);
-+	list_move_tail(&page->lru, &area->free_list[migratetype]);
- }
- 
- static inline void del_page_from_free_list(struct page *page, struct zone *zone,
-@@ -2340,7 +2344,7 @@ static inline struct page *__rmqueue_cma
- #endif
- 
- /*
-- * Move the free pages in a range to the free lists of the requested type.
-+ * Move the free pages in a range to the freelist tail of the requested type.
-  * Note that start_page and end_pages are not aligned on a pageblock
-  * boundary. If alignment is required, use move_freepages_block()
-  */
---- a/mm/page_isolation.c~mm-page_alloc-move-pages-to-tail-in-move_to_free_list
-+++ a/mm/page_isolation.c
-@@ -106,6 +106,11 @@ static void unset_migratetype_isolate(st
- 	 * If we isolate freepage with more than pageblock_order, there
- 	 * should be no freepage in the range, so we could avoid costly
- 	 * pageblock scanning for freepage moving.
-+	 *
-+	 * We didn't actually touch any of the isolated pages, so place them
-+	 * to the tail of the freelist. This is an optimization for memory
-+	 * onlining - just onlined memory won't immediately be considered for
-+	 * allocation.
+ 	/*
+-	 * When exposing larger, physically contiguous memory areas to the
+-	 * buddy, shuffling in the buddy (when freeing onlined pages, putting
+-	 * them either to the head or the tail of the freelist) is only helpful
+-	 * for maintaining the shuffle, but not for creating the initial
+-	 * shuffle. Shuffle the whole zone to make sure the just onlined pages
+-	 * are properly distributed across the whole freelist. Make sure to
+-	 * shuffle once pageblocks are no longer isolated.
++	 * Freshly onlined pages aren't shuffled (e.g., all pages are placed to
++	 * the tail of the freelist when undoing isolation). Shuffle the whole
++	 * zone to make sure the just onlined pages are properly distributed
++	 * across the whole freelist - to create an initial shuffle.
  	 */
- 	if (!isolated_page) {
- 		nr_pages = move_freepages_block(zone, page, migratetype, NULL);
+ 	shuffle_zone(zone);
+ 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
