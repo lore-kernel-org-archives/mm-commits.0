@@ -2,54 +2,49 @@ Return-Path: <SRS0=SqaX=DN=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1723FC4363A
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 00:10:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D18DAC4363D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 03:27:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6055206F4
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 00:10:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E6C1208B6
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Oct 2020 03:27:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601943031;
-	bh=yRf96Yx0uqxXDbSYVUhRGEDSG22leGixRMl9MzL77OU=;
+	s=default; t=1601954865;
+	bh=kbq39W7Tjp0JcMSNUQj6epAvt/fJyMj0GGhO1i+oPIc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=J4rJGjLAeBmEtTY4a9lkaMT2z8mMBhhnA53hvSsjH0fplYisQK5kHekDvUGjnxthK
-	 sWkk4YdJXambLy0Uk0lxhUnT5aLI70OoY0lyXX3Ke98Pz+CAf5egNlL3rzCl+FtRzp
-	 B35KP0/L08myrmaa+ENSer9HkphvK2dEHIh1flq4=
+	b=MJun5DUcY6cNosiNqA3kjwcnnnwgom0Z8V7Jkkc/HVz0B+/ActZCerLfavbsJXyik
+	 IX8tid9As/+ihikUJbHLBx1uTRXPCYs1pPi7HMGD0C6otY1ScEqxsm4y2qaPgFgY97
+	 vaTDILmpXq0OOS2Dl3Y8FXVSvjMYTue/sjfA4rrQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726513AbgJFAKD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Oct 2020 20:10:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38572 "EHLO mail.kernel.org"
+        id S1725977AbgJFD1p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Oct 2020 23:27:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39766 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725865AbgJFAKD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 5 Oct 2020 20:10:03 -0400
+        id S1725909AbgJFD1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 5 Oct 2020 23:27:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B7861206F4;
-        Tue,  6 Oct 2020 00:10:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DBC8620782;
+        Tue,  6 Oct 2020 03:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601943003;
-        bh=yRf96Yx0uqxXDbSYVUhRGEDSG22leGixRMl9MzL77OU=;
+        s=default; t=1601954864;
+        bh=kbq39W7Tjp0JcMSNUQj6epAvt/fJyMj0GGhO1i+oPIc=;
         h=Date:From:To:Subject:From;
-        b=fEX812YpKUzzW07ckxq05nJhM/1EpVBhIhjcii/dWdLYOpuU8AgOFSI6eMKdZYUcY
-         V+P8Ekubi+wpXONDfgbUBDYxU9hRYYXPeLcLkZGglGAcgCEw1Gi0BMa2Eqk838aIqx
-         UHe0o8m2APQ5Kf0B9+7MMSZRdGy076UOsmE25J7Q=
-Date:   Mon, 05 Oct 2020 17:10:02 -0700
+        b=pNo8CbeuZvzVxXsT4sgHaGnggDV1CdaXiKGjtJiKOkYPh33sRgDY0r8cHlrUbi0Gm
+         xiOtvdEiEXLZ0kPo4qcW6hx9G1LBJ7ZINi0tjN3VKu6r4Zxx9wupTA7b4lT4gaw6HF
+         q6QYsbTUhiR8qKRfG+9trAy3obFOpg7rQZvsBw3U=
+Date:   Mon, 05 Oct 2020 20:27:43 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, keescook@chromium.org, me@tobin.cc,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        re.emese@gmail.com, tycho@tycho.pizza
-Subject:  + maintainers-change-hardening-mailing-list.patch added
- to -mm tree
-Message-ID: <20201006001002.CmWUyeqLs%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  + kernel-fix-repeated-words-in-comments.patch added to
+ -mm tree
+Message-ID: <20201006032743._nwKG5TuT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,16 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: change hardening mailing list
+     Subject: kernel/: fix repeated words in comments
 has been added to the -mm tree.  Its filename is
-     maintainers-change-hardening-mailing-list.patch
+     kernel-fix-repeated-words-in-comments.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-change-hardening-=
-mailing-list.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-fix-repeated-words-in-comments.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-change-hardening-=
-mailing-list.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-fix-repeated-words-in-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,74 +67,226 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Kees Cook <keescook@chromium.org>
-Subject: MAINTAINERS: change hardening mailing list
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: kernel/: fix repeated words in comments
 
-As more email from git history gets aimed at the OpenWall
-kernel-hardening@ list, there has been a desire to separate "new topics"
-from "on-going" work.  To handle this, the superset of hardening email
-topics are now to be directed to linux-hardening@vger.kernel.org.  Update
-the MAINTAINERS file and the .mailmap to accomplish this, so that
-linux-hardening@ can be treated like any other regular upstream kernel
-development list.
+Fix multiple occurrences of duplicated words in kernel/.
 
-Link: https://lore.kernel.org/linux-hardening/202010051443.279CC265D@keesco=
-ok/
-Link: https://lkml.kernel.org/r/20201006000012.2768958-1-keescook@chromium.=
-org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Emese Revfy <re.emese@gmail.com>
-Cc: "Tobin C. Harding" <me@tobin.cc>
-Cc: Tycho Andersen <tycho@tycho.pizza>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Fix one typo/spello on the same line as a duplicate word.  Change one
+instance of "the the" to "that the".  Otherwise just drop one of the
+repeated words.
+
+Link: https://lkml.kernel.org/r/98202fa6-8919-ef63-9efe-c0fad5ca7af1@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/acct.c            |    2 +-
+ kernel/cgroup/cpuset.c   |    2 +-
+ kernel/dma/direct.c      |    2 +-
+ kernel/fork.c            |    2 +-
+ kernel/futex.c           |    2 +-
+ kernel/irq/timings.c     |    2 +-
+ kernel/jump_label.c      |    2 +-
+ kernel/kcsan/encoding.h  |    2 +-
+ kernel/kexec_core.c      |    2 +-
+ kernel/kthread.c         |    2 +-
+ kernel/livepatch/state.c |    2 +-
+ kernel/pid_namespace.c   |    2 +-
+ kernel/power/snapshot.c  |    2 +-
+ kernel/smp.c             |    2 +-
+ kernel/user_namespace.c  |    2 +-
+ 15 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/.mailmap~maintainers-change-hardening-mailing-list
-+++ a/.mailmap
-@@ -188,6 +188,7 @@ Leon Romanovsky <leon@kernel.org> <leonr
- Linas Vepstas <linas@austin.ibm.com>
- Linus L=C3=BCssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
- Linus L=C3=BCssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
-+<linux-hardening@vger.kernel.org> <kernel-hardening@lists.openwall.com>
- Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
- Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
- Lukasz Luba <lukasz.luba@arm.com> <l.luba@partner.samsung.com>
---- a/MAINTAINERS~maintainers-change-hardening-mailing-list
-+++ a/MAINTAINERS
-@@ -7235,7 +7235,7 @@ F:	drivers/staging/gasket/
- GCC PLUGINS
- M:	Kees Cook <keescook@chromium.org>
- R:	Emese Revfy <re.emese@gmail.com>
--L:	kernel-hardening@lists.openwall.com
-+L:	linux-hardening@vger.kernel.org
- S:	Maintained
- F:	Documentation/kbuild/gcc-plugins.rst
- F:	scripts/Makefile.gcc-plugins
-@@ -9797,7 +9797,7 @@ F:	drivers/scsi/53c700*
- LEAKING_ADDRESSES
- M:	Tobin C. Harding <me@tobin.cc>
- M:	Tycho Andersen <tycho@tycho.pizza>
--L:	kernel-hardening@lists.openwall.com
-+L:	linux-hardening@vger.kernel.org
- S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tobin/leaks.git
- F:	scripts/leaking_addresses.pl
+--- a/kernel/acct.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/acct.c
+@@ -25,7 +25,7 @@
+  *  Now we silently close acct_file on attempt to reopen. Cleaned sys_acct().
+  *  XTerms and EMACS are manifestations of pure evil. 21/10/98, AV.
+  *
+- *  Fixed a nasty interaction with with sys_umount(). If the accointing
++ *  Fixed a nasty interaction with sys_umount(). If the accounting
+  *  was suspeneded we failed to stop it on umount(). Messy.
+  *  Another one: remount to readonly didn't stop accounting.
+  *	Question: what should we do if we have CAP_SYS_ADMIN but not
+--- a/kernel/cgroup/cpuset.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/cgroup/cpuset.c
+@@ -390,7 +390,7 @@ static void guarantee_online_cpus(struct
+ 			 * The top cpuset doesn't have any online cpu as a
+ 			 * consequence of a race between cpuset_hotplug_work
+ 			 * and cpu hotplug notifier.  But we know the top
+-			 * cpuset's effective_cpus is on its way to to be
++			 * cpuset's effective_cpus is on its way to be
+ 			 * identical to cpu_online_mask.
+ 			 */
+ 			cpumask_copy(pmask, cpu_online_mask);
+--- a/kernel/dma/direct.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/dma/direct.c
+@@ -15,7 +15,7 @@
+ #include <linux/set_memory.h>
+ 
+ /*
+- * Most architectures use ZONE_DMA for the first 16 Megabytes, but some use it
++ * Most architectures use ZONE_DMA for the first 16 Megabytes, but some use
+  * it for entirely different regions. In that case the arch code needs to
+  * override the variable below for dma-direct to work properly.
+  */
+--- a/kernel/fork.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/fork.c
+@@ -2183,7 +2183,7 @@ static __latent_entropy struct task_stru
+ 
+ 	/*
+ 	 * Ensure that the cgroup subsystem policies allow the new process to be
+-	 * forked. It should be noted the the new process's css_set can be changed
++	 * forked. It should be noted that the new process's css_set can be changed
+ 	 * between here and cgroup_post_fork() if an organisation operation is in
+ 	 * progress.
+ 	 */
+--- a/kernel/futex.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/futex.c
+@@ -916,7 +916,7 @@ static inline void exit_pi_state_list(st
+  * [10] Found  | Found    | task      | !=taskTID | 0/1    | Invalid
+  *
+  * [1]	Indicates that the kernel can acquire the futex atomically. We
+- *	came came here due to a stale FUTEX_WAITERS/FUTEX_OWNER_DIED bit.
++ *	came here due to a stale FUTEX_WAITERS/FUTEX_OWNER_DIED bit.
+  *
+  * [2]	Valid, if TID does not belong to a kernel thread. If no matching
+  *      thread is found then it indicates that the owner TID has died.
+--- a/kernel/irq/timings.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/irq/timings.c
+@@ -604,7 +604,7 @@ int irq_timings_alloc(int irq)
+ 
+ 	/*
+ 	 * Some platforms can have the same private interrupt per cpu,
+-	 * so this function may be be called several times with the
++	 * so this function may be called several times with the
+ 	 * same interrupt number. Just bail out in case the per cpu
+ 	 * stat structure is already allocated.
+ 	 */
+--- a/kernel/jump_label.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/jump_label.c
+@@ -19,7 +19,7 @@
+ #include <linux/cpu.h>
+ #include <asm/sections.h>
+ 
+-/* mutex to protect coming/going of the the jump_label table */
++/* mutex to protect coming/going of the jump_label table */
+ static DEFINE_MUTEX(jump_label_mutex);
+ 
+ void jump_label_lock(void)
+--- a/kernel/kcsan/encoding.h~kernel-fix-repeated-words-in-comments
++++ a/kernel/kcsan/encoding.h
+@@ -32,7 +32,7 @@
+  *	1. different addresses but with the same encoded address race;
+  *	2. and both map onto the same watchpoint slots;
+  *
+- * Both these are assumed to be very unlikely. However, in case it still happens
++ * Both these are assumed to be very unlikely. However, in case it still
+  * happens, the report logic will filter out the false positive (see report.c).
+  */
+ #define WATCHPOINT_ADDR_BITS (BITS_PER_LONG-1 - WATCHPOINT_SIZE_BITS)
+--- a/kernel/kexec_core.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/kexec_core.c
+@@ -109,7 +109,7 @@ EXPORT_SYMBOL_GPL(kexec_crash_loaded);
+  * defined more restrictively in <asm/kexec.h>.
+  *
+  * The code for the transition from the current kernel to the
+- * the new kernel is placed in the control_code_buffer, whose size
++ * new kernel is placed in the control_code_buffer, whose size
+  * is given by KEXEC_CONTROL_PAGE_SIZE.  In the best case only a single
+  * page of memory is necessary, but some architectures require more.
+  * Because this memory must be identity mapped in the transition from
+--- a/kernel/kthread.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/kthread.c
+@@ -775,7 +775,7 @@ EXPORT_SYMBOL(kthread_create_worker);
+ 
+ /**
+  * kthread_create_worker_on_cpu - create a kthread worker and bind it
+- *	it to a given CPU and the associated NUMA node.
++ *	to a given CPU and the associated NUMA node.
+  * @cpu: CPU number
+  * @flags: flags modifying the default behavior of the worker
+  * @namefmt: printf-style name for the kthread worker (task).
+--- a/kernel/livepatch/state.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/livepatch/state.c
+@@ -55,7 +55,7 @@ EXPORT_SYMBOL_GPL(klp_get_state);
+  *
+  * The function can be called only during transition when a new
+  * livepatch is being enabled or when such a transition is reverted.
+- * It is typically called only from from pre/post (un)patch
++ * It is typically called only from pre/post (un)patch
+  * callbacks.
+  *
+  * Return: pointer to the latest struct klp_state from already
+--- a/kernel/pid_namespace.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/pid_namespace.c
+@@ -233,7 +233,7 @@ void zap_pid_ns_processes(struct pid_nam
+ 	 * to pid_ns->child_reaper.  Thus pidns->child_reaper needs to
+ 	 * stay valid until they all go away.
+ 	 *
+-	 * The code relies on the the pid_ns->child_reaper ignoring
++	 * The code relies on the pid_ns->child_reaper ignoring
+ 	 * SIGCHILD to cause those EXIT_ZOMBIE processes to be
+ 	 * autoreaped if reparented.
+ 	 *
+--- a/kernel/power/snapshot.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/power/snapshot.c
+@@ -735,7 +735,7 @@ zone_found:
+ 	 */
+ 
+ 	/*
+-	 * If the zone we wish to scan is the the current zone and the
++	 * If the zone we wish to scan is the current zone and the
+ 	 * pfn falls into the current node then we do not need to walk
+ 	 * the tree.
+ 	 */
+--- a/kernel/smp.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/smp.c
+@@ -741,7 +741,7 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+  * for all the required CPUs to finish. This may include the local
+  * processor.
+  * @cond_func:	A callback function that is passed a cpu id and
+- *		the the info parameter. The function is called
++ *		the info parameter. The function is called
+  *		with preemption disabled. The function should
+  *		return a blooean value indicating whether to IPI
+  *		the specified CPU.
+--- a/kernel/user_namespace.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/user_namespace.c
+@@ -515,7 +515,7 @@ EXPORT_SYMBOL(from_kgid_munged);
+  *
+  *	When there is no mapping defined for the user-namespace projid
+  *	pair INVALID_PROJID is returned.  Callers are expected to test
+- *	for and handle handle INVALID_PROJID being returned.  INVALID_PROJID
++ *	for and handle INVALID_PROJID being returned.  INVALID_PROJID
+  *	may be tested for using projid_valid().
+  */
+ kprojid_t make_kprojid(struct user_namespace *ns, projid_t projid)
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-maintainers-change-hardening-mailing-list.patch
+fs-ocfs2-delete-repeated-words-in-comments.patch
+fs-xattrc-fix-kernel-doc-warnings-for-setxattr-removexattr.patch
+x86-numa-add-nohmat-option-fix.patch
+mm-memoryc-fix-spello-of-function.patch
+fs-configfs-delete-repeated-words-in-comments.patch
+kernel-fix-repeated-words-in-comments.patch
+lib-bitmap-delete-duplicated-words.patch
+lib-libcrc32c-delete-duplicated-words.patch
+lib-decompress_bunzip2-delete-duplicated-words.patch
+lib-devres-delete-duplicated-words.patch
+lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+lib-earlycpio-delete-duplicated-words.patch
+lib-radix-tree-delete-duplicated-words.patch
+lib-syscall-delete-duplicated-words.patch
+lib-test_sysctl-delete-duplicated-words.patch
+lib-mpi-fix-spello-of-functions.patch
 
