@@ -7,46 +7,56 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8463C4363C
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Oct 2020 19:04:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6D24C4363C
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Oct 2020 21:13:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 592B82173E
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Oct 2020 19:04:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72BA22087D
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Oct 2020 21:13:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602097470;
-	bh=HcQV+ragRrrpZiEq8LaWKwZ/LQ5We6WGcWgPlmr3E9I=;
+	s=default; t=1602105216;
+	bh=esWGjAnXcUAsub14xfdhxUG9hknEMrEj6ly6Z276DY0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tS+IWZ+uiIbkOFPlktDe/ikCgdLOJlo76keif6eXG89/1JrzzO2wURs8LyNFIJZv4
-	 AousOwCQOg8c1vawKa9SxazHumUtCWa/TmdbKS0GukOqbAArJAvoLb7F4cSv6RISmm
-	 KT8tTEAwwcrWrVXOuLvB4CBIEQVtPwKMB9jiYBwM=
+	b=FQmK8mwQYpJcCGjUQk33ofArcR9yO8ZxmKqQKICKGiOQlmV443Wd1QOs4qg6SSLYY
+	 00qgeXgwN2O4Gdmo3Nd5pWc9JBWI80MUn9CALwkUe8LziiB1Fcr4NGP4Y7GngvUVls
+	 TIMhWPxb+zWm2j328kjj+giVpJyXnRTWeEAhXaLE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728021AbgJGTE3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Oct 2020 15:04:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54736 "EHLO mail.kernel.org"
+        id S1728227AbgJGVNg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Oct 2020 17:13:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727996AbgJGTE3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Oct 2020 15:04:29 -0400
+        id S1727948AbgJGVNf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Oct 2020 17:13:35 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0DB202168B;
-        Wed,  7 Oct 2020 19:04:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 151F82083B;
+        Wed,  7 Oct 2020 21:13:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602097467;
-        bh=HcQV+ragRrrpZiEq8LaWKwZ/LQ5We6WGcWgPlmr3E9I=;
+        s=default; t=1602105215;
+        bh=esWGjAnXcUAsub14xfdhxUG9hknEMrEj6ly6Z276DY0=;
         h=Date:From:To:Subject:From;
-        b=UOPcSu5rHr2tSQYqhdS3yTWoWYhl4H3P42WZZRyOQhwFW/4spXmAt6CXdNsb3CJFN
-         WodfgVyj5g23mHq5mvwvbOjXagtqeidlyw3+cIiKLI/nAnrcnh08eCN0nHpOIBA2Jl
-         vBIxnP2kCcxrwrRpfaVh/aI/tboiXOE68wq5M/8E=
-Date:   Wed, 07 Oct 2020 12:04:26 -0700
+        b=jaaXD0huOkEf1cAsClFALJnX1lUOMVa07WrNJgFiPTzBNUi/qfiEfhC9KwYJq/gdj
+         jSiRr987beVZGcp1LuAQamhafhLQ7kUFPGEekJNqf/C4qVq9HhfRHuCsrcJRyFQjk0
+         ujDb2XZifOkQqH7GKqEZIJXSAH6UGIRpMIS3gBZ8=
+Date:   Wed, 07 Oct 2020 14:13:33 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, louhongxiang@huawei.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- mm-mmap-fix-general-protection-fault-in-unlink_file_vma.patch added to -mm
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        daniel.vetter@ffwll.ch, daniel.vetter@intel.com,
+        gregkh@linuxfoundation.org, inki.dae@samsung.com, jack@suse.cz,
+        jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com,
+        jy0922.shim@samsung.com, kgene@kernel.org, krzk@kernel.org,
+        kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+        mm-commits@vger.kernel.org, oded.gabbay@gmail.com,
+        oshpigelman@habana.ai, pawel@osciak.com, ppiskorski@habana.ai,
+        sw0312.kim@samsung.com, tfiga@chromium.org, ttayar@habana.ai
+Subject:  [to-be-updated]
+ mm-frame-vec-drop-gup_flags-from-get_vaddr_frames.patch removed from -mm
  tree
-Message-ID: <20201007190426.jlKjSwAW3%akpm@linux-foundation.org>
+Message-ID: <20201007211333.7RdWAY2in%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,121 +64,139 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mmap: Fix general protection fault in unlink_file_vma()
-has been added to the -mm tree.  Its filename is
-     mm-mmap-fix-general-protection-fault-in-unlink_file_vma.patch
+     Subject: mm/frame-vec: drop gup_flags from get_vaddr_frames()
+has been removed from the -mm tree.  Its filename was
+     mm-frame-vec-drop-gup_flags-from-get_vaddr_frames.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-fix-general-protection-fault-in-unlink_file_vma.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-fix-general-protection-fault-in-unlink_file_vma.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: mmap: Fix general protection fault in unlink_file_vma()
+=46rom: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: mm/frame-vec: drop gup_flags from get_vaddr_frames()
 
-The syzbot reported the below general protection fault:
+FOLL_WRITE | FOLL_FORCE is really the only reasonable thing to do for
+simple dma device that can't guarantee write protection.  Which is also
+what all the callers are using.
 
-general protection fault, probably for non-canonical address
-0xe00eeaee0000003b: 0000 [#1] PREEMPT SMP KASAN
-KASAN: maybe wild-memory-access in range
-[0x00777770000001d8-0x00777770000001df]
-CPU: 1 PID: 10488 Comm: syz-executor721 Not tainted 5.9.0-rc3-syzkaller #0
-RIP: 0010:unlink_file_vma+0x57/0xb0 mm/mmap.c:164
-Code: 4c 8b a5 a0 00 00 00 4d 85 e4 74 4e e8 92 d7 cd ff 49 8d bc 24
-d8 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c
-02 00 75 3d 4d 8b b4 24 d8 01 00 00 4d 8d 6e 78 4c 89 ef e8
-RSP: 0018:ffffc9000ac0f9b0 EFLAGS: 00010202
-RAX: dffffc0000000000 RBX: ffff88800010ceb0 RCX: ffffffff81592421
-RDX: 000eeeee0000003b RSI: ffffffff81a6736e RDI: 00777770000001d8
-RBP: ffff88800010ceb0 R08: 0000000000000001 R09: ffff88801291a50f
-R10: ffffed10025234a1 R11: 0000000000000001 R12: 0077777000000000
-R13: 00007f1eea0da000 R14: 00007f1eea0d9000 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff8880ae700000(0000)
-knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f1eea11a9d0 CR3: 000000000007e000 CR4: 00000000001506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- free_pgtables+0x1b3/0x2f0 mm/memory.c:415
- exit_mmap+0x2c0/0x530 mm/mmap.c:3184
- __mmput+0x122/0x470 kernel/fork.c:1076
- mmput+0x53/0x60 kernel/fork.c:1097
- exit_mm kernel/exit.c:483 [inline]
- do_exit+0xa8b/0x29f0 kernel/exit.c:793
- do_group_exit+0x125/0x310 kernel/exit.c:903
- get_signal+0x428/0x1f00 kernel/signal.c:2757
- arch_do_signal+0x82/0x2520 arch/x86/kernel/signal.c:811
- exit_to_user_mode_loop kernel/entry/common.c:136 [inline]
- exit_to_user_mode_prepare+0x1ae/0x200 kernel/entry/common.c:167
- syscall_exit_to_user_mode+0x7e/0x2e0 kernel/entry/common.c:242
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+So just simplify this.
 
-It's because the ->mmap() callback can change vma->vm_file and fput the
-original file. But the commit d70cec898324 ("mm: mmap: merge vma after
-call_mmap() if possible") failed to catch this case and always fput() the
-original file, hence add an extra fput().
-
-[ Thanks Hillf for pointing this extra fput() out. ]
-
-Link: https://lkml.kernel.org/r/20200916090733.31427-1-linmiaohe@huawei.com
-Fixes: d70cec898324 ("mm: mmap: merge vma after call_mmap() if possible")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reported-by: syzbot+c5d5a51dcbb558ca0cb5@syzkaller.appspotmail.com
-Cc: Hongxiang Lou <louhongxiang@huawei.com>
+Link: https://lkml.kernel.org/r/20201002175303.390363-1-daniel.vetter@ffwll=
+.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Tomasz Figa <tfiga@chromium.org>	[drivers/media/common/videobuf2/]
+Acked-by: Oded Gabbay <oded.gabbay@gmail.com>	[drivers/misc/habanalabs]
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kukjin Kim <kgene@kernel.org>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: Omer Shpigelman <oshpigelman@habana.ai>
+Cc: Tomer Tayar <ttayar@habana.ai>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pawel Piskorski <ppiskorski@habana.ai>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c           |    3 +--
+ drivers/media/common/videobuf2/videobuf2-memops.c |    3 +--
+ drivers/misc/habanalabs/common/memory.c           |    3 +--
+ include/linux/mm.h                                |    2 +-
+ mm/frame_vector.c                                 |    4 ++--
+ 5 files changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-fix-general-protection-fault-in-unlink_file_vma
-+++ a/mm/mmap.c
-@@ -1781,7 +1781,11 @@ unsigned long mmap_region(struct file *f
- 			merge = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
- 				NULL, vma->vm_file, vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX);
- 			if (merge) {
--				fput(file);
-+				/* ->mmap() can change vma->vm_file and fput the original file. So
-+				 * fput the vma->vm_file here or we would add an extra fput for file
-+				 * and cause general protection fault ultimately.
-+				 */
-+				fput(vma->vm_file);
- 				vm_area_free(vma);
- 				vma = merge;
- 				/* Update vm_flags and possible addr to pick up the change. We don't
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c~mm-frame-vec-drop-gup_flags-f=
+rom-get_vaddr_frames
++++ a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -480,8 +480,7 @@ static dma_addr_t *g2d_userptr_get_dma_a
+ 		goto err_free;
+ 	}
+=20
+-	ret =3D get_vaddr_frames(start, npages, FOLL_FORCE | FOLL_WRITE,
+-		g2d_userptr->vec);
++	ret =3D get_vaddr_frames(start, npages, g2d_userptr->vec);
+ 	if (ret !=3D npages) {
+ 		DRM_DEV_ERROR(g2d->dev,
+ 			      "failed to get user pages from userptr.\n");
+--- a/drivers/media/common/videobuf2/videobuf2-memops.c~mm-frame-vec-drop-g=
+up_flags-from-get_vaddr_frames
++++ a/drivers/media/common/videobuf2/videobuf2-memops.c
+@@ -40,7 +40,6 @@ struct frame_vector *vb2_create_framevec
+ 	unsigned long first, last;
+ 	unsigned long nr;
+ 	struct frame_vector *vec;
+-	unsigned int flags =3D FOLL_FORCE | FOLL_WRITE;
+=20
+ 	first =3D start >> PAGE_SHIFT;
+ 	last =3D (start + length - 1) >> PAGE_SHIFT;
+@@ -48,7 +47,7 @@ struct frame_vector *vb2_create_framevec
+ 	vec =3D frame_vector_create(nr);
+ 	if (!vec)
+ 		return ERR_PTR(-ENOMEM);
+-	ret =3D get_vaddr_frames(start & PAGE_MASK, nr, flags, vec);
++	ret =3D get_vaddr_frames(start & PAGE_MASK, nr, vec);
+ 	if (ret < 0)
+ 		goto out_destroy;
+ 	/* We accept only complete set of PFNs */
+--- a/drivers/misc/habanalabs/common/memory.c~mm-frame-vec-drop-gup_flags-f=
+rom-get_vaddr_frames
++++ a/drivers/misc/habanalabs/common/memory.c
+@@ -1287,8 +1287,7 @@ static int get_user_memory(struct hl_dev
+ 		return -ENOMEM;
+ 	}
+=20
+-	rc =3D get_vaddr_frames(start, npages, FOLL_FORCE | FOLL_WRITE,
+-				userptr->vec);
++	rc =3D get_vaddr_frames(start, npages, userptr->vec);
+=20
+ 	if (rc !=3D npages) {
+ 		dev_err(hdev->dev,
+--- a/include/linux/mm.h~mm-frame-vec-drop-gup_flags-from-get_vaddr_frames
++++ a/include/linux/mm.h
+@@ -1757,7 +1757,7 @@ struct frame_vector {
+ struct frame_vector *frame_vector_create(unsigned int nr_frames);
+ void frame_vector_destroy(struct frame_vector *vec);
+ int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
+-		     unsigned int gup_flags, struct frame_vector *vec);
++		     struct frame_vector *vec);
+ void put_vaddr_frames(struct frame_vector *vec);
+ int frame_vector_to_pages(struct frame_vector *vec);
+ void frame_vector_to_pfns(struct frame_vector *vec);
+--- a/mm/frame_vector.c~mm-frame-vec-drop-gup_flags-from-get_vaddr_frames
++++ a/mm/frame_vector.c
+@@ -12,7 +12,6 @@
+  * get_vaddr_frames() - map virtual addresses to pfns
+  * @start:	starting user address
+  * @nr_frames:	number of pages / pfns from start to map
+- * @gup_flags:	flags modifying lookup behaviour
+  * @vec:	structure which receives pages / pfns of the addresses mapped.
+  *		It should have space for at least nr_frames entries.
+  *
+@@ -32,10 +31,11 @@
+  * This function takes care of grabbing mmap_lock as necessary.
+  */
+ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+-		     unsigned int gup_flags, struct frame_vector *vec)
++		     struct frame_vector *vec)
+ {
+ 	struct mm_struct *mm =3D current->mm;
+ 	struct vm_area_struct *vma;
++	unsigned int gup_flags =3D FOLL_WRITE | FOLL_FORCE;
+ 	int ret =3D 0;
+ 	int err;
+ 	int locked;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
-mm-mmap-fix-general-protection-fault-in-unlink_file_vma.patch
-mm-swap-fix-confusing-comment-in-release_pages.patch
-mm-swap_slotsc-remove-always-zero-and-unused-return-value-of-enable_swap_slots_cache.patch
-mm-remove-useless-out-label-in-__swap_writepage.patch
-mm-fix-incomplete-comment-in-lru_cache_add_inactive_or_unevictable.patch
-mm-remove-unnecessary-goto-out-in-_swap_info_get.patch
-mm-fix-potential-memory-leak-in-sys_swapon.patch
-mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
-mm-page_counter-correct-the-obsolete-func-name-in-the-comment-of-page_counter_try_charge.patch
-mm-memcontrol-reword-obsolete-comment-of-mem_cgroup_unmark_under_oom.patch
-mm-use-helper-function-mapping_allow_writable.patch
-mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct.patch
-mm-mempool-add-else-to-split-mutually-exclusive-case.patch
-mm-vmstat-use-helper-macro-abs.patch
-mm-fix-some-broken-comments.patch
-mm-use-helper-function-put_write_access.patch
-percpu_counter-use-helper-macro-abs.patch
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
+mm-frame-vec-use-foll_longterm.patch
 
