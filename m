@@ -7,42 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E833DC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Oct 2020 21:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB73C433E7
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Oct 2020 22:45:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B90272225D
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Oct 2020 21:42:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5611222D5
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Oct 2020 22:45:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602279730;
-	bh=Qxj/aB37qxxrT2rzD1wsgwFbPr+oaRyfODWpbuscDMA=;
+	s=default; t=1602283507;
+	bh=IxEqZRkPAqh68aChGyrp+I9s04+UqS0TtgGna8UtdtY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=q3uAsk3Ak/do20p/YBIXQJ4yrMxJnEsP6CC7f3BF8IaZkbclH0fgJZL1EhNKlx59R
-	 XX2Iff7COG43pz8+k4QgqFYfAcuVdWGMKiX2g7353nf5jiru/PnbPHmgCEt1MP+wWy
-	 MMgC/BublEe3ZMxJK0THMJLyCYtzz8n/LkWdvAMU=
+	b=GH+jB0rHCSTUN3uMvKJ1WN+/13yvlUUak62mTYKQrWNaRhPBz1d+LttqnEDz+1stn
+	 tCWMaTTftnz8WD60j8BNwLtX/gW/HypuS2moxInyFZA5g3GKi5ZyxSMPZJHxX7KdCx
+	 bwinpB3m31yt4T1WfP6mypFnMAtro8jlqCld84v0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391903AbgJIVmK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Oct 2020 17:42:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46360 "EHLO mail.kernel.org"
+        id S2389980AbgJIWpH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Oct 2020 18:45:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42540 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391902AbgJIVmK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Oct 2020 17:42:10 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S2388159AbgJIWpH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Oct 2020 18:45:07 -0400
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1778722247;
-        Fri,  9 Oct 2020 21:42:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CFCB6222C3;
+        Fri,  9 Oct 2020 22:45:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602279729;
-        bh=Qxj/aB37qxxrT2rzD1wsgwFbPr+oaRyfODWpbuscDMA=;
+        s=default; t=1602283506;
+        bh=IxEqZRkPAqh68aChGyrp+I9s04+UqS0TtgGna8UtdtY=;
         h=Date:From:To:Subject:From;
-        b=zSQ7EbP07l+ZTrqVBnN2Of7OE8QgzOoRRlnEnctSdxQntdS7RhMH4BzAZxBhwS3HZ
-         JirJVdGVS1WmCTZdo455Z99fokkR4wGeBK4fnie1eNmOgqBjx4tLn16bu2exJlE/uV
-         J+O/tpSINun0kUiXoMD+lQ3N57hS0TydQRpd/T2g=
-Date:   Fri, 09 Oct 2020 14:42:08 -0700
+        b=DN68gTavAtWlT/sTYeYbozxA9Ozstiq84LmdjzyGRtYFvIpUIeB5iP+OAXkv6fgml
+         YGlyCNn5yLmzR/XRLjlaWsO5Wt5PJ4fNLC4yO/TNXcRUcwIV1ng6hQhinXrrV7Zqa3
+         2YWIRjSIP/Js6fQU6ywUnjDFxoYBzzza+g6mHVX8=
+Date:   Fri, 09 Oct 2020 15:45:05 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20201009214208.vDIG2MJb5%akpm@linux-foundation.org>
+To:     bharata@linux.ibm.com, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, stable@vger.kernel.org, tj@kernel.org,
+        vbabka@suse.cz
+Subject:  +
+ mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch added to -mm tree
+Message-ID: <20201009224505.kVHC2Upzb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm: memcg/slab: uncharge during kmem_cache_free_bulk()
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,89 +77,144 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Bharata B Rao <bharata@linux.ibm.com>
+Subject: mm: memcg/slab: uncharge during kmem_cache_free_bulk()
 
+Object cgroup charging is done for all the objects during allocation, but
+during freeing, uncharging ends up happening for only one object in the
+case of bulk allocation/freeing.
+
+Fix this by having a separate call to uncharge all the objects from
+kmem_cache_free_bulk() and by modifying memcg_slab_free_hook() to take
+care of bulk uncharging.
+
+Link: https://lkml.kernel.org/r/20201009060423.390479-1-bharata@linux.ibm.com
+Fixes: 964d4bd370d5 ("mm: memcg/slab: save obj_cgroup for non-root slab objects"
+Signed-off-by: Bharata B Rao <bharata@linux.ibm.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/vmlinux.lds.S |    3 ---
- drivers/net/usb/rtl8150.c       |    6 ------
- net/rxrpc/conn_event.c          |    4 ----
- 3 files changed, 13 deletions(-)
+ mm/slab.c |    2 +-
+ mm/slab.h |   50 +++++++++++++++++++++++++++++++-------------------
+ mm/slub.c |    3 ++-
+ 3 files changed, 34 insertions(+), 21 deletions(-)
 
---- a/arch/riscv/kernel/vmlinux.lds.S~linux-next-git-rejects
-+++ a/arch/riscv/kernel/vmlinux.lds.S
-@@ -70,14 +70,11 @@ SECTIONS
- 		_etext = .;
- 	}
+--- a/mm/slab.c~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
++++ a/mm/slab.c
+@@ -3438,7 +3438,7 @@ void ___cache_free(struct kmem_cache *ca
+ 		memset(objp, 0, cachep->object_size);
+ 	kmemleak_free_recursive(objp, cachep->flags);
+ 	objp = cache_free_debugcheck(cachep, objp, caller);
+-	memcg_slab_free_hook(cachep, virt_to_head_page(objp), objp);
++	memcg_slab_free_hook(cachep, &objp, 1);
  
--<<<<<<< HEAD
--=======
- #ifdef CONFIG_EFI
- 	. = ALIGN(PECOFF_SECTION_ALIGNMENT);
- 	__pecoff_text_end = .;
- #endif
+ 	/*
+ 	 * Skip calling cache_free_alien() when the platform is not numa.
+--- a/mm/slab.h~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
++++ a/mm/slab.h
+@@ -345,30 +345,42 @@ static inline void memcg_slab_post_alloc
+ 	obj_cgroup_put(objcg);
+ }
  
-->>>>>>> linux-next/akpm-base
- 	INIT_DATA_SECTION(16)
- 
- 	/* Start of data section */
---- a/drivers/net/usb/rtl8150.c~linux-next-git-rejects
-+++ a/drivers/net/usb/rtl8150.c
-@@ -258,15 +258,9 @@ static void set_ethernet_addr(rtl8150_t
+-static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
+-					void *p)
++static inline void memcg_slab_free_hook(struct kmem_cache *s_orig,
++					void **p, int objects)
  {
- 	u8 node_id[ETH_ALEN];
- 	int ret;
--<<<<<<< HEAD
++	struct kmem_cache *s;
+ 	struct obj_cgroup *objcg;
++	struct page *page;
+ 	unsigned int off;
++	int i;
  
- 	ret = get_registers(dev, IDR, sizeof(node_id), node_id);
+ 	if (!memcg_kmem_enabled())
+ 		return;
  
--=======
+-	if (!page_has_obj_cgroups(page))
+-		return;
 -
--	ret = get_registers(dev, IDR, sizeof(node_id), node_id);
+-	off = obj_to_index(s, page, p);
+-	objcg = page_obj_cgroups(page)[off];
+-	page_obj_cgroups(page)[off] = NULL;
 -
-->>>>>>> linux-next/akpm-base
- 	if (ret == sizeof(node_id)) {
- 		ether_addr_copy(dev->netdev->dev_addr, node_id);
- 	} else {
---- a/net/rxrpc/conn_event.c~linux-next-git-rejects
-+++ a/net/rxrpc/conn_event.c
-@@ -341,11 +341,7 @@ static int rxrpc_process_event(struct rx
- 		if (ret < 0)
- 			return ret;
+-	if (!objcg)
+-		return;
+-
+-	obj_cgroup_uncharge(objcg, obj_full_size(s));
+-	mod_objcg_state(objcg, page_pgdat(page), cache_vmstat_idx(s),
+-			-obj_full_size(s));
+-
+-	obj_cgroup_put(objcg);
++	for (i = 0; i < objects; i++) {
++		if (unlikely(!p[i]))
++			continue;
++
++		page = virt_to_head_page(p[i]);
++		if (!page_has_obj_cgroups(page))
++			continue;
++
++		if (!s_orig)
++			s = page->slab_cache;
++		else
++			s = s_orig;
++
++		off = obj_to_index(s, page, p[i]);
++		objcg = page_obj_cgroups(page)[off];
++		if (!objcg)
++			continue;
++
++		page_obj_cgroups(page)[off] = NULL;
++		obj_cgroup_uncharge(objcg, obj_full_size(s));
++		mod_objcg_state(objcg, page_pgdat(page), cache_vmstat_idx(s),
++				-obj_full_size(s));
++		obj_cgroup_put(objcg);
++	}
+ }
  
--<<<<<<< HEAD
--		spin_lock(&conn->channel_lock);
--=======
- 		spin_lock(&conn->bundle->channel_lock);
-->>>>>>> linux-next/akpm-base
- 		spin_lock_bh(&conn->state_lock);
+ #else /* CONFIG_MEMCG_KMEM */
+@@ -406,8 +418,8 @@ static inline void memcg_slab_post_alloc
+ {
+ }
  
- 		if (conn->state == RXRPC_CONN_SERVICE_CHALLENGING) {
+-static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
+-					void *p)
++static inline void memcg_slab_free_hook(struct kmem_cache *s,
++					void **p, int objects)
+ {
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
+--- a/mm/slub.c~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
++++ a/mm/slub.c
+@@ -3095,7 +3095,7 @@ static __always_inline void do_slab_free
+ 	struct kmem_cache_cpu *c;
+ 	unsigned long tid;
+ 
+-	memcg_slab_free_hook(s, page, head);
++	memcg_slab_free_hook(s, &head, 1);
+ redo:
+ 	/*
+ 	 * Determine the currently cpus per cpu slab.
+@@ -3257,6 +3257,7 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 	if (WARN_ON(!size))
+ 		return;
+ 
++	memcg_slab_free_hook(s, p, size);
+ 	do {
+ 		struct detached_freelist df;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bharata@linux.ibm.com are
 
-mm.patch
-mm-memory_hotplug-introduce-default-phys_to_target_node-implementation-fix.patch
-powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
-mm-gup-dont-permit-users-to-call-get_user_pages-with-foll_longterm-fix.patch
-mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
-mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
-memblock-make-memblock_debug-and-related-functionality-private-fix.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
-xarray-add-xa_get_order-fix.patch
-xarray-add-xas_split-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-mm-memory_hotplug-simplify-page-offlining-fix.patch
-checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
-checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-linux-next-rejects.patch
-fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch
 
