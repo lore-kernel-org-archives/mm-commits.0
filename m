@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 104F0C433E7
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:29:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF3F9C433DF
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:36:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A663C20874
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:29:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C4DA20874
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:36:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602386964;
-	bh=dXafyTf34Cg6lSAzclSPdg+wn9qVslawmJi+nY+bUp8=;
+	s=default; t=1602387389;
+	bh=66FaKwXrf0aBug71opDfeWO0v0BrvsAwDj3jgDOe67g=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=cbyAtZOYax1ZjWMeZjBS3BiVo2gqERp3ktgj/JV/FpU6qTqND17gsUH66pJXDCgqT
-	 7q9b829F+ozTCkox0uUvLeC6o4DZ22yDz1+FK9zqo9h/4pZHhqY+BddJ47tnHjkZw9
-	 WBJKIZAjgwaytFdw9v5b7KUkeJr4kfyXArKF7A9o=
+	b=ZBZUDjwcV/Tiny1ksHQWbUx3nT8CO9uX/sf0jQJiCENlxSYZO/Fkf6szXoodWEFEi
+	 Y0IenPiu1tEU3aKOdK2Kj9XZsmF85Xmh1u2qNEypLfY9TbOPOIfWNIngoe+DvK78uR
+	 UkIMNt85+R7z8yaTGQDB4Da8eUaovJeeeDpru81o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728798AbgJKD3Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Oct 2020 23:29:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49430 "EHLO mail.kernel.org"
+        id S1728801AbgJKDg3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Oct 2020 23:36:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49858 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728715AbgJKD3Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Oct 2020 23:29:24 -0400
+        id S1728715AbgJKDg3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Oct 2020 23:36:29 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BDA2E20773;
-        Sun, 11 Oct 2020 03:29:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E31A320773;
+        Sun, 11 Oct 2020 03:36:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602386962;
-        bh=dXafyTf34Cg6lSAzclSPdg+wn9qVslawmJi+nY+bUp8=;
+        s=default; t=1602387388;
+        bh=66FaKwXrf0aBug71opDfeWO0v0BrvsAwDj3jgDOe67g=;
         h=Date:From:To:Subject:From;
-        b=BLeULMAHwLZIBjKO4siQliPiDQzTx2mwMVMAv5mkmE4axrgdr+W+psAKtwXQL8f2D
-         Q3I6AF3Z7VXeLrlA+SD05uSY54xWDh5OCSqUX6BGoeIgN3Qq/7n2YX7ZTTyJIqmldk
-         RQuJD/IyPHeTkFqLwChB+tdqCZMkoP2x5ykjLjdQ=
-Date:   Sat, 10 Oct 2020 20:29:21 -0700
+        b=rQyu6D+NqLG8viZysGe56g7a+l3d1PA+/zRSERthWkQyaWMnHl3ZBMcQ8EpeZZJFc
+         MuXrQyoHJpekEWrYxYZ7/yn/9OSiRTddPAfg7Vvm4GncyJZnGOKtloSGZcRut5oLbI
+         6KEOzpNBrHI2Ko7vOUNLlkw23OyUuPvQBGU05bIk=
+Date:   Sat, 10 Oct 2020 20:36:27 -0700
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, dan.j.williams@intel.com, jgg@ziepe.ca,
-        jglisse@redhat.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, sfr@canb.auug.org.au
-Subject:  +
- mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk.patch added to -mm
- tree
-Message-ID: <20201011032921.oo1Z-rzzJ%akpm@linux-foundation.org>
+To:     andres@anarazel.de, david@fromorbit.com, dhowells@redhat.com,
+        hch@infradead.org, jack@suse.cz, jlayton@kernel.org,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, viro@zeniv.linux.org.uk,
+        willy@infradead.org
+Subject:  + mm-validate-inode-in-mapping_set_error.patch added to
+ -mm tree
+Message-ID: <20201011033627.VInQu4bdg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_hmm.c: fix an error code in dmirror_allocate_chunk()
+     Subject: mm: validate inode in mapping_set_error()
 has been added to the -mm tree.  Its filename is
-     mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk.patch
+     mm-validate-inode-in-mapping_set_error.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-validate-inode-in-mapping_set_error.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-validate-inode-in-mapping_set_error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,40 +77,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: lib/test_hmm.c: fix an error code in dmirror_allocate_chunk()
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: validate inode in mapping_set_error()
 
-This is supposed to return false on failure, not a negative error code.
+The swap address_space doesn't have host. Thus, it makes kernel crash once
+swap write meets error. Fix it.
 
-Link: https://lkml.kernel.org/r/20201010200812.GA1886610@mwanda
-Fixes: 170e38548b81 ("mm/hmm/test: use after free in dmirror_allocate_chunk()")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://lkml.kernel.org/r/20201010000650.750063-1-minchan@kernel.org
+Fixes: 735e4ae5ba28 ("vfs: track per-sb writeback errors and report them to syncfs")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Jeff Layton <jlayton@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andres Freund <andres@anarazel.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pagemap.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/test_hmm.c~mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk
-+++ a/lib/test_hmm.c
-@@ -461,7 +461,7 @@ static bool dmirror_allocate_chunk(struc
+--- a/include/linux/pagemap.h~mm-validate-inode-in-mapping_set_error
++++ a/include/linux/pagemap.h
+@@ -54,7 +54,8 @@ static inline void mapping_set_error(str
+ 	__filemap_set_wb_err(mapping, error);
  
- 	devmem = kzalloc(sizeof(*devmem), GFP_KERNEL);
- 	if (!devmem)
--		return -ENOMEM;
-+		return false;
+ 	/* Record it in superblock */
+-	errseq_set(&mapping->host->i_sb->s_wb_err, error);
++	if (mapping->host)
++		errseq_set(&mapping->host->i_sb->s_wb_err, error);
  
- 	res = request_free_mem_region(&iomem_resource, DEVMEM_CHUNK_SIZE,
- 				      "hmm_dmirror");
+ 	/* Record it in flags for now, for legacy callers */
+ 	if (error == -ENOSPC)
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-memremap_pages-convert-to-struct-range-fix.patch
-mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk.patch
+mm-validate-inode-in-mapping_set_error.patch
+mm-madvise-pass-mm-to-do_madvise.patch
+pid-move-pidfd_get_pid-to-pidc.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix.patch
 
