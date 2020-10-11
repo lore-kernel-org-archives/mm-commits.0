@@ -2,143 +2,94 @@ Return-Path: <SRS0=Y9qB=DS=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 264C2C433DF
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:59:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E7AC433DF
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 06:16:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF2EE20897
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:59:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 850D32083B
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 06:16:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602388791;
-	bh=RCzQwM8WtglLjJhSNFOU8wwaOJ5LC0iVDQpj1OHaNJg=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=QjQ4nM5hZprccstsT5Ino6P8I1LnZEksdBaLkaVznUReNwhHjdW8hhJNOduf1/BDY
-	 gKz9+uoRPK+35aG4Buwyf39IgeFaP2quMQVJ6UY0HtmnaRnV8UifYkW0paZSATyn72
-	 iFLETYeLYg+5zfr8l4Gq6NxpOwEoqRhJO5NkpITI=
+	s=default; t=1602396960;
+	bh=Vq4cyero5ROGgh18KvHXhR/u/zjxRuUwPfjhG/w+7a0=;
+	h=Date:From:To:Cc:Subject:Reply-To:List-ID:From;
+	b=ePi2pQI/kgUhXun93EmzcgRYDxnMILzoITFbmD+BMnqYp+1FKsZgxhT8w8fuWGWRJ
+	 aLGdkCY/h/USVdA97gFQWia2oYKipSkuxGlKiYy8DLh0V3w4xn9ftmS3QxynioJRZw
+	 moSIoZcSJOsdO8oxT/bRbMtdBSrAHBq+7Wov55Bg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730722AbgJKD7v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Oct 2020 23:59:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52930 "EHLO mail.kernel.org"
+        id S1726592AbgJKGQA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Oct 2020 02:16:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729217AbgJKD7v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Oct 2020 23:59:51 -0400
+        id S1725882AbgJKGQA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 11 Oct 2020 02:16:00 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C99DE207D3;
-        Sun, 11 Oct 2020 03:59:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 87B5A20795;
+        Sun, 11 Oct 2020 06:15:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602388790;
-        bh=RCzQwM8WtglLjJhSNFOU8wwaOJ5LC0iVDQpj1OHaNJg=;
-        h=Date:From:To:Subject:From;
-        b=fSiMy6BpJWTEzPZ90SrG6EJDHbi7z7iyLMCxc2LWjfHtFgaRGK9eIG4CXDWRht2Pr
-         Sx+r7t3O8ahcx3zDnk6uD+KWMw6pU3zI9eCQyv5/whfRl1UyXqxjP7dBcmrI8lJZ5Z
-         geKOaQ43tGN4IYIRhIee/3T/mZUcRTXDOQo1rMyc=
-Date:   Sat, 10 Oct 2020 20:59:49 -0700
-From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, apais@microsoft.com,
-        kirill.shutemov@linux.intel.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, oleg@redhat.com,
-        pasha.tatashin@soleen.com, songliubraving@fb.com,
-        stable@vger.kernel.org, vijayb@linux.microsoft.com
-Subject:  [folded-merged]
- =?US-ASCII?Q?mm-khugepaged-recalculate-min=5Ffree=5Fkbytes-after-memor?=
- =?US-ASCII?Q?y-hotplug-as-expected-by-khugepaged-v5.patch?= removed from
- -mm tree
-Message-ID: <20201011035949.VI0FylRzZ%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
+        s=default; t=1602396959;
+        bh=Vq4cyero5ROGgh18KvHXhR/u/zjxRuUwPfjhG/w+7a0=;
+        h=Date:From:To:Cc:Subject:From;
+        b=nvAtDLA9uGp6ZBU9fc4FfcFHTDJQiErU3m/+QNLPVgLqydJ8Oc1sArQWgR6zFLia9
+         hSZGw5VRsOVThpoIJtfa5PER+iRQnNPU8Ri2iqXPH7Ld/eQJrkuAD+dDejmVjxuQgn
+         zWIdlsE6GPKhnQttF6WJVLtHZeR9wWYmBzGCgEIo=
+Date:   Sat, 10 Oct 2020 23:15:59 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+5 patches, based on da690031a5d6d50a361e3f19f3eeabd086a6f20d.
 
-The patch titled
-     Subject: mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5.patch
+Subsystems affected by this patch series:
 
-This patch was dropped because it was folded into mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+  MAINTAINERS
+  mm/pagemap
+  mm/swap
+  mm/hugetlb
 
-------------------------------------------------------
-From: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Subject: mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
+Subsystem: MAINTAINERS
 
-made changes to move khugepaged_min_free_kbytes_update into
-init_per_zone_wmark_min and rested changes
+    Kees Cook <keescook@chromium.org>:
+      MAINTAINERS: change hardening mailing list
 
-Link: https://lkml.kernel.org/r/1601398153-5517-1-git-send-email-vijayb@linux.microsoft.com
-Fixes: f000565adb77 ("thp: set recommended min free kbytes")
-Signed-off-by: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Allen Pais <apais@microsoft.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Antoine Tenart <atenart@kernel.org>:
+      MAINTAINERS: Antoine Tenart's email address
 
- mm/memory_hotplug.c |    3 ---
- mm/page_alloc.c     |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Subsystem: mm/pagemap
 
---- a/mm/memory_hotplug.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
-+++ a/mm/memory_hotplug.c
-@@ -36,7 +36,6 @@
- #include <linux/memblock.h>
- #include <linux/compaction.h>
- #include <linux/rmap.h>
--#include <linux/khugepaged.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -858,7 +857,6 @@ int __ref online_pages(unsigned long pfn
- 	zone_pcp_update(zone);
- 
- 	init_per_zone_wmark_min();
--	khugepaged_min_free_kbytes_update();
- 
- 	kswapd_run(nid);
- 	kcompactd_run(nid);
-@@ -1617,7 +1615,6 @@ static int __ref __offline_pages(unsigne
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- 
- 	init_per_zone_wmark_min();
--	khugepaged_min_free_kbytes_update();
- 
- 	if (!populated_zone(zone)) {
- 		zone_pcp_reset(zone);
---- a/mm/page_alloc.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged-v5
-+++ a/mm/page_alloc.c
-@@ -69,6 +69,7 @@
- #include <linux/nmi.h>
- #include <linux/psi.h>
- #include <linux/padata.h>
-+#include <linux/khugepaged.h>
- 
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
-@@ -7904,6 +7905,8 @@ int __meminit init_per_zone_wmark_min(vo
- 	setup_min_slab_ratio();
- #endif
- 
-+	khugepaged_min_free_kbytes_update();
-+
- 	return 0;
- }
- postcore_initcall(init_per_zone_wmark_min)
-_
+    Miaohe Lin <linmiaohe@huawei.com>:
+      mm: mmap: Fix general protection fault in unlink_file_vma()
 
-Patches currently in -mm which might be from vijayb@linux.microsoft.com are
+Subsystem: mm/swap
 
-mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+    Minchan Kim <minchan@kernel.org>:
+      mm: validate inode in mapping_set_error()
+
+Subsystem: mm/hugetlb
+
+    Vijay Balakrishna <vijayb@linux.microsoft.com>:
+      mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
+
+ .mailmap                   |    4 +++-
+ MAINTAINERS                |    8 ++++----
+ include/linux/khugepaged.h |    5 +++++
+ include/linux/pagemap.h    |    3 ++-
+ mm/khugepaged.c            |   13 +++++++++++--
+ mm/mmap.c                  |    6 +++++-
+ mm/page_alloc.c            |    3 +++
+ 7 files changed, 33 insertions(+), 9 deletions(-)
 
