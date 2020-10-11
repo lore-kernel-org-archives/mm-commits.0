@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34056C433DF
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:38:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 795B7C433E7
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:40:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5531207D3
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:38:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C73A20874
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Oct 2020 03:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602387514;
-	bh=2i9qwRA3z3EC6XNGoBmqZc1GtrrF85kp86Qx/FcI7aQ=;
+	s=default; t=1602387608;
+	bh=j6/C2JwRi3h2EdFSobvS1G5ipEYLi3nngEc4cNyRo+Y=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ji73qbQ78YrouYH4jxcboNVyC/wa3u3kJSL1HbxYVK+Db3N9sq30agwV9u33uQa98
-	 17ZfVjDL1gj7heKcUWkZo57HG7KVyqYE9N9UkuxU5lbJb+sifgrTNYkSAQHTq78d8w
-	 2g+/awI1xE9HsJD8PakrxymWXbQNZvUI+pSnratg=
+	b=1w4lVtultFSZp01xGUOsHuSr/drzsIS1K0vjsfrnszGJ3RNCU+QTjlmFszS8l8FCy
+	 /OY31kXDeQXEeVg/yiyD3Kv8w7rYMPNg58thJCbezIA9mBKeHWyIfjziXoPp5mlUMv
+	 LIJGBJJ8kvIxywqEptvAznk/s0AlbbRzYTlEMCbE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729025AbgJKDie (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Oct 2020 23:38:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49964 "EHLO mail.kernel.org"
+        id S1730637AbgJKDkH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Oct 2020 23:40:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728715AbgJKDie (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Oct 2020 23:38:34 -0400
+        id S1728715AbgJKDkH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Oct 2020 23:40:07 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D203A20781;
-        Sun, 11 Oct 2020 03:38:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8175620781;
+        Sun, 11 Oct 2020 03:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602387513;
-        bh=2i9qwRA3z3EC6XNGoBmqZc1GtrrF85kp86Qx/FcI7aQ=;
+        s=default; t=1602387606;
+        bh=j6/C2JwRi3h2EdFSobvS1G5ipEYLi3nngEc4cNyRo+Y=;
         h=Date:From:To:Subject:From;
-        b=AgPTJNmO+/3vwqv6qVkPvRYDS49uGZUUY1+WJb5KwdH+9ihfgkIFjJQEF/4AJb5pE
-         k0xtW52368TfKaG4mQODFIxioFUSlmbuJ0zUMe0n5x7XWd9tiDermNm4dNkUP6xbyE
-         DxpALLDm4d4zTIAE8SeYKVNR7hC/JZJ1gVn1CHM0=
-Date:   Sat, 10 Oct 2020 20:38:32 -0700
+        b=zD7dtX7hhxvnN7EbAnmmoqtCybKR3oDVodarheXmVJAWcQGaGPsTJCvGHvKcnPdT6
+         CryUhs97NMFr1Eur9KEcuadSmbknVwIXKkiiEUE8EswiOoPOuq1HC8RDBlkVtAjypD
+         LjVVzJOy8hJ9DWRA+xTXxPav8//0hG1hTwyAyME8=
+Date:   Sat, 10 Oct 2020 20:40:05 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, aquini@redhat.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        willy@infradead.org, ying.huang@intel.com
-Subject:  + mm-fix-a-race-during-split-thp.patch added to -mm tree
-Message-ID: <20201011033832.09IJxJjTd%akpm@linux-foundation.org>
+To:     aquini@redhat.com, daniel.m.jordan@oracle.com,
+        dave.hansen@linux.intel.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, ying.huang@intel.com
+Subject:  [alternative-merged]
+ mm-swapfile-avoid-split_swap_cluster-null-pointer-dereference.patch removed
+ from -mm tree
+Message-ID: <20201011034005.dlucJ0ub9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,32 +55,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Fix a race during THP splitting
-has been added to the -mm tree.  Its filename is
-     mm-fix-a-race-during-split-thp.patch
+     Subject: mm: swapfile: avoid split_swap_cluster() NULL pointer dereference
+has been removed from the -mm tree.  Its filename was
+     mm-swapfile-avoid-split_swap_cluster-null-pointer-dereference.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-a-race-during-split-thp.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-a-race-during-split-thp.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm: Fix a race during THP splitting
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: swapfile: avoid split_swap_cluster() NULL pointer dereference
 
-It is reported that the following bug is triggered if the HDD is used as
-swap device,
+The swap area descriptor only gets struct swap_cluster_info *cluster_info
+allocated if the swapfile is backed by non-rotational storage.  When the
+swap area is laid on top of ordinary disk spindles, lock_cluster() will
+naturally return NULL.
+
+CONFIG_THP_SWAP exposes cluster_info infrastructure to a broader number of
+use cases, and split_swap_cluster(), which is the counterpart of
+split_huge_page() for the THPs in the swapcache, misses checking the
+return of lock_cluster before operating on the cluster_info pointer.
+
+This patch addresses that issue by adding a proper check for the pointer
+not being NULL in the wrappers cluster_{is,clear}_huge(), in order to
+avoid crashes similar to the one below:
 
 [ 5758.157556] BUG: kernel NULL pointer dereference, address: 0000000000000007
 [ 5758.165331] #PF: supervisor write access in kernel mode
@@ -115,80 +114,41 @@ swap device,
 [ 5758.412673] CR2: 0000000000000007
 [    0.000000] Linux version 5.9.0-0.rc3.1.tst.el8.x86_64 (mockbuild@x86-vm-15.build.eng.bos.redhat.com) (gcc (GCC) 8.3.1 20191121 (Red Hat 8.3.1-5), GNU ld version 2.30-79.el8) #1 SMP Wed Sep 9 16:03:34 EDT 2020
 
-After further digging it's found that the following race condition exists in the
-original implementation,
-
-CPU1                                                             CPU2
-----                                                             ----
-deferred_split_scan()
-  split_huge_page(page) /* page isn't compound head */
-    split_huge_page_to_list(page, NULL)
-      __split_huge_page(page, )
-        ClearPageCompound(head)
-        /* unlock all subpages except page (not head) */
-                                                                 add_to_swap(head)  /* not THP */
-                                                                   get_swap_page(head)
-                                                                   add_to_swap_cache(head, )
-                                                                     SetPageSwapCache(head)
-     if PageSwapCache(head)
-       split_swap_cluster(/* swap entry of head */)
-         /* Deref sis->cluster_info: NULL accessing! */
-
-So, in split_huge_page_to_list(), PageSwapCache() is called for the already
-split and unlocked "head", which may be added to swap cache in another CPU.  So
-split_swap_cluster() may be called wrongly.
-
-To fix the race, the call to split_swap_cluster() is moved to
-__split_huge_page() before all subpages are unlocked.  So that the
-PageSwapCache() is stable.
-
-Link: https://lkml.kernel.org/r/20201009073647.1531083-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20200922184838.978540-1-aquini@redhat.com
 Fixes: 59807685a7e77 ("mm, THP, swap: support splitting THP for THP swap out")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Rafael Aquini <aquini@redhat.com>
-Tested-by: Rafael Aquini <aquini@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/swapfile.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-fix-a-race-during-split-thp
-+++ a/mm/huge_memory.c
-@@ -2475,6 +2475,12 @@ static void __split_huge_page(struct pag
+--- a/mm/swapfile.c~mm-swapfile-avoid-split_swap_cluster-null-pointer-dereference
++++ a/mm/swapfile.c
+@@ -324,14 +324,15 @@ static inline void cluster_set_null(stru
  
- 	remap_page(head, nr);
+ static inline bool cluster_is_huge(struct swap_cluster_info *info)
+ {
+-	if (IS_ENABLED(CONFIG_THP_SWAP))
++	if (IS_ENABLED(CONFIG_THP_SWAP) && info)
+ 		return info->flags & CLUSTER_FLAG_HUGE;
+ 	return false;
+ }
  
-+	if (PageSwapCache(head)) {
-+		swp_entry_t entry = { .val = page_private(head) };
-+
-+		split_swap_cluster(entry);
-+	}
-+
- 	for (i = 0; i < nr; i++) {
- 		struct page *subpage = head + i;
- 		if (subpage == page)
-@@ -2710,12 +2716,7 @@ int split_huge_page_to_list(struct page
- 		}
+ static inline void cluster_clear_huge(struct swap_cluster_info *info)
+ {
+-	info->flags &= ~CLUSTER_FLAG_HUGE;
++	if (IS_ENABLED(CONFIG_THP_SWAP) && info)
++		info->flags &= ~CLUSTER_FLAG_HUGE;
+ }
  
- 		__split_huge_page(page, list, end, flags);
--		if (PageSwapCache(head)) {
--			swp_entry_t entry = { .val = page_private(head) };
--
--			ret = split_swap_cluster(entry);
--		} else
--			ret = 0;
-+		ret = 0;
- 	} else {
- 		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
- 			pr_alert("total_mapcount: %u, page_count(): %u\n",
+ static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
-mm-fix-a-race-during-split-thp.patch
 
