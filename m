@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4E6CC4363D
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 160A4C2D0A4
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F4C4208B3
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B444422203
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633206;
-	bh=4xNFQvYul0G8BmnabgLQDG6cp957a2ONS9ghFW6GDq0=;
+	s=default; t=1602633202;
+	bh=eh0yrjKgpj2wD9uJ5+XaG5mddDwra5Wy0OCm3f30ZBA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=fT3BMnT3lHURJmvHKn3CAJ34EH1UoR7h7ye8b/z3//xDmS/DDqdF2/MIJlO4fpWvf
-	 VcgqYv8GrenywF0Ep+DOuJMAITEY2UcP1abA8c0IJ8sFCp7Rjd5dcBPF7WOjRujN6h
-	 f+Gr2192WiPZ/SpTiV+ZA0FvEvI4ONWUFG3Lub58=
+	b=dChrb1+bf2/AwSG1K0Be6d+Qe8Q6x9d7/z1GYApbn0OPIgv54NfWTiVC+cqibAY71
+	 KfRuqe+9zijGteP9AFNk25dxzrVtUtBHyOFuPDI6Es7Sz+MCXfzM/6wcts/W/sbLB0
+	 Fa/9gCGkGRbZJLLtOsheMmLavJS7NANcYjFhaD1k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730077AbgJMXxY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:53:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37394 "EHLO mail.kernel.org"
+        id S1729175AbgJMXxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:53:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728355AbgJMXw1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:52:27 -0400
+        id S2387433AbgJMXwu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:52:50 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6D54521D7B;
-        Tue, 13 Oct 2020 23:52:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 93B7F22200;
+        Tue, 13 Oct 2020 23:52:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633147;
-        bh=4xNFQvYul0G8BmnabgLQDG6cp957a2ONS9ghFW6GDq0=;
+        s=default; t=1602633170;
+        bh=eh0yrjKgpj2wD9uJ5+XaG5mddDwra5Wy0OCm3f30ZBA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=eFWaDatAumSTLR8lyJTX9AYiIzT2e+lJenmSMzaONU7RD41bpMhN0DLwxO2ZWchcS
-         jFuWyImirSOXTC0QCcNEywxOK3c5+fxdpIU09F2Guvg4y8cPdI+G5xRh37e6y2oCbJ
-         Q+CyMpUd+L2BS3SDHxF2SLEcJ1PHNhMOLIzslv0s=
-Date:   Tue, 13 Oct 2020 16:52:27 -0700
+        b=H9H+X6su3eqNsA1RFPCIyHEHTcucxXr0Ylxixk0nAu3vkEveCRFt6WcBfWHzlmC/k
+         t/vo03aovAdDlUpWxayQUCnyYYLjhPvESfr40o2y+gcgFyyF7KYw9Wi4T2UwxcrZIQ
+         KsR4AME1tZPBGmzunOHeb9YC0P7HYRSULDhWp78E=
+Date:   Tue, 13 Oct 2020 16:52:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 075/181] mm/swapfile.c: remove unnecessary goto
- out in _swap_info_get()
-Message-ID: <20201013235227.qZIt910oy%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
+        hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org,
+        longman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, tj@kernel.org, torvalds@linux-foundation.org,
+        vdavydov.dev@gmail.com
+Subject:  [patch 082/181] mm/memcg: clean up obsolete enum
+ charge_type
+Message-ID: <20201013235249.f1GP1jxfh%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,28 +55,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile.c: remove unnecessary goto out in _swap_info_get()
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memcg: clean up obsolete enum charge_type
 
-It's unnecessary to goto the out label while out label is just below.
+Patch series "mm/memcg: Miscellaneous cleanups and streamlining", v2.
 
-Link: https://lkml.kernel.org/r/20200930102549.1885-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+
+This patch (of 3):
+
+Since commit 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API") and
+commit 00501b531c47 ("mm: memcontrol: rewrite charge API") in v3.17, the
+enum charge_type was no longer used anywhere.  However, the enum itself
+was not removed at that time.  Remove the obsolete enum charge_type now.
+
+Link: https://lkml.kernel.org/r/20200914024452.19167-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20200914024452.19167-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/swapfile.c~mm-remove-unnecessary-goto-out-in-_swap_info_get
-+++ a/mm/swapfile.c
-@@ -1184,7 +1184,6 @@ static struct swap_info_struct *_swap_in
+--- a/mm/memcontrol.c~mm-memcg-clean-up-obsolete-enum-charge_type
++++ a/mm/memcontrol.c
+@@ -197,14 +197,6 @@ static struct move_charge_struct {
+ #define	MEM_CGROUP_MAX_RECLAIM_LOOPS		100
+ #define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	2
  
- bad_free:
- 	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
--	goto out;
- out:
- 	return NULL;
- }
+-enum charge_type {
+-	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+-	MEM_CGROUP_CHARGE_TYPE_ANON,
+-	MEM_CGROUP_CHARGE_TYPE_SWAPOUT,	/* for accounting swapcache */
+-	MEM_CGROUP_CHARGE_TYPE_DROP,	/* a page was unused swap cache */
+-	NR_CHARGE_TYPE,
+-};
+-
+ /* for encoding cft->private value on file */
+ enum res_type {
+ 	_MEM,
 _
