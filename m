@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 068B5C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1754BC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:14:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C28E621D7B
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:14:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA10321582
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:14:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630863;
-	bh=XbShYEcYxHaJNCeBtL0TqVy8YgMxNXrw6njPgUUMiqQ=;
+	s=default; t=1602630892;
+	bh=DBzteXfjJaxCrG9haRe+7VYBG0uX3U1juz03VuuF/EA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=wVg6K32W+GTmYyol813Nt5vv3SBvVFFDj88S3gKyCM07N8kxk/jWzZpdf7MS0Lw19
-	 gefKw/7lZ5Y/dRTt8d2p7aRP7ZTAxMMgHFEHxVy0Ps9TgmBTj505pIP7DcpIeqVXbP
-	 C99KjLFJFm95uyzRMsgpu+TFBrdvaoWMNr/yrcaw=
+	b=Y5PHO5EtEmmomk5DQcBU8EaELPOq4enwQfULjR38K+DOMvSfvEIFSplC+itBsBW7W
+	 h5kqxZbt+L9yE5vr6LIASa4Ul1hvCoPvDsjvEZkmqRLtmjDemhjpmOuZpOvX2etvue
+	 xcR0ERHMrzaxywFGGIGzObmv0OjwHBwC1gJmsCs4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729677AbgJMXOX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:14:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47522 "EHLO mail.kernel.org"
+        id S1727387AbgJMXOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:14:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727365AbgJMXOX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:14:23 -0400
+        id S1727344AbgJMXOw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:14:52 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 951C620B1F;
-        Tue, 13 Oct 2020 23:14:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 341E121D7B;
+        Tue, 13 Oct 2020 23:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630862;
-        bh=XbShYEcYxHaJNCeBtL0TqVy8YgMxNXrw6njPgUUMiqQ=;
+        s=default; t=1602630891;
+        bh=DBzteXfjJaxCrG9haRe+7VYBG0uX3U1juz03VuuF/EA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=L/7XQxfaPpdsD5qCUbCuFCr270iDBi9dcxXCr8/I+9IACxw0ySl7EN/AaIRF7EgWv
-         Myda3k1oBysuHsS9GMyc9QCCjoI1D/jidV1qVObjB2Jl/txYGggJraz29f6Ww5dnGL
-         0N7dGRgYaC13sl4mJ+KKUqN9YQfcjBFH37mx8pIY=
-Date:   Tue, 13 Oct 2020 16:14:22 -0700
+        b=c1tQUJRJJJ/MAp07764aZsSmNWRIQEYIPNLJLkQQn0vR25irUrUJo+YERJm8s7ZXE
+         9sik9FeC/mZkdcx3myNLU64J8MokgGVhc+/h6VyaLx32x/Nb+I+M5Rvbo2HJPgU8an
+         FjPkwGMsxE04mJmJSwZvIZCnJWOktKIfdsuBqpsg=
+Date:   Tue, 13 Oct 2020 16:14:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com
+To:     akpm@linux-foundation.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+ arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
  removed from -mm tree
-Message-ID: <20201013231422.Yt_5EBJa2%akpm@linux-foundation.org>
+Message-ID: <20201013231450.P42ezYN2_%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,47 +56,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock-make-memblock_debug-and-related-functionality-private-fix
+     Subject: arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix
 has been removed from the -mm tree.  Its filename was
-     memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+     arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
 
-This patch was dropped because it was folded into memblock-make-memblock_debug-and-related-functionality-private.patch
+This patch was dropped because it was folded into arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memblock-make-memblock_debug-and-related-functionality-private-fix
+Subject: arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix
 
-make memblock_dbg() safer and neater
+fix arch/arm/mm/pmsa-v7.c build
 
+Reported-by: kernel test robot <lkp@intel.com>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/mm/pmsa-v7.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memblock.c~memblock-make-memblock_debug-and-related-functionality-private-fix
-+++ a/mm/memblock.c
-@@ -137,8 +137,11 @@ struct memblock_type physmem = {
- 	     i < memblock_type->cnt;					\
- 	     i++, rgn = &memblock_type->regions[i])
+--- a/arch/arm/mm/pmsa-v7.c~arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix
++++ a/arch/arm/mm/pmsa-v7.c
+@@ -273,7 +273,7 @@ void __init pmsav7_adjust_lowmem_bounds(
+ 				panic("First memory bank must be contiguous from PHYS_OFFSET");
  
--#define memblock_dbg(fmt, ...) \
--	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+#define memblock_dbg(fmt, ...)						\
-+	do {								\
-+		if (memblock_debug)					\
-+			pr_info(fmt, ##__VA_ARGS__);			\
-+	} while (0)
- 
- static int memblock_debug __initdata_memblock;
- static bool system_has_some_mirror __initdata_memblock = false;
+ 			mem_start = reg_start;
+-			mem_end = reg_end
++			mem_end = reg_end;
+ 			specified_mem_size = mem_end - mem_start;
+ 		} else {
+ 			/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memblock-make-memblock_debug-and-related-functionality-private.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
 mm.patch
 powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
 xarray-add-xa_get_order-fix.patch
