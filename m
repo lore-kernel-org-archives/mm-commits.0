@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B20C43457
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77B95C433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7637D221FF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41B7C22200
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602632925;
-	bh=ZWqsrRLAvjyJLHfAhm5VYkHoyqW9PWHkfxq4EaTFIcw=;
+	s=default; t=1602632929;
+	bh=pV0iKWeDUNtw/1LML0Opzg6KzB9DFJPmOh5QkG5IfB8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=CwtMBQkyoURo+ZJinp4Q5gLy4ZmAtbmqUS/md5MBXd/TpTuvfaWHAXf+uQv3XYldc
-	 18EfR0nJu1BYIc+vlmnNSfnJcN7o9da9lSWLPAHtszs3Qqzl3wGWi+wcFz9Uj3fnXq
-	 vEAyFkXVmmQg+a0VWGOwfJO+blykQpegxCHBdB/Y=
+	b=x/RSeneSFnBJw6u7KrJHqEhkpx5MNM9+ifhl2laSIAbLREdhTkXH+mr2x0CwUdepU
+	 yql9HAokAZbzg9mAxccnpqdDGGRC0MJQSbabhWaCuURXkg75mxsIprfeGtrMjmRsgk
+	 U6VN8biUxENeEyR2SZiOfOfxc8QtpPv27C8ymXio=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729907AbgJMXsp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:48:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60250 "EHLO mail.kernel.org"
+        id S1727684AbgJMXst (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:48:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727154AbgJMXsp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:48:45 -0400
+        id S1727154AbgJMXss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:48:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4FBC122227;
-        Tue, 13 Oct 2020 23:48:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BEB121D81;
+        Tue, 13 Oct 2020 23:48:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632924;
-        bh=ZWqsrRLAvjyJLHfAhm5VYkHoyqW9PWHkfxq4EaTFIcw=;
+        s=default; t=1602632927;
+        bh=pV0iKWeDUNtw/1LML0Opzg6KzB9DFJPmOh5QkG5IfB8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=FbNdQDMxTns3ZpoLaDvG/D2MegtMjm3QTC26OgZNLu1FS3dz78wSeF0HQCuMfQKXg
-         8w5gq5lU+joLDMKZJau8zDmZrj4dyRKQvSVkNTOROM1b0W0QF78egn5ywxRtbZSyAs
-         3kpc/A6fs+X+cO5ByA2q58Bj/YPdheM9A7egMS1w=
-Date:   Tue, 13 Oct 2020 16:48:43 -0700
+        b=ozKj6mlpwwWFxT3fqnuWpj+F1qO2zsfZf8feO6jE6DKTFJh726ZObGesSa8C/eGVN
+         CrC8Pjya7j2MxUrq1XSOSfgkvXPKypTcWRqrHD1RQL0TCXziG7bCd+o8vIOq49lSMn
+         7hDQNydVKw3WJoungFcBYx1BwPYNMc0tlCbCeOjc=
+Date:   Tue, 13 Oct 2020 16:48:47 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, hewenliang4@huawei.com,
-        hushiyuan@huawei.com, iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, liu.xiang6@zte.com.cn,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org,
         wuyun.wu@huawei.com
-Subject:  [patch 022/181] mm/slub: fix missing ALLOC_SLOWPATH stat
- when bulk alloc
-Message-ID: <20201013234843.Wq-xPj29u%akpm@linux-foundation.org>
+Subject:  [patch 023/181] mm/slub: make add_full() condition more
+ explicit
+Message-ID: <20201013234847.01El79qe1%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,42 +56,47 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Abel Wu <wuyun.wu@huawei.com>
-Subject: mm/slub: fix missing ALLOC_SLOWPATH stat when bulk alloc
+Subject: mm/slub: make add_full() condition more explicit
 
-The ALLOC_SLOWPATH statistics is missing in bulk allocation now.  Fix it
-by doing statistics in alloc slow path.
+The commit below is incomplete, as it didn't handle the add_full() part. 
+commit a4d3f8916c65 ("slub: remove useless kmem_cache_debug() before
+remove_full()")
 
-Link: http://lkml.kernel.org/r/20200811022427.1363-1-wuyun.wu@huawei.com
+This patch checks for SLAB_STORE_USER instead of kmem_cache_debug(), since
+that should be the only context in which we need the list_lock for
+add_full().
+
+Link: https://lkml.kernel.org/r/20200811020240.1231-1-wuyun.wu@huawei.com
 Signed-off-by: Abel Wu <wuyun.wu@huawei.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Hewenliang <hewenliang4@huawei.com>
-Cc: Hu Shiyuan <hushiyuan@huawei.com>
+Cc: Liu Xiang <liu.xiang6@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-fix-missing-alloc_slowpath-stat-when-bulk-alloc
+--- a/mm/slub.c~mm-slub-make-add_full-condition-more-explicit
 +++ a/mm/slub.c
-@@ -2661,6 +2661,8 @@ static void *___slab_alloc(struct kmem_c
- 	void *freelist;
- 	struct page *page;
- 
-+	stat(s, ALLOC_SLOWPATH);
-+
- 	page = c->page;
- 	if (!page) {
- 		/*
-@@ -2850,7 +2852,6 @@ redo:
- 	page = c->page;
- 	if (unlikely(!object || !node_match(page, node))) {
- 		object = __slab_alloc(s, gfpflags, node, addr, c);
--		stat(s, ALLOC_SLOWPATH);
+@@ -2245,7 +2245,8 @@ redo:
+ 		}
  	} else {
- 		void *next_object = get_freepointer_safe(s, object);
+ 		m = M_FULL;
+-		if (kmem_cache_debug(s) && !lock) {
++#ifdef CONFIG_SLUB_DEBUG
++		if ((s->flags & SLAB_STORE_USER) && !lock) {
+ 			lock = 1;
+ 			/*
+ 			 * This also ensures that the scanning of full
+@@ -2254,6 +2255,7 @@ redo:
+ 			 */
+ 			spin_lock(&n->list_lock);
+ 		}
++#endif
+ 	}
  
+ 	if (l != m) {
 _
