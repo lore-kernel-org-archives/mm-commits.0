@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1F5EC433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:54:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C80ECC433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:54:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E2C9221FF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:54:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 909AE208B3
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:54:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633271;
-	bh=JsT6c8ztUlM5GIySrn5W4bQ9FmOtvGKIIglrkwGLQqM=;
+	s=default; t=1602633276;
+	bh=ewxwFNxgCRFgnd+4sEPTPAz5Y0g2RSyyo/qjj7rrSJ8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Swc49wIl+nz6v6FcKDrr9DIdyRKdQemXeJAkyecTB2JogVY7KbxN0zN8wWXW1fN6Z
-	 1OJrzBoofjeFciuTafVm4kHqZoP9iWBZ25amCY3Mus52lJpvsvR772oGwkqiV0T9pL
-	 6Y80w4RhPq/7seSh0xiPUeylf+jBfePYxq3+dzps=
+	b=C1oNW8R7uxGcph4bNXYGnV1xgIywsqWDdQszcZ0aNJUQ2Itbz+OjLjeCq7RwutYnE
+	 FnTX3bSYZpfN4X3n/ZMpprSHea/bT0Cn4liOiJOUH7+M54dV2aO/5UoRrDuJ8XJUXV
+	 ls0/JQaRPEFiBF4JoByBSQXODwOR4ewsrWJ4Yn5Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730365AbgJMXyb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:54:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39612 "EHLO mail.kernel.org"
+        id S2387743AbgJMXye (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:54:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726953AbgJMXya (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:54:30 -0400
+        id S2387742AbgJMXye (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:54:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9C964206D5;
-        Tue, 13 Oct 2020 23:54:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 12637206D5;
+        Tue, 13 Oct 2020 23:54:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633270;
-        bh=JsT6c8ztUlM5GIySrn5W4bQ9FmOtvGKIIglrkwGLQqM=;
+        s=default; t=1602633273;
+        bh=ewxwFNxgCRFgnd+4sEPTPAz5Y0g2RSyyo/qjj7rrSJ8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=d2ezA567/NT06UC0/lYleSjA39+w7yljwyoS2jbCkQFb7WvofJ46Jms2492Duyd4x
-         WjubCW6iUwgF/Sj3hVsqY6HOXiiwduzLDfwrcxhGwDFopXnVXHm+ni9gY7vIvMrHfg
-         AO+MnFsx1Uc9eJvbzak6R6V/p/t9PTOXEm3msK2A=
-Date:   Tue, 13 Oct 2020 16:54:29 -0700
+        b=UFJon1fuLNy7WDulLkpsh4kLwMyujeFEWqM+EhS1aWA5BCxAg7hh/CIuE1Q+vIy0H
+         8l7roEFUifmWYo6geypWyP7beqcbF2jyZBVsflhZNpqXb7LAzGBaz6OatShlLfJlqR
+         tBaOMIs03LnUsFsOdt9jnfqRn1ae0UqrNTvz23eE=
+Date:   Tue, 13 Oct 2020 16:54:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jgg@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
+To:     akpm@linux-foundation.org, jglisse@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
         torvalds@linux-foundation.org
-Subject:  [patch 111/181] tools/testing/selftests/vm/hmm-tests.c:
- use the new SKIP() macro
-Message-ID: <20201013235429.trZvTJkV_%akpm@linux-foundation.org>
+Subject:  [patch 112/181] lib/test_hmm.c: remove unused
+ dmirror_zero_page
+Message-ID: <20201013235432.3brXEAuYv%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,41 +54,58 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: tools/testing/selftests/vm/hmm-tests.c: use the new SKIP() macro
+Subject: lib/test_hmm.c: remove unused dmirror_zero_page
 
-Some tests might not be able to be run if resources like huge pages are
-not available.  Mark these tests as skipped instead of simply passing.
+The variable dmirror_zero_page is unused in the HMM self test driver which
+was probably intended to demonstrate how a driver could use
+migrate_vma_setup() to share a single read-only device private zero page
+similar to how the CPU does.  However, this isn't needed for the self
+tests so remove it.
 
-Link: http://lkml.kernel.org/r/20200827190400.12608-1-rcampbell@nvidia.com
+Link: https://lkml.kernel.org/r/20200914213801.16520-1-rcampbell@nvidia.com
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hmm-tests.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_hmm.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
---- a/tools/testing/selftests/vm/hmm-tests.c~mm-test-use-the-new-skip-macro
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -680,7 +680,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
+--- a/lib/test_hmm.c~hmm-test-remove-unused-dmirror_zero_page
++++ a/lib/test_hmm.c
+@@ -36,7 +36,6 @@
+ static const struct dev_pagemap_ops dmirror_devmem_ops;
+ static const struct mmu_interval_notifier_ops dmirror_min_ops;
+ static dev_t dmirror_dev;
+-static struct page *dmirror_zero_page;
  
- 	n = gethugepagesizes(pagesizes, 4);
- 	if (n <= 0)
--		return;
-+		SKIP(return, "Huge page size could not be determined");
- 	for (idx = 0; --n > 0; ) {
- 		if (pagesizes[n] < pagesizes[idx])
- 			idx = n;
-@@ -694,7 +694,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
- 	buffer->ptr = get_hugepage_region(size, GHR_STRICT);
- 	if (buffer->ptr == NULL) {
- 		free(buffer);
--		return;
-+		SKIP(return, "Huge page could not be allocated");
+ struct dmirror_device;
+ 
+@@ -1127,17 +1126,6 @@ static int __init hmm_dmirror_init(void)
+ 			goto err_chrdev;
  	}
  
- 	buffer->fd = -1;
+-	/*
+-	 * Allocate a zero page to simulate a reserved page of device private
+-	 * memory which is always zero. The zero_pfn page isn't used just to
+-	 * make the code here simpler (i.e., we need a struct page for it).
+-	 */
+-	dmirror_zero_page = alloc_page(GFP_HIGHUSER | __GFP_ZERO);
+-	if (!dmirror_zero_page) {
+-		ret = -ENOMEM;
+-		goto err_chrdev;
+-	}
+-
+ 	pr_info("HMM test module loaded. This is only for testing HMM.\n");
+ 	return 0;
+ 
+@@ -1153,8 +1141,6 @@ static void __exit hmm_dmirror_exit(void
+ {
+ 	int id;
+ 
+-	if (dmirror_zero_page)
+-		__free_page(dmirror_zero_page);
+ 	for (id = 0; id < DMIRROR_NDEVICES; id++)
+ 		dmirror_device_remove(dmirror_devices + id);
+ 	unregister_chrdev_region(dmirror_dev, DMIRROR_NDEVICES);
 _
