@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B53AC433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE36C43467
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFC8721D7A
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E17321D7A
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602632897;
-	bh=ts2iXiWVA5EN8KEWlX4YkJOBLzw0fhWlF0a17QPqZrw=;
+	s=default; t=1602632900;
+	bh=MG30du+WB4Ja68D+IS+bL1+JBbAJlRHun3Gliqw0jm0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=VpfmqMYHh6GdC7SPhoLGoK+TFbcFxnB71GSsY/ham7Ct8NGzaUrpddgMhlfUZQsqn
-	 T/jj53yFWCeopQdsXAMyLGI0+hosComT5JvyvMgmCNTGo2HGX13RKd3lNYLzjaNcM3
-	 LxPenTZTy5qUnW4Roo3wM+MAPoTWMeSNz7PUaNhw=
+	b=PTYvUeO3WNhIjHOR20IlQNq2oUARn2rpL8zmhnyy+xE2mF9KuFNt9KCAxmdNlvHV1
+	 L3rZCKQ9dfNctbfThoUBqZDrzlr065GjRwMmWeX+qxq7voN4C6Fs363QxNSerGnY4d
+	 6AlrdExhox0Kq9QqK7rx6FahDfwXgqHUx2L07RzU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389147AbgJMXsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:48:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59580 "EHLO mail.kernel.org"
+        id S2389158AbgJMXsT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:48:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389017AbgJMXsQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:48:16 -0400
+        id S2389017AbgJMXsT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:48:19 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 45D17221FC;
-        Tue, 13 Oct 2020 23:48:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6F22C21D7F;
+        Tue, 13 Oct 2020 23:48:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632895;
-        bh=ts2iXiWVA5EN8KEWlX4YkJOBLzw0fhWlF0a17QPqZrw=;
+        s=default; t=1602632898;
+        bh=MG30du+WB4Ja68D+IS+bL1+JBbAJlRHun3Gliqw0jm0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2B6o3g+3vRHxJaUqHACDJp4/A/1udk8HTKZXrM33HJle9+y1GanQ2e4HU9CORl5Gg
-         aqlUPjRIWR4KVLsH5ClYh3/2AiSbuDBZqiiOd+NzZuvfL2c+a8YqrtcNgbeyMAqMj1
-         7+z/PMH9+5TzrALDfd5z5SGqumAXDASvH9usDU0E=
-Date:   Tue, 13 Oct 2020 16:48:14 -0700
+        b=a9fXMcyK/Q79fu0Gc6qOJ9KOQG71tr9P3MnGSPx3l88MpPZEA0dGEJp4g4v8DUq19
+         s+DtXtrFJbv+fY0g7Sg71gVNQq8+zdQZlj4+lmcT4tjzBoSQwmMmRjwCKQikfdCeXH
+         pqUL5yPmk+BgLfAA602GbVGZ5LU9KB37LX8wURfQ=
+Date:   Tue, 13 Oct 2020 16:48:17 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bp@suse.de, linux-mm@kvack.org,
-        maz@misterjones.org, mm-commits@vger.kernel.org, rabin@rab.in,
-        torvalds@linux-foundation.org, will@kernel.org
-Subject:  [patch 013/181] scripts/decodecode: add the capability to
- supply the program counter
-Message-ID: <20201013234814.6fA6McHwP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, anton@tuxera.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rkovhaev@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 014/181] ntfs: add check for mft record size in
+ superblock
+Message-ID: <20201013234817.kgKs7HBdo%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,125 +53,38 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Borislav Petkov <bp@suse.de>
-Subject: scripts/decodecode: add the capability to supply the program counter
+From: Rustam Kovhaev <rkovhaev@gmail.com>
+Subject: ntfs: add check for mft record size in superblock
 
-So that comparing with objdump output from vmlinux can ease pinpointing
-where the trapping instruction actually is.  An example is better than a
-thousand words:
+Number of bytes allocated for mft record should be equal to the mft record
+size stored in ntfs superblock as reported by syzbot, userspace might
+trigger out-of-bounds read by dereferencing ctx->attr in ntfs_attr_find()
 
-  $ PC=0xffffffff8329a927 ./scripts/decodecode < ~/tmp/syz/gfs2.splat
-  [ 477.379104][T23917] Code: 48 83 ec 28 48 89 3c 24 48 89 54 24 08 e8 c1 b4 4a fe 48 8d bb 00 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 97 05 00 00 48 8b 9b 00 01 00 00 48 85 db 0f 84
-  All code
-  ========
-  ffffffff8329a8fd:       48 83 ec 28             sub    $0x28,%rsp
-  ffffffff8329a901:       48 89 3c 24             mov    %rdi,(%rsp)
-  ffffffff8329a905:       48 89 54 24 08          mov    %rdx,0x8(%rsp)
-  ffffffff8329a90a:       e8 c1 b4 4a fe          callq  0xffffffff81745dd0
-  ffffffff8329a90f:       48 8d bb 00 01 00 00    lea    0x100(%rbx),%rdi
-  ffffffff8329a916:       48 b8 00 00 00 00 00    movabs $0xdffffc0000000000,%rax
-  ffffffff8329a91d:       fc ff df
-  ffffffff8329a920:       48 89 fa                mov    %rdi,%rdx
-  ffffffff8329a923:       48 c1 ea 03             shr    $0x3,%rdx
-  ffffffff8329a927:*      80 3c 02 00             cmpb   $0x0,(%rdx,%rax,1)               <-- trapping instruction
-  ffffffff8329a92b:       0f 85 97 05 00 00       jne    0xffffffff8329aec8
-  ffffffff8329a931:       48 8b 9b 00 01 00 00    mov    0x100(%rbx),%rbx
-  ffffffff8329a938:       48 85 db                test   %rbx,%rbx
-  ffffffff8329a93b:       0f                      .byte 0xf
-  ffffffff8329a93c:       84                      .byte 0x84
-
-Link: https://lkml.kernel.org/r/20200930111416.GF6810@zn.tnic
-Link: https://lkml.kernel.org/r/20200929113238.GC21110@zn.tnic
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Rabin Vincent <rabin@rab.in>
+Link: https://syzkaller.appspot.com/bug?extid=aed06913f36eff9b544e
+Link: https://lkml.kernel.org/r/20200824022804.226242-1-rkovhaev@gmail.com
+Reported-by: syzbot+aed06913f36eff9b544e@syzkaller.appspotmail.com
+Tested-by: syzbot+aed06913f36eff9b544e@syzkaller.appspotmail.com
+Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
+Acked-by: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |   29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ fs/ntfs/inode.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/scripts/decodecode~scripts-decodecode-add-the-capability-to-supply-the-program-counter
-+++ a/scripts/decodecode
-@@ -6,6 +6,7 @@
- # options: set env. variable AFLAGS=options to pass options to "as";
- # e.g., to decode an i386 oops on an x86_64 system, use:
- # AFLAGS=--32 decodecode < 386.oops
-+# PC=hex - the PC (program counter) the oops points to
+--- a/fs/ntfs/inode.c~ntfs-add-check-for-mft-record-size-in-superblock
++++ a/fs/ntfs/inode.c
+@@ -1810,6 +1810,12 @@ int ntfs_read_inode_mount(struct inode *
+ 		brelse(bh);
+ 	}
  
- cleanup() {
- 	rm -f $T $T.s $T.o $T.oo $T.aa $T.dis
-@@ -67,15 +68,19 @@ if [ -z "$ARCH" ]; then
-     esac
- fi
- 
-+# Params: (tmp_file, pc_sub)
- disas() {
--	${CROSS_COMPILE}as $AFLAGS -o $1.o $1.s > /dev/null 2>&1
-+	t=$1
-+	pc_sub=$2
++	if (le32_to_cpu(m->bytes_allocated) != vol->mft_record_size) {
++		ntfs_error(sb, "Incorrect mft record size %u in superblock, should be %u.",
++				le32_to_cpu(m->bytes_allocated), vol->mft_record_size);
++		goto err_out;
++	}
 +
-+	${CROSS_COMPILE}as $AFLAGS -o $t.o $t.s > /dev/null 2>&1
- 
- 	if [ "$ARCH" = "arm" ]; then
- 		if [ $width -eq 2 ]; then
- 			OBJDUMPFLAGS="-M force-thumb"
- 		fi
- 
--		${CROSS_COMPILE}strip $1.o
-+		${CROSS_COMPILE}strip $t.o
- 	fi
- 
- 	if [ "$ARCH" = "arm64" ]; then
-@@ -83,11 +88,18 @@ disas() {
- 			type=inst
- 		fi
- 
--		${CROSS_COMPILE}strip $1.o
-+		${CROSS_COMPILE}strip $t.o
- 	fi
- 
--	${CROSS_COMPILE}objdump $OBJDUMPFLAGS -S $1.o | \
--		grep -v "/tmp\|Disassembly\|\.text\|^$" > $1.dis 2>&1
-+	if [ $pc_sub -ne 0 ]; then
-+		if [ $PC ]; then
-+			adj_vma=$(( $PC - $pc_sub ))
-+			OBJDUMPFLAGS="$OBJDUMPFLAGS --adjust-vma=$adj_vma"
-+		fi
-+	fi
-+
-+	${CROSS_COMPILE}objdump $OBJDUMPFLAGS -S $t.o | \
-+		grep -v "/tmp\|Disassembly\|\.text\|^$" > $t.dis 2>&1
- }
- 
- marker=`expr index "$code" "\<"`
-@@ -95,14 +107,17 @@ if [ $marker -eq 0 ]; then
- 	marker=`expr index "$code" "\("`
- fi
- 
-+
- touch $T.oo
- if [ $marker -ne 0 ]; then
-+	# 2 opcode bytes and a single space
-+	pc_sub=$(( $marker / 3 ))
- 	echo All code >> $T.oo
- 	echo ======== >> $T.oo
- 	beforemark=`echo "$code"`
- 	echo -n "	.$type 0x" > $T.s
- 	echo $beforemark | sed -e 's/ /,0x/g; s/[<>()]//g' >> $T.s
--	disas $T
-+	disas $T $pc_sub
- 	cat $T.dis >> $T.oo
- 	rm -f $T.o $T.s $T.dis
- 
-@@ -114,7 +129,7 @@ echo ===================================
- code=`echo $code | sed -e 's/ [<(]/ /;s/[>)] / /;s/ /,0x/g; s/[>)]$//'`
- echo -n "	.$type 0x" > $T.s
- echo $code >> $T.s
--disas $T
-+disas $T 0
- cat $T.dis >> $T.aa
- 
- # (lines of whole $T.oo) - (lines of $T.aa, i.e. "Code starting") + 3,
+ 	/* Apply the mst fixups. */
+ 	if (post_read_mst_fixup((NTFS_RECORD*)m, vol->mft_record_size)) {
+ 		/* FIXME: Try to use the $MFTMirr now. */
 _
