@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41CBDC43467
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A331C35265
 	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04A6622200
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B413B22243
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633204;
-	bh=pQ/fx9SwOVZ3UpfdSvTg6Va21OAz6g0thpuxuObBGaA=;
+	s=default; t=1602633203;
+	bh=msPNQ0QQz+eqkzQW7RkXTHrOKFUYQl20vckE/ibwJUo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0XbKdg/m06DzLRlHbgGn6ld8BJT6GQTVOjNLzXpzhOUPgqTmarSMYFSjDMDus6ZdT
-	 Mzvqm8NKlwZEmJj477cxZT4QLFgcXADNRHz8u3wb6CTjjep+QOBxirdAmRghXqYFR5
-	 v8RIkIgZDoJI2620x0zVeKBaFwpXrjzm/QCItdCo=
+	b=tjxDl836c9mFzRPwPYkLRvxXTyhQ4Hsq8KUZRGkASc4DIscaVHkWHcm0DJdhf5NCC
+	 6Qsm2mbgabfACdQI+ekI47rKXK6/sbyw5F5PKLKb8V9Dfygtyc8J6gfcFP0ulpOA9w
+	 U8U5hORFaKKdbPkfb+7uYJe33R2et06PTHVb4Uw8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730087AbgJMXxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1729212AbgJMXxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 13 Oct 2020 19:53:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37498 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730085AbgJMXwe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:52:34 -0400
+        id S1730088AbgJMXwl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:52:41 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7E04921D7B;
-        Tue, 13 Oct 2020 23:52:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C6BCB22201;
+        Tue, 13 Oct 2020 23:52:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633153;
-        bh=pQ/fx9SwOVZ3UpfdSvTg6Va21OAz6g0thpuxuObBGaA=;
+        s=default; t=1602633160;
+        bh=msPNQ0QQz+eqkzQW7RkXTHrOKFUYQl20vckE/ibwJUo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=F20R9S98eoCZIJq01/qtdYC94j6y4NEchGEgljbFmjlhyAaS/L+N8bmmCR5ceo+TD
-         /SBb0fJyH/i8IXGP6DeeRJ41VwynfS0ZApIaPWY34pwJk9ILNZeZYJNw2RQiXhjxuP
-         YOuw+1i3wJ8HYGk9AF3BBtVTtFZSNvMoq0z0O79I=
-Date:   Tue, 13 Oct 2020 16:52:33 -0700
+        b=IUB1fiLXtLxJrvjnxHqk8tYM4UPdiGF/X+zPvO587d8kNazvJPL3apSUHzYtKivfm
+         9btX/9en45lH7u46JYvOlRHz3yI7Mf7/+cbrfyMi3caLeBFEm/MXFVbu94MKm/Ig28
+         64I6P2PHo/d8MNayY+SlJuCMltqGabFzsg96C2FA=
+Date:   Tue, 13 Oct 2020 16:52:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        ira.weiny@intel.com, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, gustavoars@kernel.org,
+        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vishal.l.verma@intel.com, william.kucharski@oracle.com
-Subject:  [patch 077/181] mm/memremap.c: convert devmap static
- branch to {inc,dec}
-Message-ID: <20201013235233.t-QL6UOhs%akpm@linux-foundation.org>
+        vdavydov.dev@gmail.com
+Subject:  [patch 079/181] mm: memcontrol: use the preferred form
+ for passing the size of a structure type
+Message-ID: <20201013235239.IxuUc59eL%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,54 +54,35 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: mm/memremap.c: convert devmap static branch to {inc,dec}
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: mm: memcontrol: use the preferred form for passing the size of a structure type
 
-While reviewing Protection Key Supervisor support it was pointed out that
-using a counter to track static branch enable was an anti-pattern which
-was better solved using the provided static_branch_{inc,dec} functions.[1]
+Use the preferred form for passing the size of a structure type.  The
+alternative form where the structure type is spelled out hurts readability
+and introduces an opportunity for a bug when the object type is changed
+but the corresponding object identifier to which the sizeof operator is
+applied is not.
 
-Fix up devmap_managed_key to work the same way.  Also this should be safer
-because there is a very small (very unlikely) race when multiple callers
-try to enable at the same time.
-
-[1] https://lore.kernel.org/lkml/20200714194031.GI5523@worktop.programming.kicks-ass.net/
-
-Link: https://lkml.kernel.org/r/20200810235319.2796597-1-ira.weiny@intel.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Link: https://lkml.kernel.org/r/773e013ff2f07fe2a0b47153f14dea054c0c04f1.1596214831.git.gustavoars@kernel.org
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memremap.c~memremap-convert-devmap-static-branch-to-incdec
-+++ a/mm/memremap.c
-@@ -40,12 +40,10 @@ EXPORT_SYMBOL_GPL(memremap_compat_align)
- #ifdef CONFIG_DEV_PAGEMAP_OPS
- DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
- EXPORT_SYMBOL(devmap_managed_key);
--static atomic_t devmap_managed_enable;
+--- a/mm/memcontrol.c~mm-memcontrol-use-the-preferred-form-for-passing-the-size-of-a-structure-type
++++ a/mm/memcontrol.c
+@@ -4264,7 +4264,7 @@ static int __mem_cgroup_usage_register_e
+ 	new->entries[size - 1].threshold = threshold;
  
- static void devmap_managed_enable_put(void)
- {
--	if (atomic_dec_and_test(&devmap_managed_enable))
--		static_branch_disable(&devmap_managed_key);
-+	static_branch_dec(&devmap_managed_key);
- }
+ 	/* Sort thresholds. Registering of new threshold isn't time-critical */
+-	sort(new->entries, size, sizeof(struct mem_cgroup_threshold),
++	sort(new->entries, size, sizeof(*new->entries),
+ 			compare_thresholds, NULL);
  
- static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
-@@ -56,8 +54,7 @@ static int devmap_managed_enable_get(str
- 		return -EINVAL;
- 	}
- 
--	if (atomic_inc_return(&devmap_managed_enable) == 1)
--		static_branch_enable(&devmap_managed_key);
-+	static_branch_inc(&devmap_managed_key);
- 	return 0;
- }
- #else
+ 	/* Find current threshold */
 _
