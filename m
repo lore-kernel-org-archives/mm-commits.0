@@ -2,43 +2,43 @@ Return-Path: <SRS0=1pWp=DU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8966CC433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE8CC2D0A2
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A16521D7B
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D081322244
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633086;
-	bh=954aoyuQ05sN0aTlAoHfN1InA1Fk7+mHrhmS4a2unko=;
+	s=default; t=1602633081;
+	bh=HStqRkl+1fj8ljgcJMKcWMJT3uplVbdgxMf0jJdkD9s=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=NBeTXwxnxlEQYezoB5Ty2sRQUW7zUVwJ7fTPOwHHUs7n4JVVdluj33Cx15yUMR9Vg
-	 CGeyqlww2OOjrx/dy7tQhv5R/9YMc1s2QjxqV5dXWpEwLncJXxfxvASKBr/EL/txPe
-	 sTqQkGjPXduxE1CdcnlL3Xc8lHDxiKrIe2l2DTHQ=
+	b=jrzc/wRoZ8C9b1Ep2qQbZSeOrkkryqH+djqJJxssZDHPb3SbSge3svu5C6IYTPb0g
+	 JHZNwEqsenQcjHGgMUFwv2IsuocaurrJ+9aveoY4798Oi86O2RFh2dV+GySbIPHKpq
+	 TiNNFI+RIY2CIyKJI6MnDX+b0dGEkqVptG5iFy+0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730401AbgJMXvZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:51:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35230 "EHLO mail.kernel.org"
+        id S2387954AbgJMXvV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:51:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387565AbgJMXui (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:50:38 -0400
+        id S1730399AbgJMXu7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:50:59 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 377F822200;
-        Tue, 13 Oct 2020 23:50:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DF81722227;
+        Tue, 13 Oct 2020 23:50:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633036;
-        bh=954aoyuQ05sN0aTlAoHfN1InA1Fk7+mHrhmS4a2unko=;
+        s=default; t=1602633058;
+        bh=HStqRkl+1fj8ljgcJMKcWMJT3uplVbdgxMf0jJdkD9s=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LU3rXIBjwy2kfdBR/Il4bjnEDzoqSsBgCFLCA55cmi/tngDOiKx/GxCbSPTtyBUeS
-         dEv5zgH0KHBw30EYRS4PJz3rdjKw98uSNJmyNOZZoQ1gDCjrZWfnjsSE1RCA9mVeST
-         61RAL/WsS1IPfJfH2C0k+FAeNE8ARc/bwMbfX7ek=
-Date:   Tue, 13 Oct 2020 16:50:34 -0700
+        b=DTNwEx5f40AVekO3lWBIks45g/jvn435QCjtwTXX91K+YweiCQy81AX/f/a5HjgBI
+         flU+RL8jSKeBC1hHct80dD2N3fer+ZpMOBKnU+4Gx4R4FlzZLxiRRGa17pXn/KpWf+
+         vnWgCvPIW9bZ4IzlMM4qtH/oNo51HRs2744s/lJc=
+Date:   Tue, 13 Oct 2020 16:50:55 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -49,21 +49,19 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         dave.hansen@linux.intel.com, dave.jiang@intel.com,
         david@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com,
         hulkci@huawei.com, ira.weiny@intel.com, jgg@mellanox.com,
-        jglisse@redhat.co, jglisse@redhat.com, jgross@suse.com,
-        jmoyer@redhat.com, joao.m.martins@oracle.com,
-        Jonathan.Cameron@huawei.com, justin.he@arm.com, linux-mm@kvack.org,
-        lkp@intel.com, luto@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        pasha.tatashin@soleen.com, paulus@ozlabs.org, peterz@infradead.org,
-        rafael.j.wysocki@intel.com, rdunlap@infradead.org,
-        richard.weiyang@linux.alibaba.com, rppt@linux.ibm.com,
-        sstabellini@kernel.org, tglx@linutronix.de,
+        jglisse@redhat.com, jgross@suse.com, jmoyer@redhat.com,
+        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
+        justin.he@arm.com, linux-mm@kvack.org, lkp@intel.com,
+        luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, pasha.tatashin@soleen.com, paulus@ozlabs.org,
+        peterz@infradead.org, rafael.j.wysocki@intel.com,
+        rdunlap@infradead.org, richard.weiyang@linux.alibaba.com,
+        rppt@linux.ibm.com, sstabellini@kernel.org, tglx@linutronix.de,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 045/181] mm/memremap_pages: support multiple
- ranges per invocation
-Message-ID: <20201013235034.OIGMeIFRE%akpm@linux-foundation.org>
+Subject:  [patch 049/181] device-dax: add an 'align' attribute
+Message-ID: <20201013235055.LgOw_AyKM%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -75,572 +73,262 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memremap_pages: support multiple ranges per invocation
+Subject: device-dax: add an 'align' attribute
 
-In support of device-dax growing the ability to front physically
-dis-contiguous ranges of memory, update devm_memremap_pages() to track
-multiple ranges with a single reference counter and devm instance.
+Introduce a device align attribute.  While doing so, rename the region
+align attribute to be more explicitly named as so, but keep it named as
+@align to retain the API for tools like daxctl.
 
-Convert all [devm_]memremap_pages() users to specify the number of ranges
-they are mapping in their 'struct dev_pagemap' instance.
+Changes on align may not always be valid, when say certain mappings were
+created with 2M and then we switch to 1G.  So, we validate all ranges
+against the new value being attempted, post resizing.
 
-Link: https://lkml.kernel.org/r/159643103789.4062302.18426128170217903785.s=
-tgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/160106116293.30709.13350662794915396198.stg=
+Link: https://lkml.kernel.org/r/159643105944.4062302.3131761052969132784.st=
+git@dwillia2-desk3.amr.corp.intel.com
+Link: https://lore.kernel.org/r/20200716172913.19658-3-joao.m.martins@oracl=
+e.com
+Link: https://lkml.kernel.org/r/160106118486.30709.13012322227204800596.stg=
 it@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.co
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Airlie <airlied@linux.ie>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Hulk Robot <hulkci@huawei.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jason Yan <yanaijie@huawei.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
 Cc: Jia He <justin.he@arm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Juergen Gross <jgross@suse.com>
 Cc: kernel test robot <lkp@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c     |    1=20
- drivers/dax/device.c                   |    1=20
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    1=20
- drivers/nvdimm/pfn_devs.c              |    1=20
- drivers/nvdimm/pmem.c                  |    1=20
- drivers/pci/p2pdma.c                   |    1=20
- drivers/xen/unpopulated-alloc.c        |    1=20
- include/linux/memremap.h               |   10=20
- lib/test_hmm.c                         |    1=20
- mm/memremap.c                          |  258 +++++++++++++----------
- 10 files changed, 166 insertions(+), 110 deletions(-)
+ drivers/dax/bus.c         |   93 ++++++++++++++++++++++++++++++++----
+ drivers/dax/dax-private.h |   18 ++++++
+ 2 files changed, 101 insertions(+), 10 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-memremap_pages-support-multiple=
--ranges-per-invocation
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -1172,6 +1172,7 @@ int kvmppc_uvmem_init(void)
- 	kvmppc_uvmem_pgmap.type =3D MEMORY_DEVICE_PRIVATE;
- 	kvmppc_uvmem_pgmap.range.start =3D res->start;
- 	kvmppc_uvmem_pgmap.range.end =3D res->end;
-+	kvmppc_uvmem_pgmap.nr_range =3D 1;
- 	kvmppc_uvmem_pgmap.ops =3D &kvmppc_uvmem_ops;
- 	/* just one global instance: */
- 	kvmppc_uvmem_pgmap.owner =3D &kvmppc_uvmem_pgmap;
---- a/drivers/dax/device.c~mm-memremap_pages-support-multiple-ranges-per-in=
-vocation
-+++ a/drivers/dax/device.c
-@@ -417,6 +417,7 @@ int dev_dax_probe(struct dev_dax *dev_da
- 		if (!pgmap)
- 			return -ENOMEM;
- 		pgmap->range =3D *range;
-+		pgmap->nr_range =3D 1;
+--- a/drivers/dax/bus.c~device-dax-add-an-align-attribute
++++ a/drivers/dax/bus.c
+@@ -230,14 +230,15 @@ static ssize_t region_size_show(struct d
+ static struct device_attribute dev_attr_region_size =3D __ATTR(size, 0444,
+ 		region_size_show, NULL);
+=20
+-static ssize_t align_show(struct device *dev,
++static ssize_t region_align_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct dax_region *dax_region =3D dev_get_drvdata(dev);
+=20
+ 	return sprintf(buf, "%u\n", dax_region->align);
+ }
+-static DEVICE_ATTR_RO(align);
++static struct device_attribute dev_attr_region_align =3D
++		__ATTR(align, 0400, region_align_show, NULL);
+=20
+ #define for_each_dax_region_resource(dax_region, res) \
+ 	for (res =3D (dax_region)->res.child; res; res =3D res->sibling)
+@@ -488,7 +489,7 @@ static umode_t dax_region_visible(struct
+ static struct attribute *dax_region_attributes[] =3D {
+ 	&dev_attr_available_size.attr,
+ 	&dev_attr_region_size.attr,
+-	&dev_attr_align.attr,
++	&dev_attr_region_align.attr,
+ 	&dev_attr_create.attr,
+ 	&dev_attr_seed.attr,
+ 	&dev_attr_delete.attr,
+@@ -858,15 +859,13 @@ static ssize_t size_show(struct device *
+ 	return sprintf(buf, "%llu\n", size);
+ }
+=20
+-static bool alloc_is_aligned(struct dax_region *dax_region,
+-		resource_size_t size)
++static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
+ {
+ 	/*
+ 	 * The minimum mapping granularity for a device instance is a
+ 	 * single subsection, unless the arch says otherwise.
+ 	 */
+-	return IS_ALIGNED(size, max_t(unsigned long, dax_region->align,
+-				memremap_compat_align()));
++	return IS_ALIGNED(size, max_t(unsigned long, dev_dax->align, memremap_com=
+pat_align()));
+ }
+=20
+ static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
+@@ -961,7 +960,7 @@ static ssize_t dev_dax_resize(struct dax
+ 		return dev_dax_shrink(dev_dax, size);
+=20
+ 	to_alloc =3D size - dev_size;
+-	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dax_region, to_alloc),
++	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
+ 			"resize of %pa misaligned\n", &to_alloc))
+ 		return -ENXIO;
+=20
+@@ -1025,7 +1024,7 @@ static ssize_t size_store(struct device
+ 	if (rc)
+ 		return rc;
+=20
+-	if (!alloc_is_aligned(dax_region, val)) {
++	if (!alloc_is_aligned(dev_dax, val)) {
+ 		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
+ 		return -EINVAL;
  	}
- 	pgmap->type =3D MEMORY_DEVICE_GENERIC;
- 	addr =3D devm_memremap_pages(dev, pgmap);
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-memremap_pages-support-mult=
-iple-ranges-per-invocation
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -251,6 +251,7 @@ nouveau_dmem_chunk_alloc(struct nouveau_
- 	chunk->pagemap.type =3D MEMORY_DEVICE_PRIVATE;
- 	chunk->pagemap.range.start =3D res->start;
- 	chunk->pagemap.range.end =3D res->end;
-+	chunk->pagemap.nr_range =3D 1;
- 	chunk->pagemap.ops =3D &nouveau_dmem_pagemap_ops;
- 	chunk->pagemap.owner =3D drm->dev;
-=20
---- a/drivers/nvdimm/pfn_devs.c~mm-memremap_pages-support-multiple-ranges-p=
-er-invocation
-+++ a/drivers/nvdimm/pfn_devs.c
-@@ -693,6 +693,7 @@ static int __nvdimm_setup_pfn(struct nd_
- 		.start =3D nsio->res.start + start_pad,
- 		.end =3D nsio->res.end - end_trunc,
- 	};
-+	pgmap->nr_range =3D 1;
- 	if (nd_pfn->mode =3D=3D PFN_MODE_RAM) {
- 		if (offset < reserve)
- 			return -EINVAL;
---- a/drivers/nvdimm/pmem.c~mm-memremap_pages-support-multiple-ranges-per-i=
-nvocation
-+++ a/drivers/nvdimm/pmem.c
-@@ -441,6 +441,7 @@ static int pmem_attach_disk(struct devic
- 	} else if (pmem_should_map_pages(dev)) {
- 		pmem->pgmap.range.start =3D res->start;
- 		pmem->pgmap.range.end =3D res->end;
-+		pmem->pgmap.nr_range =3D 1;
- 		pmem->pgmap.type =3D MEMORY_DEVICE_FS_DAX;
- 		pmem->pgmap.ops =3D &fsdax_pagemap_ops;
- 		addr =3D devm_memremap_pages(dev, &pmem->pgmap);
---- a/drivers/pci/p2pdma.c~mm-memremap_pages-support-multiple-ranges-per-in=
-vocation
-+++ a/drivers/pci/p2pdma.c
-@@ -187,6 +187,7 @@ int pci_p2pdma_add_resource(struct pci_d
- 	pgmap =3D &p2p_pgmap->pgmap;
- 	pgmap->range.start =3D pci_resource_start(pdev, bar) + offset;
- 	pgmap->range.end =3D pgmap->range.start + size - 1;
-+	pgmap->nr_range =3D 1;
- 	pgmap->type =3D MEMORY_DEVICE_PCI_P2PDMA;
-=20
- 	p2p_pgmap->provider =3D pdev;
---- a/drivers/xen/unpopulated-alloc.c~mm-memremap_pages-support-multiple-ra=
-nges-per-invocation
-+++ a/drivers/xen/unpopulated-alloc.c
-@@ -47,6 +47,7 @@ static int fill_list(unsigned int nr_pag
- 		.start =3D res->start,
- 		.end =3D res->end,
- 	};
-+	pgmap->nr_range =3D 1;
- 	pgmap->owner =3D res;
-=20
- #ifdef CONFIG_XEN_HAVE_PVMMU
---- a/include/linux/memremap.h~mm-memremap_pages-support-multiple-ranges-pe=
-r-invocation
-+++ a/include/linux/memremap.h
-@@ -94,7 +94,6 @@ struct dev_pagemap_ops {
- /**
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-- * @range: physical address range covered by @ref
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-  * @internal_ref: internal reference if @ref is not provided by the caller
-  * @done: completion for @internal_ref
-@@ -104,10 +103,12 @@ struct dev_pagemap_ops {
-  * @owner: an opaque pointer identifying the entity that manages this
-  *	instance.  Used by various helpers to make sure that no
-  *	foreign ZONE_DEVICE memory is accessed.
-+ * @nr_range: number of ranges to be mapped
-+ * @range: range to be mapped when nr_range =3D=3D 1
-+ * @ranges: array of ranges to be mapped when nr_range > 1
-  */
- struct dev_pagemap {
- 	struct vmem_altmap altmap;
--	struct range range;
- 	struct percpu_ref *ref;
- 	struct percpu_ref internal_ref;
- 	struct completion done;
-@@ -115,6 +116,11 @@ struct dev_pagemap {
- 	unsigned int flags;
- 	const struct dev_pagemap_ops *ops;
- 	void *owner;
-+	int nr_range;
-+	union {
-+		struct range range;
-+		struct range ranges[0];
-+	};
- };
-=20
- static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
---- a/lib/test_hmm.c~mm-memremap_pages-support-multiple-ranges-per-invocati=
-on
-+++ a/lib/test_hmm.c
-@@ -472,6 +472,7 @@ static bool dmirror_allocate_chunk(struc
- 	devmem->pagemap.type =3D MEMORY_DEVICE_PRIVATE;
- 	devmem->pagemap.range.start =3D res->start;
- 	devmem->pagemap.range.end =3D res->end;
-+	devmem->pagemap.nr_range =3D 1;
- 	devmem->pagemap.ops =3D &dmirror_devmem_ops;
- 	devmem->pagemap.owner =3D mdevice;
-=20
---- a/mm/memremap.c~mm-memremap_pages-support-multiple-ranges-per-invocation
-+++ a/mm/memremap.c
-@@ -77,15 +77,19 @@ static void pgmap_array_delete(struct ra
- 	synchronize_rcu();
+@@ -1044,6 +1043,78 @@ static ssize_t size_store(struct device
  }
+ static DEVICE_ATTR_RW(size);
 =20
--static unsigned long pfn_first(struct dev_pagemap *pgmap)
-+static unsigned long pfn_first(struct dev_pagemap *pgmap, int range_id)
- {
--	return PHYS_PFN(pgmap->range.start) +
--		vmem_altmap_offset(pgmap_altmap(pgmap));
-+	struct range *range =3D &pgmap->ranges[range_id];
-+	unsigned long pfn =3D PHYS_PFN(range->start);
++static ssize_t align_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct dev_dax *dev_dax =3D to_dev_dax(dev);
 +
-+	if (range_id)
-+		return pfn;
-+	return pfn + vmem_altmap_offset(pgmap_altmap(pgmap));
- }
-=20
--static unsigned long pfn_end(struct dev_pagemap *pgmap)
-+static unsigned long pfn_end(struct dev_pagemap *pgmap, int range_id)
- {
--	const struct range *range =3D &pgmap->range;
-+	const struct range *range =3D &pgmap->ranges[range_id];
-=20
- 	return (range->start + range_len(range)) >> PAGE_SHIFT;
- }
-@@ -97,8 +101,8 @@ static unsigned long pfn_next(unsigned l
- 	return pfn + 1;
- }
-=20
--#define for_each_device_pfn(pfn, map) \
--	for (pfn =3D pfn_first(map); pfn < pfn_end(map); pfn =3D pfn_next(pfn))
-+#define for_each_device_pfn(pfn, map, i) \
-+	for (pfn =3D pfn_first(map, i); pfn < pfn_end(map, i); pfn =3D pfn_next(p=
-fn))
-=20
- static void dev_pagemap_kill(struct dev_pagemap *pgmap)
- {
-@@ -124,20 +128,14 @@ static void dev_pagemap_cleanup(struct d
- 		pgmap->ref =3D NULL;
- }
-=20
--void memunmap_pages(struct dev_pagemap *pgmap)
-+static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
- {
--	struct range *range =3D &pgmap->range;
-+	struct range *range =3D &pgmap->ranges[range_id];
- 	struct page *first_page;
--	unsigned long pfn;
- 	int nid;
-=20
--	dev_pagemap_kill(pgmap);
--	for_each_device_pfn(pfn, pgmap)
--		put_page(pfn_to_page(pfn));
--	dev_pagemap_cleanup(pgmap);
--
- 	/* make sure to access a memmap that was actually initialized */
--	first_page =3D pfn_to_page(pfn_first(pgmap));
-+	first_page =3D pfn_to_page(pfn_first(pgmap, range_id));
-=20
- 	/* pages are dead and unused, undo the arch mapping */
- 	nid =3D page_to_nid(first_page);
-@@ -157,6 +155,22 @@ void memunmap_pages(struct dev_pagemap *
-=20
- 	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
- 	pgmap_array_delete(range);
++	return sprintf(buf, "%d\n", dev_dax->align);
 +}
 +
-+void memunmap_pages(struct dev_pagemap *pgmap)
++static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
 +{
-+	unsigned long pfn;
++	resource_size_t dev_size =3D dev_dax_size(dev_dax);
++	struct device *dev =3D &dev_dax->dev;
 +	int i;
 +
-+	dev_pagemap_kill(pgmap);
-+	for (i =3D 0; i < pgmap->nr_range; i++)
-+		for_each_device_pfn(pfn, pgmap, i)
-+			put_page(pfn_to_page(pfn));
-+	dev_pagemap_cleanup(pgmap);
-+
-+	for (i =3D 0; i < pgmap->nr_range; i++)
-+		pageunmap_range(pgmap, i);
-+
- 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
- 	devmap_managed_enable_put();
- }
-@@ -175,96 +189,29 @@ static void dev_pagemap_percpu_release(s
- 	complete(&pgmap->done);
- }
-=20
--/*
-- * Not device managed version of dev_memremap_pages, undone by
-- * memunmap_pages().  Please use dev_memremap_pages if you have a struct
-- * device available.
-- */
--void *memremap_pages(struct dev_pagemap *pgmap, int nid)
-+static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *par=
-ams,
-+		int range_id, int nid)
- {
--	struct range *range =3D &pgmap->range;
-+	struct range *range =3D &pgmap->ranges[range_id];
- 	struct dev_pagemap *conflict_pgmap;
--	struct mhp_params params =3D {
--		/*
--		 * We do not want any optional features only our own memmap
--		 */
--		.altmap =3D pgmap_altmap(pgmap),
--		.pgprot =3D PAGE_KERNEL,
--	};
- 	int error, is_ram;
--	bool need_devmap_managed =3D true;
--
--	switch (pgmap->type) {
--	case MEMORY_DEVICE_PRIVATE:
--		if (!IS_ENABLED(CONFIG_DEVICE_PRIVATE)) {
--			WARN(1, "Device private memory not supported\n");
--			return ERR_PTR(-EINVAL);
--		}
--		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
--			WARN(1, "Missing migrate_to_ram method\n");
--			return ERR_PTR(-EINVAL);
--		}
--		if (!pgmap->owner) {
--			WARN(1, "Missing owner\n");
--			return ERR_PTR(-EINVAL);
--		}
--		break;
--	case MEMORY_DEVICE_FS_DAX:
--		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
--		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
--			WARN(1, "File system DAX not supported\n");
--			return ERR_PTR(-EINVAL);
--		}
--		break;
--	case MEMORY_DEVICE_GENERIC:
--		need_devmap_managed =3D false;
--		break;
--	case MEMORY_DEVICE_PCI_P2PDMA:
--		params.pgprot =3D pgprot_noncached(params.pgprot);
--		need_devmap_managed =3D false;
--		break;
--	default:
--		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
--		break;
--	}
--
--	if (!pgmap->ref) {
--		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
--			return ERR_PTR(-EINVAL);
-=20
--		init_completion(&pgmap->done);
--		error =3D percpu_ref_init(&pgmap->internal_ref,
--				dev_pagemap_percpu_release, 0, GFP_KERNEL);
--		if (error)
--			return ERR_PTR(error);
--		pgmap->ref =3D &pgmap->internal_ref;
--	} else {
--		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
--			WARN(1, "Missing reference count teardown definition\n");
--			return ERR_PTR(-EINVAL);
--		}
--	}
--
--	if (need_devmap_managed) {
--		error =3D devmap_managed_enable_get(pgmap);
--		if (error)
--			return ERR_PTR(error);
--	}
-+	if (WARN_ONCE(pgmap_altmap(pgmap) && range_id > 0,
-+				"altmap not supported for multiple ranges\n"))
++	if (dev_size > 0 && !alloc_is_aligned(dev_dax, dev_size)) {
++		dev_dbg(dev, "%s: align %u invalid for size %pa\n",
++			__func__, dev_dax->align, &dev_size);
 +		return -EINVAL;
-=20
- 	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->start), NULL);
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
--		error =3D -ENOMEM;
--		goto err_array;
-+		return -ENOMEM;
- 	}
-=20
- 	conflict_pgmap =3D get_dev_pagemap(PHYS_PFN(range->end), NULL);
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
--		error =3D -ENOMEM;
--		goto err_array;
-+		return -ENOMEM;
- 	}
-=20
- 	is_ram =3D region_intersects(range->start, range_len(range),
-@@ -274,19 +221,18 @@ void *memremap_pages(struct dev_pagemap
- 		WARN_ONCE(1, "attempted on %s region %#llx-%#llx\n",
- 				is_ram =3D=3D REGION_MIXED ? "mixed" : "ram",
- 				range->start, range->end);
--		error =3D -ENXIO;
--		goto err_array;
-+		return -ENXIO;
- 	}
-=20
- 	error =3D xa_err(xa_store_range(&pgmap_array, PHYS_PFN(range->start),
- 				PHYS_PFN(range->end), pgmap, GFP_KERNEL));
- 	if (error)
--		goto err_array;
-+		return error;
-=20
- 	if (nid < 0)
- 		nid =3D numa_mem_id();
-=20
--	error =3D track_pfn_remap(NULL, &params.pgprot, PHYS_PFN(range->start), 0,
-+	error =3D track_pfn_remap(NULL, &params->pgprot, PHYS_PFN(range->start), =
-0,
- 			range_len(range));
- 	if (error)
- 		goto err_pfn_remap;
-@@ -306,7 +252,7 @@ void *memremap_pages(struct dev_pagemap
- 	 */
- 	if (pgmap->type =3D=3D MEMORY_DEVICE_PRIVATE) {
- 		error =3D add_pages(nid, PHYS_PFN(range->start),
--				PHYS_PFN(range_len(range)), &params);
-+				PHYS_PFN(range_len(range)), params);
- 	} else {
- 		error =3D kasan_add_zero_shadow(__va(range->start), range_len(range));
- 		if (error) {
-@@ -315,7 +261,7 @@ void *memremap_pages(struct dev_pagemap
- 		}
-=20
- 		error =3D arch_add_memory(nid, range->start, range_len(range),
--					&params);
-+					params);
- 	}
-=20
- 	if (!error) {
-@@ -323,7 +269,7 @@ void *memremap_pages(struct dev_pagemap
-=20
- 		zone =3D &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
- 		move_pfn_range_to_zone(zone, PHYS_PFN(range->start),
--				PHYS_PFN(range_len(range)), params.altmap);
-+				PHYS_PFN(range_len(range)), params->altmap);
- 	}
-=20
- 	mem_hotplug_done();
-@@ -337,20 +283,116 @@ void *memremap_pages(struct dev_pagemap
- 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				PHYS_PFN(range->start),
- 				PHYS_PFN(range_len(range)), pgmap);
--	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap) - pfn_first(pgmap));
--	return __va(range->start);
-+	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
-+			- pfn_first(pgmap, range_id));
++	}
++
++	for (i =3D 0; i < dev_dax->nr_range; i++) {
++		size_t len =3D range_len(&dev_dax->ranges[i].range);
++
++		if (!alloc_is_aligned(dev_dax, len)) {
++			dev_dbg(dev, "%s: align %u invalid for range %d\n",
++				__func__, dev_dax->align, i);
++			return -EINVAL;
++		}
++	}
++
 +	return 0;
-=20
-- err_add_memory:
-+err_add_memory:
- 	kasan_remove_zero_shadow(__va(range->start), range_len(range));
-- err_kasan:
-+err_kasan:
- 	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
-- err_pfn_remap:
-+err_pfn_remap:
- 	pgmap_array_delete(range);
-- err_array:
--	dev_pagemap_kill(pgmap);
--	dev_pagemap_cleanup(pgmap);
--	devmap_managed_enable_put();
--	return ERR_PTR(error);
-+	return error;
 +}
 +
-+
-+/*
-+ * Not device managed version of dev_memremap_pages, undone by
-+ * memunmap_pages().  Please use dev_memremap_pages if you have a struct
-+ * device available.
-+ */
-+void *memremap_pages(struct dev_pagemap *pgmap, int nid)
++static ssize_t align_store(struct device *dev, struct device_attribute *at=
+tr,
++		const char *buf, size_t len)
 +{
-+	struct mhp_params params =3D {
-+		.altmap =3D pgmap_altmap(pgmap),
-+		.pgprot =3D PAGE_KERNEL,
-+	};
-+	const int nr_range =3D pgmap->nr_range;
-+	bool need_devmap_managed =3D true;
-+	int error, i;
++	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++	struct dax_region *dax_region =3D dev_dax->region;
++	unsigned long val, align_save;
++	ssize_t rc;
 +
-+	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
-+		return ERR_PTR(-EINVAL);
++	rc =3D kstrtoul(buf, 0, &val);
++	if (rc)
++		return -ENXIO;
 +
-+	switch (pgmap->type) {
-+	case MEMORY_DEVICE_PRIVATE:
-+		if (!IS_ENABLED(CONFIG_DEVICE_PRIVATE)) {
-+			WARN(1, "Device private memory not supported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
-+			WARN(1, "Missing migrate_to_ram method\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (!pgmap->owner) {
-+			WARN(1, "Missing owner\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		break;
-+	case MEMORY_DEVICE_FS_DAX:
-+		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
-+		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
-+			WARN(1, "File system DAX not supported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		break;
-+	case MEMORY_DEVICE_GENERIC:
-+		need_devmap_managed =3D false;
-+		break;
-+	case MEMORY_DEVICE_PCI_P2PDMA:
-+		params.pgprot =3D pgprot_noncached(params.pgprot);
-+		need_devmap_managed =3D false;
-+		break;
-+	default:
-+		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
-+		break;
++	if (!dax_align_valid(val))
++		return -EINVAL;
++
++	device_lock(dax_region->dev);
++	if (!dax_region->dev->driver) {
++		device_unlock(dax_region->dev);
++		return -ENXIO;
 +	}
 +
-+	if (!pgmap->ref) {
-+		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
-+			return ERR_PTR(-EINVAL);
-+
-+		init_completion(&pgmap->done);
-+		error =3D percpu_ref_init(&pgmap->internal_ref,
-+				dev_pagemap_percpu_release, 0, GFP_KERNEL);
-+		if (error)
-+			return ERR_PTR(error);
-+		pgmap->ref =3D &pgmap->internal_ref;
-+	} else {
-+		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
-+			WARN(1, "Missing reference count teardown definition\n");
-+			return ERR_PTR(-EINVAL);
-+		}
++	device_lock(dev);
++	if (dev->driver) {
++		rc =3D -EBUSY;
++		goto out_unlock;
 +	}
 +
-+	if (need_devmap_managed) {
-+		error =3D devmap_managed_enable_get(pgmap);
-+		if (error)
-+			return ERR_PTR(error);
-+	}
++	align_save =3D dev_dax->align;
++	dev_dax->align =3D val;
++	rc =3D dev_dax_validate_align(dev_dax);
++	if (rc)
++		dev_dax->align =3D align_save;
++out_unlock:
++	device_unlock(dev);
++	device_unlock(dax_region->dev);
++	return rc =3D=3D 0 ? len : rc;
++}
++static DEVICE_ATTR_RW(align);
 +
-+	/*
-+	 * Clear the pgmap nr_range as it will be incremented for each
-+	 * successfully processed range. This communicates how many
-+	 * regions to unwind in the abort case.
-+	 */
-+	pgmap->nr_range =3D 0;
-+	error =3D 0;
-+	for (i =3D 0; i < nr_range; i++) {
-+		error =3D pagemap_range(pgmap, &params, i, nid);
-+		if (error)
-+			break;
-+		pgmap->nr_range++;
-+	}
-+
-+	if (i < nr_range) {
-+		memunmap_pages(pgmap);
-+		pgmap->nr_range =3D nr_range;
-+		return ERR_PTR(error);
-+	}
-+
-+	return __va(pgmap->ranges[0].start);
+ static int dev_dax_target_node(struct dev_dax *dev_dax)
+ {
+ 	struct dax_region *dax_region =3D dev_dax->region;
+@@ -1104,7 +1175,8 @@ static umode_t dev_dax_visible(struct ko
+ 		return 0;
+ 	if (a =3D=3D &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
+ 		return 0;
+-	if (a =3D=3D &dev_attr_size.attr && is_static(dax_region))
++	if ((a =3D=3D &dev_attr_align.attr ||
++	     a =3D=3D &dev_attr_size.attr) && is_static(dax_region))
+ 		return 0444;
+ 	return a->mode;
  }
- EXPORT_SYMBOL_GPL(memremap_pages);
+@@ -1113,6 +1185,7 @@ static struct attribute *dev_dax_attribu
+ 	&dev_attr_modalias.attr,
+ 	&dev_attr_size.attr,
+ 	&dev_attr_target_node.attr,
++	&dev_attr_align.attr,
+ 	&dev_attr_resource.attr,
+ 	&dev_attr_numa_node.attr,
+ 	NULL,
+--- a/drivers/dax/dax-private.h~device-dax-add-an-align-attribute
++++ a/drivers/dax/dax-private.h
+@@ -87,4 +87,22 @@ static inline struct dax_mapping *to_dax
+ }
 =20
+ phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff, unsi=
+gned long size);
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline bool dax_align_valid(unsigned long align)
++{
++	if (align =3D=3D PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGE=
+PAGE_PUD))
++		return true;
++	if (align =3D=3D PMD_SIZE && has_transparent_hugepage())
++		return true;
++	if (align =3D=3D PAGE_SIZE)
++		return true;
++	return false;
++}
++#else
++static inline bool dax_align_valid(unsigned long align)
++{
++	return align =3D=3D PAGE_SIZE;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
 _
