@@ -7,45 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C659CC43467
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:52:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EB1C2BD0C
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:52:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9127F22201
+	by mail.kernel.org (Postfix) with ESMTP id CFE3B22201
 	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1602633142;
-	bh=umda5VvvFk+Rk1c4Nnne7vL4b2Oth4jSp8pirx9cPXU=;
+	bh=vNMA6MVhwcudTM+q+Y6GKJx0Ymx8ggL+IeNOm1GF1yo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=kNNTGiVUtOupknw0nuth7CIlq9tfqo9XA3ygsJM1LSfpZP6YmgYROs9btTWpbmG05
-	 l0mjbc8+7NpgHKY2EqXVesBedYZMplrFiOQoVn8suzNQZs5WE0PBZkBE1fzD9YjzQU
-	 7X7nkYjj6/LsVhmscJjz6Zy/jtRqiKjccphEbLZ0=
+	b=1F2g23T9j4c1phDnl5a42pvdZqQb9hXJRRjW8BDuCV3WgkFM2CIpJVMW4dXDhYTMR
+	 3ZM5cmSyzsfF5xChdweHGuDedCq7ocJqWaK4NB60hXsYMwl+gS9TRVuJPstSMuWnjn
+	 SlX3ZX6nUdOotXU6hILOOvKhG1OwMxZWXUqL/baE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726796AbgJMXwW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:52:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36970 "EHLO mail.kernel.org"
+        id S1728809AbgJMXwV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:52:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37086 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728768AbgJMXwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:52:06 -0400
+        id S1728770AbgJMXwN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:52:13 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3E5B521D7A;
-        Tue, 13 Oct 2020 23:52:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EEED122200;
+        Tue, 13 Oct 2020 23:52:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633125;
-        bh=umda5VvvFk+Rk1c4Nnne7vL4b2Oth4jSp8pirx9cPXU=;
+        s=default; t=1602633132;
+        bh=vNMA6MVhwcudTM+q+Y6GKJx0Ymx8ggL+IeNOm1GF1yo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OpLHoz6QuvAXzjUZCrBBLErPdm9evNyFMY3bzEzsznxHz2TlVtoIsOBolvaCO81Fr
-         jH4n5wN80qh3eVKj9y5qrPJ8IToumtUr+JBJF9qeR5K5YhInPQ8C8Zzs8qcS63cfb+
-         Vs/LSE63b7YyDWaX5C37paavNmLJMl+O4KXhYT7s=
-Date:   Tue, 13 Oct 2020 16:52:04 -0700
+        b=sCxSL+I9/RNAS1iL+7APXDWEKMVbnpvXptaKKVjPn99Hwds5bDJs4EbHkIadk83lc
+         9yJIprNBJNfl/bhXNN7lRXWszWScpfSNaRMG2ZlyKGGLHmF4LVLSg63zOxs+ZsPpWx
+         97+hkha0jeJzKYYtLDf1KxhelP7z7TEr/CRlf1yI=
+Date:   Tue, 13 Oct 2020 16:52:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hsiangkao@redhat.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 068/181] swap: rename SWP_FS to SWAP_FS_OPS to
- avoid ambiguity
-Message-ID: <20201013235204.X4UTbkTUX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
+        cai@lca.pw, david@redhat.com, hughd@google.com,
+        iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mhocko@suse.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, shy828301@gmail.com,
+        torvalds@linux-foundation.org, ying.huang@intel.com,
+        yuzhao@google.com
+Subject:  [patch 070/181] mm: remove superfluous
+ __ClearPageActive()
+Message-ID: <20201013235211.c2AQxgjbm%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,91 +57,61 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Gao Xiang <hsiangkao@redhat.com>
-Subject: swap: rename SWP_FS to SWAP_FS_OPS to avoid ambiguity
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: remove superfluous __ClearPageActive()
 
-SWP_FS is used to make swap_{read,write}page() go through the filesystem,
-and it's only used for swap files over NFS for now.  Otherwise it will
-directly submit IO to blockdev according to swapfile extents reported by
-filesystems in advance.
+To activate a page, mark_page_accessed() always holds a reference on it. 
+It either gets a new reference when adding a page to
+lru_pvecs.activate_page or reuses an existing one it previously got when
+it added a page to lru_pvecs.lru_add.  So it doesn't call SetPageActive()
+on a page that doesn't have any reference left.  Therefore, the race is
+impossible these days (I didn't brother to dig into its history).
 
-As Matthew pointed out [1], SWP_FS naming is somewhat confusing, so let's
-rename to SWP_FS_OPS.
+For other paths, namely reclaim and migration, a reference count is always
+held while calling SetPageActive() on a page.
 
-[1] https://lore.kernel.org/r/20200820113448.GM17456@casper.infradead.org
+SetPageSlabPfmemalloc() also uses SetPageActive(), but it's irrelevant to
+LRU pages.
 
-Link: https://lkml.kernel.org/r/20200822113019.11319-1-hsiangkao@redhat.com
-Signed-off-by: Gao Xiang <hsiangkao@redhat.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/20200818184704.3625199-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/page_io.c         |    6 +++---
- mm/swap_state.c      |    2 +-
- mm/swapfile.c        |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ mm/memremap.c |    2 --
+ mm/swap.c     |    2 --
+ 2 files changed, 4 deletions(-)
 
---- a/include/linux/swap.h~swap-rename-swp_fs-to-swap_fs_ops-to-avoid-ambiguity
-+++ a/include/linux/swap.h
-@@ -170,7 +170,7 @@ enum {
- 	SWP_CONTINUED	= (1 << 5),	/* swap_map has count continuation */
- 	SWP_BLKDEV	= (1 << 6),	/* its a block device */
- 	SWP_ACTIVATED	= (1 << 7),	/* set after swap_activate success */
--	SWP_FS		= (1 << 8),	/* swap file goes through fs */
-+	SWP_FS_OPS	= (1 << 8),	/* swapfile operations go through fs */
- 	SWP_AREA_DISCARD = (1 << 9),	/* single-time swap area discards */
- 	SWP_PAGE_DISCARD = (1 << 10),	/* freed swap page-cluster discards */
- 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
---- a/mm/page_io.c~swap-rename-swp_fs-to-swap_fs_ops-to-avoid-ambiguity
-+++ a/mm/page_io.c
-@@ -312,7 +312,7 @@ int __swap_writepage(struct page *page,
- 	struct swap_info_struct *sis = page_swap_info(page);
- 
- 	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
--	if (data_race(sis->flags & SWP_FS)) {
-+	if (data_race(sis->flags & SWP_FS_OPS)) {
- 		struct kiocb kiocb;
- 		struct file *swap_file = sis->swap_file;
- 		struct address_space *mapping = swap_file->f_mapping;
-@@ -403,7 +403,7 @@ int swap_readpage(struct page *page, boo
- 		goto out;
+--- a/mm/memremap.c~mm-remove-superfluous-__clearpageactive
++++ a/mm/memremap.c
+@@ -494,8 +494,6 @@ void free_devmap_managed_page(struct pag
+ 		return;
  	}
  
--	if (data_race(sis->flags & SWP_FS)) {
-+	if (data_race(sis->flags & SWP_FS_OPS)) {
- 		struct file *swap_file = sis->swap_file;
- 		struct address_space *mapping = swap_file->f_mapping;
+-	/* Clear Active bit in case of parallel mark_page_accessed */
+-	__ClearPageActive(page);
+ 	__ClearPageWaiters(page);
  
-@@ -467,7 +467,7 @@ int swap_set_page_dirty(struct page *pag
- {
- 	struct swap_info_struct *sis = page_swap_info(page);
- 
--	if (data_race(sis->flags & SWP_FS)) {
-+	if (data_race(sis->flags & SWP_FS_OPS)) {
- 		struct address_space *mapping = sis->swap_file->f_mapping;
- 
- 		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
---- a/mm/swapfile.c~swap-rename-swp_fs-to-swap_fs_ops-to-avoid-ambiguity
-+++ a/mm/swapfile.c
-@@ -2437,7 +2437,7 @@ static int setup_swap_extents(struct swa
- 		if (ret >= 0)
- 			sis->flags |= SWP_ACTIVATED;
- 		if (!ret) {
--			sis->flags |= SWP_FS;
-+			sis->flags |= SWP_FS_OPS;
- 			ret = add_swap_extent(sis, 0, sis->max, 0);
- 			*span = sis->pages;
+ 	mem_cgroup_uncharge(page);
+--- a/mm/swap.c~mm-remove-superfluous-__clearpageactive
++++ a/mm/swap.c
+@@ -943,8 +943,6 @@ void release_pages(struct page **pages,
+ 			del_page_from_lru_list(page, lruvec, page_off_lru(page));
  		}
---- a/mm/swap_state.c~swap-rename-swp_fs-to-swap_fs_ops-to-avoid-ambiguity
-+++ a/mm/swap_state.c
-@@ -665,7 +665,7 @@ struct page *swap_cluster_readahead(swp_
- 		goto skip;
  
- 	/* Test swap type to make sure the dereference is safe */
--	if (likely(si->flags & (SWP_BLKDEV | SWP_FS))) {
-+	if (likely(si->flags & (SWP_BLKDEV | SWP_FS_OPS))) {
- 		struct inode *inode = si->swap_file->f_mapping->host;
- 		if (inode_read_congested(inode))
- 			goto skip;
+-		/* Clear Active bit in case of parallel mark_page_accessed */
+-		__ClearPageActive(page);
+ 		__ClearPageWaiters(page);
+ 
+ 		list_add(&page->lru, &pages_to_free);
 _
