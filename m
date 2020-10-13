@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26D66C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 09:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 209F6C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 18:20:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C679221548
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 09:16:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEB9320E65
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 18:20:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602580563;
-	bh=EBrVr/CSZ5V8ByWEOd9R4lblDLKoLncvLzZG2h+d52g=;
+	s=default; t=1602613234;
+	bh=d4RLZBT1YqCJ9JFtkwGM86jQH2jYS6Q7HTlowTPgmvw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=piNP/59eCuwJLzoV295VEQxsv0phYgorBwALeVdIlHeW1nVOJKL38nuehfy2nilAd
-	 o/Eush++neAMMAqRh2fGhIdZmzcOkjvhxOvxeBJXOUkjSYxVsmywOUpeff3rSO5IJw
-	 VWHwX3ytkjRpqMj9wDj3r4cneoDYOp3h2YfQlo7A=
+	b=Jq9Qlkq32IqLY/gE8b6HZRSoEgMApSfwOQwU75ECTVtyEqJr5diRcLvN/gBoVM+tM
+	 51MQhWJ/N+iI8OsFRNeEA85NkkxvrroLqq9h/7hXrTJZ6fQQha7oHCBRHFfQJo/am/
+	 mrNz7RAimLXIr8/ObjQlZWRmyUh3kHNl7mJFk/tg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404242AbgJMJQD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 05:16:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37676 "EHLO mail.kernel.org"
+        id S1728146AbgJMSUe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 14:20:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404241AbgJMJQD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 05:16:03 -0400
-Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
+        id S1726829AbgJMSUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 14:20:34 -0400
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DEFE9208D5;
-        Tue, 13 Oct 2020 09:16:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0C940208D5;
+        Tue, 13 Oct 2020 18:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602580562;
-        bh=EBrVr/CSZ5V8ByWEOd9R4lblDLKoLncvLzZG2h+d52g=;
+        s=default; t=1602613232;
+        bh=d4RLZBT1YqCJ9JFtkwGM86jQH2jYS6Q7HTlowTPgmvw=;
         h=Date:From:To:Subject:From;
-        b=RxR/Vnk/4PtJBdGSHkfzN/V0zh56drtQ4DZwIZ65CXrZOi7PanzF5pc8ZZ/VY0C5/
-         YyTl07Z4l86O/LzfaB3EMgOI8rYCMPQxtvzkV66dsQCg6oGCdQ4wFlAs6zkav9sBEk
-         VCVaoSZsrW0U7+I1QNJdiuLBf9HBh+VYKtc6FryM=
-Date:   Tue, 13 Oct 2020 02:16:01 -0700
+        b=zQtIX40zwjl4072qXHVchL1PUwdz6/8kZg5TR1lNxrvTr6AlJG0YiFYsUQ79kc02p
+         3Mjkrzc1wDDVcek9NORAXR6l5XfEkonyv1oegAExYRLMhoz2p+YeJGWlhVuZymfQgW
+         Vo1ecBtf9vu6lZ0A0usamo4yzWV/LoBPesMKeIyc=
+Date:   Tue, 13 Oct 2020 11:20:31 -0700
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, hughd@google.com,
-        mm-commits@vger.kernel.org, yuzhao@google.com
-Subject:  [to-be-updated]
- mm-use-add_page_to_lru_list-page_lru-page_off_lru.patch removed from -mm
- tree
-Message-ID: <20201013091601.LkNtR-zUT%akpm@linux-foundation.org>
+To:     akinobu.mita@gmail.com, alinde@google.com, andreyknvl@google.com,
+        arnd@arndb.de, bp@alien8.de, corbet@lwn.net, dvyukov@google.com,
+        elver@google.com, glider@google.com, hch@lst.de, hpa@zytor.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
+        tglx@linutronix.de, viro@zeniv.linux.org.uk
+Subject:  [wrecked]
+ x86-add-failure-injection-to-get-put-clear_user.patch removed from -mm tree
+Message-ID: <20201013182031.poYlHG6fX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,96 +56,160 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use add_page_to_lru_list()/page_lru()/page_off_lru()
+     Subject: x86: add failure injection to get/put/clear_user
 has been removed from the -mm tree.  Its filename was
-     mm-use-add_page_to_lru_list-page_lru-page_off_lru.patch
+     x86-add-failure-injection-to-get-put-clear_user.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: use add_page_to_lru_list()/page_lru()/page_off_lru()
+From: Albert van der Linde <alinde@google.com>
+Subject: x86: add failure injection to get/put/clear_user
 
-This is a trivial but worth having clean-up patch.  There should be no
-side effects except page->lru is temporarily poisoned after it's deleted
-but before it's added to the new list in move_pages_to_lru() (which is not
-a problem).
+To test fault-tolerance of user memory acceses in x86, add support for
+fault injection.
 
-Link: http://lkml.kernel.org/r/20200831175042.3527153-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
+Make both put_user() and get_user() fail with -EFAULT, and clear_user()
+fail by not clearing any bytes.
+
+Link: http://lkml.kernel.org/r/20200831171733.955393-4-alinde@google.com
+Signed-off-by: Albert van der Linde <alinde@google.com>
+Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c   |    4 +---
- mm/vmscan.c |   13 ++++---------
- 2 files changed, 5 insertions(+), 12 deletions(-)
+ arch/x86/include/asm/uaccess.h |   68 +++++++++++++++++--------------
+ arch/x86/lib/usercopy_64.c     |    3 +
+ 2 files changed, 42 insertions(+), 29 deletions(-)
 
---- a/mm/swap.c~mm-use-add_page_to_lru_list-page_lru-page_off_lru
-+++ a/mm/swap.c
-@@ -596,11 +596,9 @@ static void lru_lazyfree_fn(struct page
+--- a/arch/x86/include/asm/uaccess.h~x86-add-failure-injection-to-get-put-clear_user
++++ a/arch/x86/include/asm/uaccess.h
+@@ -5,6 +5,7 @@
+  * User space memory access functions
+  */
+ #include <linux/compiler.h>
++#include <linux/fault-inject-usercopy.h>
+ #include <linux/kasan-checks.h>
+ #include <linux/string.h>
+ #include <asm/asm.h>
+@@ -175,11 +176,16 @@ extern int __get_user_bad(void);
+ 	register __inttype(*(ptr)) __val_gu asm("%"_ASM_DX);		\
+ 	__chk_user_ptr(ptr);						\
+ 	might_fault();							\
+-	asm volatile("call __get_user_%P4"				\
+-		     : "=a" (__ret_gu), "=r" (__val_gu),		\
++	if (should_fail_usercopy()) {					\
++		(x) = 0;						\
++		__ret_gu = -EFAULT;					\
++	} else {							\
++		asm volatile("call __get_user_%P4"			\
++			: "=a" (__ret_gu), "=r" (__val_gu),		\
+ 			ASM_CALL_CONSTRAINT				\
+-		     : "0" (ptr), "i" (sizeof(*(ptr))));		\
+-	(x) = (__force __typeof__(*(ptr))) __val_gu;			\
++			: "0" (ptr), "i" (sizeof(*(ptr))));		\
++		(x) = (__force __typeof__(*(ptr))) __val_gu;		\
++	}								\
+ 	__builtin_expect(__ret_gu, 0);					\
+ })
+ 
+@@ -236,31 +242,35 @@ extern void __put_user_8(void);
+  *
+  * Return: zero on success, or -EFAULT on error.
+  */
+-#define put_user(x, ptr)					\
+-({								\
+-	int __ret_pu;						\
+-	__typeof__(*(ptr)) __pu_val;				\
+-	__chk_user_ptr(ptr);					\
+-	might_fault();						\
+-	__pu_val = x;						\
+-	switch (sizeof(*(ptr))) {				\
+-	case 1:							\
+-		__put_user_x(1, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	case 2:							\
+-		__put_user_x(2, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	case 4:							\
+-		__put_user_x(4, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	case 8:							\
+-		__put_user_x8(__pu_val, ptr, __ret_pu);		\
+-		break;						\
+-	default:						\
+-		__put_user_x(X, __pu_val, ptr, __ret_pu);	\
+-		break;						\
+-	}							\
+-	__builtin_expect(__ret_pu, 0);				\
++#define put_user(x, ptr)						\
++({									\
++	int __ret_pu;							\
++	__typeof__(*(ptr)) __pu_val;					\
++	__chk_user_ptr(ptr);						\
++	might_fault();							\
++	__pu_val = x;							\
++	if (should_fail_usercopy()) {					\
++		__ret_pu = -EFAULT;					\
++	} else {							\
++		switch (sizeof(*(ptr))) {				\
++		case 1:							\
++			__put_user_x(1, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		case 2:							\
++			__put_user_x(2, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		case 4:							\
++			__put_user_x(4, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		case 8:							\
++			__put_user_x8(__pu_val, ptr, __ret_pu);		\
++			break;						\
++		default:						\
++			__put_user_x(X, __pu_val, ptr, __ret_pu);	\
++			break;						\
++		}							\
++	}								\
++	__builtin_expect(__ret_pu, 0);					\
+ })
+ 
+ #define __put_user_size(x, ptr, size, label)				\
+--- a/arch/x86/lib/usercopy_64.c~x86-add-failure-injection-to-get-put-clear_user
++++ a/arch/x86/lib/usercopy_64.c
+@@ -7,6 +7,7 @@
+  * Copyright 2002 Andi Kleen <ak@suse.de>
+  */
+ #include <linux/export.h>
++#include <linux/fault-inject-usercopy.h>
+ #include <linux/uaccess.h>
+ #include <linux/highmem.h>
+ 
+@@ -50,6 +51,8 @@ EXPORT_SYMBOL(__clear_user);
+ 
+ unsigned long clear_user(void __user *to, unsigned long n)
  {
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
- 	    !PageSwapCache(page) && !PageUnevictable(page)) {
--		bool active = PageActive(page);
- 		int nr_pages = thp_nr_pages(page);
- 
--		del_page_from_lru_list(page, lruvec,
--				       LRU_INACTIVE_ANON + active);
-+		del_page_from_lru_list(page, lruvec, page_lru(page));
- 		ClearPageActive(page);
- 		ClearPageReferenced(page);
- 		/*
---- a/mm/vmscan.c~mm-use-add_page_to_lru_list-page_lru-page_off_lru
-+++ a/mm/vmscan.c
-@@ -1847,13 +1847,12 @@ static unsigned noinline_for_stack move_
- 	int nr_pages, nr_moved = 0;
- 	LIST_HEAD(pages_to_free);
- 	struct page *page;
--	enum lru_list lru;
- 
- 	while (!list_empty(list)) {
- 		page = lru_to_page(list);
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
-+		list_del(&page->lru);
- 		if (unlikely(!page_evictable(page))) {
--			list_del(&page->lru);
- 			spin_unlock_irq(&pgdat->lru_lock);
- 			putback_lru_page(page);
- 			spin_lock_irq(&pgdat->lru_lock);
-@@ -1862,16 +1861,11 @@ static unsigned noinline_for_stack move_
- 		lruvec = mem_cgroup_page_lruvec(page, pgdat);
- 
- 		SetPageLRU(page);
--		lru = page_lru(page);
--
--		nr_pages = thp_nr_pages(page);
--		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
--		list_move(&page->lru, &lruvec->lists[lru]);
-+		add_page_to_lru_list(page, lruvec, page_lru(page));
- 
- 		if (put_page_testzero(page)) {
- 			__ClearPageLRU(page);
--			__ClearPageActive(page);
--			del_page_from_lru_list(page, lruvec, lru);
-+			del_page_from_lru_list(page, lruvec, page_off_lru(page));
- 
- 			if (unlikely(PageCompound(page))) {
- 				spin_unlock_irq(&pgdat->lru_lock);
-@@ -1880,6 +1874,7 @@ static unsigned noinline_for_stack move_
- 			} else
- 				list_add(&page->lru, &pages_to_free);
- 		} else {
-+			nr_pages = thp_nr_pages(page);
- 			nr_moved += nr_pages;
- 			if (PageActive(page))
- 				workingset_age_nonresident(lruvec, nr_pages);
++	if (should_fail_usercopy())
++		return n;
+ 	if (access_ok(to, n))
+ 		return __clear_user(to, n);
+ 	return n;
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from alinde@google.com are
 
-mm-remove-activate_page-from-unuse_pte.patch
-mm-remove-superfluous-__clearpageactive.patch
-mm-use-self-explanatory-macros-rather-than-2.patch
+lib-include-linux-add-usercopy-failure-capability.patch
+lib-uaccess-add-failure-injection-to-usercopy-functions.patch
 
