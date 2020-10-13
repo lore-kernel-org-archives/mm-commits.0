@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79019C2D0A3
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 927EFC2BD0C
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DBAF221FF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 658C122203
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633083;
-	bh=u+1/IvB4AwsM+v4NsvPVD4QEn066FRh6J02v5RY7BXU=;
+	s=default; t=1602633081;
+	bh=cLD0EoT1as7UWU9dvHeFnQBMl2LIji4Fn+A6+nPEf1o=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=oJTfZy8wJ0VJWmrkFdXwSCs9Ng9rmfaHgqhuKHENtDelubQor3OMSvmo5yMCDlna4
-	 Z8NKJaJYlf0OhNmLxS2Hor/dPlrFTIVCrQ3Vv8I2V13lCn/HAT16c+k1FlwLQxN/oj
-	 M9kz/rC36f58NOkeYH7RVzbaiplLmAYd1MtmVWCA=
+	b=ELZEYnbetd0jMR32kcPfuEDb7Q60O2mPRtihscK6yHJ1rsEGSUvQrTIX4TRWiPozy
+	 hKiKrpnJAMsWRktxnbtGXmgd7TkKZEsYROPVlTLrs38x5j88uHcV0mWguRf1kvW76e
+	 +cUGWUqkzzn1dK+C8rMUciULxwxMhiw89gwKooC4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730400AbgJMXvW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:51:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35538 "EHLO mail.kernel.org"
+        id S2387772AbgJMXvV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:51:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35744 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728334AbgJMXux (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:50:53 -0400
+        id S1730401AbgJMXvF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:51:05 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A17E6221FF;
-        Tue, 13 Oct 2020 23:50:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 75CE1221FF;
+        Tue, 13 Oct 2020 23:51:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633052;
-        bh=u+1/IvB4AwsM+v4NsvPVD4QEn066FRh6J02v5RY7BXU=;
+        s=default; t=1602633063;
+        bh=cLD0EoT1as7UWU9dvHeFnQBMl2LIji4Fn+A6+nPEf1o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=k45HO160fgRY4x1REOc3LyNsgWxOst4kmvIsC1U1ICXQPSK65sts4PXxoR0HhyPV/
-         MknmAxLkp5+4SpftRFjGB+zVj2c7KqbfweAWSEa5MZnWUYvqLMWQHShIYNJ1jMqyJk
-         kuCeTPfcJ2e7XNew1114FP5TBjXWuej15V9hVwrw=
-Date:   Tue, 13 Oct 2020 16:50:50 -0700
+        b=HbMifo9asykF0mB3iSW6n/40BDW+UWtLNo3iigh/VHi6W7tdTAYI+tw/uDeoW7XvZ
+         M2WxiOvhkQgN9AbJQUcNMR5S/gDqbgv4noMbryEWjGIF3pdpcUwMzFL9HK+GGE0PCc
+         JHL2DbM42gGq6DVs2X6V6sJRO+aDHc3UpMh3S/pc=
+Date:   Tue, 13 Oct 2020 16:51:00 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -60,9 +60,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 048/181] device-dax: make align a per-device
- property
-Message-ID: <20201013235050.ER4JhLlvE%akpm@linux-foundation.org>
+Subject:  [patch 050/181] dax/hmem: introduce dax_hmem.region_idle
+ parameter
+Message-ID: <20201013235100.MoD9dDoUH%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -74,20 +74,21 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: make align a per-device property
+Subject: dax/hmem: introduce dax_hmem.region_idle parameter
 
-Introduce @align to struct dev_dax.
+Introduce a new module parameter for dax_hmem which initializes all region
+devices as free, rather than allocating a pagemap for the region by
+default.
 
-When creating a new device, we still initialize to the default dax_region
-@align.  Child devices belonging to a region may wish to keep a different
-alignment property instead of a global region-defined one.
+All hmem devices created with dax_hmem.region_idle=3D1 will have full
+available size for creating dynamic dax devices.
 
-Link: https://lkml.kernel.org/r/159643105377.4062302.4159447829955683131.st=
+Link: https://lkml.kernel.org/r/159643106460.4062302.5868522341307530091.st=
 git@dwillia2-desk3.amr.corp.intel.com
-Link: https://lore.kernel.org/r/20200716172913.19658-2-joao.m.martins@oracl=
+Link: https://lore.kernel.org/r/20200716172913.19658-4-joao.m.martins@oracl=
 e.com
-Link: https://lkml.kernel.org/r/160106117957.30709.1142303024324655705.stgi=
-t@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/160106119033.30709.11249962152222193448.stg=
+it@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -135,176 +136,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c         |    1=20
- drivers/dax/dax-private.h |    3 ++
- drivers/dax/device.c      |   41 +++++++++++++-----------------------
- 3 files changed, 19 insertions(+), 26 deletions(-)
+ drivers/dax/hmem/hmem.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/drivers/dax/bus.c~device-dax-make-align-a-per-device-property
-+++ a/drivers/dax/bus.c
-@@ -1218,6 +1218,7 @@ struct dev_dax *devm_create_dev_dax(stru
+--- a/drivers/dax/hmem/hmem.c~dax-hmem-introduce-dax_hmemregion_idle-parame=
+ter
++++ a/drivers/dax/hmem/hmem.c
+@@ -5,6 +5,9 @@
+ #include <linux/pfn_t.h>
+ #include "../bus.h"
 =20
- 	dev_dax->dax_dev =3D dax_dev;
- 	dev_dax->target_node =3D dax_region->target_node;
-+	dev_dax->align =3D dax_region->align;
- 	ida_init(&dev_dax->ida);
- 	kref_get(&dax_region->kref);
-=20
---- a/drivers/dax/dax-private.h~device-dax-make-align-a-per-device-property
-+++ a/drivers/dax/dax-private.h
-@@ -62,6 +62,7 @@ struct dax_mapping {
- struct dev_dax {
- 	struct dax_region *region;
- 	struct dax_device *dax_dev;
-+	unsigned int align;
- 	int target_node;
- 	int id;
- 	struct ida ida;
-@@ -84,4 +85,6 @@ static inline struct dax_mapping *to_dax
- {
- 	return container_of(dev, struct dax_mapping, dev);
- }
++static bool region_idle;
++module_param_named(region_idle, region_idle, bool, 0644);
 +
-+phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff, unsi=
-gned long size);
- #endif
---- a/drivers/dax/device.c~device-dax-make-align-a-per-device-property
-+++ a/drivers/dax/device.c
-@@ -17,7 +17,6 @@
- static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 		const char *func)
+ static int dax_hmem_probe(struct platform_device *pdev)
  {
--	struct dax_region *dax_region =3D dev_dax->region;
- 	struct device *dev =3D &dev_dax->dev;
- 	unsigned long mask;
-=20
-@@ -32,7 +31,7 @@ static int check_vma(struct dev_dax *dev
- 		return -EINVAL;
- 	}
-=20
--	mask =3D dax_region->align - 1;
-+	mask =3D dev_dax->align - 1;
- 	if (vma->vm_start & mask || vma->vm_end & mask) {
- 		dev_info_ratelimited(dev,
- 				"%s: %s: fail, unaligned vma (%#lx - %#lx, %#lx)\n",
-@@ -78,21 +77,19 @@ static vm_fault_t __dev_dax_pte_fault(st
- 				struct vm_fault *vmf, pfn_t *pfn)
- {
- 	struct device *dev =3D &dev_dax->dev;
--	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	unsigned int fault_size =3D PAGE_SIZE;
-=20
- 	if (check_vma(dev_dax, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
-=20
--	dax_region =3D dev_dax->region;
--	if (dax_region->align > PAGE_SIZE) {
-+	if (dev_dax->align > PAGE_SIZE) {
- 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
--			dax_region->align, fault_size);
-+			dev_dax->align, fault_size);
- 		return VM_FAULT_SIGBUS;
- 	}
-=20
--	if (fault_size !=3D dax_region->align)
-+	if (fault_size !=3D dev_dax->align)
- 		return VM_FAULT_SIGBUS;
-=20
- 	phys =3D dax_pgoff_to_phys(dev_dax, vmf->pgoff, PAGE_SIZE);
-@@ -111,7 +108,6 @@ static vm_fault_t __dev_dax_pmd_fault(st
- {
- 	unsigned long pmd_addr =3D vmf->address & PMD_MASK;
- 	struct device *dev =3D &dev_dax->dev;
--	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
- 	unsigned int fault_size =3D PMD_SIZE;
-@@ -119,16 +115,15 @@ static vm_fault_t __dev_dax_pmd_fault(st
- 	if (check_vma(dev_dax, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
-=20
--	dax_region =3D dev_dax->region;
--	if (dax_region->align > PMD_SIZE) {
-+	if (dev_dax->align > PMD_SIZE) {
- 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
--			dax_region->align, fault_size);
-+			dev_dax->align, fault_size);
- 		return VM_FAULT_SIGBUS;
- 	}
-=20
--	if (fault_size < dax_region->align)
-+	if (fault_size < dev_dax->align)
- 		return VM_FAULT_SIGBUS;
--	else if (fault_size > dax_region->align)
-+	else if (fault_size > dev_dax->align)
- 		return VM_FAULT_FALLBACK;
-=20
- 	/* if we are outside of the VMA */
-@@ -154,7 +149,6 @@ static vm_fault_t __dev_dax_pud_fault(st
- {
- 	unsigned long pud_addr =3D vmf->address & PUD_MASK;
- 	struct device *dev =3D &dev_dax->dev;
--	struct dax_region *dax_region;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
- 	unsigned int fault_size =3D PUD_SIZE;
-@@ -163,16 +157,15 @@ static vm_fault_t __dev_dax_pud_fault(st
- 	if (check_vma(dev_dax, vmf->vma, __func__))
- 		return VM_FAULT_SIGBUS;
-=20
--	dax_region =3D dev_dax->region;
--	if (dax_region->align > PUD_SIZE) {
-+	if (dev_dax->align > PUD_SIZE) {
- 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
--			dax_region->align, fault_size);
-+			dev_dax->align, fault_size);
- 		return VM_FAULT_SIGBUS;
- 	}
-=20
--	if (fault_size < dax_region->align)
-+	if (fault_size < dev_dax->align)
- 		return VM_FAULT_SIGBUS;
--	else if (fault_size > dax_region->align)
-+	else if (fault_size > dev_dax->align)
- 		return VM_FAULT_FALLBACK;
-=20
- 	/* if we are outside of the VMA */
-@@ -267,9 +260,8 @@ static int dev_dax_split(struct vm_area_
- {
- 	struct file *filp =3D vma->vm_file;
- 	struct dev_dax *dev_dax =3D filp->private_data;
--	struct dax_region *dax_region =3D dev_dax->region;
-=20
--	if (!IS_ALIGNED(addr, dax_region->align))
-+	if (!IS_ALIGNED(addr, dev_dax->align))
- 		return -EINVAL;
- 	return 0;
- }
-@@ -278,9 +270,8 @@ static unsigned long dev_dax_pagesize(st
- {
- 	struct file *filp =3D vma->vm_file;
- 	struct dev_dax *dev_dax =3D filp->private_data;
--	struct dax_region *dax_region =3D dev_dax->region;
-=20
--	return dax_region->align;
-+	return dev_dax->align;
- }
-=20
- static const struct vm_operations_struct dax_vm_ops =3D {
-@@ -319,13 +310,11 @@ static unsigned long dax_get_unmapped_ar
- {
- 	unsigned long off, off_end, off_align, len_align, addr_align, align;
- 	struct dev_dax *dev_dax =3D filp ? filp->private_data : NULL;
--	struct dax_region *dax_region;
-=20
- 	if (!dev_dax || addr)
- 		goto out;
-=20
--	dax_region =3D dev_dax->region;
--	align =3D dax_region->align;
-+	align =3D dev_dax->align;
- 	off =3D pgoff << PAGE_SHIFT;
- 	off_end =3D off + len;
- 	off_align =3D round_up(off, align);
+ 	struct device *dev =3D &pdev->dev;
+@@ -30,7 +33,7 @@ static int dax_hmem_probe(struct platfor
+ 	data =3D (struct dev_dax_data) {
+ 		.dax_region =3D dax_region,
+ 		.id =3D -1,
+-		.size =3D resource_size(res),
++		.size =3D region_idle ? 0 : resource_size(res),
+ 	};
+ 	dev_dax =3D devm_create_dev_dax(&data);
+ 	if (IS_ERR(dev_dax))
 _
