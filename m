@@ -2,57 +2,54 @@ Return-Path: <SRS0=1pWp=DU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D7CDC433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 20:41:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F805C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 20:42:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3F9920EDD
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 20:41:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1AD9208D5
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 20:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602621703;
-	bh=ZyY+47kbvY8SklfK74cvyErGu/Z3tlvS1D6q5LzhAPk=;
+	s=default; t=1602621744;
+	bh=kUX0fgmyUInCiftIZkpmHRhHo+Ite6RRfL+IL51VRv8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=EVI0MMgwdpeoQWb1nT7uDljUcBCcXVaCpQLnQnwDCHVhx4rZeIup+AVyybUbSxxGE
-	 cCGBICNPMSUKuf4X40ReNlaqKTqvt7/Wr5tEarD9BxHN1c5CcZotOdXM/EwJbEoeo0
-	 z/bZkiMcfhi7pqUj71ouSwVOIs5KVGrIC/q40vIo=
+	b=f92wyfvprssTn3hp1YtXWV0UmvsmRNE7+JSdXA5sVcvIjJPyQp5lLl62jdcFQDuih
+	 k5iNKrvTjVYq5r8F8RLWq7fg0br42ARQDVUmNRxC6aOPcqYFYcsV/PVWZzJwM/cKvv
+	 H2Rwp1VifYzbqRLp69Q9ZoerjlHNlHR3K9DJ1fwk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726875AbgJMUln (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 16:41:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34780 "EHLO mail.kernel.org"
+        id S1726481AbgJMUla (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 16:41:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726137AbgJMUln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 16:41:43 -0400
+        id S1726137AbgJMUla (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 16:41:30 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C344920BED;
-        Tue, 13 Oct 2020 20:41:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0588920878;
+        Tue, 13 Oct 2020 20:41:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602621702;
-        bh=ZyY+47kbvY8SklfK74cvyErGu/Z3tlvS1D6q5LzhAPk=;
+        s=default; t=1602621689;
+        bh=kUX0fgmyUInCiftIZkpmHRhHo+Ite6RRfL+IL51VRv8=;
         h=Date:From:To:Subject:From;
-        b=EUUlQ5vQGwuqywjL0W3uOjYvz0h+ocAFfED26M5dm2Du4LOZxdXS/zLLjoFles9dD
-         7hiACLiT3zBWUxSEV0nx/GwPqO65lk/GC40rjEItTEtawfYfbkcQJRRgcjIbs8q6Ld
-         aVxTzsNF0vYvYklDa1pPI3nqYLtssrsaqEWwddjA=
-Date:   Tue, 13 Oct 2020 13:41:41 -0700
+        b=trnjSS48QBfHe79WEzmj3Gy/JMvEAF6+gZHEA3m+1FeHLNl6C3Y4wqVvImD0kiYhG
+         Va9oxfOtKjXhCkCeVzhDI2+YKnGfoJAHy/GsaD6kSAOfOZcuLgpzbruugOGXT6nm1O
+         ooAVaBqfZ7VGyH7sB+X5r9X04xiZfoT2ZRVd48f0=
+Date:   Tue, 13 Oct 2020 13:41:28 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, apais@microsoft.com,
-        kirill.shutemov@linux.intel.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, oleg@redhat.com,
-        pasha.tatashin@soleen.com, songliubraving@fb.com,
-        stable@vger.kernel.org, vijayb@linux.microsoft.com
-Subject:  [merged]
- =?US-ASCII?Q?mm-khugepaged-recalculate-min=5Ffree=5Fkbytes-after-memory?=
- =?US-ASCII?Q?-hotplug-as-expected-by-khugepaged.patch?= removed from -mm
- tree
-Message-ID: <20201013204141.by8a7SmOT%akpm@linux-foundation.org>
+To:     corbet@lwn.net, keescook@chromium.org, me@tobin.cc,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        re.emese@gmail.com, tycho@tycho.pizza
+Subject:  [merged] maintainers-change-hardening-mailing-list.patch
+ removed from -mm tree
+Message-ID: <20201013204128.YfFaRj-yg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,119 +57,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
+     Subject: MAINTAINERS: change hardening mailing list
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged.patch
+     maintainers-change-hardening-mailing-list.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Subject: mm: khugepaged: recalculate min_free_kbytes after memory hotplug as expected by khugepaged
+=46rom: Kees Cook <keescook@chromium.org>
+Subject: MAINTAINERS: change hardening mailing list
 
-When memory is hotplug added or removed the min_free_kbytes should be
-recalculated based on what is expected by khugepaged.  Currently after
-hotplug, min_free_kbytes will be set to a lower default and higher default
-set when THP enabled is lost.  This change restores min_free_kbytes as
-expected for THP consumers.
+As more email from git history gets aimed at the OpenWall
+kernel-hardening@ list, there has been a desire to separate "new topics"
+from "on-going" work.  To handle this, the superset of hardening email
+topics are now to be directed to linux-hardening@vger.kernel.org.  Update
+the MAINTAINERS file and the .mailmap to accomplish this, so that
+linux-hardening@ can be treated like any other regular upstream kernel
+development list.
 
-[vijayb@linux.microsoft.com: v5]
-  Link: https://lkml.kernel.org/r/1601398153-5517-1-git-send-email-vijayb@linux.microsoft.com
-Link: https://lkml.kernel.org/r/1600305709-2319-2-git-send-email-vijayb@linux.microsoft.com
-Link: https://lkml.kernel.org/r/1600204258-13683-1-git-send-email-vijayb@linux.microsoft.com
-Fixes: f000565adb77 ("thp: set recommended min free kbytes")
-Signed-off-by: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Allen Pais <apais@microsoft.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/linux-hardening/202010051443.279CC265D@keesco=
+ok/
+Link: https://lkml.kernel.org/r/20201006000012.2768958-1-keescook@chromium.=
+org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Emese Revfy <re.emese@gmail.com>
+Cc: "Tobin C. Harding" <me@tobin.cc>
+Cc: Tycho Andersen <tycho@tycho.pizza>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/khugepaged.h |    5 +++++
- mm/khugepaged.c            |   13 +++++++++++--
- mm/page_alloc.c            |    3 +++
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/khugepaged.h~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
-+++ a/include/linux/khugepaged.h
-@@ -15,6 +15,7 @@ extern int __khugepaged_enter(struct mm_
- extern void __khugepaged_exit(struct mm_struct *mm);
- extern int khugepaged_enter_vma_merge(struct vm_area_struct *vma,
- 				      unsigned long vm_flags);
-+extern void khugepaged_min_free_kbytes_update(void);
- #ifdef CONFIG_SHMEM
- extern void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr);
- #else
-@@ -85,6 +86,10 @@ static inline void collapse_pte_mapped_t
- 					   unsigned long addr)
- {
- }
-+
-+static inline void khugepaged_min_free_kbytes_update(void)
-+{
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #endif /* _LINUX_KHUGEPAGED_H */
---- a/mm/khugepaged.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
-+++ a/mm/khugepaged.c
-@@ -56,6 +56,9 @@ enum scan_result {
- #define CREATE_TRACE_POINTS
- #include <trace/events/huge_memory.h>
- 
-+static struct task_struct *khugepaged_thread __read_mostly;
-+static DEFINE_MUTEX(khugepaged_mutex);
-+
- /* default scan 8*512 pte (or vmas) every 30 second */
- static unsigned int khugepaged_pages_to_scan __read_mostly;
- static unsigned int khugepaged_pages_collapsed;
-@@ -2304,8 +2307,6 @@ static void set_recommended_min_free_kby
- 
- int start_stop_khugepaged(void)
- {
--	static struct task_struct *khugepaged_thread __read_mostly;
--	static DEFINE_MUTEX(khugepaged_mutex);
- 	int err = 0;
- 
- 	mutex_lock(&khugepaged_mutex);
-@@ -2332,3 +2333,11 @@ fail:
- 	mutex_unlock(&khugepaged_mutex);
- 	return err;
- }
-+
-+void khugepaged_min_free_kbytes_update(void)
-+{
-+	mutex_lock(&khugepaged_mutex);
-+	if (khugepaged_enabled() && khugepaged_thread)
-+		set_recommended_min_free_kbytes();
-+	mutex_unlock(&khugepaged_mutex);
-+}
---- a/mm/page_alloc.c~mm-khugepaged-recalculate-min_free_kbytes-after-memory-hotplug-as-expected-by-khugepaged
-+++ a/mm/page_alloc.c
-@@ -69,6 +69,7 @@
- #include <linux/nmi.h>
- #include <linux/psi.h>
- #include <linux/padata.h>
-+#include <linux/khugepaged.h>
- 
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
-@@ -7904,6 +7905,8 @@ int __meminit init_per_zone_wmark_min(vo
- 	setup_min_slab_ratio();
- #endif
- 
-+	khugepaged_min_free_kbytes_update();
-+
- 	return 0;
- }
- postcore_initcall(init_per_zone_wmark_min)
+--- a/.mailmap~maintainers-change-hardening-mailing-list
++++ a/.mailmap
+@@ -188,6 +188,7 @@ Leon Romanovsky <leon@kernel.org> <leonr
+ Linas Vepstas <linas@austin.ibm.com>
+ Linus L=C3=BCssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
+ Linus L=C3=BCssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
++<linux-hardening@vger.kernel.org> <kernel-hardening@lists.openwall.com>
+ Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
+ Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
+ Lukasz Luba <lukasz.luba@arm.com> <l.luba@partner.samsung.com>
+--- a/MAINTAINERS~maintainers-change-hardening-mailing-list
++++ a/MAINTAINERS
+@@ -7240,7 +7240,7 @@ F:	drivers/staging/gasket/
+ GCC PLUGINS
+ M:	Kees Cook <keescook@chromium.org>
+ R:	Emese Revfy <re.emese@gmail.com>
+-L:	kernel-hardening@lists.openwall.com
++L:	linux-hardening@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/kbuild/gcc-plugins.rst
+ F:	scripts/Makefile.gcc-plugins
+@@ -9802,7 +9802,7 @@ F:	drivers/scsi/53c700*
+ LEAKING_ADDRESSES
+ M:	Tobin C. Harding <me@tobin.cc>
+ M:	Tycho Andersen <tycho@tycho.pizza>
+-L:	kernel-hardening@lists.openwall.com
++L:	linux-hardening@vger.kernel.org
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tobin/leaks.git
+ F:	scripts/leaking_addresses.pl
 _
 
-Patches currently in -mm which might be from vijayb@linux.microsoft.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
