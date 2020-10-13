@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 160A4C2D0A4
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61C74C433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B444422203
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35A7822247
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633202;
-	bh=eh0yrjKgpj2wD9uJ5+XaG5mddDwra5Wy0OCm3f30ZBA=;
+	s=default; t=1602633210;
+	bh=I52/NNGNY+XvM4WUqrUw4nYDjXGMpuh9e/+aZe9hQrk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dChrb1+bf2/AwSG1K0Be6d+Qe8Q6x9d7/z1GYApbn0OPIgv54NfWTiVC+cqibAY71
-	 KfRuqe+9zijGteP9AFNk25dxzrVtUtBHyOFuPDI6Es7Sz+MCXfzM/6wcts/W/sbLB0
-	 Fa/9gCGkGRbZJLLtOsheMmLavJS7NANcYjFhaD1k=
+	b=0huc4AjQPL1ktsjOTsDJAE2uBNiSKZQSL2HYwcxLpXOnMhVfVdxVLvygAmGmLx2je
+	 zBXGE38mXw/TKpZmBmOefu1yH5O8HFeoWwMZPSpFkwKJJjpnV1q14YUBMSVab4QFTD
+	 DdRnBZqcdP7Q6QvH5hMXpGXKXcyImNMUHbP+kdkk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729175AbgJMXxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:53:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37754 "EHLO mail.kernel.org"
+        id S1729700AbgJMXx3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:53:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387433AbgJMXwu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:52:50 -0400
+        id S2387433AbgJMXx1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:53:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 93B7F22200;
-        Tue, 13 Oct 2020 23:52:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0812C22228;
+        Tue, 13 Oct 2020 23:53:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633170;
-        bh=eh0yrjKgpj2wD9uJ5+XaG5mddDwra5Wy0OCm3f30ZBA=;
+        s=default; t=1602633207;
+        bh=I52/NNGNY+XvM4WUqrUw4nYDjXGMpuh9e/+aZe9hQrk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=H9H+X6su3eqNsA1RFPCIyHEHTcucxXr0Ylxixk0nAu3vkEveCRFt6WcBfWHzlmC/k
-         t/vo03aovAdDlUpWxayQUCnyYYLjhPvESfr40o2y+gcgFyyF7KYw9Wi4T2UwxcrZIQ
-         KsR4AME1tZPBGmzunOHeb9YC0P7HYRSULDhWp78E=
-Date:   Tue, 13 Oct 2020 16:52:49 -0700
+        b=AnQUX1g16vEsjD7PMqUXCO685Ut2rs+KeCdFhWniyyiOagpIAfX1wjv7TSZNBnHpI
+         fOU+YtRQvj1HoQggMJgMSuUbOL7L8C4nUarWRkMgSXha5YjwYGL+LhwNqLwALgoGgV
+         nh3cJYBqcGKLK+scAfWEO/Om9KbFTDB6FEdmG8/c=
+Date:   Tue, 13 Oct 2020 16:53:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
-        hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org,
-        longman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, tj@kernel.org, torvalds@linux-foundation.org,
-        vdavydov.dev@gmail.com
-Subject:  [patch 082/181] mm/memcg: clean up obsolete enum
- charge_type
-Message-ID: <20201013235249.f1GP1jxfh%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        yanfei.xu@windriver.com
+Subject:  [patch 093/181] mm/memory.c: fix typo in __do_fault()
+ comment
+Message-ID: <20201013235326.Yo2n4UNxw%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,51 +53,29 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memcg: clean up obsolete enum charge_type
+From: Yanfei Xu <yanfei.xu@windriver.com>
+Subject: mm/memory.c: fix typo in __do_fault() comment
 
-Patch series "mm/memcg: Miscellaneous cleanups and streamlining", v2.
+It's "pte_alloc_one", not "pte_alloc_pne". Let's fix that.
 
-
-This patch (of 3):
-
-Since commit 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API") and
-commit 00501b531c47 ("mm: memcontrol: rewrite charge API") in v3.17, the
-enum charge_type was no longer used anywhere.  However, the enum itself
-was not removed at that time.  Remove the obsolete enum charge_type now.
-
-Link: https://lkml.kernel.org/r/20200914024452.19167-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20200914024452.19167-2-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Link: http://lkml.kernel.org/r/20200818104339.5310-1-yanfei.xu@windriver.com
+Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-clean-up-obsolete-enum-charge_type
-+++ a/mm/memcontrol.c
-@@ -197,14 +197,6 @@ static struct move_charge_struct {
- #define	MEM_CGROUP_MAX_RECLAIM_LOOPS		100
- #define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	2
- 
--enum charge_type {
--	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
--	MEM_CGROUP_CHARGE_TYPE_ANON,
--	MEM_CGROUP_CHARGE_TYPE_SWAPOUT,	/* for accounting swapcache */
--	MEM_CGROUP_CHARGE_TYPE_DROP,	/* a page was unused swap cache */
--	NR_CHARGE_TYPE,
--};
--
- /* for encoding cft->private value on file */
- enum res_type {
- 	_MEM,
+--- a/mm/memory.c~mm-memory-fix-typo-in-__do_fault-comment
++++ a/mm/memory.c
+@@ -3589,7 +3589,7 @@ static vm_fault_t __do_fault(struct vm_f
+ 	 *				unlock_page(A)
+ 	 * lock_page(B)
+ 	 *				lock_page(B)
+-	 * pte_alloc_pne
++	 * pte_alloc_one
+ 	 *   shrink_page_list
+ 	 *     wait_on_page_writeback(A)
+ 	 *				SetPageWriteback(B)
 _
