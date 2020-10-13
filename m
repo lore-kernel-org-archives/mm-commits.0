@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04054C2D0A2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 792BDC433DF
 	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB06522203
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3422D22228
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633201;
-	bh=gUBv5G6TA+a7HAti5xOo+E5YOkhu5AVAXLjCNEmxTdk=;
+	s=default; t=1602633202;
+	bh=GsqS/Xwtlrvn7edcABt4EEtI1PvfH5Sex6icl7pulKI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=md9uNzy/I+qklEAXwNpTV+qI63m3ioLmiI5ujb6gHUR/uXAb9E6WSjOHzGwNmhauL
-	 VUcS0SbryuTjrsyQpd0YM0Y7ZakrTesAFanGas7RWQKqEnMVNDtfYaIyvOKlwAv+6d
-	 P5/P6sD0zeNQJYqHnIhvj6ZdQUjMyy/3G6hhxpCY=
+	b=jgt5JuPzJ/999PoikqUq5icUV1L7eVmJ21V+8U/LfDRdYdDhokxiXwKP3E66+yt5F
+	 5jjpmmymqS4J7zqQFQgGJ8SbstZ1FSjPEElINhLWxMYwiK1L7X5RMZt/8L2KqI3S+Z
+	 8X5vDnkzepJy7Ee/x8FIaCPlG1pKEeTBFPHhqG3o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729286AbgJMXxU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:53:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37938 "EHLO mail.kernel.org"
+        id S1729225AbgJMXxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:53:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37820 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729246AbgJMXxB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:53:01 -0400
+        id S1729175AbgJMXwx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:52:53 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C780B21D7B;
-        Tue, 13 Oct 2020 23:52:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2042D21D7B;
+        Tue, 13 Oct 2020 23:52:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633180;
-        bh=gUBv5G6TA+a7HAti5xOo+E5YOkhu5AVAXLjCNEmxTdk=;
+        s=default; t=1602633173;
+        bh=GsqS/Xwtlrvn7edcABt4EEtI1PvfH5Sex6icl7pulKI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SRv34Fro+1yGyVAXy0HDZnW4nSq2E4Y8SFWGyN4qnp7GKGAi/bVGpDUFtUMytfhS4
-         NOCZvroCamna59k6KqR6Gi0Kr9B4sedx+O3InMhSqBhtJ3BEbb82tGus6wARH8Ygc2
-         P+s0cNFE+JOWUezhnE26bgOycay7zo4+duZM/GhU=
-Date:   Tue, 13 Oct 2020 16:52:59 -0700
+        b=nVeFpm0beENY8LC79h2dgI8eHLCcgo8Dee0tNUb/BhgWWM2VSF6/f/HHMagBXc+jZ
+         EP5zr0NtC/GDP5gJ8uEd3LBBMTsIVZb7QTDvXaRhJyrhoyb3oiJiYmCkdCTJrArtv9
+         GwUrdA5m26ys1tfMzUS6ogjUtL9VdztmoifHgZ58=
+Date:   Tue, 13 Oct 2020 16:52:52 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, lizefan@huawei.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, shakeelb@google.com,
-        songmuchun@bytedance.com, torvalds@linux-foundation.org,
+To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
+        hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org,
+        longman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, tj@kernel.org, torvalds@linux-foundation.org,
         vdavydov.dev@gmail.com
-Subject:  [patch 085/181] mm: memcontrol: add the missing numa_stat
- interface for cgroup v2
-Message-ID: <20201013235259.vafjAhT6z%akpm@linux-foundation.org>
+Subject:  [patch 083/181] mm/memcg: simplify mem_cgroup_get_max()
+Message-ID: <20201013235252.ZUa46-9eO%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,366 +54,61 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: add the missing numa_stat interface for cgroup v2
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memcg: simplify mem_cgroup_get_max()
 
-In the cgroup v1, we have a numa_stat interface.  This is useful for
-providing visibility into the numa locality information within an memcg
-since the pages are allowed to be allocated from any physical node.  One
-of the use cases is evaluating application performance by combining this
-information with the application's CPU allocation.  But the cgroup v2 does
-not.  So this patch adds the missing information.
+mem_cgroup_get_max() used to get memory+swap max from both the v1 memsw
+and v2 memory+swap page counters & return the maximum of these 2 values. 
+This is redundant and it is more efficient to just get either the v1 or
+the v2 values depending on which one is currently in use.
 
-Link: https://lkml.kernel.org/r/20200916100030.71698-2-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Suggested-by: Shakeel Butt <shakeelb@google.com>
+[longman@redhat.com: v4]
+  Link: https://lkml.kernel.org/r/20200914150928.7841-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20200914024452.19167-3-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Zefan Li <lizefan@huawei.com>
+Cc: Chris Down <chris@chrisdown.name>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Roman Gushchin <guro@fb.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   69 ++++++--
- mm/memcontrol.c                         |  172 ++++++++++++++--------
- 2 files changed, 160 insertions(+), 81 deletions(-)
+ mm/memcontrol.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-add-the-missing-numa_stat-interface-for-cgroup-v2
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1259,6 +1259,10 @@ PAGE_SIZE multiple when read back.
- 	can show up in the middle. Don't rely on items remaining in a
- 	fixed position; use the keys to look up specific values!
- 
-+	If the entry has no per-node counter(or not show in the
-+	mempry.numa_stat). We use 'npn'(non-per-node) as the tag
-+	to indicate that it will not show in the mempry.numa_stat.
-+
- 	  anon
- 		Amount of memory used in anonymous mappings such as
- 		brk(), sbrk(), and mmap(MAP_ANONYMOUS)
-@@ -1270,15 +1274,11 @@ PAGE_SIZE multiple when read back.
- 	  kernel_stack
- 		Amount of memory allocated to kernel stacks.
- 
--	  slab
--		Amount of memory used for storing in-kernel data
--		structures.
--
--	  percpu
-+	  percpu(npn)
- 		Amount of memory used for storing per-cpu kernel
- 		data structures.
- 
--	  sock
-+	  sock(npn)
- 		Amount of memory used in network transmission buffers
- 
- 	  shmem
-@@ -1318,11 +1318,9 @@ PAGE_SIZE multiple when read back.
- 		Part of "slab" that cannot be reclaimed on memory
- 		pressure.
- 
--	  pgfault
--		Total number of page faults incurred
--
--	  pgmajfault
--		Number of major page faults incurred
-+	  slab(npn)
-+		Amount of memory used for storing in-kernel data
-+		structures.
- 
- 	  workingset_refault_anon
- 		Number of refaults of previously evicted anonymous pages.
-@@ -1348,37 +1346,68 @@ PAGE_SIZE multiple when read back.
- 	  workingset_nodereclaim
- 		Number of times a shadow node has been reclaimed
- 
--	  pgrefill
-+	  pgfault(npn)
-+		Total number of page faults incurred
-+
-+	  pgmajfault(npn)
-+		Number of major page faults incurred
-+
-+	  pgrefill(npn)
- 		Amount of scanned pages (in an active LRU list)
- 
--	  pgscan
-+	  pgscan(npn)
- 		Amount of scanned pages (in an inactive LRU list)
- 
--	  pgsteal
-+	  pgsteal(npn)
- 		Amount of reclaimed pages
- 
--	  pgactivate
-+	  pgactivate(npn)
- 		Amount of pages moved to the active LRU list
- 
--	  pgdeactivate
-+	  pgdeactivate(npn)
- 		Amount of pages moved to the inactive LRU list
- 
--	  pglazyfree
-+	  pglazyfree(npn)
- 		Amount of pages postponed to be freed under memory pressure
- 
--	  pglazyfreed
-+	  pglazyfreed(npn)
- 		Amount of reclaimed lazyfree pages
- 
--	  thp_fault_alloc
-+	  thp_fault_alloc(npn)
- 		Number of transparent hugepages which were allocated to satisfy
- 		a page fault. This counter is not present when CONFIG_TRANSPARENT_HUGEPAGE
-                 is not set.
- 
--	  thp_collapse_alloc
-+	  thp_collapse_alloc(npn)
- 		Number of transparent hugepages which were allocated to allow
- 		collapsing an existing range of pages. This counter is not
- 		present when CONFIG_TRANSPARENT_HUGEPAGE is not set.
- 
-+  memory.numa_stat
-+	A read-only nested-keyed file which exists on non-root cgroups.
-+
-+	This breaks down the cgroup's memory footprint into different
-+	types of memory, type-specific details, and other information
-+	per node on the state of the memory management system.
-+
-+	This is useful for providing visibility into the NUMA locality
-+	information within an memcg since the pages are allowed to be
-+	allocated from any physical node. One of the use case is evaluating
-+	application performance by combining this information with the
-+	application's CPU allocation.
-+
-+	All memory amounts are in bytes.
-+
-+	The output format of memory.numa_stat is::
-+
-+	  type N0=<bytes in node 0> N1=<bytes in node 1> ...
-+
-+	The entries are ordered to be human readable, and new entries
-+	can show up in the middle. Don't rely on items remaining in a
-+	fixed position; use the keys to look up specific values!
-+
-+	The entries can refer to the memory.stat.
-+
-   memory.swap.current
- 	A read-only single value file which exists on non-root
- 	cgroups.
---- a/mm/memcontrol.c~mm-memcontrol-add-the-missing-numa_stat-interface-for-cgroup-v2
+--- a/mm/memcontrol.c~mm-memcg-simplify-mem_cgroup_get_max
 +++ a/mm/memcontrol.c
-@@ -1448,6 +1448,70 @@ static bool mem_cgroup_wait_acct_move(st
- 	return false;
- }
- 
-+struct memory_stat {
-+	const char *name;
-+	unsigned int ratio;
-+	unsigned int idx;
-+};
-+
-+static struct memory_stat memory_stats[] = {
-+	{ "anon", PAGE_SIZE, NR_ANON_MAPPED },
-+	{ "file", PAGE_SIZE, NR_FILE_PAGES },
-+	{ "kernel_stack", 1024, NR_KERNEL_STACK_KB },
-+	{ "percpu", 1, MEMCG_PERCPU_B },
-+	{ "sock", PAGE_SIZE, MEMCG_SOCK },
-+	{ "shmem", PAGE_SIZE, NR_SHMEM },
-+	{ "file_mapped", PAGE_SIZE, NR_FILE_MAPPED },
-+	{ "file_dirty", PAGE_SIZE, NR_FILE_DIRTY },
-+	{ "file_writeback", PAGE_SIZE, NR_WRITEBACK },
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	/*
-+	 * The ratio will be initialized in memory_stats_init(). Because
-+	 * on some architectures, the macro of HPAGE_PMD_SIZE is not
-+	 * constant(e.g. powerpc).
-+	 */
-+	{ "anon_thp", 0, NR_ANON_THPS },
-+#endif
-+	{ "inactive_anon", PAGE_SIZE, NR_INACTIVE_ANON },
-+	{ "active_anon", PAGE_SIZE, NR_ACTIVE_ANON },
-+	{ "inactive_file", PAGE_SIZE, NR_INACTIVE_FILE },
-+	{ "active_file", PAGE_SIZE, NR_ACTIVE_FILE },
-+	{ "unevictable", PAGE_SIZE, NR_UNEVICTABLE },
-+
-+	/*
-+	 * Note: The slab_reclaimable and slab_unreclaimable must be
-+	 * together and slab_reclaimable must be in front.
-+	 */
-+	{ "slab_reclaimable", 1, NR_SLAB_RECLAIMABLE_B },
-+	{ "slab_unreclaimable", 1, NR_SLAB_UNRECLAIMABLE_B },
-+
-+	/* The memory events */
-+	{ "workingset_refault_anon", 1, WORKINGSET_REFAULT_ANON },
-+	{ "workingset_refault_file", 1, WORKINGSET_REFAULT_FILE },
-+	{ "workingset_activate_anon", 1, WORKINGSET_ACTIVATE_ANON },
-+	{ "workingset_activate_file", 1, WORKINGSET_ACTIVATE_FILE },
-+	{ "workingset_restore_anon", 1, WORKINGSET_RESTORE_ANON },
-+	{ "workingset_restore_file", 1, WORKINGSET_RESTORE_FILE },
-+	{ "workingset_nodereclaim", 1, WORKINGSET_NODERECLAIM },
-+};
-+
-+static int __init memory_stats_init(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		if (memory_stats[i].idx == NR_ANON_THPS)
-+			memory_stats[i].ratio = HPAGE_PMD_SIZE;
-+#endif
-+		VM_BUG_ON(!memory_stats[i].ratio);
-+		VM_BUG_ON(memory_stats[i].idx >= MEMCG_NR_STAT);
-+	}
-+
-+	return 0;
-+}
-+pure_initcall(memory_stats_init);
-+
- static char *memory_stat_format(struct mem_cgroup *memcg)
+@@ -1633,17 +1633,19 @@ void mem_cgroup_print_oom_meminfo(struct
+  */
+ unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg)
  {
- 	struct seq_buf s;
-@@ -1468,52 +1532,19 @@ static char *memory_stat_format(struct m
- 	 * Current memory state:
- 	 */
+-	unsigned long max;
++	unsigned long max = READ_ONCE(memcg->memory.max);
  
--	seq_buf_printf(&s, "anon %llu\n",
--		       (u64)memcg_page_state(memcg, NR_ANON_MAPPED) *
--		       PAGE_SIZE);
--	seq_buf_printf(&s, "file %llu\n",
--		       (u64)memcg_page_state(memcg, NR_FILE_PAGES) *
--		       PAGE_SIZE);
--	seq_buf_printf(&s, "kernel_stack %llu\n",
--		       (u64)memcg_page_state(memcg, NR_KERNEL_STACK_KB) *
--		       1024);
--	seq_buf_printf(&s, "slab %llu\n",
--		       (u64)(memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
--			     memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B)));
--	seq_buf_printf(&s, "percpu %llu\n",
--		       (u64)memcg_page_state(memcg, MEMCG_PERCPU_B));
--	seq_buf_printf(&s, "sock %llu\n",
--		       (u64)memcg_page_state(memcg, MEMCG_SOCK) *
--		       PAGE_SIZE);
--
--	seq_buf_printf(&s, "shmem %llu\n",
--		       (u64)memcg_page_state(memcg, NR_SHMEM) *
--		       PAGE_SIZE);
--	seq_buf_printf(&s, "file_mapped %llu\n",
--		       (u64)memcg_page_state(memcg, NR_FILE_MAPPED) *
--		       PAGE_SIZE);
--	seq_buf_printf(&s, "file_dirty %llu\n",
--		       (u64)memcg_page_state(memcg, NR_FILE_DIRTY) *
--		       PAGE_SIZE);
--	seq_buf_printf(&s, "file_writeback %llu\n",
--		       (u64)memcg_page_state(memcg, NR_WRITEBACK) *
--		       PAGE_SIZE);
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	seq_buf_printf(&s, "anon_thp %llu\n",
--		       (u64)memcg_page_state(memcg, NR_ANON_THPS) *
--		       HPAGE_PMD_SIZE);
--#endif
-+	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
-+		u64 size;
+-	max = READ_ONCE(memcg->memory.max);
+-	if (mem_cgroup_swappiness(memcg)) {
+-		unsigned long memsw_max;
+-		unsigned long swap_max;
++	if (cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
++		if (mem_cgroup_swappiness(memcg))
++			max += min(READ_ONCE(memcg->swap.max),
++				   (unsigned long)total_swap_pages);
++	} else { /* v1 */
++		if (mem_cgroup_swappiness(memcg)) {
++			/* Calculate swap excess capacity from memsw limit */
++			unsigned long swap = READ_ONCE(memcg->memsw.max) - max;
  
--	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_buf_printf(&s, "%s %llu\n", lru_list_name(i),
--			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
--			       PAGE_SIZE);
--
--	seq_buf_printf(&s, "slab_reclaimable %llu\n",
--		       (u64)memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B));
--	seq_buf_printf(&s, "slab_unreclaimable %llu\n",
--		       (u64)memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B));
-+		size = memcg_page_state(memcg, memory_stats[i].idx);
-+		size *= memory_stats[i].ratio;
-+		seq_buf_printf(&s, "%s %llu\n", memory_stats[i].name, size);
-+
-+		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
-+			size = memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
-+			       memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B);
-+			seq_buf_printf(&s, "slab %llu\n", size);
+-		memsw_max = memcg->memsw.max;
+-		swap_max = READ_ONCE(memcg->swap.max);
+-		swap_max = min(swap_max, (unsigned long)total_swap_pages);
+-		max = min(max + swap_max, memsw_max);
++			max += min(swap, (unsigned long)total_swap_pages);
 +		}
-+	}
- 
- 	/* Accumulated memory events */
- 
-@@ -1521,22 +1552,6 @@ static char *memory_stat_format(struct m
- 		       memcg_events(memcg, PGFAULT));
- 	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGMAJFAULT),
- 		       memcg_events(memcg, PGMAJFAULT));
--
--	seq_buf_printf(&s, "workingset_refault_anon %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_REFAULT_ANON));
--	seq_buf_printf(&s, "workingset_refault_file %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_REFAULT_FILE));
--	seq_buf_printf(&s, "workingset_activate_anon %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_ACTIVATE_ANON));
--	seq_buf_printf(&s, "workingset_activate_file %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_ACTIVATE_FILE));
--	seq_buf_printf(&s, "workingset_restore_anon %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_RESTORE_ANON));
--	seq_buf_printf(&s, "workingset_restore_file %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_RESTORE_FILE));
--	seq_buf_printf(&s, "workingset_nodereclaim %lu\n",
--		       memcg_page_state(memcg, WORKINGSET_NODERECLAIM));
--
- 	seq_buf_printf(&s, "%s %lu\n",  vm_event_name(PGREFILL),
- 		       memcg_events(memcg, PGREFILL));
- 	seq_buf_printf(&s, "pgscan %lu\n",
-@@ -6374,6 +6389,35 @@ static int memory_stat_show(struct seq_f
- 	return 0;
+ 	}
+ 	return max;
  }
- 
-+#ifdef CONFIG_NUMA
-+static int memory_numa_stat_show(struct seq_file *m, void *v)
-+{
-+	int i;
-+	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
-+
-+	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
-+		int nid;
-+
-+		if (memory_stats[i].idx >= NR_VM_NODE_STAT_ITEMS)
-+			continue;
-+
-+		seq_printf(m, "%s", memory_stats[i].name);
-+		for_each_node_state(nid, N_MEMORY) {
-+			u64 size;
-+			struct lruvec *lruvec;
-+
-+			lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
-+			size = lruvec_page_state(lruvec, memory_stats[i].idx);
-+			size *= memory_stats[i].ratio;
-+			seq_printf(m, " N%d=%llu", nid, size);
-+		}
-+		seq_putc(m, '\n');
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
- static int memory_oom_group_show(struct seq_file *m, void *v)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
-@@ -6451,6 +6495,12 @@ static struct cftype memory_files[] = {
- 		.name = "stat",
- 		.seq_show = memory_stat_show,
- 	},
-+#ifdef CONFIG_NUMA
-+	{
-+		.name = "numa_stat",
-+		.seq_show = memory_numa_stat_show,
-+	},
-+#endif
- 	{
- 		.name = "oom.group",
- 		.flags = CFTYPE_NOT_ON_ROOT | CFTYPE_NS_DELEGATABLE,
 _
