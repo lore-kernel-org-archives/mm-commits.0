@@ -7,47 +7,56 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F411C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:14:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC9D9C433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:15:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E869921582
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:14:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89B4F21D7B
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:15:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630895;
-	bh=jQF+cJ906SJTYUZ59UxdUBUaYlNEJ1+d8q5rMKSoyiU=;
+	s=default; t=1602630948;
+	bh=71QjZ/lS/kcUzHw6NUroEe7IZrVhKrLzRqqRtb6CooU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=iPZ2Qq+p/IfYHu3c3NiM7jd8RqsY06pNRJS1mKkr1Dh9u0w/YnzwXZMc8hHAVv74Q
-	 bM4/4/UFc+Sg1wgMsrMwYqVXEQF4eJ7O2+DNFP6R6R5yvEjhFpjpA5VGpD1SB/KOOa
-	 BZWV5zM36GAzG5OEoyE6y8hY7u14JQ9D6VV2cpkc=
+	b=zbvkJB1c10w5V+QTUjzFVRklRFAiYX+nnoYJACMncC1vB1Z5kBZIUgfTn5vNMlS5X
+	 rnrI4rzbtk8vALSgQVyaA5U0D/URr6vMWi7JvnhemZ3T7ZLlsdLEC+hnShIZLoTp5J
+	 1y08TXL7Q+i+MOP26sFBzDS7S7x89pLH4yFFzEYY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727703AbgJMXOz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:14:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47902 "EHLO mail.kernel.org"
+        id S2388559AbgJMXPs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:15:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727344AbgJMXOz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:14:55 -0400
+        id S2388353AbgJMXPr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:15:47 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BE2BE20B1F;
-        Tue, 13 Oct 2020 23:14:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4FB2A20B1F;
+        Tue, 13 Oct 2020 23:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630895;
-        bh=jQF+cJ906SJTYUZ59UxdUBUaYlNEJ1+d8q5rMKSoyiU=;
+        s=default; t=1602630947;
+        bh=71QjZ/lS/kcUzHw6NUroEe7IZrVhKrLzRqqRtb6CooU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=P3qgm2cAcaTzTJ3ymBMG6Y9Qm4oe2aEv77MPkTAyxghWSUyNUrrhg9XSwsZJug9Ew
-         MwdQ+ipMlq6EMDlaXIaE6k96o9r1dhllpX6TlEsqS3rUWHRtwGN7yII3WSfw0VXvwb
-         M2P588WXfRSX1tM5k4753M9a6Pnl4o4nUiPXqw1s=
-Date:   Tue, 13 Oct 2020 16:14:54 -0700
+        b=owUDNxej3YsVwtNxVns7v/8xASBNB2rXr56zyNRhk5q1CvcKwDU4gLLlI7TlSPUPA
+         YrL4Kh1Y09gWGw5+VYXQVWt9tkhMh3WbQZgQ4DFBRyOS18fI5hEzOOHTBytQQiZ09k
+         IOzdKWX9UrICEDdIJ6zLMYSq/SgsqHwfMPPX6vDA=
+Date:   Tue, 13 Oct 2020 16:15:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        sfr@canb.auug.org.au
+To:     adobriyan@gmail.com, areber@redhat.com, avagin@gmail.com,
+        bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com,
+        christian@kellner.me, cyphar@cyphar.com,
+        daniel.m.jordan@oracle.com, ebiederm@xmission.com, esyr@redhat.com,
+        gladkov.alexey@gmail.com, john.johansen@canonical.com,
+        laoar.shao@gmail.com, mhocko@kernel.org, minchan@kernel.org,
+        mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
+        peterz@infradead.org, shakeelb@google.com, surenb@google.com,
+        tglx@linutronix.de, timmurray@google.com, walken@google.com
 Subject:  [folded-merged]
- arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix-2.patch
- removed from -mm tree
-Message-ID: <20201013231454.-gCmHev6y%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-oom=5Fadj-dont-loop-through-tasks-in-=5F=5Fset=5Foom?=
+ =?US-ASCII?Q?=5Fadj-when-not-necessary-v3.patch?= removed from -mm tree
+Message-ID: <20201013231545.XrZVxr2ws%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,67 +64,140 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: fix cavium-octeon build caused by memblock refactoring
+     Subject: mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
 has been removed from the -mm tree.  Its filename was
-     arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix-2.patch
+     mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3.patch
 
-This patch was dropped because it was folded into arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
+This patch was dropped because it was folded into mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mips: fix cavium-octeon build caused by memblock refactoring
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
 
-MIPS cavium_octeon_defconfig build failed like this:
+- Addressed Eric Biederman's comments from:
+https://lore.kernel.org/linux-mm/87imd6n0qk.fsf@x220.int.ebiederm.org/
+-- renabled oom_adj_lock back to oom_adj_mutex
+-- renamed MMF_PROC_SHARED into MMF_MULTIPROCESS and fixed its comment
+- Updated description to reflect the change
 
-arch/mips/cavium-octeon/dma-octeon.c:205:7: error: `mem' undeclared
-(first use in this function); did you mean `sem'?
-
-Caused by patch ("arch, drivers: replace for_each_membock() with
-for_each_mem_range()")
-
-Replacing stale 'mem->base' reference with 'start' fixes the issue.
-
-Link: http://lkml.kernel.org/r/20200827124549.GD167163@linux.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported by "kernelci.org bot" <bot@kernelci.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20200902012558.2335613-1-surenb@google.com
+Fixes: 44a70adec910 ("mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj")
+Reported-by: Tim Murray <timmurray@google.com>
+Debugged-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Eugene Syromiatnikov <esyr@redhat.com>
+Cc: Christian Kellner <christian@kellner.me>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/cavium-octeon/dma-octeon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c                 |    6 +++---
+ include/linux/oom.h            |    2 +-
+ include/linux/sched/coredump.h |    2 +-
+ kernel/fork.c                  |    6 +++---
+ mm/oom_kill.c                  |    2 +-
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/arch/mips/cavium-octeon/dma-octeon.c~arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix-2
-+++ a/arch/mips/cavium-octeon/dma-octeon.c
-@@ -202,7 +202,7 @@ void __init plat_swiotlb_setup(void)
+--- a/fs/proc/base.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
++++ a/fs/proc/base.c
+@@ -1063,7 +1063,7 @@ static int __set_oom_adj(struct file *fi
+ 	if (!task)
+ 		return -ESRCH;
  
- 	for_each_mem_range(i, &start, &end) {
- 		/* These addresses map low for PCI. */
--		if (mem->base > 0x410000000ull && !OCTEON_IS_OCTEON2())
-+		if (start > 0x410000000ull && !OCTEON_IS_OCTEON2())
- 			continue;
+-	mutex_lock(&oom_adj_lock);
++	mutex_lock(&oom_adj_mutex);
+ 	if (legacy) {
+ 		if (oom_adj < task->signal->oom_score_adj &&
+ 				!capable(CAP_SYS_RESOURCE)) {
+@@ -1094,7 +1094,7 @@ static int __set_oom_adj(struct file *fi
+ 		struct task_struct *p = find_lock_task_mm(task);
  
- 		addr_size += (end - start);
+ 		if (p) {
+-			if (test_bit(MMF_PROC_SHARED, &p->mm->flags)) {
++			if (test_bit(MMF_MULTIPROCESS, &p->mm->flags)) {
+ 				mm = p->mm;
+ 				mmgrab(mm);
+ 			}
+@@ -1131,7 +1131,7 @@ static int __set_oom_adj(struct file *fi
+ 		mmdrop(mm);
+ 	}
+ err_unlock:
+-	mutex_unlock(&oom_adj_lock);
++	mutex_unlock(&oom_adj_mutex);
+ 	put_task_struct(task);
+ 	return err;
+ }
+--- a/include/linux/oom.h~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
++++ a/include/linux/oom.h
+@@ -55,7 +55,7 @@ struct oom_control {
+ };
+ 
+ extern struct mutex oom_lock;
+-extern struct mutex oom_adj_lock;
++extern struct mutex oom_adj_mutex;
+ 
+ static inline void set_current_oom_origin(void)
+ {
+--- a/include/linux/sched/coredump.h~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
++++ a/include/linux/sched/coredump.h
+@@ -72,7 +72,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+ #define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_OOM_REAP_QUEUED	26	/* mm was queued for oom_reaper */
+-#define MMF_PROC_SHARED	27	/* mm is shared while sighand is not */
++#define MMF_MULTIPROCESS	27	/* mm is shared between processes */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+--- a/kernel/fork.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
++++ a/kernel/fork.c
+@@ -1821,12 +1821,12 @@ static void copy_oom_score_adj(u64 clone
+ 		return;
+ 
+ 	/* We need to synchronize with __set_oom_adj */
+-	mutex_lock(&oom_adj_lock);
+-	set_bit(MMF_PROC_SHARED, &tsk->mm->flags);
++	mutex_lock(&oom_adj_mutex);
++	set_bit(MMF_MULTIPROCESS, &tsk->mm->flags);
+ 	/* Update the values in case they were changed after copy_signal */
+ 	tsk->signal->oom_score_adj = current->signal->oom_score_adj;
+ 	tsk->signal->oom_score_adj_min = current->signal->oom_score_adj_min;
+-	mutex_unlock(&oom_adj_lock);
++	mutex_unlock(&oom_adj_mutex);
+ }
+ 
+ /*
+--- a/mm/oom_kill.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary-v3
++++ a/mm/oom_kill.c
+@@ -65,7 +65,7 @@ int sysctl_oom_dump_tasks = 1;
+  */
+ DEFINE_MUTEX(oom_lock);
+ /* Serializes oom_score_adj and oom_score_adj_min updates */
+-DEFINE_MUTEX(oom_adj_lock);
++DEFINE_MUTEX(oom_adj_mutex);
+ 
+ static inline bool is_memcg_oom(struct oom_control *oc)
+ {
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-kvm-ppc-book3s-hv-simplify-kvm_cma_reserve.patch
-dma-contiguous-simplify-cma_early_percent_memory.patch
-arm-xtensa-simplify-initialization-of-high-memory-pages.patch
-arm64-numa-simplify-dummy_numa_init.patch
-h8300-nds32-openrisc-simplify-detection-of-memory-extents.patch
-riscv-drop-unneeded-node-initialization.patch
-mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
-memblock-make-for_each_memblock_type-iterator-private.patch
-memblock-make-memblock_debug-and-related-functionality-private.patch
-memblock-reduce-number-of-parameters-in-for_each_mem_range.patch
-arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range.patch
-arch-drivers-replace-for_each_membock-with-for_each_mem_range.patch
-x86-setup-simplify-initrd-relocation-and-reservation.patch
-x86-setup-simplify-reserve_crashkernel.patch
-memblock-remove-unused-memblock_mem_size.patch
-memblock-implement-for_each_reserved_mem_region-using-__next_mem_region.patch
-memblock-use-separate-iterators-for-memory-and-reserved-regions.patch
-mm-remove-unused-early_pfn_valid.patch
+mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 
