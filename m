@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E685C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41CBDC43467
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1BD0D22227
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04A6622200
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633212;
-	bh=6MyXFc7oQ2KRtHCmQE5Akq7JqE8Wbpgw8TPtPrYxiGg=;
+	s=default; t=1602633204;
+	bh=pQ/fx9SwOVZ3UpfdSvTg6Va21OAz6g0thpuxuObBGaA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=fktgPxUOq5hNiJwSbe82PcxsSwBlMzMu/OpJU6CRIj0PYjbOf3zxcVNpdoSF5YAB1
-	 kTFNa7vBS1N0PA0TYtX3V2jz0hkvvAq1TPkD575yveaOPJUcI+69q9ox0i3XqS6SRP
-	 fKAeOsMdgJhfUlzDkoaYvTV/ZrEkzOD0Gn8MYrEU=
+	b=0XbKdg/m06DzLRlHbgGn6ld8BJT6GQTVOjNLzXpzhOUPgqTmarSMYFSjDMDus6ZdT
+	 Mzvqm8NKlwZEmJj477cxZT4QLFgcXADNRHz8u3wb6CTjjep+QOBxirdAmRghXqYFR5
+	 v8RIkIgZDoJI2620x0zVeKBaFwpXrjzm/QCItdCo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387855AbgJMXxb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:53:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38380 "EHLO mail.kernel.org"
+        id S1730087AbgJMXxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:53:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730123AbgJMXxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:53:24 -0400
+        id S1730085AbgJMXwe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:52:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 71DB322201;
-        Tue, 13 Oct 2020 23:53:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7E04921D7B;
+        Tue, 13 Oct 2020 23:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633204;
-        bh=6MyXFc7oQ2KRtHCmQE5Akq7JqE8Wbpgw8TPtPrYxiGg=;
+        s=default; t=1602633153;
+        bh=pQ/fx9SwOVZ3UpfdSvTg6Va21OAz6g0thpuxuObBGaA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=1lkFr/OAKOQuKXtpwLCs5g3azveFsCxaVbq4YZlFmsKxoC8DQWpmuiOW/1+4i4hkr
-         WyjnenuR43uWq7wLmnPVJxhnGhtpQ8510s4/fr9gWjiaHfqVOPrp/TbgDuAplqm2Da
-         1ilh/7asXR0peqrnFvkdN65wNRn2fziEgPl2Pr0I=
-Date:   Tue, 13 Oct 2020 16:53:22 -0700
+        b=F20R9S98eoCZIJq01/qtdYC94j6y4NEchGEgljbFmjlhyAaS/L+N8bmmCR5ceo+TD
+         /SBb0fJyH/i8IXGP6DeeRJ41VwynfS0ZApIaPWY34pwJk9ILNZeZYJNw2RQiXhjxuP
+         YOuw+1i3wJ8HYGk9AF3BBtVTtFZSNvMoq0z0O79I=
+Date:   Tue, 13 Oct 2020 16:52:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     abdhalee@linux.vnet.ibm.com, akpm@linux-foundation.org,
-        anders.roxell@linaro.org, arnd@arndb.de,
-        christophe.leroy@csgroup.eu, jcmvbkbc@gmail.com, joro@8bytes.org,
-        linux-mm@kvack.org, luto@kernel.org, mm-commits@vger.kernel.org,
-        naresh.kamboju@linaro.org, peterz@infradead.org,
-        rppt@linux.ibm.com, sathnaga@linux.vnet.ibm.com, shorne@gmail.com,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 092/181] mm: account PMD tables like PTE tables
-Message-ID: <20201013235322.pSdRSYom5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        ira.weiny@intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        vishal.l.verma@intel.com, william.kucharski@oracle.com
+Subject:  [patch 077/181] mm/memremap.c: convert devmap static
+ branch to {inc,dec}
+Message-ID: <20201013235233.t-QL6UOhs%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,100 +54,54 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm: account PMD tables like PTE tables
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/memremap.c: convert devmap static branch to {inc,dec}
 
-We account the PTE level of the page tables to the process in order to
-make smarter OOM decisions and help diagnose why memory is fragmented. 
-For these same reasons, we should account pages allocated for PMDs.  With
-larger process address spaces and ASLR, the number of PMDs in use is
-higher than it used to be so the inaccuracy is starting to matter.
+While reviewing Protection Key Supervisor support it was pointed out that
+using a counter to track static branch enable was an anti-pattern which
+was better solved using the provided static_branch_{inc,dec} functions.[1]
 
-[rppt@linux.ibm.com: arm: __pmd_free_tlb(): call page table destructor]
-  Link: https://lkml.kernel.org/r/20200825111303.GB69694@linux.ibm.com
-Link: http://lkml.kernel.org/r/20200627184642.GF25039@casper.infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Anders Roxell <anders.roxell@linaro.org>
+Fix up devmap_managed_key to work the same way.  Also this should be safer
+because there is a very small (very unlikely) race when multiple callers
+try to enable at the same time.
+
+[1] https://lore.kernel.org/lkml/20200714194031.GI5523@worktop.programming.kicks-ass.net/
+
+Link: https://lkml.kernel.org/r/20200810235319.2796597-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h |    1 +
- include/linux/mm.h         |   24 ++++++++++++++++++++----
- 2 files changed, 21 insertions(+), 4 deletions(-)
+ mm/memremap.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/arch/arm/include/asm/tlb.h~mm-account-pmd-tables-like-pte-tables
-+++ a/arch/arm/include/asm/tlb.h
-@@ -59,6 +59,7 @@ __pmd_free_tlb(struct mmu_gather *tlb, p
- #ifdef CONFIG_ARM_LPAE
- 	struct page *page = virt_to_page(pmdp);
+--- a/mm/memremap.c~memremap-convert-devmap-static-branch-to-incdec
++++ a/mm/memremap.c
+@@ -40,12 +40,10 @@ EXPORT_SYMBOL_GPL(memremap_compat_align)
+ #ifdef CONFIG_DEV_PAGEMAP_OPS
+ DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
+ EXPORT_SYMBOL(devmap_managed_key);
+-static atomic_t devmap_managed_enable;
  
-+	pgtable_pmd_page_dtor(page);
- 	tlb_remove_table(tlb, page);
- #endif
- }
---- a/include/linux/mm.h~mm-account-pmd-tables-like-pte-tables
-+++ a/include/linux/mm.h
-@@ -2254,7 +2254,7 @@ static inline spinlock_t *pmd_lockptr(st
- 	return ptlock_ptr(pmd_to_page(pmd));
- }
- 
--static inline bool pgtable_pmd_page_ctor(struct page *page)
-+static inline bool pmd_ptlock_init(struct page *page)
+ static void devmap_managed_enable_put(void)
  {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	page->pmd_huge_pte = NULL;
-@@ -2262,7 +2262,7 @@ static inline bool pgtable_pmd_page_ctor
- 	return ptlock_init(page);
+-	if (atomic_dec_and_test(&devmap_managed_enable))
+-		static_branch_disable(&devmap_managed_key);
++	static_branch_dec(&devmap_managed_key);
  }
  
--static inline void pgtable_pmd_page_dtor(struct page *page)
-+static inline void pmd_ptlock_free(struct page *page)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	VM_BUG_ON_PAGE(page->pmd_huge_pte, page);
-@@ -2279,8 +2279,8 @@ static inline spinlock_t *pmd_lockptr(st
- 	return &mm->page_table_lock;
+ static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
+@@ -56,8 +54,7 @@ static int devmap_managed_enable_get(str
+ 		return -EINVAL;
+ 	}
+ 
+-	if (atomic_inc_return(&devmap_managed_enable) == 1)
+-		static_branch_enable(&devmap_managed_key);
++	static_branch_inc(&devmap_managed_key);
+ 	return 0;
  }
- 
--static inline bool pgtable_pmd_page_ctor(struct page *page) { return true; }
--static inline void pgtable_pmd_page_dtor(struct page *page) {}
-+static inline bool pmd_ptlock_init(struct page *page) { return true; }
-+static inline void pmd_ptlock_free(struct page *page) {}
- 
- #define pmd_huge_pte(mm, pmd) ((mm)->pmd_huge_pte)
- 
-@@ -2293,6 +2293,22 @@ static inline spinlock_t *pmd_lock(struc
- 	return ptl;
- }
- 
-+static inline bool pgtable_pmd_page_ctor(struct page *page)
-+{
-+	if (!pmd_ptlock_init(page))
-+		return false;
-+	__SetPageTable(page);
-+	inc_zone_page_state(page, NR_PAGETABLE);
-+	return true;
-+}
-+
-+static inline void pgtable_pmd_page_dtor(struct page *page)
-+{
-+	pmd_ptlock_free(page);
-+	__ClearPageTable(page);
-+	dec_zone_page_state(page, NR_PAGETABLE);
-+}
-+
- /*
-  * No scalability reason to split PUD locks yet, but follow the same pattern
-  * as the PMD locks to make it easier if we decide to.  The VM should not be
+ #else
 _
