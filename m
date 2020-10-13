@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEAA9C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABE13C433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9140422201
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:49:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 539F7221FF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602632946;
-	bh=nx3lfTYJUtpRqVLwOqY3FO6xklQ1b7eyznbALbP++jg=;
+	s=default; t=1602633013;
+	bh=kb+37cP8tGnBbkWqfWtyOrM+ey+VGojQtWYp6Co6HKA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ZmJGZafKsi2PZJbhh7RKrSgqmLsJqbB0+iEjBVshBdk1OEJQqIakL6uTjKq4OAAkE
-	 6lM97Ghk+HznDcr4iGkbrN/WcPOwsZ13ZBVi60qrVSxXK328KyEASjQsFJcwW2M6WR
-	 JcKKXuSrmA+ORr4GLPx1bRU9xn4TD2BUTkxWxqTQ=
+	b=GPX5xz22m6ehU1OBf1YSO3rEwb/dK1nd07cxqS43TGCB1CGX0DOx7MsOJiR0r5bbJ
+	 UEugLVfpQtDiDJmZf5o2FBv9o2e82ovOqEO016Qu46ToutdLM5beq1Y4fi08y+6+7S
+	 gWsgX6S6TV197I1b+R6qhACLvvsDjJcJCEGxE4SY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727949AbgJMXtG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:49:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60744 "EHLO mail.kernel.org"
+        id S1730279AbgJMXuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:50:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727154AbgJMXtG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:49:06 -0400
+        id S1730283AbgJMXuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:50:11 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 43E5221D81;
-        Tue, 13 Oct 2020 23:49:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D636721D81;
+        Tue, 13 Oct 2020 23:50:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632945;
-        bh=nx3lfTYJUtpRqVLwOqY3FO6xklQ1b7eyznbALbP++jg=;
+        s=default; t=1602633010;
+        bh=kb+37cP8tGnBbkWqfWtyOrM+ey+VGojQtWYp6Co6HKA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=AnVRWYW6hX3Wh330l1db1oSC8lb4ZD/wv9vGbvws0QI6npnUTo/EJQjN+F3xwE6g5
-         OcePKexY1+xRkpoXC/7zkPA4g8WzjPUGvmmQUbaq4kZu4iZQIVQ8ZlEMb9jiPq9bSB
-         1Fvpo2SbeAnbA/fyWo5T3Kq47YNQezF8zXIe3QJA=
-Date:   Tue, 13 Oct 2020 16:49:02 -0700
+        b=jzXpHts9YfNx22C3YElMMeB1F188/CcODUI2sbI7/PxJOULQY8zwIJa1EBivVJW1k
+         UeGEga4BzsUIFVNDzlY5tCcpFU3JQCxnv87SEeyPGMSlq/+o6PmM7JnkkiieZdsDjA
+         7xPP5WPm1mS/9N1tQFzU1a5uVZX5hHLnfQzw1uUw=
+Date:   Tue, 13 Oct 2020 16:50:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -60,8 +60,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 027/181] x86/numa: add 'nohmat' option
-Message-ID: <20201013234902.xbhrv_jOp%akpm@linux-foundation.org>
+Subject:  [patch 040/181] device-dax: introduce 'struct dev_dax'
+ typed-driver operations
+Message-ID: <20201013235008.3z6q5dQ5s%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -73,143 +74,224 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: x86/numa: add 'nohmat' option
+Subject: device-dax: introduce 'struct dev_dax' typed-driver operations
 
-Disable parsing of the HMAT for debug, to workaround broken platform
-instances, or cases where it is otherwise not wanted.
+In preparation for introducing seed devices the dax-bus core needs to be
+able to intercept ->probe() and ->remove() operations.  Towards that end
+arrange for the bus and drivers to switch from raw 'struct device' driver
+operations to 'struct dev_dax' typed operations.
 
-[rdunlap@infradead.org: fix build when CONFIG_ACPI is not set]
-  Link: https://lkml.kernel.org/r/70e5ee34-9809-a997-7b49-499e4be61307@infr=
-adead.org
-Link: https://lkml.kernel.org/r/159643095540.4062302.732962081968036212.stg=
-it@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/160106113357.30709.4541750544799737855.stgi=
+t@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Cc: Jason Yan <yanaijie@huawei.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Airlie <airlied@linux.ie>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Hulk Robot <hulkci@huawei.com>
-Cc: Jason Yan <yanaijie@huawei.com>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: kernel test robot <lkp@intel.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86/x86_64/boot-options.rst |    4 ++++
- arch/x86/mm/numa.c                        |    2 ++
- drivers/acpi/numa/hmat.c                  |    8 +++++++-
- include/acpi/acpi_numa.h                  |    8 ++++++++
- include/linux/acpi.h                      |    2 ++
- 5 files changed, 23 insertions(+), 1 deletion(-)
+ drivers/dax/bus.c         |   18 ++++++++++++++++++
+ drivers/dax/bus.h         |    4 +++-
+ drivers/dax/device.c      |   12 +++++-------
+ drivers/dax/kmem.c        |   18 ++++++++----------
+ drivers/dax/pmem/compat.c |    2 +-
+ 5 files changed, 35 insertions(+), 19 deletions(-)
 
---- a/arch/x86/mm/numa.c~x86-numa-add-nohmat-option
-+++ a/arch/x86/mm/numa.c
-@@ -41,6 +41,8 @@ static __init int numa_setup(char *opt)
- 		return numa_emu_cmdline(opt + 5);
- 	if (!strncmp(opt, "noacpi", 6))
- 		disable_srat();
-+	if (!strncmp(opt, "nohmat", 6))
-+		disable_hmat();
+--- a/drivers/dax/bus.c~device-dax-introduce-struct-dev_dax-typed-driver-op=
+erations
++++ a/drivers/dax/bus.c
+@@ -135,10 +135,28 @@ static bool is_static(struct dax_region
+ 	return (dax_region->res.flags & IORESOURCE_DAX_STATIC) !=3D 0;
+ }
+=20
++static int dax_bus_probe(struct device *dev)
++{
++	struct dax_device_driver *dax_drv =3D to_dax_drv(dev->driver);
++	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++
++	return dax_drv->probe(dev_dax);
++}
++
++static int dax_bus_remove(struct device *dev)
++{
++	struct dax_device_driver *dax_drv =3D to_dax_drv(dev->driver);
++	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++
++	return dax_drv->remove(dev_dax);
++}
++
+ static struct bus_type dax_bus_type =3D {
+ 	.name =3D "dax",
+ 	.uevent =3D dax_bus_uevent,
+ 	.match =3D dax_bus_match,
++	.probe =3D dax_bus_probe,
++	.remove =3D dax_bus_remove,
+ 	.drv_groups =3D dax_drv_groups,
+ };
+=20
+--- a/drivers/dax/bus.h~device-dax-introduce-struct-dev_dax-typed-driver-op=
+erations
++++ a/drivers/dax/bus.h
+@@ -38,6 +38,8 @@ struct dax_device_driver {
+ 	struct device_driver drv;
+ 	struct list_head ids;
+ 	int match_always;
++	int (*probe)(struct dev_dax *dev);
++	int (*remove)(struct dev_dax *dev);
+ };
+=20
+ int __dax_driver_register(struct dax_device_driver *dax_drv,
+@@ -48,7 +50,7 @@ void dax_driver_unregister(struct dax_de
+ void kill_dev_dax(struct dev_dax *dev_dax);
+=20
+ #if IS_ENABLED(CONFIG_DEV_DAX_PMEM_COMPAT)
+-int dev_dax_probe(struct device *dev);
++int dev_dax_probe(struct dev_dax *dev_dax);
+ #endif
+=20
+ /*
+--- a/drivers/dax/device.c~device-dax-introduce-struct-dev_dax-typed-driver=
+-operations
++++ a/drivers/dax/device.c
+@@ -392,11 +392,11 @@ static void dev_dax_kill(void *dev_dax)
+ 	kill_dev_dax(dev_dax);
+ }
+=20
+-int dev_dax_probe(struct device *dev)
++int dev_dax_probe(struct dev_dax *dev_dax)
+ {
+-	struct dev_dax *dev_dax =3D to_dev_dax(dev);
+ 	struct dax_device *dax_dev =3D dev_dax->dax_dev;
+ 	struct range *range =3D &dev_dax->range;
++	struct device *dev =3D &dev_dax->dev;
+ 	struct dev_pagemap *pgmap;
+ 	struct inode *inode;
+ 	struct cdev *cdev;
+@@ -446,17 +446,15 @@ int dev_dax_probe(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(dev_dax_probe);
+=20
+-static int dev_dax_remove(struct device *dev)
++static int dev_dax_remove(struct dev_dax *dev_dax)
+ {
+ 	/* all probe actions are unwound by devm */
  	return 0;
  }
- early_param("numa", numa_setup);
---- a/Documentation/x86/x86_64/boot-options.rst~x86-numa-add-nohmat-option
-+++ a/Documentation/x86/x86_64/boot-options.rst
-@@ -173,6 +173,10 @@ NUMA
-   numa=3Dnoacpi
-     Don't parse the SRAT table for NUMA setup
 =20
-+  numa=3Dnohmat
-+    Don't parse the HMAT table for NUMA setup, or soft-reserved memory
-+    partitioning.
-+
-   numa=3Dfake=3D<size>[MG]
-     If given as a memory unit, fills all system RAM with nodes of
-     size interleaved over physical nodes.
---- a/drivers/acpi/numa/hmat.c~x86-numa-add-nohmat-option
-+++ a/drivers/acpi/numa/hmat.c
-@@ -26,6 +26,12 @@
- #include <linux/sysfs.h>
+ static struct dax_device_driver device_dax_driver =3D {
+-	.drv =3D {
+-		.probe =3D dev_dax_probe,
+-		.remove =3D dev_dax_remove,
+-	},
++	.probe =3D dev_dax_probe,
++	.remove =3D dev_dax_remove,
+ 	.match_always =3D 1,
+ };
 =20
- static u8 hmat_revision;
-+static int hmat_disable __initdata;
-+
-+void __init disable_hmat(void)
-+{
-+	hmat_disable =3D 1;
-+}
-=20
- static LIST_HEAD(targets);
- static LIST_HEAD(initiators);
-@@ -814,7 +820,7 @@ static __init int hmat_init(void)
- 	enum acpi_hmat_type i;
- 	acpi_status status;
-=20
--	if (srat_disabled())
-+	if (srat_disabled() || hmat_disable)
- 		return 0;
-=20
- 	status =3D acpi_get_table(ACPI_SIG_SRAT, 0, &tbl);
---- a/include/acpi/acpi_numa.h~x86-numa-add-nohmat-option
-+++ a/include/acpi/acpi_numa.h
-@@ -27,4 +27,12 @@ static inline void disable_srat(void)
- {
+--- a/drivers/dax/kmem.c~device-dax-introduce-struct-dev_dax-typed-driver-o=
+perations
++++ a/drivers/dax/kmem.c
+@@ -29,10 +29,10 @@ static struct range dax_kmem_range(struc
+ 	return range;
  }
- #endif				/* CONFIG_ACPI_NUMA */
-+
-+#ifdef CONFIG_ACPI_HMAT
-+extern void disable_hmat(void);
-+#else				/* CONFIG_ACPI_HMAT */
-+static inline void disable_hmat(void)
-+{
-+}
-+#endif				/* CONFIG_ACPI_HMAT */
- #endif				/* __ACP_NUMA_H */
---- a/include/linux/acpi.h~x86-numa-add-nohmat-option
-+++ a/include/linux/acpi.h
-@@ -709,6 +709,8 @@ static inline u64 acpi_arch_get_root_poi
- #define ACPI_HANDLE_FWNODE(fwnode)	(NULL)
- #define ACPI_DEVICE_CLASS(_cls, _msk)	.cls =3D (0), .cls_msk =3D (0),
 =20
-+#include <acpi/acpi_numa.h>
-+
- struct fwnode_handle;
+-int dev_dax_kmem_probe(struct device *dev)
++static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+-	struct dev_dax *dev_dax =3D to_dev_dax(dev);
+ 	struct range range =3D dax_kmem_range(dev_dax);
++	struct device *dev =3D &dev_dax->dev;
+ 	struct resource *res;
+ 	char *res_name;
+ 	int numa_node;
+@@ -88,12 +88,12 @@ int dev_dax_kmem_probe(struct device *de
+ }
 =20
- static inline bool acpi_dev_found(const char *hid)
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-static int dev_dax_kmem_remove(struct device *dev)
++static int dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ {
+-	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++	int rc;
++	struct device *dev =3D &dev_dax->dev;
+ 	struct range range =3D dax_kmem_range(dev_dax);
+ 	const char *res_name =3D dev_get_drvdata(dev);
+-	int rc;
+=20
+ 	/*
+ 	 * We have one shot for removing memory, if some memory blocks were not
+@@ -116,7 +116,7 @@ static int dev_dax_kmem_remove(struct de
+ 	return 0;
+ }
+ #else
+-static int dev_dax_kmem_remove(struct device *dev)
++static int dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ {
+ 	/*
+ 	 * Without hotremove purposely leak the request_mem_region() for the
+@@ -131,10 +131,8 @@ static int dev_dax_kmem_remove(struct de
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+=20
+ static struct dax_device_driver device_dax_kmem_driver =3D {
+-	.drv =3D {
+-		.probe =3D dev_dax_kmem_probe,
+-		.remove =3D dev_dax_kmem_remove,
+-	},
++	.probe =3D dev_dax_kmem_probe,
++	.remove =3D dev_dax_kmem_remove,
+ };
+=20
+ static int __init dax_kmem_init(void)
+--- a/drivers/dax/pmem/compat.c~device-dax-introduce-struct-dev_dax-typed-d=
+river-operations
++++ a/drivers/dax/pmem/compat.c
+@@ -22,7 +22,7 @@ static int dax_pmem_compat_probe(struct
+ 		return -ENOMEM;
+=20
+ 	device_lock(&dev_dax->dev);
+-	rc =3D dev_dax_probe(&dev_dax->dev);
++	rc =3D dev_dax_probe(dev_dax);
+ 	device_unlock(&dev_dax->dev);
+=20
+ 	devres_close_group(&dev_dax->dev, dev_dax);
 _
