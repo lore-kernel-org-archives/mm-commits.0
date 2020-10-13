@@ -2,53 +2,51 @@ Return-Path: <SRS0=1pWp=DU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A11C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84EBAC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D3D621D7F
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5329921D7B
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602632884;
-	bh=1IE0rXmrIv5WEpxIUQFbF+jl/alNJTZrKr0kJ0mM3ao=;
+	s=default; t=1602632887;
+	bh=UHDO2kbLumbCRFdsNcCHbIRs0caO3uvCsH9z0iS+Q9k=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=l5afaX830D7kZu4qWu4ydQw0ZmLKJA8aeLAgTJbkhnUCF/FpPBDBbQK5btEj+/WAl
-	 RTKjo1luVKcdeDKiHEr1dWcwu5cS1VJvtaIi3W0Ak6qokRzMhnO7zw9XRgu5JwD7hG
-	 Z7zGn/KaJTskyvIMaW28uvi774sCFKpbSNRJrjCo=
+	b=aFc3XipDC3F71ycTSk9C+z5cHyZziiuTANRK4Hq9QznD4EfsWJ+9HvCRiPT7+f5CT
+	 Ivf/dB+oBByPQ8rz+ZbsVOI+GmHqRdhLVNAy1FTAHf9590RA2niQhePCobh1KqsbGz
+	 5/D5tmjU0CQDLjjSSVta04lgYfiskfPyIiguSfAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389127AbgJMXsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:48:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59258 "EHLO mail.kernel.org"
+        id S2389131AbgJMXsH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:48:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59344 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389017AbgJMXsD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:48:03 -0400
+        id S2389017AbgJMXsG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:48:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5DC3C21D7A;
-        Tue, 13 Oct 2020 23:48:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AFAF021582;
+        Tue, 13 Oct 2020 23:48:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632882;
-        bh=1IE0rXmrIv5WEpxIUQFbF+jl/alNJTZrKr0kJ0mM3ao=;
+        s=default; t=1602632886;
+        bh=UHDO2kbLumbCRFdsNcCHbIRs0caO3uvCsH9z0iS+Q9k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=JFA016Z7tWF4TmfyvM8J/O17jgETStu9tYsT9jjGrXOLlS2dTcRoFV0SfAmJCON88
-         KDBAQnw7FXtZsminykfsM2OgPZuSdnvfRoE00o+EJAPChDJBIET6YHvJFiIvbJkvOP
-         f92uN25V4oNdQ1TpiuOmowUyVHR1Olnxiv7JCawk=
-Date:   Tue, 13 Oct 2020 16:48:01 -0700
+        b=U/RtUieH1vVXrPZRH6D5tqHI2hOz1FaZcKKRMBsmq7r2CrsjqieGIr3wqXP7Ra+Yk
+         UoDOvnr2pprwFfYrDbcyDkMCE2iyPpqCgjk+DJlYVRMk9C8zfdF31e11esQk1NRzq2
+         ZOfFxagtL2jrr/npy46Qq+Ci8Zk7nFVunvq9u00Q=
+Date:   Tue, 13 Oct 2020 16:48:05 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-        jeyu@kernel.org, keescook@chromium.org, linux-mm@kvack.org,
-        lkp@intel.com, maennich@google.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ndesaulniers@google.com,
-        torvalds@linux-foundation.org, will@kernel.org,
-        yamada.masahiro@socionext.com
-Subject:  [patch 009/181] export.h: fix section name for
- CONFIG_TRIM_UNUSED_KSYMS for Clang
-Message-ID: <20201013234801.zMU594pMt%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net, keescook@chromium.org,
+        linux-mm@kvack.org, lukas.bulwahn@gmail.com, masahiroy@kernel.org,
+        michal.lkml@markovi.net, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, ujjwalkumar0501@gmail.com
+Subject:  [patch 010/181] kbuild: doc: describe proper script
+ invocation
+Message-ID: <20201013234805.CImnJB6vD%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,50 +54,75 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: export.h: fix section name for CONFIG_TRIM_UNUSED_KSYMS for Clang
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: kbuild: doc: describe proper script invocation
 
-When enabling CONFIG_TRIM_UNUSED_KSYMS, the linker will warn about the
-orphan sections:
+During an investigation to fix up the execute bits of scripts in the
+kernel repository, Andrew Morton and Kees Cook pointed out that the
+execute bit should not matter, and that build scripts cannot rely on that.
+Kees could not point to any documentation, though.
 
-(".discard.ksym") is being placed in '".discard.ksym"'
+Masahiro Yamada explained the convention of setting execute bits to make
+it easier for manual script invocation.
 
-repeatedly when linking vmlinux.  This is because the stringification
-operator, `#`, in the preprocessor escapes strings.  GCC and Clang differ
-in how they treat section names that contain \".
+Provide some basic documentation how the build shall invoke scripts, such
+that the execute bits do not matter, and acknowledge that execute bits are
+useful nonetheless.
 
-The portable solution is to not use a string literal with the preprocessor
-stringification operator.
+This serves as reference for further clean-up patches in the future.
 
-Link: https://bugs.llvm.org/show_bug.cgi?id=42950
-Link: https://github.com/ClangBuiltLinux/linux/issues/1166
-Link: https://lkml.kernel.org/r/20200929190701.398762-1-ndesaulniers@google.com
-Fixes: commit bbda5ec671d3 ("kbuild: simplify dependency generation for CONFIG_TRIM_UNUSED_KSYMS")
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Reported-by: kbuild test robot <lkp@intel.com>
+Link: https://lore.kernel.org/lkml/20200830174409.c24c3f67addcce0cea9a9d4c@linux-foundation.org/
+Link: https://lore.kernel.org/lkml/202008271102.FEB906C88@keescook/
+Link: https://lore.kernel.org/linux-kbuild/CAK7LNAQdrvMkDA6ApDJCGr+5db8SiPo=G+p8EiOvnnGvEN80gA@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20201001075723.24246-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Maennich <maennich@google.com>
-Cc: Jessica Yu <jeyu@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Will Deacon <will@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ujjwal Kumar <ujjwalkumar0501@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/export.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kbuild/makefiles.rst |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/include/linux/export.h~exporth-fix-section-name-for-config_trim_unused_ksyms-for-clang
-+++ a/include/linux/export.h
-@@ -130,7 +130,7 @@ struct kernel_symbol {
-  * discarded in the final link stage.
-  */
- #define __ksym_marker(sym)	\
--	static int __ksym_marker_##sym[0] __section(".discard.ksym") __used
-+	static int __ksym_marker_##sym[0] __section(.discard.ksym) __used
+--- a/Documentation/kbuild/makefiles.rst~kbuild-doc-describe-proper-script-invocation
++++ a/Documentation/kbuild/makefiles.rst
+@@ -21,6 +21,7 @@ This document describes the Linux kernel
+ 	   --- 3.10 Special Rules
+ 	   --- 3.11 $(CC) support functions
+ 	   --- 3.12 $(LD) support functions
++	   --- 3.13 Script Invocation
  
- #define __EXPORT_SYMBOL(sym, sec, ns)					\
- 	__ksym_marker(sym);						\
+ 	=== 4 Host Program support
+ 	   --- 4.1 Simple Host Program
+@@ -605,6 +606,25 @@ more details, with real examples.
+ 		#Makefile
+ 		LDFLAGS_vmlinux += $(call ld-option, -X)
+ 
++3.13 Script invocation
++----------------------
++
++	Make rules may invoke scripts to build the kernel. The rules shall
++	always provide the appropriate interpreter to execute the script. They
++	shall not rely on the execute bits being set, and shall not invoke the
++	script directly. For the convenience of manual script invocation, such
++	as invoking ./scripts/checkpatch.pl, it is recommended to set execute
++	bits on the scripts nonetheless.
++
++	Kbuild provides variables $(CONFIG_SHELL), $(AWK), $(PERL),
++	$(PYTHON) and $(PYTHON3) to refer to interpreters for the respective
++	scripts.
++
++	Example::
++
++		#Makefile
++		cmd_depmod = $(CONFIG_SHELL) $(srctree)/scripts/depmod.sh $(DEPMOD) \
++			     $(KERNELRELEASE)
+ 
+ 4 Host Program support
+ ======================
 _
