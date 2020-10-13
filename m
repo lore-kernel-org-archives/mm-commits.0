@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 837B1C43457
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:56:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2AE3C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:56:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50D742222F
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:56:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9836122246
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:56:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633401;
-	bh=vraTFkAyU3iWIqq4aMcctztFK+Kn+g4VWSaDarwk7+E=;
+	s=default; t=1602633404;
+	bh=IQBHhf5O04KdYmw5O2WZ1u3ii7LiMNEOHNNM1CIxANM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=SOPvtLw8cPSyNuUjO+8yndsOIm6B6Xrcy2b3kxFkksv/7npuGNczxV0fnKdhPNDSo
-	 4D4LtWBp07qRgwqqpEWz04gkujiVag+c6bEsTvZqPberoZv+Lo1EGaaWpJ6kVwZtfP
-	 kYIKrmwGV6COT3kgWfTcKNngSpXGApeLrr5ndeoI=
+	b=dXVICtIBihwCaBPAYT6tTXwp5EqqQ280qVmwd8qpUYW+LIg/46E443POkHwqJqHPK
+	 dGZ32ptlZZ/jaOnylBLIcxwjkLPAp9NwhUKZbImhYHJvOxNUM3R1LeQGpvjohYOW+L
+	 AxWbX3dZO56thwfWJWLAKDnBh5XgCG258njv60Lw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729750AbgJMX4l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:56:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42404 "EHLO mail.kernel.org"
+        id S1729763AbgJMX4o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:56:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728175AbgJMX4k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:56:40 -0400
+        id S1728175AbgJMX4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:56:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1612D2222E;
-        Tue, 13 Oct 2020 23:56:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 342C22222F;
+        Tue, 13 Oct 2020 23:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633400;
-        bh=vraTFkAyU3iWIqq4aMcctztFK+Kn+g4VWSaDarwk7+E=;
+        s=default; t=1602633403;
+        bh=IQBHhf5O04KdYmw5O2WZ1u3ii7LiMNEOHNNM1CIxANM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yUJcoNVZZJUQGF2dOzPzmD/0HfIW74rmn9PbxFOUiNg7rJx5E3uWjgZ4qha8oGa2Z
-         TqVKjyHxNXbN2MoFeDpt333fxT5G480+U/bN2Go00SzjNXrB/6rjsvtgr0vDUcQgbR
-         9no3D0A3JrkwyKhJygoVec+6idiXs6vPofNSCmB8=
-Date:   Tue, 13 Oct 2020 16:56:39 -0700
+        b=o17eUyT56QU9CuSz5HRaO4eaS1xkb9/CH8MZz78q8IR75Zsf61u3Fh9mQ0+wqJysL
+         4m6O6EsW6H8i0trITAoncmWBgFmy9C/PAlDHwEBvZfaIphm/B7wB6E8TCJ0DqWFb24
+         VFbhOryH5AgEAZz0gewTKApTshUBHFtGsFzVosts=
+Date:   Tue, 13 Oct 2020 16:56:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com, linux-mm@kvack.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        richard.weiyang@linux.alibaba.com, torvalds@linux-foundation.org,
-        vbabka@suse.cz
-Subject:  [patch 150/181] mm/hugetlb: take the free hpage during
- the iteration directly
-Message-ID: <20201013235639.j6ScZKibf%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dave@stgolabs.net,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mhocko@kernel.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 151/181] hugetlb: add lockdep check for
+ i_mmap_rwsem held in huge_pmd_share
+Message-ID: <20201013235642.4GMrUe73-%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,60 +55,60 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/hugetlb: take the free hpage during the iteration directly
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
 
-Function dequeue_huge_page_node_exact() iterates the free list and return
-the first valid free hpage.
+As a debugging aid, huge_pmd_share should make sure i_mmap_rwsem is held
+if necessary.  To clarify the 'if necessary', expand the comment block at
+the beginning of huge_pmd_share.
 
-Instead of break and check the loop variant, we could return in the loop
-directly.  This could reduce some redundant check.
+No functional change.  The added i_mmap_assert_locked() call is only
+enabled if CONFIG_LOCKDEP.
 
-[mike.kravetz@oracle.com: points out a logic error]
-[richard.weiyang@linux.alibaba.com: v4]
-  Link: https://lkml.kernel.org/r/20200901014636.29737-8-richard.weiyang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/20200831022351.20916-8-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Ideally, this should have been included with commit 34ae204f1851
+("hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem").
+
+Link: https://lkml.kernel.org/r/20200911201248.88537-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ mm/hugetlb.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-take-the-free-hpage-during-the-iteration-directly
+--- a/mm/hugetlb.c~hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share
 +++ a/mm/hugetlb.c
-@@ -1040,21 +1040,17 @@ static struct page *dequeue_huge_page_no
- 		if (nocma && is_migrate_cma_page(page))
+@@ -5337,10 +5337,16 @@ void adjust_range_if_pmd_sharing_possibl
+  * !shared pmd case because we can allocate the pmd later as well, it makes the
+  * code much cleaner.
+  *
+- * This routine must be called with i_mmap_rwsem held in at least read mode.
+- * For hugetlbfs, this prevents removal of any page table entries associated
+- * with the address space.  This is important as we are setting up sharing
+- * based on existing page table entries (mappings).
++ * This routine must be called with i_mmap_rwsem held in at least read mode if
++ * sharing is possible.  For hugetlbfs, this prevents removal of any page
++ * table entries associated with the address space.  This is important as we
++ * are setting up sharing based on existing page table entries (mappings).
++ *
++ * NOTE: This routine is only called from huge_pte_alloc.  Some callers of
++ * huge_pte_alloc know that sharing is not possible and do not take
++ * i_mmap_rwsem as a performance optimization.  This is handled by the
++ * if !vma_shareable check at the beginning of the routine. i_mmap_rwsem is
++ * only required for subsequent processing.
+  */
+ pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
+ {
+@@ -5357,6 +5363,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	if (!vma_shareable(vma, addr))
+ 		return (pte_t *)pmd_alloc(mm, pud, addr);
+ 
++	i_mmap_assert_locked(mapping);
+ 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
+ 		if (svma == vma)
  			continue;
- 
--		if (!PageHWPoison(page))
--			break;
-+		if (PageHWPoison(page))
-+			continue;
-+
-+		list_move(&page->lru, &h->hugepage_activelist);
-+		set_page_refcounted(page);
-+		h->free_huge_pages--;
-+		h->free_huge_pages_node[nid]--;
-+		return page;
- 	}
- 
--	/*
--	 * if 'non-isolated free hugepage' not found on the list,
--	 * the allocation fails.
--	 */
--	if (&h->hugepage_freelists[nid] == &page->lru)
--		return NULL;
--	list_move(&page->lru, &h->hugepage_activelist);
--	set_page_refcounted(page);
--	h->free_huge_pages--;
--	h->free_huge_pages_node[nid]--;
--	return page;
-+	return NULL;
- }
- 
- static struct page *dequeue_huge_page_nodemask(struct hstate *h, gfp_t gfp_mask, int nid,
 _
