@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94410C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5E9C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5974522227
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:12:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90BAF20B1F
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:12:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630733;
-	bh=YLSn7K2EnG90cB7RI1R5YS8hx4tAdGw2mb2TyrIRV2U=;
+	s=default; t=1602630768;
+	bh=9VKXXHsFxhR/iaOs2zcT1a8tIue96X+CfQeB0gK/cDw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=W0GkRC1MAtvJ6WpHGzCKvftRsjyQo16arWl4tycTBFZto5p38T/+MIsIsX5SwuOVU
-	 yVh48biPp39PQ+kENz0688+706MiTy8HvvQ198sDg9okApq+j/K9KXbacLERy9A8GD
-	 GVjZ0qLlvNNOjmIaw4prooCdA5yTVZhf4K4PKPS8=
+	b=dxjfW10NGXmhZAtwK4EpKUftteELLvpIKrNY7mXEF+2vhmMshpTzKb5r0vJmYRpoj
+	 el1EJ9sp6+CvWTKJiE97W/m5+EUc4FMST5mKHg9B6ZNj8JAN4R0GDi+clXeL1W3+ys
+	 QS93ZVP8WX4y9/g7qnjNZm+SLnqyyg0GzLO+PFxU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387573AbgJMXMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:12:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46740 "EHLO mail.kernel.org"
+        id S1726894AbgJMXMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:12:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387570AbgJMXMK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:12:10 -0400
+        id S1726773AbgJMXMs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:12:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9F51221D40;
-        Tue, 13 Oct 2020 23:12:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7A7DF20B1F;
+        Tue, 13 Oct 2020 23:12:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630729;
-        bh=YLSn7K2EnG90cB7RI1R5YS8hx4tAdGw2mb2TyrIRV2U=;
+        s=default; t=1602630767;
+        bh=9VKXXHsFxhR/iaOs2zcT1a8tIue96X+CfQeB0gK/cDw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=VlGkZrID3iVjnMQxZL6AeWDrnOnVHMI+AhFc1cAOuzWExAO4zNi8HRSqu4IPEiU9Y
-         CCRk4/S5aIjQs0QO8QODJfCxq50bNbnT6DBAeYrwx27geUy2Le3h6VUH3eWYRLrmpb
-         OivAUnOpkDvHg0och81QGAZP0zstDgqmznbLr/4k=
-Date:   Tue, 13 Oct 2020 16:12:09 -0700
+        b=m91kkFQbPn5ELVXl4f6hExWAi18ruv80O2DbjomA9OBZ+rXH3KKomAkZiWw0orJ0t
+         Naa5HMpO3MDkkRnUwRHTz4xg51jKUpjwgPtDyxXzmbg5XKtJ2PK1FfCf6gwX3ml7sC
+         tmo96Phxv20Kkqzt38gGwHQyX1WC9sEHvBaFimjU=
+Date:   Tue, 13 Oct 2020 16:12:47 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     andreyknvl@google.com, brendanhiggins@google.com,
-        davidgow@google.com, dvyukov@google.com,
-        mm-commits@vger.kernel.org, trishalfonso@google.com
-Subject:  [folded-merged] kasan-port-kasan-tests-to-kunit-v14.patch
+To:     akpm@linux-foundation.org, mateusznosek0@gmail.com,
+        mm-commits@vger.kernel.org
+Subject:  [folded-merged]
+ mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
  removed from -mm tree
-Message-ID: <20201013231209.w2FzqNNm_%akpm@linux-foundation.org>
+Message-ID: <20201013231247.yAhtZ98H_%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,48 +55,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-port-kasan-tests-to-kunit-v14
+     Subject: mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-port-kasan-tests-to-kunit-v14.patch
+     mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix.patch
 
-This patch was dropped because it was folded into kasan-port-kasan-tests-to-kunit.patch
+This patch was dropped because it was folded into mm-page_allocc-clean-code-by-removing-unnecessary-initialization.patch
 
 ------------------------------------------------------
-From: Patricia Alfonso <trishalfonso@google.com>
-Subject: kasan-port-kasan-tests-to-kunit-v14
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix
 
-Fix some compile warnings in test_kasan_module
-(https://www.spinics.net/lists/kernel/msg3660451.html)
+remove `tmp' altogether
 
-Link: https://lkml.kernel.org/r/20200915035828.570483-4-davidgow@google.com
-Signed-off-by: Patricia Alfonso <trishalfonso@google.com>
-Signed-off-by: David Gow <davidgow@google.com>
-Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Tested-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Mateusz Nosek <mateusznosek0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/lib/Makefile~kasan-port-kasan-tests-to-kunit-v14
-+++ a/lib/Makefile
-@@ -69,6 +69,7 @@ obj-$(CONFIG_KASAN_KUNIT_TEST) += test_k
- CFLAGS_test_kasan.o += -fno-builtin
- CFLAGS_test_kasan.o += $(call cc-disable-warning, vla)
- obj-$(CONFIG_TEST_KASAN_MODULE) += test_kasan_module.o
-+CFLAGS_test_kasan_module.o += -fno-builtin
- obj-$(CONFIG_TEST_UBSAN) += test_ubsan.o
- CFLAGS_test_ubsan.o += $(call cc-disable-warning, vla)
- UBSAN_SANITIZE_test_ubsan.o := y
+--- a/mm/page_alloc.c~mm-page_allocc-clean-code-by-removing-unnecessary-initialization-fix
++++ a/mm/page_alloc.c
+@@ -5651,7 +5651,6 @@ static int find_next_best_node(int node,
+ 	int n, val;
+ 	int min_val = INT_MAX;
+ 	int best_node = NUMA_NO_NODE;
+-	const struct cpumask *tmp;
+ 
+ 	/* Use the local node if we haven't already */
+ 	if (!node_isset(node, *used_node_mask)) {
+@@ -5672,8 +5671,7 @@ static int find_next_best_node(int node,
+ 		val += (n < node);
+ 
+ 		/* Give preference to headless and unused nodes */
+-		tmp = cpumask_of_node(n);
+-		if (!cpumask_empty(tmp))
++		if (!cpumask_empty(cpumask_of_node(n)))
+ 			val += PENALTY_FOR_NODE_WITH_CPUS;
+ 
+ 		/* Slight preference for less loaded node */
 _
 
-Patches currently in -mm which might be from trishalfonso@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-kunit-struct-to-current-task.patch
-kunit-kasan-integration.patch
-kasan-port-kasan-tests-to-kunit.patch
-kasan-testing-documentation.patch
+mm-page_allocc-clean-code-by-removing-unnecessary-initialization.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+mm.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
