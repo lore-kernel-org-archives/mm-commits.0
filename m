@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA22C43467
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:52:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55A9DC433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B2F3822203
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:52:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E23B221FF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633146;
-	bh=DDV/xN4wMxUVkbu+J5+fQ+RZjdfuRpBhQgYPuDbvoEE=;
+	s=default; t=1602633200;
+	bh=lCkb3PvR2jjW6DW/odhG09xb7s3/aFYH4Vj5nZNaPFY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=AaV+I13k2NatCrpKSEtSqBrovIfhQQb2s0PGYAfwxHLpSXZwy29pXVRt/ODCcZi7B
-	 ToAT3GzqDzNigPNxgWaWTzuxeORM211gpePpF4YLHnyYxE24AxkdK4P0vPP3t09H+D
-	 8k/9zw+JMst6Ro32Gup1WAuEdH3zCNez+5UuRUHw=
+	b=GJpFK5l9SWelZgLriyL6jCZEWYTok9rw1VUFQeurHYHZ9uY7I6qGF3P/ON0kN4m/7
+	 TeiaVyOK3tH5YS5vJ0uw++ZokAWewzqExQOZFCiORP1YucxYzHB19nAnPJwFP7eS5t
+	 bDrfzF1ozE5aSqX1ksTJKSfXE8x66B3zqP64fbFU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728392AbgJMXw0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:52:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36336 "EHLO mail.kernel.org"
+        id S1730099AbgJMXxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:53:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728355AbgJMXva (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:51:30 -0400
+        id S1730095AbgJMXxR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:53:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 92F4C2222C;
-        Tue, 13 Oct 2020 23:51:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DF44206D5;
+        Tue, 13 Oct 2020 23:53:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633089;
-        bh=DDV/xN4wMxUVkbu+J5+fQ+RZjdfuRpBhQgYPuDbvoEE=;
+        s=default; t=1602633197;
+        bh=lCkb3PvR2jjW6DW/odhG09xb7s3/aFYH4Vj5nZNaPFY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=RmFN8WadGS6W8PAR96Niv9bF/1kDbjclJpkQzAYXiBphhcplMO4egwpCWj/y+MwM/
-         bIJ550OEohWgRXELcy7Rp5imVG/EgxgYmo1eVUYi20BF1hCEGXbdHuXvdOuexFVcvG
-         XCXdA2kUEijkAB3D60b9WmlVe3wQHXESYqPsJyaI=
-Date:   Tue, 13 Oct 2020 16:51:28 -0700
+        b=UeaXDDsHOTx+eygtx2HyyEj4PZuxsJEGPwRMdYSuLZ1GfGAVBI01EEVjIivN669rY
+         EfFV1TTQEHciS6RBDR308KN2S7nrYiDIk2cPGoTJ06TSSCveU9t3Sx4LOqCRUsv8Qi
+         y2OVPyXezjqFs8hGutStcV/vygMOq308XqyrPt7o=
+Date:   Tue, 13 Oct 2020 16:53:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        chris@chris-wilson.co.uk, hannes@cmpxchg.org, hughd@google.com,
-        jani.nikula@linux.intel.com, linux-mm@kvack.org,
-        matthew.auld@intel.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, william.kucharski@oracle.com,
-        willy@infradead.org, ying.huang@intel.com
-Subject:  [patch 057/181] proc: optimise smaps for shmem entries
-Message-ID: <20201013235128._17ynTigl%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jgg@ziepe.ca, jhubbard@nvidia.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, shuah@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 090/181] selftests/vm: fix false build success on
+ the second and later attempts
+Message-ID: <20201013235316.DFq97JmOZ%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,46 +53,80 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: optimise smaps for shmem entries
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: fix false build success on the second and later attempts
 
-Avoid bumping the refcount on pages when we're only interested in the
-swap entries.
+Patch series "selftests/vm: fix some minor aggravating factors in the Makefile".
 
-Link: https://lkml.kernel.org/r/20200910183318.20139-5-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Matthew Auld <matthew.auld@intel.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
+This fixes a couple of minor aggravating factors that I ran across while
+trying to do some changes in selftests/vm.  These are simple things, but
+like most things with GNU Make, it's rarely obvious what's wrong until you
+understand *the entire Makefile and all of its includes*.
+
+So while there is, of course, joy in learning those details, I thought I'd
+fix these little things, so as to allow others to skip out on the Joy if
+they so choose.  :)
+
+First of all, if you have an item (let's choose userfaultfd for an
+example) that fails to build, you might do this:
+
+$ make -j32
+
+    # ...you observe a failed item in the threaded output
+
+# OK, let's get a closer look
+
+$ make
+    # ...but now the build quietly "succeeds".
+
+That's what Patch 0001 fixes.
+
+Second, if you instead attempt this approach for your closer look (a casual
+mistake, as it's not supported):
+
+$ make userfaultfd
+
+    # ...userfaultfd fails to link, due to incomplete LDLIBS
+
+That's what Patch 0002 fixes.
+
+
+This patch (of 2):
+
+If one or more of these selftest fail to build, then after the first
+failure, subsequent invocations of "make" will make it appear that there
+are no build failures, after all.
+
+That's because the failed build products remain, with up-to-date
+timestamps, thus tricking Make (and you!) into believing that there's
+nothing else to build.
+
+Fix this by telling Make to delete targets that didn't completely
+succeed.
+
+Link: https://lkml.kernel.org/r/20200915012901.1655280-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20200915012901.1655280-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ tools/testing/selftests/vm/Makefile |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/fs/proc/task_mmu.c~proc-optimise-smaps-for-shmem-entries
-+++ a/fs/proc/task_mmu.c
-@@ -520,16 +520,10 @@ static void smaps_pte_entry(pte_t *pte,
- 			page = device_private_entry_to_page(swpent);
- 	} else if (unlikely(IS_ENABLED(CONFIG_SHMEM) && mss->check_shmem_swap
- 							&& pte_none(*pte))) {
--		page = find_get_entry(vma->vm_file->f_mapping,
-+		page = xa_load(&vma->vm_file->f_mapping->i_pages,
- 						linear_page_index(vma, addr));
--		if (!page)
--			return;
--
- 		if (xa_is_value(page))
- 			mss->swap += PAGE_SIZE;
--		else
--			put_page(page);
--
- 		return;
- 	}
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-false-build-success-on-the-second-and-later-attempts
++++ a/tools/testing/selftests/vm/Makefile
+@@ -3,6 +3,11 @@
+ uname_M := $(shell uname -m 2>/dev/null || echo not)
+ MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
  
++# Without this, failed build products remain, with up-to-date timestamps,
++# thus tricking Make (and you!) into believing that All Is Well, in subsequent
++# make invocations:
++.DELETE_ON_ERROR:
++
+ CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
+ LDLIBS = -lrt
+ TEST_GEN_FILES = compaction_test
 _
