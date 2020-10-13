@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20980C4363A
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79019C2D0A3
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC0AD22202
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DBAF221FF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633080;
-	bh=sokyfmEtwUI9+oH3PBobfQZhK0pyF3bNg5sSRsusGTU=;
+	s=default; t=1602633083;
+	bh=u+1/IvB4AwsM+v4NsvPVD4QEn066FRh6J02v5RY7BXU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=2m758MGkFIgWIKs+ZU0gLu/8IRTXK+nT5JI14KKdOyn4l91VLQnFoRsJgHR8w3gjP
-	 djWk2Te90lXxctvJqTqw9vubdzp0szAYs6iZ78BoE/J7UXbLsjplcBS06p6c+l728F
-	 kmCsUUohFf1h0whGkT4SPQLNI2zgItZk+BVBK9m8=
+	b=oJTfZy8wJ0VJWmrkFdXwSCs9Ng9rmfaHgqhuKHENtDelubQor3OMSvmo5yMCDlna4
+	 Z8NKJaJYlf0OhNmLxS2Hor/dPlrFTIVCrQ3Vv8I2V13lCn/HAT16c+k1FlwLQxN/oj
+	 M9kz/rC36f58NOkeYH7RVzbaiplLmAYd1MtmVWCA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730402AbgJMXvU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:51:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35846 "EHLO mail.kernel.org"
+        id S1730400AbgJMXvW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:51:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730400AbgJMXvK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:51:10 -0400
+        id S1728334AbgJMXux (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:50:53 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A86F621D81;
-        Tue, 13 Oct 2020 23:51:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A17E6221FF;
+        Tue, 13 Oct 2020 23:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633068;
-        bh=sokyfmEtwUI9+oH3PBobfQZhK0pyF3bNg5sSRsusGTU=;
+        s=default; t=1602633052;
+        bh=u+1/IvB4AwsM+v4NsvPVD4QEn066FRh6J02v5RY7BXU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Hpvg8JHO2Omls4zu3pFjKN303dM35vk1eDC+jknYwkZVuwNsn0d4jdjgRz9qzMwXP
-         wOrxBfOYBFSrkTD8AaJdYa1vU2Hd1klyD94RhXZYZcN9oeSGtykw8IhthcSpllU7qf
-         VxioBQz9X6sAVMVFd1KEZGpom/IZiKKPHvBizc8A=
-Date:   Tue, 13 Oct 2020 16:51:06 -0700
+        b=k45HO160fgRY4x1REOc3LyNsgWxOst4kmvIsC1U1ICXQPSK65sts4PXxoR0HhyPV/
+         MknmAxLkp5+4SpftRFjGB+zVj2c7KqbfweAWSEa5MZnWUYvqLMWQHShIYNJ1jMqyJk
+         kuCeTPfcJ2e7XNew1114FP5TBjXWuej15V9hVwrw=
+Date:   Tue, 13 Oct 2020 16:50:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -60,9 +60,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 051/181] device-dax: add a range mapping
- allocation attribute
-Message-ID: <20201013235106._mRXUNr8h%akpm@linux-foundation.org>
+Subject:  [patch 048/181] device-dax: make align a per-device
+ property
+Message-ID: <20201013235050.ER4JhLlvE%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -74,31 +74,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: add a range mapping allocation attribute
+Subject: device-dax: make align a per-device property
 
-Add a sysfs attribute which denotes a range from the dax region to be
-allocated.  It's an write only @mapping sysfs attribute in the format of
-'<start>-<end>' to allocate a range.  @start and @end use hexadecimal
-values and the @pgoff is implicitly ordered wrt to previous writes to
-@mapping sysfs e.g.  a write of a range of length 1G the pgoff is
-0..1G(-4K), a second write will use @pgoff for 1G+4K..<size>.
+Introduce @align to struct dev_dax.
 
-This range mapping interface is useful for:
+When creating a new device, we still initialize to the default dax_region
+@align.  Child devices belonging to a region may wish to keep a different
+alignment property instead of a global region-defined one.
 
- 1) Application which want to implement its own allocation logic, and
-    thus pick the desired ranges from dax_region.
-
- 2) For use cases like VMM fast restart[0] where after kexec we want
-    to the same gpa<->phys mappings (as originally created before kexec).
-
-[0] https://static.sched.com/hosted_files/kvmforum2019/66/VMM-fast-restart_=
-kvmforum2019.pdf
-
-Link: https://lkml.kernel.org/r/159643106970.4062302.10402616567780784722.s=
-tgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lore.kernel.org/r/20200716172913.19658-5-joao.m.martins@oracl=
+Link: https://lkml.kernel.org/r/159643105377.4062302.4159447829955683131.st=
+git@dwillia2-desk3.amr.corp.intel.com
+Link: https://lore.kernel.org/r/20200716172913.19658-2-joao.m.martins@oracl=
 e.com
-Link: https://lkml.kernel.org/r/160106119570.30709.4548889722645210610.stgi=
+Link: https://lkml.kernel.org/r/160106117957.30709.1142303024324655705.stgi=
 t@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
@@ -147,96 +135,176 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |   64 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+ drivers/dax/bus.c         |    1=20
+ drivers/dax/dax-private.h |    3 ++
+ drivers/dax/device.c      |   41 +++++++++++++-----------------------
+ 3 files changed, 19 insertions(+), 26 deletions(-)
 
---- a/drivers/dax/bus.c~device-dax-add-a-range-mapping-allocation-attribute
+--- a/drivers/dax/bus.c~device-dax-make-align-a-per-device-property
 +++ a/drivers/dax/bus.c
-@@ -1043,6 +1043,67 @@ static ssize_t size_store(struct device
- }
- static DEVICE_ATTR_RW(size);
+@@ -1218,6 +1218,7 @@ struct dev_dax *devm_create_dev_dax(stru
 =20
-+static ssize_t range_parse(const char *opt, size_t len, struct range *rang=
-e)
-+{
-+	unsigned long long addr =3D 0;
-+	char *start, *end, *str;
-+	ssize_t rc =3D EINVAL;
-+
-+	str =3D kstrdup(opt, GFP_KERNEL);
-+	if (!str)
-+		return rc;
-+
-+	end =3D str;
-+	start =3D strsep(&end, "-");
-+	if (!start || !end)
-+		goto err;
-+
-+	rc =3D kstrtoull(start, 16, &addr);
-+	if (rc)
-+		goto err;
-+	range->start =3D addr;
-+
-+	rc =3D kstrtoull(end, 16, &addr);
-+	if (rc)
-+		goto err;
-+	range->end =3D addr;
-+
-+err:
-+	kfree(str);
-+	return rc;
-+}
-+
-+static ssize_t mapping_store(struct device *dev, struct device_attribute *=
-attr,
-+		const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax =3D to_dev_dax(dev);
-+	struct dax_region *dax_region =3D dev_dax->region;
-+	size_t to_alloc;
-+	struct range r;
-+	ssize_t rc;
-+
-+	rc =3D range_parse(buf, len, &r);
-+	if (rc)
-+		return rc;
-+
-+	rc =3D -ENXIO;
-+	device_lock(dax_region->dev);
-+	if (!dax_region->dev->driver) {
-+		device_unlock(dax_region->dev);
-+		return rc;
-+	}
-+	device_lock(dev);
-+
-+	to_alloc =3D range_len(&r);
-+	if (alloc_is_aligned(dev_dax, to_alloc))
-+		rc =3D alloc_dev_dax_range(dev_dax, r.start, to_alloc);
-+	device_unlock(dev);
-+	device_unlock(dax_region->dev);
-+
-+	return rc =3D=3D 0 ? len : rc;
-+}
-+static DEVICE_ATTR_WO(mapping);
-+
- static ssize_t align_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+ 	dev_dax->dax_dev =3D dax_dev;
+ 	dev_dax->target_node =3D dax_region->target_node;
++	dev_dax->align =3D dax_region->align;
+ 	ida_init(&dev_dax->ida);
+ 	kref_get(&dax_region->kref);
+=20
+--- a/drivers/dax/dax-private.h~device-dax-make-align-a-per-device-property
++++ a/drivers/dax/dax-private.h
+@@ -62,6 +62,7 @@ struct dax_mapping {
+ struct dev_dax {
+ 	struct dax_region *region;
+ 	struct dax_device *dax_dev;
++	unsigned int align;
+ 	int target_node;
+ 	int id;
+ 	struct ida ida;
+@@ -84,4 +85,6 @@ static inline struct dax_mapping *to_dax
  {
-@@ -1175,6 +1236,8 @@ static umode_t dev_dax_visible(struct ko
- 		return 0;
- 	if (a =3D=3D &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
- 		return 0;
-+	if (a =3D=3D &dev_attr_mapping.attr && is_static(dax_region))
-+		return 0;
- 	if ((a =3D=3D &dev_attr_align.attr ||
- 	     a =3D=3D &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
-@@ -1184,6 +1247,7 @@ static umode_t dev_dax_visible(struct ko
- static struct attribute *dev_dax_attributes[] =3D {
- 	&dev_attr_modalias.attr,
- 	&dev_attr_size.attr,
-+	&dev_attr_mapping.attr,
- 	&dev_attr_target_node.attr,
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
+ 	return container_of(dev, struct dax_mapping, dev);
+ }
++
++phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff, unsi=
+gned long size);
+ #endif
+--- a/drivers/dax/device.c~device-dax-make-align-a-per-device-property
++++ a/drivers/dax/device.c
+@@ -17,7 +17,6 @@
+ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 		const char *func)
+ {
+-	struct dax_region *dax_region =3D dev_dax->region;
+ 	struct device *dev =3D &dev_dax->dev;
+ 	unsigned long mask;
+=20
+@@ -32,7 +31,7 @@ static int check_vma(struct dev_dax *dev
+ 		return -EINVAL;
+ 	}
+=20
+-	mask =3D dax_region->align - 1;
++	mask =3D dev_dax->align - 1;
+ 	if (vma->vm_start & mask || vma->vm_end & mask) {
+ 		dev_info_ratelimited(dev,
+ 				"%s: %s: fail, unaligned vma (%#lx - %#lx, %#lx)\n",
+@@ -78,21 +77,19 @@ static vm_fault_t __dev_dax_pte_fault(st
+ 				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	struct device *dev =3D &dev_dax->dev;
+-	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	unsigned int fault_size =3D PAGE_SIZE;
+=20
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+=20
+-	dax_region =3D dev_dax->region;
+-	if (dax_region->align > PAGE_SIZE) {
++	if (dev_dax->align > PAGE_SIZE) {
+ 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
+-			dax_region->align, fault_size);
++			dev_dax->align, fault_size);
+ 		return VM_FAULT_SIGBUS;
+ 	}
+=20
+-	if (fault_size !=3D dax_region->align)
++	if (fault_size !=3D dev_dax->align)
+ 		return VM_FAULT_SIGBUS;
+=20
+ 	phys =3D dax_pgoff_to_phys(dev_dax, vmf->pgoff, PAGE_SIZE);
+@@ -111,7 +108,6 @@ static vm_fault_t __dev_dax_pmd_fault(st
+ {
+ 	unsigned long pmd_addr =3D vmf->address & PMD_MASK;
+ 	struct device *dev =3D &dev_dax->dev;
+-	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+ 	unsigned int fault_size =3D PMD_SIZE;
+@@ -119,16 +115,15 @@ static vm_fault_t __dev_dax_pmd_fault(st
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+=20
+-	dax_region =3D dev_dax->region;
+-	if (dax_region->align > PMD_SIZE) {
++	if (dev_dax->align > PMD_SIZE) {
+ 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
+-			dax_region->align, fault_size);
++			dev_dax->align, fault_size);
+ 		return VM_FAULT_SIGBUS;
+ 	}
+=20
+-	if (fault_size < dax_region->align)
++	if (fault_size < dev_dax->align)
+ 		return VM_FAULT_SIGBUS;
+-	else if (fault_size > dax_region->align)
++	else if (fault_size > dev_dax->align)
+ 		return VM_FAULT_FALLBACK;
+=20
+ 	/* if we are outside of the VMA */
+@@ -154,7 +149,6 @@ static vm_fault_t __dev_dax_pud_fault(st
+ {
+ 	unsigned long pud_addr =3D vmf->address & PUD_MASK;
+ 	struct device *dev =3D &dev_dax->dev;
+-	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+ 	unsigned int fault_size =3D PUD_SIZE;
+@@ -163,16 +157,15 @@ static vm_fault_t __dev_dax_pud_fault(st
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+ 		return VM_FAULT_SIGBUS;
+=20
+-	dax_region =3D dev_dax->region;
+-	if (dax_region->align > PUD_SIZE) {
++	if (dev_dax->align > PUD_SIZE) {
+ 		dev_dbg(dev, "alignment (%#x) > fault size (%#x)\n",
+-			dax_region->align, fault_size);
++			dev_dax->align, fault_size);
+ 		return VM_FAULT_SIGBUS;
+ 	}
+=20
+-	if (fault_size < dax_region->align)
++	if (fault_size < dev_dax->align)
+ 		return VM_FAULT_SIGBUS;
+-	else if (fault_size > dax_region->align)
++	else if (fault_size > dev_dax->align)
+ 		return VM_FAULT_FALLBACK;
+=20
+ 	/* if we are outside of the VMA */
+@@ -267,9 +260,8 @@ static int dev_dax_split(struct vm_area_
+ {
+ 	struct file *filp =3D vma->vm_file;
+ 	struct dev_dax *dev_dax =3D filp->private_data;
+-	struct dax_region *dax_region =3D dev_dax->region;
+=20
+-	if (!IS_ALIGNED(addr, dax_region->align))
++	if (!IS_ALIGNED(addr, dev_dax->align))
+ 		return -EINVAL;
+ 	return 0;
+ }
+@@ -278,9 +270,8 @@ static unsigned long dev_dax_pagesize(st
+ {
+ 	struct file *filp =3D vma->vm_file;
+ 	struct dev_dax *dev_dax =3D filp->private_data;
+-	struct dax_region *dax_region =3D dev_dax->region;
+=20
+-	return dax_region->align;
++	return dev_dax->align;
+ }
+=20
+ static const struct vm_operations_struct dax_vm_ops =3D {
+@@ -319,13 +310,11 @@ static unsigned long dax_get_unmapped_ar
+ {
+ 	unsigned long off, off_end, off_align, len_align, addr_align, align;
+ 	struct dev_dax *dev_dax =3D filp ? filp->private_data : NULL;
+-	struct dax_region *dax_region;
+=20
+ 	if (!dev_dax || addr)
+ 		goto out;
+=20
+-	dax_region =3D dev_dax->region;
+-	align =3D dax_region->align;
++	align =3D dev_dax->align;
+ 	off =3D pgoff << PAGE_SHIFT;
+ 	off_end =3D off + len;
+ 	off_align =3D round_up(off, align);
 _
