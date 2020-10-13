@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88B56C35267
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CBAC4363A
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23EFD206D5
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6330922200
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:53:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633207;
-	bh=0V1bOQm3v1uZP2SvgmR9PZXSnlGWtLxjzDWIc+gTdcM=;
+	s=default; t=1602633204;
+	bh=GF09NVJtBVs1gTLe/m/MvSCBtUzH1ujS5HRkUN1/55I=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=meLOJAEihHML6jct4PGZCHcPP8pKVNFThjLWUpqkyXP05YsbD8IY/gDDGjZs3ydda
-	 6bALGgdKAGi5ff9EfWIfYoCKTTQ709w/VAe8vzbm0/1A/iK5DkBs3iueV2NBIq7ba5
-	 iU6xVUDkAoLFOWUsISZ2MEJEYXuE7M780I+1gABc=
+	b=BxByRFf1XiJAtsKj1+Tym2LJnpw3gB2OYAu7eWBY/GLb4u68iJS7YF1mIjvZRozMx
+	 mqYlK4jVrKnJA7JmkUapOGWKssXrdAyH0wSluCPhr4V9FaxD10iGlVcZPTGXYr7Nhh
+	 BhX/fmAP45lxNVemgt8ZCjN2J2sGwRhW7Ou4KyD4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728770AbgJMXx0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:53:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38272 "EHLO mail.kernel.org"
+        id S1730085AbgJMXxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:53:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730105AbgJMXxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:53:21 -0400
+        id S1730077AbgJMXwb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:52:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1BB32208B3;
-        Tue, 13 Oct 2020 23:53:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 764D322201;
+        Tue, 13 Oct 2020 23:52:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633200;
-        bh=0V1bOQm3v1uZP2SvgmR9PZXSnlGWtLxjzDWIc+gTdcM=;
+        s=default; t=1602633150;
+        bh=GF09NVJtBVs1gTLe/m/MvSCBtUzH1ujS5HRkUN1/55I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rrmReNw0U/yq1g0Cv5v2DjAVgJk0YEQVKHXnrsfNAzx88GYislxKxLNRnGSwOL3ej
-         QgoyVFdGFkT2ynMucjnRrciNPinR0EE4s1QbGHdv+ab0PKNSkhK/fteYH+GMv+WXjD
-         EKkP9QQt5op9K2KvqlQp+OmY17YJBSE0GXlGjoho=
-Date:   Tue, 13 Oct 2020 16:53:19 -0700
+        b=G67jkW1wDAPhPOu46Q9gHFmvTHEpsIoVZCwYkL82tC3PuWqUIHUB7VuaiC/e3KbVv
+         CkK5IFQpKDdj/o8NUHDE8ePaa6we2t/yG/pz0d6xrzDphY6IB8tEc5Ky2C+nececxw
+         jgvycfTvvOLWnGtKdWC0szkD3dTB6i1asivB7C1A=
+Date:   Tue, 13 Oct 2020 16:52:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jgg@ziepe.ca, jhubbard@nvidia.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, shuah@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 091/181] selftests/vm: fix incorrect gcc
- invocation in some cases
-Message-ID: <20201013235319.xHClSggZs%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, darrick.wong@oracle.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 076/181] mm/swapfile.c: fix potential memory leak
+ in sys_swapon
+Message-ID: <20201013235230.5_jVCBMHF%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,49 +53,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: fix incorrect gcc invocation in some cases
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swapfile.c: fix potential memory leak in sys_swapon
 
-Avoid accidental wrong builds, due to built-in rules working just a little
-bit too well--but not quite as well as required for our situation here.
+If we failed to drain inode, we would forget to free the swap address
+space allocated by init_swap_address_space() above.
 
-In other words, "make userfaultfd" (for example) is supposed to fail to
-build at all, because this Makefile only supports either "make" (all), or
-"make /full/path".  However, the built-in rules, if not suppressed, will
-pick up CFLAGS and the initial LDLIBS (but not the target-specific LDLIBS,
-because those are only set for the full path target!).  This causes it to
-get pretty far into building things despite using incorrect values such as
-an *occasionally* incomplete LDLIBS value.
-
-Link: https://lkml.kernel.org/r/20200915012901.1655280-3-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Link: https://lkml.kernel.org/r/20200930101803.53884-1-linmiaohe@huawei.com
+Fixes: dc617f29dbe5 ("vfs: don't allow writes to swap files")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/swapfile.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-incorrect-gcc-invocation-in-some-cases
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -8,6 +8,18 @@ MACHINE ?= $(shell echo $(uname_M) | sed
- # make invocations:
- .DELETE_ON_ERROR:
+--- a/mm/swapfile.c~mm-fix-potential-memory-leak-in-sys_swapon
++++ a/mm/swapfile.c
+@@ -3342,7 +3342,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	error = inode_drain_writes(inode);
+ 	if (error) {
+ 		inode->i_flags &= ~S_SWAPFILE;
+-		goto bad_swap_unlock_inode;
++		goto free_swap_address_space;
+ 	}
  
-+# Avoid accidental wrong builds, due to built-in rules working just a little
-+# bit too well--but not quite as well as required for our situation here.
-+#
-+# In other words, "make userfaultfd" is supposed to fail to build at all,
-+# because this Makefile only supports either "make" (all), or "make /full/path".
-+# However,  the built-in rules, if not suppressed, will pick up CFLAGS and the
-+# initial LDLIBS (but not the target-specific LDLIBS, because those are only
-+# set for the full path target!). This causes it to get pretty far into building
-+# things despite using incorrect values such as an *occasionally* incomplete
-+# LDLIBS.
-+MAKEFLAGS += --no-builtin-rules
-+
- CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
- LDLIBS = -lrt
- TEST_GEN_FILES = compaction_test
+ 	mutex_lock(&swapon_mutex);
+@@ -3367,6 +3367,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	error = 0;
+ 	goto out;
++free_swap_address_space:
++	exit_swap_address_space(p->type);
+ bad_swap_unlock_inode:
+ 	inode_unlock(inode);
+ bad_swap:
 _
