@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B988C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:02:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27858C433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:02:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C40CF21D7B
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:02:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D23E522200
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630126;
-	bh=HN3OklejoVZTpnZAOZC3IT49A8Glg8qedtDWqbK650M=;
+	s=default; t=1602630175;
+	bh=rnmIvU5tSZHaAk9oaPROAQAgWGj5koR/1UG0GX6e6hM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=A4x12+DNNkNMMk3dUDO6bA/ffFTIBqdPHmybyYFZToAegRCg/RTf1shMfqqk5jcfE
-	 vBjIbbn7h7LMtDjML/xwFmAIHLA2WrDI7CncEKsTDCW6ieH8qIkCCYMcq2oiIkfqOd
-	 f3YZ+XZyBdTF9CUUdCAZWNOCSAdmKmbRLzt+9rxE=
+	b=znk/tMRRZsmz8g5f6STtP69KTlwVCCFmHucD6WLyxa0DKsYn5nba9kT30SOJD5+I/
+	 lbdcg3ppymR2iboeMJ7F2WZ9IBrWVwnWofhu37CYflx9daO4GasUB22Pg8q6pGf9ZR
+	 s2NRKyQQgI/fB2A9QOBLoZPXq+LvcMKj/SuGUJfA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729625AbgJMXCG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:02:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41544 "EHLO mail.kernel.org"
+        id S1729632AbgJMXCz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:02:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726894AbgJMXCG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:02:06 -0400
+        id S1726894AbgJMXCz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:02:55 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 79A2120B1F;
-        Tue, 13 Oct 2020 23:02:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B8DF221D81;
+        Tue, 13 Oct 2020 23:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630125;
-        bh=HN3OklejoVZTpnZAOZC3IT49A8Glg8qedtDWqbK650M=;
+        s=default; t=1602630173;
+        bh=rnmIvU5tSZHaAk9oaPROAQAgWGj5koR/1UG0GX6e6hM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rB0qs4X6cUynaga/OgbXWG5EQoTjspO4O0UtzLJ0dhVOYlaFO9v52ub11embSNwE+
-         oy0BjTHmCWvpr3n90e3rbscSho5m6IOu5r4m/o4TYr4EqjJdndiuaLx1BtrcZeEl+V
-         9dJGGgGxX7h/cq4Vd2xe1jxEBIg4EauuHD9kmXGA=
-Date:   Tue, 13 Oct 2020 16:02:01 -0700
+        b=zXlSE2XNOhm0p1uIGOw6FTG0fGFlTQZD0G9oiyNn3CmNkmPrO4Q0XGUCdpKFx8fTZ
+         IxvVfbB6zi0YeYRpPC3wQ6kP9mEj/SiYM2Uxg6VPjBmd3cU7UNbt0b1MX0JPb0Fk+N
+         7JaCmIFF33BM5zFc/7Ht+WYA6ZH/eDls+4lD6gbQ=
+Date:   Tue, 13 Oct 2020 16:02:51 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         benh@kernel.crashing.org, bhelgaas@google.com,
@@ -58,9 +58,10 @@ To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         sstabellini@kernel.org, tglx@linutronix.de,
         thomas.lendacky@amd.com, vgoyal@redhat.com,
         vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
-Subject:  [folded-merged] x86-numa-add-nohmat-option-fix.patch
- removed from -mm tree
-Message-ID: <20201013230201.Pt17f5X2s%akpm@linux-foundation.org>
+Subject:  [folded-merged]
+ =?US-ASCII?Q?acpi-hmat-refactor-hmat=5Fregister=5Ftarget=5Fdevice-to-hm?=
+ =?US-ASCII?Q?em=5Fregister=5Fdevice-fix.patch?= removed from -mm tree
+Message-ID: <20201013230251.a57ul8iZN%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -73,36 +74,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/numa: fix build when CONFIG_ACPI is not set
+     Subject: device-dax: CONFIG_DEV_DAX_HMEM_DEVICES should depend on CONF=
+IG_DAX=3Dy
 has been removed from the -mm tree.  Its filename was
-     x86-numa-add-nohmat-option-fix.patch
+     acpi-hmat-refactor-hmat_register_target_device-to-hmem_register_device=
+-fix.patch
 
-This patch was dropped because it was folded into x86-numa-add-nohmat-optio=
-n.patch
+This patch was dropped because it was folded into acpi-hmat-refactor-hmat_r=
+egister_target_device-to-hmem_register_device.patch
 
 ------------------------------------------------------
-=46rom: Randy Dunlap <rdunlap@infradead.org>
-Subject: x86/numa: fix build when CONFIG_ACPI is not set
+=46rom: Joao Martins <joao.m.martins@oracle.com>
+Subject: device-dax: CONFIG_DEV_DAX_HMEM_DEVICES should depend on CONFIG_DA=
+X=3Dy
 
-Fix build errors when CONFIG_ACPI is not set/enabled by adding
-<acpi/acpi_numa.h> in the #else (!CONFIG_ACPI) block.
+HMAT requires hmem_register_device() which is now placed under
+drivers/dax.  ACPI_HMAT is a bool and built-in, and to use
+hmem_register_device() CONFIG_DAX also needs to be builtin.
 
-../arch/x86/mm/numa.c: In function `numa_setup':
-../arch/x86/mm/numa.c:43:3: error: implicit declaration of function `disabl=
-e_srat'; did you mean `disable_irq'? [-Werror=3Dimplicit-function-declarati=
-on]
-   disable_srat();
-   ^~~~~~~~~~~~
-../arch/x86/mm/numa.c:45:3: error: implicit declaration of function `disabl=
-e_hmat'; did you mean `disable_dma'? [-Werror=3Dimplicit-function-declarati=
-on]
-   disable_hmat();
-   ^~~~~~~~~~~~
-
-Link: https://lkml.kernel.org/r/70e5ee34-9809-a997-7b49-499e4be61307@infrad=
-ead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/8f34727f-ec2d-9395-cb18-969ec8a5d0d4@oracle=
+.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -128,59 +123,46 @@ Cc: Jason Yan <yanaijie@huawei.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
 Cc: Jia He <justin.he@arm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Juergen Gross <jgross@suse.com>
-Cc: kernel test robot <lkp@intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acpi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/dax/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/acpi.h~x86-numa-add-nohmat-option-fix
-+++ a/include/linux/acpi.h
-@@ -709,6 +709,8 @@ static inline u64 acpi_arch_get_root_poi
- #define ACPI_HANDLE_FWNODE(fwnode)	(NULL)
- #define ACPI_DEVICE_CLASS(_cls, _msk)	.cls =3D (0), .cls_msk =3D (0),
+--- a/drivers/dax/Kconfig~acpi-hmat-refactor-hmat_register_target_device-to=
+-hmem_register_device-fix
++++ a/drivers/dax/Kconfig
+@@ -49,7 +49,7 @@ config DEV_DAX_HMEM
+ 	  Say M if unsure.
 =20
-+#include <acpi/acpi_numa.h>
-+
- struct fwnode_handle;
+ config DEV_DAX_HMEM_DEVICES
+-	depends on DEV_DAX_HMEM
++	depends on DEV_DAX_HMEM && DAX=3Dy
+ 	def_bool y
 =20
- static inline bool acpi_dev_found(const char *hid)
+ config DEV_DAX_KMEM
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-fs-ocfs2-delete-repeated-words-in-comments.patch
-fs-xattrc-fix-kernel-doc-warnings-for-setxattr-removexattr.patch
-x86-numa-add-nohmat-option.patch
-mm-memoryc-fix-spello-of-function.patch
-fs-configfs-delete-repeated-words-in-comments.patch
-kernel-fix-repeated-words-in-comments.patch
-kernel-acctc-fix-some-kernel-doc-nits.patch
-lib-bitmap-delete-duplicated-words.patch
-lib-libcrc32c-delete-duplicated-words.patch
-lib-decompress_bunzip2-delete-duplicated-words.patch
-lib-devres-delete-duplicated-words.patch
-lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
-lib-earlycpio-delete-duplicated-words.patch
-lib-radix-tree-delete-duplicated-words.patch
-lib-syscall-delete-duplicated-words.patch
-lib-test_sysctl-delete-duplicated-words.patch
-lib-mpi-fix-spello-of-functions.patch
+acpi-hmat-refactor-hmat_register_target_device-to-hmem_register_device.patch
+acpi-hmat-attach-a-device-for-each-soft-reserved-range-fix.patch
+device-dax-make-align-a-per-device-property.patch
+dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
+device-dax-add-a-range-mapping-allocation-attribute.patch
 
