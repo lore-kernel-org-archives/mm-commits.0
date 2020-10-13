@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 842ACC4363D
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B6DC43457
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 485FC2222F
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B04102222C
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633014;
-	bh=b2riYjwzS+givoVBdqMhZW4XZjjVzZvYgtfyuUM1dVU=;
+	s=default; t=1602633013;
+	bh=k5MRtz2FmH2p/WutJa1cpFq/QS3FIU9bXcdzbbLUwGY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=wr8fhqGk8fZjjvjNFCd7lmJgphmKv8Dch+WUYEfcc6h8cYD1n5MCpzxNSehK/cjcV
-	 fPueeR+La3BAUwOXomTXye50H0j6mJ3yrOAvNccl//JK8JoiP2A2h+RQ2c6Sy3B2a+
-	 WW3fzyDcij8gaFtEa/6cYhHfvy2R7VioD4cMzg60=
+	b=jO7CZzedrhl8QIMyvpgahamPLFpNq65OtWfW7wyBkF/aZkfYNr9MhKkAAdRso9Nor
+	 Z4575cXN0Rj7fg5w3uvdDlWmVu4ln0Q288VAobVVrpmSJW0DCPxz0ZgWbZ8Cx3SiT8
+	 aRoOBlV8aqtJNuIEOIDXUMhQvZjFd/geN/xq15fY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730276AbgJMXuN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1729969AbgJMXuN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 13 Oct 2020 19:50:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33996 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730274AbgJMXtv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:49:51 -0400
+        id S1728024AbgJMXuB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:50:01 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B7D1021D7A;
-        Tue, 13 Oct 2020 23:49:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C9396221FF;
+        Tue, 13 Oct 2020 23:49:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632990;
-        bh=b2riYjwzS+givoVBdqMhZW4XZjjVzZvYgtfyuUM1dVU=;
+        s=default; t=1602633000;
+        bh=k5MRtz2FmH2p/WutJa1cpFq/QS3FIU9bXcdzbbLUwGY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=f0HebLJQeWWHEkti0UjHMsgUC8hUfHCVTJJjG4m4G/PG7ecEBKFblylOmToIPrQ0m
-         iTP3zSRGC5llE2klEEHbTcdHXSvvpWP7PsSgmBshSK1gImxeOocvVzUXIXX+0j8ysd
-         FIZvwSsshvDrVjipHbNZmdgq4GhDAF4d2ElSTaxA=
-Date:   Tue, 13 Oct 2020 16:49:48 -0700
+        b=tdWl3Rb1VH1gAbB+d2aoflJ0NJKf0QjrYHr4iDfimecT+PBzEgjuMuvi1uRUqfoUt
+         nX4jxn7Kxv74inD4n/DvloonjjMn7cbhYYlbDEir0pI4tQkVM9DueTLMN5mnit0snT
+         cYXjEp5YhnZF3vohDHTy6uJC7+Q3E+th8bbBL5VQ=
+Date:   Tue, 13 Oct 2020 16:49:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -60,9 +60,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 036/181] device-dax/kmem: introduce
- dax_kmem_range()
-Message-ID: <20201013234948.0n0HXOPDK%akpm@linux-foundation.org>
+Subject:  [patch 038/181] device-dax/kmem: replace
+ release_resource() with release_mem_region()
+Message-ID: <20201013234958.FOTI8zIwm%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -74,16 +74,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax/kmem: introduce dax_kmem_range()
+Subject: device-dax/kmem: replace release_resource() with release_mem_regio=
+n()
 
 Towards removing the mode specific @dax_kmem_res attribute from the
-generic 'struct dev_dax', and preparing for multi-range support, teach the
-driver to calculate the hotplug range from the device range.  The hotplug
-range is the trivially calculated memory-block-size aligned version of the
-device range.
+generic 'struct dev_dax', and preparing for multi-range support, change
+the kmem driver to use the idiomatic release_mem_region() to pair with the
+initial request_mem_region().  This also eliminates the need to open code
+the release of the resource allocated by request_mem_region().
 
-Link: https://lkml.kernel.org/r/160106111109.30709.3173462396758431559.stgi=
-t@dwillia2-desk3.amr.corp.intel.com
+As there are no more dax_kmem_res users, delete this struct member.
+
+Link: https://lkml.kernel.org/r/160106112239.30709.15909567572288425294.stg=
+it@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
@@ -132,93 +135,101 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |   40 +++++++++++++++++-----------------------
- 1 file changed, 17 insertions(+), 23 deletions(-)
+ drivers/dax/dax-private.h |    3 ---
+ drivers/dax/kmem.c        |   20 +++++++-------------
+ 2 files changed, 7 insertions(+), 16 deletions(-)
 
---- a/drivers/dax/kmem.c~device-dax-kmem-introduce-dax_kmem_range
-+++ a/drivers/dax/kmem.c
-@@ -19,13 +19,20 @@ static const char *kmem_name;
- /* Set if any memory will remain added when the driver will be unloaded. */
- static bool any_hotremove_failed;
+--- a/drivers/dax/dax-private.h~device-dax-kmem-replace-release_resource-wi=
+th-release_mem_region
++++ a/drivers/dax/dax-private.h
+@@ -42,8 +42,6 @@ struct dax_region {
+  * @dev - device core
+  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+  * @range: resource range for the instance
+- * @dax_mem_res: physical address range of hotadded DAX memory
+- * @dax_mem_name: name for hotadded DAX memory via add_memory_driver_manag=
+ed()
+  */
+ struct dev_dax {
+ 	struct dax_region *region;
+@@ -52,7 +50,6 @@ struct dev_dax {
+ 	struct device dev;
+ 	struct dev_pagemap *pgmap;
+ 	struct range range;
+-	struct resource *dax_kmem_res;
+ };
 =20
-+static struct range dax_kmem_range(struct dev_dax *dev_dax)
-+{
-+	struct range range;
-+
-+	/* memory-block align the hotplug range */
-+	range.start =3D ALIGN(dev_dax->range.start, memory_block_size_bytes());
-+	range.end =3D ALIGN_DOWN(dev_dax->range.end + 1, memory_block_size_bytes(=
-)) - 1;
-+	return range;
-+}
-+
- int dev_dax_kmem_probe(struct device *dev)
+ static inline u64 range_len(struct range *range)
+--- a/drivers/dax/kmem.c~device-dax-kmem-replace-release_resource-with-rele=
+ase_mem_region
++++ a/drivers/dax/kmem.c
+@@ -33,7 +33,7 @@ int dev_dax_kmem_probe(struct device *de
  {
  	struct dev_dax *dev_dax =3D to_dev_dax(dev);
--	struct range *range =3D &dev_dax->range;
--	resource_size_t kmem_start;
--	resource_size_t kmem_size;
--	resource_size_t kmem_end;
-+	struct range range =3D dax_kmem_range(dev_dax);
- 	struct resource *new_res;
- 	const char *new_res_name;
+ 	struct range range =3D dax_kmem_range(dev_dax);
+-	struct resource *new_res;
++	struct resource *res;
+ 	char *res_name;
  	int numa_node;
-@@ -44,25 +51,14 @@ int dev_dax_kmem_probe(struct device *de
- 		return -EINVAL;
- 	}
-=20
--	/* Hotplug starting at the beginning of the next block: */
--	kmem_start =3D ALIGN(range->start, memory_block_size_bytes());
--
--	kmem_size =3D range_len(range);
--	/* Adjust the size down to compensate for moving up kmem_start: */
--	kmem_size -=3D kmem_start - range->start;
--	/* Align the size down to cover only complete blocks: */
--	kmem_size &=3D ~(memory_block_size_bytes() - 1);
--	kmem_end =3D kmem_start + kmem_size;
--
- 	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
- 	if (!new_res_name)
+ 	int rc;
+@@ -56,8 +56,8 @@ int dev_dax_kmem_probe(struct device *de
  		return -ENOMEM;
 =20
  	/* Region is permanently reserved if hotremove fails. */
--	new_res =3D request_mem_region(kmem_start, kmem_size, new_res_name);
-+	new_res =3D request_mem_region(range.start, range_len(&range), new_res_na=
-me);
- 	if (!new_res) {
--		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
--			 &kmem_start, &kmem_end);
-+		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n", range.start, r=
+-	new_res =3D request_mem_region(range.start, range_len(&range), res_name);
+-	if (!new_res) {
++	res =3D request_mem_region(range.start, range_len(&range), res_name);
++	if (!res) {
+ 		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n", range.start, r=
 ange.end);
- 		kfree(new_res_name);
+ 		kfree(res_name);
  		return -EBUSY;
- 	}
-@@ -96,9 +92,8 @@ int dev_dax_kmem_probe(struct device *de
- static int dev_dax_kmem_remove(struct device *dev)
- {
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
-+	struct range range =3D dax_kmem_range(dev_dax);
- 	struct resource *res =3D dev_dax->dax_kmem_res;
--	resource_size_t kmem_start =3D res->start;
--	resource_size_t kmem_size =3D resource_size(res);
- 	const char *res_name =3D res->name;
- 	int rc;
-=20
-@@ -108,12 +103,11 @@ static int dev_dax_kmem_remove(struct de
- 	 * there is no way to hotremove this memory until reboot because device
- 	 * unbind will succeed even if we return failure.
+@@ -69,23 +69,20 @@ int dev_dax_kmem_probe(struct device *de
+ 	 * inherit flags from the parent since it may set new flags
+ 	 * unknown to us that will break add_memory() below.
  	 */
--	rc =3D remove_memory(dev_dax->target_node, kmem_start, kmem_size);
-+	rc =3D remove_memory(dev_dax->target_node, range.start, range_len(&range)=
-);
+-	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
++	res->flags =3D IORESOURCE_SYSTEM_RAM;
+=20
+ 	/*
+ 	 * Ensure that future kexec'd kernels will not treat this as RAM
+ 	 * automatically.
+ 	 */
+-	rc =3D add_memory_driver_managed(numa_node, new_res->start,
+-				       resource_size(new_res), kmem_name);
++	rc =3D add_memory_driver_managed(numa_node, range.start, range_len(&range=
+), kmem_name);
  	if (rc) {
- 		any_hotremove_failed =3D true;
--		dev_err(dev,
--			"DAX region %pR cannot be hotremoved until the next reboot\n",
--			res);
-+		dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
-+				range.start, range.end);
+-		release_resource(new_res);
+-		kfree(new_res);
++		release_mem_region(range.start, range_len(&range));
+ 		kfree(res_name);
  		return rc;
  	}
 =20
+ 	dev_set_drvdata(dev, res_name);
+-	dev_dax->dax_kmem_res =3D new_res;
+=20
+ 	return 0;
+ }
+@@ -95,7 +92,6 @@ static int dev_dax_kmem_remove(struct de
+ {
+ 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
+ 	struct range range =3D dax_kmem_range(dev_dax);
+-	struct resource *res =3D dev_dax->dax_kmem_res;
+ 	const char *res_name =3D dev_get_drvdata(dev);
+ 	int rc;
+=20
+@@ -114,10 +110,8 @@ static int dev_dax_kmem_remove(struct de
+ 	}
+=20
+ 	/* Release and free dax resources */
+-	release_resource(res);
+-	kfree(res);
++	release_mem_region(range.start, range_len(&range));
+ 	kfree(res_name);
+-	dev_dax->dax_kmem_res =3D NULL;
+=20
+ 	return 0;
+ }
 _
