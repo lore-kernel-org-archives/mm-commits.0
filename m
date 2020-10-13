@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B6DC43457
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6804AC2D0A2
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B04102222C
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FD7D22200
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633013;
-	bh=k5MRtz2FmH2p/WutJa1cpFq/QS3FIU9bXcdzbbLUwGY=;
+	s=default; t=1602633015;
+	bh=X6eCNU/RMqqL/QxP92+7/oMNnytOYvperVNevFHEsnQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=jO7CZzedrhl8QIMyvpgahamPLFpNq65OtWfW7wyBkF/aZkfYNr9MhKkAAdRso9Nor
-	 Z4575cXN0Rj7fg5w3uvdDlWmVu4ln0Q288VAobVVrpmSJW0DCPxz0ZgWbZ8Cx3SiT8
-	 aRoOBlV8aqtJNuIEOIDXUMhQvZjFd/geN/xq15fY=
+	b=aRrw0lyfxFYkm0J5KYIJSEqtAhcJPOsK40FA2Yb8PZKgacpx57o/Dq+a+2Jo/J2YF
+	 OSLGqyImffrV3hao1VkGHwgFSWhN6Akdj+lZzPRGaFjxLPQnPotVzEjSQ6R/aeoZHL
+	 h3K7zXaYoz7ijqdjmFJiyC7Iuj/tLGWRyTx8ymrU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729969AbgJMXuN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:50:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34270 "EHLO mail.kernel.org"
+        id S1730277AbgJMXuO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:50:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728024AbgJMXuB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:50:01 -0400
+        id S1728272AbgJMXtl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:49:41 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C9396221FF;
-        Tue, 13 Oct 2020 23:49:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E041821D7B;
+        Tue, 13 Oct 2020 23:49:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633000;
-        bh=k5MRtz2FmH2p/WutJa1cpFq/QS3FIU9bXcdzbbLUwGY=;
+        s=default; t=1602632980;
+        bh=X6eCNU/RMqqL/QxP92+7/oMNnytOYvperVNevFHEsnQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tdWl3Rb1VH1gAbB+d2aoflJ0NJKf0QjrYHr4iDfimecT+PBzEgjuMuvi1uRUqfoUt
-         nX4jxn7Kxv74inD4n/DvloonjjMn7cbhYYlbDEir0pI4tQkVM9DueTLMN5mnit0snT
-         cYXjEp5YhnZF3vohDHTy6uJC7+Q3E+th8bbBL5VQ=
-Date:   Tue, 13 Oct 2020 16:49:58 -0700
+        b=JAZAvOWe4mmGZFziQQf21YmsAZTCI7TtpNEQthoeh8RCmJBrvuSJRPMaXqqU9Mxm/
+         dFw8Qx01/NIYIKH4P9/CC1Qix3xBHRdW87cbn1PdwQWrS1u9dNtOkXYyJdTUHsAmsE
+         7eKwzwv9HwZTGgfBnSGD0PhNPE3AkejZbO/sFJDs=
+Date:   Tue, 13 Oct 2020 16:49:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -60,9 +60,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 038/181] device-dax/kmem: replace
- release_resource() with release_mem_region()
-Message-ID: <20201013234958.FOTI8zIwm%akpm@linux-foundation.org>
+Subject:  [patch 034/181] device-dax: move instance creation
+ parameters to 'struct dev_dax_data'
+Message-ID: <20201013234938.N1fX-tktI%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -74,162 +74,207 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax/kmem: replace release_resource() with release_mem_regio=
-n()
+Subject: device-dax: move instance creation parameters to 'struct dev_dax_d=
+ata'
 
-Towards removing the mode specific @dax_kmem_res attribute from the
-generic 'struct dev_dax', and preparing for multi-range support, change
-the kmem driver to use the idiomatic release_mem_region() to pair with the
-initial request_mem_region().  This also eliminates the need to open code
-the release of the resource allocated by request_mem_region().
+In preparation for adding more parameters to instance creation, move
+existing parameters to a new struct.
 
-As there are no more dax_kmem_res users, delete this struct member.
-
-Link: https://lkml.kernel.org/r/160106112239.30709.15909567572288425294.stg=
-it@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643099411.4062302.1337305960720423895.st=
+git@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Airlie <airlied@linux.ie>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hulk Robot <hulkci@huawei.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jason Yan <yanaijie@huawei.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: kernel test robot <lkp@intel.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Hulk Robot <hulkci@huawei.com>
+Cc: Jason Yan <yanaijie@huawei.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/dax-private.h |    3 ---
- drivers/dax/kmem.c        |   20 +++++++-------------
- 2 files changed, 7 insertions(+), 16 deletions(-)
+ drivers/dax/bus.c       |   14 +++++++-------
+ drivers/dax/bus.h       |   16 ++++++++--------
+ drivers/dax/hmem/hmem.c |    8 +++++++-
+ drivers/dax/pmem/core.c |    9 ++++++++-
+ 4 files changed, 30 insertions(+), 17 deletions(-)
 
---- a/drivers/dax/dax-private.h~device-dax-kmem-replace-release_resource-wi=
-th-release_mem_region
-+++ a/drivers/dax/dax-private.h
-@@ -42,8 +42,6 @@ struct dax_region {
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @range: resource range for the instance
-- * @dax_mem_res: physical address range of hotadded DAX memory
-- * @dax_mem_name: name for hotadded DAX memory via add_memory_driver_manag=
-ed()
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -52,7 +50,6 @@ struct dev_dax {
- 	struct device dev;
- 	struct dev_pagemap *pgmap;
- 	struct range range;
--	struct resource *dax_kmem_res;
- };
+--- a/drivers/dax/bus.c~device-dax-move-instance-creation-parameters-to-str=
+uct-dev_dax_data
++++ a/drivers/dax/bus.c
+@@ -395,9 +395,9 @@ static void unregister_dev_dax(void *dev
+ 	put_device(dev);
+ }
 =20
- static inline u64 range_len(struct range *range)
---- a/drivers/dax/kmem.c~device-dax-kmem-replace-release_resource-with-rele=
-ase_mem_region
-+++ a/drivers/dax/kmem.c
-@@ -33,7 +33,7 @@ int dev_dax_kmem_probe(struct device *de
+-struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int i=
+d,
+-		struct dev_pagemap *pgmap, enum dev_dax_subsys subsys)
++struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
  {
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
- 	struct range range =3D dax_kmem_range(dev_dax);
--	struct resource *new_res;
-+	struct resource *res;
- 	char *res_name;
- 	int numa_node;
- 	int rc;
-@@ -56,8 +56,8 @@ int dev_dax_kmem_probe(struct device *de
- 		return -ENOMEM;
++	struct dax_region *dax_region =3D data->dax_region;
+ 	struct device *parent =3D dax_region->dev;
+ 	struct dax_device *dax_dev;
+ 	struct dev_dax *dev_dax;
+@@ -405,14 +405,14 @@ struct dev_dax *__devm_create_dev_dax(st
+ 	struct device *dev;
+ 	int rc =3D -ENOMEM;
 =20
- 	/* Region is permanently reserved if hotremove fails. */
--	new_res =3D request_mem_region(range.start, range_len(&range), res_name);
--	if (!new_res) {
-+	res =3D request_mem_region(range.start, range_len(&range), res_name);
-+	if (!res) {
- 		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n", range.start, r=
-ange.end);
- 		kfree(res_name);
- 		return -EBUSY;
-@@ -69,23 +69,20 @@ int dev_dax_kmem_probe(struct device *de
- 	 * inherit flags from the parent since it may set new flags
- 	 * unknown to us that will break add_memory() below.
- 	 */
--	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
-+	res->flags =3D IORESOURCE_SYSTEM_RAM;
+-	if (id < 0)
++	if (data->id < 0)
+ 		return ERR_PTR(-EINVAL);
+=20
+ 	dev_dax =3D kzalloc(sizeof(*dev_dax), GFP_KERNEL);
+ 	if (!dev_dax)
+ 		return ERR_PTR(-ENOMEM);
+=20
+-	memcpy(&dev_dax->pgmap, pgmap, sizeof(*pgmap));
++	memcpy(&dev_dax->pgmap, data->pgmap, sizeof(struct dev_pagemap));
 =20
  	/*
- 	 * Ensure that future kexec'd kernels will not treat this as RAM
- 	 * automatically.
- 	 */
--	rc =3D add_memory_driver_managed(numa_node, new_res->start,
--				       resource_size(new_res), kmem_name);
-+	rc =3D add_memory_driver_managed(numa_node, range.start, range_len(&range=
-), kmem_name);
+ 	 * No 'host' or dax_operations since there is no access to this
+@@ -438,13 +438,13 @@ struct dev_dax *__devm_create_dev_dax(st
+=20
+ 	inode =3D dax_inode(dax_dev);
+ 	dev->devt =3D inode->i_rdev;
+-	if (subsys =3D=3D DEV_DAX_BUS)
++	if (data->subsys =3D=3D DEV_DAX_BUS)
+ 		dev->bus =3D &dax_bus_type;
+ 	else
+ 		dev->class =3D dax_class;
+ 	dev->parent =3D parent;
+ 	dev->type =3D &dev_dax_type;
+-	dev_set_name(dev, "dax%d.%d", dax_region->id, id);
++	dev_set_name(dev, "dax%d.%d", dax_region->id, data->id);
+=20
+ 	rc =3D device_add(dev);
  	if (rc) {
--		release_resource(new_res);
--		kfree(new_res);
-+		release_mem_region(range.start, range_len(&range));
- 		kfree(res_name);
- 		return rc;
- 	}
+@@ -464,7 +464,7 @@ struct dev_dax *__devm_create_dev_dax(st
 =20
- 	dev_set_drvdata(dev, res_name);
--	dev_dax->dax_kmem_res =3D new_res;
-=20
- 	return 0;
+ 	return ERR_PTR(rc);
  }
-@@ -95,7 +92,6 @@ static int dev_dax_kmem_remove(struct de
- {
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
- 	struct range range =3D dax_kmem_range(dev_dax);
--	struct resource *res =3D dev_dax->dax_kmem_res;
- 	const char *res_name =3D dev_get_drvdata(dev);
- 	int rc;
+-EXPORT_SYMBOL_GPL(__devm_create_dev_dax);
++EXPORT_SYMBOL_GPL(devm_create_dev_dax);
 =20
-@@ -114,10 +110,8 @@ static int dev_dax_kmem_remove(struct de
- 	}
+ static int match_always_count;
 =20
- 	/* Release and free dax resources */
--	release_resource(res);
--	kfree(res);
-+	release_mem_region(range.start, range_len(&range));
- 	kfree(res_name);
--	dev_dax->dax_kmem_res =3D NULL;
+--- a/drivers/dax/bus.h~device-dax-move-instance-creation-parameters-to-str=
+uct-dev_dax_data
++++ a/drivers/dax/bus.h
+@@ -13,18 +13,18 @@ struct dax_region *alloc_dax_region(stru
+ 		struct resource *res, int target_node, unsigned int align);
 =20
- 	return 0;
- }
+ enum dev_dax_subsys {
+-	DEV_DAX_BUS,
++	DEV_DAX_BUS =3D 0, /* zeroed dev_dax_data picks this by default */
+ 	DEV_DAX_CLASS,
+ };
+=20
+-struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int i=
+d,
+-		struct dev_pagemap *pgmap, enum dev_dax_subsys subsys);
++struct dev_dax_data {
++	struct dax_region *dax_region;
++	struct dev_pagemap *pgmap;
++	enum dev_dax_subsys subsys;
++	int id;
++};
+=20
+-static inline struct dev_dax *devm_create_dev_dax(struct dax_region *dax_r=
+egion,
+-		int id, struct dev_pagemap *pgmap)
+-{
+-	return __devm_create_dev_dax(dax_region, id, pgmap, DEV_DAX_BUS);
+-}
++struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
+=20
+ /* to be deleted when DEV_DAX_CLASS is removed */
+ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys s=
+ubsys);
+--- a/drivers/dax/hmem/hmem.c~device-dax-move-instance-creation-parameters-=
+to-struct-dev_dax_data
++++ a/drivers/dax/hmem/hmem.c
+@@ -11,6 +11,7 @@ static int dax_hmem_probe(struct platfor
+ 	struct dev_pagemap pgmap =3D { };
+ 	struct dax_region *dax_region;
+ 	struct memregion_info *mri;
++	struct dev_dax_data data;
+ 	struct dev_dax *dev_dax;
+ 	struct resource *res;
+=20
+@@ -26,7 +27,12 @@ static int dax_hmem_probe(struct platfor
+ 	if (!dax_region)
+ 		return -ENOMEM;
+=20
+-	dev_dax =3D devm_create_dev_dax(dax_region, 0, &pgmap);
++	data =3D (struct dev_dax_data) {
++		.dax_region =3D dax_region,
++		.id =3D 0,
++		.pgmap =3D &pgmap,
++	};
++	dev_dax =3D devm_create_dev_dax(&data);
+ 	if (IS_ERR(dev_dax))
+ 		return PTR_ERR(dev_dax);
+=20
+--- a/drivers/dax/pmem/core.c~device-dax-move-instance-creation-parameters-=
+to-struct-dev_dax_data
++++ a/drivers/dax/pmem/core.c
+@@ -14,6 +14,7 @@ struct dev_dax *__dax_pmem_probe(struct
+ 	resource_size_t offset;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct dev_dax *dev_dax;
++	struct dev_dax_data data;
+ 	struct nd_namespace_io *nsio;
+ 	struct dax_region *dax_region;
+ 	struct dev_pagemap pgmap =3D { };
+@@ -57,7 +58,13 @@ struct dev_dax *__dax_pmem_probe(struct
+ 	if (!dax_region)
+ 		return ERR_PTR(-ENOMEM);
+=20
+-	dev_dax =3D __devm_create_dev_dax(dax_region, id, &pgmap, subsys);
++	data =3D (struct dev_dax_data) {
++		.dax_region =3D dax_region,
++		.id =3D id,
++		.pgmap =3D &pgmap,
++		.subsys =3D subsys,
++	};
++	dev_dax =3D devm_create_dev_dax(&data);
+=20
+ 	/* child dev_dax instances now own the lifetime of the dax_region */
+ 	dax_region_put(dax_region);
 _
