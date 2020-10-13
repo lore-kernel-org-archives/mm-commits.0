@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77B95C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC5FC433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41B7C22200
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E447D21D7B
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:48:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602632929;
-	bh=pV0iKWeDUNtw/1LML0Opzg6KzB9DFJPmOh5QkG5IfB8=;
+	s=default; t=1602632932;
+	bh=9BuS3tGWmxiV+VoM6tl+rvsPXTd7Br6j53ufCjVaIGQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=x/RSeneSFnBJw6u7KrJHqEhkpx5MNM9+ifhl2laSIAbLREdhTkXH+mr2x0CwUdepU
-	 yql9HAokAZbzg9mAxccnpqdDGGRC0MJQSbabhWaCuURXkg75mxsIprfeGtrMjmRsgk
-	 U6VN8biUxENeEyR2SZiOfOfxc8QtpPv27C8ymXio=
+	b=y1Y0DAykD0huup4Vj+x7uIHe3nUOFsxX7/CjODCOY3lZrU5vrC2hdKOQFeF4rBnY7
+	 eNY1Gx89OHm1VcpdgnvuF3Ar0g4/tER3Jc6rS0iWYeOCmgF1aJaKrgAR8dwCGyoF/U
+	 0AKeDEPnyThPl0kr3KZboKyfYaU8NFXxisyXvjGs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727684AbgJMXst (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:48:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60334 "EHLO mail.kernel.org"
+        id S1727743AbgJMXsv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:48:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60416 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727154AbgJMXss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:48:48 -0400
+        id S1727154AbgJMXsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:48:51 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7BEB121D81;
-        Tue, 13 Oct 2020 23:48:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9FBCB22200;
+        Tue, 13 Oct 2020 23:48:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632927;
-        bh=pV0iKWeDUNtw/1LML0Opzg6KzB9DFJPmOh5QkG5IfB8=;
+        s=default; t=1602632931;
+        bh=9BuS3tGWmxiV+VoM6tl+rvsPXTd7Br6j53ufCjVaIGQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ozKj6mlpwwWFxT3fqnuWpj+F1qO2zsfZf8feO6jE6DKTFJh726ZObGesSa8C/eGVN
-         CrC8Pjya7j2MxUrq1XSOSfgkvXPKypTcWRqrHD1RQL0TCXziG7bCd+o8vIOq49lSMn
-         7hDQNydVKw3WJoungFcBYx1BwPYNMc0tlCbCeOjc=
-Date:   Tue, 13 Oct 2020 16:48:47 -0700
+        b=KdnXX8f1o/i/TPRdeaxbPwJa6wOYiqT94QmJMKZ9Ng9//r1bw/HB0oqPGaTSqzBNw
+         HTW3jBKtFPX17JP3aDjHty7I8aXtatD6knROO7X0BDrcA6pndheCCUJSHHiw57F2hh
+         My+13dCdAaxb49fjfpoDnBvD7VpXIupBCDkPUVZE=
+Date:   Tue, 13 Oct 2020 16:48:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        linux-mm@kvack.org, liu.xiang6@zte.com.cn,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org,
-        wuyun.wu@huawei.com
-Subject:  [patch 023/181] mm/slub: make add_full() condition more
- explicit
-Message-ID: <20201013234847.01El79qe1%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, catalin.marinas@arm.com,
+        dave@stgolabs.net, dbueso@suse.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, oleg@redhat.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 024/181] mm/kmemleak: rely on rcu for task stack
+ scanning
+Message-ID: <20201013234850.AsSd7RSbj%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,48 +54,59 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Abel Wu <wuyun.wu@huawei.com>
-Subject: mm/slub: make add_full() condition more explicit
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm/kmemleak: rely on rcu for task stack scanning
 
-The commit below is incomplete, as it didn't handle the add_full() part. 
-commit a4d3f8916c65 ("slub: remove useless kmem_cache_debug() before
-remove_full()")
+kmemleak_scan() currently relies on the big tasklist_lock hammer to
+stabilize iterating through the tasklist.  Instead, this patch proposes
+simply using rcu along with the rcu-safe for_each_process_thread flavor
+(without changing scan semantics), which doesn't make use of
+next_thread/p->thread_group and thus cannot race with exit.  Furthermore,
+any races with fork() and not seeing the new child should be benign as
+it's not running yet and can also be detected by the next scan.
 
-This patch checks for SLAB_STORE_USER instead of kmem_cache_debug(), since
-that should be the only context in which we need the list_lock for
-add_full().
+Avoiding the tasklist_lock could prove beneficial for performance
+considering the scan operation is done periodically.  I have seen
+improvements of 30%-ish when doing similar replacements on very
+pathological microbenchmarks (ie stressing get/setpriority(2)).
 
-Link: https://lkml.kernel.org/r/20200811020240.1231-1-wuyun.wu@huawei.com
-Signed-off-by: Abel Wu <wuyun.wu@huawei.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Liu Xiang <liu.xiang6@zte.com.cn>
+However my main motivation is that it's one less user of the global
+lock, something that Linus has long time wanted to see gone eventually
+(if ever) even if the traditional fairness issues has been dealt with
+now with qrwlocks.  Of course this is a very long ways ahead.  This
+patch also kills another user of the deprecated tsk->thread_group.
+
+Link: https://lkml.kernel.org/r/20200820203902.11308-1-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/kmemleak.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/slub.c~mm-slub-make-add_full-condition-more-explicit
-+++ a/mm/slub.c
-@@ -2245,7 +2245,8 @@ redo:
- 		}
- 	} else {
- 		m = M_FULL;
--		if (kmem_cache_debug(s) && !lock) {
-+#ifdef CONFIG_SLUB_DEBUG
-+		if ((s->flags & SLAB_STORE_USER) && !lock) {
- 			lock = 1;
- 			/*
- 			 * This also ensures that the scanning of full
-@@ -2254,6 +2255,7 @@ redo:
- 			 */
- 			spin_lock(&n->list_lock);
- 		}
-+#endif
+--- a/mm/kmemleak.c~mm-kmemleak-rely-on-rcu-for-task-stack-scanning
++++ a/mm/kmemleak.c
+@@ -1471,15 +1471,15 @@ static void kmemleak_scan(void)
+ 	if (kmemleak_stack_scan) {
+ 		struct task_struct *p, *g;
+ 
+-		read_lock(&tasklist_lock);
+-		do_each_thread(g, p) {
++		rcu_read_lock();
++		for_each_process_thread(g, p) {
+ 			void *stack = try_get_task_stack(p);
+ 			if (stack) {
+ 				scan_block(stack, stack + THREAD_SIZE, NULL);
+ 				put_task_stack(p);
+ 			}
+-		} while_each_thread(g, p);
+-		read_unlock(&tasklist_lock);
++		}
++		rcu_read_unlock();
  	}
  
- 	if (l != m) {
+ 	/*
 _
