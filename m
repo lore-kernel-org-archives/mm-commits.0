@@ -2,50 +2,66 @@ Return-Path: <SRS0=1pWp=DU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F805C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 20:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B988C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:02:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1AD9208D5
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 20:42:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C40CF21D7B
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:02:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602621744;
-	bh=kUX0fgmyUInCiftIZkpmHRhHo+Ite6RRfL+IL51VRv8=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=f92wyfvprssTn3hp1YtXWV0UmvsmRNE7+JSdXA5sVcvIjJPyQp5lLl62jdcFQDuih
-	 k5iNKrvTjVYq5r8F8RLWq7fg0br42ARQDVUmNRxC6aOPcqYFYcsV/PVWZzJwM/cKvv
-	 H2Rwp1VifYzbqRLp69Q9ZoerjlHNlHR3K9DJ1fwk=
+	s=default; t=1602630126;
+	bh=HN3OklejoVZTpnZAOZC3IT49A8Glg8qedtDWqbK650M=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=A4x12+DNNkNMMk3dUDO6bA/ffFTIBqdPHmybyYFZToAegRCg/RTf1shMfqqk5jcfE
+	 vBjIbbn7h7LMtDjML/xwFmAIHLA2WrDI7CncEKsTDCW6ieH8qIkCCYMcq2oiIkfqOd
+	 f3YZ+XZyBdTF9CUUdCAZWNOCSAdmKmbRLzt+9rxE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726481AbgJMUla (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 16:41:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34556 "EHLO mail.kernel.org"
+        id S1729625AbgJMXCG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:02:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41544 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726137AbgJMUla (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 16:41:30 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1726894AbgJMXCG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:02:06 -0400
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0588920878;
-        Tue, 13 Oct 2020 20:41:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 79A2120B1F;
+        Tue, 13 Oct 2020 23:02:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602621689;
-        bh=kUX0fgmyUInCiftIZkpmHRhHo+Ite6RRfL+IL51VRv8=;
-        h=Date:From:To:Subject:From;
-        b=trnjSS48QBfHe79WEzmj3Gy/JMvEAF6+gZHEA3m+1FeHLNl6C3Y4wqVvImD0kiYhG
-         Va9oxfOtKjXhCkCeVzhDI2+YKnGfoJAHy/GsaD6kSAOfOZcuLgpzbruugOGXT6nm1O
-         ooAVaBqfZ7VGyH7sB+X5r9X04xiZfoT2ZRVd48f0=
-Date:   Tue, 13 Oct 2020 13:41:28 -0700
-From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, keescook@chromium.org, me@tobin.cc,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        re.emese@gmail.com, tycho@tycho.pizza
-Subject:  [merged] maintainers-change-hardening-mailing-list.patch
+        s=default; t=1602630125;
+        bh=HN3OklejoVZTpnZAOZC3IT49A8Glg8qedtDWqbK650M=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=rB0qs4X6cUynaga/OgbXWG5EQoTjspO4O0UtzLJ0dhVOYlaFO9v52ub11embSNwE+
+         oy0BjTHmCWvpr3n90e3rbscSho5m6IOu5r4m/o4TYr4EqjJdndiuaLx1BtrcZeEl+V
+         9dJGGgGxX7h/cq4Vd2xe1jxEBIg4EauuHD9kmXGA=
+Date:   Tue, 13 Oct 2020 16:02:01 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
+        benh@kernel.crashing.org, bhelgaas@google.com,
+        boris.ostrovsky@oracle.com, bp@alien8.de, Brice.Goglin@inria.fr,
+        bskeggs@redhat.com, catalin.marinas@arm.com,
+        dan.j.williams@intel.com, daniel@ffwll.ch,
+        dave.hansen@linux.intel.com, dave.jiang@intel.com,
+        david@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com,
+        hulkci@huawei.com, ira.weiny@intel.com, jgg@mellanox.com,
+        jglisse@redhat.com, jgross@suse.com, jmoyer@redhat.com,
+        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
+        justin.he@arm.com, lkp@intel.com, luto@kernel.org,
+        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        pasha.tatashin@soleen.com, paulus@ozlabs.org, peterz@infradead.org,
+        rafael.j.wysocki@intel.com, rdunlap@infradead.org,
+        richard.weiyang@linux.alibaba.com, rppt@linux.ibm.com,
+        sstabellini@kernel.org, tglx@linutronix.de,
+        thomas.lendacky@amd.com, vgoyal@redhat.com,
+        vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
+Subject:  [folded-merged] x86-numa-add-nohmat-option-fix.patch
  removed from -mm tree
-Message-ID: <20201013204128.YfFaRj-yg%akpm@linux-foundation.org>
+Message-ID: <20201013230201.Pt17f5X2s%akpm@linux-foundation.org>
+In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -57,74 +73,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: change hardening mailing list
+     Subject: x86/numa: fix build when CONFIG_ACPI is not set
 has been removed from the -mm tree.  Its filename was
-     maintainers-change-hardening-mailing-list.patch
+     x86-numa-add-nohmat-option-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was folded into x86-numa-add-nohmat-optio=
+n.patch
 
 ------------------------------------------------------
-=46rom: Kees Cook <keescook@chromium.org>
-Subject: MAINTAINERS: change hardening mailing list
+=46rom: Randy Dunlap <rdunlap@infradead.org>
+Subject: x86/numa: fix build when CONFIG_ACPI is not set
 
-As more email from git history gets aimed at the OpenWall
-kernel-hardening@ list, there has been a desire to separate "new topics"
-from "on-going" work.  To handle this, the superset of hardening email
-topics are now to be directed to linux-hardening@vger.kernel.org.  Update
-the MAINTAINERS file and the .mailmap to accomplish this, so that
-linux-hardening@ can be treated like any other regular upstream kernel
-development list.
+Fix build errors when CONFIG_ACPI is not set/enabled by adding
+<acpi/acpi_numa.h> in the #else (!CONFIG_ACPI) block.
 
-Link: https://lore.kernel.org/linux-hardening/202010051443.279CC265D@keesco=
-ok/
-Link: https://lkml.kernel.org/r/20201006000012.2768958-1-keescook@chromium.=
-org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Emese Revfy <re.emese@gmail.com>
-Cc: "Tobin C. Harding" <me@tobin.cc>
-Cc: Tycho Andersen <tycho@tycho.pizza>
-Cc: Jonathan Corbet <corbet@lwn.net>
+../arch/x86/mm/numa.c: In function `numa_setup':
+../arch/x86/mm/numa.c:43:3: error: implicit declaration of function `disabl=
+e_srat'; did you mean `disable_irq'? [-Werror=3Dimplicit-function-declarati=
+on]
+   disable_srat();
+   ^~~~~~~~~~~~
+../arch/x86/mm/numa.c:45:3: error: implicit declaration of function `disabl=
+e_hmat'; did you mean `disable_dma'? [-Werror=3Dimplicit-function-declarati=
+on]
+   disable_hmat();
+   ^~~~~~~~~~~~
+
+Link: https://lkml.kernel.org/r/70e5ee34-9809-a997-7b49-499e4be61307@infrad=
+ead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hulk Robot <hulkci@huawei.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Jason Yan <yanaijie@huawei.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/acpi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/.mailmap~maintainers-change-hardening-mailing-list
-+++ a/.mailmap
-@@ -188,6 +188,7 @@ Leon Romanovsky <leon@kernel.org> <leonr
- Linas Vepstas <linas@austin.ibm.com>
- Linus L=C3=BCssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
- Linus L=C3=BCssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
-+<linux-hardening@vger.kernel.org> <kernel-hardening@lists.openwall.com>
- Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
- Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
- Lukasz Luba <lukasz.luba@arm.com> <l.luba@partner.samsung.com>
---- a/MAINTAINERS~maintainers-change-hardening-mailing-list
-+++ a/MAINTAINERS
-@@ -7240,7 +7240,7 @@ F:	drivers/staging/gasket/
- GCC PLUGINS
- M:	Kees Cook <keescook@chromium.org>
- R:	Emese Revfy <re.emese@gmail.com>
--L:	kernel-hardening@lists.openwall.com
-+L:	linux-hardening@vger.kernel.org
- S:	Maintained
- F:	Documentation/kbuild/gcc-plugins.rst
- F:	scripts/Makefile.gcc-plugins
-@@ -9802,7 +9802,7 @@ F:	drivers/scsi/53c700*
- LEAKING_ADDRESSES
- M:	Tobin C. Harding <me@tobin.cc>
- M:	Tycho Andersen <tycho@tycho.pizza>
--L:	kernel-hardening@lists.openwall.com
-+L:	linux-hardening@vger.kernel.org
- S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tobin/leaks.git
- F:	scripts/leaking_addresses.pl
+--- a/include/linux/acpi.h~x86-numa-add-nohmat-option-fix
++++ a/include/linux/acpi.h
+@@ -709,6 +709,8 @@ static inline u64 acpi_arch_get_root_poi
+ #define ACPI_HANDLE_FWNODE(fwnode)	(NULL)
+ #define ACPI_DEVICE_CLASS(_cls, _msk)	.cls =3D (0), .cls_msk =3D (0),
+=20
++#include <acpi/acpi_numa.h>
++
+ struct fwnode_handle;
+=20
+ static inline bool acpi_dev_found(const char *hid)
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+fs-ocfs2-delete-repeated-words-in-comments.patch
+fs-xattrc-fix-kernel-doc-warnings-for-setxattr-removexattr.patch
+x86-numa-add-nohmat-option.patch
+mm-memoryc-fix-spello-of-function.patch
+fs-configfs-delete-repeated-words-in-comments.patch
+kernel-fix-repeated-words-in-comments.patch
+kernel-acctc-fix-some-kernel-doc-nits.patch
+lib-bitmap-delete-duplicated-words.patch
+lib-libcrc32c-delete-duplicated-words.patch
+lib-decompress_bunzip2-delete-duplicated-words.patch
+lib-devres-delete-duplicated-words.patch
+lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+lib-earlycpio-delete-duplicated-words.patch
+lib-radix-tree-delete-duplicated-words.patch
+lib-syscall-delete-duplicated-words.patch
+lib-test_sysctl-delete-duplicated-words.patch
+lib-mpi-fix-spello-of-functions.patch
 
