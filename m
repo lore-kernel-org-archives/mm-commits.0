@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5766FC433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1714DC4363A
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FD0421D81
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB3F222228
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:50:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633021;
-	bh=nj5NUtQ8hPbRWs0jKzJ0U8Om+EXpoPFNTCHU7ktJ6Po=;
+	s=default; t=1602633026;
+	bh=afnh+svjHaI4xJrEHEekjDaK/jrPFtkfWOgQ5yjGNaM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=iW8TlOtY67RTkuHOtJzH26Ur2D65cIkvKfUxS8t0rYqeuk8u0btbLJT2F+tZHpEig
-	 4poT+sPXKni64jEX9aRfQQy27uPS3Eufzsfkpb9Lntdf+3jPgAjQIhOTG/1GbQ7Up8
-	 Cz8+IgZiGDtTWJw4bB8ZMR1WhduuvinsuxMTxF7E=
+	b=165yQoyMgWrcStZ+AIz2vY3ph7SqW/vhgJbwGXHGt/JSrIQrX1RXql2T0f23TdQ6E
+	 ZKmbVAGKBP5fk/Wx6z3hDINuzIdf34ew/UzdK4toJWR/416//aw4ygVjhqn/qfuXur
+	 SPif11k1MHkToB12d8QTPLcEWiBgq5Goj+N6rb5A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730295AbgJMXuU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:50:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33292 "EHLO mail.kernel.org"
+        id S2389326AbgJMXuZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:50:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389260AbgJMXt0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:49:26 -0400
+        id S1730075AbgJMXtU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:49:20 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E90D422246;
-        Tue, 13 Oct 2020 23:49:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C84B722227;
+        Tue, 13 Oct 2020 23:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602632965;
-        bh=nj5NUtQ8hPbRWs0jKzJ0U8Om+EXpoPFNTCHU7ktJ6Po=;
+        s=default; t=1602632960;
+        bh=afnh+svjHaI4xJrEHEekjDaK/jrPFtkfWOgQ5yjGNaM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=VPw0izOiMvtVFCw4XRnLnbI3qh1wjBjQHz/W24nR5ebS9q51HwQuiJetG8gQ7oeTZ
-         WkqmJAa1EUuXYS6bgzaIDNKFhjU6CuaQe1hhp+O7YYnNOdctokwmpnosD/+n024WQP
-         uqqI2jKpjEDkPLgacRnq4kOEvCF/LTe0g+49T7tg=
-Date:   Tue, 13 Oct 2020 16:49:23 -0700
+        b=Ub+9ru4dNjCBsq/Ki3L4dBLh1BB/JkVdzYdpGNDcmdlHMJ+Qb7X40eqP17OtwOvKf
+         +X3GcXsCrpWPKGScuD2zIRLiL61DMmiQWQ6kuOaZkbQ3MGTNX6FGzSHji/Zt8MTFE1
+         FwPsB6TodPOv4XR084dC1vj0fJ/6FP+YJMgHq+To=
+Date:   Tue, 13 Oct 2020 16:49:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org,
         ard.biesheuvel@linaro.org, ardb@kernel.org,
@@ -60,9 +60,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org,
         thomas.lendacky@amd.com, torvalds@linux-foundation.org,
         vgoyal@redhat.com, vishal.l.verma@intel.com, will@kernel.org,
         yanaijie@huawei.com
-Subject:  [patch 031/181] mm/memory_hotplug: introduce default
- phys_to_target_node() implementation
-Message-ID: <20201013234923.DibgUvoAq%akpm@linux-foundation.org>
+Subject:  [patch 030/181] resource: report parent to
+ walk_iomem_res_desc() callback
+Message-ID: <20201013234918.e6szkz-gk%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -74,37 +74,30 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memory_hotplug: introduce default phys_to_target_node() impleme=
-ntation
+Subject: resource: report parent to walk_iomem_res_desc() callback
 
-In preparation to set a fallback value for dev_dax->target_node, introduce
-generic fallback helpers for phys_to_target_node()
+In support of detecting whether a resource might have been been claimed,
+report the parent to the walk_iomem_res_desc() callback.  For example, the
+ACPI HMAT parser publishes "hmem" platform devices per target range.=20
+However, if the HMAT is disabled / missing a fallback driver can attach
+devices to the raw memory ranges as a fallback if it sees unclaimed /
+orphan "Soft Reserved" resources in the resource tree.
 
-A generic implementation based on node-data or memblock was proposed, but
-as noted by Mike:
+Otherwise, find_next_iomem_res() returns a resource with garbage data from
+the stack allocation in __walk_iomem_res_desc() for the res->parent field.
 
-    "Here again, I would prefer to add a weak default for
-     phys_to_target_node() because the "generic" implementation is not real=
-ly
-     generic.
+There are currently no users that expect ->child and ->sibling to be
+valid, and the resource_lock would be needed to traverse them.  Use a
+compound literal to implicitly zero initialize the fields that are not
+being returned in addition to setting ->parent.
 
-     The fallback to reserved ranges is x86 specfic because on x86 most of
-     the reserved areas is not in memblock.memory. AFAIK, no other
-     architecture does this."
-
-The info message in the generic memory_add_physaddr_to_nid()
-implementation is fixed up to properly reflect that
-memory_add_physaddr_to_nid() communicates "online" node info and
-phys_to_target_node() indicates "target / to-be-onlined" node info.
-
-[akpm@linux-foundation.org: fix CONFIG_MEMORY_HOTPLUG=3Dn build]
-  Link: https://lkml.kernel.org/r/202008252130.7YrHIyMI%25lkp@intel.com
-Link: https://lkml.kernel.org/r/159643097768.4062302.3135192588966888630.st=
-git@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643097166.4062302.11875688887228572793.s=
+tgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Jia He <justin.he@arm.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -113,26 +106,25 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Airlie <airlied@linux.ie>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jia He <justin.he@arm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -148,115 +140,28 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c             |    1 -
- include/linux/memory_hotplug.h |   23 ++++++++++++++---------
- include/linux/numa.h           |   11 -----------
- mm/memory_hotplug.c            |   10 +++++++++-
- 4 files changed, 23 insertions(+), 22 deletions(-)
+ kernel/resource.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/arch/x86/mm/numa.c~mm-memory_hotplug-introduce-default-phys_to_target=
-_node-implementation
-+++ a/arch/x86/mm/numa.c
-@@ -917,7 +917,6 @@ int phys_to_target_node(phys_addr_t star
+--- a/kernel/resource.c~resource-report-parent-to-walk_iomem_res_desc-callb=
+ack
++++ a/kernel/resource.c
+@@ -382,10 +382,13 @@ static int find_next_iomem_res(resource_
 =20
- 	return meminfo_to_nid(&numa_reserved_meminfo, start);
- }
--EXPORT_SYMBOL_GPL(phys_to_target_node);
+ 	if (p) {
+ 		/* copy data */
+-		res->start =3D max(start, p->start);
+-		res->end =3D min(end, p->end);
+-		res->flags =3D p->flags;
+-		res->desc =3D p->desc;
++		*res =3D (struct resource) {
++			.start =3D max(start, p->start),
++			.end =3D min(end, p->end),
++			.flags =3D p->flags,
++			.desc =3D p->desc,
++			.parent =3D p->parent,
++		};
+ 	}
 =20
- int memory_add_physaddr_to_nid(u64 start)
- {
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-default-ph=
-ys_to_target_node-implementation
-+++ a/include/linux/memory_hotplug.h
-@@ -149,15 +149,6 @@ int add_pages(int nid, unsigned long sta
- 	      struct mhp_params *params);
- #endif /* ARCH_HAS_ADD_PAGES */
-=20
--#ifdef CONFIG_NUMA
--extern int memory_add_physaddr_to_nid(u64 start);
--#else
--static inline int memory_add_physaddr_to_nid(u64 start)
--{
--	return 0;
--}
--#endif
--
- #ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
- /*
-  * For supporting node-hotadd, we have to allocate a new pgdat.
-@@ -284,6 +275,20 @@ static inline bool movable_node_is_enabl
- }
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
-=20
-+#ifdef CONFIG_NUMA
-+extern int memory_add_physaddr_to_nid(u64 start);
-+extern int phys_to_target_node(u64 start);
-+#else
-+static inline int memory_add_physaddr_to_nid(u64 start)
-+{
-+	return 0;
-+}
-+static inline int phys_to_target_node(u64 start)
-+{
-+	return 0;
-+}
-+#endif
-+
- #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_DEFERRED_STRUCT_PAGE_=
-INIT)
- /*
-  * pgdat resizing functions
---- a/include/linux/numa.h~mm-memory_hotplug-introduce-default-phys_to_targ=
-et_node-implementation
-+++ a/include/linux/numa.h
-@@ -23,22 +23,11 @@
- #ifdef CONFIG_NUMA
- /* Generic implementation available */
- int numa_map_to_online_node(int node);
--
--/*
-- * Optional architecture specific implementation, users need a "depends
-- * on $ARCH"
-- */
--int phys_to_target_node(phys_addr_t addr);
- #else
- static inline int numa_map_to_online_node(int node)
- {
- 	return NUMA_NO_NODE;
- }
--
--static inline int phys_to_target_node(phys_addr_t addr)
--{
--	return NUMA_NO_NODE;
--}
- #endif
-=20
- #endif /* _LINUX_NUMA_H */
---- a/mm/memory_hotplug.c~mm-memory_hotplug-introduce-default-phys_to_targe=
-t_node-implementation
-+++ a/mm/memory_hotplug.c
-@@ -353,11 +353,19 @@ int __ref __add_pages(int nid, unsigned
- #ifdef CONFIG_NUMA
- int __weak memory_add_physaddr_to_nid(u64 start)
- {
--	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n=
-",
-+	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n=
-",
- 			start);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
-+
-+int __weak phys_to_target_node(u64 start)
-+{
-+	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n=
-",
-+			start);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(phys_to_target_node);
- #endif
-=20
- /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
+ 	read_unlock(&resource_lock);
 _
