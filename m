@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39196C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:13:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB5E9C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:13:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04B2D21D7B
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:13:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CE8921D7B
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:13:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630802;
-	bh=ywlPRBqNxd/72/CVs+cstbC5eDsDEOQ+DBhLQlCIhGQ=;
+	s=default; t=1602630839;
+	bh=ve4kIxIrTr0HSNO7s2pCgOZoMg1H+IiKqh5PY2OM5i4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=BdCjx+LLSok47/2Olha7CWEe99O/+xydOe/dsVR/1/O6TU+sx0t7D9F/IIyDXxjfC
-	 rTL/BbOaqIj5Xhj7rOvk5pOHp7SI84pgaKZOSgd5ZNckOOIOzdxYncpY8sDNLow4qE
-	 tpxqFy0lUn1GNRxozW6v6YJ1aJ9CHezBQQOpiq+M=
+	b=exVmCNxAz9bdC0Aq/+AanHK384pZp8Up3Y7D9h12KFW0jibtq8TuUMTcD71ojKIhB
+	 j5+oROyNh9PrLXHFrbijrVJPmG7wllJGO49EesVbUaA83PJJQOM02Me6aHflaVRfb0
+	 aQA5sd89qVjBtINiJwKH3QsvCQf4AINjP2lfQUe0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387894AbgJMXNV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:13:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47146 "EHLO mail.kernel.org"
+        id S2388650AbgJMXN7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:13:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729677AbgJMXNT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:13:19 -0400
+        id S2388608AbgJMXN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:13:59 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id ED04121582;
-        Tue, 13 Oct 2020 23:13:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C235A20B1F;
+        Tue, 13 Oct 2020 23:13:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630799;
-        bh=ywlPRBqNxd/72/CVs+cstbC5eDsDEOQ+DBhLQlCIhGQ=;
+        s=default; t=1602630838;
+        bh=ve4kIxIrTr0HSNO7s2pCgOZoMg1H+IiKqh5PY2OM5i4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZfC3Dz7Ng1A7gfXU8pDOdRHrbVOCZqvdg32ZZDYZ/aqV5wScTeytF1m8vbFVlxz0f
-         FVvkFl41oc8chCOwDTGQEz288gyxJWU+xVwyWLH8JeE3T/nur/sMugFHUCnp3Yd3Ih
-         14YG6n/8yMK4ZTxT/W8wDdPMOvp5cK639DBMI8EQ=
-Date:   Tue, 13 Oct 2020 16:13:18 -0700
+        b=puLN6EcDhBaLYr5JM37++qnm1kyQZUN+HGTo8fGsSxs/q+pZoss8NNqL6f/I0Zs/E
+         qOmktTABn4gB6LkAfyoby1xxtR//R1viSpIvDVP6QjgdybpCK39yizdMniLqD5D8Ms
+         rlaIz6l+lmN+n7tfkfcqRvIlfe37Kbi2/x4LYhkE=
+Date:   Tue, 13 Oct 2020 16:13:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     bhe@redhat.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com,
-        vbabka@suse.cz
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-hugetlb-take-the-free-hpage-during-the-iteration-directly-v4.patch
- removed from -mm tree
-Message-ID: <20201013231318.ZuF7AZDKV%akpm@linux-foundation.org>
+ mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch removed from
+ -mm tree
+Message-ID: <20201013231358.Sw1g0rPCw%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,58 +55,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-take-the-free-hpage-during-the-iteration-directly-v4
+     Subject: mm-mempool-add-else-to-split-mutually-exclusive-case-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-take-the-free-hpage-during-the-iteration-directly-v4.patch
+     mm-mempool-add-else-to-split-mutually-exclusive-case-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-take-the-free-hpage-during-the-iteration-directly.patch
+This patch was dropped because it was folded into mm-mempool-add-else-to-split-mutually-exclusive-case.patch
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm-hugetlb-take-the-free-hpage-during-the-iteration-directly-v4
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mempool-add-else-to-split-mutually-exclusive-case-fix
 
-[mike.kravetz@oracle.com: points out a logic error]
-Link: https://lkml.kernel.org/r/20200901014636.29737-8-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+fix comment location
+
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempool.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-take-the-free-hpage-during-the-iteration-directly-v4
-+++ a/mm/hugetlb.c
-@@ -1041,7 +1041,7 @@ static struct page *dequeue_huge_page_no
- 			continue;
+--- a/mm/mempool.c~mm-mempool-add-else-to-split-mutually-exclusive-case-fix
++++ a/mm/mempool.c
+@@ -60,8 +60,8 @@ static void check_element(mempool_t *poo
+ 	/* Mempools backed by slab allocator */
+ 	if (pool->free == mempool_free_slab || pool->free == mempool_kfree) {
+ 		__check_element(pool, element, ksize(element));
+-	/* Mempools backed by page allocator */
+ 	} else if (pool->free == mempool_free_pages) {
++		/* Mempools backed by page allocator */
+ 		int order = (int)(long)pool->pool_data;
+ 		void *addr = kmap_atomic((struct page *)element);
  
- 		if (PageHWPoison(page))
--			break;
-+			continue;
+@@ -83,8 +83,8 @@ static void poison_element(mempool_t *po
+ 	/* Mempools backed by slab allocator */
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc) {
+ 		__poison_element(element, ksize(element));
+-	/* Mempools backed by page allocator */
+ 	} else if (pool->alloc == mempool_alloc_pages) {
++		/* Mempools backed by page allocator */
+ 		int order = (int)(long)pool->pool_data;
+ 		void *addr = kmap_atomic((struct page *)element);
  
- 		list_move(&page->lru, &h->hugepage_activelist);
- 		set_page_refcounted(page);
 _
 
-Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch
-mm-mmap-leverage-vma_rb_erase_ignore-to-implement-vma_rb_erase.patch
-mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
-mm-mmap-not-necessary-to-check-mapping-separately.patch
-mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
-mm-hugetlb-not-necessary-to-coalesce-regions-recursively.patch
-mm-hugetlb-remove-vm_bug_onnrg-in-get_file_region_entry_from_cache.patch
-mm-hugetlb-use-list_splice-to-merge-two-list-at-once.patch
-mm-hugetlb-count-file_region-to-be-added-when-regions_needed-=-null.patch
-mm-hugetlb-a-page-from-buddy-is-not-on-any-list.patch
-mm-hugetlb-narrow-the-hugetlb_lock-protection-area-during-preparing-huge-page.patch
-mm-hugetlb-take-the-free-hpage-during-the-iteration-directly.patch
-mm-mempolicy-remove-or-narrow-the-lock-on-current.patch
-mm-remove-unused-alloc_page_vma_node.patch
-mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
+mm-mempool-add-else-to-split-mutually-exclusive-case.patch
+memblock-make-memblock_debug-and-related-functionality-private-fix.patch
+arch-drivers-replace-for_each_membock-with-for_each_mem_range-fix.patch
+mm.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
