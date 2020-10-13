@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1702AC43457
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:56:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59CE0C433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:57:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D20D42222E
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:56:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 236B722246
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:57:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602633416;
-	bh=thfvBQYVqxf+ssDdjOcetoODjOIxNkdIcCqgNk9q4os=;
+	s=default; t=1602633420;
+	bh=WGnmi9mAf2C/DobI1Es+t829I+zCkkB1mrr4P42tt6I=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=fVUmNaOLbY4l7hptGtfYdK5W+Rsi9weIc3JzYV2MPWyZbdIodKdRZLTERYhz7kRaJ
-	 kXuVeC44OWeF+pnlo3JH5QKU310oia/HvKwqa8d6jMwwGovX3hG18Y5QFi3B56OVMt
-	 Aa+xkFJwHYrzXRPOrINMnLPfqwcfTBC19Z/dgUio=
+	b=MUmAg1KxYBDdok94K3BLOgfHsFLV34LWwg2kgmGXg5BgJbOH2UfXh/OzOlhL7B+ht
+	 Mfbd5iM3ayZsun35R1KZaeKu/S+iezPpuiqdGl8zfY9D6h3tAFU4UsWDVzawzKTs8H
+	 GRJ3rnb593uozrLE7SndDxemcwRSikbKYLNwCjx0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388694AbgJMX44 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:56:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42692 "EHLO mail.kernel.org"
+        id S2388695AbgJMX47 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:56:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42744 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387742AbgJMX44 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:56:56 -0400
+        id S2387742AbgJMX47 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:56:59 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C01112222F;
-        Tue, 13 Oct 2020 23:56:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE9652223F;
+        Tue, 13 Oct 2020 23:56:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633416;
-        bh=thfvBQYVqxf+ssDdjOcetoODjOIxNkdIcCqgNk9q4os=;
+        s=default; t=1602633419;
+        bh=WGnmi9mAf2C/DobI1Es+t829I+zCkkB1mrr4P42tt6I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PKnd4hLQJ1PEAPFckAH5wKg7ph+r3+j8n6hgsh/7H7V/Aa5I7sm0kuCeZrabCgVE8
-         wv9hO6x8clbCVPAQ12yVoAAs0sYFTyFrq5aFA5NakE9BWJT8nm/pD/72bLQHE9jvCb
-         KkumOmS2W70gRnIGHAyR3YJh7On6dHraUDqm8qrA=
-Date:   Tue, 13 Oct 2020 16:56:55 -0700
+        b=0MYb0i0+l4eGoC0Gd7m7JhJ+NDX68DYzjTEPQtVSFZPkPl9XXb5j3isQUWgpkw4Yh
+         O5FcKDqQqetAS7zfc5V1ckI0Ao5R5uCWvaO19E9sDzAfWPV8UW/4dOmrrrh8M601AE
+         QvgKtOslEJIfo60hm35XMEaX3gEn5JtQv/XMKhrM=
+Date:   Tue, 13 Oct 2020 16:56:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chenxiang66@hisilicon.com,
-        david@redhat.com, ddstreet@ieee.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, sjenning@redhat.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 155/181] mm/zbud: remove redundant initialization
-Message-ID: <20201013235655.u5gEzxH1n%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, mateusznosek0@gmail.com, mgorman@suse.de,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 156/181] mm/compaction.c: micro-optimization
+ remove unnecessary branch
+Message-ID: <20201013235658.mJxIcj5ip%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,31 +54,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Xiang Chen <chenxiang66@hisilicon.com>
-Subject: mm/zbud: remove redundant initialization
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm/compaction.c: micro-optimization remove unnecessary branch
 
-zhdr is already initialized in the front of the function, so remove
-redundant initialization here.
+The same code can work both for 'zone->compact_considered > defer_limit'
+and 'zone->compact_considered >= defer_limit'.  In the latter there is one
+branch less which is more effective considering performance.
 
-Link: https://lkml.kernel.org/r/1600419885-191907-1-git-send-email-chenxiang66@hisilicon.com
-Signed-off-by: Xiang Chen <chenxiang66@hisilicon.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Link: https://lkml.kernel.org/r/20200913190448.28649-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zbud.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/compaction.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/zbud.c~mm-zbud-remove-redundant-initialization
-+++ a/mm/zbud.c
-@@ -367,7 +367,6 @@ int zbud_alloc(struct zbud_pool *pool, s
- 	spin_lock(&pool->lock);
+--- a/mm/compaction.c~mm-compactionc-micro-optimization-remove-unnecessary-branch
++++ a/mm/compaction.c
+@@ -180,11 +180,10 @@ bool compaction_deferred(struct zone *zo
+ 		return false;
  
- 	/* First, try to find an unbuddied zbud page. */
--	zhdr = NULL;
- 	for_each_unbuddied_list(i, chunks) {
- 		if (!list_empty(&pool->unbuddied[i])) {
- 			zhdr = list_first_entry(&pool->unbuddied[i],
+ 	/* Avoid possible overflow */
+-	if (++zone->compact_considered > defer_limit)
++	if (++zone->compact_considered >= defer_limit) {
+ 		zone->compact_considered = defer_limit;
+-
+-	if (zone->compact_considered >= defer_limit)
+ 		return false;
++	}
+ 
+ 	trace_mm_compaction_deferred(zone, order);
+ 
 _
