@@ -7,66 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E72D7C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49CEEC433E7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:05:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A75A922202
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:04:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F136E22202
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:05:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630254;
-	bh=TTNpBTNqyF8x5JcwHGLHQz0tV6BTu1G+EBH3BV1lQBg=;
+	s=default; t=1602630307;
+	bh=O/qFMGZW5PKuOgzHUp1qFBUMi3u480P+mhBtYgtvOoY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=v/q44V5iQlmorWg5LQ6YsGPPcv2xiL8ovP/wXAmOIpyOBd5vvycrnjfVMLCrP0Rin
-	 KgOngvlppY8kfrGcX3uGjLkf9VD0Zdovv32hQd5c4NiZqcGm305EznvqjRbajersi3
-	 41cCCByG9ndM1SNKp8HatXBrLGCETkbcXqze1lzw=
+	b=1vojtpTZdKZloxhHpL6M1layS5KpoGjYG6IahGZbeTCZdzhT5AhsUyvFeaYSrweCl
+	 r7kAbfBLL/qXvrHSaiBTpk+mmAzuqYnYtGA1X6GTiooh07ej25L8hiHy1PbAHJZdDx
+	 Rlt+iXVVzAMeW1d9Ae6iSxJdL9OwVsJtPdO0kvHo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727458AbgJMXEO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:04:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42222 "EHLO mail.kernel.org"
+        id S1727555AbgJMXFG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:05:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726894AbgJMXEO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:04:14 -0400
+        id S1726894AbgJMXFG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:05:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1624A22201;
-        Tue, 13 Oct 2020 23:04:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A7F99221FF;
+        Tue, 13 Oct 2020 23:05:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630253;
-        bh=TTNpBTNqyF8x5JcwHGLHQz0tV6BTu1G+EBH3BV1lQBg=;
+        s=default; t=1602630306;
+        bh=O/qFMGZW5PKuOgzHUp1qFBUMi3u480P+mhBtYgtvOoY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=c1pbDO4U9npTl3HQotpu/ZwF3yH8NDwpjeE2HbAi9g99cxjCY/D6FpkmJQUtFRUcI
-         qXpqDE64B2Dwc0doJujDr8GbaxiMvbl3VsWzt6MO+k5jFSQcPYgqfUgy6r5H3klHbY
-         QuYgeMGDxRH73t3gDakiQCskgcVLJ8Npekww1qAY=
-Date:   Tue, 13 Oct 2020 16:04:11 -0700
+        b=GtBsWcoKnf1apMs+myWjrJQ5SBwxXjQpndGAApF+mFC4fJUzPLhs8OrlnyWJgQuCk
+         QqQGFn48I7wvrXaJf04RVDSrXEjgXV8Diq1wFufqNhTkijmDyumxQ8n8tXepvSYeKp
+         vyBEY8b6hPJJipoFSH0gvR1S8yjPpujOfpXYAy8c=
+Date:   Tue, 13 Oct 2020 16:05:05 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
-        benh@kernel.crashing.org, bhelgaas@google.com,
-        boris.ostrovsky@oracle.com, bp@alien8.de, Brice.Goglin@inria.fr,
-        bskeggs@redhat.com, catalin.marinas@arm.com,
-        dan.j.williams@intel.com, daniel@ffwll.ch,
-        dave.hansen@linux.intel.com, dave.jiang@intel.com,
-        david@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com,
-        hulkci@huawei.com, ira.weiny@intel.com, jgg@mellanox.com,
-        jglisse@redhat.com, jgross@suse.com, jmoyer@redhat.com,
-        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
-        justin.he@arm.com, lkp@intel.com, luto@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        pasha.tatashin@soleen.com, paulus@ozlabs.org, peterz@infradead.org,
-        rafael.j.wysocki@intel.com, rdunlap@infradead.org,
-        richard.weiyang@linux.alibaba.com, rppt@linux.ibm.com,
-        sstabellini@kernel.org, tglx@linutronix.de,
-        thomas.lendacky@amd.com, vgoyal@redhat.com,
-        vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
+To:     dan.carpenter@oracle.com, dan.j.williams@intel.com, jgg@nvidia.com,
+        jglisse@redhat.com, joao.m.martins@oracle.com,
+        Julia.Lawall@lip6.fr, Markus.Elfring@web.de,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
+        vishal.l.verma@intel.com, weiyongjun1@huawei.com
 Subject:  [folded-merged]
- acpi-hmat-attach-a-device-for-each-soft-reserved-range-fix.patch removed
- from -mm tree
-Message-ID: <20201013230411.VuruZ5-Xn%akpm@linux-foundation.org>
+ mm-memremap_pages-convert-to-struct-range-fix.patch removed from -mm tree
+Message-ID: <20201013230505.ijCypJ5Ag%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -74,117 +57,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: require NUMA_KEEP_MEMINFO for phys_to_target_node=
-()
+     Subject: mm/hmm/test: use after free in dmirror_allocate_chunk()
 has been removed from the -mm tree.  Its filename was
-     acpi-hmat-attach-a-device-for-each-soft-reserved-range-fix.patch
+     mm-memremap_pages-convert-to-struct-range-fix.patch
 
-This patch was dropped because it was folded into acpi-hmat-attach-a-device=
--for-each-soft-reserved-range.patch
+This patch was dropped because it was folded into mm-memremap_pages-convert-to-struct-range.patch
 
 ------------------------------------------------------
-=46rom: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: require NUMA_KEEP_MEMINFO for phys_to_target_node()
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm/hmm/test: use after free in dmirror_allocate_chunk()
 
-phys_to_target_node() and memory_add_physaddr_to_nid() are only defined
-with both CONFIG_NUMA=3Dy and CONFIG_MEMORY_HOTPLUG=3Dy.  Oherwise we see:
+The error handling code does this:
 
-drivers/dax/hmem/device.o: in function `hmem_register_one':
-drivers/dax/hmem/device.c:85: undefined reference to `phys_to_target_node'
+err_free:
+	kfree(devmem);
+        ^^^^^^^^^^^^^
+err_release:
+	release_mem_region(devmem->pagemap.range.start, range_len(&devmem->pagemap.range));
+                           ^^^^^^^^
+The problem is that when we use "devmem->pagemap.range.start" the
+"devmem" pointer is either NULL or freed.
 
-lkp also reports such build failures:
+Neither the allocation nor the call to request_free_mem_region() has to
+be done under the lock so I moved those to the start of the function.
 
-ld.lld: error: undefined symbol: phys_to_target_node
-
-X86 is a special case in which both can be defined without depending on
-MEMORY_HOTPLUG=3Dy. The other case is powerpc (for
-memory_add_physaddr_to_nid) but like ARM64 dependencies, the
-arch-specific override requires CONFIG_NUMA and CONFIG_MEMORY_HOTPLUG.
-
-In all cases this ends up depending on CONFIG_NUMA_KEEP_MEMINFO to
-signal the presence of phys_to_target_node() which is what
-CONFIG_DEV_DAX_HMEM_DEVICES should depend on. Additionally, the X86
-arch-override is not selected unless X86_PMEM_LEGACY=3Dy. So on
-CONFIG_DEV_DAX_HMEM we select CONFIG_NUMA_KEEP_INFO ourselves if both
-NUMA and X86 are set.
-
-Link: https://lkml.kernel.org/r/aaae71a7-4846-f5cc-5acf-cf05fdb1f2dc@oracle=
-.com
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://lkml.kernel.org/r/20200926121402.GA7467@kadam
+Fixes: 1f9c4bb986d9 ("mm/memremap_pages: convert to 'struct range'")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Markus Elfring <Markus.Elfring@web.de>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hulk Robot <hulkci@huawei.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jason Yan <yanaijie@huawei.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/test_hmm.c |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
---- a/drivers/dax/Kconfig~acpi-hmat-attach-a-device-for-each-soft-reserved-=
-range-fix
-+++ a/drivers/dax/Kconfig
-@@ -35,6 +35,7 @@ config DEV_DAX_PMEM
- config DEV_DAX_HMEM
- 	tristate "HMEM DAX: direct access to 'specific purpose' memory"
- 	depends on EFI_SOFT_RESERVE
-+	select NUMA_KEEP_MEMINFO if (NUMA && X86)
- 	default DEV_DAX
- 	help
- 	  EFI 2.8 platforms, and others, may advertise 'specific purpose'
-@@ -49,6 +50,7 @@ config DEV_DAX_HMEM
- 	  Say M if unsure.
-=20
- config DEV_DAX_HMEM_DEVICES
-+	depends on NUMA_KEEP_MEMINFO # for phys_to_target_node()
- 	depends on DEV_DAX_HMEM && DAX=3Dy
- 	def_bool y
-=20
+--- a/lib/test_hmm.c~mm-memremap_pages-convert-to-struct-range-fix
++++ a/lib/test_hmm.c
+@@ -460,6 +460,21 @@ static bool dmirror_allocate_chunk(struc
+ 	unsigned long pfn_last;
+ 	void *ptr;
+ 
++	devmem = kzalloc(sizeof(*devmem), GFP_KERNEL);
++	if (!devmem)
++		return -ENOMEM;
++
++	res = request_free_mem_region(&iomem_resource, DEVMEM_CHUNK_SIZE,
++				      "hmm_dmirror");
++	if (IS_ERR(res))
++		goto err_devmem;
++
++	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
++	devmem->pagemap.range.start = res->start;
++	devmem->pagemap.range.end = res->end;
++	devmem->pagemap.ops = &dmirror_devmem_ops;
++	devmem->pagemap.owner = mdevice;
++
+ 	mutex_lock(&mdevice->devmem_lock);
+ 
+ 	if (mdevice->devmem_count == mdevice->devmem_capacity) {
+@@ -472,29 +487,14 @@ static bool dmirror_allocate_chunk(struc
+ 				sizeof(new_chunks[0]) * new_capacity,
+ 				GFP_KERNEL);
+ 		if (!new_chunks)
+-			goto err;
++			goto err_release;
+ 		mdevice->devmem_capacity = new_capacity;
+ 		mdevice->devmem_chunks = new_chunks;
+ 	}
+ 
+-	res = request_free_mem_region(&iomem_resource, DEVMEM_CHUNK_SIZE,
+-					"hmm_dmirror");
+-	if (IS_ERR(res))
+-		goto err;
+-
+-	devmem = kzalloc(sizeof(*devmem), GFP_KERNEL);
+-	if (!devmem)
+-		goto err_release;
+-
+-	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
+-	devmem->pagemap.range.start = res->start;
+-	devmem->pagemap.range.end = res->end;
+-	devmem->pagemap.ops = &dmirror_devmem_ops;
+-	devmem->pagemap.owner = mdevice;
+-
+ 	ptr = memremap_pages(&devmem->pagemap, numa_node_id());
+ 	if (IS_ERR(ptr))
+-		goto err_free;
++		goto err_release;
+ 
+ 	devmem->mdevice = mdevice;
+ 	pfn_first = devmem->pagemap.range.start >> PAGE_SHIFT;
+@@ -525,12 +525,12 @@ static bool dmirror_allocate_chunk(struc
+ 
+ 	return true;
+ 
+-err_free:
+-	kfree(devmem);
+ err_release:
+-	release_mem_region(devmem->pagemap.range.start, range_len(&devmem->pagemap.range));
+-err:
+ 	mutex_unlock(&mdevice->devmem_lock);
++	release_mem_region(devmem->pagemap.range.start, range_len(&devmem->pagemap.range));
++err_devmem:
++	kfree(devmem);
++
+ 	return false;
+ }
+ 
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-acpi-hmat-attach-a-device-for-each-soft-reserved-range.patch
-device-dax-make-align-a-per-device-property.patch
-dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
-device-dax-add-a-range-mapping-allocation-attribute.patch
+mm-memremap_pages-convert-to-struct-range.patch
+mm-hmm-test-fix-an-error-code-in-dmirror_allocate_chunk.patch
 
