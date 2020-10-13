@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E6AC43457
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB413C43467
 	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 582D821D7A
+	by mail.kernel.org (Postfix) with ESMTP id 9FA9E22227
 	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:51:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1602633080;
-	bh=NfHANz71e0zeMCmDscWvHhVHhtKECDL8lHMS0tn1Id8=;
+	bh=14h5JVSX5S20cCgYTwBecA2dIRGDsgHKElMk4lApZH8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Nbs1Bu21VXuaoeOOr52jQwm0goN9X50vQvjbU1LDetWplKCmZ2Od5JCOVcKOdNn1c
-	 ZeHxT12sCGwY4kRng3/G+8FcOV1wGCy7W7+puaPliStHgTdm2n0+nsXyhwlFTU6pFv
-	 P6VoBLZ3zZ6mlWIZGlhy12JcGni/vyO6kjO5R6FA=
+	b=TxX7SQOeKGRGZpGPC3Oh159o1719kM0TtHYHu08ZFr3FSmKt2cNLQwr+5siny7SvT
+	 LuLzKQdjEKAvZUGrEYBv9XgMiNKsKZrU+5TG6vDU54czHvIhH/Ppff6+OOVYYkoDsJ
+	 hLzUEENoVDENzAfP624sJCdz86uMRgv15ax7p/Lc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730416AbgJMXvT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:51:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36054 "EHLO mail.kernel.org"
+        id S1730409AbgJMXvU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:51:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730412AbgJMXvT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:51:19 -0400
+        id S1730402AbgJMXvM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:51:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1888B21D81;
-        Tue, 13 Oct 2020 23:51:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 312EE22201;
+        Tue, 13 Oct 2020 23:51:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602633078;
-        bh=NfHANz71e0zeMCmDscWvHhVHhtKECDL8lHMS0tn1Id8=;
+        s=default; t=1602633072;
+        bh=14h5JVSX5S20cCgYTwBecA2dIRGDsgHKElMk4lApZH8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=bKNlXd91ghb54Cprs0352HAdFVnRHuGBYWxlF0SqY6O4G47SfFG//TXKf9ka8DaB7
-         jWO5plQvMljmkjPjeGauD4xIevJa6b5JeJjdXUr3IO7AW0hpTII0B1oiBLTHb8sI4O
-         LQwXs68un1X3rn3zCormc7al3KClg6WKcxClFqFs=
-Date:   Tue, 13 Oct 2020 16:51:17 -0700
+        b=fVnhFks4Hp9360oFLyMM6jyylrMNHBq48ZArzu0Nnx8UB8csLS+yCHPsLnmwU/O5I
+         1PZWq8Aq5mhOM62B6bya/mArZczRmmG7mCXXYqRej8+DqH0TN55RweC+Rj0A5bE/No
+         FWZfmhnE2mGETe5M5Yr352oFqFWMWXgQMpwo0Fqc=
+Date:   Tue, 13 Oct 2020 16:51:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        chris@chris-wilson.co.uk, hannes@cmpxchg.org, hughd@google.com,
-        jani.nikula@linux.intel.com, linux-mm@kvack.org,
-        matthew.auld@intel.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, william.kucharski@oracle.com,
-        willy@infradead.org, ying.huang@intel.com
-Subject:  [patch 054/181] mm: factor find_get_incore_page out of
- mincore_page
-Message-ID: <20201013235117.BCOZHNo0D%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org
+Subject:  [patch 052/181] mm/debug.c: do not dereference i_ino
+ blindly
+Message-ID: <20201013235110.NHDW__01-%akpm@linux-foundation.org>
 In-Reply-To: <20201013164658.3bfd96cc224d8923e66a9f4e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -57,160 +54,70 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: factor find_get_incore_page out of mincore_page
+Subject: mm/debug.c: do not dereference i_ino blindly
 
-Patch series "Return head pages from find_*_entry", v2.
+__dump_page() checks i_dentry is fetchable and i_ino is earlier in the
+struct than i_ino, so it ought to work fine, but it's possible that struct
+randomisation has reordered i_ino after i_dentry and the pointer is just
+wild enough that i_dentry is fetchable and i_ino isn't.
 
-This patch series started out as part of the THP patch set, but it has
-some nice effects along the way and it seems worth splitting it out and
-submitting separately.
+Also print the inode number if the dentry is invalid.
 
-Currently find_get_entry() and find_lock_entry() return the page
-corresponding to the requested index, but the first thing most callers do
-is find the head page, which we just threw away.  As part of auditing all
-the callers, I found some misuses of the APIs and some plain
-inefficiencies that I've fixed.
-
-The diffstat is unflattering, but I added more kernel-doc and a new wrapper.
-
-
-This patch (of 8);
-
-Provide this functionality from the swap cache.  It's useful for
-more than just mincore().
-
-Link: https://lkml.kernel.org/r/20200910183318.20139-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20200910183318.20139-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200819185710.28180-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Matthew Auld <matthew.auld@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    7 +++++++
- mm/mincore.c         |   28 ++--------------------------
- mm/swap_state.c      |   32 ++++++++++++++++++++++++++++++++
- 3 files changed, 41 insertions(+), 26 deletions(-)
+ mm/debug.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/include/linux/swap.h~mm-factor-find_get_incore_page-out-of-mincore_page
-+++ a/include/linux/swap.h
-@@ -427,6 +427,7 @@ extern void free_pages_and_swap_cache(st
- extern struct page *lookup_swap_cache(swp_entry_t entry,
- 				      struct vm_area_struct *vma,
- 				      unsigned long addr);
-+struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index);
- extern struct page *read_swap_cache_async(swp_entry_t, gfp_t,
- 			struct vm_area_struct *vma, unsigned long addr,
- 			bool do_poll);
-@@ -570,6 +571,12 @@ static inline struct page *lookup_swap_c
- 	return NULL;
- }
+--- a/mm/debug.c~mm-debug-do-not-dereference-i_ino-blindly
++++ a/mm/debug.c
+@@ -120,6 +120,7 @@ void __dump_page(struct page *page, cons
+ 		struct hlist_node *dentry_first;
+ 		struct dentry *dentry_ptr;
+ 		struct dentry dentry;
++		unsigned long ino;
  
-+static inline
-+struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index)
-+{
-+	return find_get_page(mapping, index);
-+}
-+
- static inline int add_to_swap(struct page *page)
- {
- 	return 0;
---- a/mm/mincore.c~mm-factor-find_get_incore_page-out-of-mincore_page
-+++ a/mm/mincore.c
-@@ -48,7 +48,7 @@ static int mincore_hugetlb(pte_t *pte, u
-  * and is up to date; i.e. that no page-in operation would be required
-  * at this time if an application were to map and access this page.
-  */
--static unsigned char mincore_page(struct address_space *mapping, pgoff_t pgoff)
-+static unsigned char mincore_page(struct address_space *mapping, pgoff_t index)
- {
- 	unsigned char present = 0;
- 	struct page *page;
-@@ -59,31 +59,7 @@ static unsigned char mincore_page(struct
- 	 * any other file mapping (ie. marked !present and faulted in with
- 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
- 	 */
--#ifdef CONFIG_SWAP
--	if (shmem_mapping(mapping)) {
--		page = find_get_entry(mapping, pgoff);
--		/*
--		 * shmem/tmpfs may return swap: account for swapcache
--		 * page too.
--		 */
--		if (xa_is_value(page)) {
--			swp_entry_t swp = radix_to_swp_entry(page);
--			struct swap_info_struct *si;
--
--			/* Prevent swap device to being swapoff under us */
--			si = get_swap_device(swp);
--			if (si) {
--				page = find_get_page(swap_address_space(swp),
--						     swp_offset(swp));
--				put_swap_device(si);
--			} else
--				page = NULL;
--		}
--	} else
--		page = find_get_page(mapping, pgoff);
--#else
--	page = find_get_page(mapping, pgoff);
--#endif
-+	page = find_get_incore_page(mapping, index);
- 	if (page) {
- 		present = PageUptodate(page);
- 		put_page(page);
---- a/mm/swap_state.c~mm-factor-find_get_incore_page-out-of-mincore_page
-+++ a/mm/swap_state.c
-@@ -21,6 +21,7 @@
- #include <linux/vmalloc.h>
- #include <linux/swap_slots.h>
- #include <linux/huge_mm.h>
-+#include <linux/shmem_fs.h>
- #include "internal.h"
+ 		/*
+ 		 * mapping can be invalid pointer and we don't want to crash
+@@ -136,21 +137,22 @@ void __dump_page(struct page *page, cons
+ 			goto out_mapping;
+ 		}
  
- /*
-@@ -414,6 +415,37 @@ struct page *lookup_swap_cache(swp_entry
- 	return page;
- }
+-		if (get_kernel_nofault(dentry_first, &host->i_dentry.first)) {
++		if (get_kernel_nofault(dentry_first, &host->i_dentry.first) ||
++		    get_kernel_nofault(ino, &host->i_ino)) {
+ 			pr_warn("aops:%ps with invalid host inode %px\n",
+ 					a_ops, host);
+ 			goto out_mapping;
+ 		}
  
-+/**
-+ * find_get_incore_page - Find and get a page from the page or swap caches.
-+ * @mapping: The address_space to search.
-+ * @index: The page cache index.
-+ *
-+ * This differs from find_get_page() in that it will also look for the
-+ * page in the swap cache.
-+ *
-+ * Return: The found page or %NULL.
-+ */
-+struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index)
-+{
-+	swp_entry_t swp;
-+	struct swap_info_struct *si;
-+	struct page *page = find_get_entry(mapping, index);
-+
-+	if (!xa_is_value(page))
-+		return page;
-+	if (!shmem_mapping(mapping))
-+		return NULL;
-+
-+	swp = radix_to_swp_entry(page);
-+	/* Prevent swapoff from happening to us */
-+	si = get_swap_device(swp);
-+	if (!si)
-+		return NULL;
-+	page = find_get_page(swap_address_space(swp), swp_offset(swp));
-+	put_swap_device(si);
-+	return page;
-+}
-+
- struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
- 			struct vm_area_struct *vma, unsigned long addr,
- 			bool *new_page_allocated)
+ 		if (!dentry_first) {
+-			pr_warn("aops:%ps ino:%lx\n", a_ops, host->i_ino);
++			pr_warn("aops:%ps ino:%lx\n", a_ops, ino);
+ 			goto out_mapping;
+ 		}
+ 
+ 		dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
+ 		if (get_kernel_nofault(dentry, dentry_ptr)) {
+-			pr_warn("aops:%ps with invalid dentry %px\n", a_ops,
+-					dentry_ptr);
++			pr_warn("aops:%ps ino:%lx with invalid dentry %px\n",
++					a_ops, ino, dentry_ptr);
+ 		} else {
+ 			/*
+ 			 * if dentry is corrupted, the %pd handler may still
+@@ -158,7 +160,7 @@ void __dump_page(struct page *page, cons
+ 			 * corrupted struct page
+ 			 */
+ 			pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n",
+-					a_ops, host->i_ino, &dentry);
++					a_ops, ino, &dentry);
+ 		}
+ 	}
+ out_mapping:
 _
