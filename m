@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C89C433E7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:06:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B99CC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:07:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76DBD22203
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:06:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED24422203
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Oct 2020 23:07:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602630405;
-	bh=7eyUtldlMp1VslsS0D7pFn+Lre0TNm5Sn6jpVdSp0Tw=;
+	s=default; t=1602630472;
+	bh=Qs+5xBqudFf/JwMKkiPYtnNczdDuH5Bgnv51TcVArLY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=qkENFUn+a5Or2z0zSHvQ77tYwAZYdEPhGQNSgzTnFCecD/6tsNew5DephQVK8gnuJ
-	 HASE0kR3anADETlTxhglktyNJ4JIjqxtrTdbbqh67M9HV6M0bz+okzyM3ytUEHsfyQ
-	 qVNVcJVR/8AvBEVms+8CG4Mfg1lb7TTn6SCpsUws=
+	b=XoLevj7SGUW3xLoYmIFNUGegLDM25Tz2jGTU/U1K/+ys1pT/cqIQMMxG5olDnDnI8
+	 ZeT4IIzwzMZ6zQLEuBSIq0BUPe2JgJVdbBHhBH61HtBFoiZGWJfe0Y7ktcHMKXMpBT
+	 NVarz65yRWvsnpQr2Sspripx6ibp/HfgnhCuuy4k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727623AbgJMXGp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Oct 2020 19:06:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42954 "EHLO mail.kernel.org"
+        id S1727669AbgJMXHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Oct 2020 19:07:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43244 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726894AbgJMXGp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Oct 2020 19:06:45 -0400
+        id S1726894AbgJMXHv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Oct 2020 19:07:51 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 57DB822202;
-        Tue, 13 Oct 2020 23:06:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5F92421D40;
+        Tue, 13 Oct 2020 23:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602630404;
-        bh=7eyUtldlMp1VslsS0D7pFn+Lre0TNm5Sn6jpVdSp0Tw=;
+        s=default; t=1602630470;
+        bh=Qs+5xBqudFf/JwMKkiPYtnNczdDuH5Bgnv51TcVArLY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=dzrodfrr9mPg24gT+6QsSgyw4d61/bCo2od4JgS1jsWsf7EIQd+WUUgyQWvnpvri7
-         7we84clj9FaW3YaXd/JayNtOUaKciFk7kelLP3HVLrB0YgZmnSeeSV06frV6gkwZUU
-         f2bifDqpqfyIlqRsY3sdk8hQQuW0Du6E/1NVlXJM=
-Date:   Tue, 13 Oct 2020 16:06:43 -0700
+        b=Bt4WP3b2XR47S8koPzuElp8eoBbFYt0fj6KipAu4jwDLZIM41bocTTes3q8zECXbP
+         fVaEjughegxQAbd8H7z8kZf7MAALhOPNaBAI8LBtBGdr6vHQbEaN/bpbb5BTmxhiw0
+         fbL5ARma0gDxyPmzjmey5pq59mX/IQWzaerO8fLg=
+Date:   Tue, 13 Oct 2020 16:07:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     lkp@intel.com, mm-commits@vger.kernel.org, willy@infradead.org
+To:     mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        willy@infradead.org
 Subject:  [folded-merged]
- mm-convert-find_get_entry-to-return-the-head-page-fix.patch removed from
- -mm tree
-Message-ID: <20201013230643.0y7pOnHC0%akpm@linux-foundation.org>
+ mm-shmem-return-head-page-from-find_lock_entry-fix.patch removed from -mm
+ tree
+Message-ID: <20201013230749.u4X1BCBCf%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,35 +55,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-convert-find_get_entry-to-return-the-head-page-fix
+     Subject: mm-shmem-return-head-page-from-find_lock_entry-fix
 has been removed from the -mm tree.  Its filename was
-     mm-convert-find_get_entry-to-return-the-head-page-fix.patch
+     mm-shmem-return-head-page-from-find_lock_entry-fix.patch
 
-This patch was dropped because it was folded into mm-convert-find_get_entry-to-return-the-head-page.patch
+This patch was dropped because it was folded into mm-shmem-return-head-page-from-find_lock_entry.patch
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-convert-find_get_entry-to-return-the-head-page-fix
+Subject: mm-shmem-return-head-page-from-find_lock_entry-fix
 
-Link: https://lkml.kernel.org/r/20200914112738.GM6583@casper.infradead.org
-Reported-by: kernel test robot <lkp@intel.com>
+fix BUG()s
+
+
+[1] https://lore.kernel.org/linux-mm/20200912032042.GA6583@casper.infradead.org/
+
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/shmem.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/swap_state.c~mm-convert-find_get_entry-to-return-the-head-page-fix
-+++ a/mm/swap_state.c
-@@ -431,6 +431,8 @@ struct page *find_get_incore_page(struct
- 	struct swap_info_struct *si;
- 	struct page *page = find_get_entry(mapping, index);
+--- a/mm/shmem.c~mm-shmem-return-head-page-from-find_lock_entry-fix
++++ a/mm/shmem.c
+@@ -1795,7 +1795,7 @@ static int shmem_getpage_gfp(struct inod
+ 	struct mm_struct *charge_mm;
+ 	struct page *page;
+ 	enum sgp_type sgp_huge = sgp;
+-	pgoff_t hindex;
++	pgoff_t hindex = index;
+ 	int error;
+ 	int once = 0;
+ 	int alloced = 0;
+@@ -1824,6 +1824,8 @@ repeat:
+ 		return error;
+ 	}
  
-+	if (!page)
-+		return page;
- 	if (!xa_is_value(page))
- 		return find_subpage(page, index);
- 	if (!shmem_mapping(mapping))
++	if (page)
++		hindex = page->index;
+ 	if (page && sgp == SGP_WRITE)
+ 		mark_page_accessed(page);
+ 
+@@ -1834,6 +1836,7 @@ repeat:
+ 		unlock_page(page);
+ 		put_page(page);
+ 		page = NULL;
++		hindex = index;
+ 	}
+ 	if (page || sgp == SGP_READ)
+ 		goto out;
+@@ -1984,7 +1987,7 @@ clear:
+ 		goto unlock;
+ 	}
+ out:
+-	*pagep = page + index - page->index;
++	*pagep = page + index - hindex;
+ 	return 0;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -95,7 +126,6 @@ proc-optimise-smaps-for-shmem-entries.patch
 i915-use-find_lock_page-instead-of-find_lock_entry.patch
 mm-convert-find_get_entry-to-return-the-head-page.patch
 mm-shmem-return-head-page-from-find_lock_entry.patch
-mm-shmem-return-head-page-from-find_lock_entry-fix.patch
 mm-add-find_lock_head.patch
 mm-filemap-fix-filemap_map_pages-for-thp.patch
 mm-account-pmd-tables-like-pte-tables.patch
