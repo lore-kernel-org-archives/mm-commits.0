@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31CFFC43457
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E5F4C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D370F22258
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C74892225E
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709478;
-	bh=ivWA5G7FqC3R+TPW01d+C46Ian9PAFwjk1iAolaG69Y=;
+	s=default; t=1602709482;
+	bh=sFVqs245O+ouYGK0z0ZRoBDna9ZHlN7g2oc/DuzPIgA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=QPyg51ss4wmvKyqRf6Z+XCFLnzmYHbtMRwZKSwcvs88EmS+2Rnyba4edq9QFVLRCt
-	 03Wnc/lyp3MqLptD+UKcpW0vQwnwd88AJ/f0A9mxlta0gAZy+zYWVSm+vIM//W3AOD
-	 jvQxI6T/AEykJ0m7IX+aU2RaxdN9CJTE/0ScXLfk=
+	b=l2HDjl2fwW3qois7YEvEEghRzZFgvyXG5wCe9Hh0h3MiTlLx+yveS4N+l9tfrrK6E
+	 9Or/WkuNlG9sRXz4/RP16cnPRuDXQsHHworgaBcuPmV5bRLBJ/FT2n4crompgnUM/D
+	 PDk4QXbnM86k623MCohBrXU080eJ5f9u1al5lz2c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728427AbgJNVEi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:04:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54954 "EHLO mail.kernel.org"
+        id S1730671AbgJNVEm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:04:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728536AbgJNVEi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:04:38 -0400
+        id S1728536AbgJNVEm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:04:42 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0EAC522253;
-        Wed, 14 Oct 2020 21:04:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E908B22258;
+        Wed, 14 Oct 2020 21:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709477;
-        bh=ivWA5G7FqC3R+TPW01d+C46Ian9PAFwjk1iAolaG69Y=;
+        s=default; t=1602709481;
+        bh=sFVqs245O+ouYGK0z0ZRoBDna9ZHlN7g2oc/DuzPIgA=;
         h=Date:From:To:Subject:From;
-        b=XNoOxWFkclOuq2OmXmwn8tb3/INrJejEOKc97sHlLl8KALMZ+yqIVfjIGV65RNhya
-         Kk2ezEmBWHwVh13Qp7B57+6ABB73F1R68hTbEnwEMgTYRLzCh5Vhge824IxOMz8vbi
-         UGHApZNF5+0xakHNzx6y4QHGq90MVQp52CzbRTOA=
-Date:   Wed, 14 Oct 2020 14:04:35 -0700
+        b=RTCIsp44yAUoqeC54SLDWnA3L1HG78rdzdmDV1muPx0baNR6lknhoGaFp1nP65hYV
+         lq4IfwIA8FVw5DX1eC/Rqe2ddHuFG08jl+xDuYPxsyClYDLQnfJDvVqNvAoXyq+5HI
+         n5RwRnrq9alx4WxL20GLZkahCW1ofzCGvVDdA7Hc=
+Date:   Wed, 14 Oct 2020 14:04:39 -0700
 From:   akpm@linux-foundation.org
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -52,9 +52,9 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
 Subject:  [merged]
- mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch removed
- from -mm tree
-Message-ID: <20201014210435.yGwjVouzn%akpm@linux-foundation.org>
+ memblock-make-for_each_memblock_type-iterator-private.patch removed from
+ -mm tree
+Message-ID: <20201014210439.xU2Ymianw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -63,27 +63,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mircoblaze: drop unneeded NUMA and sparsemem initializations
+     Subject: memblock: make for_each_memblock_type() iterator private
 has been removed from the -mm tree.  Its filename was
-     mircoblaze-drop-unneeded-numa-and-sparsemem-initializations.patch
+     memblock-make-for_each_memblock_type-iterator-private.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mircoblaze: drop unneeded NUMA and sparsemem initializations
+Subject: memblock: make for_each_memblock_type() iterator private
 
-microblaze does not support neither NUMA not SPARSMEM, so there is no
-point to call memblock_set_node() and
-sparse_memory_present_with_active_regions() functions during microblaze
-memory initialization.
+for_each_memblock_type() is not used outside mm/memblock.c, move it there
+from include/linux/memblock.h
 
-Remove these calls and the surrounding code.
-
-Link: https://lkml.kernel.org/r/20200818151634.14343-8-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20200818151634.14343-9-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -113,40 +109,38 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/mm/init.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ include/linux/memblock.h |    5 -----
+ mm/memblock.c            |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/microblaze/mm/init.c~mircoblaze-drop-unneeded-numa-and-sparsemem-initializations
-+++ a/arch/microblaze/mm/init.c
-@@ -108,9 +108,8 @@ static void __init paging_init(void)
+--- a/include/linux/memblock.h~memblock-make-for_each_memblock_type-iterator-private
++++ a/include/linux/memblock.h
+@@ -552,11 +552,6 @@ static inline unsigned long memblock_reg
+ 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+ 	     region++)
  
- void __init setup_memory(void)
- {
--	struct memblock_region *reg;
+-#define for_each_memblock_type(i, memblock_type, rgn)			\
+-	for (i = 0, rgn = &memblock_type->regions[0];			\
+-	     i < memblock_type->cnt;					\
+-	     i++, rgn = &memblock_type->regions[i])
 -
- #ifndef CONFIG_MMU
-+	struct memblock_region *reg;
- 	u32 kernel_align_start, kernel_align_size;
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
+ 				     unsigned long numentries,
+--- a/mm/memblock.c~memblock-make-for_each_memblock_type-iterator-private
++++ a/mm/memblock.c
+@@ -132,6 +132,11 @@ struct memblock_type physmem = {
+ };
+ #endif
  
- 	/* Find main memory where is the kernel */
-@@ -164,17 +163,6 @@ void __init setup_memory(void)
- 	pr_info("%s: max_low_pfn: %#lx\n", __func__, max_low_pfn);
- 	pr_info("%s: max_pfn: %#lx\n", __func__, max_pfn);
- 
--	/* Add active regions with valid PFNs */
--	for_each_memblock(memory, reg) {
--		unsigned long start_pfn, end_pfn;
--
--		start_pfn = memblock_region_memory_base_pfn(reg);
--		end_pfn = memblock_region_memory_end_pfn(reg);
--		memblock_set_node(start_pfn << PAGE_SHIFT,
--				  (end_pfn - start_pfn) << PAGE_SHIFT,
--				  &memblock.memory, 0);
--	}
--
- 	paging_init();
- }
- 
++#define for_each_memblock_type(i, memblock_type, rgn)			\
++	for (i = 0, rgn = &memblock_type->regions[0];			\
++	     i < memblock_type->cnt;					\
++	     i++, rgn = &memblock_type->regions[i])
++
+ int memblock_debug __initdata_memblock;
+ static bool system_has_some_mirror __initdata_memblock = false;
+ static int memblock_can_resize __initdata_memblock;
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
