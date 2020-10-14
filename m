@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C0AAC433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43644C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBA3C2076D
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB0A02076D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709056;
-	bh=+Js5/mb/1opbqMOuqSIwaNV/EwNmXtkCK2LkEE6cOF4=;
+	s=default; t=1602709061;
+	bh=Z6YC4zBrd02tunlxrGgyNpvsYc4nsx72PDYI6UFLC3A=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=XRBA9CnotBh8UWF2uqhbNACED479/XUiGDciQ+MkLb9NQMFM96tx+Jl5TWI5YTXeU
-	 ie+RPWYxoUQwA+qbZx6QYxpalFRaHMi/jlppVNdj3ln1wC+sZKWbn1TAWISRybvOJl
-	 hnqTk0dlHHdJgKqLTWC1P3cL08JLWgOy/L4fVAFQ=
+	b=sn1IyU/6Col5n4zGwW5Tr0mi1t6L4bGfs4j4mxxIvTw2Zp+nCldvjExM+RTPuRo+D
+	 CaQTuLdVkB/6qKS8bNHTUOI1KwyzkHDqEKKzfBixx/bfTbnQChN06px09R6ud6P8w+
+	 mrgAM8tvrYXkg6o7WyhzkkquP9+UKEjoxC20yFmQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389095AbgJNU5g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:57:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48136 "EHLO mail.kernel.org"
+        id S2389452AbgJNU5l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:57:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387573AbgJNU5g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:57:36 -0400
+        id S2387573AbgJNU5l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:57:41 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2F3382224D;
-        Wed, 14 Oct 2020 20:57:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE3CC2068E;
+        Wed, 14 Oct 2020 20:57:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709055;
-        bh=+Js5/mb/1opbqMOuqSIwaNV/EwNmXtkCK2LkEE6cOF4=;
+        s=default; t=1602709060;
+        bh=Z6YC4zBrd02tunlxrGgyNpvsYc4nsx72PDYI6UFLC3A=;
         h=Date:From:To:Subject:From;
-        b=PyeBF407UYqhTUw3iAlY7tMdQkjbyhm2uUsPLOsBbvqSuid3wWlzGo0jz5+ArzLYs
-         +mDgmxfPNa8FoSJS9QEOhOhXoi3zRFly1/X0zydeYYDwmoSmU5Blzkyj7cFjedD2qT
-         Lcl3b2Qcdl3QExgnmPSaTAp5VFJKImkkrhBcvtXs=
-Date:   Wed, 14 Oct 2020 13:57:32 -0700
+        b=BkA7UvUNempl9wWNvNv4Sc2VlX5cW11iWwKtdxjHPJXGsNC2hOjHq76+dNaitCGGW
+         KCcfmx8kZHaZE0RwXEL5i3xZGKSuBaT/PPxCL34axpxFAxJ4WItGDrZX6xgU89PTuK
+         chEfMSXSntL+bAuRVbmtJ2j8ElZ/TTR4MAbDZgTU=
+Date:   Wed, 14 Oct 2020 13:57:37 -0700
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         benh@kernel.crashing.org, bhelgaas@google.com,
@@ -59,9 +59,9 @@ To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         thomas.lendacky@amd.com, vgoyal@redhat.com,
         vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
 Subject:  [merged]
- device-dax-kmem-move-resource-name-tracking-to-drvdata.patch removed from
- -mm tree
-Message-ID: <20201014205732.M8nRiIAyA%akpm@linux-foundation.org>
+ device-dax-kmem-replace-release_resource-with-release_mem_region.patch
+ removed from -mm tree
+Message-ID: <20201014205737.O89Jr1J08%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -73,25 +73,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax/kmem: move resource name tracking to drvdata
+     Subject: device-dax/kmem: replace release_resource() with release_mem_=
+region()
 has been removed from the -mm tree.  Its filename was
-     device-dax-kmem-move-resource-name-tracking-to-drvdata.patch
+     device-dax-kmem-replace-release_resource-with-release_mem_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax/kmem: move resource name tracking to drvdata
+Subject: device-dax/kmem: replace release_resource() with release_mem_regio=
+n()
 
 Towards removing the mode specific @dax_kmem_res attribute from the
-generic 'struct dev_dax', and preparing for multi-range support, move
-resource name tracking to driver data.  The memory for the resource name
-needs to have its own lifetime separate from the device bind lifetime for
-cases where the driver is unbound, but the kmem range could not be
-unplugged from the page allocator.
+generic 'struct dev_dax', and preparing for multi-range support, change
+the kmem driver to use the idiomatic release_mem_region() to pair with the
+initial request_mem_region().  This also eliminates the need to open code
+the release of the resource allocated by request_mem_region().
 
-Link: https://lkml.kernel.org/r/160106111639.30709.17624822766862009183.stg=
+As there are no more dax_kmem_res users, delete this struct member.
+
+Link: https://lkml.kernel.org/r/160106112239.30709.15909567572288425294.stg=
 it@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -141,65 +144,103 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/dax/dax-private.h |    3 ---
+ drivers/dax/kmem.c        |   20 +++++++-------------
+ 2 files changed, 7 insertions(+), 16 deletions(-)
 
---- a/drivers/dax/kmem.c~device-dax-kmem-move-resource-name-tracking-to-drv=
-data
+--- a/drivers/dax/dax-private.h~device-dax-kmem-replace-release_resource-wi=
+th-release_mem_region
++++ a/drivers/dax/dax-private.h
+@@ -42,8 +42,6 @@ struct dax_region {
+  * @dev - device core
+  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+  * @range: resource range for the instance
+- * @dax_mem_res: physical address range of hotadded DAX memory
+- * @dax_mem_name: name for hotadded DAX memory via add_memory_driver_manag=
+ed()
+  */
+ struct dev_dax {
+ 	struct dax_region *region;
+@@ -52,7 +50,6 @@ struct dev_dax {
+ 	struct device dev;
+ 	struct dev_pagemap *pgmap;
+ 	struct range range;
+-	struct resource *dax_kmem_res;
+ };
+=20
+ static inline u64 range_len(struct range *range)
+--- a/drivers/dax/kmem.c~device-dax-kmem-replace-release_resource-with-rele=
+ase_mem_region
 +++ a/drivers/dax/kmem.c
-@@ -34,7 +34,7 @@ int dev_dax_kmem_probe(struct device *de
+@@ -33,7 +33,7 @@ int dev_dax_kmem_probe(struct device *de
+ {
  	struct dev_dax *dev_dax =3D to_dev_dax(dev);
  	struct range range =3D dax_kmem_range(dev_dax);
- 	struct resource *new_res;
--	const char *new_res_name;
-+	char *res_name;
+-	struct resource *new_res;
++	struct resource *res;
+ 	char *res_name;
  	int numa_node;
  	int rc;
-=20
-@@ -51,15 +51,15 @@ int dev_dax_kmem_probe(struct device *de
- 		return -EINVAL;
- 	}
-=20
--	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
--	if (!new_res_name)
-+	res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
-+	if (!res_name)
+@@ -56,8 +56,8 @@ int dev_dax_kmem_probe(struct device *de
  		return -ENOMEM;
 =20
  	/* Region is permanently reserved if hotremove fails. */
--	new_res =3D request_mem_region(range.start, range_len(&range), new_res_na=
-me);
-+	new_res =3D request_mem_region(range.start, range_len(&range), res_name);
- 	if (!new_res) {
+-	new_res =3D request_mem_region(range.start, range_len(&range), res_name);
+-	if (!new_res) {
++	res =3D request_mem_region(range.start, range_len(&range), res_name);
++	if (!res) {
  		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n", range.start, r=
 ange.end);
--		kfree(new_res_name);
-+		kfree(res_name);
+ 		kfree(res_name);
  		return -EBUSY;
- 	}
-=20
-@@ -80,9 +80,11 @@ int dev_dax_kmem_probe(struct device *de
- 	if (rc) {
- 		release_resource(new_res);
- 		kfree(new_res);
--		kfree(new_res_name);
-+		kfree(res_name);
- 		return rc;
- 	}
-+
-+	dev_set_drvdata(dev, res_name);
- 	dev_dax->dax_kmem_res =3D new_res;
-=20
- 	return 0;
-@@ -94,7 +96,7 @@ static int dev_dax_kmem_remove(struct de
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
- 	struct range range =3D dax_kmem_range(dev_dax);
- 	struct resource *res =3D dev_dax->dax_kmem_res;
--	const char *res_name =3D res->name;
-+	const char *res_name =3D dev_get_drvdata(dev);
- 	int rc;
+@@ -69,23 +69,20 @@ int dev_dax_kmem_probe(struct device *de
+ 	 * inherit flags from the parent since it may set new flags
+ 	 * unknown to us that will break add_memory() below.
+ 	 */
+-	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
++	res->flags =3D IORESOURCE_SYSTEM_RAM;
 =20
  	/*
+ 	 * Ensure that future kexec'd kernels will not treat this as RAM
+ 	 * automatically.
+ 	 */
+-	rc =3D add_memory_driver_managed(numa_node, new_res->start,
+-				       resource_size(new_res), kmem_name);
++	rc =3D add_memory_driver_managed(numa_node, range.start, range_len(&range=
+), kmem_name);
+ 	if (rc) {
+-		release_resource(new_res);
+-		kfree(new_res);
++		release_mem_region(range.start, range_len(&range));
+ 		kfree(res_name);
+ 		return rc;
+ 	}
+=20
+ 	dev_set_drvdata(dev, res_name);
+-	dev_dax->dax_kmem_res =3D new_res;
+=20
+ 	return 0;
+ }
+@@ -95,7 +92,6 @@ static int dev_dax_kmem_remove(struct de
+ {
+ 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
+ 	struct range range =3D dax_kmem_range(dev_dax);
+-	struct resource *res =3D dev_dax->dax_kmem_res;
+ 	const char *res_name =3D dev_get_drvdata(dev);
+ 	int rc;
+=20
+@@ -114,10 +110,8 @@ static int dev_dax_kmem_remove(struct de
+ 	}
+=20
+ 	/* Release and free dax resources */
+-	release_resource(res);
+-	kfree(res);
++	release_mem_region(range.start, range_len(&range));
+ 	kfree(res_name);
+-	dev_dax->dax_kmem_res =3D NULL;
+=20
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
