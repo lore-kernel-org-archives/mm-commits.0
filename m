@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61B73C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A83EC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1234922248
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C549221FF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709419;
-	bh=Djm8DiVySOMeUYrRd0riAjZBy+XOb3/gbWgfMBUJCBw=;
+	s=default; t=1602709424;
+	bh=vNzs20QlZKEiYgUE2WZdif8hDUnhb2PUJEpwmFXcstY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=MBDSMc+oIBs8Y9Yeyu26bRTLvrCt2JebyjXPMwCM8ow7Q8qZc1x0r+dBgsPBcnsQD
-	 dFO3R7s/5xoUftfHjd9I18TjMTSaXoCcEdLLfp02Fv8HLvp5LfR206+1ipKLiVcEFQ
-	 5XrGNRGu2UseAQjrtiZJmrgdRCaNcXpVBCLhGbVg=
+	b=D/gsxkPp2FZm0AxQkZmQ4tmreF8fbvRCxzlQsHpschsA/ZCAYHgRKuAFHqWKqMG1N
+	 Qw0kdSy9+ZY21VMMAcfvWmBY+MyOhnI+9OyI26gSEWuFPbKZZWc1BJBLLqZ0qM7n/x
+	 LhgnZTOhYB+kqzcXsqe0AzufTaZ+iUq+F/NlTrSU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730532AbgJNVDi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:03:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53348 "EHLO mail.kernel.org"
+        id S1730545AbgJNVDn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:03:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726099AbgJNVDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:03:38 -0400
+        id S1726099AbgJNVDn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:03:43 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id ABBA1206B2;
-        Wed, 14 Oct 2020 21:03:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CE6A6214D8;
+        Wed, 14 Oct 2020 21:03:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709418;
-        bh=Djm8DiVySOMeUYrRd0riAjZBy+XOb3/gbWgfMBUJCBw=;
+        s=default; t=1602709421;
+        bh=vNzs20QlZKEiYgUE2WZdif8hDUnhb2PUJEpwmFXcstY=;
         h=Date:From:To:Subject:From;
-        b=MwzyB5EtM6Vy7Hq6HwQFkwCvwDeg2s6MTu7A8w2f4mUGwzrtUoH7HpaYJrn5yv1Vl
-         rBy1ojVleCeDRpRECoFlLdHA2ZvqhB5itatFGuninwdTbOUK8xR8wftIGSSnF27wea
-         x5j0303Pq+onaDRxR9DyQPoANXklXZmM/8cmcULo=
-Date:   Wed, 14 Oct 2020 14:03:37 -0700
+        b=fUIKuNCAqh47p40DxchhMC+uh3jiDZhnSEEvMFP85ZkkFWpUPDZAHTFrXhR1AbfXm
+         xO8J5eAfSRIYOMfId9wCfZbsfHHeNj4n042Vsl/BLLy2V2FriGXOTRGVAq+gyPZaDy
+         TTNPLZRQvaKBhiHrxarfBgKapzw8AwiCBlQx5dpI=
+Date:   Wed, 14 Oct 2020 14:03:40 -0700
 From:   akpm@linux-foundation.org
-To:     dave@stgolabs.net, kirill.shutemov@linux.intel.com,
-        mhocko@kernel.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
+To:     chris@chrisdown.name, mhocko@suse.com, mm-commits@vger.kernel.org,
+        songmuchun@bytedance.com, vbabka@suse.cz, willy@infradead.org,
+        zangchunxin@bytedance.com
 Subject:  [merged]
- hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
- removed from -mm tree
-Message-ID: <20201014210337.Jxn4Uy_zy%akpm@linux-foundation.org>
+ mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch removed from -mm tree
+Message-ID: <20201014210340.J5dMyeQNd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,71 +54,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
+     Subject: mm/vmscan: fix infinite loop in drop_slab_node
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share.patch
+     mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: add lockdep check for i_mmap_rwsem held in huge_pmd_share
+From: Chunxin Zang <zangchunxin@bytedance.com>
+Subject: mm/vmscan: fix infinite loop in drop_slab_node
 
-As a debugging aid, huge_pmd_share should make sure i_mmap_rwsem is held
-if necessary.  To clarify the 'if necessary', expand the comment block at
-the beginning of huge_pmd_share.
+We have observed that drop_caches can take a considerable amount of
+time (<put data here>).  Especially when there are many memcgs involved
+because they are adding an additional overhead.
 
-No functional change.  The added i_mmap_assert_locked() call is only
-enabled if CONFIG_LOCKDEP.
+It is quite unfortunate that the operation cannot be interrupted by a
+signal currently.  Add a check for fatal signals into the main loop so
+that userspace can control early bailout.
 
-Ideally, this should have been included with commit 34ae204f1851
-("hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem").
+There are two reasons:
 
-Link: https://lkml.kernel.org/r/20200911201248.88537-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+1. We have too many memcgs, even though one object freed in one memcg,
+   the sum of object is bigger than 10.
+
+2. We spend a lot of time in traverse memcg once.  So, the memcg who
+   traversed at the first have been freed many objects.  Traverse memcg
+   next time, the freed count bigger than 10 again.
+
+We can get the following info through 'ps':
+
+  root:~# ps -aux | grep drop
+  root  357956 ... R    Aug25 21119854:55 echo 3 > /proc/sys/vm/drop_caches
+  root 1771385 ... R    Aug16 21146421:17 echo 3 > /proc/sys/vm/drop_caches
+  root 1986319 ... R    18:56 117:27 echo 3 > /proc/sys/vm/drop_caches
+  root 2002148 ... R    Aug24 5720:39 echo 3 > /proc/sys/vm/drop_caches
+  root 2564666 ... R    18:59 113:58 echo 3 > /proc/sys/vm/drop_caches
+  root 2639347 ... R    Sep03 2383:39 echo 3 > /proc/sys/vm/drop_caches
+  root 3904747 ... R    03:35 993:31 echo 3 > /proc/sys/vm/drop_caches
+  root 4016780 ... R    Aug21 7882:18 echo 3 > /proc/sys/vm/drop_caches
+
+Use bpftrace follow 'freed' value in drop_slab_node:
+
+  root:~# bpftrace -e 'kprobe:drop_slab_node+70 {@ret=hist(reg("bp")); }'
+  Attaching 1 probe...
+  ^B^C
+
+  @ret:
+  [64, 128)        1 |                                                    |
+  [128, 256)      28 |                                                    |
+  [256, 512)     107 |@                                                   |
+  [512, 1K)      298 |@@@                                                 |
+  [1K, 2K)       613 |@@@@@@@                                             |
+  [2K, 4K)      4435 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|
+  [4K, 8K)       442 |@@@@@                                               |
+  [8K, 16K)      299 |@@@                                                 |
+  [16K, 32K)     100 |@                                                   |
+  [32K, 64K)     139 |@                                                   |
+  [64K, 128K)     56 |                                                    |
+  [128K, 256K)    26 |                                                    |
+  [256K, 512K)     2 |                                                    |
+
+In the while loop, we can check whether the TASK_KILLABLE signal is set,
+if so, we should break the loop.
+
+Link: https://lkml.kernel.org/r/20200909152047.27905-1-zangchunxin@bytedance.com
+Signed-off-by: Chunxin Zang <zangchunxin@bytedance.com>
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-add-lockdep-check-for-i_mmap_rwsem-held-in-huge_pmd_share
-+++ a/mm/hugetlb.c
-@@ -5337,10 +5337,16 @@ void adjust_range_if_pmd_sharing_possibl
-  * !shared pmd case because we can allocate the pmd later as well, it makes the
-  * code much cleaner.
-  *
-- * This routine must be called with i_mmap_rwsem held in at least read mode.
-- * For hugetlbfs, this prevents removal of any page table entries associated
-- * with the address space.  This is important as we are setting up sharing
-- * based on existing page table entries (mappings).
-+ * This routine must be called with i_mmap_rwsem held in at least read mode if
-+ * sharing is possible.  For hugetlbfs, this prevents removal of any page
-+ * table entries associated with the address space.  This is important as we
-+ * are setting up sharing based on existing page table entries (mappings).
-+ *
-+ * NOTE: This routine is only called from huge_pte_alloc.  Some callers of
-+ * huge_pte_alloc know that sharing is not possible and do not take
-+ * i_mmap_rwsem as a performance optimization.  This is handled by the
-+ * if !vma_shareable check at the beginning of the routine. i_mmap_rwsem is
-+ * only required for subsequent processing.
-  */
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
- {
-@@ -5357,6 +5363,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (!vma_shareable(vma, addr))
- 		return (pte_t *)pmd_alloc(mm, pud, addr);
+--- a/mm/vmscan.c~mm-vmscan-fix-infinite-loop-in-drop_slab_node
++++ a/mm/vmscan.c
+@@ -699,6 +699,9 @@ void drop_slab_node(int nid)
+ 	do {
+ 		struct mem_cgroup *memcg = NULL;
  
-+	i_mmap_assert_locked(mapping);
- 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
- 		if (svma == vma)
- 			continue;
++		if (fatal_signal_pending(current))
++			return;
++
+ 		freed = 0;
+ 		memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 		do {
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from zangchunxin@bytedance.com are
 
 
