@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 977F5C43467
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA5D3C4363D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4140D221FF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 928ED22248
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709325;
-	bh=MayYE6Vfrxoe0zwto06rvPStNX7w8XTAIkZr/TIOxPc=;
+	s=default; t=1602709327;
+	bh=b31vGDTNfHr1jUmwdNjrsgup+sdZIiC5hWDL1y+/rYo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Q93cj0jl34C314P9JDJDXWPhJgWP67/u16ffdfoiZhowGXurkpQQLpMGopiYJjz7b
-	 gC2ha3iBCNldk4FzKYA5HiIHoe8geAvtciDuE+buR3tFnbCRGmgblNQs0pyKNXFETK
-	 qsIwieba8YfZo/mK3VorKzGG9zr1XB+eA4InGV1g=
+	b=YzQ+UceSNb/sM7J729hsJPovyvUFVqu+bAAZIN/ZPuBxYwkJV+bgZezzM3KMmp3i2
+	 QpX1altqrnBFk9hAas7cPNMR3sXZoZumOv9HAMcw2D1bgBuBEcO0aJW7MIbDdMxdft
+	 qKQHNHVbnUjpByI+0/l4+Hi8dPcevDBqgq9JTqbE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730703AbgJNVCE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:02:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51962 "EHLO mail.kernel.org"
+        id S1730705AbgJNVCH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:02:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730681AbgJNVCE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:02:04 -0400
+        id S1730681AbgJNVCH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:02:07 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9B8C820725;
-        Wed, 14 Oct 2020 21:02:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B634720725;
+        Wed, 14 Oct 2020 21:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709322;
-        bh=MayYE6Vfrxoe0zwto06rvPStNX7w8XTAIkZr/TIOxPc=;
+        s=default; t=1602709326;
+        bh=b31vGDTNfHr1jUmwdNjrsgup+sdZIiC5hWDL1y+/rYo=;
         h=Date:From:To:Subject:From;
-        b=A2Wsz6vlffe68ojYzr+C2SKCIprb8LCv/0xpBOgJO3+Pdhs06XdQvirRnyoth9JbE
-         0PXZuMWiF0cBEo1RJxwqqbmyJkTfjuZ7yXLov/HFA7W3b5cfpsBvl8hzxBMB4mkX1X
-         sK/nwtPbDeJE6/nqwVV8C6w2Pa9nSIgOOEdExGos=
-Date:   Wed, 14 Oct 2020 14:02:02 -0700
+        b=jGG9rHz1syRIMSVNXbZomk0aORpNx5HE5e0eBL38YgytKIATNJyaYTOadrW2ETLFY
+         GsU5+SPzMC4KMxzb7dQ4wRTYt8gtzENhrGay+N+IElxm8q3o4bsICG7JqPi7Mwd0R7
+         fsrRqotWwP+Jv4w706oPLdX6l69Ow1vEjv0pLO5s=
+Date:   Wed, 14 Oct 2020 14:02:05 -0700
 From:   akpm@linux-foundation.org
-To:     agordeev@linux.ibm.com, corbet@lwn.net, mm-commits@vger.kernel.org
-Subject:  [merged]
- docs-vm-fix-mm_count-vs-mm_users-counter-confusion.patch removed from -mm
- tree
-Message-ID: <20201014210202.IwRK4Xycy%akpm@linux-foundation.org>
+To:     a.p.zijlstra@chello.nl, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, brendanhiggins@google.com,
+        davidgow@google.com, dvyukov@google.com, juri.lelli@redhat.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, shuah@kernel.org,
+        trishalfonso@google.com, vincent.guittot@linaro.org
+Subject:  [merged] add-kunit-struct-to-current-task.patch removed
+ from -mm tree
+Message-ID: <20201014210205.gk_xuxiZT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,42 +56,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs/vm: fix 'mm_count' vs 'mm_users' counter confusion
+     Subject: kasan/kunit: add KUnit Struct to Current Task
 has been removed from the -mm tree.  Its filename was
-     docs-vm-fix-mm_count-vs-mm_users-counter-confusion.patch
+     add-kunit-struct-to-current-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: docs/vm: fix 'mm_count' vs 'mm_users' counter confusion
+From: Patricia Alfonso <trishalfonso@google.com>
+Subject: kasan/kunit: add KUnit Struct to Current Task
 
-In the context of the anonymous address space lifespan description the
-'mm_users' reference counter is confused with 'mm_count'.  I.e a "zombie"
-mm gets released when "mm_count" becomes zero, not "mm_users".
+Patch series "KASAN-KUnit Integration", v14.
 
-Link: https://lkml.kernel.org/r/1597040695-32633-1-git-send-email-agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+This patchset contains everything needed to integrate KASAN and KUnit.
+
+KUnit will be able to:
+(1) Fail tests when an unexpected KASAN error occurs
+(2) Pass tests when an expected KASAN error occurs
+
+Convert KASAN tests to KUnit with the exception of copy_user_test because
+KUnit is unable to test those.
+
+Add documentation on how to run the KASAN tests with KUnit and what to
+expect when running these tests.
+
+
+This patch (of 5):
+
+In order to integrate debugging tools like KASAN into the KUnit framework,
+add KUnit struct to the current task to keep track of the current KUnit
+test.
+
+Link: https://lkml.kernel.org/r/20200915035828.570483-1-davidgow@google.com
+Link: https://lkml.kernel.org/r/20200915035828.570483-2-davidgow@google.com
+Link: https://lkml.kernel.org/r/20200910070331.3358048-1-davidgow@google.com
+Link: https://lkml.kernel.org/r/20200910070331.3358048-2-davidgow@google.com
+Signed-off-by: Patricia Alfonso <trishalfonso@google.com>
+Signed-off-by: David Gow <davidgow@google.com>
+Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
+Tested-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/active_mm.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/vm/active_mm.rst~docs-vm-fix-mm_count-vs-mm_users-counter-confusion
-+++ a/Documentation/vm/active_mm.rst
-@@ -64,7 +64,7 @@ Active MM
-  actually get cases where you have a address space that is _only_ used by
-  lazy users. That is often a short-lived state, because once that thread
-  gets scheduled away in favour of a real thread, the "zombie" mm gets
-- released because "mm_users" becomes zero.
-+ released because "mm_count" becomes zero.
+--- a/include/linux/sched.h~add-kunit-struct-to-current-task
++++ a/include/linux/sched.h
+@@ -1208,6 +1208,10 @@ struct task_struct {
+ #endif
+ #endif
  
-  Also, a new rule is that _nobody_ ever has "init_mm" as a real MM any
-  more. "init_mm" should be considered just a "lazy context when no other
++#if IS_ENABLED(CONFIG_KUNIT)
++	struct kunit			*kunit_test;
++#endif
++
+ #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+ 	/* Index of current stored address in ret_stack: */
+ 	int				curr_ret_stack;
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from trishalfonso@google.com are
 
 
