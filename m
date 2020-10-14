@@ -2,91 +2,95 @@ Return-Path: <SRS0=lrFz=DV=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4A0BC43457
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EC45C4363A
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 643AA22259
+	by mail.kernel.org (Postfix) with ESMTP id D4A3D22253
 	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1602709266;
-	bh=OlryHtK+do+Nx2HwNtFjQkFwX79EpTZSp8mBMf+8hh8=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=VRADTjG9I99msvEBhzoRhRMtS1pADc5SIICpKMnjNDDjTYYznyHFHRSSb4gKPDv4U
-	 FHqAUFbblQuPDgO1awK0+4ateT4w1UAdoZxrCS2XeaV8MouMxV41U9o9JCSmG5WmJO
-	 90jwMabqXy20rpcB8kZCIO2D76KU/1Bt7ofzwZdE=
+	bh=rYW1JkedZpmL4IoAdclADqERDkV8ixdS9HH8U6mkrs0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Reply-To:List-ID:
+	 From;
+	b=IMXknYIde5a4WwfCHP9e2zlPVNWevMZZFyKZcJLnvgjhhbRwGlkJigGLyePWXat2S
+	 EsQfPncxA76QtACKBGFs43n4K4QEd6PMhoP9bypsWhyJB3ZHPTevoTpG7xZ8pw0djd
+	 RDSmqUVQCDo69Oyra5oSbtmuqP4Fx6c1XiY+260s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727931AbgJNVBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1728478AbgJNVBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 14 Oct 2020 17:01:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51164 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728478AbgJNVBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1728970AbgJNVBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 14 Oct 2020 17:01:03 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 91E7B22253;
-        Wed, 14 Oct 2020 21:00:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 26FE622259;
+        Wed, 14 Oct 2020 21:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709246;
-        bh=OlryHtK+do+Nx2HwNtFjQkFwX79EpTZSp8mBMf+8hh8=;
-        h=Date:From:To:Subject:From;
-        b=doIjvd5/p2HeQgYDILh8A7P0Jv1UHWwvd/8o+LEnsso0qqNB23VHttSn0hIDirgIS
-         vsV5brBiprCHPphkctjmIpoH7sWLiQq3D3CyYrpOTMZR59Q+gq1XUicyOuhGw1HkH+
-         aRbRSeT955ML20+xzM45jk385VcuSdjtJbAlS1RM=
-Date:   Wed, 14 Oct 2020 14:00:46 -0700
-From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
-Subject:  [merged] mm-memory-fix-typo-in-__do_fault-comment.patch
+        s=default; t=1602709255;
+        bh=rYW1JkedZpmL4IoAdclADqERDkV8ixdS9HH8U6mkrs0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=k8qwoVvRCd3VGnZNI9//Vtn5N0lFQT+HUXGYUBLBvyIILwkNaam9xAVv0MGixUhT0
+         8us6bDPoxLa0/KMWXqbOoSvwrWg7+zxMj4nDiO2R2gNDDN3ixgVxadt+dF3g/fBh67
+         6zdvLR95qEVIcGXv+1LNXhRMDCaeFOVSoLUsTyqA=
+Date:   Wed, 14 Oct 2020 14:00:53 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Alexander Potapenko <glider@google.com>
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Albert van der Linde <alinde@google.com>,
+        Andrey Konovalov <andreyknvl@google.com>,
+        Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Dmitriy Vyukov <dvyukov@google.com>,
+        Marco Elver <elver@google.com>, Christoph Hellwig <hch@lst.de>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        mm-commits@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Al Viro <viro@zeniv.linux.org.uk>
+Subject: Re: [wrecked] x86-add-failure-injection-to-get-put-clear_user.patch
  removed from -mm tree
-Message-ID: <20201014210046.QfpR_q8Ug%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Message-Id: <20201014140053.a6b51a7ea680f29b2c54a14b@linux-foundation.org>
+In-Reply-To: <CAG_fn=U+zDi-Z7FmkhUWsMjVALvG-jkOgvmjiz6_HfjzLcF4UQ@mail.gmail.com>
+References: <20201013182031.poYlHG6fX%akpm@linux-foundation.org>
+        <CAG_fn=U+zDi-Z7FmkhUWsMjVALvG-jkOgvmjiz6_HfjzLcF4UQ@mail.gmail.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, 14 Oct 2020 16:00:56 +0200 Alexander Potapenko <glider@google.com> wrote:
 
-The patch titled
-     Subject: mm/memory.c: fix typo in __do_fault() comment
-has been removed from the -mm tree.  Its filename was
-     mm-memory-fix-typo-in-__do_fault-comment.patch
+> Hi Andrew,
+> 
+> On Tue, Oct 13, 2020 at 8:20 PM <akpm@linux-foundation.org> wrote:
+> >
+> >
+> > The patch titled
+> >      Subject: x86: add failure injection to get/put/clear_user
+> > has been removed from the -mm tree.  Its filename was
+> >      x86-add-failure-injection-to-get-put-clear_user.patch
+> >
+> > This patch was dropped because other changes were merged, which wrecked this patch
+> 
+> On top of which tree should we rebase the patches to see/resolve these
+> conflicts?
+> linux-next/akpm and linux-mm/master seem to still contain all three
+> patches in question.
 
-This patch was dropped because it was merged into mainline or a subsystem tree
-
-------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/memory.c: fix typo in __do_fault() comment
-
-It's "pte_alloc_one", not "pte_alloc_pne". Let's fix that.
-
-Link: http://lkml.kernel.org/r/20200818104339.5310-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/memory.c~mm-memory-fix-typo-in-__do_fault-comment
-+++ a/mm/memory.c
-@@ -3589,7 +3589,7 @@ static vm_fault_t __do_fault(struct vm_f
- 	 *				unlock_page(A)
- 	 * lock_page(B)
- 	 *				lock_page(B)
--	 * pte_alloc_pne
-+	 * pte_alloc_one
- 	 *   shrink_page_list
- 	 *     wait_on_page_writeback(A)
- 	 *				SetPageWriteback(B)
-_
-
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
+The problem is ec6347bb43395 ("x86, powerpc: Rename memcpy_mcsafe() to
+copy_mc_to_{user, kernel}()"), which is in Linus's tree.  It seems to
+have got slammed in at the last minute (with a cc:stable so I guess
+it's important).  Please rebase and retest against current -linus and
+resend?
 
 
