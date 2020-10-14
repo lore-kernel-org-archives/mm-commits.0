@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27435C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F8A3C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5B5622254
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0917B22260
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602708980;
-	bh=H0eFCPm7fm4DkFyzJwemR0zV21RYZvd7HoTuBVhcSqY=;
+	s=default; t=1602708984;
+	bh=ZoXnAgjRZSOD5YP4CKhvulzWbb4ah43DDtxnF9SjEh4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bw8/dcWpahCujY2A64V2stPHfl5hvkFNOjjuD4U6yP5kb1HzGyJ25aLRI+T3VCZFN
-	 8qihz9ILDcn4HIdKQt1Mxk5G+WAN5g6T+4bRHORGCM6kVd/cQM6rjs3OHsA+A9JPpj
-	 zJ+l1Dop2G8hpUpHU0+PLJrVc6UWBoNmta17SEMQ=
+	b=cjT4ASF+nruhhdKtf1K8V2vx9Lq99JxgJzMMvsb6mB7EYcAcGcKKRzIHFck0eVR/z
+	 UulvrL4lJrfNLWzuFxC5e8B0rCV7Ryxh3MtgWI7r+aWssyHviEQWrDTPpP/HkkYw/q
+	 johoKaLDuZa0vpR1erM6+TUyGLVhRaVkjLA21pBA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388541AbgJNU4U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:56:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46640 "EHLO mail.kernel.org"
+        id S2388732AbgJNU4X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:56:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387573AbgJNU4U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:56:20 -0400
+        id S2387573AbgJNU4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:56:23 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9DA222224E;
-        Wed, 14 Oct 2020 20:56:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B49F82224E;
+        Wed, 14 Oct 2020 20:56:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602708979;
-        bh=H0eFCPm7fm4DkFyzJwemR0zV21RYZvd7HoTuBVhcSqY=;
+        s=default; t=1602708983;
+        bh=ZoXnAgjRZSOD5YP4CKhvulzWbb4ah43DDtxnF9SjEh4=;
         h=Date:From:To:Subject:From;
-        b=YfoOpfRjBFNxrl5Wk14D9ESiH0iWBAm2ELOD8+yy0XlheluYAdm7x2VktLi68XBEJ
-         oOMgtLuVM6QIWUhHMazxvaujIyW9mXHMBv3YDalW3iZc2CvDqhjFyCFAzWK12c+IVj
-         Da/Ph1QB8kHsyRbTgRb6YEeqP4xoD5BVKo24Smzk=
-Date:   Wed, 14 Oct 2020 13:56:19 -0700
+        b=OWbIlXTpQVBvTX+h+TWCIw955LRHoOEo5ibyNhAWqUniDjsgR/UJDWN6aQkD9CI/v
+         SF6vvbhuiDh2yGUdtXDglQohz6y7QPkfDo7DUuNLPBSYoMxrPkj1IIsBZ9pr826jDQ
+         Tg+GZZoSMnBrEv/9rqdVu19xcsz5a65CEI2aXshA=
+Date:   Wed, 14 Oct 2020 13:56:22 -0700
 From:   akpm@linux-foundation.org
-To:     jrdr.linux@gmail.com, mm-commits@vger.kernel.org,
-        tangjianqiang@xiaomi.com, wyqt1985@gmail.com
+To:     cl@linux.com, hewenliang4@huawei.com, hushiyuan@huawei.com,
+        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, wuyun.wu@huawei.com
 Subject:  [merged]
- include-linux-slabh-fix-a-typo-error-in-comment.patch removed from -mm tree
-Message-ID: <20201014205619.zc2cIhQv5%akpm@linux-foundation.org>
+ mm-slub-branch-optimization-in-free-slowpath.patch removed from -mm tree
+Message-ID: <20201014205622.ZShH5-ns4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,41 +54,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/slab.h: fix a typo error in comment
+     Subject: mm/slub.c: branch optimization in free slowpath
 has been removed from the -mm tree.  Its filename was
-     include-linux-slabh-fix-a-typo-error-in-comment.patch
+     mm-slub-branch-optimization-in-free-slowpath.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: tangjianqiang <wyqt1985@gmail.com>
-Subject: include/linux/slab.h: fix a typo error in comment
+From: Abel Wu <wuyun.wu@huawei.com>
+Subject: mm/slub.c: branch optimization in free slowpath
 
-fix a typo error in slab.h
-"allocagtor" -> "allocator"
+The two conditions are mutually exclusive and gcc compiler will optimise
+this into if-else-like pattern.  Given that the majority of free_slowpath
+is free_frozen, let's provide some hint to the compilers.
 
-Link: https://lkml.kernel.org/r/1600230053-24303-1-git-send-email-tangjianqiang@xiaomi.com
-Signed-off-by: tangjianqiang <tangjianqiang@xiaomi.com>
-Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
+Tests (perf bench sched messaging -g 20 -l 400000, executed 10x
+after reboot) are done and the summarized result:
+
+	un-patched	patched
+max.	192.316		189.851
+min.	187.267		186.252
+avg.	189.154		188.086
+stdev.	1.37		0.99
+
+Link: http://lkml.kernel.org/r/20200813101812.1617-1-wuyun.wu@huawei.com
+Signed-off-by: Abel Wu <wuyun.wu@huawei.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Hewenliang <hewenliang4@huawei.com>
+Cc: Hu Shiyuan <hushiyuan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
---- a/include/linux/slab.h~include-linux-slabh-fix-a-typo-error-in-comment
-+++ a/include/linux/slab.h
-@@ -279,7 +279,7 @@ static inline void __check_heap_object(c
- #define KMALLOC_MAX_SIZE	(1UL << KMALLOC_SHIFT_MAX)
- /* Maximum size for which we actually use a slab cache */
- #define KMALLOC_MAX_CACHE_SIZE	(1UL << KMALLOC_SHIFT_HIGH)
--/* Maximum order allocatable via the slab allocagtor */
-+/* Maximum order allocatable via the slab allocator */
- #define KMALLOC_MAX_ORDER	(KMALLOC_SHIFT_MAX - PAGE_SHIFT)
+--- a/mm/slub.c~mm-slub-branch-optimization-in-free-slowpath
++++ a/mm/slub.c
+@@ -3019,20 +3019,21 @@ static void __slab_free(struct kmem_cach
  
- /*
+ 	if (likely(!n)) {
+ 
+-		/*
+-		 * If we just froze the page then put it onto the
+-		 * per cpu partial list.
+-		 */
+-		if (new.frozen && !was_frozen) {
++		if (likely(was_frozen)) {
++			/*
++			 * The list lock was not taken therefore no list
++			 * activity can be necessary.
++			 */
++			stat(s, FREE_FROZEN);
++		} else if (new.frozen) {
++			/*
++			 * If we just froze the page then put it onto the
++			 * per cpu partial list.
++			 */
+ 			put_cpu_partial(s, page, 1);
+ 			stat(s, CPU_PARTIAL_FREE);
+ 		}
+-		/*
+-		 * The list lock was not taken therefore no list
+-		 * activity can be necessary.
+-		 */
+-		if (was_frozen)
+-			stat(s, FREE_FROZEN);
++
+ 		return;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from wyqt1985@gmail.com are
+Patches currently in -mm which might be from wuyun.wu@huawei.com are
 
 
