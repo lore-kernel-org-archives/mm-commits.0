@@ -7,49 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA825C43457
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E08F5C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DCF022248
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A64B322253
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709270;
-	bh=mV/d47a6DgDYIhLMeEItXKPWTVf3vtnBZklyCymf/30=;
+	s=default; t=1602709273;
+	bh=MOY7B2uMQU7c9ueGHjLtIb4gvdbGbj8WV77L18oJ5sg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=EsXh3uci6uv5kwwpdjEOETjI7JqVR9MWWnb4+4p3dJ4iuNIHCu1zc8KtgNmf4Gr1m
-	 gwF0N8180sSuJdQ65QUZbegE23Z081AeaiJ5abbUvUrnlb0lVTf/Xkt+Qd5e3rfcgq
-	 DxtmjT+vVBLboBMViozZcd63qZWhfs+7R3Rqaojc=
+	b=SCBtgfzHKz7+eRLs2ghghuFQwbhEO2c3ubMNl73Hy5DPAZAM3dXrb6ZVoUjpd8vKa
+	 2bgpgWU56IEDF5137YwVxWcUsdla1KG3v8qCKw7PKwOJSdqdtv35t5rbqx/k76Vyz8
+	 fRhgAECEXWg+xqEPdRCvyn7nIlV3u73JIBzsDgfE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729751AbgJNVBH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:07 -0400
+        id S1730220AbgJNVBK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:10 -0400
 Received: from mail.kernel.org ([198.145.29.99]:51178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729906AbgJNVBG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:06 -0400
+        id S1727897AbgJNVBK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:10 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CDA1C221FF;
-        Wed, 14 Oct 2020 21:01:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 928842224E;
+        Wed, 14 Oct 2020 21:01:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709263;
-        bh=mV/d47a6DgDYIhLMeEItXKPWTVf3vtnBZklyCymf/30=;
+        s=default; t=1602709268;
+        bh=MOY7B2uMQU7c9ueGHjLtIb4gvdbGbj8WV77L18oJ5sg=;
         h=Date:From:To:Subject:From;
-        b=FmJeD0KzybSvuUiBb0JvLYK+Gd7AoXaCOyZvACZfco9QeGHCBbyWec9OBB521i8SB
-         5GDN+lzUDzznh37wuzQeK5r9rqfF4f94LoUHdax3DqhG3J/wxNUybQTFLikDl2Gduz
-         dQ/5cFIepvumLmoTNjOVnIvJjDMJYt6TRM7Ce/Aw=
-Date:   Wed, 14 Oct 2020 14:01:02 -0700
+        b=MrqvF4r6FA+Bih1T1MijtFQB9W3C8lPzCdcjM7GeKdt/70J9XINWpPNRLCvsHa02a
+         76pXG8OFsu+6jD1y5m7OlPuP3zosRpfu0wdNZwKKITib0EKZFPvJGmOngDQFSZLH80
+         qwcSEylNkhhOFxSXah7sdB4byncJhUWK/PUDDKr8=
+Date:   Wed, 14 Oct 2020 14:01:08 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
-        daniel.kiss@arm.com, daniel.m.jordan@oracle.com, dbueso@suse.de,
-        jgg@ziepe.ca, jimmyassarsson@gmail.com, ldufour@linux.ibm.com,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        songliubraving@fb.com, steven.price@arm.com, vbabka@suse.cz,
-        walken@google.com, willy@infradead.org, ying.huang@intel.com
-Subject:  [merged]
- mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
- removed from -mm tree
-Message-ID: <20201014210102.wbI8pi4bs%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org, ziy@nvidia.com
+Subject:  [merged] mm-move-pagedoublemap-bit.patch removed from -mm
+ tree
+Message-ID: <20201014210108.3f-tQ6I3f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,115 +52,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: smaps*: extend smap_gather_stats to support specified beginning
+     Subject: mm: move PageDoubleMap bit
 has been removed from the -mm tree.  Its filename was
-     mm-smaps-extend-smap_gather_stats-to-support-specified-beginning.patch
+     mm-move-pagedoublemap-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chinwen Chang <chinwen.chang@mediatek.com>
-Subject: mm: smaps*: extend smap_gather_stats to support specified beginning
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move PageDoubleMap bit
 
-Extend smap_gather_stats to support indicated beginning address at which
-it should start gathering.  To achieve the goal, we add a new parameter
-@start assigned by the caller and try to refactor it for simplicity.
+Patch series "Fix PageDoubleMap".
 
-If @start is 0, it will use the range of @vma for gathering.
+This is a purely theoretical problem for now as none of the filesystems
+which use PG_private_2 (ie PG_fscache) are being converted at this time,
+but it's confusing to leave it like this.
 
-Link: http://lkml.kernel.org/r/1597715898-3854-3-git-send-email-chinwen.chang@mediatek.com
-Signed-off-by: Chinwen Chang <chinwen.chang@mediatek.com>
-Reviewed-by: Steven Price <steven.price@arm.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Daniel Kiss <daniel.kiss@arm.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jimmy Assarsson <jimmyassarsson@gmail.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
+This patch (of 2):
+
+PG_private_2 is defined as being PF_ANY (applicable to tail pages as well
+as regular & head pages).  That means that the first tail page of a
+double-map page will appear to have Private2 set.  Use the Workingset bit
+instead which is defined as PF_HEAD so any attempt to access the
+Workingset bit on a tail page will redirect to the head page's Workingset
+bit.
+
+Link: https://lkml.kernel.org/r/20200629151933.15671-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200629151933.15671-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~mm-smaps-extend-smap_gather_stats-to-support-specified-beginning
-+++ a/fs/proc/task_mmu.c
-@@ -721,9 +721,21 @@ static const struct mm_walk_ops smaps_sh
- 	.pte_hole		= smaps_pte_hole,
- };
+--- a/include/linux/page-flags.h~mm-move-pagedoublemap-bit
++++ a/include/linux/page-flags.h
+@@ -167,7 +167,7 @@ enum pageflags {
+ 	PG_slob_free = PG_private,
  
-+/*
-+ * Gather mem stats from @vma with the indicated beginning
-+ * address @start, and keep them in @mss.
-+ *
-+ * Use vm_start of @vma as the beginning address if @start is 0.
-+ */
- static void smap_gather_stats(struct vm_area_struct *vma,
--			     struct mem_size_stats *mss)
-+		struct mem_size_stats *mss, unsigned long start)
- {
-+	const struct mm_walk_ops *ops = &smaps_walk_ops;
-+
-+	/* Invalid start */
-+	if (start >= vma->vm_end)
-+		return;
-+
- #ifdef CONFIG_SHMEM
- 	/* In case of smaps_rollup, reset the value from previous vma */
- 	mss->check_shmem_swap = false;
-@@ -740,18 +752,20 @@ static void smap_gather_stats(struct vm_
- 		 */
- 		unsigned long shmem_swapped = shmem_swap_usage(vma);
+ 	/* Compound pages. Stored in first tail page's flags */
+-	PG_double_map = PG_private_2,
++	PG_double_map = PG_workingset,
  
--		if (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
--					!(vma->vm_flags & VM_WRITE)) {
-+		if (!start && (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
-+					!(vma->vm_flags & VM_WRITE))) {
- 			mss->swap += shmem_swapped;
- 		} else {
- 			mss->check_shmem_swap = true;
--			walk_page_vma(vma, &smaps_shmem_walk_ops, mss);
--			return;
-+			ops = &smaps_shmem_walk_ops;
- 		}
- 	}
- #endif
- 	/* mmap_lock is held in m_start */
--	walk_page_vma(vma, &smaps_walk_ops, mss);
-+	if (!start)
-+		walk_page_vma(vma, ops, mss);
-+	else
-+		walk_page_range(vma->vm_mm, start, vma->vm_end, ops, mss);
- }
- 
- #define SEQ_PUT_DEC(str, val) \
-@@ -803,7 +817,7 @@ static int show_smap(struct seq_file *m,
- 
- 	memset(&mss, 0, sizeof(mss));
- 
--	smap_gather_stats(vma, &mss);
-+	smap_gather_stats(vma, &mss, 0);
- 
- 	show_map_vma(m, vma);
- 
-@@ -852,7 +866,7 @@ static int show_smaps_rollup(struct seq_
- 	hold_task_mempolicy(priv);
- 
- 	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
--		smap_gather_stats(vma, &mss);
-+		smap_gather_stats(vma, &mss, 0);
- 		last_vma_end = vma->vm_end;
- 	}
- 
+ 	/* non-lru isolated movable page */
+ 	PG_isolated = PG_reclaim,
 _
 
-Patches currently in -mm which might be from chinwen.chang@mediatek.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+xarray-add-xa_get_order.patch
+xarray-add-xas_split.patch
+xarray-add-xas_split-fix-2.patch
+xarray-add-xas_split-fix-3patch.patch
+mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
+mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
+mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
+mm-memory-remove-page-fault-assumption-of-compound-page-size-fix.patch
+mm-page_owner-change-split_page_owner-to-take-a-count.patch
+mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
+mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
+mm-rmap-fix-assumptions-of-thp-size.patch
+mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
+mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
+mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
+fs-add-a-filesystem-flag-for-thps.patch
+fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
+mm-readahead-add-define_readahead.patch
+mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
+mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
+mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
+mm-rename-page_order-to-buddy_order.patch
+ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
+harden-autofs-ioctl-table.patch
+mm-update-the-documentation-for-vfree.patch
 
