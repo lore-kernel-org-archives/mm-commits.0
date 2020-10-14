@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0F44C43467
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7943C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF83A221FF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D0352224E
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709274;
-	bh=E2ZMr6cw/z9jDbcfRqrMU0VywELwMA+QPgg3Chl04vo=;
+	s=default; t=1602709314;
+	bh=EvY8sHT45iMNVVXZzj1VnpC3V5dPyPCDk4IZ1N+UCKA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=SpBgIy7NqS3g/u0eAU9Rx5aGXyvj2njyxyLiKx/qbb9z8rsojU4pWtv6lfZTbqSly
-	 4906g+1fE3p6BDA5jFNDA0YM4Vp8oLd3dpzY4CmGlRho002WXekzaw3viuv1xDMKBP
-	 w/4AY/8v6L9CV0RrThWrXCHYgleWaT9zsrDcHCTg=
+	b=kV3QtA3mfrHF0uVMaN9Rc0QRdcYZNmqKpWiwLiNoMnDzdBCNx8ZSS6qstZiRf4C2Z
+	 CEQTGthZEXjUBgEV1U1uGrdrWPvF+bF72e5KBuUPVFsuQiAfBOnNfJ50Nfq36OORQZ
+	 TDIa059m7Un0GoI0lzL7CDt+/f1NbjueUMQCyT8c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727897AbgJNVBK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51176 "EHLO mail.kernel.org"
+        id S1729952AbgJNVBS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729952AbgJNVBK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:10 -0400
+        id S1728330AbgJNVBR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:17 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 953E722248;
-        Wed, 14 Oct 2020 21:01:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CAB1A20725;
+        Wed, 14 Oct 2020 21:00:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709266;
-        bh=E2ZMr6cw/z9jDbcfRqrMU0VywELwMA+QPgg3Chl04vo=;
+        s=default; t=1602709231;
+        bh=EvY8sHT45iMNVVXZzj1VnpC3V5dPyPCDk4IZ1N+UCKA=;
         h=Date:From:To:Subject:From;
-        b=j/yXPHVZtXYHGONSG6/CNgD2OZ+NcAMl0ZDIvak7LGUvQ6V81WdxuVIQrxj+UTS6J
-         WkrBJ2IlsA/45/pyS99fzyFXe4mJLtEitB7xABfXbKHT76vpE/EdGDap8+W7j3hej1
-         SnpJHnBEuRzeG2w8snmQEsZALj2smA9rLrFxUhK0=
-Date:   Wed, 14 Oct 2020 14:01:05 -0700
+        b=VWBtyspuvyUEEAebhMJCziLQdyw6kyNoAmxChipzBphSwUs4Q+fWgnMuV2A0A2Myj
+         OOPg9V75nAEVHYzqqMMoXqi7QYMpIHs1S8J47yEGtUF9E4nVyAPYj01O94JhvYul4t
+         UwaWF+jY5t9DixQGbp571yroMQ26qGC1l1MERI3k=
+Date:   Wed, 14 Oct 2020 14:00:30 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
-        daniel.kiss@arm.com, daniel.m.jordan@oracle.com, dbueso@suse.de,
-        jgg@ziepe.ca, jimmyassarsson@gmail.com, ldufour@linux.ibm.com,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        songliubraving@fb.com, steven.price@arm.com, vbabka@suse.cz,
-        walken@google.com, willy@infradead.org, ying.huang@intel.com
+To:     bharata@linux.ibm.com, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, stable@vger.kernel.org, tj@kernel.org,
+        vbabka@suse.cz
 Subject:  [merged]
- mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch removed
- from -mm tree
-Message-ID: <20201014210105.jPv5iv5ZL%akpm@linux-foundation.org>
+ mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch removed from -mm
+ tree
+Message-ID: <20201014210030.LqwDellF0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,130 +57,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: proc: smaps_rollup: do not stall write attempts on mmap_lock
+     Subject: mm: memcg/slab: uncharge during kmem_cache_free_bulk()
 has been removed from the -mm tree.  Its filename was
-     mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock.patch
+     mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chinwen Chang <chinwen.chang@mediatek.com>
-Subject: mm: proc: smaps_rollup: do not stall write attempts on mmap_lock
+From: Bharata B Rao <bharata@linux.ibm.com>
+Subject: mm: memcg/slab: uncharge during kmem_cache_free_bulk()
 
-smaps_rollup will try to grab mmap_lock and go through the whole vma list
-until it finishes the iterating.  When encountering large processes, the
-mmap_lock will be held for a longer time, which may block other write
-requests like mmap and munmap from progressing smoothly.
+Object cgroup charging is done for all the objects during allocation, but
+during freeing, uncharging ends up happening for only one object in the
+case of bulk allocation/freeing.
 
-There are upcoming mmap_lock optimizations like range-based locks, but the
-lock applied to smaps_rollup would be the coarse type, which doesn't avoid
-the occurrence of unpleasant contention.
+Fix this by having a separate call to uncharge all the objects from
+kmem_cache_free_bulk() and by modifying memcg_slab_free_hook() to take
+care of bulk uncharging.
 
-To solve aforementioned issue, we add a check which detects whether anyone
-wants to grab mmap_lock for write attempts.
-
-Link: http://lkml.kernel.org/r/1597715898-3854-4-git-send-email-chinwen.chang@mediatek.com
-Signed-off-by: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Link: https://lkml.kernel.org/r/20201009060423.390479-1-bharata@linux.ibm.com
+Fixes: 964d4bd370d5 ("mm: memcg/slab: save obj_cgroup for non-root slab objects"
+Signed-off-by: Bharata B Rao <bharata@linux.ibm.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Jimmy Assarsson <jimmyassarsson@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Daniel Kiss <daniel.kiss@arm.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   66 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 65 insertions(+), 1 deletion(-)
+ mm/slab.c |    2 +-
+ mm/slab.h |   50 +++++++++++++++++++++++++++++++-------------------
+ mm/slub.c |    3 ++-
+ 3 files changed, 34 insertions(+), 21 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-proc-smaps_rollup-do-not-stall-write-attempts-on-mmap_lock
-+++ a/fs/proc/task_mmu.c
-@@ -865,9 +865,73 @@ static int show_smaps_rollup(struct seq_
+--- a/mm/slab.c~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
++++ a/mm/slab.c
+@@ -3438,7 +3438,7 @@ void ___cache_free(struct kmem_cache *ca
+ 		memset(objp, 0, cachep->object_size);
+ 	kmemleak_free_recursive(objp, cachep->flags);
+ 	objp = cache_free_debugcheck(cachep, objp, caller);
+-	memcg_slab_free_hook(cachep, virt_to_head_page(objp), objp);
++	memcg_slab_free_hook(cachep, &objp, 1);
  
- 	hold_task_mempolicy(priv);
+ 	/*
+ 	 * Skip calling cache_free_alien() when the platform is not numa.
+--- a/mm/slab.h~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
++++ a/mm/slab.h
+@@ -345,30 +345,42 @@ static inline void memcg_slab_post_alloc
+ 	obj_cgroup_put(objcg);
+ }
  
--	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
-+	for (vma = priv->mm->mmap; vma;) {
- 		smap_gather_stats(vma, &mss, 0);
- 		last_vma_end = vma->vm_end;
-+
-+		/*
-+		 * Release mmap_lock temporarily if someone wants to
-+		 * access it for write request.
-+		 */
-+		if (mmap_lock_is_contended(mm)) {
-+			mmap_read_unlock(mm);
-+			ret = mmap_read_lock_killable(mm);
-+			if (ret) {
-+				release_task_mempolicy(priv);
-+				goto out_put_mm;
-+			}
-+
-+			/*
-+			 * After dropping the lock, there are four cases to
-+			 * consider. See the following example for explanation.
-+			 *
-+			 *   +------+------+-----------+
-+			 *   | VMA1 | VMA2 | VMA3      |
-+			 *   +------+------+-----------+
-+			 *   |      |      |           |
-+			 *  4k     8k     16k         400k
-+			 *
-+			 * Suppose we drop the lock after reading VMA2 due to
-+			 * contention, then we get:
-+			 *
-+			 *	last_vma_end = 16k
-+			 *
-+			 * 1) VMA2 is freed, but VMA3 exists:
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return VMA3.
-+			 *    In this case, just continue from VMA3.
-+			 *
-+			 * 2) VMA2 still exists:
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return VMA2.
-+			 *    Iterate the loop like the original one.
-+			 *
-+			 * 3) No more VMAs can be found:
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return NULL.
-+			 *    No more things to do, just break.
-+			 *
-+			 * 4) (last_vma_end - 1) is the middle of a vma (VMA'):
-+			 *
-+			 *    find_vma(mm, 16k - 1) will return VMA' whose range
-+			 *    contains last_vma_end.
-+			 *    Iterate VMA' from last_vma_end.
-+			 */
-+			vma = find_vma(mm, last_vma_end - 1);
-+			/* Case 3 above */
-+			if (!vma)
-+				break;
-+
-+			/* Case 1 above */
-+			if (vma->vm_start >= last_vma_end)
-+				continue;
-+
-+			/* Case 4 above */
-+			if (vma->vm_end > last_vma_end)
-+				smap_gather_stats(vma, &mss, last_vma_end);
-+		}
-+		/* Case 2 above */
-+		vma = vma->vm_next;
- 	}
+-static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
+-					void *p)
++static inline void memcg_slab_free_hook(struct kmem_cache *s_orig,
++					void **p, int objects)
+ {
++	struct kmem_cache *s;
+ 	struct obj_cgroup *objcg;
++	struct page *page;
+ 	unsigned int off;
++	int i;
  
- 	show_vma_header_prefix(m, priv->mm->mmap->vm_start,
+ 	if (!memcg_kmem_enabled())
+ 		return;
+ 
+-	if (!page_has_obj_cgroups(page))
+-		return;
+-
+-	off = obj_to_index(s, page, p);
+-	objcg = page_obj_cgroups(page)[off];
+-	page_obj_cgroups(page)[off] = NULL;
+-
+-	if (!objcg)
+-		return;
+-
+-	obj_cgroup_uncharge(objcg, obj_full_size(s));
+-	mod_objcg_state(objcg, page_pgdat(page), cache_vmstat_idx(s),
+-			-obj_full_size(s));
+-
+-	obj_cgroup_put(objcg);
++	for (i = 0; i < objects; i++) {
++		if (unlikely(!p[i]))
++			continue;
++
++		page = virt_to_head_page(p[i]);
++		if (!page_has_obj_cgroups(page))
++			continue;
++
++		if (!s_orig)
++			s = page->slab_cache;
++		else
++			s = s_orig;
++
++		off = obj_to_index(s, page, p[i]);
++		objcg = page_obj_cgroups(page)[off];
++		if (!objcg)
++			continue;
++
++		page_obj_cgroups(page)[off] = NULL;
++		obj_cgroup_uncharge(objcg, obj_full_size(s));
++		mod_objcg_state(objcg, page_pgdat(page), cache_vmstat_idx(s),
++				-obj_full_size(s));
++		obj_cgroup_put(objcg);
++	}
+ }
+ 
+ #else /* CONFIG_MEMCG_KMEM */
+@@ -406,8 +418,8 @@ static inline void memcg_slab_post_alloc
+ {
+ }
+ 
+-static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
+-					void *p)
++static inline void memcg_slab_free_hook(struct kmem_cache *s,
++					void **p, int objects)
+ {
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
+--- a/mm/slub.c~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
++++ a/mm/slub.c
+@@ -3095,7 +3095,7 @@ static __always_inline void do_slab_free
+ 	struct kmem_cache_cpu *c;
+ 	unsigned long tid;
+ 
+-	memcg_slab_free_hook(s, page, head);
++	memcg_slab_free_hook(s, &head, 1);
+ redo:
+ 	/*
+ 	 * Determine the currently cpus per cpu slab.
+@@ -3257,6 +3257,7 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 	if (WARN_ON(!size))
+ 		return;
+ 
++	memcg_slab_free_hook(s, p, size);
+ 	do {
+ 		struct detached_freelist df;
+ 
 _
 
-Patches currently in -mm which might be from chinwen.chang@mediatek.com are
+Patches currently in -mm which might be from bharata@linux.ibm.com are
 
 
