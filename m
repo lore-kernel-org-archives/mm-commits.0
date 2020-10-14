@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60A18C35265
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 977F5C43467
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1950422248
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4140D221FF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709318;
-	bh=F+0OmBci4WLyyfWI23zpikYvr23rINgBZETMLn+Crm8=;
+	s=default; t=1602709325;
+	bh=MayYE6Vfrxoe0zwto06rvPStNX7w8XTAIkZr/TIOxPc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=i+nNVphVviNvTjKLytRwBrG4jNn8CQ3DWyp8vDdWXYAXdBjfra90zdS9IfBFXi5w3
-	 pifhGllG/N0IbLvdgy8sfPXMmdkYk3kvOjRvOENSN2BYTl792Sdh0tC3mPrrY7lPLR
-	 tgVoyiyFh4+AcgVPcna3GVx2G7LaEy4M++EqyRSw=
+	b=Q93cj0jl34C314P9JDJDXWPhJgWP67/u16ffdfoiZhowGXurkpQQLpMGopiYJjz7b
+	 gC2ha3iBCNldk4FzKYA5HiIHoe8geAvtciDuE+buR3tFnbCRGmgblNQs0pyKNXFETK
+	 qsIwieba8YfZo/mK3VorKzGG9zr1XB+eA4InGV1g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730609AbgJNVBz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51850 "EHLO mail.kernel.org"
+        id S1730703AbgJNVCE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:02:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730599AbgJNVBz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:55 -0400
+        id S1730681AbgJNVCE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:02:04 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A118F20725;
-        Wed, 14 Oct 2020 21:01:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9B8C820725;
+        Wed, 14 Oct 2020 21:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709314;
-        bh=F+0OmBci4WLyyfWI23zpikYvr23rINgBZETMLn+Crm8=;
+        s=default; t=1602709322;
+        bh=MayYE6Vfrxoe0zwto06rvPStNX7w8XTAIkZr/TIOxPc=;
         h=Date:From:To:Subject:From;
-        b=SbTZzMTgPKqn8O+6uhDm2Hm+wRXcmGAIOudDJ2E+Cdt3LGyJ5Fcyl3LkwPAz377vf
-         vcgpChIounDIxYOpEsB+iUNzIpTPrBreNfLk/9iGaSxPUSpOYMrpv0TPyK41akIM4f
-         LxHvRZuWtzi5e3Vkaf7SeYQEC2gCrHb+1bOiPiD8=
-Date:   Wed, 14 Oct 2020 14:01:54 -0700
+        b=A2Wsz6vlffe68ojYzr+C2SKCIprb8LCv/0xpBOgJO3+Pdhs06XdQvirRnyoth9JbE
+         0PXZuMWiF0cBEo1RJxwqqbmyJkTfjuZ7yXLov/HFA7W3b5cfpsBvl8hzxBMB4mkX1X
+         sK/nwtPbDeJE6/nqwVV8C6w2Pa9nSIgOOEdExGos=
+Date:   Wed, 14 Oct 2020 14:02:02 -0700
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com
-Subject:  [merged] mm-remove-unused-marco-writeback.patch removed
- from -mm tree
-Message-ID: <20201014210154.xM_Y4i1RR%akpm@linux-foundation.org>
+To:     agordeev@linux.ibm.com, corbet@lwn.net, mm-commits@vger.kernel.org
+Subject:  [merged]
+ docs-vm-fix-mm_count-vs-mm_users-counter-confusion.patch removed from -mm
+ tree
+Message-ID: <20201014210202.IwRK4Xycy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,51 +53,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: remove unused macro `writeback'
+     Subject: docs/vm: fix 'mm_count' vs 'mm_users' counter confusion
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-marco-writeback.patch
+     docs-vm-fix-mm_count-vs-mm_users-counter-confusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/memory-failure.c: remove unused macro `writeback'
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: docs/vm: fix 'mm_count' vs 'mm_users' counter confusion
 
-Unlike others we don't use the marco writeback.  so let's remove it to
-tame gcc warning:
+In the context of the anonymous address space lifespan description the
+'mm_users' reference counter is confused with 'mm_count'.  I.e a "zombie"
+mm gets released when "mm_count" becomes zero, not "mm_users".
 
-mm/memory-failure.c:827: warning: macro "writeback" is not used
-[-Wunused-macros]
-
-Link: https://lkml.kernel.org/r/1599715096-20369-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/1597040695-32633-1-git-send-email-agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/vm/active_mm.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-remove-unused-marco-writeback
-+++ a/mm/memory-failure.c
-@@ -825,7 +825,6 @@ static int me_huge_page(struct page *p,
- #define sc		((1UL << PG_swapcache) | (1UL << PG_swapbacked))
- #define unevict		(1UL << PG_unevictable)
- #define mlock		(1UL << PG_mlocked)
--#define writeback	(1UL << PG_writeback)
- #define lru		(1UL << PG_lru)
- #define head		(1UL << PG_head)
- #define slab		(1UL << PG_slab)
-@@ -874,7 +873,6 @@ static struct page_state {
- #undef sc
- #undef unevict
- #undef mlock
--#undef writeback
- #undef lru
- #undef head
- #undef slab
+--- a/Documentation/vm/active_mm.rst~docs-vm-fix-mm_count-vs-mm_users-counter-confusion
++++ a/Documentation/vm/active_mm.rst
+@@ -64,7 +64,7 @@ Active MM
+  actually get cases where you have a address space that is _only_ used by
+  lazy users. That is often a short-lived state, because once that thread
+  gets scheduled away in favour of a real thread, the "zombie" mm gets
+- released because "mm_users" becomes zero.
++ released because "mm_count" becomes zero.
+ 
+  Also, a new rule is that _nobody_ ever has "init_mm" as a real MM any
+  more. "init_mm" should be considered just a "lazy context when no other
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
 
