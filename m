@@ -7,55 +7,56 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 751EAC433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:05:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DA4FC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:05:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2247022268
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:05:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D428F22272
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:05:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709520;
-	bh=xnaDkVIYyJ1SdR1DCX7ni0p7C0N7px1jqnAFkCahm7E=;
+	s=default; t=1602709523;
+	bh=iM76QkbTZkQqnVUkogbSRNO69+4BTIdPta6lmrLDTfQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=JFHNOUP4P9PrrvNCN+R2arN1pjETSbZJ4pBnTPe4bxJawZFpPYoj40gSLwW3/bxSv
-	 2YKy4pK5iGhruFUqxHK6z0hjItIC6WlJVUAUvrfru3XD05P2A8Wm79GfMvMno5tdmQ
-	 AqYBYtN3i83oylBR7u8XqpDehtp3lNeiI8qHYTqw=
+	b=0z+9b4RE8P5CImT/qw1vFUvZBapvWzQoIg5E1YJ5QRU5kojMPHnChNESmlT5RBDqX
+	 t5Gp0f9Q8QDlIoU8J7SfbiDGB4eY1UiuqQjY7xtptNOBH6xqARMX23l3FzxQgF/LGl
+	 s8f3y4KBwUVJBuc44/KjblcezC8NGO4ctqyEpIWc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730676AbgJNVFT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:05:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56298 "EHLO mail.kernel.org"
+        id S1730677AbgJNVFX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:05:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727242AbgJNVFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:05:19 -0400
+        id S1727242AbgJNVFX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:05:23 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D4C2022265;
-        Wed, 14 Oct 2020 21:05:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CC7DC22267;
+        Wed, 14 Oct 2020 21:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709518;
-        bh=xnaDkVIYyJ1SdR1DCX7ni0p7C0N7px1jqnAFkCahm7E=;
+        s=default; t=1602709522;
+        bh=iM76QkbTZkQqnVUkogbSRNO69+4BTIdPta6lmrLDTfQ=;
         h=Date:From:To:Subject:From;
-        b=k57lIYvrQAByMl3OXB4dFNnSY5gZ5FaHMWmyFdIhyWF3hbyYi+wAGXWj6BbQio1tI
-         cOlJ7pRb6Xv+eCYd6UXK1X3rLT59EQm4KMtmlwM3jshs7arMZutr5duJTmSAMrGX6R
-         +0sB+q0AQ2eGmQ+gDpsY91pArgiduoH/aBKLbpAo=
-Date:   Wed, 14 Oct 2020 14:05:16 -0700
+        b=a+gzFAiYYTrhN2//wqIvCB8iT4JzyQ+jgn3bf76j6ZemxfgXfby05UpEY6Fjn8hug
+         x+GPpBNSSnO1xO4qibNezInP5nQchnhMYcPg/rBOv1Ii9A6br7BR5muD+poMSlD8zx
+         Iw8NBCoruymnsMxUdR8o7PSSZNkB0Rbnc0eY6OLw=
+Date:   Wed, 14 Oct 2020 14:05:20 -0700
 From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
-        catalin.marinas@arm.com, dave.hansen@linux.intel.com,
-        dja@axtens.net, hbathini@linux.ibm.com, hch@lst.de,
-        jcmvbkbc@gmail.com, Jonathan.Cameron@huawei.com, kernel@esmil.dk,
-        linux@armlinux.org.uk, luto@kernel.org, m.szyprowski@samsung.com,
-        miguel.ojeda.sandonis@gmail.com, mingo@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu,
-        mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com,
-        paulus@samba.org, peterz@infradead.org, rppt@linux.ibm.com,
-        shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
-        will@kernel.org, ysato@users.sourceforge.jp
+To:     adobriyan@gmail.com, areber@redhat.com, avagin@gmail.com,
+        bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com,
+        christian@kellner.me, cyphar@cyphar.com,
+        daniel.m.jordan@oracle.com, ebiederm@xmission.com, esyr@redhat.com,
+        gladkov.alexey@gmail.com, john.johansen@canonical.com,
+        laoar.shao@gmail.com, mhocko@kernel.org, mhocko@suse.com,
+        minchan@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org,
+        oleg@redhat.com, peterz@infradead.org, shakeelb@google.com,
+        surenb@google.com, tglx@linutronix.de, timmurray@google.com,
+        walken@google.com
 Subject:  [merged]
- memblock-use-separate-iterators-for-memory-and-reserved-regions.patch
- removed from -mm tree
-Message-ID: <20201014210516.kSkoO5mhN%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-oom=5Fadj-dont-loop-through-tasks-in-=5F=5Fset=5Foom=5F?=
+ =?US-ASCII?Q?adj-when-not-necessary.patch?= removed from -mm tree
+Message-ID: <20201014210520.uzeCne8uD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,230 +64,180 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: use separate iterators for memory and reserved regions
+     Subject: mm, oom_adj: don't loop through tasks in __set_oom_adj when not necessary
 has been removed from the -mm tree.  Its filename was
-     memblock-use-separate-iterators-for-memory-and-reserved-regions.patch
+     mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memblock: use separate iterators for memory and reserved regions
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm, oom_adj: don't loop through tasks in __set_oom_adj when not necessary
 
-for_each_memblock() is used to iterate over memblock.memory in a few
-places that use data from memblock_region rather than the memory ranges.
+Currently __set_oom_adj loops through all processes in the system to keep
+oom_score_adj and oom_score_adj_min in sync between processes sharing
+their mm.  This is done for any task with more that one mm_users, which
+includes processes with multiple threads (sharing mm and signals). 
+However for such processes the loop is unnecessary because their signal
+structure is shared as well.
 
-Introduce separate for_each_mem_region() and
-for_each_reserved_mem_region() to improve encapsulation of memblock
-internals from its users.
+Android updates oom_score_adj whenever a tasks changes its role
+(background/foreground/...) or binds to/unbinds from a service, making it
+more/less important.  Such operation can happen frequently.  We noticed
+that updates to oom_score_adj became more expensive and after further
+investigation found out that the patch mentioned in "Fixes" introduced a
+regression.  Using Pixel 4 with a typical Android workload, write time to
+oom_score_adj increased from ~3.57us to ~362us.  Moreover this regression
+linearly depends on the number of multi-threaded processes running on the
+system.
 
-Link: https://lkml.kernel.org/r/20200818151634.14343-18-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>			[x86]
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>	[MIPS]
-Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>	[.clang-format]
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Emil Renner Berthing <kernel@esmil.dk>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Mark the mm with a new MMF_MULTIPROCESS flag bit when task is created with
+(CLONE_VM && !CLONE_THREAD && !CLONE_VFORK).  Change __set_oom_adj to use
+MMF_MULTIPROCESS instead of mm_users to decide whether oom_score_adj
+update should be synchronized between multiple processes.  To prevent
+races between clone() and __set_oom_adj(), when oom_score_adj of the
+process being cloned might be modified from userspace, we use
+oom_adj_mutex.  Its scope is changed to global.
+
+The combination of (CLONE_VM && !CLONE_THREAD) is rarely used except for
+the case of vfork().  To prevent performance regressions of vfork(), we
+skip taking oom_adj_mutex and setting MMF_MULTIPROCESS when CLONE_VFORK is
+specified.  Clearing the MMF_MULTIPROCESS flag (when the last process
+sharing the mm exits) is left out of this patch to keep it simple and
+because it is believed that this threading model is rare.  Should there
+ever be a need for optimizing that case as well, it can be done by hooking
+into the exit path, likely following the mm_update_next_owner pattern.
+
+With the combination of (CLONE_VM && !CLONE_THREAD && !CLONE_VFORK) being
+quite rare, the regression is gone after the change is applied.
+
+[surenb@google.com: v3]
+  Link: https://lkml.kernel.org/r/20200902012558.2335613-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20200824153036.3201505-1-surenb@google.com
+Fixes: 44a70adec910 ("mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Tim Murray <timmurray@google.com>
+Debugged-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Eugene Syromiatnikov <esyr@redhat.com>
+Cc: Christian Kellner <christian@kellner.me>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .clang-format                  |    3 ++-
- arch/arm64/kernel/setup.c      |    2 +-
- arch/arm64/mm/numa.c           |    2 +-
- arch/mips/netlogic/xlp/setup.c |    2 +-
- arch/riscv/mm/init.c           |    2 +-
- arch/x86/mm/numa.c             |    2 +-
- include/linux/memblock.h       |   19 ++++++++++++++++---
- mm/memblock.c                  |    4 ++--
- mm/page_alloc.c                |    8 ++++----
- 9 files changed, 29 insertions(+), 15 deletions(-)
+ fs/proc/base.c                 |    3 +--
+ include/linux/oom.h            |    1 +
+ include/linux/sched/coredump.h |    1 +
+ kernel/fork.c                  |   21 +++++++++++++++++++++
+ mm/oom_kill.c                  |    2 ++
+ 5 files changed, 26 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/kernel/setup.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/arch/arm64/kernel/setup.c
-@@ -217,7 +217,7 @@ static void __init request_standard_reso
- 	if (!standard_resources)
- 		panic("%s: Failed to allocate %zu bytes\n", __func__, res_size);
+--- a/fs/proc/base.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/fs/proc/base.c
+@@ -1055,7 +1055,6 @@ static ssize_t oom_adj_read(struct file
  
--	for_each_memblock(memory, region) {
-+	for_each_mem_region(region) {
- 		res = &standard_resources[i++];
- 		if (memblock_is_nomap(region)) {
- 			res->name  = "reserved";
---- a/arch/arm64/mm/numa.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/arch/arm64/mm/numa.c
-@@ -354,7 +354,7 @@ static int __init numa_register_nodes(vo
- 	struct memblock_region *mblk;
- 
- 	/* Check that valid nid is set to memblks */
--	for_each_memblock(memory, mblk) {
-+	for_each_mem_region(mblk) {
- 		int mblk_nid = memblock_get_region_node(mblk);
- 
- 		if (mblk_nid == NUMA_NO_NODE || mblk_nid >= MAX_NUMNODES) {
---- a/arch/mips/netlogic/xlp/setup.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/arch/mips/netlogic/xlp/setup.c
-@@ -70,7 +70,7 @@ static void nlm_fixup_mem(void)
- 	const int pref_backup = 512;
- 	struct memblock_region *mem;
- 
--	for_each_memblock(memory, mem) {
-+	for_each_mem_region(mem) {
- 		memblock_remove(mem->base + mem->size - pref_backup,
- 			pref_backup);
- 	}
---- a/arch/riscv/mm/init.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/arch/riscv/mm/init.c
-@@ -531,7 +531,7 @@ static void __init resource_init(void)
+ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
  {
- 	struct memblock_region *region;
+-	static DEFINE_MUTEX(oom_adj_mutex);
+ 	struct mm_struct *mm = NULL;
+ 	struct task_struct *task;
+ 	int err = 0;
+@@ -1095,7 +1094,7 @@ static int __set_oom_adj(struct file *fi
+ 		struct task_struct *p = find_lock_task_mm(task);
  
--	for_each_memblock(memory, region) {
-+	for_each_mem_region(region) {
- 		struct resource *res;
+ 		if (p) {
+-			if (atomic_read(&p->mm->mm_users) > 1) {
++			if (test_bit(MMF_MULTIPROCESS, &p->mm->flags)) {
+ 				mm = p->mm;
+ 				mmgrab(mm);
+ 			}
+--- a/include/linux/oom.h~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/include/linux/oom.h
+@@ -55,6 +55,7 @@ struct oom_control {
+ };
  
- 		res = memblock_alloc(sizeof(struct resource), SMP_CACHE_BYTES);
---- a/arch/x86/mm/numa.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/arch/x86/mm/numa.c
-@@ -514,7 +514,7 @@ static void __init numa_clear_kernel_nod
- 	 *   memory ranges, because quirks such as trim_snb_memory()
- 	 *   reserve specific pages for Sandy Bridge graphics. ]
- 	 */
--	for_each_memblock(reserved, mb_region) {
-+	for_each_reserved_mem_region(mb_region) {
- 		int nid = memblock_get_region_node(mb_region);
+ extern struct mutex oom_lock;
++extern struct mutex oom_adj_mutex;
  
- 		if (nid != MAX_NUMNODES)
---- a/.clang-format~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/.clang-format
-@@ -203,7 +203,7 @@ ForEachMacros:
-   - 'for_each_matching_node'
-   - 'for_each_matching_node_and_match'
-   - 'for_each_member'
--  - 'for_each_memblock'
-+  - 'for_each_mem_region'
-   - 'for_each_memblock_type'
-   - 'for_each_memcg_cache_index'
-   - 'for_each_mem_pfn_range'
-@@ -274,6 +274,7 @@ ForEachMacros:
-   - 'for_each_requested_gpio'
-   - 'for_each_requested_gpio_in_range'
-   - 'for_each_reserved_mem_range'
-+  - 'for_each_reserved_mem_region'
-   - 'for_each_rtd_codec_dais'
-   - 'for_each_rtd_codec_dais_rollback'
-   - 'for_each_rtd_components'
---- a/include/linux/memblock.h~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/include/linux/memblock.h
-@@ -553,9 +553,22 @@ static inline unsigned long memblock_reg
- 	return PFN_UP(reg->base + reg->size);
+ static inline void set_current_oom_origin(void)
+ {
+--- a/include/linux/sched/coredump.h~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/include/linux/sched/coredump.h
+@@ -72,6 +72,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+ #define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_OOM_REAP_QUEUED	26	/* mm was queued for oom_reaper */
++#define MMF_MULTIPROCESS	27	/* mm is shared between processes */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+--- a/kernel/fork.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/kernel/fork.c
+@@ -1812,6 +1812,25 @@ static __always_inline void delayed_free
+ 		free_task(tsk);
  }
  
--#define for_each_memblock(memblock_type, region)					\
--	for (region = memblock.memblock_type.regions;					\
--	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
-+/**
-+ * for_each_mem_region - itereate over memory regions
-+ * @region: loop variable
-+ */
-+#define for_each_mem_region(region)					\
-+	for (region = memblock.memory.regions;				\
-+	     region < (memblock.memory.regions + memblock.memory.cnt);	\
-+	     region++)
++static void copy_oom_score_adj(u64 clone_flags, struct task_struct *tsk)
++{
++	/* Skip if kernel thread */
++	if (!tsk->mm)
++		return;
 +
-+/**
-+ * for_each_reserved_mem_region - itereate over reserved memory regions
-+ * @region: loop variable
-+ */
-+#define for_each_reserved_mem_region(region)				\
-+	for (region = memblock.reserved.regions;			\
-+	     region < (memblock.reserved.regions + memblock.reserved.cnt); \
- 	     region++)
++	/* Skip if spawning a thread or using vfork */
++	if ((clone_flags & (CLONE_VM | CLONE_THREAD | CLONE_VFORK)) != CLONE_VM)
++		return;
++
++	/* We need to synchronize with __set_oom_adj */
++	mutex_lock(&oom_adj_mutex);
++	set_bit(MMF_MULTIPROCESS, &tsk->mm->flags);
++	/* Update the values in case they were changed after copy_signal */
++	tsk->signal->oom_score_adj = current->signal->oom_score_adj;
++	tsk->signal->oom_score_adj_min = current->signal->oom_score_adj_min;
++	mutex_unlock(&oom_adj_mutex);
++}
++
+ /*
+  * This creates a new process as a copy of the old one,
+  * but does not actually start it yet.
+@@ -2288,6 +2307,8 @@ static __latent_entropy struct task_stru
+ 	trace_task_newtask(p, clone_flags);
+ 	uprobe_copy_process(p, clone_flags);
  
- extern void *alloc_large_system_hash(const char *tablename,
---- a/mm/memblock.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/mm/memblock.c
-@@ -1667,7 +1667,7 @@ static phys_addr_t __init_memblock __fin
- 	 * the memory memblock regions, if the @limit exceeds the total size
- 	 * of those regions, max_addr will keep original value PHYS_ADDR_MAX
- 	 */
--	for_each_memblock(memory, r) {
-+	for_each_mem_region(r) {
- 		if (limit <= r->size) {
- 			max_addr = r->base + limit;
- 			break;
-@@ -1837,7 +1837,7 @@ void __init_memblock memblock_trim_memor
- 	phys_addr_t start, end, orig_start, orig_end;
- 	struct memblock_region *r;
++	copy_oom_score_adj(clone_flags, p);
++
+ 	return p;
  
--	for_each_memblock(memory, r) {
-+	for_each_mem_region(r) {
- 		orig_start = r->base;
- 		orig_end = r->base + r->size;
- 		start = round_up(orig_start, align);
---- a/mm/page_alloc.c~memblock-use-separate-iterators-for-memory-and-reserved-regions
-+++ a/mm/page_alloc.c
-@@ -5961,7 +5961,7 @@ overlap_memmap_init(unsigned long zone,
+ bad_fork_cancel_cgroup:
+--- a/mm/oom_kill.c~mm-oom_adj-dont-loop-through-tasks-in-__set_oom_adj-when-not-necessary
++++ a/mm/oom_kill.c
+@@ -64,6 +64,8 @@ int sysctl_oom_dump_tasks = 1;
+  * and mark_oom_victim
+  */
+ DEFINE_MUTEX(oom_lock);
++/* Serializes oom_score_adj and oom_score_adj_min updates */
++DEFINE_MUTEX(oom_adj_mutex);
  
- 	if (mirrored_kernelcore && zone == ZONE_MOVABLE) {
- 		if (!r || *pfn >= memblock_region_memory_end_pfn(r)) {
--			for_each_memblock(memory, r) {
-+			for_each_mem_region(r) {
- 				if (*pfn < memblock_region_memory_end_pfn(r))
- 					break;
- 			}
-@@ -6546,7 +6546,7 @@ static unsigned long __init zone_absent_
- 		unsigned long start_pfn, end_pfn;
- 		struct memblock_region *r;
- 
--		for_each_memblock(memory, r) {
-+		for_each_mem_region(r) {
- 			start_pfn = clamp(memblock_region_memory_base_pfn(r),
- 					  zone_start_pfn, zone_end_pfn);
- 			end_pfn = clamp(memblock_region_memory_end_pfn(r),
-@@ -7140,7 +7140,7 @@ static void __init find_zone_movable_pfn
- 	 * options.
- 	 */
- 	if (movable_node_is_enabled()) {
--		for_each_memblock(memory, r) {
-+		for_each_mem_region(r) {
- 			if (!memblock_is_hotpluggable(r))
- 				continue;
- 
-@@ -7161,7 +7161,7 @@ static void __init find_zone_movable_pfn
- 	if (mirrored_kernelcore) {
- 		bool mem_below_4gb_not_mirrored = false;
- 
--		for_each_memblock(memory, r) {
-+		for_each_mem_region(r) {
- 			if (memblock_is_mirror(r))
- 				continue;
- 
+ static inline bool is_memcg_oom(struct oom_control *oc)
+ {
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-remove-unused-early_pfn_valid.patch
 
