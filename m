@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5684CC43457
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B6D3C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A76A2224D
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 036D62224D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709151;
-	bh=xUVfmCoTah064NtUKwfAovma0xbYyCAdxGJHYUWr/30=;
+	s=default; t=1602709154;
+	bh=hRRzTvzr+X0cXmgxumOQMpfnKkICCw/zL0YsNTb1x+A=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=UU98aMoy3h+88DmL8qhIIN8XFxxVPNF65Qk5QIcgl5eKb/toycUEFAVb+g7JhMq4y
-	 sSg/wSXwiDp0iN+8HBjX15uTYfP0IugLGffWU0axfmzRpvR2fKYsvh6ibxCktqyM6u
-	 zfNt5Vzj5IpVJ01/PbO8rTpp/cABYumtkE79DsMg=
+	b=pctaaF/bY92ztJVgy4nrx3ftSMywjNQ1pmrGBTmTGu5g5Gi7srWMkAu2/3q7AV2tp
+	 s1JYSUpEWkIfRyrjoles4PYuMLRk21CtQ57t7mU6G+mH5iW7L6VdShxYJ2rRCjBtBs
+	 vBTvQvxBpvMYjwaOxngi31h4M+bsooCaxrGikvTw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388163AbgJNU7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:59:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49808 "EHLO mail.kernel.org"
+        id S2388503AbgJNU7N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:59:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389499AbgJNU7K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:59:10 -0400
+        id S2389499AbgJNU7N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:59:13 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DFE8F20725;
-        Wed, 14 Oct 2020 20:59:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C6BD82068E;
+        Wed, 14 Oct 2020 20:59:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709149;
-        bh=xUVfmCoTah064NtUKwfAovma0xbYyCAdxGJHYUWr/30=;
+        s=default; t=1602709152;
+        bh=hRRzTvzr+X0cXmgxumOQMpfnKkICCw/zL0YsNTb1x+A=;
         h=Date:From:To:Subject:From;
-        b=zTl8WONBo5kFMklTlhgY5sbReex0JWgBij3NcyU2+KD1XQKELTk7wwNr+uifN0Jcr
-         1SRjew4G9tDWRFSN4zE4ySUeLh6ZkdTVmGWtqNPLsBtljE1YdbVlhICeZFr5xqn9As
-         9y0fWv/8ao/ujfG/TQc91PyTTUYSR7mcoaCqochM=
-Date:   Wed, 14 Oct 2020 13:59:08 -0700
+        b=Uqz+8sIys4L4laJ4cgoQn/pO7ls6WGSNPaZ6y8nvkdqlF6Ia3mdO4OB81vUr3F6Wh
+         89KGRRSfq2OA4xjIWo/fVIuJr5ovIRPoHzvVTMkVmuTH0fRmbo6XbeGQYbx4lWV0XU
+         hCzEALl5ImagwQ253pkBMZ2M8P/zjSxz/f9NpAUE=
+Date:   Wed, 14 Oct 2020 13:59:11 -0700
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, chris@chris-wilson.co.uk, hannes@cmpxchg.org,
         hughd@google.com, jani.nikula@linux.intel.com,
         matthew.auld@intel.com, mm-commits@vger.kernel.org,
         william.kucharski@oracle.com, willy@infradead.org,
         ying.huang@intel.com
-Subject:  [merged]
- mm-shmem-return-head-page-from-find_lock_entry.patch removed from -mm tree
-Message-ID: <20201014205908.QMChbppQb%akpm@linux-foundation.org>
+Subject:  [merged] mm-add-find_lock_head.patch removed from -mm
+ tree
+Message-ID: <20201014205911.jLP0q7iF-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,23 +56,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: return head page from find_lock_entry
+     Subject: mm: add find_lock_head
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-return-head-page-from-find_lock_entry.patch
+     mm-add-find_lock_head.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/shmem: return head page from find_lock_entry
+Subject: mm: add find_lock_head
 
-Convert shmem_getpage_gfp() (the only remaining caller of
-find_lock_entry()) to cope with a head page being returned instead of
-the subpage for the index.
+Add a new FGP_HEAD flag which avoids calling find_subpage() and add a
+convenience wrapper for it.
 
-[willy@infradead.org: fix BUG()s]
-  Link https://lore.kernel.org/linux-mm/20200912032042.GA6583@casper.infradead.org/
-Link: https://lkml.kernel.org/r/20200910183318.20139-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200910183318.20139-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
@@ -85,133 +82,107 @@ Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    9 +++++++++
- mm/filemap.c            |   25 +++++++++++--------------
- mm/shmem.c              |   19 ++++++++++---------
- 3 files changed, 30 insertions(+), 23 deletions(-)
+ include/linux/pagemap.h |   32 ++++++++++++++++++++++++++------
+ mm/filemap.c            |    9 ++++++---
+ 2 files changed, 32 insertions(+), 9 deletions(-)
 
---- a/include/linux/pagemap.h~mm-shmem-return-head-page-from-find_lock_entry
+--- a/include/linux/pagemap.h~mm-add-find_lock_head
 +++ a/include/linux/pagemap.h
-@@ -372,6 +372,15 @@ static inline struct page *grab_cache_pa
- 			mapping_gfp_mask(mapping));
- }
+@@ -279,6 +279,7 @@ pgoff_t page_cache_prev_miss(struct addr
+ #define FGP_NOFS		0x00000010
+ #define FGP_NOWAIT		0x00000020
+ #define FGP_FOR_MMAP		0x00000040
++#define FGP_HEAD		0x00000080
  
-+/* Does this page contain this index? */
-+static inline bool thp_contains(struct page *head, pgoff_t index)
+ struct page *pagecache_get_page(struct address_space *mapping, pgoff_t offset,
+ 		int fgp_flags, gfp_t cache_gfp_mask);
+@@ -310,18 +311,37 @@ static inline struct page *find_get_page
+  * @mapping: the address_space to search
+  * @offset: the page index
+  *
+- * Looks up the page cache slot at @mapping & @offset.  If there is a
++ * Looks up the page cache entry at @mapping & @offset.  If there is a
+  * page cache page, it is returned locked and with an increased
+  * refcount.
+  *
+- * Otherwise, %NULL is returned.
+- *
+- * find_lock_page() may sleep.
++ * Context: May sleep.
++ * Return: A struct page or %NULL if there is no page in the cache for this
++ * index.
+  */
+ static inline struct page *find_lock_page(struct address_space *mapping,
+-					pgoff_t offset)
++					pgoff_t index)
 +{
-+	/* HugeTLBfs indexes the page cache in units of hpage_size */
-+	if (PageHuge(head))
-+		return head->index == index;
-+	return page_index(head) == (index & ~(thp_nr_pages(head) - 1UL));
++	return pagecache_get_page(mapping, index, FGP_LOCK, 0);
 +}
 +
- /*
-  * Given the page we found in the page cache, return the page corresponding
-  * to this index in the file
---- a/mm/filemap.c~mm-shmem-return-head-page-from-find_lock_entry
-+++ a/mm/filemap.c
-@@ -1692,37 +1692,34 @@ out:
++/**
++ * find_lock_head - Locate, pin and lock a pagecache page.
++ * @mapping: The address_space to search.
++ * @offset: The page index.
++ *
++ * Looks up the page cache entry at @mapping & @offset.  If there is a
++ * page cache page, its head page is returned locked and with an increased
++ * refcount.
++ *
++ * Context: May sleep.
++ * Return: A struct page which is !PageTail, or %NULL if there is no page
++ * in the cache for this index.
++ */
++static inline struct page *find_lock_head(struct address_space *mapping,
++					pgoff_t index)
+ {
+-	return pagecache_get_page(mapping, offset, FGP_LOCK, 0);
++	return pagecache_get_page(mapping, index, FGP_LOCK | FGP_HEAD, 0);
  }
  
  /**
-- * find_lock_entry - locate, pin and lock a page cache entry
-- * @mapping: the address_space to search
-- * @offset: the page cache index
-+ * find_lock_entry - Locate and lock a page cache entry.
-+ * @mapping: The address_space to search.
-+ * @index: The page cache index.
+--- a/mm/filemap.c~mm-add-find_lock_head
++++ a/mm/filemap.c
+@@ -1737,6 +1737,8 @@ repeat:
   *
-- * Looks up the page cache slot at @mapping & @offset.  If there is a
-- * page cache page, it is returned locked and with an increased
-- * refcount.
-+ * Looks up the page at @mapping & @index.  If there is a page in the
-+ * cache, the head page is returned locked and with an increased refcount.
-  *
-  * If the slot holds a shadow entry of a previously evicted page, or a
-  * swap entry from shmem/tmpfs, it is returned.
-  *
-- * find_lock_entry() may sleep.
-- *
-- * Return: the found page or shadow entry, %NULL if nothing is found.
-+ * Context: May sleep.
-+ * Return: The head page or shadow entry, %NULL if nothing is found.
-  */
--struct page *find_lock_entry(struct address_space *mapping, pgoff_t offset)
-+struct page *find_lock_entry(struct address_space *mapping, pgoff_t index)
- {
- 	struct page *page;
+  * * %FGP_ACCESSED - The page will be marked accessed.
+  * * %FGP_LOCK - The page is returned locked.
++ * * %FGP_HEAD - If the page is present and a THP, return the head page
++ *   rather than the exact page specified by the index.
+  * * %FGP_CREAT - If no page is present then a new page is allocated using
+  *   @gfp_mask and added to the page cache and the VM's LRU list.
+  *   The page is returned locked and with an increased refcount.
+@@ -1765,7 +1767,6 @@ repeat:
+ 		page = NULL;
+ 	if (!page)
+ 		goto no_page;
+-	page = find_subpage(page, index);
  
- repeat:
--	page = find_get_entry(mapping, offset);
-+	page = find_get_entry(mapping, index);
- 	if (page && !xa_is_value(page)) {
- 		lock_page(page);
+ 	if (fgp_flags & FGP_LOCK) {
+ 		if (fgp_flags & FGP_NOWAIT) {
+@@ -1778,12 +1779,12 @@ repeat:
+ 		}
+ 
  		/* Has the page been truncated? */
--		if (unlikely(page_mapping(page) != mapping)) {
+-		if (unlikely(compound_head(page)->mapping != mapping)) {
 +		if (unlikely(page->mapping != mapping)) {
  			unlock_page(page);
  			put_page(page);
  			goto repeat;
  		}
--		page = find_subpage(page, offset);
--		VM_BUG_ON_PAGE(page_to_pgoff(page) != offset, page);
+-		VM_BUG_ON_PAGE(page->index != index, page);
 +		VM_BUG_ON_PAGE(!thp_contains(page, index), page);
  	}
- 	return page;
- }
---- a/mm/shmem.c~mm-shmem-return-head-page-from-find_lock_entry
-+++ a/mm/shmem.c
-@@ -1830,6 +1830,8 @@ repeat:
- 		return error;
+ 
+ 	if (fgp_flags & FGP_ACCESSED)
+@@ -1793,6 +1794,8 @@ repeat:
+ 		if (page_is_idle(page))
+ 			clear_page_idle(page);
  	}
++	if (!(fgp_flags & FGP_HEAD))
++		page = find_subpage(page, index);
  
-+	if (page)
-+		hindex = page->index;
- 	if (page && sgp == SGP_WRITE)
- 		mark_page_accessed(page);
- 
-@@ -1840,11 +1842,10 @@ repeat:
- 		unlock_page(page);
- 		put_page(page);
- 		page = NULL;
-+		hindex = index;
- 	}
--	if (page || sgp == SGP_READ) {
--		*pagep = page;
--		return 0;
--	}
-+	if (page || sgp == SGP_READ)
-+		goto out;
- 
- 	/*
- 	 * Fast cache lookup did not find it:
-@@ -1969,14 +1970,13 @@ clear:
- 	 * it now, lest undo on failure cancel our earlier guarantee.
- 	 */
- 	if (sgp != SGP_WRITE && !PageUptodate(page)) {
--		struct page *head = compound_head(page);
- 		int i;
- 
--		for (i = 0; i < compound_nr(head); i++) {
--			clear_highpage(head + i);
--			flush_dcache_page(head + i);
-+		for (i = 0; i < compound_nr(page); i++) {
-+			clear_highpage(page + i);
-+			flush_dcache_page(page + i);
- 		}
--		SetPageUptodate(head);
-+		SetPageUptodate(page);
- 	}
- 
- 	/* Perhaps the file has been truncated since we checked */
-@@ -1992,6 +1992,7 @@ clear:
- 		error = -EINVAL;
- 		goto unlock;
- 	}
-+out:
- 	*pagep = page + index - hindex;
- 	return 0;
- 
+ no_page:
+ 	if (!page && (fgp_flags & FGP_CREAT)) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
