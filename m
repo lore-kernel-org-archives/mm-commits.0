@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A4A1C35257
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49C22C2D0AE
 	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32ED62224E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04ACF22248
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1602709317;
-	bh=SZerBBwFP+LTUXYiXTlpRt0FAb1mR4uTQh5iHEEtA5Q=;
+	bh=RXQmg2wHxqrq7A598V2CRFw7QiytmMnU+5FQSyYxkHI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=KolFdSPkyZLKD3g/31cnebfGdyud8bO9/aX16f4/LlaAv0wMLUpH15EvPAwE3XGkZ
-	 MAkbiGiXLb7/3r+Q5yFyFWic6/Wo4Pc6iu2nbRinc2ESS0VrzJ5oldzaOXNqvo+WKy
-	 Xi/f3wSpTbmLtQoXdvG36kyQhbiC8W0pOQTlYV1c=
+	b=BbopdvwH2j7gBNrE4b+UNNU+i6xiTNWVRVCq4fyTgQjAO2F5FmuPQx7XpdBbi+Obt
+	 HnltjV9O2/c4I3rUqUTlyMHIj0wOQshRIQ4E4WCI8kEAuuTGZtLWf/xTrKFd4c1MN4
+	 2la3G0JCMFDDQ7up4LoC0tnSoilpOS0mQdx+KDxk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730576AbgJNVBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1728959AbgJNVBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 14 Oct 2020 17:01:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50906 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728216AbgJNVBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730492AbgJNVBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 14 Oct 2020 17:01:47 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9EEED2224D;
-        Wed, 14 Oct 2020 21:00:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 85F1022257;
+        Wed, 14 Oct 2020 21:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709239;
-        bh=SZerBBwFP+LTUXYiXTlpRt0FAb1mR4uTQh5iHEEtA5Q=;
+        s=default; t=1602709289;
+        bh=RXQmg2wHxqrq7A598V2CRFw7QiytmMnU+5FQSyYxkHI=;
         h=Date:From:To:Subject:From;
-        b=kQ0btEn1jMnQCH4fU3vWO6r3Yz7p3+QrNZGb2WBd6GUh5j2KGlSVeGkZH9xuoqSR/
-         t6Nq6fIJ8tCMdRrcUke9kCLudJGUEP7wkZ6GxeRmTDaYkUFhXh5LVCxpsZA0Vx5K5i
-         69yPmMo8lbzpxZyfCidOBHpPEbwRkdrmrWp2kAYQ=
-Date:   Wed, 14 Oct 2020 14:00:39 -0700
+        b=mBDScGHrX4RzyrAVBK5f6etCrjpeXZSt/uk+1XO7RrnH+z5pS4QY9ItqJSiWuJJIP
+         6Ydpzj0ic1jguinWyIVgE7qmDb3rHOXXf4ezRs2aIglnRJ4m4IFzM7Vbo0YrDzX6SO
+         Qp9IqREVz69l/s6Xk0kD7QTORtKOV6ts/14NYx1Q=
+Date:   Wed, 14 Oct 2020 14:01:29 -0700
 From:   akpm@linux-foundation.org
-To:     jgg@ziepe.ca, jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        shuah@kernel.org
+To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- selftests-vm-fix-incorrect-gcc-invocation-in-some-cases.patch removed from
- -mm tree
-Message-ID: <20201014210039.yQ2feg2rf%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-mmap-use-helper-function-allow=5Fwrite=5Faccess-in?=
+ =?US-ASCII?Q?-=5F=5Fremove=5Fshared=5Fvm=5Fstruct.patch?= removed from -mm
+ tree
+Message-ID: <20201014210129.J2A313dPk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,70 +56,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: fix incorrect gcc invocation in some cases
+     Subject: mm/mmap.c: use helper function allow_write_access() in __remove_shared_vm_struct()
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-fix-incorrect-gcc-invocation-in-some-cases.patch
+     mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: fix incorrect gcc invocation in some cases
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mmap.c: use helper function allow_write_access() in __remove_shared_vm_struct()
 
-Avoid accidental wrong builds, due to built-in rules working just a little
-bit too well--but not quite as well as required for our situation here.
+In commit 1da177e4c3f4 ("Linux-2.6.12-rc2"), the helper allow_write_access
+came with the atomic_inc operation of the i_writecount field in the func
+__remove_shared_vm_struct().  But it forgot to use this helper function.
 
-In other words, "make userfaultfd" (for example) is supposed to fail to
-build at all, because this Makefile only supports either "make" (all), or
-"make /full/path".  However, the built-in rules, if not suppressed, will
-pick up CFLAGS and the initial LDLIBS (but not the target-specific LDLIBS,
-because those are only set for the full path target!).  This causes it to
-get pretty far into building things despite using incorrect values such as
-an *occasionally* incomplete LDLIBS value.
-
-Link: https://lkml.kernel.org/r/20200915012901.1655280-3-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Link: https://lkml.kernel.org/r/20200921115814.39680-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-incorrect-gcc-invocation-in-some-cases
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -8,6 +8,18 @@ MACHINE ?= $(shell echo $(uname_M) | sed
- # make invocations:
- .DELETE_ON_ERROR:
+--- a/mm/mmap.c~mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct
++++ a/mm/mmap.c
+@@ -143,7 +143,7 @@ static void __remove_shared_vm_struct(st
+ 		struct file *file, struct address_space *mapping)
+ {
+ 	if (vma->vm_flags & VM_DENYWRITE)
+-		atomic_inc(&file_inode(file)->i_writecount);
++		allow_write_access(file);
+ 	if (vma->vm_flags & VM_SHARED)
+ 		mapping_unmap_writable(mapping);
  
-+# Avoid accidental wrong builds, due to built-in rules working just a little
-+# bit too well--but not quite as well as required for our situation here.
-+#
-+# In other words, "make userfaultfd" is supposed to fail to build at all,
-+# because this Makefile only supports either "make" (all), or "make /full/path".
-+# However,  the built-in rules, if not suppressed, will pick up CFLAGS and the
-+# initial LDLIBS (but not the target-specific LDLIBS, because those are only
-+# set for the full path target!). This causes it to get pretty far into building
-+# things despite using incorrect values such as an *occasionally* incomplete
-+# LDLIBS.
-+MAKEFLAGS += --no-builtin-rules
-+
- CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
- LDLIBS = -lrt
- TEST_GEN_FILES = compaction_test
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-gup_benchmark-rename-to-mm-gup_test.patch
-selftests-vm-use-a-common-gup_testh.patch
-selftests-vm-rename-run_vmtests-run_vmtestssh.patch
-selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
-selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
-selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
-selftests-vm-run_vmtestsh-update-and-clean-up-gup_test-invocation.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
-selftests-vm-10x-speedup-for-hmm-tests.patch
+mm-vmstat-use-helper-macro-abs.patch
+mm-fix-some-broken-comments.patch
+mm-use-helper-function-put_write_access.patch
+percpu_counter-use-helper-macro-abs.patch
+mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
