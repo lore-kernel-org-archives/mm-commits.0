@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8934C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4A0BC43457
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C8A722261
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 643AA22259
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709263;
-	bh=ks+nr5nDT2+P+0NXOFKEIzO+YrP1MV+p4qqlXU6UfYc=;
+	s=default; t=1602709266;
+	bh=OlryHtK+do+Nx2HwNtFjQkFwX79EpTZSp8mBMf+8hh8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=U2NosvirE8X+eJoKyegVuaulNLYc2kYT+5WxZRGHEKI5FBBPPZ8pK7eKG30VKHTQi
-	 rjxTBtcXYTN3j0jviQXjwK9lnoNyLJzozfozTs9OXTrFogaFh9YSRCgtqcSO2qrppp
-	 IzahDYvQdjHFPqbL1XR54I9MOllo83kRLIUF3WPA=
+	b=VRADTjG9I99msvEBhzoRhRMtS1pADc5SIICpKMnjNDDjTYYznyHFHRSSb4gKPDv4U
+	 FHqAUFbblQuPDgO1awK0+4ateT4w1UAdoZxrCS2XeaV8MouMxV41U9o9JCSmG5WmJO
+	 90jwMabqXy20rpcB8kZCIO2D76KU/1Bt7ofzwZdE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728639AbgJNVBC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50888 "EHLO mail.kernel.org"
+        id S1727931AbgJNVBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727897AbgJNVBC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:02 -0400
+        id S1728478AbgJNVBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:03 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C025322248;
-        Wed, 14 Oct 2020 21:00:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 91E7B22253;
+        Wed, 14 Oct 2020 21:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709237;
-        bh=ks+nr5nDT2+P+0NXOFKEIzO+YrP1MV+p4qqlXU6UfYc=;
+        s=default; t=1602709246;
+        bh=OlryHtK+do+Nx2HwNtFjQkFwX79EpTZSp8mBMf+8hh8=;
         h=Date:From:To:Subject:From;
-        b=fJ7U+pd9V9JYN3yhNzEIEZO52FspsEbtqf8V4peHwVakx6/MQPPdrNpeYkM9JKnc3
-         1oclztXQaMDDIYWOQjlueL5FJBZRRWIzh+aw+kYJozvJF/jRs0X8fg7q5aYzN1JY88
-         ZHBHndGJGjap7XAybhMntGYczsRW8gdZ1CeDeT5w=
-Date:   Wed, 14 Oct 2020 14:00:36 -0700
+        b=doIjvd5/p2HeQgYDILh8A7P0Jv1UHWwvd/8o+LEnsso0qqNB23VHttSn0hIDirgIS
+         vsV5brBiprCHPphkctjmIpoH7sWLiQq3D3CyYrpOTMZR59Q+gq1XUicyOuhGw1HkH+
+         aRbRSeT955ML20+xzM45jk385VcuSdjtJbAlS1RM=
+Date:   Wed, 14 Oct 2020 14:00:46 -0700
 From:   akpm@linux-foundation.org
-To:     jgg@ziepe.ca, jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        shuah@kernel.org
-Subject:  [merged]
- selftests-vm-fix-false-build-success-on-the-second-and-later-attempts.patch
+To:     david@redhat.com, mm-commits@vger.kernel.org,
+        yanfei.xu@windriver.com
+Subject:  [merged] mm-memory-fix-typo-in-__do_fault-comment.patch
  removed from -mm tree
-Message-ID: <20201014210036.ARZq4Bkxy%akpm@linux-foundation.org>
+Message-ID: <20201014210046.QfpR_q8Ug%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,101 +53,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: fix false build success on the second and later attempts
+     Subject: mm/memory.c: fix typo in __do_fault() comment
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-fix-false-build-success-on-the-second-and-later-attempts.patch
+     mm-memory-fix-typo-in-__do_fault-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: fix false build success on the second and later attempts
+From: Yanfei Xu <yanfei.xu@windriver.com>
+Subject: mm/memory.c: fix typo in __do_fault() comment
 
-Patch series "selftests/vm: fix some minor aggravating factors in the Makefile".
+It's "pte_alloc_one", not "pte_alloc_pne". Let's fix that.
 
-This fixes a couple of minor aggravating factors that I ran across while
-trying to do some changes in selftests/vm.  These are simple things, but
-like most things with GNU Make, it's rarely obvious what's wrong until you
-understand *the entire Makefile and all of its includes*.
-
-So while there is, of course, joy in learning those details, I thought I'd
-fix these little things, so as to allow others to skip out on the Joy if
-they so choose.  :)
-
-First of all, if you have an item (let's choose userfaultfd for an
-example) that fails to build, you might do this:
-
-$ make -j32
-
-    # ...you observe a failed item in the threaded output
-
-# OK, let's get a closer look
-
-$ make
-    # ...but now the build quietly "succeeds".
-
-That's what Patch 0001 fixes.
-
-Second, if you instead attempt this approach for your closer look (a casual
-mistake, as it's not supported):
-
-$ make userfaultfd
-
-    # ...userfaultfd fails to link, due to incomplete LDLIBS
-
-That's what Patch 0002 fixes.
-
-
-This patch (of 2):
-
-If one or more of these selftest fail to build, then after the first
-failure, subsequent invocations of "make" will make it appear that there
-are no build failures, after all.
-
-That's because the failed build products remain, with up-to-date
-timestamps, thus tricking Make (and you!) into believing that there's
-nothing else to build.
-
-Fix this by telling Make to delete targets that didn't completely
-succeed.
-
-Link: https://lkml.kernel.org/r/20200915012901.1655280-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20200915012901.1655280-2-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Link: http://lkml.kernel.org/r/20200818104339.5310-1-yanfei.xu@windriver.com
+Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-false-build-success-on-the-second-and-later-attempts
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -3,6 +3,11 @@
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
- 
-+# Without this, failed build products remain, with up-to-date timestamps,
-+# thus tricking Make (and you!) into believing that All Is Well, in subsequent
-+# make invocations:
-+.DELETE_ON_ERROR:
-+
- CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
- LDLIBS = -lrt
- TEST_GEN_FILES = compaction_test
+--- a/mm/memory.c~mm-memory-fix-typo-in-__do_fault-comment
++++ a/mm/memory.c
+@@ -3589,7 +3589,7 @@ static vm_fault_t __do_fault(struct vm_f
+ 	 *				unlock_page(A)
+ 	 * lock_page(B)
+ 	 *				lock_page(B)
+-	 * pte_alloc_pne
++	 * pte_alloc_one
+ 	 *   shrink_page_list
+ 	 *     wait_on_page_writeback(A)
+ 	 *				SetPageWriteback(B)
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from yanfei.xu@windriver.com are
 
-mm-gup_benchmark-rename-to-mm-gup_test.patch
-selftests-vm-use-a-common-gup_testh.patch
-selftests-vm-rename-run_vmtests-run_vmtestssh.patch
-selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
-selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
-selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
-selftests-vm-run_vmtestsh-update-and-clean-up-gup_test-invocation.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
-selftests-vm-10x-speedup-for-hmm-tests.patch
 
