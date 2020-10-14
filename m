@@ -7,47 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C9E7C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40DE0C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3634D22248
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:58:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC82C22248
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709139;
-	bh=61q5JHMqWRAwRYEZYBAWh/0CfO3BZyN/Wn9zHH8TgiI=;
+	s=default; t=1602709142;
+	bh=7dXtyZdZwK/86PoeD5PVW5rmS7LBz9NUQgAKUflBOXE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=R4NWXx50IME1R1LCJEQCb1DYQTMafSScSqLy+yzwLt8G2dp5mIYoCwmp/AMPzzjKN
-	 5lt3abUJnVFzlXpTSWH2WUmMd/twWWScNKXBWe+KY42Nu3Hgutur+DOsfWNMqoKjQj
-	 xtSlTADUSEF8c1aHc1/hT8blyzuzTz7+MImpw6LU=
+	b=MfzC7+2eY+AP6QUpBpfQXetj3jebP6yzVxdQEMrSXHkLYv16FB69u6WDL5ans7Xy0
+	 uEejOkgW66OUcALoVSSGkD8q6VC8mL33HOWXGEzBtWsDEx1GDTxO9Gp/yJG5uy1+yA
+	 aJSu+ZKvhMWKO+8nu3kmQRfbkl5ra6LKLPwIrcVc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389484AbgJNU66 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:58:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49672 "EHLO mail.kernel.org"
+        id S2389493AbgJNU7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:59:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388163AbgJNU66 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:58:58 -0400
+        id S2388163AbgJNU7C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:59:02 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EA3B02068E;
-        Wed, 14 Oct 2020 20:58:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E779120725;
+        Wed, 14 Oct 2020 20:59:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709137;
-        bh=61q5JHMqWRAwRYEZYBAWh/0CfO3BZyN/Wn9zHH8TgiI=;
+        s=default; t=1602709141;
+        bh=7dXtyZdZwK/86PoeD5PVW5rmS7LBz9NUQgAKUflBOXE=;
         h=Date:From:To:Subject:From;
-        b=RIyTVgdmdl6ochy7YFQStLM7sF6bTTgTSL46ojsSgdDuQt6hjcTYI6I7vvIJdWkZy
-         xiuYvIL4YuiZaFgu5u7nms48iEP0/A4y1mvmnYhfYyb/BNzc5LT8N2sRvAmNmNzWk+
-         VrSQ3IL3qsZZLJNwQNT2Ub5tvik7uD5GH/x4rc7w=
-Date:   Wed, 14 Oct 2020 13:58:56 -0700
+        b=kCRqQ/U2TGuRanP1Wf+p/8noK8l4jqFD8tKWFL6DWGURfbWGyrMVoRfSSPjaeei/z
+         tyCNbT2VQOWKnbYqhLmBaSkT6F6O1G2Ft0jsTv38Fsgu7w755myyUesJgpYwXmeTq2
+         V7bTc4UGmRlOyIxnK89t/pt4NqafeynlVFFwq9WI=
+Date:   Wed, 14 Oct 2020 13:59:00 -0700
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, chris@chris-wilson.co.uk, hannes@cmpxchg.org,
         hughd@google.com, jani.nikula@linux.intel.com,
         matthew.auld@intel.com, mm-commits@vger.kernel.org,
         william.kucharski@oracle.com, willy@infradead.org,
         ying.huang@intel.com
-Subject:  [merged] proc-optimise-smaps-for-shmem-entries.patch
- removed from -mm tree
-Message-ID: <20201014205856.QZwoGykHz%akpm@linux-foundation.org>
+Subject:  [merged]
+ i915-use-find_lock_page-instead-of-find_lock_entry.patch removed from -mm
+ tree
+Message-ID: <20201014205900.5BGUAtzUs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,20 +57,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: optimise smaps for shmem entries
+     Subject: i915: use find_lock_page instead of find_lock_entry
 has been removed from the -mm tree.  Its filename was
-     proc-optimise-smaps-for-shmem-entries.patch
+     i915-use-find_lock_page-instead-of-find_lock_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: optimise smaps for shmem entries
+Subject: i915: use find_lock_page instead of find_lock_entry
 
-Avoid bumping the refcount on pages when we're only interested in the
-swap entries.
+i915 does not want to see value entries.  Switch it to use
+find_lock_page() instead, and remove the export of find_lock_entry().
+Move find_lock_entry() and find_get_entry() to mm/internal.h to discourage
+any future use.
 
-Link: https://lkml.kernel.org/r/20200910183318.20139-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200910183318.20139-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -82,29 +85,58 @@ Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    4 ++--
+ include/linux/pagemap.h                   |    2 --
+ mm/filemap.c                              |    1 -
+ mm/internal.h                             |    3 +++
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-optimise-smaps-for-shmem-entries
-+++ a/fs/proc/task_mmu.c
-@@ -520,16 +520,10 @@ static void smaps_pte_entry(pte_t *pte,
- 			page = device_private_entry_to_page(swpent);
- 	} else if (unlikely(IS_ENABLED(CONFIG_SHMEM) && mss->check_shmem_swap
- 							&& pte_none(*pte))) {
--		page = find_get_entry(vma->vm_file->f_mapping,
-+		page = xa_load(&vma->vm_file->f_mapping->i_pages,
- 						linear_page_index(vma, addr));
--		if (!page)
--			return;
--
- 		if (xa_is_value(page))
- 			mss->swap += PAGE_SIZE;
--		else
--			put_page(page);
--
- 		return;
- 	}
+--- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~i915-use-find_lock_page-instead-of-find_lock_entry
++++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+@@ -258,8 +258,8 @@ shmem_writeback(struct drm_i915_gem_obje
+ 	for (i = 0; i < obj->base.size >> PAGE_SHIFT; i++) {
+ 		struct page *page;
  
+-		page = find_lock_entry(mapping, i);
+-		if (!page || xa_is_value(page))
++		page = find_lock_page(mapping, i);
++		if (!page)
+ 			continue;
+ 
+ 		if (!page_mapped(page) && clear_page_dirty_for_io(page)) {
+--- a/include/linux/pagemap.h~i915-use-find_lock_page-instead-of-find_lock_entry
++++ a/include/linux/pagemap.h
+@@ -385,8 +385,6 @@ static inline struct page *find_subpage(
+ 	return head + (index & (thp_nr_pages(head) - 1));
+ }
+ 
+-struct page *find_get_entry(struct address_space *mapping, pgoff_t offset);
+-struct page *find_lock_entry(struct address_space *mapping, pgoff_t offset);
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
+ 			  unsigned int nr_entries, struct page **entries,
+ 			  pgoff_t *indices);
+--- a/mm/filemap.c~i915-use-find_lock_page-instead-of-find_lock_entry
++++ a/mm/filemap.c
+@@ -1726,7 +1726,6 @@ repeat:
+ 	}
+ 	return page;
+ }
+-EXPORT_SYMBOL(find_lock_entry);
+ 
+ /**
+  * pagecache_get_page - Find and get a reference to a page.
+--- a/mm/internal.h~i915-use-find_lock_page-instead-of-find_lock_entry
++++ a/mm/internal.h
+@@ -65,6 +65,9 @@ static inline void ra_submit(struct file
+ 			ra->start, ra->size, ra->async_size);
+ }
+ 
++struct page *find_get_entry(struct address_space *mapping, pgoff_t index);
++struct page *find_lock_entry(struct address_space *mapping, pgoff_t index);
++
+ /**
+  * page_evictable - test whether a page is evictable
+  * @page: the page to test
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
