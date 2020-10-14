@@ -7,50 +7,65 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A157C43457
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6341DC433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B11422254
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1663C22255
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602708997;
-	bh=+oOK4rl/SHq1zKiGqaFQlhLZOXlw/pOvq5VxaIgXjMA=;
+	s=default; t=1602709003;
+	bh=+mpTl7y/pctrUb40phN+OB3aqfdDQm3MBUeo/1csbyU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=EhWZDXr9w/ws1HlHjPa5iHNkGbKlbZ/oqHEzSEvZOzFMApMK08UGMgQ1eWCF5l0vz
-	 Mmoh3Vikn21saPimCADKmaYE/S4K85GdxeN6uyn+sa+/fPFHDGwAVsORFdRdTiLAjH
-	 H8fGjH/0AS/tA8kmpiM2SfUrUD+wDzLrBib1YR4A=
+	b=i8IS9tjmfC+UA+Nz2KDlb9QbjMY1WDQjRtWpBeXlS2f5BcVGcZoevwZfp9zmrVPj8
+	 AR72zkVhTLEi8aknBFg8uaKrevgPrf04TuZAuxmGcoGV0SrJJmNW7UD4T16EigXz6G
+	 ZCjKjvRfC7kjwf231ip5tdxEFLrp9fsyFoagXKWg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389398AbgJNU4g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:56:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46896 "EHLO mail.kernel.org"
+        id S2389396AbgJNU4m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:56:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387573AbgJNU4g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:56:36 -0400
+        id S2387573AbgJNU4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:56:42 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB2562224E;
-        Wed, 14 Oct 2020 20:56:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6710722253;
+        Wed, 14 Oct 2020 20:56:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602708995;
-        bh=+oOK4rl/SHq1zKiGqaFQlhLZOXlw/pOvq5VxaIgXjMA=;
+        s=default; t=1602709000;
+        bh=+mpTl7y/pctrUb40phN+OB3aqfdDQm3MBUeo/1csbyU=;
         h=Date:From:To:Subject:From;
-        b=lN30aikKyB5jDqztvwsrELM5yi/p7/NeVrJCh1lwzvmuExS4AKzKi/Hjvo60+vgfk
-         YMGHs3VOwfRsWFQsn8C5g7X83whH8L0pyykBLpKR/pKZxOm+efTdJQU9tNie342jqE
-         DQJ2ZXfks2wsNLhiewalgLHs50dZBTXx4nxAAlEs=
-Date:   Wed, 14 Oct 2020 13:56:34 -0700
+        b=FfDe+OofoUxdinO7Wr3j18h4WTK/G0EL1LU9w4qs1MI0IQst78/5XlOnzC6gJko9J
+         rvRXS2MnCeotAOOodT5qIQSXV8lJ3mL2TLd/Ow3waeVo88aTsDUrjy3C2Dhjshkh98
+         l3GDQrXcDzcqpVz+wjHnrtQhLfHydxM8lGBMjZQ4=
+Date:   Wed, 14 Oct 2020 13:56:37 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, corbet@lwn.net, davem@davemloft.net,
-        dhowells@redhat.com, divya.indi@oracle.com, jpoimboe@redhat.com,
-        mchehab+huawei@kernel.org, miguel.ojeda.sandonis@gmail.com,
-        mm-commits@vger.kernel.org, robh@kernel.org, rostedt@goodmis.org,
-        sam@ravnborg.org, sh_def@163.com, tomas.winkler@intel.com,
-        yamada.masahiro@socionext.com
+To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
+        benh@kernel.crashing.org, bhelgaas@google.com,
+        boris.ostrovsky@oracle.com, bp@alien8.de, Brice.Goglin@inria.fr,
+        bskeggs@redhat.com, catalin.marinas@arm.com,
+        dan.j.williams@intel.com, daniel@ffwll.ch,
+        dave.hansen@linux.intel.com, dave.jiang@intel.com,
+        david@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com,
+        hulkci@huawei.com, ira.weiny@intel.com, jgg@mellanox.com,
+        jglisse@redhat.com, jgross@suse.com, jmoyer@redhat.com,
+        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
+        justin.he@arm.com, lkp@intel.com, luto@kernel.org,
+        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        pasha.tatashin@soleen.com, paulus@ozlabs.org, peterz@infradead.org,
+        rafael.j.wysocki@intel.com, rdunlap@infradead.org,
+        richard.weiyang@linux.alibaba.com, rppt@linux.ibm.com,
+        sstabellini@kernel.org, tglx@linutronix.de,
+        thomas.lendacky@amd.com, vgoyal@redhat.com,
+        vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
 Subject:  [merged]
- mmkmemleak-testc-move-kmemleak-testc-to-samples-dir.patch removed from -mm
- tree
-Message-ID: <20201014205634.tqtw17qIu%akpm@linux-foundation.org>
+ x86-numa-cleanup-configuration-dependent-command-line-options.patch removed
+ from -mm tree
+Message-ID: <20201014205637.RUDKWyNpR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -58,300 +73,249 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,kmemleak-test.c: move kmemleak-test.c to samples dir
+     Subject: x86/numa: cleanup configuration dependent command-line options
 has been removed from the -mm tree.  Its filename was
-     mmkmemleak-testc-move-kmemleak-testc-to-samples-dir.patch
+     x86-numa-cleanup-configuration-dependent-command-line-options.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm,kmemleak-test.c: move kmemleak-test.c to samples dir
+=46rom: Dan Williams <dan.j.williams@intel.com>
+Subject: x86/numa: cleanup configuration dependent command-line options
 
-kmemleak-test.c is just a kmemleak test module, which also can not be used
-as a built-in kernel module.  Thus, i think it may should not be in mm
-dir, and move the kmemleak-test.c to samples/kmemleak/kmemleak-test.c. 
-Fix the spelling of built-in by the way.
+Patch series "device-dax: Support sub-dividing soft-reserved ranges", v5.
 
-Link: https://lkml.kernel.org/r/20200925183729.GA172837@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
+The device-dax facility allows an address range to be directly mapped
+through a chardev, or optionally hotplugged to the core kernel page
+allocator as System-RAM.  It is the mechanism for converting persistent
+memory (pmem) to be used as another volatile memory pool i.e.  the current
+Memory Tiering hot topic on linux-mm.
+
+In the case of pmem the nvdimm-namespace-label mechanism can sub-divide
+it, but that labeling mechanism is not available / applicable to
+soft-reserved ("EFI specific purpose") memory [3].  This series provides a
+sysfs-mechanism for the daxctl utility to enable provisioning of
+volatile-soft-reserved memory ranges.
+
+The motivations for this facility are:
+
+1/ Allow performance differentiated memory ranges to be split between
+   kernel-managed and directly-accessed use cases.
+
+2/ Allow physical memory to be provisioned along performance relevant
+   address boundaries. For example, divide a memory-side cache [4] along
+   cache-color boundaries.
+
+3/ Parcel out soft-reserved memory to VMs using device-dax as a security
+   / permissions boundary [5]. Specifically I have seen people (ab)using
+   memmap=3Dnn!ss (mark System-RAM as Persistent Memory) just to get the
+   device-dax interface on custom address ranges. A follow-on for the VM
+   use case is to teach device-dax to dynamically allocate 'struct page' at
+   runtime to reduce the duplication of 'struct page' space in both the
+   guest and the host kernel for the same physical pages.
+
+[2]: http://lore.kernel.org/r/20200713160837.13774-11-joao.m.martins@oracle=
+.com
+[3]: http://lore.kernel.org/r/157309097008.1579826.12818463304589384434.stg=
+it@dwillia2-desk3.amr.corp.intel.com
+[4]: http://lore.kernel.org/r/154899811738.3165233.12325692939590944259.stg=
+it@dwillia2-desk3.amr.corp.intel.com
+[5]: http://lore.kernel.org/r/20200110190313.17144-1-joao.m.martins@oracle.=
+com
+
+
+This patch (of 23):
+
+In preparation for adding a new numa=3D option clean up the existing ones to
+avoid ifdefs in numa_setup(), and provide feedback when the option is
+numa=3Dfake=3D option is invalid due to kernel config.  The same does not n=
+eed
+to be done for numa=3Dnoacpi, since the capability is already hard disabled
+at compile-time.
+
+Link: https://lkml.kernel.org/r/160106109960.30709.7379926726669669398.stgi=
+t@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643094279.4062302.17779410714418721328.s=
+tgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/159643094925.4062302.14979872973043772305.s=
+tgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Divya Indi <divya.indi@oracle.com>
-Cc: Tomas Winkler <tomas.winkler@intel.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Hulk Robot <hulkci@huawei.com>
+Cc: Jason Yan <yanaijie@huawei.com>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kmemleak.rst |    2 
- MAINTAINERS                          |    2 
- mm/Makefile                          |    1 
- mm/kmemleak-test.c                   |   99 -------------------------
- samples/Makefile                     |    1 
- samples/kmemleak/Makefile            |    3 
- samples/kmemleak/kmemleak-test.c     |   99 +++++++++++++++++++++++++
- 7 files changed, 105 insertions(+), 102 deletions(-)
+ arch/x86/include/asm/numa.h  |    8 +++++++-
+ arch/x86/mm/numa.c           |    8 ++------
+ arch/x86/mm/numa_emulation.c |    3 ++-
+ arch/x86/xen/enlighten_pv.c  |    2 +-
+ drivers/acpi/numa/srat.c     |    9 +++++++--
+ include/acpi/acpi_numa.h     |    6 +++++-
+ 6 files changed, 24 insertions(+), 12 deletions(-)
 
---- a/Documentation/dev-tools/kmemleak.rst~mmkmemleak-testc-move-kmemleak-testc-to-samples-dir
-+++ a/Documentation/dev-tools/kmemleak.rst
-@@ -229,7 +229,7 @@ Testing with kmemleak-test
- 
- To check if you have all set up to use kmemleak, you can use the kmemleak-test
- module, a module that deliberately leaks memory. Set CONFIG_DEBUG_KMEMLEAK_TEST
--as module (it can't be used as bult-in) and boot the kernel with kmemleak
-+as module (it can't be used as built-in) and boot the kernel with kmemleak
- enabled. Load the module and perform a scan with::
- 
-         # modprobe kmemleak-test
---- a/MAINTAINERS~mmkmemleak-testc-move-kmemleak-testc-to-samples-dir
-+++ a/MAINTAINERS
-@@ -9727,8 +9727,8 @@ M:	Catalin Marinas <catalin.marinas@arm.
- S:	Maintained
- F:	Documentation/dev-tools/kmemleak.rst
- F:	include/linux/kmemleak.h
--F:	mm/kmemleak-test.c
- F:	mm/kmemleak.c
-+F:	samples/kmemleak/kmemleak-test.c
- 
- KMOD KERNEL MODULE LOADER - USERMODE HELPER
- M:	Luis Chamberlain <mcgrof@kernel.org>
---- a/mm/kmemleak-test.c
-+++ /dev/null
-@@ -1,99 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * mm/kmemleak-test.c
-- *
-- * Copyright (C) 2008 ARM Limited
-- * Written by Catalin Marinas <catalin.marinas@arm.com>
-- */
--
--#define pr_fmt(fmt) "kmemleak: " fmt
--
--#include <linux/init.h>
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/slab.h>
--#include <linux/vmalloc.h>
--#include <linux/list.h>
--#include <linux/percpu.h>
--#include <linux/fdtable.h>
--
--#include <linux/kmemleak.h>
--
--struct test_node {
--	long header[25];
--	struct list_head list;
--	long footer[25];
--};
--
--static LIST_HEAD(test_list);
--static DEFINE_PER_CPU(void *, kmemleak_test_pointer);
--
--/*
-- * Some very simple testing. This function needs to be extended for
-- * proper testing.
-- */
--static int __init kmemleak_test_init(void)
--{
--	struct test_node *elem;
--	int i;
--
--	pr_info("Kmemleak testing\n");
--
--	/* make some orphan objects */
--	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
--	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
--	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
--	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
--	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
--	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
--	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
--	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
--#ifndef CONFIG_MODULES
--	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
--		kmem_cache_alloc(files_cachep, GFP_KERNEL));
--	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
--		kmem_cache_alloc(files_cachep, GFP_KERNEL));
+--- a/arch/x86/include/asm/numa.h~x86-numa-cleanup-configuration-dependent-=
+command-line-options
++++ a/arch/x86/include/asm/numa.h
+@@ -3,6 +3,7 @@
+ #define _ASM_X86_NUMA_H
+=20
+ #include <linux/nodemask.h>
++#include <linux/errno.h>
+=20
+ #include <asm/topology.h>
+ #include <asm/apicdef.h>
+@@ -77,7 +78,12 @@ void debug_cpumask_set_cpu(int cpu, int
+ #ifdef CONFIG_NUMA_EMU
+ #define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
+ #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
+-void numa_emu_cmdline(char *);
++int numa_emu_cmdline(char *str);
++#else /* CONFIG_NUMA_EMU */
++static inline int numa_emu_cmdline(char *str)
++{
++	return -EINVAL;
++}
+ #endif /* CONFIG_NUMA_EMU */
+=20
+ #endif	/* _ASM_X86_NUMA_H */
+--- a/arch/x86/mm/numa.c~x86-numa-cleanup-configuration-dependent-command-l=
+ine-options
++++ a/arch/x86/mm/numa.c
+@@ -37,14 +37,10 @@ static __init int numa_setup(char *opt)
+ 		return -EINVAL;
+ 	if (!strncmp(opt, "off", 3))
+ 		numa_off =3D 1;
+-#ifdef CONFIG_NUMA_EMU
+ 	if (!strncmp(opt, "fake=3D", 5))
+-		numa_emu_cmdline(opt + 5);
 -#endif
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--
--	/*
--	 * Add elements to a list. They should only appear as orphan
--	 * after the module is removed.
--	 */
--	for (i = 0; i < 10; i++) {
--		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
--		pr_info("kzalloc(sizeof(*elem)) = %p\n", elem);
--		if (!elem)
--			return -ENOMEM;
--		INIT_LIST_HEAD(&elem->list);
--		list_add_tail(&elem->list, &test_list);
--	}
--
--	for_each_possible_cpu(i) {
--		per_cpu(kmemleak_test_pointer, i) = kmalloc(129, GFP_KERNEL);
--		pr_info("kmalloc(129) = %p\n",
--			per_cpu(kmemleak_test_pointer, i));
--	}
--
--	return 0;
--}
--module_init(kmemleak_test_init);
--
--static void __exit kmemleak_test_exit(void)
--{
--	struct test_node *elem, *tmp;
--
--	/*
--	 * Remove the list elements without actually freeing the
--	 * memory.
--	 */
--	list_for_each_entry_safe(elem, tmp, &test_list, list)
--		list_del(&elem->list);
--}
--module_exit(kmemleak_test_exit);
--
--MODULE_LICENSE("GPL");
---- a/mm/Makefile~mmkmemleak-testc-move-kmemleak-testc-to-samples-dir
-+++ a/mm/Makefile
-@@ -94,7 +94,6 @@ obj-$(CONFIG_GUP_BENCHMARK) += gup_bench
- obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
- obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
--obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_DEBUG_RODATA_TEST) += rodata_test.o
- obj-$(CONFIG_DEBUG_VM_PGTABLE) += debug_vm_pgtable.o
- obj-$(CONFIG_PAGE_OWNER) += page_owner.o
---- /dev/null
-+++ a/samples/kmemleak/kmemleak-test.c
-@@ -0,0 +1,99 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * samples/kmemleak/kmemleak-test.c
-+ *
-+ * Copyright (C) 2008 ARM Limited
-+ * Written by Catalin Marinas <catalin.marinas@arm.com>
-+ */
-+
-+#define pr_fmt(fmt) "kmemleak: " fmt
-+
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+#include <linux/list.h>
-+#include <linux/percpu.h>
-+#include <linux/fdtable.h>
-+
-+#include <linux/kmemleak.h>
-+
-+struct test_node {
-+	long header[25];
-+	struct list_head list;
-+	long footer[25];
-+};
-+
-+static LIST_HEAD(test_list);
-+static DEFINE_PER_CPU(void *, kmemleak_test_pointer);
-+
-+/*
-+ * Some very simple testing. This function needs to be extended for
-+ * proper testing.
-+ */
-+static int __init kmemleak_test_init(void)
-+{
-+	struct test_node *elem;
-+	int i;
-+
-+	pr_info("Kmemleak testing\n");
-+
-+	/* make some orphan objects */
-+	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
-+	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
-+	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
-+	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
-+	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
-+	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
-+	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
-+	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
-+#ifndef CONFIG_MODULES
-+	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
-+		kmem_cache_alloc(files_cachep, GFP_KERNEL));
-+	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
-+		kmem_cache_alloc(files_cachep, GFP_KERNEL));
-+#endif
-+	pr_info("vmalloc(64) = %p\n", vmalloc(64));
-+	pr_info("vmalloc(64) = %p\n", vmalloc(64));
-+	pr_info("vmalloc(64) = %p\n", vmalloc(64));
-+	pr_info("vmalloc(64) = %p\n", vmalloc(64));
-+	pr_info("vmalloc(64) = %p\n", vmalloc(64));
-+
-+	/*
-+	 * Add elements to a list. They should only appear as orphan
-+	 * after the module is removed.
-+	 */
-+	for (i = 0; i < 10; i++) {
-+		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
-+		pr_info("kzalloc(sizeof(*elem)) = %p\n", elem);
-+		if (!elem)
-+			return -ENOMEM;
-+		INIT_LIST_HEAD(&elem->list);
-+		list_add_tail(&elem->list, &test_list);
-+	}
-+
-+	for_each_possible_cpu(i) {
-+		per_cpu(kmemleak_test_pointer, i) = kmalloc(129, GFP_KERNEL);
-+		pr_info("kmalloc(129) = %p\n",
-+			per_cpu(kmemleak_test_pointer, i));
-+	}
-+
+-#ifdef CONFIG_ACPI_NUMA
++		return numa_emu_cmdline(opt + 5);
+ 	if (!strncmp(opt, "noacpi", 6))
+-		acpi_numa =3D -1;
+-#endif
++		disable_srat();
+ 	return 0;
+ }
+ early_param("numa", numa_setup);
+--- a/arch/x86/mm/numa_emulation.c~x86-numa-cleanup-configuration-dependent=
+-command-line-options
++++ a/arch/x86/mm/numa_emulation.c
+@@ -13,9 +13,10 @@
+ static int emu_nid_to_phys[MAX_NUMNODES];
+ static char *emu_cmdline __initdata;
+=20
+-void __init numa_emu_cmdline(char *str)
++int __init numa_emu_cmdline(char *str)
+ {
+ 	emu_cmdline =3D str;
 +	return 0;
-+}
-+module_init(kmemleak_test_init);
+ }
+=20
+ static int __init emu_find_memblk_by_nid(int nid, const struct numa_meminf=
+o *mi)
+--- a/arch/x86/xen/enlighten_pv.c~x86-numa-cleanup-configuration-dependent-=
+command-line-options
++++ a/arch/x86/xen/enlighten_pv.c
+@@ -1300,7 +1300,7 @@ asmlinkage __visible void __init xen_sta
+ 	 * any NUMA information the kernel tries to get from ACPI will
+ 	 * be meaningless.  Prevent it from trying.
+ 	 */
+-	acpi_numa =3D -1;
++	disable_srat();
+ #endif
+ 	WARN_ON(xen_cpuhp_setup(xen_cpu_up_prepare_pv, xen_cpu_dead_pv));
+=20
+--- a/drivers/acpi/numa/srat.c~x86-numa-cleanup-configuration-dependent-com=
+mand-line-options
++++ a/drivers/acpi/numa/srat.c
+@@ -27,7 +27,12 @@ static int node_to_pxm_map[MAX_NUMNODES]
+ 			=3D { [0 ... MAX_NUMNODES - 1] =3D PXM_INVAL };
+=20
+ unsigned char acpi_srat_revision __initdata;
+-int acpi_numa __initdata;
++static int acpi_numa __initdata;
 +
-+static void __exit kmemleak_test_exit(void)
++void __init disable_srat(void)
 +{
-+	struct test_node *elem, *tmp;
-+
-+	/*
-+	 * Remove the list elements without actually freeing the
-+	 * memory.
-+	 */
-+	list_for_each_entry_safe(elem, tmp, &test_list, list)
-+		list_del(&elem->list);
++	acpi_numa =3D -1;
 +}
-+module_exit(kmemleak_test_exit);
-+
-+MODULE_LICENSE("GPL");
---- /dev/null
-+++ a/samples/kmemleak/Makefile
-@@ -0,0 +1,3 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+
-+obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
---- a/samples/Makefile~mmkmemleak-testc-move-kmemleak-testc-to-samples-dir
-+++ a/samples/Makefile
-@@ -28,3 +28,4 @@ subdir-$(CONFIG_SAMPLE_VFS)		+= vfs
- obj-$(CONFIG_SAMPLE_INTEL_MEI)		+= mei/
- subdir-$(CONFIG_SAMPLE_WATCHDOG)	+= watchdog
- subdir-$(CONFIG_SAMPLE_WATCH_QUEUE)	+= watch_queue
-+obj-$(CONFIG_DEBUG_KMEMLEAK_TEST)	+= kmemleak/
+=20
+ int pxm_to_node(int pxm)
+ {
+@@ -163,7 +168,7 @@ static int __init slit_valid(struct acpi
+ void __init bad_srat(void)
+ {
+ 	pr_err("SRAT: SRAT not used.\n");
+-	acpi_numa =3D -1;
++	disable_srat();
+ }
+=20
+ int __init srat_disabled(void)
+--- a/include/acpi/acpi_numa.h~x86-numa-cleanup-configuration-dependent-com=
+mand-line-options
++++ a/include/acpi/acpi_numa.h
+@@ -17,10 +17,14 @@ extern int pxm_to_node(int);
+ extern int node_to_pxm(int);
+ extern int acpi_map_pxm_to_node(int);
+ extern unsigned char acpi_srat_revision;
+-extern int acpi_numa __initdata;
++extern void disable_srat(void);
+=20
+ extern void bad_srat(void);
+ extern int srat_disabled(void);
+=20
++#else				/* CONFIG_ACPI_NUMA */
++static inline void disable_srat(void)
++{
++}
+ #endif				/* CONFIG_ACPI_NUMA */
+ #endif				/* __ACP_NUMA_H */
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 
