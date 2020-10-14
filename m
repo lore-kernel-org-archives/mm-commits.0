@@ -7,45 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21549C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE38C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C67A82224D
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4CDB2224D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709157;
-	bh=2XgXJOKulkWHd6Tl7Qz7RiE5x75QFIf2z55fT4kLEgo=;
+	s=default; t=1602709160;
+	bh=5ZVK8x38JZEhrsnec6LX4IGYJZbpDZYBmG9QqwyeTt0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tkB1KB+khEFdDex73c8MwuNlSDIC5gUErM8Ks5HQczqh0S0UWxIWRyz+GIbz18p/5
-	 r1yRzmBmsrRiWxWG/otkDuQzHzXhXvh5gBbDiTBaGDSgFFJM4H9kkTXpBoaRLUaIET
-	 U3i2Mjisy7ReSDiNgA8WIjRZDCLMzSaiVZK0HXLE=
+	b=LYQUTUFLl2ayu7sHCAcw0X7GXrl5rpgX7VRFhkSk0+CZMhHVFDOgfYMfAjmlfV0O6
+	 0t1IB4FhFBajWHDxBEtt+hHQwnX/Jzz1uBLKI+XU9Lxh2XrXnaZqi77UjRXDr2JMUW
+	 j5r7o2pQxWX2PALVbLABy95IwfQN22jE+tAY3YsE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389505AbgJNU7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:59:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49880 "EHLO mail.kernel.org"
+        id S2389506AbgJNU7U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:59:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389499AbgJNU7R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:59:17 -0400
+        id S2389499AbgJNU7U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:59:20 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A045C20725;
-        Wed, 14 Oct 2020 20:59:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9D0DC20725;
+        Wed, 14 Oct 2020 20:59:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709154;
-        bh=2XgXJOKulkWHd6Tl7Qz7RiE5x75QFIf2z55fT4kLEgo=;
+        s=default; t=1602709157;
+        bh=5ZVK8x38JZEhrsnec6LX4IGYJZbpDZYBmG9QqwyeTt0=;
         h=Date:From:To:Subject:From;
-        b=hpSEwMJtKM3FuqTZO0hGjF5Bq3PpGQ7K9MRnuqveCoba0qeTkumNR7VQikSxJ3hQP
-         t8fdjXMMnhPkFIkK8c4Ev+ieVxPO0/rCx7ZzbfA2BQyDDielPl9/SuITrEVYA3BNdu
-         2N+rHk80+JPX6Tuxk/p4US5b4jrVdz32d83nmzA4=
-Date:   Wed, 14 Oct 2020 13:59:14 -0700
+        b=gFZO7wA7nehCL3XQhjBxcamCHU1nqdsrcTYA+8bHnVtkUD5ScJi1H1JpArjzFzPCe
+         hD1tFz7IRlsx9VC5AdRrjdP9NQSogDvAPjdM9txwH8uIlCo4aQ52f2C63ExhIxgxpz
+         RZ/QoW1fXWneYzu+zaE0GDNqBAIcvgkFn1zzSwfc=
+Date:   Wed, 14 Oct 2020 13:59:17 -0700
 From:   akpm@linux-foundation.org
-To:     kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  [merged] mm-filemap-fix-filemap_map_pages-for-thp.patch
- removed from -mm tree
-Message-ID: <20201014205914.9e--coS7e%akpm@linux-foundation.org>
+To:     hannes@cmpxchg.org, laoar.shao@gmail.com, mgorman@suse.de,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ =?US-ASCII?Q?mm-fadvise-improve-the-expensive-remote-lru-cache-draining-a?=
+ =?US-ASCII?Q?fter-fadv=5Fdontneed.patch?= removed from -mm tree
+Message-ID: <20201014205917.5vnkRArHw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,141 +56,185 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: fix filemap_map_pages for THP
+     Subject: mm, fadvise: improve the expensive remote LRU cache draining after FADV_DONTNEED
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-fix-filemap_map_pages-for-thp.patch
+     mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: fix filemap_map_pages for THP
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm, fadvise: improve the expensive remote LRU cache draining after FADV_DONTNEED
 
-We dereference page->mapping and page->index directly after calling
-find_subpage() and these fields are not valid for tail pages.  While
-commit 4101196b19d7 ("mm: page cache: store only head pages in i_pages")
-introduced the call to find_subpage(), the problem existed prior to this;
-I'm going to suggest all the way back to when THPs first existed.
+Our users reported that there're some random latency spikes when their RT
+process is running.  Finally we found that latency spike is caused by
+FADV_DONTNEED.  Which may call lru_add_drain_all() to drain LRU cache on
+remote CPUs, and then waits the per-cpu work to complete.  The wait time
+is uncertain, which may be tens millisecond.
 
-The user-visible effects of this are almost negligible.  To hit it, you
-have to mmap a tmpfs file at an unaligned address and then it's only a
-disabled optimisation causing page faults to happen more frequently than
-they otherwise would.
+That behavior is unreasonable, because this process is bound to a specific
+CPU and the file is only accessed by itself, IOW, there should be no
+pagecache pages on a per-cpu pagevec of a remote CPU.  That unreasonable
+behavior is partially caused by the wrong comparation of the number of
+invalidated pages and the number of the target.  For example,
 
-Fix this by keeping both head and page pointers and checking the
-appropriate one.  We could use page_mapping() and page_to_index(), but
-that's higher overhead.
+        if (count < (end_index - start_index + 1))
 
-Link: https://lkml.kernel.org/r/20200911012532.24761-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
+The count above is how many pages were invalidated in the local CPU, and
+(end_index - start_index + 1) is how many pages should be invalidated. 
+The usage of (end_index - start_index + 1) is incorrect, because they are
+virtual addresses, which may not mapped to pages.  Besides that, there may
+be holes between start and end.  So we'd better check whether there are
+still pages on per-cpu pagevec after drain the local cpu, and then decide
+whether or not to call lru_add_drain_all().
+
+After I applied it with a hotfix to our production environment, most of
+the lru_add_drain_all() can be avoided.
+
+Link: https://lkml.kernel.org/r/20200923133318.14373-1-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Suggested-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ include/linux/fs.h |    4 ++
+ mm/fadvise.c       |    9 +++---
+ mm/truncate.c      |   58 +++++++++++++++++++++++++++++--------------
+ 3 files changed, 49 insertions(+), 22 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-filemap_map_pages-for-thp
-+++ a/mm/filemap.c
-@@ -2793,42 +2793,42 @@ void filemap_map_pages(struct vm_fault *
- 	pgoff_t last_pgoff = start_pgoff;
- 	unsigned long max_idx;
- 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
--	struct page *page;
-+	struct page *head, *page;
- 	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
+--- a/include/linux/fs.h~mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed
++++ a/include/linux/fs.h
+@@ -2581,6 +2581,10 @@ extern bool is_bad_inode(struct inode *)
+ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+ 					pgoff_t start, pgoff_t end);
  
- 	rcu_read_lock();
--	xas_for_each(&xas, page, end_pgoff) {
--		if (xas_retry(&xas, page))
-+	xas_for_each(&xas, head, end_pgoff) {
-+		if (xas_retry(&xas, head))
- 			continue;
--		if (xa_is_value(page))
-+		if (xa_is_value(head))
- 			goto next;
++void invalidate_mapping_pagevec(struct address_space *mapping,
++				pgoff_t start, pgoff_t end,
++				unsigned long *nr_pagevec);
++
+ static inline void invalidate_remote_inode(struct inode *inode)
+ {
+ 	if (S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
+--- a/mm/fadvise.c~mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed
++++ a/mm/fadvise.c
+@@ -141,7 +141,7 @@ int generic_fadvise(struct file *file, l
+ 		}
  
- 		/*
- 		 * Check for a locked page first, as a speculative
- 		 * reference may adversely influence page migration.
- 		 */
--		if (PageLocked(page))
-+		if (PageLocked(head))
- 			goto next;
--		if (!page_cache_get_speculative(page))
-+		if (!page_cache_get_speculative(head))
- 			goto next;
+ 		if (end_index >= start_index) {
+-			unsigned long count;
++			unsigned long nr_pagevec = 0;
  
- 		/* Has the page moved or been split? */
--		if (unlikely(page != xas_reload(&xas)))
-+		if (unlikely(head != xas_reload(&xas)))
- 			goto skip;
--		page = find_subpage(page, xas.xa_index);
-+		page = find_subpage(head, xas.xa_index);
+ 			/*
+ 			 * It's common to FADV_DONTNEED right after
+@@ -154,8 +154,9 @@ int generic_fadvise(struct file *file, l
+ 			 */
+ 			lru_add_drain();
  
--		if (!PageUptodate(page) ||
-+		if (!PageUptodate(head) ||
- 				PageReadahead(page) ||
- 				PageHWPoison(page))
- 			goto skip;
--		if (!trylock_page(page))
-+		if (!trylock_page(head))
- 			goto skip;
+-			count = invalidate_mapping_pages(mapping,
+-						start_index, end_index);
++			invalidate_mapping_pagevec(mapping,
++						start_index, end_index,
++						&nr_pagevec);
  
--		if (page->mapping != mapping || !PageUptodate(page))
-+		if (head->mapping != mapping || !PageUptodate(head))
- 			goto unlock;
+ 			/*
+ 			 * If fewer pages were invalidated than expected then
+@@ -163,7 +164,7 @@ int generic_fadvise(struct file *file, l
+ 			 * a per-cpu pagevec for a remote CPU. Drain all
+ 			 * pagevecs and try again.
+ 			 */
+-			if (count < (end_index - start_index + 1)) {
++			if (nr_pagevec) {
+ 				lru_add_drain_all();
+ 				invalidate_mapping_pages(mapping, start_index,
+ 						end_index);
+--- a/mm/truncate.c~mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed
++++ a/mm/truncate.c
+@@ -528,23 +528,8 @@ void truncate_inode_pages_final(struct a
+ }
+ EXPORT_SYMBOL(truncate_inode_pages_final);
  
- 		max_idx = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
--		if (page->index >= max_idx)
-+		if (xas.xa_index >= max_idx)
- 			goto unlock;
+-/**
+- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
+- * @mapping: the address_space which holds the pages to invalidate
+- * @start: the offset 'from' which to invalidate
+- * @end: the offset 'to' which to invalidate (inclusive)
+- *
+- * This function only removes the unlocked pages, if you want to
+- * remove all the pages of one inode, you must call truncate_inode_pages.
+- *
+- * invalidate_mapping_pages() will not block on IO activity. It will not
+- * invalidate pages which are dirty, locked, under writeback or mapped into
+- * pagetables.
+- *
+- * Return: the number of the pages that were invalidated
+- */
+-unsigned long invalidate_mapping_pages(struct address_space *mapping,
+-		pgoff_t start, pgoff_t end)
++unsigned long __invalidate_mapping_pages(struct address_space *mapping,
++		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
+ {
+ 	pgoff_t indices[PAGEVEC_SIZE];
+ 	struct pagevec pvec;
+@@ -610,8 +595,13 @@ unsigned long invalidate_mapping_pages(s
+ 			 * Invalidation is a hint that the page is no longer
+ 			 * of interest and try to speed up its reclaim.
+ 			 */
+-			if (!ret)
++			if (!ret) {
+ 				deactivate_file_page(page);
++				/* It is likely on the pagevec of a remote CPU */
++				if (nr_pagevec)
++					(*nr_pagevec)++;
++			}
++
+ 			if (PageTransHuge(page))
+ 				put_page(page);
+ 			count += ret;
+@@ -623,8 +613,40 @@ unsigned long invalidate_mapping_pages(s
+ 	}
+ 	return count;
+ }
++
++/**
++ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
++ * @mapping: the address_space which holds the pages to invalidate
++ * @start: the offset 'from' which to invalidate
++ * @end: the offset 'to' which to invalidate (inclusive)
++ *
++ * This function only removes the unlocked pages, if you want to
++ * remove all the pages of one inode, you must call truncate_inode_pages.
++ *
++ * invalidate_mapping_pages() will not block on IO activity. It will not
++ * invalidate pages which are dirty, locked, under writeback or mapped into
++ * pagetables.
++ *
++ * Return: the number of the pages that were invalidated
++ */
++unsigned long invalidate_mapping_pages(struct address_space *mapping,
++		pgoff_t start, pgoff_t end)
++{
++	return __invalidate_mapping_pages(mapping, start, end, NULL);
++}
+ EXPORT_SYMBOL(invalidate_mapping_pages);
  
- 		if (mmap_miss > 0)
-@@ -2840,12 +2840,12 @@ void filemap_map_pages(struct vm_fault *
- 		last_pgoff = xas.xa_index;
- 		if (alloc_set_pte(vmf, page))
- 			goto unlock;
--		unlock_page(page);
-+		unlock_page(head);
- 		goto next;
- unlock:
--		unlock_page(page);
-+		unlock_page(head);
- skip:
--		put_page(page);
-+		put_page(head);
- next:
- 		/* Huge page is mapped? No need to proceed. */
- 		if (pmd_trans_huge(*vmf->pmd))
++/**
++ * This helper is similar with the above one, except that it accounts for pages
++ * that are likely on a pagevec and count them in @nr_pagevec, which will used by
++ * the caller.
++ */
++void invalidate_mapping_pagevec(struct address_space *mapping,
++		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
++{
++	__invalidate_mapping_pages(mapping, start, end, nr_pagevec);
++}
++
+ /*
+  * This is like invalidate_complete_page(), except it ignores the page's
+  * refcount.  We do this because invalidate_inode_pages2() needs stronger
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-xarray-add-xa_get_order.patch
-xarray-add-xas_split.patch
-xarray-add-xas_split-fix-2.patch
-xarray-add-xas_split-fix-3patch.patch
-mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
-mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
-mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
-mm-memory-remove-page-fault-assumption-of-compound-page-size-fix.patch
-mm-page_owner-change-split_page_owner-to-take-a-count.patch
-mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
-mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
-mm-rmap-fix-assumptions-of-thp-size.patch
-mm-truncate-fix-truncation-for-pages-of-arbitrary-size.patch
-mm-page-writeback-support-tail-pages-in-wait_for_stable_page.patch
-mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out.patch
-fs-add-a-filesystem-flag-for-thps.patch
-fs-do-not-update-nr_thps-for-mappings-which-support-thps.patch
-mm-readahead-add-define_readahead.patch
-mm-readahead-make-page_cache_ra_unbounded-take-a-readahead_control.patch
-mm-readahead-make-do_page_cache_ra-take-a-readahead_control.patch
-mm-readahead-add-page_cache_sync_ra-and-page_cache_async_ra.patch
-mm-rename-page_order-to-buddy_order.patch
-ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
-harden-autofs-ioctl-table.patch
-mm-update-the-documentation-for-vfree.patch
 
