@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC781C43467
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E056C3279D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A6482224E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5E202224D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709315;
-	bh=l5PZuVpX0G0Ouju4kY+ywUpSpSYVt2zSBkRRTOTgAhY=;
+	s=default; t=1602709316;
+	bh=G3c9WdC0fVmj45Vn1FZX9RGsht2aP5jObBjr85ylrR4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=kPj/ZkYktJUidwacAIdIpJ/GKgQKkNJTEdfGR1M9e07+naaBQLYvrQUyru0m5T/Ky
-	 hbbSEh2k8rBHuWAAVvz6gDrinXVSiLkBok+0Xkb2GaZOT836oAVGH5VtlxoBEANXK8
-	 L9icE9zYkOBF/1Azfpn5QWJWeha7RzCa9bFvRJ9o=
+	b=fuZzd+CJzkxjwyTdQlb9L/cBRCS1gN1+ICbxynQwdgWMWPjEhG+wiGm4cOACftBbQ
+	 ni9gZ5pjCXemblbqFJ/mac+uBezEPjnxcKXKh/Usl5r0QkNQBxAi9plipXN9gx5ppj
+	 P25e+w3Br0e0RbcE05V0aAIzjyfvFg/zfAUdAg7o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730503AbgJNVBm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:42 -0400
+        id S1730565AbgJNVBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:48 -0400
 Received: from mail.kernel.org ([198.145.29.99]:51374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730477AbgJNVBm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:42 -0400
+        id S1728959AbgJNVBq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:46 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8CC9F221FF;
-        Wed, 14 Oct 2020 21:01:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9CF382225C;
+        Wed, 14 Oct 2020 21:01:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709277;
-        bh=l5PZuVpX0G0Ouju4kY+ywUpSpSYVt2zSBkRRTOTgAhY=;
+        s=default; t=1602709305;
+        bh=G3c9WdC0fVmj45Vn1FZX9RGsht2aP5jObBjr85ylrR4=;
         h=Date:From:To:Subject:From;
-        b=siB34FjlohWjaiutfBJcWCEqmll+Mc6zoN1vyMLAf84NOvpQUf1JHTgKB+1QibkzK
-         WeXiDjrji0tedhjzg9yDTJtVOjZaYE5god0kRV+07O0eOHEblPt1uCawqRFulwUtqY
-         0LPtuLuVkk40vC82C2g1goadse+YCg1n5vSvkLGw=
-Date:   Wed, 14 Oct 2020 14:01:17 -0700
+        b=RvozIsVlr7hbk4CpZ+JcHBuGcRaP3VCRjuZE7jAMQJZZQJinDVjBFtCXSdv4OTMua
+         UrYZ9rsardA4BRGfVPc+tIYntpdQjmyWMAO2UdVZ+abPqLdYs2pW1J3PI9rY5+w2h4
+         kp4+vQnXp5yAqjZ0A12GmIbzHC0Ifr+2c+HvxbUw=
+Date:   Wed, 14 Oct 2020 14:01:45 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [merged] mm-memoryc-fix-spello-of-function.patch removed
- from -mm tree
-Message-ID: <20201014210117.FXP0sRXUG%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  [merged]
+ mm-dmapoolc-replace-open-coded-list_for_each_entry_safe.patch removed from
+ -mm tree
+Message-ID: <20201014210145.tHL_aoQud%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,52 +54,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix spello of "function"
+     Subject: mm/dmapool.c: replace open-coded list_for_each_entry_safe()
 has been removed from the -mm tree.  Its filename was
-     mm-memoryc-fix-spello-of-function.patch
+     mm-dmapoolc-replace-open-coded-list_for_each_entry_safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/memory.c: fix spello of "function"
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: mm/dmapool.c: replace open-coded list_for_each_entry_safe()
 
-Fix typo/spello of "function".
+There is a place in the code where open-coded version of
+list_for_each_entry_safe() is used.  Replace that with the standard macro.
 
-Link: https://lkml.kernel.org/r/e7bf180e-c558-b1d5-9a15-6d9708823c9c@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/20200814135055.24898-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/dmapool.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-memoryc-fix-spello-of-function
-+++ a/mm/memory.c
-@@ -3764,7 +3764,7 @@ static vm_fault_t do_set_pmd(struct vm_f
+--- a/mm/dmapool.c~mm-dmapoolc-replace-open-coded-list_for_each_entry_safe
++++ a/mm/dmapool.c
+@@ -266,6 +266,7 @@ static void pool_free_page(struct dma_po
+  */
+ void dma_pool_destroy(struct dma_pool *pool)
+ {
++	struct dma_page *page, *tmp;
+ 	bool empty = false;
  
- /**
-  * alloc_set_pte - setup new PTE entry for given page and add reverse page
-- * mapping. If needed, the fucntion allocates page table or use pre-allocated.
-+ * mapping. If needed, the function allocates page table or use pre-allocated.
-  *
-  * @vmf: fault environment
-  * @page: page to map
+ 	if (unlikely(!pool))
+@@ -281,10 +282,7 @@ void dma_pool_destroy(struct dma_pool *p
+ 		device_remove_file(pool->dev, &dev_attr_pools);
+ 	mutex_unlock(&pools_reg_lock);
+ 
+-	while (!list_empty(&pool->page_list)) {
+-		struct dma_page *page;
+-		page = list_entry(pool->page_list.next,
+-				  struct dma_page, page_list);
++	list_for_each_entry_safe(page, tmp, &pool->page_list, page_list) {
+ 		if (is_page_busy(page)) {
+ 			if (pool->dev)
+ 				dev_err(pool->dev,
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-fs-configfs-delete-repeated-words-in-comments.patch
-kernel-fix-repeated-words-in-comments.patch
-kernel-acctc-fix-some-kernel-doc-nits.patch
-lib-bitmap-delete-duplicated-words.patch
-lib-libcrc32c-delete-duplicated-words.patch
-lib-decompress_bunzip2-delete-duplicated-words.patch
-lib-devres-delete-duplicated-words.patch
-lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
-lib-earlycpio-delete-duplicated-words.patch
-lib-radix-tree-delete-duplicated-words.patch
-lib-syscall-delete-duplicated-words.patch
-lib-test_sysctl-delete-duplicated-words.patch
-lib-mpi-fix-spello-of-functions.patch
+kernelh-split-out-min-max-et-al-helpers.patch
+list-add-a-macro-to-test-if-entry-is-pointing-to-the-head.patch
 
