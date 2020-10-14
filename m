@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7943C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A983C43457
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D0352224E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12FAA2224D
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709314;
-	bh=EvY8sHT45iMNVVXZzj1VnpC3V5dPyPCDk4IZ1N+UCKA=;
+	s=default; t=1602709315;
+	bh=xlC8WKr7aDgPSs3OY3AoXL87NhO7yWLgpjaSZpQ+MpY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=kV3QtA3mfrHF0uVMaN9Rc0QRdcYZNmqKpWiwLiNoMnDzdBCNx8ZSS6qstZiRf4C2Z
-	 CEQTGthZEXjUBgEV1U1uGrdrWPvF+bF72e5KBuUPVFsuQiAfBOnNfJ50Nfq36OORQZ
-	 TDIa059m7Un0GoI0lzL7CDt+/f1NbjueUMQCyT8c=
+	b=yNiYmWoAMd39GWYLkK5z4UKNH6yeZINFVO1M9FC5gYxTJ6Oq3oOhCPezzqKCSq/2+
+	 4lmRyiDvj8xiL+3gf/bbGGQP5koCbySIP7Ev4Z7O5B7aIAGMwfexi8EV8p2H+ZYUvU
+	 dEIAIFL6vKLndPXdYTuwgF5UlroWOnmS/CQpnGg0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729952AbgJNVBS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50782 "EHLO mail.kernel.org"
+        id S1730482AbgJNVBY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728330AbgJNVBR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:17 -0400
+        id S1730477AbgJNVBY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:24 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CAB1A20725;
-        Wed, 14 Oct 2020 21:00:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9CA7320725;
+        Wed, 14 Oct 2020 21:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709231;
-        bh=EvY8sHT45iMNVVXZzj1VnpC3V5dPyPCDk4IZ1N+UCKA=;
+        s=default; t=1602709283;
+        bh=xlC8WKr7aDgPSs3OY3AoXL87NhO7yWLgpjaSZpQ+MpY=;
         h=Date:From:To:Subject:From;
-        b=VWBtyspuvyUEEAebhMJCziLQdyw6kyNoAmxChipzBphSwUs4Q+fWgnMuV2A0A2Myj
-         OOPg9V75nAEVHYzqqMMoXqi7QYMpIHs1S8J47yEGtUF9E4nVyAPYj01O94JhvYul4t
-         UwaWF+jY5t9DixQGbp571yroMQ26qGC1l1MERI3k=
-Date:   Wed, 14 Oct 2020 14:00:30 -0700
+        b=AgPLxrX5B1MC1W+kaiJ/jY5voKIvizD/+u/4JI7f+4l1cy5MIApaUdFCmsa1/9Qf/
+         qJFH8JhXKxbVibTVkd2tmMGI80KLbAAZ34blqXt1Vvc/iumB+7EirDvjzd6hyZd/rN
+         hFp56tPyhw7X2SUjMUDplIGzCWAS0AUgDQRTi/a0=
+Date:   Wed, 14 Oct 2020 14:01:23 -0700
 From:   akpm@linux-foundation.org
-To:     bharata@linux.ibm.com, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        shakeelb@google.com, stable@vger.kernel.org, tj@kernel.org,
-        vbabka@suse.cz
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        richard.weiyang@linux.alibaba.com
 Subject:  [merged]
- mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch removed from -mm
- tree
-Message-ID: <20201014210030.LqwDellF0%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-mmap-check-on-file-instead-of-the-rb=5Froot=5Fcached-of?=
+ =?US-ASCII?Q?-its-address=5Fspace.patch?= removed from -mm tree
+Message-ID: <20201014210123.tEekeFslT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,150 +56,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg/slab: uncharge during kmem_cache_free_bulk()
+     Subject: mm/mmap: check on file instead of the rb_root_cached of its address_space
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-slab-uncharge-during-kmem_cache_free_bulk.patch
+     mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bharata B Rao <bharata@linux.ibm.com>
-Subject: mm: memcg/slab: uncharge during kmem_cache_free_bulk()
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mmap: check on file instead of the rb_root_cached of its address_space
 
-Object cgroup charging is done for all the objects during allocation, but
-during freeing, uncharging ends up happening for only one object in the
-case of bulk allocation/freeing.
+In __vma_adjust(), we do the check on *root* to decide whether to adjust
+the address_space.  It seems to be more meaningful to do the check on
+*file* itself.  This means we are adjusting some data because it is a file
+backed vma.
 
-Fix this by having a separate call to uncharge all the objects from
-kmem_cache_free_bulk() and by modifying memcg_slab_free_hook() to take
-care of bulk uncharging.
+Since we seem to assume the address_space is valid if it is a file backed
+vma, let's just replace *root* with *file* here.
 
-Link: https://lkml.kernel.org/r/20201009060423.390479-1-bharata@linux.ibm.com
-Fixes: 964d4bd370d5 ("mm: memcg/slab: save obj_cgroup for non-root slab objects"
-Signed-off-by: Bharata B Rao <bharata@linux.ibm.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20200913133631.37781-2-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- mm/slab.h |   50 +++++++++++++++++++++++++++++++-------------------
- mm/slub.c |    3 ++-
- 3 files changed, 34 insertions(+), 21 deletions(-)
+ mm/mmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/slab.c~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
-+++ a/mm/slab.c
-@@ -3438,7 +3438,7 @@ void ___cache_free(struct kmem_cache *ca
- 		memset(objp, 0, cachep->object_size);
- 	kmemleak_free_recursive(objp, cachep->flags);
- 	objp = cache_free_debugcheck(cachep, objp, caller);
--	memcg_slab_free_hook(cachep, virt_to_head_page(objp), objp);
-+	memcg_slab_free_hook(cachep, &objp, 1);
+--- a/mm/mmap.c~mm-mmap-check-on-file-instead-of-the-rb_root_cached-of-its-address_space
++++ a/mm/mmap.c
+@@ -823,7 +823,7 @@ again:
+ 			anon_vma_interval_tree_pre_update_vma(next);
+ 	}
  
- 	/*
- 	 * Skip calling cache_free_alien() when the platform is not numa.
---- a/mm/slab.h~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
-+++ a/mm/slab.h
-@@ -345,30 +345,42 @@ static inline void memcg_slab_post_alloc
- 	obj_cgroup_put(objcg);
- }
+-	if (root) {
++	if (file) {
+ 		flush_dcache_mmap_lock(mapping);
+ 		vma_interval_tree_remove(vma, root);
+ 		if (adjust_next)
+@@ -844,7 +844,7 @@ again:
+ 		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
+ 	}
  
--static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
--					void *p)
-+static inline void memcg_slab_free_hook(struct kmem_cache *s_orig,
-+					void **p, int objects)
- {
-+	struct kmem_cache *s;
- 	struct obj_cgroup *objcg;
-+	struct page *page;
- 	unsigned int off;
-+	int i;
+-	if (root) {
++	if (file) {
+ 		if (adjust_next)
+ 			vma_interval_tree_insert(next, root);
+ 		vma_interval_tree_insert(vma, root);
+@@ -896,7 +896,7 @@ again:
+ 		anon_vma_unlock_write(anon_vma);
+ 	}
  
- 	if (!memcg_kmem_enabled())
- 		return;
- 
--	if (!page_has_obj_cgroups(page))
--		return;
--
--	off = obj_to_index(s, page, p);
--	objcg = page_obj_cgroups(page)[off];
--	page_obj_cgroups(page)[off] = NULL;
--
--	if (!objcg)
--		return;
--
--	obj_cgroup_uncharge(objcg, obj_full_size(s));
--	mod_objcg_state(objcg, page_pgdat(page), cache_vmstat_idx(s),
--			-obj_full_size(s));
--
--	obj_cgroup_put(objcg);
-+	for (i = 0; i < objects; i++) {
-+		if (unlikely(!p[i]))
-+			continue;
-+
-+		page = virt_to_head_page(p[i]);
-+		if (!page_has_obj_cgroups(page))
-+			continue;
-+
-+		if (!s_orig)
-+			s = page->slab_cache;
-+		else
-+			s = s_orig;
-+
-+		off = obj_to_index(s, page, p[i]);
-+		objcg = page_obj_cgroups(page)[off];
-+		if (!objcg)
-+			continue;
-+
-+		page_obj_cgroups(page)[off] = NULL;
-+		obj_cgroup_uncharge(objcg, obj_full_size(s));
-+		mod_objcg_state(objcg, page_pgdat(page), cache_vmstat_idx(s),
-+				-obj_full_size(s));
-+		obj_cgroup_put(objcg);
-+	}
- }
- 
- #else /* CONFIG_MEMCG_KMEM */
-@@ -406,8 +418,8 @@ static inline void memcg_slab_post_alloc
- {
- }
- 
--static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
--					void *p)
-+static inline void memcg_slab_free_hook(struct kmem_cache *s,
-+					void **p, int objects)
- {
- }
- #endif /* CONFIG_MEMCG_KMEM */
---- a/mm/slub.c~mm-memcg-slab-uncharge-during-kmem_cache_free_bulk
-+++ a/mm/slub.c
-@@ -3095,7 +3095,7 @@ static __always_inline void do_slab_free
- 	struct kmem_cache_cpu *c;
- 	unsigned long tid;
- 
--	memcg_slab_free_hook(s, page, head);
-+	memcg_slab_free_hook(s, &head, 1);
- redo:
- 	/*
- 	 * Determine the currently cpus per cpu slab.
-@@ -3257,6 +3257,7 @@ void kmem_cache_free_bulk(struct kmem_ca
- 	if (WARN_ON(!size))
- 		return;
- 
-+	memcg_slab_free_hook(s, p, size);
- 	do {
- 		struct detached_freelist df;
+-	if (root) {
++	if (file) {
+ 		i_mmap_unlock_write(mapping);
+ 		uprobe_mmap(vma);
  
 _
 
-Patches currently in -mm which might be from bharata@linux.ibm.com are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
+mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+bitops-simplify-get_count_order_long.patch
+bitops-use-the-same-mechanism-for-get_count_order.patch
 
