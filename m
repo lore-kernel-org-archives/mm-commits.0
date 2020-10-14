@@ -2,43 +2,43 @@ Return-Path: <SRS0=lrFz=DV=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9571C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:58:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03A0EC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:58:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7273A2224E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:58:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A49FF2224E
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709111;
-	bh=EZjHLOAssYjm+Ra9NDGYU2lDWyT1KRT4up++VJ9qaow=;
+	s=default; t=1602709114;
+	bh=3xbSTGujfC0cKomTogFugKsGJWqWDDfz2zyokAqguAg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=nUYLS3Wv8toEuF8RNMtK7p98uAp9XMb96jeN9f1Fa5Riyc5GIAmuQen7IjMJdar2k
-	 fsrzT0ZHYFU9LntD6YIQhcuyEn3EU3YzYoVE2ellHtNOQMA2aAbVHNPyToPovqof5j
-	 0PvMxViuzO0ru3CQMdbLLE8qah16WJ1nOxrEQaI4=
+	b=GFjRUJM6UZCJRZNBotwlqW87jrSwfRqXFD5pMrXuNSG5RTyjLowcY9UM4lXEOMj98
+	 BB9X5zqqZk7hJex+nKmMTYHFmFeE/bvHMTN0s5B8xZ5di5UVCArAxX8XAYxms6IPLf
+	 Ws6xZSVb2Nb6Py7aBq2gduGhA80qm3PlMzTOUd5U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730248AbgJNU6b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:58:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49180 "EHLO mail.kernel.org"
+        id S2388322AbgJNU6e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:58:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725923AbgJNU6b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:58:31 -0400
+        id S2388163AbgJNU6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:58:34 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C2D6E22248;
-        Wed, 14 Oct 2020 20:58:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B9C422068E;
+        Wed, 14 Oct 2020 20:58:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709108;
-        bh=EZjHLOAssYjm+Ra9NDGYU2lDWyT1KRT4up++VJ9qaow=;
+        s=default; t=1602709113;
+        bh=3xbSTGujfC0cKomTogFugKsGJWqWDDfz2zyokAqguAg=;
         h=Date:From:To:Subject:From;
-        b=K4GVgJdzxsotUElhO8AP+aRs06dw78tfM50oBGRhSmwlBdTPA+vtDS/dWPJp5+znC
-         LCM2RO1KYQCO7AtmfD+aT9/buOCtg/nKzGPPgbUt95faLNPhtqQGTUqOPJb5gIw3uO
-         5J2uQZKh+ePKfS+5n4XdFKgx6dOHQm/lIl4VarGU=
-Date:   Wed, 14 Oct 2020 13:58:26 -0700
+        b=0CRXCwyOBPJ5eRn364mXSPSvr2YqV0uMJKK9R2BP8AHP3+8uBylhq3cGPfRD5dxmu
+         KZlB49t2kIbdrdUe61gTWJ/+n8Lr1smwz3GJRBfJeOaUzNC8W+PU6RniQYjECiJ78g
+         seDNRv7MbeSTS9qdAwdBAKVY1mnyi/SBQPUF6/m0=
+Date:   Wed, 14 Oct 2020 13:58:30 -0700
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         benh@kernel.crashing.org, bhelgaas@google.com,
@@ -58,9 +58,10 @@ To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         sstabellini@kernel.org, tglx@linutronix.de,
         thomas.lendacky@amd.com, vgoyal@redhat.com,
         vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
-Subject:  [merged] device-dax-add-an-align-attribute.patch removed
- from -mm tree
-Message-ID: <20201014205826.4p1_f9_ka%akpm@linux-foundation.org>
+Subject:  [merged]
+ dax-hmem-introduce-dax_hmemregion_idle-parameter.patch removed from -mm
+ tree
+Message-ID: <20201014205830.qylbX7x6D%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -72,30 +73,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: add an 'align' attribute
+     Subject: dax/hmem: introduce dax_hmem.region_idle parameter
 has been removed from the -mm tree.  Its filename was
-     device-dax-add-an-align-attribute.patch
+     dax-hmem-introduce-dax_hmemregion_idle-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
-=46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax: add an 'align' attribute
+=46rom: Joao Martins <joao.m.martins@oracle.com>
+Subject: dax/hmem: introduce dax_hmem.region_idle parameter
 
-Introduce a device align attribute.  While doing so, rename the region
-align attribute to be more explicitly named as so, but keep it named as
-@align to retain the API for tools like daxctl.
+Introduce a new module parameter for dax_hmem which initializes all region
+devices as free, rather than allocating a pagemap for the region by
+default.
 
-Changes on align may not always be valid, when say certain mappings were
-created with 2M and then we switch to 1G.  So, we validate all ranges
-against the new value being attempted, post resizing.
+All hmem devices created with dax_hmem.region_idle=3D1 will have full
+available size for creating dynamic dax devices.
 
-Link: https://lkml.kernel.org/r/159643105944.4062302.3131761052969132784.st=
+Link: https://lkml.kernel.org/r/159643106460.4062302.5868522341307530091.st=
 git@dwillia2-desk3.amr.corp.intel.com
-Link: https://lore.kernel.org/r/20200716172913.19658-3-joao.m.martins@oracl=
+Link: https://lore.kernel.org/r/20200716172913.19658-4-joao.m.martins@oracl=
 e.com
-Link: https://lkml.kernel.org/r/160106118486.30709.13012322227204800596.stg=
+Link: https://lkml.kernel.org/r/160106119033.30709.11249962152222193448.stg=
 it@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
@@ -144,203 +144,33 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c         |   93 ++++++++++++++++++++++++++++++++----
- drivers/dax/dax-private.h |   18 ++++++
- 2 files changed, 101 insertions(+), 10 deletions(-)
+ drivers/dax/hmem/hmem.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/drivers/dax/bus.c~device-dax-add-an-align-attribute
-+++ a/drivers/dax/bus.c
-@@ -230,14 +230,15 @@ static ssize_t region_size_show(struct d
- static struct device_attribute dev_attr_region_size =3D __ATTR(size, 0444,
- 		region_size_show, NULL);
+--- a/drivers/dax/hmem/hmem.c~dax-hmem-introduce-dax_hmemregion_idle-parame=
+ter
++++ a/drivers/dax/hmem/hmem.c
+@@ -5,6 +5,9 @@
+ #include <linux/pfn_t.h>
+ #include "../bus.h"
 =20
--static ssize_t align_show(struct device *dev,
-+static ssize_t region_align_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
++static bool region_idle;
++module_param_named(region_idle, region_idle, bool, 0644);
++
+ static int dax_hmem_probe(struct platform_device *pdev)
  {
- 	struct dax_region *dax_region =3D dev_get_drvdata(dev);
-=20
- 	return sprintf(buf, "%u\n", dax_region->align);
- }
--static DEVICE_ATTR_RO(align);
-+static struct device_attribute dev_attr_region_align =3D
-+		__ATTR(align, 0400, region_align_show, NULL);
-=20
- #define for_each_dax_region_resource(dax_region, res) \
- 	for (res =3D (dax_region)->res.child; res; res =3D res->sibling)
-@@ -488,7 +489,7 @@ static umode_t dax_region_visible(struct
- static struct attribute *dax_region_attributes[] =3D {
- 	&dev_attr_available_size.attr,
- 	&dev_attr_region_size.attr,
--	&dev_attr_align.attr,
-+	&dev_attr_region_align.attr,
- 	&dev_attr_create.attr,
- 	&dev_attr_seed.attr,
- 	&dev_attr_delete.attr,
-@@ -858,15 +859,13 @@ static ssize_t size_show(struct device *
- 	return sprintf(buf, "%llu\n", size);
- }
-=20
--static bool alloc_is_aligned(struct dax_region *dax_region,
--		resource_size_t size)
-+static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
- {
- 	/*
- 	 * The minimum mapping granularity for a device instance is a
- 	 * single subsection, unless the arch says otherwise.
- 	 */
--	return IS_ALIGNED(size, max_t(unsigned long, dax_region->align,
--				memremap_compat_align()));
-+	return IS_ALIGNED(size, max_t(unsigned long, dev_dax->align, memremap_com=
-pat_align()));
- }
-=20
- static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
-@@ -961,7 +960,7 @@ static ssize_t dev_dax_resize(struct dax
- 		return dev_dax_shrink(dev_dax, size);
-=20
- 	to_alloc =3D size - dev_size;
--	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dax_region, to_alloc),
-+	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
- 			"resize of %pa misaligned\n", &to_alloc))
- 		return -ENXIO;
-=20
-@@ -1025,7 +1024,7 @@ static ssize_t size_store(struct device
- 	if (rc)
- 		return rc;
-=20
--	if (!alloc_is_aligned(dax_region, val)) {
-+	if (!alloc_is_aligned(dev_dax, val)) {
- 		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
- 		return -EINVAL;
- 	}
-@@ -1044,6 +1043,78 @@ static ssize_t size_store(struct device
- }
- static DEVICE_ATTR_RW(size);
-=20
-+static ssize_t align_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax *dev_dax =3D to_dev_dax(dev);
-+
-+	return sprintf(buf, "%d\n", dev_dax->align);
-+}
-+
-+static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
-+{
-+	resource_size_t dev_size =3D dev_dax_size(dev_dax);
-+	struct device *dev =3D &dev_dax->dev;
-+	int i;
-+
-+	if (dev_size > 0 && !alloc_is_aligned(dev_dax, dev_size)) {
-+		dev_dbg(dev, "%s: align %u invalid for size %pa\n",
-+			__func__, dev_dax->align, &dev_size);
-+		return -EINVAL;
-+	}
-+
-+	for (i =3D 0; i < dev_dax->nr_range; i++) {
-+		size_t len =3D range_len(&dev_dax->ranges[i].range);
-+
-+		if (!alloc_is_aligned(dev_dax, len)) {
-+			dev_dbg(dev, "%s: align %u invalid for range %d\n",
-+				__func__, dev_dax->align, i);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static ssize_t align_store(struct device *dev, struct device_attribute *at=
-tr,
-+		const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax =3D to_dev_dax(dev);
-+	struct dax_region *dax_region =3D dev_dax->region;
-+	unsigned long val, align_save;
-+	ssize_t rc;
-+
-+	rc =3D kstrtoul(buf, 0, &val);
-+	if (rc)
-+		return -ENXIO;
-+
-+	if (!dax_align_valid(val))
-+		return -EINVAL;
-+
-+	device_lock(dax_region->dev);
-+	if (!dax_region->dev->driver) {
-+		device_unlock(dax_region->dev);
-+		return -ENXIO;
-+	}
-+
-+	device_lock(dev);
-+	if (dev->driver) {
-+		rc =3D -EBUSY;
-+		goto out_unlock;
-+	}
-+
-+	align_save =3D dev_dax->align;
-+	dev_dax->align =3D val;
-+	rc =3D dev_dax_validate_align(dev_dax);
-+	if (rc)
-+		dev_dax->align =3D align_save;
-+out_unlock:
-+	device_unlock(dev);
-+	device_unlock(dax_region->dev);
-+	return rc =3D=3D 0 ? len : rc;
-+}
-+static DEVICE_ATTR_RW(align);
-+
- static int dev_dax_target_node(struct dev_dax *dev_dax)
- {
- 	struct dax_region *dax_region =3D dev_dax->region;
-@@ -1104,7 +1175,8 @@ static umode_t dev_dax_visible(struct ko
- 		return 0;
- 	if (a =3D=3D &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
- 		return 0;
--	if (a =3D=3D &dev_attr_size.attr && is_static(dax_region))
-+	if ((a =3D=3D &dev_attr_align.attr ||
-+	     a =3D=3D &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
- 	return a->mode;
- }
-@@ -1113,6 +1185,7 @@ static struct attribute *dev_dax_attribu
- 	&dev_attr_modalias.attr,
- 	&dev_attr_size.attr,
- 	&dev_attr_target_node.attr,
-+	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
- 	&dev_attr_numa_node.attr,
- 	NULL,
---- a/drivers/dax/dax-private.h~device-dax-add-an-align-attribute
-+++ a/drivers/dax/dax-private.h
-@@ -87,4 +87,22 @@ static inline struct dax_mapping *to_dax
- }
-=20
- phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff, unsi=
-gned long size);
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static inline bool dax_align_valid(unsigned long align)
-+{
-+	if (align =3D=3D PUD_SIZE && IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGE=
-PAGE_PUD))
-+		return true;
-+	if (align =3D=3D PMD_SIZE && has_transparent_hugepage())
-+		return true;
-+	if (align =3D=3D PAGE_SIZE)
-+		return true;
-+	return false;
-+}
-+#else
-+static inline bool dax_align_valid(unsigned long align)
-+{
-+	return align =3D=3D PAGE_SIZE;
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
+ 	struct device *dev =3D &pdev->dev;
+@@ -30,7 +33,7 @@ static int dax_hmem_probe(struct platfor
+ 	data =3D (struct dev_dax_data) {
+ 		.dax_region =3D dax_region,
+ 		.id =3D -1,
+-		.size =3D resource_size(res),
++		.size =3D region_idle ? 0 : resource_size(res),
+ 	};
+ 	dev_dax =3D devm_create_dev_dax(&data);
+ 	if (IS_ERR(dev_dax))
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
 
