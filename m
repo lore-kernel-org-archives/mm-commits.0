@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE38C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 115A7C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4CDB2224D
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2BEB22253
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:59:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709160;
-	bh=5ZVK8x38JZEhrsnec6LX4IGYJZbpDZYBmG9QqwyeTt0=;
+	s=default; t=1602709161;
+	bh=XeYSScrkGQAjNkm0YB8hEzrlvoketiJBn0pXXLUQ2fM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LYQUTUFLl2ayu7sHCAcw0X7GXrl5rpgX7VRFhkSk0+CZMhHVFDOgfYMfAjmlfV0O6
-	 0t1IB4FhFBajWHDxBEtt+hHQwnX/Jzz1uBLKI+XU9Lxh2XrXnaZqi77UjRXDr2JMUW
-	 j5r7o2pQxWX2PALVbLABy95IwfQN22jE+tAY3YsE=
+	b=ahWn9rvD9L61MDD4Zfu8A5FCAWs+HG5ia3apiZnHJ+KYjtJkogfJjvxb8+hdU/1+L
+	 6MXc6ENmF7DeHJHW3YAoZYsTsb8hV49QG+pgciQkze9ZTzIt79KLbVaJoGQlSMkqvw
+	 0TjNAfNc6gr0BlPmA4u44PwnDNXWXPfmRM4PR0vI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389506AbgJNU7U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:59:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49900 "EHLO mail.kernel.org"
+        id S2389512AbgJNU7V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:59:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389499AbgJNU7U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:59:20 -0400
+        id S2389499AbgJNU7V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:59:21 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9D0DC20725;
-        Wed, 14 Oct 2020 20:59:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8277E20725;
+        Wed, 14 Oct 2020 20:59:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709157;
-        bh=5ZVK8x38JZEhrsnec6LX4IGYJZbpDZYBmG9QqwyeTt0=;
+        s=default; t=1602709160;
+        bh=XeYSScrkGQAjNkm0YB8hEzrlvoketiJBn0pXXLUQ2fM=;
         h=Date:From:To:Subject:From;
-        b=gFZO7wA7nehCL3XQhjBxcamCHU1nqdsrcTYA+8bHnVtkUD5ScJi1H1JpArjzFzPCe
-         hD1tFz7IRlsx9VC5AdRrjdP9NQSogDvAPjdM9txwH8uIlCo4aQ52f2C63ExhIxgxpz
-         RZ/QoW1fXWneYzu+zaE0GDNqBAIcvgkFn1zzSwfc=
-Date:   Wed, 14 Oct 2020 13:59:17 -0700
+        b=UE/Q0ngoZ35c1xSpzswdhn27bJCe/bfsQS6kFZrRiHIlBrr7JBC1BnmgKGTdli2GL
+         EMn+RJ4uXPIwPSxe80qQFDrhDka4+xdYdvZHRovbdeHA9N1iEnfLMLKw5o7f5fd85A
+         SMRbd02Jbd3VlL27+YUleqjxbAqUyF1lZzLIR9iM=
+Date:   Wed, 14 Oct 2020 13:59:20 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, laoar.shao@gmail.com, mgorman@suse.de,
-        mm-commits@vger.kernel.org
+To:     ira.weiny@intel.com, jhubbard@nvidia.com, keith.busch@intel.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        song.bao.hua@hisilicon.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-fadvise-improve-the-expensive-remote-lru-cache-draining-a?=
- =?US-ASCII?Q?fter-fadv=5Fdontneed.patch?= removed from -mm tree
-Message-ID: <20201014205917.5vnkRArHw%akpm@linux-foundation.org>
+ mm-gup_benchmark-update-the-documentation-in-kconfig.patch removed from -mm
+ tree
+Message-ID: <20201014205920.FiwvYbPM-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,185 +55,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, fadvise: improve the expensive remote LRU cache draining after FADV_DONTNEED
+     Subject: mm/gup_benchmark: update the documentation in Kconfig
 has been removed from the -mm tree.  Its filename was
-     mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch
+     mm-gup_benchmark-update-the-documentation-in-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm, fadvise: improve the expensive remote LRU cache draining after FADV_DONTNEED
+From: Barry Song <song.bao.hua@hisilicon.com>
+Subject: mm/gup_benchmark: update the documentation in Kconfig
 
-Our users reported that there're some random latency spikes when their RT
-process is running.  Finally we found that latency spike is caused by
-FADV_DONTNEED.  Which may call lru_add_drain_all() to drain LRU cache on
-remote CPUs, and then waits the per-cpu work to complete.  The wait time
-is uncertain, which may be tens millisecond.
+In the beginning, mm/gup_benchmark.c supported get_user_pages_fast() only,
+but right now, it supports the benchmarking of a couple of
+get_user_pages() related calls like:
 
-That behavior is unreasonable, because this process is bound to a specific
-CPU and the file is only accessed by itself, IOW, there should be no
-pagecache pages on a per-cpu pagevec of a remote CPU.  That unreasonable
-behavior is partially caused by the wrong comparation of the number of
-invalidated pages and the number of the target.  For example,
+* get_user_pages_fast()
+* get_user_pages()
+* pin_user_pages_fast()
+* pin_user_pages()
 
-        if (count < (end_index - start_index + 1))
+The documentation is confusing and needs update.
 
-The count above is how many pages were invalidated in the local CPU, and
-(end_index - start_index + 1) is how many pages should be invalidated. 
-The usage of (end_index - start_index + 1) is incorrect, because they are
-virtual addresses, which may not mapped to pages.  Besides that, there may
-be holes between start and end.  So we'd better check whether there are
-still pages on per-cpu pagevec after drain the local cpu, and then decide
-whether or not to call lru_add_drain_all().
-
-After I applied it with a hotfix to our production environment, most of
-the lru_add_drain_all() can be avoided.
-
-Link: https://lkml.kernel.org/r/20200923133318.14373-1-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Suggested-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20200821032546.19992-1-song.bao.hua@hisilicon.com
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    4 ++
- mm/fadvise.c       |    9 +++---
- mm/truncate.c      |   58 +++++++++++++++++++++++++++++--------------
- 3 files changed, 49 insertions(+), 22 deletions(-)
+ mm/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/fs.h~mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed
-+++ a/include/linux/fs.h
-@@ -2581,6 +2581,10 @@ extern bool is_bad_inode(struct inode *)
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
+--- a/mm/Kconfig~mm-gup_benchmark-update-the-documentation-in-kconfig
++++ a/mm/Kconfig
+@@ -831,10 +831,10 @@ config PERCPU_STATS
+ 	  be used to help understand percpu memory usage.
  
-+void invalidate_mapping_pagevec(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end,
-+				unsigned long *nr_pagevec);
-+
- static inline void invalidate_remote_inode(struct inode *inode)
- {
- 	if (S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
---- a/mm/fadvise.c~mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed
-+++ a/mm/fadvise.c
-@@ -141,7 +141,7 @@ int generic_fadvise(struct file *file, l
- 		}
+ config GUP_BENCHMARK
+-	bool "Enable infrastructure for get_user_pages_fast() benchmarking"
++	bool "Enable infrastructure for get_user_pages() and related calls benchmarking"
+ 	help
+ 	  Provides /sys/kernel/debug/gup_benchmark that helps with testing
+-	  performance of get_user_pages_fast().
++	  performance of get_user_pages() and related calls.
  
- 		if (end_index >= start_index) {
--			unsigned long count;
-+			unsigned long nr_pagevec = 0;
+ 	  See tools/testing/selftests/vm/gup_benchmark.c
  
- 			/*
- 			 * It's common to FADV_DONTNEED right after
-@@ -154,8 +154,9 @@ int generic_fadvise(struct file *file, l
- 			 */
- 			lru_add_drain();
- 
--			count = invalidate_mapping_pages(mapping,
--						start_index, end_index);
-+			invalidate_mapping_pagevec(mapping,
-+						start_index, end_index,
-+						&nr_pagevec);
- 
- 			/*
- 			 * If fewer pages were invalidated than expected then
-@@ -163,7 +164,7 @@ int generic_fadvise(struct file *file, l
- 			 * a per-cpu pagevec for a remote CPU. Drain all
- 			 * pagevecs and try again.
- 			 */
--			if (count < (end_index - start_index + 1)) {
-+			if (nr_pagevec) {
- 				lru_add_drain_all();
- 				invalidate_mapping_pages(mapping, start_index,
- 						end_index);
---- a/mm/truncate.c~mm-fadvise-improve-the-expensive-remote-lru-cache-draining-after-fadv_dontneed
-+++ a/mm/truncate.c
-@@ -528,23 +528,8 @@ void truncate_inode_pages_final(struct a
- }
- EXPORT_SYMBOL(truncate_inode_pages_final);
- 
--/**
-- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-- * @start: the offset 'from' which to invalidate
-- * @end: the offset 'to' which to invalidate (inclusive)
-- *
-- * This function only removes the unlocked pages, if you want to
-- * remove all the pages of one inode, you must call truncate_inode_pages.
-- *
-- * invalidate_mapping_pages() will not block on IO activity. It will not
-- * invalidate pages which are dirty, locked, under writeback or mapped into
-- * pagetables.
-- *
-- * Return: the number of the pages that were invalidated
-- */
--unsigned long invalidate_mapping_pages(struct address_space *mapping,
--		pgoff_t start, pgoff_t end)
-+unsigned long __invalidate_mapping_pages(struct address_space *mapping,
-+		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
- {
- 	pgoff_t indices[PAGEVEC_SIZE];
- 	struct pagevec pvec;
-@@ -610,8 +595,13 @@ unsigned long invalidate_mapping_pages(s
- 			 * Invalidation is a hint that the page is no longer
- 			 * of interest and try to speed up its reclaim.
- 			 */
--			if (!ret)
-+			if (!ret) {
- 				deactivate_file_page(page);
-+				/* It is likely on the pagevec of a remote CPU */
-+				if (nr_pagevec)
-+					(*nr_pagevec)++;
-+			}
-+
- 			if (PageTransHuge(page))
- 				put_page(page);
- 			count += ret;
-@@ -623,8 +613,40 @@ unsigned long invalidate_mapping_pages(s
- 	}
- 	return count;
- }
-+
-+/**
-+ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ *
-+ * This function only removes the unlocked pages, if you want to
-+ * remove all the pages of one inode, you must call truncate_inode_pages.
-+ *
-+ * invalidate_mapping_pages() will not block on IO activity. It will not
-+ * invalidate pages which are dirty, locked, under writeback or mapped into
-+ * pagetables.
-+ *
-+ * Return: the number of the pages that were invalidated
-+ */
-+unsigned long invalidate_mapping_pages(struct address_space *mapping,
-+		pgoff_t start, pgoff_t end)
-+{
-+	return __invalidate_mapping_pages(mapping, start, end, NULL);
-+}
- EXPORT_SYMBOL(invalidate_mapping_pages);
- 
-+/**
-+ * This helper is similar with the above one, except that it accounts for pages
-+ * that are likely on a pagevec and count them in @nr_pagevec, which will used by
-+ * the caller.
-+ */
-+void invalidate_mapping_pagevec(struct address_space *mapping,
-+		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
-+{
-+	__invalidate_mapping_pages(mapping, start, end, nr_pagevec);
-+}
-+
- /*
-  * This is like invalidate_complete_page(), except it ignores the page's
-  * refcount.  We do this because invalidate_inode_pages2() needs stronger
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
 
 
