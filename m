@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49C22C2D0AE
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03F1BC35268
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04ACF22248
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA61B2224E
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709317;
-	bh=RXQmg2wHxqrq7A598V2CRFw7QiytmMnU+5FQSyYxkHI=;
+	s=default; t=1602709318;
+	bh=Nb1AD+j8UukwuXvnEhaadR1NrsjSlSwCqyfUULFYXog=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BbopdvwH2j7gBNrE4b+UNNU+i6xiTNWVRVCq4fyTgQjAO2F5FmuPQx7XpdBbi+Obt
-	 HnltjV9O2/c4I3rUqUTlyMHIj0wOQshRIQ4E4WCI8kEAuuTGZtLWf/xTrKFd4c1MN4
-	 2la3G0JCMFDDQ7up4LoC0tnSoilpOS0mQdx+KDxk=
+	b=lcFMivEsaSgenV7sLLTDL2y/OsjBPVtC+MaStAALdSUwQKTMmSsVDPQZwEAvcI7jx
+	 I+MX3dOfJoDTzwKZHidzmMPy6ymOQF7a8Ei/LECfYz1KQuPyoik6sIdaWHqcTqmkuQ
+	 bOnP6deER8kxDgfU0nR/R57sjr9Q466qsIwfwYXg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728959AbgJNVBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51530 "EHLO mail.kernel.org"
+        id S1730579AbgJNVB6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730492AbgJNVBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:47 -0400
+        id S1728330AbgJNVB5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 85F1022257;
-        Wed, 14 Oct 2020 21:01:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9D80622253;
+        Wed, 14 Oct 2020 21:01:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709289;
-        bh=RXQmg2wHxqrq7A598V2CRFw7QiytmMnU+5FQSyYxkHI=;
+        s=default; t=1602709280;
+        bh=Nb1AD+j8UukwuXvnEhaadR1NrsjSlSwCqyfUULFYXog=;
         h=Date:From:To:Subject:From;
-        b=mBDScGHrX4RzyrAVBK5f6etCrjpeXZSt/uk+1XO7RrnH+z5pS4QY9ItqJSiWuJJIP
-         6Ydpzj0ic1jguinWyIVgE7qmDb3rHOXXf4ezRs2aIglnRJ4m4IFzM7Vbo0YrDzX6SO
-         Qp9IqREVz69l/s6Xk0kD7QTORtKOV6ts/14NYx1Q=
-Date:   Wed, 14 Oct 2020 14:01:29 -0700
+        b=Nz2PTRcnouUfqm9gVvrcsKBtHPfOBBMGbU86dIUIAVB1q1NL5Vs6Wu+539PA46F+Y
+         qh611PN+FGbu7rnzEnwVLZCaIzpM0DYphPRjdQbg+FZpYA6/dkACfpEs8IckSFLpcf
+         iy4FNH4ypE8/aAcDJBAE3SSf1U6bIxt4rLKBdN6k=
+Date:   Wed, 14 Oct 2020 14:01:20 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        richard.weiyang@linux.alibaba.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-mmap-use-helper-function-allow=5Fwrite=5Faccess-in?=
- =?US-ASCII?Q?-=5F=5Fremove=5Fshared=5Fvm=5Fstruct.patch?= removed from -mm
+ mm-mmap-not-necessary-to-check-mapping-separately.patch removed from -mm
  tree
-Message-ID: <20201014210129.J2A313dPk%akpm@linux-foundation.org>
+Message-ID: <20201014210120.pOFETK-Xd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,46 +54,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: use helper function allow_write_access() in __remove_shared_vm_struct()
+     Subject: mm/mmap: not necessary to check mapping separately
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct.patch
+     mm-mmap-not-necessary-to-check-mapping-separately.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mmap.c: use helper function allow_write_access() in __remove_shared_vm_struct()
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mmap: not necessary to check mapping separately
 
-In commit 1da177e4c3f4 ("Linux-2.6.12-rc2"), the helper allow_write_access
-came with the atomic_inc operation of the i_writecount field in the func
-__remove_shared_vm_struct().  But it forgot to use this helper function.
+*root* with type of struct rb_root_cached is an element of *mapping*
+with type of struct address_space. This implies when we have a valid
+*root* it must be a part of valid *mapping*.
 
-Link: https://lkml.kernel.org/r/20200921115814.39680-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+So we can merge these two checks together to make the code more easy to
+read and to save some cpu cycles.
+
+Link: https://lkml.kernel.org/r/20200913133631.37781-1-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-helper-function-allow_write_access-in-__remove_shared_vm_struct
+--- a/mm/mmap.c~mm-mmap-not-necessary-to-check-mapping-separately
 +++ a/mm/mmap.c
-@@ -143,7 +143,7 @@ static void __remove_shared_vm_struct(st
- 		struct file *file, struct address_space *mapping)
- {
- 	if (vma->vm_flags & VM_DENYWRITE)
--		atomic_inc(&file_inode(file)->i_writecount);
-+		allow_write_access(file);
- 	if (vma->vm_flags & VM_SHARED)
- 		mapping_unmap_writable(mapping);
+@@ -895,10 +895,9 @@ again:
+ 			anon_vma_interval_tree_post_update_vma(next);
+ 		anon_vma_unlock_write(anon_vma);
+ 	}
+-	if (mapping)
+-		i_mmap_unlock_write(mapping);
  
+ 	if (root) {
++		i_mmap_unlock_write(mapping);
+ 		uprobe_mmap(vma);
+ 
+ 		if (adjust_next)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-mm-vmstat-use-helper-macro-abs.patch
-mm-fix-some-broken-comments.patch
-mm-use-helper-function-put_write_access.patch
-percpu_counter-use-helper-macro-abs.patch
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
+mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+bitops-simplify-get_count_order_long.patch
+bitops-use-the-same-mechanism-for-get_count_order.patch
 
