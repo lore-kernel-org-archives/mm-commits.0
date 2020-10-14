@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A83EC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D9ABC43457
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C549221FF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19BDF221FF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709424;
-	bh=vNzs20QlZKEiYgUE2WZdif8hDUnhb2PUJEpwmFXcstY=;
+	s=default; t=1602709425;
+	bh=2zBuMHhJSgronr1wwyzP9P4JoDtsXCdaU3qcmJGvvlg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=D/gsxkPp2FZm0AxQkZmQ4tmreF8fbvRCxzlQsHpschsA/ZCAYHgRKuAFHqWKqMG1N
-	 Qw0kdSy9+ZY21VMMAcfvWmBY+MyOhnI+9OyI26gSEWuFPbKZZWc1BJBLLqZ0qM7n/x
-	 LhgnZTOhYB+kqzcXsqe0AzufTaZ+iUq+F/NlTrSU=
+	b=EPpRe9Es/OWv7EuRuS5C0HsFvuNWfS0nP1SZblStPZLtzNpWpAfXhwmHBm3XQKGEf
+	 4PKprlRjykqLMThLNEQXmVFie5RWMEpHCUUPwQNvemzi/VM2eDQ82JyfuaQP6jDzam
+	 MfR83U7w39Lvj/6Cqlp02v2BKROOXHca6woGEDVY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730545AbgJNVDn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:03:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53400 "EHLO mail.kernel.org"
+        id S1730546AbgJNVDo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:03:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726099AbgJNVDn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:03:43 -0400
+        id S1726099AbgJNVDo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:03:44 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CE6A6214D8;
-        Wed, 14 Oct 2020 21:03:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8E7CD206B2;
+        Wed, 14 Oct 2020 21:03:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709421;
-        bh=vNzs20QlZKEiYgUE2WZdif8hDUnhb2PUJEpwmFXcstY=;
+        s=default; t=1602709423;
+        bh=2zBuMHhJSgronr1wwyzP9P4JoDtsXCdaU3qcmJGvvlg=;
         h=Date:From:To:Subject:From;
-        b=fUIKuNCAqh47p40DxchhMC+uh3jiDZhnSEEvMFP85ZkkFWpUPDZAHTFrXhR1AbfXm
-         xO8J5eAfSRIYOMfId9wCfZbsfHHeNj4n042Vsl/BLLy2V2FriGXOTRGVAq+gyPZaDy
-         TTNPLZRQvaKBhiHrxarfBgKapzw8AwiCBlQx5dpI=
-Date:   Wed, 14 Oct 2020 14:03:40 -0700
+        b=jP0vrGw8BnDgqZsEaYGwb9t6QvYIJZbkdEticTbMHt9PtU2g4zSVAH6llxwmf5Alm
+         /oNSslX2/NK0iQm+2VqqKdpNtgsocEoG+LkyIzkH0/dsYzADHefUj5sQh7pxiifv94
+         0sUhAdCHEfXEgGj7OSjxKu0N7Z9CO3a77y3s8gFE=
+Date:   Wed, 14 Oct 2020 14:03:43 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, mhocko@suse.com, mm-commits@vger.kernel.org,
-        songmuchun@bytedance.com, vbabka@suse.cz, willy@infradead.org,
-        zangchunxin@bytedance.com
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        sh_def@163.com
 Subject:  [merged]
- mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch removed from -mm tree
-Message-ID: <20201014210340.J5dMyeQNd%akpm@linux-foundation.org>
+ mm-vmscan-fix-comments-for-isolate_lru_page.patch removed from -mm tree
+Message-ID: <20201014210343.n-RKj4SeW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,96 +53,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: fix infinite loop in drop_slab_node
+     Subject: mm/vmscan: fix comments for isolate_lru_page()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-infinite-loop-in-drop_slab_node.patch
+     mm-vmscan-fix-comments-for-isolate_lru_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chunxin Zang <zangchunxin@bytedance.com>
-Subject: mm/vmscan: fix infinite loop in drop_slab_node
+From: Hui Su <sh_def@163.com>
+Subject: mm/vmscan: fix comments for isolate_lru_page()
 
-We have observed that drop_caches can take a considerable amount of
-time (<put data here>).  Especially when there are many memcgs involved
-because they are adding an additional overhead.
+fix comments for isolate_lru_page():
+s/fundamentnal/fundamental
 
-It is quite unfortunate that the operation cannot be interrupted by a
-signal currently.  Add a check for fatal signals into the main loop so
-that userspace can control early bailout.
-
-There are two reasons:
-
-1. We have too many memcgs, even though one object freed in one memcg,
-   the sum of object is bigger than 10.
-
-2. We spend a lot of time in traverse memcg once.  So, the memcg who
-   traversed at the first have been freed many objects.  Traverse memcg
-   next time, the freed count bigger than 10 again.
-
-We can get the following info through 'ps':
-
-  root:~# ps -aux | grep drop
-  root  357956 ... R    Aug25 21119854:55 echo 3 > /proc/sys/vm/drop_caches
-  root 1771385 ... R    Aug16 21146421:17 echo 3 > /proc/sys/vm/drop_caches
-  root 1986319 ... R    18:56 117:27 echo 3 > /proc/sys/vm/drop_caches
-  root 2002148 ... R    Aug24 5720:39 echo 3 > /proc/sys/vm/drop_caches
-  root 2564666 ... R    18:59 113:58 echo 3 > /proc/sys/vm/drop_caches
-  root 2639347 ... R    Sep03 2383:39 echo 3 > /proc/sys/vm/drop_caches
-  root 3904747 ... R    03:35 993:31 echo 3 > /proc/sys/vm/drop_caches
-  root 4016780 ... R    Aug21 7882:18 echo 3 > /proc/sys/vm/drop_caches
-
-Use bpftrace follow 'freed' value in drop_slab_node:
-
-  root:~# bpftrace -e 'kprobe:drop_slab_node+70 {@ret=hist(reg("bp")); }'
-  Attaching 1 probe...
-  ^B^C
-
-  @ret:
-  [64, 128)        1 |                                                    |
-  [128, 256)      28 |                                                    |
-  [256, 512)     107 |@                                                   |
-  [512, 1K)      298 |@@@                                                 |
-  [1K, 2K)       613 |@@@@@@@                                             |
-  [2K, 4K)      4435 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|
-  [4K, 8K)       442 |@@@@@                                               |
-  [8K, 16K)      299 |@@@                                                 |
-  [16K, 32K)     100 |@                                                   |
-  [32K, 64K)     139 |@                                                   |
-  [64K, 128K)     56 |                                                    |
-  [128K, 256K)    26 |                                                    |
-  [256K, 512K)     2 |                                                    |
-
-In the while loop, we can check whether the TASK_KILLABLE signal is set,
-if so, we should break the loop.
-
-Link: https://lkml.kernel.org/r/20200909152047.27905-1-zangchunxin@bytedance.com
-Signed-off-by: Chunxin Zang <zangchunxin@bytedance.com>
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20200927173923.GA8058@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-infinite-loop-in-drop_slab_node
+--- a/mm/vmscan.c~mm-vmscan-fix-comments-for-isolate_lru_page
 +++ a/mm/vmscan.c
-@@ -699,6 +699,9 @@ void drop_slab_node(int nid)
- 	do {
- 		struct mem_cgroup *memcg = NULL;
- 
-+		if (fatal_signal_pending(current))
-+			return;
-+
- 		freed = 0;
- 		memcg = mem_cgroup_iter(NULL, NULL, NULL);
- 		do {
+@@ -1754,7 +1754,7 @@ static unsigned long isolate_lru_pages(u
+  * Restrictions:
+  *
+  * (1) Must be called with an elevated refcount on the page. This is a
+- *     fundamentnal difference from isolate_lru_pages (which is called
++ *     fundamental difference from isolate_lru_pages (which is called
+  *     without a stable reference).
+  * (2) the lru_lock must not be held.
+  * (3) interrupts must be enabled.
 _
 
-Patches currently in -mm which might be from zangchunxin@bytedance.com are
+Patches currently in -mm which might be from sh_def@163.com are
 
 
