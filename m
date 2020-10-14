@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60739C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:05:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABAA8C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:07:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C46F2225E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:05:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 332CB206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709532;
-	bh=BBkACAs3TstUB6J2J+JRQ4Sf2yoPIAvoYUoqhj4nJxY=;
+	s=default; t=1602709641;
+	bh=birVLMY9tXJ9BrGKVPiEvjvHrkgMgvXD+dtuVHrEWXk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=NJWzVBUAlgO/w8CZZud7xnXlSIl3l1vEG1cG7hKIPrmruyr+taUHGhs1BQ3FhGv2K
-	 zehLTELnIsJCEbMS3NNiZPmCMHct263KxXcL53znDxE+hVr94nqR1mgeqUj8LoPHR+
-	 Vnof+xnxh4AsbWS51aECgJxkeh3EHcnkXiMqtqKg=
+	b=YYPLlKiv6a9t9i1EXi6i9pAh48eHuHacGnKtHmE84crkuIfl+VwfniMbcisYd5rd7
+	 LUyuBLyy2JZN9arbVOLZSjePUhikLMksXzDDM5YUYmApwPndpNHTNtACce3dmGAG+n
+	 xoqkuGSGLZNkxQknWQZWFWw7OsfY8E/kuyz6SGjU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730690AbgJNVFb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:05:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56698 "EHLO mail.kernel.org"
+        id S1727704AbgJNVHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:07:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727242AbgJNVFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:05:31 -0400
+        id S1727242AbgJNVHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:07:20 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B1EF206B2;
-        Wed, 14 Oct 2020 21:05:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 901A52068E;
+        Wed, 14 Oct 2020 21:01:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709530;
-        bh=BBkACAs3TstUB6J2J+JRQ4Sf2yoPIAvoYUoqhj4nJxY=;
+        s=default; t=1602709274;
+        bh=birVLMY9tXJ9BrGKVPiEvjvHrkgMgvXD+dtuVHrEWXk=;
         h=Date:From:To:Subject:From;
-        b=LS71ddJhmGXBxjg67kK7cT7wFrozvAMiX6heLQG/amDXzFPOhR7ZSxvLh9kaaOOCL
-         ZfmqxzlrHswffkvX9nF1O/E6kqdtsWepaVw3z9UhyUxbmyIWtTp4oQuisF4Ar3ibm9
-         rReB6rAzCMVrYk3wJueZvL8/+LBnCbrgkhTVczys=
-Date:   Wed, 14 Oct 2020 14:05:30 -0700
+        b=MFd95qhRAEF6gzYUh3RQR+Eyl5Rg1/DyeJBLSjJr1TytIwM2kGR1D+1neVZ5xMBZd
+         y1tZf50YSHJoWY0gg4Oq2JB96+9yOF+gI71tcAcA/GmFmVyezZLKRnUygtAtYRzE35
+         a28JYTk57JhREhLFqfSujsdQaSEGGVyKRKjymiOw=
+Date:   Wed, 14 Oct 2020 14:01:14 -0700
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, ira.weiny@intel.com, jhubbard@nvidia.com,
-        jrdr.linux@gmail.com, mm-commits@vger.kernel.org
+To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        richard.weiyang@linux.alibaba.com, vbabka@suse.cz
 Subject:  [merged]
- mm-gup-protect-unpin_user_pages-against-npages==-errno.patch removed from
- -mm tree
-Message-ID: <20201014210530.Dsj4MlgEV%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-mmap-leave-adjust=5Fnext-as-virtual-address-instead-of?=
+ =?US-ASCII?Q?-page-frame-number.patch?= removed from -mm tree
+Message-ID: <20201014210114.mCY_Xqpvs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,63 +56,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: protect unpin_user_pages() against npages==-ERRNO
+     Subject: mm/mmap: leave adjust_next as virtual address instead of page frame number
 has been removed from the -mm tree.  Its filename was
-     mm-gup-protect-unpin_user_pages-against-npages==-errno.patch
+     mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: protect unpin_user_pages() against npages==-ERRNO
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mmap: leave adjust_next as virtual address instead of page frame number
 
-As suggested by Dan Carpenter, fortify unpin_user_pages() just a bit,
-against a typical caller mistake: check if the npages arg is really a
--ERRNO value, which would blow up the unpinning loop: WARN and return.
+Instead of converting adjust_next between bytes and pages number, let's
+just store the virtual address into adjust_next.
 
-If this new WARN_ON() fires, then the system *might* be leaking pages (by
-leaving them pinned), but probably not.  More likely, gup/pup returned a
-hard -ERRNO error to the caller, who erroneously passed it here.
+Also, this patch fixes one typo in the comment of vma_adjust_trans_huge().
 
-Link: https://lkml.kernel.org/r/20200917065706.409079-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
+[vbabka@suse.cz: changelog tweak]
+Link: http://lkml.kernel.org/r/20200828081031.11306-1-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/huge_memory.c |    4 ++--
+ mm/mmap.c        |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/gup.c~mm-gup-protect-unpin_user_pages-against-npages==-errno
-+++ a/mm/gup.c
-@@ -329,6 +329,13 @@ void unpin_user_pages(struct page **page
- 	unsigned long index;
+--- a/mm/huge_memory.c~mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number
++++ a/mm/huge_memory.c
+@@ -2306,13 +2306,13 @@ void vma_adjust_trans_huge(struct vm_are
  
  	/*
-+	 * If this WARN_ON() fires, then the system *might* be leaking pages (by
-+	 * leaving them pinned), but probably not. More likely, gup/pup returned
-+	 * a hard -ERRNO error to the caller, who erroneously passed it here.
-+	 */
-+	if (WARN_ON(IS_ERR_VALUE(npages)))
-+		return;
-+	/*
- 	 * TODO: this can be optimized for huge pages: if a series of pages is
- 	 * physically contiguous and part of the same compound page, then a
- 	 * single operation to the head page should suffice.
+ 	 * If we're also updating the vma->vm_next->vm_start, if the new
+-	 * vm_next->vm_start isn't page aligned and it could previously
++	 * vm_next->vm_start isn't hpage aligned and it could previously
+ 	 * contain an hugepage: check if we need to split an huge pmd.
+ 	 */
+ 	if (adjust_next > 0) {
+ 		struct vm_area_struct *next = vma->vm_next;
+ 		unsigned long nstart = next->vm_start;
+-		nstart += adjust_next << PAGE_SHIFT;
++		nstart += adjust_next;
+ 		if (nstart & ~HPAGE_PMD_MASK &&
+ 		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
+ 		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
+--- a/mm/mmap.c~mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number
++++ a/mm/mmap.c
+@@ -758,7 +758,7 @@ int __vma_adjust(struct vm_area_struct *
+ 			 * vma expands, overlapping part of the next:
+ 			 * mprotect case 5 shifting the boundary up.
+ 			 */
+-			adjust_next = (end - next->vm_start) >> PAGE_SHIFT;
++			adjust_next = (end - next->vm_start);
+ 			exporter = next;
+ 			importer = vma;
+ 			VM_WARN_ON(expand != importer);
+@@ -768,7 +768,7 @@ int __vma_adjust(struct vm_area_struct *
+ 			 * split_vma inserting another: so it must be
+ 			 * mprotect case 4 shifting the boundary down.
+ 			 */
+-			adjust_next = -((vma->vm_end - end) >> PAGE_SHIFT);
++			adjust_next = -(vma->vm_end - end);
+ 			exporter = vma;
+ 			importer = next;
+ 			VM_WARN_ON(expand != importer);
+@@ -840,8 +840,8 @@ again:
+ 	}
+ 	vma->vm_pgoff = pgoff;
+ 	if (adjust_next) {
+-		next->vm_start += adjust_next << PAGE_SHIFT;
+-		next->vm_pgoff += adjust_next;
++		next->vm_start += adjust_next;
++		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
+ 	}
+ 
+ 	if (root) {
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-mm-gup_benchmark-rename-to-mm-gup_test.patch
-selftests-vm-use-a-common-gup_testh.patch
-selftests-vm-rename-run_vmtests-run_vmtestssh.patch
-selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
-selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
-selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
-selftests-vm-run_vmtestsh-update-and-clean-up-gup_test-invocation.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
-selftests-vm-10x-speedup-for-hmm-tests.patch
+mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+bitops-simplify-get_count_order_long.patch
+bitops-use-the-same-mechanism-for-get_count_order.patch
 
