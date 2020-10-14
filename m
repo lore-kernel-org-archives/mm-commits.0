@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3366BC43457
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC981C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA0B0221FF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A0EE221FF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:03:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709377;
-	bh=GCcnGS/nJy6/Bgc6Vwuz8a726WMQ9rIcHEqGPySuB8M=;
+	s=default; t=1602709380;
+	bh=w0oGJdnKICWvxYPw2Yqb0GriofdhukY6G2JWHdTnlvA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=cc7ERqr4Cc8WO/WXa7U1LvvPAnyMRjfhUUL9o6U8oob/OaVac231V4imHguqBSXrt
-	 PMNQ2XW6MifjwQ7D29w7H2Gv4spjSauu+Y7Jdrz6tcrqGn4K568gVjaOQDUrE3V3Q1
-	 FiwRRP/h83wvTzB9vu2bDSR3QEhMx+fAgWHo99xI=
+	b=CWWZl3QBYenoG7ApkhhCCPlj+EI83aIAyNw8v4WJ84kRp8ZaBjoI0bLMZVj42Sh5u
+	 hBdfz5/gNrsn+iCsF0v7wMmiUkPCgz8vR3chZ8MU2dZ5xSWRbiJps90L+IWOKSMPVV
+	 GdCIsZ4HmyXZt5urnC8kut/rdWoRX5bUbuyzI/0I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388209AbgJNVC5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:02:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52810 "EHLO mail.kernel.org"
+        id S1730507AbgJNVDA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:03:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726099AbgJNVC5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:02:57 -0400
+        id S1726099AbgJNVC7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:02:59 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 84AB2214D8;
-        Wed, 14 Oct 2020 21:02:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B5DDC214D8;
+        Wed, 14 Oct 2020 21:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709376;
-        bh=GCcnGS/nJy6/Bgc6Vwuz8a726WMQ9rIcHEqGPySuB8M=;
+        s=default; t=1602709379;
+        bh=w0oGJdnKICWvxYPw2Yqb0GriofdhukY6G2JWHdTnlvA=;
         h=Date:From:To:Subject:From;
-        b=pLfgRZysXmxjuIJJVYabzwMPzrYCzZEejzx+s3eX6RyqGaKRmDfdbJ0SBZ6q5i5Ws
-         vyRMG6u7AxtxNWbZ+avdTMPgFEU19od2F2a9nBylmjkMgY6U2e8rO6i8tAHxOBG4O1
-         LqV5aprCkW6ttkebDRi/9cEFkkYagwAWlMx12qMs=
-Date:   Wed, 14 Oct 2020 14:02:56 -0700
+        b=RHmrrU4Htp1lYv4aL0PHrsAAjghGxiQED064YDsWD8uXizltINO3XIMAToKWfVPHC
+         8NLTcr6EMOqoVhE3RkrKlrjO10flY0ENIzMd2EgZm5xOc1U3TKe2n08iywMUJwvvbU
+         BHYB6Y/fUrOCjepPP37kdcJh7Q9sJTKf8t862nX0=
+Date:   Wed, 14 Oct 2020 14:02:58 -0700
 From:   akpm@linux-foundation.org
-To:     mateusznosek0@gmail.com, mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com, hch@lst.de,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
+        willy@infradead.org, yuzhao@google.com
 Subject:  [merged]
- mmzone-clean-code-by-removing-unused-macro-parameter.patch removed from -mm
- tree
-Message-ID: <20201014210256.A7odLCl_p%akpm@linux-foundation.org>
+ mm-move-call-to-compound_head-in-release_pages.patch removed from -mm tree
+Message-ID: <20201014210258.g3FgScmN5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,55 +54,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmzone: clean code by removing unused macro parameter
+     Subject: mm: move call to compound_head() in release_pages()
 has been removed from the -mm tree.  Its filename was
-     mmzone-clean-code-by-removing-unused-macro-parameter.patch
+     mm-move-call-to-compound_head-in-release_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mateusz Nosek <mateusznosek0@gmail.com>
-Subject: mmzone: clean code by removing unused macro parameter
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm: move call to compound_head() in release_pages()
 
-Previously 'for_next_zone_zonelist_nodemask' macro parameter 'zlist' was
-unused so this patch removes it.
+The function is_huge_zero_page() doesn't call compound_head() to make sure
+the page pointer is a head page. The call to is_huge_zero_page() in
+release_pages() is made before compound_head() is called so the test would
+fail if release_pages() was called with a tail page of the huge_zero_page
+and put_page_testzero() would be called releasing the page.
+This is unlikely to be happening in normal use or we would be seeing all
+sorts of process data corruption when accessing a THP zero page.
 
-Link: https://lkml.kernel.org/r/20200917211906.30059-1-mateusznosek0@gmail.com
-Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Looking at other places where is_huge_zero_page() is called, all seem to
+only pass a head page so I think the right solution is to move the call
+to compound_head() in release_pages() to a point before calling
+is_huge_zero_page().
+
+Link: https://lkml.kernel.org/r/20200917173938.16420-1-rcampbell@nvidia.com
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/page_alloc.c        |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mmzone-clean-code-by-removing-unused-macro-parameter
-+++ a/include/linux/mmzone.h
-@@ -1116,7 +1116,7 @@ static inline struct zoneref *first_zone
- 		z = next_zones_zonelist(++z, highidx, nodemask),	\
- 			zone = zonelist_zone(z))
+--- a/mm/swap.c~mm-move-call-to-compound_head-in-release_pages
++++ a/mm/swap.c
+@@ -889,6 +889,7 @@ void release_pages(struct page **pages,
+ 			locked_pgdat = NULL;
+ 		}
  
--#define for_next_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
-+#define for_next_zone_zonelist_nodemask(zone, z, highidx, nodemask) \
- 	for (zone = z->zone;	\
- 		zone;							\
- 		z = next_zones_zonelist(++z, highidx, nodemask),	\
---- a/mm/page_alloc.c~mmzone-clean-code-by-removing-unused-macro-parameter
-+++ a/mm/page_alloc.c
-@@ -3741,8 +3741,8 @@ retry:
- 	 */
- 	no_fallback = alloc_flags & ALLOC_NOFRAGMENT;
- 	z = ac->preferred_zoneref;
--	for_next_zone_zonelist_nodemask(zone, z, ac->zonelist,
--					ac->highest_zoneidx, ac->nodemask) {
-+	for_next_zone_zonelist_nodemask(zone, z, ac->highest_zoneidx,
-+					ac->nodemask) {
- 		struct page *page;
- 		unsigned long mark;
++		page = compound_head(page);
+ 		if (is_huge_zero_page(page))
+ 			continue;
+ 
+@@ -910,7 +911,6 @@ void release_pages(struct page **pages,
+ 			}
+ 		}
+ 
+-		page = compound_head(page);
+ 		if (!put_page_testzero(page))
+ 			continue;
  
 _
 
-Patches currently in -mm which might be from mateusznosek0@gmail.com are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
-mm-page_poisonc-replace-bool-variable-with-static-key.patch
 
