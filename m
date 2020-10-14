@@ -7,45 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E378CC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BC40C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89879221FF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAB3422259
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:01:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709269;
-	bh=Y1vKqP5CHx1ywCd8peNNZNm+3v7he0tlSWO8q0CYN+A=;
+	s=default; t=1602709270;
+	bh=oPm6Muhzbs/Y24wCouWBqgGJJb4U61Aaum0AZCtrLpE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=hLfdfltCtWXSJg0ln9BJtMKF5oTz8egfmT0Ogb4FUCxOIVdPZyd5lZeEEGA7DeB5d
-	 uvlS1CAvDkSIXuWMcZ0f33j35SnCBzYvc9SeG1tKSOOK8G9J8stvKhrNtDuPL2lN6v
-	 JQu2Y+iOd3mE+3gjmAb9V8f0jkkQD5VTPijp3uT8=
+	b=zA+4jAsrcFi7byCr9YLsxlCIqYHBgqoo8xC0Ykan3JRiWwAMiRPEW/LbP3M7PwdwY
+	 EbrTuD79jMP6wbaOvQj9sho+vNaWNiMzwVNDpJjIENeAzYrRUTjohLI9GZiSjDgMMb
+	 AexcS5XcjIH64d+wT5EW+r5EXyUyt+IHKUnjsF1k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728970AbgJNVBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:01:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51176 "EHLO mail.kernel.org"
+        id S1730065AbgJNVBH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:01:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51166 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727897AbgJNVBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:01:03 -0400
+        id S1729751AbgJNVBG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:01:06 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 931AB22258;
-        Wed, 14 Oct 2020 21:00:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D9E712225E;
+        Wed, 14 Oct 2020 21:00:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709252;
-        bh=Y1vKqP5CHx1ywCd8peNNZNm+3v7he0tlSWO8q0CYN+A=;
+        s=default; t=1602709259;
+        bh=oPm6Muhzbs/Y24wCouWBqgGJJb4U61Aaum0AZCtrLpE=;
         h=Date:From:To:Subject:From;
-        b=IB7WdQP2b1AZlD4/JelEfN9iA1OO5ivCLDdeHsgwYSw7yAZAn25JXKwgb/+PHekHt
-         zChY+3dMyuK9uj0gi32bSLcqgFwTe8pW4lQCnjEPwVO5SKmrc0C/6MgTizp/t22YnY
-         1SG6o1QkrOpYx5WvMiDUd+/ZGaDsl8vHeKLBjQKg=
-Date:   Wed, 14 Oct 2020 14:00:52 -0700
+        b=IkKcgMITv4PZKbxT9xlFSPYWjzKfWksrAMLZdrYF7iAT+UlOMzZUaEcWf/QEtSx0u
+         REhc37TheG9tERAchlG6uLvfVdUs3dmQwvjQqybfC9k0a9oPBp1M7s85tbYGDAmb0t
+         ftU4NSzLHbkhF6GRHwvChR7qlNXHv5HtGMbsXjDY=
+Date:   Wed, 14 Oct 2020 14:00:58 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        richard.weiyang@linux.alibaba.com
+To:     adobriyan@gmail.com, chinwen.chang@mediatek.com,
+        daniel.kiss@arm.com, daniel.m.jordan@oracle.com, dbueso@suse.de,
+        jgg@ziepe.ca, jimmyassarsson@gmail.com, ldufour@linux.ibm.com,
+        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
+        songliubraving@fb.com, steven.price@arm.com, vbabka@suse.cz,
+        walken@google.com, willy@infradead.org, ying.huang@intel.com
 Subject:  [merged]
- mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch removed from -mm
- tree
-Message-ID: <20201014210052.-DKIQct1u%akpm@linux-foundation.org>
+ mmap-locking-api-add-mmap_lock_is_contended.patch removed from -mm tree
+Message-ID: <20201014210058.UWH3K5mu0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,67 +57,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: rename __vma_unlink_common() to __vma_unlink()
+     Subject: mmap locking API: add mmap_lock_is_contended()
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-rename-__vma_unlink_common-to-__vma_unlink.patch
+     mmap-locking-api-add-mmap_lock_is_contended.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/mmap: rename __vma_unlink_common() to __vma_unlink()
+From: Chinwen Chang <chinwen.chang@mediatek.com>
+Subject: mmap locking API: add mmap_lock_is_contended()
 
-__vma_unlink_common() and __vma_unlink() are counterparts.  Since there is
-no function named __vma_unlink(), let's rename __vma_unlink_common() to
-__vma_unlink() to make the code more self-explanatory and easy for
-audience to understand.
+Patch series "Try to release mmap_lock temporarily in smaps_rollup", v4.
 
-Otherwise we may expect there are several variants of vma_unlink() and
-__vma_unlink_common() is used by them.
+Recently, we have observed some janky issues caused by unpleasantly long
+contention on mmap_lock which is held by smaps_rollup when probing large
+processes.  To address the problem, we let smaps_rollup detect if anyone
+wants to acquire mmap_lock for write attempts.  If yes, just release the
+lock temporarily to ease the contention.
 
-Link: https://lkml.kernel.org/r/20200809232057.23477-1-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+smaps_rollup is a procfs interface which allows users to summarize the
+process's memory usage without the overhead of seq_* calls.  Android uses
+it to sample the memory usage of various processes to balance its memory
+pool sizes.  If no one wants to take the lock for write requests,
+smaps_rollup with this patch will behave like the original one.
+
+Although there are on-going mmap_lock optimizations like range-based
+locks, the lock applied to smaps_rollup would be the coarse one, which is
+hard to avoid the occurrence of aforementioned issues.  So the detection
+and temporary release for write attempts on mmap_lock in smaps_rollup is
+still necessary.
+
+
+This patch (of 3):
+
+Add new API to query if someone wants to acquire mmap_lock for write
+attempts.
+
+Using this instead of rwsem_is_contended makes it more tolerant of future
+changes to the lock type.
+
+Link: http://lkml.kernel.org/r/1597715898-3854-1-git-send-email-chinwen.chang@mediatek.com
+Link: http://lkml.kernel.org/r/1597715898-3854-2-git-send-email-chinwen.chang@mediatek.com
+Signed-off-by: Chinwen Chang <chinwen.chang@mediatek.com>
+Reviewed-by: Steven Price <steven.price@arm.com>
+Acked-by: Michel Lespinasse <walken@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Daniel Kiss <daniel.kiss@arm.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jimmy Assarsson <jimmyassarsson@gmail.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mmap_lock.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/mmap.c~mm-mmap-rename-__vma_unlink_common-to-__vma_unlink
-+++ a/mm/mmap.c
-@@ -677,7 +677,7 @@ static void __insert_vm_struct(struct mm
- 	mm->map_count++;
+--- a/include/linux/mmap_lock.h~mmap-locking-api-add-mmap_lock_is_contended
++++ a/include/linux/mmap_lock.h
+@@ -87,4 +87,9 @@ static inline void mmap_assert_write_loc
+ 	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
  }
  
--static __always_inline void __vma_unlink_common(struct mm_struct *mm,
-+static __always_inline void __vma_unlink(struct mm_struct *mm,
- 						struct vm_area_struct *vma,
- 						struct vm_area_struct *ignore)
- {
-@@ -859,7 +859,7 @@ again:
- 		 * us to remove next before dropping the locks.
- 		 */
- 		if (remove_next != 3)
--			__vma_unlink_common(mm, next, next);
-+			__vma_unlink(mm, next, next);
- 		else
- 			/*
- 			 * vma is not before next if they've been
-@@ -870,7 +870,7 @@ again:
- 			 * "next" (which is stored in post-swap()
- 			 * "vma").
- 			 */
--			__vma_unlink_common(mm, next, vma);
-+			__vma_unlink(mm, next, vma);
- 		if (file)
- 			__remove_shared_vm_struct(next, file, mapping);
- 	} else if (insert) {
++static inline int mmap_lock_is_contended(struct mm_struct *mm)
++{
++	return rwsem_is_contended(&mm->mmap_lock);
++}
++
+ #endif /* _LINUX_MMAP_LOCK_H */
 _
 
-Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
+Patches currently in -mm which might be from chinwen.chang@mediatek.com are
 
-mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
 
