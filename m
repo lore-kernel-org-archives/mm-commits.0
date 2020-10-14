@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B167C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 335C9C43457
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00A4E22259
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBACF22259
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602708987;
-	bh=a5jTmDkDzp+fr1aIlbSF/UyDmF1I55lmlTBO2SUMqu4=;
+	s=default; t=1602708994;
+	bh=Lyop6uXWVs/k+OHSa3DNHTuAxW4KIhhR9rll0KocSB4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=0lSwTSzJNwmnlI+PUqRBE9oOMtEkao46F2MFYxLJj8iae7Fr/TSx2fhB2YFHtb2s9
-	 bapg1xZ1V8miRnqIUlyMRc4G2T4LjmXlJJXbS/4UYep32jGIXqLfARHvJojvSqwUyn
-	 AJ0qLls+7JQScO/yYM0gecTT3AwFsLa/ThXlkzPM=
+	b=Qef6dbs0cbsoNW0mPkk3lMgGK+9wiUsFHQvy9ps92QTxr0D8GZcCISAd/ndF2zNT+
+	 9+8e+xNwz+seI4h6YH56uxJHXbNVfVfB1TuEyfK/2eoXV1XHIzCMp5gu1/kknPAe0t
+	 P8WpCSEOuSGB6SH2C3jiAr/0Gj/ZhV15hdUkeQu0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388998AbgJNU40 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:56:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46734 "EHLO mail.kernel.org"
+        id S2389386AbgJNU4e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:56:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387573AbgJNU40 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:56:26 -0400
+        id S2387573AbgJNU4b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:56:31 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA4B522250;
-        Wed, 14 Oct 2020 20:56:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AE3A522254;
+        Wed, 14 Oct 2020 20:56:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602708986;
-        bh=a5jTmDkDzp+fr1aIlbSF/UyDmF1I55lmlTBO2SUMqu4=;
+        s=default; t=1602708989;
+        bh=Lyop6uXWVs/k+OHSa3DNHTuAxW4KIhhR9rll0KocSB4=;
         h=Date:From:To:Subject:From;
-        b=gu0Tf1jMi6Bz7BuEUjjjOKEm2x5zlYAPOxwLOXLCpKH9Hz8HFTFHODQshgIhBf459
-         v3XUlrFZgSBa6b/Ntx0zj5sdJqNdxvm483cbnX2/nOU1Lk7588CdfhmstZlec/O9rM
-         r/TuaTURsHRMuJj+TOSVog6kMh0Pnhl+ml4pVOdg=
-Date:   Wed, 14 Oct 2020 13:56:25 -0700
+        b=2pafBSLswQJzvbR2ICTVAnELKmIMy5Pchy6j9oE+eMo3tjJRKckqrgr200f7pl7Ez
+         arWgPpVogEu7fY78TxHGkkWn61gSJKZcLFmShuvTTItm0XFOGYyliINlGLRVQdOxjK
+         SyP+agR4jqrRgJ1b0PpyDThtFpAsCOd1Qkl801+M=
+Date:   Wed, 14 Oct 2020 13:56:28 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, hewenliang4@huawei.com, hushiyuan@huawei.com,
-        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, wuyun.wu@huawei.com
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, liu.xiang6@zte.com.cn,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, wuyun.wu@huawei.com
 Subject:  [merged]
- mm-slub-fix-missing-alloc_slowpath-stat-when-bulk-alloc.patch removed from
- -mm tree
-Message-ID: <20201014205625.SMZ3TuJJy%akpm@linux-foundation.org>
+ mm-slub-make-add_full-condition-more-explicit.patch removed from -mm tree
+Message-ID: <20201014205628.zlyR2odtu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,52 +54,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: fix missing ALLOC_SLOWPATH stat when bulk alloc
+     Subject: mm/slub: make add_full() condition more explicit
 has been removed from the -mm tree.  Its filename was
-     mm-slub-fix-missing-alloc_slowpath-stat-when-bulk-alloc.patch
+     mm-slub-make-add_full-condition-more-explicit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Abel Wu <wuyun.wu@huawei.com>
-Subject: mm/slub: fix missing ALLOC_SLOWPATH stat when bulk alloc
+Subject: mm/slub: make add_full() condition more explicit
 
-The ALLOC_SLOWPATH statistics is missing in bulk allocation now.  Fix it
-by doing statistics in alloc slow path.
+The commit below is incomplete, as it didn't handle the add_full() part. 
+commit a4d3f8916c65 ("slub: remove useless kmem_cache_debug() before
+remove_full()")
 
-Link: http://lkml.kernel.org/r/20200811022427.1363-1-wuyun.wu@huawei.com
+This patch checks for SLAB_STORE_USER instead of kmem_cache_debug(), since
+that should be the only context in which we need the list_lock for
+add_full().
+
+Link: https://lkml.kernel.org/r/20200811020240.1231-1-wuyun.wu@huawei.com
 Signed-off-by: Abel Wu <wuyun.wu@huawei.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Hewenliang <hewenliang4@huawei.com>
-Cc: Hu Shiyuan <hushiyuan@huawei.com>
+Cc: Liu Xiang <liu.xiang6@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-fix-missing-alloc_slowpath-stat-when-bulk-alloc
+--- a/mm/slub.c~mm-slub-make-add_full-condition-more-explicit
 +++ a/mm/slub.c
-@@ -2661,6 +2661,8 @@ static void *___slab_alloc(struct kmem_c
- 	void *freelist;
- 	struct page *page;
- 
-+	stat(s, ALLOC_SLOWPATH);
-+
- 	page = c->page;
- 	if (!page) {
- 		/*
-@@ -2850,7 +2852,6 @@ redo:
- 	page = c->page;
- 	if (unlikely(!object || !node_match(page, node))) {
- 		object = __slab_alloc(s, gfpflags, node, addr, c);
--		stat(s, ALLOC_SLOWPATH);
+@@ -2245,7 +2245,8 @@ redo:
+ 		}
  	} else {
- 		void *next_object = get_freepointer_safe(s, object);
+ 		m = M_FULL;
+-		if (kmem_cache_debug(s) && !lock) {
++#ifdef CONFIG_SLUB_DEBUG
++		if ((s->flags & SLAB_STORE_USER) && !lock) {
+ 			lock = 1;
+ 			/*
+ 			 * This also ensures that the scanning of full
+@@ -2254,6 +2255,7 @@ redo:
+ 			 */
+ 			spin_lock(&n->list_lock);
+ 		}
++#endif
+ 	}
  
+ 	if (l != m) {
 _
 
 Patches currently in -mm which might be from wuyun.wu@huawei.com are
