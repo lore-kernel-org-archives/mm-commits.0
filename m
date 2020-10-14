@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D3E5C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74233C433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0510F22264
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22964214D8
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709491;
-	bh=vDzm1nwzqGdntu+R2fuW5CUMjX3rntKxwRGWPGKwhqI=;
+	s=default; t=1602709495;
+	bh=qD1Xeb0KWRuO+qWbAgKPlWPLZu52OTWG/n7JBrMPyNo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=b+GMdOoYujFusho9EbyXUKz2W7VGNuxSZNqsMluTaN5+/PRHOk44uL6rlq0jL31ls
-	 0c7ZiKVGtkt5lF4Vv/z6eA7eHmArB1pGaeuXyOyn0QeA7tEXk6dcwUThFDGFtBN8qZ
-	 TVrWNda29i8ekmMWep0+plqkr09WsIFnUrSmlQmQ=
+	b=xUm0ijHX9quD09Ips7speTbirIG5IP+cLo7bWqHt9Pc+SxG+L4egvP041/hVY1Zc9
+	 QyPVdbPLdIit0xGLUUmSDjnoBK0TxcJzoL2KxmG1BeY5624M4LulDwmtldEL+jxNbU
+	 bqR2r0GwEFvvDuYNXJpgp0c4mnfAs5fPTnLMCrL4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728536AbgJNVEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:04:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55262 "EHLO mail.kernel.org"
+        id S1729336AbgJNVEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:04:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727242AbgJNVEu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:04:50 -0400
+        id S1727242AbgJNVEy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:04:54 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0F9AA2225F;
-        Wed, 14 Oct 2020 21:04:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2BE4222263;
+        Wed, 14 Oct 2020 21:04:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709489;
-        bh=vDzm1nwzqGdntu+R2fuW5CUMjX3rntKxwRGWPGKwhqI=;
+        s=default; t=1602709493;
+        bh=qD1Xeb0KWRuO+qWbAgKPlWPLZu52OTWG/n7JBrMPyNo=;
         h=Date:From:To:Subject:From;
-        b=uwryFWziaFZzCplIPtZf5hX2gtYL4UDQd+cwUiSE6GfNYpeEHXxzvE5tZkQZQuC+g
-         Um1lXSdpJyjiRUUriL+7se/z24LTC2Q+mNRn2d/VAd2+2KDzXfDuoYvGym+fRdpzei
-         nQ38tKCK20CWIKtSjzaoiR3qDeOmOF7MUoKW2qaM=
-Date:   Wed, 14 Oct 2020 14:04:47 -0700
+        b=12HtwXyKtpZpXwgj+kWyVLhi/fHZqKItDLnJlPcyqopMyg/EIOBRK8cdgM3vJ2vtk
+         MAeaqUUG0y8KdEHBKXgReaCkSibUJR9V3AGi1ei/jaA5LN+G7LzRl36kWUouniwBDb
+         xekgDfDkHhvUxELNExSRHuslOpJyhhugK5FgPCVE=
+Date:   Wed, 14 Oct 2020 14:04:51 -0700
 From:   akpm@linux-foundation.org
 To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         catalin.marinas@arm.com, dave.hansen@linux.intel.com,
@@ -52,9 +52,9 @@ To:     benh@kernel.crashing.org, bhe@redhat.com, bp@alien8.de,
         shorne@gmail.com, tglx@linutronix.de, tsbogend@alpha.franken.de,
         will@kernel.org, ysato@users.sourceforge.jp
 Subject:  [merged]
- memblock-reduce-number-of-parameters-in-for_each_mem_range.patch removed
+ arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range.patch removed
  from -mm tree
-Message-ID: <20201014210447.atukHM9S9%akpm@linux-foundation.org>
+Message-ID: <20201014210451.dZqrKQFiu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -63,35 +63,34 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: reduce number of parameters in for_each_mem_range()
+     Subject: arch, mm: replace for_each_memblock() with for_each_mem_pfn_range()
 has been removed from the -mm tree.  Its filename was
-     memblock-reduce-number-of-parameters-in-for_each_mem_range.patch
+     arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memblock: reduce number of parameters in for_each_mem_range()
+Subject: arch, mm: replace for_each_memblock() with for_each_mem_pfn_range()
 
-Currently for_each_mem_range() and for_each_mem_range_rev() iterators are
-the most generic way to traverse memblock regions.  As such, they have 8
-parameters and they are hardly convenient to users.  Most users choose to
-utilize one of their wrappers and the only user that actually needs most
-of the parameters is memblock itself.
+There are several occurrences of the following pattern:
 
-To avoid yet another naming for memblock iterators, rename the existing
-for_each_mem_range[_rev]() to __for_each_mem_range[_rev]() and add a new
-for_each_mem_range[_rev]() wrappers with only index, start and end
-parameters.
+	for_each_memblock(memory, reg) {
+		start_pfn = memblock_region_memory_base_pfn(reg);
+		end_pfn = memblock_region_memory_end_pfn(reg);
 
-The new wrapper nicely fits into init_unavailable_mem() and will be used
-in upcoming changes to simplify memblock traversals.
+		/* do something with start_pfn and end_pfn */
+	}
 
-Link: https://lkml.kernel.org/r/20200818151634.14343-11-rppt@kernel.org
+Rather than iterate over all memblock.memory regions and each time query
+for their start and end PFNs, use for_each_mem_pfn_range() iterator to get
+simpler and clearer code.
+
+Link: https://lkml.kernel.org/r/20200818151634.14343-12-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>	[MIPS]
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>	[.clang-format]
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -107,186 +106,243 @@ Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Simek <monstr@monstr.eu>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Stafford Horne <shorne@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .clang-format                          |    2 +
- arch/arm64/kernel/machine_kexec_file.c |    6 +--
- arch/powerpc/kexec/file_load_64.c      |    6 +--
- include/linux/memblock.h               |   41 +++++++++++++++++------
- mm/page_alloc.c                        |    3 -
- 5 files changed, 38 insertions(+), 20 deletions(-)
+ arch/arm/mm/init.c           |   11 ++++-------
+ arch/arm64/mm/init.c         |   11 ++++-------
+ arch/powerpc/kernel/fadump.c |   11 ++++++-----
+ arch/powerpc/mm/mem.c        |   15 ++++++++-------
+ arch/powerpc/mm/numa.c       |    7 ++-----
+ arch/s390/mm/page-states.c   |    6 ++----
+ arch/sh/mm/init.c            |    9 +++------
+ mm/memblock.c                |    6 ++----
+ mm/sparse.c                  |   10 ++++------
+ 9 files changed, 35 insertions(+), 51 deletions(-)
 
---- a/arch/arm64/kernel/machine_kexec_file.c~memblock-reduce-number-of-parameters-in-for_each_mem_range
-+++ a/arch/arm64/kernel/machine_kexec_file.c
-@@ -215,8 +215,7 @@ static int prepare_elf_headers(void **ad
- 	phys_addr_t start, end;
+--- a/arch/arm64/mm/init.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/arm64/mm/init.c
+@@ -471,12 +471,10 @@ static inline void free_memmap(unsigned
+  */
+ static void __init free_unused_memmap(void)
+ {
+-	unsigned long start, prev_end = 0;
+-	struct memblock_region *reg;
+-
+-	for_each_memblock(memory, reg) {
+-		start = __phys_to_pfn(reg->base);
++	unsigned long start, end, prev_end = 0;
++	int i;
  
- 	nr_ranges = 1; /* for exclusion of crashkernel region */
--	for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
--					MEMBLOCK_NONE, &start, &end, NULL)
-+	for_each_mem_range(i, &start, &end)
- 		nr_ranges++;
- 
- 	cmem = kmalloc(struct_size(cmem, ranges, nr_ranges), GFP_KERNEL);
-@@ -225,8 +224,7 @@ static int prepare_elf_headers(void **ad
- 
- 	cmem->max_nr_ranges = nr_ranges;
- 	cmem->nr_ranges = 0;
--	for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
--					MEMBLOCK_NONE, &start, &end, NULL) {
-+	for_each_mem_range(i, &start, &end) {
- 		cmem->ranges[cmem->nr_ranges].start = start;
- 		cmem->ranges[cmem->nr_ranges].end = end - 1;
- 		cmem->nr_ranges++;
---- a/arch/powerpc/kexec/file_load_64.c~memblock-reduce-number-of-parameters-in-for_each_mem_range
-+++ a/arch/powerpc/kexec/file_load_64.c
-@@ -250,8 +250,7 @@ static int __locate_mem_hole_top_down(st
- 	phys_addr_t start, end;
- 	u64 i;
- 
--	for_each_mem_range_rev(i, &memblock.memory, NULL, NUMA_NO_NODE,
--			       MEMBLOCK_NONE, &start, &end, NULL) {
-+	for_each_mem_range_rev(i, &start, &end) {
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
+ #ifdef CONFIG_SPARSEMEM
  		/*
- 		 * memblock uses [start, end) convention while it is
- 		 * [start, end] here. Fix the off-by-one to have the
-@@ -350,8 +349,7 @@ static int __locate_mem_hole_bottom_up(s
- 	phys_addr_t start, end;
- 	u64 i;
+ 		 * Take care not to free memmap entries that don't exist due
+@@ -496,8 +494,7 @@ static void __init free_unused_memmap(vo
+ 		 * memmap entries are valid from the bank end aligned to
+ 		 * MAX_ORDER_NR_PAGES.
+ 		 */
+-		prev_end = ALIGN(__phys_to_pfn(reg->base + reg->size),
+-				 MAX_ORDER_NR_PAGES);
++		prev_end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 	}
  
--	for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
--			   MEMBLOCK_NONE, &start, &end, NULL) {
-+	for_each_mem_range(i, &start, &end) {
- 		/*
- 		 * memblock uses [start, end) convention while it is
- 		 * [start, end] here. Fix the off-by-one to have the
---- a/.clang-format~memblock-reduce-number-of-parameters-in-for_each_mem_range
-+++ a/.clang-format
-@@ -207,7 +207,9 @@ ForEachMacros:
-   - 'for_each_memblock_type'
-   - 'for_each_memcg_cache_index'
-   - 'for_each_mem_pfn_range'
-+  - '__for_each_mem_range'
-   - 'for_each_mem_range'
-+  - '__for_each_mem_range_rev'
-   - 'for_each_mem_range_rev'
-   - 'for_each_migratetype_order'
-   - 'for_each_msi_entry'
---- a/include/linux/memblock.h~memblock-reduce-number-of-parameters-in-for_each_mem_range
-+++ a/include/linux/memblock.h
-@@ -162,7 +162,7 @@ static inline void __next_physmem_range(
- #endif /* CONFIG_HAVE_MEMBLOCK_PHYS_MAP */
- 
- /**
-- * for_each_mem_range - iterate through memblock areas from type_a and not
-+ * __for_each_mem_range - iterate through memblock areas from type_a and not
-  * included in type_b. Or just type_a if type_b is NULL.
-  * @i: u64 used as loop variable
-  * @type_a: ptr to memblock_type to iterate
-@@ -173,7 +173,7 @@ static inline void __next_physmem_range(
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
+ #ifdef CONFIG_SPARSEMEM
+--- a/arch/arm/mm/init.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/arm/mm/init.c
+@@ -299,16 +299,14 @@ free_memmap(unsigned long start_pfn, uns
   */
--#define for_each_mem_range(i, type_a, type_b, nid, flags,		\
-+#define __for_each_mem_range(i, type_a, type_b, nid, flags,		\
- 			   p_start, p_end, p_nid)			\
- 	for (i = 0, __next_mem_range(&i, nid, flags, type_a, type_b,	\
- 				     p_start, p_end, p_nid);		\
-@@ -182,7 +182,7 @@ static inline void __next_physmem_range(
- 			      p_start, p_end, p_nid))
+ static void __init free_unused_memmap(void)
+ {
+-	unsigned long start, prev_end = 0;
+-	struct memblock_region *reg;
++	unsigned long start, end, prev_end = 0;
++	int i;
  
- /**
-- * for_each_mem_range_rev - reverse iterate through memblock areas from
-+ * __for_each_mem_range_rev - reverse iterate through memblock areas from
-  * type_a and not included in type_b. Or just type_a if type_b is NULL.
-  * @i: u64 used as loop variable
-  * @type_a: ptr to memblock_type to iterate
-@@ -193,16 +193,37 @@ static inline void __next_physmem_range(
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-  */
--#define for_each_mem_range_rev(i, type_a, type_b, nid, flags,		\
--			       p_start, p_end, p_nid)			\
-+#define __for_each_mem_range_rev(i, type_a, type_b, nid, flags,		\
-+				 p_start, p_end, p_nid)			\
- 	for (i = (u64)ULLONG_MAX,					\
--		     __next_mem_range_rev(&i, nid, flags, type_a, type_b,\
-+		     __next_mem_range_rev(&i, nid, flags, type_a, type_b, \
- 					  p_start, p_end, p_nid);	\
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_mem_range_rev(&i, nid, flags, type_a, type_b,	\
- 				  p_start, p_end, p_nid))
- 
- /**
-+ * for_each_mem_range - iterate through memory areas.
-+ * @i: u64 used as loop variable
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ */
-+#define for_each_mem_range(i, p_start, p_end) \
-+	__for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,	\
-+			     MEMBLOCK_NONE, p_start, p_end, NULL)
-+
-+/**
-+ * for_each_mem_range_rev - reverse iterate through memblock areas from
-+ * type_a and not included in type_b. Or just type_a if type_b is NULL.
-+ * @i: u64 used as loop variable
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ */
-+#define for_each_mem_range_rev(i, p_start, p_end)			\
-+	__for_each_mem_range_rev(i, &memblock.memory, NULL, NUMA_NO_NODE, \
-+				 MEMBLOCK_NONE, p_start, p_end, NULL)
-+
-+/**
-  * for_each_reserved_mem_region - iterate over all reserved memblock areas
-  * @i: u64 used as loop variable
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-@@ -307,8 +328,8 @@ int __init deferred_page_init_max_thread
-  * soon as memblock is initialized.
-  */
- #define for_each_free_mem_range(i, nid, flags, p_start, p_end, p_nid)	\
--	for_each_mem_range(i, &memblock.memory, &memblock.reserved,	\
--			   nid, flags, p_start, p_end, p_nid)
-+	__for_each_mem_range(i, &memblock.memory, &memblock.reserved,	\
-+			     nid, flags, p_start, p_end, p_nid)
- 
- /**
-  * for_each_free_mem_range_reverse - rev-iterate through free memblock areas
-@@ -324,8 +345,8 @@ int __init deferred_page_init_max_thread
-  */
- #define for_each_free_mem_range_reverse(i, nid, flags, p_start, p_end,	\
- 					p_nid)				\
--	for_each_mem_range_rev(i, &memblock.memory, &memblock.reserved,	\
--			       nid, flags, p_start, p_end, p_nid)
-+	__for_each_mem_range_rev(i, &memblock.memory, &memblock.reserved, \
-+				 nid, flags, p_start, p_end, p_nid)
- 
- int memblock_set_node(phys_addr_t base, phys_addr_t size,
- 		      struct memblock_type *type, int nid);
---- a/mm/page_alloc.c~memblock-reduce-number-of-parameters-in-for_each_mem_range
-+++ a/mm/page_alloc.c
-@@ -6990,8 +6990,7 @@ static void __init init_unavailable_mem(
- 	 * Loop through unavailable ranges not covered by memblock.memory.
+ 	/*
+ 	 * This relies on each bank being in address order.
+ 	 * The banks are sorted previously in bootmem_init().
  	 */
- 	pgcnt = 0;
--	for_each_mem_range(i, &memblock.memory, NULL,
--			NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end, NULL) {
-+	for_each_mem_range(i, &start, &end) {
- 		if (next < start)
- 			pgcnt += init_unavailable_range(PFN_DOWN(next),
- 							PFN_UP(start));
+-	for_each_memblock(memory, reg) {
+-		start = memblock_region_memory_base_pfn(reg);
+-
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
+ #ifdef CONFIG_SPARSEMEM
+ 		/*
+ 		 * Take care not to free memmap entries that don't exist
+@@ -336,8 +334,7 @@ static void __init free_unused_memmap(vo
+ 		 * memmap entries are valid from the bank end aligned to
+ 		 * MAX_ORDER_NR_PAGES.
+ 		 */
+-		prev_end = ALIGN(memblock_region_memory_end_pfn(reg),
+-				 MAX_ORDER_NR_PAGES);
++		prev_end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 	}
+ 
+ #ifdef CONFIG_SPARSEMEM
+--- a/arch/powerpc/kernel/fadump.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/powerpc/kernel/fadump.c
+@@ -1242,14 +1242,15 @@ static void fadump_free_reserved_memory(
+  */
+ static void fadump_release_reserved_area(u64 start, u64 end)
+ {
+-	u64 tstart, tend, spfn, epfn;
+-	struct memblock_region *reg;
++	u64 tstart, tend, spfn, epfn, reg_spfn, reg_epfn, i;
+ 
+ 	spfn = PHYS_PFN(start);
+ 	epfn = PHYS_PFN(end);
+-	for_each_memblock(memory, reg) {
+-		tstart = max_t(u64, spfn, memblock_region_memory_base_pfn(reg));
+-		tend   = min_t(u64, epfn, memblock_region_memory_end_pfn(reg));
++
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &reg_spfn, &reg_epfn, NULL) {
++		tstart = max_t(u64, spfn, reg_spfn);
++		tend   = min_t(u64, epfn, reg_epfn);
++
+ 		if (tstart < tend) {
+ 			fadump_free_reserved_memory(tstart, tend);
+ 
+--- a/arch/powerpc/mm/mem.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/powerpc/mm/mem.c
+@@ -184,15 +184,16 @@ void __init initmem_init(void)
+ /* mark pages that don't exist as nosave */
+ static int __init mark_nonram_nosave(void)
+ {
+-	struct memblock_region *reg, *prev = NULL;
++	unsigned long spfn, epfn, prev = 0;
++	int i;
+ 
+-	for_each_memblock(memory, reg) {
+-		if (prev &&
+-		    memblock_region_memory_end_pfn(prev) < memblock_region_memory_base_pfn(reg))
+-			register_nosave_region(memblock_region_memory_end_pfn(prev),
+-					       memblock_region_memory_base_pfn(reg));
+-		prev = reg;
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &spfn, &epfn, NULL) {
++		if (prev && prev < spfn)
++			register_nosave_region(prev, spfn);
++
++		prev = epfn;
+ 	}
++
+ 	return 0;
+ }
+ #else /* CONFIG_NEED_MULTIPLE_NODES */
+--- a/arch/powerpc/mm/numa.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/powerpc/mm/numa.c
+@@ -804,17 +804,14 @@ static void __init setup_nonnuma(void)
+ 	unsigned long total_ram = memblock_phys_mem_size();
+ 	unsigned long start_pfn, end_pfn;
+ 	unsigned int nid = 0;
+-	struct memblock_region *reg;
++	int i;
+ 
+ 	printk(KERN_DEBUG "Top of RAM: 0x%lx, Total RAM: 0x%lx\n",
+ 	       top_of_ram, total_ram);
+ 	printk(KERN_DEBUG "Memory hole size: %ldMB\n",
+ 	       (top_of_ram - total_ram) >> 20);
+ 
+-	for_each_memblock(memory, reg) {
+-		start_pfn = memblock_region_memory_base_pfn(reg);
+-		end_pfn = memblock_region_memory_end_pfn(reg);
+-
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
+ 		fake_numa_create_new_node(end_pfn, &nid);
+ 		memblock_set_node(PFN_PHYS(start_pfn),
+ 				  PFN_PHYS(end_pfn - start_pfn),
+--- a/arch/s390/mm/page-states.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/s390/mm/page-states.c
+@@ -183,9 +183,9 @@ static void mark_kernel_pgd(void)
+ 
+ void __init cmma_init_nodat(void)
+ {
+-	struct memblock_region *reg;
+ 	struct page *page;
+ 	unsigned long start, end, ix;
++	int i;
+ 
+ 	if (cmma_flag < 2)
+ 		return;
+@@ -193,9 +193,7 @@ void __init cmma_init_nodat(void)
+ 	mark_kernel_pgd();
+ 
+ 	/* Set all kernel pages not used for page tables to stable/no-dat */
+-	for_each_memblock(memory, reg) {
+-		start = memblock_region_memory_base_pfn(reg);
+-		end = memblock_region_memory_end_pfn(reg);
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
+ 		page = pfn_to_page(start);
+ 		for (ix = start; ix < end; ix++, page++) {
+ 			if (__test_and_clear_bit(PG_arch_1, &page->flags))
+--- a/arch/sh/mm/init.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/arch/sh/mm/init.c
+@@ -226,15 +226,12 @@ void __init allocate_pgdat(unsigned int
+ 
+ static void __init do_init_bootmem(void)
+ {
+-	struct memblock_region *reg;
++	unsigned long start_pfn, end_pfn;
++	int i;
+ 
+ 	/* Add active regions with valid PFNs. */
+-	for_each_memblock(memory, reg) {
+-		unsigned long start_pfn, end_pfn;
+-		start_pfn = memblock_region_memory_base_pfn(reg);
+-		end_pfn = memblock_region_memory_end_pfn(reg);
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL)
+ 		__add_active_range(0, start_pfn, end_pfn);
+-	}
+ 
+ 	/* All of system RAM sits in node 0 for the non-NUMA case */
+ 	allocate_pgdat(0);
+--- a/mm/memblock.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/mm/memblock.c
+@@ -1663,12 +1663,10 @@ phys_addr_t __init_memblock memblock_res
+ phys_addr_t __init memblock_mem_size(unsigned long limit_pfn)
+ {
+ 	unsigned long pages = 0;
+-	struct memblock_region *r;
+ 	unsigned long start_pfn, end_pfn;
++	int i;
+ 
+-	for_each_memblock(memory, r) {
+-		start_pfn = memblock_region_memory_base_pfn(r);
+-		end_pfn = memblock_region_memory_end_pfn(r);
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
+ 		start_pfn = min_t(unsigned long, start_pfn, limit_pfn);
+ 		end_pfn = min_t(unsigned long, end_pfn, limit_pfn);
+ 		pages += end_pfn - start_pfn;
+--- a/mm/sparse.c~arch-mm-replace-for_each_memblock-with-for_each_mem_pfn_range
++++ a/mm/sparse.c
+@@ -291,13 +291,11 @@ static void __init memory_present(int ni
+  */
+ static void __init memblocks_present(void)
+ {
+-	struct memblock_region *reg;
++	unsigned long start, end;
++	int i, nid;
+ 
+-	for_each_memblock(memory, reg) {
+-		memory_present(memblock_get_region_node(reg),
+-			       memblock_region_memory_base_pfn(reg),
+-			       memblock_region_memory_end_pfn(reg));
+-	}
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
++		memory_present(nid, start, end);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
