@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8761FC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3366BC43457
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24E2D221FF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA0B0221FF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:02:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709376;
-	bh=uZYxhOf1zMfEHUqXVW7juLUNCovdL21s/8wy9htpjqg=;
+	s=default; t=1602709377;
+	bh=GCcnGS/nJy6/Bgc6Vwuz8a726WMQ9rIcHEqGPySuB8M=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=qOl8s2f3ES1kZHLUA9di63zILxoRh2Yh7gYhTpxplqkXscJQGn95BKzT6SU4IalZY
-	 tfDp0WKCVzXC3HDJDtNAIDnduHGNM0zv3NuEk3YpMG98/V6903pCoVMofQqb5Huw7w
-	 M+SnlS0xN/jro+JCzfuHqwypppPK1v0HM/dUPA+Y=
+	b=cc7ERqr4Cc8WO/WXa7U1LvvPAnyMRjfhUUL9o6U8oob/OaVac231V4imHguqBSXrt
+	 PMNQ2XW6MifjwQ7D29w7H2Gv4spjSauu+Y7Jdrz6tcrqGn4K568gVjaOQDUrE3V3Q1
+	 FiwRRP/h83wvTzB9vu2bDSR3QEhMx+fAgWHo99xI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387543AbgJNVCz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:02:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52780 "EHLO mail.kernel.org"
+        id S2388209AbgJNVC5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:02:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726099AbgJNVCz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:02:55 -0400
+        id S1726099AbgJNVC5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:02:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 92EDC206B2;
-        Wed, 14 Oct 2020 21:02:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 84AB2214D8;
+        Wed, 14 Oct 2020 21:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709373;
-        bh=uZYxhOf1zMfEHUqXVW7juLUNCovdL21s/8wy9htpjqg=;
+        s=default; t=1602709376;
+        bh=GCcnGS/nJy6/Bgc6Vwuz8a726WMQ9rIcHEqGPySuB8M=;
         h=Date:From:To:Subject:From;
-        b=qNYu4JBEUTjC/fXPpvzj/Yn7PNtvpv9/owfYYQvIr+POVT17QzxqEoiQmodL9GKDM
-         QuBl7PE6DD/KD5oKV6wy9cL4cf3kL+YCLIat7WtWtTbgtCfoiqqTpMPmEQS1fjte8H
-         xor6tm/A6KUixy9UXrv97pu6GktdhXbtS7m5yH1U=
-Date:   Wed, 14 Oct 2020 14:02:53 -0700
+        b=pLfgRZysXmxjuIJJVYabzwMPzrYCzZEejzx+s3eX6RyqGaKRmDfdbJ0SBZ6q5i5Ws
+         vyRMG6u7AxtxNWbZ+avdTMPgFEU19od2F2a9nBylmjkMgY6U2e8rO6i8tAHxOBG4O1
+         LqV5aprCkW6ttkebDRi/9cEFkkYagwAWlMx12qMs=
+Date:   Wed, 14 Oct 2020 14:02:56 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
+To:     mateusznosek0@gmail.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-page_allocc-__perform_reclaim-should-return-unsigned-long.patch removed
- from -mm tree
-Message-ID: <20201014210253.ZG_iF2qfN%akpm@linux-foundation.org>
+ mmzone-clean-code-by-removing-unused-macro-parameter.patch removed from -mm
+ tree
+Message-ID: <20201014210256.A7odLCl_p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,49 +53,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: __perform_reclaim should return 'unsigned long'
+     Subject: mmzone: clean code by removing unused macro parameter
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-__perform_reclaim-should-return-unsigned-long.patch
+     mmzone-clean-code-by-removing-unused-macro-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/page_alloc.c: __perform_reclaim should return 'unsigned long'
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mmzone: clean code by removing unused macro parameter
 
-__perform_reclaim()'s single caller expects it to return 'unsigned long',
-hence change its return value and a local variable to 'unsigned long'.
+Previously 'for_next_zone_zonelist_nodemask' macro parameter 'zlist' was
+unused so this patch removes it.
 
-Link: https://lkml.kernel.org/r/20200916022138.16740-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20200917211906.30059-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ mm/page_alloc.c        |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-__perform_reclaim-should-return-unsigned-long
+--- a/include/linux/mmzone.h~mmzone-clean-code-by-removing-unused-macro-parameter
++++ a/include/linux/mmzone.h
+@@ -1116,7 +1116,7 @@ static inline struct zoneref *first_zone
+ 		z = next_zones_zonelist(++z, highidx, nodemask),	\
+ 			zone = zonelist_zone(z))
+ 
+-#define for_next_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
++#define for_next_zone_zonelist_nodemask(zone, z, highidx, nodemask) \
+ 	for (zone = z->zone;	\
+ 		zone;							\
+ 		z = next_zones_zonelist(++z, highidx, nodemask),	\
+--- a/mm/page_alloc.c~mmzone-clean-code-by-removing-unused-macro-parameter
 +++ a/mm/page_alloc.c
-@@ -4253,13 +4253,12 @@ EXPORT_SYMBOL_GPL(fs_reclaim_release);
- #endif
- 
- /* Perform direct synchronous page reclaim */
--static int
-+static unsigned long
- __perform_reclaim(gfp_t gfp_mask, unsigned int order,
- 					const struct alloc_context *ac)
- {
--	int progress;
- 	unsigned int noreclaim_flag;
--	unsigned long pflags;
-+	unsigned long pflags, progress;
- 
- 	cond_resched();
+@@ -3741,8 +3741,8 @@ retry:
+ 	 */
+ 	no_fallback = alloc_flags & ALLOC_NOFRAGMENT;
+ 	z = ac->preferred_zoneref;
+-	for_next_zone_zonelist_nodemask(zone, z, ac->zonelist,
+-					ac->highest_zoneidx, ac->nodemask) {
++	for_next_zone_zonelist_nodemask(zone, z, ac->highest_zoneidx,
++					ac->nodemask) {
+ 		struct page *page;
+ 		unsigned long mark;
  
 _
 
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
+Patches currently in -mm which might be from mateusznosek0@gmail.com are
 
+mm-page_poisonc-replace-bool-variable-with-static-key.patch
 
