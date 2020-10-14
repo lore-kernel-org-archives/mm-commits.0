@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CBD3C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:00:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA8EBC433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:00:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E0232224E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:00:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7955322248
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709212;
-	bh=irn/MG/uIdLbzXywxGokvevLQqxQq5sCYmmn16B4Jx8=;
+	s=default; t=1602709215;
+	bh=OD4zIDJo+oikVNQIHl7Ltg3GcdlbhuOGXGs2TFtXySo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ymzb9jwUAu4o8lZkjti19/qSNhdo1X9y0AdG4KM6Tf5dgdaggPsladI1muZtc+d+O
-	 tCZTBAxovLXL2J10IOffTVnXKpiNfDasYq/UBzDYmkmwgTXiIvcXOTYYbJUu/FF/y1
-	 Khmw3RcYZS10uSzq9P93U91E2xVCJzxHFzzJsDIw=
+	b=JS44T8kN6CWwnQs/BAu446AYmrvUyaPW/2LpSc3w5pZHecTGCPZPiDPEyiT15CnHS
+	 0R/yvvK5okJRm/45ivpmswROMex3Btv/x7jprRflzTAiURsd2OzhFKNIF1S5ZQ77c/
+	 p3uhjaGAm7ubYvIIHR2yPk0W7eEp1825ceWNttSg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726006AbgJNVAL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:00:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50538 "EHLO mail.kernel.org"
+        id S1726719AbgJNVAP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 17:00:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725923AbgJNVAL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:00:11 -0400
+        id S1725923AbgJNVAP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 17:00:15 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8E08E22248;
-        Wed, 14 Oct 2020 21:00:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C5AAE2068E;
+        Wed, 14 Oct 2020 21:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709210;
-        bh=irn/MG/uIdLbzXywxGokvevLQqxQq5sCYmmn16B4Jx8=;
+        s=default; t=1602709214;
+        bh=OD4zIDJo+oikVNQIHl7Ltg3GcdlbhuOGXGs2TFtXySo=;
         h=Date:From:To:Subject:From;
-        b=S05ztBXvodkwmlD1M42UabJOSmiGFnakcw6gbGWGF+WDrbwG7j6z+ODvR1I9gwMZo
-         rTW6/smzfyJb1fRoTv0IpM8Vvg9MuZhHZfbLS28jezo0uEpzq7L8hfK/9+76Bp2tnp
-         zeX2DoFzgtOGL+zr0fs+mAQT9bAanvpv09fgNpE4=
-Date:   Wed, 14 Oct 2020 14:00:10 -0700
+        b=FDkgQDwHOU5wyV5vEhYUSI1QGFyHwFn+CaZ836LyBPuUsiEZoI+39jzG+yKwcDDHk
+         9hvmC5KZ4Z9XmMrDXP6FheT6CjaGncoIvRCmr8TD5JHKQChAOZ0UasVHd/ZGgc5L8W
+         howilrt9rKizsYm+sZLtNZJCoN5YqNJyS9GhEEQA=
+Date:   Wed, 14 Oct 2020 14:00:13 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, linmiaohe@huawei.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
+        laoar.shao@gmail.com, longman@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
+        vdavydov.dev@gmail.com
 Subject:  [merged]
- mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch removed from -mm
- tree
-Message-ID: <20201014210010.YCuftA5gH%akpm@linux-foundation.org>
+ mm-memcg-clean-up-obsolete-enum-charge_type.patch removed from -mm tree
+Message-ID: <20201014210013.1OpNLRMg-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,52 +55,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: correct the comment of mem_cgroup_iter()
+     Subject: mm/memcg: clean up obsolete enum charge_type
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-correct-the-comment-of-mem_cgroup_iter.patch
+     mm-memcg-clean-up-obsolete-enum-charge_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memcontrol: correct the comment of mem_cgroup_iter()
+From: Waiman Long <longman@redhat.com>
+Subject: mm/memcg: clean up obsolete enum charge_type
 
-Since commit bbec2e15170a ("mm: rename page_counter's count/limit into
-usage/max"), the arg @reclaim has no priority field anymore.
+Patch series "mm/memcg: Miscellaneous cleanups and streamlining", v2.
 
-Link: https://lkml.kernel.org/r/20200913094129.44558-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+
+This patch (of 3):
+
+Since commit 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API") and
+commit 00501b531c47 ("mm: memcontrol: rewrite charge API") in v3.17, the
+enum charge_type was no longer used anywhere.  However, the enum itself
+was not removed at that time.  Remove the obsolete enum charge_type now.
+
+Link: https://lkml.kernel.org/r/20200914024452.19167-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20200914024452.19167-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Chris Down <chris@chrisdown.name>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-correct-the-comment-of-mem_cgroup_iter
+--- a/mm/memcontrol.c~mm-memcg-clean-up-obsolete-enum-charge_type
 +++ a/mm/memcontrol.c
-@@ -1102,9 +1102,9 @@ static __always_inline struct mem_cgroup
-  * invocations for reference counting, or use mem_cgroup_iter_break()
-  * to cancel a hierarchy walk before the round-trip is complete.
-  *
-- * Reclaimers can specify a node and a priority level in @reclaim to
-- * divide up the memcgs in the hierarchy among all concurrent
-- * reclaimers operating on the same node and priority.
-+ * Reclaimers can specify a node in @reclaim to divide up the memcgs
-+ * in the hierarchy among all concurrent reclaimers operating on the
-+ * same node.
-  */
- struct mem_cgroup *mem_cgroup_iter(struct mem_cgroup *root,
- 				   struct mem_cgroup *prev,
+@@ -197,14 +197,6 @@ static struct move_charge_struct {
+ #define	MEM_CGROUP_MAX_RECLAIM_LOOPS		100
+ #define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	2
+ 
+-enum charge_type {
+-	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+-	MEM_CGROUP_CHARGE_TYPE_ANON,
+-	MEM_CGROUP_CHARGE_TYPE_SWAPOUT,	/* for accounting swapcache */
+-	MEM_CGROUP_CHARGE_TYPE_DROP,	/* a page was unused swap cache */
+-	NR_CHARGE_TYPE,
+-};
+-
+ /* for encoding cft->private value on file */
+ enum res_type {
+ 	_MEM,
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-vmstat-use-helper-macro-abs.patch
-mm-fix-some-broken-comments.patch
-mm-use-helper-function-put_write_access.patch
-percpu_counter-use-helper-macro-abs.patch
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
