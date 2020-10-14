@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F118C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B733BC433E7
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17CC622253
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A54B22253
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 20:57:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709048;
-	bh=hRGZwvlqhHW3GYWksKCU8Rwt0JZ1BghlVkeIDDybPCk=;
+	s=default; t=1602709051;
+	bh=S8t08At+bwwf7RiG+ne2c5ppCcD+eIULPNy/krcvsz4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=nECGP1aoJuInI3U5vM6nRpAA9FarVxeE32y1tnatCquJKYFZ0zhTV3xoH0qqZbV+n
-	 JrSsq51DYWGLLKvwnL6DsnHjPL0V2gsCGAJlIC60rZqSmSP46gEr0Fl7ui7vgWsBB5
-	 b+NquB2iTPNYIMDCnOBt5K3AVHHBxd9HrsDVCYws=
+	b=E3TQC8vlwDZBs9dIFwpmjkQhcbx3Cq4dnVjUWu5urTfF9fATH0B9ja37WRL81So+R
+	 aTzSbMo9v3Y27BQ+hqOHZZY/W/6ApOwwEmRGvNRkMHKsPP6/4s0fu9l8DVsEqi7VkR
+	 vm7ORfzWzwJQ4twNKTD9R7OEG2jze5XGJv8lotuM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389441AbgJNU51 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 16:57:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47898 "EHLO mail.kernel.org"
+        id S2389443AbgJNU5b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Oct 2020 16:57:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387573AbgJNU51 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 16:57:27 -0400
+        id S2387573AbgJNU5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Oct 2020 16:57:30 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 271432068E;
-        Wed, 14 Oct 2020 20:57:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DE1322248;
+        Wed, 14 Oct 2020 20:57:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709046;
-        bh=hRGZwvlqhHW3GYWksKCU8Rwt0JZ1BghlVkeIDDybPCk=;
+        s=default; t=1602709050;
+        bh=S8t08At+bwwf7RiG+ne2c5ppCcD+eIULPNy/krcvsz4=;
         h=Date:From:To:Subject:From;
-        b=ImDD2rzpjnubo4W6NQFtijvJcp9f/FrsqO+RBMa/lJepD6MOK8jySEOmcjPcg+dzL
-         tjbjXl9ke5/Z84qIGJE1jNfbAPOhFtECvJkUvXYf+qen31CzfYCfyS7U0kQHoroKFW
-         vPia7uXbWKmrz4KZvq0u42ru+6HqmkniPj8iUzq4=
-Date:   Wed, 14 Oct 2020 13:57:23 -0700
+        b=vPhLUXdyCD9VIEQmeiGUSu+f+XvCio7vHfUAhl/6nCHN0aIsFYEjY/Wd5/RXMnMO+
+         swSOZ2icZfSTq/uSPBwDzXgxg6MhWC+RO5ZoqD+mghZslIckalisZWbLNJHkaBkxgb
+         ANto6+cLV7G4oPwlXw6B4j2zzX8he/KVUvXboe1I=
+Date:   Wed, 14 Oct 2020 13:57:27 -0700
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         benh@kernel.crashing.org, bhelgaas@google.com,
@@ -58,10 +58,9 @@ To:     airlied@linux.ie, ard.biesheuvel@linaro.org, ardb@kernel.org,
         sstabellini@kernel.org, tglx@linutronix.de,
         thomas.lendacky@amd.com, vgoyal@redhat.com,
         vishal.l.verma@intel.com, will@kernel.org, yanaijie@huawei.com
-Subject:  [merged]
- device-dax-make-pgmap-optional-for-instance-creation.patch removed from -mm
- tree
-Message-ID: <20201014205723.lLcs-7dO6%akpm@linux-foundation.org>
+Subject:  [merged] device-dax-kmem-introduce-dax_kmem_range.patch
+ removed from -mm tree
+Message-ID: <20201014205727.abSeoRx8h%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -73,28 +72,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: make pgmap optional for instance creation
+     Subject: device-dax/kmem: introduce dax_kmem_range()
 has been removed from the -mm tree.  Its filename was
-     device-dax-make-pgmap-optional-for-instance-creation.patch
+     device-dax-kmem-introduce-dax_kmem_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax: make pgmap optional for instance creation
+Subject: device-dax/kmem: introduce dax_kmem_range()
 
-The passed in dev_pagemap is only required in the pmem case as the
-libnvdimm core may have reserved a vmem_altmap for dev_memremap_pages() to
-place the memmap in pmem directly.  In the hmem case there is no agent
-reserving an altmap so it can all be handled by a core internal default.
+Towards removing the mode specific @dax_kmem_res attribute from the
+generic 'struct dev_dax', and preparing for multi-range support, teach the
+driver to calculate the hotplug range from the device range.  The hotplug
+range is the trivially calculated memory-block-size aligned version of the
+device range.
 
-Pass the resource range via a new @range property of 'struct
-dev_dax_data'.
-
-Link: https://lkml.kernel.org/r/159643099958.4062302.10379230791041872886.s=
-tgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/160106110513.30709.4303239334850606031.stgi=
+Link: https://lkml.kernel.org/r/160106111109.30709.3173462396758431559.stgi=
 t@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -144,310 +139,94 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c              |   29 +++++++++++++++--------------
- drivers/dax/bus.h              |    2 ++
- drivers/dax/dax-private.h      |    9 ++++++++-
- drivers/dax/device.c           |   28 +++++++++++++++++++---------
- drivers/dax/hmem/hmem.c        |    8 ++++----
- drivers/dax/kmem.c             |   12 ++++++------
- drivers/dax/pmem/core.c        |    4 ++++
- tools/testing/nvdimm/dax-dev.c |    8 ++++----
- 8 files changed, 62 insertions(+), 38 deletions(-)
+ drivers/dax/kmem.c |   40 +++++++++++++++++-----------------------
+ 1 file changed, 17 insertions(+), 23 deletions(-)
 
---- a/drivers/dax/bus.c~device-dax-make-pgmap-optional-for-instance-creation
-+++ a/drivers/dax/bus.c
-@@ -271,7 +271,7 @@ static ssize_t size_show(struct device *
- 		struct device_attribute *attr, char *buf)
- {
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
--	unsigned long long size =3D resource_size(&dev_dax->region->res);
-+	unsigned long long size =3D range_len(&dev_dax->range);
+--- a/drivers/dax/kmem.c~device-dax-kmem-introduce-dax_kmem_range
++++ a/drivers/dax/kmem.c
+@@ -19,13 +19,20 @@ static const char *kmem_name;
+ /* Set if any memory will remain added when the driver will be unloaded. */
+ static bool any_hotremove_failed;
 =20
- 	return sprintf(buf, "%llu\n", size);
- }
-@@ -293,19 +293,12 @@ static ssize_t target_node_show(struct d
- }
- static DEVICE_ATTR_RO(target_node);
-=20
--static unsigned long long dev_dax_resource(struct dev_dax *dev_dax)
--{
--	struct dax_region *dax_region =3D dev_dax->region;
--
--	return dax_region->res.start;
--}
--
- static ssize_t resource_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
-=20
--	return sprintf(buf, "%#llx\n", dev_dax_resource(dev_dax));
-+	return sprintf(buf, "%#llx\n", dev_dax->range.start);
- }
- static DEVICE_ATTR(resource, 0400, resource_show, NULL);
-=20
-@@ -376,6 +369,7 @@ static void dev_dax_release(struct devic
-=20
- 	dax_region_put(dax_region);
- 	put_dax(dax_dev);
-+	kfree(dev_dax->pgmap);
- 	kfree(dev_dax);
- }
-=20
-@@ -412,7 +406,12 @@ struct dev_dax *devm_create_dev_dax(stru
- 	if (!dev_dax)
- 		return ERR_PTR(-ENOMEM);
-=20
--	memcpy(&dev_dax->pgmap, data->pgmap, sizeof(struct dev_pagemap));
-+	if (data->pgmap) {
-+		dev_dax->pgmap =3D kmemdup(data->pgmap,
-+				sizeof(struct dev_pagemap), GFP_KERNEL);
-+		if (!dev_dax->pgmap)
-+			goto err_pgmap;
-+	}
-=20
- 	/*
- 	 * No 'host' or dax_operations since there is no access to this
-@@ -421,18 +420,19 @@ struct dev_dax *devm_create_dev_dax(stru
- 	dax_dev =3D alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
- 	if (IS_ERR(dax_dev)) {
- 		rc =3D PTR_ERR(dax_dev);
--		goto err;
-+		goto err_alloc_dax;
- 	}
-=20
- 	/* a device_dax instance is dead while the driver is not attached */
- 	kill_dax(dax_dev);
-=20
--	/* from here on we're committed to teardown via dax_dev_release() */
-+	/* from here on we're committed to teardown via dev_dax_release() */
- 	dev =3D &dev_dax->dev;
- 	device_initialize(dev);
-=20
- 	dev_dax->dax_dev =3D dax_dev;
- 	dev_dax->region =3D dax_region;
-+	dev_dax->range =3D data->range;
- 	dev_dax->target_node =3D dax_region->target_node;
- 	kref_get(&dax_region->kref);
-=20
-@@ -458,8 +458,9 @@ struct dev_dax *devm_create_dev_dax(stru
- 		return ERR_PTR(rc);
-=20
- 	return dev_dax;
--
-- err:
-+err_alloc_dax:
-+	kfree(dev_dax->pgmap);
-+err_pgmap:
- 	kfree(dev_dax);
-=20
- 	return ERR_PTR(rc);
---- a/drivers/dax/bus.h~device-dax-make-pgmap-optional-for-instance-creation
-+++ a/drivers/dax/bus.h
-@@ -3,6 +3,7 @@
- #ifndef __DAX_BUS_H__
- #define __DAX_BUS_H__
- #include <linux/device.h>
-+#include <linux/range.h>
-=20
- struct dev_dax;
- struct resource;
-@@ -21,6 +22,7 @@ struct dev_dax_data {
- 	struct dax_region *dax_region;
- 	struct dev_pagemap *pgmap;
- 	enum dev_dax_subsys subsys;
-+	struct range range;
- 	int id;
- };
-=20
---- a/drivers/dax/dax-private.h~device-dax-make-pgmap-optional-for-instance=
--creation
-+++ a/drivers/dax/dax-private.h
-@@ -41,6 +41,7 @@ struct dax_region {
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-+ * @range: resource range for the instance
-  * @dax_mem_res: physical address range of hotadded DAX memory
-  * @dax_mem_name: name for hotadded DAX memory via add_memory_driver_manag=
-ed()
-  */
-@@ -49,10 +50,16 @@ struct dev_dax {
- 	struct dax_device *dax_dev;
- 	int target_node;
- 	struct device dev;
--	struct dev_pagemap pgmap;
-+	struct dev_pagemap *pgmap;
-+	struct range range;
- 	struct resource *dax_kmem_res;
- };
-=20
-+static inline u64 range_len(struct range *range)
++static struct range dax_kmem_range(struct dev_dax *dev_dax)
 +{
-+	return range->end - range->start + 1;
++	struct range range;
++
++	/* memory-block align the hotplug range */
++	range.start =3D ALIGN(dev_dax->range.start, memory_block_size_bytes());
++	range.end =3D ALIGN_DOWN(dev_dax->range.end + 1, memory_block_size_bytes(=
+)) - 1;
++	return range;
 +}
 +
- static inline struct dev_dax *to_dev_dax(struct device *dev)
- {
- 	return container_of(dev, struct dev_dax, dev);
---- a/drivers/dax/device.c~device-dax-make-pgmap-optional-for-instance-crea=
-tion
-+++ a/drivers/dax/device.c
-@@ -55,12 +55,12 @@ static int check_vma(struct dev_dax *dev
- __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgof=
-f,
- 		unsigned long size)
- {
--	struct resource *res =3D &dev_dax->region->res;
-+	struct range *range =3D &dev_dax->range;
- 	phys_addr_t phys;
-=20
--	phys =3D pgoff * PAGE_SIZE + res->start;
--	if (phys >=3D res->start && phys <=3D res->end) {
--		if (phys + size - 1 <=3D res->end)
-+	phys =3D pgoff * PAGE_SIZE + range->start;
-+	if (phys >=3D range->start && phys <=3D range->end) {
-+		if (phys + size - 1 <=3D range->end)
- 			return phys;
- 	}
-=20
-@@ -396,21 +396,31 @@ int dev_dax_probe(struct device *dev)
- {
- 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
- 	struct dax_device *dax_dev =3D dev_dax->dax_dev;
--	struct resource *res =3D &dev_dax->region->res;
-+	struct range *range =3D &dev_dax->range;
-+	struct dev_pagemap *pgmap;
- 	struct inode *inode;
- 	struct cdev *cdev;
- 	void *addr;
- 	int rc;
-=20
- 	/* 1:1 map region resource range to device-dax instance range */
--	if (!devm_request_mem_region(dev, res->start, resource_size(res),
-+	if (!devm_request_mem_region(dev, range->start, range_len(range),
- 				dev_name(dev))) {
--		dev_warn(dev, "could not reserve region %pR\n", res);
-+		dev_warn(dev, "could not reserve range: %#llx - %#llx\n",
-+				range->start, range->end);
- 		return -EBUSY;
- 	}
-=20
--	dev_dax->pgmap.type =3D MEMORY_DEVICE_GENERIC;
--	addr =3D devm_memremap_pages(dev, &dev_dax->pgmap);
-+	pgmap =3D dev_dax->pgmap;
-+	if (!pgmap) {
-+		pgmap =3D devm_kzalloc(dev, sizeof(*pgmap), GFP_KERNEL);
-+		if (!pgmap)
-+			return -ENOMEM;
-+		pgmap->res.start =3D range->start;
-+		pgmap->res.end =3D range->end;
-+	}
-+	pgmap->type =3D MEMORY_DEVICE_GENERIC;
-+	addr =3D devm_memremap_pages(dev, pgmap);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
-=20
---- a/drivers/dax/hmem/hmem.c~device-dax-make-pgmap-optional-for-instance-c=
-reation
-+++ a/drivers/dax/hmem/hmem.c
-@@ -8,7 +8,6 @@
- static int dax_hmem_probe(struct platform_device *pdev)
- {
- 	struct device *dev =3D &pdev->dev;
--	struct dev_pagemap pgmap =3D { };
- 	struct dax_region *dax_region;
- 	struct memregion_info *mri;
- 	struct dev_dax_data data;
-@@ -20,8 +19,6 @@ static int dax_hmem_probe(struct platfor
- 		return -ENOMEM;
-=20
- 	mri =3D dev->platform_data;
--	memcpy(&pgmap.res, res, sizeof(*res));
--
- 	dax_region =3D alloc_dax_region(dev, pdev->id, res, mri->target_node,
- 			PMD_SIZE);
- 	if (!dax_region)
-@@ -30,7 +27,10 @@ static int dax_hmem_probe(struct platfor
- 	data =3D (struct dev_dax_data) {
- 		.dax_region =3D dax_region,
- 		.id =3D 0,
--		.pgmap =3D &pgmap,
-+		.range =3D {
-+			.start =3D res->start,
-+			.end =3D res->end,
-+		},
- 	};
- 	dev_dax =3D devm_create_dev_dax(&data);
- 	if (IS_ERR(dev_dax))
---- a/drivers/dax/kmem.c~device-dax-make-pgmap-optional-for-instance-creati=
-on
-+++ a/drivers/dax/kmem.c
-@@ -22,7 +22,7 @@ static bool any_hotremove_failed;
  int dev_dax_kmem_probe(struct device *dev)
  {
  	struct dev_dax *dev_dax =3D to_dev_dax(dev);
--	struct resource *res =3D &dev_dax->region->res;
-+	struct range *range =3D &dev_dax->range;
- 	resource_size_t kmem_start;
- 	resource_size_t kmem_size;
- 	resource_size_t kmem_end;
-@@ -39,17 +39,17 @@ int dev_dax_kmem_probe(struct device *de
- 	 */
- 	numa_node =3D dev_dax->target_node;
- 	if (numa_node < 0) {
--		dev_warn(dev, "rejecting DAX region %pR with invalid node: %d\n",
--			 res, numa_node);
-+		dev_warn(dev, "rejecting DAX region with invalid node: %d\n",
-+				numa_node);
+-	struct range *range =3D &dev_dax->range;
+-	resource_size_t kmem_start;
+-	resource_size_t kmem_size;
+-	resource_size_t kmem_end;
++	struct range range =3D dax_kmem_range(dev_dax);
+ 	struct resource *new_res;
+ 	const char *new_res_name;
+ 	int numa_node;
+@@ -44,25 +51,14 @@ int dev_dax_kmem_probe(struct device *de
  		return -EINVAL;
  	}
 =20
- 	/* Hotplug starting at the beginning of the next block: */
--	kmem_start =3D ALIGN(res->start, memory_block_size_bytes());
-+	kmem_start =3D ALIGN(range->start, memory_block_size_bytes());
+-	/* Hotplug starting at the beginning of the next block: */
+-	kmem_start =3D ALIGN(range->start, memory_block_size_bytes());
+-
+-	kmem_size =3D range_len(range);
+-	/* Adjust the size down to compensate for moving up kmem_start: */
+-	kmem_size -=3D kmem_start - range->start;
+-	/* Align the size down to cover only complete blocks: */
+-	kmem_size &=3D ~(memory_block_size_bytes() - 1);
+-	kmem_end =3D kmem_start + kmem_size;
+-
+ 	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
+ 	if (!new_res_name)
+ 		return -ENOMEM;
 =20
--	kmem_size =3D resource_size(res);
-+	kmem_size =3D range_len(range);
- 	/* Adjust the size down to compensate for moving up kmem_start: */
--	kmem_size -=3D kmem_start - res->start;
-+	kmem_size -=3D kmem_start - range->start;
- 	/* Align the size down to cover only complete blocks: */
- 	kmem_size &=3D ~(memory_block_size_bytes() - 1);
- 	kmem_end =3D kmem_start + kmem_size;
---- a/drivers/dax/pmem/core.c~device-dax-make-pgmap-optional-for-instance-c=
-reation
-+++ a/drivers/dax/pmem/core.c
-@@ -63,6 +63,10 @@ struct dev_dax *__dax_pmem_probe(struct
- 		.id =3D id,
- 		.pgmap =3D &pgmap,
- 		.subsys =3D subsys,
-+		.range =3D {
-+			.start =3D res.start,
-+			.end =3D res.end,
-+		},
- 	};
- 	dev_dax =3D devm_create_dev_dax(&data);
-=20
---- a/tools/testing/nvdimm/dax-dev.c~device-dax-make-pgmap-optional-for-ins=
-tance-creation
-+++ a/tools/testing/nvdimm/dax-dev.c
-@@ -9,12 +9,12 @@
- phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
- 		unsigned long size)
+ 	/* Region is permanently reserved if hotremove fails. */
+-	new_res =3D request_mem_region(kmem_start, kmem_size, new_res_name);
++	new_res =3D request_mem_region(range.start, range_len(&range), new_res_na=
+me);
+ 	if (!new_res) {
+-		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
+-			 &kmem_start, &kmem_end);
++		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n", range.start, r=
+ange.end);
+ 		kfree(new_res_name);
+ 		return -EBUSY;
+ 	}
+@@ -96,9 +92,8 @@ int dev_dax_kmem_probe(struct device *de
+ static int dev_dax_kmem_remove(struct device *dev)
  {
--	struct resource *res =3D &dev_dax->region->res;
-+	struct range *range =3D &dev_dax->range;
- 	phys_addr_t addr;
+ 	struct dev_dax *dev_dax =3D to_dev_dax(dev);
++	struct range range =3D dax_kmem_range(dev_dax);
+ 	struct resource *res =3D dev_dax->dax_kmem_res;
+-	resource_size_t kmem_start =3D res->start;
+-	resource_size_t kmem_size =3D resource_size(res);
+ 	const char *res_name =3D res->name;
+ 	int rc;
 =20
--	addr =3D pgoff * PAGE_SIZE + res->start;
--	if (addr >=3D res->start && addr <=3D res->end) {
--		if (addr + size - 1 <=3D res->end) {
-+	addr =3D pgoff * PAGE_SIZE + range->start;
-+	if (addr >=3D range->start && addr <=3D range->end) {
-+		if (addr + size - 1 <=3D range->end) {
- 			if (get_nfit_res(addr)) {
- 				struct page *page;
+@@ -108,12 +103,11 @@ static int dev_dax_kmem_remove(struct de
+ 	 * there is no way to hotremove this memory until reboot because device
+ 	 * unbind will succeed even if we return failure.
+ 	 */
+-	rc =3D remove_memory(dev_dax->target_node, kmem_start, kmem_size);
++	rc =3D remove_memory(dev_dax->target_node, range.start, range_len(&range)=
+);
+ 	if (rc) {
+ 		any_hotremove_failed =3D true;
+-		dev_err(dev,
+-			"DAX region %pR cannot be hotremoved until the next reboot\n",
+-			res);
++		dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
++				range.start, range.end);
+ 		return rc;
+ 	}
 =20
 _
 
