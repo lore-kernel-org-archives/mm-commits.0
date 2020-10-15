@@ -1,4 +1,4 @@
-Return-Path: <SRS0=lrFz=DV=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=txOa=DW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,48 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABAA8C433E7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:07:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8BFC433E7
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Oct 2020 23:07:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 332CB206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Oct 2020 21:07:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 912EF2080A
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Oct 2020 23:07:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602709641;
-	bh=birVLMY9tXJ9BrGKVPiEvjvHrkgMgvXD+dtuVHrEWXk=;
+	s=default; t=1602803247;
+	bh=FU7fU0BT7hFSHTUQVSCdvQi7yY4pm3aJBLuy9e5Fb9s=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=YYPLlKiv6a9t9i1EXi6i9pAh48eHuHacGnKtHmE84crkuIfl+VwfniMbcisYd5rd7
-	 LUyuBLyy2JZN9arbVOLZSjePUhikLMksXzDDM5YUYmApwPndpNHTNtACce3dmGAG+n
-	 xoqkuGSGLZNkxQknWQZWFWw7OsfY8E/kuyz6SGjU=
+	b=U6XJwcTAS1yCp6cycyFI8F+CAyYS1a4J8rl3Grrw9QpS0aWY24af6Q8utU6quWHKV
+	 96H/Ysv8iMqJ9JZO8rU8QpRNMmB6x+WidoNt/VW4M/tnuzB0SHMfijI84mqutTN6nz
+	 rw8NeD3R03g2xj2dsL9zoA24qKuChJQBhEUkhbgY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727704AbgJNVHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Oct 2020 17:07:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57180 "EHLO mail.kernel.org"
+        id S1732472AbgJOXH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 19:07:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727242AbgJNVHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Oct 2020 17:07:20 -0400
+        id S1732223AbgJOXH0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 19:07:26 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 901A52068E;
-        Wed, 14 Oct 2020 21:01:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 13A9D207C4;
+        Thu, 15 Oct 2020 23:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602709274;
-        bh=birVLMY9tXJ9BrGKVPiEvjvHrkgMgvXD+dtuVHrEWXk=;
+        s=default; t=1602803245;
+        bh=FU7fU0BT7hFSHTUQVSCdvQi7yY4pm3aJBLuy9e5Fb9s=;
         h=Date:From:To:Subject:From;
-        b=MFd95qhRAEF6gzYUh3RQR+Eyl5Rg1/DyeJBLSjJr1TytIwM2kGR1D+1neVZ5xMBZd
-         y1tZf50YSHJoWY0gg4Oq2JB96+9yOF+gI71tcAcA/GmFmVyezZLKRnUygtAtYRzE35
-         a28JYTk57JhREhLFqfSujsdQaSEGGVyKRKjymiOw=
-Date:   Wed, 14 Oct 2020 14:01:14 -0700
+        b=0jxoLe16/maguWLOqOdaoTMV+cqUfh7pEUtm8YxTrd/iZXGsPFFP04NPf0bqqKAqD
+         Q+i4tWKMJf5YJ5g8RB260A9IuUe2ti0rLB7SM5lVatH09TYGJaJvSZ4APKwu24iGO1
+         dorACOxXnZ3jcaq3jD7v73yXcJhZ2YNa6tpij1lo=
+Date:   Thu, 15 Oct 2020 16:07:24 -0700
 From:   akpm@linux-foundation.org
-To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        richard.weiyang@linux.alibaba.com, vbabka@suse.cz
-Subject:  [merged]
- =?US-ASCII?Q?mm-mmap-leave-adjust=5Fnext-as-virtual-address-instead-of?=
- =?US-ASCII?Q?-page-frame-number.patch?= removed from -mm tree
-Message-ID: <20201014210114.mCY_Xqpvs%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  [alternative-merged]
+ lib-devres-delete-duplicated-words.patch removed from -mm tree
+Message-ID: <20201015230724.03Jz6N9la%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,87 +52,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: leave adjust_next as virtual address instead of page frame number
+     Subject: lib: devres: delete duplicated words
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number.patch
+     lib-devres-delete-duplicated-words.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/mmap: leave adjust_next as virtual address instead of page frame number
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib: devres: delete duplicated words
 
-Instead of converting adjust_next between bytes and pages number, let's
-just store the virtual address into adjust_next.
+Drop the repeated word "the".
 
-Also, this patch fixes one typo in the comment of vma_adjust_trans_huge().
-
-[vbabka@suse.cz: changelog tweak]
-Link: http://lkml.kernel.org/r/20200828081031.11306-1-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20200823040443.25900-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- mm/mmap.c        |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ lib/devres.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number
-+++ a/mm/huge_memory.c
-@@ -2306,13 +2306,13 @@ void vma_adjust_trans_huge(struct vm_are
- 
- 	/*
- 	 * If we're also updating the vma->vm_next->vm_start, if the new
--	 * vm_next->vm_start isn't page aligned and it could previously
-+	 * vm_next->vm_start isn't hpage aligned and it could previously
- 	 * contain an hugepage: check if we need to split an huge pmd.
- 	 */
- 	if (adjust_next > 0) {
- 		struct vm_area_struct *next = vma->vm_next;
- 		unsigned long nstart = next->vm_start;
--		nstart += adjust_next << PAGE_SHIFT;
-+		nstart += adjust_next;
- 		if (nstart & ~HPAGE_PMD_MASK &&
- 		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
- 		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
---- a/mm/mmap.c~mm-mmap-leave-adjust_next-as-virtual-address-instead-of-page-frame-number
-+++ a/mm/mmap.c
-@@ -758,7 +758,7 @@ int __vma_adjust(struct vm_area_struct *
- 			 * vma expands, overlapping part of the next:
- 			 * mprotect case 5 shifting the boundary up.
- 			 */
--			adjust_next = (end - next->vm_start) >> PAGE_SHIFT;
-+			adjust_next = (end - next->vm_start);
- 			exporter = next;
- 			importer = vma;
- 			VM_WARN_ON(expand != importer);
-@@ -768,7 +768,7 @@ int __vma_adjust(struct vm_area_struct *
- 			 * split_vma inserting another: so it must be
- 			 * mprotect case 4 shifting the boundary down.
- 			 */
--			adjust_next = -((vma->vm_end - end) >> PAGE_SHIFT);
-+			adjust_next = -(vma->vm_end - end);
- 			exporter = vma;
- 			importer = next;
- 			VM_WARN_ON(expand != importer);
-@@ -840,8 +840,8 @@ again:
- 	}
- 	vma->vm_pgoff = pgoff;
- 	if (adjust_next) {
--		next->vm_start += adjust_next << PAGE_SHIFT;
--		next->vm_pgoff += adjust_next;
-+		next->vm_start += adjust_next;
-+		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
- 	}
- 
- 	if (root) {
+--- a/lib/devres.c~lib-devres-delete-duplicated-words
++++ a/lib/devres.c
+@@ -217,7 +217,7 @@ void __iomem *devm_ioremap_resource_wc(s
+  * Please Note: This is not a one-to-one replacement for of_iomap() because the
+  * of_iomap() function does not track whether the region is already mapped.  If
+  * two drivers try to map the same memory, the of_iomap() function will succeed
+- * but the the devm_of_iomap() function will return -EBUSY.
++ * but the devm_of_iomap() function will return -EBUSY.
+  *
+  */
+ void __iomem *devm_of_iomap(struct device *dev, struct device_node *node, int index,
 _
 
-Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
+fs-configfs-delete-repeated-words-in-comments.patch
+kernel-fix-repeated-words-in-comments.patch
+kernel-acctc-fix-some-kernel-doc-nits.patch
+lib-bitmap-delete-duplicated-words.patch
+lib-libcrc32c-delete-duplicated-words.patch
+lib-decompress_bunzip2-delete-duplicated-words.patch
+lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
+lib-earlycpio-delete-duplicated-words.patch
+lib-radix-tree-delete-duplicated-words.patch
+lib-syscall-delete-duplicated-words.patch
+lib-test_sysctl-delete-duplicated-words.patch
+lib-mpi-fix-spello-of-functions.patch
 
