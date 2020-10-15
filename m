@@ -7,43 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8BFC433E7
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Oct 2020 23:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15257C433DF
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Oct 2020 23:16:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 912EF2080A
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Oct 2020 23:07:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A58D1207C4
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Oct 2020 23:16:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602803247;
-	bh=FU7fU0BT7hFSHTUQVSCdvQi7yY4pm3aJBLuy9e5Fb9s=;
+	s=default; t=1602803774;
+	bh=24m2zp3WdIPDhG03q08J4EmT9lhJ3IJUII0dBhT2uEs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=U6XJwcTAS1yCp6cycyFI8F+CAyYS1a4J8rl3Grrw9QpS0aWY24af6Q8utU6quWHKV
-	 96H/Ysv8iMqJ9JZO8rU8QpRNMmB6x+WidoNt/VW4M/tnuzB0SHMfijI84mqutTN6nz
-	 rw8NeD3R03g2xj2dsL9zoA24qKuChJQBhEUkhbgY=
+	b=b8dDGsvfLe7Xm8Q7til+piafJxDd18AKNB/HxCzGbBzr7XgoHnH41iHuTXbK2MMhf
+	 lTTAsr5r70IaAi+tqckNq9OLsZKAg+9eoGm4WXo75+7CihGg4nVKsGtInAIlxijIUP
+	 kT5qUSWEu4Wjqtk1k/7bArUTMiIocAvRnyJae1EA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732472AbgJOXH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 19:07:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34646 "EHLO mail.kernel.org"
+        id S1732871AbgJOXQO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 19:16:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732223AbgJOXH0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 19:07:26 -0400
+        id S1732869AbgJOXQO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 19:16:14 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 13A9D207C4;
-        Thu, 15 Oct 2020 23:07:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C9A7620797;
+        Thu, 15 Oct 2020 23:16:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602803245;
-        bh=FU7fU0BT7hFSHTUQVSCdvQi7yY4pm3aJBLuy9e5Fb9s=;
+        s=default; t=1602803772;
+        bh=24m2zp3WdIPDhG03q08J4EmT9lhJ3IJUII0dBhT2uEs=;
         h=Date:From:To:Subject:From;
-        b=0jxoLe16/maguWLOqOdaoTMV+cqUfh7pEUtm8YxTrd/iZXGsPFFP04NPf0bqqKAqD
-         Q+i4tWKMJf5YJ5g8RB260A9IuUe2ti0rLB7SM5lVatH09TYGJaJvSZ4APKwu24iGO1
-         dorACOxXnZ3jcaq3jD7v73yXcJhZ2YNa6tpij1lo=
-Date:   Thu, 15 Oct 2020 16:07:24 -0700
+        b=M/yZt2xr7dOIDhWviQAryW+u8DuOV7lAs6TT8weDR6OSYQ+ScQey+j43mWAEJS/ay
+         HBN1k5UJdGmwdkF5RMg/iztkVz3oC42VB0auordTK1rw+REpMImHs7yMpOirUiq3yG
+         SONBIUAVVW7n91uJRR4421hHhTlLRJcR9WIcUXyY=
+Date:   Thu, 15 Oct 2020 16:16:11 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [alternative-merged]
- lib-devres-delete-duplicated-words.patch removed from -mm tree
-Message-ID: <20201015230724.03Jz6N9la%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bo.liu@linux.alibaba.com,
+        dan.j.williams@intel.com, dgilbert@redhat.com,
+        mm-commits@vger.kernel.org, mszeredi@redhat.com,
+        sebastien.boeuf@intel.com, stefanha@redhat.com, vgoyal@redhat.com
+Subject:  [merged]
+ fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
+ removed from -mm tree
+Message-ID: <20201015231611.jFaSm7UN7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,51 +56,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: devres: delete duplicated words
+     Subject: fs/fuse/virtio_fs.c: fix for "mm/memremap_pages: convert to 'struct range'"
 has been removed from the -mm tree.  Its filename was
-     lib-devres-delete-duplicated-words.patch
+     fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: devres: delete duplicated words
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/fuse/virtio_fs.c: fix for "mm/memremap_pages: convert to 'struct range'"
 
-Drop the repeated word "the".
+Fix interaction with 22f3787e9d95e ("virtiofs: set up virtio_fs
+dax_device").
 
-Link: https://lkml.kernel.org/r/20200823040443.25900-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Stefan Hajnoczi <stefanha@redhat.com>
+Cc: Dr. David Alan Gilbert <dgilbert@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Sebastien Boeuf <sebastien.boeuf@intel.com>
+Cc: Liu Bo <bo.liu@linux.alibaba.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fuse/virtio_fs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/devres.c~lib-devres-delete-duplicated-words
-+++ a/lib/devres.c
-@@ -217,7 +217,7 @@ void __iomem *devm_ioremap_resource_wc(s
-  * Please Note: This is not a one-to-one replacement for of_iomap() because the
-  * of_iomap() function does not track whether the region is already mapped.  If
-  * two drivers try to map the same memory, the of_iomap() function will succeed
-- * but the the devm_of_iomap() function will return -EBUSY.
-+ * but the devm_of_iomap() function will return -EBUSY.
-  *
-  */
- void __iomem *devm_of_iomap(struct device *dev, struct device_node *node, int index,
+--- a/fs/fuse/virtio_fs.c~fs-fuse-virtio_fsc-fix-for-mm-memremap_pages-convert-to-struct-range
++++ a/fs/fuse/virtio_fs.c
+@@ -835,8 +835,7 @@ static int virtio_fs_setup_dax(struct vi
+ 	 * initialize a struct resource from scratch (only the start
+ 	 * and end fields will be used).
+ 	 */
+-	pgmap->res = (struct resource){
+-		.name = "virtio-fs dax window",
++	pgmap->range = (struct range){
+ 		.start = (phys_addr_t) cache_reg.addr,
+ 		.end = (phys_addr_t) cache_reg.addr + cache_reg.len - 1,
+ 	};
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-configfs-delete-repeated-words-in-comments.patch
-kernel-fix-repeated-words-in-comments.patch
-kernel-acctc-fix-some-kernel-doc-nits.patch
-lib-bitmap-delete-duplicated-words.patch
-lib-libcrc32c-delete-duplicated-words.patch
-lib-decompress_bunzip2-delete-duplicated-words.patch
-lib-dynamic_queue_limits-delete-duplicated-words-fix-typo.patch
-lib-earlycpio-delete-duplicated-words.patch
-lib-radix-tree-delete-duplicated-words.patch
-lib-syscall-delete-duplicated-words.patch
-lib-test_sysctl-delete-duplicated-words.patch
-lib-mpi-fix-spello-of-functions.patch
+mm.patch
+powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte-fix.patch
+xarray-add-xa_get_order-fix.patch
+xarray-add-xas_split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+linux-next-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
