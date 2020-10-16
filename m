@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B66AAC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:43:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6674AC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:43:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FA24208E4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:43:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FD7320897
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816215;
-	bh=ryZoxQ7FFtPPTM8DF9p+Qpzlzm+pwrqWj6QeHU3F6NE=;
+	s=default; t=1602816221;
+	bh=VyLem/sgTCKkgePX0ypZUgOLPvjEHWI3DT/aSzhEO6I=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=F7IxieUhUNFdavzoOyxogfk4iZaVGxwHTX8cjch0u1dfFK9+3511cbRrPdDwWvFeD
-	 IoID986/oJosS8B9/ae6vG7qerqZUUC3t88EPik1VsosBBb5kmlqfOolHOVyoxBveI
-	 AQQ4AvWAsZBRHUGlG9ade3sIzzEdqibStweSIfH0=
+	b=IQ/Umpi8ifG7ySYOLfiGDv5hcy6/+bwAIGOZ+41Jz2XzKGthC4/AbOUBwzwbd1wFr
+	 vKMOmxWMvXANDqpFOeJ8bKoapwSsKxaWkpZz5fR/DnNOnpscOGwHcSTV4usgBuzjfU
+	 IGRqCGCb0VGvzYksMk1z5u3Urzx/836EX0NMbffU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393823AbgJPCnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:43:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58948 "EHLO mail.kernel.org"
+        id S2393824AbgJPCni (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:43:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732984AbgJPCne (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:43:34 -0400
+        id S1732984AbgJPCni (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:43:38 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF6E4208C7;
-        Fri, 16 Oct 2020 02:43:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A1FC620878;
+        Fri, 16 Oct 2020 02:43:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816212;
-        bh=ryZoxQ7FFtPPTM8DF9p+Qpzlzm+pwrqWj6QeHU3F6NE=;
+        s=default; t=1602816216;
+        bh=VyLem/sgTCKkgePX0ypZUgOLPvjEHWI3DT/aSzhEO6I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=aTlfI3M7sL/xIhHoZGv1/+zn787FER4zP4tFv1iFWpfGXH9dsSCFEwZ4x8p1iz2fh
-         fgxEosde4lv3g3CG9lxHDXz7iXeM5NH9usalCasx6mVRSe9U945y0S2gdMWN/zcw/N
-         oFzb/KNBjvatT3QlVyKYKKh/vOHuH2AxfP2Jgohc=
-Date:   Thu, 15 Oct 2020 19:43:30 -0700
+        b=oq8KfxVuGfw4SJ3DhE3KsbVdPutE49FAd9BXbhxHhAI6T5M/aXv5/BAla6083b9q0
+         NIZOSXfulU20cdetNbEo5tcfAFue9DxtRSYXO3LXmi/9MlilyTG0im5PYr+/7Ruvni
+         qNkLNTNxzQYjtDNGAJius0tLQSTkgnoVBsq11qpE=
+Date:   Thu, 15 Oct 2020 19:43:34 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         aneesh.kumar@linux.vnet.ibm.com, aris@ruivo.org, cai@lca.pw,
@@ -47,9 +47,9 @@ To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.com, osalvador@suse.de, tony.luck@intel.com,
         torvalds@linux-foundation.org, zeil@yandex-team.ru
-Subject:  [patch 043/156] mm,hwpoison-inject: don't pin for
- hwpoison_filter
-Message-ID: <20201016024330.mCZZbR-7m%akpm@linux-foundation.org>
+Subject:  [patch 044/156] mm,hwpoison: unexport get_hwpoison_page
+ and make it static
+Message-ID: <20201016024334.n9jXNIPoi%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -57,17 +57,15 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison-inject: don't pin for hwpoison_filter
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: unexport get_hwpoison_page and make it static
 
-Another memory error injection interface debugfs:hwpoison/corrupt-pfn also
-takes bogus refcount for hwpoison_filter().  It's justified because this
-does a coarse filter, expecting that memory_failure() redoes the check for
-sure.
+Since get_hwpoison_page is only used in memory-failure code now, let us
+un-export it and make it private to that code.
 
-Link: https://lkml.kernel.org/r/20200922135650.1634-4-osalvador@suse.de
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20200922135650.1634-5-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Aristeu Rozanski <aris@ruivo.org>
@@ -82,50 +80,37 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hwpoison-inject.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ include/linux/mm.h  |    1 -
+ mm/memory-failure.c |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/hwpoison-inject.c~mmhwpoison-inject-dont-pin-for-hwpoison_filter
-+++ a/mm/hwpoison-inject.c
-@@ -26,11 +26,6 @@ static int hwpoison_inject(void *data, u
+--- a/include/linux/mm.h~mmhwpoison-unexport-get_hwpoison_page-and-make-it-static
++++ a/include/linux/mm.h
+@@ -3025,7 +3025,6 @@ extern int memory_failure(unsigned long
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern void memory_failure_queue_kick(int cpu);
+ extern int unpoison_memory(unsigned long pfn);
+-extern int get_hwpoison_page(struct page *page);
+ #define put_hwpoison_page(page)	put_page(page)
+ extern int sysctl_memory_failure_early_kill;
+ extern int sysctl_memory_failure_recovery;
+--- a/mm/memory-failure.c~mmhwpoison-unexport-get_hwpoison_page-and-make-it-static
++++ a/mm/memory-failure.c
+@@ -924,7 +924,7 @@ static int page_action(struct page_state
+  * Return: return 0 if failed to grab the refcount, otherwise true (some
+  * non-zero value.)
+  */
+-int get_hwpoison_page(struct page *page)
++static int get_hwpoison_page(struct page *page)
+ {
+ 	struct page *head = compound_head(page);
  
- 	p = pfn_to_page(pfn);
- 	hpage = compound_head(p);
--	/*
--	 * This implies unable to support free buddy pages.
--	 */
--	if (!get_hwpoison_page(p))
--		return 0;
+@@ -953,7 +953,6 @@ int get_hwpoison_page(struct page *page)
  
- 	if (!hwpoison_filter_enable)
- 		goto inject;
-@@ -40,23 +35,20 @@ static int hwpoison_inject(void *data, u
- 	 * This implies unable to support non-LRU pages.
- 	 */
- 	if (!PageLRU(hpage) && !PageHuge(p))
--		goto put_out;
-+		return 0;
- 
- 	/*
--	 * do a racy check with elevated page count, to make sure PG_hwpoison
--	 * will only be set for the targeted owner (or on a free page).
-+	 * do a racy check to make sure PG_hwpoison will only be set for
-+	 * the targeted owner (or on a free page).
- 	 * memory_failure() will redo the check reliably inside page lock.
- 	 */
- 	err = hwpoison_filter(hpage);
- 	if (err)
--		goto put_out;
-+		return 0;
- 
- inject:
- 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
--	return memory_failure(pfn, MF_COUNT_INCREASED);
--put_out:
--	put_hwpoison_page(p);
--	return 0;
-+	return memory_failure(pfn, 0);
+ 	return 0;
  }
+-EXPORT_SYMBOL_GPL(get_hwpoison_page);
  
- static int hwpoison_unpoison(void *data, u64 val)
+ /*
+  * Do all that is necessary to remove user space mappings. Unmap
 _
