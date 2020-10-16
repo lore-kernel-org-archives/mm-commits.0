@@ -7,47 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA14C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B452C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CFDF208C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF6C4208C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816370;
-	bh=hhD66k9L/inqWUFfzvQU1C8LXHeTy5yfWongm6UrHCU=;
+	s=default; t=1602816374;
+	bh=C5jIIUAAEdWsLo34nPRoDaB1pKuxd4AGb5OYRqWxTwY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dLJ3n/u33sVSqEROZtab49arjfbszyDjNb4r3F3UszdAY00FT1Qt6uAmzxFx+vyJd
-	 ZqQfCHxQxxJ5K3QJuzzAvrYCdVfn/kReI5d0PcmMWpMoXocQZpTtAOf1HMiD9cSQG7
-	 YOLMKCzM6lzozrrIG9NOd0WcKNaoi51wVpOwjjTE=
+	b=h9r1JE1HTMY6lxBYT1P9Y32MwZtlKZvmwsSkvnbwHr838zhn+5MPz0n4uPHAPCi43
+	 F6OYL5LkmppKwtTkRludBMEfsNYcD/RcDyVcvms8L9gfZM4jCo1J/O1w+knupAP+7t
+	 4EaqrL7H6hO12oAj8xdZB/8hjRtjubwmeVRyRSsI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393905AbgJPCqJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:46:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33696 "EHLO mail.kernel.org"
+        id S2393906AbgJPCqN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:46:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731896AbgJPCqJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:46:09 -0400
+        id S1731896AbgJPCqN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:46:13 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CC39E208E4;
-        Fri, 16 Oct 2020 02:46:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AE90A2145D;
+        Fri, 16 Oct 2020 02:46:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816368;
-        bh=hhD66k9L/inqWUFfzvQU1C8LXHeTy5yfWongm6UrHCU=;
+        s=default; t=1602816372;
+        bh=C5jIIUAAEdWsLo34nPRoDaB1pKuxd4AGb5OYRqWxTwY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CDgdQM3jdJ6kRsucuOLs+3siCb9q63Zv4YGMEkiqx7cVgu2ImrMnSO1PHU1ZJzTxi
-         tJWvmPek9fdyf2W+Fpwyv8Q49PmNI540phCzTVny6BnPsYMzDhl3576GtCADUI37Hz
-         1JtN9ZlUR2RQl6kzRE1W29rhJzDbFtL0ppMA4Ob0=
-Date:   Thu, 15 Oct 2020 19:46:07 -0700
+        b=alqEIS9SnfcErQaEo5BUvBM8WafrU7e8DqEwXEk0M1s2rUEwjb9ihwFq68vuCCi/i
+         0/MXeUUqy8gCe6PhZoYpN36qOCPI2QuIg/qky38/l2fM3Mr5+n84Wv6sdcwy3kU42i
+         vKMwS16OqaadaTJvUnkN/nShDNqBKJw95aaCASck=
+Date:   Thu, 15 Oct 2020 19:46:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, ardb@kernel.org, bhe@redhat.com,
-        dan.j.williams@intel.com, david@redhat.com, jgg@ziepe.ca,
-        keescook@chromium.org, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com,
-        richard.weiyang@linux.alibaba.com, torvalds@linux-foundation.org
-Subject:  [patch 077/156] kernel/resource: make iomem_resource
- implicit in release_mem_region_adjustable()
-Message-ID: <20201016024607.uATouhDCi%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cheloha@linux.ibm.com, david@redhat.com,
+        fenghua.yu@intel.com, gregkh@linuxfoundation.org,
+        ldufour@linux.ibm.com, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, nathanl@linux.ibm.com,
+        osalvador@suse.de, rafael@kernel.org, tony.luck@intel.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 078/156] mm: don't panic when links can't be
+ created in sysfs
+Message-ID: <20201016024611.TiQ7xtt7k%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,76 +56,164 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: kernel/resource: make iomem_resource implicit in release_mem_region_adjustable()
+From: Laurent Dufour <ldufour@linux.ibm.com>
+Subject: mm: don't panic when links can't be created in sysfs
 
-"mem" in the name already indicates the root, similar to
-release_mem_region() and devm_request_mem_region().  Make it implicit. 
-The only single caller always passes iomem_resource, other parents are not
-applicable.
+At boot time, or when doing memory hot-add operations, if the links in
+sysfs can't be created, the system is still able to run, so just report
+the error in the kernel log rather than BUG_ON and potentially make system
+unusable because the callpath can be called with locks held.
 
-Link: https://lkml.kernel.org/r/20200916073041.10355-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
+Since the number of memory blocks managed could be high, the messages are
+rate limited.
+
+As a consequence, link_mem_sections() has no status to report anymore.
+
+Link: https://lkml.kernel.org/r/20200915094143.79181-4-ldufour@linux.ibm.com
+Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    3 +--
- kernel/resource.c      |    5 ++---
- mm/memory_hotplug.c    |    2 +-
- 3 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/base/node.c  |   33 +++++++++++++++++++++------------
+ include/linux/node.h |   16 +++++++---------
+ mm/memory_hotplug.c  |    5 ++---
+ 3 files changed, 30 insertions(+), 24 deletions(-)
 
---- a/include/linux/ioport.h~kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable
-+++ a/include/linux/ioport.h
-@@ -251,8 +251,7 @@ extern struct resource * __request_regio
- extern void __release_region(struct resource *, resource_size_t,
- 				resource_size_t);
- #ifdef CONFIG_MEMORY_HOTREMOVE
--extern void release_mem_region_adjustable(struct resource *, resource_size_t,
--					  resource_size_t);
-+extern void release_mem_region_adjustable(resource_size_t, resource_size_t);
- #endif
- #ifdef CONFIG_MEMORY_HOTPLUG
- extern void merge_system_ram_resource(struct resource *res);
---- a/kernel/resource.c~kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable
-+++ a/kernel/resource.c
-@@ -1240,7 +1240,6 @@ EXPORT_SYMBOL(__release_region);
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /**
-  * release_mem_region_adjustable - release a previously reserved memory region
-- * @parent: parent resource descriptor
-  * @start: resource start address
-  * @size: resource region size
-  *
-@@ -1258,9 +1257,9 @@ EXPORT_SYMBOL(__release_region);
-  *   assumes that all children remain in the lower address entry for
-  *   simplicity.  Enhance this logic when necessary.
-  */
--void release_mem_region_adjustable(struct resource *parent,
--				   resource_size_t start, resource_size_t size)
-+void release_mem_region_adjustable(resource_size_t start, resource_size_t size)
+--- a/drivers/base/node.c~mm-dont-panic-when-links-cant-be-created-in-sysfs
++++ a/drivers/base/node.c
+@@ -772,8 +772,8 @@ static int __ref get_nid_for_pfn(unsigne
+ 	return pfn_to_nid(pfn);
+ }
+ 
+-static int do_register_memory_block_under_node(int nid,
+-					       struct memory_block *mem_blk)
++static void do_register_memory_block_under_node(int nid,
++						struct memory_block *mem_blk)
  {
-+	struct resource *parent = &iomem_resource;
- 	struct resource *new_res = NULL;
- 	bool alloc_nofail = false;
- 	struct resource **p;
---- a/mm/memory_hotplug.c~kernel-resource-make-iomem_resource-implicit-in-release_mem_region_adjustable
-+++ a/mm/memory_hotplug.c
-@@ -1767,7 +1767,7 @@ static int __ref try_remove_memory(int n
- 		memblock_remove(start, size);
+ 	int ret;
+ 
+@@ -786,12 +786,19 @@ static int do_register_memory_block_unde
+ 	ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
+ 				       &mem_blk->dev.kobj,
+ 				       kobject_name(&mem_blk->dev.kobj));
+-	if (ret)
+-		return ret;
++	if (ret && ret != -EEXIST)
++		dev_err_ratelimited(&node_devices[nid]->dev,
++				    "can't create link to %s in sysfs (%d)\n",
++				    kobject_name(&mem_blk->dev.kobj), ret);
+ 
+-	return sysfs_create_link_nowarn(&mem_blk->dev.kobj,
++	ret = sysfs_create_link_nowarn(&mem_blk->dev.kobj,
+ 				&node_devices[nid]->dev.kobj,
+ 				kobject_name(&node_devices[nid]->dev.kobj));
++	if (ret && ret != -EEXIST)
++		dev_err_ratelimited(&mem_blk->dev,
++				    "can't create link to %s in sysfs (%d)\n",
++				    kobject_name(&node_devices[nid]->dev.kobj),
++				    ret);
+ }
+ 
+ /* register memory section under specified node if it spans that node */
+@@ -827,7 +834,8 @@ static int register_mem_block_under_node
+ 		if (page_nid != nid)
+ 			continue;
+ 
+-		return do_register_memory_block_under_node(nid, mem_blk);
++		do_register_memory_block_under_node(nid, mem_blk);
++		return 0;
+ 	}
+ 	/* mem section does not span the specified node */
+ 	return 0;
+@@ -842,7 +850,8 @@ static int register_mem_block_under_node
+ {
+ 	int nid = *(int *)arg;
+ 
+-	return do_register_memory_block_under_node(nid, mem_blk);
++	do_register_memory_block_under_node(nid, mem_blk);
++	return 0;
+ }
+ 
+ /*
+@@ -860,8 +869,8 @@ void unregister_memory_block_under_nodes
+ 			  kobject_name(&node_devices[mem_blk->nid]->dev.kobj));
+ }
+ 
+-int link_mem_sections(int nid, unsigned long start_pfn, unsigned long end_pfn,
+-		      enum meminit_context context)
++void link_mem_sections(int nid, unsigned long start_pfn, unsigned long end_pfn,
++		       enum meminit_context context)
+ {
+ 	walk_memory_blocks_func_t func;
+ 
+@@ -870,9 +879,9 @@ int link_mem_sections(int nid, unsigned
+ 	else
+ 		func = register_mem_block_under_node_early;
+ 
+-	return walk_memory_blocks(PFN_PHYS(start_pfn),
+-				  PFN_PHYS(end_pfn - start_pfn), (void *)&nid,
+-				  func);
++	walk_memory_blocks(PFN_PHYS(start_pfn), PFN_PHYS(end_pfn - start_pfn),
++			   (void *)&nid, func);
++	return;
+ }
+ 
+ #ifdef CONFIG_HUGETLBFS
+--- a/include/linux/node.h~mm-dont-panic-when-links-cant-be-created-in-sysfs
++++ a/include/linux/node.h
+@@ -99,15 +99,14 @@ extern struct node *node_devices[];
+ typedef  void (*node_registration_func_t)(struct node *);
+ 
+ #if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_NUMA)
+-int link_mem_sections(int nid, unsigned long start_pfn,
+-		      unsigned long end_pfn,
+-		      enum meminit_context context);
++void link_mem_sections(int nid, unsigned long start_pfn,
++		       unsigned long end_pfn,
++		       enum meminit_context context);
+ #else
+-static inline int link_mem_sections(int nid, unsigned long start_pfn,
+-				    unsigned long end_pfn,
+-				    enum meminit_context context)
++static inline void link_mem_sections(int nid, unsigned long start_pfn,
++				     unsigned long end_pfn,
++				     enum meminit_context context)
+ {
+-	return 0;
+ }
+ #endif
+ 
+@@ -130,8 +129,7 @@ static inline int register_one_node(int
+ 		if (error)
+ 			return error;
+ 		/* link memory sections under this node */
+-		error = link_mem_sections(nid, start_pfn, end_pfn,
+-					  MEMINIT_EARLY);
++		link_mem_sections(nid, start_pfn, end_pfn, MEMINIT_EARLY);
  	}
  
--	release_mem_region_adjustable(&iomem_resource, start, size);
-+	release_mem_region_adjustable(start, size);
+ 	return error;
+--- a/mm/memory_hotplug.c~mm-dont-panic-when-links-cant-be-created-in-sysfs
++++ a/mm/memory_hotplug.c
+@@ -1092,9 +1092,8 @@ int __ref add_memory_resource(int nid, s
+ 	}
  
- 	try_offline_node(nid);
+ 	/* link memory sections under this node.*/
+-	ret = link_mem_sections(nid, PFN_DOWN(start), PFN_UP(start + size - 1),
+-				MEMINIT_HOTPLUG);
+-	BUG_ON(ret);
++	link_mem_sections(nid, PFN_DOWN(start), PFN_UP(start + size - 1),
++			  MEMINIT_HOTPLUG);
  
+ 	/* create new memmap entry */
+ 	if (!strcmp(res->name, "System RAM"))
 _
