@@ -7,45 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4C7C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA5BC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD50620657
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91BB52065D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881549;
-	bh=KKWuX46IQLVjqZx9BsCtBfufGqe87AP5C+QDXisT63Y=;
+	s=default; t=1602881556;
+	bh=JMy/nbHMdmEbbJRa2wbtcSJQ2Jc1n2jf04V3f5ZOI1s=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=QJZQn2DLs4Q8PWLI/32M8jl0rgRmTYGhFtCx9x8A/fahOCBsEWcr0aNmH4+1/Erd1
-	 twd8Vi5ZquW/LL1LILLJF96MlWbua3nHpGP0rxldraB9eKC2veW9DgSJ0yoDTb2KhM
-	 GnHseH28EorVMq+vl/eYi4PuMJSO1NRPzlZvx7JM=
+	b=LUJbDfz8lFhYXMGXCKPzhzP49iSARkJWsvOuCfpdIt7Voh562Gh3+xLG5Jjml4Kci
+	 llqkf8ALbgvRVocO4lTaY8WJdxJoIUJ77iuqft4zhp0Yjl2g8zfczl9rImBLN7O+Y2
+	 amvYZ1G5j0ysfMNAjG0QgPXv2xya0oTedc6Luz1M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408723AbgJPUw3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41000 "EHLO mail.kernel.org"
+        id S2408734AbgJPUwg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408456AbgJPUw3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:52:29 -0400
+        id S2408456AbgJPUwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:35 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 944332064B;
-        Fri, 16 Oct 2020 20:52:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B278120657;
+        Fri, 16 Oct 2020 20:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881548;
-        bh=KKWuX46IQLVjqZx9BsCtBfufGqe87AP5C+QDXisT63Y=;
+        s=default; t=1602881554;
+        bh=JMy/nbHMdmEbbJRa2wbtcSJQ2Jc1n2jf04V3f5ZOI1s=;
         h=Date:From:To:Subject:From;
-        b=QLtcdXQ+svFI5eJjxAvNrlhEScVfI/BclDzhMO/n6ILNYtZDKIPtQu7CiCi2+8Fu4
-         FXrx2LryCKYrRjwo2nE1z/BEMuiNrqEwpVC6ciRE74Crct3VehchwVhMkDrfeRHlW0
-         RG1IXxNso0+1fzkyIrXhvvvCfi0jOW+EQOnvZyag=
-Date:   Fri, 16 Oct 2020 13:52:28 -0700
+        b=uXrB4EopxubTbJwNn0KnnHQvFfPnxJTh5BU0JN+lZJ+s3vYvuckZUBWPDgX5m6E6D
+         SvEOMY2kmdC0+7Ce88pdv1h+vicsBeT3qYycdT9Z9ki/IHkTwVWW3Es8OAU3mgJva6
+         W6TgXJLuafmr8Pu+eHDP6K3ELPuHRCEB0Fhu2XZU=
+Date:   Fri, 16 Oct 2020 13:52:34 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, jlbec@evilplan.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
+To:     liao.pingfang@zte.com.cn, mm-commits@vger.kernel.org,
+        wang.yi59@zte.com.cn
 Subject:  [merged]
- fs-configfs-delete-repeated-words-in-comments.patch removed from -mm tree
-Message-ID: <20201016205228.C5ye8V6tK%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kernel-sysc-replace-do=5Fbrk-with-do=5Fbrk=5Fflags-in-comme?=
+ =?US-ASCII?Q?nt-of-prctl=5Fset=5Fmm=5Fmap.patch?= removed from -mm tree
+Message-ID: <20201016205234.QE1cbEV-4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,53 +56,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: configfs: delete repeated words in comments
+     Subject: kernel/sys.c: replace do_brk with do_brk_flags in comment of prctl_set_mm_map()
 has been removed from the -mm tree.  Its filename was
-     fs-configfs-delete-repeated-words-in-comments.patch
+     kernel-sysc-replace-do_brk-with-do_brk_flags-in-comment-of-prctl_set_mm_map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: fs: configfs: delete repeated words in comments
+From: Liao Pingfang <liao.pingfang@zte.com.cn>
+Subject: kernel/sys.c: replace do_brk with do_brk_flags in comment of prctl_set_mm_map()
 
-Drop duplicated words {the, that} in comments.
+Replace do_brk with do_brk_flags in comment of prctl_set_mm_map(), since
+do_brk was removed in following commit.
 
-Link: https://lkml.kernel.org/r/20200811021826.25032-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Christoph Hellwig <hch@lst.de>
+Link: https://lkml.kernel.org/r/1600650751-43127-1-git-send-email-wang.yi59@zte.com.cn
+Fixes: bb177a732c4369 ("mm: do not bug_on on incorrect length in __mm_populate()")
+Signed-off-by: Liao Pingfang <liao.pingfang@zte.com.cn>
+Signed-off-by: Yi Wang <wang.yi59@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/dir.c  |    2 +-
- fs/configfs/file.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/configfs/dir.c~fs-configfs-delete-repeated-words-in-comments
-+++ a/fs/configfs/dir.c
-@@ -1168,7 +1168,7 @@ EXPORT_SYMBOL(configfs_depend_item);
- 
- /*
-  * Release the dependent linkage.  This is much simpler than
-- * configfs_depend_item() because we know that that the client driver is
-+ * configfs_depend_item() because we know that the client driver is
-  * pinned, thus the subsystem is pinned, and therefore configfs is pinned.
-  */
- void configfs_undepend_item(struct config_item *target)
---- a/fs/configfs/file.c~fs-configfs-delete-repeated-words-in-comments
-+++ a/fs/configfs/file.c
-@@ -267,7 +267,7 @@ flush_write_buffer(struct file *file, st
-  *	There is no easy way for us to know if userspace is only doing a partial
-  *	write, so we don't support them. We expect the entire buffer to come
-  *	on the first write.
-- *	Hint: if you're writing a value, first read the file, modify only the
-+ *	Hint: if you're writing a value, first read the file, modify only
-  *	the value you're changing, then write entire buffer back.
-  */
- 
+--- a/kernel/sys.c~kernel-sysc-replace-do_brk-with-do_brk_flags-in-comment-of-prctl_set_mm_map
++++ a/kernel/sys.c
+@@ -2034,7 +2034,7 @@ static int prctl_set_mm_map(int opt, con
+ 	 * VMAs already unmapped and kernel uses these members for statistics
+ 	 * output in procfs mostly, except
+ 	 *
+-	 *  - @start_brk/@brk which are used in do_brk but kernel lookups
++	 *  - @start_brk/@brk which are used in do_brk_flags but kernel lookups
+ 	 *    for VMAs when updating these memvers so anything wrong written
+ 	 *    here cause kernel to swear at userspace program but won't lead
+ 	 *    to any problem in kernel itself
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from liao.pingfang@zte.com.cn are
 
 
