@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DAA8C43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 916A2C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 403472145D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40E7A20B1F
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816361;
-	bh=7GDI2XYablzeUzkv1yO6KePHm+2rkj9CLhZSU22Y/aM=;
+	s=default; t=1602816366;
+	bh=LXUnGw9gEmjTSM1jmb6juys2Dn2yGMJfIOB12p8mfD8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dqzSWKzz/Kjv+I2Pey3sr4qcszjBcxqt9JszLUq6yEE+KNIs/mmx4MH0bTdkYIVUS
-	 DcujzcTRur3OJ1ZkuvoYvt6pr8J8DWtA9CGp99Yp5DHQVgOZa4KpaINdGFSa0Dh2xd
-	 +/Q/HUspYAIdri/OgJhi4SXCesR+VwxVVMaScjmw=
+	b=0/v+ngzQFaw+EGMrZIbJ2GakA2StxEP5lc9LQgLe5o6yWro+VPWaXlNcJcg2z6QBJ
+	 Uk8pI4HlpPNTp+Et28k/4Dev7ILb4iJHMVmX95Cu3SEHoMIvt29N9r2vzAgBcQGAhN
+	 CqvZRnWSC6NOBoHAmNFXKP6/dP4tCzMK6CSmgl0A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404332AbgJPCqA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:46:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33480 "EHLO mail.kernel.org"
+        id S2388342AbgJPCqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:46:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404330AbgJPCqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:46:00 -0400
+        id S1731896AbgJPCqF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:46:05 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2A3A020897;
-        Fri, 16 Oct 2020 02:45:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7837920E65;
+        Fri, 16 Oct 2020 02:46:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816358;
-        bh=7GDI2XYablzeUzkv1yO6KePHm+2rkj9CLhZSU22Y/aM=;
+        s=default; t=1602816364;
+        bh=LXUnGw9gEmjTSM1jmb6juys2Dn2yGMJfIOB12p8mfD8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HKlxL/R/LwrnK6Ma+cCByHkyGJpFUBNunDBwCko996N0QmY+m5mv/wvLlL8oRMzg/
-         9oPjoy9m+/IQCojilJZZ0C+dPdfvRQXMNTUvQ7C7mG+4xclzAMm0x9TmgiSfNKJ+E7
-         uf14EFvxI8VNjbBCGHbXG6Elst2Viqy5NzKJXm5E=
-Date:   Thu, 15 Oct 2020 19:45:55 -0700
+        b=GbWuowzhOqDJWRNedHYyL1pqgE+p73xzZGpYY+B0BTqQTf99Ijaq5sxR4LlOlj2Fy
+         g/0unvKr1AorqYDYVE+DGhyqGxje0tC4L1Ja/OJY4666ApvHp1+jASwu6/44tcbDof
+         /f7X5HCQ0H2OzV8k64afqVBHYOybsKtFTN4dlPpg=
+Date:   Thu, 15 Oct 2020 19:46:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anton@ozlabs.org, ardb@kernel.org,
         benh@kernel.crashing.org, bhe@redhat.com,
@@ -58,9 +58,9 @@ To:     akpm@linux-foundation.org, anton@ozlabs.org, ardb@kernel.org,
         sthemmin@microsoft.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vishal.l.verma@intel.com,
         wei.liu@kernel.org
-Subject:  [patch 075/156] xen/balloon: try to merge system ram
+Subject:  [patch 076/156] hv_balloon: try to merge system ram
  resources
-Message-ID: <20201016024555.XsJu-pAJ5%akpm@linux-foundation.org>
+Message-ID: <20201016024601.NzhPf8AKd%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -72,37 +72,38 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: David Hildenbrand <david@redhat.com>
-Subject: xen/balloon: try to merge system ram resources
+Subject: hv_balloon: try to merge system ram resources
 
 Let's try to merge system ram resources we add, to minimize the number of
 resources in /proc/iomem.  We don't care about the boundaries of
 individual chunks we added.
 
-Link: https://lkml.kernel.org/r/20200911103459.10306-8-david@redhat.com
+Link: https://lkml.kernel.org/r/20200911103459.10306-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
+Reviewed-by: Wei Liu <wei.liu@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
-Cc: Julien Grall <julien@xen.org>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
 Cc: Anton Blanchard <anton@ozlabs.org>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jason Wang <jasowang@redhat.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Julien Grall <julien@xen.org>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Leonardo Bras <leobras.c@gmail.com>
 Cc: Libor Pechacek <lpechacek@suse.cz>
@@ -113,26 +114,26 @@ Cc: "Oliver O'Halloran" <oohall@gmail.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/balloon.c |    2 +-
+ drivers/hv/hv_balloon.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/xen/balloon.c~xen-balloon-try-to-merge-system-ram-resources
-+++ a/drivers/xen/balloon.c
-@@ -331,7 +331,7 @@ static enum bp_state reserve_additional_
- 	mutex_unlock(&balloon_mutex);
- 	/* add_memory_resource() requires the device_hotplug lock */
- 	lock_device_hotplug();
--	rc =3D add_memory_resource(nid, resource, MHP_NONE);
-+	rc =3D add_memory_resource(nid, resource, MEMHP_MERGE_RESOURCE);
- 	unlock_device_hotplug();
- 	mutex_lock(&balloon_mutex);
+--- a/drivers/hv/hv_balloon.c~hv_balloon-try-to-merge-system-ram-resources
++++ a/drivers/hv/hv_balloon.c
+@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long
 =20
+ 		nid =3D memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret =3D add_memory(nid, PFN_PHYS((start_pfn)),
+-				(HA_CHUNK << PAGE_SHIFT), MHP_NONE);
++				(HA_CHUNK << PAGE_SHIFT), MEMHP_MERGE_RESOURCE);
+=20
+ 		if (ret) {
+ 			pr_err("hot_add memory failed error is %d\n", ret);
 _
