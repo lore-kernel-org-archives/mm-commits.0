@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE68BC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F0A8C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7826E2087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED3A92087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816112;
-	bh=59O6rwBETi3fXBQMh7mdRlcZQ0kAc5DJljSfHMwlfKA=;
+	s=default; t=1602816115;
+	bh=J+TvWSS9SnG8oIDaacxSuKbamQ7DCQtgkeoiBp7oQnU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=q+EdEDKBN4YvBb3xQZrre+yIkB7b8BscYe2ykw4bFRRd5f7/ipK9noGZ4NVq3ApF4
-	 VZ70MXNFFtAxnCyFNTzFbZbrqnFr6RQwVrZAe1wdUELd4Km9f4/RW2sj8EMStEr7kd
-	 2URval/bRWPsbS2J7K5sqvxp1mKns1GRLdxXQX98=
+	b=tZv/GXZqhaPfEMSlbjboyh4ZAJVG2L46xscimaSS9SmJSIshdy5LUC1m1Pr4GQzlj
+	 AjvwgXMNDSqjeVYcbQarLYII+n+C0/E4BQpFp15Ll/YuAa6y/BzQWVU/VZBSVICltc
+	 pvcQhc4EN4Ka9soLy/2Po9DnEwjWuXYThQCdY+c8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404292AbgJPClw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:41:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57324 "EHLO mail.kernel.org"
+        id S2404293AbgJPCly (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:41:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPClw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:41:52 -0400
+        id S1728688AbgJPCly (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:41:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F09CF20FC3;
-        Fri, 16 Oct 2020 02:41:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 55BC9208E4;
+        Fri, 16 Oct 2020 02:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816110;
-        bh=59O6rwBETi3fXBQMh7mdRlcZQ0kAc5DJljSfHMwlfKA=;
+        s=default; t=1602816113;
+        bh=J+TvWSS9SnG8oIDaacxSuKbamQ7DCQtgkeoiBp7oQnU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fn3ZPymck4VyR7/YUHnoYY4ywHy5w93vT5He7Qhg8VQ3gRh/iO+Ib6iTvNa0pigwy
-         ijsrtfnh8EdddO63aBMp3VLRCTg7QX9ceKtIxSaEIfjmZsEWOPaYb/fOFLNyHo6lEv
-         xu9fm+FCnjyDRkzu/yZJ2Mti09ssijjSbDKuNRio=
-Date:   Thu, 15 Oct 2020 19:41:49 -0700
+        b=HhWK8W6/9hK3D8w5j7bWVWV82M4Bf5UF+prlTSfLF944A7ppV/Dfyg0EkVLd9Awud
+         qXJaxwqRxuYWUiNGI7oDHhjp0VRS5MkJPHEp6RYW70UX+4a0BGq8E//M7EwSPq6U/7
+         DRXwABLW6/D2acWg9yl1Axu03kQu2oUndji2UdHs=
+Date:   Thu, 15 Oct 2020 19:41:52 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
-        linux-mm@kvack.org, lkp@intel.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 015/156] mm/debug_vm_pgtable: avoid doing memory
- allocation with pgtable_t mapped.
-Message-ID: <20201016024149.3E_4VWUXO%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, kirill@shutemov.name,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        songliubraving@fb.com, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 016/156] XArray: add xa_get_order
+Message-ID: <20201016024152.xU_rcx3Q_%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,70 +53,148 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: avoid doing memory allocation with pgtable_t mapped.
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: XArray: add xa_get_order
 
-With highmem, pte_alloc_map() keep the level4 page table mapped using
-kmap_atomic().  Avoid doing new memory allocation with page table mapped
-like above.
+Patch series "Fix read-only THP for non-tmpfs filesystems".
 
-[    9.409233] BUG: sleeping function called from invalid context at mm/page_alloc.c:4822
-[    9.410557] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper
-[    9.411932] no locks held by swapper/1.
-[    9.412595] CPU: 0 PID: 1 Comm: swapper Not tainted 5.9.0-rc3-00323-gc50eb1ed654b5 #2
-[    9.413824] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
-[    9.415207] Call Trace:
-[    9.415651]  ? ___might_sleep.cold+0xa7/0xcc
-[    9.416367]  ? __alloc_pages_nodemask+0x14c/0x5b0
-[    9.417055]  ? swap_migration_tests+0x50/0x293
-[    9.417704]  ? debug_vm_pgtable+0x4bc/0x708
-[    9.418287]  ? swap_migration_tests+0x293/0x293
-[    9.418911]  ? do_one_initcall+0x82/0x3cb
-[    9.419465]  ? parse_args+0x1bd/0x280
-[    9.419983]  ? rcu_read_lock_sched_held+0x36/0x60
-[    9.420673]  ? trace_initcall_level+0x1f/0xf3
-[    9.421279]  ? trace_initcall_level+0xbd/0xf3
-[    9.421881]  ? do_basic_setup+0x9d/0xdd
-[    9.422410]  ? do_basic_setup+0xc3/0xdd
-[    9.422938]  ? kernel_init_freeable+0x72/0xa3
-[    9.423539]  ? rest_init+0x134/0x134
-[    9.424055]  ? kernel_init+0x5/0x12c
-[    9.424574]  ? ret_from_fork+0x19/0x30
+As described more verbosely in the [3/3] changelog, we can inadvertently
+put an order-0 page in the page cache which occupies 512 consecutive
+entries.  Users are running into this if they enable the
+READ_ONLY_THP_FOR_FS config option; see
+https://bugzilla.kernel.org/show_bug.cgi?id=206569 and Qian Cai has also
+reported it here:
+https://lore.kernel.org/lkml/20200616013309.GB815@lca.pw/
 
-Link: https://lkml.kernel.org/r/20200913110327.645310-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reported-by: kernel test robot <lkp@intel.com>
+This is a rather intrusive way of fixing the problem, but has the
+advantage that I've actually been testing it with the THP patches, which
+means that it sees far more use than it does upstream -- indeed, Song has
+been entirely unable to reproduce it.  It also has the advantage that it
+removes a few patches from my gargantuan backlog of THP patches.
+
+
+This patch (of 3):
+
+This function returns the order of the entry at the index.  We need this
+because there isn't space in the shadow entry to encode its order.
+
+[akpm@linux-foundation.org: export xa_get_order to modules]
+Link: https://lkml.kernel.org/r/20200903183029.14930-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200903183029.14930-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/xarray.h |    9 ++++++++
+ lib/test_xarray.c      |   21 ++++++++++++++++++++
+ lib/xarray.c           |   40 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 70 insertions(+)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped
-+++ a/mm/debug_vm_pgtable.c
-@@ -945,7 +945,13 @@ static int __init debug_vm_pgtable(void)
- 	p4dp = p4d_alloc(mm, pgdp, vaddr);
- 	pudp = pud_alloc(mm, p4dp, vaddr);
- 	pmdp = pmd_alloc(mm, pudp, vaddr);
--	ptep = pte_alloc_map(mm, pmdp, vaddr);
-+	/*
-+	 * Allocate pgtable_t
-+	 */
-+	if (pte_alloc(mm, pmdp)) {
-+		pr_err("pgtable allocation failed\n");
-+		return 1;
+--- a/include/linux/xarray.h~xarray-add-xa_get_order
++++ a/include/linux/xarray.h
+@@ -1505,6 +1505,15 @@ void xas_pause(struct xa_state *);
+ 
+ void xas_create_range(struct xa_state *);
+ 
++#ifdef CONFIG_XARRAY_MULTI
++int xa_get_order(struct xarray *, unsigned long index);
++#else
++static inline int xa_get_order(struct xarray *xa, unsigned long index)
++{
++	return 0;
++}
++#endif
++
+ /**
+  * xas_reload() - Refetch an entry from the xarray.
+  * @xas: XArray operation state.
+--- a/lib/test_xarray.c~xarray-add-xa_get_order
++++ a/lib/test_xarray.c
+@@ -1649,6 +1649,26 @@ static noinline void check_account(struc
+ #endif
+ }
+ 
++static noinline void check_get_order(struct xarray *xa)
++{
++	unsigned int max_order = IS_ENABLED(CONFIG_XARRAY_MULTI) ? 20 : 1;
++	unsigned int order;
++	unsigned long i, j;
++
++	for (i = 0; i < 3; i++)
++		XA_BUG_ON(xa, xa_get_order(xa, i) != 0);
++
++	for (order = 0; order < max_order; order++) {
++		for (i = 0; i < 10; i++) {
++			xa_store_order(xa, i << order, order,
++					xa_mk_index(i << order), GFP_KERNEL);
++			for (j = i << order; j < (i + 1) << order; j++)
++				XA_BUG_ON(xa, xa_get_order(xa, j) != order);
++			xa_erase(xa, i << order);
++		}
 +	}
++}
++
+ static noinline void check_destroy(struct xarray *xa)
+ {
+ 	unsigned long index;
+@@ -1697,6 +1717,7 @@ static int xarray_checks(void)
+ 	check_reserve(&array);
+ 	check_reserve(&xa0);
+ 	check_multi_store(&array);
++	check_get_order(&array);
+ 	check_xa_alloc();
+ 	check_find(&array);
+ 	check_find_entry(&array);
+--- a/lib/xarray.c~xarray-add-xa_get_order
++++ a/lib/xarray.c
+@@ -1592,6 +1592,46 @@ unlock:
+ 	return xas_result(&xas, NULL);
+ }
+ EXPORT_SYMBOL(xa_store_range);
++
++/**
++ * xa_get_order() - Get the order of an entry.
++ * @xa: XArray.
++ * @index: Index of the entry.
++ *
++ * Return: A number between 0 and 63 indicating the order of the entry.
++ */
++int xa_get_order(struct xarray *xa, unsigned long index)
++{
++	XA_STATE(xas, xa, index);
++	void *entry;
++	int order = 0;
++
++	rcu_read_lock();
++	entry = xas_load(&xas);
++
++	if (!entry)
++		goto unlock;
++
++	if (!xas.xa_node)
++		goto unlock;
++
++	for (;;) {
++		unsigned int slot = xas.xa_offset + (1 << order);
++
++		if (slot >= XA_CHUNK_SIZE)
++			break;
++		if (!xa_is_sibling(xas.xa_node->slots[slot]))
++			break;
++		order++;
++	}
++
++	order += xas.xa_node->shift;
++unlock:
++	rcu_read_unlock();
++
++	return order;
++}
++EXPORT_SYMBOL(xa_get_order);
+ #endif /* CONFIG_XARRAY_MULTI */
  
- 	/*
- 	 * Save all the page table page addresses as the page table
-@@ -999,8 +1005,7 @@ static int __init debug_vm_pgtable(void)
- 	 * proper page table lock.
- 	 */
- 
--	ptl = pte_lockptr(mm, pmdp);
--	spin_lock(ptl);
-+	ptep = pte_offset_map_lock(mm, pmdp, vaddr, &ptl);
- 	pte_clear_tests(mm, ptep, pte_aligned, vaddr, prot);
- 	pte_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
- 	pte_unmap_unlock(ptep, ptl);
+ /**
 _
