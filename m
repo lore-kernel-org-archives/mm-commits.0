@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 028C3C433E7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 532BDC43457
 	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:06:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C0532087D
+	by mail.kernel.org (Postfix) with ESMTP id E8486208C7
 	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:06:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817597;
-	bh=gL7xdmAxlDw//+zXcYjJ5H9TkI3Jy5FLmhVk7b/p8o8=;
+	s=default; t=1602817598;
+	bh=pSLe2EuBluH2YyJnqXQeN/6NP+42ZTBfr9BcxV+VQhE=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Uux7pGH009/zuB2Z2XTM5mmzqzafTzDwCklvFjp7jvVEDl7TTUUrnWCbJLgCWvL+p
-	 FfkGIoTamgqohnOQ2RtueN75FD5dZoQSiGmdBaYyPjIFu/toHzTbO+eGqoWo9K34W+
-	 t3dkbTtGEqsk87+iss8nXyv1u0CHNgPbw4MtEN2E=
+	b=ErtmCjk37EygARe1STiLqKlnDui3GxcY+AVLPTAb4AVHssjuuAFtgakozgbO+bzWc
+	 AFnilB2xriw6aVBouhDBGuD3lAeqOB5QsP7dg2lp+rfG12JCv4cX+Oq7Y70qy4rT30
+	 yU96yIHlcArxdfuw4Yqkc90dFz7G0qyMaqcr3Kgw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404480AbgJPDGg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:06:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44728 "EHLO mail.kernel.org"
+        id S2404476AbgJPDGh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:06:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404476AbgJPDGd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:06:33 -0400
+        id S2404479AbgJPDGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:06:36 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3590620789;
-        Fri, 16 Oct 2020 03:06:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8ACC720878;
+        Fri, 16 Oct 2020 03:06:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817592;
-        bh=gL7xdmAxlDw//+zXcYjJ5H9TkI3Jy5FLmhVk7b/p8o8=;
+        s=default; t=1602817595;
+        bh=pSLe2EuBluH2YyJnqXQeN/6NP+42ZTBfr9BcxV+VQhE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=U30XW4ifexL811uoX33eu423vqRxsNSH38EsE32Zx1EzvxKNclHbpgvMueVvdlt1c
-         e1pNya/4nYTNsyoo7CTsZ/at8D8PwKAaXtdpD9LqdqOwRq84yvL84XByx8MrL5Ec/8
-         uRt+NdQlnJlHXMl1I/a+kz7p41sMFaite9xPikIY=
-Date:   Thu, 15 Oct 2020 20:06:31 -0700
+        b=qOOd3h0aqcxVl5lHy06HiXUrMMqF83J0FcchRoZxnD1xqglHLdwyYn5aFu+eOH0ho
+         +0UD2nfpTrbyd7Nl8qEHMpgUTWbIxkimkNsS+BSBbQJcZ0XfDBtD4JrCfjpeg+/k41
+         88plSSUicneGuN3vdnAyuCIclrprvAcqUj6DeAnc=
+Date:   Thu, 15 Oct 2020 20:06:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dhowells@redhat.com,
         ebiggers@google.com, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 039/156] mm/filemap: fold ra_submit into
- do_sync_mmap_readahead
-Message-ID: <20201016030631.gVcgnxSKr%akpm@linux-foundation.org>
+Subject:  [patch 040/156] mm/readahead: pass a file_ra_state into
+ force_page_cache_ra
+Message-ID: <20201016030635.RiZwaOJC9%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,76 +54,64 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: David Howells <dhowells@redhat.com>
-Subject: mm/filemap: fold ra_submit into do_sync_mmap_readahead
+Subject: mm/readahead: pass a file_ra_state into force_page_cache_ra
 
-Fold ra_submit() into its last remaining user and pass the
-readahead_control struct to both do_page_cache_ra() and
-page_cache_sync_ra().
+The file_ra_state being passed into page_cache_sync_readahead() was being
+ignored in favour of using the one embedded in the struct file.  The only
+caller for which this makes a difference is the fsverity code if the file
+has been marked as POSIX_FADV_RANDOM, but it's confusing and worth fixing.
 
-Link: https://lkml.kernel.org/r/20200903140844.14194-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200903140844.14194-10-willy@infradead.org
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Eric Biggers <ebiggers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c  |   10 +++++-----
- mm/internal.h |   10 ----------
- 2 files changed, 5 insertions(+), 15 deletions(-)
+ mm/internal.h  |    5 +++--
+ mm/readahead.c |    5 ++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fold-ra_submit-into-do_sync_mmap_readahead
-+++ a/mm/filemap.c
-@@ -2588,8 +2588,8 @@ static struct file *do_sync_mmap_readahe
- 	struct file *file = vmf->vma->vm_file;
- 	struct file_ra_state *ra = &file->f_ra;
- 	struct address_space *mapping = file->f_mapping;
-+	DEFINE_READAHEAD(ractl, file, mapping, vmf->pgoff);
- 	struct file *fpin = NULL;
--	pgoff_t offset = vmf->pgoff;
- 	unsigned int mmap_miss;
- 
- 	/* If we don't want any read-ahead, don't bother */
-@@ -2600,8 +2600,7 @@ static struct file *do_sync_mmap_readahe
- 
- 	if (vmf->vma->vm_flags & VM_SEQ_READ) {
- 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
--		page_cache_sync_readahead(mapping, ra, file, offset,
--					  ra->ra_pages);
-+		page_cache_sync_ra(&ractl, ra, ra->ra_pages);
- 		return fpin;
- 	}
- 
-@@ -2621,10 +2620,11 @@ static struct file *do_sync_mmap_readahe
- 	 * mmap read-around
- 	 */
- 	fpin = maybe_unlock_mmap_for_io(vmf, fpin);
--	ra->start = max_t(long, 0, offset - ra->ra_pages / 2);
-+	ra->start = max_t(long, 0, vmf->pgoff - ra->ra_pages / 2);
- 	ra->size = ra->ra_pages;
- 	ra->async_size = ra->ra_pages / 4;
--	ra_submit(ra, mapping, file);
-+	ractl._index = ra->start;
-+	do_page_cache_ra(&ractl, ra->size, ra->async_size);
- 	return fpin;
- }
- 
---- a/mm/internal.h~mm-filemap-fold-ra_submit-into-do_sync_mmap_readahead
+--- a/mm/internal.h~mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra
 +++ a/mm/internal.h
-@@ -59,16 +59,6 @@ static inline void force_page_cache_read
- 	force_page_cache_ra(&ractl, nr_to_read);
+@@ -51,12 +51,13 @@ void unmap_page_range(struct mmu_gather
+ 
+ void do_page_cache_ra(struct readahead_control *, unsigned long nr_to_read,
+ 		unsigned long lookahead_size);
+-void force_page_cache_ra(struct readahead_control *, unsigned long nr);
++void force_page_cache_ra(struct readahead_control *, struct file_ra_state *,
++		unsigned long nr);
+ static inline void force_page_cache_readahead(struct address_space *mapping,
+ 		struct file *file, pgoff_t index, unsigned long nr_to_read)
+ {
+ 	DEFINE_READAHEAD(ractl, file, mapping, index);
+-	force_page_cache_ra(&ractl, nr_to_read);
++	force_page_cache_ra(&ractl, &file->f_ra, nr_to_read);
  }
  
--/*
-- * Submit IO for the read-ahead request in file_ra_state.
-- */
--static inline void ra_submit(struct file_ra_state *ra,
--		struct address_space *mapping, struct file *file)
--{
--	DEFINE_READAHEAD(ractl, file, mapping, ra->start);
--	do_page_cache_ra(&ractl, ra->size, ra->async_size);
--}
--
  struct page *find_get_entry(struct address_space *mapping, pgoff_t index);
- struct page *find_lock_entry(struct address_space *mapping, pgoff_t index);
+--- a/mm/readahead.c~mm-readahead-pass-a-file_ra_state-into-force_page_cache_ra
++++ a/mm/readahead.c
+@@ -272,11 +272,10 @@ void do_page_cache_ra(struct readahead_c
+  * memory at once.
+  */
+ void force_page_cache_ra(struct readahead_control *ractl,
+-		unsigned long nr_to_read)
++		struct file_ra_state *ra, unsigned long nr_to_read)
+ {
+ 	struct address_space *mapping = ractl->mapping;
+ 	struct backing_dev_info *bdi = inode_to_bdi(mapping->host);
+-	struct file_ra_state *ra = &ractl->file->f_ra;
+ 	unsigned long max_pages, index;
+ 
+ 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages &&
+@@ -562,7 +561,7 @@ void page_cache_sync_ra(struct readahead
+ 
+ 	/* be dumb */
+ 	if (ractl->file && (ractl->file->f_mode & FMODE_RANDOM)) {
+-		force_page_cache_ra(ractl, req_count);
++		force_page_cache_ra(ractl, ra, req_count);
+ 		return;
+ 	}
  
 _
