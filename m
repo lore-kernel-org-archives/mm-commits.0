@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C40EC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F60DC43457
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD82720897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D62BF2087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816069;
-	bh=Xp2NxTMc2t88xor0f64gTNqFNqCCRES4fc1ua6TJsOA=;
+	s=default; t=1602816072;
+	bh=Or2CQpqLEow/lTsRBd/DMklcdBJcMe9YNSJWWD0WuiM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=KE/pmf6PE4wghJO0Sey5M9Z8ZjDndOXbrKHUOD5Dfy/5XVb4nWR0Kl2sWwBdcbQdX
-	 6FGULNrhYx/GERpi8t7/oragBmkP9WEeTYHDkN9ZUJN66LqiFnekaFx9HxwGUHfXQr
-	 BckpXWVKDFTPthq0Pnd9lUvtSp9Q97QG/DmZpDNk=
+	b=bjsMaX8RrS/Ac5sFnW6w8U4bs6cr1jcZXEvO/zQnaril/Pe8sVoW2o90oxFGi/U84
+	 H8BR96Abnea4wPpwqouiQMbY52bZvqd23DgwIZLSe48ByxwTqM5xeplPoILHPZabXd
+	 F/Nfsbgh/xfzg2gL/xFxfWgwxH1A1EtHVap/xrd4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404281AbgJPClJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:41:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56634 "EHLO mail.kernel.org"
+        id S2404282AbgJPClM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:41:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404278AbgJPClJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:41:09 -0400
+        id S2404278AbgJPClM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:41:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C391F2087D;
-        Fri, 16 Oct 2020 02:41:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 388E220B1F;
+        Fri, 16 Oct 2020 02:41:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816068;
-        bh=Xp2NxTMc2t88xor0f64gTNqFNqCCRES4fc1ua6TJsOA=;
+        s=default; t=1602816071;
+        bh=Or2CQpqLEow/lTsRBd/DMklcdBJcMe9YNSJWWD0WuiM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=14e1nyg5L4PlVoUDyOBnUc5GllJpcGmtdxozjjT746GMF6VOLrYNpN7bjzRBF72vN
-         lsvgY5oMCcpeiAa1i5KQW8D6BfozUiMIZbtJO+xzCVgCXt3kvuZ+BlPm3nnTlYSl2s
-         Zyuehy1bdcIuv8lFQtesKvb3wds5NaIVxa0pUzO8=
-Date:   Thu, 15 Oct 2020 19:41:07 -0700
+        b=n8pFGoVCrU4r7Z8+//qCK418Srrkz9ZWX/49PwNXIghPOeEXqRC+eTFwJZVDGC7XS
+         lXzdzYC6aka98PLQXS/jpfQk8JAA9skzs/TrRRHDL3WHFgom8TBWwm8AC/MkBW84J6
+         dsY0dIX9Cumf8VZNQbY5e25iiOGRdpPgyDR/qaD4=
+Date:   Thu, 15 Oct 2020 19:41:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         torvalds@linux-foundation.org
-Subject:  [patch 003/156] powerpc/mm: move setting pte specific
- flags to pfn_pte
-Message-ID: <20201016024107.wZSbToW_d%akpm@linux-foundation.org>
+Subject:  [patch 004/156] mm/debug_vm_pgtable/ppc64: avoid setting
+ top bits in radom value
+Message-ID: <20201016024110.wV3GMM4Jv%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,104 +55,43 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mm: move setting pte specific flags to pfn_pte
+Subject: mm/debug_vm_pgtable/ppc64: avoid setting top bits in radom value
 
-powerpc used to set the pte specific flags in set_pte_at().  This is
-different from other architectures.  To be consistent with other
-architecture update pfn_pte to set _PAGE_PTE on ppc64.  Also, drop now
-unused pte_mkpte.
+ppc64 use bit 62 to indicate a pte entry (_PAGE_PTE).  Avoid setting that
+bit in random value.
 
-We add a VM_WARN_ON() to catch the usage of calling set_pte_at() without
-setting _PAGE_PTE bit.  We will remove that after a few releases.
-
-With respect to huge pmd entries, pmd_mkhuge() takes care of adding the
-_PAGE_PTE bit.
-
-[akpm@linux-foundation.org: whitespace fix, per Christophe]
-Link: https://lkml.kernel.org/r/20200902114222.181353-3-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-4-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   15 +++++++++------
- arch/powerpc/include/asm/nohash/pgtable.h    |    5 -----
- arch/powerpc/mm/pgtable.c                    |    5 -----
- 3 files changed, 9 insertions(+), 16 deletions(-)
+ mm/debug_vm_pgtable.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -615,7 +615,7 @@ static inline pte_t pfn_pte(unsigned lon
- 	VM_BUG_ON(pfn >> (64 - PAGE_SHIFT));
- 	VM_BUG_ON((pfn << PAGE_SHIFT) & ~PTE_RPN_MASK);
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-ppc64-avoid-setting-top-bits-in-radom-value
++++ a/mm/debug_vm_pgtable.c
+@@ -44,10 +44,17 @@
+  * entry type. But these bits might affect the ability to clear entries with
+  * pxx_clear() because of how dynamic page table folding works on s390. So
+  * while loading up the entries do not change the lower 4 bits. It does not
+- * have affect any other platform.
++ * have affect any other platform. Also avoid the 62nd bit on ppc64 that is
++ * used to mark a pte entry.
+  */
+-#define S390_MASK_BITS	4
+-#define RANDOM_ORVALUE	GENMASK(BITS_PER_LONG - 1, S390_MASK_BITS)
++#define S390_SKIP_MASK		GENMASK(3, 0)
++#if __BITS_PER_LONG == 64
++#define PPC64_SKIP_MASK		GENMASK(62, 62)
++#else
++#define PPC64_SKIP_MASK		0x0
++#endif
++#define ARCH_SKIP_MASK (S390_SKIP_MASK | PPC64_SKIP_MASK)
++#define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
+ #define RANDOM_NZVALUE	GENMASK(7, 0)
  
--	return __pte(((pte_basic_t)pfn << PAGE_SHIFT) | pgprot_val(pgprot));
-+	return __pte(((pte_basic_t)pfn << PAGE_SHIFT) | pgprot_val(pgprot) | _PAGE_PTE);
- }
- 
- static inline unsigned long pte_pfn(pte_t pte)
-@@ -651,11 +651,6 @@ static inline pte_t pte_mkexec(pte_t pte
- 	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_EXEC));
- }
- 
--static inline pte_t pte_mkpte(pte_t pte)
--{
--	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PTE));
--}
--
- static inline pte_t pte_mkwrite(pte_t pte)
- {
- 	/*
-@@ -819,6 +814,14 @@ static inline int pte_none(pte_t pte)
- static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
- 				pte_t *ptep, pte_t pte, int percpu)
- {
-+
-+	VM_WARN_ON(!(pte_raw(pte) & cpu_to_be64(_PAGE_PTE)));
-+	/*
-+	 * Keep the _PAGE_PTE added till we are sure we handle _PAGE_PTE
-+	 * in all the callers.
-+	 */
-+	pte = __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PTE));
-+
- 	if (radix_enabled())
- 		return radix__set_pte_at(mm, addr, ptep, pte, percpu);
- 	return hash__set_pte_at(mm, addr, ptep, pte, percpu);
---- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -140,11 +140,6 @@ static inline pte_t pte_mkold(pte_t pte)
- 	return __pte(pte_val(pte) & ~_PAGE_ACCESSED);
- }
- 
--static inline pte_t pte_mkpte(pte_t pte)
--{
--	return pte;
--}
--
- static inline pte_t pte_mkspecial(pte_t pte)
- {
- 	return __pte(pte_val(pte) | _PAGE_SPECIAL);
---- a/arch/powerpc/mm/pgtable.c~powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -184,9 +184,6 @@ void set_pte_at(struct mm_struct *mm, un
- 	 */
- 	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
- 
--	/* Add the pte bit when trying to set a pte */
--	pte = pte_mkpte(pte);
--
- 	/* Note: mm->context.id might not yet have been assigned as
- 	 * this context might not have been activated yet when this
- 	 * is called.
-@@ -275,8 +272,6 @@ void set_huge_pte_at(struct mm_struct *m
- 	 */
- 	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
- 
--	pte = pte_mkpte(pte);
--
- 	pte = set_pte_filter(pte);
- 
- 	val = pte_val(pte);
+ static void __init pte_basic_tests(unsigned long pfn, pgprot_t prot)
 _
