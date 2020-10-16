@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FC62C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:49:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFFB2C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0228D208E4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:49:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FFBD208E4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816544;
-	bh=+zm8JEJDvdWTDvYHkQ5bHIwYYLcmpSp2CxNSfmGjWws=;
+	s=default; t=1602816547;
+	bh=Zxzn8PL71kIv6dLENtKIJvNvYh8RH+hFuUcP38yDvvI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=fCYR/UtctRJXhs6vl9vq7zpemzRmp9Z/v5GwgIYU3wDXN61qX1I1HGEPKPwMDdfvh
-	 IuHwpITAJnEWNaZIjWiy0yJP+R8dJCFyoTEBEoc5VtjqxklUaGdo1MbdEsWEsbBhsq
-	 FaZ2Z/+ACE08TEP/nzNXX8m5TASvj/rqKaNnlBGM=
+	b=PM54AxPOUfubiC7REjgv0OkChB9i4S7VFuJp9spk9o9cdWIygOK8L6XyaZ7P+/7pF
+	 PYTqhoMnYiUHCqETS2q0IBppK6EPNwizIc7Gny9btpaW43XI7FIUVki1P+ISNqaHqF
+	 wxam5PTB//Bs8WfM5PgwGn7ejKKUdDqO8Qn4l7RI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404379AbgJPCtD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:49:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36712 "EHLO mail.kernel.org"
+        id S2404380AbgJPCtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:49:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36784 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404364AbgJPCtD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:49:03 -0400
+        id S2404364AbgJPCtG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:49:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 022352087D;
-        Fri, 16 Oct 2020 02:49:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 165532087D;
+        Fri, 16 Oct 2020 02:49:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816541;
-        bh=+zm8JEJDvdWTDvYHkQ5bHIwYYLcmpSp2CxNSfmGjWws=;
+        s=default; t=1602816545;
+        bh=Zxzn8PL71kIv6dLENtKIJvNvYh8RH+hFuUcP38yDvvI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kiXG9M5NrbbXRXdX9LveyBaWtLGecVydxaunLwI3St1a4IdpqVOl/VA5CK5p09S1N
-         emLqiax+hZWviK1o3ZfnMW00nd0iNIn66GnkACH4TlddqdVVsHImhSp0lZX8kBEx5M
-         cLCNTzOkS0GVkIJ5K9nwCUQ1pJ1CKV3vk4WXoHPA=
-Date:   Thu, 15 Oct 2020 19:49:00 -0700
+        b=jd0J4+gavYfNf9Gurx1LRf+7EPuQ4urd3DvU6imUC9CzDZR82zxGenWogW12wWhpi
+         bZ6smOIdyQCRfvZnk0w9HPMdjv7N0mwN14LBwF4oRsicYIbomwgbc1LETSwwxW59Y8
+         /cVksjlUZUym8goRDRZDMvfguSC5r8H/Dd2OqjQw=
+Date:   Thu, 15 Oct 2020 19:49:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, efremov@linux.com,
-        gustavoars@kernel.org, joe@perches.com, julia.lawall@inria.fr,
-        keescook@chromium.org, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, joe@perches.com, julia.lawall@inria.fr,
+        linux-mm@kvack.org, linux@rasmusvillemoes.dk,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 127/156] checkpatch: warn on self-assignments
-Message-ID: <20201016024900.rKnqH0xK7%akpm@linux-foundation.org>
+Subject:  [patch 128/156] checkpatch: allow not using -f with files
+ that are in git
+Message-ID: <20201016024904.klsWPnHIM%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,47 +54,63 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on self-assignments
+Subject: checkpatch: allow not using -f with files that are in git
 
-The uninitialized_var() macro was removed recently via commit 63a0895d960a
-("compiler: Remove uninitialized_var() macro") as it's not a particularly
-useful warning and its use can "paper over real bugs".
+If a file exists in git and checkpatch is used without the -f flag for
+scanning a file, then checkpatch will scan the file assuming it's a patch
+and emit:
 
-Add a checkpatch test to warn on self-assignments as a means to avoid
-compiler warnings and as a back-door mechanism to reproduce the old
-uninitialized_var macro behavior.
+ERROR: Does not appear to be a unified-diff format patch
 
-[akpm@linux-foundation.org: coding style fixes]
-Link: https://lkml.kernel.org/r/afc2cffdd315d3e4394af149278df9e8af7f49f4.camel@perches.com
+Change the behavior to assume the -f flag if the file exists in git.
+
+[joe@perches.com: fix git "fatal" warning if file argument outside kernel tree]
+  Link: https://lkml.kernel.org/r/b6afa04112d450c2fc120a308d706acd60cee294.camel@perches.com
+Link: https://lkml.kernel.org/r/45b81a48e1568bd0126a96f5046eb7aaae9b83c9.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Denis Efremov <efremov@linux.com>
-Cc: Julia Lawall <julia.lawall@inria.fr>
+Reviewed-by: Julia Lawall <julia.lawall@inria.fr>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/checkpatch.pl |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-warn-on-self-assignments
+--- a/scripts/checkpatch.pl~checkpatch-allow-not-using-f-with-files-that-are-in-git
 +++ a/scripts/checkpatch.pl
-@@ -3899,6 +3899,17 @@ sub process {
- #ignore lines not being added
- 		next if ($line =~ /^[^\+]/);
+@@ -974,6 +974,16 @@ sub seed_camelcase_includes {
+ 	}
+ }
  
-+# check for self assignments used to avoid compiler warnings
-+# e.g.:	int foo = foo, *bar = NULL;
-+#	struct foo bar = *(&(bar));
-+		if ($line =~ /^\+\s*(?:$Declare)?([A-Za-z_][A-Za-z\d_]*)\s*=/) {
-+			my $var = $1;
-+			if ($line =~ /^\+\s*(?:$Declare)?$var\s*=\s*(?:$var|\*\s*\(?\s*&\s*\(?\s*$var\s*\)?\s*\)?)\s*[;,]/) {
-+				WARN("SELF_ASSIGNMENT",
-+				     "Do not use self-assignments to avoid compiler warnings\n" . $herecurr);
-+			}
-+		}
++sub git_is_single_file {
++	my ($filename) = @_;
 +
- # check for dereferences that span multiple lines
- 		if ($prevline =~ /^\+.*$Lval\s*(?:\.|->)\s*$/ &&
- 		    $line =~ /^\+\s*(?!\#\s*(?!define\s+|if))\s*$Lval/) {
++	return 0 if ((which("git") eq "") || !(-e "$gitroot"));
++
++	my $output = `${git_command} ls-files -- $filename 2>/dev/null`;
++	my $count = $output =~ tr/\n//;
++	return $count eq 1 && $output =~ m{^${filename}$};
++}
++
+ sub git_commit_info {
+ 	my ($commit, $id, $desc) = @_;
+ 
+@@ -1047,6 +1057,9 @@ my $vname;
+ $allow_c99_comments = !defined $ignore_type{"C99_COMMENT_TOLERANCE"};
+ for my $filename (@ARGV) {
+ 	my $FILE;
++	my $is_git_file = git_is_single_file($filename);
++	my $oldfile = $file;
++	$file = 1 if ($is_git_file);
+ 	if ($git) {
+ 		open($FILE, '-|', "git format-patch -M --stdout -1 $filename") ||
+ 			die "$P: $filename: git format-patch failed - $!\n";
+@@ -1091,6 +1104,7 @@ for my $filename (@ARGV) {
+ 	@modifierListFile = ();
+ 	@typeListFile = ();
+ 	build_types();
++	$file = $oldfile if ($is_git_file);
+ }
+ 
+ if (!$quiet) {
 _
