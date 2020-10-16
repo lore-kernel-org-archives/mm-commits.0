@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACA9AC43467
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8893EC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 508412145D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 355D721775
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881524;
-	bh=6cgIkY9BV3WQpcASTGbr8AA9VcqZC5GqWDFa9DAP0Ww=;
+	s=default; t=1602881526;
+	bh=WSh+Jsx/e9t49benJ8EALh2MFnWqxOWDc2tgF9JgrRE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BWwt3TpeSNLYJiLgB0cABhhoRJUNh7aAtdh09r7wMNSaZBwDCbV0lpJtwXC03vkI9
-	 3QJTTV/ctpTOwEAQTr+Qt8idzL39BheFWSg6MBHDIEM6AFzSdTFJ/ONDxZtVeSdtuK
-	 Stm0cnPaXbQ3sWuJeR7tqcLwCGk8BNRRJpfLzOuk=
+	b=bi08E+x2V7SDvq/cTTtbJIovvcexj1XGdxFjnUBF4vzrYKQuPmw7wrbKhf3kEczAv
+	 smH3Vn5pYpfrcf/+PRZrPzSDpqY91A0loOyBVeqs1iYLbtAIjBT3Cw1o4KgMw9ysOw
+	 G3fY6xGDqH60w0aBhU17dmT+Kuj2ZIUg1dDweUyw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408216AbgJPUwD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40750 "EHLO mail.kernel.org"
+        id S2408233AbgJPUwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732579AbgJPUwD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:52:03 -0400
+        id S1732579AbgJPUwF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:05 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B33ED21D40;
-        Fri, 16 Oct 2020 20:52:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F104520878;
+        Fri, 16 Oct 2020 20:52:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881522;
-        bh=6cgIkY9BV3WQpcASTGbr8AA9VcqZC5GqWDFa9DAP0Ww=;
+        s=default; t=1602881525;
+        bh=WSh+Jsx/e9t49benJ8EALh2MFnWqxOWDc2tgF9JgrRE=;
         h=Date:From:To:Subject:From;
-        b=NvombyGRNz9C7DC7SGSU+q8cXkEhKRMO379Z7WmG5XD54WrtpZvR4QKqkItxHpmWt
-         owhnd+5BMqKX3n5K1adCkkc2Ku941ae7OkF7zA7jaI2MYtMJ0PM25qdhV5f94xvdkn
-         sdf2YV99MMYrqh4LS0MRUW7RZTyppRUh+9qsmp50=
-Date:   Fri, 16 Oct 2020 13:52:01 -0700
+        b=JCOJ5n+NCuTZmzefn2LCprcuudW9DeF7dF00ZBrqxNq0nev5c2pxPU/QozJnJocce
+         1184SodeD//dIKCNMqC7P8uYXIQPXfw6OuvjVHkLRBtrQrr9xdzsNQI4+92bqyW7AV
+         9czaII23eBg7XYXsKf9hlgsUpmVz/rqs8RyCa/xY=
+Date:   Fri, 16 Oct 2020 13:52:04 -0700
 From:   akpm@linux-foundation.org
-To:     alexander.h.duyck@linux.intel.com, david@redhat.com,
-        mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com
-Subject:  [merged]
- mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
- removed from -mm tree
-Message-ID: <20201016205201.Dx7_s-x1t%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ira.weiny@intel.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  [merged] mm-highmem-clean-up-endif-comments.patch removed
+ from -mm tree
+Message-ID: <20201016205204.BY2pL6HrJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,44 +53,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_reporting.c: drop stale list head check in page_reporting_cycle
+     Subject: mm/highmem.c: clean up endif comments
 has been removed from the -mm tree.  Its filename was
-     mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+     mm-highmem-clean-up-endif-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/page_reporting.c: drop stale list head check in page_reporting_cycle
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/highmem.c: clean up endif comments
 
-list_for_each_entry_safe() guarantees that we will never stumble over the
-list head; "&page->lru != list" will always evaluate to true.  Let's
-simplify.
+The #endif at the end of the file matches up with the '#if
+defined(HASHED_PAGE_VIRTUAL)' on line 374.  Not the CONFIG_HIGHMEM #if
+earlier.
 
-[david@redhat.com: Changelog refinements]
-Link: http://lkml.kernel.org/r/20200818084448.33969-1-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Fix comments on both of the #endif's to indicate the correct end of
+blocks for each.
+
+Link: https://lkml.kernel.org/r/20200819184635.112579-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_reporting.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/highmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_reporting.c~mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle
-+++ a/mm/page_reporting.c
-@@ -178,7 +178,7 @@ page_reporting_cycle(struct page_reporti
- 		 * the new head of the free list before we release the
- 		 * zone lock.
- 		 */
--		if (&page->lru != list && !list_is_first(&page->lru, list))
-+		if (!list_is_first(&page->lru, list))
- 			list_rotate_to_front(&page->lru, list);
+--- a/mm/highmem.c~mm-highmem-clean-up-endif-comments
++++ a/mm/highmem.c
+@@ -369,7 +369,7 @@ void kunmap_high(struct page *page)
+ }
  
- 		/* release lock before waiting on report processing */
+ EXPORT_SYMBOL(kunmap_high);
+-#endif
++#endif	/* CONFIG_HIGHMEM */
+ 
+ #if defined(HASHED_PAGE_VIRTUAL)
+ 
+@@ -481,4 +481,4 @@ void __init page_address_init(void)
+ 	}
+ }
+ 
+-#endif	/* defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL) */
++#endif	/* defined(HASHED_PAGE_VIRTUAL) */
 _
 
-Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
 
