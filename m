@@ -2,43 +2,43 @@ Return-Path: <SRS0=zz/k=DX=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBB24C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:45:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC9FAC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:45:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65903208C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:45:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82DC720E65
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:45:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816324;
-	bh=6p3odBtEO/kPAfAlb2nZGcApF1Fira7pnCiac+FlSCE=;
+	s=default; t=1602816330;
+	bh=MURkAISfcGnxK2ahX0aWSMywzSLV1yywys6rvLFPcCU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=sMVSFdOZzyS7YMnhX/40wjTx6H2JCuyRSFWZtfJvShid5bm3+JcT80jhS8/VdPzNX
-	 kj9ORD/feTwKV8tI7IM2tflY2Yz1X2A7qWIE5R29fZd46AzW6FOKVZDua0e3KYNQfU
-	 aPSBMSCopbDHNWk2Q4hhW59OBiaw2ufWYJBi+92Y=
+	b=IQHCnytVTOUyaeIxhZO81rFGjqxTlI0ieLqm7svCA0ger3cGQNP5YRVBDW/Iii8xU
+	 vV5cnf/VpMmCQM1b4IQhaCEdRScfDrgp6K9bDG2hv+n+rQ9rAkd6SlAPJeUPAvPyR8
+	 4ZXxnfEs+gowihY4yzsHx9rhyZ+mWYw6Nu4XqAmk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393839AbgJPCpY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:45:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32832 "EHLO mail.kernel.org"
+        id S2393840AbgJPCpa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:45:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388337AbgJPCpX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:45:23 -0400
+        id S2388337AbgJPCp3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:45:29 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2A3F320878;
-        Fri, 16 Oct 2020 02:45:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9933820897;
+        Fri, 16 Oct 2020 02:45:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816322;
-        bh=6p3odBtEO/kPAfAlb2nZGcApF1Fira7pnCiac+FlSCE=;
+        s=default; t=1602816328;
+        bh=MURkAISfcGnxK2ahX0aWSMywzSLV1yywys6rvLFPcCU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=MuznLLZ/xxC4htXDY3QHi6pB1akdtucuj2FTQyL/zgRTR0cZQ1YyjgBW5CCrD54Iv
-         6bTKZ6adwmlM8qf4Idx/ckMenJcmZ8ya8REQeLWyMNeiXP/T3+PYtvFIAbiETR4jh/
-         5dhk2SKQLVTIBihEFyY5uyOfMu2KFZ2IElkj3nkE=
-Date:   Thu, 15 Oct 2020 19:45:19 -0700
+        b=hjoK/y91cNB7/vVtxZ7+bX9RL223vlgcQlUhTKFyGcxHXdI1qJkYDsadweAEv2EJC
+         RVuPGIc8n00lC8ipuzFGQKwu/FdBsibxfwb+ggUQNb4uVMt8GHbOHtXNi8Q5iPSdWd
+         7Q8sKEZZHFpq0Jjjhy3+DRdln1rv/bRyKXaOHxrQ=
+Date:   Thu, 15 Oct 2020 19:45:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anton@ozlabs.org, ardb@kernel.org,
         benh@kernel.crashing.org, bhe@redhat.com,
@@ -51,69 +51,40 @@ To:     akpm@linux-foundation.org, anton@ozlabs.org, ardb@kernel.org,
         kernelfans@gmail.com, kys@microsoft.com, lenb@kernel.org,
         leobras.c@gmail.com, linux-mm@kvack.org, lpechacek@suse.cz,
         mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        mst@redhat.com, natechancellor@gmail.com, nathanl@linux.ibm.com,
-        oohall@gmail.com, pankaj.gupta.linux@gmail.com, paulus@samba.org,
+        mst@redhat.com, nathanl@linux.ibm.com, oohall@gmail.com,
+        pankaj.gupta.linux@gmail.com, paulus@samba.org,
         richardw.yang@linux.intel.com, rjw@rjwysocki.net,
         roger.pau@citrix.com, sstabellini@kernel.org,
         sthemmin@microsoft.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vishal.l.verma@intel.com,
         wei.liu@kernel.org
-Subject:  [patch 069/156] kernel/resource: make
- release_mem_region_adjustable() never fail
-Message-ID: <20201016024519.Va_XHnJuz%akpm@linux-foundation.org>
+Subject:  [patch 070/156] kernel/resource: move and rename
+ IORESOURCE_MEM_DRIVER_MANAGED
+Message-ID: <20201016024525.fscfh30JU%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: kernel/resource: make release_mem_region_adjustable() never fail
+=46rom: David Hildenbrand <david@redhat.com>
+Subject: kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
 
-Patch series "selective merging of system ram resources", v4.
+IORESOURCE_MEM_DRIVER_MANAGED currently uses an unused PnP bit, which is
+always set to 0 by hardware.  This is far from beautiful (and confusing),
+and the bit only applies to SYSRAM.  So let's move it out of the
+bus-specific (PnP) defined bits.
 
-Some add_memory*() users add memory in small, contiguous memory blocks. 
-Examples include virtio-mem, hyper-v balloon, and the XEN balloon.
+We'll add another SYSRAM specific bit soon.  If we ever need more bits for
+other purposes, we can steal some from "desc", or reshuffle/regroup what
+we have.
 
-This can quickly result in a lot of memory resources, whereby the actual
-resource boundaries are not of interest (e.g., it might be relevant for
-DIMMs, exposed via /proc/iomem to user space).  We really want to merge
-added resources in this scenario where possible.
-
-Resources are effectively stored in a list-based tree.  Having a lot of
-resources not only wastes memory, it also makes traversing that tree more
-expensive, and makes /proc/iomem explode in size (e.g., requiring
-kexec-tools to manually merge resources when creating a kdump header.  The
-current kexec-tools resource count limit does not allow for more than
-~100GB of memory with a memory block size of 128MB on x86-64).
-
-Let's allow to selectively merge system ram resources by specifying a new
-flag for add_memory*().  Patch #5 contains a /proc/iomem example.  Only
-tested with virtio-mem.
-
-
-This patch (of 8):
-
-Let's make sure splitting a resource on memory hotunplug will never fail. 
-This will become more relevant once we merge selected System RAM resources
-- then, we'll trigger that case more often on memory hotunplug.
-
-In general, this function is already unlikely to fail.  When we remove
-memory, we free up quite a lot of metadata (memmap, page tables, memory
-block device, etc.).  The only reason it could really fail would be when
-injecting allocation errors.
-
-All other error cases inside release_mem_region_adjustable() seem to be
-sanity checks if the function would be abused in different context - let's
-add WARN_ON_ONCE() in these cases so we can catch them.
-
-[natechancellor@gmail.com: fix use of ternary condition in release_mem_region_adjustable]
-  Link: https://lkml.kernel.org/r/20200922060748.2452056-1-natechancellor@gmail.com
-  Link: https://github.com/ClangBuiltLinux/linux/issues/1159
-Link: https://lkml.kernel.org/r/20200911103459.10306-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20200911103459.10306-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -122,13 +93,14 @@ Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Anton Blanchard <anton@ozlabs.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Jason Wang <jasowang@redhat.com>
@@ -145,169 +117,76 @@ Cc: "Oliver O'Halloran" <oohall@gmail.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Roger Pau Monn <roger.pau@citrix.com>
+Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    4 +--
- kernel/resource.c      |   49 ++++++++++++++++++++++-----------------
- mm/memory_hotplug.c    |   22 -----------------
- 3 files changed, 31 insertions(+), 44 deletions(-)
+ include/linux/ioport.h |    4 +++-
+ kernel/kexec_file.c    |    2 +-
+ mm/memory_hotplug.c    |    4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/ioport.h~kernel-resource-make-release_mem_region_adjustable-never-fail
+--- a/include/linux/ioport.h~kernel-resource-move-and-rename-ioresource_mem=
+_driver_managed
 +++ a/include/linux/ioport.h
-@@ -248,8 +248,8 @@ extern struct resource * __request_regio
- extern void __release_region(struct resource *, resource_size_t,
- 				resource_size_t);
- #ifdef CONFIG_MEMORY_HOTREMOVE
--extern int release_mem_region_adjustable(struct resource *, resource_size_t,
--				resource_size_t);
-+extern void release_mem_region_adjustable(struct resource *, resource_size_t,
-+					  resource_size_t);
- #endif
- 
- /* Wrappers for managed devices */
---- a/kernel/resource.c~kernel-resource-make-release_mem_region_adjustable-never-fail
-+++ a/kernel/resource.c
-@@ -1258,21 +1258,28 @@ EXPORT_SYMBOL(__release_region);
-  *   assumes that all children remain in the lower address entry for
-  *   simplicity.  Enhance this logic when necessary.
-  */
--int release_mem_region_adjustable(struct resource *parent,
--				  resource_size_t start, resource_size_t size)
-+void release_mem_region_adjustable(struct resource *parent,
-+				   resource_size_t start, resource_size_t size)
- {
-+	struct resource *new_res = NULL;
-+	bool alloc_nofail = false;
- 	struct resource **p;
- 	struct resource *res;
--	struct resource *new_res;
- 	resource_size_t end;
--	int ret = -EINVAL;
- 
- 	end = start + size - 1;
--	if ((start < parent->start) || (end > parent->end))
--		return ret;
-+	if (WARN_ON_ONCE((start < parent->start) || (end > parent->end)))
-+		return;
- 
--	/* The alloc_resource() result gets checked later */
--	new_res = alloc_resource(GFP_KERNEL);
-+	/*
-+	 * We free up quite a lot of memory on memory hotunplug (esp., memap),
-+	 * just before releasing the region. This is highly unlikely to
-+	 * fail - let's play save and make it never fail as the caller cannot
-+	 * perform any error handling (e.g., trying to re-add memory will fail
-+	 * similarly).
-+	 */
-+retry:
-+	new_res = alloc_resource(GFP_KERNEL | (alloc_nofail ? __GFP_NOFAIL : 0));
- 
- 	p = &parent->child;
- 	write_lock(&resource_lock);
-@@ -1298,7 +1305,6 @@ int release_mem_region_adjustable(struct
- 		 * so if we are dealing with them, let us just back off here.
- 		 */
- 		if (!(res->flags & IORESOURCE_SYSRAM)) {
--			ret = 0;
- 			break;
- 		}
- 
-@@ -1315,20 +1321,23 @@ int release_mem_region_adjustable(struct
- 			/* free the whole entry */
- 			*p = res->sibling;
- 			free_resource(res);
--			ret = 0;
- 		} else if (res->start == start && res->end != end) {
- 			/* adjust the start */
--			ret = __adjust_resource(res, end + 1,
--						res->end - end);
-+			WARN_ON_ONCE(__adjust_resource(res, end + 1,
-+						       res->end - end));
- 		} else if (res->start != start && res->end == end) {
- 			/* adjust the end */
--			ret = __adjust_resource(res, res->start,
--						start - res->start);
-+			WARN_ON_ONCE(__adjust_resource(res, res->start,
-+						       start - res->start));
- 		} else {
--			/* split into two entries */
-+			/* split into two entries - we need a new resource */
- 			if (!new_res) {
--				ret = -ENOMEM;
--				break;
-+				new_res = alloc_resource(GFP_ATOMIC);
-+				if (!new_res) {
-+					alloc_nofail = true;
-+					write_unlock(&resource_lock);
-+					goto retry;
-+				}
- 			}
- 			new_res->name = res->name;
- 			new_res->start = end + 1;
-@@ -1339,9 +1348,8 @@ int release_mem_region_adjustable(struct
- 			new_res->sibling = res->sibling;
- 			new_res->child = NULL;
- 
--			ret = __adjust_resource(res, res->start,
--						start - res->start);
--			if (ret)
-+			if (WARN_ON_ONCE(__adjust_resource(res, res->start,
-+							   start - res->start)))
- 				break;
- 			res->sibling = new_res;
- 			new_res = NULL;
-@@ -1352,7 +1360,6 @@ int release_mem_region_adjustable(struct
- 
- 	write_unlock(&resource_lock);
- 	free_resource(new_res);
--	return ret;
- }
- #endif	/* CONFIG_MEMORY_HOTREMOVE */
- 
---- a/mm/memory_hotplug.c~kernel-resource-make-release_mem_region_adjustable-never-fail
+@@ -58,6 +58,9 @@ struct resource {
+ #define IORESOURCE_EXT_TYPE_BITS 0x01000000	/* Resource extended types */
+ #define IORESOURCE_SYSRAM	0x01000000	/* System RAM (modifier) */
+=20
++/* IORESOURCE_SYSRAM specific bits. */
++#define IORESOURCE_SYSRAM_DRIVER_MANAGED	0x02000000 /* Always detected via=
+ a driver. */
++
+ #define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resou=
+rce */
+=20
+ #define IORESOURCE_DISABLED	0x10000000
+@@ -103,7 +106,6 @@ struct resource {
+ #define IORESOURCE_MEM_32BIT		(3<<3)
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+-#define IORESOURCE_MEM_DRIVER_MANAGED	(1<<7)
+=20
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+--- a/kernel/kexec_file.c~kernel-resource-move-and-rename-ioresource_mem_dr=
+iver_managed
++++ a/kernel/kexec_file.c
+@@ -521,7 +521,7 @@ static int locate_mem_hole_callback(stru
+ 	/* Returning 0 will take to next memory range */
+=20
+ 	/* Don't use memory that will be detected and handled by a driver. */
+-	if (res->flags & IORESOURCE_MEM_DRIVER_MANAGED)
++	if (res->flags & IORESOURCE_SYSRAM_DRIVER_MANAGED)
+ 		return 0;
+=20
+ 	if (sz < kbuf->memsz)
+--- a/mm/memory_hotplug.c~kernel-resource-move-and-rename-ioresource_mem_dr=
+iver_managed
 +++ a/mm/memory_hotplug.c
-@@ -1727,26 +1727,6 @@ void try_offline_node(int nid)
- }
- EXPORT_SYMBOL(try_offline_node);
- 
--static void __release_memory_resource(resource_size_t start,
--				      resource_size_t size)
--{
--	int ret;
--
--	/*
--	 * When removing memory in the same granularity as it was added,
--	 * this function never fails. It might only fail if resources
--	 * have to be adjusted or split. We'll ignore the error, as
--	 * removing of memory cannot fail.
--	 */
--	ret = release_mem_region_adjustable(&iomem_resource, start, size);
--	if (ret) {
--		resource_size_t endres = start + size - 1;
--
--		pr_warn("Unable to release resource <%pa-%pa> (%d)\n",
--			&start, &endres, ret);
--	}
--}
--
- static int __ref try_remove_memory(int nid, u64 start, u64 size)
- {
- 	int rc = 0;
-@@ -1780,7 +1760,7 @@ static int __ref try_remove_memory(int n
- 		memblock_remove(start, size);
- 	}
- 
--	__release_memory_resource(start, size);
-+	release_mem_region_adjustable(&iomem_resource, start, size);
- 
- 	try_offline_node(nid);
- 
+@@ -105,7 +105,7 @@ static struct resource *register_memory_
+ 	unsigned long flags =3D  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+=20
+ 	if (strcmp(resource_name, "System RAM"))
+-		flags |=3D IORESOURCE_MEM_DRIVER_MANAGED;
++		flags |=3D IORESOURCE_SYSRAM_DRIVER_MANAGED;
+=20
+ 	/*
+ 	 * Make sure value parsed from 'mem=3D' only restricts memory adding
+@@ -1161,7 +1161,7 @@ EXPORT_SYMBOL_GPL(add_memory);
+  *
+  * For this memory, no entries in /sys/firmware/memmap ("raw firmware-prov=
+ided
+  * memory map") are created. Also, the created memory resource is flagged
+- * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-case
++ * with IORESOURCE_SYSRAM_DRIVER_MANAGED, so in-kernel users can special-c=
+ase
+  * this memory as well (esp., not place kexec images onto it).
+  *
+  * The resource_name (visible via /proc/iomem) has to have the format
 _
