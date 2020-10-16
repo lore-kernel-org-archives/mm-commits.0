@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EEB8C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE9DC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5EB820658
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C318620658
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881567;
-	bh=jWynN2i2Vz6exsxuKqInTCMQVpwRL58LboR8hTsV1HU=;
+	s=default; t=1602881568;
+	bh=1Hf/dKeYX0NKm2RLCGj4KZZesaV50EUpsVqcuTRKS1w=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=mFjM4IHv9KhMMVVSBkmISYru3Bqnn3wPQCVK4GCfPAw6DQMJhcjJYou7uVHHwYUP2
-	 oUHjYVeLlxrFnCFBUIBb5yOcAiFj7Cp+sK26f4kMLgb7H0IujuBg6lHTmCG4X6C4Yj
-	 vNABw0MjDpVJ2fk50E9JZ8R4CM0NCvlEyZ8wNXaA=
+	b=HyFSJpgxKY1oLJ8cBoYyZqGysaREQRMj9cgsY2x0Fcc++fDgIerugtRVhIlYK/1D7
+	 Dje30dfdwfIvYE9rr//nlToLB/GSkUtcpayMVfs0N/Po/f6cgdcO1TGWzkrv4JmVpy
+	 //LzWPHALkcROwSFNV91wzyjziSyWko3LBc1qj9k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408909AbgJPUwr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41128 "EHLO mail.kernel.org"
+        id S2409050AbgJPUws (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408456AbgJPUwn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:52:43 -0400
+        id S2408456AbgJPUwr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:47 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA4682064B;
-        Fri, 16 Oct 2020 20:52:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B3DB420657;
+        Fri, 16 Oct 2020 20:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881562;
-        bh=jWynN2i2Vz6exsxuKqInTCMQVpwRL58LboR8hTsV1HU=;
+        s=default; t=1602881566;
+        bh=1Hf/dKeYX0NKm2RLCGj4KZZesaV50EUpsVqcuTRKS1w=;
         h=Date:From:To:Subject:From;
-        b=aWAbgWRf6M0TAJtPgNm1OMsT5SIYUIc4fE47Q97Z4GgTlRhETFW0LmuzHP4xZHx7W
-         RhosR5sSjN4k08AOzA9btHoD8Sc49XjSVJPg66HW+5382ZTHGVlF2nMlA99Xq/r14V
-         OA1hgEnuE+ALXK4CEY2bnB4/Aviib8cx7Eb9ek+o=
-Date:   Fri, 16 Oct 2020 13:52:42 -0700
+        b=0lEap290RXaCvP1+yHVLRowt4nTB/zpIR3EHs4pKJaMVctL27B/N4/5s0BvWt7O6Q
+         7DBSlRM9EDhUAAQ/+bv3eAQvOw23Z/K4LCOxA2vv19eTR9jq8px51t7uEZ/e3E4vLT
+         xQYmZVPbGl3pxQm1QNxP4K/vJFW0xve1+xpPGo1o=
+Date:   Fri, 16 Oct 2020 13:52:45 -0700
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org
-Subject:  [merged] get_maintainer-add-test-for-file-in-vcs.patch
- removed from -mm tree
-Message-ID: <20201016205242.MvoRkmHhl%akpm@linux-foundation.org>
+To:     davem@davemloft.net, joe@perches.com, mchehab+huawei@kernel.org,
+        mm-commits@vger.kernel.org, robh@kernel.org
+Subject:  [merged]
+ get_maintainer-exclude-maintainers-files-from-git-fallback.patch removed
+ from -mm tree
+Message-ID: <20201016205245.g2kZbPB2s%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,41 +54,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: add test for file in VCS
+     Subject: get_maintainer: exclude MAINTAINERS file(s) from --git-fallback
 has been removed from the -mm tree.  Its filename was
-     get_maintainer-add-test-for-file-in-vcs.patch
+     get_maintainer-exclude-maintainers-files-from-git-fallback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: add test for file in VCS
+Subject: get_maintainer: exclude MAINTAINERS file(s) from --git-fallback
 
-It's somewhat common for me to ask get_maintainer to tell me who maintains
-a patch file rather than the files modified by the patch.
+MAINTAINERS files generally have no specific maintainer but are updated by
+individuals for subsystems all over the source tree.
 
-Emit a warning if using get_maintainer.pl -f <patchfile>
+Exclude MAINTAINERS file(s) from --git-fallback searches so the unlucky
+individuals that update the files the most are not shown by default.
 
-Link: https://lkml.kernel.org/r/f63229c051567041819f25e76f49d83c6e4c0f71.camel@perches.com
+Link: https://lkml.kernel.org/r/2bacb0a9c06fbb6d56a43bf930e808c74243c908.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/get_maintainer.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-add-test-for-file-in-vcs
+--- a/scripts/get_maintainer.pl~get_maintainer-exclude-maintainers-files-from-git-fallback
 +++ a/scripts/get_maintainer.pl
-@@ -541,6 +541,9 @@ foreach my $file (@ARGV) {
- 	    die "$P: file '${file}' not found\n";
+@@ -957,8 +957,10 @@ sub get_maintainers {
+ 
+     foreach my $file (@files) {
+ 	if ($email &&
+-	    ($email_git || ($email_git_fallback &&
+-			    !$exact_pattern_match_hash{$file}))) {
++	    ($email_git ||
++	     ($email_git_fallback &&
++	      $file !~ /MAINTAINERS$/ &&
++	      !$exact_pattern_match_hash{$file}))) {
+ 	    vcs_file_signoffs($file);
  	}
-     }
-+    if ($from_filename && (vcs_exists() && !vcs_file_exists($file))) {
-+	warn "$P: file '$file' not found in version control $!\n";
-+    }
-     if ($from_filename || ($file ne "&STDIN" && vcs_file_exists($file))) {
- 	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
- 	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
+ 	if ($email && $email_git_blame) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
