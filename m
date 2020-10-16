@@ -7,43 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D8DFC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:45:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F1EC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D76662145D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:45:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9FA4216C4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881121;
-	bh=vUtsYJG07McnMeYAPyi2Z8mQRYujDNxHJgsigeArQtc=;
+	s=default; t=1602881236;
+	bh=INqb2OcpEIPYMlCE5mODJWZoxuaIqd6j6Adq/l+ZzSo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BWBZqJ9GSOOWBux6i2IhbqATVau5n5uA/0um19Q6zt1uclyFZntfKv7R/1eZdN0eP
-	 W80KeT+9yPplgAISjLbaI+aprlhAn25XmSeKrnaAWJC83ZparDs/6RzKU50YtQE4qW
-	 B3FynHjHpWl5VQvHbrmBfojr7O4BrzDoDAAdHZgU=
+	b=kZBspQc4ZVLvQnP7u4gzTWZXcWkxkzCVVSQIVY6VqzacjX3Aq6LphCF+1pHrwgmkA
+	 EYwZEmCkcTQY5kVAS2ovbujibmbBEv0ORXKe/Ru/B1nGG6Y2AHASY5EvX+a0DCUl17
+	 dNFZVuh/sKM9UxZyVqzwbnfjzq8Aoq30nKGn/Cog=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407398AbgJPUpV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:45:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36742 "EHLO mail.kernel.org"
+        id S2408883AbgJPUrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:47:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403763AbgJPUpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:45:21 -0400
+        id S2408804AbgJPUrP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:47:15 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E802B20878;
-        Fri, 16 Oct 2020 20:45:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B7A2320878;
+        Fri, 16 Oct 2020 20:47:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881119;
-        bh=vUtsYJG07McnMeYAPyi2Z8mQRYujDNxHJgsigeArQtc=;
+        s=default; t=1602881234;
+        bh=INqb2OcpEIPYMlCE5mODJWZoxuaIqd6j6Adq/l+ZzSo=;
         h=Date:From:To:Subject:From;
-        b=ADbFc6s+XUTOYbIxXWZTIlZNkDTnVaf/Nmkju8gSYkBlWXhcUQXvMNwhG/EGdqOoi
-         rYSNL2MExYuBuuZVsymnZtOCsog+4nNJnMFImmzdoAUvW1GHjgUzwJnsyKprCHP3MX
-         Uz3hZ2OHIuILqtF5QOsRSiUc6KXTutDcPlVwA4Bs=
-Date:   Fri, 16 Oct 2020 13:45:18 -0700
+        b=hF23fHa1dmf7+npD24ksxzYtvhhRjbp0Lkv7veNWo1lCcwLbNtjC/p3ZGpcJWepFW
+         XbRpFKOVnGmBb6Kfg/9nsBLoO3jG0bP7bVBKArd3NWO9weR3ITtBYUSEkhVDx0bR5A
+         5Gjk4QAhRdC9uKEb0cE9wt6lpr5GDtmxHjZJUNcg=
+Date:   Fri, 16 Oct 2020 13:47:12 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-rejects.patch removed from -mm tree
-Message-ID: <20201016204518._8Utvtn1F%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
+        christophe.leroy@csgroup.eu, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au
+Subject:  [nacked]
+ =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-thp-mark-the-pte-entry-huge-befor?=
+ =?US-ASCII?Q?e-using-set=5Fpmd-pud=5Fat.patch?= removed from -mm tree
+Message-ID: <20201016204712.y6TargCTT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,67 +57,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: mm/debug_vm_pgtable/THP: mark the pte entry huge before using set_pmd/pud_at
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/debug_vm_pgtable/THP: mark the pte entry huge before using set_pmd/pud_at
 
+kernel expects entries to be marked huge before we use
+set_pmd_at()/set_pud_at().
+
+Link: https://lkml.kernel.org/r/20200902114222.181353-7-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/hotplug-memory.c |    6 +++--
- arch/riscv/mm/init.c                            |   15 ++++----------
- lib/Makefile                                    |    1 
- mm/filemap.c                                    |    8 +++----
- 4 files changed, 14 insertions(+), 16 deletions(-)
+ mm/debug_vm_pgtable.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c~linux-next-rejects
-+++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -622,11 +622,13 @@ static int dlpar_add_lmb(struct drmem_lm
- 		return rc;
- 	}
- 
--	lmb_set_nid(lmb);
- 	block_sz = memory_block_size_bytes();
- 
-+	/* Find the node id for this address. */
-+	nid = memory_add_physaddr_to_nid(lmb->base_addr);
-+
- 	/* Add the memory */
--	rc = __add_memory(lmb->nid, lmb->base_addr, block_sz, MHP_NONE);
-+	rc = __add_memory(nid, lmb->base_addr, block_sz, MHP_NONE);
- 	if (rc) {
- 		invalidate_lmb_associativity_index(lmb);
- 		return rc;
---- a/mm/filemap.c~linux-next-rejects
-+++ a/mm/filemap.c
-@@ -827,10 +827,10 @@ int replace_page_cache_page(struct page
- }
- EXPORT_SYMBOL_GPL(replace_page_cache_page);
- 
--static int __add_to_page_cache_locked(struct page *page,
--				      struct address_space *mapping,
--				      pgoff_t offset, gfp_t gfp,
--				      void **shadowp)
-+static noinline int __add_to_page_cache_locked(struct page *page,
-+					       struct address_space *mapping,
-+					       pgoff_t offset, gfp_t gfp,
-+					       void **shadowp)
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at
++++ a/mm/debug_vm_pgtable.c
+@@ -155,7 +155,7 @@ static void __init pmd_advanced_tests(st
+ 				      unsigned long pfn, unsigned long vaddr,
+ 				      pgprot_t prot)
  {
- 	XA_STATE(xas, &mapping->i_pages, offset);
- 	int huge = PageHuge(page);
+-	pmd_t pmd = pfn_pmd(pfn, prot);
++	pmd_t pmd;
+ 
+ 	if (!has_transparent_hugepage())
+ 		return;
+@@ -164,19 +164,19 @@ static void __init pmd_advanced_tests(st
+ 	/* Align the address wrt HPAGE_PMD_SIZE */
+ 	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
+ 
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+ 	pmdp_set_wrprotect(mm, vaddr, pmdp);
+ 	pmd = READ_ONCE(*pmdp);
+ 	WARN_ON(pmd_write(pmd));
+ 
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+ 	pmdp_huge_get_and_clear(mm, vaddr, pmdp);
+ 	pmd = READ_ONCE(*pmdp);
+ 	WARN_ON(!pmd_none(pmd));
+ 
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 	pmd = pmd_wrprotect(pmd);
+ 	pmd = pmd_mkclean(pmd);
+ 	set_pmd_at(mm, vaddr, pmdp, pmd);
+@@ -236,7 +236,7 @@ static void __init pmd_huge_tests(pmd_t
+ 
+ static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
+ {
+-	pmd_t pmd = pfn_pmd(pfn, prot);
++	pmd_t pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+ 
+ 	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
+ 		return;
+@@ -276,7 +276,7 @@ static void __init pud_advanced_tests(st
+ 				      unsigned long pfn, unsigned long vaddr,
+ 				      pgprot_t prot)
+ {
+-	pud_t pud = pfn_pud(pfn, prot);
++	pud_t pud;
+ 
+ 	if (!has_transparent_hugepage())
+ 		return;
+@@ -285,25 +285,27 @@ static void __init pud_advanced_tests(st
+ 	/* Align the address wrt HPAGE_PUD_SIZE */
+ 	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
+ 
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_set_wrprotect(mm, vaddr, pudp);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(pud_write(pud));
+ 
+ #ifndef __PAGETABLE_PMD_FOLDED
+-	pud = pfn_pud(pfn, prot);
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_huge_get_and_clear(mm, vaddr, pudp);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(!pud_none(pud));
+ 
+-	pud = pfn_pud(pfn, prot);
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	set_pud_at(mm, vaddr, pudp, pud);
+ 	pudp_huge_get_and_clear_full(mm, vaddr, pudp, 1);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(!pud_none(pud));
+ #endif /* __PAGETABLE_PMD_FOLDED */
+-	pud = pfn_pud(pfn, prot);
++
++	pud = pud_mkhuge(pfn_pud(pfn, prot));
+ 	pud = pud_wrprotect(pud);
+ 	pud = pud_mkclean(pud);
+ 	set_pud_at(mm, vaddr, pudp, pud);
+_
 
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
