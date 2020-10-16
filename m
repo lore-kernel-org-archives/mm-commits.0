@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B133C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE68BC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27A1320897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7826E2087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816108;
-	bh=EDZeoik6ip2wmYr+ORIrFSiuIfWG+o83Omgn/oxpoKo=;
+	s=default; t=1602816112;
+	bh=59O6rwBETi3fXBQMh7mdRlcZQ0kAc5DJljSfHMwlfKA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=pKi1JW4lwssc1AD/x9OZ41ptefpCNs9BCxrpNxYCYkjrf4pw970CeAbx689ue+kxB
-	 3rMEBQDIHIHShww8F//V7Etj2OhVudztnIUDhB03iTqoSFDzxMNLYP2d/vwf2Ux2Ch
-	 x2X1ASfbcZp8OvrNi5iT9golhMXKT78z/bJ+FZyY=
+	b=q+EdEDKBN4YvBb3xQZrre+yIkB7b8BscYe2ykw4bFRRd5f7/ipK9noGZ4NVq3ApF4
+	 VZ70MXNFFtAxnCyFNTzFbZbrqnFr6RQwVrZAe1wdUELd4Km9f4/RW2sj8EMStEr7kd
+	 2URval/bRWPsbS2J7K5sqvxp1mKns1GRLdxXQX98=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404291AbgJPClr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:41:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57260 "EHLO mail.kernel.org"
+        id S2404292AbgJPClw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:41:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPClr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:41:47 -0400
+        id S1728688AbgJPClw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:41:52 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 424ED208C7;
-        Fri, 16 Oct 2020 02:41:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F09CF20FC3;
+        Fri, 16 Oct 2020 02:41:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816107;
-        bh=EDZeoik6ip2wmYr+ORIrFSiuIfWG+o83Omgn/oxpoKo=;
+        s=default; t=1602816110;
+        bh=59O6rwBETi3fXBQMh7mdRlcZQ0kAc5DJljSfHMwlfKA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=trjcTOAEZC1T27MYrsVrx0bw4l42SG5icTi0L3zOrjxaCqAiaHmTq58y7CwAb7x9b
-         eUxtiaNvgsBPtXV2BwzMZeo4Q3aDB1aKpxmePowyEirlSpJjHq0TVFZO2fYINrDN/P
-         uot6gQS+zUxVIaDYjn/CFH8AvTb5jNe+GQIMksIs=
-Date:   Thu, 15 Oct 2020 19:41:45 -0700
+        b=fn3ZPymck4VyR7/YUHnoYY4ywHy5w93vT5He7Qhg8VQ3gRh/iO+Ib6iTvNa0pigwy
+         ijsrtfnh8EdddO63aBMp3VLRCTg7QX9ceKtIxSaEIfjmZsEWOPaYb/fOFLNyHo6lEv
+         xu9fm+FCnjyDRkzu/yZJ2Mti09ssijjSbDKuNRio=
+Date:   Thu, 15 Oct 2020 19:41:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
-        anshuman.khandual@arm.com, aou@eecs.berkeley.edu,
-        christophe.leroy@csgroup.eu, linux-mm@kvack.org,
-        linux@roeck-us.net, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        natechancellor@gmail.com, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, torvalds@linux-foundation.org
-Subject:  [patch 014/156] mm/debug_vm_pgtable: avoid none pte in
- pte_clear_test
-Message-ID: <20201016024145.Fdx4rvWB9%akpm@linux-foundation.org>
+        linux-mm@kvack.org, lkp@intel.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 015/156] mm/debug_vm_pgtable: avoid doing memory
+ allocation with pgtable_t mapped.
+Message-ID: <20201016024149.3E_4VWUXO%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -57,56 +54,69 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: avoid none pte in pte_clear_test
+Subject: mm/debug_vm_pgtable: avoid doing memory allocation with pgtable_t mapped.
 
-pte_clear_tests operate on an existing pte entry.  Make sure that is not a
-none pte entry.
+With highmem, pte_alloc_map() keep the level4 page table mapped using
+kmap_atomic().  Avoid doing new memory allocation with page table mapped
+like above.
 
-[aneesh.kumar@linux.ibm.com: avoid kernel crash with riscv]
-  Link: https://lkml.kernel.org/r/20201015033206.140550-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20200902114222.181353-14-aneesh.kumar@linux.ibm.com
+[    9.409233] BUG: sleeping function called from invalid context at mm/page_alloc.c:4822
+[    9.410557] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper
+[    9.411932] no locks held by swapper/1.
+[    9.412595] CPU: 0 PID: 1 Comm: swapper Not tainted 5.9.0-rc3-00323-gc50eb1ed654b5 #2
+[    9.413824] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
+[    9.415207] Call Trace:
+[    9.415651]  ? ___might_sleep.cold+0xa7/0xcc
+[    9.416367]  ? __alloc_pages_nodemask+0x14c/0x5b0
+[    9.417055]  ? swap_migration_tests+0x50/0x293
+[    9.417704]  ? debug_vm_pgtable+0x4bc/0x708
+[    9.418287]  ? swap_migration_tests+0x293/0x293
+[    9.418911]  ? do_one_initcall+0x82/0x3cb
+[    9.419465]  ? parse_args+0x1bd/0x280
+[    9.419983]  ? rcu_read_lock_sched_held+0x36/0x60
+[    9.420673]  ? trace_initcall_level+0x1f/0xf3
+[    9.421279]  ? trace_initcall_level+0xbd/0xf3
+[    9.421881]  ? do_basic_setup+0x9d/0xdd
+[    9.422410]  ? do_basic_setup+0xc3/0xdd
+[    9.422938]  ? kernel_init_freeable+0x72/0xa3
+[    9.423539]  ? rest_init+0x134/0x134
+[    9.424055]  ? kernel_init+0x5/0x12c
+[    9.424574]  ? ret_from_fork+0x19/0x30
+
+Link: https://lkml.kernel.org/r/20200913110327.645310-1-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/debug_vm_pgtable.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped
 +++ a/mm/debug_vm_pgtable.c
-@@ -542,12 +542,15 @@ static void __init pgd_populate_tests(st
- #endif /* PAGETABLE_P4D_FOLDED */
+@@ -945,7 +945,13 @@ static int __init debug_vm_pgtable(void)
+ 	p4dp = p4d_alloc(mm, pgdp, vaddr);
+ 	pudp = pud_alloc(mm, p4dp, vaddr);
+ 	pmdp = pmd_alloc(mm, pudp, vaddr);
+-	ptep = pte_alloc_map(mm, pmdp, vaddr);
++	/*
++	 * Allocate pgtable_t
++	 */
++	if (pte_alloc(mm, pmdp)) {
++		pr_err("pgtable allocation failed\n");
++		return 1;
++	}
  
- static void __init pte_clear_tests(struct mm_struct *mm, pte_t *ptep,
--				   unsigned long vaddr)
-+				   unsigned long pfn, unsigned long vaddr,
-+				   pgprot_t prot)
- {
--	pte_t pte = ptep_get(ptep);
-+	pte_t pte = pfn_pte(pfn, prot);
+ 	/*
+ 	 * Save all the page table page addresses as the page table
+@@ -999,8 +1005,7 @@ static int __init debug_vm_pgtable(void)
+ 	 * proper page table lock.
+ 	 */
  
- 	pr_debug("Validating PTE clear\n");
-+#ifndef CONFIG_RISCV
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
-+#endif
- 	set_pte_at(mm, vaddr, ptep, pte);
- 	barrier();
- 	pte_clear(mm, vaddr, ptep);
-@@ -998,7 +1001,7 @@ static int __init debug_vm_pgtable(void)
- 
- 	ptl = pte_lockptr(mm, pmdp);
- 	spin_lock(ptl);
--	pte_clear_tests(mm, ptep, vaddr);
-+	pte_clear_tests(mm, ptep, pte_aligned, vaddr, prot);
+-	ptl = pte_lockptr(mm, pmdp);
+-	spin_lock(ptl);
++	ptep = pte_offset_map_lock(mm, pmdp, vaddr, &ptl);
+ 	pte_clear_tests(mm, ptep, pte_aligned, vaddr, prot);
  	pte_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
  	pte_unmap_unlock(ptep, ptl);
- 
 _
