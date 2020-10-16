@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92250C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:50:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1ED0C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:50:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4474D20FC3
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:50:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A83B4208E4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:50:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816620;
-	bh=A0ChrCDCJhPaDEnC2n0JcMIBX/9RljacmUDs2z2DTAA=;
+	s=default; t=1602816623;
+	bh=2Lrf3xNueGp4Ipkr4K+aKF9mdcpeFyIChR8i8iUna8E=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=uqWECAGHcRTdx8jPPu4j6WgBJd/pc/gaTlJxfnNRsut3hMl8VlDvG4PTWciK/WvZI
-	 ELz1/AUvO5+mytjlAErt0x3opzOAMYBc8IiL7XC476Aa4SGyM4jjdKVsCzo3ef3wYg
-	 vQMJ5E6/idl51C38ivCWug+dKUn4lD5o7r/K2r9w=
+	b=pYTYqjtlZIIQXtcTuUc228J56UX7n77yAyKrFuSEEqIlyQ0NUe8vRLaFHv33CotmU
+	 ffCtd1vZskTJBYxl+jTn/2Uxu1QWWZ2+rgzMtWxatUseuQyqC/+KRA+OHJUMKqnT3P
+	 cGtMZsfrHO2GWlbmAd0CwDgtgMhDjvbaQehRJLBg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404397AbgJPCuU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:50:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38158 "EHLO mail.kernel.org"
+        id S2404399AbgJPCuX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:50:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404125AbgJPCuT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:50:19 -0400
+        id S2404398AbgJPCuX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:50:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C4E1321556;
-        Fri, 16 Oct 2020 02:50:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 64CB82074D;
+        Fri, 16 Oct 2020 02:50:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816619;
-        bh=A0ChrCDCJhPaDEnC2n0JcMIBX/9RljacmUDs2z2DTAA=;
+        s=default; t=1602816622;
+        bh=2Lrf3xNueGp4Ipkr4K+aKF9mdcpeFyIChR8i8iUna8E=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fOiSUgSkEkAek9c2x2JvqoL/hTRrNfxBkioqu93oDr/Tzqa1lvtJTicV5VL9KT8V3
-         cC1x0uKFlDSA//LyIhtxH0Qy2dx1mSnnFpOPN5w57z7dzp519tiKLNxhwSBaZiZ8Wz
-         joJ5IqYivdq9Ghrdir/dJpIqzzPx0EtnZ+tKuH3s=
-Date:   Thu, 15 Oct 2020 19:50:18 -0700
+        b=hRJFlb+NwEybvA4kwsCKm06wRqIacfAXKGebGJxB+6xKyaKkDVi/C4SzSk0hw9gv5
+         4xVYMGKi6uSqIviHW+gb9gamN2YKyO2qH7hv408mwIfd6Ngrqj3+YJhsXjSuvzT4vB
+         sFNOzMB8Xj0/TByrjWXMpAchA71gP9cTPTLqxPKA=
+Date:   Thu, 15 Oct 2020 19:50:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aik@ozlabs.ru, akpm@linux-foundation.org, aquini@redhat.com,
-        dianders@chromium.org, keescook@chromium.org, linux-mm@kvack.org,
-        mingo@kernel.org, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org
-Subject:  [patch 148/156] panic: dump registers on panic_on_warn
-Message-ID: <20201016025018.o2XSfGQXU%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, sudipm.mukherjee@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 149/156] kernel/relay.c: drop unneeded
+ initialization
+Message-ID: <20201016025021.FK42J5jIw%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,59 +53,32 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alexey Kardashevskiy <aik@ozlabs.ru>
-Subject: panic: dump registers on panic_on_warn
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: kernel/relay.c: drop unneeded initialization
 
-Currently we print stack and registers for ordinary warnings but we do not
-for panic_on_warn which looks as oversight - panic() will reboot the
-machine but won't print registers.
+The variable 'consumed' is initialized with the consumed count but
+immediately after that the consumed count is updated and assigned to
+'consumed' again thus overwriting the previous value.  So, drop the
+unneeded initialization.
 
-This moves printing of registers and modules earlier.
-
-This does not move the stack dumping as panic() dumps it.
-
-Link: https://lkml.kernel.org/r/20200804095054.68724-1-aik@ozlabs.ru
-Signed-off-by: Alexey Kardashevskiy <aik@ozlabs.ru>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/20201005205727.1147-1-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ kernel/relay.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/panic.c~panic-dump-registers-on-panic_on_warn
-+++ a/kernel/panic.c
-@@ -589,6 +589,11 @@ void __warn(const char *file, int line,
- 	if (args)
- 		vprintk(args->fmt, args->args);
+--- a/kernel/relay.c~kernel-relayc-drop-unneeded-initialization
++++ a/kernel/relay.c
+@@ -1002,7 +1002,7 @@ static int relay_file_read_avail(struct
+ 	size_t subbuf_size = buf->chan->subbuf_size;
+ 	size_t n_subbufs = buf->chan->n_subbufs;
+ 	size_t produced = buf->subbufs_produced;
+-	size_t consumed = buf->subbufs_consumed;
++	size_t consumed;
  
-+	print_modules();
-+
-+	if (regs)
-+		show_regs(regs);
-+
- 	if (panic_on_warn) {
- 		/*
- 		 * This thread may hit another WARN() in the panic path.
-@@ -600,12 +605,7 @@ void __warn(const char *file, int line,
- 		panic("panic_on_warn set ...\n");
- 	}
- 
--	print_modules();
--
--	if (regs)
--		show_regs(regs);
--	else
--		dump_stack();
-+	dump_stack();
- 
- 	print_irqtrace_events(current);
+ 	relay_file_read_consume(buf, 0, 0);
  
 _
