@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E9A4C43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:11:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EDC1C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:11:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F3C22087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:11:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 227702087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:11:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817900;
-	bh=ZYjvwyI/eUwAgTG97KnHQSZMik8xQcTqfc6qJ2GjU1k=;
+	s=default; t=1602817905;
+	bh=1p2WGIZu9/zLv2jaihLdekpGlwjlNasd31lW4kWG3Hk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0b9OoTZU+Sq6j6c4OMB4QXIgUap+mpo3iiXfQ2Y4icQWxZCHoG6lqfM25Rs+FD8Wx
-	 lRn/Qed8ROP/6/6LMlF9kdS1697702hSTiRyY66x3/W+t6IC+aQx97X+IZAYo9KBMW
-	 ec0Iw08VxF7sJ1Y/WxGz7HXG1GS4TZTSgJnC35i4=
+	b=IAo8EQ+OVwP+9ARioO5sA9Vl+4NcUWEzc25uaEsdZA+wRdhCmPfapEj51x2WjrIPr
+	 itthVIlw07OeWv4RlxDXDzZWrnCErIhi8ZUpjiJqx/cH1hZ1IBDckAailRXprfpCvo
+	 gYja5mVYG6Nnl64YQJ7+8VZmTV3iZCoLwWxjRdCc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388506AbgJPDLj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:11:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48108 "EHLO mail.kernel.org"
+        id S2388608AbgJPDLo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:11:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387864AbgJPDLj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:11:39 -0400
+        id S2387864AbgJPDLo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:11:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E3BF720789;
-        Fri, 16 Oct 2020 03:11:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E7FF120789;
+        Fri, 16 Oct 2020 03:11:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817899;
-        bh=ZYjvwyI/eUwAgTG97KnHQSZMik8xQcTqfc6qJ2GjU1k=;
+        s=default; t=1602817904;
+        bh=1p2WGIZu9/zLv2jaihLdekpGlwjlNasd31lW4kWG3Hk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CNTUrH1z4pUe3kXE2jbOSOjz/7d9faDBHHeyA6w91vf70Jljqc+kQPeksE/9+Auzc
-         YbG5697ABL9DMLCxTVKlgiJVD0jOr44wP70OZIJuQhpe6RREczjQZ2LQjevvhU46l3
-         7+0mRtkpy08rDrwvlH4UZcstLiWNu6Y28XZL3mv8=
-Date:   Thu, 15 Oct 2020 20:11:38 -0700
+        b=aug0McEm6R5SUBUvz/hZRowMeNObdDm/PJgmWDTMWZxf5IIL1ResKcYWiWEVsZ7u5
+         JVA3gUgg86faHjLx8PSM/muG1c1RXrcvJtrCJ/XGJ0kTFOIGBYH8eUtFrPpz7cpHZY
+         OeljHKuP/EF301yxFZEu40xoosXOHi7u2wyJ4QSc=
+Date:   Thu, 15 Oct 2020 20:11:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, kernel@cdqe.de,
-        krzk@kernel.org, mchehab+huawei@kernel.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 118/156] lib/crc32.c: fix trivial typo in
- preprocessor condition
-Message-ID: <20201016031138.eTR-Two-5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        christian.brauner@ubuntu.com, mm-commits@vger.kernel.org,
+        richard.weiyang@linux.alibaba.com, torvalds@linux-foundation.org
+Subject:  [patch 119/156] bitops: simplify get_count_order_long()
+Message-ID: <20201016031141.7uqv3SWXq%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,37 +52,33 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Tobias Jordan <kernel@cdqe.de>
-Subject: lib/crc32.c: fix trivial typo in preprocessor condition
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: bitops: simplify get_count_order_long()
 
-Whether crc32_be needs a lookup table is chosen based on CRC_LE_BITS. 
-Obviously, the _be function should be governed by the _BE_ define.
+These two cases could be unified into one.
 
-This probably never pops up as it's hard to come up with a configuration
-where CRC_BE_BITS isn't the same as CRC_LE_BITS and as nobody is using
-bitwise CRC anyway.
-
-Link: https://lkml.kernel.org/r/20200923182122.GA3338@agrajag.zerfleddert.de
-Fixes: 46c5801eaf86 ("crc32: bolt on crc32c")
-Signed-off-by: Tobias Jordan <kernel@cdqe.de>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Link: https://lkml.kernel.org/r/20200807085837.11697-2-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bitops.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/lib/crc32.c~lib-crc32c-fix-trivial-typo-in-preprocessor-condition
-+++ a/lib/crc32.c
-@@ -331,7 +331,7 @@ static inline u32 __pure crc32_be_generi
- 	return crc;
+--- a/include/linux/bitops.h~bitops-simplify-get_count_order_long
++++ a/include/linux/bitops.h
+@@ -206,10 +206,7 @@ static inline int get_count_order_long(u
+ {
+ 	if (l == 0UL)
+ 		return -1;
+-	else if (l & (l - 1UL))
+-		return (int)fls_long(l);
+-	else
+-		return (int)fls_long(l) - 1;
++	return (int)fls_long(--l);
  }
  
--#if CRC_LE_BITS == 1
-+#if CRC_BE_BITS == 1
- u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
- 	return crc32_be_generic(crc, p, len, NULL, CRC32_POLY_BE);
+ /**
 _
