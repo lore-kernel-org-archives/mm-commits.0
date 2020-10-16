@@ -2,43 +2,43 @@ Return-Path: <SRS0=zz/k=DX=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 322A9C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22781C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:51:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0D13218AC
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:50:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD82B21D41
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:51:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881451;
-	bh=LRs2D7nif7zAqFCL6TJo2IB58RQvHEr6FYpoWZT4Nig=;
+	s=default; t=1602881460;
+	bh=CVtBTugA2kTi5V4lV0DrIYvPp5bRjsd8/01kE29qkNA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=gFSWQpGVk0b21rUxCH8Tyy/ytZH9p2E4kAjFQV6ffKLY4xd9zDZSkdxqFV9e24L/j
-	 4oV7kwDliObc9qdqjYPnwzmi9GmUwNB+9IOFNab45Xg2uPPGLOCMdJ+bMX/Hpt1Yz1
-	 PC0mJefRB6777PZnbSHH6X85QGA1q8lPF1w3x3rw=
+	b=1sNcnN/8BiQ7RkTEuNp42VtcP4UFna5S0wZGZbvimgc2JifZ4tWv2AyOD+lrBZCS4
+	 Xqfvwfl4d4aY/FCvVUzUXlYx9qNzLoLKjgmaQarQx93FuNRjHoA6DgD8FmLZHU211Y
+	 CxD+3tSD8U3yjyX0CmzxryIh7nJIqA5YLr439jdQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392743AbgJPUuv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:50:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39580 "EHLO mail.kernel.org"
+        id S2405853AbgJPUvA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:51:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392725AbgJPUuv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:50:51 -0400
+        id S2405567AbgJPUvA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:51:00 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DEEA120878;
-        Fri, 16 Oct 2020 20:50:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8792B218AC;
+        Fri, 16 Oct 2020 20:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881449;
-        bh=LRs2D7nif7zAqFCL6TJo2IB58RQvHEr6FYpoWZT4Nig=;
+        s=default; t=1602881459;
+        bh=CVtBTugA2kTi5V4lV0DrIYvPp5bRjsd8/01kE29qkNA=;
         h=Date:From:To:Subject:From;
-        b=pwTqlEchGMmPqiuCJwfPx+eV87xhd05pg6tuRgOZDE0mn8sEEqKu/7liW88PZBDuN
-         J8PtsX2rPzSTdW59++XX3C897Epbuk7og4TRi22l4LnXqiW0ZRRRGLZ9dmPCvbo0Jj
-         AKjwMNXsAwrNtrI0i26aUrdNcQsAAGc8wuyERM1s=
-Date:   Fri, 16 Oct 2020 13:50:46 -0700
+        b=P+Txfqa69WlfoKp4k1oaA0UORWuKNtQXKygv0msGQbKal5g143/P50bXuYgq3lIec
+         35hmqndvXkJ1gUI9pBYY04LeXM4vrq1zIV9w2iic7+jNQwJztsHgH7RD5PJ2BiF/Zo
+         m0J2hiftCWG4DlpZZKBueM0TuVWmfSh2KrE1KKqs=
+Date:   Fri, 16 Oct 2020 13:50:56 -0700
 From:   akpm@linux-foundation.org
 To:     anton@ozlabs.org, ardb@kernel.org, benh@kernel.crashing.org,
         bhe@redhat.com, boris.ostrovsky@oracle.com, borntraeger@de.ibm.com,
@@ -50,17 +50,20 @@ To:     anton@ozlabs.org, ardb@kernel.org, benh@kernel.crashing.org,
         kernelfans@gmail.com, kys@microsoft.com, lenb@kernel.org,
         leobras.c@gmail.com, lpechacek@suse.cz, mhocko@suse.com,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au, mst@redhat.com,
-        natechancellor@gmail.com, nathanl@linux.ibm.com, oohall@gmail.com,
+        nathanl@linux.ibm.com, oohall@gmail.com,
         pankaj.gupta.linux@gmail.com, paulus@samba.org,
         richardw.yang@linux.intel.com, rjw@rjwysocki.net,
         roger.pau@citrix.com, sstabellini@kernel.org,
         sthemmin@microsoft.com, tglx@linutronix.de,
         vishal.l.verma@intel.com, wei.liu@kernel.org
 Subject:  [merged]
- kernel-resource-make-release_mem_region_adjustable-never-fail.patch removed
- from -mm tree
-Message-ID: <20201016205046.kiFv2hHwX%akpm@linux-foundation.org>
+ mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.patch
+ removed from -mm tree
+Message-ID: <20201016205056.Ct3A4ip1N%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -68,68 +71,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource: make release_mem_region_adjustable() never fail
+     Subject: mm/memory_hotplug: guard more declarations by CONFIG_MEMORY_H=
+OTPLUG
 has been removed from the -mm tree.  Its filename was
-     kernel-resource-make-release_mem_region_adjustable-never-fail.patch
+     mm-memory_hotplug-guard-more-declarations-by-config_memory_hotplug.pat=
+ch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: kernel/resource: make release_mem_region_adjustable() never fail
+=46rom: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: guard more declarations by CONFIG_MEMORY_HOTPLUG
 
-Patch series "selective merging of system ram resources", v4.
+We soon want to pass flags via a new type to add_memory() and friends.=20
+That revealed that we currently don't guard some declarations by
+CONFIG_MEMORY_HOTPLUG.
 
-Some add_memory*() users add memory in small, contiguous memory blocks. 
-Examples include virtio-mem, hyper-v balloon, and the XEN balloon.
+While some definitions could be moved to different places, let's keep it
+minimal for now and use CONFIG_MEMORY_HOTPLUG for all functions only
+compiled with CONFIG_MEMORY_HOTPLUG.
 
-This can quickly result in a lot of memory resources, whereby the actual
-resource boundaries are not of interest (e.g., it might be relevant for
-DIMMs, exposed via /proc/iomem to user space).  We really want to merge
-added resources in this scenario where possible.
+Wrap sparse_decode_mem_map() into CONFIG_MEMORY_HOTPLUG, it's only called
+from CONFIG_MEMORY_HOTPLUG code.
 
-Resources are effectively stored in a list-based tree.  Having a lot of
-resources not only wastes memory, it also makes traversing that tree more
-expensive, and makes /proc/iomem explode in size (e.g., requiring
-kexec-tools to manually merge resources when creating a kdump header.  The
-current kexec-tools resource count limit does not allow for more than
-~100GB of memory with a memory block size of 128MB on x86-64).
+While at it, remove allow_online_pfn_range(), which is no longer around,
+and mhp_notimplemented(), which is unused.
 
-Let's allow to selectively merge system ram resources by specifying a new
-flag for add_memory*().  Patch #5 contains a /proc/iomem example.  Only
-tested with virtio-mem.
-
-
-This patch (of 8):
-
-Let's make sure splitting a resource on memory hotunplug will never fail. 
-This will become more relevant once we merge selected System RAM resources
-- then, we'll trigger that case more often on memory hotunplug.
-
-In general, this function is already unlikely to fail.  When we remove
-memory, we free up quite a lot of metadata (memmap, page tables, memory
-block device, etc.).  The only reason it could really fail would be when
-injecting allocation errors.
-
-All other error cases inside release_mem_region_adjustable() seem to be
-sanity checks if the function would be abused in different context - let's
-add WARN_ON_ONCE() in these cases so we can catch them.
-
-[natechancellor@gmail.com: fix use of ternary condition in release_mem_region_adjustable]
-  Link: https://lkml.kernel.org/r/20200922060748.2452056-1-natechancellor@gmail.com
-  Link: https://github.com/ClangBuiltLinux/linux/issues/1159
-Link: https://lkml.kernel.org/r/20200911103459.10306-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20200911103459.10306-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
 Cc: Anton Blanchard <anton@ozlabs.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -138,9 +115,11 @@ Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Julien Grall <julien@xen.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Leonardo Bras <leobras.c@gmail.com>
@@ -152,7 +131,7 @@ Cc: "Oliver O'Halloran" <oohall@gmail.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Roger Pau Monn <roger.pau@citrix.com>
+Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -162,161 +141,69 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    4 +--
- kernel/resource.c      |   49 ++++++++++++++++++++++-----------------
- mm/memory_hotplug.c    |   22 -----------------
- 3 files changed, 31 insertions(+), 44 deletions(-)
+ include/linux/memory_hotplug.h |   12 +++---------
+ mm/sparse.c                    |    2 ++
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
---- a/include/linux/ioport.h~kernel-resource-make-release_mem_region_adjustable-never-fail
-+++ a/include/linux/ioport.h
-@@ -248,8 +248,8 @@ extern struct resource * __request_regio
- extern void __release_region(struct resource *, resource_size_t,
- 				resource_size_t);
- #ifdef CONFIG_MEMORY_HOTREMOVE
--extern int release_mem_region_adjustable(struct resource *, resource_size_t,
--				resource_size_t);
-+extern void release_mem_region_adjustable(struct resource *, resource_size_t,
-+					  resource_size_t);
- #endif
- 
- /* Wrappers for managed devices */
---- a/kernel/resource.c~kernel-resource-make-release_mem_region_adjustable-never-fail
-+++ a/kernel/resource.c
-@@ -1258,21 +1258,28 @@ EXPORT_SYMBOL(__release_region);
-  *   assumes that all children remain in the lower address entry for
-  *   simplicity.  Enhance this logic when necessary.
-  */
--int release_mem_region_adjustable(struct resource *parent,
--				  resource_size_t start, resource_size_t size)
-+void release_mem_region_adjustable(struct resource *parent,
-+				   resource_size_t start, resource_size_t size)
- {
-+	struct resource *new_res = NULL;
-+	bool alloc_nofail = false;
- 	struct resource **p;
- 	struct resource *res;
--	struct resource *new_res;
- 	resource_size_t end;
--	int ret = -EINVAL;
- 
- 	end = start + size - 1;
--	if ((start < parent->start) || (end > parent->end))
--		return ret;
-+	if (WARN_ON_ONCE((start < parent->start) || (end > parent->end)))
-+		return;
- 
--	/* The alloc_resource() result gets checked later */
--	new_res = alloc_resource(GFP_KERNEL);
-+	/*
-+	 * We free up quite a lot of memory on memory hotunplug (esp., memap),
-+	 * just before releasing the region. This is highly unlikely to
-+	 * fail - let's play save and make it never fail as the caller cannot
-+	 * perform any error handling (e.g., trying to re-add memory will fail
-+	 * similarly).
-+	 */
-+retry:
-+	new_res = alloc_resource(GFP_KERNEL | (alloc_nofail ? __GFP_NOFAIL : 0));
- 
- 	p = &parent->child;
- 	write_lock(&resource_lock);
-@@ -1298,7 +1305,6 @@ int release_mem_region_adjustable(struct
- 		 * so if we are dealing with them, let us just back off here.
- 		 */
- 		if (!(res->flags & IORESOURCE_SYSRAM)) {
--			ret = 0;
- 			break;
- 		}
- 
-@@ -1315,20 +1321,23 @@ int release_mem_region_adjustable(struct
- 			/* free the whole entry */
- 			*p = res->sibling;
- 			free_resource(res);
--			ret = 0;
- 		} else if (res->start == start && res->end != end) {
- 			/* adjust the start */
--			ret = __adjust_resource(res, end + 1,
--						res->end - end);
-+			WARN_ON_ONCE(__adjust_resource(res, end + 1,
-+						       res->end - end));
- 		} else if (res->start != start && res->end == end) {
- 			/* adjust the end */
--			ret = __adjust_resource(res, res->start,
--						start - res->start);
-+			WARN_ON_ONCE(__adjust_resource(res, res->start,
-+						       start - res->start));
- 		} else {
--			/* split into two entries */
-+			/* split into two entries - we need a new resource */
- 			if (!new_res) {
--				ret = -ENOMEM;
--				break;
-+				new_res = alloc_resource(GFP_ATOMIC);
-+				if (!new_res) {
-+					alloc_nofail = true;
-+					write_unlock(&resource_lock);
-+					goto retry;
-+				}
- 			}
- 			new_res->name = res->name;
- 			new_res->start = end + 1;
-@@ -1339,9 +1348,8 @@ int release_mem_region_adjustable(struct
- 			new_res->sibling = res->sibling;
- 			new_res->child = NULL;
- 
--			ret = __adjust_resource(res, res->start,
--						start - res->start);
--			if (ret)
-+			if (WARN_ON_ONCE(__adjust_resource(res, res->start,
-+							   start - res->start)))
- 				break;
- 			res->sibling = new_res;
- 			new_res = NULL;
-@@ -1352,7 +1360,6 @@ int release_mem_region_adjustable(struct
- 
- 	write_unlock(&resource_lock);
- 	free_resource(new_res);
--	return ret;
- }
- #endif	/* CONFIG_MEMORY_HOTREMOVE */
- 
---- a/mm/memory_hotplug.c~kernel-resource-make-release_mem_region_adjustable-never-fail
-+++ a/mm/memory_hotplug.c
-@@ -1727,26 +1727,6 @@ void try_offline_node(int nid)
- }
- EXPORT_SYMBOL(try_offline_node);
- 
--static void __release_memory_resource(resource_size_t start,
--				      resource_size_t size)
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-guard-more-declarati=
+ons-by-config_memory_hotplug
++++ a/include/linux/memory_hotplug.h
+@@ -247,13 +247,6 @@ static inline void zone_span_writelock(s
+ static inline void zone_span_writeunlock(struct zone *zone) {}
+ static inline void zone_seqlock_init(struct zone *zone) {}
+=20
+-static inline int mhp_notimplemented(const char *func)
 -{
--	int ret;
--
--	/*
--	 * When removing memory in the same granularity as it was added,
--	 * this function never fails. It might only fail if resources
--	 * have to be adjusted or split. We'll ignore the error, as
--	 * removing of memory cannot fail.
--	 */
--	ret = release_mem_region_adjustable(&iomem_resource, start, size);
--	if (ret) {
--		resource_size_t endres = start + size - 1;
--
--		pr_warn("Unable to release resource <%pa-%pa> (%d)\n",
--			&start, &endres, ret);
--	}
+-	printk(KERN_WARNING "%s() called, with CONFIG_MEMORY_HOTPLUG disabled\n",=
+ func);
+-	dump_stack();
+-	return -ENOSYS;
 -}
 -
- static int __ref try_remove_memory(int nid, u64 start, u64 size)
+ static inline void register_page_bootmem_info_node(struct pglist_data *pgd=
+at)
  {
- 	int rc = 0;
-@@ -1780,7 +1760,7 @@ static int __ref try_remove_memory(int n
- 		memblock_remove(start, size);
- 	}
- 
--	__release_memory_resource(start, size);
-+	release_mem_region_adjustable(&iomem_resource, start, size);
- 
- 	try_offline_node(nid);
- 
+ }
+@@ -344,6 +337,7 @@ static inline void __remove_memory(int n
+ extern void set_zone_contiguous(struct zone *zone);
+ extern void clear_zone_contiguous(struct zone *zone);
+=20
++#ifdef CONFIG_MEMORY_HOTPLUG
+ extern void __ref free_area_init_core_hotplug(int nid);
+ extern int __add_memory(int nid, u64 start, u64 size);
+ extern int add_memory(int nid, u64 start, u64 size);
+@@ -364,8 +358,8 @@ extern void sparse_remove_section(struct
+ 		unsigned long map_offset, struct vmem_altmap *altmap);
+ extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+ 					  unsigned long pnum);
+-extern bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned lo=
+ng nr_pages,
+-		int online_type);
+ extern struct zone *zone_for_pfn_range(int online_type, int nid, unsigned =
+start_pfn,
+ 		unsigned long nr_pages);
++#endif /* CONFIG_MEMORY_HOTPLUG */
++
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+--- a/mm/sparse.c~mm-memory_hotplug-guard-more-declarations-by-config_memor=
+y_hotplug
++++ a/mm/sparse.c
+@@ -312,6 +312,7 @@ static unsigned long sparse_encode_mem_m
+ 	return coded_mem_map;
+ }
+=20
++#ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+  * Decode mem_map from the coded memmap
+  */
+@@ -321,6 +322,7 @@ struct page *sparse_decode_mem_map(unsig
+ 	coded_mem_map &=3D SECTION_MAP_MASK;
+ 	return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum);
+ }
++#endif /* CONFIG_MEMORY_HOTPLUG */
+=20
+ static void __meminit sparse_init_one_section(struct mem_section *ms,
+ 		unsigned long pnum, struct page *mem_map,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
