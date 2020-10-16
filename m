@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B779C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:50:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ECB6C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:50:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EAC72214DB
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:50:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1071C214DB
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881425;
-	bh=RWfCbSVeZIbuxdMoDWEq6iUCFHRlQjaqri3b74Pfs9o=;
+	s=default; t=1602881429;
+	bh=U0JuSMjYqzi6Z2stxW9GwIcMF9ZOQFLKRurII0dqwD0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=sGA0tD99Jj8yKhxYzSJn2nd4CaYhSrdg9p6+v+2xfNCl3TbZv/uN38lgd5xy4l5hR
-	 YNxP18NUv5Kzvv04e03mTQ07jRNZTIpLw9abc7e6VZzKtW4+8d+HAXK+uukq9jPObs
-	 FWmUJfRCvCw1XjmP38eyVfnvAhV5vbEoHYVpgG+o=
+	b=dOdRzStxzVqiIsO99Z3ywP+To25Qg6KVoHFDh7kvZjcXEY16pmoaqUIQ8hmF0Te8P
+	 A0l1gLhiyolYrxCuEN6qjzXvRsgsFrLAmaSvAHwweq2AWpsH8kV1GqNCFkaDmNmpBX
+	 OTYVuV472cf4DhB6lznwLSz1wXjDHt6t8fR3aJcY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392737AbgJPUuY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:50:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39318 "EHLO mail.kernel.org"
+        id S2392738AbgJPUu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:50:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392725AbgJPUuY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:50:24 -0400
+        id S2392725AbgJPUu2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:50:28 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C97712145D;
-        Fri, 16 Oct 2020 20:50:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE60A20878;
+        Fri, 16 Oct 2020 20:50:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881423;
-        bh=RWfCbSVeZIbuxdMoDWEq6iUCFHRlQjaqri3b74Pfs9o=;
+        s=default; t=1602881427;
+        bh=U0JuSMjYqzi6Z2stxW9GwIcMF9ZOQFLKRurII0dqwD0=;
         h=Date:From:To:Subject:From;
-        b=kV9HLhTj2QpRNV7JB5Xg1renxWX5pW9dwxWakhEb63ih+noKeDG/JeNtZ/pVe8w2e
-         Za/B8aI3KfpHUzO9KSpI/hXnbVfnfRAySBISJiUMJJlqX2UVTJVWf/Q1DIjrMbkLIG
-         qacBsvmRX5jsuXuo1ZI6nvoZLDF+hgDDM3f2XbhI=
-Date:   Fri, 16 Oct 2020 13:50:22 -0700
+        b=W0ClaB6n0nCkCv9C6mJX80e6tcKg+UWCqPacbjn9sFO2TJx3qqO5TNK5k2coJlwG7
+         lc4m6paHWsRUunJ1L5sMLmu1p1XHCGj0ludgNSe1oQQOxgvINLneEvAaQGzERIU4Wr
+         MPUyP9QpcueIXdXgk1gzZuFtCFjdVTNjR6reONgc=
+Date:   Fri, 16 Oct 2020 13:50:26 -0700
 From:   akpm@linux-foundation.org
 To:     bhe@redhat.com, charante@codeaurora.org, dan.j.williams@intel.com,
         david@redhat.com, fenghua.yu@intel.com, logang@deltatee.com,
@@ -48,9 +48,9 @@ To:     bhe@redhat.com, charante@codeaurora.org, dan.j.williams@intel.com,
         rppt@kernel.org, tony.luck@intel.com, walken@google.com,
         willy@infradead.org
 Subject:  [merged]
- mm-memory_hotplug-drop-nr_isolate_pageblock-in-offline_pages.patch removed
- from -mm tree
-Message-ID: <20201016205022.Ch2odY5_B%akpm@linux-foundation.org>
+ mm-page_isolation-simplify-return-value-of-start_isolate_page_range.patch
+ removed from -mm tree
+Message-ID: <20201016205026.w5h2wT-5u%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -59,24 +59,19 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: drop nr_isolate_pageblock in offline_pages()
+     Subject: mm/page_isolation: simplify return value of start_isolate_page_range()
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-drop-nr_isolate_pageblock-in-offline_pages.patch
+     mm-page_isolation-simplify-return-value-of-start_isolate_page_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: drop nr_isolate_pageblock in offline_pages()
+Subject: mm/page_isolation: simplify return value of start_isolate_page_range()
 
-We make sure that we cannot have any memory holes right at the beginning
-of offline_pages() and we only support to online/offline full sections. 
-Both, sections and pageblocks are a power of two in size, and sections
-always span full pageblocks.
+Callers no longer need the number of isolated pageblocks.  Let's simplify.
 
-We can directly calculate the number of isolated pageblocks from nr_pages.
-
-Link: https://lkml.kernel.org/r/20200819175957.28465-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20200819175957.28465-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
@@ -96,40 +91,65 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ mm/page_alloc.c     |    2 +-
+ mm/page_isolation.c |    7 ++-----
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-nr_isolate_pageblock-in-offline_pages
+--- a/mm/memory_hotplug.c~mm-page_isolation-simplify-return-value-of-start_isolate_page_range
 +++ a/mm/memory_hotplug.c
-@@ -1471,10 +1471,10 @@ int __ref offline_pages(unsigned long st
- {
- 	const unsigned long end_pfn = start_pfn + nr_pages;
- 	unsigned long pfn, system_ram_pages = 0;
--	int ret, node, nr_isolate_pageblock;
- 	unsigned long flags;
- 	struct zone *zone;
- 	struct memory_notify arg;
-+	int ret, node;
- 	char *reason;
- 
- 	/* We can only offline full sections (e.g., SECTION_IS_ONLINE) */
-@@ -1518,7 +1518,6 @@ int __ref offline_pages(unsigned long st
+@@ -1514,7 +1514,7 @@ int __ref offline_pages(unsigned long st
+ 	ret = start_isolate_page_range(start_pfn, end_pfn,
+ 				       MIGRATE_MOVABLE,
+ 				       MEMORY_OFFLINE | REPORT_FAILURE);
+-	if (ret < 0) {
++	if (ret) {
  		reason = "failure to isolate range";
  		goto failed_removal;
  	}
--	nr_isolate_pageblock = ret;
+--- a/mm/page_alloc.c~mm-page_isolation-simplify-return-value-of-start_isolate_page_range
++++ a/mm/page_alloc.c
+@@ -8468,7 +8468,7 @@ int alloc_contig_range(unsigned long sta
  
- 	arg.start_pfn = start_pfn;
- 	arg.nr_pages = nr_pages;
-@@ -1596,7 +1595,7 @@ int __ref offline_pages(unsigned long st
- 	 * pageblocks zone counter here.
- 	 */
- 	spin_lock_irqsave(&zone->lock, flags);
--	zone->nr_isolate_pageblock -= nr_isolate_pageblock;
-+	zone->nr_isolate_pageblock -= nr_pages / pageblock_nr_pages;
- 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	ret = start_isolate_page_range(pfn_max_align_down(start),
+ 				       pfn_max_align_up(end), migratetype, 0);
+-	if (ret < 0)
++	if (ret)
+ 		return ret;
  
- 	/* removal success */
+ 	/*
+--- a/mm/page_isolation.c~mm-page_isolation-simplify-return-value-of-start_isolate_page_range
++++ a/mm/page_isolation.c
+@@ -173,8 +173,7 @@ __first_valid_page(unsigned long pfn, un
+  * (e.g. __offline_pages will need to call it after check for isolated range for
+  * a next retry).
+  *
+- * Return: the number of isolated pageblocks on success and -EBUSY if any part
+- * of range cannot be isolated.
++ * Return: 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+ int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+ 			     unsigned migratetype, int flags)
+@@ -182,7 +181,6 @@ int start_isolate_page_range(unsigned lo
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+ 	struct page *page;
+-	int nr_isolate_pageblock = 0;
+ 
+ 	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
+ 	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
+@@ -196,10 +194,9 @@ int start_isolate_page_range(unsigned lo
+ 				undo_pfn = pfn;
+ 				goto undo;
+ 			}
+-			nr_isolate_pageblock++;
+ 		}
+ 	}
+-	return nr_isolate_pageblock;
++	return 0;
+ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
