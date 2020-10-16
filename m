@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C6C8C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4087DC43457
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18BE92087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECF6F208C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816143;
-	bh=tQ1QpcOuQj6wdLnIWqM2irP2MNlx82mK1umTwxvJHS4=;
+	s=default; t=1602816147;
+	bh=0JJpXIiUtEhRHfUwJHo7FDlQ2wVlQHjS3icu8q+CNrA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HN8VxbToXuQFpQCfJt7dvvHDHLM61hejTL8WUXZ6j3veam7XGZhD/R8imuNT/I9Zp
-	 XZNqZmDk6KGnIGxCw7LUoq0u9EbDLOtm/McEWrqZwUVZWQH+zeangfK1n74IeksnmG
-	 CeCehEprawAr2d4eMsNgCmCLSm1QQIVKlfVYi25k=
+	b=uNrTPzTeEt9lBzVgM1bhbN5DH7JzJ7SLNdty3797LhrkIcSuuYGMViF/6FU+lG4FU
+	 mau+Qnj5MW1faWvWQ9/+rKFau+LmdwoUuojvnEX1SH9nCqfRnELgTL7gXAmsLFrQHC
+	 jPYQKo+Dd3pV+zI2gmwxdwwGt30cayUArVp9rm4Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388107AbgJPCmW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:42:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57820 "EHLO mail.kernel.org"
+        id S1732998AbgJPCm0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:42:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPCmW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:42:22 -0400
+        id S1728688AbgJPCmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:42:24 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8CCA32087D;
-        Fri, 16 Oct 2020 02:42:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C25DB208C7;
+        Fri, 16 Oct 2020 02:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816140;
-        bh=tQ1QpcOuQj6wdLnIWqM2irP2MNlx82mK1umTwxvJHS4=;
+        s=default; t=1602816144;
+        bh=0JJpXIiUtEhRHfUwJHo7FDlQ2wVlQHjS3icu8q+CNrA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=YKSj/UoWIauiFlQyapZ10eBO/ZyEGZIhUS85P2FpnSKw+Nbs8+OQjZKeayky62bK9
-         Z3ZkvFIcD/D3LDHzqjYcM6pYnBFlUjsQ0OmNBoYFNNkPWSDLZBsbooKhYHgDAa0a2+
-         ZVRIlhapIa4HlDwQdwF3GZooOfvRo9KMQO7xnChY=
-Date:   Thu, 15 Oct 2020 19:42:20 -0700
+        b=vB66kYoCfdY4uYyCZ/SogsH3k/iR/sQobaa+LbnFONlXih7iMe5qTLSFH0O+DVjNU
+         WX+uqM/5EE2V8B730qJsLvaA+Kp9j++Hmv6Tjl0X18L+Zow7n8wUtKi/+lICx+dnh6
+         enOyhGX2E3UBLSMfNVxHqq7A7w38sX9bxV6q86E0=
+Date:   Thu, 15 Oct 2020 19:42:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, sjpark@amazon.de,
         torvalds@linux-foundation.org, willy@infradead.org,
         ying.huang@intel.com
-Subject:  [patch 024/156] mm/huge_memory: fix
- page_trans_huge_mapcount assumption of THP size
-Message-ID: <20201016024220.nteu8nmb4%akpm@linux-foundation.org>
+Subject:  [patch 025/156] mm/huge_memory: fix can_split_huge_page
+ assumption of THP size
+Message-ID: <20201016024223.od0WvfVv_%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,38 +55,33 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/huge_memory: fix page_trans_huge_mapcount assumption of THP size
+Subject: mm/huge_memory: fix can_split_huge_page assumption of THP size
 
-Ask the page what size it is instead of assuming it's PMD size.
+Ask the page how many subpages it has instead of assuming it's PMD size.
 
-Link: https://lkml.kernel.org/r/20200908195539.25896-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: SeongJae Park <sjpark@amazon.de>
-Cc: Huang Ying <ying.huang@intel.com>
+Acked-by: "Huang, Ying" <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/huge_memory.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size
+--- a/mm/huge_memory.c~mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size
 +++ a/mm/huge_memory.c
-@@ -2558,14 +2558,14 @@ int page_trans_huge_mapcount(struct page
- 	page = compound_head(page);
+@@ -2582,9 +2582,9 @@ bool can_split_huge_page(struct page *pa
  
- 	_total_mapcount = ret = 0;
--	for (i = 0; i < HPAGE_PMD_NR; i++) {
-+	for (i = 0; i < thp_nr_pages(page); i++) {
- 		mapcount = atomic_read(&page[i]._mapcount) + 1;
- 		ret = max(ret, mapcount);
- 		_total_mapcount += mapcount;
- 	}
- 	if (PageDoubleMap(page)) {
- 		ret -= 1;
--		_total_mapcount -= HPAGE_PMD_NR;
-+		_total_mapcount -= thp_nr_pages(page);
- 	}
- 	mapcount = compound_mapcount(page);
- 	ret += mapcount;
+ 	/* Additional pins from page cache */
+ 	if (PageAnon(page))
+-		extra_pins = PageSwapCache(page) ? HPAGE_PMD_NR : 0;
++		extra_pins = PageSwapCache(page) ? thp_nr_pages(page) : 0;
+ 	else
+-		extra_pins = HPAGE_PMD_NR;
++		extra_pins = thp_nr_pages(page);
+ 	if (pextra_pins)
+ 		*pextra_pins = extra_pins;
+ 	return total_mapcount(page) == page_count(page) - extra_pins - 1;
 _
