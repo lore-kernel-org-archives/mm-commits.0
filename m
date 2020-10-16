@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA3A1C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:04:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5462CC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:05:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F75420897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:04:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D36620897
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:05:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817498;
-	bh=Nb9tQGDI8yHhkaGfKu7Xm2mtYuc1EFEfYccGxgvNkBI=;
+	s=default; t=1602817502;
+	bh=GuAsHGmOHdRYyIjylQteYu/TzN8WF1gcxtpHnzuEmm4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=F54glJ2PBvvTgG+P1nBrcFJH0AB4YgIjKdvEHmFgXBeSRQrE/iqBaZR9VAXEkEJhq
-	 b5+X4R7zby1EG5Zag1FfS7STZfW8xhXYXF/NYR1coumgx4UDwdZRkPU6EaEtab6XIX
-	 /bvgELW1QC4C7e78L+7jfQSBuH6jMitt1fowB4D4=
+	b=VzuB6UCBcC1crdD/hj1olwdssqfWIZ01OZiCa+KPM1xxChB7yVPW1HVeWXL0D9Y96
+	 BlmW9kF52kLehu11KpDfcRvR4i/hZBNd1wugf4uFLXV+UPbIroUjvCAvw6LX0zARa+
+	 R1ZRYkUzO941x4ZOE4jB04Ng53A8B44uWJQk5XWw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392129AbgJPDE6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:04:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43806 "EHLO mail.kernel.org"
+        id S2392151AbgJPDFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:05:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728261AbgJPDE6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:04:58 -0400
+        id S1728261AbgJPDFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:05:01 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 25F6C20789;
-        Fri, 16 Oct 2020 03:04:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6C08420878;
+        Fri, 16 Oct 2020 03:05:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817497;
-        bh=Nb9tQGDI8yHhkaGfKu7Xm2mtYuc1EFEfYccGxgvNkBI=;
+        s=default; t=1602817500;
+        bh=GuAsHGmOHdRYyIjylQteYu/TzN8WF1gcxtpHnzuEmm4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ewyyvFffkJzIaSs8TjuROlUbfjCETUvrOl78ns49Pt66AbvRlzkp12Nq9ui2Id9tD
-         NHc41Z1FK8oyXTwGeOa8iVdyN4bre3bv+PPO8e0FcyzzhlNwNn8CPWpkghpiOG2149
-         PBVhFwMIfutbWddoSmdo1fIPDEaVZFbS4KLIs53s=
-Date:   Thu, 15 Oct 2020 20:04:56 -0700
+        b=lxhcf7j+PxXLrsOM7unYNS2gAjX/cWfO/VivFTN2Td2OLtCY8SyfSgg/pzjBrhy98
+         vC/1cY6Vjneg7h73B7kyTVo3X/eGZnMVvkAhKNDqmgs4pM8aT1yO0yMPHAJWGuTM+H
+         D2GKMrZm44JojQyJmJaXMjT6PmqDjBvLax46UBwE=
+Date:   Thu, 15 Oct 2020 20:04:59 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         torvalds@linux-foundation.org
-Subject:  [patch 011/156] mm/debug_vm_pgtable/thp: use page table
- depost/withdraw with THP
-Message-ID: <20201016030456.5r1S0YG4g%akpm@linux-foundation.org>
+Subject:  [patch 012/156] mm/debug_vm_pgtable/pmd_clear: don't use
+ pmd/pud_clear on pte entries
+Message-ID: <20201016030459.3Zsrl30xf%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,67 +55,56 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable/thp: use page table depost/withdraw with THP
+Subject: mm/debug_vm_pgtable/pmd_clear: don't use pmd/pud_clear on pte entries
 
-Architectures like ppc64 use deposited page table while updating the huge
-pte entries.
+pmd_clear() should not be used to clear pmd level pte entries.
 
-Link: https://lkml.kernel.org/r/20200902114222.181353-11-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-12-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/debug_vm_pgtable.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries
 +++ a/mm/debug_vm_pgtable.c
-@@ -154,7 +154,7 @@ static void __init pmd_basic_tests(unsig
- static void __init pmd_advanced_tests(struct mm_struct *mm,
- 				      struct vm_area_struct *vma, pmd_t *pmdp,
- 				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
-+				      pgprot_t prot, pgtable_t pgtable)
- {
- 	pmd_t pmd;
- 
-@@ -165,6 +165,8 @@ static void __init pmd_advanced_tests(st
- 	/* Align the address wrt HPAGE_PMD_SIZE */
- 	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
- 
-+	pgtable_trans_huge_deposit(mm, pmdp, pgtable);
-+
- 	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
- 	set_pmd_at(mm, vaddr, pmdp, pmd);
- 	pmdp_set_wrprotect(mm, vaddr, pmdp);
-@@ -193,6 +195,8 @@ static void __init pmd_advanced_tests(st
- 	pmdp_test_and_clear_young(vma, vaddr, pmdp);
+@@ -196,6 +196,8 @@ static void __init pmd_advanced_tests(st
  	pmd = READ_ONCE(*pmdp);
  	WARN_ON(pmd_young(pmd));
+ 
++	/*  Clear the pte entries  */
++	pmdp_huge_get_and_clear(mm, vaddr, pmdp);
+ 	pgtable = pgtable_trans_huge_withdraw(mm, pmdp);
+ }
+ 
+@@ -319,6 +321,8 @@ static void __init pud_advanced_tests(st
+ 	pudp_test_and_clear_young(vma, vaddr, pudp);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(pud_young(pud));
 +
-+	pgtable = pgtable_trans_huge_withdraw(mm, pmdp);
++	pudp_huge_get_and_clear(mm, vaddr, pudp);
  }
  
- static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot)
-@@ -371,7 +375,7 @@ static void __init pud_basic_tests(unsig
- static void __init pmd_advanced_tests(struct mm_struct *mm,
- 				      struct vm_area_struct *vma, pmd_t *pmdp,
- 				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
-+				      pgprot_t prot, pgtable_t pgtable)
- {
- }
- static void __init pud_advanced_tests(struct mm_struct *mm,
-@@ -1048,7 +1052,7 @@ static int __init debug_vm_pgtable(void)
- 
- 	ptl = pmd_lock(mm, pmdp);
- 	pmd_clear_tests(mm, pmdp);
--	pmd_advanced_tests(mm, vma, pmdp, pmd_aligned, vaddr, prot);
-+	pmd_advanced_tests(mm, vma, pmdp, pmd_aligned, vaddr, prot, saved_ptep);
- 	pmd_huge_tests(pmdp, pmd_aligned, prot);
- 	pmd_populate_tests(mm, pmdp, saved_ptep);
- 	spin_unlock(ptl);
+ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot)
+@@ -442,8 +446,6 @@ static void __init pud_populate_tests(st
+ 	 * This entry points to next level page table page.
+ 	 * Hence this must not qualify as pud_bad().
+ 	 */
+-	pmd_clear(pmdp);
+-	pud_clear(pudp);
+ 	pud_populate(mm, pudp, pmdp);
+ 	pud = READ_ONCE(*pudp);
+ 	WARN_ON(pud_bad(pud));
+@@ -575,7 +577,6 @@ static void __init pmd_populate_tests(st
+ 	 * This entry points to next level page table page.
+ 	 * Hence this must not qualify as pmd_bad().
+ 	 */
+-	pmd_clear(pmdp);
+ 	pmd_populate(mm, pmdp, pgtable);
+ 	pmd = READ_ONCE(*pmdp);
+ 	WARN_ON(pmd_bad(pmd));
 _
