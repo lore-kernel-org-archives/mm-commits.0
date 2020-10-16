@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA8BC43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACA9AC43467
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B806721D81
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 508412145D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881522;
-	bh=2crNiCNQ5cmIfMSNjekoUg8a63GWACa35PVZTsK951k=;
+	s=default; t=1602881524;
+	bh=6cgIkY9BV3WQpcASTGbr8AA9VcqZC5GqWDFa9DAP0Ww=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=fzKXOapBFDqlsJKrX6Bme4Ew6LlV5v+G0U+Si1JN8MwCfabfFjhdHUMlBAiUR7R6i
-	 45SIo3lFvHa+7/WzQhvlLctjc5hgc+vF754faevqjDJWVNxDsOnRlvnJDeTeeP/Qnw
-	 UoeVtl4m3glOm3EizRAy6g4WjYEnu3xXK+Q4ENP0=
+	b=BWwt3TpeSNLYJiLgB0cABhhoRJUNh7aAtdh09r7wMNSaZBwDCbV0lpJtwXC03vkI9
+	 3QJTTV/ctpTOwEAQTr+Qt8idzL39BheFWSg6MBHDIEM6AFzSdTFJ/ONDxZtVeSdtuK
+	 Stm0cnPaXbQ3sWuJeR7tqcLwCGk8BNRRJpfLzOuk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408118AbgJPUwC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40632 "EHLO mail.kernel.org"
+        id S2408216AbgJPUwD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40750 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732579AbgJPUv5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:51:57 -0400
+        id S1732579AbgJPUwD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:03 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BBD24218AC;
-        Fri, 16 Oct 2020 20:51:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B33ED21D40;
+        Fri, 16 Oct 2020 20:52:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881516;
-        bh=2crNiCNQ5cmIfMSNjekoUg8a63GWACa35PVZTsK951k=;
+        s=default; t=1602881522;
+        bh=6cgIkY9BV3WQpcASTGbr8AA9VcqZC5GqWDFa9DAP0Ww=;
         h=Date:From:To:Subject:From;
-        b=Jtk1jfhAIwwBQxgd7M8q/58lNWMzsg8Q3Xxq6DILoDNHYQVZ2aBbMa3gj6ku2N6jA
-         loTF9qOY0Qb0yGkTfioqovq7E85SypPpDAaGuFkwZKcu7B0La63+ihY79+H15FXYQ5
-         DuhKfyIQxC7t6Vjdu/BomOFLU7fc9YuXg7QKErQo=
-Date:   Fri, 16 Oct 2020 13:51:55 -0700
+        b=NvombyGRNz9C7DC7SGSU+q8cXkEhKRMO379Z7WmG5XD54WrtpZvR4QKqkItxHpmWt
+         owhnd+5BMqKX3n5K1adCkkc2Ku941ae7OkF7zA7jaI2MYtMJ0PM25qdhV5f94xvdkn
+         sdf2YV99MMYrqh4LS0MRUW7RZTyppRUh+9qsmp50=
+Date:   Fri, 16 Oct 2020 13:52:01 -0700
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, dianders@chromium.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com,
-        sonnyrao@chromium.org
+To:     alexander.h.duyck@linux.intel.com, david@redhat.com,
+        mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com
 Subject:  [merged]
- zram-failing-to-decompress-is-warn_on-worthy.patch removed from -mm tree
-Message-ID: <20201016205155.Wums6nH-M%akpm@linux-foundation.org>
+ mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
+ removed from -mm tree
+Message-ID: <20201016205201.Dx7_s-x1t%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,57 +54,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: failing to decompress is WARN_ON worthy
+     Subject: mm/page_reporting.c: drop stale list head check in page_reporting_cycle
 has been removed from the -mm tree.  Its filename was
-     zram-failing-to-decompress-is-warn_on-worthy.patch
+     mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: zram: failing to decompress is WARN_ON worthy
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/page_reporting.c: drop stale list head check in page_reporting_cycle
 
-If we fail to decompress in zram it's a pretty serious problem.  We were
-entrusted to be able to decompress the old data but we failed.  Either
-we've got some crazy bug in the compression code or we've got memory
-corruption.
+list_for_each_entry_safe() guarantees that we will never stumble over the
+list head; "&page->lru != list" will always evaluate to true.  Let's
+simplify.
 
-At the moment, when this happens the log looks like this:
-
-  ERR kernel: [ 1833.099861] zram: Decompression failed! err=-22, page=336112
-  ERR kernel: [ 1833.099881] zram: Decompression failed! err=-22, page=336112
-  ALERT kernel: [ 1833.099886] Read-error on swap-device (253:0:2688896)
-
-It is true that we have an "ALERT" level log in there, but (at least to
-me) it feels like even this isn't enough to impart the seriousness of this
-error.  Let's convert to a WARN_ON.  Note that WARN_ON is automatically
-"unlikely" so we can simply replace the old annotation with the new one.
-
-Link: https://lkml.kernel.org/r/20200917174059.1.If09c882545dbe432268f7a67a4d4cfcb6caace4f@changeid
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Sonny Rao <sonnyrao@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+[david@redhat.com: Changelog refinements]
+Link: http://lkml.kernel.org/r/20200818084448.33969-1-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
+ mm/page_reporting.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-failing-to-decompress-is-warn_on-worthy
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1270,7 +1270,7 @@ static int __zram_bvec_read(struct zram
- 	zram_slot_unlock(zram, index);
+--- a/mm/page_reporting.c~mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle
++++ a/mm/page_reporting.c
+@@ -178,7 +178,7 @@ page_reporting_cycle(struct page_reporti
+ 		 * the new head of the free list before we release the
+ 		 * zone lock.
+ 		 */
+-		if (&page->lru != list && !list_is_first(&page->lru, list))
++		if (!list_is_first(&page->lru, list))
+ 			list_rotate_to_front(&page->lru, list);
  
- 	/* Should NEVER happen. Return bio error if it does. */
--	if (unlikely(ret))
-+	if (WARN_ON(ret))
- 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
- 
- 	return ret;
+ 		/* release lock before waiting on report processing */
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
 
