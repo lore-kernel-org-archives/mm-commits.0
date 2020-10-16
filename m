@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 266D3C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C40EC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF25A2145D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD82720897
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816067;
-	bh=T/suh2QaZxyTrGnu3Z+qGfEkf6U38UdnL7GtqRBHl/4=;
+	s=default; t=1602816069;
+	bh=Xp2NxTMc2t88xor0f64gTNqFNqCCRES4fc1ua6TJsOA=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=o80W/beAK20KEEOwSAfB17PPW7AFcde+nGfQ2yPIlK9v5/A1QfyDBrAnsmk0vEz0t
-	 zCzN7eHrBmYDYIz/o9RZPipBRje72sCQ4c9L/yEZLdPeiXeNF7nwIOoijKos0ZRM/T
-	 FO3UX3AayU91Rdpt7H7it3j6fLXrclF2z+zlKRN0=
+	b=KE/pmf6PE4wghJO0Sey5M9Z8ZjDndOXbrKHUOD5Dfy/5XVb4nWR0Kl2sWwBdcbQdX
+	 6FGULNrhYx/GERpi8t7/oragBmkP9WEeTYHDkN9ZUJN66LqiFnekaFx9HxwGUHfXQr
+	 BckpXWVKDFTPthq0Pnd9lUvtSp9Q97QG/DmZpDNk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404280AbgJPClH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:41:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56572 "EHLO mail.kernel.org"
+        id S2404281AbgJPClJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:41:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404278AbgJPClF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:41:05 -0400
+        id S2404278AbgJPClJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:41:09 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 47339208C7;
-        Fri, 16 Oct 2020 02:41:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C391F2087D;
+        Fri, 16 Oct 2020 02:41:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816064;
-        bh=T/suh2QaZxyTrGnu3Z+qGfEkf6U38UdnL7GtqRBHl/4=;
+        s=default; t=1602816068;
+        bh=Xp2NxTMc2t88xor0f64gTNqFNqCCRES4fc1ua6TJsOA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=qVBUS/+ucNfzZINCq83JuIC375WplQiV3Oc+T6XkS8/hIkOS0P+38yy57veU57q80
-         Ga11QlY5HwEZRlWI4EJyQXVO+H/dVwrnw1+73zEN6byI7cfA/Qnt37hFEMRtuHKYwD
-         UIGIwqrwYLMbSfhXNMF6xzIElIN3uIpYAsvuoKeg=
-Date:   Thu, 15 Oct 2020 19:41:03 -0700
+        b=14e1nyg5L4PlVoUDyOBnUc5GllJpcGmtdxozjjT746GMF6VOLrYNpN7bjzRBF72vN
+         lsvgY5oMCcpeiAa1i5KQW8D6BfozUiMIZbtJO+xzCVgCXt3kvuZ+BlPm3nnTlYSl2s
+         Zyuehy1bdcIuv8lFQtesKvb3wds5NaIVxa0pUzO8=
+Date:   Thu, 15 Oct 2020 19:41:07 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         torvalds@linux-foundation.org
-Subject:  [patch 002/156] powerpc/mm: add DEBUG_VM WARN for
- pmd_clear
-Message-ID: <20201016024103.HqDhEKFCQ%akpm@linux-foundation.org>
+Subject:  [patch 003/156] powerpc/mm: move setting pte specific
+ flags to pfn_pte
+Message-ID: <20201016024107.wZSbToW_d%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,109 +55,104 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mm: add DEBUG_VM WARN for pmd_clear
+Subject: powerpc/mm: move setting pte specific flags to pfn_pte
 
-Patch series "mm/debug_vm_pgtable fixes", v4.
+powerpc used to set the pte specific flags in set_pte_at().  This is
+different from other architectures.  To be consistent with other
+architecture update pfn_pte to set _PAGE_PTE on ppc64.  Also, drop now
+unused pte_mkpte.
 
-This patch series includes fixes for debug_vm_pgtable test code so that
-they follow page table updates rules correctly.  The first two patches
-introduce changes w.r.t ppc64.
+We add a VM_WARN_ON() to catch the usage of calling set_pte_at() without
+setting _PAGE_PTE bit.  We will remove that after a few releases.
 
-Hugetlb test is disabled on ppc64 because that needs larger change to satisfy
-page table update rules.
+With respect to huge pmd entries, pmd_mkhuge() takes care of adding the
+_PAGE_PTE bit.
 
-These tests are broken w.r.t page table update rules and results in kernel
-crash as below. 
-
-[   21.083519] kernel BUG at arch/powerpc/mm/pgtable.c:304!
-cpu 0x0: Vector: 700 (Program Check) at [c000000c6d1e76c0]
-    pc: c00000000009a5ec: assert_pte_locked+0x14c/0x380
-    lr: c0000000005eeeec: pte_update+0x11c/0x190
-    sp: c000000c6d1e7950
-   msr: 8000000002029033
-  current = 0xc000000c6d172c80
-  paca    = 0xc000000003ba0000   irqmask: 0x03   irq_happened: 0x01
-    pid   = 1, comm = swapper/0
-kernel BUG at arch/powerpc/mm/pgtable.c:304!
-[link register   ] c0000000005eeeec pte_update+0x11c/0x190
-[c000000c6d1e7950] 0000000000000001 (unreliable)
-[c000000c6d1e79b0] c0000000005eee14 pte_update+0x44/0x190
-[c000000c6d1e7a10] c000000001a2ca9c pte_advanced_tests+0x160/0x3d8
-[c000000c6d1e7ab0] c000000001a2d4fc debug_vm_pgtable+0x7e8/0x1338
-[c000000c6d1e7ba0] c0000000000116ec do_one_initcall+0xac/0x5f0
-[c000000c6d1e7c80] c0000000019e4fac kernel_init_freeable+0x4dc/0x5a4
-[c000000c6d1e7db0] c000000000012474 kernel_init+0x24/0x160
-[c000000c6d1e7e20] c00000000000cbd0 ret_from_kernel_thread+0x5c/0x6c
-
-With DEBUG_VM disabled
-
-[   20.530152] BUG: Kernel NULL pointer dereference on read at 0x00000000
-[   20.530183] Faulting instruction address: 0xc0000000000df330
-cpu 0x33: Vector: 380 (Data SLB Access) at [c000000c6d19f700]
-    pc: c0000000000df330: memset+0x68/0x104
-    lr: c00000000009f6d8: hash__pmdp_huge_get_and_clear+0xe8/0x1b0
-    sp: c000000c6d19f990
-   msr: 8000000002009033
-   dar: 0
-  current = 0xc000000c6d177480
-  paca    = 0xc00000001ec4f400   irqmask: 0x03   irq_happened: 0x01
-    pid   = 1, comm = swapper/0
-[link register   ] c00000000009f6d8 hash__pmdp_huge_get_and_clear+0xe8/0x1b0
-[c000000c6d19f990] c00000000009f748 hash__pmdp_huge_get_and_clear+0x158/0x1b0 (unreliable)
-[c000000c6d19fa10] c0000000019ebf30 pmd_advanced_tests+0x1f0/0x378
-[c000000c6d19fab0] c0000000019ed088 debug_vm_pgtable+0x79c/0x1244
-[c000000c6d19fba0] c0000000000116ec do_one_initcall+0xac/0x5f0
-[c000000c6d19fc80] c0000000019a4fac kernel_init_freeable+0x4dc/0x5a4
-[c000000c6d19fdb0] c000000000012474 kernel_init+0x24/0x160
-[c000000c6d19fe20] c00000000000cbd0 ret_from_kernel_thread+0x5c/0x6c
-
-
-This patch (of 13):
-
-With the hash page table, the kernel should not use pmd_clear for clearing
-huge pte entries.  Add a DEBUG_VM WARN to catch the wrong usage.
-
-Link: https://lkml.kernel.org/r/20200902114222.181353-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20200902114222.181353-2-aneesh.kumar@linux.ibm.com
+[akpm@linux-foundation.org: whitespace fix, per Christophe]
+Link: https://lkml.kernel.org/r/20200902114222.181353-3-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   15 +++++++++------
+ arch/powerpc/include/asm/nohash/pgtable.h    |    5 -----
+ arch/powerpc/mm/pgtable.c                    |    5 -----
+ 3 files changed, 9 insertions(+), 16 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-add-debug_vm-warn-for-pmd_clear
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte
 +++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -866,6 +866,13 @@ static inline bool pte_ci(pte_t pte)
+@@ -615,7 +615,7 @@ static inline pte_t pfn_pte(unsigned lon
+ 	VM_BUG_ON(pfn >> (64 - PAGE_SHIFT));
+ 	VM_BUG_ON((pfn << PAGE_SHIFT) & ~PTE_RPN_MASK);
  
- static inline void pmd_clear(pmd_t *pmdp)
- {
-+	if (IS_ENABLED(CONFIG_DEBUG_VM) && !radix_enabled()) {
-+		/*
-+		 * Don't use this if we can possibly have a hash page table
-+		 * entry mapping this.
-+		 */
-+		WARN_ON((pmd_val(*pmdp) & (H_PAGE_HASHPTE | _PAGE_PTE)) == (H_PAGE_HASHPTE | _PAGE_PTE));
-+	}
- 	*pmdp = __pmd(0);
+-	return __pte(((pte_basic_t)pfn << PAGE_SHIFT) | pgprot_val(pgprot));
++	return __pte(((pte_basic_t)pfn << PAGE_SHIFT) | pgprot_val(pgprot) | _PAGE_PTE);
  }
  
-@@ -914,6 +921,13 @@ static inline int pmd_bad(pmd_t pmd)
- 
- static inline void pud_clear(pud_t *pudp)
- {
-+	if (IS_ENABLED(CONFIG_DEBUG_VM) && !radix_enabled()) {
-+		/*
-+		 * Don't use this if we can possibly have a hash page table
-+		 * entry mapping this.
-+		 */
-+		WARN_ON((pud_val(*pudp) & (H_PAGE_HASHPTE | _PAGE_PTE)) == (H_PAGE_HASHPTE | _PAGE_PTE));
-+	}
- 	*pudp = __pud(0);
+ static inline unsigned long pte_pfn(pte_t pte)
+@@ -651,11 +651,6 @@ static inline pte_t pte_mkexec(pte_t pte
+ 	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_EXEC));
  }
  
+-static inline pte_t pte_mkpte(pte_t pte)
+-{
+-	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PTE));
+-}
+-
+ static inline pte_t pte_mkwrite(pte_t pte)
+ {
+ 	/*
+@@ -819,6 +814,14 @@ static inline int pte_none(pte_t pte)
+ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 				pte_t *ptep, pte_t pte, int percpu)
+ {
++
++	VM_WARN_ON(!(pte_raw(pte) & cpu_to_be64(_PAGE_PTE)));
++	/*
++	 * Keep the _PAGE_PTE added till we are sure we handle _PAGE_PTE
++	 * in all the callers.
++	 */
++	pte = __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PTE));
++
+ 	if (radix_enabled())
+ 		return radix__set_pte_at(mm, addr, ptep, pte, percpu);
+ 	return hash__set_pte_at(mm, addr, ptep, pte, percpu);
+--- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte
++++ a/arch/powerpc/include/asm/nohash/pgtable.h
+@@ -140,11 +140,6 @@ static inline pte_t pte_mkold(pte_t pte)
+ 	return __pte(pte_val(pte) & ~_PAGE_ACCESSED);
+ }
+ 
+-static inline pte_t pte_mkpte(pte_t pte)
+-{
+-	return pte;
+-}
+-
+ static inline pte_t pte_mkspecial(pte_t pte)
+ {
+ 	return __pte(pte_val(pte) | _PAGE_SPECIAL);
+--- a/arch/powerpc/mm/pgtable.c~powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte
++++ a/arch/powerpc/mm/pgtable.c
+@@ -184,9 +184,6 @@ void set_pte_at(struct mm_struct *mm, un
+ 	 */
+ 	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
+ 
+-	/* Add the pte bit when trying to set a pte */
+-	pte = pte_mkpte(pte);
+-
+ 	/* Note: mm->context.id might not yet have been assigned as
+ 	 * this context might not have been activated yet when this
+ 	 * is called.
+@@ -275,8 +272,6 @@ void set_huge_pte_at(struct mm_struct *m
+ 	 */
+ 	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
+ 
+-	pte = pte_mkpte(pte);
+-
+ 	pte = set_pte_filter(pte);
+ 
+ 	val = pte_val(pte);
 _
