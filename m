@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FCDC43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AB57C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC32821D81
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15B3221D81
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881686;
-	bh=ecU06RBuCODHwcejmnsIROXe/UhF0RUQT7k2HUkQRKg=;
+	s=default; t=1602881690;
+	bh=wWkZQOMv0T4fAKRArcEmNTgXdbGnALb/E/i7nXm4jJQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=vDKDJ33oOlsuJmeGhZsMws9bqRgB584FvjMZGTvj1tzILIU4U8R7gJL01id/bFVI5
-	 BslndV5nToo5knMOWWQmEb69BwkE/NerbrM8CAi7yVL1Ah9gfn9HgtxphG2Z8tuCps
-	 RMQv5JYjHC0SQxU3x5K8fYWmHngUTPuGaGDuL/Pg=
+	b=BhKlqgXTPUb65CbeHfUrAEC+HwBkDJ4a55T1KiTgrwBLFaFyKqhbHVGkmqyZi0py8
+	 1j8SEnRTp+N/Wqjg9ZYLC/NVuRCyEzr5dmvcTi1D2rPOyoDI7iv8OODdVy7TZDv1wl
+	 +EVWkDOBIC/pi6fT73s1YmOxmGPMYCvppGrvioC8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390365AbgJPUyq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:54:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42396 "EHLO mail.kernel.org"
+        id S2409422AbgJPUyt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:54:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732596AbgJPUyq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:54:46 -0400
+        id S1732596AbgJPUyt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:54:49 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BAE0B21D40;
-        Fri, 16 Oct 2020 20:54:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9996D21D41;
+        Fri, 16 Oct 2020 20:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881685;
-        bh=ecU06RBuCODHwcejmnsIROXe/UhF0RUQT7k2HUkQRKg=;
+        s=default; t=1602881687;
+        bh=wWkZQOMv0T4fAKRArcEmNTgXdbGnALb/E/i7nXm4jJQ=;
         h=Date:From:To:Subject:From;
-        b=NzGa/z6ip0K55G4D/6aQxoHHn7N1SaIfHtSGMr/5giM+lp2dt3EiLg+Al51GdNkD8
-         mBbaYayZ/RadydMqjjR14lJpPUeS2mzEk5cKOG+93Sq40JwbJwBpMUqacJeBrVMWJ5
-         ni5kykNf2JPyp8+0GFBK7R+yuMfz36gzKQrVWe/o=
-Date:   Fri, 16 Oct 2020 13:54:44 -0700
+        b=KKCFdlzwrWEiLMuutbsdOUxcf1OiIfPg65PGCFba/QzahemjF+MgT590c/tyYv2P4
+         6KWyofJAhVfwTS5WVF7c2IiDUutcgcD3Al4guoU7nf8uux0mCBJhD8bcV27K2h4TMm
+         bWk4+muVVAD4BVVnDN75PgZ/KNLNAj0eZlzcn7ck=
+Date:   Fri, 16 Oct 2020 13:54:47 -0700
 From:   akpm@linux-foundation.org
 To:     ebiederm@xmission.com, hch@lst.de, hughd@google.com,
         jannh@google.com, mm-commits@vger.kernel.org, oleg@redhat.com,
         torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [merged] mm-gup-take-mmap_lock-in-get_dump_page.patch
- removed from -mm tree
-Message-ID: <20201016205444.1SJb2DzWa%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-remove-the-now-unnecessary-mmget_still_valid-hack.patch removed from -mm
+ tree
+Message-ID: <20201016205447.k2tHtfhAt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,24 +55,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: take mmap_lock in get_dump_page()
+     Subject: mm: remove the now-unnecessary mmget_still_valid() hack
 has been removed from the -mm tree.  Its filename was
-     mm-gup-take-mmap_lock-in-get_dump_page.patch
+     mm-remove-the-now-unnecessary-mmget_still_valid-hack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jann Horn <jannh@google.com>
-Subject: mm/gup: take mmap_lock in get_dump_page()
+Subject: mm: remove the now-unnecessary mmget_still_valid() hack
 
-Properly take the mmap_lock before calling into the GUP code from
-get_dump_page(); and play nice, allowing the GUP code to drop the
-mmap_lock if it has to sleep.
+The preceding patches have ensured that core dumping properly takes the
+mmap_lock.  Thanks to that, we can now remove mmget_still_valid() and all
+its users.
 
-As Linus pointed out, we don't actually need the VMA because
-__get_user_pages() will flush the dcache for us if necessary.
-
-Link: http://lkml.kernel.org/r/20200827114932.3572699-7-jannh@google.com
+Link: http://lkml.kernel.org/r/20200827114932.3572699-8-jannh@google.com
 Signed-off-by: Jann Horn <jannh@google.com>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -82,41 +80,278 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/uverbs_main.c |    3 -
+ drivers/vfio/pci/vfio_pci.c           |   38 +++++++++++-------------
+ fs/proc/task_mmu.c                    |   18 -----------
+ fs/userfaultfd.c                      |   28 +++++------------
+ include/linux/sched/mm.h              |   25 ---------------
+ mm/khugepaged.c                       |    2 -
+ mm/madvise.c                          |   17 ----------
+ mm/mmap.c                             |    5 ---
+ 8 files changed, 29 insertions(+), 107 deletions(-)
 
---- a/mm/gup.c~mm-gup-take-mmap_lock-in-get_dump_page
-+++ a/mm/gup.c
-@@ -1547,19 +1547,23 @@ finish_or_fault:
-  * NULL wherever the ZERO_PAGE, or an anonymous pte_none, has been found -
-  * allowing a hole to be left in the corefile to save diskspace.
-  *
-- * Called without mmap_lock, but after all other threads have been killed.
-+ * Called without mmap_lock (takes and releases the mmap_lock by itself).
-  */
- #ifdef CONFIG_ELF_CORE
- struct page *get_dump_page(unsigned long addr)
- {
--	struct vm_area_struct *vma;
-+	struct mm_struct *mm = current->mm;
- 	struct page *page;
-+	int locked = 1;
-+	int ret;
+--- a/drivers/infiniband/core/uverbs_main.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/drivers/infiniband/core/uverbs_main.c
+@@ -845,8 +845,6 @@ void uverbs_user_mmap_disassociate(struc
+ 		 * will only be one mm, so no big deal.
+ 		 */
+ 		mmap_read_lock(mm);
+-		if (!mmget_still_valid(mm))
+-			goto skip_mm;
+ 		mutex_lock(&ufile->umap_lock);
+ 		list_for_each_entry_safe (priv, next_priv, &ufile->umaps,
+ 					  list) {
+@@ -865,7 +863,6 @@ void uverbs_user_mmap_disassociate(struc
+ 			}
+ 		}
+ 		mutex_unlock(&ufile->umap_lock);
+-	skip_mm:
+ 		mmap_read_unlock(mm);
+ 		mmput(mm);
+ 	}
+--- a/drivers/vfio/pci/vfio_pci.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/drivers/vfio/pci/vfio_pci.c
+@@ -1480,31 +1480,29 @@ static int vfio_pci_zap_and_vma_lock(str
+ 		} else {
+ 			mmap_read_lock(mm);
+ 		}
+-		if (mmget_still_valid(mm)) {
+-			if (try) {
+-				if (!mutex_trylock(&vdev->vma_lock)) {
+-					mmap_read_unlock(mm);
+-					mmput(mm);
+-					return 0;
+-				}
+-			} else {
+-				mutex_lock(&vdev->vma_lock);
++		if (try) {
++			if (!mutex_trylock(&vdev->vma_lock)) {
++				mmap_read_unlock(mm);
++				mmput(mm);
++				return 0;
+ 			}
+-			list_for_each_entry_safe(mmap_vma, tmp,
+-						 &vdev->vma_list, vma_next) {
+-				struct vm_area_struct *vma = mmap_vma->vma;
++		} else {
++			mutex_lock(&vdev->vma_lock);
++		}
++		list_for_each_entry_safe(mmap_vma, tmp,
++					 &vdev->vma_list, vma_next) {
++			struct vm_area_struct *vma = mmap_vma->vma;
  
--	if (__get_user_pages_locked(current->mm, addr, 1, &page, &vma, NULL,
--				    FOLL_FORCE | FOLL_DUMP | FOLL_GET) < 1)
-+	if (mmap_read_lock_killable(mm))
- 		return NULL;
--	flush_cache_page(vma, addr, page_to_pfn(page));
--	return page;
-+	ret = __get_user_pages_locked(mm, addr, 1, &page, NULL, &locked,
-+				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
-+	if (locked)
-+		mmap_read_unlock(mm);
-+	return (ret == 1) ? page : NULL;
+-				if (vma->vm_mm != mm)
+-					continue;
++			if (vma->vm_mm != mm)
++				continue;
+ 
+-				list_del(&mmap_vma->vma_next);
+-				kfree(mmap_vma);
++			list_del(&mmap_vma->vma_next);
++			kfree(mmap_vma);
+ 
+-				zap_vma_ptes(vma, vma->vm_start,
+-					     vma->vm_end - vma->vm_start);
+-			}
+-			mutex_unlock(&vdev->vma_lock);
++			zap_vma_ptes(vma, vma->vm_start,
++				     vma->vm_end - vma->vm_start);
+ 		}
++		mutex_unlock(&vdev->vma_lock);
+ 		mmap_read_unlock(mm);
+ 		mmput(mm);
+ 	}
+--- a/fs/proc/task_mmu.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/fs/proc/task_mmu.c
+@@ -1244,24 +1244,6 @@ static ssize_t clear_refs_write(struct f
+ 					count = -EINTR;
+ 					goto out_mm;
+ 				}
+-				/*
+-				 * Avoid to modify vma->vm_flags
+-				 * without locked ops while the
+-				 * coredump reads the vm_flags.
+-				 */
+-				if (!mmget_still_valid(mm)) {
+-					/*
+-					 * Silently return "count"
+-					 * like if get_task_mm()
+-					 * failed. FIXME: should this
+-					 * function have returned
+-					 * -ESRCH if get_task_mm()
+-					 * failed like if
+-					 * get_proc_task() fails?
+-					 */
+-					mmap_write_unlock(mm);
+-					goto out_mm;
+-				}
+ 				for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 					vma->vm_flags &= ~VM_SOFTDIRTY;
+ 					vma_set_page_prot(vma);
+--- a/fs/userfaultfd.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/fs/userfaultfd.c
+@@ -601,8 +601,6 @@ static void userfaultfd_event_wait_compl
+ 
+ 		/* the various vma->vm_userfaultfd_ctx still points to it */
+ 		mmap_write_lock(mm);
+-		/* no task can run (and in turn coredump) yet */
+-		VM_WARN_ON(!mmget_still_valid(mm));
+ 		for (vma = mm->mmap; vma; vma = vma->vm_next)
+ 			if (vma->vm_userfaultfd_ctx.ctx == release_new_ctx) {
+ 				vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+@@ -842,7 +840,6 @@ static int userfaultfd_release(struct in
+ 	/* len == 0 means wake all */
+ 	struct userfaultfd_wake_range range = { .len = 0, };
+ 	unsigned long new_flags;
+-	bool still_valid;
+ 
+ 	WRITE_ONCE(ctx->released, true);
+ 
+@@ -858,7 +855,6 @@ static int userfaultfd_release(struct in
+ 	 * taking the mmap_lock for writing.
+ 	 */
+ 	mmap_write_lock(mm);
+-	still_valid = mmget_still_valid(mm);
+ 	prev = NULL;
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		cond_resched();
+@@ -869,17 +865,15 @@ static int userfaultfd_release(struct in
+ 			continue;
+ 		}
+ 		new_flags = vma->vm_flags & ~(VM_UFFD_MISSING | VM_UFFD_WP);
+-		if (still_valid) {
+-			prev = vma_merge(mm, prev, vma->vm_start, vma->vm_end,
+-					 new_flags, vma->anon_vma,
+-					 vma->vm_file, vma->vm_pgoff,
+-					 vma_policy(vma),
+-					 NULL_VM_UFFD_CTX);
+-			if (prev)
+-				vma = prev;
+-			else
+-				prev = vma;
+-		}
++		prev = vma_merge(mm, prev, vma->vm_start, vma->vm_end,
++				 new_flags, vma->anon_vma,
++				 vma->vm_file, vma->vm_pgoff,
++				 vma_policy(vma),
++				 NULL_VM_UFFD_CTX);
++		if (prev)
++			vma = prev;
++		else
++			prev = vma;
+ 		vma->vm_flags = new_flags;
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 	}
+@@ -1309,8 +1303,6 @@ static int userfaultfd_register(struct u
+ 		goto out;
+ 
+ 	mmap_write_lock(mm);
+-	if (!mmget_still_valid(mm))
+-		goto out_unlock;
+ 	vma = find_vma_prev(mm, start, &prev);
+ 	if (!vma)
+ 		goto out_unlock;
+@@ -1511,8 +1503,6 @@ static int userfaultfd_unregister(struct
+ 		goto out;
+ 
+ 	mmap_write_lock(mm);
+-	if (!mmget_still_valid(mm))
+-		goto out_unlock;
+ 	vma = find_vma_prev(mm, start, &prev);
+ 	if (!vma)
+ 		goto out_unlock;
+--- a/include/linux/sched/mm.h~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/include/linux/sched/mm.h
+@@ -49,31 +49,6 @@ static inline void mmdrop(struct mm_stru
+ 		__mmdrop(mm);
  }
- #endif /* CONFIG_ELF_CORE */
  
+-/*
+- * This has to be called after a get_task_mm()/mmget_not_zero()
+- * followed by taking the mmap_lock for writing before modifying the
+- * vmas or anything the coredump pretends not to change from under it.
+- *
+- * It also has to be called when mmgrab() is used in the context of
+- * the process, but then the mm_count refcount is transferred outside
+- * the context of the process to run down_write() on that pinned mm.
+- *
+- * NOTE: find_extend_vma() called from GUP context is the only place
+- * that can modify the "mm" (notably the vm_start/end) under mmap_lock
+- * for reading and outside the context of the process, so it is also
+- * the only case that holds the mmap_lock for reading that must call
+- * this function. Generally if the mmap_lock is hold for reading
+- * there's no need of this check after get_task_mm()/mmget_not_zero().
+- *
+- * This function can be obsoleted and the check can be removed, after
+- * the coredump code will hold the mmap_lock for writing before
+- * invoking the ->core_dump methods.
+- */
+-static inline bool mmget_still_valid(struct mm_struct *mm)
+-{
+-	return likely(!mm->core_state);
+-}
+-
+ /**
+  * mmget() - Pin the address space associated with a &struct mm_struct.
+  * @mm: The address space to pin.
+--- a/mm/khugepaged.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/mm/khugepaged.c
+@@ -434,7 +434,7 @@ static void insert_to_mm_slots_hash(stru
+ 
+ static inline int khugepaged_test_exit(struct mm_struct *mm)
+ {
+-	return atomic_read(&mm->mm_users) == 0 || !mmget_still_valid(mm);
++	return atomic_read(&mm->mm_users) == 0;
+ }
+ 
+ static bool hugepage_vma_check(struct vm_area_struct *vma,
+--- a/mm/madvise.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/mm/madvise.c
+@@ -1085,23 +1085,6 @@ int do_madvise(unsigned long start, size
+ 	if (write) {
+ 		if (mmap_write_lock_killable(current->mm))
+ 			return -EINTR;
+-
+-		/*
+-		 * We may have stolen the mm from another process
+-		 * that is undergoing core dumping.
+-		 *
+-		 * Right now that's io_ring, in the future it may
+-		 * be remote process management and not "current"
+-		 * at all.
+-		 *
+-		 * We need to fix core dumping to not do this,
+-		 * but for now we have the mmget_still_valid()
+-		 * model.
+-		 */
+-		if (!mmget_still_valid(current->mm)) {
+-			mmap_write_unlock(current->mm);
+-			return -EINTR;
+-		}
+ 	} else {
+ 		mmap_read_lock(current->mm);
+ 	}
+--- a/mm/mmap.c~mm-remove-the-now-unnecessary-mmget_still_valid-hack
++++ a/mm/mmap.c
+@@ -2562,7 +2562,7 @@ find_extend_vma(struct mm_struct *mm, un
+ 	if (vma && (vma->vm_start <= addr))
+ 		return vma;
+ 	/* don't alter vm_end if the coredump is running */
+-	if (!prev || !mmget_still_valid(mm) || expand_stack(prev, addr))
++	if (!prev || expand_stack(prev, addr))
+ 		return NULL;
+ 	if (prev->vm_flags & VM_LOCKED)
+ 		populate_vma_page_range(prev, addr, prev->vm_end, NULL);
+@@ -2588,9 +2588,6 @@ find_extend_vma(struct mm_struct *mm, un
+ 		return vma;
+ 	if (!(vma->vm_flags & VM_GROWSDOWN))
+ 		return NULL;
+-	/* don't alter vm_start if the coredump is running */
+-	if (!mmget_still_valid(mm))
+-		return NULL;
+ 	start = vma->vm_start;
+ 	if (expand_stack(vma, addr))
+ 		return NULL;
 _
 
 Patches currently in -mm which might be from jannh@google.com are
