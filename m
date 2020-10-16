@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56ACFC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:13:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E6C9C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:13:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01B3F208C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:13:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0799F208C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602818011;
-	bh=tjuutfQQSKJ3g0CRo8wnM1bRCb7ZvtDm+NQRiwwfDpI=;
+	s=default; t=1602818014;
+	bh=t45PfkdyaF7hQO6bY6Y3LA267TufjMUPeX5WpRRFXOk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0vrDTejJAVq2Ae7GQMA4XAKesmtCQN4ZnYQ2qDo8vq1aAVfCvzCzaSEIaQhPxEYOz
-	 JfHKSbQgaDHSa5lndytUCQcep+Pc8xzBnofiNhnF7EReB3f4tpTX7DrHBQeLCRE0cs
-	 TIioftJxy2HPY8HpkSva6IWQwD21Fd6taQbb9KNM=
+	b=WoLLkiT4lpav1VVQS1rs84VUf2vEWZNhvyni2evu56dsrp8FcpmgKR2w5KBMgDPqy
+	 +S2uVJy1vvCtX34nOieU5j2jFwkPYBAyIL17IUmBhMWrVkcd67f8fFEoUACDdJiMgF
+	 wpyPaXUL+heOTveFlXAoEv9NPOoTmJJTStqgaYls=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393960AbgJPDNa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:13:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49114 "EHLO mail.kernel.org"
+        id S2393961AbgJPDNd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:13:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49144 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393799AbgJPDNa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:13:30 -0400
+        id S2393799AbgJPDNd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:13:33 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 815E520878;
-        Fri, 16 Oct 2020 03:13:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C75BB2078A;
+        Fri, 16 Oct 2020 03:13:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602818009;
-        bh=tjuutfQQSKJ3g0CRo8wnM1bRCb7ZvtDm+NQRiwwfDpI=;
+        s=default; t=1602818013;
+        bh=t45PfkdyaF7hQO6bY6Y3LA267TufjMUPeX5WpRRFXOk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0295DLuqoIkHQQ5DQmf8UlUx2qXZs+Xm1cYmFLMLmWobyF5I9VFuxJ6rGsup94e0X
-         AGwjAej/Z0zIfviAO9ryNQqKbZVCCzIpnIqbG0ciWBNjBtMK+1baNaYJqHoEaJ1rIx
-         HV6AspJbqFcgyXwZM26oT32zGvqxlfChC7+1cYFA=
-Date:   Thu, 15 Oct 2020 20:13:29 -0700
+        b=dI1HXShfqaJFQmODQkiu4bOwGQm6ODRO3H0dGfp+O5yjO5ONTR4xp/JMKX54IOjAN
+         SZUFvKjnuC9+GhGhzs/0kq+iF59UICHfDyaGbYmxXCNrMChtUAGPKMGm59eHhc+t+m
+         w9mTb1OX+Pmx0iBz4eqQsVgJpPUxVXR35j5B1taI=
+Date:   Thu, 15 Oct 2020 20:13:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, jan.kiszka@siemens.com,
         kbingham@kernel.org, mm-commits@vger.kernel.org,
         riteshh@linux.ibm.com, torvalds@linux-foundation.org
-Subject:  [patch 150/156] scripts/gdb/proc: add struct mount &
- struct super_block addr in lx-mounts command
-Message-ID: <20201016031329.6ieMSyNtF%akpm@linux-foundation.org>
+Subject:  [patch 151/156] scripts/gdb/tasks: add headers and
+ improve spacing format
+Message-ID: <20201016031332.-WXO3BXCX%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,56 +54,49 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Ritesh Harjani <riteshh@linux.ibm.com>
-Subject: scripts/gdb/proc: add struct mount & struct super_block addr in lx-mounts command
+Subject: scripts/gdb/tasks: add headers and improve spacing format
 
-This is many times found useful while debugging some FS related
-issue.
+With the patch.
+<e.g. o/p>
+      TASK          PID    COMM
+0xffffffff82c2b8c0   0   swapper/0
+0xffff888a0ba20040   1   systemd
+0xffff888a0ba24040   2   kthreadd
+0xffff888a0ba28040   3   rcu_gp
 
-<e.g. output>
-      mount          super_block     devname pathname fstype options
-0xffff888a0bfa4b40 0xffff888a0bfc1000 none / rootfs rw 0 0
-0xffff888a033f75c0 0xffff8889fcf65000 /dev/root / ext4 rw,relatime 0 0
-0xffff8889fc8ce040 0xffff888a0bb51000 devtmpfs /dev devtmpfs rw,relatime 0 0
+w/o
+0xffffffff82c2b8c0 <init_task> 0 swapper/0
+0xffff888a0ba20040 1 systemd
+0xffff888a0ba24040 2 kthreadd
+0xffff888a0ba28040 3 rcu_gp
 
-Link: http://lkml.kernel.org/r/a3c4177e1597b3e06d66d55e07d72c0c46a03571.1597742951.git.riteshh@linux.ibm.com
+Link: http://lkml.kernel.org/r/54c868c79b5fc364a8be7799891934a6fe6d1464.1597742951.git.riteshh@linux.ibm.com
 Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
 Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/proc.py |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ scripts/gdb/linux/tasks.py |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/scripts/gdb/linux/proc.py~proc-add-struct-mount-struct-super_block-addr-in-lx-mounts-command
-+++ a/scripts/gdb/linux/proc.py
-@@ -167,6 +167,9 @@ values of that process namespace"""
-         if not namespace:
-             raise gdb.GdbError("No namespace for current process")
+--- a/scripts/gdb/linux/tasks.py~tasks-add-headers-and-improve-spacing-format
++++ a/scripts/gdb/linux/tasks.py
+@@ -73,11 +73,12 @@ class LxPs(gdb.Command):
+         super(LxPs, self).__init__("lx-ps", gdb.COMMAND_DATA)
  
-+        gdb.write("{:^18} {:^15} {:>9} {} {} options\n".format(
-+                  "mount", "super_block", "devname", "pathname", "fstype"))
-+
-         for vfs in lists.list_for_each_entry(namespace['list'],
-                                              mount_ptr_type, "mnt_list"):
-             devname = vfs['mnt_devname'].string()
-@@ -190,14 +193,10 @@ values of that process namespace"""
-             m_flags = int(vfs['mnt']['mnt_flags'])
-             rd = "ro" if (s_flags & constants.LX_SB_RDONLY) else "rw"
- 
--            gdb.write(
--                "{} {} {} {}{}{} 0 0\n"
--                .format(devname,
--                        pathname,
--                        fstype,
--                        rd,
--                        info_opts(FS_INFO, s_flags),
--                        info_opts(MNT_INFO, m_flags)))
-+            gdb.write("{} {} {} {} {} {}{}{} 0 0\n".format(
-+                      vfs.format_string(), superblock.format_string(), devname,
-+                      pathname, fstype, rd, info_opts(FS_INFO, s_flags),
-+                      info_opts(MNT_INFO, m_flags)))
+     def invoke(self, arg, from_tty):
++        gdb.write("{:>10} {:>12} {:>7}\n".format("TASK", "PID", "COMM"))
+         for task in task_lists():
+-            gdb.write("{address} {pid} {comm}\n".format(
+-                address=task,
+-                pid=task["pid"],
+-                comm=task["comm"].string()))
++            gdb.write("{} {:^5} {}\n".format(
++                task.format_string().split()[0],
++                task["pid"].format_string(),
++                task["comm"].string()))
  
  
- LxMounts()
+ LxPs()
 _
