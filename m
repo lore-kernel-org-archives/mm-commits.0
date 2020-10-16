@@ -7,51 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C0F5C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:09:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07005C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:09:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF6C520897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:09:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7C4020897
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:09:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817781;
-	bh=TqIIrFjmgVR+6mtPAFdgaYQO/q+Rk75RQaO79pqgqr8=;
+	s=default; t=1602817784;
+	bh=5R94fPwsyfe3asAYJMhtMYzZ5CQsrrOABiN7ISIlRa4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=mGnGTtrU3SSHMj7O3hyQpmO4wPwKYi9amRipAiBjuCH7coFewz3i0F8Ys4Nma+bzI
-	 5+N6NcVJ/bbwl0affQs/Sn+B9mgBvZ6c2tgR4XOe2ebUNnVbygSDz7a9j+0gyE5Akq
-	 G+VfcqJdREdY5uNe8F/UvqcS3TCQUe0iT+qVQb14=
+	b=bSn8uGTls6YJuE7+nY3SB4FgrUcjwMWunkuO0EEnb56cqJcq0dl4evuZZN3l9Dkol
+	 Hb4LmIwo8LfoCeTCB5H141aqMyPgzNyAEfBH047MdZWRZPEUlspzRcBm4hNVvBEN27
+	 6TXWV60fKiZRRPiijtMMsuft45BZHQ9fvsBjv8O0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732536AbgJPDJl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:09:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47094 "EHLO mail.kernel.org"
+        id S1732761AbgJPDJo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:09:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726528AbgJPDJl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:09:41 -0400
+        id S1726528AbgJPDJo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:09:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 95E1D20789;
-        Fri, 16 Oct 2020 03:09:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BDCF2087D;
+        Fri, 16 Oct 2020 03:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817780;
-        bh=TqIIrFjmgVR+6mtPAFdgaYQO/q+Rk75RQaO79pqgqr8=;
+        s=default; t=1602817783;
+        bh=5R94fPwsyfe3asAYJMhtMYzZ5CQsrrOABiN7ISIlRa4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=x4w2J/mPCdW4oH0DshYDcddA++8cfHPqUraLhJ9AQthflJY+Id5bOf71xDeuW7rei
-         wqXMU/03cMJVu1N/qQifpeXYaTdkVS6AfPP3C6rotEddU+VT7fM3TmxqTkKKAPU3bt
-         cyQJEU7v64ONaYNxezcmGB8b+s/zKejEYzzhBr+E=
-Date:   Thu, 15 Oct 2020 20:09:39 -0700
+        b=jnZ/BjGvZIghxNBtnH4Tjz/F4kpvoQbwNdDEoRyc3FBhaa/WmOYqKrlpLUeo6qvFC
+         R+l4iNR6wV6N6d+jkMm0mX98KHNskw9sBFCW1TZ7PhfSw4+DwJoqKlGIS7SsoIo7qd
+         BZqCP6gd+AkmninBrziabBqGZ8mrtB5JUTB7rT7Q=
+Date:   Thu, 15 Oct 2020 20:09:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
-        cheloha@linux.ibm.com, dave.hansen@intel.com, david@redhat.com,
-        haiyangz@microsoft.com, kys@microsoft.com,
-        mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de,
-        pankaj.gupta.linux@gmail.com, richard.weiyang@linux.alibaba.com,
-        rppt@kernel.org, sthemmin@microsoft.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz, wei.liu@kernel.org,
-        willy@infradead.org
-Subject:  [patch 083/156] mm/memory_hotplug: update comment
- regarding zone shuffling
-Message-ID: <20201016030939.VKC5WdW3_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, dianders@chromium.org,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        sergey.senozhatsky.work@gmail.com, sonnyrao@chromium.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 084/156] zram: failing to decompress is WARN_ON
+ worthy
+Message-ID: <20201016030943.B87OC4Di5%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,58 +54,46 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: update comment regarding zone shuffling
+From: Douglas Anderson <dianders@chromium.org>
+Subject: zram: failing to decompress is WARN_ON worthy
 
-As we no longer shuffle via generic_online_page() and when undoing
-isolation, we can simplify the comment.
+If we fail to decompress in zram it's a pretty serious problem.  We were
+entrusted to be able to decompress the old data but we failed.  Either
+we've got some crazy bug in the compression code or we've got memory
+corruption.
 
-We now effectively shuffle only once (properly) when onlining new memory.
+At the moment, when this happens the log looks like this:
 
-Link: https://lkml.kernel.org/r/20201005121534.15649-6-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+  ERR kernel: [ 1833.099861] zram: Decompression failed! err=-22, page=336112
+  ERR kernel: [ 1833.099881] zram: Decompression failed! err=-22, page=336112
+  ALERT kernel: [ 1833.099886] Read-error on swap-device (253:0:2688896)
+
+It is true that we have an "ALERT" level log in there, but (at least to
+me) it feels like even this isn't enough to impart the seriousness of this
+error.  Let's convert to a WARN_ON.  Note that WARN_ON is automatically
+"unlikely" so we can simply replace the old annotation with the new one.
+
+Link: https://lkml.kernel.org/r/20200917174059.1.If09c882545dbe432268f7a67a4d4cfcb6caace4f@changeid
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Sonny Rao <sonnyrao@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-update-comment-regarding-zone-shuffling
-+++ a/mm/memory_hotplug.c
-@@ -858,13 +858,10 @@ int __ref online_pages(unsigned long pfn
- 	undo_isolate_page_range(pfn, pfn + nr_pages, MIGRATE_MOVABLE);
+--- a/drivers/block/zram/zram_drv.c~zram-failing-to-decompress-is-warn_on-worthy
++++ a/drivers/block/zram/zram_drv.c
+@@ -1270,7 +1270,7 @@ static int __zram_bvec_read(struct zram
+ 	zram_slot_unlock(zram, index);
  
- 	/*
--	 * When exposing larger, physically contiguous memory areas to the
--	 * buddy, shuffling in the buddy (when freeing onlined pages, putting
--	 * them either to the head or the tail of the freelist) is only helpful
--	 * for maintaining the shuffle, but not for creating the initial
--	 * shuffle. Shuffle the whole zone to make sure the just onlined pages
--	 * are properly distributed across the whole freelist. Make sure to
--	 * shuffle once pageblocks are no longer isolated.
-+	 * Freshly onlined pages aren't shuffled (e.g., all pages are placed to
-+	 * the tail of the freelist when undoing isolation). Shuffle the whole
-+	 * zone to make sure the just onlined pages are properly distributed
-+	 * across the whole freelist - to create an initial shuffle.
- 	 */
- 	shuffle_zone(zone);
+ 	/* Should NEVER happen. Return bio error if it does. */
+-	if (unlikely(ret))
++	if (WARN_ON(ret))
+ 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
  
+ 	return ret;
 _
