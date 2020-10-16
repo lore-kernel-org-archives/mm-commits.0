@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B71C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB57C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A089920897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C0C82087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816148;
-	bh=eWTX/d9jy4fYhpQee8h9fSjqbMtA+9QST59o7QsRFk8=;
+	s=default; t=1602816152;
+	bh=zj5Qi72+JcUV02+1z7NhEspgEON4ujFhOiOxPWE0y5w=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=k1VOE5wv/fpzAR+RtWgP4U0D/Sez5V2V9SH7tUniNR7D1sJv+pwaRBiDZXiMyKhzJ
-	 gvrGdd+YXBdJIh/A3ALbn7bKbCPes29AfAd5hCwwyOroup+3p3KYXiPrgjFm0N7iDq
-	 gCsSu5w5lOJIC/qWSCEj2Ja4kYtlTc3GVdylBdc4=
+	b=ZDtDEG8Lc19hasw7xGYpvPZLH0CwHcLWw1U9UhVO++8b/6S905j3qHq/wwdTiMP4r
+	 XnEoMbuYOGB7D8XVkLCWF0zKIVJPC4ylBiXhvdfwzc06+21uE55yFQaKSb2MGUbV56
+	 9X4wJlwXgzOL6tnMPXmKblpqzZMEspeKGZdJeAtE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388897AbgJPCm2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:42:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57938 "EHLO mail.kernel.org"
+        id S2393808AbgJPCmb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:42:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57992 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPCm2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:42:28 -0400
+        id S1728688AbgJPCmb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:42:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0FB8620878;
-        Fri, 16 Oct 2020 02:42:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 75FEC20897;
+        Fri, 16 Oct 2020 02:42:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816147;
-        bh=eWTX/d9jy4fYhpQee8h9fSjqbMtA+9QST59o7QsRFk8=;
+        s=default; t=1602816150;
+        bh=zj5Qi72+JcUV02+1z7NhEspgEON4ujFhOiOxPWE0y5w=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WLFJqSGy+c8z+lTiIJcjULVDTz4so+vzSY2A35u1qnUfm3Lvtox2DSzxjslFtMUdc
-         KzbaoAqqbkf8ZocCHhngfrtlgIMRfk/MWIkMnsHhzItMhXBOtrDRwS1Ul98Qq20D3O
-         uo6Q2BPF8Uuq12TO9ckPjukPHHVsQ6sZkWL3tx+8=
-Date:   Thu, 15 Oct 2020 19:42:26 -0700
+        b=WPu37cZplgGC1uurxfSKDcNItLaCyfl+dNdj3DS2w6IbsyNxISfhCy4JK5lrz9GEP
+         /p/0nu0BMZLaSSUtDEyZgqJoRhl91aEj0kpa3s/XMRl6TkuBJWdup6TmwTKZWpvx1L
+         23dT7Ye6m2NX7XnB9NLLeBiQzgLXwVzv5+dJEErs=
+Date:   Thu, 15 Oct 2020 19:42:29 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, sjpark@amazon.de,
         torvalds@linux-foundation.org, willy@infradead.org,
         ying.huang@intel.com
-Subject:  [patch 026/156] mm/rmap: fix assumptions of THP size
-Message-ID: <20201016024226.ECRmIiQ71%akpm@linux-foundation.org>
+Subject:  [patch 027/156] mm/truncate: fix truncation for pages of
+ arbitrary size
+Message-ID: <20201016024229.fSxjDMkXl%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,15 +55,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/rmap: fix assumptions of THP size
+Subject: mm/truncate: fix truncation for pages of arbitrary size
 
-Ask the page what size it is instead of assuming it's PMD size.  Do this
-for anon pages as well as file pages for when someone decides to support
-that.  Leave the assumption alone for pages which are PMD mapped; we don't
-currently grow THPs beyond PMD size, so we don't need to change this code
-yet.
+Remove the assumption that a compound page is HPAGE_PMD_SIZE, and the
+assumption that any page is PAGE_SIZE.
 
-Link: https://lkml.kernel.org/r/20200908195539.25896-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: SeongJae Park <sjpark@amazon.de>
@@ -70,49 +68,33 @@ Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/truncate.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-fix-assumptions-of-thp-size
-+++ a/mm/rmap.c
-@@ -1205,7 +1205,7 @@ void page_add_file_rmap(struct page *pag
- 	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
- 	lock_page_memcg(page);
- 	if (compound && PageTransHuge(page)) {
--		for (i = 0, nr = 0; i < HPAGE_PMD_NR; i++) {
-+		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
- 			if (atomic_inc_and_test(&page[i]._mapcount))
- 				nr++;
- 		}
-@@ -1246,7 +1246,7 @@ static void page_remove_file_rmap(struct
- 
- 	/* page still mapped by someone else? */
- 	if (compound && PageTransHuge(page)) {
--		for (i = 0, nr = 0; i < HPAGE_PMD_NR; i++) {
-+		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
- 			if (atomic_add_negative(-1, &page[i]._mapcount))
- 				nr++;
- 		}
-@@ -1293,7 +1293,7 @@ static void page_remove_anon_compound_rm
- 		 * Subpages can be mapped with PTEs too. Check how many of
- 		 * them are still mapped.
- 		 */
--		for (i = 0, nr = 0; i < HPAGE_PMD_NR; i++) {
-+		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
- 			if (atomic_add_negative(-1, &page[i]._mapcount))
- 				nr++;
- 		}
-@@ -1303,10 +1303,10 @@ static void page_remove_anon_compound_rm
- 		 * page of the compound page is unmapped, but at least one
- 		 * small page is still mapped.
- 		 */
--		if (nr && nr < HPAGE_PMD_NR)
-+		if (nr && nr < thp_nr_pages(page))
- 			deferred_split_huge_page(page);
- 	} else {
--		nr = HPAGE_PMD_NR;
-+		nr = thp_nr_pages(page);
+--- a/mm/truncate.c~mm-truncate-fix-truncation-for-pages-of-arbitrary-size
++++ a/mm/truncate.c
+@@ -168,7 +168,7 @@ void do_invalidatepage(struct page *page
+  * becomes orphaned.  It will be left on the LRU and may even be mapped into
+  * user pagetables if we're racing with filemap_fault().
+  *
+- * We need to bale out if page->mapping is no longer equal to the original
++ * We need to bail out if page->mapping is no longer equal to the original
+  * mapping.  This happens a) when the VM reclaimed the page while we waited on
+  * its lock, b) when a concurrent invalidate_mapping_pages got there first and
+  * c) when tmpfs swizzles a page between a tmpfs inode and swapper_space.
+@@ -177,12 +177,12 @@ static void
+ truncate_cleanup_page(struct address_space *mapping, struct page *page)
+ {
+ 	if (page_mapped(page)) {
+-		pgoff_t nr = PageTransHuge(page) ? HPAGE_PMD_NR : 1;
++		unsigned int nr = thp_nr_pages(page);
+ 		unmap_mapping_pages(mapping, page->index, nr, false);
  	}
  
- 	if (unlikely(PageMlocked(page)))
+ 	if (page_has_private(page))
+-		do_invalidatepage(page, 0, PAGE_SIZE);
++		do_invalidatepage(page, 0, thp_size(page));
+ 
+ 	/*
+ 	 * Some filesystems seem to re-dirty the page even after
 _
