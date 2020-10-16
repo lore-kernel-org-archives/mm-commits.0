@@ -2,49 +2,48 @@ Return-Path: <SRS0=zz/k=DX=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B73FC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:48:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29B55C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:48:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49ED1208C7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:48:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF4852087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:48:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816522;
-	bh=z+P8TQCmbgdyZx8C0D0rrHSlROuIe9RdVeubM430xFo=;
+	s=default; t=1602816525;
+	bh=3wE2CDC0O1/ASdsskUy8Z7U7a7HTMhobj2cm8VB2ZqI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=WCgbG0Qg3LqX/go4ov7un89N7Kgi6ux/NTzxYdVBULeKk+SFxjq/J27IxK/rEsDMd
-	 9V1c/sxbneoUjroZIpux9I3KE0ET28WaKqeJw2zENam9WxFk9Hr+jo9+5HSeRL95ET
-	 TM2C5QofdypBP527bcdYyG7T676/jjITATlwjU8A=
+	b=wZW1KOcn20AtS5phTvrZGQHxh/vgShL00RRYwlAKyi8R1Ijk+6luc6T2R7BUO6S12
+	 TEZRwfd8mey+VtJ0Q5yIin/mpOWYcxmGKUZLkv/Q2EbCRCkp+nJxrzI6gmPZRz3fE5
+	 CQwOnTzjzVTF174lPYRJDQ79lUe6YTPT6PO9InxM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393920AbgJPCsl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:48:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36368 "EHLO mail.kernel.org"
+        id S2393921AbgJPCsp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:48:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36416 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388865AbgJPCsl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:48:41 -0400
+        id S2388865AbgJPCsp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:48:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8926E2087D;
-        Fri, 16 Oct 2020 02:48:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D55E5208C7;
+        Fri, 16 Oct 2020 02:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816520;
-        bh=z+P8TQCmbgdyZx8C0D0rrHSlROuIe9RdVeubM430xFo=;
+        s=default; t=1602816524;
+        bh=3wE2CDC0O1/ASdsskUy8Z7U7a7HTMhobj2cm8VB2ZqI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vZ0K2RfbDcVbv/o25DwbPpJzNlQkUfTh0cmnvUKlxrjD0Km1Rs5JJBytnZdWbUv2L
-         tAyV/ibYtwQKCChi/M5rn8qeU/tOBXzrXUxgj0o4x+h3Le7b6yvZz1TZyttiaXdoyG
-         hUEuYoVZZjfpTa6LvyYxgEyQ28bV9s10mKW0OnoA=
-Date:   Thu, 15 Oct 2020 19:48:40 -0700
+        b=Fip95SfC2KvK59rc1kDdmfcRCSHMcHhkvJ3AMZyVJZInXpio6pLG6cWXlLjLLczan
+         U+FfkHke02HT3DYMDYZLCUZI6SYUrWiuXYCsHlH0lel3j+AswmxJJlF5iZGCr5aH2j
+         v9sAUbEIlkO2tWaWUQ9+kXjdNKMTUR7SL2ttDAhw=
+Date:   Thu, 15 Oct 2020 19:48:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jerome@forissier.org, joe@perches.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 121/156] checkpatch: add --kconfig-prefix
-Message-ID: <20201016024840.nCAwHfD2A%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 122/156] checkpatch: move repeated word test
+Message-ID: <20201016024843.Myhb4Qn4U%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,79 +51,107 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jerome Forissier <jerome@forissier.org>
-Subject: checkpatch: add --kconfig-prefix
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: move repeated word test
 
-Kconfig allows to customize the CONFIG_ prefix via the $CONFIG_
-environment variable.  Out-of-tree projects may therefore use Kconfig with
-a different prefix, or they may use a custom configuration tool which does
-not use the CONFIG_ prefix at all.  Such projects may still want to adhere
-to the Linux kernel coding style and run checkpatch.pl.
+Currently this test only works on .[ch] files.
 
-One example is OP-TEE [1] which does not use Kconfig but does have
-configuration options prefixed with CFG_.  It also mostly follows the
-kernel coding style and therefore being able to use checkpatch is quite
-valuable.
+Move the test to check more file types and the commit log.
 
-To make this possible, add the --kconfig-prefix command line option.
-
-[1] https://github.com/OP-TEE/optee_os
-
-Link: http://lkml.kernel.org/r/20200818081732.800449-1-jerome@forissier.org
-Signed-off-by: Jerome Forissier <jerome@forissier.org>
-Acked-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/180b3b5677771c902b2e2f7a2b7090ede65fe004.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   72 ++++++++++++++++++++--------------------
+ 1 file changed, 36 insertions(+), 36 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-kconfig-prefix
+--- a/scripts/checkpatch.pl~checkpatch-move-repeated-word-test
 +++ a/scripts/checkpatch.pl
-@@ -65,6 +65,7 @@ my $allow_c99_comments = 1; # Can be ove
- # git output parsing needs US English output, so first set backtick child process LANGUAGE
- my $git_command ='export LANGUAGE=en_US.UTF-8; git';
- my $tabsize = 8;
-+my ${CONFIG_} = "CONFIG_";
- 
- sub help {
- 	my ($exitcode) = @_;
-@@ -127,6 +128,8 @@ Options:
-   --typedefsfile             Read additional types from this file
-   --color[=WHEN]             Use colors 'always', 'never', or only when output
-                              is a terminal ('auto'). Default is 'auto'.
-+  --kconfig-prefix=WORD      use WORD as a prefix for Kconfig symbols (default
-+                             ${CONFIG_})
-   -h, --help, --version      display this help and exit
- 
- When FILE is - read standard input.
-@@ -235,6 +238,7 @@ GetOptions(
- 	'color=s'	=> \$color,
- 	'no-color'	=> \$color,	#keep old behaviors of -nocolor
- 	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
-+	'kconfig-prefix=s'	=> \${CONFIG_},
- 	'h|help'	=> \$help,
- 	'version'	=> \$help
- ) or help(1);
-@@ -6524,16 +6528,16 @@ sub process {
- 		}
- 
- # check for IS_ENABLED() without CONFIG_<FOO> ($rawline for comments too)
--		if ($rawline =~ /\bIS_ENABLED\s*\(\s*(\w+)\s*\)/ && $1 !~ /^CONFIG_/) {
-+		if ($rawline =~ /\bIS_ENABLED\s*\(\s*(\w+)\s*\)/ && $1 !~ /^${CONFIG_}/) {
- 			WARN("IS_ENABLED_CONFIG",
--			     "IS_ENABLED($1) is normally used as IS_ENABLED(CONFIG_$1)\n" . $herecurr);
-+			     "IS_ENABLED($1) is normally used as IS_ENABLED(${CONFIG_}$1)\n" . $herecurr);
- 		}
- 
- # check for #if defined CONFIG_<FOO> || defined CONFIG_<FOO>_MODULE
--		if ($line =~ /^\+\s*#\s*if\s+defined(?:\s*\(?\s*|\s+)(CONFIG_[A-Z_]+)\s*\)?\s*\|\|\s*defined(?:\s*\(?\s*|\s+)\1_MODULE\s*\)?\s*$/) {
-+		if ($line =~ /^\+\s*#\s*if\s+defined(?:\s*\(?\s*|\s+)(${CONFIG_}[A-Z_]+)\s*\)?\s*\|\|\s*defined(?:\s*\(?\s*|\s+)\1_MODULE\s*\)?\s*$/) {
- 			my $config = $1;
- 			if (WARN("PREFER_IS_ENABLED",
--				 "Prefer IS_ENABLED(<FOO>) to CONFIG_<FOO> || CONFIG_<FOO>_MODULE\n" . $herecurr) &&
-+				 "Prefer IS_ENABLED(<FOO>) to ${CONFIG_}<FOO> || ${CONFIG_}<FOO>_MODULE\n" . $herecurr) &&
- 			    $fix) {
- 				$fixed[$fixlinenr] = "\+#if IS_ENABLED($config)";
+@@ -2991,6 +2991,42 @@ sub process {
  			}
+ 		}
+ 
++# check for repeated words separated by a single space
++		if ($rawline =~ /^\+/ || $in_commit_log) {
++			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
++
++				my $first = $1;
++				my $second = $2;
++
++				if ($first =~ /(?:struct|union|enum)/) {
++					pos($rawline) += length($first) + length($second) + 1;
++					next;
++				}
++
++				next if ($first ne $second);
++				next if ($first eq 'long');
++
++				if (WARN("REPEATED_WORD",
++					 "Possible repeated word: '$first'\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
++				}
++			}
++
++			# if it's a repeated word on consecutive lines in a comment block
++			if ($prevline =~ /$;+\s*$/ &&
++			    $prevrawline =~ /($word_pattern)\s*$/) {
++				my $last_word = $1;
++				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
++					if (WARN("REPEATED_WORD",
++						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
++					    $fix) {
++						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
++					}
++				}
++			}
++		}
++
+ # ignore non-hunk lines and lines being removed
+ 		next if (!$hunk_line || $line =~ /^-/);
+ 
+@@ -3314,42 +3350,6 @@ sub process {
+ 			}
+ 		}
+ 
+-# check for repeated words separated by a single space
+-		if ($rawline =~ /^\+/) {
+-			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
+-
+-				my $first = $1;
+-				my $second = $2;
+-
+-				if ($first =~ /(?:struct|union|enum)/) {
+-					pos($rawline) += length($first) + length($second) + 1;
+-					next;
+-				}
+-
+-				next if ($first ne $second);
+-				next if ($first eq 'long');
+-
+-				if (WARN("REPEATED_WORD",
+-					 "Possible repeated word: '$first'\n" . $herecurr) &&
+-				    $fix) {
+-					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
+-				}
+-			}
+-
+-			# if it's a repeated word on consecutive lines in a comment block
+-			if ($prevline =~ /$;+\s*$/ &&
+-			    $prevrawline =~ /($word_pattern)\s*$/) {
+-				my $last_word = $1;
+-				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
+-					if (WARN("REPEATED_WORD",
+-						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
+-					    $fix) {
+-						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
+-					}
+-				}
+-			}
+-		}
+-
+ # check for space before tabs.
+ 		if ($rawline =~ /^\+/ && $rawline =~ / \t/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
 _
