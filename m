@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A2FC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B012C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7EC321D81
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8181216C4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881694;
-	bh=mnEWkWntKkGUIfkze0SVI4mYarkh2EvqzDpq9/7hZ0I=;
+	s=default; t=1602881697;
+	bh=MJ33Q8C5r4QJn3i2zctGt0jscIJNUZFlRdmSXRzgIoE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=vZWT+6XE/KBoh81oHVZzqKo2iQavr6xTSwGk6+M1vG5x0EoTmj23YFVok3i24u/is
-	 ysP+mOBhQMHAYA8zgLFOw7b6G1Efm91C77BKJpWh0DjtT98ba5xe8VzsU76k44/RkF
-	 bggAAkkoz/l7Cj6fH91dCCFrDA3i6+yOm+XKCHxM=
+	b=EVlAVzsYblj8FHA/sIsOOyH2/Znii72bLsnRRS+q4MUy49PK9nYqyJ1Q9yKpSbyv+
+	 ScmQkUIn2pslst4V9QFPuclSA2yNU+AahU7XeRmch2yYg34PFq6b9vUs++z8a8VxmG
+	 /agL9bmYSxnAtOBRcnMkQPyMtN9E0PtwuNnkBCFQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409430AbgJPUyy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:54:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42494 "EHLO mail.kernel.org"
+        id S2406909AbgJPUy5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:54:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732596AbgJPUyy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:54:54 -0400
+        id S1732596AbgJPUy5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:54:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9CC7F2076C;
-        Fri, 16 Oct 2020 20:54:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A535F2076C;
+        Fri, 16 Oct 2020 20:54:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881693;
-        bh=mnEWkWntKkGUIfkze0SVI4mYarkh2EvqzDpq9/7hZ0I=;
+        s=default; t=1602881696;
+        bh=MJ33Q8C5r4QJn3i2zctGt0jscIJNUZFlRdmSXRzgIoE=;
         h=Date:From:To:Subject:From;
-        b=SCNNg341HJhvRLl6OBJeuvwlHoVk0xbJaVomWCw7e2dljtNn+ANBEmz3Sc7NfD50e
-         hBmhYl2btfW4QQbvOv2QkgzheimEdYvzSYbPQuQrUTkZ+yHhUmZANJCD5z9jyWJzSG
-         Flrlg3OQ39Qa5F930uQ9Gm+n3deXLJLPLg7TjZ+I=
-Date:   Fri, 16 Oct 2020 13:54:53 -0700
+        b=tPhrngdJrQUoclvxSGP/gm710bS3emA1A24p9BinMVHfv62KUIRJ8pHjYx+Vn4A93
+         vOIBzwdeSyiBVplaHgd43xuYcsPWQOZzj9swd6YoBLxmXXphAAXVrzENdAnj0qlWMd
+         JGiowWiPOYI/C7mDS1u6HYhsV3QXF4VzSjbX9iiA=
+Date:   Fri, 16 Oct 2020 13:54:56 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, raven@themaw.net, willy@infradead.org
-Subject:  [merged] harden-autofs-ioctl-table.patch removed from -mm
- tree
-Message-ID: <20201016205453.kTow3LWV3%akpm@linux-foundation.org>
+To:     konishi.ryusuke@gmail.com, mm-commits@vger.kernel.org,
+        wanghai38@huawei.com
+Subject:  [merged]
+ nilfs2-fix-some-kernel-doc-warnings-for-nilfs2.patch removed from -mm tree
+Message-ID: <20201016205456.mIdazs4Mt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,63 +53,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: harden ioctl table
+     Subject: nilfs2: fix some kernel-doc warnings for nilfs2
 has been removed from the -mm tree.  Its filename was
-     harden-autofs-ioctl-table.patch
+     nilfs2-fix-some-kernel-doc-warnings-for-nilfs2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: autofs: harden ioctl table
+From: Wang Hai <wanghai38@huawei.com>
+Subject: nilfs2: fix some kernel-doc warnings for nilfs2
 
-The table of ioctl functions should be marked const in order to put them
-in read-only memory, and we should use array_index_nospec() to avoid
-speculation disclosing the contents of kernel memory to userspace.
+Fixes the following W=1 kernel build warning(s):
 
-Link: https://lkml.kernel.org/r/20200818122203.GO17456@casper.infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Ian Kent <raven@themaw.net>
+fs/nilfs2/bmap.c:378: warning: Excess function parameter 'bhp' description in 'nilfs_bmap_assign'
+fs/nilfs2/cpfile.c:907: warning: Excess function parameter 'status' description in 'nilfs_cpfile_change_cpmode'
+fs/nilfs2/cpfile.c:946: warning: Excess function parameter 'stat' description in 'nilfs_cpfile_get_stat'
+fs/nilfs2/page.c:76: warning: Excess function parameter 'inode' description in 'nilfs_forget_buffer'
+fs/nilfs2/sufile.c:563: warning: Excess function parameter 'stat' description in 'nilfs_sufile_get_stat'
+
+Link: https://lkml.kernel.org/r/1601386269-2423-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Wang Hai <wanghai38@huawei.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs/dev-ioctl.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/nilfs2/bmap.c   |    2 +-
+ fs/nilfs2/cpfile.c |    6 +++---
+ fs/nilfs2/page.c   |    1 -
+ fs/nilfs2/sufile.c |    4 ++--
+ 4 files changed, 6 insertions(+), 7 deletions(-)
 
---- a/fs/autofs/dev-ioctl.c~harden-autofs-ioctl-table
-+++ a/fs/autofs/dev-ioctl.c
-@@ -8,6 +8,7 @@
- #include <linux/compat.h>
- #include <linux/syscalls.h>
- #include <linux/magic.h>
-+#include <linux/nospec.h>
+--- a/fs/nilfs2/bmap.c~nilfs2-fix-some-kernel-doc-warnings-for-nilfs2
++++ a/fs/nilfs2/bmap.c
+@@ -355,7 +355,7 @@ void nilfs_bmap_lookup_dirty_buffers(str
+ /**
+  * nilfs_bmap_assign - assign a new block number to a block
+  * @bmap: bmap
+- * @bhp: pointer to buffer head
++ * @bh: pointer to buffer head
+  * @blocknr: block number
+  * @binfo: block information
+  *
+--- a/fs/nilfs2/cpfile.c~nilfs2-fix-some-kernel-doc-warnings-for-nilfs2
++++ a/fs/nilfs2/cpfile.c
+@@ -889,7 +889,7 @@ int nilfs_cpfile_is_snapshot(struct inod
+  * nilfs_cpfile_change_cpmode - change checkpoint mode
+  * @cpfile: inode of checkpoint file
+  * @cno: checkpoint number
+- * @status: mode of checkpoint
++ * @mode: mode of checkpoint
+  *
+  * Description: nilfs_change_cpmode() changes the mode of the checkpoint
+  * specified by @cno. The mode @mode is NILFS_CHECKPOINT or NILFS_SNAPSHOT.
+@@ -930,12 +930,12 @@ int nilfs_cpfile_change_cpmode(struct in
+ /**
+  * nilfs_cpfile_get_stat - get checkpoint statistics
+  * @cpfile: inode of checkpoint file
+- * @stat: pointer to a structure of checkpoint statistics
++ * @cpstat: pointer to a structure of checkpoint statistics
+  *
+  * Description: nilfs_cpfile_get_stat() returns information about checkpoints.
+  *
+  * Return Value: On success, 0 is returned, and checkpoints information is
+- * stored in the place pointed by @stat. On error, one of the following
++ * stored in the place pointed by @cpstat. On error, one of the following
+  * negative error codes is returned.
+  *
+  * %-EIO - I/O error.
+--- a/fs/nilfs2/page.c~nilfs2-fix-some-kernel-doc-warnings-for-nilfs2
++++ a/fs/nilfs2/page.c
+@@ -69,7 +69,6 @@ struct buffer_head *nilfs_grab_buffer(st
  
- #include "autofs_i.h"
- 
-@@ -563,7 +564,7 @@ out:
- 
- static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
- {
--	static ioctl_fn _ioctls[] = {
-+	static const ioctl_fn _ioctls[] = {
- 		autofs_dev_ioctl_version,
- 		autofs_dev_ioctl_protover,
- 		autofs_dev_ioctl_protosubver,
-@@ -581,7 +582,10 @@ static ioctl_fn lookup_dev_ioctl(unsigne
- 	};
- 	unsigned int idx = cmd_idx(cmd);
- 
--	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx];
-+	if (idx >= ARRAY_SIZE(_ioctls))
-+		return NULL;
-+	idx = array_index_nospec(idx, ARRAY_SIZE(_ioctls));
-+	return _ioctls[idx];
- }
- 
- /* ioctl dispatcher */
+ /**
+  * nilfs_forget_buffer - discard dirty state
+- * @inode: owner inode of the buffer
+  * @bh: buffer head of the buffer to be discarded
+  */
+ void nilfs_forget_buffer(struct buffer_head *bh)
+--- a/fs/nilfs2/sufile.c~nilfs2-fix-some-kernel-doc-warnings-for-nilfs2
++++ a/fs/nilfs2/sufile.c
+@@ -546,13 +546,13 @@ int nilfs_sufile_set_segment_usage(struc
+ /**
+  * nilfs_sufile_get_stat - get segment usage statistics
+  * @sufile: inode of segment usage file
+- * @stat: pointer to a structure of segment usage statistics
++ * @sustat: pointer to a structure of segment usage statistics
+  *
+  * Description: nilfs_sufile_get_stat() returns information about segment
+  * usage.
+  *
+  * Return Value: On success, 0 is returned, and segment usage information is
+- * stored in the place pointed by @stat. On error, one of the following
++ * stored in the place pointed by @sustat. On error, one of the following
+  * negative error codes is returned.
+  *
+  * %-EIO - I/O error.
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from wanghai38@huawei.com are
 
-mm-update-the-documentation-for-vfree.patch
 
