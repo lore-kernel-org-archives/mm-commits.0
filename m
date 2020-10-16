@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83C48C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A713AC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:14:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1700D2073A
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:13:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46EF3206ED
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:14:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602814391;
-	bh=xS40bmmmKjTqUYiCBPNo2sLZNK3mKrdNPBNlZWchaGk=;
+	s=default; t=1602814450;
+	bh=3lyyRGMkNN15colv9HK6pUVHtiOugaxxkzGg9sJ24I0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=f1GOIMci2BVtH6kvLob0M02l/dCnpxKcy17ekbi+ufAkJ0Ts3oKoBRP/2V8SZm3kW
-	 57WPv6L3sEHzDoqlDEbwYwbrIPqEgyFk6/bLFjoI+Qf22/LzYT3hIFv01cdrHs9nvh
-	 +iwLAKKcOdoY+23/L1IwDBchLulDOIsxwmCWHSR4=
+	b=rzU0sZ9P3Yde1y4EDF7WMMIQ4odVZBBqlp2EsUJ17n/Uigu4WY1npiaVT0V/ympxW
+	 hJVJHWM0DKzmMwJzufZH0jj7wXTZDdD2IQMlY9VevPDM9X3oWZd7jnWZqFHY21JTSL
+	 lo1l3+a1zmxnnMKAX/DpxEayPQy3ZVX1pMN15ByE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404095AbgJPCNK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:13:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48250 "EHLO mail.kernel.org"
+        id S2404124AbgJPCOJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:14:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404094AbgJPCNK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:13:10 -0400
+        id S2404094AbgJPCOF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:14:05 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 55898206ED;
-        Fri, 16 Oct 2020 02:13:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5D43B206ED;
+        Fri, 16 Oct 2020 02:14:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602814389;
-        bh=xS40bmmmKjTqUYiCBPNo2sLZNK3mKrdNPBNlZWchaGk=;
+        s=default; t=1602814442;
+        bh=3lyyRGMkNN15colv9HK6pUVHtiOugaxxkzGg9sJ24I0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cY4yIvudmVl1kp2Ip5siRxlH/ET1gkEFpaoxbW8OZtnpaXQm+/w1rv6JcmoD6poMm
-         Omt9nIa2IdsrkNHjVwt0xZbpkAfqOwufleiH7ZquultLE3RP/R6bHn/H+5eX3BQepv
-         KI5S6QZ/nqtiyZmKbV2TS+ElrK3j5/XVfgj8bVQY=
-Date:   Thu, 15 Oct 2020 19:13:08 -0700
+        b=xfB/7uEXs+NVTPVDeevEqhUt7+NCsoNk/7AD8YcrZucrk9ZO+1naYmbjhVpODgL4G
+         Aft+LDHzhxfsn5hOSaWGNkWB6UWhGg/xWSHd8Karg/BWkhxpXqZSaVZioqNaITIclm
+         wVSndQQnLYJ/EMsyKdRua+ah5k2rsVwbx2uM/ulQ=
+Date:   Thu, 15 Oct 2020 19:14:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aneesh.kumar@linux.ibm.com, aou@eecs.berkeley.edu,
-        linux@roeck-us.net, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, palmer@dabbelt.com,
-        paul.walmsley@sifive.com
-Subject:  [folded-merged]
- mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test-fix.patch removed from
- -mm tree
-Message-ID: <20201016021308.ejN64BoO9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cai@lca.pw, kirill@shutemov.name,
+        mm-commits@vger.kernel.org, songliubraving@fb.com,
+        willy@infradead.org
+Subject:  [folded-merged] xarray-add-xa_get_order-fix.patch removed
+ from -mm tree
+Message-ID: <20201016021401.101ezAAMA%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -57,60 +55,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: avoid kernel crash with riscv
+     Subject: xarray-add-xa_get_order-fix
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test-fix.patch
+     xarray-add-xa_get_order-fix.patch
 
-This patch was dropped because it was folded into mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch
+This patch was dropped because it was folded into xarray-add-xa_get_order.patch
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: avoid kernel crash with riscv
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xarray-add-xa_get_order-fix
 
-It was observed that the usage of RANDOM_ORVALUE with a valid pte cause
-kernel crash on riscv.  Comment out the usage of random value on riscv
+export xa_get_order to modules
 
-Link: https://lkml.kernel.org/r/20201015033206.140550-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reported-by: Nathan Chancellor <natechancellor@gmail.com>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+ERROR: modpost: "xa_get_order" [lib/test_xarray.ko] undefined!
+
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/xarray.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test-fix
-+++ a/mm/debug_vm_pgtable.c
-@@ -548,7 +548,9 @@ static void __init pte_clear_tests(struc
- 	pte_t pte = pfn_pte(pfn, prot);
+--- a/lib/xarray.c~xarray-add-xa_get_order-fix
++++ a/lib/xarray.c
+@@ -1631,6 +1631,7 @@ unlock:
  
- 	pr_debug("Validating PTE clear\n");
-+#ifndef CONFIG_RISCV
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
-+#endif
- 	set_pte_at(mm, vaddr, ptep, pte);
- 	barrier();
- 	pte_clear(mm, vaddr, ptep);
+ 	return order;
+ }
++EXPORT_SYMBOL(xa_get_order);
+ #endif /* CONFIG_XARRAY_MULTI */
+ 
+ /**
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-powerpc-mm-add-debug_vm-warn-for-pmd_clear.patch
-powerpc-mm-move-setting-pte-specific-flags-to-pfn_pte.patch
-mm-debug_vm_pgtable-ppc64-avoid-setting-top-bits-in-radom-value.patch
-mm-debug_vm_pgtables-hugevmap-use-the-arch-helper-to-identify-huge-vmap-support.patch
-mm-debug_vm_pgtable-savedwrite-enable-savedwrite-test-with-config_numa_balancing.patch
-mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
-mm-debug_vm_pgtable-set_pte-pmd-pud-dont-use-set__at-to-update-an-existing-pte-entry.patch
-mm-debug_vm_pgtable-locks-move-non-page-table-modifying-test-together.patch
-mm-debug_vm_pgtable-locks-take-correct-page-table-lock.patch
-mm-debug_vm_pgtable-thp-use-page-table-depost-withdraw-with-thp.patch
-mm-debug_vm_pgtable-pmd_clear-dont-use-pmd-pud_clear-on-pte-entries.patch
-mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
-mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch
-mm-debug_vm_pgtable-avoid-doing-memory-allocation-with-pgtable_t-mapped.patch
+xarray-add-xa_get_order.patch
+xarray-add-xas_split-fix.patch
+mm-memory_hotplug-simplify-page-offlining-fix.patch
+checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
