@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5A42C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:04:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DD27C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:04:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 712932087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:04:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 403022087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:04:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817465;
-	bh=OSEcPJLMtx8G3SsM6bFzw/qICIC1Jh2yMWhAeui6SSg=;
+	s=default; t=1602817470;
+	bh=T/suh2QaZxyTrGnu3Z+qGfEkf6U38UdnL7GtqRBHl/4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=qheEVAcw/3fyd/GuHXA9LBYnuto3lBWUKi1ILPSsNA7VsdVvfQpFRXHWqS2fajb9T
-	 GTZtNoZ5cjNJ2+ULDu3tJOZjmJ1bfFoKK0OvTbr8Cqi5dylBfhX5xK/3SHPeHJ91eX
-	 1eCwePWEOWVVOaX8JBGuNA3yb6Xe261lhx2FMqCs=
+	b=NICDfRI1BDMKWJtnbX1jRQJbb/7KWBe+qNVVPCab9Sv1anWn/5xiixfB733jh2p8V
+	 6QWRC7VnbW9Rln/MtG+QcOtPXd31qzyJik62zUw5bTsrkVSrpkiMwSulWHKAo7LEsn
+	 BHzR5mPSd0D3aJ3Vvxasu1eqSp7qo3Li9MrhbADE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732349AbgJPDEZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:04:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43488 "EHLO mail.kernel.org"
+        id S1732549AbgJPDE3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:04:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728261AbgJPDEY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:04:24 -0400
+        id S1728261AbgJPDE3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:04:29 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3D5D520789;
-        Fri, 16 Oct 2020 03:04:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0CE1220878;
+        Fri, 16 Oct 2020 03:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817464;
-        bh=OSEcPJLMtx8G3SsM6bFzw/qICIC1Jh2yMWhAeui6SSg=;
+        s=default; t=1602817467;
+        bh=T/suh2QaZxyTrGnu3Z+qGfEkf6U38UdnL7GtqRBHl/4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=c3UV3d2tbNVyxj7UJmaNKbc9ScyD4oRBNhUozD7FYXyOVgLOLyeOEJgVgpYJny67z
-         l72GbxWxBqn0pLD2jVXi4909ROdFDcxoOKu8hguAw8/TwKaiyt9XxM8WEcGRXkplLE
-         r9EldKcSCJKG0C0JECJKmEUo+bD/d5h8Ofrd35F0=
-Date:   Thu, 15 Oct 2020 20:04:22 -0700
+        b=zittXN3Lbh6SpCZVAKvnUGlTLBDAJvd6HYf5WHCtJ59b/eOuHVjvA18ifD5wFv2bP
+         AKjUfg70qPd9VLeg6TeBKA9bTq6+YL2AvxG3RisJSgjLhD/+Zo5jbk7B2XcGtTLMmq
+         pxPoHARB+A+KxeCl+VzpWOi9mO7vS6FQ5SR+mw8I=
+Date:   Thu, 15 Oct 2020 20:04:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, Brice.Goglin@inria.fr,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        dave.jiang@intel.com, david@redhat.com, ira.weiny@intel.com,
-        joao.m.martins@oracle.com, Jonathan.Cameron@huawei.com,
-        justin.he@arm.com, mm-commits@vger.kernel.org,
-        pasha.tatashin@soleen.com, torvalds@linux-foundation.org,
-        vishal.l.verma@intel.com
-Subject:  [patch 001/156] device-dax/kmem: fix resource release
-Message-ID: <20201016030422.44iD348m_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        torvalds@linux-foundation.org
+Subject:  [patch 002/156] powerpc/mm: add DEBUG_VM WARN for
+ pmd_clear
+Message-ID: <20201016030426.RDP2eKDm-%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,160 +54,110 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax/kmem: fix resource release
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: powerpc/mm: add DEBUG_VM WARN for pmd_clear
 
-The conversion to request_mem_region() is broken because it assumes that
-the range is marked busy prior to release.  However, due to the way that
-the kmem driver manipulates the IORESOURCE_BUSY flag (clears it to let
-{add,remove}_memory() handle busy) it requires a manual release_resource()
-to perform cleanup.
+Patch series "mm/debug_vm_pgtable fixes", v4.
 
-Given that the actual 'struct resource *' needs to be recalled, not just
-the range, add that tracking to the kmem driver-data.
+This patch series includes fixes for debug_vm_pgtable test code so that
+they follow page table updates rules correctly.  The first two patches
+introduce changes w.r.t ppc64.
 
-Link: https://lkml.kernel.org/r/160272252925.3136502.17220638073995895400.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: 0513bd5bb114 ("device-dax/kmem: replace release_resource() with release_mem_region()")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Hugetlb test is disabled on ppc64 because that needs larger change to satisfy
+page table update rules.
+
+These tests are broken w.r.t page table update rules and results in kernel
+crash as below. 
+
+[   21.083519] kernel BUG at arch/powerpc/mm/pgtable.c:304!
+cpu 0x0: Vector: 700 (Program Check) at [c000000c6d1e76c0]
+    pc: c00000000009a5ec: assert_pte_locked+0x14c/0x380
+    lr: c0000000005eeeec: pte_update+0x11c/0x190
+    sp: c000000c6d1e7950
+   msr: 8000000002029033
+  current = 0xc000000c6d172c80
+  paca    = 0xc000000003ba0000   irqmask: 0x03   irq_happened: 0x01
+    pid   = 1, comm = swapper/0
+kernel BUG at arch/powerpc/mm/pgtable.c:304!
+[link register   ] c0000000005eeeec pte_update+0x11c/0x190
+[c000000c6d1e7950] 0000000000000001 (unreliable)
+[c000000c6d1e79b0] c0000000005eee14 pte_update+0x44/0x190
+[c000000c6d1e7a10] c000000001a2ca9c pte_advanced_tests+0x160/0x3d8
+[c000000c6d1e7ab0] c000000001a2d4fc debug_vm_pgtable+0x7e8/0x1338
+[c000000c6d1e7ba0] c0000000000116ec do_one_initcall+0xac/0x5f0
+[c000000c6d1e7c80] c0000000019e4fac kernel_init_freeable+0x4dc/0x5a4
+[c000000c6d1e7db0] c000000000012474 kernel_init+0x24/0x160
+[c000000c6d1e7e20] c00000000000cbd0 ret_from_kernel_thread+0x5c/0x6c
+
+With DEBUG_VM disabled
+
+[   20.530152] BUG: Kernel NULL pointer dereference on read at 0x00000000
+[   20.530183] Faulting instruction address: 0xc0000000000df330
+cpu 0x33: Vector: 380 (Data SLB Access) at [c000000c6d19f700]
+    pc: c0000000000df330: memset+0x68/0x104
+    lr: c00000000009f6d8: hash__pmdp_huge_get_and_clear+0xe8/0x1b0
+    sp: c000000c6d19f990
+   msr: 8000000002009033
+   dar: 0
+  current = 0xc000000c6d177480
+  paca    = 0xc00000001ec4f400   irqmask: 0x03   irq_happened: 0x01
+    pid   = 1, comm = swapper/0
+[link register   ] c00000000009f6d8 hash__pmdp_huge_get_and_clear+0xe8/0x1b0
+[c000000c6d19f990] c00000000009f748 hash__pmdp_huge_get_and_clear+0x158/0x1b0 (unreliable)
+[c000000c6d19fa10] c0000000019ebf30 pmd_advanced_tests+0x1f0/0x378
+[c000000c6d19fab0] c0000000019ed088 debug_vm_pgtable+0x79c/0x1244
+[c000000c6d19fba0] c0000000000116ec do_one_initcall+0xac/0x5f0
+[c000000c6d19fc80] c0000000019a4fac kernel_init_freeable+0x4dc/0x5a4
+[c000000c6d19fdb0] c000000000012474 kernel_init+0x24/0x160
+[c000000c6d19fe20] c00000000000cbd0 ret_from_kernel_thread+0x5c/0x6c
+
+
+This patch (of 13):
+
+With the hash page table, the kernel should not use pmd_clear for clearing
+huge pte entries.  Add a DEBUG_VM WARN to catch the wrong usage.
+
+Link: https://lkml.kernel.org/r/20200902114222.181353-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |   48 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 34 insertions(+), 14 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/drivers/dax/kmem.c~device-dax-kmem-fix-resource-release
-+++ a/drivers/dax/kmem.c
-@@ -35,11 +35,17 @@ static int dax_kmem_range(struct dev_dax
- 	return 0;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-add-debug_vm-warn-for-pmd_clear
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -866,6 +866,13 @@ static inline bool pte_ci(pte_t pte)
+ 
+ static inline void pmd_clear(pmd_t *pmdp)
+ {
++	if (IS_ENABLED(CONFIG_DEBUG_VM) && !radix_enabled()) {
++		/*
++		 * Don't use this if we can possibly have a hash page table
++		 * entry mapping this.
++		 */
++		WARN_ON((pmd_val(*pmdp) & (H_PAGE_HASHPTE | _PAGE_PTE)) == (H_PAGE_HASHPTE | _PAGE_PTE));
++	}
+ 	*pmdp = __pmd(0);
  }
  
-+struct dax_kmem_data {
-+	const char *res_name;
-+	struct resource *res[];
-+};
-+
- static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+@@ -914,6 +921,13 @@ static inline int pmd_bad(pmd_t pmd)
+ 
+ static inline void pud_clear(pud_t *pudp)
  {
- 	struct device *dev = &dev_dax->dev;
-+	struct dax_kmem_data *data;
-+	int rc = -ENOMEM;
- 	int i, mapped = 0;
--	char *res_name;
- 	int numa_node;
- 
- 	/*
-@@ -55,14 +61,17 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
- 
--	res_name = kstrdup(dev_name(dev), GFP_KERNEL);
--	if (!res_name)
-+	data = kzalloc(sizeof(*data) + sizeof(struct resource *) * dev_dax->nr_range, GFP_KERNEL);
-+	if (!data)
- 		return -ENOMEM;
- 
-+	data->res_name = kstrdup(dev_name(dev), GFP_KERNEL);
-+	if (!data->res_name)
-+		goto err_res_name;
-+
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct resource *res;
- 		struct range range;
--		int rc;
- 
- 		rc = dax_kmem_range(dev_dax, i, &range);
- 		if (rc) {
-@@ -72,7 +81,7 @@ static int dev_dax_kmem_probe(struct dev
- 		}
- 
- 		/* Region is permanently reserved if hotremove fails. */
--		res = request_mem_region(range.start, range_len(&range), res_name);
-+		res = request_mem_region(range.start, range_len(&range), data->res_name);
- 		if (!res) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve region\n",
- 					i, range.start, range.end);
-@@ -82,9 +91,10 @@ static int dev_dax_kmem_probe(struct dev
- 			 */
- 			if (mapped)
- 				continue;
--			kfree(res_name);
--			return -EBUSY;
-+			rc = -EBUSY;
-+			goto err_request_mem;
- 		}
-+		data->res[i] = res;
- 
- 		/*
- 		 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
-@@ -104,18 +114,25 @@ static int dev_dax_kmem_probe(struct dev
- 		if (rc) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
- 					i, range.start, range.end);
--			release_mem_region(range.start, range_len(&range));
-+			release_resource(res);
-+			kfree(res);
-+			data->res[i] = NULL;
- 			if (mapped)
- 				continue;
--			kfree(res_name);
--			return rc;
-+			goto err_request_mem;
- 		}
- 		mapped++;
- 	}
- 
--	dev_set_drvdata(dev, res_name);
-+	dev_set_drvdata(dev, data);
- 
- 	return 0;
-+
-+err_request_mem:
-+	kfree(data->res_name);
-+err_res_name:
-+	kfree(data);
-+	return rc;
++	if (IS_ENABLED(CONFIG_DEBUG_VM) && !radix_enabled()) {
++		/*
++		 * Don't use this if we can possibly have a hash page table
++		 * entry mapping this.
++		 */
++		WARN_ON((pud_val(*pudp) & (H_PAGE_HASHPTE | _PAGE_PTE)) == (H_PAGE_HASHPTE | _PAGE_PTE));
++	}
+ 	*pudp = __pud(0);
  }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-@@ -123,7 +140,7 @@ static int dev_dax_kmem_remove(struct de
- {
- 	int i, success = 0;
- 	struct device *dev = &dev_dax->dev;
--	const char *res_name = dev_get_drvdata(dev);
-+	struct dax_kmem_data *data = dev_get_drvdata(dev);
- 
- 	/*
- 	 * We have one shot for removing memory, if some memory blocks were not
-@@ -142,7 +159,9 @@ static int dev_dax_kmem_remove(struct de
- 		rc = remove_memory(dev_dax->target_node, range.start,
- 				range_len(&range));
- 		if (rc == 0) {
--			release_mem_region(range.start, range_len(&range));
-+			release_resource(data->res[i]);
-+			kfree(data->res[i]);
-+			data->res[i] = NULL;
- 			success++;
- 			continue;
- 		}
-@@ -153,7 +172,8 @@ static int dev_dax_kmem_remove(struct de
- 	}
- 
- 	if (success >= dev_dax->nr_range) {
--		kfree(res_name);
-+		kfree(data->res_name);
-+		kfree(data);
- 		dev_set_drvdata(dev, NULL);
- 	}
  
 _
