@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40D17C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9F0FC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9B792087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:41:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6033A2087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816119;
-	bh=JJBxaJzUzPb4ZG4w7HmMQBv4lKEkQ9KSYe87fgWDigE=;
+	s=default; t=1602816123;
+	bh=Nmw9wX1eASn4GgNDc9jm2A1Y4EdGgerStKFFG3lEero=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=iahDkhWAT1pPry+Yy8sFILPt6eoG0KkPd5r3SPfY44E5PTkyo7ncXgXpt3o5id7Wj
-	 BRNbDbQlbVk3L4kIygsFmktq3SdcYg042GR3GjeGFyctjK1wuwDHdHtB1ZDgeOiUxb
-	 iWcZ8H0lpVh51pT34p0FB8mTnW6AfnZ/hr/JKjg4=
+	b=0sXiJssJfulUA3U6q7SF1ny34PAlwdV2BhLBpFhDJsXLSe8faUWg1Qn14T4QtjX9S
+	 L32OrIbIZhgz4A/oskRgocEQzFBW8x682dhWSxcfssMR/nGWsJyVJ+wdDSIyGSBy+u
+	 UpWKNEzUaC7cKLbeE/KTDZod2efiptg2fm0c+RaA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404294AbgJPCl6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:41:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57426 "EHLO mail.kernel.org"
+        id S2404295AbgJPCmD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:42:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57482 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPCl6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:41:58 -0400
+        id S1728688AbgJPCmC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:42:02 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CBFB520FC3;
-        Fri, 16 Oct 2020 02:41:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 577A220897;
+        Fri, 16 Oct 2020 02:42:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816117;
-        bh=JJBxaJzUzPb4ZG4w7HmMQBv4lKEkQ9KSYe87fgWDigE=;
+        s=default; t=1602816120;
+        bh=Nmw9wX1eASn4GgNDc9jm2A1Y4EdGgerStKFFG3lEero=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jfDhC/I1M3fvRIt+3WNtGfxUWKK5To1XkI4xuYAap7vcNJMP6mlYST9CShwGp0Rt+
-         Q+eB8ul2HdSB1WzpP2OnSfAy83T2U3+/xVXgl8NlcoI/YgwJ1TCl+A72IDyxEyWv24
-         oVhSIVczuWHJjDOrEOlqzqZRK8X6os8OEoEiy06A=
-Date:   Thu, 15 Oct 2020 19:41:56 -0700
+        b=wrEmz5txQbLlH2OxXIypBIlZ1kezet0kf4RSDYJsTAyPFcC14CGsm5r3ZGGfyuvy0
+         6DB50wLXJ1DqfLhNRxDJcuPy4yhzyBTgY62+JA2KPT+Fwl+fDbyXO9xMKllstgxZTw
+         rZWkSG4iLRXCx1t7SZOCeWHvjKQBw44AdPzq6PPs=
+Date:   Thu, 15 Oct 2020 19:41:59 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cai@lca.pw, kirill@shutemov.name,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         songliubraving@fb.com, torvalds@linux-foundation.org,
         willy@infradead.org
-Subject:  [patch 017/156] XArray: add xas_split
-Message-ID: <20201016024156.AmjHOFeMg%akpm@linux-foundation.org>
+Subject:  [patch 018/156] mm/filemap: fix storing to a THP shadow
+ entry
+Message-ID: <20201016024159.MuK94mohm%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,363 +55,116 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: XArray: add xas_split
+Subject: mm/filemap: fix storing to a THP shadow entry
 
-In order to use multi-index entries for huge pages in the page cache, we
-need to be able to split a multi-index entry (eg if a file is truncated in
-the middle of a huge page entry).  This version does not support splitting
-more than one level of the tree at a time.  This is an acceptable
-limitation for the page cache as we do not expect to support order-12
-pages in the near future.
+When a THP is removed from the page cache by reclaim, we replace it with a
+shadow entry that occupies all slots of the XArray previously occupied by
+the THP.  If the user then accesses that page again, we only allocate a
+single page, but storing it into the shadow entry replaces all entries
+with that one page.  That leads to bugs like
 
-[akpm@linux-foundation.org: export xas_split_alloc() to modules]
-[willy@infradead.org: fix xarray split]
-  Link: https://lkml.kernel.org/r/20200910175450.GV6583@casper.infradead.org
-[willy@infradead.org: fix xarray]
-  Link: https://lkml.kernel.org/r/20201001233943.GW20115@casper.infradead.org
-Link: https://lkml.kernel.org/r/20200903183029.14930-3-willy@infradead.org
+page dumped because: VM_BUG_ON_PAGE(page_to_pgoff(page) != offset)
+------------[ cut here ]------------
+kernel BUG at mm/filemap.c:2529!
+
+https://bugzilla.kernel.org/show_bug.cgi?id=206569
+
+This is hard to reproduce with mainline, but happens regularly with the
+THP patchset (as so many more THPs are created).  This solution is take
+from the THP patchset.  It splits the shadow entry into order-0 pieces at
+the time that we bring a new page into cache.
+
+Link: https://lkml.kernel.org/r/20200903183029.14930-4-willy@infradead.org
+Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Song Liu <songliubraving@fb.com>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Qian Cai <cai@lca.pw>
-Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/xarray.rst |   14 +-
- include/linux/xarray.h            |   13 ++
- lib/test_xarray.c                 |   44 +++++++
- lib/xarray.c                      |  168 ++++++++++++++++++++++++++--
- 4 files changed, 224 insertions(+), 15 deletions(-)
+ mm/filemap.c |   42 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 11 deletions(-)
 
---- a/Documentation/core-api/xarray.rst~xarray-add-xas_split
-+++ a/Documentation/core-api/xarray.rst
-@@ -475,13 +475,15 @@ or iterations will move the index to the
- Each entry will only be returned once, no matter how many indices it
- occupies.
+--- a/mm/filemap.c~mm-filemap-fix-storing-to-a-thp-shadow-entry
++++ a/mm/filemap.c
+@@ -829,13 +829,12 @@ EXPORT_SYMBOL_GPL(replace_page_cache_pag
  
--Using xas_next() or xas_prev() with a multi-index xa_state
--is not supported.  Using either of these functions on a multi-index entry
--will reveal sibling entries; these should be skipped over by the caller.
-+Using xas_next() or xas_prev() with a multi-index xa_state is not
-+supported.  Using either of these functions on a multi-index entry will
-+reveal sibling entries; these should be skipped over by the caller.
- 
--Storing ``NULL`` into any index of a multi-index entry will set the entry
--at every index to ``NULL`` and dissolve the tie.  Splitting a multi-index
--entry into entries occupying smaller ranges is not yet supported.
-+Storing ``NULL`` into any index of a multi-index entry will set the
-+entry at every index to ``NULL`` and dissolve the tie.  A multi-index
-+entry can be split into entries occupying smaller ranges by calling
-+xas_split_alloc() without the xa_lock held, followed by taking the lock
-+and calling xas_split().
- 
- Functions and structures
- ========================
---- a/include/linux/xarray.h~xarray-add-xas_split
-+++ a/include/linux/xarray.h
-@@ -1507,11 +1507,24 @@ void xas_create_range(struct xa_state *)
- 
- #ifdef CONFIG_XARRAY_MULTI
- int xa_get_order(struct xarray *, unsigned long index);
-+void xas_split(struct xa_state *, void *entry, unsigned int order);
-+void xas_split_alloc(struct xa_state *, void *entry, unsigned int order, gfp_t);
- #else
- static inline int xa_get_order(struct xarray *xa, unsigned long index)
+ static int __add_to_page_cache_locked(struct page *page,
+ 				      struct address_space *mapping,
+-				      pgoff_t offset, gfp_t gfp_mask,
++				      pgoff_t offset, gfp_t gfp,
+ 				      void **shadowp)
  {
- 	return 0;
- }
-+
-+static inline void xas_split(struct xa_state *xas, void *entry,
-+		unsigned int order)
-+{
-+	xas_store(xas, entry);
-+}
-+
-+static inline void xas_split_alloc(struct xa_state *xas, void *entry,
-+		unsigned int order, gfp_t gfp)
-+{
-+}
- #endif
+ 	XA_STATE(xas, &mapping->i_pages, offset);
+ 	int huge = PageHuge(page);
+ 	int error;
+-	void *old;
  
- /**
---- a/lib/test_xarray.c~xarray-add-xas_split
-+++ a/lib/test_xarray.c
-@@ -1503,6 +1503,49 @@ static noinline void check_store_range(s
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
+@@ -846,25 +845,46 @@ static int __add_to_page_cache_locked(st
+ 	page->index = offset;
+ 
+ 	if (!huge) {
+-		error = mem_cgroup_charge(page, current->mm, gfp_mask);
++		error = mem_cgroup_charge(page, current->mm, gfp);
+ 		if (error)
+ 			goto error;
  	}
- }
  
-+#ifdef CONFIG_XARRAY_MULTI
-+static void check_split_1(struct xarray *xa, unsigned long index,
-+							unsigned int order)
-+{
-+	XA_STATE(xas, xa, index);
-+	void *entry;
-+	unsigned int i = 0;
++	gfp &= GFP_RECLAIM_MASK;
 +
-+	xa_store_order(xa, index, order, xa, GFP_KERNEL);
+ 	do {
++		unsigned int order = xa_get_order(xas.xa, xas.xa_index);
++		void *entry, *old = NULL;
 +
-+	xas_split_alloc(&xas, xa, order, GFP_KERNEL);
-+	xas_lock(&xas);
-+	xas_split(&xas, xa, order);
-+	xas_unlock(&xas);
-+
-+	xa_for_each(xa, index, entry) {
-+		XA_BUG_ON(xa, entry != xa);
-+		i++;
-+	}
-+	XA_BUG_ON(xa, i != 1 << order);
-+
-+	xa_set_mark(xa, index, XA_MARK_0);
-+	XA_BUG_ON(xa, !xa_get_mark(xa, index, XA_MARK_0));
-+
-+	xa_destroy(xa);
-+}
-+
-+static noinline void check_split(struct xarray *xa)
-+{
-+	unsigned int order;
-+
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+
-+	for (order = 1; order < 2 * XA_CHUNK_SHIFT; order++) {
-+		check_split_1(xa, 0, order);
-+		check_split_1(xa, 1UL << order, order);
-+		check_split_1(xa, 3UL << order, order);
-+	}
-+}
-+#else
-+static void check_split(struct xarray *xa) { }
-+#endif
-+
- static void check_align_1(struct xarray *xa, char *name)
- {
- 	int i;
-@@ -1729,6 +1772,7 @@ static int xarray_checks(void)
- 	check_store_range(&array);
- 	check_store_iter(&array);
- 	check_align(&xa0);
-+	check_split(&array);
- 
- 	check_workingset(&array, 0);
- 	check_workingset(&array, 64);
---- a/lib/xarray.c~xarray-add-xas_split
-+++ a/lib/xarray.c
-@@ -266,13 +266,14 @@ static void xa_node_free(struct xa_node
-  */
- static void xas_destroy(struct xa_state *xas)
- {
--	struct xa_node *node = xas->xa_alloc;
-+	struct xa_node *next, *node = xas->xa_alloc;
- 
--	if (!node)
--		return;
--	XA_NODE_BUG_ON(node, !list_empty(&node->private_list));
--	kmem_cache_free(radix_tree_node_cachep, node);
--	xas->xa_alloc = NULL;
-+	while (node) {
-+		XA_NODE_BUG_ON(node, !list_empty(&node->private_list));
-+		next = rcu_dereference_raw(node->parent);
-+		radix_tree_node_rcu_free(&node->rcu_head);
-+		xas->xa_alloc = node = next;
-+	}
- }
- 
- /**
-@@ -304,6 +305,7 @@ bool xas_nomem(struct xa_state *xas, gfp
- 	xas->xa_alloc = kmem_cache_alloc(radix_tree_node_cachep, gfp);
- 	if (!xas->xa_alloc)
- 		return false;
-+	xas->xa_alloc->parent = NULL;
- 	XA_NODE_BUG_ON(xas->xa_alloc, !list_empty(&xas->xa_alloc->private_list));
- 	xas->xa_node = XAS_RESTART;
- 	return true;
-@@ -339,6 +341,7 @@ static bool __xas_nomem(struct xa_state
- 	}
- 	if (!xas->xa_alloc)
- 		return false;
-+	xas->xa_alloc->parent = NULL;
- 	XA_NODE_BUG_ON(xas->xa_alloc, !list_empty(&xas->xa_alloc->private_list));
- 	xas->xa_node = XAS_RESTART;
- 	return true;
-@@ -403,7 +406,7 @@ static unsigned long xas_size(const stru
- /*
-  * Use this to calculate the maximum index that will need to be created
-  * in order to add the entry described by @xas.  Because we cannot store a
-- * multiple-index entry at index 0, the calculation is a little more complex
-+ * multi-index entry at index 0, the calculation is a little more complex
-  * than you might expect.
-  */
- static unsigned long xas_max(struct xa_state *xas)
-@@ -946,6 +949,153 @@ void xas_init_marks(const struct xa_stat
- }
- EXPORT_SYMBOL_GPL(xas_init_marks);
- 
-+#ifdef CONFIG_XARRAY_MULTI
-+static unsigned int node_get_marks(struct xa_node *node, unsigned int offset)
-+{
-+	unsigned int marks = 0;
-+	xa_mark_t mark = XA_MARK_0;
-+
-+	for (;;) {
-+		if (node_get_mark(node, offset, mark))
-+			marks |= 1 << (__force unsigned int)mark;
-+		if (mark == XA_MARK_MAX)
-+			break;
-+		mark_inc(mark);
-+	}
-+
-+	return marks;
-+}
-+
-+static void node_set_marks(struct xa_node *node, unsigned int offset,
-+			struct xa_node *child, unsigned int marks)
-+{
-+	xa_mark_t mark = XA_MARK_0;
-+
-+	for (;;) {
-+		if (marks & (1 << (__force unsigned int)mark)) {
-+			node_set_mark(node, offset, mark);
-+			if (child)
-+				node_mark_all(child, mark);
-+		}
-+		if (mark == XA_MARK_MAX)
-+			break;
-+		mark_inc(mark);
-+	}
-+}
-+
-+/**
-+ * xas_split_alloc() - Allocate memory for splitting an entry.
-+ * @xas: XArray operation state.
-+ * @entry: New entry which will be stored in the array.
-+ * @order: New entry order.
-+ * @gfp: Memory allocation flags.
-+ *
-+ * This function should be called before calling xas_split().
-+ * If necessary, it will allocate new nodes (and fill them with @entry)
-+ * to prepare for the upcoming split of an entry of @order size into
-+ * entries of the order stored in the @xas.
-+ *
-+ * Context: May sleep if @gfp flags permit.
-+ */
-+void xas_split_alloc(struct xa_state *xas, void *entry, unsigned int order,
-+		gfp_t gfp)
-+{
-+	unsigned int sibs = (1 << (order % XA_CHUNK_SHIFT)) - 1;
-+	unsigned int mask = xas->xa_sibs;
-+
-+	/* XXX: no support for splitting really large entries yet */
-+	if (WARN_ON(xas->xa_shift + 2 * XA_CHUNK_SHIFT < order))
-+		goto nomem;
-+	if (xas->xa_shift + XA_CHUNK_SHIFT > order)
-+		return;
-+
-+	do {
-+		unsigned int i;
-+		void *sibling;
-+		struct xa_node *node;
-+
-+		node = kmem_cache_alloc(radix_tree_node_cachep, gfp);
-+		if (!node)
-+			goto nomem;
-+		node->array = xas->xa;
-+		for (i = 0; i < XA_CHUNK_SIZE; i++) {
-+			if ((i & mask) == 0) {
-+				RCU_INIT_POINTER(node->slots[i], entry);
-+				sibling = xa_mk_sibling(0);
-+			} else {
-+				RCU_INIT_POINTER(node->slots[i], sibling);
++		if (order > thp_order(page))
++			xas_split_alloc(&xas, xa_load(xas.xa, xas.xa_index),
++					order, gfp);
+ 		xas_lock_irq(&xas);
+-		old = xas_load(&xas);
+-		if (old && !xa_is_value(old))
+-			xas_set_err(&xas, -EEXIST);
++		xas_for_each_conflict(&xas, entry) {
++			old = entry;
++			if (!xa_is_value(entry)) {
++				xas_set_err(&xas, -EEXIST);
++				goto unlock;
 +			}
 +		}
-+		RCU_INIT_POINTER(node->parent, xas->xa_alloc);
-+		xas->xa_alloc = node;
-+	} while (sibs-- > 0);
 +
-+	return;
-+nomem:
-+	xas_destroy(xas);
-+	xas_set_err(xas, -ENOMEM);
-+}
-+EXPORT_SYMBOL_GPL(xas_split_alloc);
-+
-+/**
-+ * xas_split() - Split a multi-index entry into smaller entries.
-+ * @xas: XArray operation state.
-+ * @entry: New entry to store in the array.
-+ * @order: New entry order.
-+ *
-+ * The value in the entry is copied to all the replacement entries.
-+ *
-+ * Context: Any context.  The caller should hold the xa_lock.
-+ */
-+void xas_split(struct xa_state *xas, void *entry, unsigned int order)
-+{
-+	unsigned int sibs = (1 << (order % XA_CHUNK_SHIFT)) - 1;
-+	unsigned int offset, marks;
-+	struct xa_node *node;
-+	void *curr = xas_load(xas);
-+	int values = 0;
-+
-+	node = xas->xa_node;
-+	if (xas_top(node))
-+		return;
-+
-+	marks = node_get_marks(node, xas->xa_offset);
-+
-+	offset = xas->xa_offset + sibs;
-+	do {
-+		if (xas->xa_shift < node->shift) {
-+			struct xa_node *child = xas->xa_alloc;
-+
-+			xas->xa_alloc = rcu_dereference_raw(child->parent);
-+			child->shift = node->shift - XA_CHUNK_SHIFT;
-+			child->offset = offset;
-+			child->count = XA_CHUNK_SIZE;
-+			child->nr_values = xa_is_value(entry) ?
-+					XA_CHUNK_SIZE : 0;
-+			RCU_INIT_POINTER(child->parent, node);
-+			node_set_marks(node, offset, child, marks);
-+			rcu_assign_pointer(node->slots[offset],
-+					xa_mk_node(child));
-+			if (xa_is_value(curr))
-+				values--;
-+		} else {
-+			unsigned int canon = offset - xas->xa_sibs;
-+
-+			node_set_marks(node, canon, NULL, marks);
-+			rcu_assign_pointer(node->slots[canon], entry);
-+			while (offset > canon)
-+				rcu_assign_pointer(node->slots[offset--],
-+						xa_mk_sibling(canon));
-+			values += (xa_is_value(entry) - xa_is_value(curr)) *
-+					(xas->xa_sibs + 1);
++		if (old) {
++			if (shadowp)
++				*shadowp = old;
++			/* entry may have been split before we acquired lock */
++			order = xa_get_order(xas.xa, xas.xa_index);
++			if (order > thp_order(page)) {
++				xas_split(&xas, old, order);
++				xas_reset(&xas);
++			}
 +		}
-+	} while (offset-- > xas->xa_offset);
 +
-+	node->nr_values += values;
-+}
-+EXPORT_SYMBOL_GPL(xas_split);
-+#endif
-+
- /**
-  * xas_pause() - Pause a walk to drop a lock.
-  * @xas: XArray operation state.
-@@ -1407,7 +1557,7 @@ EXPORT_SYMBOL(__xa_store);
-  * @gfp: Memory allocation flags.
-  *
-  * After this function returns, loads from this index will return @entry.
-- * Storing into an existing multislot entry updates the entry of every index.
-+ * Storing into an existing multi-index entry updates the entry of every index.
-  * The marks associated with @index are unaffected unless @entry is %NULL.
-  *
-  * Context: Any context.  Takes and releases the xa_lock.
-@@ -1549,7 +1699,7 @@ static void xas_set_range(struct xa_stat
-  *
-  * After this function returns, loads from any index between @first and @last,
-  * inclusive will return @entry.
-- * Storing into an existing multislot entry updates the entry of every index.
-+ * Storing into an existing multi-index entry updates the entry of every index.
-  * The marks associated with @index are unaffected unless @entry is %NULL.
-  *
-  * Context: Process context.  Takes and releases the xa_lock.  May sleep
+ 		xas_store(&xas, page);
+ 		if (xas_error(&xas))
+ 			goto unlock;
+ 
+-		if (xa_is_value(old)) {
++		if (old)
+ 			mapping->nrexceptional--;
+-			if (shadowp)
+-				*shadowp = old;
+-		}
+ 		mapping->nrpages++;
+ 
+ 		/* hugetlb pages do not participate in page cache accounting */
+@@ -872,7 +892,7 @@ static int __add_to_page_cache_locked(st
+ 			__inc_lruvec_page_state(page, NR_FILE_PAGES);
+ unlock:
+ 		xas_unlock_irq(&xas);
+-	} while (xas_nomem(&xas, gfp_mask & GFP_RECLAIM_MASK));
++	} while (xas_nomem(&xas, gfp));
+ 
+ 	if (xas_error(&xas)) {
+ 		error = xas_error(&xas);
 _
