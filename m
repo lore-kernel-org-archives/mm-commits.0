@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 285D2C43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:05:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C7CC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:05:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D78002087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:05:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFC252087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:05:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817525;
-	bh=PKgMNX+8KteQF96qFEtB1MKyx9EewpWQNMl2uQYUp8o=;
+	s=default; t=1602817529;
+	bh=WsZ/Pvy+vzQ8OUmiTbnTEFLx2Jt1xYUpKp1KXGw8OGw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=aLKw9u/OZmpRKOOyLMnXsXEiarcwwqI3tgQSX+fbc+F2UQW7ZC7R/MLDDXkyzW9fm
-	 FolxfBHUxy9dyhNlYNsQ49iq3em9JLw0eL/NtV1ALo5JzCi8B8GvFG2g60KXlorByw
-	 +YwHTBRZC59UrFwRiFzDpRMQRNQwTBv4aN1k+1C8=
+	b=13YGImEylQCvREBwQd+pQXW9FIw7L9Bh2Cm92YtoAvdtqs99CsUKE1CfhUj8fu9Dh
+	 xEPJS86SdfIVsWUiEiCH4fTFLUO6sq2JTiTp1N1T0//HI/xMjmQQ+trYPjtJhebo2p
+	 nCvsNs9jYQNJn/Au8jZa6kXhMk9/fmXofKmW5uqs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393936AbgJPDFZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:05:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44054 "EHLO mail.kernel.org"
+        id S2393937AbgJPDF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:05:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44098 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728261AbgJPDFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:05:24 -0400
+        id S1728261AbgJPDF1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:05:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 061C220897;
-        Fri, 16 Oct 2020 03:05:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 299EC20789;
+        Fri, 16 Oct 2020 03:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817524;
-        bh=PKgMNX+8KteQF96qFEtB1MKyx9EewpWQNMl2uQYUp8o=;
+        s=default; t=1602817527;
+        bh=WsZ/Pvy+vzQ8OUmiTbnTEFLx2Jt1xYUpKp1KXGw8OGw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=bHKWxpEffcMZV969d6YntZYoGdEhAxerpP3MyytNJMv3K0H1Xk8A2asUEN8tdzZrJ
-         kiDxwLBKnU1d/ufUhXr/Poa5fSf2b3pKEJ4VGuqmK7oFBWQjmXY4xckmhUuQnJq51U
-         tx6YEZsdOFyvHPNZ1rsQ7an77/siMk9zXl0bHFIk=
-Date:   Thu, 15 Oct 2020 20:05:23 -0700
+        b=j6iBgcVSdyIXqiGcv/1HgDRlH5ro4ihiyGyS4l78BM8494RrfGAkMoTF67x7yAWbT
+         Ae/v5aahLd0LnIQdtVfuUfaV70mj5EgAufWNXK4POiMizaDwiBcL/iDUs6E7A2uEBE
+         9UYzzuzxlOlPPHgBsFFopZ4DlsHrqx2dWnJ+f1EY=
+Date:   Thu, 15 Oct 2020 20:05:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         willy@infradead.org, ying.huang@intel.com
-Subject:  [patch 019/156] mm/filemap: fix page cache removal for
- arbitrary sized THPs
-Message-ID: <20201016030523.AL6me_biW%akpm@linux-foundation.org>
+Subject:  [patch 020/156] mm/memory: remove page fault assumption
+ of compound page size
+Message-ID: <20201016030526.XF5qtL8K0%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,41 +54,41 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: fix page cache removal for arbitrary sized THPs
+Subject: mm/memory: remove page fault assumption of compound page size
 
-Patch series "Remove assumptions of THP size".
+A compound page in the page cache will not necessarily be of PMD size,
+so check explicitly.
 
-There are a number of places in the VM which assume that a THP is a PMD in
-size.  That's true today, and remains true after this patch series, but
-this is a prerequisite for switching to arbitrary-sized THPs. 
-thp_nr_pages() still returns either HPAGE_PMD_NR or 1, but will be changed
-later.
-
-
-This patch (of 11):
-
-page_cache_free_page() assumes THPs are PMD_SIZE; fix that assumption.
-
-Link: https://lkml.kernel.org/r/20200908195539.25896-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20200908195539.25896-2-willy@infradead.org
+[willy@infradead.org: fix remove page fault assumption of compound page size]
+  Link: https://lkml.kernel.org/r/20201001152259.14932-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Huang Ying <ying.huang@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps
-+++ a/mm/filemap.c
-@@ -249,7 +249,7 @@ static void page_cache_free_page(struct
- 		freepage(page);
+--- a/mm/memory.c~mm-memory-remove-page-fault-assumption-of-compound-page-size
++++ a/mm/memory.c
+@@ -3709,13 +3709,14 @@ static vm_fault_t do_set_pmd(struct vm_f
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 	pmd_t entry;
+ 	int i;
+-	vm_fault_t ret;
++	vm_fault_t ret = VM_FAULT_FALLBACK;
  
- 	if (PageTransHuge(page) && !PageHuge(page)) {
--		page_ref_sub(page, HPAGE_PMD_NR);
-+		page_ref_sub(page, thp_nr_pages(page));
- 		VM_BUG_ON_PAGE(page_count(page) <= 0, page);
- 	} else {
- 		put_page(page);
+ 	if (!transhuge_vma_suitable(vma, haddr))
+-		return VM_FAULT_FALLBACK;
++		return ret;
+ 
+-	ret = VM_FAULT_FALLBACK;
+ 	page = compound_head(page);
++	if (compound_order(page) != HPAGE_PMD_ORDER)
++		return ret;
+ 
+ 	/*
+ 	 * Archs like ppc64 need additonal space to store information
 _
