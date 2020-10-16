@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9F0FC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D1BDC43457
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6033A2087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F4DD208C7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816123;
-	bh=Nmw9wX1eASn4GgNDc9jm2A1Y4EdGgerStKFFG3lEero=;
+	s=default; t=1602816125;
+	bh=PKgMNX+8KteQF96qFEtB1MKyx9EewpWQNMl2uQYUp8o=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0sXiJssJfulUA3U6q7SF1ny34PAlwdV2BhLBpFhDJsXLSe8faUWg1Qn14T4QtjX9S
-	 L32OrIbIZhgz4A/oskRgocEQzFBW8x682dhWSxcfssMR/nGWsJyVJ+wdDSIyGSBy+u
-	 UpWKNEzUaC7cKLbeE/KTDZod2efiptg2fm0c+RaA=
+	b=oeOPu1sQokffYIjr7To8o2HtivtBhJTsnaZRa0diejqXViAWZouDYBp3VcUTemnkz
+	 YwACpe8muCs4d+Vhb3/8yhzgzOznRVwvC6V7+NR2RnA50InjCNJCxrX+x0TI9vE8Co
+	 kfytJ26uFlHlzKfN18yy+2GieP1hadpDgCFT9YFE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404295AbgJPCmD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:42:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57482 "EHLO mail.kernel.org"
+        id S2404296AbgJPCmE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:42:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPCmC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:42:02 -0400
+        id S1728688AbgJPCmE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:42:04 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 577A220897;
-        Fri, 16 Oct 2020 02:42:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CA5132087D;
+        Fri, 16 Oct 2020 02:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816120;
-        bh=Nmw9wX1eASn4GgNDc9jm2A1Y4EdGgerStKFFG3lEero=;
+        s=default; t=1602816124;
+        bh=PKgMNX+8KteQF96qFEtB1MKyx9EewpWQNMl2uQYUp8o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wrEmz5txQbLlH2OxXIypBIlZ1kezet0kf4RSDYJsTAyPFcC14CGsm5r3ZGGfyuvy0
-         6DB50wLXJ1DqfLhNRxDJcuPy4yhzyBTgY62+JA2KPT+Fwl+fDbyXO9xMKllstgxZTw
-         rZWkSG4iLRXCx1t7SZOCeWHvjKQBw44AdPzq6PPs=
-Date:   Thu, 15 Oct 2020 19:41:59 -0700
+        b=P/E5wr8s1/fgXkMVZ8DSCStHSSH+9cuDvdg2rHZd5ZtxjNBPl7kwsB4IF98gkl+dK
+         jo0DUb52Wu/zqIyLBw07TS9b93ZPXtlWJFjmG37FNEp8igD/5D8HOLWeMHx6ELKphr
+         EDvJH/XzLHn6M86ZbcHfJ+O5cVLUJaxVFZ+Ndd14=
+Date:   Thu, 15 Oct 2020 19:42:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cai@lca.pw, kirill@shutemov.name,
+To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        songliubraving@fb.com, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 018/156] mm/filemap: fix storing to a THP shadow
- entry
-Message-ID: <20201016024159.MuK94mohm%akpm@linux-foundation.org>
+        torvalds@linux-foundation.org, willy@infradead.org,
+        ying.huang@intel.com
+Subject:  [patch 019/156] mm/filemap: fix page cache removal for
+ arbitrary sized THPs
+Message-ID: <20201016024203.sQRJX93MR%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,116 +55,41 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: fix storing to a THP shadow entry
+Subject: mm/filemap: fix page cache removal for arbitrary sized THPs
 
-When a THP is removed from the page cache by reclaim, we replace it with a
-shadow entry that occupies all slots of the XArray previously occupied by
-the THP.  If the user then accesses that page again, we only allocate a
-single page, but storing it into the shadow entry replaces all entries
-with that one page.  That leads to bugs like
+Patch series "Remove assumptions of THP size".
 
-page dumped because: VM_BUG_ON_PAGE(page_to_pgoff(page) != offset)
-------------[ cut here ]------------
-kernel BUG at mm/filemap.c:2529!
+There are a number of places in the VM which assume that a THP is a PMD in
+size.  That's true today, and remains true after this patch series, but
+this is a prerequisite for switching to arbitrary-sized THPs. 
+thp_nr_pages() still returns either HPAGE_PMD_NR or 1, but will be changed
+later.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=206569
 
-This is hard to reproduce with mainline, but happens regularly with the
-THP patchset (as so many more THPs are created).  This solution is take
-from the THP patchset.  It splits the shadow entry into order-0 pieces at
-the time that we bring a new page into cache.
+This patch (of 11):
 
-Link: https://lkml.kernel.org/r/20200903183029.14930-4-willy@infradead.org
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
+page_cache_free_page() assumes THPs are PMD_SIZE; fix that assumption.
+
+Link: https://lkml.kernel.org/r/20200908195539.25896-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Qian Cai <cai@lca.pw>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-fix-storing-to-a-thp-shadow-entry
+--- a/mm/filemap.c~mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps
 +++ a/mm/filemap.c
-@@ -829,13 +829,12 @@ EXPORT_SYMBOL_GPL(replace_page_cache_pag
+@@ -249,7 +249,7 @@ static void page_cache_free_page(struct
+ 		freepage(page);
  
- static int __add_to_page_cache_locked(struct page *page,
- 				      struct address_space *mapping,
--				      pgoff_t offset, gfp_t gfp_mask,
-+				      pgoff_t offset, gfp_t gfp,
- 				      void **shadowp)
- {
- 	XA_STATE(xas, &mapping->i_pages, offset);
- 	int huge = PageHuge(page);
- 	int error;
--	void *old;
- 
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
-@@ -846,25 +845,46 @@ static int __add_to_page_cache_locked(st
- 	page->index = offset;
- 
- 	if (!huge) {
--		error = mem_cgroup_charge(page, current->mm, gfp_mask);
-+		error = mem_cgroup_charge(page, current->mm, gfp);
- 		if (error)
- 			goto error;
- 	}
- 
-+	gfp &= GFP_RECLAIM_MASK;
-+
- 	do {
-+		unsigned int order = xa_get_order(xas.xa, xas.xa_index);
-+		void *entry, *old = NULL;
-+
-+		if (order > thp_order(page))
-+			xas_split_alloc(&xas, xa_load(xas.xa, xas.xa_index),
-+					order, gfp);
- 		xas_lock_irq(&xas);
--		old = xas_load(&xas);
--		if (old && !xa_is_value(old))
--			xas_set_err(&xas, -EEXIST);
-+		xas_for_each_conflict(&xas, entry) {
-+			old = entry;
-+			if (!xa_is_value(entry)) {
-+				xas_set_err(&xas, -EEXIST);
-+				goto unlock;
-+			}
-+		}
-+
-+		if (old) {
-+			if (shadowp)
-+				*shadowp = old;
-+			/* entry may have been split before we acquired lock */
-+			order = xa_get_order(xas.xa, xas.xa_index);
-+			if (order > thp_order(page)) {
-+				xas_split(&xas, old, order);
-+				xas_reset(&xas);
-+			}
-+		}
-+
- 		xas_store(&xas, page);
- 		if (xas_error(&xas))
- 			goto unlock;
- 
--		if (xa_is_value(old)) {
-+		if (old)
- 			mapping->nrexceptional--;
--			if (shadowp)
--				*shadowp = old;
--		}
- 		mapping->nrpages++;
- 
- 		/* hugetlb pages do not participate in page cache accounting */
-@@ -872,7 +892,7 @@ static int __add_to_page_cache_locked(st
- 			__inc_lruvec_page_state(page, NR_FILE_PAGES);
- unlock:
- 		xas_unlock_irq(&xas);
--	} while (xas_nomem(&xas, gfp_mask & GFP_RECLAIM_MASK));
-+	} while (xas_nomem(&xas, gfp));
- 
- 	if (xas_error(&xas)) {
- 		error = xas_error(&xas);
+ 	if (PageTransHuge(page) && !PageHuge(page)) {
+-		page_ref_sub(page, HPAGE_PMD_NR);
++		page_ref_sub(page, thp_nr_pages(page));
+ 		VM_BUG_ON_PAGE(page_count(page) <= 0, page);
+ 	} else {
+ 		put_page(page);
 _
