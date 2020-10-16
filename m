@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7672CC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:19:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB3F6C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:20:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 080ED20897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:19:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AD4B208E4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:20:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602814767;
-	bh=lxBgceZxEe5tY7ooSQW1A3bbhEDnFFaXX/n/uNrAi3c=;
+	s=default; t=1602814803;
+	bh=ohGgnc9a4B23BeAIP+OBrx5mYmUFo7i7+IX43IbI1Gs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ezQTMhiYQ0ys22e3IZPlF9CZA/sT/tT4DGwm2E7sAJg6bUey8zijBa7YTvTsx+/do
-	 FE+iC7wfp8E9u6dqH/ne8GMeRELnOnQMS4MJWkFxf9ci6AtmHvvcdCEvZZph+YMKaZ
-	 Z71UgjSoSMpR5ygI1nNcf41w5HHUk6cwE5xE0TeQ=
+	b=El8QfcvPTfXNn+zMYtGq7L5hlTiWWTsWBmFzzI1FqFEg3jdjbtoK4sbpCbiRUoY9b
+	 opIvNoo6Mrt1m4l8SFgNHGH2tY4ePgLgzwwk5QOMdAqvxx8T1wPeUyEtaYlzWq1iAJ
+	 5r7+6xeMyGBlxuiE5efYR9G4SPRMQpFvAAP/bijw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731863AbgJPCT0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:19:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49776 "EHLO mail.kernel.org"
+        id S1732255AbgJPCUD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:20:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731436AbgJPCT0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:19:26 -0400
+        id S1731436AbgJPCUD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:20:03 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BDCC620878;
-        Fri, 16 Oct 2020 02:19:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 20F4520878;
+        Fri, 16 Oct 2020 02:20:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602814766;
-        bh=lxBgceZxEe5tY7ooSQW1A3bbhEDnFFaXX/n/uNrAi3c=;
+        s=default; t=1602814802;
+        bh=ohGgnc9a4B23BeAIP+OBrx5mYmUFo7i7+IX43IbI1Gs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yBbPtUyJHKqe65z8Z/qUCEUlaPX0R0B2YYJEFLThjGuIR5gOSjGpwFYxQ7lLqIsx0
-         TxZkeU2ulrDjj0PilJQ0uVPWpze/rSCM+HwRrq2vB3wCNXSdQR+LiGm5qgK/TVYu9W
-         zKwv+2q1XJf4bLuOBHYllEs7iojXBb8b+Cw2TsU4=
-Date:   Thu, 15 Oct 2020 19:19:25 -0700
+        b=xCnm4M3OcynHVYz28TSgsTrtULDqMj3E8dUzDpAX3/fvBdfFWjCqrZIoyTbQ+dVL3
+         lHg4Nl1MPWKtjDnH+SpTuPuHaZUapjeu/daMXTZc0b5ZB0dmqrxQ7/nhkn7eqaTrMk
+         AdOG5HyjPofBb6lPJxPlDY6GrOLaZUx5eINgrckA=
+Date:   Thu, 15 Oct 2020 19:20:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joe@perches.com,
-        mm-commits@vger.kernel.org
+To:     joe@perches.com, julia.lawall@inria.fr, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- checkpatch-warn-on-self-assignments-checkpatch-fixes.patch removed from -mm
- tree
-Message-ID: <20201016021925.ysTt6X7pY%akpm@linux-foundation.org>
+ checkpatch-allow-not-using-f-with-files-that-are-in-git-fix.patch removed
+ from -mm tree
+Message-ID: <20201016022001.QfKFrPIWG%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,65 +54,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch-warn-on-self-assignments-checkpatch-fixes
+     Subject: checkpatch: fix git "fatal" warning if file argument outside kernel tree
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-self-assignments-checkpatch-fixes.patch
+     checkpatch-allow-not-using-f-with-files-that-are-in-git-fix.patch
 
-This patch was dropped because it was folded into checkpatch-warn-on-self-assignments.patch
+This patch was dropped because it was folded into checkpatch-allow-not-using-f-with-files-that-are-in-git.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: checkpatch-warn-on-self-assignments-checkpatch-fixes
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: fix git "fatal" warning if file argument outside kernel tree
 
-WARNING: Unknown commit id '63a0895d960a', maybe rebased or not pulled?
-#4: 
-The uninitialized_var() macro was removed recently via commit 63a0895d960a
+commit bcf4271d4bc3 ("checkpatch: allow not using -f with files that are
+in git") in linux-next causes checkpatch to emit a fatal message:
 
-WARNING: 'assigments' may be misspelled - perhaps 'assignments'?
-#30: FILE: scripts/checkpatch.pl:3904:
-+# check for self assigments used to avoid compiler warnings
+fatal: <file>: '<file>' is outside repository at '<kernel_dir>'
 
-total: 0 errors, 2 warnings, 17 lines checked
+Fix that by sending git's error output to /dev/null instead.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/checkpatch-warn-on-self-assignments.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/b6afa04112d450c2fc120a308d706acd60cee294.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Julia Lawall <julia.lawall@inria.fr>
+Reviewed-by: Julia Lawall <julia.lawall@inria.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-warn-on-self-assignments-checkpatch-fixes
+--- a/scripts/checkpatch.pl~checkpatch-allow-not-using-f-with-files-that-are-in-git-fix
 +++ a/scripts/checkpatch.pl
-@@ -3899,7 +3899,7 @@ sub process {
- #ignore lines not being added
- 		next if ($line =~ /^[^\+]/);
+@@ -979,7 +979,7 @@ sub git_is_single_file {
  
--# check for self assigments used to avoid compiler warnings
-+# check for self assignments used to avoid compiler warnings
- # e.g.:	int foo = foo, *bar = NULL;
- #	struct foo bar = *(&(bar));
- 		if ($line =~ /^\+\s*(?:$Declare)?([A-Za-z_][A-Za-z\d_]*)\s*=/) {
+ 	return 0 if ((which("git") eq "") || !(-e "$gitroot"));
+ 
+-	my $output = `${git_command} ls-files -- $filename`;
++	my $output = `${git_command} ls-files -- $filename 2>/dev/null`;
+ 	my $count = $output =~ tr/\n//;
+ 	return $count eq 1 && $output =~ m{^${filename}$};
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
+get_maintainer-add-test-for-file-in-vcs.patch
+get_maintainer-exclude-maintainers-files-from-git-fallback.patch
+checkpatch-move-repeated-word-test.patch
+checkpatch-add-test-for-comma-use-that-should-be-semicolon.patch
 checkpatch-warn-on-self-assignments.patch
-checkpatch-emit-a-warning-on-embedded-filenames-fix.patch
-fs-binfmt_elf-use-pt_load-p_align-values-for-suitable-start-address-fix.patch
-mm.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-linux-next-rejects.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+checkpatch-allow-not-using-f-with-files-that-are-in-git.patch
+checkpatch-emit-a-warning-on-embedded-filenames.patch
+checkpatch-test-git_dir-changes.patch
 
