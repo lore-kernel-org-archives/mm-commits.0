@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBF0C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B5BC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F39C20E65
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8805220E65
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:46:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816403;
-	bh=Z6Hi46+lEPeVQixuUHzIPW4fj6Pk/0u/FRrRqtIm+A8=;
+	s=default; t=1602816405;
+	bh=cn5yultem/+6mHypbbQ8ih+AQKc065J7TXIe6Lvy4/M=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=wNClcjt0tMvCLmV9AN2VIf5NwCC7gx3cQ8yqGHLgCSTEzeOqPS6NNjzF9wdszZ7/1
-	 Fkb+66wQogt2PUNBfHnOI9uM5njSvs4jdFXhBILjpQkW5DSlTaO23ed+STX4h6fUAE
-	 t+NAMS5rdSmFSNI+nIgiwzzPpexmitHY5lCwv45U=
+	b=stdvPY6Dh+D8trcfGfFRp4PtVv8ixl9h13ghUsDQVS4GD4eOOKvWchbJXEkQCsxiX
+	 yWqeoW+S+iGmoIGF0S0AmxdUZ41qns9d0f+MLpDJLVTxMOeM9lYJ07htWhXxCc3JDH
+	 4xjJzpxgX2LjJ3msis+2oR3Ezi1OvLgpX1hc4JBc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393911AbgJPCqn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:46:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34312 "EHLO mail.kernel.org"
+        id S2404334AbgJPCqp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:46:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393910AbgJPCqn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:46:43 -0400
+        id S2404325AbgJPCqp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:46:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CE97E20897;
-        Fri, 16 Oct 2020 02:46:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 27B1420B1F;
+        Fri, 16 Oct 2020 02:46:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816401;
-        bh=Z6Hi46+lEPeVQixuUHzIPW4fj6Pk/0u/FRrRqtIm+A8=;
+        s=default; t=1602816404;
+        bh=cn5yultem/+6mHypbbQ8ih+AQKc065J7TXIe6Lvy4/M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ruShtGlbjfIFw198DrwavpfEhlqz9TZ0bFdZkxl7QqWewM9kil2/Wc/8DNcSb8aib
-         /rAPsIi8Ikp49ADG5Pcje9kEof7cQAkjGFw0h/thJNN2qbGtlft34vVohOcCb3EwZe
-         UkQQHl9zEzGlxg7rmnKBNy4gSd1ZeudMoVJAjmik=
-Date:   Thu, 15 Oct 2020 19:46:40 -0700
+        b=fS5bg2+AH/0CFmLdA63YA3H9qR5egLleYOv3d/SyqTaWTXhv4OtJbwecTEUgcVJOh
+         aou32v2JLWD1xVN5So4+fQS0WCzcdKjEc2NQkyRvy6TvOBc3jNkMmYkhi0UbdOghRK
+         unCIcQbzt/n1w48XGyWzFKNSH0cnUJvB+NeTA2nM=
+Date:   Thu, 15 Oct 2020 19:46:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        torvalds@linux-foundation.org, yuehaibing@huawei.com
-Subject:  [patch 085/156] mm/slab.h: remove duplicate include
-Message-ID: <20201016024640.ERwDyUyws%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
+        david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        richard.weiyang@linux.alibaba.com, torvalds@linux-foundation.org
+Subject:  [patch 086/156] mm/page_reporting.c: drop stale list head
+ check in page_reporting_cycle
+Message-ID: <20201016024643.FeJGBXKYo%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,28 +53,33 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: mm/slab.h: remove duplicate include
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/page_reporting.c: drop stale list head check in page_reporting_cycle
 
-Remove duplicate header which is included twice.
+list_for_each_entry_safe() guarantees that we will never stumble over the
+list head; "&page->lru != list" will always evaluate to true.  Let's
+simplify.
 
-Link: http://lkml.kernel.org/r/20200818114323.58156-1-yuehaibing@huawei.com
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
+[david@redhat.com: Changelog refinements]
+Link: http://lkml.kernel.org/r/20200818084448.33969-1-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_reporting.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab.h~mm-slab-remove-duplicate-include
-+++ a/mm/slab.h
-@@ -46,7 +46,6 @@ struct kmem_cache {
- #include <linux/kmemleak.h>
- #include <linux/random.h>
- #include <linux/sched/mm.h>
--#include <linux/kmemleak.h>
+--- a/mm/page_reporting.c~mm-page_reporting-drop-stale-list-head-check-in-page_reporting_cycle
++++ a/mm/page_reporting.c
+@@ -178,7 +178,7 @@ page_reporting_cycle(struct page_reporti
+ 		 * the new head of the free list before we release the
+ 		 * zone lock.
+ 		 */
+-		if (&page->lru != list && !list_is_first(&page->lru, list))
++		if (!list_is_first(&page->lru, list))
+ 			list_rotate_to_front(&page->lru, list);
  
- /*
-  * State of the slab allocator.
+ 		/* release lock before waiting on report processing */
 _
