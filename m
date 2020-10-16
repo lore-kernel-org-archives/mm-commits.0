@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F1EC433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4983C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9FA4216C4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60F48214DB
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881236;
-	bh=INqb2OcpEIPYMlCE5mODJWZoxuaIqd6j6Adq/l+ZzSo=;
+	s=default; t=1602881242;
+	bh=qpx67/J3xR8vJ6sCvKNoOqeBNPTGzPdDcKaRam68k7I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=kZBspQc4ZVLvQnP7u4gzTWZXcWkxkzCVVSQIVY6VqzacjX3Aq6LphCF+1pHrwgmkA
-	 EYwZEmCkcTQY5kVAS2ovbujibmbBEv0ORXKe/Ru/B1nGG6Y2AHASY5EvX+a0DCUl17
-	 dNFZVuh/sKM9UxZyVqzwbnfjzq8Aoq30nKGn/Cog=
+	b=vcQmDF3E/eteQHNvS9oCb/Xg4LhqUq54x2iztLbbFTPvcLS+BS27GwxZmpGQ4V1v/
+	 OB+FJUx83n8EK8wCHgh+ozqC7CAGAcNIH9jM3vpjOQ4PUx+1heJmGh2eUSjaVKGYTV
+	 cWT1QJq51PR4yNauV9dKE96P4o6Q3ZnJF64Xoh8w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408883AbgJPUrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:47:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37068 "EHLO mail.kernel.org"
+        id S2390764AbgJPUrV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:47:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408804AbgJPUrP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:47:15 -0400
+        id S2390541AbgJPUrV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:47:21 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B7A2320878;
-        Fri, 16 Oct 2020 20:47:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8D20B2145D;
+        Fri, 16 Oct 2020 20:47:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881234;
-        bh=INqb2OcpEIPYMlCE5mODJWZoxuaIqd6j6Adq/l+ZzSo=;
+        s=default; t=1602881240;
+        bh=qpx67/J3xR8vJ6sCvKNoOqeBNPTGzPdDcKaRam68k7I=;
         h=Date:From:To:Subject:From;
-        b=hF23fHa1dmf7+npD24ksxzYtvhhRjbp0Lkv7veNWo1lCcwLbNtjC/p3ZGpcJWepFW
-         XbRpFKOVnGmBb6Kfg/9nsBLoO3jG0bP7bVBKArd3NWO9weR3ITtBYUSEkhVDx0bR5A
-         5Gjk4QAhRdC9uKEb0cE9wt6lpr5GDtmxHjZJUNcg=
-Date:   Fri, 16 Oct 2020 13:47:12 -0700
+        b=0s+EyKdjC129yeGbhl82rUSpRpn32tWReiROq5AwhLeqfSOJ6Q/LuPVQtVfOSLeOU
+         rTX+/sZ2nUdM+2BpMeHDnkZ+XjkSZRMs408TK09LZxsxd8qNV0T4MVJUq8CUSDhWok
+         f66HVsKaUdS05cDA1JyqjIlSVnOWm6SWwwtHWxpE=
+Date:   Fri, 16 Oct 2020 13:47:18 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
-        christophe.leroy@csgroup.eu, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au
-Subject:  [nacked]
- =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-thp-mark-the-pte-entry-huge-befor?=
- =?US-ASCII?Q?e-using-set=5Fpmd-pud=5Fat.patch?= removed from -mm tree
-Message-ID: <20201016204712.y6TargCTT%akpm@linux-foundation.org>
+To:     Brice.Goglin@inria.fr, dan.j.williams@intel.com,
+        dave.hansen@linux.intel.com, dave.jiang@intel.com,
+        david@redhat.com, ira.weiny@intel.com, joao.m.martins@oracle.com,
+        Jonathan.Cameron@huawei.com, justin.he@arm.com,
+        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
+        vishal.l.verma@intel.com
+Subject:  [merged] device-dax-kmem-fix-resource-release.patch
+ removed from -mm tree
+Message-ID: <20201016204718.1rfFPf38e%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,115 +57,172 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable/THP: mark the pte entry huge before using set_pmd/pud_at
+     Subject: device-dax/kmem: fix resource release
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at.patch
+     device-dax-kmem-fix-resource-release.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable/THP: mark the pte entry huge before using set_pmd/pud_at
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: device-dax/kmem: fix resource release
 
-kernel expects entries to be marked huge before we use
-set_pmd_at()/set_pud_at().
+The conversion to request_mem_region() is broken because it assumes that
+the range is marked busy prior to release.  However, due to the way that
+the kmem driver manipulates the IORESOURCE_BUSY flag (clears it to let
+{add,remove}_memory() handle busy) it requires a manual release_resource()
+to perform cleanup.
 
-Link: https://lkml.kernel.org/r/20200902114222.181353-7-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Given that the actual 'struct resource *' needs to be recalled, not just
+the range, add that tracking to the kmem driver-data.
+
+Link: https://lkml.kernel.org/r/160272252925.3136502.17220638073995895400.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: 0513bd5bb114 ("device-dax/kmem: replace release_resource() with release_mem_region()")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/dax/kmem.c |   48 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 34 insertions(+), 14 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-thp-mark-the-pte-entry-huge-before-using-set_pmd-pud_at
-+++ a/mm/debug_vm_pgtable.c
-@@ -155,7 +155,7 @@ static void __init pmd_advanced_tests(st
- 				      unsigned long pfn, unsigned long vaddr,
- 				      pgprot_t prot)
- {
--	pmd_t pmd = pfn_pmd(pfn, prot);
-+	pmd_t pmd;
+--- a/drivers/dax/kmem.c~device-dax-kmem-fix-resource-release
++++ a/drivers/dax/kmem.c
+@@ -35,11 +35,17 @@ static int dax_kmem_range(struct dev_dax
+ 	return 0;
+ }
  
- 	if (!has_transparent_hugepage())
- 		return;
-@@ -164,19 +164,19 @@ static void __init pmd_advanced_tests(st
- 	/* Align the address wrt HPAGE_PMD_SIZE */
- 	vaddr = (vaddr & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE;
- 
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
- 	set_pmd_at(mm, vaddr, pmdp, pmd);
- 	pmdp_set_wrprotect(mm, vaddr, pmdp);
- 	pmd = READ_ONCE(*pmdp);
- 	WARN_ON(pmd_write(pmd));
- 
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
- 	set_pmd_at(mm, vaddr, pmdp, pmd);
- 	pmdp_huge_get_and_clear(mm, vaddr, pmdp);
- 	pmd = READ_ONCE(*pmdp);
- 	WARN_ON(!pmd_none(pmd));
- 
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
- 	pmd = pmd_wrprotect(pmd);
- 	pmd = pmd_mkclean(pmd);
- 	set_pmd_at(mm, vaddr, pmdp, pmd);
-@@ -236,7 +236,7 @@ static void __init pmd_huge_tests(pmd_t
- 
- static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
- {
--	pmd_t pmd = pfn_pmd(pfn, prot);
-+	pmd_t pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
- 
- 	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
- 		return;
-@@ -276,7 +276,7 @@ static void __init pud_advanced_tests(st
- 				      unsigned long pfn, unsigned long vaddr,
- 				      pgprot_t prot)
- {
--	pud_t pud = pfn_pud(pfn, prot);
-+	pud_t pud;
- 
- 	if (!has_transparent_hugepage())
- 		return;
-@@ -285,25 +285,27 @@ static void __init pud_advanced_tests(st
- 	/* Align the address wrt HPAGE_PUD_SIZE */
- 	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
- 
-+	pud = pud_mkhuge(pfn_pud(pfn, prot));
- 	set_pud_at(mm, vaddr, pudp, pud);
- 	pudp_set_wrprotect(mm, vaddr, pudp);
- 	pud = READ_ONCE(*pudp);
- 	WARN_ON(pud_write(pud));
- 
- #ifndef __PAGETABLE_PMD_FOLDED
--	pud = pfn_pud(pfn, prot);
-+	pud = pud_mkhuge(pfn_pud(pfn, prot));
- 	set_pud_at(mm, vaddr, pudp, pud);
- 	pudp_huge_get_and_clear(mm, vaddr, pudp);
- 	pud = READ_ONCE(*pudp);
- 	WARN_ON(!pud_none(pud));
- 
--	pud = pfn_pud(pfn, prot);
-+	pud = pud_mkhuge(pfn_pud(pfn, prot));
- 	set_pud_at(mm, vaddr, pudp, pud);
- 	pudp_huge_get_and_clear_full(mm, vaddr, pudp, 1);
- 	pud = READ_ONCE(*pudp);
- 	WARN_ON(!pud_none(pud));
- #endif /* __PAGETABLE_PMD_FOLDED */
--	pud = pfn_pud(pfn, prot);
++struct dax_kmem_data {
++	const char *res_name;
++	struct resource *res[];
++};
 +
-+	pud = pud_mkhuge(pfn_pud(pfn, prot));
- 	pud = pud_wrprotect(pud);
- 	pud = pud_mkclean(pud);
- 	set_pud_at(mm, vaddr, pudp, pud);
+ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+ 	struct device *dev = &dev_dax->dev;
++	struct dax_kmem_data *data;
++	int rc = -ENOMEM;
+ 	int i, mapped = 0;
+-	char *res_name;
+ 	int numa_node;
+ 
+ 	/*
+@@ -55,14 +61,17 @@ static int dev_dax_kmem_probe(struct dev
+ 		return -EINVAL;
+ 	}
+ 
+-	res_name = kstrdup(dev_name(dev), GFP_KERNEL);
+-	if (!res_name)
++	data = kzalloc(sizeof(*data) + sizeof(struct resource *) * dev_dax->nr_range, GFP_KERNEL);
++	if (!data)
+ 		return -ENOMEM;
+ 
++	data->res_name = kstrdup(dev_name(dev), GFP_KERNEL);
++	if (!data->res_name)
++		goto err_res_name;
++
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct resource *res;
+ 		struct range range;
+-		int rc;
+ 
+ 		rc = dax_kmem_range(dev_dax, i, &range);
+ 		if (rc) {
+@@ -72,7 +81,7 @@ static int dev_dax_kmem_probe(struct dev
+ 		}
+ 
+ 		/* Region is permanently reserved if hotremove fails. */
+-		res = request_mem_region(range.start, range_len(&range), res_name);
++		res = request_mem_region(range.start, range_len(&range), data->res_name);
+ 		if (!res) {
+ 			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve region\n",
+ 					i, range.start, range.end);
+@@ -82,9 +91,10 @@ static int dev_dax_kmem_probe(struct dev
+ 			 */
+ 			if (mapped)
+ 				continue;
+-			kfree(res_name);
+-			return -EBUSY;
++			rc = -EBUSY;
++			goto err_request_mem;
+ 		}
++		data->res[i] = res;
+ 
+ 		/*
+ 		 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
+@@ -104,18 +114,25 @@ static int dev_dax_kmem_probe(struct dev
+ 		if (rc) {
+ 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
+ 					i, range.start, range.end);
+-			release_mem_region(range.start, range_len(&range));
++			release_resource(res);
++			kfree(res);
++			data->res[i] = NULL;
+ 			if (mapped)
+ 				continue;
+-			kfree(res_name);
+-			return rc;
++			goto err_request_mem;
+ 		}
+ 		mapped++;
+ 	}
+ 
+-	dev_set_drvdata(dev, res_name);
++	dev_set_drvdata(dev, data);
+ 
+ 	return 0;
++
++err_request_mem:
++	kfree(data->res_name);
++err_res_name:
++	kfree(data);
++	return rc;
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+@@ -123,7 +140,7 @@ static int dev_dax_kmem_remove(struct de
+ {
+ 	int i, success = 0;
+ 	struct device *dev = &dev_dax->dev;
+-	const char *res_name = dev_get_drvdata(dev);
++	struct dax_kmem_data *data = dev_get_drvdata(dev);
+ 
+ 	/*
+ 	 * We have one shot for removing memory, if some memory blocks were not
+@@ -142,7 +159,9 @@ static int dev_dax_kmem_remove(struct de
+ 		rc = remove_memory(dev_dax->target_node, range.start,
+ 				range_len(&range));
+ 		if (rc == 0) {
+-			release_mem_region(range.start, range_len(&range));
++			release_resource(data->res[i]);
++			kfree(data->res[i]);
++			data->res[i] = NULL;
+ 			success++;
+ 			continue;
+ 		}
+@@ -153,7 +172,8 @@ static int dev_dax_kmem_remove(struct de
+ 	}
+ 
+ 	if (success >= dev_dax->nr_range) {
+-		kfree(res_name);
++		kfree(data->res_name);
++		kfree(data);
+ 		dev_set_drvdata(dev, NULL);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
+xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
 
