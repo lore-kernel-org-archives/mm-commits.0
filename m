@@ -7,45 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C75C43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A2FC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4ABE21D81
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7EC321D81
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:54:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881691;
-	bh=QEPJI9PkHBJv9dZmhCkWqieM/KX9S1DEtQ6vjAGd/4M=;
+	s=default; t=1602881694;
+	bh=mnEWkWntKkGUIfkze0SVI4mYarkh2EvqzDpq9/7hZ0I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Ju6EAyRWsErIfkF/On8EWCWSpuBtSleUxthe8ytd7AeBEFMTXV1Vp1XKbkHKZ4YAi
-	 aL4yV76WJHnI7qUxEgRx2PyfceKdyy84KhAZYXiGTPXsdq4f4CS2XSpvNvng5QcPcV
-	 yYD0kJXw8mdfRkZkw7s4nmlTeQbWFrsgkwDlA5CA=
+	b=vZWT+6XE/KBoh81oHVZzqKo2iQavr6xTSwGk6+M1vG5x0EoTmj23YFVok3i24u/is
+	 ysP+mOBhQMHAYA8zgLFOw7b6G1Efm91C77BKJpWh0DjtT98ba5xe8VzsU76k44/RkF
+	 bggAAkkoz/l7Cj6fH91dCCFrDA3i6+yOm+XKCHxM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409428AbgJPUyv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:54:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42468 "EHLO mail.kernel.org"
+        id S2409430AbgJPUyy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:54:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732596AbgJPUyv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:54:51 -0400
+        id S1732596AbgJPUyy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:54:54 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA714216C4;
-        Fri, 16 Oct 2020 20:54:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9CC7F2076C;
+        Fri, 16 Oct 2020 20:54:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881690;
-        bh=QEPJI9PkHBJv9dZmhCkWqieM/KX9S1DEtQ6vjAGd/4M=;
+        s=default; t=1602881693;
+        bh=mnEWkWntKkGUIfkze0SVI4mYarkh2EvqzDpq9/7hZ0I=;
         h=Date:From:To:Subject:From;
-        b=gen47Rwk6OGLXjF5OlWLNQwdytYr+DUr891p/TiyVM9mgoFUtYuMcNMLAnchLSX7Z
-         3CuPfulSEFsB8NS1jEgoLCVaiMU/W1MZhrwuyYE3T1bbCVFvTl/Zroi/hjDGxDJ9OS
-         sAzBXAqLEhlqxwAXQMo9gJAi2t9qPxgr6PVsQIB8=
-Date:   Fri, 16 Oct 2020 13:54:50 -0700
+        b=SCNNg341HJhvRLl6OBJeuvwlHoVk0xbJaVomWCw7e2dljtNn+ANBEmz3Sc7NfD50e
+         hBmhYl2btfW4QQbvOv2QkgzheimEdYvzSYbPQuQrUTkZ+yHhUmZANJCD5z9jyWJzSG
+         Flrlg3OQ39Qa5F930uQ9Gm+n3deXLJLPLg7TjZ+I=
+Date:   Fri, 16 Oct 2020 13:54:53 -0700
 From:   akpm@linux-foundation.org
-To:     dhowells@redhat.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  [merged]
- ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch removed from -mm
+To:     mm-commits@vger.kernel.org, raven@themaw.net, willy@infradead.org
+Subject:  [merged] harden-autofs-ioctl-table.patch removed from -mm
  tree
-Message-ID: <20201016205450.CRIzX6B_H%akpm@linux-foundation.org>
+Message-ID: <20201016205453.kTow3LWV3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,43 +52,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ramfs: fix nommu mmap with gaps in the page cache
+     Subject: autofs: harden ioctl table
 has been removed from the -mm tree.  Its filename was
-     ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache.patch
+     harden-autofs-ioctl-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox (Oracle) <willy@infradead.org>
-Subject: ramfs: fix nommu mmap with gaps in the page cache
+From: Matthew Wilcox <willy@infradead.org>
+Subject: autofs: harden ioctl table
 
-ramfs needs to check that pages are both physically contiguous and
-contiguous in the file.  If the page cache happens to have, eg, page A for
-index 0 of the file, no page for index 1, and page A+1 for index 2, then
-an mmap of the first two pages of the file will succeed when it should
-fail.
+The table of ioctl functions should be marked const in order to put them
+in read-only memory, and we should use array_index_nospec() to avoid
+speculation disclosing the contents of kernel memory to userspace.
 
-Link: https://lkml.kernel.org/r/20200914122239.GO6583@casper.infradead.org
-Fixes: 642fb4d1f1dd ("[PATCH] NOMMU: Provide shared-writable mmap support on ramfs")
+Link: https://lkml.kernel.org/r/20200818122203.GO17456@casper.infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs/dev-ioctl.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/fs/ramfs/file-nommu.c~ramfs-fix-nommu-mmap-with-gaps-in-the-page-cache
-+++ a/fs/ramfs/file-nommu.c
-@@ -224,7 +224,7 @@ static unsigned long ramfs_nommu_get_unm
- 	if (!pages)
- 		goto out_free;
+--- a/fs/autofs/dev-ioctl.c~harden-autofs-ioctl-table
++++ a/fs/autofs/dev-ioctl.c
+@@ -8,6 +8,7 @@
+ #include <linux/compat.h>
+ #include <linux/syscalls.h>
+ #include <linux/magic.h>
++#include <linux/nospec.h>
  
--	nr = find_get_pages(inode->i_mapping, &pgoff, lpages, pages);
-+	nr = find_get_pages_contig(inode->i_mapping, pgoff, lpages, pages);
- 	if (nr != lpages)
- 		goto out_free_pages; /* leave if some pages were missing */
+ #include "autofs_i.h"
  
+@@ -563,7 +564,7 @@ out:
+ 
+ static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
+ {
+-	static ioctl_fn _ioctls[] = {
++	static const ioctl_fn _ioctls[] = {
+ 		autofs_dev_ioctl_version,
+ 		autofs_dev_ioctl_protover,
+ 		autofs_dev_ioctl_protosubver,
+@@ -581,7 +582,10 @@ static ioctl_fn lookup_dev_ioctl(unsigne
+ 	};
+ 	unsigned int idx = cmd_idx(cmd);
+ 
+-	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx];
++	if (idx >= ARRAY_SIZE(_ioctls))
++		return NULL;
++	idx = array_index_nospec(idx, ARRAY_SIZE(_ioctls));
++	return _ioctls[idx];
+ }
+ 
+ /* ioctl dispatcher */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
