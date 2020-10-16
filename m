@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FA2C43457
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C6E9C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5438220639
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FEBA2063A
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881542;
-	bh=VF153pYGyqhBuJBXzKiHnKhJsyuifvUuZO6omSNXQA0=;
+	s=default; t=1602881544;
+	bh=A3l7wKMB9w7906QMwUZxR4dDp5KoaCGnpdxjMm0QdD4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wvhkOUZ/ZuQx1vUhhC8/7XIPEQeyvdgmKj0m8cbx22yCZ2gMyrUMsBwEXJFRnvcLr
-	 Ub93Z9oGZjX03WhwrSixIbq0c0k+Q3JjKeRlpY1CHebBjK1kxS6PMXPz9kldORb5eB
-	 pYK47+IdyHWS4QfsBvi3YoTKra1xTEiL/I+1HdYA=
+	b=gETd6Ryv6AGHhnRfNBP7JHJtwOA/mXiNM0s9pXhdKPxXZ9ZOzP+knD7AB17N3qVFb
+	 UNjyAaOnFZCyd/h4/i0GS2OHsqoZWou5Bem/t0BOv9HUiQ8dBdOHCLw2KmiWmSdmSi
+	 rc2USh8QsKIWvqSjYpPUF/BBzs3OihSVramSe4eA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408670AbgJPUwV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40904 "EHLO mail.kernel.org"
+        id S2408689AbgJPUwX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408456AbgJPUwV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:52:21 -0400
+        id S2408456AbgJPUwX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:23 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B3D3320878;
-        Fri, 16 Oct 2020 20:52:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E89B2205CB;
+        Fri, 16 Oct 2020 20:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881539;
-        bh=VF153pYGyqhBuJBXzKiHnKhJsyuifvUuZO6omSNXQA0=;
+        s=default; t=1602881543;
+        bh=A3l7wKMB9w7906QMwUZxR4dDp5KoaCGnpdxjMm0QdD4=;
         h=Date:From:To:Subject:From;
-        b=HUqN9o9G1Q6mNobG6glKW8CvxWLUL3E4ALJyivKFD+2gZhJQEAAcZ8cNLQCdT1JUi
-         CH+kHC/uPP2lZp50Q7TRZiknjSgHReswhMMG2c20T5bp3IZf8spmoVvabxPSSE7vI2
-         PEINaGkJOzBufhB64MsPu2hlnCLSY0vfaUMhNGIk=
-Date:   Fri, 16 Oct 2020 13:52:19 -0700
+        b=nOkmOKU9bYv5a72RF5jXz+ARUloejG0hrvn0jClkvw+CfAwS4LwPSHBPP4C0YJ6SL
+         hXGCsbC4+jBUDFDBQywgDAPA4W3mOoCnBdYHChSsuzc8BLJISzxdp35auRejhSNT8a
+         FB9ICR/QVGrWErchbDroY/9hnUweFroq6ZF1rbpQ=
+Date:   Fri, 16 Oct 2020 13:52:22 -0700
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  [merged] mm-use-helper-function-put_write_access.patch
- removed from -mm tree
-Message-ID: <20201016205219.2tyg0W9PO%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  [merged] mm-remove-unused-early_pfn_valid.patch removed
+ from -mm tree
+Message-ID: <20201016205222.BBK6Z4tvO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,54 +52,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use helper function put_write_access()
+     Subject: include/linux/mmzone.h: remove unused early_pfn_valid()
 has been removed from the -mm tree.  Its filename was
-     mm-use-helper-function-put_write_access.patch
+     mm-remove-unused-early_pfn_valid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: use helper function put_write_access()
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: include/linux/mmzone.h: remove unused early_pfn_valid()
 
-In commit 1da177e4c3f4 ("Linux-2.6.12-rc2"), the helper put_write_access()
-came with the atomic_dec operation of the i_writecount field.  But it
-forgot to use this helper in __vma_link_file() and dup_mmap().
+The early_pfn_valid() macro is defined but it is never used.  Remove it.
 
-Link: https://lkml.kernel.org/r/20200924115235.5111-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20200923162915.26935-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- mm/mmap.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/kernel/fork.c~mm-use-helper-function-put_write_access
-+++ a/kernel/fork.c
-@@ -556,7 +556,7 @@ static __latent_entropy int dup_mmap(str
+--- a/include/linux/mmzone.h~mm-remove-unused-early_pfn_valid
++++ a/include/linux/mmzone.h
+@@ -1420,7 +1420,6 @@ static inline unsigned long next_present
+ #define pfn_to_nid(pfn)		(0)
+ #endif
  
- 			get_file(file);
- 			if (tmp->vm_flags & VM_DENYWRITE)
--				atomic_dec(&inode->i_writecount);
-+				put_write_access(inode);
- 			i_mmap_lock_write(mapping);
- 			if (tmp->vm_flags & VM_SHARED)
- 				mapping_allow_writable(mapping);
---- a/mm/mmap.c~mm-use-helper-function-put_write_access
-+++ a/mm/mmap.c
-@@ -619,7 +619,7 @@ static void __vma_link_file(struct vm_ar
- 		struct address_space *mapping = file->f_mapping;
+-#define early_pfn_valid(pfn)	pfn_valid(pfn)
+ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+@@ -1440,10 +1439,6 @@ struct mminit_pfnnid_cache {
+ 	int last_nid;
+ };
  
- 		if (vma->vm_flags & VM_DENYWRITE)
--			atomic_dec(&file_inode(file)->i_writecount);
-+			put_write_access(file_inode(file));
- 		if (vma->vm_flags & VM_SHARED)
- 			mapping_allow_writable(mapping);
- 
+-#ifndef early_pfn_valid
+-#define early_pfn_valid(pfn)	(1)
+-#endif
+-
+ /*
+  * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
+  * need to check pfn validity within that MAX_ORDER_NR_PAGES block.
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
