@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4B1BC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 689C3C43457
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 634CC21655
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 184D321775
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:47:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881274;
-	bh=wKbOE0Tw3/teroJbiatkA+5cravdPvaUlGHQuytr6yA=;
+	s=default; t=1602881279;
+	bh=7tCMj1Z6lIlIbHWWdmIB6mQYTZA0NJNGMyCzJXiMUzc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=E3fWhAZkX/qe6CctjDnbFKti0sE0D3iPcjLKrBWaZPHlXLfrwmS+ciJxXEf+VMCOU
-	 4zl8hw7FmWXR+ZNc4yiosI2oHpwJZDexDEP87fipdQ+mb26IfTawYwNcMIih/VBQDj
-	 K/bwwxbjXEdoJdty1vhespe1FU0utjDsqg4yz5kc=
+	b=tNWqNAY4q+9XccsdYwNg52uJmmYKtg07xeraFOeobWqFPGTwOPe2pjn9nlq+PfSIL
+	 khF6PJVNyrVvH+rpsY79J7FsGYUpkO6xxNBQLWLbbF+EkKw3LBJT4hsc9Ez044qrtT
+	 TCuo7tg2WCditttJx81EjYcHEoNaahx+VrinmCSQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392656AbgJPUry (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:47:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37540 "EHLO mail.kernel.org"
+        id S2392668AbgJPUr6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:47:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391117AbgJPUrx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:47:53 -0400
+        id S2391117AbgJPUr6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:47:58 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CDDF72145D;
-        Fri, 16 Oct 2020 20:47:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D7EC5214DB;
+        Fri, 16 Oct 2020 20:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881273;
-        bh=wKbOE0Tw3/teroJbiatkA+5cravdPvaUlGHQuytr6yA=;
+        s=default; t=1602881276;
+        bh=7tCMj1Z6lIlIbHWWdmIB6mQYTZA0NJNGMyCzJXiMUzc=;
         h=Date:From:To:Subject:From;
-        b=hFxX4AAdKnCcByA4jcgIHuGq2t30b2QZrnFYxSAKY3huWpLmyimVKQVMhTWYMZY1M
-         OYpB0dIVv7FfHCSjT+BKZbALGsyOFS/QnS7bzzkpzUk0TYiEHjTrG4isaKJWrK1tWV
-         ByKVYl14k8LRDJu+Xig0PDQihs26g4Zfs9+96Xa4=
-Date:   Fri, 16 Oct 2020 13:47:52 -0700
+        b=bL4DnGS0aZQFqqjB0wNud/M7TfoPbIMnaw4s6dlHV+tzp4jrxxAF5i76eh96YJgLW
+         Hsx3TFylaSO5wm8uX3nn/YWIg2lkgU4VMrxHjenaG1tft6B9s0mZs8InNx9qIC7TR1
+         gTDFEBQCSzLKMHzKG+lN9/9/S+drgRI99nLKwlg0=
+Date:   Fri, 16 Oct 2020 13:47:55 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
-        christophe.leroy@csgroup.eu, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au
+        aou@eecs.berkeley.edu, christophe.leroy@csgroup.eu,
+        linux@roeck-us.net, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        natechancellor@gmail.com, palmer@dabbelt.com,
+        paul.walmsley@sifive.com
 Subject:  [merged]
- mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch removed
- from -mm tree
-Message-ID: <20201016204752.oc3HNoS-A%akpm@linux-foundation.org>
+ mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch removed from -mm
+ tree
+Message-ID: <20201016204755.9llTNDHl-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,106 +57,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable/hugetlb: disable hugetlb test on ppc64
+     Subject: mm/debug_vm_pgtable: avoid none pte in pte_clear_test
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64.patch
+     mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable/hugetlb: disable hugetlb test on ppc64
+Subject: mm/debug_vm_pgtable: avoid none pte in pte_clear_test
 
-The seems to be missing quite a lot of details w.r.t allocating the
-correct pgtable_t page (huge_pte_alloc()), holding the right lock
-(huge_pte_lock()) etc.  The vma used is also not a hugetlb VMA.
+pte_clear_tests operate on an existing pte entry.  Make sure that is not a
+none pte entry.
 
-ppc64 do have runtime checks within CONFIG_DEBUG_VM for most of these. 
-Hence disable the test on ppc64.
-
-[anshuman.khandual@arm.com: drop hugetlb_advanced_tests()]
-  Link: https://lore.kernel.org/lkml/289c3fdb-1394-c1af-bdc4-5542907089dc@linux.ibm.com/#t
-  Link: https://lkml.kernel.org/r/1600914446-21890-1-git-send-email-anshuman.khandual@arm.com
-Link: https://lkml.kernel.org/r/20200902114222.181353-13-aneesh.kumar@linux.ibm.com
+[aneesh.kumar@linux.ibm.com: avoid kernel crash with riscv]
+  Link: https://lkml.kernel.org/r/20201015033206.140550-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20200902114222.181353-14-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   51 ----------------------------------------
- 1 file changed, 51 deletions(-)
+ mm/debug_vm_pgtable.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-hugetlb-disable-hugetlb-test-on-ppc64
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-avoid-none-pte-in-pte_clear_test
 +++ a/mm/debug_vm_pgtable.c
-@@ -810,57 +810,8 @@ static void __init hugetlb_basic_tests(u
- 	WARN_ON(!pte_huge(pte_mkhuge(pte)));
- #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
- }
--
--static void __init hugetlb_advanced_tests(struct mm_struct *mm,
--					  struct vm_area_struct *vma,
--					  pte_t *ptep, unsigned long pfn,
--					  unsigned long vaddr, pgprot_t prot)
--{
--	struct page *page = pfn_to_page(pfn);
+@@ -542,12 +542,15 @@ static void __init pgd_populate_tests(st
+ #endif /* PAGETABLE_P4D_FOLDED */
+ 
+ static void __init pte_clear_tests(struct mm_struct *mm, pte_t *ptep,
+-				   unsigned long vaddr)
++				   unsigned long pfn, unsigned long vaddr,
++				   pgprot_t prot)
+ {
 -	pte_t pte = ptep_get(ptep);
--	unsigned long paddr = __pfn_to_phys(pfn) & PMD_MASK;
--
--	pr_debug("Validating HugeTLB advanced\n");
--	pte = pte_mkhuge(mk_pte(pfn_to_page(PHYS_PFN(paddr)), prot));
--	set_huge_pte_at(mm, vaddr, ptep, pte);
--	barrier();
--	WARN_ON(!pte_same(pte, huge_ptep_get(ptep)));
--	huge_pte_clear(mm, vaddr, ptep, PMD_SIZE);
--	pte = huge_ptep_get(ptep);
--	WARN_ON(!huge_pte_none(pte));
--
--	pte = mk_huge_pte(page, prot);
--	set_huge_pte_at(mm, vaddr, ptep, pte);
--	barrier();
--	huge_ptep_set_wrprotect(mm, vaddr, ptep);
--	pte = huge_ptep_get(ptep);
--	WARN_ON(huge_pte_write(pte));
--
--	pte = mk_huge_pte(page, prot);
--	set_huge_pte_at(mm, vaddr, ptep, pte);
--	barrier();
--	huge_ptep_get_and_clear(mm, vaddr, ptep);
--	pte = huge_ptep_get(ptep);
--	WARN_ON(!huge_pte_none(pte));
--
--	pte = mk_huge_pte(page, prot);
--	pte = huge_pte_wrprotect(pte);
--	set_huge_pte_at(mm, vaddr, ptep, pte);
--	barrier();
--	pte = huge_pte_mkwrite(pte);
--	pte = huge_pte_mkdirty(pte);
--	huge_ptep_set_access_flags(vma, vaddr, ptep, pte, 1);
--	pte = huge_ptep_get(ptep);
--	WARN_ON(!(huge_pte_write(pte) && huge_pte_dirty(pte)));
--}
- #else  /* !CONFIG_HUGETLB_PAGE */
- static void __init hugetlb_basic_tests(unsigned long pfn, pgprot_t prot) { }
--static void __init hugetlb_advanced_tests(struct mm_struct *mm,
--					  struct vm_area_struct *vma,
--					  pte_t *ptep, unsigned long pfn,
--					  unsigned long vaddr, pgprot_t prot)
--{
--}
- #endif /* CONFIG_HUGETLB_PAGE */
++	pte_t pte = pfn_pte(pfn, prot);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -1065,8 +1016,6 @@ static int __init debug_vm_pgtable(void)
- 	pud_populate_tests(mm, pudp, saved_pmdp);
- 	spin_unlock(ptl);
+ 	pr_debug("Validating PTE clear\n");
++#ifndef CONFIG_RISCV
+ 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
++#endif
+ 	set_pte_at(mm, vaddr, ptep, pte);
+ 	barrier();
+ 	pte_clear(mm, vaddr, ptep);
+@@ -998,7 +1001,7 @@ static int __init debug_vm_pgtable(void)
  
--	hugetlb_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
--
- 	spin_lock(&mm->page_table_lock);
- 	p4d_clear_tests(mm, p4dp);
- 	pgd_clear_tests(mm, pgdp);
+ 	ptl = pte_lockptr(mm, pmdp);
+ 	spin_lock(ptl);
+-	pte_clear_tests(mm, ptep, vaddr);
++	pte_clear_tests(mm, ptep, pte_aligned, vaddr, prot);
+ 	pte_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
+ 	pte_unmap_unlock(ptep, ptl);
+ 
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
