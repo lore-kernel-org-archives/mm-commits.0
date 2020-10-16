@@ -7,44 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A968EC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53830C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C54C21775
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F152B21775
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881535;
-	bh=U/hQxuDz58vKmugZNREZy7uTbQygIwDC0mRlx+z7q3U=;
+	s=default; t=1602881538;
+	bh=nDnf5y0QMkin8dm7BZGyqT55aSJeyfVzQ+jFwO/57+o=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=DnyU+DObxyVgP/QMHt7i0M9snif+PPlNibB1yGea42AfjToksyCbgpMhzrk1XC4NN
-	 6YBOI3p2QOpx0x7DmJuQalTTnkta83IfKmRTCrwIgfeQ3vF0gyaQYoqQh4FlXvbONm
-	 z6IR8iis+AnBfI0AdmH25eo2Hfkk8i3r3SvS8iME=
+	b=OI95x/U7LhghH/tfpE/Dg0SK787yiwUdNMOS4qe3sZgb1+RHHNiHVuWokIOqpejpN
+	 oNHegnL3yNbQemBqg/E0pUVW3mJiKs60lm3P+ESXJXqy+/xs2J9aaM4jIGo6+qKNpg
+	 ygjAanRm0bgALVvVNXBSv+D74fG+qukhfFrPtbxg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408486AbgJPUwO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40848 "EHLO mail.kernel.org"
+        id S2408657AbgJPUwR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732579AbgJPUwO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:52:14 -0400
+        id S2408651AbgJPUwR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:17 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9B29620878;
-        Fri, 16 Oct 2020 20:52:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A1D582145D;
+        Fri, 16 Oct 2020 20:52:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881533;
-        bh=U/hQxuDz58vKmugZNREZy7uTbQygIwDC0mRlx+z7q3U=;
+        s=default; t=1602881536;
+        bh=nDnf5y0QMkin8dm7BZGyqT55aSJeyfVzQ+jFwO/57+o=;
         h=Date:From:To:Subject:From;
-        b=C+V+rGW57bDuuOv/GA0D/YfY8HvZS6dK9hKf5i0LbN/VFNbi3iB8PxrIWCAtEpak5
-         ks6HeHbCSkwJQXjPlC6BQMSmfIxm27c36NOPI/MgZA3vBSVxD5AK1HDVvyoDl32gTu
-         hBG9cgTtFGxmHzhz26SATp/91rOiC61Afc/3fwog=
-Date:   Fri, 16 Oct 2020 13:52:13 -0700
+        b=cZL8fWVnOmR6cs2Zt9yjf3oglfywluf4ELGeZDTChAAPq8YI9TSplF1GQzJpyWPWq
+         k0F+ZvZlde/SvuUJg8uCu2Mj6IA7YQO3kzAHE5D393u3eWH3GKckVLW5d2VUc4BYaa
+         KHXvjZ2EPJQ1eNMEqddic6prdh2OfBoVCCkpbOpM=
+Date:   Fri, 16 Oct 2020 13:52:16 -0700
 From:   akpm@linux-foundation.org
-To:     chentao3@hotmail.com, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com
-Subject:  [merged] mm-fix-some-comments-formatting.patch removed
- from -mm tree
-Message-ID: <20201016205213.8TIe7yWYE%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, tanxiaofei@huawei.com
+Subject:  [merged] mm-fix-some-doc-warnings-in-workingsetc.patch
+ removed from -mm tree
+Message-ID: <20201016205216.VDim7nqJi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,53 +52,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix some comments formatting
+     Subject: mm/workingset.c: fix some doc warnings
 has been removed from the -mm tree.  Its filename was
-     mm-fix-some-comments-formatting.patch
+     mm-fix-some-doc-warnings-in-workingsetc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Tao <chentao3@hotmail.com>
-Subject: mm: fix some comments formatting
+From: Xiaofei Tan <tanxiaofei@huawei.com>
+Subject: mm/workingset.c: fix some doc warnings
 
-Correct one function name "get_partials" with "get_partial".  Update the
-old struct name of list3 with kmem_cache_node.
+Fix following warnings caused by mismatch bewteen function parameters and
+comments.
 
-Link: https://lkml.kernel.org/r/Message-ID:
-Signed-off-by: Chen Tao <chentao3@hotmail.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+mm/workingset.c:228: warning: Function parameter or member 'lruvec' not described in 'workingset_age_nonresident'
+mm/workingset.c:228: warning: Excess function parameter 'memcg' description in 'workingset_age_nonresident'
+
+Link: https://lkml.kernel.org/r/1600485913-11192-1-git-send-email-tanxiaofei@huawei.com
+Signed-off-by: Xiaofei Tan <tanxiaofei@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- mm/slub.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/workingset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab.c~mm-fix-some-comments-formatting
-+++ a/mm/slab.c
-@@ -1062,7 +1062,7 @@ int slab_prepare_cpu(unsigned int cpu)
-  * Even if all the cpus of a node are down, we don't free the
-  * kmem_cache_node of any cache. This to avoid a race between cpu_down, and
-  * a kmalloc allocation from another cpu for memory from the node of
-- * the cpu going down.  The list3 structure is usually allocated from
-+ * the cpu going down.  The kmem_cache_node structure is usually allocated from
-  * kmem_cache_create() and gets destroyed at kmem_cache_destroy().
-  */
- int slab_dead_cpu(unsigned int cpu)
---- a/mm/slub.c~mm-fix-some-comments-formatting
-+++ a/mm/slub.c
-@@ -1956,7 +1956,7 @@ static void *get_partial_node(struct kme
- 	/*
- 	 * Racy check. If we mistakenly see no partial slabs then we
- 	 * just allocate an empty slab. If we mistakenly try to get a
--	 * partial slab and there is none available then get_partials()
-+	 * partial slab and there is none available then get_partial()
- 	 * will return NULL.
- 	 */
- 	if (!n || !n->nr_partial)
+--- a/mm/workingset.c~mm-fix-some-doc-warnings-in-workingsetc
++++ a/mm/workingset.c
+@@ -216,7 +216,7 @@ static void unpack_shadow(void *shadow,
+ 
+ /**
+  * workingset_age_nonresident - age non-resident entries as LRU ages
+- * @memcg: the lruvec that was aged
++ * @lruvec: the lruvec that was aged
+  * @nr_pages: the number of pages to count
+  *
+  * As in-memory pages are aged, non-resident pages need to be aged as
 _
 
-Patches currently in -mm which might be from chentao3@hotmail.com are
+Patches currently in -mm which might be from tanxiaofei@huawei.com are
 
 
