@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE4AC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:14:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F743C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:15:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5E572087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:14:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4ACAA20897
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602814482;
-	bh=tDOxT3/UVh8w4QfDMdRDon/VCQJ/7suC7VpaHH1KqNI=;
+	s=default; t=1602814546;
+	bh=5qdKa++wn8yLJbFBoTt8iUBqLsVyixNTQdcFy1aX/Bk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=OIHtjB1HuwJg9PDXbJ/paDniqfWY+CM6uQjH6zp7KR7e9pG09Gb/dr8PjD/bBwVBV
-	 k8Aa6EdrkRbyZkKKxM8x26OsLWC3rstNcBQyHBGjBZ45kynq+YJyF5Ypym64DeuXql
-	 E0wj1F7cGicvkM9pcyWv2zNj1J+yH7eJZz1ucX8Y=
+	b=tB4/VCNLBw+WF9C2n9yRAFqhUVg2ak85V3Ia/X5w0scd8K5fKLIH5ALytsBhxiDdx
+	 vigjTvWp5e13TewwJs0Y8KHmMBFZObskFr9vYZ1ejaIjpQYBFFHPLopIRIHytn1PSB
+	 JUOGVgg86yKCdO0THZRwozzHKZrsK+4uznO3xBnQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404134AbgJPCOm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:14:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48838 "EHLO mail.kernel.org"
+        id S1731240AbgJPCPp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:15:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48952 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404130AbgJPCOm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:14:42 -0400
+        id S2390154AbgJPCPp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:15:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 25EF02073A;
-        Fri, 16 Oct 2020 02:14:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7D86A20878;
+        Fri, 16 Oct 2020 02:15:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602814481;
-        bh=tDOxT3/UVh8w4QfDMdRDon/VCQJ/7suC7VpaHH1KqNI=;
+        s=default; t=1602814544;
+        bh=5qdKa++wn8yLJbFBoTt8iUBqLsVyixNTQdcFy1aX/Bk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=M0A3PxqkMiG9LtK4A28+DtfC/DVsqiHMxTijgG2pQQqT93b/hEiFtoZBDYavmE3PG
-         UFUI0/kOJdI2vdBVQiYq8JdzeTj23cFUO5wfYgLff+2okm3cG3TGoaAqTnxYaqXgWW
-         Kf5Nfs/i3Jcph1nrMHBiSRQ85O3bjpVqBRv7TKJU=
-Date:   Thu, 15 Oct 2020 19:14:40 -0700
+        b=jI2piH+IlYFSCDmjJnxX6jDpouhLY3/brBNgDyOD4tBeZSnH93YzQPnJz6D5xoDo0
+         /EPHBzn8yP5p65Q2GddoUv/bOMIz+/KbEZ5tMHYmq1xA1EqA4wC0sfjUL6G3YPsYzH
+         9eJG0dbegqNYrBJ7iIqH32oZq2VQuQpU5Guuk2qE=
+Date:   Thu, 15 Oct 2020 19:15:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [folded-merged] xarray-add-xas_split-fix-3patch.patch
+To:     kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        willy@infradead.org, ying.huang@intel.com
+Subject:  [folded-merged]
+ mm-memory-remove-page-fault-assumption-of-compound-page-size-fix.patch
  removed from -mm tree
-Message-ID: <20201016021440.SfdE6Zslj%akpm@linux-foundation.org>
+Message-ID: <20201016021543.dVuXWecmb%akpm@linux-foundation.org>
 In-Reply-To: <20201010231559.e148a66f744d0b4870301450@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,41 +55,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix xarray
+     Subject: mm: Fix remove page fault assumption of compound page size
 has been removed from the -mm tree.  Its filename was
-     xarray-add-xas_split-fix-3patch.patch
+     mm-memory-remove-page-fault-assumption-of-compound-page-size-fix.patch
 
-This patch was dropped because it was folded into xarray-add-xas_split.patch
+This patch was dropped because it was folded into mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fix xarray
+Subject: mm: Fix remove page fault assumption of compound page size
 
-Testing today revealed a rather annoying bug where we can free an
-initialised node back to the slab cache without zeroing it first.  That
-ends up creating a corrupted XArray ...  whichever XArray happens to
-allocate that node next.
+page_order() and compound_order() are different things
 
-Link: https://lkml.kernel.org/r/20201001233943.GW20115@casper.infradead.org
-
+Link: https://lkml.kernel.org/r/20201001152259.14932-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/xarray.c~xarray-add-xas_split-fix-3patch
-+++ a/lib/xarray.c
-@@ -271,8 +271,7 @@ static void xas_destroy(struct xa_state
- 	while (node) {
- 		XA_NODE_BUG_ON(node, !list_empty(&node->private_list));
- 		next = rcu_dereference_raw(node->parent);
--		/* XXX: need to free children */
--		kmem_cache_free(radix_tree_node_cachep, node);
-+		radix_tree_node_rcu_free(&node->rcu_head);
- 		xas->xa_alloc = node = next;
- 	}
- }
+--- a/mm/memory.c~mm-memory-remove-page-fault-assumption-of-compound-page-size-fix
++++ a/mm/memory.c
+@@ -3749,7 +3749,7 @@ static vm_fault_t do_set_pmd(struct vm_f
+ 		return ret;
+ 
+ 	page = compound_head(page);
+-	if (page_order(page) != HPAGE_PMD_ORDER)
++	if (compound_order(page) != HPAGE_PMD_ORDER)
+ 		return ret;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -97,7 +97,6 @@ xarray-add-xas_split.patch
 mm-filemap-fix-storing-to-a-thp-shadow-entry.patch
 mm-filemap-fix-page-cache-removal-for-arbitrary-sized-thps.patch
 mm-memory-remove-page-fault-assumption-of-compound-page-size.patch
-mm-memory-remove-page-fault-assumption-of-compound-page-size-fix.patch
 mm-page_owner-change-split_page_owner-to-take-a-count.patch
 mm-huge_memory-fix-page_trans_huge_mapcount-assumption-of-thp-size.patch
 mm-huge_memory-fix-can_split_huge_page-assumption-of-thp-size.patch
