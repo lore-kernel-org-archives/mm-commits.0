@@ -7,51 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06CBEC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:51:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCD0EC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE6B321775
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:51:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69E06218AC
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881515;
-	bh=XeMOPOo5GnRpe727ipDwkWxRApu06HT/BWeEVxaToh4=;
+	s=default; t=1602881522;
+	bh=dwwFdmOkKg0m4XBqhXob0QR9IXZYRB7ZK3R1isGmqOE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Ag0ryta/6Zcc20Ufl5keOi9e+6xY0Bjms6FRxX6vuAjfXY8tBUzUa2viwsKZCdAsP
-	 vKI4t4NHwnaOAKevoiXLR/Ad77aYVvrrqV84fQS6PWSSJoc7TUOEfFq1JxVHeMaq3o
-	 8GuqYlUHOSZFacwePGOLCMk+SHhheubAt6Lk0hzo=
+	b=IOvbWUUGWeUQ9Pn5Wjxpc7ZmPbPjGFe9eD7Fp26LboljUBaCB1oEFWUB9aWM6OsgH
+	 b0M0dmPLMAcQTdQnUq9uWnS3hkuE4UBQ/jyxqFLtsO6TxicL+sIq4UufrnZcIsRtJv
+	 efTOO15j0xfO3JQMoMo4o0X7tD2W0jO1bXOF/o5k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407372AbgJPUvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:51:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40562 "EHLO mail.kernel.org"
+        id S2408165AbgJPUwC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732579AbgJPUvx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:51:53 -0400
+        id S2408118AbgJPUwA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:00 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 16359216C4;
-        Fri, 16 Oct 2020 20:51:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AF2B220878;
+        Fri, 16 Oct 2020 20:51:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881513;
-        bh=XeMOPOo5GnRpe727ipDwkWxRApu06HT/BWeEVxaToh4=;
+        s=default; t=1602881518;
+        bh=dwwFdmOkKg0m4XBqhXob0QR9IXZYRB7ZK3R1isGmqOE=;
         h=Date:From:To:Subject:From;
-        b=NrHdc+2Zz38X34bGt1lYhewa5RpNbpGmIja7rQWpsmzJc5Wcg+55cVT/IPuGYBcth
-         VeHNxU55NDmmX/BW3eji9SzqtgwgrEJ7xrgBIUzey77XPmnuRsIiSHm56N2Cn2Hiik
-         oNQotM/Xgmj6fLPuXxVRudkDVeoXileSiSsjQPB0=
-Date:   Fri, 16 Oct 2020 13:51:51 -0700
+        b=I//Omh/5cJweOxmChpu/u24SlisZQqovzlMew5A7IL3LsPBnD+0kDy8fHi2JLfJwG
+         VwyHQ0qJTpZsRkav6RQ/bVbmzBGjNVzu0dWun/QGWMq+layJSGekw+Jph/B+oHIj5j
+         FkW5veKQH4fJ6I0tfJSEQ/V4MYCLt0QG+gK6MXAk=
+Date:   Fri, 16 Oct 2020 13:51:58 -0700
 From:   akpm@linux-foundation.org
-To:     alexander.h.duyck@linux.intel.com, cheloha@linux.ibm.com,
-        dave.hansen@intel.com, david@redhat.com, haiyangz@microsoft.com,
-        kys@microsoft.com, mgorman@techsingularity.net, mhocko@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        osalvador@suse.de, pankaj.gupta.linux@gmail.com,
-        richard.weiyang@linux.alibaba.com, rppt@kernel.org,
-        sthemmin@microsoft.com, vbabka@suse.cz, wei.liu@kernel.org,
-        willy@infradead.org
-Subject:  [merged]
- mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch removed
+To:     mm-commits@vger.kernel.org, penberg@kernel.org,
+        yuehaibing@huawei.com
+Subject:  [merged] mm-slab-remove-duplicate-include.patch removed
  from -mm tree
-Message-ID: <20201016205151.mKdcMJjId%akpm@linux-foundation.org>
+Message-ID: <20201016205158.S-nVf7zZM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -60,69 +53,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: update comment regarding zone shuffling
+     Subject: mm/slab.h: remove duplicate include
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-update-comment-regarding-zone-shuffling.patch
+     mm-slab-remove-duplicate-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: update comment regarding zone shuffling
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: mm/slab.h: remove duplicate include
 
-As we no longer shuffle via generic_online_page() and when undoing
-isolation, we can simplify the comment.
+Remove duplicate header which is included twice.
 
-We now effectively shuffle only once (properly) when onlining new memory.
-
-Link: https://lkml.kernel.org/r/20201005121534.15649-6-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
+Link: http://lkml.kernel.org/r/20200818114323.58156-1-yuehaibing@huawei.com
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ mm/slab.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-update-comment-regarding-zone-shuffling
-+++ a/mm/memory_hotplug.c
-@@ -858,13 +858,10 @@ int __ref online_pages(unsigned long pfn
- 	undo_isolate_page_range(pfn, pfn + nr_pages, MIGRATE_MOVABLE);
+--- a/mm/slab.h~mm-slab-remove-duplicate-include
++++ a/mm/slab.h
+@@ -46,7 +46,6 @@ struct kmem_cache {
+ #include <linux/kmemleak.h>
+ #include <linux/random.h>
+ #include <linux/sched/mm.h>
+-#include <linux/kmemleak.h>
  
- 	/*
--	 * When exposing larger, physically contiguous memory areas to the
--	 * buddy, shuffling in the buddy (when freeing onlined pages, putting
--	 * them either to the head or the tail of the freelist) is only helpful
--	 * for maintaining the shuffle, but not for creating the initial
--	 * shuffle. Shuffle the whole zone to make sure the just onlined pages
--	 * are properly distributed across the whole freelist. Make sure to
--	 * shuffle once pageblocks are no longer isolated.
-+	 * Freshly onlined pages aren't shuffled (e.g., all pages are placed to
-+	 * the tail of the freelist when undoing isolation). Shuffle the whole
-+	 * zone to make sure the just onlined pages are properly distributed
-+	 * across the whole freelist - to create an initial shuffle.
- 	 */
- 	shuffle_zone(zone);
- 
+ /*
+  * State of the slab allocator.
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from yuehaibing@huawei.com are
 
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-fix-fix-fix-fix-fix.patch
 
