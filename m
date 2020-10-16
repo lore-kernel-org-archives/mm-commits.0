@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4F6AC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:55:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C31DC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:55:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A69A221FD
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:55:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B91D222200
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:55:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881705;
-	bh=M3xeaLgKL+FFM5Kop98rEsdUgaNPH8wpcpuR8FigYyw=;
+	s=default; t=1602881709;
+	bh=//oxElJD2uvJESNOQCnvlHQPU7Jqmj2/cjmsufCrHRg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HQp+Cnoq5bRjj7XW5TRMLqtBaLTx7eJSHZRPK59vik7FEV1x192kliT93vUgtxtqC
-	 XmLw59tAc5GZn+lo3DHFD5zFux1DNUlDUVHnfZWJjYZ5ckJmrEhStrkhB09ub+xand
-	 xbjh7a41A5YDwrd6y0bcR/6fArpAFsPYQhOKMUjI=
+	b=MZ+GwgON/3WDPITJxi0inA4+tv16Ob5Qw0Z/N0uS0rQ5ywpyQUZsAGai/aMRXdn9Z
+	 GBQRpmW0m3U7ou/HCKR0NblbL8o88AkHFuaq9YRAZWIheiHdUxUB3BwRM8la43V9JR
+	 +1S/YhUsZIRGDPe4F/7gLoXZ6cIbX7LeDwo00Zgs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408102AbgJPUzE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:55:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42578 "EHLO mail.kernel.org"
+        id S2409433AbgJPUzJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:55:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732596AbgJPUzE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:55:04 -0400
+        id S1732596AbgJPUzJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:55:09 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5D76321D81;
-        Fri, 16 Oct 2020 20:55:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A5CB6221EB;
+        Fri, 16 Oct 2020 20:55:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881703;
-        bh=M3xeaLgKL+FFM5Kop98rEsdUgaNPH8wpcpuR8FigYyw=;
+        s=default; t=1602881707;
+        bh=//oxElJD2uvJESNOQCnvlHQPU7Jqmj2/cjmsufCrHRg=;
         h=Date:From:To:Subject:From;
-        b=haU74aC5QaMnWYf90h4Gxm67sbJKZHfdWymMgDMR3Ub9VXVKAS0e4l9sgvnyyLk7S
-         /W8vI04ulyZcR6EYScHchL7E1X2nqQdyCNqfv47KkWRPcy45cX8cMl1MBIBaUX+vXt
-         jm5BJILmjFADGt6Lj4zf+6+omfJ9IQjEqUm5A89U=
-Date:   Fri, 16 Oct 2020 13:55:02 -0700
+        b=PYBzFhwNKDDK78mCRIkR+TU5e6HUWNOhwgrSoG3mn0m3WLLjZktJOi8xauZO7zdyp
+         5JXV0fAt2h90rXrdG6i6zJxNqFCaMNUG9FReuZFziuzHrWjChwiqrTUXkJQN/J2wd+
+         /kwNVct6bY5QeY5TEMu8rjbjfZwCgOfbvgDgtsZE=
+Date:   Fri, 16 Oct 2020 13:55:06 -0700
 From:   akpm@linux-foundation.org
-To:     alex.bou9@gmail.com, dan.carpenter@oracle.com,
-        gustavoars@kernel.org, jhubbard@nvidia.com,
-        jingxiangfeng@huawei.com, keescook@chromium.org,
-        madhuparnabhowmik10@gmail.com, mm-commits@vger.kernel.org,
-        mporter@kernel.crashing.org
-Subject:  [merged]
- rapidio-fix-the-missed-put_device-for-rio_mport_add_riodev.patch removed
- from -mm tree
-Message-ID: <20201016205502.IrfECqpIx%akpm@linux-foundation.org>
+To:     aik@ozlabs.ru, aquini@redhat.com, dianders@chromium.org,
+        keescook@chromium.org, mingo@kernel.org,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, tglx@linutronix.de,
+        will@kernel.org
+Subject:  [merged] panic-dump-registers-on-panic_on_warn.patch
+ removed from -mm tree
+Message-ID: <20201016205506.5UNgtLz2G%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,59 +55,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: fix the missed put_device() for rio_mport_add_riodev
+     Subject: panic: dump registers on panic_on_warn
 has been removed from the -mm tree.  Its filename was
-     rapidio-fix-the-missed-put_device-for-rio_mport_add_riodev.patch
+     panic-dump-registers-on-panic_on_warn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jing Xiangfeng <jingxiangfeng@huawei.com>
-Subject: rapidio: fix the missed put_device() for rio_mport_add_riodev
+From: Alexey Kardashevskiy <aik@ozlabs.ru>
+Subject: panic: dump registers on panic_on_warn
 
-rio_mport_add_riodev() misses to call put_device() when the device already
-exists.  Add the missed function call to fix it.
+Currently we print stack and registers for ordinary warnings but we do not
+for panic_on_warn which looks as oversight - panic() will reboot the
+machine but won't print registers.
 
-Link: https://lkml.kernel.org/r/20200922072525.42330-1-jingxiangfeng@huawei.com
-Fixes: e8de370188d0 ("rapidio: add mport char device driver")
-Signed-off-by: Jing Xiangfeng <jingxiangfeng@huawei.com>
-Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
+This moves printing of registers and modules earlier.
+
+This does not move the stack dumping as panic() dumps it.
+
+Link: https://lkml.kernel.org/r/20200804095054.68724-1-aik@ozlabs.ru
+Signed-off-by: Alexey Kardashevskiy <aik@ozlabs.ru>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/panic.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-the-missed-put_device-for-rio_mport_add_riodev
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -1680,6 +1680,7 @@ static int rio_mport_add_riodev(struct m
- 	struct rio_dev *rdev;
- 	struct rio_switch *rswitch = NULL;
- 	struct rio_mport *mport;
-+	struct device *dev;
- 	size_t size;
- 	u32 rval;
- 	u32 swpinfo = 0;
-@@ -1694,8 +1695,10 @@ static int rio_mport_add_riodev(struct m
- 	rmcd_debug(RDEV, "name:%s ct:0x%x did:0x%x hc:0x%x", dev_info.name,
- 		   dev_info.comptag, dev_info.destid, dev_info.hopcount);
+--- a/kernel/panic.c~panic-dump-registers-on-panic_on_warn
++++ a/kernel/panic.c
+@@ -589,6 +589,11 @@ void __warn(const char *file, int line,
+ 	if (args)
+ 		vprintk(args->fmt, args->args);
  
--	if (bus_find_device_by_name(&rio_bus_type, NULL, dev_info.name)) {
-+	dev = bus_find_device_by_name(&rio_bus_type, NULL, dev_info.name);
-+	if (dev) {
- 		rmcd_debug(RDEV, "device %s already exists", dev_info.name);
-+		put_device(dev);
- 		return -EEXIST;
++	print_modules();
++
++	if (regs)
++		show_regs(regs);
++
+ 	if (panic_on_warn) {
+ 		/*
+ 		 * This thread may hit another WARN() in the panic path.
+@@ -600,12 +605,7 @@ void __warn(const char *file, int line,
+ 		panic("panic_on_warn set ...\n");
  	}
+ 
+-	print_modules();
+-
+-	if (regs)
+-		show_regs(regs);
+-	else
+-		dump_stack();
++	dump_stack();
+ 
+ 	print_irqtrace_events(current);
  
 _
 
-Patches currently in -mm which might be from jingxiangfeng@huawei.com are
+Patches currently in -mm which might be from aik@ozlabs.ru are
 
 
