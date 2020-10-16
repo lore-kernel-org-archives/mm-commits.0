@@ -7,49 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B517C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:49:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D552AC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:49:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F036F21775
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8056221655
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881391;
-	bh=QB49mTd86gVeQYmnTERgd3H34eWGb8YdvSOvuxrsPz0=;
+	s=default; t=1602881394;
+	bh=cZaHfF9aO4mgdHHZ5Ddj5W2xhzlp/YmGP1qMOxtb0Z4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=E5HrEmyT+lFAinonv0Ofj++++gH8gCaHLbGpWOQf/91tC8/rYlpCK4ApXSQ1MvFSE
-	 xWiBT9gxSGpSKn8DiCktpp4aGGZ22cIjrK/jeG8w7meAaPJNNQuENsIhqVlyiBHQv4
-	 hbRbAqSBAA6lNK4h/cetTHAKKWmLmAniv1l72KDw=
+	b=Yhqhna3DaoHkWlHbgxqHkyCma2ZKoro5ML7eaykNG9hsreKpKEPfTj8RneqQStRaC
+	 rAzWdhqEsxjOaY3D7Ahfkw0jLnh7eNv7rfN03hrZXRinZ0in4tVL9y1npuXcxZtsgZ
+	 YVEwp9jMTwDz3/ZCOrq7PdU9Q0lyqzjuqkk3iy8o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392727AbgJPUtu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:49:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38938 "EHLO mail.kernel.org"
+        id S2392728AbgJPUty (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:49:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392725AbgJPUtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:49:50 -0400
+        id S2392725AbgJPUty (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:49:54 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 25BFB20878;
-        Fri, 16 Oct 2020 20:49:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E72AC214DB;
+        Fri, 16 Oct 2020 20:49:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881389;
-        bh=QB49mTd86gVeQYmnTERgd3H34eWGb8YdvSOvuxrsPz0=;
+        s=default; t=1602881393;
+        bh=cZaHfF9aO4mgdHHZ5Ddj5W2xhzlp/YmGP1qMOxtb0Z4=;
         h=Date:From:To:Subject:From;
-        b=TkbokTJCvQe4O+hm4nXoBkx1dnHnFZ0/7Kb7Z7CpPvNnEmEB1KwH2bV42uN5MQfAj
-         UdOyarzDzCYyndb31by+/u+hpWPSUCOS6iqrihtAt0+r4cX52v0kVW4in2a0Of2u10
-         0P4BrtiFko7sHfdD5Qg8fIu1VUVdd/yP1hy6edKI=
-Date:   Fri, 16 Oct 2020 13:49:48 -0700
+        b=cnftEqU5+MLh6mqAsn/JdXD0EuVSlkV6CBOLlDWCi0SeMyNxqLoqOtNPcsYlizEqd
+         aCmBMqHoQT6cTPlNlB4VCthNZPnY9nomDt3JQ01Ed1uQ6ALtfHFdp3v6aPmtpCPpRY
+         2UI9cxkyJSLmRi9JOWw3zYm0ido+8Vbdqgor2tSQ=
+Date:   Fri, 16 Oct 2020 13:49:52 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
-        aris@ruivo.org, cai@lca.pw, dave.hansen@intel.com,
-        david@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.com, osalvador@suse.de, tony.luck@intel.com,
-        zeil@yandex-team.ru
+To:     mateusznosek0@gmail.com, mm-commits@vger.kernel.org,
+        n-horiguchi@ah.jp.nec.com, OSalvador@suse.com
 Subject:  [merged]
- mmhwpoison-try-to-narrow-window-race-for-free-pages.patch removed from -mm
- tree
-Message-ID: <20201016204948.e-EySrtf7%akpm@linux-foundation.org>
+ mm-page_poisonc-replace-bool-variable-with-static-key.patch removed from
+ -mm tree
+Message-ID: <20201016204952.B3gJxNcKw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,79 +54,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: try to narrow window race for free pages
+     Subject: mm/page_poison.c: replace bool variable with static key
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-try-to-narrow-window-race-for-free-pages.patch
+     mm-page_poisonc-replace-bool-variable-with-static-key.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: try to narrow window race for free pages
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm/page_poison.c: replace bool variable with static key
 
-Aristeu Rozanski reported that a customer test case started to report
--EBUSY after the hwpoison rework patchset.
+Variable 'want_page_poisoning' is a switch deciding if page poisoning
+should be enabled.  This patch changes it to be static key.
 
-There is a race window between spotting a free page and taking it off its
-buddy freelist, so it might be that by the time we try to take it off, the
-page has been already allocated.
-
-This patch tries to handle such race window by trying to handle the new
-type of page again if the page was allocated under us.
-
-Link: https://lkml.kernel.org/r/20200922135650.1634-15-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: Aristeu Rozanski <aris@ruivo.org>
-Tested-by: Aristeu Rozanski <aris@ruivo.org>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Yakunin <zeil@yandex-team.ru>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/20200921152931.938-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Oscar Salvador <OSalvador@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/page_poison.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-try-to-narrow-window-race-for-free-pages
-+++ a/mm/memory-failure.c
-@@ -1903,6 +1903,7 @@ int soft_offline_page(unsigned long pfn,
+--- a/mm/page_poison.c~mm-page_poisonc-replace-bool-variable-with-static-key
++++ a/mm/page_poison.c
+@@ -8,13 +8,23 @@
+ #include <linux/ratelimit.h>
+ #include <linux/kasan.h>
+ 
+-static bool want_page_poisoning __read_mostly;
++static DEFINE_STATIC_KEY_FALSE_RO(want_page_poisoning);
+ 
+ static int __init early_page_poison_param(char *buf)
  {
- 	int ret;
- 	struct page *page;
-+	bool try_again = true;
+-	if (!buf)
+-		return -EINVAL;
+-	return strtobool(buf, &want_page_poisoning);
++	int ret;
++	bool tmp;
++
++	ret = strtobool(buf, &tmp);
++	if (ret)
++		return ret;
++
++	if (tmp)
++		static_branch_enable(&want_page_poisoning);
++	else
++		static_branch_disable(&want_page_poisoning);
++
++	return 0;
+ }
+ early_param("page_poison", early_page_poison_param);
  
- 	if (!pfn_valid(pfn))
- 		return -ENXIO;
-@@ -1918,6 +1919,7 @@ int soft_offline_page(unsigned long pfn,
- 		return 0;
- 	}
- 
-+retry:
- 	get_online_mems();
- 	ret = get_any_page(page, pfn, flags);
- 	put_online_mems();
-@@ -1925,7 +1927,10 @@ int soft_offline_page(unsigned long pfn,
- 	if (ret > 0)
- 		ret = soft_offline_in_use_page(page);
- 	else if (ret == 0)
--		ret = soft_offline_free_page(page);
-+		if (soft_offline_free_page(page) && try_again) {
-+			try_again = false;
-+			goto retry;
-+		}
- 
- 	return ret;
+@@ -31,7 +41,7 @@ bool page_poisoning_enabled(void)
+ 	 * Page poisoning is debug page alloc for some arches. If
+ 	 * either of those options are enabled, enable poisoning.
+ 	 */
+-	return (want_page_poisoning ||
++	return (static_branch_unlikely(&want_page_poisoning) ||
+ 		(!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
+ 		debug_pagealloc_enabled()));
  }
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from mateusznosek0@gmail.com are
 
 
