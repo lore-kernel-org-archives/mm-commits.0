@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33CA5C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:53:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C24EC43457
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:53:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7EBF21775
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:53:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B943D218AC
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:53:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881619;
-	bh=byszXFQCEHC2S3NN8ZZkUjlNo0pgC2ndGlAqqaa0h/U=;
+	s=default; t=1602881622;
+	bh=Sfy+Ux3BaNOwNN6K6NFBVG/WMB9rHiboDmnILsx6SKY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yXvdBMraQVSEwNgBHyCbTqGbMdG2D9YUImN2+noG40JLihguOkx5QnHAjdXIcdUxT
-	 YUz+0B4Pmh1D9iuOjRvaj+BYSUyw9jobjc6kGgcY/SqY/keULphxVxZGdvW6BoDHSy
-	 H5frxsg3kOJGgfto/bjpUqLqOFhZCqPzToLJX08w=
+	b=yEDPzZNUnYjz2B9FZozt4b62TPqaRiODNstlJBGaevbrlergcxzZCvQC/ZzBVwNEn
+	 fFMDIjd6XC93WH2A9da1tMl941/G8aq69Z1alEhhTqXLPwvRrfw/Z/iHKIbu6ZgzBm
+	 nddcPH2Kf2YwesYOrepfIuPPh4U4firnyLTGvGGc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409144AbgJPUxj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:53:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41696 "EHLO mail.kernel.org"
+        id S2409149AbgJPUxm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:53:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41724 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2409125AbgJPUxj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:53:39 -0400
+        id S2409125AbgJPUxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:53:42 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A5E662145D;
-        Fri, 16 Oct 2020 20:53:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A90132076C;
+        Fri, 16 Oct 2020 20:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881618;
-        bh=byszXFQCEHC2S3NN8ZZkUjlNo0pgC2ndGlAqqaa0h/U=;
+        s=default; t=1602881621;
+        bh=Sfy+Ux3BaNOwNN6K6NFBVG/WMB9rHiboDmnILsx6SKY=;
         h=Date:From:To:Subject:From;
-        b=d2oeW2TKu+mIxfSYIFDOooPNV+g01/ppDW2MXr9EnazvK5skiubXi/nP8HZREK/++
-         5pLodBOCoqw1RY036kE7yMsSPp1ndSSSLJf5Sk6Ig/tf9whXPIF1VDxoOaVZUQ31ES
-         CV9JTw7Rz4D4i2s+im+5mF2QF64je6dJ4M+ybQ5k=
-Date:   Fri, 16 Oct 2020 13:53:38 -0700
+        b=bfwS1RcGZ5+2FJRqQf2uL3PWC74a+pnB5mNgJvyQdnfz5LMhVcANrC3pKyzNde82M
+         jOQ6uaaYsM8vlm4C4DKamQ3qyiPvyv5QtWpi4lM3k9poZrj58pYiAGN2VZsZBQZXO7
+         22t63Cx5n4xIviVBTOXmw3962SXiKqUH4yxYNKIg=
+Date:   Fri, 16 Oct 2020 13:53:41 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com,
         mm-commits@vger.kernel.org, richard.weiyang@linux.alibaba.com
-Subject:  [merged] bitops-simplify-get_count_order_long.patch
- removed from -mm tree
-Message-ID: <20201016205338.uT4T2GpxF%akpm@linux-foundation.org>
+Subject:  [merged]
+ bitops-use-the-same-mechanism-for-get_count_order.patch removed from -mm
+ tree
+Message-ID: <20201016205341.7Ry2hs3PA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,39 +54,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitops: simplify get_count_order_long()
+     Subject: bitops: use the same mechanism for get_count_order[_long]
 has been removed from the -mm tree.  Its filename was
-     bitops-simplify-get_count_order_long.patch
+     bitops-use-the-same-mechanism-for-get_count_order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: bitops: simplify get_count_order_long()
+Subject: bitops: use the same mechanism for get_count_order[_long]
 
-These two cases could be unified into one.
+These two functions share the same logic.
 
-Link: https://lkml.kernel.org/r/20200807085837.11697-2-richard.weiyang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20200807085837.11697-3-richard.weiyang@linux.alibaba.com
 Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/bitops.h |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/bitops.h~bitops-simplify-get_count_order_long
+--- a/include/linux/bitops.h~bitops-use-the-same-mechanism-for-get_count_order
 +++ a/include/linux/bitops.h
-@@ -206,10 +206,7 @@ static inline int get_count_order_long(u
+@@ -188,12 +188,10 @@ static inline unsigned fls_long(unsigned
+ 
+ static inline int get_count_order(unsigned int count)
  {
- 	if (l == 0UL)
- 		return -1;
--	else if (l & (l - 1UL))
--		return (int)fls_long(l);
--	else
--		return (int)fls_long(l) - 1;
-+	return (int)fls_long(--l);
+-	int order;
++	if (count == 0)
++		return -1;
+ 
+-	order = fls(count) - 1;
+-	if (count & (count - 1))
+-		order++;
+-	return order;
++	return fls(--count);
  }
  
  /**
