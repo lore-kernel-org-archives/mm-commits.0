@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9CE3C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0221C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:47:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 668F920E65
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:47:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87BD920760
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816440;
-	bh=dXrMrrd7SCXf9PifVqNW8ZtdY+bCNPYrYF/tEoB4N/E=;
+	s=default; t=1602816445;
+	bh=5ubQ8lSj5xQJHAXI6i5fnGU+NYgnN37T5E38xOVGJuE=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=NMOh1dBJvmT11iN+AK4Y/hn2WzXj7vLKPcKYfGmuRxJXDzKQF2gg6ml7GKMuDl6HE
-	 bxLwZzAUZgJDCO+KbWJqi+9S+B8cPaXZ8CJe4CTTIWdPPzgNwnn+b/0A8FFSm14GrN
-	 DsMH5MioeggROCmcpzM8wJbWN4tmiKg4Rbis1jEc=
+	b=R7kG3whgwt8SJo2IQAU2elUVuwwnuH6uJinyLwsrRX8UDJNJfxnMIDxExxmr7OcmC
+	 FKxrrG5sVrLDr7DQTQDN7aOEIc9t3DXxiuV7vVn9m5ZTPF1/7xrkkIxF4UlFMkOjZJ
+	 RSSAwuzVXkA3X4QW98FA3aPIB2X1MuEliyKu5g8s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404343AbgJPCrU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:47:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34922 "EHLO mail.kernel.org"
+        id S2404346AbgJPCrZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:47:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35050 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404339AbgJPCrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:47:19 -0400
+        id S2404339AbgJPCrZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:47:25 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D11D2208E4;
-        Fri, 16 Oct 2020 02:47:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A5E222087D;
+        Fri, 16 Oct 2020 02:47:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816437;
-        bh=dXrMrrd7SCXf9PifVqNW8ZtdY+bCNPYrYF/tEoB4N/E=;
+        s=default; t=1602816444;
+        bh=5ubQ8lSj5xQJHAXI6i5fnGU+NYgnN37T5E38xOVGJuE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZIc/381A+oZbJYzjE2HI6Bo1imy7C9fLT5AWZzYRsaxk3qpQfIO+TJPEtQJqOcF5g
-         Q1x7udh0YusK0bbUX9Yew21muDHg6Aak6pMQXyCqBD8yVU7tU3hhb5joMjFA1aDJpJ
-         r5brIP80+7nTRnkzBiBDGURVgVwfVLOrN119LSkI=
-Date:   Thu, 15 Oct 2020 19:47:16 -0700
+        b=hlWxuBO84NOOG/MrjzDgHVsJBESEQ4Pjddhv29FWXHSKMD9a48AvDOmD3KlbkyGHr
+         hNIsPYTPV0SasmiWPWp8sbLVigVCeH7M0EIuBrzlRXVMEcRtwSdTR9ZVtSGZ8FQ2c3
+         M/NXL+hMu66KZv4rnBtpGdRzZt7PgJwSQyPSmIkg=
+Date:   Thu, 15 Oct 2020 19:47:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        joe@perches.com, linux-mm@kvack.org, linux@rasmusvillemoes.dk,
-        mm-commits@vger.kernel.org, rjw@rjwysocki.net, rostedt@goodmis.org,
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
         torvalds@linux-foundation.org
-Subject:  [patch 096/156] kernel.h: split out min()/max() et al.
- helpers
-Message-ID: <20201016024716.oD6vuXw66%akpm@linux-foundation.org>
+Subject:  [patch 098/156] kernel/: fix repeated words in comments
+Message-ID: <20201016024723.-8RicHCo_%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,479 +52,200 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kernel.h: split out min()/max() et al. helpers
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: kernel/: fix repeated words in comments
 
-kernel.h is being used as a dump for all kinds of stuff for a long time. 
-Here is the attempt to start cleaning it up by splitting out min()/max()
-et al.  helpers.
+Fix multiple occurrences of duplicated words in kernel/.
 
-At the same time convert users in header and lib folder to use new header.
-Though for time being include new header back to kernel.h to avoid
-twisted indirected includes for other existing users.
+Fix one typo/spello on the same line as a duplicate word.  Change one
+instance of "the the" to "that the".  Otherwise just drop one of the
+repeated words.
 
-Link: https://lkml.kernel.org/r/20200910164152.GA1891694@smile.fi.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Joe Perches <joe@perches.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Link: https://lkml.kernel.org/r/98202fa6-8919-ef63-9efe-c0fad5ca7af1@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blkdev.h    |    1 
- include/linux/bvec.h      |    6 +
- include/linux/jiffies.h   |    3 
- include/linux/kernel.h    |  150 -----------------------------------
- include/linux/minmax.h    |  153 ++++++++++++++++++++++++++++++++++++
- include/linux/nodemask.h  |    2 
- include/linux/uaccess.h   |    1 
- kernel/range.c            |    3 
- lib/find_bit.c            |    1 
- lib/hexdump.c             |    1 
- lib/math/rational.c       |    2 
- lib/math/reciprocal_div.c |    1 
- 12 files changed, 170 insertions(+), 154 deletions(-)
+ kernel/acct.c            |    2 +-
+ kernel/cgroup/cpuset.c   |    2 +-
+ kernel/dma/direct.c      |    2 +-
+ kernel/fork.c            |    2 +-
+ kernel/futex.c           |    2 +-
+ kernel/irq/timings.c     |    2 +-
+ kernel/jump_label.c      |    2 +-
+ kernel/kcsan/encoding.h  |    2 +-
+ kernel/kexec_core.c      |    2 +-
+ kernel/kthread.c         |    2 +-
+ kernel/livepatch/state.c |    2 +-
+ kernel/pid_namespace.c   |    2 +-
+ kernel/power/snapshot.c  |    2 +-
+ kernel/smp.c             |    2 +-
+ kernel/user_namespace.c  |    2 +-
+ 15 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/include/linux/blkdev.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/blkdev.h
-@@ -8,6 +8,7 @@
- #include <linux/genhd.h>
- #include <linux/list.h>
- #include <linux/llist.h>
-+#include <linux/minmax.h>
- #include <linux/timer.h>
- #include <linux/workqueue.h>
- #include <linux/pagemap.h>
---- a/include/linux/bvec.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/bvec.h
-@@ -7,10 +7,14 @@
- #ifndef __LINUX_BVEC_ITER_H
- #define __LINUX_BVEC_ITER_H
+--- a/kernel/acct.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/acct.c
+@@ -25,7 +25,7 @@
+  *  Now we silently close acct_file on attempt to reopen. Cleaned sys_acct().
+  *  XTerms and EMACS are manifestations of pure evil. 21/10/98, AV.
+  *
+- *  Fixed a nasty interaction with with sys_umount(). If the accointing
++ *  Fixed a nasty interaction with sys_umount(). If the accounting
+  *  was suspeneded we failed to stop it on umount(). Messy.
+  *  Another one: remount to readonly didn't stop accounting.
+  *	Question: what should we do if we have CAP_SYS_ADMIN but not
+--- a/kernel/cgroup/cpuset.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/cgroup/cpuset.c
+@@ -390,7 +390,7 @@ static void guarantee_online_cpus(struct
+ 			 * The top cpuset doesn't have any online cpu as a
+ 			 * consequence of a race between cpuset_hotplug_work
+ 			 * and cpu hotplug notifier.  But we know the top
+-			 * cpuset's effective_cpus is on its way to to be
++			 * cpuset's effective_cpus is on its way to be
+ 			 * identical to cpu_online_mask.
+ 			 */
+ 			cpumask_copy(pmask, cpu_online_mask);
+--- a/kernel/dma/direct.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/dma/direct.c
+@@ -16,7 +16,7 @@
+ #include "direct.h"
  
--#include <linux/kernel.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
-+#include <linux/limits.h>
-+#include <linux/minmax.h>
- #include <linux/mm.h>
-+#include <linux/types.h>
-+
-+struct page;
+ /*
+- * Most architectures use ZONE_DMA for the first 16 Megabytes, but some use it
++ * Most architectures use ZONE_DMA for the first 16 Megabytes, but some use
+  * it for entirely different regions. In that case the arch code needs to
+  * override the variable below for dma-direct to work properly.
+  */
+--- a/kernel/fork.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/fork.c
+@@ -2189,7 +2189,7 @@ static __latent_entropy struct task_stru
+ 
+ 	/*
+ 	 * Ensure that the cgroup subsystem policies allow the new process to be
+-	 * forked. It should be noted the the new process's css_set can be changed
++	 * forked. It should be noted that the new process's css_set can be changed
+ 	 * between here and cgroup_post_fork() if an organisation operation is in
+ 	 * progress.
+ 	 */
+--- a/kernel/futex.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/futex.c
+@@ -916,7 +916,7 @@ static inline void exit_pi_state_list(st
+  * [10] Found  | Found    | task      | !=taskTID | 0/1    | Invalid
+  *
+  * [1]	Indicates that the kernel can acquire the futex atomically. We
+- *	came came here due to a stale FUTEX_WAITERS/FUTEX_OWNER_DIED bit.
++ *	came here due to a stale FUTEX_WAITERS/FUTEX_OWNER_DIED bit.
+  *
+  * [2]	Valid, if TID does not belong to a kernel thread. If no matching
+  *      thread is found then it indicates that the owner TID has died.
+--- a/kernel/irq/timings.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/irq/timings.c
+@@ -604,7 +604,7 @@ int irq_timings_alloc(int irq)
+ 
+ 	/*
+ 	 * Some platforms can have the same private interrupt per cpu,
+-	 * so this function may be be called several times with the
++	 * so this function may be called several times with the
+ 	 * same interrupt number. Just bail out in case the per cpu
+ 	 * stat structure is already allocated.
+ 	 */
+--- a/kernel/jump_label.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/jump_label.c
+@@ -19,7 +19,7 @@
+ #include <linux/cpu.h>
+ #include <asm/sections.h>
+ 
+-/* mutex to protect coming/going of the the jump_label table */
++/* mutex to protect coming/going of the jump_label table */
+ static DEFINE_MUTEX(jump_label_mutex);
+ 
+ void jump_label_lock(void)
+--- a/kernel/kcsan/encoding.h~kernel-fix-repeated-words-in-comments
++++ a/kernel/kcsan/encoding.h
+@@ -32,7 +32,7 @@
+  *	1. different addresses but with the same encoded address race;
+  *	2. and both map onto the same watchpoint slots;
+  *
+- * Both these are assumed to be very unlikely. However, in case it still happens
++ * Both these are assumed to be very unlikely. However, in case it still
+  * happens, the report logic will filter out the false positive (see report.c).
+  */
+ #define WATCHPOINT_ADDR_BITS (BITS_PER_LONG-1 - WATCHPOINT_SIZE_BITS)
+--- a/kernel/kexec_core.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/kexec_core.c
+@@ -109,7 +109,7 @@ EXPORT_SYMBOL_GPL(kexec_crash_loaded);
+  * defined more restrictively in <asm/kexec.h>.
+  *
+  * The code for the transition from the current kernel to the
+- * the new kernel is placed in the control_code_buffer, whose size
++ * new kernel is placed in the control_code_buffer, whose size
+  * is given by KEXEC_CONTROL_PAGE_SIZE.  In the best case only a single
+  * page of memory is necessary, but some architectures require more.
+  * Because this memory must be identity mapped in the transition from
+--- a/kernel/kthread.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/kthread.c
+@@ -775,7 +775,7 @@ EXPORT_SYMBOL(kthread_create_worker);
  
  /**
-  * struct bio_vec - a contiguous range of physical memory addresses
---- a/include/linux/jiffies.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/jiffies.h
-@@ -3,8 +3,9 @@
- #define _LINUX_JIFFIES_H
+  * kthread_create_worker_on_cpu - create a kthread worker and bind it
+- *	it to a given CPU and the associated NUMA node.
++ *	to a given CPU and the associated NUMA node.
+  * @cpu: CPU number
+  * @flags: flags modifying the default behavior of the worker
+  * @namefmt: printf-style name for the kthread worker (task).
+--- a/kernel/livepatch/state.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/livepatch/state.c
+@@ -55,7 +55,7 @@ EXPORT_SYMBOL_GPL(klp_get_state);
+  *
+  * The function can be called only during transition when a new
+  * livepatch is being enabled or when such a transition is reverted.
+- * It is typically called only from from pre/post (un)patch
++ * It is typically called only from pre/post (un)patch
+  * callbacks.
+  *
+  * Return: pointer to the latest struct klp_state from already
+--- a/kernel/pid_namespace.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/pid_namespace.c
+@@ -233,7 +233,7 @@ void zap_pid_ns_processes(struct pid_nam
+ 	 * to pid_ns->child_reaper.  Thus pidns->child_reaper needs to
+ 	 * stay valid until they all go away.
+ 	 *
+-	 * The code relies on the the pid_ns->child_reaper ignoring
++	 * The code relies on the pid_ns->child_reaper ignoring
+ 	 * SIGCHILD to cause those EXIT_ZOMBIE processes to be
+ 	 * autoreaped if reparented.
+ 	 *
+--- a/kernel/power/snapshot.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/power/snapshot.c
+@@ -735,7 +735,7 @@ zone_found:
+ 	 */
  
- #include <linux/cache.h>
-+#include <linux/limits.h>
- #include <linux/math64.h>
--#include <linux/kernel.h>
-+#include <linux/minmax.h>
- #include <linux/types.h>
- #include <linux/time.h>
- #include <linux/timex.h>
---- a/include/linux/kernel.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/kernel.h
-@@ -11,6 +11,7 @@
- #include <linux/compiler.h>
- #include <linux/bitops.h>
- #include <linux/log2.h>
-+#include <linux/minmax.h>
- #include <linux/typecheck.h>
- #include <linux/printk.h>
- #include <linux/build_bug.h>
-@@ -833,155 +834,6 @@ ftrace_vprintk(const char *fmt, va_list
- static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
- #endif /* CONFIG_TRACING */
- 
--/*
-- * min()/max()/clamp() macros must accomplish three things:
-- *
-- * - avoid multiple evaluations of the arguments (so side-effects like
-- *   "x++" happen only once) when non-constant.
-- * - perform strict type-checking (to generate warnings instead of
-- *   nasty runtime surprises). See the "unnecessary" pointer comparison
-- *   in __typecheck().
-- * - retain result as a constant expressions when called with only
-- *   constant expressions (to avoid tripping VLA warnings in stack
-- *   allocation usage).
-- */
--#define __typecheck(x, y) \
--		(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
--
--/*
-- * This returns a constant expression while determining if an argument is
-- * a constant expression, most importantly without evaluating the argument.
-- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-- */
--#define __is_constexpr(x) \
--	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
--
--#define __no_side_effects(x, y) \
--		(__is_constexpr(x) && __is_constexpr(y))
--
--#define __safe_cmp(x, y) \
--		(__typecheck(x, y) && __no_side_effects(x, y))
--
--#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
--
--#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
--		typeof(x) unique_x = (x);		\
--		typeof(y) unique_y = (y);		\
--		__cmp(unique_x, unique_y, op); })
--
--#define __careful_cmp(x, y, op) \
--	__builtin_choose_expr(__safe_cmp(x, y), \
--		__cmp(x, y, op), \
--		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
--
--/**
-- * min - return minimum of two values of the same or compatible types
-- * @x: first value
-- * @y: second value
-- */
--#define min(x, y)	__careful_cmp(x, y, <)
--
--/**
-- * max - return maximum of two values of the same or compatible types
-- * @x: first value
-- * @y: second value
-- */
--#define max(x, y)	__careful_cmp(x, y, >)
--
--/**
-- * min3 - return minimum of three values
-- * @x: first value
-- * @y: second value
-- * @z: third value
-- */
--#define min3(x, y, z) min((typeof(x))min(x, y), z)
--
--/**
-- * max3 - return maximum of three values
-- * @x: first value
-- * @y: second value
-- * @z: third value
-- */
--#define max3(x, y, z) max((typeof(x))max(x, y), z)
--
--/**
-- * min_not_zero - return the minimum that is _not_ zero, unless both are zero
-- * @x: value1
-- * @y: value2
-- */
--#define min_not_zero(x, y) ({			\
--	typeof(x) __x = (x);			\
--	typeof(y) __y = (y);			\
--	__x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); })
--
--/**
-- * clamp - return a value clamped to a given range with strict typechecking
-- * @val: current value
-- * @lo: lowest allowable value
-- * @hi: highest allowable value
-- *
-- * This macro does strict typechecking of @lo/@hi to make sure they are of the
-- * same type as @val.  See the unnecessary pointer comparisons.
-- */
--#define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
--
--/*
-- * ..and if you can't take the strict
-- * types, you can specify one yourself.
-- *
-- * Or not use min/max/clamp at all, of course.
-- */
--
--/**
-- * min_t - return minimum of two values, using the specified type
-- * @type: data type to use
-- * @x: first value
-- * @y: second value
-- */
--#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
--
--/**
-- * max_t - return maximum of two values, using the specified type
-- * @type: data type to use
-- * @x: first value
-- * @y: second value
-- */
--#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
--
--/**
-- * clamp_t - return a value clamped to a given range using a given type
-- * @type: the type of variable to use
-- * @val: current value
-- * @lo: minimum allowable value
-- * @hi: maximum allowable value
-- *
-- * This macro does no typechecking and uses temporary variables of type
-- * @type to make all the comparisons.
-- */
--#define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
--
--/**
-- * clamp_val - return a value clamped to a given range using val's type
-- * @val: current value
-- * @lo: minimum allowable value
-- * @hi: maximum allowable value
-- *
-- * This macro does no typechecking and uses temporary variables of whatever
-- * type the input argument @val is.  This is useful when @val is an unsigned
-- * type and @lo and @hi are literals that will otherwise be assigned a signed
-- * integer type.
-- */
--#define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
--
--
--/**
-- * swap - swap values of @a and @b
-- * @a: first value
-- * @b: second value
-- */
--#define swap(a, b) \
--	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
--
- /* This counts to 12. Any more, it will return 13th argument. */
- #define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
- #define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
---- /dev/null
-+++ a/include/linux/minmax.h
-@@ -0,0 +1,153 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_MINMAX_H
-+#define _LINUX_MINMAX_H
-+
-+/*
-+ * min()/max()/clamp() macros must accomplish three things:
-+ *
-+ * - avoid multiple evaluations of the arguments (so side-effects like
-+ *   "x++" happen only once) when non-constant.
-+ * - perform strict type-checking (to generate warnings instead of
-+ *   nasty runtime surprises). See the "unnecessary" pointer comparison
-+ *   in __typecheck().
-+ * - retain result as a constant expressions when called with only
-+ *   constant expressions (to avoid tripping VLA warnings in stack
-+ *   allocation usage).
-+ */
-+#define __typecheck(x, y) \
-+	(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-+
-+/*
-+ * This returns a constant expression while determining if an argument is
-+ * a constant expression, most importantly without evaluating the argument.
-+ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-+ */
-+#define __is_constexpr(x) \
-+	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
-+
-+#define __no_side_effects(x, y) \
-+		(__is_constexpr(x) && __is_constexpr(y))
-+
-+#define __safe_cmp(x, y) \
-+		(__typecheck(x, y) && __no_side_effects(x, y))
-+
-+#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
-+
-+#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
-+		typeof(x) unique_x = (x);		\
-+		typeof(y) unique_y = (y);		\
-+		__cmp(unique_x, unique_y, op); })
-+
-+#define __careful_cmp(x, y, op) \
-+	__builtin_choose_expr(__safe_cmp(x, y), \
-+		__cmp(x, y, op), \
-+		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
-+
-+/**
-+ * min - return minimum of two values of the same or compatible types
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define min(x, y)	__careful_cmp(x, y, <)
-+
-+/**
-+ * max - return maximum of two values of the same or compatible types
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define max(x, y)	__careful_cmp(x, y, >)
-+
-+/**
-+ * min3 - return minimum of three values
-+ * @x: first value
-+ * @y: second value
-+ * @z: third value
-+ */
-+#define min3(x, y, z) min((typeof(x))min(x, y), z)
-+
-+/**
-+ * max3 - return maximum of three values
-+ * @x: first value
-+ * @y: second value
-+ * @z: third value
-+ */
-+#define max3(x, y, z) max((typeof(x))max(x, y), z)
-+
-+/**
-+ * min_not_zero - return the minimum that is _not_ zero, unless both are zero
-+ * @x: value1
-+ * @y: value2
-+ */
-+#define min_not_zero(x, y) ({			\
-+	typeof(x) __x = (x);			\
-+	typeof(y) __y = (y);			\
-+	__x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); })
-+
-+/**
-+ * clamp - return a value clamped to a given range with strict typechecking
-+ * @val: current value
-+ * @lo: lowest allowable value
-+ * @hi: highest allowable value
-+ *
-+ * This macro does strict typechecking of @lo/@hi to make sure they are of the
-+ * same type as @val.  See the unnecessary pointer comparisons.
-+ */
-+#define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
-+
-+/*
-+ * ..and if you can't take the strict
-+ * types, you can specify one yourself.
-+ *
-+ * Or not use min/max/clamp at all, of course.
-+ */
-+
-+/**
-+ * min_t - return minimum of two values, using the specified type
-+ * @type: data type to use
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
-+
-+/**
-+ * max_t - return maximum of two values, using the specified type
-+ * @type: data type to use
-+ * @x: first value
-+ * @y: second value
-+ */
-+#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
-+
-+/**
-+ * clamp_t - return a value clamped to a given range using a given type
-+ * @type: the type of variable to use
-+ * @val: current value
-+ * @lo: minimum allowable value
-+ * @hi: maximum allowable value
-+ *
-+ * This macro does no typechecking and uses temporary variables of type
-+ * @type to make all the comparisons.
-+ */
-+#define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
-+
-+/**
-+ * clamp_val - return a value clamped to a given range using val's type
-+ * @val: current value
-+ * @lo: minimum allowable value
-+ * @hi: maximum allowable value
-+ *
-+ * This macro does no typechecking and uses temporary variables of whatever
-+ * type the input argument @val is.  This is useful when @val is an unsigned
-+ * type and @lo and @hi are literals that will otherwise be assigned a signed
-+ * integer type.
-+ */
-+#define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
-+
-+/**
-+ * swap - swap values of @a and @b
-+ * @a: first value
-+ * @b: second value
-+ */
-+#define swap(a, b) \
-+	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
-+
-+#endif	/* _LINUX_MINMAX_H */
---- a/include/linux/nodemask.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/nodemask.h
-@@ -90,9 +90,9 @@
-  * for such situations. See below and CPUMASK_ALLOC also.
+ 	/*
+-	 * If the zone we wish to scan is the the current zone and the
++	 * If the zone we wish to scan is the current zone and the
+ 	 * pfn falls into the current node then we do not need to walk
+ 	 * the tree.
+ 	 */
+--- a/kernel/smp.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/smp.c
+@@ -741,7 +741,7 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+  * for all the required CPUs to finish. This may include the local
+  * processor.
+  * @cond_func:	A callback function that is passed a cpu id and
+- *		the the info parameter. The function is called
++ *		the info parameter. The function is called
+  *		with preemption disabled. The function should
+  *		return a blooean value indicating whether to IPI
+  *		the specified CPU.
+--- a/kernel/user_namespace.c~kernel-fix-repeated-words-in-comments
++++ a/kernel/user_namespace.c
+@@ -515,7 +515,7 @@ EXPORT_SYMBOL(from_kgid_munged);
+  *
+  *	When there is no mapping defined for the user-namespace projid
+  *	pair INVALID_PROJID is returned.  Callers are expected to test
+- *	for and handle handle INVALID_PROJID being returned.  INVALID_PROJID
++ *	for and handle INVALID_PROJID being returned.  INVALID_PROJID
+  *	may be tested for using projid_valid().
   */
- 
--#include <linux/kernel.h>
- #include <linux/threads.h>
- #include <linux/bitmap.h>
-+#include <linux/minmax.h>
- #include <linux/numa.h>
- 
- typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
---- a/include/linux/uaccess.h~kernelh-split-out-min-max-et-al-helpers
-+++ a/include/linux/uaccess.h
-@@ -3,6 +3,7 @@
- #define __LINUX_UACCESS_H__
- 
- #include <linux/instrumented.h>
-+#include <linux/minmax.h>
- #include <linux/sched.h>
- #include <linux/thread_info.h>
- 
---- a/kernel/range.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/kernel/range.c
-@@ -2,8 +2,9 @@
- /*
-  * Range add and subtract
-  */
--#include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/minmax.h>
-+#include <linux/printk.h>
- #include <linux/sort.h>
- #include <linux/string.h>
- #include <linux/range.h>
---- a/lib/find_bit.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/find_bit.c
-@@ -16,6 +16,7 @@
- #include <linux/bitmap.h>
- #include <linux/export.h>
- #include <linux/kernel.h>
-+#include <linux/minmax.h>
- 
- #if !defined(find_next_bit) || !defined(find_next_zero_bit) ||			\
- 	!defined(find_next_bit_le) || !defined(find_next_zero_bit_le) ||	\
---- a/lib/hexdump.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/hexdump.c
-@@ -7,6 +7,7 @@
- #include <linux/ctype.h>
- #include <linux/errno.h>
- #include <linux/kernel.h>
-+#include <linux/minmax.h>
- #include <linux/export.h>
- #include <asm/unaligned.h>
- 
---- a/lib/math/rational.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/math/rational.c
-@@ -11,7 +11,7 @@
- #include <linux/rational.h>
- #include <linux/compiler.h>
- #include <linux/export.h>
--#include <linux/kernel.h>
-+#include <linux/minmax.h>
- 
- /*
-  * calculate best rational approximation for a given fraction
---- a/lib/math/reciprocal_div.c~kernelh-split-out-min-max-et-al-helpers
-+++ a/lib/math/reciprocal_div.c
-@@ -4,6 +4,7 @@
- #include <asm/div64.h>
- #include <linux/reciprocal_div.h>
- #include <linux/export.h>
-+#include <linux/minmax.h>
- 
- /*
-  * For a description of the algorithm please have a look at
+ kprojid_t make_kprojid(struct user_namespace *ns, projid_t projid)
 _
