@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C147C433E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:10:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14114C433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:10:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C512F2087D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:10:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C42CE20B1F
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 03:10:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602817837;
-	bh=Yxd1/wmlB+N+skJntfz8a6EIZ4FtD2ib1yOe1BIfJok=;
+	s=default; t=1602817839;
+	bh=xRUZigBHrfuIsGY6ipPFWnnqQIehsmMqBmwrXsT2So8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=nTM4HjcVCkBpvvz5T6mLa5wf4hCXhaybBGDXl5j3ZTkhm9VJfrr8c9lbSndcCEEGR
-	 M2Eb07ym9jhHYJ4vTuVeWWNPnB9kfFjpAnqmpCaQvMpio2OiLTdL+VaHMy430wuRv0
-	 nbcRU3BJWLhYFgDuUuqe/Q7RDFocQpAi2H5b1VaU=
+	b=sw8yPpcAqN7rDH0637nX6qnWpBjfn9I1PnpqPpn71BcHsExyoBXrk64iwccSWsDw8
+	 3NiSomcFeBbNnPbFHf96wU4OdCGOYaRKEQ47rqHM1uZlIMuO1nvpEho8Po5cdKfxTq
+	 KAGoIM6/Ag4UYxC8/sI9WGQ6HVZHjEaerjn/+rmA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733115AbgJPDKh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 23:10:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47558 "EHLO mail.kernel.org"
+        id S1733143AbgJPDKj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 23:10:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47584 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732461AbgJPDKh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 23:10:37 -0400
+        id S1733127AbgJPDKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 23:10:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 500F220878;
-        Fri, 16 Oct 2020 03:10:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6EB7820878;
+        Fri, 16 Oct 2020 03:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602817835;
-        bh=Yxd1/wmlB+N+skJntfz8a6EIZ4FtD2ib1yOe1BIfJok=;
+        s=default; t=1602817838;
+        bh=xRUZigBHrfuIsGY6ipPFWnnqQIehsmMqBmwrXsT2So8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ekfjygZD+g93PzorIZOQvgr1EERk4Zlep1GC5poXZ+cqNcH8lz4HTnRiq4EJTBspq
-         Rg+TH4f1NH91GXQChdzHLztnwkxJoi5lYEhBFi/Cy4ghsinnZYNK41tH0sM6dAzRv9
-         Yus1lxNmqPqN27bFvXNE1mFfHaY0lOtTwdHNg/nI=
-Date:   Thu, 15 Oct 2020 20:10:34 -0700
+        b=Xcsj5mtq9YQPioWGaoyEGpBbcDGwYBvTQq3DolXywvKDR4ZY+YOTA0JgZ++pze1w2
+         iq6taO/CoTiqcSw70iSX5x9QM2EfLPhElABpMnQLrr3V4RDILzbnKgrmoamaSoIcLF
+         IhY+wUjPQ9HPErpL1gvL3/ktzNdXiC8xJnGIZP84=
+Date:   Thu, 15 Oct 2020 20:10:37 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joe@perches.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 100/156] get_maintainer: add test for file in VCS
-Message-ID: <20201016031034.KFRrgl1iV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, davem@davemloft.net, joe@perches.com,
+        mchehab+huawei@kernel.org, mm-commits@vger.kernel.org,
+        robh@kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 101/156] get_maintainer: exclude MAINTAINERS
+ file(s) from --git-fallback
+Message-ID: <20201016031037.BE1xBhkMj%akpm@linux-foundation.org>
 In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,31 +54,38 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: add test for file in VCS
+Subject: get_maintainer: exclude MAINTAINERS file(s) from --git-fallback
 
-It's somewhat common for me to ask get_maintainer to tell me who maintains
-a patch file rather than the files modified by the patch.
+MAINTAINERS files generally have no specific maintainer but are updated by
+individuals for subsystems all over the source tree.
 
-Emit a warning if using get_maintainer.pl -f <patchfile>
+Exclude MAINTAINERS file(s) from --git-fallback searches so the unlucky
+individuals that update the files the most are not shown by default.
 
-Link: https://lkml.kernel.org/r/f63229c051567041819f25e76f49d83c6e4c0f71.camel@perches.com
+Link: https://lkml.kernel.org/r/2bacb0a9c06fbb6d56a43bf930e808c74243c908.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/get_maintainer.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-add-test-for-file-in-vcs
+--- a/scripts/get_maintainer.pl~get_maintainer-exclude-maintainers-files-from-git-fallback
 +++ a/scripts/get_maintainer.pl
-@@ -541,6 +541,9 @@ foreach my $file (@ARGV) {
- 	    die "$P: file '${file}' not found\n";
+@@ -957,8 +957,10 @@ sub get_maintainers {
+ 
+     foreach my $file (@files) {
+ 	if ($email &&
+-	    ($email_git || ($email_git_fallback &&
+-			    !$exact_pattern_match_hash{$file}))) {
++	    ($email_git ||
++	     ($email_git_fallback &&
++	      $file !~ /MAINTAINERS$/ &&
++	      !$exact_pattern_match_hash{$file}))) {
+ 	    vcs_file_signoffs($file);
  	}
-     }
-+    if ($from_filename && (vcs_exists() && !vcs_file_exists($file))) {
-+	warn "$P: file '$file' not found in version control $!\n";
-+    }
-     if ($from_filename || ($file ne "&STDIN" && vcs_file_exists($file))) {
- 	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
- 	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
+ 	if ($email && $email_git_blame) {
 _
