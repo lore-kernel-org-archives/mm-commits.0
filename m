@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E6BAC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39EDFC433E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3094720897
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAFF92087D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 02:42:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602816155;
-	bh=1UzBdhHCB+IHIQVeS+1osjWoD7zVb24gmfJfTNS6YkM=;
+	s=default; t=1602816160;
+	bh=RGDVu50YtQcqr96w9tGkwP+uISiLNUqTH9xkzGTbwRI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=O33WLv2XJuT+enO9+ZHyGIEUsPAwM4FvYFxEW62Cl/jbrT6jBoutAbz778i81tCux
-	 3rWuHGB3X86Bj9Rhi4f0VvhsNPaRcNCYKY73TE9f7Z7DAUiAWYOqRfOzXTFwI7j37I
-	 Dbs4Fuhv4T1Rb3xZNv6CbV7eHU6I9iv5k+AdRRUM=
+	b=r8KSYpex7xanDTkcMk7H4L+IJxW2Y9bTZmMpCs+ZqrSeu536RmEPW4HLlTt+d56PJ
+	 jJ0CGk4msjdrljvrA7Kt2UgHqFi7rs0Dhn10hQAKfoMWeS1eOlme5IBkoIet+sacP7
+	 Inzpx9zTRGMLfYx+M0WhpUlhL0/DETBDHfzdwiaA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393813AbgJPCme (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Oct 2020 22:42:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58052 "EHLO mail.kernel.org"
+        id S1729760AbgJPCmj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Oct 2020 22:42:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728688AbgJPCme (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Oct 2020 22:42:34 -0400
+        id S1728688AbgJPCmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Oct 2020 22:42:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C3B432087D;
-        Fri, 16 Oct 2020 02:42:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3C9602087D;
+        Fri, 16 Oct 2020 02:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602816154;
-        bh=1UzBdhHCB+IHIQVeS+1osjWoD7zVb24gmfJfTNS6YkM=;
+        s=default; t=1602816157;
+        bh=RGDVu50YtQcqr96w9tGkwP+uISiLNUqTH9xkzGTbwRI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=b2q7mn6Nac21Q5kRUnX/QByCrtpCPCdLWi0nG77umFD+BILnrf3o3q6+IeHETMHtI
-         J2Uk5Tlm2Asdd6O2JtsNd0kYy/EZgAoFLQzqUQJedqQJxmiajxgmkMIt/495xsjvOz
-         z+i51d/ec+IpxjbH5QGaly+IZ9VKusjg20N0qegU=
-Date:   Thu, 15 Oct 2020 19:42:33 -0700
+        b=DY3ORyiblvq7QvwtSGd2DEiiKFWagYnKaEywJAnhaDV2f34yiviXDd64puTBF+lTs
+         YV/LK6jW8IoB/SEEqMpGvvVhNMUenFADzLnQyWqZgHUMgCpR3qjnp8oI5cl32j3L8O
+         SObXnBcLS3XhLdtSCzNttqZdlg3GxLIl+EF5OBuI=
+Date:   Thu, 15 Oct 2020 19:42:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, sjpark@amazon.de,
         torvalds@linux-foundation.org, willy@infradead.org,
         ying.huang@intel.com
-Subject:  [patch 028/156] mm/page-writeback: support tail pages in
- wait_for_stable_page
-Message-ID: <20201016024233.afi-U5P5P%akpm@linux-foundation.org>
+Subject:  [patch 029/156] mm/vmscan: allow arbitrary sized pages to
+ be paged out
+Message-ID: <20201016024236.SNovRu1QH%akpm@linux-foundation.org>
 In-Reply-To: <20201015192732.f448da14e9854c7cb7299956@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,30 +55,32 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page-writeback: support tail pages in wait_for_stable_page
+Subject: mm/vmscan: allow arbitrary sized pages to be paged out
 
-page->mapping is undefined for tail pages, so operate exclusively on the
-head page.
+Remove the assumption that a compound page has HPAGE_PMD_NR pins from the
+page cache.
 
-Link: https://lkml.kernel.org/r/20200908195539.25896-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20200908195539.25896-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: SeongJae Park <sjpark@amazon.de>
-Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page-writeback.c~mm-page-writeback-support-tail-pages-in-wait_for_stable_page
-+++ a/mm/page-writeback.c
-@@ -2849,6 +2849,7 @@ EXPORT_SYMBOL_GPL(wait_on_page_writeback
-  */
- void wait_for_stable_page(struct page *page)
- {
-+	page = thp_head(page);
- 	if (page->mapping->host->i_sb->s_iflags & SB_I_STABLE_WRITES)
- 		wait_on_page_writeback(page);
+--- a/mm/vmscan.c~mm-vmscan-allow-arbitrary-sized-pages-to-be-paged-out
++++ a/mm/vmscan.c
+@@ -725,8 +725,7 @@ static inline int is_page_cache_freeable
+ 	 * that isolated the page, the page cache and optional buffer
+ 	 * heads at page->private.
+ 	 */
+-	int page_cache_pins = PageTransHuge(page) && PageSwapCache(page) ?
+-		HPAGE_PMD_NR : 1;
++	int page_cache_pins = thp_nr_pages(page);
+ 	return page_count(page) - page_has_private(page) == 1 + page_cache_pins;
  }
+ 
 _
