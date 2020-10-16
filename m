@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA5BC433E7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37DB7C433DF
 	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91BB52065D
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD9F82065D
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881556;
-	bh=JMy/nbHMdmEbbJRa2wbtcSJQ2Jc1n2jf04V3f5ZOI1s=;
+	s=default; t=1602881555;
+	bh=3KAvt2OtP1AZV78WV84GamsbLCxzdx/YY8sv0aSrGtk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LUJbDfz8lFhYXMGXCKPzhzP49iSARkJWsvOuCfpdIt7Voh562Gh3+xLG5Jjml4Kci
-	 llqkf8ALbgvRVocO4lTaY8WJdxJoIUJ77iuqft4zhp0Yjl2g8zfczl9rImBLN7O+Y2
-	 amvYZ1G5j0ysfMNAjG0QgPXv2xya0oTedc6Luz1M=
+	b=BQdJRZZtHq7xqQM24ItH2At0tGvWqghMt2ylr2dCvehOmsd8/rTDZiQw3fAPlLM61
+	 KOQwjBP6UXDb3BkwbUpJWFv52kRCRY+M/X3Pxsudr1HUu5HRmSTXNQtuvdUwg0Bsec
+	 L7Sgm7JWfyHIWqGHZ13Fl91uUEb9j6wcSrLVp41s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408734AbgJPUwg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:52:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41056 "EHLO mail.kernel.org"
+        id S2408800AbgJPUwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Oct 2020 16:52:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41030 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2408456AbgJPUwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:52:35 -0400
+        id S2408456AbgJPUwe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Oct 2020 16:52:34 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B278120657;
-        Fri, 16 Oct 2020 20:52:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A1B7E205CB;
+        Fri, 16 Oct 2020 20:52:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881554;
-        bh=JMy/nbHMdmEbbJRa2wbtcSJQ2Jc1n2jf04V3f5ZOI1s=;
+        s=default; t=1602881552;
+        bh=3KAvt2OtP1AZV78WV84GamsbLCxzdx/YY8sv0aSrGtk=;
         h=Date:From:To:Subject:From;
-        b=uXrB4EopxubTbJwNn0KnnHQvFfPnxJTh5BU0JN+lZJ+s3vYvuckZUBWPDgX5m6E6D
-         SvEOMY2kmdC0+7Ce88pdv1h+vicsBeT3qYycdT9Z9ki/IHkTwVWW3Es8OAU3mgJva6
-         W6TgXJLuafmr8Pu+eHDP6K3ELPuHRCEB0Fhu2XZU=
-Date:   Fri, 16 Oct 2020 13:52:34 -0700
+        b=sI3iJGAII5DlUtNVyX4X7luLpMhWwQN7q7G9ZR5YzuYaoViA6MrpnXZvknghIHGoQ
+         a4Pod1uBbs2X2HJX2WLY+vo6fOPHNR1SEVTm9NNd7AUqA5czZDJjkjKilhrrP7fode
+         SDURTqrYZXcYZfGMy8gZ8r/uhpnB9X6eRymfoLEI=
+Date:   Fri, 16 Oct 2020 13:52:31 -0700
 From:   akpm@linux-foundation.org
-To:     liao.pingfang@zte.com.cn, mm-commits@vger.kernel.org,
-        wang.yi59@zte.com.cn
-Subject:  [merged]
- =?US-ASCII?Q?kernel-sysc-replace-do=5Fbrk-with-do=5Fbrk=5Fflags-in-comme?=
- =?US-ASCII?Q?nt-of-prctl=5Fset=5Fmm=5Fmap.patch?= removed from -mm tree
-Message-ID: <20201016205234.QE1cbEV-4%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, joe@perches.com,
+        linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org,
+        rjw@rjwysocki.net, rostedt@goodmis.org,
+        torvalds@linux-foundation.org
+Subject:  [merged] kernelh-split-out-min-max-et-al-helpers.patch
+ removed from -mm tree
+Message-ID: <20201016205231.c8ievOXKu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,42 +55,490 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sys.c: replace do_brk with do_brk_flags in comment of prctl_set_mm_map()
+     Subject: kernel.h: split out min()/max() et al. helpers
 has been removed from the -mm tree.  Its filename was
-     kernel-sysc-replace-do_brk-with-do_brk_flags-in-comment-of-prctl_set_mm_map.patch
+     kernelh-split-out-min-max-et-al-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liao Pingfang <liao.pingfang@zte.com.cn>
-Subject: kernel/sys.c: replace do_brk with do_brk_flags in comment of prctl_set_mm_map()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: kernel.h: split out min()/max() et al. helpers
 
-Replace do_brk with do_brk_flags in comment of prctl_set_mm_map(), since
-do_brk was removed in following commit.
+kernel.h is being used as a dump for all kinds of stuff for a long time. 
+Here is the attempt to start cleaning it up by splitting out min()/max()
+et al.  helpers.
 
-Link: https://lkml.kernel.org/r/1600650751-43127-1-git-send-email-wang.yi59@zte.com.cn
-Fixes: bb177a732c4369 ("mm: do not bug_on on incorrect length in __mm_populate()")
-Signed-off-by: Liao Pingfang <liao.pingfang@zte.com.cn>
-Signed-off-by: Yi Wang <wang.yi59@zte.com.cn>
+At the same time convert users in header and lib folder to use new header.
+Though for time being include new header back to kernel.h to avoid
+twisted indirected includes for other existing users.
+
+Link: https://lkml.kernel.org/r/20200910164152.GA1891694@smile.fi.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Joe Perches <joe@perches.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/blkdev.h    |    1 
+ include/linux/bvec.h      |    6 +
+ include/linux/jiffies.h   |    3 
+ include/linux/kernel.h    |  150 -----------------------------------
+ include/linux/minmax.h    |  153 ++++++++++++++++++++++++++++++++++++
+ include/linux/nodemask.h  |    2 
+ include/linux/uaccess.h   |    1 
+ kernel/range.c            |    3 
+ lib/find_bit.c            |    1 
+ lib/hexdump.c             |    1 
+ lib/math/rational.c       |    2 
+ lib/math/reciprocal_div.c |    1 
+ 12 files changed, 170 insertions(+), 154 deletions(-)
 
---- a/kernel/sys.c~kernel-sysc-replace-do_brk-with-do_brk_flags-in-comment-of-prctl_set_mm_map
-+++ a/kernel/sys.c
-@@ -2034,7 +2034,7 @@ static int prctl_set_mm_map(int opt, con
- 	 * VMAs already unmapped and kernel uses these members for statistics
- 	 * output in procfs mostly, except
- 	 *
--	 *  - @start_brk/@brk which are used in do_brk but kernel lookups
-+	 *  - @start_brk/@brk which are used in do_brk_flags but kernel lookups
- 	 *    for VMAs when updating these memvers so anything wrong written
- 	 *    here cause kernel to swear at userspace program but won't lead
- 	 *    to any problem in kernel itself
+--- a/include/linux/blkdev.h~kernelh-split-out-min-max-et-al-helpers
++++ a/include/linux/blkdev.h
+@@ -8,6 +8,7 @@
+ #include <linux/genhd.h>
+ #include <linux/list.h>
+ #include <linux/llist.h>
++#include <linux/minmax.h>
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
+ #include <linux/pagemap.h>
+--- a/include/linux/bvec.h~kernelh-split-out-min-max-et-al-helpers
++++ a/include/linux/bvec.h
+@@ -7,10 +7,14 @@
+ #ifndef __LINUX_BVEC_ITER_H
+ #define __LINUX_BVEC_ITER_H
+ 
+-#include <linux/kernel.h>
+ #include <linux/bug.h>
+ #include <linux/errno.h>
++#include <linux/limits.h>
++#include <linux/minmax.h>
+ #include <linux/mm.h>
++#include <linux/types.h>
++
++struct page;
+ 
+ /**
+  * struct bio_vec - a contiguous range of physical memory addresses
+--- a/include/linux/jiffies.h~kernelh-split-out-min-max-et-al-helpers
++++ a/include/linux/jiffies.h
+@@ -3,8 +3,9 @@
+ #define _LINUX_JIFFIES_H
+ 
+ #include <linux/cache.h>
++#include <linux/limits.h>
+ #include <linux/math64.h>
+-#include <linux/kernel.h>
++#include <linux/minmax.h>
+ #include <linux/types.h>
+ #include <linux/time.h>
+ #include <linux/timex.h>
+--- a/include/linux/kernel.h~kernelh-split-out-min-max-et-al-helpers
++++ a/include/linux/kernel.h
+@@ -11,6 +11,7 @@
+ #include <linux/compiler.h>
+ #include <linux/bitops.h>
+ #include <linux/log2.h>
++#include <linux/minmax.h>
+ #include <linux/typecheck.h>
+ #include <linux/printk.h>
+ #include <linux/build_bug.h>
+@@ -833,155 +834,6 @@ ftrace_vprintk(const char *fmt, va_list
+ static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
+ #endif /* CONFIG_TRACING */
+ 
+-/*
+- * min()/max()/clamp() macros must accomplish three things:
+- *
+- * - avoid multiple evaluations of the arguments (so side-effects like
+- *   "x++" happen only once) when non-constant.
+- * - perform strict type-checking (to generate warnings instead of
+- *   nasty runtime surprises). See the "unnecessary" pointer comparison
+- *   in __typecheck().
+- * - retain result as a constant expressions when called with only
+- *   constant expressions (to avoid tripping VLA warnings in stack
+- *   allocation usage).
+- */
+-#define __typecheck(x, y) \
+-		(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
+-
+-/*
+- * This returns a constant expression while determining if an argument is
+- * a constant expression, most importantly without evaluating the argument.
+- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
+- */
+-#define __is_constexpr(x) \
+-	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
+-
+-#define __no_side_effects(x, y) \
+-		(__is_constexpr(x) && __is_constexpr(y))
+-
+-#define __safe_cmp(x, y) \
+-		(__typecheck(x, y) && __no_side_effects(x, y))
+-
+-#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
+-
+-#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
+-		typeof(x) unique_x = (x);		\
+-		typeof(y) unique_y = (y);		\
+-		__cmp(unique_x, unique_y, op); })
+-
+-#define __careful_cmp(x, y, op) \
+-	__builtin_choose_expr(__safe_cmp(x, y), \
+-		__cmp(x, y, op), \
+-		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
+-
+-/**
+- * min - return minimum of two values of the same or compatible types
+- * @x: first value
+- * @y: second value
+- */
+-#define min(x, y)	__careful_cmp(x, y, <)
+-
+-/**
+- * max - return maximum of two values of the same or compatible types
+- * @x: first value
+- * @y: second value
+- */
+-#define max(x, y)	__careful_cmp(x, y, >)
+-
+-/**
+- * min3 - return minimum of three values
+- * @x: first value
+- * @y: second value
+- * @z: third value
+- */
+-#define min3(x, y, z) min((typeof(x))min(x, y), z)
+-
+-/**
+- * max3 - return maximum of three values
+- * @x: first value
+- * @y: second value
+- * @z: third value
+- */
+-#define max3(x, y, z) max((typeof(x))max(x, y), z)
+-
+-/**
+- * min_not_zero - return the minimum that is _not_ zero, unless both are zero
+- * @x: value1
+- * @y: value2
+- */
+-#define min_not_zero(x, y) ({			\
+-	typeof(x) __x = (x);			\
+-	typeof(y) __y = (y);			\
+-	__x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); })
+-
+-/**
+- * clamp - return a value clamped to a given range with strict typechecking
+- * @val: current value
+- * @lo: lowest allowable value
+- * @hi: highest allowable value
+- *
+- * This macro does strict typechecking of @lo/@hi to make sure they are of the
+- * same type as @val.  See the unnecessary pointer comparisons.
+- */
+-#define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
+-
+-/*
+- * ..and if you can't take the strict
+- * types, you can specify one yourself.
+- *
+- * Or not use min/max/clamp at all, of course.
+- */
+-
+-/**
+- * min_t - return minimum of two values, using the specified type
+- * @type: data type to use
+- * @x: first value
+- * @y: second value
+- */
+-#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
+-
+-/**
+- * max_t - return maximum of two values, using the specified type
+- * @type: data type to use
+- * @x: first value
+- * @y: second value
+- */
+-#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
+-
+-/**
+- * clamp_t - return a value clamped to a given range using a given type
+- * @type: the type of variable to use
+- * @val: current value
+- * @lo: minimum allowable value
+- * @hi: maximum allowable value
+- *
+- * This macro does no typechecking and uses temporary variables of type
+- * @type to make all the comparisons.
+- */
+-#define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
+-
+-/**
+- * clamp_val - return a value clamped to a given range using val's type
+- * @val: current value
+- * @lo: minimum allowable value
+- * @hi: maximum allowable value
+- *
+- * This macro does no typechecking and uses temporary variables of whatever
+- * type the input argument @val is.  This is useful when @val is an unsigned
+- * type and @lo and @hi are literals that will otherwise be assigned a signed
+- * integer type.
+- */
+-#define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
+-
+-
+-/**
+- * swap - swap values of @a and @b
+- * @a: first value
+- * @b: second value
+- */
+-#define swap(a, b) \
+-	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+-
+ /* This counts to 12. Any more, it will return 13th argument. */
+ #define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
+ #define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+--- /dev/null
++++ a/include/linux/minmax.h
+@@ -0,0 +1,153 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MINMAX_H
++#define _LINUX_MINMAX_H
++
++/*
++ * min()/max()/clamp() macros must accomplish three things:
++ *
++ * - avoid multiple evaluations of the arguments (so side-effects like
++ *   "x++" happen only once) when non-constant.
++ * - perform strict type-checking (to generate warnings instead of
++ *   nasty runtime surprises). See the "unnecessary" pointer comparison
++ *   in __typecheck().
++ * - retain result as a constant expressions when called with only
++ *   constant expressions (to avoid tripping VLA warnings in stack
++ *   allocation usage).
++ */
++#define __typecheck(x, y) \
++	(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
++
++/*
++ * This returns a constant expression while determining if an argument is
++ * a constant expression, most importantly without evaluating the argument.
++ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
++ */
++#define __is_constexpr(x) \
++	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
++
++#define __no_side_effects(x, y) \
++		(__is_constexpr(x) && __is_constexpr(y))
++
++#define __safe_cmp(x, y) \
++		(__typecheck(x, y) && __no_side_effects(x, y))
++
++#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
++
++#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
++		typeof(x) unique_x = (x);		\
++		typeof(y) unique_y = (y);		\
++		__cmp(unique_x, unique_y, op); })
++
++#define __careful_cmp(x, y, op) \
++	__builtin_choose_expr(__safe_cmp(x, y), \
++		__cmp(x, y, op), \
++		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
++
++/**
++ * min - return minimum of two values of the same or compatible types
++ * @x: first value
++ * @y: second value
++ */
++#define min(x, y)	__careful_cmp(x, y, <)
++
++/**
++ * max - return maximum of two values of the same or compatible types
++ * @x: first value
++ * @y: second value
++ */
++#define max(x, y)	__careful_cmp(x, y, >)
++
++/**
++ * min3 - return minimum of three values
++ * @x: first value
++ * @y: second value
++ * @z: third value
++ */
++#define min3(x, y, z) min((typeof(x))min(x, y), z)
++
++/**
++ * max3 - return maximum of three values
++ * @x: first value
++ * @y: second value
++ * @z: third value
++ */
++#define max3(x, y, z) max((typeof(x))max(x, y), z)
++
++/**
++ * min_not_zero - return the minimum that is _not_ zero, unless both are zero
++ * @x: value1
++ * @y: value2
++ */
++#define min_not_zero(x, y) ({			\
++	typeof(x) __x = (x);			\
++	typeof(y) __y = (y);			\
++	__x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); })
++
++/**
++ * clamp - return a value clamped to a given range with strict typechecking
++ * @val: current value
++ * @lo: lowest allowable value
++ * @hi: highest allowable value
++ *
++ * This macro does strict typechecking of @lo/@hi to make sure they are of the
++ * same type as @val.  See the unnecessary pointer comparisons.
++ */
++#define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
++
++/*
++ * ..and if you can't take the strict
++ * types, you can specify one yourself.
++ *
++ * Or not use min/max/clamp at all, of course.
++ */
++
++/**
++ * min_t - return minimum of two values, using the specified type
++ * @type: data type to use
++ * @x: first value
++ * @y: second value
++ */
++#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
++
++/**
++ * max_t - return maximum of two values, using the specified type
++ * @type: data type to use
++ * @x: first value
++ * @y: second value
++ */
++#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
++
++/**
++ * clamp_t - return a value clamped to a given range using a given type
++ * @type: the type of variable to use
++ * @val: current value
++ * @lo: minimum allowable value
++ * @hi: maximum allowable value
++ *
++ * This macro does no typechecking and uses temporary variables of type
++ * @type to make all the comparisons.
++ */
++#define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
++
++/**
++ * clamp_val - return a value clamped to a given range using val's type
++ * @val: current value
++ * @lo: minimum allowable value
++ * @hi: maximum allowable value
++ *
++ * This macro does no typechecking and uses temporary variables of whatever
++ * type the input argument @val is.  This is useful when @val is an unsigned
++ * type and @lo and @hi are literals that will otherwise be assigned a signed
++ * integer type.
++ */
++#define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
++
++/**
++ * swap - swap values of @a and @b
++ * @a: first value
++ * @b: second value
++ */
++#define swap(a, b) \
++	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
++
++#endif	/* _LINUX_MINMAX_H */
+--- a/include/linux/nodemask.h~kernelh-split-out-min-max-et-al-helpers
++++ a/include/linux/nodemask.h
+@@ -90,9 +90,9 @@
+  * for such situations. See below and CPUMASK_ALLOC also.
+  */
+ 
+-#include <linux/kernel.h>
+ #include <linux/threads.h>
+ #include <linux/bitmap.h>
++#include <linux/minmax.h>
+ #include <linux/numa.h>
+ 
+ typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
+--- a/include/linux/uaccess.h~kernelh-split-out-min-max-et-al-helpers
++++ a/include/linux/uaccess.h
+@@ -3,6 +3,7 @@
+ #define __LINUX_UACCESS_H__
+ 
+ #include <linux/instrumented.h>
++#include <linux/minmax.h>
+ #include <linux/sched.h>
+ #include <linux/thread_info.h>
+ 
+--- a/kernel/range.c~kernelh-split-out-min-max-et-al-helpers
++++ a/kernel/range.c
+@@ -2,8 +2,9 @@
+ /*
+  * Range add and subtract
+  */
+-#include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/minmax.h>
++#include <linux/printk.h>
+ #include <linux/sort.h>
+ #include <linux/string.h>
+ #include <linux/range.h>
+--- a/lib/find_bit.c~kernelh-split-out-min-max-et-al-helpers
++++ a/lib/find_bit.c
+@@ -16,6 +16,7 @@
+ #include <linux/bitmap.h>
+ #include <linux/export.h>
+ #include <linux/kernel.h>
++#include <linux/minmax.h>
+ 
+ #if !defined(find_next_bit) || !defined(find_next_zero_bit) ||			\
+ 	!defined(find_next_bit_le) || !defined(find_next_zero_bit_le) ||	\
+--- a/lib/hexdump.c~kernelh-split-out-min-max-et-al-helpers
++++ a/lib/hexdump.c
+@@ -7,6 +7,7 @@
+ #include <linux/ctype.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
++#include <linux/minmax.h>
+ #include <linux/export.h>
+ #include <asm/unaligned.h>
+ 
+--- a/lib/math/rational.c~kernelh-split-out-min-max-et-al-helpers
++++ a/lib/math/rational.c
+@@ -11,7 +11,7 @@
+ #include <linux/rational.h>
+ #include <linux/compiler.h>
+ #include <linux/export.h>
+-#include <linux/kernel.h>
++#include <linux/minmax.h>
+ 
+ /*
+  * calculate best rational approximation for a given fraction
+--- a/lib/math/reciprocal_div.c~kernelh-split-out-min-max-et-al-helpers
++++ a/lib/math/reciprocal_div.c
+@@ -4,6 +4,7 @@
+ #include <asm/div64.h>
+ #include <linux/reciprocal_div.h>
+ #include <linux/export.h>
++#include <linux/minmax.h>
+ 
+ /*
+  * For a description of the algorithm please have a look at
 _
 
-Patches currently in -mm which might be from liao.pingfang@zte.com.cn are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
