@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9292DC43467
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EDAFC43457
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 62A15208E4
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 181D020897
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602976445;
-	bh=kFSoIWWs4XOxOsX9f43QcJB4KhMzRi51ggBuKQyD7mk=;
+	s=default; t=1602976448;
+	bh=0XHlP719nJRI+EVhTk6Cs4CWAHZk5C5nuGJnmRbAUzc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=CPefpS6GjZ4u7x1XLhge46PUE1RSZ2Wv7uytNJ6MFIZuuY5JlX771WRhuceBmAZJi
-	 ZDpDKGOv9BCVODHJpd2UBeODYDp22rGJ58ZE0k4ZS3gPds4qUBvy2CRhdtmESATmiZ
-	 OnE6Os9KVV/zcaKmr7UrrMUVNrlSj+tKBpVupBlc=
+	b=DpfMpnMCRPU7RE9IWRIV31dHqpniRKhFM6st9gk/lgGNlndqkx3x3x7qpOwNv/jHn
+	 yzKiYFPdv1VhxXeBuo4Yk7OjRDH9c4ov6Gh5Sw6m3UV7jmx4+SMuLrk/JxSnAk+z1K
+	 HazILJe/DXM8f1CYKkdqF3lqQsKMjtNIktboy8Vw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439888AbgJQXOF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 17 Oct 2020 19:14:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47768 "EHLO mail.kernel.org"
+        id S2439889AbgJQXOH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 17 Oct 2020 19:14:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2439878AbgJQXOE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 17 Oct 2020 19:14:04 -0400
+        id S2439878AbgJQXOH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 17 Oct 2020 19:14:07 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B3E6D208B6;
-        Sat, 17 Oct 2020 23:14:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BE74E208E4;
+        Sat, 17 Oct 2020 23:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602976444;
-        bh=kFSoIWWs4XOxOsX9f43QcJB4KhMzRi51ggBuKQyD7mk=;
+        s=default; t=1602976447;
+        bh=0XHlP719nJRI+EVhTk6Cs4CWAHZk5C5nuGJnmRbAUzc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=IjRvNDF3tpyxDdGpYlb62tyEelqo362Mbr0ug/dw0rvceJazuUCjK2gP6JpXttIr5
-         fiMPQKTtnwcFsshAp1kEKpb24THVKPfns0cF7vKWHclUZ2G5u7/8M6GKa9OccRrObz
-         ui5OejwMCn0u0PI1kKub5314tsiFUleS57H7uMNU=
-Date:   Sat, 17 Oct 2020 16:14:03 -0700
+        b=qxWpwbQ7s3Rx+Oj/Muw0KEc6BkAGTcTYZ9KHfbYn2OXtPiat+HMTdtNtqYd2xrchi
+         m9vv+e3TspkL4JyynwycGUPXd0oNiTclqj6qGPXGKO+YTySUbyebM4QLW8jPArIU4L
+         yljpKWaCnjpW+DLQYAS2n/jSjEoIr1+ZJsVNCIeQ=
+Date:   Sat, 17 Oct 2020 16:14:06 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, linmiaohe@huawei.com,
-        linux-mm@kvack.org, louhongxiang@huawei.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 09/40] mm/migrate: avoid possible unnecessary
- process right check in kernel_move_pages()
-Message-ID: <20201017231403.WBGUY4nLK%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, Liam.Howlett@Oracle.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 10/40] mm/mmap: add inline vma_next() for
+ readability of mmap code
+Message-ID: <20201017231406.Fm-sT8ouL%akpm@linux-foundation.org>
 In-Reply-To: <20201017161314.88890b87fae7446ccc13c902@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,136 +53,76 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/migrate: avoid possible unnecessary process right check in kernel_move_pages()
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/mmap: add inline vma_next() for readability of mmap code
 
-There is no need to check if this process has the right to modify the
-specified process when they are same.  And we could also skip the security
-hook call if a process is modifying its own pages.  Add helper function to
-handle these.
+There are three places that the next vma is required which uses the same
+block of code.  Replace the block with a function and add comments on what
+happens in the case where NULL is encountered.
 
-Link: https://lkml.kernel.org/r/20200819083331.19012-1-linmiaohe@huawei.com
-Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Christopher Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/20200818154707.2515169-1-Liam.Howlett@Oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   71 +++++++++++++++++++++++++++++--------------------
- 1 file changed, 43 insertions(+), 28 deletions(-)
+ mm/mmap.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages
-+++ a/mm/migrate.c
-@@ -1864,33 +1864,27 @@ static int do_pages_stat(struct mm_struc
- 	return nr_pages ? -EFAULT : 0;
+--- a/mm/mmap.c~mm-mmap-add-inline-vma_next-for-readability-of-mmap-code
++++ a/mm/mmap.c
+@@ -558,6 +558,23 @@ static int find_vma_links(struct mm_stru
+ 	return 0;
  }
  
--/*
-- * Move a list of pages in the address space of the currently executing
-- * process.
-- */
--static int kernel_move_pages(pid_t pid, unsigned long nr_pages,
--			     const void __user * __user *pages,
--			     const int __user *nodes,
--			     int __user *status, int flags)
-+static struct mm_struct *find_mm_struct(pid_t pid, nodemask_t *mem_nodes)
- {
- 	struct task_struct *task;
- 	struct mm_struct *mm;
--	int err;
--	nodemask_t task_nodes;
--
--	/* Check flags */
--	if (flags & ~(MPOL_MF_MOVE|MPOL_MF_MOVE_ALL))
--		return -EINVAL;
- 
--	if ((flags & MPOL_MF_MOVE_ALL) && !capable(CAP_SYS_NICE))
--		return -EPERM;
-+	/*
-+	 * There is no need to check if current process has the right to modify
-+	 * the specified process when they are same.
-+	 */
-+	if (!pid) {
-+		mmget(current->mm);
-+		*mem_nodes = cpuset_mems_allowed(current);
-+		return current->mm;
-+	}
- 
- 	/* Find the mm_struct */
- 	rcu_read_lock();
--	task = pid ? find_task_by_vpid(pid) : current;
-+	task = find_task_by_vpid(pid);
- 	if (!task) {
- 		rcu_read_unlock();
--		return -ESRCH;
-+		return ERR_PTR(-ESRCH);
- 	}
- 	get_task_struct(task);
- 
-@@ -1900,22 +1894,47 @@ static int kernel_move_pages(pid_t pid,
- 	 */
- 	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS)) {
- 		rcu_read_unlock();
--		err = -EPERM;
-+		mm = ERR_PTR(-EPERM);
- 		goto out;
- 	}
- 	rcu_read_unlock();
- 
-- 	err = security_task_movememory(task);
-- 	if (err)
-+	mm = ERR_PTR(security_task_movememory(task));
-+	if (IS_ERR(mm))
- 		goto out;
--
--	task_nodes = cpuset_mems_allowed(task);
-+	*mem_nodes = cpuset_mems_allowed(task);
- 	mm = get_task_mm(task);
-+out:
- 	put_task_struct(task);
--
- 	if (!mm)
-+		mm = ERR_PTR(-EINVAL);
-+	return mm;
-+}
-+
 +/*
-+ * Move a list of pages in the address space of the currently executing
-+ * process.
++ * vma_next() - Get the next VMA.
++ * @mm: The mm_struct.
++ * @vma: The current vma.
++ *
++ * If @vma is NULL, return the first vma in the mm.
++ *
++ * Returns: The next VMA after @vma.
 + */
-+static int kernel_move_pages(pid_t pid, unsigned long nr_pages,
-+			     const void __user * __user *pages,
-+			     const int __user *nodes,
-+			     int __user *status, int flags)
++static inline struct vm_area_struct *vma_next(struct mm_struct *mm,
++					 struct vm_area_struct *vma)
 +{
-+	struct mm_struct *mm;
-+	int err;
-+	nodemask_t task_nodes;
++	if (!vma)
++		return mm->mmap;
 +
-+	/* Check flags */
-+	if (flags & ~(MPOL_MF_MOVE|MPOL_MF_MOVE_ALL))
- 		return -EINVAL;
++	return vma->vm_next;
++}
+ static unsigned long count_vma_pages_range(struct mm_struct *mm,
+ 		unsigned long addr, unsigned long end)
+ {
+@@ -1128,10 +1145,7 @@ struct vm_area_struct *vma_merge(struct
+ 	if (vm_flags & VM_SPECIAL)
+ 		return NULL;
  
-+	if ((flags & MPOL_MF_MOVE_ALL) && !capable(CAP_SYS_NICE))
-+		return -EPERM;
-+
-+	mm = find_mm_struct(pid, &task_nodes);
-+	if (IS_ERR(mm))
-+		return PTR_ERR(mm);
-+
- 	if (nodes)
- 		err = do_pages_move(mm, task_nodes, nr_pages, pages,
- 				    nodes, status, flags);
-@@ -1924,10 +1943,6 @@ static int kernel_move_pages(pid_t pid,
+-	if (prev)
+-		next = prev->vm_next;
+-	else
+-		next = mm->mmap;
++	next = vma_next(mm, prev);
+ 	area = next;
+ 	if (area && area->vm_end == end)		/* cases 6, 7, 8 */
+ 		next = next->vm_next;
+@@ -2632,7 +2646,7 @@ static void unmap_region(struct mm_struc
+ 		struct vm_area_struct *vma, struct vm_area_struct *prev,
+ 		unsigned long start, unsigned long end)
+ {
+-	struct vm_area_struct *next = prev ? prev->vm_next : mm->mmap;
++	struct vm_area_struct *next = vma_next(mm, prev);
+ 	struct mmu_gather tlb;
  
- 	mmput(mm);
- 	return err;
--
--out:
--	put_task_struct(task);
--	return err;
- }
+ 	lru_add_drain();
+@@ -2831,7 +2845,7 @@ int __do_munmap(struct mm_struct *mm, un
+ 		if (error)
+ 			return error;
+ 	}
+-	vma = prev ? prev->vm_next : mm->mmap;
++	vma = vma_next(mm, prev);
  
- SYSCALL_DEFINE6(move_pages, pid_t, pid, unsigned long, nr_pages,
+ 	if (unlikely(uf)) {
+ 		/*
 _
