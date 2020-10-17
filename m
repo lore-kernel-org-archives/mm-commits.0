@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A99BC433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00D2BC433DF
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3ADEA208E4
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C258020E65
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602976454;
-	bh=hOaqVUk6Ts2NldEbt7e5w6xi/BvKskyBfySCZv/4e50=;
+	s=default; t=1602976457;
+	bh=3kOwiTpnCK1Bv4+1XPwqTtAubtIlwLSRR5F/+KJVms8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=1bqXaObHN3e8ZfKuign0XODgViMw28h1In/vY5dNYNImaIx014DyN6rVhrMx7NJaK
-	 5lT2IPxo8TAqMOtu5rfVrzSiyDZsXt/N7c9I1hfGadp2VZAE4QSbMBOCtnVfEfH5gp
-	 6bxyz0ppVPyZfYic4uNv3Tszl4L++Lm0pml2IeWo=
+	b=vRNGqgZVoSeP1ZtHt6gaXP1HN+nUe0HaJvH+vGl6gsk8NCYSSLHn/Tql2SbYPVdW7
+	 vEu4lHm8P3NA3uhZQ8KQTcthULIkuJIxVsqGLlwkPlq4ikw5Nk+GvVaMMuKGxxfusF
+	 x4V6H4GjhV6RycmzR7PRVBJkf6wqvG3BkWimAuI4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439891AbgJQXON (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 17 Oct 2020 19:14:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47924 "EHLO mail.kernel.org"
+        id S2439892AbgJQXOR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 17 Oct 2020 19:14:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2439878AbgJQXON (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 17 Oct 2020 19:14:13 -0400
+        id S2439878AbgJQXOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 17 Oct 2020 19:14:16 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id ACF6C20878;
-        Sat, 17 Oct 2020 23:14:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E683D208B6;
+        Sat, 17 Oct 2020 23:14:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602976453;
-        bh=hOaqVUk6Ts2NldEbt7e5w6xi/BvKskyBfySCZv/4e50=;
+        s=default; t=1602976456;
+        bh=3kOwiTpnCK1Bv4+1XPwqTtAubtIlwLSRR5F/+KJVms8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=f/1qtrASMSGmqI/A1treObMrUIMEjxPeFnS7b6/Zi5ujWA2up6uu6KaLTlBKfURq4
-         /ieI7SKNKrouyjRgVnNhTWwVRxbJJTxQU+lKFPwlCQ1nzmU/IkVvC8tfSfNCT4Avw4
-         CEku5ubewvt2A9NZTFBU6Hcn5hsIC3mjYTH7/JuI=
-Date:   Sat, 17 Oct 2020 16:14:12 -0700
+        b=2J556YqShNJAJGEGS4R90SU++sGEP0FUvOaP09UqQ+RsiSz/LUKoo+v8AI8asZ3m1
+         2T5b8U2quZENka6NICO0hmXKOYWfqptB2eZSLbAZjpEcHjp5qG7khiPDJmRpN180N8
+         uIgCUqt8RNNstkmB4kkrpWR+xwPevDrCzacYxDcU=
+Date:   Sat, 17 Oct 2020 16:14:15 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, ebiederm@xmission.com, jannh@google.com,
         jgg@nvidia.com, jhubbard@nvidia.com, linux-mm@kvack.org,
         mchehab@kernel.org, mm-commits@vger.kernel.org,
         sakari.ailus@linux.intel.com, torvalds@linux-foundation.org,
         walken@google.com
-Subject:  [patch 12/40] mm/gup_benchmark: take the mmap lock around
- GUP
-Message-ID: <20201017231412.94CmEnsAR%akpm@linux-foundation.org>
+Subject:  [patch 13/40] binfmt_elf: take the mmap lock around
+ find_extend_vma()
+Message-ID: <20201017231415.XtZWgOT7Q%akpm@linux-foundation.org>
 In-Reply-To: <20201017161314.88890b87fae7446ccc13c902@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,75 +56,51 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Jann Horn <jannh@google.com>
-Subject: mm/gup_benchmark: take the mmap lock around GUP
+Subject: binfmt_elf: take the mmap lock around find_extend_vma()
 
-To be safe against concurrent changes to the VMA tree, we must take the
-mmap lock around GUP operations (excluding the GUP-fast family of
-operations, which will take the mmap lock by themselves if necessary).
+create_elf_tables() runs after setup_new_exec(), so other tasks can
+already access our new mm and do things like process_madvise() on it.  (At
+the time I'm writing this commit, process_madvise() is not in mainline
+yet, but has been in akpm's tree for some time.)
 
-This code is only for testing, and it's only reachable by root through
-debugfs, so this doesn't really have any impact; however, if we want to
-add lockdep asserts into the GUP path, we need to have clean locking here.
+While I believe that there are currently no APIs that would actually allow
+another process to mess up our VMA tree (process_madvise() is limited to
+MADV_COLD and MADV_PAGEOUT, and uring and userfaultfd cannot reach an mm
+under which no syscalls have been executed yet), this seems like an
+accident waiting to happen.
 
-Link: https://lkml.kernel.org/r/CAG48ez3SG6ngZLtasxJ6LABpOnqCz5-QHqb0B4k44TQ8F9n6+w@mail.gmail.com
+Let's make sure that we always take the mmap lock around GUP paths as long
+as another process might be able to see the mm.
+
+(Yes, this diff looks suspicious because we drop the lock before doing
+anything with `vma`, but that's because we actually don't do anything with
+it apart from the NULL check.)
+
+Link: https://lkml.kernel.org/r/CAG48ez1-PBCdv3y8pn-Ty-b+FmBSLwDuVKFSt8h7wARLy0dF-Q@mail.gmail.com
 Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Michel Lespinasse <walken@google.com>
 Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_benchmark.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ fs/binfmt_elf.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/gup_benchmark.c~mm-gup_benchmark-take-the-mmap-lock-around-gup
-+++ a/mm/gup_benchmark.c
-@@ -72,6 +72,8 @@ static int __gup_benchmark_ioctl(unsigne
- 	int nr;
- 	struct page **pages;
- 	int ret = 0;
-+	bool needs_mmap_lock =
-+		cmd != GUP_FAST_BENCHMARK && cmd != PIN_FAST_BENCHMARK;
- 
- 	if (gup->size > ULONG_MAX)
- 		return -EINVAL;
-@@ -81,6 +83,11 @@ static int __gup_benchmark_ioctl(unsigne
- 	if (!pages)
- 		return -ENOMEM;
- 
-+	if (needs_mmap_lock && mmap_read_lock_killable(current->mm)) {
-+		ret = -EINTR;
-+		goto free_pages;
-+	}
-+
- 	i = 0;
- 	nr = gup->nr_pages_per_call;
- 	start_time = ktime_get();
-@@ -120,9 +127,8 @@ static int __gup_benchmark_ioctl(unsigne
- 					    pages + i, NULL);
- 			break;
- 		default:
--			kvfree(pages);
- 			ret = -EINVAL;
--			goto out;
-+			goto unlock;
- 		}
- 
- 		if (nr <= 0)
-@@ -150,8 +156,11 @@ static int __gup_benchmark_ioctl(unsigne
- 	end_time = ktime_get();
- 	gup->put_delta_usec = ktime_us_delta(end_time, start_time);
- 
-+unlock:
-+	if (needs_mmap_lock)
-+		mmap_read_unlock(current->mm);
-+free_pages:
- 	kvfree(pages);
--out:
- 	return ret;
- }
+--- a/fs/binfmt_elf.c~binfmt_elf-take-the-mmap-lock-around-find_extend_vma
++++ a/fs/binfmt_elf.c
+@@ -310,7 +310,10 @@ create_elf_tables(struct linux_binprm *b
+ 	 * Grow the stack manually; some architectures have a limit on how
+ 	 * far ahead a user-space access may be in order to grow the stack.
+ 	 */
++	if (mmap_read_lock_killable(mm))
++		return -EINTR;
+ 	vma = find_extend_vma(mm, bprm->p);
++	mmap_read_unlock(mm);
+ 	if (!vma)
+ 		return -EFAULT;
  
 _
