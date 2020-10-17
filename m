@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F292EC433E7
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A79C43457
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C282521582
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC60522202
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602976532;
-	bh=AZXiCN6XJKeUjNzDLaqqrYCJ3Yx6ZP6Kc2v6SEIv1+k=;
+	s=default; t=1602976537;
+	bh=8nZml5GP4AdSsnOb2lGUaLPGkA4Fb0vWkBge/ZUcH68=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=RFWsL/Kc+Z0qLUyb67YNoH06UAKxfjBO4JoXR3RJA8yPUgE2rWbRI+K9JJQ93ZRMB
-	 l5WQMU5clEwzRJALN3h5UuE6YoZYhpsy6sa07w7MaumnzWYkdBD5EbgPBg0N/9DuiF
-	 AhjnZAS+3ksJXO1ktRWYOArWya1aHdeI86zfbqDk=
+	b=A/rSwkD7YHj+r+UeJwiE8RmYXPONJ9aHfhLWzqbftUeBuMiQ8RLk66kI7/hi8gtkO
+	 4xAEUVaMaKsDaAw3r3asUUiqGLWMdttnpy0ijEkendf0/1c30ZKz8NZFIL49gF0bG3
+	 pJwphPchcMLYy2UDGUGLftZGNk2aGWzgrI8P8V8U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439917AbgJQXPc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 17 Oct 2020 19:15:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49402 "EHLO mail.kernel.org"
+        id S2439918AbgJQXPg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 17 Oct 2020 19:15:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49476 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2439878AbgJQXPb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 17 Oct 2020 19:15:31 -0400
+        id S2439878AbgJQXPe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 17 Oct 2020 19:15:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 650BC21556;
-        Sat, 17 Oct 2020 23:15:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F285D21527;
+        Sat, 17 Oct 2020 23:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602976530;
-        bh=AZXiCN6XJKeUjNzDLaqqrYCJ3Yx6ZP6Kc2v6SEIv1+k=;
+        s=default; t=1602976533;
+        bh=8nZml5GP4AdSsnOb2lGUaLPGkA4Fb0vWkBge/ZUcH68=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HpM9t78LE51u+aWXBvBXNN6t/xSqfy3bxrsonMt2JJjU52h1/nX6E7PFMXXwbOr8F
-         ELxynoRuE05YjDKE/TisfQHfZEYglYrSeBACz2/hL9t8iMEkMdRzMlJrkyd0Ff4hYf
-         ZWM9ZMtowL/M5wBIl4TVNrjHPefzpSQ4zQuLmpD0=
-Date:   Sat, 17 Oct 2020 16:15:28 -0700
+        b=BuQ/WwOf2E4UxE8o9uOGymStfYTkpZk/KVwmjlA3R1RUK7DEUqUmFgoOKwlPDzH4S
+         VUt30mRFrsth+6sOS6SqgLm6/qyaTTomGk6Em6E5xxrHMY7+aKW+SY5A71W4xO6G5B
+         OTT+KpckPT1Sqg4/AFcbkq1BZ5x268t+jiDUibco=
+Date:   Sat, 17 Oct 2020 16:15:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, boris.ostrovsky@oracle.com,
         chris@chris-wilson.co.uk, hch@lst.de, jani.nikula@linux.intel.com,
@@ -48,8 +48,9 @@ To:     akpm@linux-foundation.org, boris.ostrovsky@oracle.com,
         peterz@infradead.org, rodrigo.vivi@intel.com,
         sstabellini@kernel.org, torvalds@linux-foundation.org,
         tvrtko.ursulin@intel.com, urezki@gmail.com, willy@infradead.org
-Subject:  [patch 34/40] drm/i915: use vmap in i915_gem_object_map
-Message-ID: <20201017231528.h_KjgaynS%akpm@linux-foundation.org>
+Subject:  [patch 35/40] xen/xenbus: use apply_to_page_range
+ directly in xenbus_map_ring_pv
+Message-ID: <20201017231532.SrxvnQoK2%akpm@linux-foundation.org>
 In-Reply-To: <20201017161314.88890b87fae7446ccc13c902@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -58,20 +59,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: drm/i915: use vmap in i915_gem_object_map
+Subject: xen/xenbus: use apply_to_page_range directly in xenbus_map_ring_pv
 
-i915_gem_object_map implements fairly low-level vmap functionality in a
-driver.  Split it into two helpers, one for remapping kernel memory which
-can use vmap, and one for I/O memory that uses vmap_pfn.
+Replacing alloc_vm_area with get_vm_area_caller + apply_page_range allows
+to fill put the phys_addr values directly instead of doing another loop
+over all addresses.
 
-The only practical difference is that alloc_vm_area prefeaults the vmalloc
-area PTEs, which doesn't seem to be required here for the kernel memory
-case (and could be added to vmap using a flag if actually required).
-
-Link: https://lkml.kernel.org/r/20201002122204.1534411-9-hch@lst.de
+Link: https://lkml.kernel.org/r/20201002122204.1534411-10-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -83,189 +79,73 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/Kconfig              |    1 
- drivers/gpu/drm/i915/gem/i915_gem_pages.c |  129 +++++++++-----------
- 2 files changed, 61 insertions(+), 69 deletions(-)
+ drivers/xen/xenbus/xenbus_client.c |   30 ++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_pages.c~drm-i915-use-vmap-in-i915_gem_object_map
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_pages.c
-@@ -232,34 +232,21 @@ unlock:
- 	return err;
- }
+--- a/drivers/xen/xenbus/xenbus_client.c~xen-xenbus-use-apply_to_page_range-directly-in-xenbus_map_ring_pv
++++ a/drivers/xen/xenbus/xenbus_client.c
+@@ -73,16 +73,13 @@ struct map_ring_valloc {
+ 	struct xenbus_map_node *node;
  
--static inline pte_t iomap_pte(resource_size_t base,
--			      dma_addr_t offset,
--			      pgprot_t prot)
--{
--	return pte_mkspecial(pfn_pte((base + offset) >> PAGE_SHIFT, prot));
--}
--
- /* The 'mapping' part of i915_gem_object_pin_map() below */
--static void *i915_gem_object_map(struct drm_i915_gem_object *obj,
--				 enum i915_map_type type)
-+static void *i915_gem_object_map_page(struct drm_i915_gem_object *obj,
-+		enum i915_map_type type)
- {
--	unsigned long n_pte = obj->base.size >> PAGE_SHIFT;
--	struct sg_table *sgt = obj->mm.pages;
--	pte_t *stack[32], **mem;
--	struct vm_struct *area;
-+	unsigned long n_pages = obj->base.size >> PAGE_SHIFT, i;
-+	struct page *stack[32], **pages = stack, *page;
-+	struct sgt_iter iter;
- 	pgprot_t pgprot;
-+	void *vaddr;
+ 	/* Why do we need two arrays? See comment of __xenbus_map_ring */
+-	union {
+-		unsigned long addrs[XENBUS_MAX_RING_GRANTS];
+-		pte_t *ptes[XENBUS_MAX_RING_GRANTS];
+-	};
++	unsigned long addrs[XENBUS_MAX_RING_GRANTS];
+ 	phys_addr_t phys_addrs[XENBUS_MAX_RING_GRANTS];
  
--	if (!i915_gem_object_has_struct_page(obj) && type != I915_MAP_WC)
--		return NULL;
--
--	if (GEM_WARN_ON(type == I915_MAP_WC &&
--			!static_cpu_has(X86_FEATURE_PAT)))
--		return NULL;
--
--	/* A single page can always be kmapped */
--	if (n_pte == 1 && type == I915_MAP_WB) {
--		struct page *page = sg_page(sgt->sgl);
--
-+	switch (type) {
-+	default:
-+		MISSING_CASE(type);
-+		fallthrough;	/* to use PAGE_KERNEL anyway */
-+	case I915_MAP_WB:
- 		/*
- 		 * On 32b, highmem using a finite set of indirect PTE (i.e.
- 		 * vmap) to provide virtual mappings of the high pages.
-@@ -277,30 +264,8 @@ static void *i915_gem_object_map(struct
- 		 * So if the page is beyond the 32b boundary, make an explicit
- 		 * vmap.
- 		 */
--		if (!PageHighMem(page))
--			return page_address(page);
--	}
--
--	mem = stack;
--	if (n_pte > ARRAY_SIZE(stack)) {
--		/* Too big for stack -- allocate temporary array instead */
--		mem = kvmalloc_array(n_pte, sizeof(*mem), GFP_KERNEL);
--		if (!mem)
--			return NULL;
--	}
--
--	area = alloc_vm_area(obj->base.size, mem);
--	if (!area) {
--		if (mem != stack)
--			kvfree(mem);
--		return NULL;
--	}
--
--	switch (type) {
--	default:
--		MISSING_CASE(type);
--		fallthrough;	/* to use PAGE_KERNEL anyway */
--	case I915_MAP_WB:
-+		if (n_pages == 1 && !PageHighMem(sg_page(obj->mm.pages->sgl)))
-+			return page_address(sg_page(obj->mm.pages->sgl));
- 		pgprot = PAGE_KERNEL;
- 		break;
- 	case I915_MAP_WC:
-@@ -308,30 +273,50 @@ static void *i915_gem_object_map(struct
- 		break;
- 	}
+ 	struct gnttab_map_grant_ref map[XENBUS_MAX_RING_GRANTS];
+ 	struct gnttab_unmap_grant_ref unmap[XENBUS_MAX_RING_GRANTS];
  
--	if (i915_gem_object_has_struct_page(obj)) {
--		struct sgt_iter iter;
--		struct page *page;
--		pte_t **ptes = mem;
--
--		for_each_sgt_page(page, iter, sgt)
--			**ptes++ = mk_pte(page, pgprot);
--	} else {
--		resource_size_t iomap;
--		struct sgt_iter iter;
--		pte_t **ptes = mem;
--		dma_addr_t addr;
-+	if (n_pages > ARRAY_SIZE(stack)) {
-+		/* Too big for stack -- allocate temporary array instead */
-+		pages = kvmalloc_array(n_pages, sizeof(*pages), GFP_KERNEL);
-+		if (!pages)
-+			return NULL;
-+	}
+-	unsigned int idx;	/* HVM only. */
++	unsigned int idx;
+ };
  
--		iomap = obj->mm.region->iomap.base;
--		iomap -= obj->mm.region->region.start;
-+	i = 0;
-+	for_each_sgt_page(page, iter, obj->mm.pages)
-+		pages[i++] = page;
-+	vaddr = vmap(pages, n_pages, 0, pgprot);
-+	if (pages != stack)
-+		kvfree(pages);
-+	return vaddr;
-+}
+ static DEFINE_SPINLOCK(xenbus_valloc_lock);
+@@ -686,6 +683,14 @@ int xenbus_unmap_ring_vfree(struct xenbu
+ EXPORT_SYMBOL_GPL(xenbus_unmap_ring_vfree);
  
--		for_each_sgt_daddr(addr, iter, sgt)
--			**ptes++ = iomap_pte(iomap, addr, pgprot);
--	}
-+static void *i915_gem_object_map_pfn(struct drm_i915_gem_object *obj,
-+		enum i915_map_type type)
+ #ifdef CONFIG_XEN_PV
++static int map_ring_apply(pte_t *pte, unsigned long addr, void *data)
 +{
-+	resource_size_t iomap = obj->mm.region->iomap.base -
-+		obj->mm.region->region.start;
-+	unsigned long n_pfn = obj->base.size >> PAGE_SHIFT;
-+	unsigned long stack[32], *pfns = stack, i;
-+	struct sgt_iter iter;
-+	dma_addr_t addr;
-+	void *vaddr;
- 
--	if (mem != stack)
--		kvfree(mem);
-+	if (type != I915_MAP_WC)
-+		return NULL;
++	struct map_ring_valloc *info = data;
 +
-+	if (n_pfn > ARRAY_SIZE(stack)) {
-+		/* Too big for stack -- allocate temporary array instead */
-+		pfns = kvmalloc_array(n_pfn, sizeof(*pfns), GFP_KERNEL);
-+		if (!pfns)
-+			return NULL;
-+	}
++	info->phys_addrs[info->idx++] = arbitrary_virt_to_machine(pte).maddr;
++	return 0;
++}
++
+ static int xenbus_map_ring_pv(struct xenbus_device *dev,
+ 			      struct map_ring_valloc *info,
+ 			      grant_ref_t *gnt_refs,
+@@ -694,18 +699,15 @@ static int xenbus_map_ring_pv(struct xen
+ {
+ 	struct xenbus_map_node *node = info->node;
+ 	struct vm_struct *area;
+-	int err = GNTST_okay;
+-	int i;
+-	bool leaked;
++	bool leaked = false;
++	int err = -ENOMEM;
  
--	return area->addr;
-+	i = 0;
-+	for_each_sgt_daddr(addr, iter, obj->mm.pages)
-+		pfns[i++] = (iomap + addr) >> PAGE_SHIFT;
-+	vaddr = vmap_pfn(pfns, n_pfn, pgprot_writecombine(PAGE_KERNEL_IO));
-+	if (pfns != stack)
-+		kvfree(pfns);
-+	return vaddr;
- }
- 
- /* get, pin, and map the pages of the object into kernel space */
-@@ -383,7 +368,13 @@ void *i915_gem_object_pin_map(struct drm
- 	}
- 
- 	if (!ptr) {
--		ptr = i915_gem_object_map(obj, type);
-+		if (GEM_WARN_ON(type == I915_MAP_WC &&
-+				!static_cpu_has(X86_FEATURE_PAT)))
-+			ptr = NULL;
-+		else if (i915_gem_object_has_struct_page(obj))
-+			ptr = i915_gem_object_map_page(obj, type);
-+		else
-+			ptr = i915_gem_object_map_pfn(obj, type);
- 		if (!ptr) {
- 			err = -ENOMEM;
- 			goto err_unpin;
---- a/drivers/gpu/drm/i915/Kconfig~drm-i915-use-vmap-in-i915_gem_object_map
-+++ a/drivers/gpu/drm/i915/Kconfig
-@@ -25,6 +25,7 @@ config DRM_I915
- 	select CRC32
- 	select SND_HDA_I915 if SND_HDA_CORE
- 	select CEC_CORE if CEC_NOTIFIER
-+	select VMAP_PFN
- 	help
- 	  Choose this option if you have a system that has "Intel Graphics
- 	  Media Accelerator" or "HD Graphics" integrated graphics,
+-	area = alloc_vm_area(XEN_PAGE_SIZE * nr_grefs, info->ptes);
++	area = get_vm_area(XEN_PAGE_SIZE * nr_grefs, VM_IOREMAP);
+ 	if (!area)
+ 		return -ENOMEM;
+-
+-	for (i = 0; i < nr_grefs; i++)
+-		info->phys_addrs[i] =
+-			arbitrary_virt_to_machine(info->ptes[i]).maddr;
+-
++	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
++				XEN_PAGE_SIZE * nr_grefs, map_ring_apply, info))
++		goto failed;
+ 	err = __xenbus_map_ring(dev, gnt_refs, nr_grefs, node->handles,
+ 				info, GNTMAP_host_map | GNTMAP_contains_pte,
+ 				&leaked);
 _
