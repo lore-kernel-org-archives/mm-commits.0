@@ -7,49 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00E8FC433DF
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47804C433E7
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9D7521655
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1082D21655
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602976543;
-	bh=b/g7PZWr2XIH7jw8iEs5veTtxGNAQJ6dqDkXNF/nooY=;
+	s=default; t=1602976546;
+	bh=BnAY0myCBCV3/m0EYMW5Y4ytQI+GeDCg4/z7VjOt1EU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=k6IIOz5lwnD12dbltXgV4OlqMLm1q63p7oaVbM5VS/kCxJIIxzRwnk01S6FX7XSvi
-	 GLVd+djheEX4/qeNXP5PBq2Sb71vudDsodAgH39hMOVoHQamhVjLggQ9mT+sGgjeIJ
-	 rLhckSu8KuQAGvWQp31QUx2mHu1+sL4K1aHSzdSg=
+	b=UFAiMeFFkkEy+DVMqgkg9hoGrnyBwsCiQdw9HEduzvNO6+/Mt/lZ7ulL0pGqoi/NQ
+	 eXalDgEBs94VPn9KYwCTzwFnPZns+oey+DiC3eU/2etT6Ol13Z2j+8KARgQ+i9gJw2
+	 to2TGSfTecdlBX8EhxY/PITJQeT0K+VpUELGQ0Xk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439920AbgJQXPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 17 Oct 2020 19:15:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49610 "EHLO mail.kernel.org"
+        id S2439921AbgJQXPp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 17 Oct 2020 19:15:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2439878AbgJQXPl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 17 Oct 2020 19:15:41 -0400
+        id S2439878AbgJQXPp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 17 Oct 2020 19:15:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5247322202;
-        Sat, 17 Oct 2020 23:15:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 17D102158C;
+        Sat, 17 Oct 2020 23:15:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602976541;
-        bh=b/g7PZWr2XIH7jw8iEs5veTtxGNAQJ6dqDkXNF/nooY=;
+        s=default; t=1602976544;
+        bh=BnAY0myCBCV3/m0EYMW5Y4ytQI+GeDCg4/z7VjOt1EU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EcfRqKbm7EpxHs1yM8zpICU2Tg0AE46f0EcOl5GMoKPqD2YlKQLmrvByucXgOMFZm
-         1fjUVPkafv7hvRQJ+NW9B15zSu+eaB+tuN9pMDy807e1SahtevW1GVmAtvDWXF/UxG
-         oBESTxyh/nXkRq5am3Hc0oVe6Xt7J7pjkx4FkNv8=
-Date:   Sat, 17 Oct 2020 16:15:39 -0700
+        b=qX6HAqmBrdy5lS7SWWm4jjAq3ScsRsXZuSi9fkMR1uRhvYoTU04MLMMnN24YWySRF
+         Xf4iJvW572wnQMNZ56LX94T/0qhq2DtSNgu2cN5kCGKJRclk8xbxj0ue1sL484guoL
+         sm5Br6ooADGCSM2QhyH9sAoLr3sFyQgMOh1Z4tQ4=
+Date:   Sat, 17 Oct 2020 16:15:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, boris.ostrovsky@oracle.com,
-        chris@chris-wilson.co.uk, hch@lst.de, jani.nikula@linux.intel.com,
-        jgross@suse.com, joonas.lahtinen@linux.intel.com,
-        linux-mm@kvack.org, matthew.auld@intel.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, ngupta@vflare.org,
-        peterz@infradead.org, rodrigo.vivi@intel.com,
-        sstabellini@kernel.org, torvalds@linux-foundation.org,
-        tvrtko.ursulin@intel.com, urezki@gmail.com, willy@infradead.org
-Subject:  [patch 37/40] mm: remove alloc_vm_area
-Message-ID: <20201017231539.rqXa9tuF3%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        urezki@gmail.com
+Subject:  [patch 38/40] mm: cleanup the gfp_mask handling in
+ __vmalloc_area_node
+Message-ID: <20201017231543.A41g17t8J%akpm@linux-foundation.org>
 In-Reply-To: <20201017161314.88890b87fae7446ccc13c902@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -58,126 +54,80 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove alloc_vm_area
+Subject: mm: cleanup the gfp_mask handling in __vmalloc_area_node
 
-All users are gone now.
+Patch series "two small vmalloc cleanups".
 
-Link: https://lkml.kernel.org/r/20201002122204.1534411-12-hch@lst.de
+This patch (of 2):
+
+__vmalloc_area_node currently has four different gfp_t variables to
+just express this simple logic:
+
+ - use the passed in mask, plus __GFP_NOWARN and __GFP_HIGHMEM (if
+   suitable) for the underlying page allocation
+ - use just the reclaim flags from the passed in mask plus __GFP_ZERO
+   for allocating the page array
+
+Simplify this down to just use the pre-existing nested_gfp as-is for
+the page array allocation, and just the passed in gfp_mask for the
+page allocation, after conditionally ORing __GFP_HIGHMEM into it.  This
+also makes the allocation warning a little more correct.
+
+Also initialize two variables at the time of declaration while touching
+this area.
+
+Link: https://lkml.kernel.org/r/20201002124035.1539300-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20201002124035.1539300-2-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Matthew Auld <matthew.auld@intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    5 ---
- mm/nommu.c              |    7 -----
- mm/vmalloc.c            |   48 --------------------------------------
- 3 files changed, 1 insertion(+), 59 deletions(-)
+ mm/vmalloc.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-remove-alloc_vm_area
-+++ a/include/linux/vmalloc.h
-@@ -169,6 +169,7 @@ extern struct vm_struct *__get_vm_area_c
- 					unsigned long flags,
- 					unsigned long start, unsigned long end,
- 					const void *caller);
-+void free_vm_area(struct vm_struct *area);
- extern struct vm_struct *remove_vm_area(const void *addr);
- extern struct vm_struct *find_vm_area(const void *addr);
- 
-@@ -204,10 +205,6 @@ static inline void set_vm_flush_reset_pe
- }
- #endif
- 
--/* Allocate/destroy a 'vmalloc' VM area. */
--extern struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes);
--extern void free_vm_area(struct vm_struct *area);
--
- /* for /dev/kmem */
- extern long vread(char *buf, char *addr, unsigned long count);
- extern long vwrite(char *buf, char *addr, unsigned long count);
---- a/mm/nommu.c~mm-remove-alloc_vm_area
-+++ a/mm/nommu.c
-@@ -354,13 +354,6 @@ void vm_unmap_aliases(void)
- }
- EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- 
--struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes)
--{
--	BUG();
--	return NULL;
--}
--EXPORT_SYMBOL_GPL(alloc_vm_area);
--
- void free_vm_area(struct vm_struct *area)
- {
- 	BUG();
---- a/mm/vmalloc.c~mm-remove-alloc_vm_area
+--- a/mm/vmalloc.c~mm-cleanup-the-gfp_mask-handling-in-__vmalloc_area_node
 +++ a/mm/vmalloc.c
-@@ -3083,54 +3083,6 @@ int remap_vmalloc_range(struct vm_area_s
- }
- EXPORT_SYMBOL(remap_vmalloc_range);
- 
--static int f(pte_t *pte, unsigned long addr, void *data)
--{
--	pte_t ***p = data;
--
--	if (p) {
--		*(*p) = pte;
--		(*p)++;
--	}
--	return 0;
--}
--
--/**
-- * alloc_vm_area - allocate a range of kernel address space
-- * @size:	   size of the area
-- * @ptes:	   returns the PTEs for the address space
-- *
-- * Returns:	NULL on failure, vm_struct on success
-- *
-- * This function reserves a range of kernel address space, and
-- * allocates pagetables to map that range.  No actual mappings
-- * are created.
-- *
-- * If @ptes is non-NULL, pointers to the PTEs (in init_mm)
-- * allocated for the VM area are returned.
-- */
--struct vm_struct *alloc_vm_area(size_t size, pte_t **ptes)
--{
--	struct vm_struct *area;
--
--	area = get_vm_area_caller(size, VM_IOREMAP,
--				__builtin_return_address(0));
--	if (area == NULL)
--		return NULL;
--
--	/*
--	 * This ensures that page tables are constructed for this region
--	 * of kernel virtual address space and mapped into init_mm.
--	 */
--	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
--				size, f, ptes ? &ptes : NULL)) {
--		free_vm_area(area);
--		return NULL;
--	}
--
--	return area;
--}
--EXPORT_SYMBOL_GPL(alloc_vm_area);
--
- void free_vm_area(struct vm_struct *area)
+@@ -2461,21 +2461,19 @@ EXPORT_SYMBOL_GPL(vmap_pfn);
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+ 				 pgprot_t prot, int node)
  {
- 	struct vm_struct *ret;
+-	struct page **pages;
+-	unsigned int nr_pages, array_size, i;
+ 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
+-	const gfp_t alloc_mask = gfp_mask | __GFP_NOWARN;
+-	const gfp_t highmem_mask = (gfp_mask & (GFP_DMA | GFP_DMA32)) ?
+-					0 :
+-					__GFP_HIGHMEM;
++	unsigned int nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
++	unsigned int array_size = nr_pages * sizeof(struct page *), i;
++	struct page **pages;
+ 
+-	nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
+-	array_size = (nr_pages * sizeof(struct page *));
++	gfp_mask |= __GFP_NOWARN;
++	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
++		gfp_mask |= __GFP_HIGHMEM;
+ 
+ 	/* Please note that the recursion is strictly bounded. */
+ 	if (array_size > PAGE_SIZE) {
+-		pages = __vmalloc_node(array_size, 1, nested_gfp|highmem_mask,
+-				node, area->caller);
++		pages = __vmalloc_node(array_size, 1, nested_gfp, node,
++					area->caller);
+ 	} else {
+ 		pages = kmalloc_node(array_size, nested_gfp, node);
+ 	}
+@@ -2493,9 +2491,9 @@ static void *__vmalloc_area_node(struct
+ 		struct page *page;
+ 
+ 		if (node == NUMA_NO_NODE)
+-			page = alloc_page(alloc_mask|highmem_mask);
++			page = alloc_page(gfp_mask);
+ 		else
+-			page = alloc_pages_node(node, alloc_mask|highmem_mask, 0);
++			page = alloc_pages_node(node, gfp_mask, 0);
+ 
+ 		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vfree() */
 _
