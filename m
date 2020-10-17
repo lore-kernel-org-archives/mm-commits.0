@@ -1,4 +1,4 @@
-Return-Path: <SRS0=zz/k=DX=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=Fe7N=DY=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A48C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:55:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 855E4C433DF
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:03:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E895A218AC
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Oct 2020 20:55:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D71A20878
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Oct 2020 23:03:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602881736;
-	bh=wpRYlK4A24TDUIBipOEDlPb5seVaA/9UwpcS6aG1h8w=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=2kG26+ctGfOlv7+HtiXO1xSxB8oiGrVbQRqKMVhU0L/W0JzohlO2kXJXZMINquo0P
-	 d2DMURttN3qD7aHzX35wR7qGmf7u9I6HESBcgOXvcdvgyk4sOJ2rRHAtQdg6j+44ey
-	 bU5GHC2ovcmvZcklmxaB6rg2WsmxPDoL5BePbjKY=
+	s=default; t=1602975808;
+	bh=aRzCmHuVwQEOBya5tVnXi2GHuQwNpCTD74wS6hGWOEA=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=nM5Mqs3qEyn1QWZrL+NAX6P1pxKpLzEqcEOzyB3Yn6iDkTIjFHr6gg1YgCXOvM5Vc
+	 yiqupHVwteEdiTbCaRYI6u2y6yU4StQA0VTjEXzktkV5m2SWqm0iktKJAF4Xx5pE46
+	 wuz7BD6aQueHahRC5fKlipcOhgeLgYUIiAJ3si+4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391116AbgJPUzf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Oct 2020 16:55:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42884 "EHLO mail.kernel.org"
+        id S2438728AbgJQXD1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 17 Oct 2020 19:03:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732596AbgJPUzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Oct 2020 16:55:35 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S2438235AbgJQXD1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 17 Oct 2020 19:03:27 -0400
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DB57D2076C;
-        Fri, 16 Oct 2020 20:55:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4404620878;
+        Sat, 17 Oct 2020 23:03:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602881733;
-        bh=wpRYlK4A24TDUIBipOEDlPb5seVaA/9UwpcS6aG1h8w=;
-        h=Date:From:To:Subject:From;
-        b=yUuX0JLv+kihl0Zup354wbFShOVnqCyXduYViBEMHEIKikUgsEM36Pw29TAspgzFK
-         8SRjJWEWB6j9XfxL9ejJvBbKGWnCSXw4v719Z5FxSxOOdd51AJur1zJo5U4AQK5kaP
-         FrmerzGDirZzAeyPUHtCidTE5riig0DJlBk+CMmA=
-Date:   Fri, 16 Oct 2020 13:55:32 -0700
-From:   akpm@linux-foundation.org
-To:     akinobu.mita@gmail.com, alinde@google.com, andreyknvl@google.com,
-        arnd@arndb.de, bp@alien8.de, corbet@lwn.net, dvyukov@google.com,
-        elver@google.com, glider@google.com, hch@lst.de, hpa@zytor.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        tglx@linutronix.de, viro@zeniv.linux.org.uk
-Subject:  [merged]
- lib-uaccess-add-failure-injection-to-usercopy-functions.patch removed from
- -mm tree
-Message-ID: <20201016205532.WLjQkcZMi%akpm@linux-foundation.org>
+        s=default; t=1602975807;
+        bh=aRzCmHuVwQEOBya5tVnXi2GHuQwNpCTD74wS6hGWOEA=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=1OtOUJ0xcVhzjy/aVTQ+ArlvJ12VNL5Igb3oaXg7kgCcr5X6Opqk6Nq2KsyHIgDQT
+         6l/neQ6Sr03+zE5UYjQCaDtVMWMw7UyzHk5HuYvcqPbRbtCxxoyTgwNJLSD9Rw2k41
+         bPMwWYt0OU5hk+nWpLQcesQ4rJp/Tb8OfdzAperM=
+Date:   Sat, 17 Oct 2020 16:03:26 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     jhubbard@nvidia.com, mm-commits@vger.kernel.org
+Subject:  [folded-merged]
+ selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch removed
+ from -mm tree
+Message-ID: <20201017230326.dtg7eTHNQ%akpm@linux-foundation.org>
+In-Reply-To: <20201015194043.84cda0c1d6ca2a6847f2384a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,178 +54,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib, uaccess: add failure injection to usercopy functions
+     Subject: selftests/vm: fix an improper dependency upon executable script permissions
 has been removed from the -mm tree.  Its filename was
-     lib-uaccess-add-failure-injection-to-usercopy-functions.patch
+     selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
 
 ------------------------------------------------------
-From: Albert van der Linde <alinde@google.com>
-Subject: lib, uaccess: add failure injection to usercopy functions
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: fix an improper dependency upon executable script permissions
 
-To test fault-tolerance of user memory access functions, introduce fault
-injection to usercopy functions.
+commit 30fb9454ab23 ("selftests/vm: hmm-tests: remove the libhugetlbfs
+dependency") created the new check_config.sh file without the execute bit
+set.  This is a problem because that same commit caused the Makefile to
+invoke it "./check_config.sh", so now "make" is failing in that directory.
 
-If a failure is expected return either -EFAULT or the total amount of
-bytes that were not copied.
+Scripts are not supposed to depend on the executable bit being set,
+because patch(1) doesn't set it, and using patch to install a kernel is
+supported.  Therefore, this fix involves two parts:
 
-Link: http://lkml.kernel.org/r/20200831171733.955393-3-alinde@google.com
-Signed-off-by: Albert van der Linde <alinde@google.com>
-Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Hellwig <hch@lst.de>
+1) Invoke the new script via /bin/sh, to fix the problem, and
+
+2) As an nice touch, make check_config.sh executable as well.
+
+Link: https://lkml.kernel.org/r/20201003002142.32671-2-jhubbard@nvidia.com
+Fixes: commit 30fb9454ab23 ("selftests/vm: hmm-tests: remove the libhugetlbfs dependency")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |   11 ++++++++++-
- lib/iov_iter.c          |    5 +++++
- lib/strncpy_from_user.c |    3 +++
- lib/usercopy.c          |    5 ++++-
- 4 files changed, 22 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/uaccess.h~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/include/linux/uaccess.h
-@@ -2,6 +2,7 @@
- #ifndef __LINUX_UACCESS_H__
- #define __LINUX_UACCESS_H__
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency-fix
++++ a/tools/testing/selftests/vm/Makefile
+@@ -138,7 +138,7 @@ $(OUTPUT)/hmm-tests: local_config.h
+ $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXTRA_LIBS)
  
-+#include <linux/fault-inject-usercopy.h>
- #include <linux/instrumented.h>
- #include <linux/minmax.h>
- #include <linux/sched.h>
-@@ -84,6 +85,8 @@ static __always_inline __must_check unsi
- __copy_from_user(void *to, const void __user *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	instrument_copy_from_user(to, from, n);
- 	check_object_size(to, n, false);
- 	return raw_copy_from_user(to, from, n);
-@@ -105,6 +108,8 @@ __copy_from_user(void *to, const void __
- static __always_inline __must_check unsigned long
- __copy_to_user_inatomic(void __user *to, const void *from, unsigned long n)
- {
-+	if (should_fail_usercopy())
-+		return n;
- 	instrument_copy_to_user(to, from, n);
- 	check_object_size(from, n, true);
- 	return raw_copy_to_user(to, from, n);
-@@ -114,6 +119,8 @@ static __always_inline __must_check unsi
- __copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	instrument_copy_to_user(to, from, n);
- 	check_object_size(from, n, true);
- 	return raw_copy_to_user(to, from, n);
-@@ -125,7 +132,7 @@ _copy_from_user(void *to, const void __u
- {
- 	unsigned long res = n;
- 	might_fault();
--	if (likely(access_ok(from, n))) {
-+	if (!should_fail_usercopy() && likely(access_ok(from, n))) {
- 		instrument_copy_from_user(to, from, n);
- 		res = raw_copy_from_user(to, from, n);
- 	}
-@@ -143,6 +150,8 @@ static inline __must_check unsigned long
- _copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	if (access_ok(to, n)) {
- 		instrument_copy_to_user(to, from, n);
- 		n = raw_copy_to_user(to, from, n);
---- a/lib/iov_iter.c~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/lib/iov_iter.c
-@@ -2,6 +2,7 @@
- #include <crypto/hash.h>
- #include <linux/export.h>
- #include <linux/bvec.h>
-+#include <linux/fault-inject-usercopy.h>
- #include <linux/uio.h>
- #include <linux/pagemap.h>
- #include <linux/slab.h>
-@@ -140,6 +141,8 @@
+ local_config.mk local_config.h: check_config.sh
+-	./check_config.sh $(CC)
++	/bin/sh ./check_config.sh $(CC)
  
- static int copyout(void __user *to, const void *from, size_t n)
- {
-+	if (should_fail_usercopy())
-+		return n;
- 	if (access_ok(to, n)) {
- 		instrument_copy_to_user(to, from, n);
- 		n = raw_copy_to_user(to, from, n);
-@@ -149,6 +152,8 @@ static int copyout(void __user *to, cons
+ EXTRA_CLEAN += local_config.mk local_config.h
  
- static int copyin(void *to, const void __user *from, size_t n)
- {
-+	if (should_fail_usercopy())
-+		return n;
- 	if (access_ok(from, n)) {
- 		instrument_copy_from_user(to, from, n);
- 		n = raw_copy_from_user(to, from, n);
---- a/lib/strncpy_from_user.c~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/lib/strncpy_from_user.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/compiler.h>
- #include <linux/export.h>
-+#include <linux/fault-inject-usercopy.h>
- #include <linux/kasan-checks.h>
- #include <linux/thread_info.h>
- #include <linux/uaccess.h>
-@@ -99,6 +100,8 @@ long strncpy_from_user(char *dst, const
- 	unsigned long max_addr, src_addr;
- 
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return -EFAULT;
- 	if (unlikely(count <= 0))
- 		return 0;
- 
---- a/lib/usercopy.c~lib-uaccess-add-failure-injection-to-usercopy-functions
-+++ a/lib/usercopy.c
-@@ -1,5 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bitops.h>
-+#include <linux/fault-inject-usercopy.h>
- #include <linux/instrumented.h>
- #include <linux/uaccess.h>
- 
-@@ -10,7 +11,7 @@ unsigned long _copy_from_user(void *to,
- {
- 	unsigned long res = n;
- 	might_fault();
--	if (likely(access_ok(from, n))) {
-+	if (!should_fail_usercopy() && likely(access_ok(from, n))) {
- 		instrument_copy_from_user(to, from, n);
- 		res = raw_copy_from_user(to, from, n);
- 	}
-@@ -25,6 +26,8 @@ EXPORT_SYMBOL(_copy_from_user);
- unsigned long _copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- 	might_fault();
-+	if (should_fail_usercopy())
-+		return n;
- 	if (likely(access_ok(to, n))) {
- 		instrument_copy_to_user(to, from, n);
- 		n = raw_copy_to_user(to, from, n);
 _
 
-Patches currently in -mm which might be from alinde@google.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+mm-gup_benchmark-rename-to-mm-gup_test.patch
+selftests-vm-use-a-common-gup_testh.patch
+selftests-vm-rename-run_vmtests-run_vmtestssh.patch
+selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
+selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
+selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
+selftests-vm-run_vmtestsh-update-and-clean-up-gup_test-invocation.patch
+selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
+selftests-vm-10x-speedup-for-hmm-tests.patch
 
