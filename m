@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6780BC388F9
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 23:09:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 998D0C388F7
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 23:09:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 158F1223BF
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 23:09:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5222D223BF
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 23:09:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603408170;
-	bh=Y59hH1kjuYaSjDBMSL4e7kXwQjz7UHAurNgD7qbKkJg=;
+	s=default; t=1603408172;
+	bh=uevV0e24vDruF8CUv2+fGso3KWG0P9RzlKV1vOxPBvo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=l4QcsOAJNTAWnLFqbhX/4HxflYgcYvrm3fRzCC0wfzYZscZ8mPU9MlBoLazI18Iao
-	 cjMXOxn0DsSqFP5ZsHTaTbq8Wp1ZMV/CuuBnHA2Aw7rQ/piQQp984wIQy1JdpH4Sr5
-	 g5hdFfjpV7PxOvPRx6ygYzl5Ev9NbCkj2q+Ajs3I=
+	b=w3fps8xxahpEH+upDjG8kQ9jXUvy1VVhSBkMKs/7018wIfuvWbHRKCVV1199eeOpm
+	 zeWYhl4ShNjFU1J+ab3TuT2DJBo9wCMxBqnOD9W8S4uXGFvfv0Uv6gHEp9CRUAUfKQ
+	 2MdILzvi4QrbJz4bl2dd1WkZYn/nG8/wdhMS6ubg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S373230AbgJVXJ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Oct 2020 19:09:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49938 "EHLO mail.kernel.org"
+        id S373243AbgJVXJc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Oct 2020 19:09:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S373127AbgJVXJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Oct 2020 19:09:29 -0400
+        id S373127AbgJVXJb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Oct 2020 19:09:31 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AE18F20756;
-        Thu, 22 Oct 2020 23:09:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C2486207EA;
+        Thu, 22 Oct 2020 23:09:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603408168;
-        bh=Y59hH1kjuYaSjDBMSL4e7kXwQjz7UHAurNgD7qbKkJg=;
+        s=default; t=1603408171;
+        bh=uevV0e24vDruF8CUv2+fGso3KWG0P9RzlKV1vOxPBvo=;
         h=Date:From:To:Subject:From;
-        b=JLLebj5irqu7d+LoXyR3QyWQAqlKUKLaxefBzBnDYfRaypkQWc4dppyhjXBi0UWgF
-         7Ji97CsstS6hqFKrdTUooNOicquGpFSd1Bb9Vkei0Vu4BfhqskZ/469mCJIKX9jqwB
-         7QFCp93mQ/ZwthQTGA7fTlYjyWAeR2Cl6T470Mng=
-Date:   Thu, 22 Oct 2020 16:09:27 -0700
+        b=xFf6ODbIzK+YzgJ4bYC/TP4nS1zWH3Gk5NvYMsZd/1oOzsPTIGg8T0QMsblIUeZcK
+         S/o6gDouOi/1QrgHKnjEa36xkH/FcvUZEupcTtVKLhi+/fph+YSEdsXWBOEv/ExJtv
+         aiPXeorgCLOp0/iPcHtSVri7lZjDGMYsd8MKiCQU=
+Date:   Thu, 22 Oct 2020 16:09:30 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hch@infradead.org, iamjoonsoo.kim@lge.com,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        vbabka@suse.cz
+To:     cl@linux.com, linmiaohe@huawei.com, louhongxiang@huawei.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch removed
- from -mm tree
-Message-ID: <20201022230927.FArEnId6B%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-migrate-avoid-possible-unnecessary-process-right-check-in?=
+ =?US-ASCII?Q?-kernel=5Fmove=5Fpages.patch?= removed from -mm tree
+Message-ID: <20201022230930.US8D5GdSW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,104 +56,147 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove a wrapper for alloc_migration_target()
+     Subject: mm/migrate: avoid possible unnecessary process right check in kernel_move_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
+     mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/memory_hotplug: remove a wrapper for alloc_migration_target()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/migrate: avoid possible unnecessary process right check in kernel_move_pages()
 
-To calculate the correct node to migrate the page for hotplug, we need to
-check node id of the page.  Wrapper for alloc_migration_target() exists
-for this purpose.
+There is no need to check if this process has the right to modify the
+specified process when they are same.  And we could also skip the security
+hook call if a process is modifying its own pages.  Add helper function to
+handle these.
 
-However, Vlastimil informs that all migration source pages come from a
-single node.  In this case, we don't need to check the node id for each
-page and we don't need to re-set the target nodemask for each page by
-using the wrapper.  Set up the migration_target_control once and use it
-for all pages.
-
-Link: http://lkml.kernel.org/r/1594622517-20681-10-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/20200819083331.19012-1-linmiaohe@huawei.com
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Cc: Christopher Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   46 ++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 24 deletions(-)
+ mm/migrate.c |   71 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 43 insertions(+), 28 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target
-+++ a/mm/memory_hotplug.c
-@@ -1290,27 +1290,6 @@ found:
- 	return 0;
+--- a/mm/migrate.c~mm-migrate-avoid-possible-unnecessary-process-right-check-in-kernel_move_pages
++++ a/mm/migrate.c
+@@ -1864,33 +1864,27 @@ static int do_pages_stat(struct mm_struc
+ 	return nr_pages ? -EFAULT : 0;
  }
  
--static struct page *new_node_page(struct page *page, unsigned long private)
--{
--	nodemask_t nmask = node_states[N_MEMORY];
--	struct migration_target_control mtc = {
--		.nid = page_to_nid(page),
--		.nmask = &nmask,
--		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
--	};
--
--	/*
--	 * try to allocate from a different node but reuse this node if there
--	 * are no other online nodes to be used (e.g. we are offlining a part
--	 * of the only existing node)
--	 */
--	node_clear(mtc.nid, nmask);
--	if (nodes_empty(nmask))
--		node_set(mtc.nid, nmask);
--
--	return alloc_migration_target(page, (unsigned long)&mtc);
--}
--
- static int
- do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+-/*
+- * Move a list of pages in the address space of the currently executing
+- * process.
+- */
+-static int kernel_move_pages(pid_t pid, unsigned long nr_pages,
+-			     const void __user * __user *pages,
+-			     const int __user *nodes,
+-			     int __user *status, int flags)
++static struct mm_struct *find_mm_struct(pid_t pid, nodemask_t *mem_nodes)
  {
-@@ -1370,9 +1349,28 @@ do_migrate_range(unsigned long start_pfn
- 		put_page(page);
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+-	int err;
+-	nodemask_t task_nodes;
+-
+-	/* Check flags */
+-	if (flags & ~(MPOL_MF_MOVE|MPOL_MF_MOVE_ALL))
+-		return -EINVAL;
+ 
+-	if ((flags & MPOL_MF_MOVE_ALL) && !capable(CAP_SYS_NICE))
+-		return -EPERM;
++	/*
++	 * There is no need to check if current process has the right to modify
++	 * the specified process when they are same.
++	 */
++	if (!pid) {
++		mmget(current->mm);
++		*mem_nodes = cpuset_mems_allowed(current);
++		return current->mm;
++	}
+ 
+ 	/* Find the mm_struct */
+ 	rcu_read_lock();
+-	task = pid ? find_task_by_vpid(pid) : current;
++	task = find_task_by_vpid(pid);
+ 	if (!task) {
+ 		rcu_read_unlock();
+-		return -ESRCH;
++		return ERR_PTR(-ESRCH);
  	}
- 	if (!list_empty(&source)) {
--		/* Allocate a new page from the nearest neighbor node */
--		ret = migrate_pages(&source, new_node_page, NULL, 0,
--					MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
-+		nodemask_t nmask = node_states[N_MEMORY];
-+		struct migration_target_control mtc = {
-+			.nmask = &nmask,
-+			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+		};
+ 	get_task_struct(task);
+ 
+@@ -1900,22 +1894,47 @@ static int kernel_move_pages(pid_t pid,
+ 	 */
+ 	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS)) {
+ 		rcu_read_unlock();
+-		err = -EPERM;
++		mm = ERR_PTR(-EPERM);
+ 		goto out;
+ 	}
+ 	rcu_read_unlock();
+ 
+- 	err = security_task_movememory(task);
+- 	if (err)
++	mm = ERR_PTR(security_task_movememory(task));
++	if (IS_ERR(mm))
+ 		goto out;
+-
+-	task_nodes = cpuset_mems_allowed(task);
++	*mem_nodes = cpuset_mems_allowed(task);
+ 	mm = get_task_mm(task);
++out:
+ 	put_task_struct(task);
+-
+ 	if (!mm)
++		mm = ERR_PTR(-EINVAL);
++	return mm;
++}
 +
-+		/*
-+		 * We have checked that migration range is on a single zone so
-+		 * we can use the nid of the first page to all the others.
-+		 */
-+		mtc.nid = page_to_nid(list_first_entry(&source, struct page, lru));
++/*
++ * Move a list of pages in the address space of the currently executing
++ * process.
++ */
++static int kernel_move_pages(pid_t pid, unsigned long nr_pages,
++			     const void __user * __user *pages,
++			     const int __user *nodes,
++			     int __user *status, int flags)
++{
++	struct mm_struct *mm;
++	int err;
++	nodemask_t task_nodes;
 +
-+		/*
-+		 * try to allocate from a different node but reuse this node
-+		 * if there are no other online nodes to be used (e.g. we are
-+		 * offlining a part of the only existing node)
-+		 */
-+		node_clear(mtc.nid, nmask);
-+		if (nodes_empty(nmask))
-+			node_set(mtc.nid, nmask);
-+		ret = migrate_pages(&source, alloc_migration_target, NULL,
-+			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
- 		if (ret) {
- 			list_for_each_entry(page, &source, lru) {
- 				pr_warn("migrating pfn %lx failed ret:%d ",
++	/* Check flags */
++	if (flags & ~(MPOL_MF_MOVE|MPOL_MF_MOVE_ALL))
+ 		return -EINVAL;
+ 
++	if ((flags & MPOL_MF_MOVE_ALL) && !capable(CAP_SYS_NICE))
++		return -EPERM;
++
++	mm = find_mm_struct(pid, &task_nodes);
++	if (IS_ERR(mm))
++		return PTR_ERR(mm);
++
+ 	if (nodes)
+ 		err = do_pages_move(mm, task_nodes, nr_pages, pages,
+ 				    nodes, status, flags);
+@@ -1924,10 +1943,6 @@ static int kernel_move_pages(pid_t pid,
+ 
+ 	mmput(mm);
+ 	return err;
+-
+-out:
+-	put_task_struct(task);
+-	return err;
+ }
+ 
+ SYSCALL_DEFINE6(move_pages, pid_t, pid, unsigned long, nr_pages,
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
