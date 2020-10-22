@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C576C388F9
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 22:50:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98388C5517A
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 22:50:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D616924641
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 22:50:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 583ED2245F
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 22:50:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603407028;
-	bh=h3WDDeqhCgoxBFPM1AdyoqyteyQ969uNt1AEJR8b+xw=;
+	s=default; t=1603407030;
+	bh=NwLTts40in4ubEPURA2DgeBUh2mxBENLkAemnipZ8qo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=IyJ0my3mwDzmE8IPPovVc8OOSJvwllUuOqpRw7SXcXZdUL1y5V1pE457tRMPyJjMd
-	 Kh+aOEsaFClqmo6fngJAiq5cFgUFUn0SEPt4zRHXwdQDe4rdphCoZ3FxIdVaoVmfRl
-	 HpG7Arp2iYBDKoQ3PkSxdyiK9QUyqCQHqqFcfkKo=
+	b=R+KzhZr2Nv7VgzMFpzV8UL2NMZzKeZnEfAyWMISUzz0vuxiShVyGflJ39rSL2eImV
+	 B5Zre7Mij16QK7w35fqF0Wgr/MDKGdUgiFH3WKhKs9s7A6hKwoJzHJBwnJkWL1nu5E
+	 51t7qeZgf/iD8NH8hI9D0KRY0FbWfsB+N5koWzmY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S373095AbgJVWu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Oct 2020 18:50:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36140 "EHLO mail.kernel.org"
+        id S372983AbgJVWua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Oct 2020 18:50:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S372983AbgJVWu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Oct 2020 18:50:27 -0400
+        id S373094AbgJVWu3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Oct 2020 18:50:29 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AC846221EB;
-        Thu, 22 Oct 2020 22:50:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B421F223C7;
+        Thu, 22 Oct 2020 22:50:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603407025;
-        bh=h3WDDeqhCgoxBFPM1AdyoqyteyQ969uNt1AEJR8b+xw=;
+        s=default; t=1603407028;
+        bh=NwLTts40in4ubEPURA2DgeBUh2mxBENLkAemnipZ8qo=;
         h=Date:From:To:Subject:From;
-        b=LuOqxIC5PO9ghxLpVWrwLYTDyAj3Fyz89SLRlfE1UNrqfTiUPWdCt4E0nGYC75EAl
-         qb+va6mUHYH4Q847eL34m7Q1K+YV5ovhGbO5Y1R4DTs1/d0G6yYlwQ5p3qEXm3wJkk
-         Xp+J7rzMAdlx7i8O+2zebrOLVvD/P4n9H4AGx1U0=
-Date:   Thu, 22 Oct 2020 15:50:24 -0700
+        b=UUkDFMquwKH0reS5H8BgXqcbNe7RlwQ8CihXpI7KicJ6KAm6QgTn4yu6WAQIy/i8s
+         9fxBnwjT5hqJ78dbkvtDKYbJbQxV1XIE+yNHJCaBJq0GfGnjVN4gTYrl678JT9rKmD
+         JpsKmL6QDEkUbMvt087u336+y1OXvXy9u+BVwNMw=
+Date:   Thu, 22 Oct 2020 15:50:27 -0700
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
         mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
 Subject:  [to-be-updated]
- selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch removed
- from -mm tree
-Message-ID: <20201022225024.D0OeISFei%akpm@linux-foundation.org>
+ selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch removed from
+ -mm tree
+Message-ID: <20201022225027.5iy9sPtk3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -57,34 +57,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: only some gup_test items are really benchmarks
+     Subject: selftests/vm: gup_test: introduce the dump_pages() sub-test
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
+     selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: only some gup_test items are really benchmarks
+Subject: selftests/vm: gup_test: introduce the dump_pages() sub-test
 
-Therefore, some minor cleanup and improvements are in order:
+For quite a while, I was doing a quick hack to gup_test.c (previously,
+gup_benchmark.c) whenever I wanted to try out my changes to dump_page().=20
+This makes that hack unnecessary, and instead allows anyone to easily get
+the same coverage from a user space program.  That saves a lot of time
+because you don't have to change the kernel, in order to test different
+pages and options.
 
-1. Rename the other items appropriately.
+The new sub-test takes advantage of the existing gup_test infrastructure,
+which already provides a simple user space program, some allocated user
+space pages, an ioctl call, pinning of those pages (via either
+get_user_pages or pin_user_pages) and a corresponding kernel-side test
+invocation.  There's not much more required, mainly just a couple of
+inputs from the user.
 
-2. Stop reporting timing information on the non-benchmark items. It's
-   still being recorded and is available, but there's no point in
-   cluttering up the report with data that no one reasonably needs to
-   check.
+In fact, the new test re-uses the existing command line options in order
+to get various helpful combinations (THP or normal, _fast or slow gup, gup
+vs.  pup, and more).
 
-3. Don't do iterations, for non-benchmark items.
+New command line options are: which pages to dump, and what type of
+"get/pin" to use.
 
-4. Print out a shorter, more appropriate report for the non-benchmark
-   tests.
+In order to figure out which pages to dump, the logic is:
 
-5. Add the command that was run, to the report. This really helps, as
-   there are quite a lot of options now.
+* If the user doesn't specify anything, the page 0 (the first page in
+  the address range that the program sets up for testing) is dumped.
 
-Link: https://lkml.kernel.org/r/20200929212747.251804-6-jhubbard@nvidia.com
+* Or, the user can type up to 8 page indices anywhere on the command
+  line.  If you type more than 8, then it uses the first 8 and ignores the
+  remaining items.
+
+For example:
+
+    ./gup_test -ct -F 1 0 19 0x1000
+
+Meaning:
+    -c:          dump pages sub-test
+    -t:          use THP pages
+    -F 1:        use pin_user_pages() instead of get_user_pages()
+    0 19 0x1000: dump pages 0, 19, and 4096
+Link: https://lkml.kernel.org/r/20200929212747.251804-7-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,193 +115,238 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |    2=20
- mm/gup_test.c                             |   14 ++---
- mm/gup_test.h                             |    8 +--
- tools/testing/selftests/vm/gup_test.c     |   47 ++++++++++++++++----
- 4 files changed, 51 insertions(+), 20 deletions(-)
+ mm/Kconfig                            |    6 ++
+ mm/gup_test.c                         |   54 +++++++++++++++++++++++-
+ mm/gup_test.h                         |   10 ++++
+ tools/testing/selftests/vm/gup_test.c |   47 +++++++++++++++++++-
+ 4 files changed, 112 insertions(+), 5 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~selftests-vm-only-some-gup_=
-test-items-are-really-benchmarks
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -226,7 +226,7 @@ This file::
- has the following new calls to exercise the new pin*() wrapper functions:
-=20
- * PIN_FAST_BENCHMARK (./gup_test -a)
--* PIN_BENCHMARK (./gup_test -b)
-+* PIN_BASIC_TEST (./gup_test -b)
-=20
- You can monitor how many total dma-pinned pages have been acquired and rel=
-eased
- since the system was booted, via two new /proc/vmstat entries: ::
---- a/mm/gup_test.c~selftests-vm-only-some-gup_test-items-are-really-benchm=
-arks
+--- a/mm/gup_test.c~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
 +++ a/mm/gup_test.c
-@@ -13,13 +13,13 @@ static void put_back_pages(unsigned int
+@@ -7,7 +7,7 @@
+ #include "../../../../mm/gup_test.h"
 =20
- 	switch (cmd) {
- 	case GUP_FAST_BENCHMARK:
--	case GUP_BENCHMARK:
-+	case GUP_BASIC_TEST:
- 		for (i =3D 0; i < nr_pages; i++)
- 			put_page(pages[i]);
- 		break;
+ static void put_back_pages(unsigned int cmd, struct page **pages,
+-			   unsigned long nr_pages)
++			   unsigned long nr_pages, unsigned int gup_test_flags)
+ {
+ 	unsigned long i;
 =20
- 	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
-+	case PIN_BASIC_TEST:
+@@ -23,6 +23,15 @@ static void put_back_pages(unsigned int
  	case PIN_LONGTERM_BENCHMARK:
  		unpin_user_pages(pages, nr_pages);
  		break;
-@@ -34,7 +34,7 @@ static void verify_dma_pinned(unsigned i
++	case DUMP_USER_PAGES_TEST:
++		if (gup_test_flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN) {
++			unpin_user_pages(pages, nr_pages);
++		} else {
++			for (i =3D 0; i < nr_pages; i++)
++				put_page(pages[i]);
++
++		}
++		break;
+ 	}
+ }
 =20
- 	switch (cmd) {
- 	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
-+	case PIN_BASIC_TEST:
- 	case PIN_LONGTERM_BENCHMARK:
- 		for (i =3D 0; i < nr_pages; i++) {
- 			page =3D pages[i];
-@@ -94,7 +94,7 @@ static int __gup_test_ioctl(unsigned int
- 			nr =3D get_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
--		case GUP_BENCHMARK:
-+		case GUP_BASIC_TEST:
- 			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
-@@ -102,7 +102,7 @@ static int __gup_test_ioctl(unsigned int
- 			nr =3D pin_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
--		case PIN_BENCHMARK:
-+		case PIN_BASIC_TEST:
- 			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
-@@ -157,10 +157,10 @@ static long gup_test_ioctl(struct file *
+@@ -49,6 +58,37 @@ static void verify_dma_pinned(unsigned i
+ 	}
+ }
 =20
- 	switch (cmd) {
- 	case GUP_FAST_BENCHMARK:
--	case GUP_BENCHMARK:
- 	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
++static void dump_pages_test(struct gup_test *gup, struct page **pages,
++			    unsigned long nr_pages)
++{
++	unsigned int index_to_dump;
++	unsigned int i;
++
++	/*
++	 * Zero out any user-supplied page index that is out of range. Remember:
++	 * .which_pages[] contains a 1-based set of page indices.
++	 */
++	for (i =3D 0; i < GUP_TEST_MAX_PAGES_TO_DUMP; i++) {
++		if (gup->which_pages[i] > nr_pages) {
++			pr_warn("ZEROING due to out of range: .which_pages[%u]: %u\n",
++				i, gup->which_pages[i]);
++			gup->which_pages[i] =3D 0;
++		}
++	}
++
++	for (i =3D 0; i < GUP_TEST_MAX_PAGES_TO_DUMP; i++) {
++		index_to_dump =3D gup->which_pages[i];
++
++		if (index_to_dump) {
++			index_to_dump--; // Decode from 1-based, to 0-based
++			pr_info("---- page #%u, starting from user virt addr: 0x%llx\n",
++				index_to_dump, gup->addr);
++			dump_page(pages[index_to_dump],
++				  "gup_test: dump_pages() test");
++		}
++	}
++}
++
+ static int __gup_test_ioctl(unsigned int cmd,
+ 		struct gup_test *gup)
+ {
+@@ -111,6 +151,14 @@ static int __gup_test_ioctl(unsigned int
+ 					    gup->flags | FOLL_LONGTERM,
+ 					    pages + i, NULL);
+ 			break;
++		case DUMP_USER_PAGES_TEST:
++			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
++				nr =3D pin_user_pages(addr, nr, gup->flags,
++						    pages + i, NULL);
++			else
++				nr =3D get_user_pages(addr, nr, gup->flags,
++						    pages + i, NULL);
++			break;
+ 		default:
+ 			ret =3D -EINVAL;
+ 			goto unlock;
+@@ -133,10 +181,11 @@ static int __gup_test_ioctl(unsigned int
+ 	 * state: print a warning if any non-dma-pinned pages are found:
+ 	 */
+ 	verify_dma_pinned(cmd, pages, nr_pages);
++	dump_pages_test(gup, pages, nr_pages);
+=20
+ 	start_time =3D ktime_get();
+=20
+-	put_back_pages(cmd, pages, nr_pages);
++	put_back_pages(cmd, pages, nr_pages, gup->flags);
+=20
+ 	end_time =3D ktime_get();
+ 	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
+@@ -161,6 +210,7 @@ static long gup_test_ioctl(struct file *
  	case PIN_LONGTERM_BENCHMARK:
-+	case GUP_BASIC_TEST:
-+	case PIN_BASIC_TEST:
+ 	case GUP_BASIC_TEST:
+ 	case PIN_BASIC_TEST:
++	case DUMP_USER_PAGES_TEST:
  		break;
  	default:
  		return -EINVAL;
---- a/mm/gup_test.h~selftests-vm-only-some-gup_test-items-are-really-benchm=
-arks
+--- a/mm/gup_test.h~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
 +++ a/mm/gup_test.h
-@@ -5,10 +5,10 @@
- #include <linux/types.h>
-=20
- #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 2, struct gup_test)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 3, struct gup_test)
-+#define GUP_BASIC_TEST		_IOWR('g', 4, struct gup_test)
-+#define PIN_BASIC_TEST		_IOWR('g', 5, struct gup_test)
+@@ -9,6 +9,11 @@
+ #define PIN_LONGTERM_BENCHMARK	_IOWR('g', 3, struct gup_test)
+ #define GUP_BASIC_TEST		_IOWR('g', 4, struct gup_test)
+ #define PIN_BASIC_TEST		_IOWR('g', 5, struct gup_test)
++#define DUMP_USER_PAGES_TEST	_IOWR('g', 6, struct gup_test)
++
++#define GUP_TEST_MAX_PAGES_TO_DUMP		8
++
++#define GUP_TEST_FLAG_DUMP_PAGES_USE_PIN	0x1
 =20
  struct gup_test {
  	__u64 get_delta_usec;
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-only-some-gup_test=
--items-are-really-benchmarks
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -14,12 +14,30 @@
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
+@@ -17,6 +22,11 @@ struct gup_test {
+ 	__u64 size;
+ 	__u32 nr_pages_per_call;
+ 	__u32 flags;
++	/*
++	 * Each non-zero entry is the number of the page (1-based: first page is
++	 * page 1, so that zero entries mean "do nothing") from the .addr base.
++	 */
++	__u32 which_pages[GUP_TEST_MAX_PAGES_TO_DUMP];
+ };
 =20
-+static char *cmd_to_str(unsigned long cmd)
-+{
-+	switch (cmd) {
-+	case GUP_FAST_BENCHMARK:
-+		return "GUP_FAST_BENCHMARK";
-+	case PIN_FAST_BENCHMARK:
-+		return "PIN_FAST_BENCHMARK";
-+	case PIN_LONGTERM_BENCHMARK:
-+		return "PIN_LONGTERM_BENCHMARK";
-+	case GUP_BASIC_TEST:
-+		return "GUP_BASIC_TEST";
-+	case PIN_BASIC_TEST:
-+		return "PIN_BASIC_TEST";
-+	}
-+	return "Unknown command";
-+}
+ #endif	/* __GUP_TEST_H */
+--- a/mm/Kconfig~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
++++ a/mm/Kconfig
+@@ -842,6 +842,12 @@ config GUP_TEST
+ 	  get_user_pages*() and pin_user_pages*(), as well as smoke tests of
+ 	  the non-_fast variants.
+=20
++	  There is also a sub-test that allows running dump_page() on any
++	  of up to eight pages (selected by command line args) within the
++	  range of user-space addresses. These pages are either pinned via
++	  pin_user_pages*(), or pinned via get_user_pages*(), as specified
++	  by other command line arguments.
 +
+ 	  See tools/testing/selftests/vm/gup_test.c
+=20
+ config GUP_GET_PTE_LOW_HIGH
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-introduce=
+-the-dump_pages-sub-test
++++ a/tools/testing/selftests/vm/gup_test.c
+@@ -27,21 +27,23 @@ static char *cmd_to_str(unsigned long cm
+ 		return "GUP_BASIC_TEST";
+ 	case PIN_BASIC_TEST:
+ 		return "PIN_BASIC_TEST";
++	case DUMP_USER_PAGES_TEST:
++		return "DUMP_USER_PAGES_TEST";
+ 	}
+ 	return "Unknown command";
+ }
+=20
  int main(int argc, char **argv)
  {
- 	struct gup_benchmark gup;
+-	struct gup_benchmark gup;
++	struct gup_test gup =3D { 0 };
  	unsigned long size =3D 128 * MB;
  	int i, fd, filed, opt, nr_pages =3D 1, thp =3D -1, repeats =3D 1, write =
 =3D 0;
--	int cmd =3D GUP_FAST_BENCHMARK, flags =3D MAP_PRIVATE;
-+	int cmd =3D GUP_FAST_BENCHMARK;
-+	int flags =3D MAP_PRIVATE;
+-	int cmd =3D GUP_FAST_BENCHMARK;
++	unsigned long cmd =3D GUP_FAST_BENCHMARK;
+ 	int flags =3D MAP_PRIVATE;
  	char *file =3D "/dev/zero";
  	char *p;
 =20
-@@ -29,7 +47,7 @@ int main(int argc, char **argv)
+-	while ((opt =3D getopt(argc, argv, "m:r:n:f:abtTLUuwSH")) !=3D -1) {
++	while ((opt =3D getopt(argc, argv, "m:r:n:F:f:abctTLUuwSH")) !=3D -1) {
+ 		switch (opt) {
+ 		case 'a':
  			cmd =3D PIN_FAST_BENCHMARK;
- 			break;
- 		case 'b':
--			cmd =3D PIN_BENCHMARK;
-+			cmd =3D PIN_BASIC_TEST;
- 			break;
+@@ -52,6 +54,21 @@ int main(int argc, char **argv)
  		case 'L':
  			cmd =3D PIN_LONGTERM_BENCHMARK;
-@@ -50,7 +68,7 @@ int main(int argc, char **argv)
- 			thp =3D 0;
  			break;
- 		case 'U':
--			cmd =3D GUP_BENCHMARK;
-+			cmd =3D GUP_BASIC_TEST;
++		case 'c':
++			cmd =3D DUMP_USER_PAGES_TEST;
++			/*
++			 * Dump page 0 (index 1). May be overridden later, by
++			 * user's non-option arguments.
++			 *
++			 * .which_pages is zero-based, so that zero can mean "do
++			 * nothing".
++			 */
++			gup.which_pages[0] =3D 1;
++			break;
++		case 'F':
++			/* strtol, so you can pass flags in hex form */
++			gup.flags =3D strtol(optarg, 0, 0);
++			break;
+ 		case 'm':
+ 			size =3D atoi(optarg) * MB;
  			break;
- 		case 'u':
- 			cmd =3D GUP_FAST_BENCHMARK;
-@@ -104,18 +122,31 @@ int main(int argc, char **argv)
- 	for (; (unsigned long)p < gup.addr + size; p +=3D PAGE_SIZE)
- 		p[0] =3D 0;
-=20
--	for (i =3D 0; i < repeats; i++) {
-+	/* Only report timing information on the *_BENCHMARK commands: */
-+	if ((cmd =3D=3D PIN_FAST_BENCHMARK) || (cmd =3D=3D GUP_FAST_BENCHMARK) ||
-+	     (cmd =3D=3D PIN_LONGTERM_BENCHMARK)) {
-+		for (i =3D 0; i < repeats; i++) {
-+			gup.size =3D size;
-+			if (ioctl(fd, cmd, &gup))
-+				perror("ioctl"), exit(1);
-+
-+			printf("%s: Time: get:%lld put:%lld us",
-+			       cmd_to_str(cmd), gup.get_delta_usec,
-+			       gup.put_delta_usec);
-+			if (gup.size !=3D size)
-+				printf(", truncated (size: %lld)", gup.size);
-+			printf("\n");
-+		}
-+	} else {
- 		gup.size =3D size;
- 		if (ioctl(fd, cmd, &gup)) {
- 			perror("ioctl");
- 			exit(1);
+@@ -91,6 +108,30 @@ int main(int argc, char **argv)
  		}
-=20
--		printf("Time: get:%lld put:%lld us", gup.get_delta_usec,
--			gup.put_delta_usec);
-+		printf("%s: done\n", cmd_to_str(cmd));
- 		if (gup.size !=3D size)
--			printf(", truncated (size: %lld)", gup.size);
--		printf("\n");
-+			printf("Truncated (size: %lld)\n", gup.size);
  	}
 =20
- 	return 0;
++	if (optind < argc) {
++		int extra_arg_count =3D 0;
++		/*
++		 * For example:
++		 *
++		 *   ./gup_test -c 0 1 0x1001
++		 *
++		 * ...to dump pages 0, 1, and 4097
++		 */
++
++		while ((optind < argc) &&
++		       (extra_arg_count < GUP_TEST_MAX_PAGES_TO_DUMP)) {
++			/*
++			 * Do the 1-based indexing here, so that the user can
++			 * use normal 0-based indexing on the command line.
++			 */
++			long page_index =3D strtol(argv[optind], 0, 0) + 1;
++
++			gup.which_pages[extra_arg_count] =3D page_index;
++			extra_arg_count++;
++			optind++;
++		}
++	}
++
+ 	filed =3D open(file, O_RDWR|O_CREAT);
+ 	if (filed < 0) {
+ 		perror("open");
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
