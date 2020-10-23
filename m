@@ -7,73 +7,51 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B34C388F9
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:09:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70307C388F7
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:27:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90E35223BF
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:09:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01E8421D43
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:27:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603415387;
-	bh=4YE92ECn7TAl0199YvZIzLcq1r4lS+TUFiPDuWVW38I=;
+	s=default; t=1603416425;
+	bh=vMOBIvjRPRfAiH3ZPQ+zvWr9vNAzLM2unM4/MQ3c86A=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=vjZu2GltwB9F8vQaxxjFna6PgZFhMT8hzEruB+O+sLaMHC7zhZzY2QqwszFe2b6IC
-	 DvJ6lFZqyqpX3Qw2gAKqMlNquS7qhnPpZuK3D4xvl/axa4SIU/QdpWrkg0fySWUzky
-	 MU3Fjx4G6IS+WPos0MkeOUvG9AEjl7AjWq9huFqI=
+	b=tkvlzxKuIntq6LKeqJOwzV40JIqufd/mpG//DDTmgVGsbcrGd5IrbU0yzEabIjF8w
+	 0T7aDSWO+Drn6a7lKblUCO9TkvGQ9/yaFEHo72IezfbRhrzCFA36FxWxTSckfGDFsL
+	 o3Qh/Gz98MgOqif5u0Q45LDwrBFeKX34YwOZ/HEE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S374275AbgJWBJr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Oct 2020 21:09:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43276 "EHLO mail.kernel.org"
+        id S374296AbgJWB1E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Oct 2020 21:27:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S374274AbgJWBJr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Oct 2020 21:09:47 -0400
-Received: from X1 (216-169-68-50.scinternet.net [216.169.68.50])
+        id S374284AbgJWB1E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Oct 2020 21:27:04 -0400
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C2B2720760;
-        Fri, 23 Oct 2020 01:09:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 46F682177B;
+        Fri, 23 Oct 2020 01:27:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603415386;
-        bh=4YE92ECn7TAl0199YvZIzLcq1r4lS+TUFiPDuWVW38I=;
+        s=default; t=1603416423;
+        bh=vMOBIvjRPRfAiH3ZPQ+zvWr9vNAzLM2unM4/MQ3c86A=;
         h=Date:From:To:Subject:From;
-        b=WxdAxvJ8jQ2H/GPBkiU8g8l+uc94shSr9mXkFmOq25ZUkbyaOgYVP7Ht4zPtKjcw2
-         ETnT0FCAL/HThRieM9Snvwf77vUe6e7kHo7yadcCogx+ZHLExChxY45GcTlboTp1Ey
-         S95a43CB9HrSuJR0FxAjm6wsLAbjcB/EPpAVo6zs=
-Date:   Thu, 22 Oct 2020 18:09:37 -0700
+        b=kuIiPdj+WlG4VZ3YZoyUQ+qtQA+sLrjMUighZWa77+Mbm9d36d8iJyh/Q5UlpU7Lt
+         WLEkK2cF1VLalmN3yeDYeidxX00fwcCokayeOneKZAGdV8C6Nyg0ouba5yyEV17Pwi
+         k6MX/JsLdcwRsDSBmBSqQF0/1ia+r9sSH21BFCps=
+Date:   Thu, 22 Oct 2020 18:27:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, geert@linux-m68k.org, joe@perches.com
-Subject:  +
- checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
- added to -mm tree
-Message-ID: <20201023010937.VqlXk%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+To:     akpm@linux-foundation.org, geert@linux-m68k.org, joe@perches.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 1/1] checkpatch: enable GIT_DIR environment use to
+ set git repository location
+Message-ID: <20201023012702.VnYL5x_5l%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-
-The patch titled
-     Subject: checkpatch: enable GIT_DIR environment use to set git repository location
-has been added to the -mm tree.  Its filename is
-     checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
-
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
 From: Joe Perches <joe@perches.com>
 Subject: checkpatch: enable GIT_DIR environment use to set git repository location
 
@@ -148,9 +126,3 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  if ($git) {
  	my @commits = ();
 _
-
-Patches currently in -mm which might be from joe@perches.com are
-
-checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
-checkpatch-test-git_dir-changes.patch
-
