@@ -1,4 +1,4 @@
-Return-Path: <SRS0=kBw3=D5=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=9dK4=D6=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,47 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81F6EC388F7
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 23:48:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07732C388F9
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:07:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24EDD24641
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Oct 2020 23:48:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0967223BF
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:07:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603410490;
-	bh=Zp+fjT/nZddp6WKPIbU+0O/pg+DAXLPr0e+GA16IcWg=;
+	s=default; t=1603415246;
+	bh=vcct/9C4pn4LNQGFBVpexmEhIK2XQwS49Tm2UVF2314=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yU6MNkBJ2SQDzVE8FjRb5sA9G99cSo5Mz+gUnKDebN9tVVCEL6/21OXpsHXffruYC
-	 11i6/jd172+j3IQlv6/WRpo/eI7kW1U6gHcrnuVmaQnhoVlhpVDaWOPTKHJG0mwZfP
-	 KXseIXo5kydHtgvbVoDWi5nx4AJUVZAioernBtMw=
+	b=nAox/FzpZxdlwHB+lD+q4pY45u3MilhfQCqX/8kw+4zT4ZskD+KsDZoBbN30t0ix9
+	 C6WbyNIa4WMdNC7s19GbNnqrzOHyJBLw+v3uHP/D0XOLPea4nG3atggDjwrjm8RMkP
+	 EJ7ZSv9D+DU5OMOvsxJaX3W3D/vvuxTwQZUT5JC4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S373508AbgJVXsJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Oct 2020 19:48:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59508 "EHLO mail.kernel.org"
+        id S369051AbgJWBH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Oct 2020 21:07:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S373215AbgJVXsJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Oct 2020 19:48:09 -0400
+        id S368914AbgJWBH0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 22 Oct 2020 21:07:26 -0400
 Received: from X1 (216-169-68-50.scinternet.net [216.169.68.50])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B447223BF;
-        Thu, 22 Oct 2020 23:48:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BFA5220760;
+        Fri, 23 Oct 2020 01:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603410488;
-        bh=Zp+fjT/nZddp6WKPIbU+0O/pg+DAXLPr0e+GA16IcWg=;
+        s=default; t=1603415245;
+        bh=vcct/9C4pn4LNQGFBVpexmEhIK2XQwS49Tm2UVF2314=;
         h=Date:From:To:Subject:From;
-        b=l5dGX38qsamE4Ty/W5+cFXFEXNswagSXZa0saQaslUYceJXDDXo7vSMGrDDOOES7t
-         Uxtdopo31lxG87S5aK0qaZ0GzV1AXlj7Vok98xMV5IXacMdB9aCkK8CZPLRvo6fmIy
-         YcURMGCBdwRVfYE5JV4Wz/yh2rHSHJiOkAf26B1k=
-Date:   Thu, 22 Oct 2020 16:47:56 -0700
+        b=UMU6C82c+5gYGVdS3aOAg8TCCOxpXt6YpkSydIJoT9YiEF68JWgtHr3dzQOD9mxsQ
+         mXgdDyWYB9VgJiYPw2pVGBb8y15+236X4mNB/8RKjcBil3sxThehCmcPCpYnq588nT
+         Mwc86okUivN+bUDLwelpq8prtJwYC/OJO522t5k0=
+Date:   Thu, 22 Oct 2020 18:07:15 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, mst@redhat.com, mprivozn@redhat.com,
-        mhocko@kernel.org, david@redhat.com,
-        aneesh.kumar@linux.vnet.ibm.com, almasrymina@google.com,
-        mike.kravetz@oracle.com
-Subject:  + hugetlb_cgroup-fix-reservation-accounting.patch added to
- -mm tree
-Message-ID: <20201022234756.6lZba%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, joe@perches.com
+Subject:  +
+ checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
+ added to -mm tree
+Message-ID: <20201023010715.XQIT1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: fix reservation accounting
+     Subject: checkpatch: enable GIT_DIR environment use to set git repository location
 has been added to the -mm tree.  Its filename is
-     hugetlb_cgroup-fix-reservation-accounting.patch
+     checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-fix-reservation-accounting.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-fix-reservation-accounting.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,124 +74,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb_cgroup: fix reservation accounting
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: enable GIT_DIR environment use to set git repository location
 
-Michal Privoznik was using "free page reporting" in QEMU/virtio-balloon
-with hugetlbfs and hit the warning below.  QEMU with free page hinting
-uses fallocate(FALLOC_FL_PUNCH_HOLE) to discard pages that are reported
-as free by a VM. The reporting granularity is in pageblock granularity.
-So when the guest reports 2M chunks, we fallocate(FALLOC_FL_PUNCH_HOLE)
-one huge page in QEMU.
+If set, use the environment variable GIT_DIR to change the default .git
+location of the kernel git tree.
 
-[  315.251417] ------------[ cut here ]------------
-[  315.251424] WARNING: CPU: 7 PID: 6636 at mm/page_counter.c:57 page_counter_uncharge+0x4b/0x50
-[  315.251425] Modules linked in: ...
-[  315.251466] CPU: 7 PID: 6636 Comm: qemu-system-x86 Not tainted 5.9.0 #137
-[  315.251467] Hardware name: Gigabyte Technology Co., Ltd. X570 AORUS PRO/X570 AORUS PRO, BIOS F21 07/31/2020
-[  315.251469] RIP: 0010:page_counter_uncharge+0x4b/0x50
-...
-[  315.251479] Call Trace:
-[  315.251485]  hugetlb_cgroup_uncharge_file_region+0x4b/0x80
-[  315.251487]  region_del+0x1d3/0x300
-[  315.251489]  hugetlb_unreserve_pages+0x39/0xb0
-[  315.251492]  remove_inode_hugepages+0x1a8/0x3d0
-[  315.251495]  ? tlb_finish_mmu+0x7a/0x1d0
-[  315.251497]  hugetlbfs_fallocate+0x3c4/0x5c0
-[  315.251519]  ? kvm_arch_vcpu_ioctl_run+0x614/0x1700 [kvm]
-[  315.251522]  ? file_has_perm+0xa2/0xb0
-[  315.251524]  ? inode_security+0xc/0x60
-[  315.251525]  ? selinux_file_permission+0x4e/0x120
-[  315.251527]  vfs_fallocate+0x146/0x290
-[  315.251529]  __x64_sys_fallocate+0x3e/0x70
-[  315.251531]  do_syscall_64+0x33/0x40
-[  315.251533]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-...
-[  315.251542] ---[ end trace 4c88c62ccb1349c9 ]---
+If GIT_DIR is unset, keep using the current ".git" default.
 
-Investigation of the issue uncovered bugs in hugetlb cgroup reservation
-accounting.  This patch addresses the found issues.
-
-Link: https://lkml.kernel.org/r/20201021204426.36069-1-mike.kravetz@oracle.com
-Fixes: 075a61d07a8e ("hugetlb_cgroup: add accounting for shared mappings")
-Cc: <stable@vger.kernel.org>
-Reported-by: Michal Privoznik <mprivozn@redhat.com>
-Co-developed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Tested-by: Michal Privoznik <mprivozn@redhat.com>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/95f9ca20c9c7efe5d40d38e2dd60487e66df43f2.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.co>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ scripts/checkpatch.pl |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb_cgroup-fix-reservation-accounting
-+++ a/mm/hugetlb.c
-@@ -648,6 +648,8 @@ retry:
- 			}
+--- a/scripts/checkpatch.pl~checkpatch-enable-git_dir-environment-use-to-set-git-repository-location
++++ a/scripts/checkpatch.pl
+@@ -43,6 +43,8 @@ my $list_types = 0;
+ my $fix = 0;
+ my $fix_inplace = 0;
+ my $root;
++my $gitroot = $ENV{'GIT_DIR'};
++$gitroot = ".git" if !defined($gitroot);
+ my %debug;
+ my %camelcase = ();
+ my %use_type = ();
+@@ -908,7 +910,7 @@ sub is_maintained_obsolete {
+ sub is_SPDX_License_valid {
+ 	my ($license) = @_;
  
- 			del += t - f;
-+			hugetlb_cgroup_uncharge_file_region(
-+				resv, rg, t - f);
+-	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$root/.git"));
++	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
  
- 			/* New entry for end of split region */
- 			nrg->from = t;
-@@ -660,9 +662,6 @@ retry:
- 			/* Original entry is trimmed */
- 			rg->to = f;
+ 	my $root_path = abs_path($root);
+ 	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
+@@ -926,7 +928,7 @@ sub seed_camelcase_includes {
  
--			hugetlb_cgroup_uncharge_file_region(
--				resv, rg, nrg->to - nrg->from);
--
- 			list_add(&nrg->link, &rg->link);
- 			nrg = NULL;
- 			break;
-@@ -678,17 +677,17 @@ retry:
- 		}
+ 	$camelcase_seeded = 1;
  
- 		if (f <= rg->from) {	/* Trim beginning of region */
--			del += t - rg->from;
--			rg->from = t;
--
- 			hugetlb_cgroup_uncharge_file_region(resv, rg,
- 							    t - rg->from);
--		} else {		/* Trim end of region */
--			del += rg->to - f;
--			rg->to = f;
- 
-+			del += t - rg->from;
-+			rg->from = t;
-+		} else {		/* Trim end of region */
- 			hugetlb_cgroup_uncharge_file_region(resv, rg,
- 							    rg->to - f);
-+
-+			del += rg->to - f;
-+			rg->to = f;
- 		}
+-	if (-e ".git") {
++	if (-e "$gitroot") {
+ 		my $git_last_include_commit = `${git_command} log --no-merges --pretty=format:"%h%n" -1 -- include`;
+ 		chomp $git_last_include_commit;
+ 		$camelcase_cache = ".checkpatch-camelcase.git.$git_last_include_commit";
+@@ -954,7 +956,7 @@ sub seed_camelcase_includes {
+ 		return;
  	}
  
-@@ -2443,6 +2442,9 @@ struct page *alloc_huge_page(struct vm_a
- 
- 		rsv_adjust = hugepage_subpool_put_pages(spool, 1);
- 		hugetlb_acct_memory(h, -rsv_adjust);
-+		if (deferred_reserve)
-+			hugetlb_cgroup_uncharge_page_rsvd(hstate_index(h),
-+					pages_per_huge_page(h), page);
+-	if (-e ".git") {
++	if (-e "$gitroot") {
+ 		$files = `${git_command} ls-files "include/*.h"`;
+ 		@include_files = split('\n', $files);
  	}
- 	return page;
+@@ -987,7 +989,7 @@ sub git_is_single_file {
+ sub git_commit_info {
+ 	my ($commit, $id, $desc) = @_;
  
+-	return ($id, $desc) if ((which("git") eq "") || !(-e ".git"));
++	return ($id, $desc) if ((which("git") eq "") || !(-e "$gitroot"));
+ 
+ 	my $output = `${git_command} log --no-color --format='%H %s' -1 $commit 2>&1`;
+ 	$output =~ s/^\s*//gm;
+@@ -1026,7 +1028,7 @@ my $fixlinenr = -1;
+ 
+ # If input is git commits, extract all commits from the commit expressions.
+ # For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
+-die "$P: No git repository found\n" if ($git && !-e ".git");
++die "$P: No git repository found\n" if ($git && !-e "$gitroot");
+ 
+ if ($git) {
+ 	my @commits = ();
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-hugetlb_cgroup-fix-reservation-accounting.patch
+checkpatch-enable-git_dir-environment-use-to-set-git-repository-location.patch
+checkpatch-test-git_dir-changes.patch
 
