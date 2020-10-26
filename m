@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 398E9C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:23:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B2D5C4363A
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 21:08:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD9AF21D41
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:23:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E14E52076B
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 21:08:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603740237;
-	bh=SlvKWcad1n8b5BQiGfKyq39Eut1s3T3pCZGUlfn2xgk=;
+	s=default; t=1603746485;
+	bh=fTegXONylkYC/+fJhZ/Xw2HaJ3xpMp36wav0FYNctOI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=FVBVoK6HItZBtNDluoj/clN8S2U+2uakDTU5OSsm70Hq/pIUYVXW12X7Ag48W0uxa
-	 ArC5YvXfgFuKynkTQJTzng3jUBU7mXhDm21OgKz+7a+1I9BgluI4vwy/LZJ2gjcWro
-	 E8IsA7v4V76XJsAA2AZGOBP4+Q/GXC/mOgYge8R4=
+	b=PBJ/dt+SQR5Q17V6Y44LTPo8HGBrjNJFkKsXq9jsFQsgmz9CcXvIGi0lwtgvQ6gc0
+	 RGa3/4Bl6vHhYD0m/VjPvbWRkdeNTXWg+thohs7hiI7gLIZbQaN3BSOmyF/7hYquvC
+	 Od2iVOZGQZAzcHtaN8avnrQRa77bjsq49sa9eY7w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1792987AbgJZTX5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Oct 2020 15:23:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58930 "EHLO mail.kernel.org"
+        id S1730049AbgJZVIE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Oct 2020 17:08:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1784580AbgJZTX5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 26 Oct 2020 15:23:57 -0400
-Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
+        id S1729626AbgJZVIE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 26 Oct 2020 17:08:04 -0400
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A5AE82085B;
-        Mon, 26 Oct 2020 19:23:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2702C20732;
+        Mon, 26 Oct 2020 21:08:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603740236;
-        bh=SlvKWcad1n8b5BQiGfKyq39Eut1s3T3pCZGUlfn2xgk=;
+        s=default; t=1603746482;
+        bh=fTegXONylkYC/+fJhZ/Xw2HaJ3xpMp36wav0FYNctOI=;
         h=Date:From:To:Subject:From;
-        b=SRmaJ4vmcbIT9Ir/XomRZFDyevRaOFmMj+PqfmmvUtZOIG02ZUwDMfcUTEkn1LuCZ
-         EvaIXAOtTYuBtZqJS1Qs4+DrucL/jf9OhpJRQUpMHS9OrbbqvF0k7KQH5miglms/3O
-         Oeq4BgAFILLios8gwCKkFhDOtikxIWffAF5q6k4c=
-Date:   Mon, 26 Oct 2020 12:23:56 -0700
+        b=tPqmd/2XJx76qOpR4M3JJHXvY3fkA876G12ASUkgWvqwNFcjbjtPOt3jP6aRscVs+
+         GR/+0BJuZ9OFBasWQqpDdQHn7cth+4PdDqwpsUmh5gRXlfluoKgRl8HSz9mUD//esX
+         2pFa4TwLYzb0DDKU+JOZhRdbP3NBNTAbsipSA1l8=
+Date:   Mon, 26 Oct 2020 14:08:01 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sh_def@163.com, mhocko@kernel.org,
-        akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, zhongjiang-ali@linux.alibaba.com
 Subject:  +
- mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix.patch added to -mm
- tree
-Message-ID: <20201026192356.CThwA%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+ =?US-ASCII?Q?mm-memcontrol-correct-the-nr=5Fanon=5Fthps-counter-of-hier?=
+ =?US-ASCII?Q?archical-memcg-fix.patch?= added to -mm tree
+Message-ID: <20201026210801.n9JtTzchy%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix
+     Subject: mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix
 has been added to the -mm tree.  Its filename is
-     mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix.patch
+     mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,29 +78,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix
+Subject: mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix
 
-remove incorrect kerneldoc token
+fix printk warning
 
-Cc: Hui Su <sh_def@163.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/oom_kill.c~mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix
-+++ a/mm/oom_kill.c
-@@ -170,7 +170,7 @@ static bool oom_unkillable_task(struct t
- 	return false;
- }
+--- a/mm/memcontrol.c~mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix
++++ a/mm/memcontrol.c
+@@ -4107,7 +4107,7 @@ static int memcg_stat_show(struct seq_fi
+ 		if (memcg1_stats[i] == NR_ANON_THPS)
+ 			nr *= HPAGE_PMD_NR;
+ #endif
+-		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
++		seq_printf(m, "total_%s %lu\n", memcg1_stat_names[i],
+ 						nr * PAGE_SIZE);
+ 	}
  
--/**
-+/*
-  * Check whether unreclaimable slabs amount is greater than
-  * all user memory(LRU pages).
-  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,4 +112,5 @@ mmoom_kill-fix-the-comment-of-is_dump_unreclaim_slabs-fix.patch
 mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
 lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
 
