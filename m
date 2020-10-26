@@ -1,4 +1,4 @@
-Return-Path: <SRS0=9dK4=D6=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=L/bp=EB=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,122 +7,123 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70307C388F7
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:27:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F07CC4363A
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:02:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01E8421D43
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Oct 2020 01:27:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C53FE21D41
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:02:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603416425;
-	bh=vMOBIvjRPRfAiH3ZPQ+zvWr9vNAzLM2unM4/MQ3c86A=;
+	s=default; t=1603738937;
+	bh=CGIR/GKTegZ+OgYlcBEbY5my8hBiE7TYnuZMR5Eh3GA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tkvlzxKuIntq6LKeqJOwzV40JIqufd/mpG//DDTmgVGsbcrGd5IrbU0yzEabIjF8w
-	 0T7aDSWO+Drn6a7lKblUCO9TkvGQ9/yaFEHo72IezfbRhrzCFA36FxWxTSckfGDFsL
-	 o3Qh/Gz98MgOqif5u0Q45LDwrBFeKX34YwOZ/HEE=
+	b=GzUF8MPs2txdzilofTx5Z9lQurDD72zutpb13RYECMHw948WQjV3Un4mewkRb/ycx
+	 gFXgPULty3dBDMI7UuLeH8a6ubGuxUryaOIPdnxeMlwhopJkJT6F5uA+IuLmZpPZEK
+	 QWAgCrr7HHk8ZypkI2B+r3aT6i/RiOpPlrD8pdEw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S374296AbgJWB1E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Oct 2020 21:27:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47464 "EHLO mail.kernel.org"
+        id S1791415AbgJZTCQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Oct 2020 15:02:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S374284AbgJWB1E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Oct 2020 21:27:04 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1791414AbgJZTCP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 26 Oct 2020 15:02:15 -0400
+Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 46F682177B;
-        Fri, 23 Oct 2020 01:27:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EFC4C207E8;
+        Mon, 26 Oct 2020 19:02:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603416423;
-        bh=vMOBIvjRPRfAiH3ZPQ+zvWr9vNAzLM2unM4/MQ3c86A=;
+        s=default; t=1603738935;
+        bh=CGIR/GKTegZ+OgYlcBEbY5my8hBiE7TYnuZMR5Eh3GA=;
         h=Date:From:To:Subject:From;
-        b=kuIiPdj+WlG4VZ3YZoyUQ+qtQA+sLrjMUighZWa77+Mbm9d36d8iJyh/Q5UlpU7Lt
-         WLEkK2cF1VLalmN3yeDYeidxX00fwcCokayeOneKZAGdV8C6Nyg0ouba5yyEV17Pwi
-         k6MX/JsLdcwRsDSBmBSqQF0/1ia+r9sSH21BFCps=
-Date:   Thu, 22 Oct 2020 18:27:02 -0700
+        b=E1mKUs+d6lkBBnaDGikF3VRnxOAZ2dtsHwaUJHddlaWw6HZPZiD4a1tAgt45hrsIz
+         LYky/CsnNO8+ZUgzh4wqUg0QJQCDiPWIw/24eyJmxqt/2rWIEWr2lYL2WG+xMlhxwi
+         Wax7ADqOp369uxo76ZJAtZR7aoDxn1gx20epZHb4=
+Date:   Mon, 26 Oct 2020 12:02:14 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, geert@linux-m68k.org, joe@perches.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 1/1] checkpatch: enable GIT_DIR environment use to
- set git repository location
-Message-ID: <20201023012702.VnYL5x_5l%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        ndesaulniers@google.com, natechancellor@gmail.com, mhocko@suse.com,
+        mgorman@techsingularity.net, lukas.bulwahn@gmail.com
+Subject:  + mm-vmscan-drop-unneeded-assignment-in-kswapd.patch added
+ to -mm tree
+Message-ID: <20201026190214._-4CF%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: enable GIT_DIR environment use to set git repository location
 
-If set, use the environment variable GIT_DIR to change the default .git
-location of the kernel git tree.
+The patch titled
+     Subject: mm/vmscan: drop unneeded assignment in kswapd()
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
 
-If GIT_DIR is unset, keep using the current ".git" default.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
 
-Link: https://lkml.kernel.org/r/c5e23b45562373d632fccb8bc04e563abba4dd1d.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: mm/vmscan: drop unneeded assignment in kswapd()
+
+The refactoring to kswapd() in commit e716f2eb24de ("mm, vmscan: prevent
+kswapd sleeping prematurely due to mismatched classzone_idx") turned an
+assignment to reclaim_order into a dead store, as in all further paths,
+reclaim_order will be assigned again before it is used.
+
+make clang-analyzer on x86_64 tinyconfig caught my attention with:
+
+  mm/vmscan.c: warning: Although the value stored to 'reclaim_order' is
+  used in the enclosing expression, the value is never actually read from
+  'reclaim_order' [clang-analyzer-deadcode.DeadStores]
+
+Compilers will detect this unneeded assignment and optimize this anyway. 
+So, the resulting binary is identical before and after this change.
+
+Simplify the code and remove unneeded assignment to make clang-analyzer
+happy.
+
+No functional change. No change in binary code.
+
+Link: https://lkml.kernel.org/r/20201004125827.17679-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-enable-git_dir-environment-use-to-set-git-repository-location
-+++ a/scripts/checkpatch.pl
-@@ -43,6 +43,8 @@ my $list_types = 0;
- my $fix = 0;
- my $fix_inplace = 0;
- my $root;
-+my $gitroot = $ENV{'GIT_DIR'};
-+$gitroot = ".git" if !defined($gitroot);
- my %debug;
- my %camelcase = ();
- my %use_type = ();
-@@ -908,7 +910,7 @@ sub is_maintained_obsolete {
- sub is_SPDX_License_valid {
- 	my ($license) = @_;
+--- a/mm/vmscan.c~mm-vmscan-drop-unneeded-assignment-in-kswapd
++++ a/mm/vmscan.c
+@@ -3898,7 +3898,7 @@ kswapd_try_sleep:
+ 					highest_zoneidx);
  
--	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$root/.git"));
-+	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
- 
- 	my $root_path = abs_path($root);
- 	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
-@@ -926,7 +928,7 @@ sub seed_camelcase_includes {
- 
- 	$camelcase_seeded = 1;
- 
--	if (-e ".git") {
-+	if (-e "$gitroot") {
- 		my $git_last_include_commit = `${git_command} log --no-merges --pretty=format:"%h%n" -1 -- include`;
- 		chomp $git_last_include_commit;
- 		$camelcase_cache = ".checkpatch-camelcase.git.$git_last_include_commit";
-@@ -954,7 +956,7 @@ sub seed_camelcase_includes {
- 		return;
- 	}
- 
--	if (-e ".git") {
-+	if (-e "$gitroot") {
- 		$files = `${git_command} ls-files "include/*.h"`;
- 		@include_files = split('\n', $files);
- 	}
-@@ -987,7 +989,7 @@ sub git_is_single_file {
- sub git_commit_info {
- 	my ($commit, $id, $desc) = @_;
- 
--	return ($id, $desc) if ((which("git") eq "") || !(-e ".git"));
-+	return ($id, $desc) if ((which("git") eq "") || !(-e "$gitroot"));
- 
- 	my $output = `${git_command} log --no-color --format='%H %s' -1 $commit 2>&1`;
- 	$output =~ s/^\s*//gm;
-@@ -1026,7 +1028,7 @@ my $fixlinenr = -1;
- 
- # If input is git commits, extract all commits from the commit expressions.
- # For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
--die "$P: No git repository found\n" if ($git && !-e ".git");
-+die "$P: No git repository found\n" if ($git && !-e "$gitroot");
- 
- if ($git) {
- 	my @commits = ();
+ 		/* Read the new order and highest_zoneidx */
+-		alloc_order = reclaim_order = READ_ONCE(pgdat->kswapd_order);
++		alloc_order = READ_ONCE(pgdat->kswapd_order);
+ 		highest_zoneidx = kswapd_highest_zoneidx(pgdat,
+ 							highest_zoneidx);
+ 		WRITE_ONCE(pgdat->kswapd_order, 0);
 _
+
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+
+mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+
