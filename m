@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F07CC4363A
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 903D3C388F9
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:13:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C53FE21D41
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:02:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3524B2085B
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Oct 2020 19:13:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603738937;
-	bh=CGIR/GKTegZ+OgYlcBEbY5my8hBiE7TYnuZMR5Eh3GA=;
+	s=default; t=1603739621;
+	bh=Tg7SoFsnmfY0qRnWoOMnxdUs37i/uVgWoUndMdlAzvc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=GzUF8MPs2txdzilofTx5Z9lQurDD72zutpb13RYECMHw948WQjV3Un4mewkRb/ycx
-	 gFXgPULty3dBDMI7UuLeH8a6ubGuxUryaOIPdnxeMlwhopJkJT6F5uA+IuLmZpPZEK
-	 QWAgCrr7HHk8ZypkI2B+r3aT6i/RiOpPlrD8pdEw=
+	b=W8PNOZUU6DYSQf0bT2Bu1PmjzEQEmeUTEhgr24REg/sp71U+J6lWWjwkk06evnnbY
+	 MZ45gIPc7a9TmiX/aG7eJYHqssyfsXX/PdPQqyZTID0PjnKOElpfQ6acqN+xfqJYB6
+	 MBIZQbck9vL0AQv53YrPsDOVBeeMo/CW87k6B35E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1791415AbgJZTCQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Oct 2020 15:02:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48488 "EHLO mail.kernel.org"
+        id S1731649AbgJZTNj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Oct 2020 15:13:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1791414AbgJZTCP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 26 Oct 2020 15:02:15 -0400
+        id S2405924AbgJZTHA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 26 Oct 2020 15:07:00 -0400
 Received: from X1 (nat-ab2241.sltdut.senawave.net [162.218.216.4])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EFC4C207E8;
-        Mon, 26 Oct 2020 19:02:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F04FB20720;
+        Mon, 26 Oct 2020 19:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603738935;
-        bh=CGIR/GKTegZ+OgYlcBEbY5my8hBiE7TYnuZMR5Eh3GA=;
+        s=default; t=1603739218;
+        bh=Tg7SoFsnmfY0qRnWoOMnxdUs37i/uVgWoUndMdlAzvc=;
         h=Date:From:To:Subject:From;
-        b=E1mKUs+d6lkBBnaDGikF3VRnxOAZ2dtsHwaUJHddlaWw6HZPZiD4a1tAgt45hrsIz
-         LYky/CsnNO8+ZUgzh4wqUg0QJQCDiPWIw/24eyJmxqt/2rWIEWr2lYL2WG+xMlhxwi
-         Wax7ADqOp369uxo76ZJAtZR7aoDxn1gx20epZHb4=
-Date:   Mon, 26 Oct 2020 12:02:14 -0700
+        b=BeLSMYWZP/Fjw8v4ueHYRF92pKm6o4wDRF5i3+9s2Arz5T8SsDSHCIu68hwcxvTtK
+         U+4iF8aqdIp0P5G+mV3znPbiyDjYM6dIjNXL3efTeXibUGrTYqRI80K5luyBCGS7Mh
+         bqnMMQrHWHFztAJo+Fl0B2gtlPn22ZEm1t+EwpDI=
+Date:   Mon, 26 Oct 2020 12:06:57 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        ndesaulniers@google.com, natechancellor@gmail.com, mhocko@suse.com,
-        mgorman@techsingularity.net, lukas.bulwahn@gmail.com
-Subject:  + mm-vmscan-drop-unneeded-assignment-in-kswapd.patch added
- to -mm tree
-Message-ID: <20201026190214._-4CF%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        sjenning@redhat.com, mail@maciej.szmigiero.name, ddstreet@ieee.org,
+        dan.carpenter@oracle.com, joe@perches.com
+Subject:  +
+ mm-zswap-make-struct-kernel_param_ops-definitions-const.patch added to -mm
+ tree
+Message-ID: <20201026190657.Rx6wT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: drop unneeded assignment in kswapd()
+     Subject: mm/zswap: make struct kernel_param_ops definitions const
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+     mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,55 +76,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: mm/vmscan: drop unneeded assignment in kswapd()
+From: Joe Perches <joe@perches.com>
+Subject: mm/zswap: make struct kernel_param_ops definitions const
 
-The refactoring to kswapd() in commit e716f2eb24de ("mm, vmscan: prevent
-kswapd sleeping prematurely due to mismatched classzone_idx") turned an
-assignment to reclaim_order into a dead store, as in all further paths,
-reclaim_order will be assigned again before it is used.
+These should be const, so make it so.
 
-make clang-analyzer on x86_64 tinyconfig caught my attention with:
-
-  mm/vmscan.c: warning: Although the value stored to 'reclaim_order' is
-  used in the enclosing expression, the value is never actually read from
-  'reclaim_order' [clang-analyzer-deadcode.DeadStores]
-
-Compilers will detect this unneeded assignment and optimize this anyway. 
-So, the resulting binary is identical before and after this change.
-
-Simplify the code and remove unneeded assignment to make clang-analyzer
-happy.
-
-No functional change. No change in binary code.
-
-Link: https://lkml.kernel.org/r/20201004125827.17679-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+Link: https://lkml.kernel.org/r/1791535ee0b00f4a5c68cc4a8adada06593ad8f1.1601770305.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-drop-unneeded-assignment-in-kswapd
-+++ a/mm/vmscan.c
-@@ -3898,7 +3898,7 @@ kswapd_try_sleep:
- 					highest_zoneidx);
- 
- 		/* Read the new order and highest_zoneidx */
--		alloc_order = reclaim_order = READ_ONCE(pgdat->kswapd_order);
-+		alloc_order = READ_ONCE(pgdat->kswapd_order);
- 		highest_zoneidx = kswapd_highest_zoneidx(pgdat,
- 							highest_zoneidx);
- 		WRITE_ONCE(pgdat->kswapd_order, 0);
+--- a/mm/zswap.c~mm-zswap-make-struct-kernel_param_ops-definitions-const
++++ a/mm/zswap.c
+@@ -81,7 +81,7 @@ static bool zswap_pool_reached_full;
+ static bool zswap_enabled = IS_ENABLED(CONFIG_ZSWAP_DEFAULT_ON);
+ static int zswap_enabled_param_set(const char *,
+ 				   const struct kernel_param *);
+-static struct kernel_param_ops zswap_enabled_param_ops = {
++static const struct kernel_param_ops zswap_enabled_param_ops = {
+ 	.set =		zswap_enabled_param_set,
+ 	.get =		param_get_bool,
+ };
+@@ -91,7 +91,7 @@ module_param_cb(enabled, &zswap_enabled_
+ static char *zswap_compressor = CONFIG_ZSWAP_COMPRESSOR_DEFAULT;
+ static int zswap_compressor_param_set(const char *,
+ 				      const struct kernel_param *);
+-static struct kernel_param_ops zswap_compressor_param_ops = {
++static const struct kernel_param_ops zswap_compressor_param_ops = {
+ 	.set =		zswap_compressor_param_set,
+ 	.get =		param_get_charp,
+ 	.free =		param_free_charp,
+@@ -102,7 +102,7 @@ module_param_cb(compressor, &zswap_compr
+ /* Compressed storage zpool to use */
+ static char *zswap_zpool_type = CONFIG_ZSWAP_ZPOOL_DEFAULT;
+ static int zswap_zpool_param_set(const char *, const struct kernel_param *);
+-static struct kernel_param_ops zswap_zpool_param_ops = {
++static const struct kernel_param_ops zswap_zpool_param_ops = {
+ 	.set =		zswap_zpool_param_set,
+ 	.get =		param_get_charp,
+ 	.free =		param_free_charp,
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
+checkpatch-prefer-static-const-declarations.patch
+checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
 
