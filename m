@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F742C388F7
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 21:37:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5E0C55179
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 21:46:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1BCA2417B
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 21:37:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46F15246CD
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 21:46:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603921070;
-	bh=zTlNKYSjXmraCtR0tVKDivndta8iZmKepp66TpaokMA=;
+	s=default; t=1603921588;
+	bh=AcFuMobjm5JFrNRdDOGx924ARz0LmfP0ImPmCOL8HGg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=SUmoSNWW9I2Cw/0+E0HsIQN5saf8pbY3iXaCYMEiikyFrJcmF+iFozD+e2iZWV2qu
-	 gcEVq584eBCImWWXdElUSTlaC9U6k7laoV+GiyReAWZSXrhXpzkeeac1CxpZTt3mkl
-	 U7zdf+2qsJI2X33jm8X+Zhsk3smj4RDPl20hltVs=
+	b=w1Ig9zySKB0jdgpdq38ucGvcLCVdyxYJfVpgfpjje9mjI2ltxONn9yLAsoRPJutBP
+	 qNUvyydc1zcbGhwhcJQtJfqy3zLsk9bWIiBu7/G5787bArrDX76Rl/w+ayrU+YBsmJ
+	 3OA6YIgbo1zfekd0GXlVKsOiko5Aq47OT6ZqlnP0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727004AbgJ1Vhi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Oct 2020 17:37:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35480 "EHLO mail.kernel.org"
+        id S1727519AbgJ1VqY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Oct 2020 17:46:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726953AbgJ1VhZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Oct 2020 17:37:25 -0400
+        id S1727502AbgJ1VqW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Oct 2020 17:46:22 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E14D02475D;
-        Wed, 28 Oct 2020 21:17:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 82B91246CD;
+        Wed, 28 Oct 2020 21:46:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603919852;
-        bh=zTlNKYSjXmraCtR0tVKDivndta8iZmKepp66TpaokMA=;
+        s=default; t=1603921582;
+        bh=AcFuMobjm5JFrNRdDOGx924ARz0LmfP0ImPmCOL8HGg=;
         h=Date:From:To:Subject:From;
-        b=1+ykOQbNW3P3z7e2Ug+NHdp+ju9UC/wfhaA9e5ho50mnlR5jlziqg92vH+GQZxiv5
-         LENsgozKpbxRkk8499+gCEj1pFYpr+R0JF/xVF4H6spoXMZ3AHNQglewVYZdUr1Rr0
-         lkVpxKhOUWdRRJHqjS4pTXMqepSKDFIm0XQ2j6t4=
-Date:   Wed, 28 Oct 2020 14:17:31 -0700
+        b=1DSgtSooseOjCxbWF5YAbAZUslSTAsl38DwE32RUv38PHaB1xUr6Mr+TxCI4Hcw3n
+         SSixEpuIHFALf0wRXZGOmM4kwATmMJwueKr9P9e4kfgL+qY3TXevaDGWK4vQOvHG3X
+         yA9Le2a+zybxAsoqEFf3jV6cgFC9Z7tvA8CMfjow=
+Date:   Wed, 28 Oct 2020 14:46:20 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
-        penguin-kernel@i-love.sakura.ne.jp, rdna@fb.com,
-        viro@zeniv.linux.org.uk
-Subject:  +
- kernel-hung_taskc-make-type-annotations-consistent.patch added to -mm tree
-Message-ID: <20201028211731.uj0HSYqSM%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
+        elver@google.com, glider@google.com, mm-commits@vger.kernel.org,
+        vincenzo.frascino@arm.com
+Subject:  + mm-vmalloc-fix-kasan-shadow-poisoning-size.patch added
+ to -mm tree
+Message-ID: <20201028214620.wB2DadcBH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/hung_task.c: make type annotations consistent
+     Subject: mm/vmalloc.c: fix kasan shadow poisoning size
 has been added to the -mm tree.  Its filename is
-     kernel-hung_taskc-make-type-annotations-consistent.patch
+     mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_taskc-make-type-annotations-consistent.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_taskc-make-type-annotations-consistent.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,61 +75,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: kernel/hung_task.c: make type annotations consistent
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: mm/vmalloc.c: fix kasan shadow poisoning size
 
-Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-removed various __user annotations from function signatures as part of its
-refactoring.
+The size of vm area can be affected by the presence or not of the guard
+page.  In particular when VM_NO_GUARD is present, the actual accessible
+size has to be considered like the real size minus the guard page.
 
-It also removed the __user annotation for proc_dohung_task_timeout_secs()
-at its declaration in ./sched/sysctl.h, but not at its definition in
-./kernel/hung_task.c.
+Currently kasan does not keep into account this information during the
+poison operation and in particular tries to poison the guard page as well.
 
-Hence, sparse complains:
+This approach, even if incorrect, does not cause an issue because the tags
+for the guard page are written in the shadow memory.  With the future
+introduction of the Tag-Based KASAN, being the guard page inaccessible by
+nature, the write tag operation on this page triggers a fault.
 
-  kernel/hung_task.c:271:5: error: \
-  symbol 'proc_dohung_task_timeout_secs' redeclared with different type \
-  (incompatible argument 3 (different address spaces))
+Fix kasan shadow poisoning size invoking get_vm_area_size() instead of
+accessing directly the field in the data structure to detect the correct
+value.
 
-Adjust the annotation at the definition fitting to that refactoring to make
-sparse happy again, which also resolves this warning from sparse:
-
-  kernel/hung_task.c:277:52: warning: incorrect type in argument 3 \
-    (different address spaces)
-  kernel/hung_task.c:277:52:    expected void *
-  kernel/hung_task.c:277:52:    got void [noderef] __user *buffer
-
-No functional change. No change in object code.
-
-Link: https://lkml.kernel.org/r/20201028130541.20320-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrey Ignatov <rdna@fb.com>
+Link: https://lkml.kernel.org/r/20201027160213.32904-1-vincenzo.frascino@arm.com
+Fixes: d98c9e83b5e7c ("kasan: fix crashes on access to memory mapped by vm_map_ram()")
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/hung_task.c~kernel-hung_taskc-make-type-annotations-consistent
-+++ a/kernel/hung_task.c
-@@ -225,8 +225,7 @@ static long hung_timeout_jiffies(unsigne
-  * Process updating of timeout sysctl
-  */
- int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
--				  void __user *buffer,
--				  size_t *lenp, loff_t *ppos)
-+				  void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret;
+--- a/mm/vmalloc.c~mm-vmalloc-fix-kasan-shadow-poisoning-size
++++ a/mm/vmalloc.c
+@@ -2256,7 +2256,7 @@ static void __vunmap(const void *addr, i
+ 	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
+ 	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
+ 
+-	kasan_poison_vmalloc(area->addr, area->size);
++	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
+ 
+ 	vm_remove_mappings(area, deallocate_pages);
  
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
-kernel-hung_taskc-make-type-annotations-consistent.patch
-mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
 
