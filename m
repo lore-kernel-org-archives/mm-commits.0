@@ -2,237 +2,165 @@ Return-Path: <SRS0=1Kf1=EE=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE9BFC55179
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Oct 2020 00:57:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACF5FC388F7
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Oct 2020 01:22:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9789420791
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Oct 2020 00:57:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 678372064C
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Oct 2020 01:22:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603933075;
-	bh=je+aU0HymNQdfvcQvbKAL3eNphA+mRrqIms1RycLyUU=;
+	s=default; t=1603934561;
+	bh=gacJxhPFaV7MzWGuIG1Bkmd7QlRpAFNicJ9/Ih7v/T0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HIQfjQUPqubvAOqtiJfFXY1VmFdlbfmv78+dAVtCpwloB2ZZaXH1Hi4WFuxWWFkpl
-	 kcxk1Jecau3brrn/HoLXDIAEBkPcOJ1ptqzN7vUsD0UvgdBF2ItJMFQuxaUMVByzwy
-	 7z1xsQUNz7yeJZmqpoyqnilREm8Ngwf3IuYMHXF4=
+	b=VoptAOq7VT4EtsFZdnQO1RTFQBe5amlR71TovURzRucsxBqAXDFuAXsszaSLOYZHS
+	 Zxq7eW8UwlKeL/aQpHE29FgXv8GmtZiWvdq6L+UnRtisQdnHm3LlxYzxjtmprAorVC
+	 wYLWMw36IIx5lVD8cSXkSiUo4lIvdBsCxMylDFB8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731619AbgJ2A5n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:57:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41462 "EHLO mail.kernel.org"
+        id S1729486AbgJ1WEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:04:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727974AbgJ2A5c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:57:32 -0400
+        id S1729506AbgJ1WCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:02:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BE58120719;
-        Thu, 29 Oct 2020 00:57:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 251B52481F;
+        Wed, 28 Oct 2020 20:46:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603933050;
-        bh=je+aU0HymNQdfvcQvbKAL3eNphA+mRrqIms1RycLyUU=;
+        s=default; t=1603917981;
+        bh=gacJxhPFaV7MzWGuIG1Bkmd7QlRpAFNicJ9/Ih7v/T0=;
         h=Date:From:To:Subject:From;
-        b=fUNshvEnrb024L9bkDbOy/ZOrufYWMiQs1Dk5pgtW3i5fXxKPiE8sPgDYBiMmAF+N
-         mXXxUm7MDgykneuc1nzGUuUi04ngj5TLhA4pInZbc10mSWwN4VClnblHdnThGDBXvo
-         3nbcag6MvYyX6P1nhgvLbvJFIupUfygF1zld5VRI=
-Date:   Wed, 28 Oct 2020 17:57:29 -0700
+        b=IF2/gMm766vdXRX9qSJh4fTqdJdbY6YrIckS2mQ4uUyDRbKxNlM6krs+L3/Tn+Ypx
+         7BJVSrx8pHfbZZv2/x5LSanA/JpgjnhwXCK7NYOu2aRg34FPW2v/6c3SuluG0veqBc
+         Nt0oNUjrfA60KKFdXhM9HdrgtdlU4gTCb2hqaZg8=
+Date:   Wed, 28 Oct 2020 13:46:19 -0700
 From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  mmotm 2020-10-28-17-56 uploaded
-Message-ID: <20201029005729.w34EOeDF2%akpm@linux-foundation.org>
+To:     aryabinin@virtuozzo.com, bp@alien8.de, brijesh.singh@amd.com,
+        corbet@lwn.net, dvyukov@google.com, dyoung@redhat.com,
+        glider@google.com, jgg@nvidia.com, konrad.wilk@oracle.com,
+        luto@kernel.org, lwoodman@redhat.com, matt@codeblueprint.co.uk,
+        mingo@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com,
+        pbonzini@redhat.com, peterz@infradead.org, riel@redhat.com,
+        stable@vger.kernel.org, tglx@linutronix.de,
+        thomas.lendacky@amd.com, toshi.kani@hpe.com
+Subject:  +
+ mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch added to -mm
+ tree
+Message-ID: <20201028204619.tp952CPe7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2020-10-28-17-56 has been uploaded to
 
-   https://www.ozlabs.org/~akpm/mmotm/
+The patch titled
+     Subject: mm: always have io_remap_pfn_range() set pgprot_decrypted()
+has been added to the -mm tree.  Its filename is
+     mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
 
-mmotm-readme.txt says
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
 
-README for mm-of-the-moment:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-https://www.ozlabs.org/~akpm/mmotm/
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-https://ozlabs.org/~akpm/mmotm/series
+------------------------------------------------------
+From: Jason Gunthorpe <jgg@nvidia.com>
+Subject: mm: always have io_remap_pfn_range() set pgprot_decrypted()
 
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
+The purpose of io_remap_pfn_range() is to map IO memory, such as a memory
+mapped IO exposed through a PCI BAR.  IO devices do not understand
+encryption, so this memory must always be decrypted.  Automatically call
+pgprot_decrypted() as part of the generic implementation.
 
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
+This fixes a bug where enabling AMD SME causes subsystems, such as RDMA,
+using io_remap_pfn_range() to expose BAR pages to user space to fail.  The
+CPU will encrypt access to those BAR pages instead of passing unencrypted
+IO directly to the device.
 
+Places not mapping IO should use remap_pfn_range().
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+Link: https://lkml.kernel.org/r/0-v1-025d64bdf6c4+e-amd_sme_fix_jgg@nvidia.com
+Fixes: aca20d546214 ("x86/mm: Add support to make use of Secure Memory Encryption")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+CcK Arnd Bergmann <arnd@arndb.de>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brijesh Singh <brijesh.singh@amd.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: "Dave Young" <dyoung@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Toshimitsu Kani <toshi.kani@hpe.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	https://github.com/hnaz/linux-mm
+ include/linux/mm.h      |    9 +++++++++
+ include/linux/pgtable.h |    4 ----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+--- a/include/linux/mm.h~mm-always-have-io_remap_pfn_range-set-pgprot_decrypted
++++ a/include/linux/mm.h
+@@ -2759,6 +2759,15 @@ static inline vm_fault_t vmf_insert_page
+ 	return VM_FAULT_NOPAGE;
+ }
+ 
++#ifndef io_remap_pfn_range
++static inline int io_remap_pfn_range(struct vm_area_struct *vma,
++				     unsigned long addr, unsigned long pfn,
++				     unsigned long size, pgprot_t prot)
++{
++	return remap_pfn_range(vma, addr, pfn, size, pgprot_decrypted(prot));
++}
++#endif
++
+ static inline vm_fault_t vmf_error(int err)
+ {
+ 	if (err == -ENOMEM)
+--- a/include/linux/pgtable.h~mm-always-have-io_remap_pfn_range-set-pgprot_decrypted
++++ a/include/linux/pgtable.h
+@@ -1427,10 +1427,6 @@ typedef unsigned int pgtbl_mod_mask;
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#ifndef io_remap_pfn_range
+-#define io_remap_pfn_range remap_pfn_range
+-#endif
+-
+ #ifndef has_transparent_hugepage
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define has_transparent_hugepage() 1
+_
 
-A git copy of this tree is also available at
+Patches currently in -mm which might be from jgg@nvidia.com are
 
-	https://github.com/hnaz/linux-mm
+mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
 
-
-
-This mmotm tree contains the following patches against 5.10-rc1:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-* mm-mremap_pages-fix-static-key-devmap_managed_key-updates.patch
-* hugetlb_cgroup-fix-reservation-accounting.patch
-* mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg.patch
-* mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
-* mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix.patch
-* mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false.patch
-* compilerh-fix-barrier_data-on-clang.patch
-* kasan-adopt-kunit-tests-to-sw_tags-mode.patch
-* mm-mempolicy-fix-potential-pte_unmap_unlock-pte-error.patch
-* ptrace-fix-task_join_group_stop-for-the-case-when-current-is-traced.patch
-* lib-crc32test-remove-extra-local_irq_disable-enable.patch
-* mm-make-__invalidate_mapping_pages-static.patch
-* kthread_worker-prevent-queuing-delayed-work-from-timer_fn-when-it-is-being-canceled.patch
-* mm-oom-keep-oom_adj-under-or-at-upper-limit-when-printing.patch
-* mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
-* epoll-check-ep_events_available-upon-timeout.patch
-* epoll-add-a-selftest-for-epoll-timeout-race.patch
-* kernel-hung_taskc-make-type-annotations-consistent.patch
-* mm-slub-fix-panic-in-slab_alloc_node.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* kthread-add-kthread_work-tracepoints.patch
-* uapi-move-constants-from-linux-kernelh-to-linux-consth.patch
-* fs-ocfs2-remove-unneeded-break.patch
-* ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* ramfs-support-o_tmpfile.patch
-* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
-  mm.patch
-* mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
-* mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
-* device-dax-kmem-use-struct_size.patch
-* mm-fix-page_owner-initializing-issue-for-arm32.patch
-* fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
-* fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch
-* mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
-* mm-gup_benchmark-rename-to-mm-gup_test.patch
-* selftests-vm-use-a-common-gup_testh.patch
-* selftests-vm-rename-run_vmtests-run_vmtestssh.patch
-* selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
-* selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
-* selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
-* selftests-vm-run_vmtestssh-update-and-clean-up-gup_test-invocation.patch
-* selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
-* selftests-vm-2x-speedup-for-run_vmtestssh.patch
-* mm-handle-zone-device-pages-in-release_pages.patch
-* mm-swapfilec-use-helper-function-swap_count-in-add_swap_count_continuation.patch
-* mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0.patch
-* mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-* mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate.patch
-* mm-swap-use-memset-to-fill-the-swap_map-with-swap_has_cache.patch
-* mm-memcontrol-add-file_thp-shmem_thp-to-memorystat.patch
-* mm-memcontrol-add-file_thp-shmem_thp-to-memorystat-fix.patch
-* mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-* mm-memcontrol-eliminate-redundant-check-in-__mem_cgroup_insert_exceeded.patch
-* mm-memcontrol-use-helpers-to-read-pages-memcg-data.patch
-* mm-memcontrol-slab-use-helpers-to-access-slab-pages-memcg_data.patch
-* mm-introduce-page-memcg-flags.patch
-* mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
-* xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
-* kselftests-vm-add-mremap-tests.patch
-* mm-speedup-mremap-on-1gb-or-larger-regions.patch
-* arm64-mremap-speedup-enable-have_move_pud.patch
-* x86-mremap-speedup-enable-have_move_pud.patch
-* mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch
-* mm-mmap-fix-the-adjusted-length-error.patch
-* mm-mremap-account-memory-on-do_munmap-failure.patch
-* mm-mremap-for-mremap_dontunmap-check-security_vm_enough_memory_mm.patch
-* mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
-* vm_ops-rename-split-callback-to-may_split.patch
-* mremap-check-if-its-possible-to-split-original-vma.patch
-* mm-forbid-splitting-special-mappings.patch
-* mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
-* mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
-* mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix.patch
-* mm-page_poison-use-static-key-more-efficiently.patch
-* mm-page_alloc-reduce-static-keys-in-prep_new_page.patch
-* mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
-* mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
-* mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
-* mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled.patch
-* mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
-* mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone.patch
-* mm-migrate-fix-comment-spelling.patch
-* mm-optimize-migrate_vma_pages-mmu-notifier.patch
-* mm-cmac-remove-redundant-cma_mutex-lock.patch
-* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
-* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-* mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
-* zsmalloc-rework-the-list_add-code-in-insert_zspage.patch
-* zram-support-a-page-writeback.patch
-* page-flags-remove-unused-__pageprivate.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* procfs-delete-duplicated-words-other-fixes.patch
-* proc-sysctl-make-protected_-world-readable.patch
-* asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision.patch
-* kernelh-split-out-mathematical-helpers.patch
-* acctc-use-elif-instead-of-end-and-elif.patch
-* bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
-* lib-stackdepot-add-support-to-configure-stack_hash_size.patch
-* lib-test_free_pages-add-basic-progress-indicators.patch
-* lib-stackdepotc-replace-one-element-array-with-flexible-array-member.patch
-* lib-stackdepotc-use-flex_array_size-helper-in-memcpy.patch
-* lib-stackdepotc-use-array_size-helper-in-jhash2.patch
-* lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
-* bitops-introduce-the-for_each_set_clump-macro.patch
-* lib-test_bitmapc-add-for_each_set_clump-test-cases.patch
-* lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-* gpio-thunderx-utilize-for_each_set_clump-macro.patch
-* gpio-xilinx-utilize-generic-bitmap_get_value-and-_set_value.patch
-* checkpatch-add-new-exception-to-repeated-word-check.patch
-* checkpatch-fix-false-positives-in-repeated_word-warning.patch
-* checkpatch-ignore-generated-camelcase-defines-and-enum-values.patch
-* checkpatch-prefer-static-const-declarations.patch
-* checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
-* checkpatch-extend-attributes-check-to-handle-more-patterns.patch
-* checkpatch-add-a-fixer-for-missing-newline-at-eof.patch
-* checkpatch-update-__attribute__sectionname-quote-removal.patch
-* checkpatch-update-__attribute__sectionname-quote-removal-v2.patch
-* kdump-append-uts_namespacename-offset-to-vmcoreinfo.patch
-* aio-simplify-read_events.patch
-* fault-injection-handle-ei_etype_true.patch
-* lib-lzo-make-lzogeneric1x_1_compress-static.patch
-  linux-next.patch
-* mmap-locking-api-dont-check-locking-if-the-mm-isnt-live-yet.patch
-* mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
