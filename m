@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E99CEC388F7
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 22:08:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B6DC388F7
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 22:08:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8EFE024724
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 22:08:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC08224724
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 22:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603922900;
-	bh=Yo1PheHm7AGdNV1yQ2Xp9T8/UMkpfFXeLnWEPHyZ91M=;
+	s=default; t=1603922929;
+	bh=neiD8c7HS2P9ZPGTK5aW/oTttwhEKrVG1bpAUbFxnDA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=b8ma288WX9ATlQwKc5bvjolXQMmU3Vs7JrlZ/qmuMtD3brpXX6rE7zujVOfTR4z4W
-	 OsqzUrRpoZCmsYXaft7vvbMrTkuqYaJEimdTZD6NjPklElbgWMNjpWbhEMuNntsQX7
-	 oP+R0l4y2FX2/ldFrNb02XBaF8KhYE/Q+4LBt/Rk=
+	b=tWn+MPhsJKMHJUv692RE/ddCIKNc8m8GJUo+EEuh5tNdM6Gr545zQGgPnvZr+9YdQ
+	 HThjrFV7DPGD9eQStQi+g4ZXv4MtmYYxBypAUhbpvois39+TpQp6/oRtCkKefFUxlp
+	 vKEpRw0ZIQFzx8mVLdzCSXnV8SfUjnrRZL0R1yyY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730095AbgJ1WH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Oct 2020 18:07:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52326 "EHLO mail.kernel.org"
+        id S1728730AbgJ1WIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:08:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730089AbgJ1WHX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:07:23 -0400
+        id S1730093AbgJ1WH1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:07:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2A73624823;
-        Wed, 28 Oct 2020 20:50:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EB87E24825;
+        Wed, 28 Oct 2020 20:50:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603918236;
-        bh=Yo1PheHm7AGdNV1yQ2Xp9T8/UMkpfFXeLnWEPHyZ91M=;
+        s=default; t=1603918239;
+        bh=neiD8c7HS2P9ZPGTK5aW/oTttwhEKrVG1bpAUbFxnDA=;
         h=Date:From:To:Subject:From;
-        b=m1jIUQDfN2EmxZQVNDG+lZK841foPiNPRQL6+Nu5zo9y/dy0KICdKZJ+MnKyM931q
-         FajDrLOC8Si9eDyr8VLhUViyLwnB4PZL4kvWzwuXVto3iYtYijKt53V473EIpUXlpR
-         krfJf+fR5WXbuWYTaZv7KlpP72UX5x0YDS+S5F/w=
-Date:   Wed, 28 Oct 2020 13:50:35 -0700
+        b=IiMa+UgJkn/OuVZLN6gcKclajb0CiqPjX5kxKihjbpPvedjIHW6Mee9VAEv2qI/Ag
+         ooxfHP7VWIwABqpmnR7h4ThlxjY48a0hujtxswi4MZ/Ix9JRonUrtatWl8fwZV2Mn5
+         JdlwTnzlFzXbB2e2bgJlCLJT16tzfEItDKewBS48=
+Date:   Wed, 28 Oct 2020 13:50:38 -0700
 From:   akpm@linux-foundation.org
 To:     dave@stgolabs.net, edumazet@google.com, guantaol@google.com,
         khazhy@google.com, mm-commits@vger.kernel.org, soheil@google.com,
         viro@zeniv.linux.org.uk, willemb@google.com
-Subject:  + epoll-check-ep_events_available-upon-timeout.patch
- added to -mm tree
-Message-ID: <20201028205035.u3YgrZaVe%akpm@linux-foundation.org>
+Subject:  + epoll-add-a-selftest-for-epoll-timeout-race.patch added
+ to -mm tree
+Message-ID: <20201028205038.WVumTPa9m%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: check ep_events_available() upon timeout
+     Subject: epoll: add a selftest for epoll timeout race
 has been added to the -mm tree.  Its filename is
-     epoll-check-ep_events_available-upon-timeout.patch
+     epoll-add-a-selftest-for-epoll-timeout-race.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/epoll-check-ep_events_available-upon-timeout.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/epoll-add-a-selftest-for-epoll-timeout-race.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-check-ep_events_available-upon-timeout.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-add-a-selftest-for-epoll-timeout-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,74 +76,127 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Soheil Hassas Yeganeh <soheil@google.com>
-Subject: epoll: check ep_events_available() upon timeout
+Subject: epoll: add a selftest for epoll timeout race
 
-After abc610e01c66 ("fs/epoll: avoid barrier after an epoll_wait(2)
-timeout"), we break out of the ep_poll loop upon timeout, without checking
-whether there is any new events available.  Prior to that patch-series we
-always called ep_events_available() after exiting the loop.
+Add a test case to ensure an event is observed by at least one poller when
+an epoll timeout is used.
 
-This can cause races and missed wakeups.  For example, consider the
-following scenario reported by Guantao Liu:
-
-Suppose we have an eventfd added using EPOLLET to an epollfd.
-
-Thread 1: Sleeps for just below 5ms and then writes to an eventfd.
-Thread 2: Calls epoll_wait with a timeout of 5 ms. If it sees an
-          event of the eventfd, it will write back on that fd.
-Thread 3: Calls epoll_wait with a negative timeout.
-
-Prior to abc610e01c66, it is guaranteed that Thread 3 will wake up either
-by Thread 1 or Thread 2.  After abc610e01c66, Thread 3 can be blocked
-indefinitely if Thread 2 sees a timeout right before the write to the
-eventfd by Thread 1.  Thread 2 will be woken up from
-schedule_hrtimeout_range and, with evail 0, it will not call
-ep_send_events().
-
-To fix this issue, while holding the lock, try to remove the thread that
-timed out the wait queue and check whether it was woken up or not.
-
-Link: https://lkml.kernel.org/r/20201028180202.952079-1-soheil.kdev@gmail.com
-Fixes: abc610e01c66 ("fs/epoll: avoid barrier after an epoll_wait(2) timeout")
+Link: https://lkml.kernel.org/r/20201028180202.952079-2-soheil.kdev@gmail.com
+Signed-off-by: Guantao Liu <guantaol@google.com>
 Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
-Reported-by: Guantao Liu <guantaol@google.com>
-Tested-by: Guantao Liu <guantaol@google.com>
 Reviewed-by: Eric Dumazet <edumazet@google.com>
 Acked-by: Willem de Bruijn <willemb@google.com>
 Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   95 ++++++++++
+ 1 file changed, 95 insertions(+)
 
---- a/fs/eventpoll.c~epoll-check-ep_events_available-upon-timeout
-+++ a/fs/eventpoll.c
-@@ -1907,7 +1907,21 @@ fetch_events:
+--- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~epoll-add-a-selftest-for-epoll-timeout-race
++++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
+@@ -3282,4 +3282,99 @@ TEST(epoll60)
+ 	close(ctx.epfd);
+ }
  
- 		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS)) {
- 			timed_out = 1;
--			break;
-+			__set_current_state(TASK_RUNNING);
-+			/*
-+			 * Acquire the lock and try to remove this thread from
-+			 * the wait queue. If this thread is not on the wait
-+			 * queue, it has woken up after its timeout ended
-+			 * before it could re-acquire the lock. In that case,
-+			 * try to harvest some events.
-+			 */
-+			write_lock_irq(&ep->lock);
-+			if (!list_empty(&wait.entry))
-+				__remove_wait_queue(&ep->wq, &wait);
-+			else
-+				eavail = 1;
-+			write_unlock_irq(&ep->lock);
-+			goto send_events;
- 		}
- 
- 		/* We were woken up, thus go and try to harvest some events */
++struct epoll61_ctx {
++	int epfd;
++	int evfd;
++};
++
++static void *epoll61_write_eventfd(void *ctx_)
++{
++	struct epoll61_ctx *ctx = ctx_;
++	int64_t l = 1;
++
++	usleep(10950);
++	write(ctx->evfd, &l, sizeof(l));
++	return NULL;
++}
++
++static void *epoll61_epoll_with_timeout(void *ctx_)
++{
++	struct epoll61_ctx *ctx = ctx_;
++	struct epoll_event events[1];
++	int n;
++
++	n = epoll_wait(ctx->epfd, events, 1, 11);
++	/*
++	 * If epoll returned the eventfd, write on the eventfd to wake up the
++	 * blocking poller.
++	 */
++	if (n == 1) {
++		int64_t l = 1;
++
++		write(ctx->evfd, &l, sizeof(l));
++	}
++	return NULL;
++}
++
++static void *epoll61_blocking_epoll(void *ctx_)
++{
++	struct epoll61_ctx *ctx = ctx_;
++	struct epoll_event events[1];
++
++	epoll_wait(ctx->epfd, events, 1, -1);
++	return NULL;
++}
++
++TEST(epoll61)
++{
++	struct epoll61_ctx ctx;
++	struct epoll_event ev;
++	int i, r;
++
++	ctx.epfd = epoll_create1(0);
++	ASSERT_GE(ctx.epfd, 0);
++	ctx.evfd = eventfd(0, EFD_NONBLOCK);
++	ASSERT_GE(ctx.evfd, 0);
++
++	ev.events = EPOLLIN | EPOLLET | EPOLLERR | EPOLLHUP;
++	ev.data.ptr = NULL;
++	r = epoll_ctl(ctx.epfd, EPOLL_CTL_ADD, ctx.evfd, &ev);
++	ASSERT_EQ(r, 0);
++
++	/*
++	 * We are testing a race.  Repeat the test case 1000 times to make it
++	 * more likely to fail in case of a bug.
++	 */
++	for (i = 0; i < 1000; i++) {
++		pthread_t threads[3];
++		int n;
++
++		/*
++		 * Start 3 threads:
++		 * Thread 1 sleeps for 10.9ms and writes to the evenfd.
++		 * Thread 2 calls epoll with a timeout of 11ms.
++		 * Thread 3 calls epoll with a timeout of -1.
++		 *
++		 * The eventfd write by Thread 1 should either wakeup Thread 2
++		 * or Thread 3.  If it wakes up Thread 2, Thread 2 writes on the
++		 * eventfd to wake up Thread 3.
++		 *
++		 * If no events are missed, all three threads should eventually
++		 * be joinable.
++		 */
++		ASSERT_EQ(pthread_create(&threads[0], NULL,
++					 epoll61_write_eventfd, &ctx), 0);
++		ASSERT_EQ(pthread_create(&threads[1], NULL,
++					 epoll61_epoll_with_timeout, &ctx), 0);
++		ASSERT_EQ(pthread_create(&threads[2], NULL,
++					 epoll61_blocking_epoll, &ctx), 0);
++
++		for (n = 0; n < ARRAY_SIZE(threads); ++n)
++			ASSERT_EQ(pthread_join(threads[n], NULL), 0);
++	}
++
++	close(ctx.epfd);
++	close(ctx.evfd);
++}
++
+ TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from soheil@google.com are
