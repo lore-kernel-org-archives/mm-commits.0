@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C705C4363A
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 23:31:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBA9C388F7
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 23:33:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B99C6207CD
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 23:31:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6899E207CD
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Oct 2020 23:33:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603927862;
-	bh=X7vmz9CDphvvk10dVNlLebRu8glKxduQAGyQMdVorZA=;
+	s=default; t=1603927994;
+	bh=EjC/JUU56nr9jrg/8dZLpVOPHQzV8TPkZLwJsc8DzFA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=CG1a53uDEkDrDjxcIfwvHfAM9CSc9Nxwlc9sk5GkVhAVe9HZVlT+/MYPlweRupBmB
-	 WyilfbRqjt2on9vXRMtfBDTyo177CMM9/TTPyWbMZAV8u8fACQWX8MiLQ9K6mIvcaG
-	 mqyug/QqNCb3cwA4Bx60oIeoa5XBnKgZwQZsHewk=
+	b=ccPjIre9AnTxsJQ1NehsWbC9v3qaPJLl5FDZarxotQ5OcmzITfaBan92hfOTCtGmS
+	 SgX9DnE/eLNqqLpApShy2HLJlFJBFcgBCblJ2huJp2McebRk0i7GLUUTSh1Rzaed6p
+	 1CUcSvC/sLzi9ghxVrsdnsKIBbdlS3e7DtreRyG0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726928AbgJ1XbB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Oct 2020 19:31:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50454 "EHLO mail.kernel.org"
+        id S1726859AbgJ1XdO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Oct 2020 19:33:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390419AbgJ1X3Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Oct 2020 19:29:16 -0400
+        id S2390121AbgJ1Xb4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Oct 2020 19:31:56 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1B7F620796;
-        Wed, 28 Oct 2020 23:29:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 10978207BC;
+        Wed, 28 Oct 2020 23:31:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603927755;
-        bh=X7vmz9CDphvvk10dVNlLebRu8glKxduQAGyQMdVorZA=;
+        s=default; t=1603927915;
+        bh=EjC/JUU56nr9jrg/8dZLpVOPHQzV8TPkZLwJsc8DzFA=;
         h=Date:From:To:Subject:From;
-        b=fTDc2irqiOvCeaqlG3VitZIiiV9A5NI2To5fYwR5PU7IuSWDyv2DQWjsbFGAbLB3X
-         V/FSO+a+ZxI+DDX3W1qGWRy4ltEtt2J4QHh9X9hO6k4fsx3Ymk/p6gf6GvTvYPI+VQ
-         kKXJRXjuQfZ8SXMFjDDoqncsqejgw3TZhQIWO8kE=
-Date:   Wed, 28 Oct 2020 16:29:14 -0700
+        b=I/zwKfFzkeTCXkPR+GYztKgJRGFwq8zFdP6JramvaPW20qqE0Y+YzrhccmCox1QPm
+         ohRqsMKvx/m2tXFogwUHiaPVfgFAbXXwfoMSrTkAVRP6hac9GvtLmd5vATFAWdJp6k
+         JeUy8pgwAj1t4UgZT9QJ7e3Sr8DXCvy4CRG/lBB8=
+Date:   Wed, 28 Oct 2020 16:31:54 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  + mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
- added to -mm tree
-Message-ID: <20201028232914.LfXO1aXet%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, ltp@lists.linux.it,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        rpalethorpe@suse.com, shakeelb@google.com, stable@vger.kernel.org
+Subject:  +
+ mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false.patch added
+ to -mm tree
+Message-ID: <20201028233154.HmIlG7gKr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert page kmemcg type to a page memcg flag
+     Subject: mm: memcg: link page counters to root if use_hierarchy is false
 has been added to the -mm tree.  Its filename is
-     mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
+     mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,228 +77,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: convert page kmemcg type to a page memcg flag
+Subject: mm: memcg: link page counters to root if use_hierarchy is false
 
-PageKmemcg flag is currently defined as a page type (like buddy, offline,
-table and guard).  Semantically it means that the page was accounted as a
-kernel memory by the page allocator and has to be uncharged on the
-release.
+Richard reported a warning which can be reproduced by running the LTP
+madvise6 test (cgroup v1 in the non-hierarchical mode should be used):
 
-As a side effect of defining the flag as a page type, the accounted page
-can't be mapped to userspace (look at page_has_type() and comments above).
-In particular, this blocks the accounting of vmalloc-backed memory used
-by some bpf maps, because these maps do map the memory to userspace.
+[    9.841552] ------------[ cut here ]------------
+[    9.841788] WARNING: CPU: 0 PID: 12 at mm/page_counter.c:57 page_counter_uncharge (mm/page_counter.c:57 mm/page_counter.c:50 mm/page_counter.c:156)
+[    9.841982] Modules linked in:
+[    9.842072] CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.9.0-rc7-22-default #77
+[    9.842266] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.13.0-48-gd9c812d-rebuilt.opensuse.org 04/01/2014
+[    9.842571] Workqueue: events drain_local_stock
+[    9.842750] RIP: 0010:page_counter_uncharge (mm/page_counter.c:57 mm/page_counter.c:50 mm/page_counter.c:156)
+[ 9.842894] Code: 0f c1 45 00 4c 29 e0 48 89 ef 48 89 c3 48 89 c6 e8 2a fe ff ff 48 85 db 78 10 48 8b 6d 28 48 85 ed 75 d8 5b 5d 41 5c 41 5d c3 <0f> 0b eb ec 90 e8 4b f9 88 2a 48 8b 17 48 39 d6 72 41 41 54 49 89
+[    9.843438] RSP: 0018:ffffb1c18006be28 EFLAGS: 00010086
+[    9.843585] RAX: ffffffffffffffff RBX: ffffffffffffffff RCX: ffff94803bc2cae0
+[    9.843806] RDX: 0000000000000001 RSI: ffffffffffffffff RDI: ffff948007d2b248
+[    9.844026] RBP: ffff948007d2b248 R08: ffff948007c58eb0 R09: ffff948007da05ac
+[    9.844248] R10: 0000000000000018 R11: 0000000000000018 R12: 0000000000000001
+[    9.844477] R13: ffffffffffffffff R14: 0000000000000000 R15: ffff94803bc2cac0
+[    9.844696] FS:  0000000000000000(0000) GS:ffff94803bc00000(0000) knlGS:0000000000000000
+[    9.844915] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    9.845096] CR2: 00007f0579ee0384 CR3: 000000002cc0a000 CR4: 00000000000006f0
+[    9.845319] Call Trace:
+[    9.845429] __memcg_kmem_uncharge (mm/memcontrol.c:3022)
+[    9.845582] drain_obj_stock (./include/linux/rcupdate.h:689 mm/memcontrol.c:3114)
+[    9.845684] drain_local_stock (mm/memcontrol.c:2255)
+[    9.845789] process_one_work (./arch/x86/include/asm/jump_label.h:25 ./include/linux/jump_label.h:200 ./include/trace/events/workqueue.h:108 kernel/workqueue.c:2274)
+[    9.845898] worker_thread (./include/linux/list.h:282 kernel/workqueue.c:2416)
+[    9.846034] ? process_one_work (kernel/workqueue.c:2358)
+[    9.846162] kthread (kernel/kthread.c:292)
+[    9.846271] ? __kthread_bind_mask (kernel/kthread.c:245)
+[    9.846420] ret_from_fork (arch/x86/entry/entry_64.S:300)
+[    9.846531] ---[ end trace 8b5647c1eba9d18a ]---
 
-One option is to fix it by complicating the access to page->mapcount,
-which provides some free bits for page->page_type.
+The problem occurs because in the non-hierarchical mode non-root page
+counters are not linked to root page counters, so the charge is not
+propagated to the root memory cgroup.
 
-But it's way better to move this flag into page->memcg_data flags. 
-Indeed, the flag makes no sense without enabled memory cgroups and memory
-cgroup pointer set in particular.
+After the removal of the original memory cgroup and reparenting of the
+object cgroup, the root cgroup might be uncharged by draining a objcg
+stock, for example.  It leads to an eventual underflow of the charge and
+triggers a warning.
 
-This commit replaces PageKmemcg() and __SetPageKmemcg() with
-PageMemcgKmem() and an open-coded OR operation setting the memcg pointer
-with the MEMCG_DATA_KMEM bit.  __ClearPageKmemcg() can be simple deleted,
-as the whole memcg_data is zeroed at once.
+Fix it by linking all page counters to corresponding root page counters in
+the non-hierarchical mode.
 
-As a bonus, on !CONFIG_MEMCG build the PageMemcgKmem() check will be
-compiled out.
+Please note, that in the non-hierarchical mode all objcgs are always
+reparented to the root memory cgroup, even if the hierarchy has more than
+1 level.  This patch doesn't change it.
 
-Link: https://lkml.kernel.org/r/20201027001657.3398190-5-guro@fb.com
+The patch also doesn't affect how the hierarchical mode is working, which
+is the only sane and truly supported mode now.
+
+Thanks to Richard for reporting, debugging and providing an alternative
+version of the fix!
+
+Link: https://lkml.kernel.org/r/20201026231326.3212225-1-guro@fb.com
+Fixes: bf4f059954dc ("mm: memcg/slab: obj_cgroup API")
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Debugged-by: Richard Palethorpe <rpalethorpe@suse.com>
+Reported-by: <ltp@lists.linux.it>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   37 +++++++++++++++++++++++++++++++----
- include/linux/page-flags.h |   11 +---------
- mm/memcontrol.c            |   16 ++++-----------
- mm/page_alloc.c            |    4 +--
- 4 files changed, 42 insertions(+), 26 deletions(-)
+ mm/memcontrol.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-convert-page-kmemcg-type-to-a-page-memcg-flag
-+++ a/include/linux/memcontrol.h
-@@ -346,8 +346,10 @@ extern struct mem_cgroup *root_mem_cgrou
- enum page_memcg_data_flags {
- 	/* page->memcg_data is a pointer to an objcgs vector */
- 	MEMCG_DATA_OBJCGS = (1UL << 0),
-+	/* page has been accounted as a non-slab kernel page */
-+	MEMCG_DATA_KMEM = (1UL << 1),
- 	/* the next bit after the last actual flag */
--	__NR_MEMCG_DATA_FLAGS  = (1UL << 1),
-+	__NR_MEMCG_DATA_FLAGS  = (1UL << 2),
- };
- 
- #define MEMCG_DATA_FLAGS_MASK (__NR_MEMCG_DATA_FLAGS - 1)
-@@ -369,8 +371,12 @@ enum page_memcg_data_flags {
-  */
- static inline struct mem_cgroup *page_memcg(struct page *page)
- {
-+	unsigned long memcg_data = page->memcg_data;
-+
- 	VM_BUG_ON_PAGE(PageSlab(page), page);
--	return (struct mem_cgroup *)page->memcg_data;
-+	VM_BUG_ON_PAGE(memcg_data & MEMCG_DATA_OBJCGS, page);
-+
-+	return (struct mem_cgroup *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
- }
- 
- /*
-@@ -387,7 +393,8 @@ static inline struct mem_cgroup *page_me
- 	VM_BUG_ON_PAGE(PageSlab(page), page);
- 	WARN_ON_ONCE(!rcu_read_lock_held());
- 
--	return (struct mem_cgroup *)READ_ONCE(page->memcg_data);
-+	return (struct mem_cgroup *)(READ_ONCE(page->memcg_data) &
-+				     ~MEMCG_DATA_FLAGS_MASK);
- }
- 
- /*
-@@ -416,7 +423,21 @@ static inline struct mem_cgroup *page_me
- 	if (memcg_data & MEMCG_DATA_OBJCGS)
- 		return NULL;
- 
--	return (struct mem_cgroup *)memcg_data;
-+	return (struct mem_cgroup *)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
-+}
-+
-+/*
-+ * PageMemcgKmem - check if the page has MemcgKmem flag set
-+ * @page: a pointer to the page struct
-+ *
-+ * Checks if the page has MemcgKmem flag set. The caller must ensure that
-+ * the page has an associated memory cgroup. It's not safe to call this function
-+ * against some types of pages, e.g. slab pages.
-+ */
-+static inline bool PageMemcgKmem(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(page->memcg_data & MEMCG_DATA_OBJCGS, page);
-+	return page->memcg_data & MEMCG_DATA_KMEM;
- }
- 
- #ifdef CONFIG_MEMCG_KMEM
-@@ -435,6 +456,7 @@ static inline struct obj_cgroup **page_o
- 	unsigned long memcg_data = READ_ONCE(page->memcg_data);
- 
- 	VM_BUG_ON_PAGE(memcg_data && !(memcg_data & MEMCG_DATA_OBJCGS), page);
-+	VM_BUG_ON_PAGE(memcg_data & MEMCG_DATA_KMEM, page);
- 
- 	return (struct obj_cgroup **)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
- }
-@@ -454,6 +476,8 @@ static inline struct obj_cgroup **page_o
- 	if (!memcg_data || !(memcg_data & MEMCG_DATA_OBJCGS))
- 		return NULL;
- 
-+	VM_BUG_ON_PAGE(memcg_data & MEMCG_DATA_KMEM, page);
-+
- 	return (struct obj_cgroup **)(memcg_data & ~MEMCG_DATA_FLAGS_MASK);
- }
- 
-@@ -1107,6 +1131,11 @@ static inline struct mem_cgroup *page_me
- 	return NULL;
- }
- 
-+static inline bool PageMemcgKmem(struct page *page)
-+{
-+	return false;
-+}
-+
- static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
- {
- 	return true;
---- a/include/linux/page-flags.h~mm-convert-page-kmemcg-type-to-a-page-memcg-flag
-+++ a/include/linux/page-flags.h
-@@ -715,9 +715,8 @@ PAGEFLAG_FALSE(DoubleMap)
- #define PAGE_MAPCOUNT_RESERVE	-128
- #define PG_buddy	0x00000080
- #define PG_offline	0x00000100
--#define PG_kmemcg	0x00000200
--#define PG_table	0x00000400
--#define PG_guard	0x00000800
-+#define PG_table	0x00000200
-+#define PG_guard	0x00000400
- 
- #define PageType(page, flag)						\
- 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
-@@ -769,12 +768,6 @@ PAGE_TYPE_OPS(Buddy, buddy)
- PAGE_TYPE_OPS(Offline, offline)
- 
- /*
-- * If kmemcg is enabled, the buddy allocator will set PageKmemcg() on
-- * pages allocated with __GFP_ACCOUNT. It gets cleared on page free.
-- */
--PAGE_TYPE_OPS(Kmemcg, kmemcg)
--
--/*
-  * Marks pages in use as page tables.
-  */
- PAGE_TYPE_OPS(Table, table)
---- a/mm/memcontrol.c~mm-convert-page-kmemcg-type-to-a-page-memcg-flag
+--- a/mm/memcontrol.c~mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false
 +++ a/mm/memcontrol.c
-@@ -3078,8 +3078,8 @@ int __memcg_kmem_charge_page(struct page
- 	if (memcg && !mem_cgroup_is_root(memcg)) {
- 		ret = __memcg_kmem_charge(memcg, gfp, 1 << order);
- 		if (!ret) {
--			page->memcg_data = (unsigned long)memcg;
--			__SetPageKmemcg(page);
-+			page->memcg_data = (unsigned long)memcg |
-+				MEMCG_DATA_KMEM;
- 			return 0;
- 		}
- 		css_put(&memcg->css);
-@@ -3104,10 +3104,6 @@ void __memcg_kmem_uncharge_page(struct p
- 	__memcg_kmem_uncharge(memcg, nr_pages);
- 	page->memcg_data = 0;
- 	css_put(&memcg->css);
--
--	/* slab pages do not have PageKmemcg flag set */
--	if (PageKmemcg(page))
--		__ClearPageKmemcg(page);
- }
- 
- static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
-@@ -6860,12 +6856,10 @@ static void uncharge_page(struct page *p
- 	nr_pages = compound_nr(page);
- 	ug->nr_pages += nr_pages;
- 
--	if (!PageKmemcg(page)) {
--		ug->pgpgout++;
--	} else {
-+	if (PageMemcgKmem(page))
- 		ug->nr_kmem += nr_pages;
--		__ClearPageKmemcg(page);
--	}
-+	else
-+		ug->pgpgout++;
- 
- 	ug->dummy_page = page;
- 	page->memcg_data = 0;
---- a/mm/page_alloc.c~mm-convert-page-kmemcg-type-to-a-page-memcg-flag
-+++ a/mm/page_alloc.c
-@@ -1214,7 +1214,7 @@ static __always_inline bool free_pages_p
- 		 * Do not let hwpoison pages hit pcplists/buddy
- 		 * Untie memcg state and reset page's owner
- 		 */
--		if (memcg_kmem_enabled() && PageKmemcg(page))
-+		if (memcg_kmem_enabled() && PageMemcgKmem(page))
- 			__memcg_kmem_uncharge_page(page, order);
- 		reset_page_owner(page, order);
- 		return false;
-@@ -1244,7 +1244,7 @@ static __always_inline bool free_pages_p
+@@ -5345,17 +5345,22 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		memcg->swappiness = mem_cgroup_swappiness(parent);
+ 		memcg->oom_kill_disable = parent->oom_kill_disable;
  	}
- 	if (PageMappingFlags(page))
- 		page->mapping = NULL;
--	if (memcg_kmem_enabled() && PageKmemcg(page))
-+	if (memcg_kmem_enabled() && PageMemcgKmem(page))
- 		__memcg_kmem_uncharge_page(page, order);
- 	if (check_free)
- 		bad += check_free_page(page);
+-	if (parent && parent->use_hierarchy) {
++	if (!parent) {
++		page_counter_init(&memcg->memory, NULL);
++		page_counter_init(&memcg->swap, NULL);
++		page_counter_init(&memcg->kmem, NULL);
++		page_counter_init(&memcg->tcpmem, NULL);
++	} else if (parent->use_hierarchy) {
+ 		memcg->use_hierarchy = true;
+ 		page_counter_init(&memcg->memory, &parent->memory);
+ 		page_counter_init(&memcg->swap, &parent->swap);
+ 		page_counter_init(&memcg->kmem, &parent->kmem);
+ 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
+ 	} else {
+-		page_counter_init(&memcg->memory, NULL);
+-		page_counter_init(&memcg->swap, NULL);
+-		page_counter_init(&memcg->kmem, NULL);
+-		page_counter_init(&memcg->tcpmem, NULL);
++		page_counter_init(&memcg->memory, &root_mem_cgroup->memory);
++		page_counter_init(&memcg->swap, &root_mem_cgroup->swap);
++		page_counter_init(&memcg->kmem, &root_mem_cgroup->kmem);
++		page_counter_init(&memcg->tcpmem, &root_mem_cgroup->tcpmem);
+ 		/*
+ 		 * Deeper hierachy with use_hierarchy == false doesn't make
+ 		 * much sense so let cgroup subsystem know about this
 _
 
 Patches currently in -mm which might be from guro@fb.com are
 
+mm-memcg-link-page-counters-to-root-if-use_hierarchy-is-false.patch
 mm-memcontrol-use-helpers-to-read-pages-memcg-data.patch
 mm-memcontrol-slab-use-helpers-to-access-slab-pages-memcg_data.patch
 mm-introduce-page-memcg-flags.patch
