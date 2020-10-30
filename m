@@ -7,50 +7,54 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E3E4C2D0A3
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 00:44:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9E6FC2D0A3
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 01:13:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D69F22076D
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 00:44:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 692D220747
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 01:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604018644;
-	bh=LsouIRCeSwptER7pu8Tv/wSkXuSB+e5qcVFBmY5IPYU=;
+	s=default; t=1604020411;
+	bh=T3gfauBoFDQ8tNnIgEFOvrxc1COEs6gnC/eptH4kZKA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=TkD1MlvKH3WCbk8dGmi+rZb866Tkdy5EYlXWWnp3dHEdqB4f38tAZUsQtPDnAdFcl
-	 dvjOUsJj4DBLRKh8Z1ZKCIZlTSdtvqy121pHh96v/vhFLb/pyEM2sjKqnGOLfN6SYB
-	 /TcvpcZTyi/17KZBUL8Z84oqqjFdQ6FmPmQBh8Ag=
+	b=vDvve2bKTCrZHQI6SPQEK1H5/+jbDPCEE9Hrw4RQIWv2m+a3ox1N0zJsjUT+HP9PH
+	 wrO1X4VeFirVJ/kBpKdup6RqccKfAFN+Idf/AlRk7OarxKOO/rEzVZE2a0fdJFuPM7
+	 WAidwMCmjrLSWznNimslMSGWWxyPIU0UPcJ3QH2o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726210AbgJ3AoE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Oct 2020 20:44:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40786 "EHLO mail.kernel.org"
+        id S1725800AbgJ3BNb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 29 Oct 2020 21:13:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43768 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725797AbgJ3AoE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 29 Oct 2020 20:44:04 -0400
+        id S1725797AbgJ3BNa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 29 Oct 2020 21:13:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 32B4B20691;
-        Fri, 30 Oct 2020 00:44:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A22EB2072C;
+        Fri, 30 Oct 2020 01:13:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604018643;
-        bh=LsouIRCeSwptER7pu8Tv/wSkXuSB+e5qcVFBmY5IPYU=;
+        s=default; t=1604020409;
+        bh=T3gfauBoFDQ8tNnIgEFOvrxc1COEs6gnC/eptH4kZKA=;
         h=Date:From:To:Subject:From;
-        b=U3iFoRol1lD8q1bgcei0fqCCf66Ib/+UJfGnHojKdmvGJcxu3JPLgovgCKbgfkAQF
-         hsZGjZ6uDiTwsugwd6mr/X7SPDgoeyH9OHv4mBcfsmDqEy2GgpyS0HHNJpp0cTqfxG
-         eLtm9aQTKmVPLRkd6/EvROhCPtwM9ktQ4RjFUTnQ=
-Date:   Thu, 29 Oct 2020 17:44:01 -0700
+        b=ckbhfqFaM9n+xpZyDUOSh3avR0rUkbkPrjW3wURAV+Fr3+tl3ESXG5lYe98qR/YiW
+         pw7yTC9t0qw2P8VGkxNvHqIftOoFAeYDdUUmE0hxD6boVkMla4sHCfI1rqE4xz7GOQ
+         TlLqoZQv/nIxCQ7g8Egc3xD4a8vWovT5qhi7m6iM=
+Date:   Thu, 29 Oct 2020 18:13:26 -0700
 From:   akpm@linux-foundation.org
-To:     areber@redhat.com, chris@chrisdown.name,
-        christian.brauner@ubuntu.com, elver@google.com, esyr@redhat.com,
-        guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com,
-        keescook@chromium.org, laoar.shao@gmail.com, mhocko@kernel.org,
-        mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org,
-        shakeelb@google.com, songmuchun@bytedance.com, surenb@google.com,
-        tglx@linutronix.de, vdavydov.dev@gmail.com
-Subject:  +
- mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch added to
- -mm tree
-Message-ID: <20201030004401.WzgVa3UV3%akpm@linux-foundation.org>
+To:     aou@eecs.berkeley.edu, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        cl@linux.com, dave.hansen@linux.intel.com, davem@davemloft.net,
+        david@redhat.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        hpa@zytor.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name,
+        len.brown@intel.com, luto@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
+        paul.walmsley@sifive.com, paulus@samba.org, pavel@ucw.cz,
+        penberg@kernel.org, peterz@infradead.org,
+        rafael.j.wysocki@intel.com, rick.p.edgecombe@intel.com,
+        rientjes@google.com, rjw@rjwysocki.net, rppt@linux.ibm.com,
+        tglx@linutronix.de, will@kernel.org
+Subject:  + mm-introduce-debug_pagealloc_map_pages-helper.patch
+ added to -mm tree
+Message-ID: <20201030011326.U6mJetuTE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -59,14 +63,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg/slab: fix return of child memcg objcg for root memcg
+     Subject: mm: introduce debug_pagealloc_map_pages() helper
 has been added to the -mm tree.  Its filename is
-     mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+     mm-introduce-debug_pagealloc_map_pages-helper.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-debug_pagealloc_map_pages-helper.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-debug_pagealloc_map_pages-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,58 +84,192 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcg/slab: fix return of child memcg objcg for root memcg
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: introduce debug_pagealloc_map_pages() helper
 
-Consider the following memcg hierarchy.
+Patch series "arch, mm: improve robustness of direct map manipulation", v2.
 
-                    root
-                   /    \
-                  A      B
+During recent discussion about KVM protected memory, David raised a
+concern about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC
+scope [1].
 
-If we failed to get the reference on objcg of memcg A, the
-get_obj_cgroup_from_current can return the wrong objcg for the root memcg.
+Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
+possible that __kernel_map_pages() would fail, but since this function is
+void, the failure will go unnoticed.
 
-Link: https://lkml.kernel.org/r/20201029164429.58703-1-songmuchun@bytedance.com
-Fixes: bf4f059954dc ("mm: memcg/slab: obj_cgroup API")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Moreover, there's lack of consistency of __kernel_map_pages() semantics
+across architectures as some guard this function with #ifdef
+DEBUG_PAGEALLOC, some refuse to update the direct map if page allocation
+debugging is disabled at run time and some allow modifying the direct map
+regardless of DEBUG_PAGEALLOC settings.
+
+This set straightens this out by restoring dependency of
+__kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
+accordingly.  
+
+Since currently the only user of __kernel_map_pages() outside
+DEBUG_PAGEALLOC, it is updated to make direct map accesses there more
+explicit.
+
+[1] https://lore.kernel.org/lkml/2759b4bf-e1e3-d006-7d86-78a40348269d@redhat.com
+
+
+This patch (of 4):
+
+When CONFIG_DEBUG_PAGEALLOC is enabled, it unmaps pages from the kernel
+direct mapping after free_pages().  The pages than need to be mapped back
+before they could be used.  Theese mapping operations use
+__kernel_map_pages() guarded with with debug_pagealloc_enabled().
+
+The only place that calls __kernel_map_pages() without checking whether
+DEBUG_PAGEALLOC is enabled is the hibernation code that presumes
+availability of this function when ARCH_HAS_SET_DIRECT_MAP is set.  Still,
+on arm64, __kernel_map_pages() will bail out when DEBUG_PAGEALLOC is not
+enabled but set_direct_map_invalid_noflush() may render some pages not
+present in the direct map and hibernation code won't be able to save such
+pages.
+
+To make page allocation debugging and hibernation interaction more robust,
+the dependency on DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP has to be
+made more explicit.
+
+Start with combining the guard condition and the call to
+__kernel_map_pages() into a single debug_pagealloc_map_pages() function to
+emphasize that __kernel_map_pages() should not be called without
+DEBUG_PAGEALLOC and use this new function to map/unmap pages when page
+allocation debug is enabled.
+
+Link: https://lkml.kernel.org/r/20201029161902.19272-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201029161902.19272-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Eugene Syromiatnikov <esyr@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Adrian Reber <areber@redhat.com>
-Cc: Marco Elver <elver@google.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h  |   10 ++++++++++
+ mm/memory_hotplug.c |    3 +--
+ mm/page_alloc.c     |    6 ++----
+ mm/slab.c           |    8 +++-----
+ 4 files changed, 16 insertions(+), 11 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg
-+++ a/mm/memcontrol.c
-@@ -2961,6 +2961,7 @@ __always_inline struct obj_cgroup *get_o
- 		objcg = rcu_dereference(memcg->objcg);
- 		if (objcg && obj_cgroup_tryget(objcg))
- 			break;
-+		objcg = NULL;
- 	}
- 	rcu_read_unlock();
+--- a/include/linux/mm.h~mm-introduce-debug_pagealloc_map_pages-helper
++++ a/include/linux/mm.h
+@@ -2924,12 +2924,22 @@ kernel_map_pages(struct page *page, int
+ {
+ 	__kernel_map_pages(page, numpages, enable);
+ }
++
++static inline void debug_pagealloc_map_pages(struct page *page,
++					     int numpages, int enable)
++{
++	if (debug_pagealloc_enabled_static())
++		__kernel_map_pages(page, numpages, enable);
++}
++
+ #ifdef CONFIG_HIBERNATION
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+ static inline void
+ kernel_map_pages(struct page *page, int numpages, int enable) {}
++static inline void debug_pagealloc_map_pages(struct page *page,
++					     int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+ static inline bool kernel_page_present(struct page *page) { return true; }
+ #endif	/* CONFIG_HIBERNATION */
+--- a/mm/memory_hotplug.c~mm-introduce-debug_pagealloc_map_pages-helper
++++ a/mm/memory_hotplug.c
+@@ -614,8 +614,7 @@ void generic_online_page(struct page *pa
+ 	 * so we should map it first. This is better than introducing a special
+ 	 * case in page freeing fast path.
+ 	 */
+-	if (debug_pagealloc_enabled_static())
+-		kernel_map_pages(page, 1 << order, 1);
++	debug_pagealloc_map_pages(page, 1 << order, 1);
+ 	__free_pages_core(page, order);
+ 	totalram_pages_add(1UL << order);
+ #ifdef CONFIG_HIGHMEM
+--- a/mm/page_alloc.c~mm-introduce-debug_pagealloc_map_pages-helper
++++ a/mm/page_alloc.c
+@@ -1293,8 +1293,7 @@ static __always_inline bool free_pages_p
+ 	 */
+ 	arch_free_page(page, order);
  
+-	if (debug_pagealloc_enabled_static())
+-		kernel_map_pages(page, 1 << order, 0);
++	debug_pagealloc_map_pages(page, 1 << order, 0);
+ 
+ 	kasan_free_nondeferred_pages(page, order);
+ 
+@@ -2285,8 +2284,7 @@ inline void post_alloc_hook(struct page
+ 	set_page_refcounted(page);
+ 
+ 	arch_alloc_page(page, order);
+-	if (debug_pagealloc_enabled_static())
+-		kernel_map_pages(page, 1 << order, 1);
++	debug_pagealloc_map_pages(page, 1 << order, 1);
+ 	kasan_alloc_pages(page, order);
+ 	kernel_poison_pages(page, 1 << order, 1);
+ 	set_page_owner(page, order, gfp_flags);
+--- a/mm/slab.c~mm-introduce-debug_pagealloc_map_pages-helper
++++ a/mm/slab.c
+@@ -1431,10 +1431,8 @@ static bool is_debug_pagealloc_cache(str
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ static void slab_kernel_map(struct kmem_cache *cachep, void *objp, int map)
+ {
+-	if (!is_debug_pagealloc_cache(cachep))
+-		return;
+-
+-	kernel_map_pages(virt_to_page(objp), cachep->size / PAGE_SIZE, map);
++	debug_pagealloc_map_pages(virt_to_page(objp),
++				  cachep->size / PAGE_SIZE, map);
+ }
+ 
+ #else
+@@ -2062,7 +2060,7 @@ done:
+ 
+ #if DEBUG
+ 	/*
+-	 * If we're going to use the generic kernel_map_pages()
++	 * If we're going to use the generic debug_pagealloc_map_pages()
+ 	 * poisoning, then it's going to smash the contents of
+ 	 * the redzone and userword anyhow, so switch them off.
+ 	 */
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+mm-introduce-debug_pagealloc_map_pages-helper.patch
+pm-hibernate-make-direct-map-manipulations-more-explicit.patch
+arch-mm-restore-dependency-of-__kernel_map_pages-of-debug_pagealloc.patch
+arch-mm-make-kernel_page_present-always-available.patch
 
