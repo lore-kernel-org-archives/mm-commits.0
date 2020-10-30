@@ -7,54 +7,50 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8200EC2D0A3
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 01:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A29C56201
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:11:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 252C220747
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 01:13:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4EC9D22202
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:11:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604020430;
-	bh=pCacJBFWNtFP45Vp1IHGTKez9DfU1WeJvcnpx+CQoGM=;
+	s=default; t=1604034702;
+	bh=Uv/a7qUuxgNSV9OXsvBVgSQicYfV0M5DZhbY2luSXCo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=c6GkTFdjfafBtY0iOsbbw3qjcfoccol/P1IHhsJ8ZbGRBW4buDwf8ZmjEWJ211y3Z
-	 mTcjgDvQvPjWwxPHCZbGJbHNl7Sn5PcQ0HbIOuM3TSbQiCEvqp+O3kP44hfAyCaDhD
-	 /ZfU6RmKUg9yXLIX0ITSN55eGKmV4jVnKUlzEvFc=
+	b=HJdqY3gy7bhuh+oD2I0tUWQQAgSkgfafRAV/OSaw67gOX8qNvOyogQjHQ/sfvfybC
+	 Jtnn3B7Eb5Jlk2y7DIayCmAIQ7oonlIbRGzc8+lmb7/91NHfC1Q0o4XUHKxj4gQqPd
+	 GKY46GagBV/L3wir9YMbCQxs920/QWuQeD7U5vVo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725881AbgJ3BNt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Oct 2020 21:13:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44270 "EHLO mail.kernel.org"
+        id S1725797AbgJ3FLl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Oct 2020 01:11:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725771AbgJ3BNt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 29 Oct 2020 21:13:49 -0400
+        id S1725790AbgJ3FLl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Oct 2020 01:11:41 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 640BA2072C;
-        Fri, 30 Oct 2020 01:13:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6EA0720725;
+        Fri, 30 Oct 2020 05:11:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604020428;
-        bh=pCacJBFWNtFP45Vp1IHGTKez9DfU1WeJvcnpx+CQoGM=;
+        s=default; t=1604034700;
+        bh=Uv/a7qUuxgNSV9OXsvBVgSQicYfV0M5DZhbY2luSXCo=;
         h=Date:From:To:Subject:From;
-        b=o37ZK7oct0g90aaBjfZOOKYIs7sK6p4mompkJz/pYeqT1VBuCaRJaxb7phJdRpzrF
-         +F4eYklo/mZJLozvqxFubqC84UoKllcki10O2COJ74zAKIdK5L61K5I1YZ67NabpEg
-         Zg0+EXE41Bbj1ay/PR/eU5urMVGervAwraUGr0Vo=
-Date:   Thu, 29 Oct 2020 18:13:45 -0700
+        b=Qox9fiQnrfiiybM7dpEPdGp8CxmW0aPlTKbOsUPjXGCPjXVRgUH22ww8ZOU9/KrXF
+         hqAs5YBZobmy7GK96zfyUAvgctudr/EujM+ltfJFt9rkqYNMrZGPAQm8LPRD1jgGnD
+         iUggkwYUgf57puZ4WC4ZOzARc8T1APKm8cF/nvMk=
+Date:   Thu, 29 Oct 2020 22:11:38 -0700
 From:   akpm@linux-foundation.org
-To:     aou@eecs.berkeley.edu, benh@kernel.crashing.org,
-        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
-        cl@linux.com, dave.hansen@linux.intel.com, davem@davemloft.net,
-        david@redhat.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        hpa@zytor.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name,
-        len.brown@intel.com, luto@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, paulus@samba.org, pavel@ucw.cz,
-        penberg@kernel.org, peterz@infradead.org,
-        rafael.j.wysocki@intel.com, rick.p.edgecombe@intel.com,
-        rientjes@google.com, rjw@rjwysocki.net, rppt@linux.ibm.com,
-        tglx@linutronix.de, will@kernel.org
-Subject:  + arch-mm-make-kernel_page_present-always-available.patch
- added to -mm tree
-Message-ID: <20201030011345.0Yf_8PZj9%akpm@linux-foundation.org>
+To:     ardb@kernel.org, aryabinin@virtuozzo.com, bp@alien8.de,
+        davem@davemloft.net, dvyukov@google.com, elver@google.com,
+        glider@google.com, herbert@gondor.apana.org.au, hpa@zytor.com,
+        joe@perches.com, miguel.ojeda.sandonis@gmail.com,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ndesaulniers@google.com, tglx@linutronix.de,
+        torvalds@linux-foundation.org
+Subject:  +
+ treewide-remove-stringification-from-__alias-macro-definition.patch added
+ to -mm tree
+Message-ID: <20201030051138.2u73Icltq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -63,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch, mm: make kernel_page_present() always available
+     Subject: treewide: remove stringification from __alias macro definition
 has been added to the -mm tree.  Its filename is
-     arch-mm-make-kernel_page_present-always-available.patch
+     treewide-remove-stringification-from-__alias-macro-definition.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-mm-make-kernel_page_present-always-available.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/treewide-remove-stringification-from-__alias-macro-definition.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-mm-make-kernel_page_present-always-available.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/treewide-remove-stringification-from-__alias-macro-definition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -84,184 +80,223 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arch, mm: make kernel_page_present() always available
+From: Joe Perches <joe@perches.com>
+Subject: treewide: remove stringification from __alias macro definition
 
-For architectures that enable ARCH_HAS_SET_MEMORY having the ability to
-verify that a page is mapped in the kernel direct map can be useful
-regardless of hibernation.
+Like the old __section macro, the __alias macro uses macro #
+stringification to create quotes around the symbol name used in the
+__attribute__.
 
-Add RISC-V implementation of kernel_page_present(), update its forward
-declarations and stubs to be a part of set_memory API and remove ugly
-ifdefery in inlcude/linux/mm.h around current declarations of
-kernel_page_present().
+This can cause differences between gcc and clang when the stringification
+itself contains a quote character.  So avoid these differences by always
+using quotes to define the aliased symbol.
 
-Link: https://lkml.kernel.org/r/20201029161902.19272-5-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
+Remove the stringification and add quotes and when necessary a
+stringification when existing uses have a ## concatenation.
+
+Unlike the __section macro conversion in commit 33def8498fdd ("treewide:
+Convert macro and uses of __section(foo) to __section("foo")") this one
+was done by hand.
+
+No other use of __alias exists in the kernel.
+
+This patch does _not_ convert any uses of __attribute__((alias("<foo>")))
+so it should not cause any compilation issues.
+
+Link: https://lkml.kernel.org/r/8451df41359b52f048780d19e07b6fa4445b6392.1604026698.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/cacheflush.h |    1 
- arch/riscv/include/asm/set_memory.h |    1 
- arch/riscv/mm/pageattr.c            |   29 ++++++++++++++++++++++++++
- arch/x86/include/asm/set_memory.h   |    1 
- arch/x86/mm/pat/set_memory.c        |    2 -
- include/linux/mm.h                  |    7 ------
- include/linux/set_memory.h          |    5 ++++
- 7 files changed, 37 insertions(+), 9 deletions(-)
+ arch/x86/boot/compressed/string.c       |    6 +++---
+ arch/x86/include/asm/syscall_wrapper.h  |    2 +-
+ drivers/firmware/efi/runtime-wrappers.c |    2 +-
+ include/linux/compiler_attributes.h     |    2 +-
+ kernel/kcsan/core.c                     |   10 +++++-----
+ lib/crc32.c                             |    4 ++--
+ lib/crypto/aes.c                        |    4 ++--
+ mm/kasan/generic.c                      |    8 ++++----
+ 8 files changed, 19 insertions(+), 19 deletions(-)
 
---- a/arch/arm64/include/asm/cacheflush.h~arch-mm-make-kernel_page_present-always-available
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -140,6 +140,7 @@ int set_memory_valid(unsigned long addr,
- 
- int set_direct_map_invalid_noflush(struct page *page);
- int set_direct_map_default_noflush(struct page *page);
-+bool kernel_page_present(struct page *page);
- 
- #include <asm-generic/cacheflush.h>
- 
---- a/arch/riscv/include/asm/set_memory.h~arch-mm-make-kernel_page_present-always-available
-+++ a/arch/riscv/include/asm/set_memory.h
-@@ -24,6 +24,7 @@ static inline int set_memory_nx(unsigned
- 
- int set_direct_map_invalid_noflush(struct page *page);
- int set_direct_map_default_noflush(struct page *page);
-+bool kernel_page_present(struct page *page);
- 
- #endif /* __ASSEMBLY__ */
- 
---- a/arch/riscv/mm/pageattr.c~arch-mm-make-kernel_page_present-always-available
-+++ a/arch/riscv/mm/pageattr.c
-@@ -198,3 +198,32 @@ void __kernel_map_pages(struct page *pag
- 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
+--- a/arch/x86/boot/compressed/string.c~treewide-remove-stringification-from-__alias-macro-definition
++++ a/arch/x86/boot/compressed/string.c
+@@ -75,7 +75,7 @@ void *memcpy(void *dest, const void *src
  }
+ 
+ #ifdef CONFIG_KASAN
+-extern void *__memset(void *s, int c, size_t n) __alias(memset);
+-extern void *__memmove(void *dest, const void *src, size_t n) __alias(memmove);
+-extern void *__memcpy(void *dest, const void *src, size_t n) __alias(memcpy);
++extern void *__memset(void *s, int c, size_t n) __alias("memset");
++extern void *__memmove(void *dest, const void *src, size_t n) __alias("memmove");
++extern void *__memcpy(void *dest, const void *src, size_t n) __alias("memcpy");
  #endif
-+
-+bool kernel_page_present(struct page *page)
-+{
-+	unsigned long addr = (unsigned long)page_address(page);
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	p4d_t *p4d;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+
-+	pgd = pgd_offset_k(addr);
-+	if (!pgd_present(*pgd))
-+		return false;
-+
-+	p4d = p4d_offset(pgd, addr);
-+	if (!p4d_present(*p4d))
-+		return false;
-+
-+	pud = pud_offset(p4d, addr);
-+	if (!pud_present(*pud))
-+		return false;
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd))
-+		return false;
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	return pte_present(*pte);
-+}
---- a/arch/x86/include/asm/set_memory.h~arch-mm-make-kernel_page_present-always-available
-+++ a/arch/x86/include/asm/set_memory.h
-@@ -82,6 +82,7 @@ int set_pages_rw(struct page *page, int
+--- a/arch/x86/include/asm/syscall_wrapper.h~treewide-remove-stringification-from-__alias-macro-definition
++++ a/arch/x86/include/asm/syscall_wrapper.h
+@@ -69,7 +69,7 @@ extern long __ia32_sys_ni_syscall(const
+ 	long __##abi##_##name(const struct pt_regs *regs);		\
+ 	ALLOW_ERROR_INJECTION(__##abi##_##name, ERRNO);			\
+ 	long __##abi##_##name(const struct pt_regs *regs)		\
+-		__alias(__do_##name);
++		__alias("__do_" #name);
  
- int set_direct_map_invalid_noflush(struct page *page);
- int set_direct_map_default_noflush(struct page *page);
-+bool kernel_page_present(struct page *page);
- 
- extern int kernel_set_to_readonly;
- 
---- a/arch/x86/mm/pat/set_memory.c~arch-mm-make-kernel_page_present-always-available
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -2228,7 +2228,6 @@ void __kernel_map_pages(struct page *pag
- }
- #endif /* CONFIG_DEBUG_PAGEALLOC */
- 
--#ifdef CONFIG_HIBERNATION
- bool kernel_page_present(struct page *page)
- {
- 	unsigned int level;
-@@ -2240,7 +2239,6 @@ bool kernel_page_present(struct page *pa
- 	pte = lookup_address((unsigned long)page_address(page), &level);
- 	return (pte_val(*pte) & _PAGE_PRESENT);
- }
--#endif /* CONFIG_HIBERNATION */
- 
- int __init kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
- 				   unsigned numpages, unsigned long page_flags)
---- a/include/linux/mm.h~arch-mm-make-kernel_page_present-always-available
-+++ a/include/linux/mm.h
-@@ -2925,16 +2925,9 @@ static inline void debug_pagealloc_map_p
- 	if (debug_pagealloc_enabled_static())
- 		__kernel_map_pages(page, numpages, enable);
- }
--
--#ifdef CONFIG_HIBERNATION
--extern bool kernel_page_present(struct page *page);
--#endif	/* CONFIG_HIBERNATION */
- #else	/* CONFIG_DEBUG_PAGEALLOC */
- static inline void debug_pagealloc_map_pages(struct page *page,
- 					     int numpages, int enable) {}
--#ifdef CONFIG_HIBERNATION
--static inline bool kernel_page_present(struct page *page) { return true; }
--#endif	/* CONFIG_HIBERNATION */
- #endif	/* CONFIG_DEBUG_PAGEALLOC */
- 
- #ifdef __HAVE_ARCH_GATE_AREA
---- a/include/linux/set_memory.h~arch-mm-make-kernel_page_present-always-available
-+++ a/include/linux/set_memory.h
-@@ -23,6 +23,11 @@ static inline int set_direct_map_default
- {
- 	return 0;
- }
-+
-+static inline bool kernel_page_present(struct page *page)
-+{
-+	return true;
-+}
+ #define __SYS_STUBx(abi, name, ...)					\
+ 	long __##abi##_##name(const struct pt_regs *regs);		\
+--- a/drivers/firmware/efi/runtime-wrappers.c~treewide-remove-stringification-from-__alias-macro-definition
++++ a/drivers/firmware/efi/runtime-wrappers.c
+@@ -162,7 +162,7 @@ static DEFINE_SEMAPHORE(efi_runtime_lock
+  * Expose the EFI runtime lock to the UV platform
+  */
+ #ifdef CONFIG_X86_UV
+-extern struct semaphore __efi_uv_runtime_lock __alias(efi_runtime_lock);
++extern struct semaphore __efi_uv_runtime_lock __alias("efi_runtime_lock");
  #endif
  
- #ifndef set_mce_nospec
+ /*
+--- a/include/linux/compiler_attributes.h~treewide-remove-stringification-from-__alias-macro-definition
++++ a/include/linux/compiler_attributes.h
+@@ -42,7 +42,7 @@
+ /*
+  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-alias-function-attribute
+  */
+-#define __alias(symbol)                 __attribute__((__alias__(#symbol)))
++#define __alias(symbol)                 __attribute__((__alias__(symbol)))
+ 
+ /*
+  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-aligned-function-attribute
+--- a/kernel/kcsan/core.c~treewide-remove-stringification-from-__alias-macro-definition
++++ a/kernel/kcsan/core.c
+@@ -814,7 +814,7 @@ EXPORT_SYMBOL(__kcsan_check_access);
+ 	}                                                                      \
+ 	EXPORT_SYMBOL(__tsan_read##size);                                      \
+ 	void __tsan_unaligned_read##size(void *ptr)                            \
+-		__alias(__tsan_read##size);                                    \
++		__alias("__tsan_read" #size);                                  \
+ 	EXPORT_SYMBOL(__tsan_unaligned_read##size);                            \
+ 	void __tsan_write##size(void *ptr);                                    \
+ 	void __tsan_write##size(void *ptr)                                     \
+@@ -823,7 +823,7 @@ EXPORT_SYMBOL(__kcsan_check_access);
+ 	}                                                                      \
+ 	EXPORT_SYMBOL(__tsan_write##size);                                     \
+ 	void __tsan_unaligned_write##size(void *ptr)                           \
+-		__alias(__tsan_write##size);                                   \
++		__alias("__tsan_write" #size);                                 \
+ 	EXPORT_SYMBOL(__tsan_unaligned_write##size);                           \
+ 	void __tsan_read_write##size(void *ptr);                               \
+ 	void __tsan_read_write##size(void *ptr)                                \
+@@ -833,7 +833,7 @@ EXPORT_SYMBOL(__kcsan_check_access);
+ 	}                                                                      \
+ 	EXPORT_SYMBOL(__tsan_read_write##size);                                \
+ 	void __tsan_unaligned_read_write##size(void *ptr)                      \
+-		__alias(__tsan_read_write##size);                              \
++		__alias("__tsan_read_write" #size);                            \
+ 	EXPORT_SYMBOL(__tsan_unaligned_read_write##size)
+ 
+ DEFINE_TSAN_READ_WRITE(1);
+@@ -877,7 +877,7 @@ EXPORT_SYMBOL(__tsan_write_range);
+ 	}                                                                      \
+ 	EXPORT_SYMBOL(__tsan_volatile_read##size);                             \
+ 	void __tsan_unaligned_volatile_read##size(void *ptr)                   \
+-		__alias(__tsan_volatile_read##size);                           \
++		__alias("__tsan_volatile_read" #size);                         \
+ 	EXPORT_SYMBOL(__tsan_unaligned_volatile_read##size);                   \
+ 	void __tsan_volatile_write##size(void *ptr);                           \
+ 	void __tsan_volatile_write##size(void *ptr)                            \
+@@ -892,7 +892,7 @@ EXPORT_SYMBOL(__tsan_write_range);
+ 	}                                                                      \
+ 	EXPORT_SYMBOL(__tsan_volatile_write##size);                            \
+ 	void __tsan_unaligned_volatile_write##size(void *ptr)                  \
+-		__alias(__tsan_volatile_write##size);                          \
++		__alias("__tsan_volatile_write" #size);                        \
+ 	EXPORT_SYMBOL(__tsan_unaligned_volatile_write##size)
+ 
+ DEFINE_TSAN_VOLATILE_READ_WRITE(1);
+--- a/lib/crc32.c~treewide-remove-stringification-from-__alias-macro-definition
++++ a/lib/crc32.c
+@@ -206,8 +206,8 @@ u32 __pure __weak __crc32c_le(u32 crc, u
+ EXPORT_SYMBOL(crc32_le);
+ EXPORT_SYMBOL(__crc32c_le);
+ 
+-u32 __pure crc32_le_base(u32, unsigned char const *, size_t) __alias(crc32_le);
+-u32 __pure __crc32c_le_base(u32, unsigned char const *, size_t) __alias(__crc32c_le);
++u32 __pure crc32_le_base(u32, unsigned char const *, size_t) __alias("crc32_le");
++u32 __pure __crc32c_le_base(u32, unsigned char const *, size_t) __alias("__crc32c_le");
+ 
+ /*
+  * This multiplies the polynomials x and y modulo the given modulus.
+--- a/lib/crypto/aes.c~treewide-remove-stringification-from-__alias-macro-definition
++++ a/lib/crypto/aes.c
+@@ -82,8 +82,8 @@ static volatile const u8 __cacheline_ali
+ 	0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d,
+ };
+ 
+-extern const u8 crypto_aes_sbox[256] __alias(aes_sbox);
+-extern const u8 crypto_aes_inv_sbox[256] __alias(aes_inv_sbox);
++extern const u8 crypto_aes_sbox[256] __alias("aes_sbox");
++extern const u8 crypto_aes_inv_sbox[256] __alias("aes_inv_sbox");
+ 
+ EXPORT_SYMBOL(crypto_aes_sbox);
+ EXPORT_SYMBOL(crypto_aes_inv_sbox);
+--- a/mm/kasan/generic.c~treewide-remove-stringification-from-__alias-macro-definition
++++ a/mm/kasan/generic.c
+@@ -234,7 +234,7 @@ EXPORT_SYMBOL(__asan_unregister_globals)
+ 		check_memory_region_inline(addr, size, false, _RET_IP_);\
+ 	}								\
+ 	EXPORT_SYMBOL(__asan_load##size);				\
+-	__alias(__asan_load##size)					\
++	__alias("__asan_load" #size)					\
+ 	void __asan_load##size##_noabort(unsigned long);		\
+ 	EXPORT_SYMBOL(__asan_load##size##_noabort);			\
+ 	void __asan_store##size(unsigned long addr)			\
+@@ -242,7 +242,7 @@ EXPORT_SYMBOL(__asan_unregister_globals)
+ 		check_memory_region_inline(addr, size, true, _RET_IP_);	\
+ 	}								\
+ 	EXPORT_SYMBOL(__asan_store##size);				\
+-	__alias(__asan_store##size)					\
++	__alias("__asan_store" #size)					\
+ 	void __asan_store##size##_noabort(unsigned long);		\
+ 	EXPORT_SYMBOL(__asan_store##size##_noabort)
+ 
+@@ -258,7 +258,7 @@ void __asan_loadN(unsigned long addr, si
+ }
+ EXPORT_SYMBOL(__asan_loadN);
+ 
+-__alias(__asan_loadN)
++__alias("__asan_loadN")
+ void __asan_loadN_noabort(unsigned long, size_t);
+ EXPORT_SYMBOL(__asan_loadN_noabort);
+ 
+@@ -268,7 +268,7 @@ void __asan_storeN(unsigned long addr, s
+ }
+ EXPORT_SYMBOL(__asan_storeN);
+ 
+-__alias(__asan_storeN)
++__alias("__asan_storeN")
+ void __asan_storeN_noabort(unsigned long, size_t);
+ EXPORT_SYMBOL(__asan_storeN_noabort);
+ 
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-introduce-debug_pagealloc_map_pages-helper.patch
-pm-hibernate-make-direct-map-manipulations-more-explicit.patch
-arch-mm-restore-dependency-of-__kernel_map_pages-of-debug_pagealloc.patch
-arch-mm-make-kernel_page_present-always-available.patch
+mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
+treewide-remove-stringification-from-__alias-macro-definition.patch
+checkpatch-prefer-static-const-declarations.patch
+checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
+checkpatch-update-__attribute__sectionname-quote-removal.patch
+checkpatch-update-__attribute__sectionname-quote-removal-v2.patch
 
