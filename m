@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3087C56201
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:19:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 428AFC4741F
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:25:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D54C221FF
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:19:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDE4222202
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:25:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604035198;
-	bh=ZlHA0rbQMIXQXuyBAcRyHhJuZNnYIY6a0nXIib61DN4=;
+	s=default; t=1604035552;
+	bh=gAT79GLZVxUw2rKYQQvqZZKjWLlDPBUmBVKjKngl/pM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ILE0e4Dk1q0zCmxvaUgtnh+8xqKWhjvg279FGP4h6UaM9vrcxeCrP+F5UhuhiBU83
-	 VNW5+Mj2GkQ2yNNcdkTXlt3mc7dEoWR/gdfGzoUjhVyIM6xXcxJGNBOfo8ZHd7r5hd
-	 CWGCLJZdBi/EMNhufVJdM95H+0WapD3frijpEX5U=
+	b=RKV/ja/CyFwDviO/h1PD0mc8gOxShxqcBJSnlR0i/ZjyDlRZIB+bf3LkQU9Ue8T/F
+	 /lglQvhfqaXPZltXXh0Ia5d+36lxLuC43XCZRAYhO9EGwItgqkpWQ+gczXCQX6oOEo
+	 Sf7pja/fasHMe1BhWYpPk0/MiWNfkuKCcndrdDmY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725780AbgJ3FT5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Oct 2020 01:19:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58912 "EHLO mail.kernel.org"
+        id S1725770AbgJ3FZw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Oct 2020 01:25:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgJ3FT5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Oct 2020 01:19:57 -0400
+        id S1725767AbgJ3FZw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Oct 2020 01:25:52 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5A2F20725;
-        Fri, 30 Oct 2020 05:19:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 608D520729;
+        Fri, 30 Oct 2020 05:25:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604035197;
-        bh=ZlHA0rbQMIXQXuyBAcRyHhJuZNnYIY6a0nXIib61DN4=;
+        s=default; t=1604035551;
+        bh=gAT79GLZVxUw2rKYQQvqZZKjWLlDPBUmBVKjKngl/pM=;
         h=Date:From:To:Subject:From;
-        b=yylX3zHlCzixO462nI3P0OVXcnZnUqaV12r5ZDG3bUG+7qWrjTAyL98xOJWPPYW7z
-         yoXf7HgnsK/nx5BTNjPIULh2R6NjCRlrrTT9nUIs46bon/xg8M/y69gbaSqMtzpNkG
-         LUv6ME5pxXfwv1nnTYhrZ3He2Fv18vTLD0gsMK7U=
-Date:   Thu, 29 Oct 2020 22:19:56 -0700
+        b=quGK8piOH9e8nJOb+jsjOI78tV5WaHQHGgdHq3WAjI6xkjRmXc8/x26w9rQtSAD7H
+         O9Kdi8d/eljAEwPJvy2UYhaefS+ejP++2fbkQb/2gMLAw02n/+tDzfhJ5iz2czkJoW
+         QrNBzkSlFnk6Wl2uL+swBwYcuzT5zCYos3P32VFw=
+Date:   Thu, 29 Oct 2020 22:25:49 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au
-Subject:  + kernelh-split-out-mathematical-helpers-fix.patch added
- to -mm tree
-Message-ID: <20201030051956.vZWrrRAfN%akpm@linux-foundation.org>
+To:     a.sahrawat@samsung.com, maninder1.s@samsung.com, mgorman@suse.de,
+        mhocko@suse.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        stable@vger.kernel.org, v.narang@samsung.com, vbabka@suse.cz
+Subject:  +
+ mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit.patch added to -mm tree
+Message-ID: <20201030052549.gngsbJV4H%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: split out mathematical helpers fix
+     Subject: mm/vmscan: fix NR_ISOLATED_FILE corruption on 64-bit
 has been added to the -mm tree.  Its filename is
-     kernelh-split-out-mathematical-helpers-fix.patch
+     mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernelh-split-out-mathematical-helpers-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernelh-split-out-mathematical-helpers-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,33 +75,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: kernel.h: split out mathematical helpers fix
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: mm/vmscan: fix NR_ISOLATED_FILE corruption on 64-bit
 
-fix powerpc build
+Previously the negated unsigned long would be cast back to signed long
+which would have the correct negative value.  After commit 730ec8c01a2b
+("mm/vmscan.c: change prototype for shrink_page_list"), the large unsigned
+int converts to a large positive signed long.
 
-Link: https://lkml.kernel.org/r/20201029150809.13059608@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Symptoms include CMA allocations hanging forever holding the cma_mutex due
+to alloc_contig_range->...->isolate_migratepages_block waiting forever in
+"while (unlikely(too_many_isolated(pgdat)))".
+
+Link: https://lkml.kernel.org/r/20201029032320.1448441-1-npiggin@gmail.com
+Fixes: 730ec8c01a2b ("mm/vmscan.c: change prototype for shrink_page_list")
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Cc: Maninder Singh <maninder1.s@samsung.com>
+Cc: Vaneet Narang <v.narang@samsung.com>
+Cc: Maninder Singh <maninder1.s@samsung.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/div64.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/math/div64.c~kernelh-split-out-mathematical-helpers-fix
-+++ a/lib/math/div64.c
-@@ -22,6 +22,7 @@
- #include <linux/export.h>
- #include <linux/math.h>
- #include <linux/math64.h>
-+#include <linux/log2.h>
- 
- /* Not needed on 64bit architectures */
- #if BITS_PER_LONG == 32
+--- a/mm/vmscan.c~mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit
++++ a/mm/vmscan.c
+@@ -1516,7 +1516,7 @@ unsigned int reclaim_clean_pages_from_li
+ 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+ 			TTU_IGNORE_ACCESS, &stat, true);
+ 	list_splice(&clean_pages, page_list);
+-	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -nr_reclaimed);
++	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -(long)nr_reclaimed);
+ 	/*
+ 	 * Since lazyfree pages are isolated from file LRU from the beginning,
+ 	 * they will rotate back to anonymous LRU in the end if it failed to
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-kernelh-split-out-mathematical-helpers-fix.patch
+mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit.patch
 
