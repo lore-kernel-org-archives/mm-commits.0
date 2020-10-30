@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77891C56201
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:18:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3087C56201
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:19:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18C4120725
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:18:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D54C221FF
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Oct 2020 05:19:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604035094;
-	bh=fKnERcfPWg29/gni9z9osTW2NOJjlliteGVU2Q/NnWw=;
+	s=default; t=1604035198;
+	bh=ZlHA0rbQMIXQXuyBAcRyHhJuZNnYIY6a0nXIib61DN4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=YW0RIdhDU3EOPV3XKfAMrwaCH1M8uQHfuhePDFKLy70RkYqoqmcIG1CtGueg9qRYe
-	 +Py/YgXrk0k9Gt0TTezcTtJONmqX7pTX4sb0MzilCOlnx7NhFuLhR4sNmmydWTeXw8
-	 XZuGz/EJtw0Nqdg/g5SwlIRjLf6QIAL5D+e+2scA=
+	b=ILE0e4Dk1q0zCmxvaUgtnh+8xqKWhjvg279FGP4h6UaM9vrcxeCrP+F5UhuhiBU83
+	 VNW5+Mj2GkQ2yNNcdkTXlt3mc7dEoWR/gdfGzoUjhVyIM6xXcxJGNBOfo8ZHd7r5hd
+	 CWGCLJZdBi/EMNhufVJdM95H+0WapD3frijpEX5U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725780AbgJ3FSN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Oct 2020 01:18:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58708 "EHLO mail.kernel.org"
+        id S1725780AbgJ3FT5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Oct 2020 01:19:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58912 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725771AbgJ3FSN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 30 Oct 2020 01:18:13 -0400
+        id S1725355AbgJ3FT5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 30 Oct 2020 01:19:57 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0724722203;
-        Fri, 30 Oct 2020 05:18:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D5A2F20725;
+        Fri, 30 Oct 2020 05:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604035092;
-        bh=fKnERcfPWg29/gni9z9osTW2NOJjlliteGVU2Q/NnWw=;
+        s=default; t=1604035197;
+        bh=ZlHA0rbQMIXQXuyBAcRyHhJuZNnYIY6a0nXIib61DN4=;
         h=Date:From:To:Subject:From;
-        b=VSCUu10HS88ZjCBVrTFYpOi3T/s2pCFWptKlgapfVydyq2Jzo0vvE/dG4US+i/FVq
-         EqQ4MLD9i7DkdkyEXvAVjuF98dvTHFTKqwoPTcwyWvoAdiE6YeJ+tf9a7yrlJvMw+o
-         x5FbU0hF74XsxUAw/YcWeEVGW77CZ9nYprNf4/7M=
-Date:   Thu, 29 Oct 2020 22:18:11 -0700
+        b=yylX3zHlCzixO462nI3P0OVXcnZnUqaV12r5ZDG3bUG+7qWrjTAyL98xOJWPPYW7z
+         yoXf7HgnsK/nx5BTNjPIULh2R6NjCRlrrTT9nUIs46bon/xg8M/y69gbaSqMtzpNkG
+         LUv6ME5pxXfwv1nnTYhrZ3He2Fv18vTLD0gsMK7U=
+Date:   Thu, 29 Oct 2020 22:19:56 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, daniel@ffwll.ch, hch@lst.de,
-        mm-commits@vger.kernel.org
-Subject:  + mm-simplify-follow_ptepmd.patch added to -mm tree
-Message-ID: <20201030051811.OaHFk48u4%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
+Subject:  + kernelh-split-out-mathematical-helpers-fix.patch added
+ to -mm tree
+Message-ID: <20201030051956.vZWrrRAfN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: simplify follow_pte{,pmd}
+     Subject: kernel.h: split out mathematical helpers fix
 has been added to the -mm tree.  Its filename is
-     mm-simplify-follow_ptepmd.patch
+     kernelh-split-out-mathematical-helpers-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-follow_ptepmd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernelh-split-out-mathematical-helpers-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-follow_ptepmd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernelh-split-out-mathematical-helpers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,128 +74,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: simplify follow_pte{,pmd}
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: kernel.h: split out mathematical helpers fix
 
-Merge __follow_pte_pmd, follow_pte_pmd and follow_pte into a single
-follow_pte function and just pass two additional NULL arguments for the
-two previous follow_pte callers.
+fix powerpc build
 
-Link: https://lkml.kernel.org/r/20201029101432.47011-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://lkml.kernel.org/r/20201029150809.13059608@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c           |    9 ++++-----
- include/linux/mm.h |    6 +++---
- mm/memory.c        |   35 +++++------------------------------
- 3 files changed, 12 insertions(+), 38 deletions(-)
+ lib/math/div64.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/dax.c~mm-simplify-follow_ptepmd
-+++ a/fs/dax.c
-@@ -810,12 +810,11 @@ static void dax_entry_mkclean(struct add
- 		address = pgoff_address(index, vma);
+--- a/lib/math/div64.c~kernelh-split-out-mathematical-helpers-fix
++++ a/lib/math/div64.c
+@@ -22,6 +22,7 @@
+ #include <linux/export.h>
+ #include <linux/math.h>
+ #include <linux/math64.h>
++#include <linux/log2.h>
  
- 		/*
--		 * Note because we provide range to follow_pte_pmd it will
--		 * call mmu_notifier_invalidate_range_start() on our behalf
--		 * before taking any lock.
-+		 * Note because we provide range to follow_pte it will call
-+		 * mmu_notifier_invalidate_range_start() on our behalf before
-+		 * taking any lock.
- 		 */
--		if (follow_pte_pmd(vma->vm_mm, address, &range,
--				   &ptep, &pmdp, &ptl))
-+		if (follow_pte(vma->vm_mm, address, &range, &ptep, &pmdp, &ptl))
- 			continue;
- 
- 		/*
---- a/include/linux/mm.h~mm-simplify-follow_ptepmd
-+++ a/include/linux/mm.h
-@@ -1633,9 +1633,9 @@ void free_pgd_range(struct mmu_gather *t
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int
- copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
--int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
--		   struct mmu_notifier_range *range,
--		   pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
-+int follow_pte(struct mm_struct *mm, unsigned long address,
-+		struct mmu_notifier_range *range, pte_t **ptepp, pmd_t **pmdpp,
-+		spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
---- a/mm/memory.c~mm-simplify-follow_ptepmd
-+++ a/mm/memory.c
-@@ -4696,9 +4696,9 @@ int __pmd_alloc(struct mm_struct *mm, pu
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
--			    struct mmu_notifier_range *range,
--			    pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-+int follow_pte(struct mm_struct *mm, unsigned long address,
-+	       struct mmu_notifier_range *range, pte_t **ptepp, pmd_t **pmdpp,
-+	       spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -4763,31 +4763,6 @@ out:
- 	return -EINVAL;
- }
- 
--static inline int follow_pte(struct mm_struct *mm, unsigned long address,
--			     pte_t **ptepp, spinlock_t **ptlp)
--{
--	int res;
--
--	/* (void) is needed to make gcc happy */
--	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte_pmd(mm, address, NULL,
--						    ptepp, NULL, ptlp)));
--	return res;
--}
--
--int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
--		   struct mmu_notifier_range *range,
--		   pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
--{
--	int res;
--
--	/* (void) is needed to make gcc happy */
--	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte_pmd(mm, address, range,
--						    ptepp, pmdpp, ptlp)));
--	return res;
--}
--
- /**
-  * follow_pfn - look up PFN at a user virtual address
-  * @vma: memory mapping
-@@ -4808,7 +4783,7 @@ int follow_pfn(struct vm_area_struct *vm
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
- 		return ret;
- 
--	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
-+	ret = follow_pte(vma->vm_mm, address, NULL, &ptep, NULL, &ptl);
- 	if (ret)
- 		return ret;
- 	*pfn = pte_pfn(*ptep);
-@@ -4829,7 +4804,7 @@ int follow_phys(struct vm_area_struct *v
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
- 		goto out;
- 
--	if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+	if (follow_pte(vma->vm_mm, address, NULL, &ptep, NULL, &ptl))
- 		goto out;
- 	pte = *ptep;
- 
+ /* Not needed on 64bit architectures */
+ #if BITS_PER_LONG == 32
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-unexport-follow_pte_pmd.patch
-mm-simplify-follow_ptepmd.patch
+kernelh-split-out-mathematical-helpers-fix.patch
 
