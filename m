@@ -7,45 +7,50 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 889E0C388F9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:39:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0955C388F9
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C1E3206DC
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:39:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8AF0E206ED
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604173168;
-	bh=j01YIpwr0Lsfhhb0TKIHFyYHdEOxKWyanKf1nd/YrPA=;
+	s=default; t=1604173401;
+	bh=muKbBVAdI8Xw6nX/uIeV3DZbn7MqHMHjed38SCiCwUk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yS4CQ9lpZnQCo8510gb7x6iNo811WeT3g7gVc6keg8osp47KD8npeLmdGqH5KanpA
-	 ZpPzMuuUFqSJfwmKUfjeIZQNhkOq4afjheok7AiKM1nkv4ygT10uqLfgS8PAvyJMEj
-	 vImFidO8C2z/ubaDwdkuCE4QI/ztEpprC5Y4V+6s=
+	b=h+QLWNuMVOcE2jvd6IjaYFU9k5Te0IuDOdLDMT8dmmBBFKFLtWai4JfMEMimxfYAJ
+	 R30H5+PPyYyWu0mNTnIp175vtB4lUPkhEa7CgGOdz3gwUlZgUfMwI+Grvk9zHeFNF0
+	 1LkJou/iUr4VayMwnwANOLYLmE9mE7y9P/CHy2ZY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728415AbgJaTj1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 15:39:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44952 "EHLO mail.kernel.org"
+        id S1726496AbgJaTnV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 15:43:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725786AbgJaTj1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 15:39:27 -0400
+        id S1725786AbgJaTnU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 15:43:20 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AB05F206DB;
-        Sat, 31 Oct 2020 19:39:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E9BBD206E3;
+        Sat, 31 Oct 2020 19:43:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604173166;
-        bh=j01YIpwr0Lsfhhb0TKIHFyYHdEOxKWyanKf1nd/YrPA=;
+        s=default; t=1604173400;
+        bh=muKbBVAdI8Xw6nX/uIeV3DZbn7MqHMHjed38SCiCwUk=;
         h=Date:From:To:Subject:From;
-        b=jRnjc2luEs+hi6rwBf1eQSG1MkYpP4a7gezjbe01NuN3763tn3rRKeezVroW3rqby
-         Yvg2PdXbErSTYN8m6xDRoGRmvyHd+DTtWgCO9M1XbUpGLUORHIt4e3U0HCsTxiqaof
-         iLfcr2fdsx9Y4la1V5kH1bKXh2biSlbn2RmyMHyI=
-Date:   Sat, 31 Oct 2020 12:39:26 -0700
+        b=CN2ST0rleFEg9KLNIvUHH1+31tQsQ8MYv4X/ZpnR5Q3NI5kimikBFl6ff+2v/pIzd
+         KjervMv2A+h2F6U+EKNOvPVci/KYkaokAhGQVq9bXJx9d5rbdfWyyEGvDyMnAFxQZs
+         uGnwziWLeg3JVX8GHNkFF4S/Fz0Z9cp1tMKaTbRs=
+Date:   Sat, 31 Oct 2020 12:43:19 -0700
 From:   akpm@linux-foundation.org
-To:     ddstreet@ieee.org, mm-commits@vger.kernel.org, sjenning@redhat.com,
-        vitaly.wool@konsulko.com, yuehaibing@huawei.com
-Subject:  + mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
+To:     mgorman@techsingularity.net, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, riel@surriel.com, shy828301@gmail.com,
+        vbabka@suse.cz, ziy@nvidia.com
+Subject:  +
+ mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.patch
  added to -mm tree
-Message-ID: <20201031193926.lhqpmwLT-%akpm@linux-foundation.org>
+Message-ID: <20201031194319.I3Oaop43q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +58,18 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: fix passing zero to 'PTR_ERR' warning
+     Subject: mm-compaction-count-pages-and-stop-correctly-during-page-isol=
+ation-v3
 has been added to the -mm tree.  Its filename is
-     mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
+     mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.=
+patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-count-pages-and=
+-stop-correctly-during-page-isolation-v3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-count-pages-and=
+-stop-correctly-during-page-isolation-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,48 +77,52 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: mm/zswap: fix passing zero to 'PTR_ERR' warning
+=46rom: Zi Yan <ziy@nvidia.com>
+Subject: mm-compaction-count-pages-and-stop-correctly-during-page-isolation=
+-v3
 
-Fix smatch warning:
-
-mm/zswap.c:425 zswap_cpu_comp_prepare() warn: passing zero to 'PTR_ERR'
-
-crypto_alloc_comp() never return NULL, use IS_ERR instead of
-IS_ERR_OR_NULL to fix this.
-
-Link: https://lkml.kernel.org/r/20201031055615.28080-1-yuehaibing@huawei.com
-Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20201030183809.3616803-1-zi.yan@sent.com
+Fixes: 1da2f328fa64 (=E2=80=9Cmm,thp,compaction,cma: allow THP migration fo=
+r CMA allocations=E2=80=9D)
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-passing-zero-to-ptr_err-warning
-+++ a/mm/zswap.c
-@@ -421,7 +421,7 @@ static int zswap_cpu_comp_prepare(unsign
- 		return 0;
- 
- 	tfm = crypto_alloc_comp(pool->tfm_name, 0, 0);
--	if (IS_ERR_OR_NULL(tfm)) {
-+	if (IS_ERR(tfm)) {
- 		pr_err("could not alloc crypto comp %s : %ld\n",
- 		       pool->tfm_name, PTR_ERR(tfm));
- 		return -ENOMEM;
+--- a/mm/compaction.c~mm-compaction-count-pages-and-stop-correctly-during-p=
+age-isolation-v3
++++ a/mm/compaction.c
+@@ -1012,8 +1012,8 @@ isolate_migratepages_block(struct compac
+=20
+ isolate_success:
+ 		list_add(&page->lru, &cc->migratepages);
+-		cc->nr_migratepages +=3D thp_nr_pages(page);
+-		nr_isolated +=3D thp_nr_pages(page);
++		cc->nr_migratepages +=3D compound_nr(page);
++		nr_isolated +=3D compound_nr(page);
+=20
+ 		/*
+ 		 * Avoid isolating too much unless this block is being
 _
 
-Patches currently in -mm which might be from yuehaibing@huawei.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
+mm-compaction-count-pages-and-stop-correctly-during-page-isolation.patch
+mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.patch
+mm-compaction-stop-isolation-if-too-many-pages-are-isolated-and-we-have-pag=
+es-to-migrate.patch
 
