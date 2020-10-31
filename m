@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EB5FC388F9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05F2FC5517A
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:46:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3BD9206ED
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:44:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A98EF206E9
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604173457;
-	bh=PF7HHs6s5uHupb8wo0etUxavP7wbxvmT5P/N1awWRcg=;
+	s=default; t=1604173575;
+	bh=sN0QqVjDOT1HA92M+OekPMnfmTpqfZbsUGQ9yPWqfUA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Ni9FbXX6+yRyGnaGzAS+l2L2sS+M33YWJT7bW2TRAbZ0H9Bz4LSN/H0petkVPoT+9
-	 NBEU9fuCG7nDD0NHf+mlKYpNP7wMTCoBjH3FX8ssPHiDoVM6/oRqAPG/EBdD6l/53A
-	 GBMqurBIOjg94iYKLsjcNVO0Jj3IVSznzBVq6wto=
+	b=OLMMg8bgOHQwsfkhC5HmBawIrWe2kHMD6EyFRrBbydStYVwWCKmELX2KGJYcJXBFM
+	 yZTYsVSY1HL5vyBvOYDAjYQhzMid4dvveTJ04aXimuyY89nfgD27o4+PtlqwcuxFnP
+	 0MnL/XJm8eQD6ntKar6pmeZph+93cNH5JjW0ugHc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727317AbgJaToR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 15:44:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47196 "EHLO mail.kernel.org"
+        id S1728432AbgJaTqO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 15:46:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725786AbgJaToR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 15:44:17 -0400
+        id S1728447AbgJaTqM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 15:46:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AD37A206E3;
-        Sat, 31 Oct 2020 19:44:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 984F5206E3;
+        Sat, 31 Oct 2020 19:46:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604173456;
-        bh=PF7HHs6s5uHupb8wo0etUxavP7wbxvmT5P/N1awWRcg=;
+        s=default; t=1604173571;
+        bh=sN0QqVjDOT1HA92M+OekPMnfmTpqfZbsUGQ9yPWqfUA=;
         h=Date:From:To:Subject:From;
-        b=WSsB3zkZyMC/Fyt7AHMoIcI8tqxdLzdYn6BVGxtdXB6rFgDqWDbALG9R+eygILIqw
-         mFb+430UYf8ZixUU0l7xZQwZrEtGulP84aWWPC+WPeUbrqJCaquFxFfNI3bYkwuDsg
-         6AUy5FUo4m8d3boFj4CXARYX4EvksvMq2v77pw4g=
-Date:   Sat, 31 Oct 2020 12:44:16 -0700
+        b=bgWyw0eT+eRlS74vJ3s63uCPei4MLx6BPiIveLMvg0TtF6M5KSKnDDAXAdtsLYNoO
+         /TyjbFDiSrdYAXF7MCowluwmh4zNFqy3UV/kFHUBKWlHTrj1ITnypAWN1agnvIFoI2
+         d8bXske8ZcY0hW+wfMnfUfkznZhhr6IBgAZXfCag=
+Date:   Sat, 31 Oct 2020 12:46:11 -0700
 From:   akpm@linux-foundation.org
-To:     mhocko@kernel.org, mm-commits@vger.kernel.org, sh_def@163.com
+To:     aneesh.kumar@linux.ibm.com, imbrenda@linux.ibm.com,
+        ira.weiny@intel.com, jack@suse.cz, jgg@nvidia.com,
+        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org
 Subject:  +
- mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch added
- to -mm tree
-Message-ID: <20201031194416.HxKzaee5T%akpm@linux-foundation.org>
+ mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch added to
+ -mm tree
+Message-ID: <20201031194611.slgOhggX7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
+     Subject: mm/gup: use unpin_user_pages() in check_and_migrate_cma_pages()
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+     mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,60 +77,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
+From: Jason Gunthorpe <jgg@nvidia.com>
+Subject: mm/gup: use unpin_user_pages() in check_and_migrate_cma_pages()
 
-Change the comment of is_dump_unreclaim_slabs(), it just check whether
-nr_unreclaimable slabs amount is greater than user memory, and explain why
-we dump unreclaim slabs.
+When FOLL_PIN is passed to __get_user_pages() the page list must be put
+back using unpin_user_pages() otherwise the page pin reference persists in
+a corrupted state.
 
-Rename it to should_dump_unreclaim_slab() maybe better.
-
-Link: https://lkml.kernel.org/r/20201030182704.GA53949@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/0-v1-976effcd4468+d4-gup_cma_fix_jgg@nvidia.com
+Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/gup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs
-+++ a/mm/oom_kill.c
-@@ -170,11 +170,13 @@ static bool oom_unkillable_task(struct t
- 	return false;
- }
+--- a/mm/gup.c~mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages
++++ a/mm/gup.c
+@@ -1647,8 +1647,11 @@ check_again:
+ 		/*
+ 		 * drop the above get_user_pages reference.
+ 		 */
+-		for (i = 0; i < nr_pages; i++)
+-			put_page(pages[i]);
++		if (gup_flags & FOLL_PIN)
++			unpin_user_pages(pages, nr_pages);
++		else
++			for (i = 0; i < nr_pages; i++)
++				put_page(pages[i]);
  
--/*
-- * Print out unreclaimble slabs info when unreclaimable slabs amount is greater
-- * than all user memory (LRU pages)
-- */
--static bool is_dump_unreclaim_slabs(void)
-+/**
-+ * Check whether unreclaimable slab amount is greater than
-+ * all user memory(LRU pages).
-+ * dump_unreclaimable_slab() could help in the case that
-+ * oom due to too much unreclaimable slab used by kernel.
-+*/
-+static bool should_dump_unreclaim_slab(void)
- {
- 	unsigned long nr_lru;
- 
-@@ -463,7 +465,7 @@ static void dump_header(struct oom_contr
- 		mem_cgroup_print_oom_meminfo(oc->memcg);
- 	else {
- 		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
--		if (is_dump_unreclaim_slabs())
-+		if (should_dump_unreclaim_slab())
- 			dump_unreclaimable_slab();
- 	}
- 	if (sysctl_oom_dump_tasks)
+ 		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
+ 			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from jgg@nvidia.com are
 
-mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
-mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
-mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
-acctc-use-elif-instead-of-end-and-elif.patch
+mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
+mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
 
