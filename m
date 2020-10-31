@@ -7,50 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B76C388F9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EB5FC388F9
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:44:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9BE720729
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3BD9206ED
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:44:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604173404;
-	bh=VTjl14a0nFILUsN1lDN1BGJHsg2WhHw3Bx1dpz6akv4=;
+	s=default; t=1604173457;
+	bh=PF7HHs6s5uHupb8wo0etUxavP7wbxvmT5P/N1awWRcg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=QOcYLGN1XliPxuJzdMVU7lLcl2d7g/FiUjr4CEN7icoxh1v46eoLTnHEycEnWvg+x
-	 flPl2LraXDjj14YL0EdAwIJgXkFuyG1QnrIJcdFUyQjdc1j9N8rhYIXfYnMyeiVZYk
-	 NR0Qq9Nqmak4hOu1seHUvgivf992oLPLR4/ZsiCk=
+	b=Ni9FbXX6+yRyGnaGzAS+l2L2sS+M33YWJT7bW2TRAbZ0H9Bz4LSN/H0petkVPoT+9
+	 NBEU9fuCG7nDD0NHf+mlKYpNP7wMTCoBjH3FX8ssPHiDoVM6/oRqAPG/EBdD6l/53A
+	 GBMqurBIOjg94iYKLsjcNVO0Jj3IVSznzBVq6wto=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726254AbgJaTnY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 15:43:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46746 "EHLO mail.kernel.org"
+        id S1727317AbgJaToR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 15:44:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725786AbgJaTnX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 15:43:23 -0400
+        id S1725786AbgJaToR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 15:44:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DCF01206E9;
-        Sat, 31 Oct 2020 19:43:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AD37A206E3;
+        Sat, 31 Oct 2020 19:44:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604173403;
-        bh=VTjl14a0nFILUsN1lDN1BGJHsg2WhHw3Bx1dpz6akv4=;
+        s=default; t=1604173456;
+        bh=PF7HHs6s5uHupb8wo0etUxavP7wbxvmT5P/N1awWRcg=;
         h=Date:From:To:Subject:From;
-        b=FtcCdGbHUGQhNDuZWh02XgqZYodTFq9L2U7QwICGS7zUYbYvJqmxCI0ErsoaEO5It
-         iX2JZW6XKf94ihgPHX3MjjVFDwf0HGX38NMHhHfCH4m/YOLqJwg3RP62OLfc/82+lI
-         ljbKez1ZBCKbm9tKUgf0PJ2QC0qJvC6AOA1I8aZo=
-Date:   Sat, 31 Oct 2020 12:43:22 -0700
+        b=WSsB3zkZyMC/Fyt7AHMoIcI8tqxdLzdYn6BVGxtdXB6rFgDqWDbALG9R+eygILIqw
+         mFb+430UYf8ZixUU0l7xZQwZrEtGulP84aWWPC+WPeUbrqJCaquFxFfNI3bYkwuDsg
+         6AUy5FUo4m8d3boFj4CXARYX4EvksvMq2v77pw4g=
+Date:   Sat, 31 Oct 2020 12:44:16 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, riel@surriel.com, shy828301@gmail.com,
-        stable@vger.kernel.org, vbabka@suse.cz, ziy@nvidia.com
+To:     mhocko@kernel.org, mm-commits@vger.kernel.org, sh_def@163.com
 Subject:  +
- =?US-ASCII?Q?mm-compaction-stop-isolation-if-too-many-pages-are-isolate?=
- =?US-ASCII?Q?d-and-we-have-pages-to-migrate.patch?= added to -mm tree
-Message-ID: <20201031194322.G8zdI8Fpy%akpm@linux-foundation.org>
+ mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch added
+ to -mm tree
+Message-ID: <20201031194416.HxKzaee5T%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -58,18 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: stop isolation if too many pages are isolated =
-and we have pages to migrate
+     Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
 has been added to the -mm tree.  Its filename is
-     mm-compaction-stop-isolation-if-too-many-pages-are-isolated-and-we-hav=
-e-pages-to-migrate.patch
+     mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-stop-isolation-=
-if-too-many-pages-are-isolated-and-we-have-pages-to-migrate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-stop-isolation-=
-if-too-many-pages-are-isolated-and-we-have-pages-to-migrate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,57 +68,66 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Zi Yan <ziy@nvidia.com>
-Subject: mm/compaction: stop isolation if too many pages are isolated and w=
-e have pages to migrate
+From: Hui Su <sh_def@163.com>
+Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
 
-In isolate_migratepages_block, if we have too many isolated pages and
-nr_migratepages is not zero, we should try to migrate what we have without
-wasting time on isolating.
+Change the comment of is_dump_unreclaim_slabs(), it just check whether
+nr_unreclaimable slabs amount is greater than user memory, and explain why
+we dump unreclaim slabs.
 
-Link: https://lkml.kernel.org/r/20201030183809.3616803-2-zi.yan@sent.com
-Fixes: 1da2f328fa64 (=E2=80=9Cmm,thp,compaction,cma: allow THP migration fo=
-r CMA allocations=E2=80=9D)
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Rename it to should_dump_unreclaim_slab() maybe better.
+
+Link: https://lkml.kernel.org/r/20201030182704.GA53949@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/oom_kill.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-stop-isolation-if-too-many-pages-are-is=
-olated-and-we-have-pages-to-migrate
-+++ a/mm/compaction.c
-@@ -817,6 +817,10 @@ isolate_migratepages_block(struct compac
- 	 * delay for some time until fewer pages are isolated
- 	 */
- 	while (unlikely(too_many_isolated(pgdat))) {
-+		/* stop isolation if there are still pages not migrated */
-+		if (cc->nr_migratepages)
-+			return 0;
-+
- 		/* async migration should just abort */
- 		if (cc->mode =3D=3D MIGRATE_ASYNC)
- 			return 0;
+--- a/mm/oom_kill.c~mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs
++++ a/mm/oom_kill.c
+@@ -170,11 +170,13 @@ static bool oom_unkillable_task(struct t
+ 	return false;
+ }
+ 
+-/*
+- * Print out unreclaimble slabs info when unreclaimable slabs amount is greater
+- * than all user memory (LRU pages)
+- */
+-static bool is_dump_unreclaim_slabs(void)
++/**
++ * Check whether unreclaimable slab amount is greater than
++ * all user memory(LRU pages).
++ * dump_unreclaimable_slab() could help in the case that
++ * oom due to too much unreclaimable slab used by kernel.
++*/
++static bool should_dump_unreclaim_slab(void)
+ {
+ 	unsigned long nr_lru;
+ 
+@@ -463,7 +465,7 @@ static void dump_header(struct oom_contr
+ 		mem_cgroup_print_oom_meminfo(oc->memcg);
+ 	else {
+ 		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
+-		if (is_dump_unreclaim_slabs())
++		if (should_dump_unreclaim_slab())
+ 			dump_unreclaimable_slab();
+ 	}
+ 	if (sysctl_oom_dump_tasks)
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from sh_def@163.com are
 
-mm-compaction-count-pages-and-stop-correctly-during-page-isolation.patch
-mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.patch
-mm-compaction-stop-isolation-if-too-many-pages-are-isolated-and-we-have-pag=
-es-to-migrate.patch
+mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
+mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+acctc-use-elif-instead-of-end-and-elif.patch
 
