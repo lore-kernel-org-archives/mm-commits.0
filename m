@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3B2FC388F9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 20:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4841C388F7
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 20:06:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 92A89206F9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 20:03:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B17D20706
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 20:06:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604174591;
-	bh=F1T38qbvtBltOUv2ZaPphzDc0pcCO7Lc8K2jGIsK1UY=;
+	s=default; t=1604174806;
+	bh=KJ8+KakUujZKhEz706QdjbvrzcitqTJSGfWSzIHpOg8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Ux0551BBvtw9hO6Yu8IrxtILbYVHvnT3zedxjeeqeSlwi78jbLRVXtTAy4Wj39gF2
-	 cNEGU9ob/atg3AsP2/NijYQigKwXFgAeFQsVCkcQ8duPPmIL16cQp1WRhF3jkOaxJ2
-	 OHAbFYZeiV3D6ep6aXtsQFV060BK/1cuShmxmhyA=
+	b=SWJKNwPG2+4FogV6ThJ9wni6WjE2uDTC21zbZa0CbqVrJ4RpvRJKJHvylVbyPliXL
+	 nSOXX440l/2zwJLlDzPCzAhxP6bGG/1hbPLVdIJHjtLcqamZlhcC9tL+5975qH5WMV
+	 KbD82NEc6Hq05cAxGCKf7Y5bqBb30NKA45vGf3kU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728483AbgJaUDK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 16:03:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59740 "EHLO mail.kernel.org"
+        id S1728545AbgJaUGq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 16:06:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728457AbgJaUDK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 16:03:10 -0400
+        id S1728533AbgJaUGp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 16:06:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B42D5206F9;
-        Sat, 31 Oct 2020 20:03:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C5CB8206F7;
+        Sat, 31 Oct 2020 20:06:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604174588;
-        bh=F1T38qbvtBltOUv2ZaPphzDc0pcCO7Lc8K2jGIsK1UY=;
+        s=default; t=1604174805;
+        bh=KJ8+KakUujZKhEz706QdjbvrzcitqTJSGfWSzIHpOg8=;
         h=Date:From:To:Subject:From;
-        b=UcZmAxJcxlHkUDWFaNtL23RBSjAJaqkkdSA7fPGYpjBiHvnoeu5wucxddTwjLA101
-         S78pzzXSK0C67+u5QKtg1MJrHdPm3WjKn6kbce0+82wZjE1eGaOVMAPN5VubV5cw5p
-         dMH0fCBm2ttBrKFgOEPJx19NcACU1nh1iZe4XxQA=
-Date:   Sat, 31 Oct 2020 13:03:08 -0700
+        b=RpUn84dv2dzyhXgJ6g9WGHNPOXeiEgzbfjLDoYhN050jEK4J6aYQnVT6g4Ds1gE7h
+         10eoNQRdZ8KmLovr88XqPc7n+3NCAo9weaObYu2JtTgaBaFhZ1Msxl6vsUUN/Sxftn
+         YOJjKnEmoCK3Rq9pXCxCmyAXDP7rwkh760GBGCto=
+Date:   Sat, 31 Oct 2020 13:06:44 -0700
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, yashsri421@gmail.com
-Subject:  + checkpatch-add-fix-option-for-gerrit_change_id.patch
- added to -mm tree
-Message-ID: <20201031200308.CD0akeND8%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, amistry@google.com, asteinhauser@google.com,
+        corbet@lwn.net, gladkov.alexey@gmail.com, keescook@chromium.org,
+        mchehab+huawei@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, neilb@suse.de, peterz@infradead.org,
+        rppt@kernel.org, tglx@linutronix.de
+Subject:  +
+ proc-provide-details-on-indirect-branch-speculation.patch added to -mm tree
+Message-ID: <20201031200644.DQuLzHrRb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add fix option for GERRIT_CHANGE_ID
+     Subject: proc: provide details on indirect branch speculation
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-fix-option-for-gerrit_change_id.patch
+     proc-provide-details-on-indirect-branch-speculation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-gerrit_change_id.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-provide-details-on-indirect-branch-speculation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-gerrit_change_id.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-provide-details-on-indirect-branch-speculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,50 +77,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aditya Srivastava <yashsri421@gmail.com>
-Subject: checkpatch: add fix option for GERRIT_CHANGE_ID
+From: Anand K Mistry <amistry@google.com>
+Subject: proc: provide details on indirect branch speculation
 
-Currently, whenever a Gerrit Change-Id is present in a commit,
-checkpatch.pl warns to remove the Change-Id before submitting the patch.
+Similar to speculation store bypass, show information about the indirect
+branch speculation mode of a task in /proc/$pid/status.
 
-E.g., running checkpatch on commit adc311a5bbf6 ("iwlwifi: bump FW
-API to 53 for 22000 series") reports this error:
-
-ERROR: Remove Gerrit Change-Id's before submitting upstream
-Change-Id: I5725e46394f3f53c3069723fd513cc53c7df383d
-
-Provide a simple fix option by simply deleting the indicated line.
-
-Link: https://lkml.kernel.org/r/20201030114447.24199-1-yashsri421@gmail.com
-Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Link: https://lkml.kernel.org/r/20201030172731.1.I7782b0cedb705384a634cfd8898eb7523562da99@changeid
+Signed-off-by: Anand K Mistry <amistry@google.com>
+Cc: Anthony Steinhauser <asteinhauser@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Anand K Mistry <amistry@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.rst |    2 +
+ fs/proc/array.c                    |   28 +++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-gerrit_change_id
-+++ a/scripts/checkpatch.pl
-@@ -2852,8 +2852,11 @@ sub process {
+--- a/Documentation/filesystems/proc.rst~proc-provide-details-on-indirect-branch-speculation
++++ a/Documentation/filesystems/proc.rst
+@@ -210,6 +210,7 @@ read the file /proc/PID/status::
+   NoNewPrivs:     0
+   Seccomp:        0
+   Speculation_Store_Bypass:       thread vulnerable
++  Speculation_Indirect_Branch:    conditional enabled
+   voluntary_ctxt_switches:        0
+   nonvoluntary_ctxt_switches:     1
  
- # Check for Gerrit Change-Ids not in any patch context
- 		if ($realfile eq '' && !$has_patch_separator && $line =~ /^\s*change-id:/i) {
--			ERROR("GERRIT_CHANGE_ID",
--			      "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr);
-+			if (ERROR("GERRIT_CHANGE_ID",
-+			          "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr) &&
-+			    $fix) {
-+                                fix_delete_line($fixlinenr, $rawline);
-+                        }
- 		}
+@@ -292,6 +293,7 @@ It's slow but very precise.
+  NoNewPrivs                  no_new_privs, like prctl(PR_GET_NO_NEW_PRIV, ...)
+  Seccomp                     seccomp mode, like prctl(PR_GET_SECCOMP, ...)
+  Speculation_Store_Bypass    speculative store bypass mitigation status
++ Speculation_Indirect_Branch indirect branch speculation mode
+  Cpus_allowed                mask of CPUs on which this process may run
+  Cpus_allowed_list           Same as previous, but in "list format"
+  Mems_allowed                mask of memory nodes allowed to this process
+--- a/fs/proc/array.c~proc-provide-details-on-indirect-branch-speculation
++++ a/fs/proc/array.c
+@@ -368,6 +368,34 @@ static inline void task_seccomp(struct s
+ 		seq_puts(m, "vulnerable");
+ 		break;
+ 	}
++
++	seq_puts(m, "\nSpeculation_Indirect_Branch:\t");
++	switch (arch_prctl_spec_ctrl_get(p, PR_SPEC_INDIRECT_BRANCH)) {
++	case -EINVAL:
++		seq_puts(m, "unsupported");
++		break;
++	case PR_SPEC_NOT_AFFECTED:
++		seq_puts(m, "not affected");
++		break;
++	case PR_SPEC_PRCTL | PR_SPEC_FORCE_DISABLE:
++		seq_puts(m, "conditional force disabled");
++		break;
++	case PR_SPEC_PRCTL | PR_SPEC_DISABLE:
++		seq_puts(m, "conditional disabled");
++		break;
++	case PR_SPEC_PRCTL | PR_SPEC_ENABLE:
++		seq_puts(m, "conditional enabled");
++		break;
++	case PR_SPEC_ENABLE:
++		seq_puts(m, "always enabled");
++		break;
++	case PR_SPEC_DISABLE:
++		seq_puts(m, "always disabled");
++		break;
++	default:
++		seq_puts(m, "unknown");
++		break;
++	}
+ 	seq_putc(m, '\n');
+ }
  
- # Check if the commit log is in a possible stack dump
 _
 
-Patches currently in -mm which might be from yashsri421@gmail.com are
+Patches currently in -mm which might be from amistry@google.com are
 
-checkpatch-fix-false-positives-in-repeated_word-warning.patch
-checkpatch-add-fix-option-for-gerrit_change_id.patch
+proc-provide-details-on-indirect-branch-speculation.patch
 
