@@ -7,48 +7,50 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05F2FC5517A
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:46:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B50C388F7
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:47:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A98EF206E9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:46:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BDE9206ED
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:47:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604173575;
-	bh=sN0QqVjDOT1HA92M+OekPMnfmTpqfZbsUGQ9yPWqfUA=;
+	s=default; t=1604173654;
+	bh=K7I7lXMEGaAu23kTVyGq5tFDHR9lE/0F5Qed3vL765w=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=OLMMg8bgOHQwsfkhC5HmBawIrWe2kHMD6EyFRrBbydStYVwWCKmELX2KGJYcJXBFM
-	 yZTYsVSY1HL5vyBvOYDAjYQhzMid4dvveTJ04aXimuyY89nfgD27o4+PtlqwcuxFnP
-	 0MnL/XJm8eQD6ntKar6pmeZph+93cNH5JjW0ugHc=
+	b=eu4pJid/h26gcuRR9InKzPPEsO4fT0Ac/cv4+rGeq13Q8D6xNRlvGdxGaDHyFrhV3
+	 fHT5nFUbW46h7A2wQ/7kleY/cJ2m3GRXepJ1y0ppKiQLwONOrSDWXma7QZpyYWoaJf
+	 J+1G/JF7XA3zDxXszYhFAXOxtafgXuq1uByATxw0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728432AbgJaTqO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 15:46:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48112 "EHLO mail.kernel.org"
+        id S1728461AbgJaTrd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 15:47:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48798 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728447AbgJaTqM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 15:46:12 -0400
+        id S1728447AbgJaTrd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 15:47:33 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 984F5206E3;
-        Sat, 31 Oct 2020 19:46:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D867F206E3;
+        Sat, 31 Oct 2020 19:47:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604173571;
-        bh=sN0QqVjDOT1HA92M+OekPMnfmTpqfZbsUGQ9yPWqfUA=;
+        s=default; t=1604173653;
+        bh=K7I7lXMEGaAu23kTVyGq5tFDHR9lE/0F5Qed3vL765w=;
         h=Date:From:To:Subject:From;
-        b=bgWyw0eT+eRlS74vJ3s63uCPei4MLx6BPiIveLMvg0TtF6M5KSKnDDAXAdtsLYNoO
-         /TyjbFDiSrdYAXF7MCowluwmh4zNFqy3UV/kFHUBKWlHTrj1ITnypAWN1agnvIFoI2
-         d8bXske8ZcY0hW+wfMnfUfkznZhhr6IBgAZXfCag=
-Date:   Sat, 31 Oct 2020 12:46:11 -0700
+        b=eg989FLpeYZZRKpEDE0Q1DJt/LrKpUXMF9w0CFUqMMBZkUdqcyVr5blXOBZPhU5TI
+         fwpWovZv/ECtWmkiE1WzjnoCwZ/nw2/jVZarg5oz6x6D7Qn0WEEf3BW87+Mpo1X+RQ
+         PQeJrusfKZz2GxaEmfh/SEO6p/ZFjA4ibOP19OOU=
+Date:   Sat, 31 Oct 2020 12:47:32 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, imbrenda@linux.ibm.com,
-        ira.weiny@intel.com, jack@suse.cz, jgg@nvidia.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org
-Subject:  +
- mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch added to
- -mm tree
-Message-ID: <20201031194611.slgOhggX7%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, glider@google.com,
+        keescook@chromium.org, mateusznosek0@gmail.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz
+Subject:  [folded-merged]
+ =?US-ASCII?Q?mm-page=5Falloc-do-not-rely-on-the-order-of-page=5Fpoison?=
+ =?US-ASCII?Q?-and-init=5Fon=5Falloc-free-parameters-fix.patch?= removed
+ from -mm tree
+Message-ID: <20201031194732.q7LQPIAYR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,69 +58,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: use unpin_user_pages() in check_and_migrate_cma_pages()
-has been added to the -mm tree.  Its filename is
-     mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
+     Subject: mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
 
 ------------------------------------------------------
-From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: use unpin_user_pages() in check_and_migrate_cma_pages()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix
 
-When FOLL_PIN is passed to __get_user_pages() the page list must be put
-back using unpin_user_pages() otherwise the page pin reference persists in
-a corrupted state.
+fix init_mem_debugging() definition, per Mike
 
-Link: https://lkml.kernel.org/r/0-v1-976effcd4468+d4-gup_cma_fix_jgg@nvidia.com
-Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mateusz Nosek <mateusznosek0@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages
-+++ a/mm/gup.c
-@@ -1647,8 +1647,11 @@ check_again:
- 		/*
- 		 * drop the above get_user_pages reference.
- 		 */
--		for (i = 0; i < nr_pages; i++)
--			put_page(pages[i]);
-+		if (gup_flags & FOLL_PIN)
-+			unpin_user_pages(pages, nr_pages);
-+		else
-+			for (i = 0; i < nr_pages; i++)
-+				put_page(pages[i]);
- 
- 		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix
++++ a/mm/page_alloc.c
+@@ -758,7 +758,7 @@ static inline void clear_page_guard(stru
+  * order of appearance. So we need to first gather the full picture of what was
+  * enabled, and then make decisions.
+  */
+-void init_mem_debugging()
++void init_mem_debugging(void)
+ {
+ 	if (_init_on_alloc_enabled_early) {
+ 		if (page_poisoning_enabled()) {
 _
 
-Patches currently in -mm which might be from jgg@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
-mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
+mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
+mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix.patch
+mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit-fix.patch
+mm.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
