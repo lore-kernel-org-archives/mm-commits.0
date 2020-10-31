@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B50C388F7
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:47:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB7A7C388F7
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:48:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BDE9206ED
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:47:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75BE5206E9
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604173654;
-	bh=K7I7lXMEGaAu23kTVyGq5tFDHR9lE/0F5Qed3vL765w=;
+	s=default; t=1604173723;
+	bh=iaUCxaoxFYLxqLwv5qqHDlpb8RLH5BXuATd40imb5k4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=eu4pJid/h26gcuRR9InKzPPEsO4fT0Ac/cv4+rGeq13Q8D6xNRlvGdxGaDHyFrhV3
-	 fHT5nFUbW46h7A2wQ/7kleY/cJ2m3GRXepJ1y0ppKiQLwONOrSDWXma7QZpyYWoaJf
-	 J+1G/JF7XA3zDxXszYhFAXOxtafgXuq1uByATxw0=
+	b=vVV6ivu4avLUylL4qhNlT/zl/wJ+Rh8cPUIio4Jf0xCWfyz/BojL7ax1cS3rxaP0A
+	 4LIF5GYML1vyydosx7iUWZq688R66wNC0kIgbr41IuDysqp0EIIn4VYwYukSNYkXih
+	 MgkBZ1mectgxObGKTM2FwQWEuJm8BBzimGNhEPao=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728461AbgJaTrd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 15:47:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48798 "EHLO mail.kernel.org"
+        id S1728394AbgJaTsn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 15:48:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728447AbgJaTrd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 15:47:33 -0400
+        id S1727230AbgJaTsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 15:48:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D867F206E3;
-        Sat, 31 Oct 2020 19:47:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 830EA206E5;
+        Sat, 31 Oct 2020 19:48:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604173653;
-        bh=K7I7lXMEGaAu23kTVyGq5tFDHR9lE/0F5Qed3vL765w=;
+        s=default; t=1604173721;
+        bh=iaUCxaoxFYLxqLwv5qqHDlpb8RLH5BXuATd40imb5k4=;
         h=Date:From:To:Subject:From;
-        b=eg989FLpeYZZRKpEDE0Q1DJt/LrKpUXMF9w0CFUqMMBZkUdqcyVr5blXOBZPhU5TI
-         fwpWovZv/ECtWmkiE1WzjnoCwZ/nw2/jVZarg5oz6x6D7Qn0WEEf3BW87+Mpo1X+RQ
-         PQeJrusfKZz2GxaEmfh/SEO6p/ZFjA4ibOP19OOU=
-Date:   Sat, 31 Oct 2020 12:47:32 -0700
+        b=RtbykCC2T5WYxjSE361F+/qFAXDZC1myYABWV5UwI4FMMOCwD3U7XCBVZQDpskxbs
+         RaxFDi6hbJmZTleefmscPf2CLGke+3t78jUq5J0Ol0Wy07XQ9VduDJWzuft+tPgckG
+         oAtiIZjnqEO354Mk0CJ99NRWtt9vhFz00ngYtiJ0=
+Date:   Sat, 31 Oct 2020 12:48:40 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, david@redhat.com, glider@google.com,
-        keescook@chromium.org, mateusznosek0@gmail.com, mhocko@kernel.org,
+To:     david@redhat.com, glider@google.com, keescook@chromium.org,
+        mateusznosek0@gmail.com, mcgrof@kernel.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz
-Subject:  [folded-merged]
+Subject:  [to-be-updated]
  =?US-ASCII?Q?mm-page=5Falloc-do-not-rely-on-the-order-of-page=5Fpoison?=
- =?US-ASCII?Q?-and-init=5Fon=5Falloc-free-parameters-fix.patch?= removed
- from -mm tree
-Message-ID: <20201031194732.q7LQPIAYR%akpm@linux-foundation.org>
+ =?US-ASCII?Q?-and-init=5Fon=5Falloc-free-parameters.patch?= removed from
+ -mm tree
+Message-ID: <20201031194840.Umsh2VQyu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -58,53 +58,267 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix
+     Subject: mm, page_alloc: do not rely on the order of page_poison and init_on_alloc/free parameters
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix.patch
+     mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
 
-This patch was dropped because it was folded into mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: do not rely on the order of page_poison and init_on_alloc/free parameters
 
-fix init_mem_debugging() definition, per Mike
+Patch series "optimize handling of memory debugging parameters".
 
+We currently have several kernel parameters that affect page allocator wrt
+debugging and hardening, some also with config options: init_on_alloc,
+init_on_free, page_poison, debug_pagealloc.
+
+These options generally have their own static keys, but sometimes a
+decision for e.g.  clearing a page depends on multiple options, and the
+handling is not as efficient as it could be.  This series addresses that
+by centralizing the decisions into a new init_mem_debugging() function
+that enables individual static keys, and most paths now rely on a single
+static key check.  Subtle dependency on the order of parameters is also
+eliminated (Patch 1).  The result is more efficient and hopefully also
+more readable code.
+
+
+This patch (of 3):
+
+Enabling page_poison=1 together with init_on_alloc=1 or init_on_free=1
+produces a warning in dmesg that page_poison takes precedence. 
+However, as these warnings are printed in early_param handlers for
+init_on_alloc/free, they are not printed if page_poison is enabled
+later on the command line (handlers are called in the order of their
+parameters), or when init_on_alloc/free is always enabled by the
+respective config option - before the page_poison early param handler
+is called, it is not considered to be enabled.  This is inconsistent.
+
+We can remove the dependency on order by making the init_on_* parameters
+only set a boolean variable, and postponing the evaluation after all early
+params have been processed.  Introduce a new init_mem_debugging() function
+for that, and move the related debug_pagealloc processing there as well.
+
+As a result init_mem_debugging() knows always accurately if init_on_*
+and/or page_poison options were enabled.  Thus we can also optimize
+want_init_on_alloc() and want_init_on_free().  We don't need to check
+page_poisoning_enabled() there, we can instead not enable the init_on_*
+tracepoint at all, if page poisoning is enabled.  This results in a
+simpler and more effective code.
+
+[akpm@linux-foundation.org: fix init_mem_debugging() definition, per Mike]
+Link: https://lkml.kernel.org/r/20201026173358.14704-1-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20201026173358.14704-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Mateusz Nosek <mateusznosek0@gmail.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mateusz Nosek <mateusznosek0@gmail.com>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |   20 +--------
+ init/main.c        |    2 
+ mm/page_alloc.c    |   94 +++++++++++++++++++++----------------------
+ 3 files changed, 50 insertions(+), 66 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters-fix
-+++ a/mm/page_alloc.c
-@@ -758,7 +758,7 @@ static inline void clear_page_guard(stru
-  * order of appearance. So we need to first gather the full picture of what was
-  * enabled, and then make decisions.
-  */
--void init_mem_debugging()
-+void init_mem_debugging(void)
+--- a/include/linux/mm.h~mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters
++++ a/include/linux/mm.h
+@@ -2853,6 +2853,7 @@ extern int apply_to_existing_page_range(
+ 				   unsigned long address, unsigned long size,
+ 				   pte_fn_t fn, void *data);
+ 
++extern void init_mem_debugging(void);
+ #ifdef CONFIG_PAGE_POISONING
+ extern bool page_poisoning_enabled(void);
+ extern void kernel_poison_pages(struct page *page, int numpages, int enable);
+@@ -2862,35 +2863,20 @@ static inline void kernel_poison_pages(s
+ 					int enable) { }
+ #endif
+ 
+-#ifdef CONFIG_INIT_ON_ALLOC_DEFAULT_ON
+-DECLARE_STATIC_KEY_TRUE(init_on_alloc);
+-#else
+ DECLARE_STATIC_KEY_FALSE(init_on_alloc);
+-#endif
+ static inline bool want_init_on_alloc(gfp_t flags)
  {
- 	if (_init_on_alloc_enabled_early) {
- 		if (page_poisoning_enabled()) {
+-	if (static_branch_unlikely(&init_on_alloc) &&
+-	    !page_poisoning_enabled())
++	if (static_branch_unlikely(&init_on_alloc))
+ 		return true;
+ 	return flags & __GFP_ZERO;
+ }
+ 
+-#ifdef CONFIG_INIT_ON_FREE_DEFAULT_ON
+-DECLARE_STATIC_KEY_TRUE(init_on_free);
+-#else
+ DECLARE_STATIC_KEY_FALSE(init_on_free);
+-#endif
+ static inline bool want_init_on_free(void)
+ {
+-	return static_branch_unlikely(&init_on_free) &&
+-	       !page_poisoning_enabled();
++	return static_branch_unlikely(&init_on_free);
+ }
+ 
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-extern void init_debug_pagealloc(void);
+-#else
+-static inline void init_debug_pagealloc(void) {}
+-#endif
+ extern bool _debug_pagealloc_enabled_early;
+ DECLARE_STATIC_KEY_FALSE(_debug_pagealloc_enabled);
+ 
+--- a/init/main.c~mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters
++++ a/init/main.c
+@@ -815,7 +815,7 @@ static void __init mm_init(void)
+ 	 * bigger than MAX_ORDER unless SPARSEMEM.
+ 	 */
+ 	page_ext_init_flatmem();
+-	init_debug_pagealloc();
++	init_mem_debugging();
+ 	report_meminit();
+ 	mem_init();
+ 	/* page_owner must be initialized after buddy is ready */
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters
++++ a/mm/page_alloc.c
+@@ -165,53 +165,26 @@ unsigned long totalcma_pages __read_most
+ 
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+-#ifdef CONFIG_INIT_ON_ALLOC_DEFAULT_ON
+-DEFINE_STATIC_KEY_TRUE(init_on_alloc);
+-#else
+-DEFINE_STATIC_KEY_FALSE(init_on_alloc);
+-#endif
++DEFINE_STATIC_KEY_FALSE_RO(init_on_alloc);
+ EXPORT_SYMBOL(init_on_alloc);
+ 
+-#ifdef CONFIG_INIT_ON_FREE_DEFAULT_ON
+-DEFINE_STATIC_KEY_TRUE(init_on_free);
+-#else
+-DEFINE_STATIC_KEY_FALSE(init_on_free);
+-#endif
++DEFINE_STATIC_KEY_FALSE_RO(init_on_free);
+ EXPORT_SYMBOL(init_on_free);
+ 
++static bool _init_on_alloc_enabled_early __read_mostly
++				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
+ static int __init early_init_on_alloc(char *buf)
+ {
+-	int ret;
+-	bool bool_result;
+ 
+-	ret = kstrtobool(buf, &bool_result);
+-	if (ret)
+-		return ret;
+-	if (bool_result && page_poisoning_enabled())
+-		pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, will take precedence over init_on_alloc\n");
+-	if (bool_result)
+-		static_branch_enable(&init_on_alloc);
+-	else
+-		static_branch_disable(&init_on_alloc);
+-	return 0;
++	return kstrtobool(buf, &_init_on_alloc_enabled_early);
+ }
+ early_param("init_on_alloc", early_init_on_alloc);
+ 
++static bool _init_on_free_enabled_early __read_mostly
++				= IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON);
+ static int __init early_init_on_free(char *buf)
+ {
+-	int ret;
+-	bool bool_result;
+-
+-	ret = kstrtobool(buf, &bool_result);
+-	if (ret)
+-		return ret;
+-	if (bool_result && page_poisoning_enabled())
+-		pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, will take precedence over init_on_free\n");
+-	if (bool_result)
+-		static_branch_enable(&init_on_free);
+-	else
+-		static_branch_disable(&init_on_free);
+-	return 0;
++	return kstrtobool(buf, &_init_on_free_enabled_early);
+ }
+ early_param("init_on_free", early_init_on_free);
+ 
+@@ -728,19 +701,6 @@ static int __init early_debug_pagealloc(
+ }
+ early_param("debug_pagealloc", early_debug_pagealloc);
+ 
+-void init_debug_pagealloc(void)
+-{
+-	if (!debug_pagealloc_enabled())
+-		return;
+-
+-	static_branch_enable(&_debug_pagealloc_enabled);
+-
+-	if (!debug_guardpage_minorder())
+-		return;
+-
+-	static_branch_enable(&_debug_guardpage_enabled);
+-}
+-
+ static int __init debug_guardpage_minorder_setup(char *buf)
+ {
+ 	unsigned long res;
+@@ -792,6 +752,44 @@ static inline void clear_page_guard(stru
+ 				unsigned int order, int migratetype) {}
+ #endif
+ 
++/*
++ * Enable static keys related to various memory debugging and hardening options.
++ * Some override others, and depend on early params that are evaluated in the
++ * order of appearance. So we need to first gather the full picture of what was
++ * enabled, and then make decisions.
++ */
++void init_mem_debugging(void)
++{
++	if (_init_on_alloc_enabled_early) {
++		if (page_poisoning_enabled()) {
++			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
++				"will take precedence over init_on_alloc\n");
++		} else {
++			static_branch_enable(&init_on_alloc);
++		}
++	}
++	if (_init_on_free_enabled_early) {
++		if (page_poisoning_enabled()) {
++			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
++				"will take precedence over init_on_free\n");
++		} else {
++			static_branch_enable(&init_on_free);
++		}
++	}
++
++#ifdef CONFIG_DEBUG_PAGEALLOC
++	if (!debug_pagealloc_enabled())
++		return;
++
++	static_branch_enable(&_debug_pagealloc_enabled);
++
++	if (!debug_guardpage_minorder())
++		return;
++
++	static_branch_enable(&_debug_guardpage_enabled);
++#endif
++}
++
+ static inline void set_buddy_order(struct page *page, unsigned int order)
+ {
+ 	set_page_private(page, order);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
-mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix.patch
-mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit-fix.patch
-mm.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
+mm-page_poison-use-static-key-more-efficiently.patch
+mm-page_alloc-reduce-static-keys-in-prep_new_page.patch
 
