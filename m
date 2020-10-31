@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0955C388F9
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B76C388F9
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AF0E206ED
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9BE720729
+	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 19:43:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604173401;
-	bh=muKbBVAdI8Xw6nX/uIeV3DZbn7MqHMHjed38SCiCwUk=;
+	s=default; t=1604173404;
+	bh=VTjl14a0nFILUsN1lDN1BGJHsg2WhHw3Bx1dpz6akv4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=h+QLWNuMVOcE2jvd6IjaYFU9k5Te0IuDOdLDMT8dmmBBFKFLtWai4JfMEMimxfYAJ
-	 R30H5+PPyYyWu0mNTnIp175vtB4lUPkhEa7CgGOdz3gwUlZgUfMwI+Grvk9zHeFNF0
-	 1LkJou/iUr4VayMwnwANOLYLmE9mE7y9P/CHy2ZY=
+	b=QOcYLGN1XliPxuJzdMVU7lLcl2d7g/FiUjr4CEN7icoxh1v46eoLTnHEycEnWvg+x
+	 flPl2LraXDjj14YL0EdAwIJgXkFuyG1QnrIJcdFUyQjdc1j9N8rhYIXfYnMyeiVZYk
+	 NR0Qq9Nqmak4hOu1seHUvgivf992oLPLR4/ZsiCk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726496AbgJaTnV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 15:43:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46670 "EHLO mail.kernel.org"
+        id S1726254AbgJaTnY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 31 Oct 2020 15:43:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725786AbgJaTnU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 15:43:20 -0400
+        id S1725786AbgJaTnX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 31 Oct 2020 15:43:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E9BBD206E3;
-        Sat, 31 Oct 2020 19:43:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DCF01206E9;
+        Sat, 31 Oct 2020 19:43:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604173400;
-        bh=muKbBVAdI8Xw6nX/uIeV3DZbn7MqHMHjed38SCiCwUk=;
+        s=default; t=1604173403;
+        bh=VTjl14a0nFILUsN1lDN1BGJHsg2WhHw3Bx1dpz6akv4=;
         h=Date:From:To:Subject:From;
-        b=CN2ST0rleFEg9KLNIvUHH1+31tQsQ8MYv4X/ZpnR5Q3NI5kimikBFl6ff+2v/pIzd
-         KjervMv2A+h2F6U+EKNOvPVci/KYkaokAhGQVq9bXJx9d5rbdfWyyEGvDyMnAFxQZs
-         uGnwziWLeg3JVX8GHNkFF4S/Fz0Z9cp1tMKaTbRs=
-Date:   Sat, 31 Oct 2020 12:43:19 -0700
+        b=FtcCdGbHUGQhNDuZWh02XgqZYodTFq9L2U7QwICGS7zUYbYvJqmxCI0ErsoaEO5It
+         iX2JZW6XKf94ihgPHX3MjjVFDwf0HGX38NMHhHfCH4m/YOLqJwg3RP62OLfc/82+lI
+         ljbKez1ZBCKbm9tKUgf0PJ2QC0qJvC6AOA1I8aZo=
+Date:   Sat, 31 Oct 2020 12:43:22 -0700
 From:   akpm@linux-foundation.org
 To:     mgorman@techsingularity.net, mhocko@kernel.org,
         mm-commits@vger.kernel.org, riel@surriel.com, shy828301@gmail.com,
-        vbabka@suse.cz, ziy@nvidia.com
+        stable@vger.kernel.org, vbabka@suse.cz, ziy@nvidia.com
 Subject:  +
- mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.patch
- added to -mm tree
-Message-ID: <20201031194319.I3Oaop43q%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-compaction-stop-isolation-if-too-many-pages-are-isolate?=
+ =?US-ASCII?Q?d-and-we-have-pages-to-migrate.patch?= added to -mm tree
+Message-ID: <20201031194322.G8zdI8Fpy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -58,18 +58,18 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-count-pages-and-stop-correctly-during-page-isol=
-ation-v3
+     Subject: mm/compaction: stop isolation if too many pages are isolated =
+and we have pages to migrate
 has been added to the -mm tree.  Its filename is
-     mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.=
-patch
+     mm-compaction-stop-isolation-if-too-many-pages-are-isolated-and-we-hav=
+e-pages-to-migrate.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-count-pages-and=
--stop-correctly-during-page-isolation-v3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-stop-isolation-=
+if-too-many-pages-are-isolated-and-we-have-pages-to-migrate.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-count-pages-and=
--stop-correctly-during-page-isolation-v3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-stop-isolation-=
+if-too-many-pages-are-isolated-and-we-have-pages-to-migrate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -85,38 +85,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Zi Yan <ziy@nvidia.com>
-Subject: mm-compaction-count-pages-and-stop-correctly-during-page-isolation=
--v3
+Subject: mm/compaction: stop isolation if too many pages are isolated and w=
+e have pages to migrate
 
-Link: https://lkml.kernel.org/r/20201030183809.3616803-1-zi.yan@sent.com
+In isolate_migratepages_block, if we have too many isolated pages and
+nr_migratepages is not zero, we should try to migrate what we have without
+wasting time on isolating.
+
+Link: https://lkml.kernel.org/r/20201030183809.3616803-2-zi.yan@sent.com
 Fixes: 1da2f328fa64 (=E2=80=9Cmm,thp,compaction,cma: allow THP migration fo=
 r CMA allocations=E2=80=9D)
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/compaction.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-count-pages-and-stop-correctly-during-p=
-age-isolation-v3
+--- a/mm/compaction.c~mm-compaction-stop-isolation-if-too-many-pages-are-is=
+olated-and-we-have-pages-to-migrate
 +++ a/mm/compaction.c
-@@ -1012,8 +1012,8 @@ isolate_migratepages_block(struct compac
-=20
- isolate_success:
- 		list_add(&page->lru, &cc->migratepages);
--		cc->nr_migratepages +=3D thp_nr_pages(page);
--		nr_isolated +=3D thp_nr_pages(page);
-+		cc->nr_migratepages +=3D compound_nr(page);
-+		nr_isolated +=3D compound_nr(page);
-=20
- 		/*
- 		 * Avoid isolating too much unless this block is being
+@@ -817,6 +817,10 @@ isolate_migratepages_block(struct compac
+ 	 * delay for some time until fewer pages are isolated
+ 	 */
+ 	while (unlikely(too_many_isolated(pgdat))) {
++		/* stop isolation if there are still pages not migrated */
++		if (cc->nr_migratepages)
++			return 0;
++
+ 		/* async migration should just abort */
+ 		if (cc->mode =3D=3D MIGRATE_ASYNC)
+ 			return 0;
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
