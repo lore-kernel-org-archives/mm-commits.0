@@ -1,4 +1,4 @@
-Return-Path: <SRS0=UFsa=EG=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=QWLf=EH=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4841C388F7
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 20:06:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFBD4C388F2
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Nov 2020 23:44:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B17D20706
-	for <mm-commits@archiver.kernel.org>; Sat, 31 Oct 2020 20:06:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A5A62231B
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Nov 2020 23:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604174806;
-	bh=KJ8+KakUujZKhEz706QdjbvrzcitqTJSGfWSzIHpOg8=;
+	s=default; t=1604274283;
+	bh=i18HIPYOstgnoEJE4rDhhgYh4SsXYU4FpCz6uyHrLXI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=SWJKNwPG2+4FogV6ThJ9wni6WjE2uDTC21zbZa0CbqVrJ4RpvRJKJHvylVbyPliXL
-	 nSOXX440l/2zwJLlDzPCzAhxP6bGG/1hbPLVdIJHjtLcqamZlhcC9tL+5975qH5WMV
-	 KbD82NEc6Hq05cAxGCKf7Y5bqBb30NKA45vGf3kU=
+	b=oWeD4q6EZA+i+hl/Z3SU44XJ2sst8kZFLjd/NQpb4a/BfnVuswZYifi9vdGSMLfIR
+	 kmqDOWfKPHTriuHXZfTzMdoSdsNzxODixtr5sJan2g38zESTkwcnjgVJW/GZOK0HXq
+	 KO9SHsbB37R5qsG1NQWXLeMEYJJBhpNqtWYYYYsc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728545AbgJaUGq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 31 Oct 2020 16:06:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34226 "EHLO mail.kernel.org"
+        id S1727309AbgKAXon (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Nov 2020 18:44:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728533AbgJaUGp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 31 Oct 2020 16:06:45 -0400
+        id S1727062AbgKAXom (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Nov 2020 18:44:42 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C5CB8206F7;
-        Sat, 31 Oct 2020 20:06:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D59D9222EA;
+        Sun,  1 Nov 2020 23:44:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604174805;
-        bh=KJ8+KakUujZKhEz706QdjbvrzcitqTJSGfWSzIHpOg8=;
+        s=default; t=1604274282;
+        bh=i18HIPYOstgnoEJE4rDhhgYh4SsXYU4FpCz6uyHrLXI=;
         h=Date:From:To:Subject:From;
-        b=RpUn84dv2dzyhXgJ6g9WGHNPOXeiEgzbfjLDoYhN050jEK4J6aYQnVT6g4Ds1gE7h
-         10eoNQRdZ8KmLovr88XqPc7n+3NCAo9weaObYu2JtTgaBaFhZ1Msxl6vsUUN/Sxftn
-         YOJjKnEmoCK3Rq9pXCxCmyAXDP7rwkh760GBGCto=
-Date:   Sat, 31 Oct 2020 13:06:44 -0700
+        b=LZN2CeXW3jHmx7wzC208hyl0bWlk0Fwz3d9UjDIRVTIfbW7m8mSQjXiHBx4mfLK6G
+         hTZcsT0M91VofgC432d1SdgMok7R+G8nm3tOzrd+Uq9yJd+7S4+vId2iUOsUSuOpGJ
+         L79ofWikyJXrtFuHDMaIta7Uqjlzaxwutcrmq4p8=
+Date:   Sun, 01 Nov 2020 15:44:41 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, amistry@google.com, asteinhauser@google.com,
-        corbet@lwn.net, gladkov.alexey@gmail.com, keescook@chromium.org,
-        mchehab+huawei@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, neilb@suse.de, peterz@infradead.org,
-        rppt@kernel.org, tglx@linutronix.de
-Subject:  +
- proc-provide-details-on-indirect-branch-speculation.patch added to -mm tree
-Message-ID: <20201031200644.DQuLzHrRb%akpm@linux-foundation.org>
+To:     arnd@arndb.de, dhowells@redhat.com, ink@jurassic.park.msu.ru,
+        lkp@intel.com, mattst88@gmail.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, rth@twiddle.net, sfr@canb.auug.org.au,
+        willy@infradead.org
+Subject:  + compilerh-fix-barrier_data-on-clang-fix.patch added to
+ -mm tree
+Message-ID: <20201101234441.FjZjSdCQ5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: provide details on indirect branch speculation
+     Subject: asm-generic: barrier.h: fix ALPHA builds when SMP is not enabled
 has been added to the -mm tree.  Its filename is
-     proc-provide-details-on-indirect-branch-speculation.patch
+     compilerh-fix-barrier_data-on-clang-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-provide-details-on-indirect-branch-speculation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/compilerh-fix-barrier_data-on-clang-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-provide-details-on-indirect-branch-speculation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/compilerh-fix-barrier_data-on-clang-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,91 +76,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anand K Mistry <amistry@google.com>
-Subject: proc: provide details on indirect branch speculation
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: asm-generic: barrier.h: fix ALPHA builds when SMP is not enabled
 
-Similar to speculation store bypass, show information about the indirect
-branch speculation mode of a task in /proc/$pid/status.
+<asm-generic/barrier.h> uses barrier() but needs to #include
+<linux/compiler.h> to get a generic definition of it to fix
+build errors in arch/alpha/ builds when CONFIG_SMP is not enabled.
 
-Link: https://lkml.kernel.org/r/20201030172731.1.I7782b0cedb705384a634cfd8898eb7523562da99@changeid
-Signed-off-by: Anand K Mistry <amistry@google.com>
-Cc: Anthony Steinhauser <asteinhauser@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Anand K Mistry <amistry@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Fixes build errors like this (there are several like this):
+[49 in the kernel config that was supplied by the 0day bot]
+
+In file included from ../arch/alpha/include/asm/barrier.h:21,
+                 from ../arch/alpha/include/asm/atomic.h:6,
+                 from ../include/linux/atomic.h:7,
+                 from ../include/linux/dcache.h:5,
+                 from ../fs/proc/util.c:1:
+../arch/alpha/include/asm/atomic.h: In function 'atomic_add_return_relaxed':
+../include/asm-generic/barrier.h:78:18: error: implicit declaration of function 'barrier' [-Werror=implicit-function-declaration]
+   78 | #define smp_mb() barrier()
+      |                  ^~~~~~~
+
+Link: https://lkml.kernel.org/r/20201101231835.4589-1-rdunlap@infradead.org
+Fixes: 885df91ca357 ("Create asm-generic/barrier.h")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    2 +
- fs/proc/array.c                    |   28 +++++++++++++++++++++++++++
- 2 files changed, 30 insertions(+)
+ include/asm-generic/barrier.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/filesystems/proc.rst~proc-provide-details-on-indirect-branch-speculation
-+++ a/Documentation/filesystems/proc.rst
-@@ -210,6 +210,7 @@ read the file /proc/PID/status::
-   NoNewPrivs:     0
-   Seccomp:        0
-   Speculation_Store_Bypass:       thread vulnerable
-+  Speculation_Indirect_Branch:    conditional enabled
-   voluntary_ctxt_switches:        0
-   nonvoluntary_ctxt_switches:     1
+--- a/include/asm-generic/barrier.h~compilerh-fix-barrier_data-on-clang-fix
++++ a/include/asm-generic/barrier.h
+@@ -13,6 +13,7 @@
  
-@@ -292,6 +293,7 @@ It's slow but very precise.
-  NoNewPrivs                  no_new_privs, like prctl(PR_GET_NO_NEW_PRIV, ...)
-  Seccomp                     seccomp mode, like prctl(PR_GET_SECCOMP, ...)
-  Speculation_Store_Bypass    speculative store bypass mitigation status
-+ Speculation_Indirect_Branch indirect branch speculation mode
-  Cpus_allowed                mask of CPUs on which this process may run
-  Cpus_allowed_list           Same as previous, but in "list format"
-  Mems_allowed                mask of memory nodes allowed to this process
---- a/fs/proc/array.c~proc-provide-details-on-indirect-branch-speculation
-+++ a/fs/proc/array.c
-@@ -368,6 +368,34 @@ static inline void task_seccomp(struct s
- 		seq_puts(m, "vulnerable");
- 		break;
- 	}
-+
-+	seq_puts(m, "\nSpeculation_Indirect_Branch:\t");
-+	switch (arch_prctl_spec_ctrl_get(p, PR_SPEC_INDIRECT_BRANCH)) {
-+	case -EINVAL:
-+		seq_puts(m, "unsupported");
-+		break;
-+	case PR_SPEC_NOT_AFFECTED:
-+		seq_puts(m, "not affected");
-+		break;
-+	case PR_SPEC_PRCTL | PR_SPEC_FORCE_DISABLE:
-+		seq_puts(m, "conditional force disabled");
-+		break;
-+	case PR_SPEC_PRCTL | PR_SPEC_DISABLE:
-+		seq_puts(m, "conditional disabled");
-+		break;
-+	case PR_SPEC_PRCTL | PR_SPEC_ENABLE:
-+		seq_puts(m, "conditional enabled");
-+		break;
-+	case PR_SPEC_ENABLE:
-+		seq_puts(m, "always enabled");
-+		break;
-+	case PR_SPEC_DISABLE:
-+		seq_puts(m, "always disabled");
-+		break;
-+	default:
-+		seq_puts(m, "unknown");
-+		break;
-+	}
- 	seq_putc(m, '\n');
- }
+ #ifndef __ASSEMBLY__
  
++#include <linux/compiler.h>
+ #include <asm/rwonce.h>
+ 
+ #ifndef nop
 _
 
-Patches currently in -mm which might be from amistry@google.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-proc-provide-details-on-indirect-branch-speculation.patch
+compilerh-fix-barrier_data-on-clang-fix.patch
+procfs-delete-duplicated-words-other-fixes.patch
 
