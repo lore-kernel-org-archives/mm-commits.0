@@ -2,97 +2,103 @@ Return-Path: <SRS0=ZqYO=EI=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B85C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 00:06:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F847C2D0A3
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:00:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7AA2322464
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 00:06:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="aYKnTlpE"
+	by mail.kernel.org (Postfix) with ESMTP id 44D6922267
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:00:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1604278841;
+	bh=36s1uTcM4/jBPjaR64Wsue6dZgT0ON2ZkPVbLKc2MIQ=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=PMoKwbNIbR0w5qeTZp8+nuo/jEUegDAzr4LeI+wKFyYb7wq+hVNrHUL8zIT4e7lgY
+	 gp9vA7etbyi4LKbvhuC2b9jZJzML7z5YT2aB1Jn7imYWfdXI0SJgtTwx1l2yEO9RNt
+	 iC6+/eglDvNpxrIPmCebLuZawRT2iZMsmy9hQCA4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727333AbgKBAG1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Nov 2020 19:06:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56872 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727309AbgKBAG1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Nov 2020 19:06:27 -0500
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 436E6C0617A6
-        for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2020 16:06:26 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        id S1727367AbgKBBAk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Nov 2020 20:00:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46726 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727335AbgKBBAk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Nov 2020 20:00:40 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4CPY9R2s5vz9sS8;
-        Mon,  2 Nov 2020 11:06:19 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1604275583;
-        bh=empTlbGg0+ySJYiINfvzeude2e1VEEgnZQAS/E0z+To=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=aYKnTlpEhSxRaHGtsZZeiMg8HrlvtdEpkry1lKVzpW5TdsqE5YMtskduedJnhuZ1L
-         01eR4ZcB6i53CnpXoDOClBZ6tYgOmUTJBiJCBsPtApFiqBrAasm2IQzHVrztvBCp6x
-         AlZuwpPRi66/MdhKoQ4fW14w5DqNNsMB2gB/WGpEYX7nQ0Z54RGi2NKko0YDKsg0wI
-         5bFggYJJSOan94q/Q47G1sA2+uMEXFeCp9Ryx1aXClNqSEQ5BGzQ/owldt8gXntifZ
-         wWO9rLbtLxdCbqERQj4oAQvqsiChUuJr1WvCtXCiJNotAAkTM8FI7wFWcYMbXdUaT/
-         A89sYiL34mOYg==
-Date:   Mon, 2 Nov 2020 11:06:16 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     arnd@arndb.de, dhowells@redhat.com, ink@jurassic.park.msu.ru,
-        lkp@intel.com, mattst88@gmail.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, rth@twiddle.net, willy@infradead.org,
-        Arvind Sankar <nivedita@alum.mit.edu>
-Subject: Re: + compilerh-fix-barrier_data-on-clang-fix.patch added to -mm
- tree
-Message-ID: <20201102110616.5a0c8aff@canb.auug.org.au>
-In-Reply-To: <20201101234441.FjZjSdCQ5%akpm@linux-foundation.org>
-References: <20201101234441.FjZjSdCQ5%akpm@linux-foundation.org>
+        by mail.kernel.org (Postfix) with ESMTPSA id 98E3E2225E;
+        Mon,  2 Nov 2020 01:00:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1604278839;
+        bh=36s1uTcM4/jBPjaR64Wsue6dZgT0ON2ZkPVbLKc2MIQ=;
+        h=Date:From:To:Subject:From;
+        b=wKb2e/uEriwVyOQGPDTuVBfO6esaPUT0KM0spYVnzB6S7G8VH2h5zmRAwZDMyk8oI
+         cbnZ57o3L2DpyNxuwo0E5QWrWOSKrD7AMQftcbIw41Pj5RPFFp13iVFk3GGSq8+W/c
+         0qnibh8f2ZA1FoBCqdo3J/QO4eLdZh/unPKyka0Y=
+Date:   Sun, 01 Nov 2020 17:00:39 -0800
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, zhongjiang-ali@linux.alibaba.com
+Subject:  [folded-merged]
+ =?US-ASCII?Q?mm-memcontrol-correct-the-nr=5Fanon=5Fthps-counter-of-hier?=
+ =?US-ASCII?Q?archical-memcg-fix.patch?= removed from -mm tree
+Message-ID: <20201102010039.qthoxAZEg%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/0yuGR6nj5_fejoCJHII_E9y";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/0yuGR6nj5_fejoCJHII_E9y
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+The patch titled
+     Subject: mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix.patch
 
-On Sun, 01 Nov 2020 15:44:41 -0800 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: asm-generic: barrier.h: fix ALPHA builds when SMP is not en=
-abled
-> has been added to the -mm tree.  Its filename is
->      compilerh-fix-barrier_data-on-clang-fix.patch
+This patch was dropped because it was folded into mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg.patch
 
-Added to linux-next today.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix
 
---=20
-Cheers,
-Stephen Rothwell
+fix printk warning
 
---Sig_/0yuGR6nj5_fejoCJHII_E9y
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
------BEGIN PGP SIGNATURE-----
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl+fTXgACgkQAVBC80lX
-0GzvOQf/ZJ+vqtj7P/CGagutIyI1mgqJ+4UzkQW5Vi57B12kyCbTKQIIl6qxqRJd
-xNuuaymYJv9PGk7WiASWMSR/0vre6vgt/qUsMYY7gqQZevHsT2DvPQ9OoS8pIcp/
-NsOpiCk6sDa4cTcUYsfDMjG0/NdZJoNbGjOXZU9uNagOvMf1wBb9qkC2AoLMaJ2W
-rzIJs000vhky7jRZdZJ6zBPcGQ7mFrnBKudtDhYVpOHkm5akImuqC1bDNGGLg/3A
-dp6DpCOqafY8FPWRm7Wy/FbZniZtV68psaBlVdbXglf4pBk2Ty2iWMuBurqAcYlR
-GfnbUvcxxZBdo7aXusTf4XkfL5GFjw==
-=Ddcg
------END PGP SIGNATURE-----
+--- a/mm/memcontrol.c~mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix
++++ a/mm/memcontrol.c
+@@ -4119,7 +4119,7 @@ static int memcg_stat_show(struct seq_fi
+ 		if (memcg1_stats[i] == NR_ANON_THPS)
+ 			nr *= HPAGE_PMD_NR;
+ #endif
+-		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
++		seq_printf(m, "total_%s %lu\n", memcg1_stat_names[i],
+ 						nr * PAGE_SIZE);
+ 	}
+ 
+_
 
---Sig_/0yuGR6nj5_fejoCJHII_E9y--
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg.patch
+mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix.patch
+mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit-fix.patch
+mm.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+
