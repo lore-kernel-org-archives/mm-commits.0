@@ -7,176 +7,323 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9930DC388F2
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:07:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EF22C4741F
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:07:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 693F0206D4
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:07:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF0FB22268
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604279256;
-	bh=Rvybe/Rx/O6ZTeDLUGOCMcvuzDgq2U09DPFIWAqvfeY=;
+	s=default; t=1604279260;
+	bh=bOvj7+7+AanSsf8gxFsBFIfwBJI1U9IT6oGO7W9QBp4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=p5tWT9cOv7Im5KRF0poHoOtCgcW2cAzLSsMWP6dnVJWMWy5cf8hDhvK7RS7RcznfM
-	 x7KKoWo7Wt35TAXcwf5iuzIuE+BzVxUZzmFKjK9aM5wk/oM7qVjFTTQN2bEYTd0g8T
-	 OjyVqJMkUfjJmIWfDV041uCLYeJOXOrBFEsPfiTg=
+	b=i268cOYdgblWQe28f0ECEcDiqibBIvEZPf2ReuFA8Vtf1Brix6CN+6gMPnsO3sZRP
+	 2wOsR2vMyS8oxwFfEWbFz0BND5AGgPbdNW2yXCDo4rLYeeDsxqx3o/c9Po5Gaz1lxA
+	 s8FceHIURpu7nTjAbXwqztHDMp7JKPaMRbrNXgnQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727461AbgKBBHg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Nov 2020 20:07:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48918 "EHLO mail.kernel.org"
+        id S1727470AbgKBBHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Nov 2020 20:07:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727335AbgKBBHf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 1 Nov 2020 20:07:35 -0500
+        id S1727335AbgKBBHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Nov 2020 20:07:39 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5DC7206E5;
-        Mon,  2 Nov 2020 01:07:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1AB87206A4;
+        Mon,  2 Nov 2020 01:07:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604279255;
-        bh=Rvybe/Rx/O6ZTeDLUGOCMcvuzDgq2U09DPFIWAqvfeY=;
+        s=default; t=1604279258;
+        bh=bOvj7+7+AanSsf8gxFsBFIfwBJI1U9IT6oGO7W9QBp4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oaBEqRsNfKDdN7QduktQLBTTLCD90o4wHXMiRWfPv+HATVlOFT0LAk2VQhroIAyNh
-         bI85dooajjc/ruJjXnEWQKvcqRZ4TcqcWRWiyvCAihPgmd1GURtHqkYBxbk/mNO0so
-         KzFxgI6qXmddQz0qgjOgHsZNp7J2oo/sU2V7ZK+8=
-Date:   Sun, 01 Nov 2020 17:07:34 -0800
+        b=o3l9ZIu7Fi+l7d4zJvPhV4XiISlcpGiSHtIAyOKX5F3MFmrrdgSFTVx+VJ7WQsBtO
+         gMdgA6aXeL9LOb5fpg0QDBSS/pEJsDuDlMsaLk/tz5HKCjEKEFnJTBh4wGEAyKsBbm
+         R1xyHHMfflWXuwBh5VhCJb1AMXt2e4YMIZQA2qL0=
+Date:   Sun, 01 Nov 2020 17:07:37 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, ltp@lists.linux.it, mhocko@kernel.org,
-        mkoutny@suse.com, mm-commits@vger.kernel.org, rpalethorpe@suse.com,
-        shakeelb@google.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 04/15] mm: memcg: link page counters to root if
- use_hierarchy is false
-Message-ID: <20201102010734.L07vYi-Dp%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        davidgow@google.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 05/15] kasan: adopt KUNIT tests to SW_TAGS mode
+Message-ID: <20201102010737.6S4Uo6WPN%akpm@linux-foundation.org>
 In-Reply-To: <20201101170656.48abbd5e88375219f868af5e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg: link page counters to root if use_hierarchy is false
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: adopt KUNIT tests to SW_TAGS mode
 
-Richard reported a warning which can be reproduced by running the LTP
-madvise6 test (cgroup v1 in the non-hierarchical mode should be used):
+Now that we have KASAN-KUNIT tests integration, it's easy to see that some
+KASAN tests are not adopted to the SW_TAGS mode and are failing.
 
-[    9.841552] ------------[ cut here ]------------
-[    9.841788] WARNING: CPU: 0 PID: 12 at mm/page_counter.c:57 page_counter=
-_uncharge (mm/page_counter.c:57 mm/page_counter.c:50 mm/page_counter.c:156)
-[    9.841982] Modules linked in:
-[    9.842072] CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.9.0-rc7-22-de=
-fault #77
-[    9.842266] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS =
-rel-1.13.0-48-gd9c812d-rebuilt.opensuse.org 04/01/2014
-[    9.842571] Workqueue: events drain_local_stock
-[    9.842750] RIP: 0010:page_counter_uncharge (mm/page_counter.c:57 mm/pag=
-e_counter.c:50 mm/page_counter.c:156)
-[ 9.842894] Code: 0f c1 45 00 4c 29 e0 48 89 ef 48 89 c3 48 89 c6 e8 2a fe =
-ff ff 48 85 db 78 10 48 8b 6d 28 48 85 ed 75 d8 5b 5d 41 5c 41 5d c3 <0f> 0=
-b eb ec 90 e8 4b f9 88 2a 48 8b 17 48 39 d6 72 41 41 54 49 89
-[    9.843438] RSP: 0018:ffffb1c18006be28 EFLAGS: 00010086
-[    9.843585] RAX: ffffffffffffffff RBX: ffffffffffffffff RCX: ffff94803bc=
-2cae0
-[    9.843806] RDX: 0000000000000001 RSI: ffffffffffffffff RDI: ffff948007d=
-2b248
-[    9.844026] RBP: ffff948007d2b248 R08: ffff948007c58eb0 R09: ffff948007d=
-a05ac
-[    9.844248] R10: 0000000000000018 R11: 0000000000000018 R12: 00000000000=
-00001
-[    9.844477] R13: ffffffffffffffff R14: 0000000000000000 R15: ffff94803bc=
-2cac0
-[    9.844696] FS:  0000000000000000(0000) GS:ffff94803bc00000(0000) knlGS:=
-0000000000000000
-[    9.844915] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    9.845096] CR2: 00007f0579ee0384 CR3: 000000002cc0a000 CR4: 00000000000=
-006f0
-[    9.845319] Call Trace:
-[    9.845429] __memcg_kmem_uncharge (mm/memcontrol.c:3022)
-[    9.845582] drain_obj_stock (./include/linux/rcupdate.h:689 mm/memcontro=
-l.c:3114)
-[    9.845684] drain_local_stock (mm/memcontrol.c:2255)
-[    9.845789] process_one_work (./arch/x86/include/asm/jump_label.h:25 ./i=
-nclude/linux/jump_label.h:200 ./include/trace/events/workqueue.h:108 kernel=
-/workqueue.c:2274)
-[    9.845898] worker_thread (./include/linux/list.h:282 kernel/workqueue.c=
-:2416)
-[    9.846034] ? process_one_work (kernel/workqueue.c:2358)
-[    9.846162] kthread (kernel/kthread.c:292)
-[    9.846271] ? __kthread_bind_mask (kernel/kthread.c:245)
-[    9.846420] ret_from_fork (arch/x86/entry/entry_64.S:300)
-[    9.846531] ---[ end trace 8b5647c1eba9d18a ]---
+Adjust the allocation size for kasan_memchr() and kasan_memcmp() by roung
+it up to OOB_TAG_OFF so the bad access ends up in a separate memory
+granule.
 
-The problem occurs because in the non-hierarchical mode non-root page
-counters are not linked to root page counters, so the charge is not
-propagated to the root memory cgroup.
+Add a new kmalloc_uaf_16() tests that relies on UAF, and a new
+kasan_bitops_tags() test that is tailored to tag-based mode, as it's hard
+to adopt the existing kmalloc_oob_16() and kasan_bitops_generic() (renamed
+from kasan_bitops()) without losing the precision.
 
-After the removal of the original memory cgroup and reparenting of the
-object cgroup, the root cgroup might be uncharged by draining a objcg
-stock, for example.  It leads to an eventual underflow of the charge and
-triggers a warning.
+Add new kmalloc_uaf_16() and kasan_bitops_uaf() tests that rely on UAFs,
+as it's hard to adopt the existing kmalloc_oob_16() and kasan_bitops_oob()
+(rename from kasan_bitops()) without losing the precision.
 
-Fix it by linking all page counters to corresponding root page counters in
-the non-hierarchical mode.
+Disable kasan_global_oob() and kasan_alloca_oob_left/right() as SW_TAGS
+mode doesn't instrument globals nor dynamic allocas.
 
-Please note, that in the non-hierarchical mode all objcgs are always
-reparented to the root memory cgroup, even if the hierarchy has more than
-1 level.  This patch doesn't change it.
-
-The patch also doesn't affect how the hierarchical mode is working, which
-is the only sane and truly supported mode now.
-
-Thanks to Richard for reporting, debugging and providing an alternative
-version of the fix!
-
-Link: https://lkml.kernel.org/r/20201026231326.3212225-1-guro@fb.com
-Fixes: bf4f059954dc ("mm: memcg/slab: obj_cgroup API")
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Debugged-by: Richard Palethorpe <rpalethorpe@suse.com>
-Reported-by: <ltp@lists.linux.it>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/76eee17b6531ca8b3ca92b240cb2fd23204aaff7.1603129942.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Tested-by: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ lib/test_kasan.c |  149 ++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 107 insertions(+), 42 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-link-page-counters-to-root-if-use_hierarchy-=
-is-false
-+++ a/mm/memcontrol.c
-@@ -5345,17 +5345,22 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		memcg->swappiness =3D mem_cgroup_swappiness(parent);
- 		memcg->oom_kill_disable =3D parent->oom_kill_disable;
+--- a/lib/test_kasan.c~kasan-adopt-kunit-tests-to-sw_tags-mode
++++ a/lib/test_kasan.c
+@@ -216,6 +216,12 @@ static void kmalloc_oob_16(struct kunit
+ 		u64 words[2];
+ 	} *ptr1, *ptr2;
+ 
++	/* This test is specifically crafted for the generic mode. */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		kunit_info(test, "CONFIG_KASAN_GENERIC required\n");
++		return;
++	}
++
+ 	ptr1 = kmalloc(sizeof(*ptr1) - 3, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
+ 
+@@ -227,6 +233,23 @@ static void kmalloc_oob_16(struct kunit
+ 	kfree(ptr2);
+ }
+ 
++static void kmalloc_uaf_16(struct kunit *test)
++{
++	struct {
++		u64 words[2];
++	} *ptr1, *ptr2;
++
++	ptr1 = kmalloc(sizeof(*ptr1), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
++
++	ptr2 = kmalloc(sizeof(*ptr2), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
++	kfree(ptr2);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, *ptr1 = *ptr2);
++	kfree(ptr1);
++}
++
+ static void kmalloc_oob_memset_2(struct kunit *test)
+ {
+ 	char *ptr;
+@@ -429,6 +452,12 @@ static void kasan_global_oob(struct kuni
+ 	volatile int i = 3;
+ 	char *p = &global_array[ARRAY_SIZE(global_array) + i];
+ 
++	/* Only generic mode instruments globals. */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		kunit_info(test, "CONFIG_KASAN_GENERIC required");
++		return;
++	}
++
+ 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ }
+ 
+@@ -467,6 +496,12 @@ static void kasan_alloca_oob_left(struct
+ 	char alloca_array[i];
+ 	char *p = alloca_array - 1;
+ 
++	/* Only generic mode instruments dynamic allocas. */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		kunit_info(test, "CONFIG_KASAN_GENERIC required");
++		return;
++	}
++
+ 	if (!IS_ENABLED(CONFIG_KASAN_STACK)) {
+ 		kunit_info(test, "CONFIG_KASAN_STACK is not enabled");
+ 		return;
+@@ -481,6 +516,12 @@ static void kasan_alloca_oob_right(struc
+ 	char alloca_array[i];
+ 	char *p = alloca_array + i;
+ 
++	/* Only generic mode instruments dynamic allocas. */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		kunit_info(test, "CONFIG_KASAN_GENERIC required");
++		return;
++	}
++
+ 	if (!IS_ENABLED(CONFIG_KASAN_STACK)) {
+ 		kunit_info(test, "CONFIG_KASAN_STACK is not enabled");
+ 		return;
+@@ -551,6 +592,9 @@ static void kasan_memchr(struct kunit *t
+ 		return;
  	}
--	if (parent && parent->use_hierarchy) {
-+	if (!parent) {
-+		page_counter_init(&memcg->memory, NULL);
-+		page_counter_init(&memcg->swap, NULL);
-+		page_counter_init(&memcg->kmem, NULL);
-+		page_counter_init(&memcg->tcpmem, NULL);
-+	} else if (parent->use_hierarchy) {
- 		memcg->use_hierarchy =3D true;
- 		page_counter_init(&memcg->memory, &parent->memory);
- 		page_counter_init(&memcg->swap, &parent->swap);
- 		page_counter_init(&memcg->kmem, &parent->kmem);
- 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
- 	} else {
--		page_counter_init(&memcg->memory, NULL);
--		page_counter_init(&memcg->swap, NULL);
--		page_counter_init(&memcg->kmem, NULL);
--		page_counter_init(&memcg->tcpmem, NULL);
-+		page_counter_init(&memcg->memory, &root_mem_cgroup->memory);
-+		page_counter_init(&memcg->swap, &root_mem_cgroup->swap);
-+		page_counter_init(&memcg->kmem, &root_mem_cgroup->kmem);
-+		page_counter_init(&memcg->tcpmem, &root_mem_cgroup->tcpmem);
- 		/*
- 		 * Deeper hierachy with use_hierarchy =3D=3D false doesn't make
- 		 * much sense so let cgroup subsystem know about this
+ 
++	if (OOB_TAG_OFF)
++		size = round_up(size, OOB_TAG_OFF);
++
+ 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
+@@ -573,6 +617,9 @@ static void kasan_memcmp(struct kunit *t
+ 		return;
+ 	}
+ 
++	if (OOB_TAG_OFF)
++		size = round_up(size, OOB_TAG_OFF);
++
+ 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 	memset(arr, 0, sizeof(arr));
+@@ -619,13 +666,50 @@ static void kasan_strings(struct kunit *
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = strnlen(ptr, 1));
+ }
+ 
+-static void kasan_bitops(struct kunit *test)
++static void kasan_bitops_modify(struct kunit *test, int nr, void *addr)
++{
++	KUNIT_EXPECT_KASAN_FAIL(test, set_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __set_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, clear_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __clear_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, clear_bit_unlock(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __clear_bit_unlock(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, change_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __change_bit(nr, addr));
++}
++
++static void kasan_bitops_test_and_modify(struct kunit *test, int nr, void *addr)
++{
++	KUNIT_EXPECT_KASAN_FAIL(test, test_and_set_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_set_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, test_and_set_bit_lock(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, test_and_clear_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_clear_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, test_and_change_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_change_bit(nr, addr));
++	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = test_bit(nr, addr));
++
++#if defined(clear_bit_unlock_is_negative_byte)
++	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result =
++				clear_bit_unlock_is_negative_byte(nr, addr));
++#endif
++}
++
++static void kasan_bitops_generic(struct kunit *test)
+ {
++	long *bits;
++
++	/* This test is specifically crafted for the generic mode. */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		kunit_info(test, "CONFIG_KASAN_GENERIC required\n");
++		return;
++	}
++
+ 	/*
+ 	 * Allocate 1 more byte, which causes kzalloc to round up to 16-bytes;
+ 	 * this way we do not actually corrupt other memory.
+ 	 */
+-	long *bits = kzalloc(sizeof(*bits) + 1, GFP_KERNEL);
++	bits = kzalloc(sizeof(*bits) + 1, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bits);
+ 
+ 	/*
+@@ -633,55 +717,34 @@ static void kasan_bitops(struct kunit *t
+ 	 * below accesses are still out-of-bounds, since bitops are defined to
+ 	 * operate on the whole long the bit is in.
+ 	 */
+-	KUNIT_EXPECT_KASAN_FAIL(test, set_bit(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, __set_bit(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, clear_bit(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, __clear_bit(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, clear_bit_unlock(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, __clear_bit_unlock(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, change_bit(BITS_PER_LONG, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test, __change_bit(BITS_PER_LONG, bits));
++	kasan_bitops_modify(test, BITS_PER_LONG, bits);
+ 
+ 	/*
+ 	 * Below calls try to access bit beyond allocated memory.
+ 	 */
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		test_and_set_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		__test_and_set_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
++	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, bits);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		test_and_set_bit_lock(BITS_PER_LONG + BITS_PER_BYTE, bits));
+-
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		test_and_clear_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
++	kfree(bits);
++}
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		__test_and_clear_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
++static void kasan_bitops_tags(struct kunit *test)
++{
++	long *bits;
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		test_and_change_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
++	/* This test is specifically crafted for the tag-based mode. */
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		kunit_info(test, "CONFIG_KASAN_SW_TAGS required\n");
++		return;
++	}
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		__test_and_change_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
++	/* Allocation size will be rounded to up granule size, which is 16. */
++	bits = kzalloc(sizeof(*bits), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bits);
+ 
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		kasan_int_result =
+-			test_bit(BITS_PER_LONG + BITS_PER_BYTE, bits));
++	/* Do the accesses past the 16 allocated bytes. */
++	kasan_bitops_modify(test, BITS_PER_LONG, &bits[1]);
++	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, &bits[1]);
+ 
+-#if defined(clear_bit_unlock_is_negative_byte)
+-	KUNIT_EXPECT_KASAN_FAIL(test,
+-		kasan_int_result = clear_bit_unlock_is_negative_byte(
+-			BITS_PER_LONG + BITS_PER_BYTE, bits));
+-#endif
+ 	kfree(bits);
+ }
+ 
+@@ -728,6 +791,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kmalloc_oob_krealloc_more),
+ 	KUNIT_CASE(kmalloc_oob_krealloc_less),
+ 	KUNIT_CASE(kmalloc_oob_16),
++	KUNIT_CASE(kmalloc_uaf_16),
+ 	KUNIT_CASE(kmalloc_oob_in_memset),
+ 	KUNIT_CASE(kmalloc_oob_memset_2),
+ 	KUNIT_CASE(kmalloc_oob_memset_4),
+@@ -751,7 +815,8 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kasan_memchr),
+ 	KUNIT_CASE(kasan_memcmp),
+ 	KUNIT_CASE(kasan_strings),
+-	KUNIT_CASE(kasan_bitops),
++	KUNIT_CASE(kasan_bitops_generic),
++	KUNIT_CASE(kasan_bitops_tags),
+ 	KUNIT_CASE(kmalloc_double_kzfree),
+ 	KUNIT_CASE(vmalloc_oob),
+ 	{}
 _
