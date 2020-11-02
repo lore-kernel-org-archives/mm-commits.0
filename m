@@ -2,158 +2,209 @@ Return-Path: <SRS0=ZqYO=EI=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06F82C388F2
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:06:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E955C2D0A3
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:07:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9F29223AB
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:06:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E67CE206E5
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604279218;
-	bh=2aQnLfe95+XNZoJqo7Mduite27F6rto7Ym56IVU/Dcw=;
-	h=Date:From:To:Cc:Subject:Reply-To:List-ID:From;
-	b=KCxVuV4AMko+wjn43de2N/Cy/IvnMN8J/yGIUMUK41MeGHV/CaUZ1iY5ljsA5WfkQ
-	 yz4Y7ML4+CzK/glEUnQy+iOpodRyZrEElZC52bSMxjQ5Vp/uOOHIapJRpt6xXF+V24
-	 rMnFuCN+VawdFVohuXiA28iEKkeTZApd+pwm+rjs=
+	s=default; t=1604279245;
+	bh=ka5xjbfpq5X+yy69PexjPHyqZDsQG07VUHHeWKKGtf4=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=W5NgU1/SHmfh7XAASEOI05wSRFuMHj5I9UTb/qKQtS1FKv5fejuf8a8C1qOPPkKI5
+	 64vyp5opOHKuMV9nvBuIB1kBlouuuEB+PCTSrTBJacJ+T1Bl0JbJTpeDr0N4E7XrPi
+	 QfyQrF5aQobdjl/aspUCvaLpf5WG+dlqW9vV4Paw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727403AbgKBBG6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Nov 2020 20:06:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48298 "EHLO mail.kernel.org"
+        id S1727367AbgKBBHZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Nov 2020 20:07:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48644 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727335AbgKBBG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 1 Nov 2020 20:06:58 -0500
+        id S1727335AbgKBBHZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Nov 2020 20:07:25 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 07D3C21D91;
-        Mon,  2 Nov 2020 01:06:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1E57B206A4;
+        Mon,  2 Nov 2020 01:07:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604279217;
-        bh=2aQnLfe95+XNZoJqo7Mduite27F6rto7Ym56IVU/Dcw=;
-        h=Date:From:To:Cc:Subject:From;
-        b=uNZFgqX9nwQkFDyW8YaYEYW3mRbYhxFx/DCmW6Lckb8SEKaHz1tpn39YCmFIYCYtn
-         KtGJ9zFEJIRJWC6r0kMzPzAW8R1iewffL2wf7RY3OKb1IikiAB9M1DNFIlo2zdAQ3c
-         N2B8xf9iyzY1DRP6l4dEe/OIK1pmqkAPPNBtnGE4=
-Date:   Sun, 1 Nov 2020 17:06:56 -0800
+        s=default; t=1604279244;
+        bh=ka5xjbfpq5X+yy69PexjPHyqZDsQG07VUHHeWKKGtf4=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=LqFLx2rGcGVkQ2cQL1mP8BI0YPB2huIiixDBi9qfKe+ZYSjDpxcSBU5jQhfVHSr0M
+         ga2RAlfjKLS149Mpo7Ed37VTc1AambzI3TtI7MJP4kM6i043RnThObC7TMV0Isv9gr
+         68wherUznXpvsE1NDpbWGXt7X7/9JQOnRLhwzjxY=
+Date:   Sun, 01 Nov 2020 17:07:23 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20201101170656.48abbd5e88375219f868af5e@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        dan.j.williams@intel.com, hch@lst.de, ira.weiny@intel.com,
+        jgg@mellanox.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com, sachinp@linux.vnet.ibm.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 01/15] mm/mremap_pages: fix static key
+ devmap_managed_key updates
+Message-ID: <20201102010723.iGXwcvhDY%akpm@linux-foundation.org>
+In-Reply-To: <20201101170656.48abbd5e88375219f868af5e@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-15 patches, based on 3cea11cd5e3b00d91caf0b4730194039b45c5891.
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/mremap_pages: fix static key devmap_managed_key updates
 
-Subsystems affected by this patch series:
+commit 6f42193fd86e ("memremap: don't use a separate devm action for
+devmap_managed_enable_get") changed the static key updates such that we
+now call devmap_managed_enable_put() without doing the equivalent
+devmap_managed_enable_get().
 
-  mm/memremap
-  mm/memcg
-  mm/slab-generic
-  mm/kasan
-  mm/mempolicy
-  signals
-  lib
-  mm/pagecache
-  kthread
-  mm/oom-kill
-  mm/pagemap
-  epoll
-  core-kernel
+devmap_managed_enable_get() is only called for MEMORY_DEVICE_PRIVATE and
+MEMORY_DEVICE_FS_DAX, But memunmap_pages() get called for other pgmap
+types too.  This results in the below warning when switching between
+system-ram and devdax mode for devdax namespace.
 
-Subsystem: mm/memremap
+ jump label: negative count!
+ WARNING: CPU: 52 PID: 1335 at kernel/jump_label.c:235 static_key_slow_try_dec+0x88/0xa0
+ Modules linked in:
+ ....
 
-    Ralph Campbell <rcampbell@nvidia.com>:
-      mm/mremap_pages: fix static key devmap_managed_key updates
+ NIP [c000000000433318] static_key_slow_try_dec+0x88/0xa0
+ LR [c000000000433314] static_key_slow_try_dec+0x84/0xa0
+ Call Trace:
+ [c000000025c1f660] [c000000000433314] static_key_slow_try_dec+0x84/0xa0
+ [c000000025c1f6d0] [c000000000433664] __static_key_slow_dec_cpuslocked+0x34/0xd0
+ [c000000025c1f700] [c0000000004337a4] static_key_slow_dec+0x54/0xf0
+ [c000000025c1f770] [c00000000059c49c] memunmap_pages+0x36c/0x500
+ [c000000025c1f820] [c000000000d91d10] devm_action_release+0x30/0x50
+ [c000000025c1f840] [c000000000d92e34] release_nodes+0x2f4/0x3e0
+ [c000000025c1f8f0] [c000000000d8b15c] device_release_driver_internal+0x17c/0x280
+ [c000000025c1f930] [c000000000d883a4] bus_remove_device+0x124/0x210
+ [c000000025c1f9b0] [c000000000d80ef4] device_del+0x1d4/0x530
+ [c000000025c1fa70] [c000000000e341e8] unregister_dev_dax+0x48/0xe0
+ [c000000025c1fae0] [c000000000d91d10] devm_action_release+0x30/0x50
+ [c000000025c1fb00] [c000000000d92e34] release_nodes+0x2f4/0x3e0
+ [c000000025c1fbb0] [c000000000d8b15c] device_release_driver_internal+0x17c/0x280
+ [c000000025c1fbf0] [c000000000d87000] unbind_store+0x130/0x170
+ [c000000025c1fc30] [c000000000d862a0] drv_attr_store+0x40/0x60
+ [c000000025c1fc50] [c0000000006d316c] sysfs_kf_write+0x6c/0xb0
+ [c000000025c1fc90] [c0000000006d2328] kernfs_fop_write+0x118/0x280
+ [c000000025c1fce0] [c0000000005a79f8] vfs_write+0xe8/0x2a0
+ [c000000025c1fd30] [c0000000005a7d94] ksys_write+0x84/0x140
+ [c000000025c1fd80] [c00000000003a430] system_call_exception+0x120/0x270
+ [c000000025c1fe20] [c00000000000c540] system_call_common+0xf0/0x27c
 
-Subsystem: mm/memcg
+Link: https://lkml.kernel.org/r/20201023183222.13186-1-rcampbell@nvidia.com
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Tested-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Mike Kravetz <mike.kravetz@oracle.com>:
-      hugetlb_cgroup: fix reservation accounting
+ mm/memremap.c |   39 ++++++++++++++++-----------------------
+ 1 file changed, 16 insertions(+), 23 deletions(-)
 
-    zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>:
-      mm: memcontrol: correct the NR_ANON_THPS counter of hierarchical memcg
-
-    Roman Gushchin <guro@fb.com>:
-      mm: memcg: link page counters to root if use_hierarchy is false
-
-Subsystem: mm/slab-generic
-
-Subsystem: mm/kasan
-
-    Andrey Konovalov <andreyknvl@google.com>:
-      kasan: adopt KUNIT tests to SW_TAGS mode
-
-Subsystem: mm/mempolicy
-
-    Shijie Luo <luoshijie1@huawei.com>:
-      mm: mempolicy: fix potential pte_unmap_unlock pte error
-
-Subsystem: signals
-
-    Oleg Nesterov <oleg@redhat.com>:
-      ptrace: fix task_join_group_stop() for the case when current is traced
-
-Subsystem: lib
-
-    Vasily Gorbik <gor@linux.ibm.com>:
-      lib/crc32test: remove extra local_irq_disable/enable
-
-Subsystem: mm/pagecache
-
-    Jason Yan <yanaijie@huawei.com>:
-      mm/truncate.c: make __invalidate_mapping_pages() static
-
-Subsystem: kthread
-
-    Zqiang <qiang.zhang@windriver.com>:
-      kthread_worker: prevent queuing delayed work from timer_fn when it is being canceled
-
-Subsystem: mm/oom-kill
-
-    Charles Haithcock <chaithco@redhat.com>:
-      mm, oom: keep oom_adj under or at upper limit when printing
-
-Subsystem: mm/pagemap
-
-    Jason Gunthorpe <jgg@nvidia.com>:
-      mm: always have io_remap_pfn_range() set pgprot_decrypted()
-
-Subsystem: epoll
-
-    Soheil Hassas Yeganeh <soheil@google.com>:
-      epoll: check ep_events_available() upon timeout
-      epoll: add a selftest for epoll timeout race
-
-Subsystem: core-kernel
-
-    Lukas Bulwahn <lukas.bulwahn@gmail.com>:
-      kernel/hung_task.c: make type annotations consistent
-
- fs/eventpoll.c                                                |   16 +
- fs/proc/base.c                                                |    2 
- include/linux/mm.h                                            |    9 
- include/linux/pgtable.h                                       |    4 
- kernel/hung_task.c                                            |    3 
- kernel/kthread.c                                              |    3 
- kernel/signal.c                                               |   19 -
- lib/crc32test.c                                               |    4 
- lib/test_kasan.c                                              |  149 +++++++---
- mm/hugetlb.c                                                  |   20 -
- mm/memcontrol.c                                               |   25 +
- mm/mempolicy.c                                                |    6 
- mm/memremap.c                                                 |   39 +-
- mm/truncate.c                                                 |    2 
- tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   95 ++++++
- 15 files changed, 290 insertions(+), 106 deletions(-)
-
+--- a/mm/memremap.c~mm-mremap_pages-fix-static-key-devmap_managed_key-updates
++++ a/mm/memremap.c
+@@ -41,28 +41,24 @@ EXPORT_SYMBOL_GPL(memremap_compat_align)
+ DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
+ EXPORT_SYMBOL(devmap_managed_key);
+ 
+-static void devmap_managed_enable_put(void)
++static void devmap_managed_enable_put(struct dev_pagemap *pgmap)
+ {
+-	static_branch_dec(&devmap_managed_key);
++	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
++	    pgmap->type == MEMORY_DEVICE_FS_DAX)
++		static_branch_dec(&devmap_managed_key);
+ }
+ 
+-static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
++static void devmap_managed_enable_get(struct dev_pagemap *pgmap)
+ {
+-	if (pgmap->type == MEMORY_DEVICE_PRIVATE &&
+-	    (!pgmap->ops || !pgmap->ops->page_free)) {
+-		WARN(1, "Missing page_free method\n");
+-		return -EINVAL;
+-	}
+-
+-	static_branch_inc(&devmap_managed_key);
+-	return 0;
++	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
++	    pgmap->type == MEMORY_DEVICE_FS_DAX)
++		static_branch_inc(&devmap_managed_key);
+ }
+ #else
+-static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
++static void devmap_managed_enable_get(struct dev_pagemap *pgmap)
+ {
+-	return -EINVAL;
+ }
+-static void devmap_managed_enable_put(void)
++static void devmap_managed_enable_put(struct dev_pagemap *pgmap)
+ {
+ }
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+@@ -169,7 +165,7 @@ void memunmap_pages(struct dev_pagemap *
+ 		pageunmap_range(pgmap, i);
+ 
+ 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
+-	devmap_managed_enable_put();
++	devmap_managed_enable_put(pgmap);
+ }
+ EXPORT_SYMBOL_GPL(memunmap_pages);
+ 
+@@ -307,7 +303,6 @@ void *memremap_pages(struct dev_pagemap
+ 		.pgprot = PAGE_KERNEL,
+ 	};
+ 	const int nr_range = pgmap->nr_range;
+-	bool need_devmap_managed = true;
+ 	int error, i;
+ 
+ 	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
+@@ -323,6 +318,10 @@ void *memremap_pages(struct dev_pagemap
+ 			WARN(1, "Missing migrate_to_ram method\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
++		if (!pgmap->ops->page_free) {
++			WARN(1, "Missing page_free method\n");
++			return ERR_PTR(-EINVAL);
++		}
+ 		if (!pgmap->owner) {
+ 			WARN(1, "Missing owner\n");
+ 			return ERR_PTR(-EINVAL);
+@@ -336,11 +335,9 @@ void *memremap_pages(struct dev_pagemap
+ 		}
+ 		break;
+ 	case MEMORY_DEVICE_GENERIC:
+-		need_devmap_managed = false;
+ 		break;
+ 	case MEMORY_DEVICE_PCI_P2PDMA:
+ 		params.pgprot = pgprot_noncached(params.pgprot);
+-		need_devmap_managed = false;
+ 		break;
+ 	default:
+ 		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
+@@ -364,11 +361,7 @@ void *memremap_pages(struct dev_pagemap
+ 		}
+ 	}
+ 
+-	if (need_devmap_managed) {
+-		error = devmap_managed_enable_get(pgmap);
+-		if (error)
+-			return ERR_PTR(error);
+-	}
++	devmap_managed_enable_get(pgmap);
+ 
+ 	/*
+ 	 * Clear the pgmap nr_range as it will be incremented for each
+_
