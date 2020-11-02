@@ -4,51 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C53DC388F2
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:00:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96946C2D0A3
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:02:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EEB80223AB
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:00:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4881E21D91
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 01:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604278844;
-	bh=XwGBUEjWfGzP3fOSETsfxqJYRfezN3XmAqInLD6YHxg=;
+	s=default; t=1604278952;
+	bh=Hnt63VLJGdry7jyNhcB54dUyy41zGJcBIexQev/YCac=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=KOyh8AzB+2ORdBNcqox7uUBBjvDTq0CwsFt/j+Ql00p5nEsjnrEyn/3Yc5gdNueS0
-	 zvaGifyB6tfrEd2+KN1lNmlOc/bnkMQ+vM+ADhjnd0IMx1kT4t0J6SzkyH4tiZb0pR
-	 Kyx0Mt2KeUV1/d26Y343Kdbpx4GENLCMhsTQx1IE=
+	b=TO8qtrSOpF2NOAWNbo82Y6Q7Kx6Npm2cU5DAhGbEUqBeWGVxz5OxhTW/KdLkAVYDC
+	 kekP23Q9Nrx4qVaDVJRli9e5GhUDruBtIdWi+xn/4gGjltSCxfuawbsMXIkA6xjZRQ
+	 bMUFenuzSboK0qKzD/PnUbCi0tEe9LRfZiiYkawM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727368AbgKBBAn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Nov 2020 20:00:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46764 "EHLO mail.kernel.org"
+        id S1727367AbgKBBCc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Nov 2020 20:02:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727335AbgKBBAn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 1 Nov 2020 20:00:43 -0500
+        id S1727335AbgKBBCb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Nov 2020 20:02:31 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9F5AD22267;
-        Mon,  2 Nov 2020 01:00:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7E1D721707;
+        Mon,  2 Nov 2020 01:02:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604278842;
-        bh=XwGBUEjWfGzP3fOSETsfxqJYRfezN3XmAqInLD6YHxg=;
+        s=default; t=1604278949;
+        bh=Hnt63VLJGdry7jyNhcB54dUyy41zGJcBIexQev/YCac=;
         h=Date:From:To:Subject:From;
-        b=tC3u7IgpzM4TlcM2IjBgGl4p5ud1dwuA68+2ef9QtMuUK/Acfu0Jiren6tkj75JZ0
-         U+snzltyisvc0ZaCKaoJ4wDWkdhqmTbno1urYI7XVAfq8BuoYZIOwgsXyJds7lQLIK
-         ZRHE0Nog/1qhg4a1vXR5yCmdFIMbBNuWEt+F1bxY=
-Date:   Sun, 01 Nov 2020 17:00:42 -0800
+        b=PXCxLgB1DDdc4vKjcpk0Ao6XxHA8ZWzpacmB0zk/qBduwODaiuOn/GseMrvlb6vor
+         wa88ZBD5y2rBdA8R73Q7bkmY0C9E5FnzrtU9Su5r2qQX3ger6FcFiIduX0BqardvO1
+         SucEuu+Kxg2MxSek0kBlnLXZSzbYas27MBXlnVRc=
+Date:   Sun, 01 Nov 2020 17:02:29 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, zhongjiang-ali@linux.alibaba.com
+To:     mgorman@techsingularity.net, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, riel@surriel.com, shy828301@gmail.com,
+        vbabka@suse.cz, ziy@nvidia.com
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-memcontrol-correct-the-nr=5Fanon=5Fthps-counter-of-hier?=
- =?US-ASCII?Q?archical-memcg-fix-fix.patch?= removed from -mm tree
-Message-ID: <20201102010042.WhaNGVhu9%akpm@linux-foundation.org>
+ mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.patch
+ removed from -mm tree
+Message-ID: <20201102010229.ZoUiwYIKW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,50 +58,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix
+     Subject: mm-compaction-count-pages-and-stop-correctly-during-page-isol=
+ation-v3
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix.patch
+     mm-compaction-count-pages-and-stop-correctly-during-page-isolation-v3.=
+patch
 
-This patch was dropped because it was folded into mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg.patch
+This patch was dropped because it was folded into mm-compaction-count-pages=
+-and-stop-correctly-during-page-isolation.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix
+=46rom: Zi Yan <ziy@nvidia.com>
+Subject: mm-compaction-count-pages-and-stop-correctly-during-page-isolation=
+-v3
 
-use u64 cast, per Michal
-
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20201030183809.3616803-1-zi.yan@sent.com
+Fixes: 1da2f328fa64 (=E2=80=9Cmm,thp,compaction,cma: allow THP migration fo=
+r CMA allocations=E2=80=9D)
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
+ mm/compaction.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg-fix-fix
-+++ a/mm/memcontrol.c
-@@ -4119,8 +4119,8 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == NR_ANON_THPS)
- 			nr *= HPAGE_PMD_NR;
- #endif
--		seq_printf(m, "total_%s %lu\n", memcg1_stat_names[i],
--						nr * PAGE_SIZE);
-+		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
-+						(u64)nr * PAGE_SIZE);
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+--- a/mm/compaction.c~mm-compaction-count-pages-and-stop-correctly-during-p=
+age-isolation-v3
++++ a/mm/compaction.c
+@@ -1012,8 +1012,8 @@ isolate_migratepages_block(struct compac
+=20
+ isolate_success:
+ 		list_add(&page->lru, &cc->migratepages);
+-		cc->nr_migratepages +=3D thp_nr_pages(page);
+-		nr_isolated +=3D thp_nr_pages(page);
++		cc->nr_migratepages +=3D compound_nr(page);
++		nr_isolated +=3D compound_nr(page);
+=20
+ 		/*
+ 		 * Avoid isolating too much unless this block is being
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-memcontrol-correct-the-nr_anon_thps-counter-of-hierarchical-memcg.patch
-mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit-fix.patch
-mm.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-compaction-count-pages-and-stop-correctly-during-page-isolation.patch
+mm-compaction-stop-isolation-if-too-many-pages-are-isolated-and-we-have-pag=
+es-to-migrate.patch
 
