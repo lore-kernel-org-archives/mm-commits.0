@@ -2,67 +2,81 @@ Return-Path: <SRS0=ZqYO=EI=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CCD6C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 19:58:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DECC388F9
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 20:14:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB21722268
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 19:58:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="WB2ZxTjc"
+	by mail.kernel.org (Postfix) with ESMTP id A1F5022268
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 20:13:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1604348039;
+	bh=pJtmrMQLvkc7x1FBKzUdjauh9XyW1o3Raf0/V4RBZ5Q=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:Reply-To:List-ID:
+	 From;
+	b=0/lIbNjQ3hsLrp3hfSr77oEwMxO9pOfJsoBUsNMIy1ie9g9iknPJzJMh2FuYIhRRK
+	 hiMdsLib7ftYNny6U0yfb4vsFJdT+7Tqu3Pl8lyC9tjzpLvNlI38lsuY/YTK1DaV7B
+	 3G6WeuIGjK4zjQetWSWhFSEkAkkAQBWP81KKhEBs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726299AbgKBT4V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Nov 2020 14:56:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43766 "EHLO
+        id S1726720AbgKBUNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 2 Nov 2020 15:13:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726055AbgKBTzP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2020 14:55:15 -0500
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 958A2C0617A6
-        for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2020 11:55:15 -0800 (PST)
-Received: by mail-wr1-x42e.google.com with SMTP id w14so15988083wrs.9
-        for <mm-commits@vger.kernel.org>; Mon, 02 Nov 2020 11:55:15 -0800 (PST)
+        with ESMTP id S1726744AbgKBUNA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2020 15:13:00 -0500
+Received: from mail-lf1-x143.google.com (mail-lf1-x143.google.com [IPv6:2a00:1450:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD20AC0617A6
+        for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2020 12:12:59 -0800 (PST)
+Received: by mail-lf1-x143.google.com with SMTP id f9so19098790lfq.2
+        for <mm-commits@vger.kernel.org>; Mon, 02 Nov 2020 12:12:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
+        d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=k5A/EgqemLJHyDlB4QJwwgxeJLYtpvLZ7RNKLU5WGtM=;
-        b=WB2ZxTjccAamLEcZE06q1LVwtvMY8+mAxG0rpRCE9N3Y3l4kSV8AJ9xPRYDglumfOe
-         +xy0dIFCaPBScdclyXOd4fwIFt6OdbzCkHbVS5VDaH+UkNxCOZxDR5F6RRxAXLiXl519
-         UMlOsceI37TOQ8yDZFSynwUKLEsXxko2/osNsfUm2tYapSm6hF/C53HWCZ/QH5Qy9pUa
-         9dkgl5BiJNAXvjSZ8HvckLx1OddZc7k5Ejm1OpXKSQnt+di8oBmaEGugFlFxvTf/zjhK
-         aTNnkatSTRTqf5q88g+TkR3WqPT90sbfMloG9ds5EN14IPIi420FGssnUGxXoVEmKhzV
-         tZRg==
+        bh=BfkxRNzQnOQz526t0caSAxJWJI9EB2Dn3+3X+59nRvY=;
+        b=BTHdDe/ZjX/qC5aHm0OqZtcdBHrIGftnZZmWgsu9gn7lwARE/V9mxpUy4noxzFLfCe
+         VtAvMiSfaYzK07I8XXQO84s0N8BKOLOzGK3P+lDwyoFffEGHOeZCAnjI4H8LMg6c7Z3K
+         5bimHK+ZzJxg27Fb4MsOQgQn69x9LJtupIADc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=k5A/EgqemLJHyDlB4QJwwgxeJLYtpvLZ7RNKLU5WGtM=;
-        b=kYc1iaacp7Tk13ekcNTYf9x3/y04qrdQEAphCpdO/6mqmJGfkdskjqGinGZOO4tbz3
-         DufneM5uPFy3D6gSXVPwTzog7emv+KM0rfXAUbaHEQewnHvZweLnKthlC8tY0+0WjzVd
-         xnYJ1rGFbfAO0PSaeDqgFbaj/HZyWUAQBg5OSupWXPnP2Z9pvHRemjHiJ96wYbwPoMYX
-         edwFtWFCFyxPdgc6nz53HiW82SlKmM2V03NzhMbIvg10XdhWPIE+19MLBITBR6/cJ+OW
-         3CSfYeVnJVZVeoz09fWIFbdNQ6a0IIrPmwpQkyB+5byqsuYgJYi0NuUQ2vXXahTNR8qe
-         uvvg==
-X-Gm-Message-State: AOAM532SETnhkXjWyttpiM5B0SvaiOSsc0zU4OUnJeBJoiLDeGkZipO8
-        FwoDNfgI1Uk1AFosh9Jca3HDtNm9sH0l+iRJRvHUJQ==
-X-Google-Smtp-Source: ABdhPJyzDNcrIdilbE3mzaRTkDxGXakQuOsy8v1942eLfhUlUHnghdYcXk5QDqW7PXgfTo4wzC7Iiqkte7m+Hm+NsHk=
-X-Received: by 2002:a5d:54c1:: with SMTP id x1mr23345365wrv.172.1604346913867;
- Mon, 02 Nov 2020 11:55:13 -0800 (PST)
+        bh=BfkxRNzQnOQz526t0caSAxJWJI9EB2Dn3+3X+59nRvY=;
+        b=mzsvbg1y9uDoBcVUIcRyrLWtBGVznAmi8IUsbKeqUDzhD9tbNEQneIvvi0/wL27b7p
+         0Jx1PLLEbUKO+ds+oyk8dxe1MZYnVpgAOjZfEYuYfIuM+d9I0P7FoFMmWXRprHL6jTor
+         OiXhGLtRMB3DvXPWyo9ro2NRyU/pC3vd2XCd+3f3vh0zQbJdxdut9ozkfXcvGqw+FtQL
+         nb1R8Yb3CekbLeAWHFlR0Kxr1xIaFFk+L05QFBEn0UwtVKUKLYcly2xjjDHMRzltXDNT
+         KSYZDNXUY1IjBqc5kBZLvWm83+OuWnkukOjc6z1qXOt3FcoUNJN1uHBZ/ssQKdDVs9fk
+         aKzg==
+X-Gm-Message-State: AOAM531y3zXQWkfxhHfbWftOQjK/EQQOAhZTrraeXrSnh41LefUDib6m
+        9dPE/5BFRKXgH3zHsuUX+/dHA1niCOqaZg==
+X-Google-Smtp-Source: ABdhPJxJMoQakFxpaqu9nn/yYbVbURTecVfmHjWV1XeowE88EDOwbuEj4H2JCq9HGgwEpJIu4v7dYg==
+X-Received: by 2002:ac2:5ecc:: with SMTP id d12mr6707354lfq.487.1604347977768;
+        Mon, 02 Nov 2020 12:12:57 -0800 (PST)
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com. [209.85.167.49])
+        by smtp.gmail.com with ESMTPSA id a77sm2655743lfd.77.2020.11.02.12.12.53
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Nov 2020 12:12:53 -0800 (PST)
+Received: by mail-lf1-f49.google.com with SMTP id 184so19066436lfd.6
+        for <mm-commits@vger.kernel.org>; Mon, 02 Nov 2020 12:12:53 -0800 (PST)
+X-Received: by 2002:ac2:5f48:: with SMTP id 8mr6842069lfz.344.1604347973214;
+ Mon, 02 Nov 2020 12:12:53 -0800 (PST)
 MIME-Version: 1.0
 References: <20201101170656.48abbd5e88375219f868af5e@linux-foundation.org>
  <20201102010804.uENOQsZO9%akpm@linux-foundation.org> <CAHk-=wjweewYgnT2MX2iqbj2+7QamHH+pdMQGvr3duPL5a_dvA@mail.gmail.com>
- <CACSApvZmNAOCUEEs051G7bc9-JbSv1auh+xUvuitP6LkWfn-5w@mail.gmail.com> <CAHk-=wh3FcWMRAt-WGYcKP-YxLDBkpbNtVzLrm+=t6xixV+A9w@mail.gmail.com>
-In-Reply-To: <CAHk-=wh3FcWMRAt-WGYcKP-YxLDBkpbNtVzLrm+=t6xixV+A9w@mail.gmail.com>
-From:   Soheil Hassas Yeganeh <soheil@google.com>
-Date:   Mon, 2 Nov 2020 14:54:37 -0500
-Message-ID: <CACSApvZiWLAzSpkkBSo9=U_Fpx85_xCryaDh+sFsr7Uw8-RjUg@mail.gmail.com>
+ <CACSApvZmNAOCUEEs051G7bc9-JbSv1auh+xUvuitP6LkWfn-5w@mail.gmail.com>
+ <CAHk-=wh3FcWMRAt-WGYcKP-YxLDBkpbNtVzLrm+=t6xixV+A9w@mail.gmail.com> <CACSApvZiWLAzSpkkBSo9=U_Fpx85_xCryaDh+sFsr7Uw8-RjUg@mail.gmail.com>
+In-Reply-To: <CACSApvZiWLAzSpkkBSo9=U_Fpx85_xCryaDh+sFsr7Uw8-RjUg@mail.gmail.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Mon, 2 Nov 2020 12:12:37 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wh826P9cz0g_FGRCbz1ZE4pfhCHuQBQ-J_BBxeo5x94vQ@mail.gmail.com>
+Message-ID: <CAHk-=wh826P9cz0g_FGRCbz1ZE4pfhCHuQBQ-J_BBxeo5x94vQ@mail.gmail.com>
 Subject: Re: [patch 13/15] epoll: check ep_events_available() upon timeout
-To:     Linus Torvalds <torvalds@linux-foundation.org>
+To:     Soheil Hassas Yeganeh <soheil@google.com>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Davidlohr Bueso <dave@stgolabs.net>,
         Eric Dumazet <edumazet@google.com>,
@@ -77,117 +91,35 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Nov 2, 2020 at 1:51 PM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
+On Mon, Nov 2, 2020 at 11:55 AM Soheil Hassas Yeganeh <soheil@google.com> wrote:
 >
-> On Mon, Nov 2, 2020 at 9:49 AM Soheil Hassas Yeganeh <soheil@google.com> wrote:
-> >
-> > Thank you for the suggestion. That was the first version I tried, and
-> > I can confirm it fixes the race because we call ep_send_events() once
-> > more before returning.  Though, I believe, due to time_out=1, we won't
-> > goto fetch_events to call ep_events_available():
-> >
-> > if (!res && eavail &&
-> >    !(res = ep_send_events(ep, events, maxevents)) && !timed_out)
-> >  goto fetch_events;
->
-> Right. We won't be repeating the loop, but we will do one final send_events.
->
-> Which I think is really the point, no?
+> Given that you're calling ep_events_available() under lock, I think
+> this should address the inefficiency for the non-racy timeout case,  I
+> mentioned above. The remaining races are preexisting and all result in
+> spurious events, which should be fine.
 
-Yes, absolutely, that's the point.
+Well, they might result in not seeing events that are there, but for
+that case we end up going the logn way around and doing the "wait for
+events" code, and that should take care of it, I guess.
 
-> > You're spot on that the patch is more complicated than your
-> > suggestion.  However, the downside I observed was a performance
-> > regression for the non-racy case: Suppose there are a few threads with
-> > a similar non-zero timeout and no ready event. They will all
-> > experience a noticeable contention in ep_scan_ready_list, by
-> > unconditionally calling ep_send_events(). The contention was large
-> > because there will be 2 write locks on ep->lock and one mutex lock on
-> > ep->mtx with a large critical section.
->
-> Ugh. I really detest the eventpoll code. Afaik, it has no normal users
-> anywhere, so it gets no real coverage except for the odd cases
-> (presumably inside google?)
->
-> A lot of the work over the last couple of years has been to try to
-> simplify the code and streamline it, and fix bugs due to recursion.
->
-> I really wish we would continue that pattern of trying to simplify
-> this code rather than add more complexity on top of it, which is why I
-> reacted to strongly to that patch.
->
-> And that whole ep_poll() function is written in just about the most
-> confusing way possible, with code that looks like loops but aren't
-> ("while (0)") and goto's that _are_ loops ("goto fetch_events").
+So it's racy, but it gets fixed up later regardless of which way it
+races, I think.
 
-I wholeheartedly agree. Due to its cryptic implementation, It was
-really difficult to think about the correctness of the fixes.
+It might be worth a comment or two.
 
-On Mon, Nov 2, 2020 at 2:39 PM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> On Mon, Nov 2, 2020 at 10:51 AM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > I'll go stare at it some more.
->
-> That code is fundamentally broken in so many ways.
->
-> Look at how  ep_poll() does that ep_events_available() without
-> actually holding the ep->lock (or the ep->mtx) in half the cases.
->
-> End result: it works in 99.9% of all cases, but there's a race with
-> somebody else doing
->
->         WRITE_ONCE(ep->ovflist, EP_UNACTIVE_PTR);
->         /*
->          * Quickly re-inject items left on "txlist".
->          */
->         list_splice(&txlist, &ep->rdllist);
->
-> when that code can see an empty rdllist and an inactive ovflist and
-> thus decide that there are no events available.
->
-> I think the "Quickly re-inject" comment may be because some people
-> knew of that race.
->
-> The signal handling is also odd and looks broken.
->
-> The "short circuit on fatal signals" means that ep_send_events() isn't
-> actually done on a SIGKILL, but the code also used an exclusive wait,
-> so nobody else will be woken up either.
->
-> Admittedly you can steal wakeups other ways, by simply not caring
-> about the end result, so maybe that's all just inherent in epoll
-> anyway. But it looks strange, and it seems pointless: the right thing
-> to do would seem to be simply to have a regular check for
-> signal_pending(), and returning -EINTR if rather than looping.
->
-> And that do { } while (0) is entirely pointless. It seems to exist in
-> order to use "break" instead of the goto that everything else does,
-> which I guess is nice, except the whole need for that comes from how
-> oddly the code is written.
->
-> Why doesn't this all do something like the attached instead?
+And that "goto fetch_events" thing might be worth writing as an actual
+loop, rather than the pointless one I removed.
 
-This looks really great to me! Thank you!  I'll give it a try and get
-back to you soon.
+I suspect that old pointless loop might have been historical (some
+kind of "loop waiting for event"), since that's how those things are
+usually written. I didn't go and look at the history.
 
-> NOTE! I did not bother to fix that ep_events_available() race.
+Anyway, I've dropped the original 13/15 patch, buit I'll apply the
+test-case one (14/15) even if it might now fail in the current state.
 
-Given that you're calling ep_events_available() under lock, I think
-this should address the inefficiency for the non-racy timeout case,  I
-mentioned above. The remaining races are preexisting and all result in
-spurious events, which should be fine.
+I hope that you will end up submitting some cleaned-up (and tested!)
+version of that patch I cobbled together - I'll archive this thread
+for now on the assumption that the resolution of all this will come
+back to me later...
 
-Thanks again!
-Soheil
-
->                       Linus
-
-
-
-> I'll go stare at it some more.
->
->                    Linus
+                     Linus
