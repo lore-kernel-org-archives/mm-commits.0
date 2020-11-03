@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A67D0C2D0A3
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:16:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57378C388F9
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:16:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F3B522226
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:16:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 114DB207BB
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:16:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604427409;
-	bh=qMNdPxVKPivLk7FVb6o2HVU+GPWy9YTQXJhvSZXdu9I=;
+	s=default; t=1604427412;
+	bh=AHdfGuGOzOHxuKWWVI8IhoYe06mfxy5CkilcCtf9O3U=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=TlG36+qnMKKbei6VxydtsQwjzbOM3XfssguwK3cF5ZnFCRx1s7PAh8aVi3H9ymE8U
-	 P5OpxwVkCTGJpCMjTlyRUci5AZEvfWrSkPKFijkDv2TKLsD2avW2VlHMi446yLHYSV
-	 COrGyAMLSDLG6tM3anQ0n7kIeFm9RURU0MrcGbbI=
+	b=1lckezJSXueK4OzOupA+HMFsst+sqcGISJ1YLJYheENKRoJOOzfNcHkjvuM09pEH+
+	 9tw2Scej2P45jRh/YnySvjqd9h7dnaYsn1V0zlFRqgyTz1IsknzaNyYxfbqwLV0fwn
+	 chaduomu1m7LNsWfMqMa0EhUyNTpgqF0/QGd8/ao=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729211AbgKCSQs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 13:16:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39154 "EHLO mail.kernel.org"
+        id S1729227AbgKCSQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 13:16:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39268 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725385AbgKCSQr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 13:16:47 -0500
+        id S1729217AbgKCSQv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 13:16:51 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2BE5220786;
-        Tue,  3 Nov 2020 18:16:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C5C642080D;
+        Tue,  3 Nov 2020 18:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604427406;
-        bh=qMNdPxVKPivLk7FVb6o2HVU+GPWy9YTQXJhvSZXdu9I=;
+        s=default; t=1604427410;
+        bh=AHdfGuGOzOHxuKWWVI8IhoYe06mfxy5CkilcCtf9O3U=;
         h=Date:From:To:Subject:From;
-        b=Mp1MvSoV4ZIIk0n+y8bQcEf0EALOk5gFBs6Jn/qfgpV3IeWkbyZPS6RLmOrGUc35T
-         qdjhOxM0/wIz8bG8wTPdfWAHXOc3M7ktXYY34i9tXX9qojDjj67wznzw6/fiDLDmpP
-         Zd6YWK/nQ9uFwTr2yuEurGk9BwSpK3qWuq6zKL/w=
-Date:   Tue, 03 Nov 2020 10:16:45 -0800
+        b=rXExq+kh27cc299hlxwN0qvLjcF/ncj1Jwe8Ew+VSszEo/E6ZT84KncHQA47AiNT/
+         FKfTb4UPprZF1Rpl5QokodL23nUDBgmLzHduImJVqp3NMGJDXSY0MumrqN5pY1wpwp
+         yiW6Qy5qz6iNKGryFCh+6VBLK+cu+cHoZ1NNzwSw=
+Date:   Tue, 03 Nov 2020 10:16:49 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, hch@lst.de,
-        ira.weiny@intel.com, jgg@mellanox.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, sachinp@linux.vnet.ibm.com
-Subject:  [merged]
- mm-mremap_pages-fix-static-key-devmap_managed_key-updates.patch removed
- from -mm tree
-Message-ID: <20201103181645.p4P-ZRgDO%akpm@linux-foundation.org>
+To:     almasrymina@google.com, aneesh.kumar@linux.vnet.ibm.com,
+        david@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, mprivozn@redhat.com, mst@redhat.com,
+        songmuchun@bytedance.com, stable@vger.kernel.org, tj@kernel.org
+Subject:  [merged] hugetlb_cgroup-fix-reservation-accounting.patch
+ removed from -mm tree
+Message-ID: <20201103181649.6Rs3942ad%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,169 +55,130 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap_pages: fix static key devmap_managed_key updates
+     Subject: hugetlb_cgroup: fix reservation accounting
 has been removed from the -mm tree.  Its filename was
-     mm-mremap_pages-fix-static-key-devmap_managed_key-updates.patch
+     hugetlb_cgroup-fix-reservation-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/mremap_pages: fix static key devmap_managed_key updates
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb_cgroup: fix reservation accounting
 
-commit 6f42193fd86e ("memremap: don't use a separate devm action for
-devmap_managed_enable_get") changed the static key updates such that we
-now call devmap_managed_enable_put() without doing the equivalent
-devmap_managed_enable_get().
+Michal Privoznik was using "free page reporting" in QEMU/virtio-balloon
+with hugetlbfs and hit the warning below.  QEMU with free page hinting
+uses fallocate(FALLOC_FL_PUNCH_HOLE) to discard pages that are reported
+as free by a VM. The reporting granularity is in pageblock granularity.
+So when the guest reports 2M chunks, we fallocate(FALLOC_FL_PUNCH_HOLE)
+one huge page in QEMU.
 
-devmap_managed_enable_get() is only called for MEMORY_DEVICE_PRIVATE and
-MEMORY_DEVICE_FS_DAX, But memunmap_pages() get called for other pgmap
-types too.  This results in the below warning when switching between
-system-ram and devdax mode for devdax namespace.
+[  315.251417] ------------[ cut here ]------------
+[  315.251424] WARNING: CPU: 7 PID: 6636 at mm/page_counter.c:57 page_counter_uncharge+0x4b/0x50
+[  315.251425] Modules linked in: ...
+[  315.251466] CPU: 7 PID: 6636 Comm: qemu-system-x86 Not tainted 5.9.0 #137
+[  315.251467] Hardware name: Gigabyte Technology Co., Ltd. X570 AORUS PRO/X570 AORUS PRO, BIOS F21 07/31/2020
+[  315.251469] RIP: 0010:page_counter_uncharge+0x4b/0x50
+...
+[  315.251479] Call Trace:
+[  315.251485]  hugetlb_cgroup_uncharge_file_region+0x4b/0x80
+[  315.251487]  region_del+0x1d3/0x300
+[  315.251489]  hugetlb_unreserve_pages+0x39/0xb0
+[  315.251492]  remove_inode_hugepages+0x1a8/0x3d0
+[  315.251495]  ? tlb_finish_mmu+0x7a/0x1d0
+[  315.251497]  hugetlbfs_fallocate+0x3c4/0x5c0
+[  315.251519]  ? kvm_arch_vcpu_ioctl_run+0x614/0x1700 [kvm]
+[  315.251522]  ? file_has_perm+0xa2/0xb0
+[  315.251524]  ? inode_security+0xc/0x60
+[  315.251525]  ? selinux_file_permission+0x4e/0x120
+[  315.251527]  vfs_fallocate+0x146/0x290
+[  315.251529]  __x64_sys_fallocate+0x3e/0x70
+[  315.251531]  do_syscall_64+0x33/0x40
+[  315.251533]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+...
+[  315.251542] ---[ end trace 4c88c62ccb1349c9 ]---
 
- jump label: negative count!
- WARNING: CPU: 52 PID: 1335 at kernel/jump_label.c:235 static_key_slow_try_dec+0x88/0xa0
- Modules linked in:
- ....
+Investigation of the issue uncovered bugs in hugetlb cgroup reservation
+accounting.  This patch addresses the found issues.
 
- NIP [c000000000433318] static_key_slow_try_dec+0x88/0xa0
- LR [c000000000433314] static_key_slow_try_dec+0x84/0xa0
- Call Trace:
- [c000000025c1f660] [c000000000433314] static_key_slow_try_dec+0x84/0xa0
- [c000000025c1f6d0] [c000000000433664] __static_key_slow_dec_cpuslocked+0x34/0xd0
- [c000000025c1f700] [c0000000004337a4] static_key_slow_dec+0x54/0xf0
- [c000000025c1f770] [c00000000059c49c] memunmap_pages+0x36c/0x500
- [c000000025c1f820] [c000000000d91d10] devm_action_release+0x30/0x50
- [c000000025c1f840] [c000000000d92e34] release_nodes+0x2f4/0x3e0
- [c000000025c1f8f0] [c000000000d8b15c] device_release_driver_internal+0x17c/0x280
- [c000000025c1f930] [c000000000d883a4] bus_remove_device+0x124/0x210
- [c000000025c1f9b0] [c000000000d80ef4] device_del+0x1d4/0x530
- [c000000025c1fa70] [c000000000e341e8] unregister_dev_dax+0x48/0xe0
- [c000000025c1fae0] [c000000000d91d10] devm_action_release+0x30/0x50
- [c000000025c1fb00] [c000000000d92e34] release_nodes+0x2f4/0x3e0
- [c000000025c1fbb0] [c000000000d8b15c] device_release_driver_internal+0x17c/0x280
- [c000000025c1fbf0] [c000000000d87000] unbind_store+0x130/0x170
- [c000000025c1fc30] [c000000000d862a0] drv_attr_store+0x40/0x60
- [c000000025c1fc50] [c0000000006d316c] sysfs_kf_write+0x6c/0xb0
- [c000000025c1fc90] [c0000000006d2328] kernfs_fop_write+0x118/0x280
- [c000000025c1fce0] [c0000000005a79f8] vfs_write+0xe8/0x2a0
- [c000000025c1fd30] [c0000000005a7d94] ksys_write+0x84/0x140
- [c000000025c1fd80] [c00000000003a430] system_call_exception+0x120/0x270
- [c000000025c1fe20] [c00000000000c540] system_call_common+0xf0/0x27c
-
-Link: https://lkml.kernel.org/r/20201023183222.13186-1-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Tested-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
+Link: https://lkml.kernel.org/r/20201021204426.36069-1-mike.kravetz@oracle.com
+Fixes: 075a61d07a8e ("hugetlb_cgroup: add accounting for shared mappings")
+Cc: <stable@vger.kernel.org>
+Reported-by: Michal Privoznik <mprivozn@redhat.com>
+Co-developed-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Tested-by: Michal Privoznik <mprivozn@redhat.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Reviewed-by: Mina Almasry <almasrymina@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |   39 ++++++++++++++++-----------------------
- 1 file changed, 16 insertions(+), 23 deletions(-)
+ mm/hugetlb.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/memremap.c~mm-mremap_pages-fix-static-key-devmap_managed_key-updates
-+++ a/mm/memremap.c
-@@ -41,28 +41,24 @@ EXPORT_SYMBOL_GPL(memremap_compat_align)
- DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
- EXPORT_SYMBOL(devmap_managed_key);
+--- a/mm/hugetlb.c~hugetlb_cgroup-fix-reservation-accounting
++++ a/mm/hugetlb.c
+@@ -648,6 +648,8 @@ retry:
+ 			}
  
--static void devmap_managed_enable_put(void)
-+static void devmap_managed_enable_put(struct dev_pagemap *pgmap)
- {
--	static_branch_dec(&devmap_managed_key);
-+	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
-+	    pgmap->type == MEMORY_DEVICE_FS_DAX)
-+		static_branch_dec(&devmap_managed_key);
- }
+ 			del += t - f;
++			hugetlb_cgroup_uncharge_file_region(
++				resv, rg, t - f);
  
--static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
-+static void devmap_managed_enable_get(struct dev_pagemap *pgmap)
- {
--	if (pgmap->type == MEMORY_DEVICE_PRIVATE &&
--	    (!pgmap->ops || !pgmap->ops->page_free)) {
--		WARN(1, "Missing page_free method\n");
--		return -EINVAL;
--	}
+ 			/* New entry for end of split region */
+ 			nrg->from = t;
+@@ -660,9 +662,6 @@ retry:
+ 			/* Original entry is trimmed */
+ 			rg->to = f;
+ 
+-			hugetlb_cgroup_uncharge_file_region(
+-				resv, rg, nrg->to - nrg->from);
 -
--	static_branch_inc(&devmap_managed_key);
--	return 0;
-+	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
-+	    pgmap->type == MEMORY_DEVICE_FS_DAX)
-+		static_branch_inc(&devmap_managed_key);
- }
- #else
--static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
-+static void devmap_managed_enable_get(struct dev_pagemap *pgmap)
- {
--	return -EINVAL;
- }
--static void devmap_managed_enable_put(void)
-+static void devmap_managed_enable_put(struct dev_pagemap *pgmap)
- {
- }
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
-@@ -169,7 +165,7 @@ void memunmap_pages(struct dev_pagemap *
- 		pageunmap_range(pgmap, i);
- 
- 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
--	devmap_managed_enable_put();
-+	devmap_managed_enable_put(pgmap);
- }
- EXPORT_SYMBOL_GPL(memunmap_pages);
- 
-@@ -307,7 +303,6 @@ void *memremap_pages(struct dev_pagemap
- 		.pgprot = PAGE_KERNEL,
- 	};
- 	const int nr_range = pgmap->nr_range;
--	bool need_devmap_managed = true;
- 	int error, i;
- 
- 	if (WARN_ONCE(!nr_range, "nr_range must be specified\n"))
-@@ -323,6 +318,10 @@ void *memremap_pages(struct dev_pagemap
- 			WARN(1, "Missing migrate_to_ram method\n");
- 			return ERR_PTR(-EINVAL);
+ 			list_add(&nrg->link, &rg->link);
+ 			nrg = NULL;
+ 			break;
+@@ -678,17 +677,17 @@ retry:
  		}
-+		if (!pgmap->ops->page_free) {
-+			WARN(1, "Missing page_free method\n");
-+			return ERR_PTR(-EINVAL);
-+		}
- 		if (!pgmap->owner) {
- 			WARN(1, "Missing owner\n");
- 			return ERR_PTR(-EINVAL);
-@@ -336,11 +335,9 @@ void *memremap_pages(struct dev_pagemap
- 		}
- 		break;
- 	case MEMORY_DEVICE_GENERIC:
--		need_devmap_managed = false;
- 		break;
- 	case MEMORY_DEVICE_PCI_P2PDMA:
- 		params.pgprot = pgprot_noncached(params.pgprot);
--		need_devmap_managed = false;
- 		break;
- 	default:
- 		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
-@@ -364,11 +361,7 @@ void *memremap_pages(struct dev_pagemap
+ 
+ 		if (f <= rg->from) {	/* Trim beginning of region */
+-			del += t - rg->from;
+-			rg->from = t;
+-
+ 			hugetlb_cgroup_uncharge_file_region(resv, rg,
+ 							    t - rg->from);
+-		} else {		/* Trim end of region */
+-			del += rg->to - f;
+-			rg->to = f;
+ 
++			del += t - rg->from;
++			rg->from = t;
++		} else {		/* Trim end of region */
+ 			hugetlb_cgroup_uncharge_file_region(resv, rg,
+ 							    rg->to - f);
++
++			del += rg->to - f;
++			rg->to = f;
  		}
  	}
  
--	if (need_devmap_managed) {
--		error = devmap_managed_enable_get(pgmap);
--		if (error)
--			return ERR_PTR(error);
--	}
-+	devmap_managed_enable_get(pgmap);
+@@ -2443,6 +2442,9 @@ struct page *alloc_huge_page(struct vm_a
  
- 	/*
- 	 * Clear the pgmap nr_range as it will be incremented for each
+ 		rsv_adjust = hugepage_subpool_put_pages(spool, 1);
+ 		hugetlb_acct_memory(h, -rsv_adjust);
++		if (deferred_reserve)
++			hugetlb_cgroup_uncharge_page_rsvd(hstate_index(h),
++					pages_per_huge_page(h), page);
+ 	}
+ 	return page;
+ 
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-handle-zone-device-pages-in-release_pages.patch
-mm-optimize-migrate_vma_pages-mmu-notifier.patch
 
