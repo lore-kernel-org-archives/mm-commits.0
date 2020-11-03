@@ -1,125 +1,138 @@
-Return-Path: <SRS0=ZqYO=EI=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=UcEf=EJ=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DECC388F9
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 20:14:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85BAAC2D0A3
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:15:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1F5022268
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Nov 2020 20:13:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EA3222226
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604348039;
-	bh=pJtmrMQLvkc7x1FBKzUdjauh9XyW1o3Raf0/V4RBZ5Q=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:Reply-To:List-ID:
-	 From;
-	b=0/lIbNjQ3hsLrp3hfSr77oEwMxO9pOfJsoBUsNMIy1ie9g9iknPJzJMh2FuYIhRRK
-	 hiMdsLib7ftYNny6U0yfb4vsFJdT+7Tqu3Pl8lyC9tjzpLvNlI38lsuY/YTK1DaV7B
-	 3G6WeuIGjK4zjQetWSWhFSEkAkkAQBWP81KKhEBs=
+	s=default; t=1604427346;
+	bh=uQFylU4FJDz4T7OHlHeErpvWRslJIJXTavtWXepTKDs=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=RRsN6Eweo1ues9nVOPLzHkZ7DZ6ufsl5HwmbhdBGfHXHP2E+M/8wA4z3E/++CuAz+
+	 NTC76R4l1yPCmnfqYUZiM1TPjZ7Re+2NPtbnlLYHZX1pksCajI7Gr8U2oCB0/+blFz
+	 iZMyjNyWKbml2tZfHtSOJrCI3IR0UXl2jo/cSW4U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726720AbgKBUNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Nov 2020 15:13:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46518 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726744AbgKBUNA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2020 15:13:00 -0500
-Received: from mail-lf1-x143.google.com (mail-lf1-x143.google.com [IPv6:2a00:1450:4864:20::143])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD20AC0617A6
-        for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2020 12:12:59 -0800 (PST)
-Received: by mail-lf1-x143.google.com with SMTP id f9so19098790lfq.2
-        for <mm-commits@vger.kernel.org>; Mon, 02 Nov 2020 12:12:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=BfkxRNzQnOQz526t0caSAxJWJI9EB2Dn3+3X+59nRvY=;
-        b=BTHdDe/ZjX/qC5aHm0OqZtcdBHrIGftnZZmWgsu9gn7lwARE/V9mxpUy4noxzFLfCe
-         VtAvMiSfaYzK07I8XXQO84s0N8BKOLOzGK3P+lDwyoFffEGHOeZCAnjI4H8LMg6c7Z3K
-         5bimHK+ZzJxg27Fb4MsOQgQn69x9LJtupIADc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=BfkxRNzQnOQz526t0caSAxJWJI9EB2Dn3+3X+59nRvY=;
-        b=mzsvbg1y9uDoBcVUIcRyrLWtBGVznAmi8IUsbKeqUDzhD9tbNEQneIvvi0/wL27b7p
-         0Jx1PLLEbUKO+ds+oyk8dxe1MZYnVpgAOjZfEYuYfIuM+d9I0P7FoFMmWXRprHL6jTor
-         OiXhGLtRMB3DvXPWyo9ro2NRyU/pC3vd2XCd+3f3vh0zQbJdxdut9ozkfXcvGqw+FtQL
-         nb1R8Yb3CekbLeAWHFlR0Kxr1xIaFFk+L05QFBEn0UwtVKUKLYcly2xjjDHMRzltXDNT
-         KSYZDNXUY1IjBqc5kBZLvWm83+OuWnkukOjc6z1qXOt3FcoUNJN1uHBZ/ssQKdDVs9fk
-         aKzg==
-X-Gm-Message-State: AOAM531y3zXQWkfxhHfbWftOQjK/EQQOAhZTrraeXrSnh41LefUDib6m
-        9dPE/5BFRKXgH3zHsuUX+/dHA1niCOqaZg==
-X-Google-Smtp-Source: ABdhPJxJMoQakFxpaqu9nn/yYbVbURTecVfmHjWV1XeowE88EDOwbuEj4H2JCq9HGgwEpJIu4v7dYg==
-X-Received: by 2002:ac2:5ecc:: with SMTP id d12mr6707354lfq.487.1604347977768;
-        Mon, 02 Nov 2020 12:12:57 -0800 (PST)
-Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com. [209.85.167.49])
-        by smtp.gmail.com with ESMTPSA id a77sm2655743lfd.77.2020.11.02.12.12.53
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 02 Nov 2020 12:12:53 -0800 (PST)
-Received: by mail-lf1-f49.google.com with SMTP id 184so19066436lfd.6
-        for <mm-commits@vger.kernel.org>; Mon, 02 Nov 2020 12:12:53 -0800 (PST)
-X-Received: by 2002:ac2:5f48:: with SMTP id 8mr6842069lfz.344.1604347973214;
- Mon, 02 Nov 2020 12:12:53 -0800 (PST)
-MIME-Version: 1.0
-References: <20201101170656.48abbd5e88375219f868af5e@linux-foundation.org>
- <20201102010804.uENOQsZO9%akpm@linux-foundation.org> <CAHk-=wjweewYgnT2MX2iqbj2+7QamHH+pdMQGvr3duPL5a_dvA@mail.gmail.com>
- <CACSApvZmNAOCUEEs051G7bc9-JbSv1auh+xUvuitP6LkWfn-5w@mail.gmail.com>
- <CAHk-=wh3FcWMRAt-WGYcKP-YxLDBkpbNtVzLrm+=t6xixV+A9w@mail.gmail.com> <CACSApvZiWLAzSpkkBSo9=U_Fpx85_xCryaDh+sFsr7Uw8-RjUg@mail.gmail.com>
-In-Reply-To: <CACSApvZiWLAzSpkkBSo9=U_Fpx85_xCryaDh+sFsr7Uw8-RjUg@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Mon, 2 Nov 2020 12:12:37 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wh826P9cz0g_FGRCbz1ZE4pfhCHuQBQ-J_BBxeo5x94vQ@mail.gmail.com>
-Message-ID: <CAHk-=wh826P9cz0g_FGRCbz1ZE4pfhCHuQBQ-J_BBxeo5x94vQ@mail.gmail.com>
-Subject: Re: [patch 13/15] epoll: check ep_events_available() upon timeout
-To:     Soheil Hassas Yeganeh <soheil@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Guantao Liu <guantaol@google.com>,
-        Khazhismel Kumykov <khazhy@google.com>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Willem de Bruijn <willemb@google.com>
-Content-Type: text/plain; charset="UTF-8"
+        id S1729138AbgKCSPp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 13:15:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38750 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727706AbgKCSPp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 13:15:45 -0500
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7F9D620757;
+        Tue,  3 Nov 2020 18:15:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1604427344;
+        bh=uQFylU4FJDz4T7OHlHeErpvWRslJIJXTavtWXepTKDs=;
+        h=Date:From:To:Subject:From;
+        b=jzmRDxJPu8Sew0vVS3/ddCQ5lPU2WiOZ8Eg+x/P/ncjbfQwR8Kr1oRTODE3X1CYIk
+         jpJsnK3k4UaM0ZFYqK08Mtl/UA2g6ZUWHNzCtDQKB6QxI/50M4dCpDM3OwvexKT1Rr
+         vYbLLENPUYqVEhnF1cR3RcSR0ADMqDg30zZzHC9w=
+Date:   Tue, 03 Nov 2020 10:15:43 -0800
+From:   akpm@linux-foundation.org
+To:     dave@stgolabs.net, edumazet@google.com, guantaol@google.com,
+        khazhy@google.com, mm-commits@vger.kernel.org, soheil@google.com,
+        viro@zeniv.linux.org.uk, willemb@google.com
+Subject:  [to-be-updated]
+ epoll-check-ep_events_available-upon-timeout.patch removed from -mm tree
+Message-ID: <20201103181543.5ZsKK85hR%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Nov 2, 2020 at 11:55 AM Soheil Hassas Yeganeh <soheil@google.com> wrote:
->
-> Given that you're calling ep_events_available() under lock, I think
-> this should address the inefficiency for the non-racy timeout case,  I
-> mentioned above. The remaining races are preexisting and all result in
-> spurious events, which should be fine.
 
-Well, they might result in not seeing events that are there, but for
-that case we end up going the logn way around and doing the "wait for
-events" code, and that should take care of it, I guess.
+The patch titled
+     Subject: epoll: check ep_events_available() upon timeout
+has been removed from the -mm tree.  Its filename was
+     epoll-check-ep_events_available-upon-timeout.patch
 
-So it's racy, but it gets fixed up later regardless of which way it
-races, I think.
+This patch was dropped because an updated version will be merged
 
-It might be worth a comment or two.
+------------------------------------------------------
+From: Soheil Hassas Yeganeh <soheil@google.com>
+Subject: epoll: check ep_events_available() upon timeout
 
-And that "goto fetch_events" thing might be worth writing as an actual
-loop, rather than the pointless one I removed.
+After abc610e01c66 ("fs/epoll: avoid barrier after an epoll_wait(2)
+timeout"), we break out of the ep_poll loop upon timeout, without checking
+whether there is any new events available.  Prior to that patch-series we
+always called ep_events_available() after exiting the loop.
 
-I suspect that old pointless loop might have been historical (some
-kind of "loop waiting for event"), since that's how those things are
-usually written. I didn't go and look at the history.
+This can cause races and missed wakeups.  For example, consider the
+following scenario reported by Guantao Liu:
 
-Anyway, I've dropped the original 13/15 patch, buit I'll apply the
-test-case one (14/15) even if it might now fail in the current state.
+Suppose we have an eventfd added using EPOLLET to an epollfd.
 
-I hope that you will end up submitting some cleaned-up (and tested!)
-version of that patch I cobbled together - I'll archive this thread
-for now on the assumption that the resolution of all this will come
-back to me later...
+Thread 1: Sleeps for just below 5ms and then writes to an eventfd.
+Thread 2: Calls epoll_wait with a timeout of 5 ms. If it sees an
+          event of the eventfd, it will write back on that fd.
+Thread 3: Calls epoll_wait with a negative timeout.
 
-                     Linus
+Prior to abc610e01c66, it is guaranteed that Thread 3 will wake up either
+by Thread 1 or Thread 2.  After abc610e01c66, Thread 3 can be blocked
+indefinitely if Thread 2 sees a timeout right before the write to the
+eventfd by Thread 1.  Thread 2 will be woken up from
+schedule_hrtimeout_range and, with evail 0, it will not call
+ep_send_events().
+
+To fix this issue, while holding the lock, try to remove the thread that
+timed out the wait queue and check whether it was woken up or not.
+
+Link: https://lkml.kernel.org/r/20201028180202.952079-1-soheil.kdev@gmail.com
+Fixes: abc610e01c66 ("fs/epoll: avoid barrier after an epoll_wait(2) timeout")
+Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
+Reported-by: Guantao Liu <guantaol@google.com>
+Tested-by: Guantao Liu <guantaol@google.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Willem de Bruijn <willemb@google.com>
+Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/eventpoll.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+--- a/fs/eventpoll.c~epoll-check-ep_events_available-upon-timeout
++++ a/fs/eventpoll.c
+@@ -1907,7 +1907,21 @@ fetch_events:
+ 
+ 		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS)) {
+ 			timed_out = 1;
+-			break;
++			__set_current_state(TASK_RUNNING);
++			/*
++			 * Acquire the lock and try to remove this thread from
++			 * the wait queue. If this thread is not on the wait
++			 * queue, it has woken up after its timeout ended
++			 * before it could re-acquire the lock. In that case,
++			 * try to harvest some events.
++			 */
++			write_lock_irq(&ep->lock);
++			if (!list_empty(&wait.entry))
++				__remove_wait_queue(&ep->wq, &wait);
++			else
++				eavail = 1;
++			write_unlock_irq(&ep->lock);
++			goto send_events;
+ 		}
+ 
+ 		/* We were woken up, thus go and try to harvest some events */
+_
+
+Patches currently in -mm which might be from soheil@google.com are
+
+epoll-add-a-selftest-for-epoll-timeout-race.patch
+
