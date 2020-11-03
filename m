@@ -7,45 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A7B0C388F7
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FB9BC2D0A3
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC7DA22226
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6DBC22226
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604427430;
-	bh=UpMcWYC/t+lBZFn1hqEH1XFZWHVwfPPExlLxC8mHsns=;
+	s=default; t=1604427434;
+	bh=n5wNWjXf1491Qk/AIDVyyhHom6cYu3MkQPqbgLrwhwA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=j/JMk/mSzjshMu57JJjb6MV/h4cFkHakrp+AF7X3rfdn0j8maeVHvIfkFhl7aZ1Cd
-	 Ic1pA3aALX5hoPYUuWvCYZCzt0zvGM+Ee/iJOMO5VosbISrA6Xg0PS6t4JwqmwOJHk
-	 V6+R022UngtlP1ZfVgejQ82VjvY3Ac/+H+Ivm07M=
+	b=AVxpgO/CS4rEh3SkyWhF0kGZwKLezuDvhmpKMB8dYmpTT7QFjVH5APHadaK7yRS4D
+	 /uEnIbarE/dsXf57VvHT2ipG9xtYao4f06qEFtY7teHyHQeeI3HccSXHhu0h8XDr6A
+	 ETaSZqANJ2GBeyRGJvGZYHjzTKIKohd2PeMoFk6c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729148AbgKCSRK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 13:17:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39528 "EHLO mail.kernel.org"
+        id S1729266AbgKCSRN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 13:17:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725385AbgKCSRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 13:17:10 -0500
+        id S1725385AbgKCSRN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 13:17:13 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 947BD207BB;
-        Tue,  3 Nov 2020 18:17:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 826A22080D;
+        Tue,  3 Nov 2020 18:17:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604427429;
-        bh=UpMcWYC/t+lBZFn1hqEH1XFZWHVwfPPExlLxC8mHsns=;
+        s=default; t=1604427432;
+        bh=n5wNWjXf1491Qk/AIDVyyhHom6cYu3MkQPqbgLrwhwA=;
         h=Date:From:To:Subject:From;
-        b=vCbRGgmdRCPG071bibtN8jNk8yICkkIcQsrd8oXXuEPo7jO6Avnmvh9VoBhha5u6e
-         NTL50Oza/Yc/uzs4c6kMaCMHSzLWZ1QQIEjsgtFM12Ge3EFnU39qYgb2iPS2MBTqvC
-         kruR5QwCm2ZfTR/mSAeizLIJSuhLsjyAmitBgLws=
-Date:   Tue, 03 Nov 2020 10:17:09 -0800
+        b=ChdmoIFWZGTcsGaBA/SWvHBA/HQZd4a5Y+0+78ZPI++ODKfRBIGIO3ZdzCxYIi24J
+         DtkDJM67+YwO4M9Hb5h83C4fcMwztNaxHsRDo0dE1UClAh6fjjVNccMovBMGT3DKhS
+         sfX3G7cAnOnijSMP+S/LtaIOTSS5Zm/SGpwXNbYw=
+Date:   Tue, 03 Nov 2020 10:17:12 -0800
 From:   akpm@linux-foundation.org
-To:     laoar.shao@gmail.com, mm-commits@vger.kernel.org,
-        yanaijie@huawei.com
-Subject:  [merged] mm-make-__invalidate_mapping_pages-static.patch
- removed from -mm tree
-Message-ID: <20201103181709.l6KC_AjRE%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, pmladek@suse.com,
+        qiang.zhang@windriver.com, stable@vger.kernel.org, tj@kernel.org
+Subject:  [merged]
+ =?US-ASCII?Q?kthread=5Fworker-prevent-queuing-delayed-work-from-time?=
+ =?US-ASCII?Q?r=5Ffn-when-it-is-being-canceled.patch?= removed from -mm
+ tree
+Message-ID: <20201103181712.QU928QUTg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,45 +57,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/truncate.c: make __invalidate_mapping_pages() static
+     Subject: kthread_worker: prevent queuing delayed work from timer_fn when it is being canceled
 has been removed from the -mm tree.  Its filename was
-     mm-make-__invalidate_mapping_pages-static.patch
+     kthread_worker-prevent-queuing-delayed-work-from-timer_fn-when-it-is-being-canceled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Yan <yanaijie@huawei.com>
-Subject: mm/truncate.c: make __invalidate_mapping_pages() static
+From: Zqiang <qiang.zhang@windriver.com>
+Subject: kthread_worker: prevent queuing delayed work from timer_fn when it is being canceled
 
-Fix the following sparse warning:
+There is a small race window when a delayed work is being canceled and the
+work still might be queued from the timer_fn:
 
-mm/truncate.c:531:15: warning: symbol '__invalidate_mapping_pages' was
-not declared. Should it be static?
+	CPU0						CPU1
+kthread_cancel_delayed_work_sync()
+   __kthread_cancel_work_sync()
+     __kthread_cancel_work()
+        work->canceling++;
+					      kthread_delayed_work_timer_fn()
+						   kthread_insert_work();
 
-Link: https://lkml.kernel.org/r/20201015054808.2445904-1-yanaijie@huawei.com
-Fixes: eb1d7a65f08a ("mm, fadvise: improve the expensive remote LRU cache draining after FADV_DONTNEED")
-Signed-off-by: Jason Yan <yanaijie@huawei.com>
-Reviewed-by: Yafang Shao <laoar.shao@gmail.com>
+BUG: kthread_insert_work() should not get called when work->canceling is
+set.
+
+Link: https://lkml.kernel.org/r/20201014083030.16895-1-qiang.zhang@windriver.com
+Signed-off-by: Zqiang <qiang.zhang@windriver.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kthread.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/truncate.c~mm-make-__invalidate_mapping_pages-static
-+++ a/mm/truncate.c
-@@ -528,7 +528,7 @@ void truncate_inode_pages_final(struct a
- }
- EXPORT_SYMBOL(truncate_inode_pages_final);
+--- a/kernel/kthread.c~kthread_worker-prevent-queuing-delayed-work-from-timer_fn-when-it-is-being-canceled
++++ a/kernel/kthread.c
+@@ -897,7 +897,8 @@ void kthread_delayed_work_timer_fn(struc
+ 	/* Move the work from worker->delayed_work_list. */
+ 	WARN_ON_ONCE(list_empty(&work->node));
+ 	list_del_init(&work->node);
+-	kthread_insert_work(worker, work, &worker->work_list);
++	if (!work->canceling)
++		kthread_insert_work(worker, work, &worker->work_list);
  
--unsigned long __invalidate_mapping_pages(struct address_space *mapping,
-+static unsigned long __invalidate_mapping_pages(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
- {
- 	pgoff_t indices[PAGEVEC_SIZE];
+ 	raw_spin_unlock_irqrestore(&worker->lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from yanaijie@huawei.com are
+Patches currently in -mm which might be from qiang.zhang@windriver.com are
 
-lib-lzo-make-lzogeneric1x_1_compress-static.patch
 
