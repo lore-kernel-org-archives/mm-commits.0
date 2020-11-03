@@ -7,45 +7,51 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC8FC2D0A3
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90723C388F2
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 338F72080D
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 528802080D
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604427437;
-	bh=cChtLUr/bOmH+IxGPaA3rU9CP2f1cG/N+jnpPnamO1A=;
+	s=default; t=1604427440;
+	bh=HxCZsl5iAySGVYWrVhzCDnFgYOOLjeCydSLs3jm4k4s=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=DXGfYDazwbZO103x8jv/KpM3v9f4mEpood2nGisJoHY6HkHiCU+K9ZP30MsfODAxR
-	 /UJavEBwUsxqE0viLZFCs4CTxm54v1Tj6FWSQjIc+SHB1yVJ9pqwyEaaNbAv+sl5k9
-	 TNkLxW7+RqOSfqCaejj+wCDYnKy2nb5AUD6Aiz+4=
+	b=qOWkWOQfqDk+Yt5QQSqAiwkps387TqFt3vt0Pl91T0WpmIESbT2FokzLlZor3sAkd
+	 juACym0nWHDFLRRzL/QCAfDgy4cShEUTYdl57pfkD8ZIyHXskGhqhFDZRczPzK9rJc
+	 mKRhb703nN5O6MCbaVqc8zjcuelK0jVGrDqnSPEc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729268AbgKCSRQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 13:17:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39604 "EHLO mail.kernel.org"
+        id S1729075AbgKCSRU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 13:17:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39636 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725385AbgKCSRQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 13:17:16 -0500
+        id S1725385AbgKCSRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 13:17:19 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 808E5207BB;
-        Tue,  3 Nov 2020 18:17:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D3B7720757;
+        Tue,  3 Nov 2020 18:17:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604427434;
-        bh=cChtLUr/bOmH+IxGPaA3rU9CP2f1cG/N+jnpPnamO1A=;
+        s=default; t=1604427438;
+        bh=HxCZsl5iAySGVYWrVhzCDnFgYOOLjeCydSLs3jm4k4s=;
         h=Date:From:To:Subject:From;
-        b=Yn42nBdU54vn5pGv+bSmzDsQbrAbLqofQQpKtuvfMUB3mo1gF2wvLjYrJTkpZ9kyY
-         Dt0/O6kh1mH1ZdQ7XHlIJDm8100HcnERz/wqvf3WcoXF9ItifVcCLbkuwYbi82c3Z7
-         P8XY3uppYu4drqmHxcYrF1t/gqsCdAR/L7orhrdI=
-Date:   Tue, 03 Nov 2020 10:17:14 -0800
+        b=2gajwrNrd/dTtQ2PrFTgBfpmhb5+23pMLKW0cdf8NX4Zpm/bu9dCnGCMCVJlcx09K
+         deW3NCbxtO7uCAcZ6okIKgcUZUPpdlskUFmSOYCiIy0n583j4d4wnIRRzGfFDYO263
+         K0uF4B6Sl5lN8xMCm4ohUBcKGC4uNQOpQ69BwhpE=
+Date:   Tue, 03 Nov 2020 10:17:17 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, chaithco@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org
+To:     aryabinin@virtuozzo.com, bp@alien8.de, brijesh.singh@amd.com,
+        corbet@lwn.net, dvyukov@google.com, dyoung@redhat.com,
+        glider@google.com, jgg@nvidia.com, konrad.wilk@oracle.com,
+        luto@kernel.org, lwoodman@redhat.com, matt@codeblueprint.co.uk,
+        mingo@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com,
+        pbonzini@redhat.com, peterz@infradead.org, riel@redhat.com,
+        stable@vger.kernel.org, tglx@linutronix.de,
+        thomas.lendacky@amd.com, toshi.kani@hpe.com
 Subject:  [merged]
- mm-oom-keep-oom_adj-under-or-at-upper-limit-when-printing.patch removed
- from -mm tree
-Message-ID: <20201103181714.CbuW8OJFI%akpm@linux-foundation.org>
+ mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch removed from
+ -mm tree
+Message-ID: <20201103181717.NuA7UkclW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,43 +60,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: keep oom_adj under or at upper limit when printing
+     Subject: mm: always have io_remap_pfn_range() set pgprot_decrypted()
 has been removed from the -mm tree.  Its filename was
-     mm-oom-keep-oom_adj-under-or-at-upper-limit-when-printing.patch
+     mm-always-have-io_remap_pfn_range-set-pgprot_decrypted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Charles Haithcock <chaithco@redhat.com>
-Subject: mm, oom: keep oom_adj under or at upper limit when printing
+From: Jason Gunthorpe <jgg@nvidia.com>
+Subject: mm: always have io_remap_pfn_range() set pgprot_decrypted()
 
-For oom_score_adj values in the range [942,999], the current
-calculations will print 16 for oom_adj. This patch simply limits the
-output so output is inline with docs.
+The purpose of io_remap_pfn_range() is to map IO memory, such as a memory
+mapped IO exposed through a PCI BAR.  IO devices do not understand
+encryption, so this memory must always be decrypted.  Automatically call
+pgprot_decrypted() as part of the generic implementation.
 
-Link: https://lkml.kernel.org/r/20201020165130.33927-1-chaithco@redhat.com
-Signed-off-by: Charles Haithcock <chaithco@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+This fixes a bug where enabling AMD SME causes subsystems, such as RDMA,
+using io_remap_pfn_range() to expose BAR pages to user space to fail.  The
+CPU will encrypt access to those BAR pages instead of passing unencrypted
+IO directly to the device.
+
+Places not mapping IO should use remap_pfn_range().
+
+Link: https://lkml.kernel.org/r/0-v1-025d64bdf6c4+e-amd_sme_fix_jgg@nvidia.com
+Fixes: aca20d546214 ("x86/mm: Add support to make use of Secure Memory Encryption")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+CcK Arnd Bergmann <arnd@arndb.de>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brijesh Singh <brijesh.singh@amd.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: "Dave Young" <dyoung@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Toshimitsu Kani <toshi.kani@hpe.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h      |    9 +++++++++
+ include/linux/pgtable.h |    4 ----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
---- a/fs/proc/base.c~mm-oom-keep-oom_adj-under-or-at-upper-limit-when-printing
-+++ a/fs/proc/base.c
-@@ -1049,6 +1049,8 @@ static ssize_t oom_adj_read(struct file
- 		oom_adj = (task->signal->oom_score_adj * -OOM_DISABLE) /
- 			  OOM_SCORE_ADJ_MAX;
- 	put_task_struct(task);
-+	if (oom_adj > OOM_ADJUST_MAX)
-+		oom_adj = OOM_ADJUST_MAX;
- 	len = snprintf(buffer, sizeof(buffer), "%d\n", oom_adj);
- 	return simple_read_from_buffer(buf, count, ppos, buffer, len);
+--- a/include/linux/mm.h~mm-always-have-io_remap_pfn_range-set-pgprot_decrypted
++++ a/include/linux/mm.h
+@@ -2759,6 +2759,15 @@ static inline vm_fault_t vmf_insert_page
+ 	return VM_FAULT_NOPAGE;
  }
+ 
++#ifndef io_remap_pfn_range
++static inline int io_remap_pfn_range(struct vm_area_struct *vma,
++				     unsigned long addr, unsigned long pfn,
++				     unsigned long size, pgprot_t prot)
++{
++	return remap_pfn_range(vma, addr, pfn, size, pgprot_decrypted(prot));
++}
++#endif
++
+ static inline vm_fault_t vmf_error(int err)
+ {
+ 	if (err == -ENOMEM)
+--- a/include/linux/pgtable.h~mm-always-have-io_remap_pfn_range-set-pgprot_decrypted
++++ a/include/linux/pgtable.h
+@@ -1427,10 +1427,6 @@ typedef unsigned int pgtbl_mod_mask;
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#ifndef io_remap_pfn_range
+-#define io_remap_pfn_range remap_pfn_range
+-#endif
+-
+ #ifndef has_transparent_hugepage
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define has_transparent_hugepage() 1
 _
 
-Patches currently in -mm which might be from chaithco@redhat.com are
+Patches currently in -mm which might be from jgg@nvidia.com are
 
+mm-gup-use-unpin_user_pages-in-check_and_migrate_cma_pages.patch
 
