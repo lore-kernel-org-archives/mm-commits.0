@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D19AFC388F7
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:41:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26CC4C4742C
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:41:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EF432242A
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:41:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDA02223C7
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:41:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604450486;
-	bh=cC5UtXaF8JrVAEwmUDsewWYMzLxA5BXlEgEHR2x51+g=;
+	s=default; t=1604450491;
+	bh=5Id7LCTQtfbwB+vtOV6BoX8qbvQSc0ujVRtSCX6m56M=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=k9t3lbrX5Tu0hy00ztz6Mzgcc95INASqL1qYHxQN1Iy4oO+Ha2ByqK9eiJDsXYZa7
-	 K0n5s5KAO0AN4x73td51LHvOtGmt5wMNQK8E3T3T8qfSU0DmJjHdJWEo2R1QG1r+13
-	 PARz0CIxryiDN1dUictyY+QMHCLvGD7Mjx/6ui8Y=
+	b=OX8sMlvCCgISopKLd/WA9ivS8RchpBQ9JeLhSnuOHhnDrDMc8FaU2JXC9amlELBmK
+	 3FNxLZ0+3Vjqz/Cq8WS6WowM/vwGwwil57IQ/tdYSiS42/rTZJ1Zv4ezoIaE5x3q20
+	 /4KPgz4dGJNCrjMtDVWplb56pCjpSM3dN8CEpOnA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728319AbgKDAl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 19:41:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50674 "EHLO mail.kernel.org"
+        id S1729557AbgKDAlb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 19:41:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725811AbgKDAl0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 19:41:26 -0500
+        id S1725811AbgKDAla (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 19:41:30 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 078AE223EA;
-        Wed,  4 Nov 2020 00:41:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0A3CC22404;
+        Wed,  4 Nov 2020 00:41:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604450485;
-        bh=cC5UtXaF8JrVAEwmUDsewWYMzLxA5BXlEgEHR2x51+g=;
+        s=default; t=1604450489;
+        bh=5Id7LCTQtfbwB+vtOV6BoX8qbvQSc0ujVRtSCX6m56M=;
         h=Date:From:To:Subject:From;
-        b=MUR8Jdh3xw9dwi4DDEnVwH+2PBoQSEozZnc4CRrax3IuBRu62uks6gRLF4Keuat3I
-         cO96EcCENOpmPlBZZnesA4KDsim+TeXQbM4lNUZrX3CRirRcqFyjXFuMtxLoCWU4Kz
-         TujCApJyaURxPbLmOOWvTLOeP+hmehwHIcXJmRO0=
-Date:   Tue, 03 Nov 2020 16:41:23 -0800
+        b=bmi7N0nsRyaZD7vnqsy7GoPz+7+qJRrrn/PToCWJ0LeOHgMdSK+PjiC1szCNiwfKb
+         KJvUaizI6d5TxPELRXmhZnqc+wilLnFtGKd75GOpDh2mOsnKjagT3lI91f+X+6qVPk
+         GFeAEuN/sSyGT6AIsxueZipav6VQ108Z3B/6mJgI=
+Date:   Tue, 03 Nov 2020 16:41:27 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         tglx@linutronix.de, sjpark@amazon.de, rientjes@google.com,
@@ -46,13 +46,13 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         mingo@redhat.com, mark.rutland@arm.com, luto@kernel.org,
         keescook@chromium.org, joern@purestorage.com, jannh@google.com,
         iamjoonsoo.kim@lge.com, hpa@zytor.com, hdanton@sina.com,
-        gregkh@linuxfoundation.org, glider@google.com, edumazet@google.com,
+        gregkh@linuxfoundation.org, elver@google.com, edumazet@google.com,
         dvyukov@google.com, dave.hansen@linux.intel.com, corbet@lwn.net,
         cl@linux.com, catalin.marinas@arm.com, bp@alien8.de,
-        aryabinin@virtuozzo.com, andreyknvl@google.com, elver@google.com
-Subject:  + arm64-kfence-enable-kfence-for-arm64.patch added to -mm
+        aryabinin@virtuozzo.com, andreyknvl@google.com, glider@google.com
+Subject:  + mm-kfence-insert-kfence-hooks-for-slab.patch added to -mm
  tree
-Message-ID: <20201104004123.EgAcX%akpm@linux-foundation.org>
+Message-ID: <20201104004127.RDqru%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -61,14 +61,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64, kfence: enable KFENCE for ARM64
+     Subject: mm, kfence: insert KFENCE hooks for SLAB
 has been added to the -mm tree.  Its filename is
-     arm64-kfence-enable-kfence-for-arm64.patch
+     mm-kfence-insert-kfence-hooks-for-slab.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kfence-enable-kfence-for-arm64.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-kfence-insert-kfence-hooks-for-slab.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kfence-enable-kfence-for-arm64.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kfence-insert-kfence-hooks-for-slab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,46 +82,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: arm64, kfence: enable KFENCE for ARM64
+From: Alexander Potapenko <glider@google.com>
+Subject: mm, kfence: insert KFENCE hooks for SLAB
 
-Add architecture specific implementation details for KFENCE and enable
-KFENCE for the arm64 architecture. In particular, this implements the
-required interface in <asm/kfence.h>.
+Inserts KFENCE hooks into the SLAB allocator.
 
-KFENCE requires that attributes for pages from its memory pool can
-individually be set. Therefore, force the entire linear map to be mapped
-at page granularity. Doing so may result in extra memory allocated for
-page tables in case rodata=full is not set; however, currently
-CONFIG_RODATA_FULL_DEFAULT_ENABLED=y is the default, and the common case
-is therefore not affected by this change.
+To pass the originally requested size to KFENCE, add an argument
+'orig_size' to slab_alloc*(). The additional argument is required to
+preserve the requested original size for kmalloc() allocations, which
+uses size classes (e.g. an allocation of 272 bytes will return an object
+of size 512). Therefore, kmem_cache::size does not represent the
+kmalloc-caller's requested size, and we must introduce the argument
+'orig_size' to propagate the originally requested size to KFENCE.
 
-Link: https://lkml.kernel.org/r/20201103175841.3495947-4-elver@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
+Without the originally requested size, we would not be able to detect
+out-of-bounds accesses for objects placed at the end of a KFENCE object
+page if that object is not equal to the kmalloc-size class it was
+bucketed into.
+
+When KFENCE is disabled, there is no additional overhead, since
+slab_alloc*() functions are __always_inline.
+
+Link: https://lkml.kernel.org/r/20201103175841.3495947-5-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Co-developed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Jann Horn <jannh@google.com>
+Co-developed-by: Marco Elver <elver@google.com>
+
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Joern Engel <joern@purestorage.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: SeongJae Park <sjpark@amazon.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -130,86 +138,229 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig              |    1 +
- arch/arm64/include/asm/kfence.h |   19 +++++++++++++++++++
- arch/arm64/mm/fault.c           |    4 ++++
- arch/arm64/mm/mmu.c             |    7 ++++++-
- 4 files changed, 30 insertions(+), 1 deletion(-)
+ include/linux/slab_def.h |    3 ++
+ mm/kfence/core.c         |    2 +
+ mm/slab.c                |   38 ++++++++++++++++++++++++++++---------
+ mm/slab_common.c         |    5 +++-
+ 4 files changed, 38 insertions(+), 10 deletions(-)
 
---- /dev/null
-+++ a/arch/arm64/include/asm/kfence.h
-@@ -0,0 +1,19 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef __ASM_KFENCE_H
-+#define __ASM_KFENCE_H
-+
-+#include <asm/cacheflush.h>
-+
-+#define KFENCE_SKIP_ARCH_FAULT_HANDLER "el1_sync"
-+
-+static inline bool arch_kfence_init_pool(void) { return true; }
-+
-+static inline bool kfence_protect_page(unsigned long addr, bool protect)
-+{
-+	set_memory_valid(addr, 1, !protect);
-+
-+	return true;
-+}
-+
-+#endif /* __ASM_KFENCE_H */
---- a/arch/arm64/Kconfig~arm64-kfence-enable-kfence-for-arm64
-+++ a/arch/arm64/Kconfig
-@@ -137,6 +137,7 @@ config ARM64
- 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
- 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
- 	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
-+	select HAVE_ARCH_KFENCE
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS
- 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
---- a/arch/arm64/mm/fault.c~arm64-kfence-enable-kfence-for-arm64
-+++ a/arch/arm64/mm/fault.c
-@@ -10,6 +10,7 @@
- #include <linux/acpi.h>
- #include <linux/bitfield.h>
- #include <linux/extable.h>
+--- a/include/linux/slab_def.h~mm-kfence-insert-kfence-hooks-for-slab
++++ a/include/linux/slab_def.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_SLAB_DEF_H
+ #define	_LINUX_SLAB_DEF_H
+ 
 +#include <linux/kfence.h>
- #include <linux/signal.h>
- #include <linux/mm.h>
- #include <linux/hardirq.h>
-@@ -322,6 +323,9 @@ static void __do_kernel_fault(unsigned l
- 	} else if (addr < PAGE_SIZE) {
- 		msg = "NULL pointer dereference";
- 	} else {
-+		if (kfence_handle_page_fault(addr))
-+			return;
-+
- 		msg = "paging request";
- 	}
+ #include <linux/reciprocal_div.h>
  
---- a/arch/arm64/mm/mmu.c~arm64-kfence-enable-kfence-for-arm64
-+++ a/arch/arm64/mm/mmu.c
-@@ -1449,7 +1449,12 @@ int arch_add_memory(int nid, u64 start,
+ /*
+@@ -114,6 +115,8 @@ static inline unsigned int obj_to_index(
+ static inline int objs_per_slab_page(const struct kmem_cache *cache,
+ 				     const struct page *page)
  {
- 	int ret, flags = 0;
++	if (is_kfence_address(page_address(page)))
++		return 1;
+ 	return cache->num;
+ }
  
--	if (rodata_full || debug_pagealloc_enabled())
-+	/*
-+	 * KFENCE requires linear map to be mapped at page granularity, so that
-+	 * it is possible to protect/unprotect single pages in the KFENCE pool.
-+	 */
-+	if (rodata_full || debug_pagealloc_enabled() ||
-+	    IS_ENABLED(CONFIG_KFENCE))
- 		flags = NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+--- a/mm/kfence/core.c~mm-kfence-insert-kfence-hooks-for-slab
++++ a/mm/kfence/core.c
+@@ -313,6 +313,8 @@ static void *kfence_guarded_alloc(struct
+ 	/* Set required struct page fields. */
+ 	page = virt_to_page(meta->addr);
+ 	page->slab_cache = cache;
++	if (IS_ENABLED(CONFIG_SLAB))
++		page->s_mem = addr;
  
- 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
+ 	raw_spin_unlock_irqrestore(&meta->lock, flags);
+ 
+--- a/mm/slab.c~mm-kfence-insert-kfence-hooks-for-slab
++++ a/mm/slab.c
+@@ -100,6 +100,7 @@
+ #include	<linux/seq_file.h>
+ #include	<linux/notifier.h>
+ #include	<linux/kallsyms.h>
++#include	<linux/kfence.h>
+ #include	<linux/cpu.h>
+ #include	<linux/sysctl.h>
+ #include	<linux/module.h>
+@@ -3206,7 +3207,7 @@ must_grow:
+ }
+ 
+ static __always_inline void *
+-slab_alloc_node(struct kmem_cache *cachep, gfp_t flags, int nodeid,
++slab_alloc_node(struct kmem_cache *cachep, gfp_t flags, int nodeid, size_t orig_size,
+ 		   unsigned long caller)
+ {
+ 	unsigned long save_flags;
+@@ -3219,6 +3220,10 @@ slab_alloc_node(struct kmem_cache *cache
+ 	if (unlikely(!cachep))
+ 		return NULL;
+ 
++	ptr = kfence_alloc(cachep, orig_size, flags);
++	if (unlikely(ptr))
++		goto out_hooks;
++
+ 	cache_alloc_debugcheck_before(cachep, flags);
+ 	local_irq_save(save_flags);
+ 
+@@ -3251,6 +3256,7 @@ slab_alloc_node(struct kmem_cache *cache
+ 	if (unlikely(slab_want_init_on_alloc(flags, cachep)) && ptr)
+ 		memset(ptr, 0, cachep->object_size);
+ 
++out_hooks:
+ 	slab_post_alloc_hook(cachep, objcg, flags, 1, &ptr);
+ 	return ptr;
+ }
+@@ -3288,7 +3294,7 @@ __do_cache_alloc(struct kmem_cache *cach
+ #endif /* CONFIG_NUMA */
+ 
+ static __always_inline void *
+-slab_alloc(struct kmem_cache *cachep, gfp_t flags, unsigned long caller)
++slab_alloc(struct kmem_cache *cachep, gfp_t flags, size_t orig_size, unsigned long caller)
+ {
+ 	unsigned long save_flags;
+ 	void *objp;
+@@ -3299,6 +3305,10 @@ slab_alloc(struct kmem_cache *cachep, gf
+ 	if (unlikely(!cachep))
+ 		return NULL;
+ 
++	objp = kfence_alloc(cachep, orig_size, flags);
++	if (unlikely(objp))
++		goto out;
++
+ 	cache_alloc_debugcheck_before(cachep, flags);
+ 	local_irq_save(save_flags);
+ 	objp = __do_cache_alloc(cachep, flags);
+@@ -3309,6 +3319,7 @@ slab_alloc(struct kmem_cache *cachep, gf
+ 	if (unlikely(slab_want_init_on_alloc(flags, cachep)) && objp)
+ 		memset(objp, 0, cachep->object_size);
+ 
++out:
+ 	slab_post_alloc_hook(cachep, objcg, flags, 1, &objp);
+ 	return objp;
+ }
+@@ -3414,6 +3425,12 @@ free_done:
+ static __always_inline void __cache_free(struct kmem_cache *cachep, void *objp,
+ 					 unsigned long caller)
+ {
++	if (is_kfence_address(objp)) {
++		kmemleak_free_recursive(objp, cachep->flags);
++		__kfence_free(objp);
++		return;
++	}
++
+ 	/* Put the object into the quarantine, don't touch it for now. */
+ 	if (kasan_slab_free(cachep, objp, _RET_IP_))
+ 		return;
+@@ -3479,7 +3496,7 @@ void ___cache_free(struct kmem_cache *ca
+  */
+ void *kmem_cache_alloc(struct kmem_cache *cachep, gfp_t flags)
+ {
+-	void *ret = slab_alloc(cachep, flags, _RET_IP_);
++	void *ret = slab_alloc(cachep, flags, cachep->object_size, _RET_IP_);
+ 
+ 	trace_kmem_cache_alloc(_RET_IP_, ret,
+ 			       cachep->object_size, cachep->size, flags);
+@@ -3512,7 +3529,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 
+ 	local_irq_disable();
+ 	for (i = 0; i < size; i++) {
+-		void *objp = __do_cache_alloc(s, flags);
++		void *objp = kfence_alloc(s, s->object_size, flags) ?: __do_cache_alloc(s, flags);
+ 
+ 		if (unlikely(!objp))
+ 			goto error;
+@@ -3545,7 +3562,7 @@ kmem_cache_alloc_trace(struct kmem_cache
+ {
+ 	void *ret;
+ 
+-	ret = slab_alloc(cachep, flags, _RET_IP_);
++	ret = slab_alloc(cachep, flags, size, _RET_IP_);
+ 
+ 	ret = kasan_kmalloc(cachep, ret, size, flags);
+ 	trace_kmalloc(_RET_IP_, ret,
+@@ -3571,7 +3588,7 @@ EXPORT_SYMBOL(kmem_cache_alloc_trace);
+  */
+ void *kmem_cache_alloc_node(struct kmem_cache *cachep, gfp_t flags, int nodeid)
+ {
+-	void *ret = slab_alloc_node(cachep, flags, nodeid, _RET_IP_);
++	void *ret = slab_alloc_node(cachep, flags, nodeid, cachep->object_size, _RET_IP_);
+ 
+ 	trace_kmem_cache_alloc_node(_RET_IP_, ret,
+ 				    cachep->object_size, cachep->size,
+@@ -3589,7 +3606,7 @@ void *kmem_cache_alloc_node_trace(struct
+ {
+ 	void *ret;
+ 
+-	ret = slab_alloc_node(cachep, flags, nodeid, _RET_IP_);
++	ret = slab_alloc_node(cachep, flags, nodeid, size, _RET_IP_);
+ 
+ 	ret = kasan_kmalloc(cachep, ret, size, flags);
+ 	trace_kmalloc_node(_RET_IP_, ret,
+@@ -3650,7 +3667,7 @@ static __always_inline void *__do_kmallo
+ 	cachep = kmalloc_slab(size, flags);
+ 	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
+ 		return cachep;
+-	ret = slab_alloc(cachep, flags, caller);
++	ret = slab_alloc(cachep, flags, size, caller);
+ 
+ 	ret = kasan_kmalloc(cachep, ret, size, flags);
+ 	trace_kmalloc(caller, ret,
+@@ -4149,7 +4166,10 @@ void __check_heap_object(const void *ptr
+ 	BUG_ON(objnr >= cachep->num);
+ 
+ 	/* Find offset within object. */
+-	offset = ptr - index_to_obj(cachep, page, objnr) - obj_offset(cachep);
++	if (is_kfence_address(ptr))
++		offset = ptr - kfence_object_start(ptr);
++	else
++		offset = ptr - index_to_obj(cachep, page, objnr) - obj_offset(cachep);
+ 
+ 	/* Allow address range falling entirely within usercopy region. */
+ 	if (offset >= cachep->useroffset &&
+--- a/mm/slab_common.c~mm-kfence-insert-kfence-hooks-for-slab
++++ a/mm/slab_common.c
+@@ -12,6 +12,7 @@
+ #include <linux/memory.h>
+ #include <linux/cache.h>
+ #include <linux/compiler.h>
++#include <linux/kfence.h>
+ #include <linux/module.h>
+ #include <linux/cpu.h>
+ #include <linux/uaccess.h>
+@@ -435,6 +436,7 @@ static void slab_caches_to_rcu_destroy_w
+ 	rcu_barrier();
+ 
+ 	list_for_each_entry_safe(s, s2, &to_destroy, list) {
++		kfence_shutdown_cache(s);
+ #ifdef SLAB_SUPPORTS_SYSFS
+ 		sysfs_slab_release(s);
+ #else
+@@ -460,6 +462,7 @@ static int shutdown_cache(struct kmem_ca
+ 		list_add_tail(&s->list, &slab_caches_to_rcu_destroy);
+ 		schedule_work(&slab_caches_to_rcu_destroy_work);
+ 	} else {
++		kfence_shutdown_cache(s);
+ #ifdef SLAB_SUPPORTS_SYSFS
+ 		sysfs_slab_unlink(s);
+ 		sysfs_slab_release(s);
+@@ -1171,7 +1174,7 @@ size_t ksize(const void *objp)
+ 	if (unlikely(ZERO_OR_NULL_PTR(objp)) || !__kasan_check_read(objp, 1))
+ 		return 0;
+ 
+-	size = __ksize(objp);
++	size = kfence_ksize(objp) ?: __ksize(objp);
+ 	/*
+ 	 * We assume that ksize callers could use whole allocated area,
+ 	 * so we need to unpoison this area.
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from glider@google.com are
 
-arm64-kfence-enable-kfence-for-arm64.patch
-kfence-documentation-add-kfence-documentation.patch
-kfence-add-test-suite.patch
-maintainers-add-entry-for-kfence.patch
+mm-add-kernel-electric-fence-infrastructure.patch
+x86-kfence-enable-kfence-for-x86.patch
+mm-kfence-insert-kfence-hooks-for-slab.patch
+mm-kfence-insert-kfence-hooks-for-slub.patch
+kfence-kasan-make-kfence-compatible-with-kasan.patch
 
