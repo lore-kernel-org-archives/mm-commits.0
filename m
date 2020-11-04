@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B61BC2D0A3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7F19C388F7
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:27:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E84D22403
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D70B223EA
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:27:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604448645;
-	bh=gioJVk45Hi8RdeSgkGpo9WPZshwpyOVBnNRCU0yfjrU=;
+	s=default; t=1604449670;
+	bh=iEULMU/iGwUO/b2n/mNXCOyQtmqYrUY+I1wdDCFgA1w=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BtZKzoBMuRCf7zxboQT3rTC3EZHzUokdTnDl1HOg63fxFXSaKkYKoh4SQp73LUaQ0
-	 Mei8lkoZOp0w8Phj4a3R8R7PQzSP/ChLC4sge6ozKF0LNfvQ3aeTtFUAoL6kCrfFby
-	 Ugo2gb2UYefi+g+oDcriqeypyqhC/JELSfn9Sd0k=
+	b=kTpjryITXs1fG+0VdqqJabrI0sw+ciezFrDoqet79xvH4K3vGWcPyUduaNb0u53IS
+	 J/lb9irkc8OC14oVlSNLrWRt48U3F28RiV68a+jlYJxSd+EH+S1/aIvdt8oqA4pWz2
+	 sX5WITxh2veb5z8c1AJHKfTOJ+7/6YcTJbGCPeQ8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729861AbgKDAKo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 19:10:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36914 "EHLO mail.kernel.org"
+        id S1729024AbgKDA1u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 19:27:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728479AbgKDAKo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 19:10:44 -0500
+        id S1727385AbgKDA1t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 19:27:49 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 02DC2223C7;
-        Wed,  4 Nov 2020 00:10:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DA6F0223EA;
+        Wed,  4 Nov 2020 00:27:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604448642;
-        bh=gioJVk45Hi8RdeSgkGpo9WPZshwpyOVBnNRCU0yfjrU=;
+        s=default; t=1604449669;
+        bh=iEULMU/iGwUO/b2n/mNXCOyQtmqYrUY+I1wdDCFgA1w=;
         h=Date:From:To:Subject:From;
-        b=sEh9jbpTrY5u6EEgzQYl6dzSuOKCoCmBanOl1RFpiXNRMDaQ2hLMKs4ajNp8jdaKZ
-         Jw4Nh5RhAKIJ7lKSQvcgf3aoxQurPI3YEH8VEbvuZPCtDiawaQMB0a+PIxcQY+Nzc7
-         m6UN2vwzdXJDP+PvlU2Mmb0sMdM3pj6M4SoFj7TI=
-Date:   Tue, 03 Nov 2020 16:10:41 -0800
+        b=XMF6dOA1JjrX/0lNSQXwrwz4Fj5iLYTWv0klooHhCShGLkdMWTWK+xjNk8pzuRsR1
+         r89ZQw6X8xj0PRYA7QL8jA7UEMuuEXOZ15IHsq/e07IIGOzLFqDO7CUreBulCQEhIL
+         7LSrAH60Ril51Aq7GT4oOrRahWz3VvXEjXeT6CDc=
+Date:   Tue, 03 Nov 2020 16:27:48 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, robinmholt@gmail.com,
-        pmladek@suse.com, pasha.tatashin@soleen.com, linux@roeck-us.net,
-        keescook@chromium.org, gregkh@linuxfoundation.org, fabf@skynet.be,
-        arnd@arndb.de, mcroce@microsoft.com
-Subject:  + reboot-refactor-and-comment-the-cpu-selection-code.patch
- added to -mm tree
-Message-ID: <20201104001041._axab%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, hsinhuiwu@gmail.com,
+        akpm@linux-foundation.org
+Subject:  +
+ mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch added to -mm tree
+Message-ID: <20201104002748.zXqvg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reboot: refactor and comment the cpu selection code
+     From: Andrew Morton <akpm@linux-foundation.org>
 has been added to the -mm tree.  Its filename is
-     reboot-refactor-and-comment-the-cpu-selection-code.patch
+     mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/reboot-refactor-and-comment-the-cpu-selection-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/reboot-refactor-and-comment-the-cpu-selection-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,78 +74,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matteo Croce <mcroce@microsoft.com>
-Subject: reboot: refactor and comment the cpu selection code
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/vmalloc.c:__vmalloc_area_node(): avoid 32-bit overflow
 
-Small improvements to the code, without changing the way it works:
-- use a local variable, to avoid a small time lapse where reboot_cpu
-  can have an invalid value
-- comment the code which is not easy to understand at a glance
-- merge two identical code blocks into one
-- replace pointer arithmetics with equivalent array syntax
+With a machine with 3 TB (more than 2 TB memory).  If you use vmalloc to
+allocate > 2 TB memory, the array_size below will be overflowed.
 
-Link: https://lkml.kernel.org/r/20201103214025.116799-4-mcroce@linux.microsoft.com
-Signed-off-by: Matteo Croce <mcroce@microsoft.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Robin Holt <robinmholt@gmail.com>
+The array_size is an unsigned int and can only be used to allocate less
+than 2 TB memory.  If you pass 2*1028*1028*1024*1024 = 2 * 2^40 in the
+argument of vmalloc.  The array_size will become 2*2^31 = 2^32.  The 2^32
+cannot be store with a 32 bit integer.
+
+The fix is to change the type of array_size to unsigned long.
+
+[akpm@linux-foundation.org: rework for current mainline]
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=210023
+Reported-by: <hsinhuiwu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ mm/vmalloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/reboot.c~reboot-refactor-and-comment-the-cpu-selection-code
-+++ a/kernel/reboot.c
-@@ -551,20 +551,24 @@ static int __init reboot_setup(char *str
- 			break;
+--- a/mm/vmalloc.c~mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow
++++ a/mm/vmalloc.c
+@@ -2461,9 +2461,11 @@ static void *__vmalloc_area_node(struct
+ {
+ 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
+ 	unsigned int nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
+-	unsigned int array_size = nr_pages * sizeof(struct page *), i;
++	unsigned long array_size
++	unsigned int i;
+ 	struct page **pages;
  
- 		case 's':
--			if (isdigit(*(str+1)))
--				reboot_cpu = simple_strtoul(str+1, NULL, 0);
--			else if (str[1] == 'm' && str[2] == 'p' &&
--							isdigit(*(str+3)))
--				reboot_cpu = simple_strtoul(str+3, NULL, 0);
--			else
-+			/*
-+			 * reboot_cpu is s[mp]#### with #### being the processor
-+			 * to be used for rebooting. Skip 's' or 'smp' prefix.
-+			 */
-+			str += str[1] == 'm' && str[2] == 'p' ? 3 : 1;
-+
-+			if (isdigit(str[0])) {
-+				int cpu = simple_strtoul(str, NULL, 0);
-+
-+				if (cpu >= num_possible_cpus()) {
-+					pr_err("Ignoring the CPU number in reboot= option. "
-+					"CPU %d exceeds possible cpu number %d\n",
-+					cpu, num_possible_cpus());
-+					break;
-+				}
-+				reboot_cpu = cpu;
-+			} else
- 				*mode = REBOOT_SOFT;
--			if (reboot_cpu >= num_possible_cpus()) {
--				pr_err("Ignoring the CPU number in reboot= option. "
--				       "CPU %d exceeds possible cpu number %d\n",
--				       reboot_cpu, num_possible_cpus());
--				reboot_cpu = 0;
--				break;
--			}
- 			break;
- 
- 		case 'g':
++	array_size = (unsigned long)nr_pages * sizeof(struct page *);
+ 	gfp_mask |= __GFP_NOWARN;
+ 	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
+ 		gfp_mask |= __GFP_HIGHMEM;
 _
 
-Patches currently in -mm which might be from mcroce@microsoft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
-reboot-fix-overflow-parsing-reboot-cpu-number.patch
-reboot-refactor-and-comment-the-cpu-selection-code.patch
+mm.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
