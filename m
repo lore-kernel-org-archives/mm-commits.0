@@ -1,4 +1,4 @@
-Return-Path: <SRS0=UcEf=EJ=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=Jp7A=EK=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,47 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 395D0C388F7
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E78CBC2D0A3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3AB622280
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Nov 2020 18:17:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4538223C7
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604427442;
-	bh=P9BLBtUCpqROAIlC6P9N5+x+B3veIK+kri28br0EYOY=;
+	s=default; t=1604448637;
+	bh=nM4qR27zBwVBJDObR2t2L7TxXAuBBOYmUCYOwnssXPs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=THlsbpwXooe+ebk5/PiCEPeN9qEaxLsKzeBhQZr+aeFTjbYrp+Zew1B4lOFdaVlgZ
-	 mjZthSCu878NPqeuTvdPncqv0P8CIx0nnDzkwEvTm5Y0926o8Yo8IpzpiNbDlLmScy
-	 M6Iz7nSruLi0IPg4oQi9hVFWSQdURFW8LnOwpR1k=
+	b=Mi58r3ho/Jo1QmdammVSuQi47gA6Dy+Vm5ajk84Gn98Vb23PNPhz/Efe98KvAdPkj
+	 aiayQbcnJbY6UirscR6a+zwbGExjEq5PMG8BDNFfJ5VhCb8GAmdSSOZFHfzVtIOE5o
+	 pnMmu/Bv0kYyIfhrg6WcaNi/ld4xrkwyz1FMVuDg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729160AbgKCSRW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 13:17:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39704 "EHLO mail.kernel.org"
+        id S1729843AbgKDAKh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 19:10:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725385AbgKCSRW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 13:17:22 -0500
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1728479AbgKDAKh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 19:10:37 -0500
+Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 83489207BB;
-        Tue,  3 Nov 2020 18:17:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5B217223BD;
+        Wed,  4 Nov 2020 00:10:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604427441;
-        bh=P9BLBtUCpqROAIlC6P9N5+x+B3veIK+kri28br0EYOY=;
+        s=default; t=1604448635;
+        bh=nM4qR27zBwVBJDObR2t2L7TxXAuBBOYmUCYOwnssXPs=;
         h=Date:From:To:Subject:From;
-        b=gn5VhWdykeWRbWwsEf9BtG+Inw1jRQnogszPHD+p7BOqTlIjLLdqJqn3Sf3lmZdxX
-         5kyzSte4bM3lzszcwuyQvvz8vBYOgp8dEsOzSaKAk0DfCJZ4dLg9ZcS5uoRoSDlXun
-         wD/EeLhOal8gxoLKIBSvNfZLuxVkC0KDE+uD2agg=
-Date:   Tue, 03 Nov 2020 10:17:21 -0800
+        b=B7IVAm50t6i8d525usgvXflD8gCd8rLmCCiIvU+aX6ZxfYMTqnUe/P1m9fAF6jfGa
+         wTS0ex3lE1FapkDzUP9Ccy684Zb0Ex0syQ07UAWmN03AtnmJyMGoCEv1H1XFaWDvlb
+         j9nKQAF1Cuw7u+JNq2Vgs7tXpjxW5Y8HEBoM8yS8=
+Date:   Tue, 03 Nov 2020 16:10:33 -0800
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
-        penguin-kernel@i-love.sakura.ne.jp, rdna@fb.com,
-        viro@zeniv.linux.org.uk
-Subject:  [merged]
- kernel-hung_taskc-make-type-annotations-consistent.patch removed from -mm
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rppt@kernel.org, robinmholt@gmail.com, pmladek@suse.com,
+        pasha.tatashin@soleen.com, linux@roeck-us.net,
+        keescook@chromium.org, gregkh@linuxfoundation.org, fabf@skynet.be,
+        arnd@arndb.de, mcroce@microsoft.com
+Subject:  +
+ revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch added to -mm
  tree
-Message-ID: <20201103181721.88DSiBMqa%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Message-ID: <20201104001033.UfTtn%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,67 +57,110 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/hung_task.c: make type annotations consistent
-has been removed from the -mm tree.  Its filename was
-     kernel-hung_taskc-make-type-annotations-consistent.patch
+     Subject: Revert "kernel/reboot.c: convert simple_strtoul to kstrtoint"
+has been added to the -mm tree.  Its filename is
+     revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: kernel/hung_task.c: make type annotations consistent
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: Revert "kernel/reboot.c: convert simple_strtoul to kstrtoint"
 
-Commit 32927393dc1c ("sysctl: pass kernel pointers to ->proc_handler")
-removed various __user annotations from function signatures as part of its
-refactoring.
+Patch series "fix parsing of reboot= cmdline", v3.
 
-It also removed the __user annotation for proc_dohung_task_timeout_secs()
-at its declaration in ./sched/sysctl.h, but not at its definition in
-./kernel/hung_task.c.
+The parsing of the reboot= cmdline has two major errors:
 
-Hence, sparse complains:
+- a missing bound check can crash the system on reboot
+- parsing of the cpu number only works if specified last
 
-  kernel/hung_task.c:271:5: error: \
-  symbol 'proc_dohung_task_timeout_secs' redeclared with different type \
-  (incompatible argument 3 (different address spaces))
+Fix both.
 
-Adjust the annotation at the definition fitting to that refactoring to make
-sparse happy again, which also resolves this warning from sparse:
 
-  kernel/hung_task.c:277:52: warning: incorrect type in argument 3 \
-    (different address spaces)
-  kernel/hung_task.c:277:52:    expected void *
-  kernel/hung_task.c:277:52:    got void [noderef] __user *buffer
+This patch (of 2):
 
-No functional change. No change in object code.
+This reverts commit 616feab753972b97.
 
-Link: https://lkml.kernel.org/r/20201028130541.20320-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrey Ignatov <rdna@fb.com>
+kstrtoint() and simple_strtoul() have a subtle difference which makes them
+non interchangeable: if a non digit character is found amid the parsing,
+the former will return an error, while the latter will just stop parsing,
+e.g.  simple_strtoul("123xyx") = 123.
+
+The kernel cmdline reboot= argument allows to specify the CPU used for
+rebooting, with the syntax `s####` among the other flags, e.g. 
+"reboot=warm,s31,force", so if this flag is not the last given, it's
+silently ignored as well as the subsequent ones.
+
+Link: https://lkml.kernel.org/r/20201103214025.116799-2-mcroce@linux.microsoft.com
+Fixes: 616feab75397 ("kernel/reboot.c: convert simple_strtoul to kstrtoint")
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Robin Holt <robinmholt@gmail.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/reboot.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
---- a/kernel/hung_task.c~kernel-hung_taskc-make-type-annotations-consistent
-+++ a/kernel/hung_task.c
-@@ -225,8 +225,7 @@ static long hung_timeout_jiffies(unsigne
-  * Process updating of timeout sysctl
-  */
- int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
--				  void __user *buffer,
--				  size_t *lenp, loff_t *ppos)
-+				  void *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret;
+--- a/kernel/reboot.c~revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint
++++ a/kernel/reboot.c
+@@ -551,22 +551,15 @@ static int __init reboot_setup(char *str
+ 			break;
  
+ 		case 's':
+-		{
+-			int rc;
+-
+-			if (isdigit(*(str+1))) {
+-				rc = kstrtoint(str+1, 0, &reboot_cpu);
+-				if (rc)
+-					return rc;
+-			} else if (str[1] == 'm' && str[2] == 'p' &&
+-				   isdigit(*(str+3))) {
+-				rc = kstrtoint(str+3, 0, &reboot_cpu);
+-				if (rc)
+-					return rc;
+-			} else
++			if (isdigit(*(str+1)))
++				reboot_cpu = simple_strtoul(str+1, NULL, 0);
++			else if (str[1] == 'm' && str[2] == 'p' &&
++							isdigit(*(str+3)))
++				reboot_cpu = simple_strtoul(str+3, NULL, 0);
++			else
+ 				*mode = REBOOT_SOFT;
+ 			break;
+-		}
++
+ 		case 'g':
+ 			*mode = REBOOT_GPIO;
+ 			break;
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
-mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+reboot-fix-overflow-parsing-reboot-cpu-number.patch
+reboot-refactor-and-comment-the-cpu-selection-code.patch
 
