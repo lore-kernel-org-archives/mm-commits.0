@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6A4CC4742C
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B61BC2D0A3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76634223EA
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E84D22403
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 00:10:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604448640;
-	bh=/d9ZCv74dBsiGgqiVziRSuuCcgmmvoLg7aY5vWifgL0=;
+	s=default; t=1604448645;
+	bh=gioJVk45Hi8RdeSgkGpo9WPZshwpyOVBnNRCU0yfjrU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=nBsUcswvAri0hww18AQlGvIX6ZYhNdymIqKmekNSiDiZtL6o+wSLalsK0zh5lrZxa
-	 ke6B1x4rqXAZ/8bgYGJNE7gix/GnaBWxk6bpferOVQ+0BHFeVeYKwHBTQ8BGwbM3zX
-	 Vx3rQvFpV9La1abgZxPes2jT9O+n3boOFj+kTtOU=
+	b=BtZKzoBMuRCf7zxboQT3rTC3EZHzUokdTnDl1HOg63fxFXSaKkYKoh4SQp73LUaQ0
+	 Mei8lkoZOp0w8Phj4a3R8R7PQzSP/ChLC4sge6ozKF0LNfvQ3aeTtFUAoL6kCrfFby
+	 Ugo2gb2UYefi+g+oDcriqeypyqhC/JELSfn9Sd0k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729845AbgKDAKk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 19:10:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36842 "EHLO mail.kernel.org"
+        id S1729861AbgKDAKo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 19:10:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36914 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728479AbgKDAKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 19:10:39 -0500
+        id S1728479AbgKDAKo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 19:10:44 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B187223C6;
-        Wed,  4 Nov 2020 00:10:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 02DC2223C7;
+        Wed,  4 Nov 2020 00:10:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604448639;
-        bh=/d9ZCv74dBsiGgqiVziRSuuCcgmmvoLg7aY5vWifgL0=;
+        s=default; t=1604448642;
+        bh=gioJVk45Hi8RdeSgkGpo9WPZshwpyOVBnNRCU0yfjrU=;
         h=Date:From:To:Subject:From;
-        b=JKxJ3wM/j+kavsBo5ah8LhbuZpBWJfbcx2eNQaZ38xq63pUhm/AUlwZx/CnGzlFom
-         NWPfq5H3QN5EYj8VXJBh2hLM/SfLyBM/BYCAaaj6IFO4YgwJ2UEskclbChhLS2ADZ/
-         zpuM+BcD4w38QrezX/Lwej0HGF1eQsNBJmeohP98=
-Date:   Tue, 03 Nov 2020 16:10:37 -0800
+        b=sEh9jbpTrY5u6EEgzQYl6dzSuOKCoCmBanOl1RFpiXNRMDaQ2hLMKs4ajNp8jdaKZ
+         Jw4Nh5RhAKIJ7lKSQvcgf3aoxQurPI3YEH8VEbvuZPCtDiawaQMB0a+PIxcQY+Nzc7
+         m6UN2vwzdXJDP+PvlU2Mmb0sMdM3pj6M4SoFj7TI=
+Date:   Tue, 03 Nov 2020 16:10:41 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rppt@kernel.org, robinmholt@gmail.com, pmladek@suse.com,
-        pasha.tatashin@soleen.com, linux@roeck-us.net,
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, robinmholt@gmail.com,
+        pmladek@suse.com, pasha.tatashin@soleen.com, linux@roeck-us.net,
         keescook@chromium.org, gregkh@linuxfoundation.org, fabf@skynet.be,
         arnd@arndb.de, mcroce@microsoft.com
-Subject:  + reboot-fix-overflow-parsing-reboot-cpu-number.patch added
- to -mm tree
-Message-ID: <20201104001037.Jv0DB%akpm@linux-foundation.org>
+Subject:  + reboot-refactor-and-comment-the-cpu-selection-code.patch
+ added to -mm tree
+Message-ID: <20201104001041._axab%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reboot: fix overflow parsing reboot cpu number
+     Subject: reboot: refactor and comment the cpu selection code
 has been added to the -mm tree.  Its filename is
-     reboot-fix-overflow-parsing-reboot-cpu-number.patch
+     reboot-refactor-and-comment-the-cpu-selection-code.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/reboot-fix-overflow-parsing-reboot-cpu-number.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/reboot-refactor-and-comment-the-cpu-selection-code.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/reboot-fix-overflow-parsing-reboot-cpu-number.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/reboot-refactor-and-comment-the-cpu-selection-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,67 +77,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matteo Croce <mcroce@microsoft.com>
-Subject: reboot: fix overflow parsing reboot cpu number
+Subject: reboot: refactor and comment the cpu selection code
 
-Limit the CPU number to num_possible_cpus(), because setting it to a value
-lower than INT_MAX but higher than NR_CPUS produces the following error on
-reboot and shutdown:
+Small improvements to the code, without changing the way it works:
+- use a local variable, to avoid a small time lapse where reboot_cpu
+  can have an invalid value
+- comment the code which is not easy to understand at a glance
+- merge two identical code blocks into one
+- replace pointer arithmetics with equivalent array syntax
 
-    BUG: unable to handle page fault for address: ffffffff90ab1bb0
-    #PF: supervisor read access in kernel mode
-    #PF: error_code(0x0000) - not-present page
-    PGD 1c09067 P4D 1c09067 PUD 1c0a063 PMD 0
-    Oops: 0000 [#1] SMP
-    CPU: 1 PID: 1 Comm: systemd-shutdow Not tainted 5.9.0-rc8-kvm #110
-    Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.13.0-2.fc32 04/01/2014
-    RIP: 0010:migrate_to_reboot_cpu+0xe/0x60
-    Code: ea ea 00 48 89 fa 48 c7 c7 30 57 f1 81 e9 fa ef ff ff 66 2e 0f 1f 84 00 00 00 00 00 53 8b 1d d5 ea ea 00 e8 14 33 fe ff 89 da <48> 0f a3 15 ea fc bd 00 48 89 d0 73 29 89 c2 c1 e8 06 65 48 8b 3c
-    RSP: 0018:ffffc90000013e08 EFLAGS: 00010246
-    RAX: ffff88801f0a0000 RBX: 0000000077359400 RCX: 0000000000000000
-    RDX: 0000000077359400 RSI: 0000000000000002 RDI: ffffffff81c199e0
-    RBP: ffffffff81c1e3c0 R08: ffff88801f41f000 R09: ffffffff81c1e348
-    R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-    R13: 00007f32bedf8830 R14: 00000000fee1dead R15: 0000000000000000
-    FS:  00007f32bedf8980(0000) GS:ffff88801f480000(0000) knlGS:0000000000000000
-    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    CR2: ffffffff90ab1bb0 CR3: 000000001d057000 CR4: 00000000000006a0
-    DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-    DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-    Call Trace:
-    __do_sys_reboot.cold+0x34/0x5b
-    ? vfs_writev+0x92/0xc0
-    ? do_writev+0x52/0xd0
-    do_syscall_64+0x2d/0x40
-    entry_SYSCALL_64_after_hwframe+0x44/0xa9
-    RIP: 0033:0x7f32bfaaecd3
-    Code: 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 89 fa be 69 19 12 28 bf ad de e1 fe b8 a9 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 89 81 0c 00 f7 d8
-    RSP: 002b:00007fff6265fb58 EFLAGS: 00000202 ORIG_RAX: 00000000000000a9
-    RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f32bfaaecd3
-    RDX: 0000000001234567 RSI: 0000000028121969 RDI: 00000000fee1dead
-    RBP: 0000000000000000 R08: 0000000000008020 R09: 00007fff6265ef60
-    R10: 00007f32bedf8830 R11: 0000000000000202 R12: 0000000000000000
-    R13: 0000557bba2c51c0 R14: 0000000000000000 R15: 00007fff6265fbc8
-    CR2: ffffffff90ab1bb0
-    ---[ end trace b813e80157136563 ]---
-    RIP: 0010:migrate_to_reboot_cpu+0xe/0x60
-    Code: ea ea 00 48 89 fa 48 c7 c7 30 57 f1 81 e9 fa ef ff ff 66 2e 0f 1f 84 00 00 00 00 00 53 8b 1d d5 ea ea 00 e8 14 33 fe ff 89 da <48> 0f a3 15 ea fc bd 00 48 89 d0 73 29 89 c2 c1 e8 06 65 48 8b 3c
-    RSP: 0018:ffffc90000013e08 EFLAGS: 00010246
-    RAX: ffff88801f0a0000 RBX: 0000000077359400 RCX: 0000000000000000
-    RDX: 0000000077359400 RSI: 0000000000000002 RDI: ffffffff81c199e0
-    RBP: ffffffff81c1e3c0 R08: ffff88801f41f000 R09: ffffffff81c1e348
-    R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-    R13: 00007f32bedf8830 R14: 00000000fee1dead R15: 0000000000000000
-    FS:  00007f32bedf8980(0000) GS:ffff88801f480000(0000) knlGS:0000000000000000
-    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    CR2: ffffffff90ab1bb0 CR3: 000000001d057000 CR4: 00000000000006a0
-    DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-    DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-    Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009
-    Kernel Offset: disabled
-    ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009 ]---
-
-Link: https://lkml.kernel.org/r/20201103214025.116799-3-mcroce@linux.microsoft.com
-Fixes: 1b3a5d02ee07 ("reboot: move arch/x86 reboot= handling to generic kernel")
+Link: https://lkml.kernel.org/r/20201103214025.116799-4-mcroce@linux.microsoft.com
 Signed-off-by: Matteo Croce <mcroce@microsoft.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Fabian Frederick <fabf@skynet.be>
@@ -149,26 +97,49 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Robin Holt <robinmholt@gmail.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/reboot.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
---- a/kernel/reboot.c~reboot-fix-overflow-parsing-reboot-cpu-number
+--- a/kernel/reboot.c~reboot-refactor-and-comment-the-cpu-selection-code
 +++ a/kernel/reboot.c
-@@ -558,6 +558,13 @@ static int __init reboot_setup(char *str
- 				reboot_cpu = simple_strtoul(str+3, NULL, 0);
- 			else
+@@ -551,20 +551,24 @@ static int __init reboot_setup(char *str
+ 			break;
+ 
+ 		case 's':
+-			if (isdigit(*(str+1)))
+-				reboot_cpu = simple_strtoul(str+1, NULL, 0);
+-			else if (str[1] == 'm' && str[2] == 'p' &&
+-							isdigit(*(str+3)))
+-				reboot_cpu = simple_strtoul(str+3, NULL, 0);
+-			else
++			/*
++			 * reboot_cpu is s[mp]#### with #### being the processor
++			 * to be used for rebooting. Skip 's' or 'smp' prefix.
++			 */
++			str += str[1] == 'm' && str[2] == 'p' ? 3 : 1;
++
++			if (isdigit(str[0])) {
++				int cpu = simple_strtoul(str, NULL, 0);
++
++				if (cpu >= num_possible_cpus()) {
++					pr_err("Ignoring the CPU number in reboot= option. "
++					"CPU %d exceeds possible cpu number %d\n",
++					cpu, num_possible_cpus());
++					break;
++				}
++				reboot_cpu = cpu;
++			} else
  				*mode = REBOOT_SOFT;
-+			if (reboot_cpu >= num_possible_cpus()) {
-+				pr_err("Ignoring the CPU number in reboot= option. "
-+				       "CPU %d exceeds possible cpu number %d\n",
-+				       reboot_cpu, num_possible_cpus());
-+				reboot_cpu = 0;
-+				break;
-+			}
+-			if (reboot_cpu >= num_possible_cpus()) {
+-				pr_err("Ignoring the CPU number in reboot= option. "
+-				       "CPU %d exceeds possible cpu number %d\n",
+-				       reboot_cpu, num_possible_cpus());
+-				reboot_cpu = 0;
+-				break;
+-			}
  			break;
  
  		case 'g':
