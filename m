@@ -2,276 +2,333 @@ Return-Path: <SRS0=Jp7A=EK=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32A94C4741F
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 05:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9111DC2D0A3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 09:14:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAACE223C7
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 05:58:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37C5E2242A
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 09:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604469506;
-	bh=HvJo3AwlQe/fHWORAyDOwPtstV1MVx9lWJ36f4mvZ0Q=;
+	s=default; t=1604481266;
+	bh=piRGUsGi8igm6DVEv1OT553uEOHMwdy7cSXpp+BVwkc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Phuwt3SRyVO7YU+1Zsh2i/iifx7qwxza2H+YMCHQGVVWROYJ3V+/tgmv3Yv+R6MfI
-	 LFytZ5pEE96C57VEvIfdqh0T7MNK7GK1WNaq6ttMSNrUgYjf1DVmGaNOyEPC7+7Yeu
-	 4jVpKu4UDULU93cvxyOe3oORyiONMcArGNYqrknk=
+	b=nTR64auaD32k8Co7g6KgVPqZqXgZC9Y8Y3ZoKBAJJEYareDAXFcY+AWlQ+EY9TGIc
+	 76R2yqaSSOwsBHUIQnnImrpdfZj03XOJt8TryYI4DqWdHUB1HDeAxPYgNiCi2083Nq
+	 vBdyIIRtmsbiy+2i/hoWSADdbE+ZR7T8NKRektcI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728241AbgKDF6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Nov 2020 00:58:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36478 "EHLO mail.kernel.org"
+        id S1726844AbgKDJOZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Nov 2020 04:14:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725535AbgKDF6X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 4 Nov 2020 00:58:23 -0500
+        id S1726232AbgKDJOY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 4 Nov 2020 04:14:24 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2159422277;
-        Wed,  4 Nov 2020 05:58:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8B4D72224E;
+        Wed,  4 Nov 2020 09:14:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604469501;
-        bh=HvJo3AwlQe/fHWORAyDOwPtstV1MVx9lWJ36f4mvZ0Q=;
+        s=default; t=1604481262;
+        bh=piRGUsGi8igm6DVEv1OT553uEOHMwdy7cSXpp+BVwkc=;
         h=Date:From:To:Subject:From;
-        b=hGOI2Tka0C5ZqVU07h7PsZiBChH9V2y4GSmw+SlrzV6hTMHRZDAFRum74NguZ4ukW
-         VVnw9ljPecpbIP6hinCsQWJpqcu4o12KV9oAjeSeWGAVvyUaL1T7LIMbMIH0CZGrN0
-         571LrG+S6P3GPzkweNVPBEZ/lV1MiH1uCqkTF3z8=
-Date:   Tue, 03 Nov 2020 21:58:20 -0800
+        b=XhqfI+2XCMhZcwlgIyEX3/qTeyUcVffNiuDIk1IKcftrwK2WuJDvmDCjSs0iEAoN5
+         mtvuvCHKhx+47zpF4D+mXGBVJjU0fOaAR607vAAqv/tMG9OlGF9tX1BlPv98gZ7hOR
+         QZeswhrlb1SvBzy7LbDSVytwk6woaZg9dtCE7/Y8=
+Date:   Wed, 04 Nov 2020 01:14:20 -0800
 From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, mhocko@suse.cz, sfr@canb.auug.org.au,
-        linux-next@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org
-Subject:  mmotm 2020-11-03-21-56 uploaded
-Message-ID: <20201104055820.smtjk%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
+        tony.luck@intel.com, tglx@linutronix.de, sfr@canb.auug.org.au,
+        rdunlap@infradead.org, paulus@samba.org, mpe@ellerman.id.au,
+        lkp@intel.com, joao.m.martins@oracle.com, hch@lst.de,
+        hch@infradead.org, fenghua.yu@intel.com, benh@kernel.crashing.org,
+        dan.j.williams@intel.com
+Subject:  +
+ mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch added
+ to -mm tree
+Message-ID: <20201104091420.IrRxu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2020-11-03-21-56 has been uploaded to
 
-   https://www.ozlabs.org/~akpm/mmotm/
+The patch titled
+     Subject: mm: fix phys_to_target_node() and memory_add_physaddr_to_nid() exports
+has been added to the -mm tree.  Its filename is
+     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
 
-mmotm-readme.txt says
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
 
-README for mm-of-the-moment:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-https://www.ozlabs.org/~akpm/mmotm/
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-https://ozlabs.org/~akpm/mmotm/series
+------------------------------------------------------
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix phys_to_target_node() and memory_add_physaddr_to_nid() exports
 
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
+The core-mm has a default __weak implementation of phys_to_target_node()
+to mirror the weak definition of memory_add_physaddr_to_nid().  That
+symbol is exported for modules.  However, while the export in
+mm/memory_hotplug.c exported the symbol in the configuration cases of:
 
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
+	CONFIG_NUMA_KEEP_MEMINFO=y
+	CONFIG_MEMORY_HOTPLUG=y
 
+...and:
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+	CONFIG_NUMA_KEEP_MEMINFO=n
+	CONFIG_MEMORY_HOTPLUG=y
 
-	https://github.com/hnaz/linux-mm
+...it failed to export the symbol in the case of:
 
-The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+	CONFIG_NUMA_KEEP_MEMINFO=y
+	CONFIG_MEMORY_HOTPLUG=n
 
-A git copy of this tree is also available at
+Not only is that broken, but Christoph points out that the kernel should
+not be exporting any __weak symbol, which means that
+memory_add_physaddr_to_nid() example that phys_to_target_node() copied is
+broken too.
 
-	https://github.com/hnaz/linux-mm
+Rework the definition of phys_to_target_node() and
+memory_add_physaddr_to_nid() to not require weak symbols.  Move to the
+common arch override design-pattern of an asm header defining a symbol to
+replace the default implementation.
 
+The only common header that all memory_add_physaddr_to_nid() producing
+architectures implement is asm/sparsemem.h.  In fact, powerpc already
+defines its memory_add_physaddr_to_nid() helper in sparsemem.h. 
+Double-down on that observation and define phys_to_target_node() where
+necessary in asm/sparsemem.h.  An alternate consideration that was
+discarded was to put this override in asm/numa.h, but that entangles with
+the definition of MAX_NUMNODES relative to the inclusion of
+linux/nodemask.h, and requires powerpc to grow a new header.
 
+The dependency on NUMA_KEEP_MEMINFO for DEV_DAX_HMEM_DEVICES is invalid
+now that the symbol is properly exported / stubbed in all combinations of
+CONFIG_NUMA_KEEP_MEMINFO and CONFIG_MEMORY_HOTPLUG.
 
-This mmotm tree contains the following patches against 5.10-rc2:
-(patches marked "*" will be included in linux-next)
+Link: https://lkml.kernel.org/r/160447639846.1133764.7044090803980177548.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  origin.patch
-* mm-compaction-count-pages-and-stop-correctly-during-page-isolation.patch
-* mm-compaction-stop-isolation-if-too-many-pages-are-isolated-and-we-have-pages-to-migrate.patch
-* mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit.patch
-* mailmap-fix-entry-for-dmitry-baryshkov-eremin-solenikov.patch
-* mm-slub-fix-panic-in-slab_alloc_node.patch
-* mm-gup-use-unpin_user_pages-in-__gup_longterm_locked.patch
-* compilerh-fix-barrier_data-on-clang.patch
-* compilerh-fix-barrier_data-on-clang-fix.patch
-* revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
-* reboot-fix-overflow-parsing-reboot-cpu-number.patch
-* mm-fix-readahead_page_batch-for-retry-entries.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* kthread-add-kthread_work-tracepoints.patch
-* kthread_worker-document-cpu-hotplug-handling.patch
-* kthread_worker-document-cpu-hotplug-handling-fix.patch
-* uapi-move-constants-from-linux-kernelh-to-linux-consth.patch
-* fs-ocfs2-remove-unneeded-break.patch
-* ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* ramfs-support-o_tmpfile.patch
-* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
-  mm.patch
-* mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
-* mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
-* device-dax-kmem-use-struct_size.patch
-* mm-fix-page_owner-initializing-issue-for-arm32.patch
-* fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
-* fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch
-* mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
-* mm-gup_benchmark-rename-to-mm-gup_test.patch
-* selftests-vm-use-a-common-gup_testh.patch
-* selftests-vm-rename-run_vmtests-run_vmtestssh.patch
-* selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
-* selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
-* selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
-* selftests-vm-run_vmtestssh-update-and-clean-up-gup_test-invocation.patch
-* selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
-* selftests-vm-2x-speedup-for-run_vmtestssh.patch
-* mm-gup_benchmark-mark-gup_benchmark_init-as-__init-function.patch
-* mm-handle-zone-device-pages-in-release_pages.patch
-* mm-swapfilec-use-helper-function-swap_count-in-add_swap_count_continuation.patch
-* mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0.patch
-* mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-* mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate.patch
-* mm-swap-use-memset-to-fill-the-swap_map-with-swap_has_cache.patch
-* mm-memcontrol-add-file_thp-shmem_thp-to-memorystat.patch
-* mm-memcontrol-add-file_thp-shmem_thp-to-memorystat-fix.patch
-* mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-* mm-memcontrol-eliminate-redundant-check-in-__mem_cgroup_insert_exceeded.patch
-* mm-memcontrol-use-helpers-to-read-pages-memcg-data.patch
-* mm-memcontrol-slab-use-helpers-to-access-slab-pages-memcg_data.patch
-* mm-introduce-page-memcg-flags.patch
-* mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
-* mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
-* mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-* mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
-* xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
-* kselftests-vm-add-mremap-tests.patch
-* mm-speedup-mremap-on-1gb-or-larger-regions.patch
-* arm64-mremap-speedup-enable-have_move_pud.patch
-* x86-mremap-speedup-enable-have_move_pud.patch
-* mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch
-* mm-unexport-follow_pte_pmd.patch
-* mm-simplify-follow_ptepmd.patch
-* mm-mmap-fix-the-adjusted-length-error.patch
-* mm-mremap-account-memory-on-do_munmap-failure.patch
-* mm-mremap-for-mremap_dontunmap-check-security_vm_enough_memory_mm.patch
-* mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
-* vm_ops-rename-split-callback-to-may_split.patch
-* mremap-check-if-its-possible-to-split-original-vma.patch
-* mm-forbid-splitting-special-mappings.patch
-* mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-* mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
-* mm-introduce-debug_pagealloc_map_pages-helper.patch
-* pm-hibernate-make-direct-map-manipulations-more-explicit.patch
-* arch-mm-restore-dependency-of-__kernel_map_pages-of-debug_pagealloc.patch
-* arch-mm-make-kernel_page_present-always-available.patch
-* alpha-switch-from-discontigmem-to-sparsemem.patch
-* ia64-remove-custom-__early_pfn_to_nid.patch
-* ia64-remove-ifdef-config_zone_dma32-statements.patch
-* ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
-* ia64-split-virtual-map-initialization-out-of-paging_init.patch
-* ia64-forbid-using-virtual_mem_map-with-flatmem.patch
-* ia64-make-sparsemem-default-and-disable-discontigmem.patch
-* arm-remove-config_arch_has_holes_memorymodel.patch
-* arm-arm64-move-free_unused_memmap-to-generic-mm.patch
-* arc-use-flatmem-with-freeing-of-unused-memory-map-instead-of-discontigmem.patch
-* m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
-* m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
-* m68k-deprecate-discontigmem.patch
-* mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
-* mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
-* mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
-* mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled.patch
-* mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
-* mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone.patch
-* mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
-* mm-migrate-fix-comment-spelling.patch
-* mm-optimize-migrate_vma_pages-mmu-notifier.patch
-* mm-cmac-remove-redundant-cma_mutex-lock.patch
-* mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
-* mm-page_poison-use-static-key-more-efficiently.patch
-* kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
-* mm-page_poison-remove-config_page_poisoning_no_sanity.patch
-* mm-page_poison-remove-config_page_poisoning_zero.patch
-* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
-* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-* mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
-* mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
-* zsmalloc-rework-the-list_add-code-in-insert_zspage.patch
-* mm-process_vm_access-remove-redundant-initialization-of-iov_r.patch
-* zram-support-a-page-writeback.patch
-* page-flags-remove-unused-__pageprivate.patch
-* mm-add-kernel-electric-fence-infrastructure.patch
-* x86-kfence-enable-kfence-for-x86.patch
-* arm64-kfence-enable-kfence-for-arm64.patch
-* mm-kfence-insert-kfence-hooks-for-slab.patch
-* mm-kfence-insert-kfence-hooks-for-slub.patch
-* kfence-kasan-make-kfence-compatible-with-kasan.patch
-* kfence-documentation-add-kfence-documentation.patch
-* kfence-add-test-suite.patch
-* maintainers-add-entry-for-kfence.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* procfs-delete-duplicated-words-other-fixes.patch
-* proc-provide-details-on-indirect-branch-speculation.patch
-* proc-sysctl-make-protected_-world-readable.patch
-* asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision.patch
-* kernelh-split-out-mathematical-helpers.patch
-* kernelh-split-out-mathematical-helpers-fix.patch
-* treewide-remove-stringification-from-__alias-macro-definition.patch
-* acctc-use-elif-instead-of-end-and-elif.patch
-* reboot-refactor-and-comment-the-cpu-selection-code.patch
-* bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
-* lib-stackdepot-add-support-to-configure-stack_hash_size.patch
-* lib-test_free_pages-add-basic-progress-indicators.patch
-* lib-stackdepotc-replace-one-element-array-with-flexible-array-member.patch
-* lib-stackdepotc-use-flex_array_size-helper-in-memcpy.patch
-* lib-stackdepotc-use-array_size-helper-in-jhash2.patch
-* lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
-* lib-optimize-cpumask_local_spread.patch
-* bitops-introduce-the-for_each_set_clump-macro.patch
-* lib-test_bitmapc-add-for_each_set_clump-test-cases.patch
-* lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-* gpio-thunderx-utilize-for_each_set_clump-macro.patch
-* gpio-xilinx-utilize-generic-bitmap_get_value-and-_set_value.patch
-* checkpatch-add-new-exception-to-repeated-word-check.patch
-* checkpatch-fix-false-positives-in-repeated_word-warning.patch
-* checkpatch-ignore-generated-camelcase-defines-and-enum-values.patch
-* checkpatch-prefer-static-const-declarations.patch
-* checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
-* checkpatch-extend-attributes-check-to-handle-more-patterns.patch
-* checkpatch-add-a-fixer-for-missing-newline-at-eof.patch
-* checkpatch-update-__attribute__sectionname-quote-removal.patch
-* checkpatch-update-__attribute__sectionname-quote-removal-v2.patch
-* checkpatch-add-fix-option-for-gerrit_change_id.patch
-* checkpatch-add-__alias-and-__weak-to-suggested-__attribute__-conversions.patch
-* reiserfs-add-check-for-an-invalid-ih_entry_count.patch
-* kdump-append-uts_namespacename-offset-to-vmcoreinfo.patch
-* aio-simplify-read_events.patch
-* fault-injection-handle-ei_etype_true.patch
-* lib-lzo-make-lzogeneric1x_1_compress-static.patch
-  linux-next.patch
-* mmap-locking-api-dont-check-locking-if-the-mm-isnt-live-yet.patch
-* mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
+ arch/ia64/include/asm/sparsemem.h    |    6 +++++
+ arch/powerpc/include/asm/sparsemem.h |    3 +-
+ arch/x86/include/asm/sparsemem.h     |   10 ++++++++
+ arch/x86/mm/numa.c                   |    2 +
+ drivers/dax/Kconfig                  |    1 
+ include/linux/memory_hotplug.h       |   14 -----------
+ include/linux/numa.h                 |   30 ++++++++++++++++++++++++-
+ mm/memory_hotplug.c                  |   18 ---------------
+ 8 files changed, 49 insertions(+), 35 deletions(-)
+
+--- a/arch/ia64/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/ia64/include/asm/sparsemem.h
+@@ -18,4 +18,10 @@
+ #endif
+ 
+ #endif /* CONFIG_SPARSEMEM */
++
++#ifdef CONFIG_MEMORY_HOTPLUG
++int memory_add_physaddr_to_nid(u64 addr);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
++#endif
++
+ #endif /* _ASM_IA64_SPARSEMEM_H */
+--- a/arch/powerpc/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/powerpc/include/asm/sparsemem.h
+@@ -16,6 +16,8 @@
+ extern int create_section_mapping(unsigned long start, unsigned long end,
+ 				  int nid, pgprot_t prot);
+ extern int remove_section_mapping(unsigned long start, unsigned long end);
++extern int memory_add_physaddr_to_nid(u64 start);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
+ 
+ #ifdef CONFIG_NUMA
+ extern int hot_add_scn_to_nid(unsigned long scn_addr);
+@@ -26,6 +28,5 @@ static inline int hot_add_scn_to_nid(uns
+ }
+ #endif /* CONFIG_NUMA */
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+-
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_SPARSEMEM_H */
+--- a/arch/x86/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/x86/include/asm/sparsemem.h
+@@ -28,4 +28,14 @@
+ #endif
+ 
+ #endif /* CONFIG_SPARSEMEM */
++
++#ifndef __ASSEMBLY__
++#ifdef CONFIG_NUMA_KEEP_MEMINFO
++extern int phys_to_target_node(phys_addr_t start);
++#define phys_to_target_node phys_to_target_node
++extern int memory_add_physaddr_to_nid(u64 start);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
++#endif
++#endif /* __ASSEMBLY__ */
++
+ #endif /* _ASM_X86_SPARSEMEM_H */
+--- a/arch/x86/mm/numa.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/x86/mm/numa.c
+@@ -938,6 +938,7 @@ int phys_to_target_node(phys_addr_t star
+ 
+ 	return meminfo_to_nid(&numa_reserved_meminfo, start);
+ }
++EXPORT_SYMBOL_GPL(phys_to_target_node);
+ 
+ int memory_add_physaddr_to_nid(u64 start)
+ {
+@@ -947,4 +948,5 @@ int memory_add_physaddr_to_nid(u64 start
+ 		nid = numa_meminfo.blk[0].nid;
+ 	return nid;
+ }
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+ #endif
+--- a/drivers/dax/Kconfig~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/drivers/dax/Kconfig
+@@ -50,7 +50,6 @@ config DEV_DAX_HMEM
+ 	  Say M if unsure.
+ 
+ config DEV_DAX_HMEM_DEVICES
+-	depends on NUMA_KEEP_MEMINFO # for phys_to_target_node()
+ 	depends on DEV_DAX_HMEM && DAX=y
+ 	def_bool y
+ 
+--- a/include/linux/memory_hotplug.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/include/linux/memory_hotplug.h
+@@ -281,20 +281,6 @@ static inline bool movable_node_is_enabl
+ }
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+-#ifdef CONFIG_NUMA
+-extern int memory_add_physaddr_to_nid(u64 start);
+-extern int phys_to_target_node(u64 start);
+-#else
+-static inline int memory_add_physaddr_to_nid(u64 start)
+-{
+-	return 0;
+-}
+-static inline int phys_to_target_node(u64 start)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
+ /*
+  * pgdat resizing functions
+--- a/include/linux/numa.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/include/linux/numa.h
+@@ -21,13 +21,41 @@
+ #endif
+ 
+ #ifdef CONFIG_NUMA
++#include <linux/printk.h>
++#include <asm/sparsemem.h>
++
+ /* Generic implementation available */
+ int numa_map_to_online_node(int node);
+-#else
++
++#ifndef memory_add_physaddr_to_nid
++static inline int memory_add_physaddr_to_nid(u64 start)
++{
++	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++#endif
++#ifndef phys_to_target_node
++static inline int phys_to_target_node(u64 start)
++{
++	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++#endif
++#else /* !CONFIG_NUMA */
+ static inline int numa_map_to_online_node(int node)
+ {
+ 	return NUMA_NO_NODE;
+ }
++static inline int memory_add_physaddr_to_nid(u64 start)
++{
++	return 0;
++}
++static inline int phys_to_target_node(u64 start)
++{
++	return 0;
++}
+ #endif
+ 
+ #endif /* _LINUX_NUMA_H */
+--- a/mm/memory_hotplug.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/mm/memory_hotplug.c
+@@ -350,24 +350,6 @@ int __ref __add_pages(int nid, unsigned
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_NUMA
+-int __weak memory_add_physaddr_to_nid(u64 start)
+-{
+-	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+-
+-int __weak phys_to_target_node(u64 start)
+-{
+-	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(phys_to_target_node);
+-#endif
+-
+ /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
+ static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
+ 				     unsigned long start_pfn,
+_
+
+Patches currently in -mm which might be from dan.j.williams@intel.com are
+
+mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+device-dax-kmem-use-struct_size.patch
+xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
+
