@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE17C388F2
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F374C2D0A3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F16E22403
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBBA322409
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604459468;
-	bh=aZC0USR9jATn+45pEce63p5Y+3UEVdIOuluwS5jowfk=;
+	s=default; t=1604459472;
+	bh=+Gz7WWmH2yMYKr7VEH4oPi3LTv7LpdkmOlvOu1s6CKU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tASvC0uRg8ZaVWXC+5EiaGdijdGMlGr+j0N4RdIqNfNKKuhW4dFzDP3yW5uLlOmmQ
-	 ldX78nI0joS1RTelfZpd8KC5w9BL/6y8T2/Bp1w5c82nCpLSy2phL38+/D0bw08qfc
-	 QHd6QfrfcaNAaZJqNcbSFkpEJl9PcIDcuUr+ESt4=
+	b=LUTuJo8WfUqm7hXSaJKuS2lXuM4AZE5Qt6F0RVYxX/kBg1qQppsilwIY9FCAuk52/
+	 5YoaDIKwjz2tnL60YxHBi3/taOOfpwbBwX/VGg8K/C3gPl+RXMQqVa2fH+buLf8BjE
+	 w6ncXa61ZkUGZMCGnxPJjf+XMeZaaJGoZkbV8cIM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730480AbgKDDLI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 22:11:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49376 "EHLO mail.kernel.org"
+        id S1730490AbgKDDLM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 22:11:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730017AbgKDDLH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 22:11:07 -0500
+        id S1730017AbgKDDLM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 22:11:12 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3267A223C7;
-        Wed,  4 Nov 2020 03:11:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 48DF3223FD;
+        Wed,  4 Nov 2020 03:11:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604459467;
-        bh=aZC0USR9jATn+45pEce63p5Y+3UEVdIOuluwS5jowfk=;
+        s=default; t=1604459471;
+        bh=+Gz7WWmH2yMYKr7VEH4oPi3LTv7LpdkmOlvOu1s6CKU=;
         h=Date:From:To:Subject:From;
-        b=e5Uz3r0dLC/7swZ0cfYMX48MLfYlO/3sLr5SkRL2lYDXKzKiBfqIVdDdUPz8FVmdi
-         u0evbVWHDjjkCZI0jQwYm1eR//IByCcfm28UZEiLPnWw6rpq16Xr1QZ5YgRbNGxiqn
-         VTivHiImQX6ixqFifl6x/swMRbx2fAQXz1zmUdto=
-Date:   Tue, 03 Nov 2020 19:11:05 -0800
+        b=sAUz3OVV+PSmc9+RbZKHQTOtYmtBAyj92mmTztDeyHlcFQu/kul5xaCZQ8Iou7KQP
+         9Yg7rrROVmiVJkH6mXyxlWU1wRJrf8M92/9m381kXEuO+xMkM8hItliLmsGvKugF40
+         dDb2ghEIlyq8xESu84PwdS3TwUrD23VOJn/QtR6w=
+Date:   Tue, 03 Nov 2020 19:11:09 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         tony.luck@intel.com, schmitzmic@gmail.com, mroos@linux.ee,
@@ -46,9 +46,10 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         glaubitz@physik.fu-berlin.de, gerg@linux-m68k.org,
         geert@linux-m68k.org, corbet@lwn.net, catalin.marinas@arm.com,
         adobriyan@gmail.com, rppt@linux.ibm.com
-Subject:  + ia64-remove-ifdef-config_zone_dma32-statements.patch
- added to -mm tree
-Message-ID: <20201104031105.gvD_L%akpm@linux-foundation.org>
+Subject:  +
+ ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch added to
+ -mm tree
+Message-ID: <20201104031109.6j0Ud%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: remove 'ifdef CONFIG_ZONE_DMA32' statements
+     Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
 has been added to the -mm tree.  Its filename is
-     ia64-remove-ifdef-config_zone_dma32-statements.patch
+     ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-remove-ifdef-config_zone_dma32-statements.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-remove-ifdef-config_zone_dma32-statements.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,15 +80,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: remove 'ifdef CONFIG_ZONE_DMA32' statements
+Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
 
-After the removal of SN2 platform (commit cf07cb1ff4ea ("ia64: remove
-support for the SGI SN2 platform") IA-64 always has ZONE_DMA32 and there is
-no point to guard code with this configuration option.
+The maximal PFN in the system is calculated during find_memory() time and
+it is stored at max_low_pfn then.
 
-Remove ifdefery associated with CONFIG_ZONE_DMA32
+Use this value in paging_init() and remove the redundant detection of
+max_pfn in that function.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-4-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -105,35 +106,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/contig.c    |    2 --
- arch/ia64/mm/discontig.c |    2 --
- 2 files changed, 4 deletions(-)
+ arch/ia64/mm/discontig.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/ia64/mm/contig.c~ia64-remove-ifdef-config_zone_dma32-statements
-+++ a/arch/ia64/mm/contig.c
-@@ -177,10 +177,8 @@ paging_init (void)
+--- a/arch/ia64/mm/discontig.c~ia64-discontig-paging_init-remove-local-max_pfn-calculation
++++ a/arch/ia64/mm/discontig.c
+@@ -594,7 +594,6 @@ void __init paging_init(void)
+ {
+ 	unsigned long max_dma;
+ 	unsigned long pfn_offset = 0;
+-	unsigned long max_pfn = 0;
+ 	int node;
  	unsigned long max_zone_pfns[MAX_NR_ZONES];
  
- 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--#ifdef CONFIG_ZONE_DMA32
- 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
- 	max_zone_pfns[ZONE_DMA32] = max_dma;
--#endif
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- 
+@@ -616,13 +615,11 @@ void __init paging_init(void)
  #ifdef CONFIG_VIRTUAL_MEM_MAP
---- a/arch/ia64/mm/discontig.c~ia64-remove-ifdef-config_zone_dma32-statements
-+++ a/arch/ia64/mm/discontig.c
-@@ -621,9 +621,7 @@ void __init paging_init(void)
+ 		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
+ #endif
+-		if (mem_data[node].max_pfn > max_pfn)
+-			max_pfn = mem_data[node].max_pfn;
  	}
  
  	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--#ifdef CONFIG_ZONE_DMA32
  	max_zone_pfns[ZONE_DMA32] = max_dma;
--#endif
- 	max_zone_pfns[ZONE_NORMAL] = max_pfn;
+-	max_zone_pfns[ZONE_NORMAL] = max_pfn;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
  	free_area_init(max_zone_pfns);
  
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
