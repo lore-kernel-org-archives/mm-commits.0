@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB446C388F2
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:12:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D6C5C2D0A3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:12:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A6512240C
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:12:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D644223C7
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604459523;
-	bh=hIFi9SS7i/33d1n027WRtL2Mk/r12GeSvEknR9mp06c=;
+	s=default; t=1604459533;
+	bh=4z4sFTd41ugwEjIiUDvhwPtLTsQ9gIpd4oHlXtU8nv8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bK+qnSH89L1PxIkK6TdTjSE69BKPkSaVdtU5nPVW2flLTH00OUkGIhvHWO+AfttUb
-	 gD2icEckGn2+OEgO8716M11Wi35I8IzBB51J8zHM8R5X2JZeBHdRF1VQvzo41mMA4E
-	 V3fhzena7HaL1QEEpLYBYq+ZWKcXnM9/Ogc9VhjY=
+	b=Yc4bWQ5uNb8JLgbooQcaFWiG+i2AXWz4IkvgezneJ3Cf76y3262UGvaSspuRCJRoc
+	 zuAmCQwgmitxTiNSIA2XvtNMnT+QjHt3ydJSdq/pHc303CiAQqHzOMnJ+w97mEsr64
+	 X36WbfBNASHo0+M3F5DyZrEdabRxOdCETecaL9tc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730771AbgKDDMD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 22:12:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49990 "EHLO mail.kernel.org"
+        id S1730772AbgKDDMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 22:12:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50060 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730745AbgKDDMC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 22:12:02 -0500
+        id S1730081AbgKDDMM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 22:12:12 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 186AD20657;
-        Wed,  4 Nov 2020 03:11:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22EF92067B;
+        Wed,  4 Nov 2020 03:12:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604459522;
-        bh=hIFi9SS7i/33d1n027WRtL2Mk/r12GeSvEknR9mp06c=;
+        s=default; t=1604459531;
+        bh=4z4sFTd41ugwEjIiUDvhwPtLTsQ9gIpd4oHlXtU8nv8=;
         h=Date:From:To:Subject:From;
-        b=ohoZh0j5QiGp/xCeLjv0LIVCyYKoif+5BHKJANxe0Zd/nDM2Jkx/gY32m/bvF1Z5z
-         prPr0Izty4OF6G8k19VxK8nXx56jWizYB2EO+PqFVucHDEdeiNRylMPwHyALYQL+gs
-         LjuivyfIJ+Gkn0F7H4dRmT0fBlawcKQnuM3PlCIk=
-Date:   Tue, 03 Nov 2020 19:11:51 -0800
+        b=U+/TI/BL54GvmbuVwrYO1nYzurWLZ4rN7FC4CDYpwI+8Gl45gGOUOP/bp9r6n2d52
+         ix9f09RdYE5bquQVz+SLqE5IDXGV1BmEArlqEDf0YZMNsUhSFnEiZxWpOYGOEbGf6b
+         GHAN8tW4XNC8AQrAgEhGK6OR+pEykvkiorVWuFoI=
+Date:   Tue, 03 Nov 2020 19:12:07 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         tony.luck@intel.com, schmitzmic@gmail.com, mroos@linux.ee,
@@ -47,9 +47,9 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         geert@linux-m68k.org, corbet@lwn.net, catalin.marinas@arm.com,
         adobriyan@gmail.com, rppt@linux.ibm.com
 Subject:  +
- m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
- added to -mm tree
-Message-ID: <20201104031151.EYBT6%akpm@linux-foundation.org>
+ m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch added to
+ -mm tree
+Message-ID: <20201104031207.b557t%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k/mm: make node data and node setup depend on CONFIG_DISCONTIGMEM
+     Subject: m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM
 has been added to the -mm tree.  Its filename is
-     m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
+     m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,19 +80,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k/mm: make node data and node setup depend on CONFIG_DISCONTIGMEM
+Subject: m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM
 
-The pg_data_t node structures and their initialization currently depends on
-!CONFIG_SINGLE_MEMORY_CHUNK. Since they are required only for DISCONTIGMEM
-make this dependency explicit and replace usage of
-CONFIG_SINGLE_MEMORY_CHUNK with CONFIG_DISCONTIGMEM where appropriate.
+The pg_data_map and pg_data_table arrays as well as page_to_pfn() and
+pfn_to_page() are required only for DISCONTIGMEM. Other memory models can
+use the generic definitions in asm-generic/memory_model.h.
 
-The CONFIG_SINGLE_MEMORY_CHUNK was implicitly disabled on the ColdFire MMU
-variant, although it always presumed a single memory bank. As there is no
-actual need for DISCONTIGMEM in this case, make sure that ColdFire MMU
-systems set CONFIG_SINGLE_MEMORY_CHUNK to 'y'.
-
-Link: https://lkml.kernel.org/r/20201101170454.9567-12-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-13-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -110,73 +104,90 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig.cpu               |    4 ++--
- arch/m68k/include/asm/page_mm.h     |    2 +-
- arch/m68k/include/asm/virtconvert.h |    2 +-
- arch/m68k/mm/init.c                 |    4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ arch/m68k/Kconfig.cpu               |    1 -
+ arch/m68k/include/asm/page.h        |    2 ++
+ arch/m68k/include/asm/page_mm.h     |    5 +++++
+ arch/m68k/include/asm/virtconvert.h |    5 -----
+ arch/m68k/mm/init.c                 |    6 +++---
+ 5 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/arch/m68k/include/asm/page_mm.h~m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem
+--- a/arch/m68k/include/asm/page.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
++++ a/arch/m68k/include/asm/page.h
+@@ -62,8 +62,10 @@ extern unsigned long _ramend;
+ #include <asm/page_no.h>
+ #endif
+ 
++#ifdef CONFIG_DISCONTIGMEM
+ #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+ #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
++#endif
+ 
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/m68k/include/asm/page_mm.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
 +++ a/arch/m68k/include/asm/page_mm.h
-@@ -126,7 +126,7 @@ static inline void *__va(unsigned long x
+@@ -153,6 +153,7 @@ static inline __attribute_const__ int __
+ 	pfn_to_virt(page_to_pfn(page));					\
+ })
  
- extern int m68k_virt_to_node_shift;
++#ifdef CONFIG_DISCONTIGMEM
+ #define pfn_to_page(pfn) ({						\
+ 	unsigned long __pfn = (pfn);					\
+ 	struct pglist_data *pgdat;					\
+@@ -165,6 +166,10 @@ static inline __attribute_const__ int __
+ 	pgdat = &pg_data_map[page_to_nid(__p)];				\
+ 	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
+ })
++#else
++#define ARCH_PFN_OFFSET (m68k_memory[0].addr)
++#include <asm-generic/memory_model.h>
++#endif
  
--#ifdef CONFIG_SINGLE_MEMORY_CHUNK
-+#ifndef CONFIG_DISCONTIGMEM
- #define __virt_to_node(addr)	(&pg_data_map[0])
- #else
- extern struct pglist_data *pg_data_table[];
---- a/arch/m68k/include/asm/virtconvert.h~m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem
+ #define virt_addr_valid(kaddr)	((void *)(kaddr) >= (void *)PAGE_OFFSET && (void *)(kaddr) < high_memory)
+ #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))
+--- a/arch/m68k/include/asm/virtconvert.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
 +++ a/arch/m68k/include/asm/virtconvert.h
-@@ -29,7 +29,7 @@ static inline void *phys_to_virt(unsigne
+@@ -29,12 +29,7 @@ static inline void *phys_to_virt(unsigne
  }
  
  /* Permanent address of a page. */
--#if defined(CONFIG_MMU) && defined(CONFIG_SINGLE_MEMORY_CHUNK)
-+#if defined(CONFIG_MMU) && !defined(CONFIG_DISCONTIGMEM)
- #define page_to_phys(page) \
- 	__pa(PAGE_OFFSET + (((page) - pg_data_map[0].node_mem_map) << PAGE_SHIFT))
- #else
---- a/arch/m68k/Kconfig.cpu~m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem
+-#if defined(CONFIG_MMU) && !defined(CONFIG_DISCONTIGMEM)
+-#define page_to_phys(page) \
+-	__pa(PAGE_OFFSET + (((page) - pg_data_map[0].node_mem_map) << PAGE_SHIFT))
+-#else
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+-#endif
+ 
+ /*
+  * IO bus memory addresses are 1:1 with the physical address,
+--- a/arch/m68k/Kconfig.cpu~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
 +++ a/arch/m68k/Kconfig.cpu
-@@ -373,7 +373,7 @@ config RMW_INSNS
- config SINGLE_MEMORY_CHUNK
+@@ -374,7 +374,6 @@ config SINGLE_MEMORY_CHUNK
  	bool "Use one physical chunk of memory only" if ADVANCED && !SUN3
  	depends on MMU
--	default y if SUN3
-+	default y if SUN3 || MMU_COLDFIRE
- 	select NEED_MULTIPLE_NODES
+ 	default y if SUN3 || MMU_COLDFIRE
+-	select NEED_MULTIPLE_NODES
  	help
  	  Ignore all but the first contiguous chunk of physical memory for VM
-@@ -406,7 +406,7 @@ config M68K_L2_CACHE
- config NODES_SHIFT
- 	int
- 	default "3"
--	depends on !SINGLE_MEMORY_CHUNK
-+	depends on DISCONTIGMEM
- 
- config CPU_HAS_NO_BITFIELDS
- 	bool
---- a/arch/m68k/mm/init.c~m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem
+ 	  purposes.  This will save a few bytes kernel size and may speed up
+--- a/arch/m68k/mm/init.c~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
 +++ a/arch/m68k/mm/init.c
-@@ -47,14 +47,14 @@ EXPORT_SYMBOL(pg_data_map);
+@@ -42,12 +42,12 @@ EXPORT_SYMBOL(empty_zero_page);
  
+ #ifdef CONFIG_MMU
+ 
+-pg_data_t pg_data_map[MAX_NUMNODES];
+-EXPORT_SYMBOL(pg_data_map);
+-
  int m68k_virt_to_node_shift;
  
--#ifndef CONFIG_SINGLE_MEMORY_CHUNK
-+#ifdef CONFIG_DISCONTIGMEM
+ #ifdef CONFIG_DISCONTIGMEM
++pg_data_t pg_data_map[MAX_NUMNODES];
++EXPORT_SYMBOL(pg_data_map);
++
  pg_data_t *pg_data_table[65];
  EXPORT_SYMBOL(pg_data_table);
  #endif
- 
- void __init m68k_setup_node(int node)
- {
--#ifndef CONFIG_SINGLE_MEMORY_CHUNK
-+#ifdef CONFIG_DISCONTIGMEM
- 	struct m68k_mem_info *info = m68k_memory + node;
- 	int i, end;
- 
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
