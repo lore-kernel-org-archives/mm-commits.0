@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F374C2D0A3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E6C5C388F2
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBBA322409
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56C1220659
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Nov 2020 03:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604459472;
-	bh=+Gz7WWmH2yMYKr7VEH4oPi3LTv7LpdkmOlvOu1s6CKU=;
+	s=default; t=1604459478;
+	bh=77C1rOCAGivHaXH7QEQd46ha2GWhjUILbYzOJIylXyo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=LUTuJo8WfUqm7hXSaJKuS2lXuM4AZE5Qt6F0RVYxX/kBg1qQppsilwIY9FCAuk52/
-	 5YoaDIKwjz2tnL60YxHBi3/taOOfpwbBwX/VGg8K/C3gPl+RXMQqVa2fH+buLf8BjE
-	 w6ncXa61ZkUGZMCGnxPJjf+XMeZaaJGoZkbV8cIM=
+	b=j6VYcaVdal4yQ8hn26zz2nLwumTDWnyyhpql8oFsEYAgfvIvhMc53l6XL4ItzgW4A
+	 ZtSWMC4fPew7HMBbOOk/HIVB4eF2hLrDYWIJWbgS03iZ3m4sXFXeFNdLYjpJxYAZeJ
+	 nol7ChI0pIbUD9LPHdLrNCaonAOOGocG8FapGP+I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730490AbgKDDLM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Nov 2020 22:11:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49432 "EHLO mail.kernel.org"
+        id S1730727AbgKDDLS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Nov 2020 22:11:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730017AbgKDDLM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Nov 2020 22:11:12 -0500
+        id S1730017AbgKDDLR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Nov 2020 22:11:17 -0500
 Received: from X1 (unknown [208.106.6.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 48DF3223FD;
-        Wed,  4 Nov 2020 03:11:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3321422409;
+        Wed,  4 Nov 2020 03:11:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604459471;
-        bh=+Gz7WWmH2yMYKr7VEH4oPi3LTv7LpdkmOlvOu1s6CKU=;
+        s=default; t=1604459476;
+        bh=77C1rOCAGivHaXH7QEQd46ha2GWhjUILbYzOJIylXyo=;
         h=Date:From:To:Subject:From;
-        b=sAUz3OVV+PSmc9+RbZKHQTOtYmtBAyj92mmTztDeyHlcFQu/kul5xaCZQ8Iou7KQP
-         9Yg7rrROVmiVJkH6mXyxlWU1wRJrf8M92/9m381kXEuO+xMkM8hItliLmsGvKugF40
-         dDb2ghEIlyq8xESu84PwdS3TwUrD23VOJn/QtR6w=
-Date:   Tue, 03 Nov 2020 19:11:09 -0800
+        b=SqDsTtNotURwTFMNXx07U1k5DhI/+iNnpW7GVdLJ0mMolJT83xyDojpFTrat7d6eh
+         mwUnUZGnovOKGx3u8bYGiKCEUP3frGSfuqTJt1ZauMAWlSwzi+RdbGjOW/AcoBFy0Z
+         9aU2ReBKpeqmSYD1Ol13hvktd1bdrDg8wgHZvxvk=
+Date:   Tue, 03 Nov 2020 19:11:13 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         tony.luck@intel.com, schmitzmic@gmail.com, mroos@linux.ee,
@@ -47,9 +47,9 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         geert@linux-m68k.org, corbet@lwn.net, catalin.marinas@arm.com,
         adobriyan@gmail.com, rppt@linux.ibm.com
 Subject:  +
- ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch added to
- -mm tree
-Message-ID: <20201104031109.6j0Ud%akpm@linux-foundation.org>
+ ia64-split-virtual-map-initialization-out-of-paging_init.patch added to -mm
+ tree
+Message-ID: <20201104031113.5o0Uy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
+     Subject: ia64: split virtual map initialization out of paging_init()
 has been added to the -mm tree.  Its filename is
-     ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
+     ia64-split-virtual-map-initialization-out-of-paging_init.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-split-virtual-map-initialization-out-of-paging_init.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-split-virtual-map-initialization-out-of-paging_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,15 +80,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
+Subject: ia64: split virtual map initialization out of paging_init()
 
-The maximal PFN in the system is calculated during find_memory() time and
-it is stored at max_low_pfn then.
+For both FLATMEM and DISCONTIGMEM/SPARSEMEM the virtual map initialization
+is spread over paging_init() for no good reason.
 
-Use this value in paging_init() and remove the redundant detection of
-max_pfn in that function.
+Split out the bits related to virtual map initialization to a helper
+functions, one for FLATMEM and another for !FLATMEM configurations.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-5-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -106,34 +106,120 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/discontig.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/ia64/mm/contig.c    |   34 ++++++++++++++++++++--------------
+ arch/ia64/mm/discontig.c |   37 ++++++++++++++++++++-----------------
+ 2 files changed, 40 insertions(+), 31 deletions(-)
 
---- a/arch/ia64/mm/discontig.c~ia64-discontig-paging_init-remove-local-max_pfn-calculation
+--- a/arch/ia64/mm/contig.c~ia64-split-virtual-map-initialization-out-of-paging_init
++++ a/arch/ia64/mm/contig.c
+@@ -166,21 +166,8 @@ find_memory (void)
+ 	alloc_per_cpu_data();
+ }
+ 
+-/*
+- * Set up the page tables.
+- */
+-
+-void __init
+-paging_init (void)
++static void __init virtual_map_init(void)
+ {
+-	unsigned long max_dma;
+-	unsigned long max_zone_pfns[MAX_NR_ZONES];
+-
+-	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+-	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+-	max_zone_pfns[ZONE_DMA32] = max_dma;
+-	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
+-
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+ 	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
+ 	if (max_gap < LARGE_GAP) {
+@@ -206,6 +193,25 @@ paging_init (void)
+ 		printk("Virtual mem_map starts at 0x%p\n", mem_map);
+ 	}
+ #endif /* !CONFIG_VIRTUAL_MEM_MAP */
++}
++
++/*
++ * Set up the page tables.
++ */
++
++void __init
++paging_init (void)
++{
++	unsigned long max_dma;
++	unsigned long max_zone_pfns[MAX_NR_ZONES];
++
++	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
++	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
++	max_zone_pfns[ZONE_DMA32] = max_dma;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
++
++	virtual_map_init();
++
+ 	free_area_init(max_zone_pfns);
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
+ }
+--- a/arch/ia64/mm/discontig.c~ia64-split-virtual-map-initialization-out-of-paging_init
 +++ a/arch/ia64/mm/discontig.c
-@@ -594,7 +594,6 @@ void __init paging_init(void)
+@@ -584,6 +584,25 @@ void call_pernode_memory(unsigned long s
+ 	}
+ }
+ 
++static void __init virtual_map_init(void)
++{
++#ifdef CONFIG_VIRTUAL_MEM_MAP
++	int node;
++
++	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
++		sizeof(struct page));
++	vmem_map = (struct page *) VMALLOC_END;
++	efi_memmap_walk(create_mem_map_page_table, NULL);
++	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
++
++	for_each_online_node(node) {
++		unsigned long pfn_offset = mem_data[node].min_pfn;
++
++		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
++	}
++#endif
++}
++
+ /**
+  * paging_init - setup page tables
+  *
+@@ -593,29 +612,13 @@ void call_pernode_memory(unsigned long s
+ void __init paging_init(void)
  {
  	unsigned long max_dma;
- 	unsigned long pfn_offset = 0;
--	unsigned long max_pfn = 0;
- 	int node;
+-	unsigned long pfn_offset = 0;
+-	int node;
  	unsigned long max_zone_pfns[MAX_NR_ZONES];
  
-@@ -616,13 +615,11 @@ void __init paging_init(void)
- #ifdef CONFIG_VIRTUAL_MEM_MAP
- 		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
- #endif
--		if (mem_data[node].max_pfn > max_pfn)
--			max_pfn = mem_data[node].max_pfn;
- 	}
+ 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+ 
+ 	sparse_init();
+ 
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
+-		sizeof(struct page));
+-	vmem_map = (struct page *) VMALLOC_END;
+-	efi_memmap_walk(create_mem_map_page_table, NULL);
+-	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
+-#endif
+-
+-	for_each_online_node(node) {
+-		pfn_offset = mem_data[node].min_pfn;
+-
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
+-#endif
+-	}
++	virtual_map_init();
  
  	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
  	max_zone_pfns[ZONE_DMA32] = max_dma;
--	max_zone_pfns[ZONE_NORMAL] = max_pfn;
-+	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- 	free_area_init(max_zone_pfns);
- 
- 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
