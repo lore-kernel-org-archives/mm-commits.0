@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F8D5C2D0A3
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 22:17:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D21AFC2D0A3
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:17:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19F71206F9
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 22:17:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7279A20867
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:17:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604701021;
-	bh=ZXswNsuRNyVZBnc9ksjDeTql3h1sBpEEU+RYRuzZtXQ=;
+	s=default; t=1604704645;
+	bh=OIEe56Wd06bT9IsMygYMO9f5wrkcizA1o9glxTGhmmE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wRCij4qYPDm/jQrIilXJ9JO4D70ewbtAis1kPTHZFfKEMQK6wku1Wzl7eom2BW/L/
-	 wzeV7PlnEOQnALcN579IGUSkV47HEpIlvOpVIS4IzapWu+SgchpcGy4LQiCTZMA4Y4
-	 9Ino9pPPIirZEQSdhDlUir8e5NfSOkYeivnwx38g=
+	b=AkpwRMeADYcKsRCG9Q6B85Bw0x1K0WD+4SiJgTXgPL2g/CRvbmUuHlJzoqaU8H5A3
+	 wjw3r+kdtMbTl6wcZnR9lM4NuEW8hUXD3CAJJvqZxzNaDq6DSIcqfYIjiDuiccdo0z
+	 Wd22sH27D+8SiswsG2QyDA5V2iCzGGf7g7EnZoAM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728131AbgKFWRA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Nov 2020 17:17:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40338 "EHLO mail.kernel.org"
+        id S1728097AbgKFXRY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Nov 2020 18:17:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728520AbgKFWRA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Nov 2020 17:17:00 -0500
+        id S1728014AbgKFXRY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 6 Nov 2020 18:17:24 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6E272206C1;
-        Fri,  6 Nov 2020 22:16:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B5FD2206A5;
+        Fri,  6 Nov 2020 23:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604701019;
-        bh=ZXswNsuRNyVZBnc9ksjDeTql3h1sBpEEU+RYRuzZtXQ=;
+        s=default; t=1604704643;
+        bh=OIEe56Wd06bT9IsMygYMO9f5wrkcizA1o9glxTGhmmE=;
         h=Date:From:To:Subject:From;
-        b=HuJpU/qjNpD2F2mv3Rv1D5q4EWWvvqZSQdcOOLGgo3G9t5U2C/lXCtJoIWGOvpe34
-         cwTUKlZq4Ys8Zt28r+rTu+KF8nY8Xnn6F4vKWqvWTL1EJHfPSn/svTTAkzAGCZ/jyg
-         3W76eZezE0OLqrxYWLNEvu6NEBzfbpWvKyp0BTC4=
-Date:   Fri, 06 Nov 2020 14:16:58 -0800
+        b=GntLjRm9mhPtycBTzTaZBRA7RdxJzIMUzWj4QBGJu7vf+tG2CIfkefgeV+CMpoNQ+
+         VJbEzrit4nb+eTQQ5nEjTu17qIQBr2jeU02PUiVIdSaVypS1WzuMkDgDkbAjMuXMwL
+         prxDN4R6ZYSvvNIu0s3OZVW296r52kC7VUhEOfNs=
+Date:   Fri, 06 Nov 2020 15:17:23 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, pbonzini@redhat.com,
-        shakeelb@google.com
-Subject:  + mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch added to
- -mm tree
-Message-ID: <20201106221658.aHqNx4vDs%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, mm-commits@vger.kernel.org
+Subject:  +
+ mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch added
+ to -mm tree
+Message-ID: <20201106231723.Hxk-LVciS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kvm: account kvm_vcpu_mmap to kmemcg
+     Subject: mm/filemap: add static for function __add_to_page_cache_locked
 has been added to the -mm tree.  Its filename is
-     mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
+     mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,80 +74,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm, kvm: account kvm_vcpu_mmap to kmemcg
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/filemap: add static for function __add_to_page_cache_locked
 
-A VCPU of a VM can allocate couple of pages which can be mmap'ed by the
-user space application. At the moment this memory is not charged to the
-memcg of the VMM. On a large machine running large number of VMs or
-small number of VMs having large number of VCPUs, this unaccounted
-memory can be very significant. So, charge this memory to the memcg of
-the VMM. Please note that lifetime of these allocations corresponds to
-the lifetime of the VMM.
+../mm/filemap.c:830:14: warning: no previous prototype for
+`__add_to_page_cache_locked' [-Wmissing-prototypes]
+ noinline int __add_to_page_cache_locked(struct page *page,
 
-Link: https://lkml.kernel.org/r/20201106202923.2087414-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+Link: https://lkml.kernel.org/r/1604661895-5495-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kvm/kvm-s390.c  |    2 +-
- arch/x86/kvm/x86.c        |    2 +-
- virt/kvm/coalesced_mmio.c |    2 +-
- virt/kvm/kvm_main.c       |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/kvm/kvm-s390.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
-+++ a/arch/s390/kvm/kvm-s390.c
-@@ -3243,7 +3243,7 @@ int kvm_arch_vcpu_create(struct kvm_vcpu
- 	int rc;
+--- a/mm/filemap.c~mm-filemap-add-static-for-function-__add_to_page_cache_locked
++++ a/mm/filemap.c
+@@ -827,7 +827,7 @@ int replace_page_cache_page(struct page
+ }
+ EXPORT_SYMBOL_GPL(replace_page_cache_page);
  
- 	BUILD_BUG_ON(sizeof(struct sie_page) != 4096);
--	sie_page = (struct sie_page *) get_zeroed_page(GFP_KERNEL);
-+	sie_page = (struct sie_page *) get_zeroed_page(GFP_KERNEL_ACCOUNT);
- 	if (!sie_page)
- 		return -ENOMEM;
- 
---- a/arch/x86/kvm/x86.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
-+++ a/arch/x86/kvm/x86.c
-@@ -9829,7 +9829,7 @@ int kvm_arch_vcpu_create(struct kvm_vcpu
- 
- 	r = -ENOMEM;
- 
--	page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-+	page = alloc_page(GFP_KERNEL_ACCOUNT | __GFP_ZERO);
- 	if (!page)
- 		goto fail_free_lapic;
- 	vcpu->arch.pio_data = page_address(page);
---- a/virt/kvm/coalesced_mmio.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
-+++ a/virt/kvm/coalesced_mmio.c
-@@ -111,7 +111,7 @@ int kvm_coalesced_mmio_init(struct kvm *
- {
- 	struct page *page;
- 
--	page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-+	page = alloc_page(GFP_KERNEL_ACCOUNT | __GFP_ZERO);
- 	if (!page)
- 		return -ENOMEM;
- 
---- a/virt/kvm/kvm_main.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
-+++ a/virt/kvm/kvm_main.c
-@@ -3116,7 +3116,7 @@ static int kvm_vm_ioctl_create_vcpu(stru
- 	}
- 
- 	BUILD_BUG_ON(sizeof(struct kvm_run) > PAGE_SIZE);
--	page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-+	page = alloc_page(GFP_KERNEL_ACCOUNT | __GFP_ZERO);
- 	if (!page) {
- 		r = -ENOMEM;
- 		goto vcpu_free;
+-noinline int __add_to_page_cache_locked(struct page *page,
++static noinline int __add_to_page_cache_locked(struct page *page,
+ 					struct address_space *mapping,
+ 					pgoff_t offset, gfp_t gfp,
+ 					void **shadowp)
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-rmap-always-do-ttu_ignore_access.patch
-mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
 
