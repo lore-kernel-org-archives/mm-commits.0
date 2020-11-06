@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F5FBC2D0A3
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E1EAC4741F
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:51:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC32120882
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:50:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8BA822202
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:51:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604706622;
-	bh=AjnK6XxwL68L6W9SNHZCL6ZLt+KrGO8eLiar10kKk6g=;
+	s=default; t=1604706700;
+	bh=JMkCLspYTQVs5M67NZBJWaK1kM+Bc2R5mB0m53RBprk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=l1p1TyeRyTVJ2QyvmzU3OJcLlvJWWa3L+sX6TxrDeqb66bXTl8rNRU6fhaih+Myha
-	 Wq+ScbIXJQuxUA9rufwQLJQxi0l98/rhHdUdrgP3rWmFiJiNOuUg7aIMHVUw/9j3XS
-	 8yBoIwSKROyKHKD1Uzk6Fo7ba02WD1J4gakIXu88=
+	b=shX7bBiz7euhI67AlroO50VqokP03ahJ2GcF+a4S8MyN6fAGnq1evYHhpb5/1V8Tl
+	 Nx741o27krNJtwEDdtFJ6RYZPCAGthpTF8mzMhIRJ3G9g8Ou1NMdy5QmKuTI41JCNf
+	 Swl+HlRL2vDs/VTj2JtQNSTbptCTjIl/jQrbCgiI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726880AbgKFXuW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Nov 2020 18:50:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58360 "EHLO mail.kernel.org"
+        id S1728060AbgKFXvi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Nov 2020 18:51:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726415AbgKFXuV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Nov 2020 18:50:21 -0500
+        id S1727916AbgKFXv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 6 Nov 2020 18:51:27 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DEDD620704;
-        Fri,  6 Nov 2020 23:50:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C99922071A;
+        Fri,  6 Nov 2020 23:51:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604706621;
-        bh=AjnK6XxwL68L6W9SNHZCL6ZLt+KrGO8eLiar10kKk6g=;
+        s=default; t=1604706687;
+        bh=JMkCLspYTQVs5M67NZBJWaK1kM+Bc2R5mB0m53RBprk=;
         h=Date:From:To:Subject:From;
-        b=qo56TIwx5E/vy3Ld1eqKx7Uzbx2qEMrVqNA+LWaAHUvyzB7oqJFyWGATpph5VoiRu
-         s/XLyA09bol/vsI3wMUO/N5fkH9pVYa/ORoM1nugwpwJKL2rDacn4hp0LWcqV4a4Gg
-         eOmVj9yGnk0W7fHfkoWUNyOhOSUInO7f0vp9fFIs=
-Date:   Fri, 06 Nov 2020 15:50:20 -0800
+        b=ylIOz3e95ZIza0d2ipQaISHV+8le2JG7TjTz8fklHlRDAqAyoQpWqA9o+0avbJw3+
+         jRr6k89BNvm8jS1FqcCU72zuWJuZdj/KkZnNfjQKDOzx1Vw+RndRdZEAHuupxn8ODf
+         14zC8Lf0+MyFtpcqYWdZT5by3QKbSZ/u/xgZOml4=
+Date:   Fri, 06 Nov 2020 15:51:26 -0800
 From:   akpm@linux-foundation.org
-To:     amistry@google.com, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au
+To:     mm-commits@vger.kernel.org, pmladek@suse.com, santosh@fossix.org,
+        tglx@linutronix.de
 Subject:  +
- proc-provide-details-on-indirect-branch-speculation-v2.patch added to -mm
- tree
-Message-ID: <20201106235020.0JpZcbcTg%akpm@linux-foundation.org>
+ kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning.patch added to
+ -mm tree
+Message-ID: <20201106235126.aAvdXISKX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-provide-details-on-indirect-branch-speculation-v2
+     Subject: kernel/watchdog: fix watchdog_allowed_mask not used warning
 has been added to the -mm tree.  Its filename is
-     proc-provide-details-on-indirect-branch-speculation-v2.patch
+     kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-provide-details-on-indirect-branch-speculation-v2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-provide-details-on-indirect-branch-speculation-v2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,56 +75,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anand K Mistry <amistry@google.com>
-Subject: proc-provide-details-on-indirect-branch-speculation-v2
+From: Santosh Sivaraj <santosh@fossix.org>
+Subject: kernel/watchdog: fix watchdog_allowed_mask not used warning
 
-remove underscores from field name to workaround documentation issue
+Define watchdog_allowed_mask only when SOFTLOCKUP_DETECTOR is enabled.
 
-Link: https://lkml.kernel.org/r/20201106131015.v2.1.I7782b0cedb705384a634cfd8898eb7523562da99@changeid
-Signed-off-by: Anand K Mistry <amistry@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20201106015025.1281561-1-santosh@fossix.org
+Fixes: 7feeb9cd4f5b ("watchdog/sysctl: Clean up sysctl variable name space")
+Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    4 ++--
- fs/proc/array.c                    |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/watchdog.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~proc-provide-details-on-indirect-branch-speculation-v2
-+++ a/Documentation/filesystems/proc.rst
-@@ -210,7 +210,7 @@ read the file /proc/PID/status::
-   NoNewPrivs:     0
-   Seccomp:        0
-   Speculation_Store_Bypass:       thread vulnerable
--  Speculation_Indirect_Branch:    conditional enabled
-+  SpeculationIndirectBranch:      conditional enabled
-   voluntary_ctxt_switches:        0
-   nonvoluntary_ctxt_switches:     1
+--- a/kernel/watchdog.c~kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning
++++ a/kernel/watchdog.c
+@@ -44,8 +44,6 @@ int __read_mostly soft_watchdog_user_ena
+ int __read_mostly watchdog_thresh = 10;
+ static int __read_mostly nmi_watchdog_available;
  
-@@ -293,7 +293,7 @@ It's slow but very precise.
-  NoNewPrivs                  no_new_privs, like prctl(PR_GET_NO_NEW_PRIV, ...)
-  Seccomp                     seccomp mode, like prctl(PR_GET_SECCOMP, ...)
-  Speculation_Store_Bypass    speculative store bypass mitigation status
-- Speculation_Indirect_Branch indirect branch speculation mode
-+ SpeculationIndirectBranch   indirect branch speculation mode
-  Cpus_allowed                mask of CPUs on which this process may run
-  Cpus_allowed_list           Same as previous, but in "list format"
-  Mems_allowed                mask of memory nodes allowed to this process
---- a/fs/proc/array.c~proc-provide-details-on-indirect-branch-speculation-v2
-+++ a/fs/proc/array.c
-@@ -369,7 +369,7 @@ static inline void task_seccomp(struct s
- 		break;
- 	}
+-static struct cpumask watchdog_allowed_mask __read_mostly;
+-
+ struct cpumask watchdog_cpumask __read_mostly;
+ unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
  
--	seq_puts(m, "\nSpeculation_Indirect_Branch:\t");
-+	seq_puts(m, "\nSpeculationIndirectBranch:\t");
- 	switch (arch_prctl_spec_ctrl_get(p, PR_SPEC_INDIRECT_BRANCH)) {
- 	case -EINVAL:
- 		seq_puts(m, "unsupported");
+@@ -162,6 +160,8 @@ static void lockup_detector_update_enabl
+ int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ #endif
+ 
++static struct cpumask watchdog_allowed_mask __read_mostly;
++
+ /* Global variables, exported for sysctl */
+ unsigned int __read_mostly softlockup_panic =
+ 			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
 _
 
-Patches currently in -mm which might be from amistry@google.com are
+Patches currently in -mm which might be from santosh@fossix.org are
 
-proc-provide-details-on-indirect-branch-speculation.patch
-proc-provide-details-on-indirect-branch-speculation-v2.patch
+kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning.patch
 
