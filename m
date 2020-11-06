@@ -7,44 +7,49 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D21AFC2D0A3
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:17:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA2E1C2D0A3
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:25:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7279A20867
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:17:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EB032087E
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Nov 2020 23:25:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604704645;
-	bh=OIEe56Wd06bT9IsMygYMO9f5wrkcizA1o9glxTGhmmE=;
+	s=default; t=1604705132;
+	bh=E3hPVPCSTJJtMVjgjo0sks/H7Nq+doVTl2Hp+ESvEkA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=AkpwRMeADYcKsRCG9Q6B85Bw0x1K0WD+4SiJgTXgPL2g/CRvbmUuHlJzoqaU8H5A3
-	 wjw3r+kdtMbTl6wcZnR9lM4NuEW8hUXD3CAJJvqZxzNaDq6DSIcqfYIjiDuiccdo0z
-	 Wd22sH27D+8SiswsG2QyDA5V2iCzGGf7g7EnZoAM=
+	b=Z0yndfH50whioTA4t+0nFPULBkirPJmrH6nUvsLdyh2hsEly2Akf7ND7NhNQlnmL1
+	 MdGlefMQM2PIuOKXUeM2meEceM7O8HoXFXSGuUtguim1OXKUAn9eyi5W9rwWvqgEtM
+	 hCMU+fDfX3Y2O7Oh0GyHiGkAX4ppG5zv6a7HPRZ4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728097AbgKFXRY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Nov 2020 18:17:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51886 "EHLO mail.kernel.org"
+        id S1728131AbgKFXZc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Nov 2020 18:25:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728014AbgKFXRY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Nov 2020 18:17:24 -0500
+        id S1727859AbgKFXZb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 6 Nov 2020 18:25:31 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B5FD2206A5;
-        Fri,  6 Nov 2020 23:17:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 43FD8206CB;
+        Fri,  6 Nov 2020 23:25:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604704643;
-        bh=OIEe56Wd06bT9IsMygYMO9f5wrkcizA1o9glxTGhmmE=;
+        s=default; t=1604705130;
+        bh=E3hPVPCSTJJtMVjgjo0sks/H7Nq+doVTl2Hp+ESvEkA=;
         h=Date:From:To:Subject:From;
-        b=GntLjRm9mhPtycBTzTaZBRA7RdxJzIMUzWj4QBGJu7vf+tG2CIfkefgeV+CMpoNQ+
-         VJbEzrit4nb+eTQQ5nEjTu17qIQBr2jeU02PUiVIdSaVypS1WzuMkDgDkbAjMuXMwL
-         prxDN4R6ZYSvvNIu0s3OZVW296r52kC7VUhEOfNs=
-Date:   Fri, 06 Nov 2020 15:17:23 -0800
+        b=1X3CSnXjGe5Tal7OhdFmDhNrdmsA5U7vX2V8SrYwHObZHFJFXwG7Vu+b3aq/UVTce
+         PE8MpmsgpqoYbFg24mv5SLp/A+25y0s7wv7OznIpAw0zTMNZdh4wCu3TzlDU9aE8Mz
+         7nchfHjYPd3mGMtTDzfcUfSojrTiD0sUxIpBRRYM=
+Date:   Fri, 06 Nov 2020 15:25:29 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, mm-commits@vger.kernel.org
+To:     benh@kernel.crashing.org, dan.j.williams@intel.com,
+        fenghua.yu@intel.com, hch@infradead.org, hch@lst.de,
+        joao.m.martins@oracle.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
+        rdunlap@infradead.org, sfr@canb.auug.org.au, tglx@linutronix.de,
+        tony.luck@intel.com, vishal.l.verma@intel.com
 Subject:  +
- mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch added
- to -mm tree
-Message-ID: <20201106231723.Hxk-LVciS%akpm@linux-foundation.org>
+ mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
+ added to -mm tree
+Message-ID: <20201106232529.dMHg72Pfw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: add static for function __add_to_page_cache_locked
+     Subject: mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
 has been added to the -mm tree.  Its filename is
-     mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,37 +79,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/filemap: add static for function __add_to_page_cache_locked
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
 
-../mm/filemap.c:830:14: warning: no previous prototype for
-`__add_to_page_cache_locked' [-Wmissing-prototypes]
- noinline int __add_to_page_cache_locked(struct page *page,
+(Stephen) PowerPC header include dependencies make it difficult to include
+asm/sparsemem.h in linux/numa.h due to missing definition of pgprot.  Move
+the declaration of create_section_mapping() to asm/mmzone.h.  This has
+received a build success notification from the kbuild-robot over 159
+configs.
 
-Link: https://lkml.kernel.org/r/1604661895-5495-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/160461461867.1505359.5301571728749534585.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/include/asm/mmzone.h    |    2 ++
+ arch/powerpc/include/asm/sparsemem.h |    2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-add-static-for-function-__add_to_page_cache_locked
-+++ a/mm/filemap.c
-@@ -827,7 +827,7 @@ int replace_page_cache_page(struct page
- }
- EXPORT_SYMBOL_GPL(replace_page_cache_page);
+--- a/arch/powerpc/include/asm/mmzone.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
++++ a/arch/powerpc/include/asm/mmzone.h
+@@ -33,6 +33,8 @@ extern struct pglist_data *node_data[];
+ extern int numa_cpu_lookup_table[];
+ extern cpumask_var_t node_to_cpumask_map[];
+ #ifdef CONFIG_MEMORY_HOTPLUG
++extern int create_section_mapping(unsigned long start, unsigned long end,
++				  int nid, pgprot_t prot);
+ extern unsigned long max_pfn;
+ u64 memory_hotplug_max(void);
+ #else
+--- a/arch/powerpc/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
++++ a/arch/powerpc/include/asm/sparsemem.h
+@@ -13,8 +13,6 @@
+ #endif /* CONFIG_SPARSEMEM */
  
--noinline int __add_to_page_cache_locked(struct page *page,
-+static noinline int __add_to_page_cache_locked(struct page *page,
- 					struct address_space *mapping,
- 					pgoff_t offset, gfp_t gfp,
- 					void **shadowp)
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-extern int create_section_mapping(unsigned long start, unsigned long end,
+-				  int nid, pgprot_t prot);
+ extern int remove_section_mapping(unsigned long start, unsigned long end);
+ extern int memory_add_physaddr_to_nid(u64 start);
+ #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
+device-dax-kmem-use-struct_size.patch
+xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
 
