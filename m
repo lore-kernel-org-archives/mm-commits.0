@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1ECAC55178
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1AEAC388F9
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D74C221FA
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81DDC2151B
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604797536;
-	bh=KDTNn2Uoj9tnuWbuU8oif43vwrKAsFwQw6zJzEKSrOQ=;
+	s=default; t=1604797538;
+	bh=gfphuj/Qy7VFML3Q0w+wAdsVsKZQKVLGF54gLBXBw7Q=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=TsJisXundG7VgvjNpjTSOzlwrKuvYMysNilKnpUq16Oosxw6oNFbt83apR8dbsipk
-	 YyW6LcOtgohXjcvaUh+23VrnyWPoKjNU24s+JcmuG2gOE74emFGAOVUvgWZb4KO+sg
-	 CStSfq2QYot0YE2nIMRXXW9Z1CaSTJC7YE1txlcA=
+	b=c7tmmHoDNEQCgC1SyhMfM4thTFVgAemSj00IITnrYLRkIrbJMnIIH/FAG9jU6n/lK
+	 NTjLJLivAm2/97shjq3i7fpb0NnSH7CfZnHd3i63nzlTB0WhmEY6XTrTJ5r+nd4eCx
+	 CD8zWXE3Wv4PZUOjDrrDi5epznW4BYfaqmn4PBFg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726053AbgKHBFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Nov 2020 20:05:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47562 "EHLO mail.kernel.org"
+        id S1728276AbgKHBFi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Nov 2020 20:05:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47590 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726257AbgKHBFg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Nov 2020 20:05:36 -0500
+        id S1726257AbgKHBFi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Nov 2020 20:05:38 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D5A8520885;
-        Sun,  8 Nov 2020 01:05:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DDDF4221F7;
+        Sun,  8 Nov 2020 01:05:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604797535;
-        bh=KDTNn2Uoj9tnuWbuU8oif43vwrKAsFwQw6zJzEKSrOQ=;
+        s=default; t=1604797537;
+        bh=gfphuj/Qy7VFML3Q0w+wAdsVsKZQKVLGF54gLBXBw7Q=;
         h=Date:From:To:Subject:From;
-        b=OpECgMu5zYOCXdXrSNtVtjbtfODbQhEra1uSAFaFH1JCMvoHD0BdCOFECSQlWM9CF
-         lGU9NsN6bT6n4YWTmgzyBXuiDvq/bAMwgNFNrbzo4EfWrCGaiR1by07uQAIPNdJkoz
-         uIux95MNBPswR5tYWAHCZSBzzYDGP87Nbx2kN7Ks=
-Date:   Sat, 07 Nov 2020 17:05:34 -0800
+        b=NHpv7Zakif/d1OUE0zHPXhaDSasV/VbiSDX8QelcgxUyvAv2IRIOwoqiOS5My8Y9y
+         ZgF6CXknw/40ZHDhIMXjPK1SzNDsLjXQw1brhUhSednUDi6ZKWlVNwMOUVJdMI55R4
+         fcKnk+Ald39gwV0bALY7k+0iFPge4JI4JUht6X1o=
+Date:   Sat, 07 Nov 2020 17:05:36 -0800
 From:   akpm@linux-foundation.org
 To:     edumazet@google.com, guantaol@google.com, khazhy@google.com,
         mm-commits@vger.kernel.org, soheil@google.com,
         torvalds@linux-foundation.org, willemb@google.com
-Subject:  + epoll-replace-gotos-with-a-proper-loop.patch added to
- -mm tree
-Message-ID: <20201108010534.fB7_puyn7%akpm@linux-foundation.org>
+Subject:  + epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+ added to -mm tree
+Message-ID: <20201108010536.7P0HaL0OX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: replace gotos with a proper loop
+     Subject: epoll: eliminate unnecessary lock for zero timeout
 has been added to the -mm tree.  Its filename is
-     epoll-replace-gotos-with-a-proper-loop.patch
+     epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/epoll-replace-gotos-with-a-proper-loop.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-replace-gotos-with-a-proper-loop.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,97 +76,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Soheil Hassas Yeganeh <soheil@google.com>
-Subject: epoll: replace gotos with a proper loop
+Subject: epoll: eliminate unnecessary lock for zero timeout
 
-The existing loop is pointless, and the labels make it really hard to
-follow the structure.
+We call ep_events_available() under lock when timeout is 0, and then call
+it without locks in the loop for the other cases.
 
-Replace that control structure with a simple loop that returns when there
-are new events, there is a signal, or the thread has timed out.
+Instead, call ep_events_available() without lock for all cases.  For
+non-zero timeouts, we will recheck after adding the thread to the wait
+queue.  For zero timeout cases, by definition, user is opportunistically
+polling and will have to call epoll_wait again in the future.
 
-Link: https://lkml.kernel.org/r/20201106231635.3528496-8-soheil.kdev@gmail.com
+Note that this lock was kept in c5a282e9635e9 because the whole loop was
+historically under lock.
+
+This patch results in a 1% CPU/RPC reduction in RPC benchmarks.
+
+Link: https://lkml.kernel.org/r/20201106231635.3528496-9-soheil.kdev@gmail.com
 Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Suggested-by: Eric Dumazet <edumazet@google.com>
 Reviewed-by: Eric Dumazet <edumazet@google.com>
 Reviewed-by: Willem de Bruijn <willemb@google.com>
 Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
 Cc: Guantao Liu <guantaol@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   42 +++++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ fs/eventpoll.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
---- a/fs/eventpoll.c~epoll-replace-gotos-with-a-proper-loop
+--- a/fs/eventpoll.c~epoll-eliminate-unnecessary-lock-for-zero-timeout
 +++ a/fs/eventpoll.c
 @@ -1830,7 +1830,7 @@ static inline struct timespec64 ep_set_m
  static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
  		   int maxevents, long timeout)
  {
--	int res, eavail, timed_out = 0;
-+	int res, eavail = 0, timed_out = 0;
+-	int res, eavail = 0, timed_out = 0;
++	int res, eavail, timed_out = 0;
  	u64 slack = 0;
  	wait_queue_entry_t wait;
  	ktime_t expires, *to = NULL;
-@@ -1856,18 +1856,30 @@ static int ep_poll(struct eventpoll *ep,
- 		write_lock_irq(&ep->lock);
- 		eavail = ep_events_available(ep);
- 		write_unlock_irq(&ep->lock);
+@@ -1846,18 +1846,21 @@ static int ep_poll(struct eventpoll *ep,
+ 	} else if (timeout == 0) {
+ 		/*
+ 		 * Avoid the unnecessary trip to the wait queue loop, if the
+-		 * caller specified a non blocking operation. We still need
+-		 * lock because we could race and not see an epi being added
+-		 * to the ready list while in irq callback. Thus incorrectly
+-		 * returning 0 back to userspace.
++		 * caller specified a non blocking operation.
+ 		 */
+ 		timed_out = 1;
 -
--		goto send_events;
+-		write_lock_irq(&ep->lock);
+-		eavail = ep_events_available(ep);
+-		write_unlock_irq(&ep->lock);
  	}
  
--fetch_events:
--	do {
-+	while (1) {
-+		if (eavail) {
-+			/*
-+			 * Try to transfer events to user space. In case we get
-+			 * 0 events and there's still timeout left over, we go
-+			 * trying again in search of more luck.
-+			 */
-+			res = ep_send_events(ep, events, maxevents);
-+			if (res)
-+				return res;
-+		}
++	/*
++	 * This call is racy: We may or may not see events that are being added
++	 * to the ready list under the lock (e.g., in IRQ callbacks). For, cases
++	 * with a non-zero timeout, this thread will check the ready list under
++	 * lock and will added to the wait queue.  For, cases with a zero
++	 * timeout, the user by definition should not care and will have to
++	 * recheck again.
++	 */
++	eavail = ep_events_available(ep);
 +
-+		if (timed_out)
-+			return 0;
-+
- 		eavail = ep_events_available(ep);
--		if (!eavail)
--			eavail = ep_busy_loop(ep, timed_out);
-+		if (eavail)
-+			continue;
+ 	while (1) {
+ 		if (eavail) {
+ 			/*
+@@ -1873,10 +1876,6 @@ static int ep_poll(struct eventpoll *ep,
+ 		if (timed_out)
+ 			return 0;
  
-+		eavail = ep_busy_loop(ep, timed_out);
+-		eavail = ep_events_available(ep);
+-		if (eavail)
+-			continue;
+-
+ 		eavail = ep_busy_loop(ep, timed_out);
  		if (eavail)
--			goto send_events;
-+			continue;
- 
- 		if (signal_pending(current))
- 			return -EINTR;
-@@ -1932,19 +1944,7 @@ fetch_events:
- 			__remove_wait_queue(&ep->wq, &wait);
- 			write_unlock_irq(&ep->lock);
- 		}
--	} while (0);
--
--send_events:
--	/*
--	 * Try to transfer events to user space. In case we get 0 events and
--	 * there's still timeout left over, we go trying again in search of
--	 * more luck.
--	 */
--	if (eavail &&
--	    !(res = ep_send_events(ep, events, maxevents)) && !timed_out)
--		goto fetch_events;
--
--	return res;
-+	}
- }
- 
- /**
+ 			continue;
 _
 
 Patches currently in -mm which might be from soheil@google.com are
