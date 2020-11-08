@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87CB0C388F9
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 00:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48ECCC388F9
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 00:58:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4336120B1F
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 00:57:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 078182151B
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 00:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604797028;
-	bh=HeapIco4EdLY4C1foQ2CVSOcm1YEarIgsG+WzlLX3MM=;
+	s=default; t=1604797106;
+	bh=FBr7aq7j7wF8H4uQRsGkHxqOCBZut9JENU34Rx8zuJk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=v8oGEtx2d1i4Q6kApjeuLz4THjqFFDtpzOwRqwddjwQ+2owy93yFTp/qlaYWEhHrz
-	 rR4t8zm0jA1BgOt/vZh9zEU7KHWlN2dUtQKc1R3b8pod3rt91ObEqqJK49ws/fyGE4
-	 woHQaeJYO0gCNAjXwVsQyb1xV1bJBNlxgTZmIWUQ=
+	b=f/SwW0Z/KceoGuwKdvaEJBnhwsyyPAXAoHfMDu5RTs35AwLOReg1eQFYLa+536QJi
+	 XKH7DofIWRQooYjhbg50JJ1sNl89b/57n3PvFTxFgXDHy5kiFINRB3XMutMLL4Yq1Y
+	 uRO5li9mQ0P1sUjLauzStjdMuvySPuW6lP7rCBWY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728279AbgKHA5H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Nov 2020 19:57:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46206 "EHLO mail.kernel.org"
+        id S1726043AbgKHA6Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Nov 2020 19:58:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727871AbgKHA5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Nov 2020 19:57:07 -0500
+        id S1725838AbgKHA6Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Nov 2020 19:58:25 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C2AB720885;
-        Sun,  8 Nov 2020 00:57:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AA2BA20885;
+        Sun,  8 Nov 2020 00:58:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604797026;
-        bh=HeapIco4EdLY4C1foQ2CVSOcm1YEarIgsG+WzlLX3MM=;
+        s=default; t=1604797104;
+        bh=FBr7aq7j7wF8H4uQRsGkHxqOCBZut9JENU34Rx8zuJk=;
         h=Date:From:To:Subject:From;
-        b=eDQDnwblHmuJC5dpDpEeEOdZ7zTe5AC8XRIKkTduqxFvLLkrRzpZSKMlP0Am+SZJK
-         owMhUTWz9fkOLQBlLoLTJFM0yQY2zb2ODfRqldg7lO2zQpBIiZOTI6/tw9iLsxGUXv
-         Z+lsAYmIuB2bCzmO2RQu67WWU76m/73zDN6YP1gE=
-Date:   Sat, 07 Nov 2020 16:57:06 -0800
+        b=AIWA3kLLlqK3hz03GOZia9mjOUlpZ8w8A3piU5Ip4rUcQlvz/kg6F5No8eJg5n2Tp
+         KrDLAW8e59uMRx3Yk9ixjWldpPFI45FaIemmeXHbUH6Xr41Y7bvR+u0DgJrg0nrIku
+         Y5kdmk9++79uP1AScL3ILO5otuaFas+vvPVxw99g=
+Date:   Sat, 07 Nov 2020 16:58:24 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, stefan@agner.ch
-Subject:  +
- mm-zsmalloc-include-sparsememh-for-max_physmem_bits.patch added to -mm tree
-Message-ID: <20201108005706.TCYIGo7sg%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vdavydov.dev@gmail.com
+Subject:  + mm-memcg-update-page-struct-member-in-comments.patch
+ added to -mm tree
+Message-ID: <20201108005824.vu7xh6K3n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: include sparsemem.h for MAX_PHYSMEM_BITS
+     Subject: mm/memcg: update page struct member in comments
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-include-sparsememh-for-max_physmem_bits.patch
+     mm-memcg-update-page-struct-member-in-comments.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-include-sparsememh-for-max_physmem_bits.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-update-page-struct-member-in-comments.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-include-sparsememh-for-max_physmem_bits.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-update-page-struct-member-in-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,79 +75,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefan Agner <stefan@agner.ch>
-Subject: mm/zsmalloc: include sparsemem.h for MAX_PHYSMEM_BITS
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: update page struct member in comments
 
-Most architectures define MAX_PHYSMEM_BITS in asm/sparsemem.h and don't
-include it in asm/pgtable.h.  Include asm/sparsemem.h directly to get the
-MAX_PHYSMEM_BITS define on all architectures.
+The page->mem_cgroup member is replaced by memcg_data, and add a helper
+page_memcg() for it.  Need to update comments to avoid confusing.
 
-This fixes a crash when accessing zram on 32-bit ARM platform with LPAE and
-more than 4GB of memory:
-  Unable to handle kernel NULL pointer dereference at virtual address 00000000
-  pgd = a27bd01c
-  [00000000] *pgd=236a0003, *pmd=1ffa64003
-  Internal error: Oops: 207 [#1] SMP ARM
-  Modules linked in: mdio_bcm_unimac(+) brcmfmac cfg80211 brcmutil raspberrypi_hwmon hci_uart crc32_arm_ce bcm2711_thermal phy_generic genet
-  CPU: 0 PID: 123 Comm: mkfs.ext4 Not tainted 5.9.6 #1
-  Hardware name: BCM2711
-  PC is at zs_map_object+0x94/0x338
-  LR is at zram_bvec_rw.constprop.0+0x330/0xa64
-  pc : [<c0602b38>]    lr : [<c0bda6a0>]    psr: 60000013
-  sp : e376bbe0  ip : 00000000  fp : c1e2921c
-  r10: 00000002  r9 : c1dda730  r8 : 00000000
-  r7 : e8ff7a00  r6 : 00000000  r5 : 02f9ffa0  r4 : e3710000
-  r3 : 000fdffe  r2 : c1e0ce80  r1 : ebf979a0  r0 : 00000000
-  Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-  Control: 30c5383d  Table: 235c2a80  DAC: fffffffd
-  Process mkfs.ext4 (pid: 123, stack limit = 0x495a22e6)
-  Stack: (0xe376bbe0 to 0xe376c000)
-  ...
-  [<c0602b38>] (zs_map_object) from [<c0bda6a0>] (zram_bvec_rw.constprop.0+0x330/0xa64)
-  [<c0bda6a0>] (zram_bvec_rw.constprop.0) from [<c0bdaf78>] (zram_submit_bio+0x1a4/0x40c)
-  [<c0bdaf78>] (zram_submit_bio) from [<c085806c>] (submit_bio_noacct+0xd0/0x3c8)
-  [<c085806c>] (submit_bio_noacct) from [<c08583b0>] (submit_bio+0x4c/0x190)
-  [<c08583b0>] (submit_bio) from [<c06496b4>] (submit_bh_wbc+0x188/0x1b8)
-  [<c06496b4>] (submit_bh_wbc) from [<c064ce98>] (__block_write_full_page+0x340/0x5e4)
-  [<c064ce98>] (__block_write_full_page) from [<c064d3ec>] (block_write_full_page+0x128/0x170)
-  [<c064d3ec>] (block_write_full_page) from [<c0591ae8>] (__writepage+0x14/0x68)
-  [<c0591ae8>] (__writepage) from [<c0593efc>] (write_cache_pages+0x1bc/0x494)
-  [<c0593efc>] (write_cache_pages) from [<c059422c>] (generic_writepages+0x58/0x8c)
-  [<c059422c>] (generic_writepages) from [<c0594c24>] (do_writepages+0x48/0xec)
-  [<c0594c24>] (do_writepages) from [<c0589330>] (__filemap_fdatawrite_range+0xf0/0x128)
-  [<c0589330>] (__filemap_fdatawrite_range) from [<c05894bc>] (file_write_and_wait_range+0x48/0x98)
-  [<c05894bc>] (file_write_and_wait_range) from [<c064f3f8>] (blkdev_fsync+0x1c/0x44)
-  [<c064f3f8>] (blkdev_fsync) from [<c064408c>] (do_fsync+0x3c/0x70)
-  [<c064408c>] (do_fsync) from [<c0400374>] (__sys_trace_return+0x0/0x2c)
-  Exception stack(0xe376bfa8 to 0xe376bff0)
-  bfa0:                   0003d2e0 b6f7b6f0 00000003 00046e40 00001000 00000000
-  bfc0: 0003d2e0 b6f7b6f0 00000000 00000076 00000000 00000000 befcbb20 befcbb28
-  bfe0: b6f4e060 befcbad8 b6f23e0c b6dc4a80
-  Code: e5927000 e0050391 e0871005 e5918018 (e5983000)
-
-Link: https://lkml.kernel.org/r/bdfa44bf1c570b05d6c70898e2bbb0acf234ecdf.1604762181.git.stefan@agner.ch
-Fixes: 61989a80fb3a ("staging: zsmalloc: zsmalloc memory allocation library")
-Signed-off-by: Stefan Agner <stefan@agner.ch>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1491c150-1cc0-6062-08ea-9c891548a3bc@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-include-sparsememh-for-max_physmem_bits
-+++ a/mm/zsmalloc.c
-@@ -40,6 +40,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/pgtable.h>
-+#include <asm/sparsemem.h>
- #include <asm/tlbflush.h>
- #include <linux/cpumask.h>
- #include <linux/cpu.h>
+--- a/mm/memcontrol.c~mm-memcg-update-page-struct-member-in-comments
++++ a/mm/memcontrol.c
+@@ -1310,7 +1310,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+  * @page: the page
+  * @pgdat: pgdat of the page
+  *
+- * This function relies on page->mem_cgroup being stable - see the
++ * This function relies on page's memcg being stable - see the
+  * access rules in commit_charge().
+  */
+ struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgdat)
+@@ -2862,7 +2862,7 @@ static void commit_charge(struct page *p
+ {
+ 	VM_BUG_ON_PAGE(page_memcg(page), page);
+ 	/*
+-	 * Any of the following ensures page->mem_cgroup stability:
++	 * Any of the following ensures page's memcg stability:
+ 	 *
+ 	 * - the page lock
+ 	 * - LRU isolation
 _
 
-Patches currently in -mm which might be from stefan@agner.ch are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-zsmalloc-include-sparsememh-for-max_physmem_bits.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcg-update-page-struct-member-in-comments.patch
 
