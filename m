@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46291C388F7
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E96E7C388F9
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B85C221FA
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B3759221FA
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604797531;
-	bh=Faq2lScqbsA4mMbuFZIrtujw7UpeFTr5tQY4FPVDRvc=;
+	s=default; t=1604797535;
+	bh=tZARXytZ/GuPxXxW0EeTJJS+17BZYS6YURXU7dtXLcA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xbellLj+uqxD8RLH73NabM1fQVQSSuUSrEP7SexN4VP697xuuJCslvSPighFb/TN8
-	 CtgoUd+/Etn3EtSTZAZO/kCCdfecxIsI+eG6BUuRZMrnxE7pk4QclBr76DORhOtTrY
-	 3XCL9n6hLJFleDKMGZ3ud0aApdt74bKg0C8/GtqM=
+	b=CwgtjKD8cvrAoe2tOPipBSe0fryTyKfBVoJL3BXTRy+pyRuMYeSbVKcDkJR5S11uI
+	 kcFRMTqOC94yeIGaeFAw3sQyU2H2SEBjtCLJmTdvIw/jg8XFihQDD7CIcjEHeDnndF
+	 Q+ja1MScH571vHkvKmVXJ5MaIZXjNe3puQdZmXvc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726171AbgKHBFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Nov 2020 20:05:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47520 "EHLO mail.kernel.org"
+        id S1727871AbgKHBFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Nov 2020 20:05:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726053AbgKHBFa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Nov 2020 20:05:30 -0500
+        id S1726053AbgKHBFf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Nov 2020 20:05:35 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DB0E920885;
-        Sun,  8 Nov 2020 01:05:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D8B9A2151B;
+        Sun,  8 Nov 2020 01:05:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604797530;
-        bh=Faq2lScqbsA4mMbuFZIrtujw7UpeFTr5tQY4FPVDRvc=;
+        s=default; t=1604797533;
+        bh=tZARXytZ/GuPxXxW0EeTJJS+17BZYS6YURXU7dtXLcA=;
         h=Date:From:To:Subject:From;
-        b=E501y4CbWrobJX/BotjBWVQROGkSqhgmjXEAR2D6/OZu2xRSP71La/c/8rFmF8G5D
-         sIpmdHc5DOg2SQvK3b7yVpQ0QTvYqPXJ/aMoYW1sKTpMuF3aVr+2HcY2XesDGbcpnh
-         3eur99Q7N4snI1WOVGfhJdmHd7jPu8hYRCscD1s4=
-Date:   Sat, 07 Nov 2020 17:05:29 -0800
+        b=R9RXBz1EhrZMuFzU19zH3lKsX6lb6obhGEwxsYGEZur2PMVt3doiEG+n7j5CovbDc
+         n2ll5WvdcdRJHCtF2DKz3AGPz2jsrOk4XhtrNfRG/RX+DXkvjz8yNOhSdWrY0iUMZz
+         DcQGFoZt+qBXa80/DzjYaHoluRfOj/f0rOjOAEjU=
+Date:   Sat, 07 Nov 2020 17:05:32 -0800
 From:   akpm@linux-foundation.org
 To:     edumazet@google.com, guantaol@google.com, khazhy@google.com,
         mm-commits@vger.kernel.org, soheil@google.com,
         torvalds@linux-foundation.org, willemb@google.com
-Subject:  + epoll-simplify-and-optimize-busy-loop-logic.patch added
- to -mm tree
-Message-ID: <20201108010529.oGBlprpzm%akpm@linux-foundation.org>
+Subject:  +
+ epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop.patch
+ added to -mm tree
+Message-ID: <20201108010532.9pzGtQbpd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: simplify and optimize busy loop logic
+     Subject: epoll: pull all code between fetch_events and send_event into the loop
 has been added to the -mm tree.  Its filename is
-     epoll-simplify-and-optimize-busy-loop-logic.patch
+     epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/epoll-simplify-and-optimize-busy-loop-logic.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-simplify-and-optimize-busy-loop-logic.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,106 +77,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Soheil Hassas Yeganeh <soheil@google.com>
-Subject: epoll: simplify and optimize busy loop logic
+Subject: epoll: pull all code between fetch_events and send_event into the loop
 
-ep_events_available() is called multiple times around the busy loop logic,
-even though the logic is generally not used.  ep_reset_busy_poll_napi_id()
-is similarly always called, even when busy loop is not used.
+This is a no-op change which simplifies the follow up patches.
 
-Eliminate ep_reset_busy_poll_napi_id() and inline it inside
-ep_busy_loop().  Make ep_busy_loop() return whether there are any events
-available after the busy loop.  This will eliminate unnecessary loads and
-branches, and simplifies the loop.
-
-Link: https://lkml.kernel.org/r/20201106231635.3528496-6-soheil.kdev@gmail.com
+Link: https://lkml.kernel.org/r/20201106231635.3528496-7-soheil.kdev@gmail.com
 Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Reviewed-by: Eric Dumazet <edumazet@google.com>
 Reviewed-by: Willem de Bruijn <willemb@google.com>
 Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
 Cc: Guantao Liu <guantaol@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   42 +++++++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 23 deletions(-)
+ fs/eventpoll.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
---- a/fs/eventpoll.c~epoll-simplify-and-optimize-busy-loop-logic
+--- a/fs/eventpoll.c~epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop
 +++ a/fs/eventpoll.c
-@@ -391,19 +391,26 @@ static bool ep_busy_loop_end(void *p, un
-  * busy loop will return if need_resched or ep_events_available.
-  *
-  * we must do our busy polling with irqs enabled
-+ *
-+ * Returns whether new events are available after a successful busy loop.
-  */
--static void ep_busy_loop(struct eventpoll *ep, int nonblock)
-+static bool ep_busy_loop(struct eventpoll *ep, int nonblock)
- {
- 	unsigned int napi_id = READ_ONCE(ep->napi_id);
- 
--	if ((napi_id >= MIN_NAPI_ID) && net_busy_loop_on())
-+	if ((napi_id >= MIN_NAPI_ID) && net_busy_loop_on()) {
- 		napi_busy_loop(napi_id, nonblock ? NULL : ep_busy_loop_end, ep);
--}
--
--static inline void ep_reset_busy_poll_napi_id(struct eventpoll *ep)
--{
--	if (ep->napi_id)
-+		if (ep_events_available(ep))
-+			return true;
-+		/*
-+		 * Busy poll timed out.  Drop NAPI ID for now, we can add
-+		 * it back in when we have moved a socket with a valid NAPI
-+		 * ID onto the ready list.
-+		 */
- 		ep->napi_id = 0;
-+		return false;
-+	}
-+	return false;
- }
- 
- /*
-@@ -444,12 +451,9 @@ static inline void ep_set_busy_poll_napi
- 
- #else
- 
--static inline void ep_busy_loop(struct eventpoll *ep, int nonblock)
--{
--}
--
--static inline void ep_reset_busy_poll_napi_id(struct eventpoll *ep)
-+static inline bool ep_busy_loop(struct eventpoll *ep, int nonblock)
- {
-+	return false;
- }
- 
- static inline void ep_set_busy_poll_napi_id(struct epitem *epi)
-@@ -1857,21 +1861,13 @@ static int ep_poll(struct eventpoll *ep,
+@@ -1861,14 +1861,14 @@ static int ep_poll(struct eventpoll *ep,
  	}
  
  fetch_events:
--
--	if (!ep_events_available(ep))
--		ep_busy_loop(ep, timed_out);
--
- 	eavail = ep_events_available(ep);
-+	if (!eavail)
-+		eavail = ep_busy_loop(ep, timed_out);
-+
- 	if (eavail)
- 		goto send_events;
+-	eavail = ep_events_available(ep);
+-	if (!eavail)
+-		eavail = ep_busy_loop(ep, timed_out);
++	do {
++		eavail = ep_events_available(ep);
++		if (!eavail)
++			eavail = ep_busy_loop(ep, timed_out);
  
--	/*
--	 * Busy poll timed out.  Drop NAPI ID for now, we can add
--	 * it back in when we have moved a socket with a valid NAPI
--	 * ID onto the ready list.
--	 */
--	ep_reset_busy_poll_napi_id(ep);
--
- 	do {
+-	if (eavail)
+-		goto send_events;
++		if (eavail)
++			goto send_events;
+ 
+-	do {
  		if (signal_pending(current))
  			return -EINTR;
+ 
+@@ -1917,21 +1917,22 @@ fetch_events:
+ 		 * carefully under lock, below.
+ 		 */
+ 		eavail = 1;
+-	} while (0);
+ 
+-	if (!list_empty_careful(&wait.entry)) {
+-		write_lock_irq(&ep->lock);
+-		/*
+-		 * If the thread timed out and is not on the wait queue, it
+-		 * means that the thread was woken up after its timeout expired
+-		 * before it could reacquire the lock. Thus, when wait.entry is
+-		 * empty, it needs to harvest events.
+-		 */
+-		if (timed_out)
+-			eavail = list_empty(&wait.entry);
+-		__remove_wait_queue(&ep->wq, &wait);
+-		write_unlock_irq(&ep->lock);
+-	}
++		if (!list_empty_careful(&wait.entry)) {
++			write_lock_irq(&ep->lock);
++			/*
++			 * If the thread timed out and is not on the wait queue,
++			 * it means that the thread was woken up after its
++			 * timeout expired before it could reacquire the lock.
++			 * Thus, when wait.entry is empty, it needs to harvest
++			 * events.
++			 */
++			if (timed_out)
++				eavail = list_empty(&wait.entry);
++			__remove_wait_queue(&ep->wq, &wait);
++			write_unlock_irq(&ep->lock);
++		}
++	} while (0);
+ 
+ send_events:
+ 	/*
 _
 
 Patches currently in -mm which might be from soheil@google.com are
