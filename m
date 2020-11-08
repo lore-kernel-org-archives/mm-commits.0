@@ -7,45 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1AEAC388F9
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8234EC388F9
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 02:07:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81DDC2151B
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:05:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 317AE20719
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 02:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604797538;
-	bh=gfphuj/Qy7VFML3Q0w+wAdsVsKZQKVLGF54gLBXBw7Q=;
+	s=default; t=1604801241;
+	bh=c7yv2VKbSS2sk1qYMr1N+hIC9/klYfO/4pOzUlLIsjQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=c7tmmHoDNEQCgC1SyhMfM4thTFVgAemSj00IITnrYLRkIrbJMnIIH/FAG9jU6n/lK
-	 NTjLJLivAm2/97shjq3i7fpb0NnSH7CfZnHd3i63nzlTB0WhmEY6XTrTJ5r+nd4eCx
-	 CD8zWXE3Wv4PZUOjDrrDi5epznW4BYfaqmn4PBFg=
+	b=ncTEaxvXIv78gxrwzr0oB2Fy+7rJAhyC4q2mEOAHdSLGhHFvgN4X+hNgEKah8H5WC
+	 plaOkPHb0cZ1JLjcsJ6jrwDyxtKlfo9WnukYf51w4SPCAZq8LNObYp8IAvTTGDZIgV
+	 ef/2nk8xWPT0g5me+Dko7Uw5/veKicU2JqlXDuac=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728276AbgKHBFi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Nov 2020 20:05:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47590 "EHLO mail.kernel.org"
+        id S1728204AbgKHCHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Nov 2020 21:07:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726257AbgKHBFi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Nov 2020 20:05:38 -0500
+        id S1727432AbgKHCHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Nov 2020 21:07:20 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DDDF4221F7;
-        Sun,  8 Nov 2020 01:05:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A849720719;
+        Sun,  8 Nov 2020 02:07:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604797537;
-        bh=gfphuj/Qy7VFML3Q0w+wAdsVsKZQKVLGF54gLBXBw7Q=;
+        s=default; t=1604801239;
+        bh=c7yv2VKbSS2sk1qYMr1N+hIC9/klYfO/4pOzUlLIsjQ=;
         h=Date:From:To:Subject:From;
-        b=NHpv7Zakif/d1OUE0zHPXhaDSasV/VbiSDX8QelcgxUyvAv2IRIOwoqiOS5My8Y9y
-         ZgF6CXknw/40ZHDhIMXjPK1SzNDsLjXQw1brhUhSednUDi6ZKWlVNwMOUVJdMI55R4
-         fcKnk+Ald39gwV0bALY7k+0iFPge4JI4JUht6X1o=
-Date:   Sat, 07 Nov 2020 17:05:36 -0800
+        b=2edjSNpgmrWl46cJsn2aggA0ERiTrXK8d/4/35TQLbxiy0BTWwoS1fColglCXUz5A
+         BXvjlBWRc5Yg3QIjvsaRZVCLCM2WMXt7N0UJanUf2d2UDCV70+RwehEFmklDIGeSiz
+         jW76WIYRc7pRhNpJRmc9CYm8IN8+xUPK7vOk6Eoc=
+Date:   Sat, 07 Nov 2020 18:07:19 -0800
 From:   akpm@linux-foundation.org
-To:     edumazet@google.com, guantaol@google.com, khazhy@google.com,
-        mm-commits@vger.kernel.org, soheil@google.com,
-        torvalds@linux-foundation.org, willemb@google.com
-Subject:  + epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
- added to -mm tree
-Message-ID: <20201108010536.7P0HaL0OX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20201108020719.RuaI3Hsd9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: eliminate unnecessary lock for zero timeout
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,98 +72,183 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Soheil Hassas Yeganeh <soheil@google.com>
-Subject: epoll: eliminate unnecessary lock for zero timeout
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-We call ep_events_available() under lock when timeout is 0, and then call
-it without locks in the loop for the other cases.
-
-Instead, call ep_events_available() without lock for all cases.  For
-non-zero timeouts, we will recheck after adding the thread to the wait
-queue.  For zero timeout cases, by definition, user is opportunistically
-polling and will have to call epoll_wait again in the future.
-
-Note that this lock was kept in c5a282e9635e9 because the whole loop was
-historically under lock.
-
-This patch results in a 1% CPU/RPC reduction in RPC benchmarks.
-
-Link: https://lkml.kernel.org/r/20201106231635.3528496-9-soheil.kdev@gmail.com
-Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
-Suggested-by: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Willem de Bruijn <willemb@google.com>
-Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
-Cc: Guantao Liu <guantaol@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_device.c        |    3 
+ drivers/gpu/drm/amd/amdgpu/amdgpu_vcn.c           |   11 ---
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |    6 -
+ drivers/gpu/drm/amd/include/amd_shared.h          |    3 
+ drivers/gpu/drm/i915/display/intel_psr.c          |   40 ------------
+ drivers/net/ethernet/ibm/ibmvnic.c                |   11 ---
+ 6 files changed, 74 deletions(-)
 
---- a/fs/eventpoll.c~epoll-eliminate-unnecessary-lock-for-zero-timeout
-+++ a/fs/eventpoll.c
-@@ -1830,7 +1830,7 @@ static inline struct timespec64 ep_set_m
- static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
- 		   int maxevents, long timeout)
- {
--	int res, eavail = 0, timed_out = 0;
-+	int res, eavail, timed_out = 0;
- 	u64 slack = 0;
- 	wait_queue_entry_t wait;
- 	ktime_t expires, *to = NULL;
-@@ -1846,18 +1846,21 @@ static int ep_poll(struct eventpoll *ep,
- 	} else if (timeout == 0) {
- 		/*
- 		 * Avoid the unnecessary trip to the wait queue loop, if the
--		 * caller specified a non blocking operation. We still need
--		 * lock because we could race and not see an epi being added
--		 * to the ready list while in irq callback. Thus incorrectly
--		 * returning 0 back to userspace.
-+		 * caller specified a non blocking operation.
- 		 */
- 		timed_out = 1;
--
--		write_lock_irq(&ep->lock);
--		eavail = ep_events_available(ep);
--		write_unlock_irq(&ep->lock);
- 	}
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -80,10 +80,7 @@ MODULE_FIRMWARE("amdgpu/renoir_gpu_info.
+ MODULE_FIRMWARE("amdgpu/navi10_gpu_info.bin");
+ MODULE_FIRMWARE("amdgpu/navi14_gpu_info.bin");
+ MODULE_FIRMWARE("amdgpu/navi12_gpu_info.bin");
+-<<<<<<< HEAD
+-=======
+ MODULE_FIRMWARE("amdgpu/vangogh_gpu_info.bin");
+->>>>>>> linux-next/akpm-base
+ MODULE_FIRMWARE("amdgpu/green_sardine_gpu_info.bin");
  
-+	/*
-+	 * This call is racy: We may or may not see events that are being added
-+	 * to the ready list under the lock (e.g., in IRQ callbacks). For, cases
-+	 * with a non-zero timeout, this thread will check the ready list under
-+	 * lock and will added to the wait queue.  For, cases with a zero
-+	 * timeout, the user by definition should not care and will have to
-+	 * recheck again.
-+	 */
-+	eavail = ep_events_available(ep);
-+
- 	while (1) {
- 		if (eavail) {
+ #define AMDGPU_RESUME_MS		2000
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vcn.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_vcn.c
+@@ -37,16 +37,6 @@
+ #define FIRMWARE_RAVEN		"amdgpu/raven_vcn.bin"
+ #define FIRMWARE_PICASSO	"amdgpu/picasso_vcn.bin"
+ #define FIRMWARE_RAVEN2		"amdgpu/raven2_vcn.bin"
+-<<<<<<< HEAD
+-#define FIRMWARE_ARCTURUS 	"amdgpu/arcturus_vcn.bin"
+-#define FIRMWARE_RENOIR 	"amdgpu/renoir_vcn.bin"
+-#define FIRMWARE_GREEN_SARDINE 	"amdgpu/green_sardine_vcn.bin"
+-#define FIRMWARE_NAVI10 	"amdgpu/navi10_vcn.bin"
+-#define FIRMWARE_NAVI14 	"amdgpu/navi14_vcn.bin"
+-#define FIRMWARE_NAVI12 	"amdgpu/navi12_vcn.bin"
+-#define FIRMWARE_SIENNA_CICHLID 	"amdgpu/sienna_cichlid_vcn.bin"
+-#define FIRMWARE_NAVY_FLOUNDER 	"amdgpu/navy_flounder_vcn.bin"
+-=======
+ #define FIRMWARE_ARCTURUS	"amdgpu/arcturus_vcn.bin"
+ #define FIRMWARE_RENOIR		"amdgpu/renoir_vcn.bin"
+ #define FIRMWARE_GREEN_SARDINE	"amdgpu/green_sardine_vcn.bin"
+@@ -57,7 +47,6 @@
+ #define FIRMWARE_NAVY_FLOUNDER	"amdgpu/navy_flounder_vcn.bin"
+ #define FIRMWARE_VANGOGH	"amdgpu/vangogh_vcn.bin"
+ #define FIRMWARE_DIMGREY_CAVEFISH	"amdgpu/dimgrey_cavefish_vcn.bin"
+->>>>>>> linux-next/akpm-base
+ 
+ MODULE_FIRMWARE(FIRMWARE_RAVEN);
+ MODULE_FIRMWARE(FIRMWARE_PICASSO);
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -99,18 +99,12 @@ MODULE_FIRMWARE(FIRMWARE_RENOIR_DMUB);
+ MODULE_FIRMWARE(FIRMWARE_SIENNA_CICHLID_DMUB);
+ #define FIRMWARE_NAVY_FLOUNDER_DMUB "amdgpu/navy_flounder_dmcub.bin"
+ MODULE_FIRMWARE(FIRMWARE_NAVY_FLOUNDER_DMUB);
+-<<<<<<< HEAD
+-#endif
+-#define FIRMWARE_GREEN_SARDINE_DMUB "amdgpu/green_sardine_dmcub.bin"
+-MODULE_FIRMWARE(FIRMWARE_GREEN_SARDINE_DMUB);
+-=======
+ #define FIRMWARE_GREEN_SARDINE_DMUB "amdgpu/green_sardine_dmcub.bin"
+ MODULE_FIRMWARE(FIRMWARE_GREEN_SARDINE_DMUB);
+ #define FIRMWARE_VANGOGH_DMUB "amdgpu/vangogh_dmcub.bin"
+ MODULE_FIRMWARE(FIRMWARE_VANGOGH_DMUB);
+ #define FIRMWARE_DIMGREY_CAVEFISH_DMUB "amdgpu/dimgrey_cavefish_dmcub.bin"
+ MODULE_FIRMWARE(FIRMWARE_DIMGREY_CAVEFISH_DMUB);
+->>>>>>> linux-next/akpm-base
+ 
+ #define FIRMWARE_RAVEN_DMCU		"amdgpu/raven_dmcu.bin"
+ MODULE_FIRMWARE(FIRMWARE_RAVEN_DMCU);
+--- a/drivers/gpu/drm/amd/include/amd_shared.h~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/include/amd_shared.h
+@@ -46,10 +46,7 @@ enum amd_apu_flags {
+ 	AMD_APU_IS_PICASSO = 0x00000004UL,
+ 	AMD_APU_IS_RENOIR = 0x00000008UL,
+ 	AMD_APU_IS_GREEN_SARDINE = 0x00000010UL,
+-<<<<<<< HEAD
+-=======
+ 	AMD_APU_IS_VANGOGH = 0x00000020UL,
+->>>>>>> linux-next/akpm-base
+ };
+ 
+ /**
+--- a/drivers/gpu/drm/i915/display/intel_psr.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_psr.c
+@@ -1865,43 +1865,3 @@ bool intel_psr_enabled(struct intel_dp *
+ 
+ 	return ret;
+ }
+-<<<<<<< HEAD
+-
+-void intel_psr_atomic_check(struct drm_connector *connector,
+-			    struct drm_connector_state *old_state,
+-			    struct drm_connector_state *new_state)
+-{
+-	struct drm_i915_private *dev_priv = to_i915(connector->dev);
+-	struct intel_connector *intel_connector;
+-	struct intel_digital_port *dig_port;
+-	struct drm_crtc_state *crtc_state;
+-
+-	if (!CAN_PSR(dev_priv) || !new_state->crtc ||
+-	    !dev_priv->psr.force_mode_changed)
+-		return;
+-
+-	intel_connector = to_intel_connector(connector);
+-	dig_port = enc_to_dig_port(to_intel_encoder(new_state->best_encoder));
+-	if (dev_priv->psr.dp != &dig_port->dp)
+-		return;
+-
+-	crtc_state = drm_atomic_get_new_crtc_state(new_state->state,
+-						   new_state->crtc);
+-	crtc_state->mode_changed = true;
+-}
+-
+-void intel_psr_set_force_mode_changed(struct intel_dp *intel_dp)
+-{
+-	struct drm_i915_private *dev_priv;
+-
+-	if (!intel_dp)
+-		return;
+-
+-	dev_priv = dp_to_i915(intel_dp);
+-	if (!CAN_PSR(dev_priv) || intel_dp != dev_priv->psr.dp)
+-		return;
+-
+-	dev_priv->psr.force_mode_changed = true;
+-}
+-=======
+->>>>>>> linux-next/akpm-base
+--- a/drivers/net/ethernet/ibm/ibmvnic.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/ibm/ibmvnic.c
+@@ -1850,15 +1850,11 @@ static int do_reset(struct ibmvnic_adapt
+ 	netdev_dbg(adapter->netdev, "Re-setting driver (%d)\n",
+ 		   rwi->reset_reason);
+ 
+-<<<<<<< HEAD
+-	rtnl_lock();
+-=======
+ 	adapter->reset_reason = rwi->reset_reason;
+ 	/* requestor of VNIC_RESET_CHANGE_PARAM already has the rtnl lock */
+ 	if (!(adapter->reset_reason == VNIC_RESET_CHANGE_PARAM))
+ 		rtnl_lock();
+ 
+->>>>>>> linux-next/akpm-base
+ 	/*
+ 	 * Now that we have the rtnl lock, clear any pending failover.
+ 	 * This will ensure ibmvnic_open() has either completed or will
+@@ -2161,14 +2157,7 @@ static void __ibmvnic_reset(struct work_
+ 		}
+ 		spin_unlock_irqrestore(&adapter->state_lock, flags);
+ 
+-<<<<<<< HEAD
+-		if (rwi->reset_reason == VNIC_RESET_CHANGE_PARAM) {
+-			/* CHANGE_PARAM requestor holds rtnl_lock */
+-			rc = do_change_param_reset(adapter, rwi, reset_state);
+-		} else if (adapter->force_reset_recovery) {
+-=======
+ 		if (adapter->force_reset_recovery) {
+->>>>>>> linux-next/akpm-base
  			/*
-@@ -1873,10 +1876,6 @@ static int ep_poll(struct eventpoll *ep,
- 		if (timed_out)
- 			return 0;
- 
--		eavail = ep_events_available(ep);
--		if (eavail)
--			continue;
--
- 		eavail = ep_busy_loop(ep, timed_out);
- 		if (eavail)
- 			continue;
+ 			 * Since we are doing a hard reset now, clear the
+ 			 * failover_pending flag so we don't ignore any
 _
 
-Patches currently in -mm which might be from soheil@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-epoll-check-for-events-when-removing-a-timed-out-thread-from-the-wait-queue.patch
-epoll-simplify-signal-handling.patch
-epoll-pull-fatal-signal-checks-into-ep_send_events.patch
-epoll-move-eavail-next-to-the-list_empty_careful-check.patch
-epoll-simplify-and-optimize-busy-loop-logic.patch
-epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop.patch
-epoll-replace-gotos-with-a-proper-loop.patch
-epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
 
