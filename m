@@ -2,49 +2,48 @@ Return-Path: <SRS0=LO12=EO=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C965C388F9
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 00:59:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2486FC388F9
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:01:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35B5820B1F
-	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 00:59:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D51B42151B
+	for <mm-commits@archiver.kernel.org>; Sun,  8 Nov 2020 01:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604797170;
-	bh=naMZA7leNLG92aB25hW13vtbNsufXutb9NJHbIohAmk=;
+	s=default; t=1604797260;
+	bh=0AzV/hF2BkSobiDFKPS0BKdBB+HC8xDkWTiuYBawyYA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=hDgEOBSOP7fwKFMqjjcO4X6mB4wKyfMkw+JcQRkx8WQSsRYN/KowJywjtRYBEXY0G
-	 Xe8VdVqlpUU5r923DYJx6AwmnhIrMSYTBlJQdeHrjVG19upP+OcwET/CbBRQcTfH9n
-	 4F0enwP14N0QdUWsu5Lg6OQYi5u+UK/s4RpgwLFs=
+	b=sJbAs1xRj8q+qw7RlUt/jPApgeSboZi58PcM2aUZWsj3NlH8mrznPHpLi9T/TmweQ
+	 9QCH4/P6JTXsEn+GUXnJCxKuJa/+IM1EhlIcmWdXmLhXPB99OE8XoVwcoO92Zeojwa
+	 TC6FcwzpIqpteqswv1gHxQT12WXhbjsaM4BHBZkA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728710AbgKHA73 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Nov 2020 19:59:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46772 "EHLO mail.kernel.org"
+        id S1726043AbgKHBBA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Nov 2020 20:01:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728687AbgKHA73 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Nov 2020 19:59:29 -0500
+        id S1725838AbgKHBBA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Nov 2020 20:01:00 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A971920885;
-        Sun,  8 Nov 2020 00:59:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A7E2120885;
+        Sun,  8 Nov 2020 01:00:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604797168;
-        bh=naMZA7leNLG92aB25hW13vtbNsufXutb9NJHbIohAmk=;
+        s=default; t=1604797259;
+        bh=0AzV/hF2BkSobiDFKPS0BKdBB+HC8xDkWTiuYBawyYA=;
         h=Date:From:To:Subject:From;
-        b=fDLYPPEF6umA70KapIjjNtQaqSzZVbmEJ50vUPznmRK6LvbU1Z33WyeOGsT4qdlzL
-         /9fyBml41HRxE5KlsExXxYkK+nof+TYxCGckI8g5pNIpKwI0L20/PJU0YENikGr+ED
-         4BIcQe4UrZGTwNxtFlvg/kSP8pkyRaSkgYCESaZY=
-Date:   Sat, 07 Nov 2020 16:59:28 -0800
+        b=N6ZxLSkG99TVNaaidZDTtrWdNdGGv1MXjhD4kwvxLwbTJdvkCNyJp3Y0ROsSkmZ84
+         ytEYmiZZW3QSxXCtYVQfbi29DOqhNlS3rPfjgTy2jaY1DqtgQyfTandqWQYbQmF7Tq
+         568UVUtc+GOMgm6o+uwj0+7MKet8tkQ5qbe92vUw=
+Date:   Sat, 07 Nov 2020 17:00:59 -0800
 From:   akpm@linux-foundation.org
-To:     aik@ozlabs.ru, christophe.leroy@csgroup.eu,
-        mm-commits@vger.kernel.org
-Subject:  + panic-dont-dump-stack-twice-on-warn.patch added to -mm
- tree
-Message-ID: <20201108005928.-9Ge41T7H%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, wangqing@vivo.com
+Subject:  + tool-selftests-fix-spelling-typo-of-writting.patch
+ added to -mm tree
+Message-ID: <20201108010059.XPCwrhesP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: don't dump stack twice on warn
+     Subject: tools/testing/selftests/vm/userfaultfd.c: fix spelling typo of 'writting'
 has been added to the -mm tree.  Its filename is
-     panic-dont-dump-stack-twice-on-warn.patch
+     tool-selftests-fix-spelling-typo-of-writting.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/panic-dont-dump-stack-twice-on-warn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tool-selftests-fix-spelling-typo-of-writting.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/panic-dont-dump-stack-twice-on-warn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tool-selftests-fix-spelling-typo-of-writting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,78 +73,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: panic: don't dump stack twice on warn
+From: Wang Qing <wangqing@vivo.com>
+Subject: tools/testing/selftests/vm/userfaultfd.c: fix spelling typo of 'writting'
 
-Before commit 3f388f28639f ("panic: dump registers on panic_on_warn"),
-__warn() was calling show_regs() when regs was not NULL, and show_stack()
-otherwise.
+writting -> writing
 
-After that commit, show_stack() is called regardless of whether
-show_regs() has been called or not, leading to duplicated Call Trace:
-
-[    7.112617] ------------[ cut here ]------------
-[    7.117041] WARNING: CPU: 0 PID: 1 at arch/powerpc/mm/nohash/8xx.c:186 mmu_mark_initmem_nx+0x24/0x94
-[    7.126021] CPU: 0 PID: 1 Comm: swapper Not tainted 5.10.0-rc2-s3k-dev-01375-gf46ec0d3ecbd-dirty #4092
-[    7.135202] NIP:  c00128b4 LR: c0010228 CTR: 00000000
-[    7.140205] REGS: c9023e40 TRAP: 0700   Not tainted  (5.10.0-rc2-s3k-dev-01375-gf46ec0d3ecbd-dirty)
-[    7.149131] MSR:  00029032 <EE,ME,IR,DR,RI>  CR: 24000424  XER: 00000000
-[    7.155760]
-[    7.155760] GPR00: c0010228 c9023ef8 c2100000 0074c000 ffffffff 00000000 c2151000 c07b3880
-[    7.155760] GPR08: ff000900 0074c000 c8000000 c33b53a8 24000822 00000000 c0003a20 00000000
-[    7.155760] GPR16: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-[    7.155760] GPR24: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00800000
-[    7.191092] NIP [c00128b4] mmu_mark_initmem_nx+0x24/0x94
-[    7.196333] LR [c0010228] free_initmem+0x20/0x58
-[    7.200855] Call Trace:
-[    7.203319] [c9023f18] [c0010228] free_initmem+0x20/0x58
-[    7.208564] [c9023f28] [c0003a3c] kernel_init+0x1c/0x114
-[    7.213813] [c9023f38] [c000f184] ret_from_kernel_thread+0x14/0x1c
-[    7.219869] Instruction dump:
-[    7.222805] 7d291850 7d234b78 4e800020 9421ffe0 7c0802a6 bfc10018 3fe0c060 3bff0000
-[    7.230462] 3fff4080 3bffffff 90010024 57ff0010 <0fe00000> 392001cd 7c3e0b78 953e0008
-[    7.238327] CPU: 0 PID: 1 Comm: swapper Not tainted 5.10.0-rc2-s3k-dev-01375-gf46ec0d3ecbd-dirty #4092
-[    7.247500] Call Trace:
-[    7.249977] [c9023dc0] [c001e070] __warn+0x8c/0xd8 (unreliable)
-[    7.255815] [c9023de0] [c05e0e5c] report_bug+0x11c/0x154
-[    7.261085] [c9023e10] [c0009ea4] program_check_exception+0x1dc/0x6e0
-[    7.267430] [c9023e30] [c000f43c] ret_from_except_full+0x0/0x4
-[    7.273238] --- interrupt: 700 at mmu_mark_initmem_nx+0x24/0x94
-[    7.273238]     LR = free_initmem+0x20/0x58
-[    7.283155] [c9023ef8] [00000000] 0x0 (unreliable)
-[    7.287913] [c9023f18] [c0010228] free_initmem+0x20/0x58
-[    7.293160] [c9023f28] [c0003a3c] kernel_init+0x1c/0x114
-[    7.298410] [c9023f38] [c000f184] ret_from_kernel_thread+0x14/0x1c
-[    7.304479] ---[ end trace 31702cd2a9570752 ]---
-
-Only call show_stack() when regs is NULL.
-
-Link: https://lkml.kernel.org/r/e8c055458b080707f1bc1a98ff8bea79d0cec445.1604748361.git.christophe.leroy@csgroup.eu
-Fixes: 3f388f28639f ("panic: dump registers on panic_on_warn")
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Alexey Kardashevskiy <aik@ozlabs.ru>
+Link: https://lkml.kernel.org/r/1604740776-27082-1-git-send-email-wangqing@vivo.com
+Signed-off-by: Wang Qing <wangqing@vivo.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/panic.c~panic-dont-dump-stack-twice-on-warn
-+++ a/kernel/panic.c
-@@ -605,7 +605,8 @@ void __warn(const char *file, int line,
- 		panic("panic_on_warn set ...\n");
- 	}
- 
--	dump_stack();
-+	if (!regs)
-+		dump_stack();
- 
- 	print_irqtrace_events(current);
- 
+--- a/tools/testing/selftests/vm/userfaultfd.c~tool-selftests-fix-spelling-typo-of-writting
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -894,7 +894,7 @@ static int faulting_process(int signal_t
+ 				count_verify[nr]);
+ 	        }
+ 		/*
+-		 * Trigger write protection if there is by writting
++		 * Trigger write protection if there is by writing
+ 		 * the same value back.
+ 		 */
+ 		*area_count(area_dst, nr) = count;
+@@ -922,7 +922,7 @@ static int faulting_process(int signal_t
+ 				count_verify[nr]); exit(1);
+ 		}
+ 		/*
+-		 * Trigger write protection if there is by writting
++		 * Trigger write protection if there is by writing
+ 		 * the same value back.
+ 		 */
+ 		*area_count(area_dst, nr) = count;
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from wangqing@vivo.com are
 
-panic-dont-dump-stack-twice-on-warn.patch
-asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision.patch
+tool-selftests-fix-spelling-typo-of-writting.patch
 
