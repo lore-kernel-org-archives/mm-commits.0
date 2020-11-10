@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5290EC56202
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DA68C4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1195C20781
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 126A420781
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="WXLgO+6n"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="WgKXNs3V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732332AbgKJXGC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 18:06:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57712 "EHLO mail.kernel.org"
+        id S1732345AbgKJXGG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 18:06:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731805AbgKJXGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 18:06:02 -0500
+        id S1732264AbgKJXGG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 18:06:06 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1A12120679;
-        Tue, 10 Nov 2020 23:06:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 29EB720780;
+        Tue, 10 Nov 2020 23:06:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049561;
-        bh=ggjC4Fvc70LNT2i9x7maGZSGtde3OTRQAUjOU53n/og=;
+        s=default; t=1605049564;
+        bh=oA9I+5upQcCbTDH3B5Guf1JqKyiiEvy45223cCEnPG4=;
         h=Date:From:To:Subject:From;
-        b=WXLgO+6nsgYk/YIElcXmgxHKY1X/gu80f8oL40mxqK81P9/jFa48T/GHr8UyOkq+3
-         jiAiGjYolu9pT/O29EhrPK2Q5jL5MSMNcinAV9ac4S3tWvbgyCktY2oFzJ5L8fUEWF
-         cpqSB4k8ezYh7QJMgGWC3lDk8asesaBhr2D/KepM=
-Date:   Tue, 10 Nov 2020 15:06:00 -0800
+        b=WgKXNs3VsBgaFN3XPeBVBj3gSpSPrSBZDJMuR02dgD18+uPORHigOOAFjZIb20a/n
+         g79B0k2MMq1lQsjeNv4vaLYQYY98+vS7OQl918BJo+paodSZMpfPEvRAg+mtc9HnDh
+         pZef3e9x+LFEf/v74Te5oMK4oudiYmL3SJ4PLHQk=
+Date:   Tue, 10 Nov 2020 15:06:03 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-simplify-kasan_poison_kfree.patch added to -mm
+Subject:  + kasan-mm-rename-kasan_poison_kfree.patch added to -mm
  tree
-Message-ID: <20201110230600.BL2wldhbn%akpm@linux-foundation.org>
+Message-ID: <20201110230603.uTzhvvr_C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: simplify kasan_poison_kfree
+     Subject: kasan, mm: rename kasan_poison_kfree
 has been added to the -mm tree.  Its filename is
-     kasan-simplify-kasan_poison_kfree.patch
+     kasan-mm-rename-kasan_poison_kfree.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-simplify-kasan_poison_kfree.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-rename-kasan_poison_kfree.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-simplify-kasan_poison_kfree.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-rename-kasan_poison_kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,15 +74,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify kasan_poison_kfree
+Subject: kasan, mm: rename kasan_poison_kfree
 
-kasan_poison_kfree() is currently only called for mempool allocations
-that are backed by either kmem_cache_alloc() or kmalloc(). Therefore, the
-page passed to kasan_poison_kfree() is always PageSlab() and there's no
-need to do the check. Remove it.
+Rename kasan_poison_kfree() to kasan_slab_free_mempool() as it better
+reflects what this annotation does.
 
-Link: https://lkml.kernel.org/r/a1c57043fb19effce240355e7c57b0d9a58d389e.1605046662.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/If31f88726745da8744c6bea96fb32584e6c2778c
+No functional changes.
+
+Link: https://lkml.kernel.org/r/ee33aa1d9c57c3f2b2c700e8f2c6c24db8703612.1605046662.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I5026f87364e556b506ef1baee725144bb04b8810
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -97,29 +97,100 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ include/linux/kasan.h |   16 ++++++++--------
+ mm/kasan/common.c     |   16 ++++++++--------
+ mm/mempool.c          |    2 +-
+ 3 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/mm/kasan/common.c~kasan-simplify-kasan_poison_kfree
-+++ a/mm/kasan/common.c
-@@ -439,16 +439,7 @@ void __kasan_poison_kfree(void *ptr, uns
- 	struct page *page;
- 
- 	page = virt_to_head_page(ptr);
--
--	if (unlikely(!PageSlab(page))) {
--		if (ptr != page_address(page)) {
--			kasan_report_invalid_free(ptr, ip);
--			return;
--		}
--		kasan_poison_memory(ptr, page_size(page), KASAN_FREE_PAGE);
--	} else {
--		____kasan_slab_free(page->slab_cache, ptr, ip, false);
--	}
-+	____kasan_slab_free(page->slab_cache, ptr, ip, false);
+--- a/include/linux/kasan.h~kasan-mm-rename-kasan_poison_kfree
++++ a/include/linux/kasan.h
+@@ -177,6 +177,13 @@ static inline bool kasan_slab_free(struc
+ 	return false;
  }
  
++void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
++static inline void kasan_slab_free_mempool(void *ptr, unsigned long ip)
++{
++	if (kasan_enabled())
++		__kasan_slab_free_mempool(ptr, ip);
++}
++
+ void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
+ 				       void *object, gfp_t flags);
+ static inline void * __must_check kasan_slab_alloc(struct kmem_cache *s,
+@@ -217,13 +224,6 @@ static inline void * __must_check kasan_
+ 	return (void *)object;
+ }
+ 
+-void __kasan_poison_kfree(void *ptr, unsigned long ip);
+-static inline void kasan_poison_kfree(void *ptr, unsigned long ip)
+-{
+-	if (kasan_enabled())
+-		__kasan_poison_kfree(ptr, ip);
+-}
+-
+ void __kasan_kfree_large(void *ptr, unsigned long ip);
+ static inline void kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+@@ -263,6 +263,7 @@ static inline bool kasan_slab_free(struc
+ {
+ 	return false;
+ }
++static inline void kasan_slab_free_mempool(void *ptr, unsigned long ip) {}
+ static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+ 				   gfp_t flags)
+ {
+@@ -282,7 +283,6 @@ static inline void *kasan_krealloc(const
+ {
+ 	return (void *)object;
+ }
+-static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
+ static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
+ 
+ #endif /* CONFIG_KASAN */
+--- a/mm/kasan/common.c~kasan-mm-rename-kasan_poison_kfree
++++ a/mm/kasan/common.c
+@@ -340,6 +340,14 @@ bool __kasan_slab_free(struct kmem_cache
+ 	return ____kasan_slab_free(cache, object, ip, true);
+ }
+ 
++void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
++{
++	struct page *page;
++
++	page = virt_to_head_page(ptr);
++	____kasan_slab_free(page->slab_cache, ptr, ip, false);
++}
++
+ static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+ {
+ 	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
+@@ -434,14 +442,6 @@ void * __must_check __kasan_krealloc(con
+ 						flags, true);
+ }
+ 
+-void __kasan_poison_kfree(void *ptr, unsigned long ip)
+-{
+-	struct page *page;
+-
+-	page = virt_to_head_page(ptr);
+-	____kasan_slab_free(page->slab_cache, ptr, ip, false);
+-}
+-
  void __kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+--- a/mm/mempool.c~kasan-mm-rename-kasan_poison_kfree
++++ a/mm/mempool.c
+@@ -104,7 +104,7 @@ static inline void poison_element(mempoo
+ static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
+ {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_poison_kfree(element, _RET_IP_);
++		kasan_slab_free_mempool(element, _RET_IP_);
+ 	else if (pool->alloc == mempool_alloc_pages)
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
