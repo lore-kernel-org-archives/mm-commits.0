@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8353C388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F853C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B39F207E8
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC7A7207BB
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="rSM2rc9N"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="G7VjwTfv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732184AbgKJXF1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 18:05:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57260 "EHLO mail.kernel.org"
+        id S1727018AbgKJXFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 18:05:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57336 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730254AbgKJXF0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 18:05:26 -0500
+        id S1732175AbgKJXFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 18:05:31 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1F2CE20679;
-        Tue, 10 Nov 2020 23:05:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 08603207E8;
+        Tue, 10 Nov 2020 23:05:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049525;
-        bh=dqGlctN8DKtUdOa+V0NQV/AITBEdbGlmvx8N7CHxG9E=;
+        s=default; t=1605049529;
+        bh=uJZ1OJfSyFV80yHXSosm3lqRQ2Q0Cntci1nXWQ8R/zU=;
         h=Date:From:To:Subject:From;
-        b=rSM2rc9NkH7XcSeU0R4PSDMtahSwoXRjtX8DMdPW9DqLj8tP6XjN+KHXeSYZoD6sC
-         +KRnNBa+LloejB0y4jtLeHFIqL9qAzq03ntDIGsHSrkuM/c9ccZjSDzh3RiHHE8G4e
-         w4HSiYmDrcaG3U80IU3NxZKxBkDE283fLNQQYaqc=
-Date:   Tue, 10 Nov 2020 15:05:24 -0800
+        b=G7VjwTfvQOgJZxOcEkoB7wdukp9U/XzvZ/u5qX+b9ZHLxS5TknaqGDl0w8AV3xTJA
+         i+KIO8r4xZESzaBpaRlhYxJZJPhuZwRwMRH9uxTuMLgsUp3V4sCdSC6SqLRT+3ISr/
+         XuJcPOiGxf4WnwQD4k/IYSYZIXgAdkK74lycbp9o=
+Date:   Tue, 10 Nov 2020 15:05:28 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,10 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  +
- kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch added to -mm
- tree
-Message-ID: <20201110230524.EunK_if1j%akpm@linux-foundation.org>
+Subject:  + kasan-allow-vmap_stack-for-hw_tags-mode.patch added to
+ -mm tree
+Message-ID: <20201110230528.Hc7z8R25B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+     Subject: kasan: allow VMAP_STACK for HW_TAGS mode
 has been added to the -mm tree.  Its filename is
-     kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+     kasan-allow-vmap_stack-for-hw_tags-mode.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-allow-vmap_stack-for-hw_tags-mode.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-allow-vmap_stack-for-hw_tags-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,22 +74,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+Subject: kasan: allow VMAP_STACK for HW_TAGS mode
 
-There's a config option CONFIG_KASAN_STACK that has to be enabled for
-KASAN to use stack instrumentation and perform validity checks for
-stack variables.
+Even though hardware tag-based mode currently doesn't support checking
+vmalloc allocations, it doesn't use shadow memory and works with
+VMAP_STACK as is. Change VMAP_STACK definition accordingly.
 
-There's no need to unpoison stack when CONFIG_KASAN_STACK is not enabled.
-Only call kasan_unpoison_task_stack[_below]() when CONFIG_KASAN_STACK is
-enabled.
-
-Note, that CONFIG_KASAN_STACK is an option that is currently always
-defined when CONFIG_KASAN is enabled, and therefore has to be tested
-with #if instead of #ifdef.
-
-Link: https://lkml.kernel.org/r/7e95d4739f5617b2c1acf52f37e01f1ca83750b5.1605046662.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/If8a891e9fe01ea543e00b576852685afec0887e3
+Link: https://lkml.kernel.org/r/3443e106c40799e5dc3981dec2011379f3cbbb0c.1605046662.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I3552cbc12321dec82cd7372676e9372a2eb452ac
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -105,85 +96,32 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/sleep.S        |    2 +-
- arch/x86/kernel/acpi/wakeup_64.S |    2 +-
- include/linux/kasan.h            |   10 ++++++----
- mm/kasan/common.c                |    2 ++
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ arch/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/kernel/sleep.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/arm64/kernel/sleep.S
-@@ -133,7 +133,7 @@ SYM_FUNC_START(_cpu_resume)
- 	 */
- 	bl	cpu_do_resume
+--- a/arch/Kconfig~kasan-allow-vmap_stack-for-hw_tags-mode
++++ a/arch/Kconfig
+@@ -921,16 +921,16 @@ config VMAP_STACK
+ 	default y
+ 	bool "Use a virtually-mapped stack"
+ 	depends on HAVE_ARCH_VMAP_STACK
+-	depends on !KASAN || KASAN_VMALLOC
++	depends on !KASAN || KASAN_HW_TAGS || KASAN_VMALLOC
+ 	help
+ 	  Enable this if you want the use virtually-mapped kernel stacks
+ 	  with guard pages.  This causes kernel stack overflows to be
+ 	  caught immediately rather than causing difficult-to-diagnose
+ 	  corruption.
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	mov	x0, sp
- 	bl	kasan_unpoison_task_stack_below
- #endif
---- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/x86/kernel/acpi/wakeup_64.S
-@@ -112,7 +112,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
- 	movq	pt_regs_r14(%rax), %r14
- 	movq	pt_regs_r15(%rax), %r15
+-	  To use this with KASAN, the architecture must support backing
+-	  virtual mappings with real shadow memory, and KASAN_VMALLOC must
+-	  be enabled.
++	  To use this with software KASAN modes, the architecture must support
++	  backing virtual mappings with real shadow memory, and KASAN_VMALLOC
++	  must be enabled.
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	/*
- 	 * The suspend path may have poisoned some areas deeper in the stack,
- 	 * which we now need to unpoison.
---- a/include/linux/kasan.h~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/include/linux/kasan.h
-@@ -76,8 +76,6 @@ static inline void kasan_disable_current
- 
- void kasan_unpoison_memory(const void *address, size_t size);
- 
--void kasan_unpoison_task_stack(struct task_struct *task);
--
- void kasan_alloc_pages(struct page *page, unsigned int order);
- void kasan_free_pages(struct page *page, unsigned int order);
- 
-@@ -122,8 +120,6 @@ void kasan_restore_multi_shot(bool enabl
- 
- static inline void kasan_unpoison_memory(const void *address, size_t size) {}
- 
--static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
--
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
- 
-@@ -175,6 +171,12 @@ static inline size_t kasan_metadata_size
- 
- #endif /* CONFIG_KASAN */
- 
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
-+void kasan_unpoison_task_stack(struct task_struct *task);
-+#else
-+static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
-+#endif
-+
- #ifdef CONFIG_KASAN_GENERIC
- 
- void kasan_cache_shrink(struct kmem_cache *cache);
---- a/mm/kasan/common.c~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/mm/kasan/common.c
-@@ -59,6 +59,7 @@ void kasan_disable_current(void)
- }
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
-+#if CONFIG_KASAN_STACK
- static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
- {
- 	void *base = task_stack_page(task);
-@@ -85,6 +86,7 @@ asmlinkage void kasan_unpoison_task_stac
- 
- 	kasan_unpoison_memory(base, watermark - base);
- }
-+#endif /* CONFIG_KASAN_STACK */
- 
- void kasan_alloc_pages(struct page *page, unsigned int order)
- {
+ config ARCH_OPTIONAL_KERNEL_RWX
+ 	def_bool n
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
