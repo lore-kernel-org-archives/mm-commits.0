@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 902C3C4742C
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B77C4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F228207BB
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E58F320780
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="zHCnDinC"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="0n0GHJOk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732264AbgKJXGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 18:06:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57824 "EHLO mail.kernel.org"
+        id S1732282AbgKJXGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 18:06:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731805AbgKJXGM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 18:06:12 -0500
+        id S1731805AbgKJXGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 18:06:16 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2690020780;
-        Tue, 10 Nov 2020 23:06:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 51DD820781;
+        Tue, 10 Nov 2020 23:06:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049571;
-        bh=xg4MkVTH7kXw7B/jRsYAZm/w1lvGjarJkRHt9rFTRLc=;
+        s=default; t=1605049575;
+        bh=nsQwqtL+3nCTT7jz/JsdzZFKr9WRM7nG4Yyc8yW8y6U=;
         h=Date:From:To:Subject:From;
-        b=zHCnDinCvDv3bzYNeGXVNAqLHRQeHUX9Mh2Ri5Y/E3FT1/+OPBeIxhZsrj3BdBuby
-         aK7JWVcU3Z5ny71rAoseMq4SJDKq2mFak+Bl881n8DF5z3LEmGz+Fdd0FmQBE+jGp3
-         EBclfufizpvS55Ubzl/z0ZsZbfgFUQmNEbrzVU9w=
-Date:   Tue, 10 Nov 2020 15:06:10 -0800
+        b=0n0GHJOkFnJj5hRGUcII62ceG7ZuQnCQga1YI0aLaJOkUxmywcb+CkFs6kv9Nzu0Z
+         OhdeTbA0mKVX8dp8oTZrAYEwg+GjDCLp4ZHS6R+U4mi9ItiU0hFQpSasORI+IIGu7w
+         QRJn/+agbGcpXi+MlFLWwtEF0hZNN+bkG0UtZB4Y=
+Date:   Tue, 10 Nov 2020 15:06:14 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-simplify-assign_tag-and-set_tag-calls.patch added
- to -mm tree
-Message-ID: <20201110230610.3KEaQ6gXz%akpm@linux-foundation.org>
+Subject:  + kasan-clarify-comment-in-__kasan_kfree_large.patch
+ added to -mm tree
+Message-ID: <20201110230614.ptRBIoNLs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: simplify assign_tag and set_tag calls
+     Subject: kasan: clarify comment in __kasan_kfree_large
 has been added to the -mm tree.  Its filename is
-     kasan-simplify-assign_tag-and-set_tag-calls.patch
+     kasan-clarify-comment-in-__kasan_kfree_large.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-simplify-assign_tag-and-set_tag-calls.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-clarify-comment-in-__kasan_kfree_large.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-simplify-assign_tag-and-set_tag-calls.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-clarify-comment-in-__kasan_kfree_large.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,14 +74,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify assign_tag and set_tag calls
+Subject: kasan: clarify comment in __kasan_kfree_large
 
-set_tag() already ignores the tag for the generic mode, so just call it
-as is. Add a check for the generic mode to assign_tag(), and simplify its
-call in ____kasan_kmalloc().
+Currently it says that the memory gets poisoned by page_alloc code.
+Clarify this by mentioning the specific callback that poisons the
+memory.
 
-Link: https://lkml.kernel.org/r/eae2f21f9e412b508783f72c687cb0b76c151440.1605046662.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I18905ca78fb4a3d60e1a34a4ca00247272480438
+Link: https://lkml.kernel.org/r/dd492a97ed68200b1d7e2dce55ed9a7790525396.1605046662.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I1334dffb69b87d7986fab88a1a039cc3ea764725
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -96,43 +96,18 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/kasan/common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/common.c~kasan-simplify-assign_tag-and-set_tag-calls
+--- a/mm/kasan/common.c~kasan-clarify-comment-in-__kasan_kfree_large
 +++ a/mm/kasan/common.c
-@@ -239,6 +239,9 @@ void __kasan_poison_object_data(struct k
- static u8 assign_tag(struct kmem_cache *cache, const void *object,
- 			bool init, bool keep_tag)
+@@ -443,5 +443,5 @@ void __kasan_kfree_large(void *ptr, unsi
  {
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		return 0xff;
-+
- 	/*
- 	 * 1. When an object is kmalloc()'ed, two hooks are called:
- 	 *    kasan_slab_alloc() and kasan_kmalloc(). We assign the
-@@ -281,8 +284,8 @@ void * __must_check __kasan_init_slab_ob
- 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
- 	}
- 
--	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
--		object = set_tag(object, assign_tag(cache, object, true, false));
-+	/* Tag is ignored in set_tag() without CONFIG_KASAN_SW/HW_TAGS */
-+	object = set_tag(object, assign_tag(cache, object, true, false));
- 
- 	return (void *)object;
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+ 		kasan_report_invalid_free(ptr, ip);
+-	/* The object will be poisoned by page_alloc. */
++	/* The object will be poisoned by kasan_free_pages(). */
  }
-@@ -369,9 +372,7 @@ static void *____kasan_kmalloc(struct km
- 				KASAN_GRANULE_SIZE);
- 	redzone_end = round_up((unsigned long)object + cache->object_size,
- 				KASAN_GRANULE_SIZE);
--
--	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
--		tag = assign_tag(cache, object, false, keep_tag);
-+	tag = assign_tag(cache, object, false, keep_tag);
- 
- 	/* Tag is ignored in set_tag without CONFIG_KASAN_SW/HW_TAGS */
- 	kasan_unpoison_memory(set_tag(object, tag), size);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
