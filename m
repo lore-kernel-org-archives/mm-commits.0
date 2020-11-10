@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42C58C4742C
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:57:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DEF5C4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:57:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4BBE207E8
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:57:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E545207E8
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:57:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Aiq27HDV"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="pi+dVqP7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732071AbgKJW5f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:57:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55040 "EHLO mail.kernel.org"
+        id S1732168AbgKJW5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:57:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731805AbgKJW5f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:57:35 -0500
+        id S1731805AbgKJW5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:57:38 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 26192204EF;
-        Tue, 10 Nov 2020 22:57:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 303A320781;
+        Tue, 10 Nov 2020 22:57:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049054;
-        bh=cS+WS1DFKwwu2Q0rj8qfZxtT6XBE0yYmTIQG3pmqIFU=;
+        s=default; t=1605049057;
+        bh=lmdSLoJYcsAAC8i47CwVvw2cUCgyqV6Uqlwg+CKngUM=;
         h=Date:From:To:Subject:From;
-        b=Aiq27HDVZPzSlV0upwC5nMf+BDV/uiJPbljh6jqXu0K7+JL/T6gkjpBPWHB3I1Gbm
-         FUxsqtdabAtlmQ5jMlnod+oO+iULzIEEE9ooEy9XGmqp84ayLy27oBjyb9qhyf+YpJ
-         Rm9xzEybPKeE1v63iia0XLySBXiT03ivh8rJ303M=
-Date:   Tue, 10 Nov 2020 14:57:33 -0800
+        b=pi+dVqP7Tok8Kl6jNbG7nDXQSmwNMgmhDZ3o/9bavZt27qSOpBT6q8WAql7OdW6aB
+         1Vn0SzNpdUogb9KOuvWcIrFs53syN3Va5z3ksTWJLrYY3K1iFaVGJk3ZZW5TehhAXd
+         zTWwtAqv1nMvgzNYFhtMJTHyqpfq0AyCuWc0GQYo=
+Date:   Tue, 10 Nov 2020 14:57:36 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-arm64-print-report-from-tag-fault-handler.patch
- added to -mm tree
-Message-ID: <20201110225733.N07i4g4Cx%akpm@linux-foundation.org>
+Subject:  + kasan-mm-reset-tags-when-accessing-metadata.patch added
+ to -mm tree
+Message-ID: <20201110225736.BuI8ddn95%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: print report from tag fault handler
+     Subject: kasan, mm: reset tags when accessing metadata
 has been added to the -mm tree.  Its filename is
-     kasan-arm64-print-report-from-tag-fault-handler.patch
+     kasan-mm-reset-tags-when-accessing-metadata.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-print-report-from-tag-fault-handler.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-reset-tags-when-accessing-metadata.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-print-report-from-tag-fault-handler.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-reset-tags-when-accessing-metadata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,90 +74,188 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: print report from tag fault handler
+Subject: kasan, mm: reset tags when accessing metadata
 
-Add error reporting for hardware tag-based KASAN. When CONFIG_KASAN_HW_TAGS
-is enabled, print KASAN report from the arm64 tag fault handler.
+Kernel allocator code accesses metadata for slab objects, that may lie
+out-of-bounds of the object itself, or be accessed when an object is freed.
+Such accesses trigger tag faults and lead to false-positive reports with
+hardware tag-based KASAN.
 
-SAS bits aren't set in ESR for all faults reported in EL1, so it's
-impossible to find out the size of the access the caused the fault.
-Adapt KASAN reporting code to handle this case.
+Software KASAN modes disable instrumentation for allocator code via
+KASAN_SANITIZE Makefile macro, and rely on kasan_enable/disable_current()
+annotations which are used to ignore KASAN reports.
 
-Link: https://lkml.kernel.org/r/fe78d723ba64456d68754a944fa93fe4a25c730f.1605046192.git.andreyknvl@google.com
+With hardware tag-based KASAN neither of those options are available, as
+it doesn't use compiler instrumetation, no tag faults are ignored, and MTE
+is disabled after the first one.
+
+Instead, reset tags when accessing metadata (currently only for SLUB).
+
+Link: https://lkml.kernel.org/r/d0060171a76ace31b26fef1f2713da209099fb99.1605046192.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/fault.c |   14 ++++++++++++++
- mm/kasan/report.c     |   11 ++++++++---
- 2 files changed, 22 insertions(+), 3 deletions(-)
+ mm/page_alloc.c  |    4 +++-
+ mm/page_poison.c |    2 +-
+ mm/slub.c        |   29 ++++++++++++++++-------------
+ 3 files changed, 20 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/mm/fault.c~kasan-arm64-print-report-from-tag-fault-handler
-+++ a/arch/arm64/mm/fault.c
-@@ -15,6 +15,7 @@
- #include <linux/mm.h>
- #include <linux/hardirq.h>
- #include <linux/init.h>
-+#include <linux/kasan.h>
- #include <linux/kprobes.h>
- #include <linux/uaccess.h>
- #include <linux/page-flags.h>
-@@ -298,10 +299,23 @@ static void die_kernel_fault(const char
- 	do_exit(SIGKILL);
+--- a/mm/page_alloc.c~kasan-mm-reset-tags-when-accessing-metadata
++++ a/mm/page_alloc.c
+@@ -1202,8 +1202,10 @@ static void kernel_init_free_pages(struc
+ 
+ 	/* s390's use of memset() could override KASAN redzones. */
+ 	kasan_disable_current();
+-	for (i = 0; i < numpages; i++)
++	for (i = 0; i < numpages; i++) {
++		page_kasan_tag_reset(page + i);
+ 		clear_highpage(page + i);
++	}
+ 	kasan_enable_current();
  }
  
-+#ifdef CONFIG_KASAN_HW_TAGS
- static void report_tag_fault(unsigned long addr, unsigned int esr,
- 			     struct pt_regs *regs)
+--- a/mm/page_poison.c~kasan-mm-reset-tags-when-accessing-metadata
++++ a/mm/page_poison.c
+@@ -25,7 +25,7 @@ static void poison_page(struct page *pag
+ 
+ 	/* KASAN still think the page is in-use, so skip it. */
+ 	kasan_disable_current();
+-	memset(addr, PAGE_POISON, PAGE_SIZE);
++	memset(kasan_reset_tag(addr), PAGE_POISON, PAGE_SIZE);
+ 	kasan_enable_current();
+ 	kunmap_atomic(addr);
+ }
+--- a/mm/slub.c~kasan-mm-reset-tags-when-accessing-metadata
++++ a/mm/slub.c
+@@ -250,7 +250,7 @@ static inline void *freelist_ptr(const s
  {
-+	bool is_write  = ((esr & ESR_ELx_WNR) >> ESR_ELx_WNR_SHIFT) != 0;
-+
-+	/*
-+	 * SAS bits aren't set for all faults reported in EL1, so we can't
-+	 * find out access size.
-+	 */
-+	kasan_report(addr, 0, is_write, regs->pc);
- }
-+#else
-+/* Tag faults aren't enabled without CONFIG_KASAN_HW_TAGS. */
-+static inline void report_tag_fault(unsigned long addr, unsigned int esr,
-+				    struct pt_regs *regs) { }
-+#endif
+ #ifdef CONFIG_SLAB_FREELIST_HARDENED
+ 	/*
+-	 * When CONFIG_KASAN_SW_TAGS is enabled, ptr_addr might be tagged.
++	 * When CONFIG_KASAN_SW/HW_TAGS is enabled, ptr_addr might be tagged.
+ 	 * Normally, this doesn't cause any issues, as both set_freepointer()
+ 	 * and get_freepointer() are called with a pointer with the same tag.
+ 	 * However, there are some issues with CONFIG_SLUB_DEBUG code. For
+@@ -276,6 +276,7 @@ static inline void *freelist_dereference
  
- static void do_tag_recovery(unsigned long addr, unsigned int esr,
- 			   struct pt_regs *regs)
---- a/mm/kasan/report.c~kasan-arm64-print-report-from-tag-fault-handler
-+++ a/mm/kasan/report.c
-@@ -62,9 +62,14 @@ static void print_error_description(stru
+ static inline void *get_freepointer(struct kmem_cache *s, void *object)
  {
- 	pr_err("BUG: KASAN: %s in %pS\n",
- 		get_bug_type(info), (void *)info->ip);
--	pr_err("%s of size %zu at addr %px by task %s/%d\n",
--		info->is_write ? "Write" : "Read", info->access_size,
--		info->access_addr, current->comm, task_pid_nr(current));
-+	if (info->access_size)
-+		pr_err("%s of size %zu at addr %px by task %s/%d\n",
-+			info->is_write ? "Write" : "Read", info->access_size,
-+			info->access_addr, current->comm, task_pid_nr(current));
-+	else
-+		pr_err("%s at addr %px by task %s/%d\n",
-+			info->is_write ? "Write" : "Read",
-+			info->access_addr, current->comm, task_pid_nr(current));
++	object = kasan_reset_tag(object);
+ 	return freelist_dereference(s, object + s->offset);
  }
  
- static DEFINE_SPINLOCK(report_lock);
+@@ -305,6 +306,7 @@ static inline void set_freepointer(struc
+ 	BUG_ON(object == fp); /* naive detection of double free or corruption */
+ #endif
+ 
++	freeptr_addr = (unsigned long)kasan_reset_tag((void *)freeptr_addr);
+ 	*(void **)freeptr_addr = freelist_ptr(s, fp, freeptr_addr);
+ }
+ 
+@@ -539,8 +541,8 @@ static void print_section(char *level, c
+ 			  unsigned int length)
+ {
+ 	metadata_access_enable();
+-	print_hex_dump(level, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
+-			length, 1);
++	print_hex_dump(level, kasan_reset_tag(text), DUMP_PREFIX_ADDRESS,
++			16, 1, addr, length, 1);
+ 	metadata_access_disable();
+ }
+ 
+@@ -571,7 +573,7 @@ static struct track *get_track(struct km
+ 
+ 	p = object + get_info_end(s);
+ 
+-	return p + alloc;
++	return kasan_reset_tag(p + alloc);
+ }
+ 
+ static void set_track(struct kmem_cache *s, void *object,
+@@ -584,7 +586,8 @@ static void set_track(struct kmem_cache
+ 		unsigned int nr_entries;
+ 
+ 		metadata_access_enable();
+-		nr_entries = stack_trace_save(p->addrs, TRACK_ADDRS_COUNT, 3);
++		nr_entries = stack_trace_save(kasan_reset_tag(p->addrs),
++					      TRACK_ADDRS_COUNT, 3);
+ 		metadata_access_disable();
+ 
+ 		if (nr_entries < TRACK_ADDRS_COUNT)
+@@ -748,7 +751,7 @@ static __printf(3, 4) void slab_err(stru
+ 
+ static void init_object(struct kmem_cache *s, void *object, u8 val)
+ {
+-	u8 *p = object;
++	u8 *p = kasan_reset_tag(object);
+ 
+ 	if (s->flags & SLAB_RED_ZONE)
+ 		memset(p - s->red_left_pad, val, s->red_left_pad);
+@@ -778,7 +781,7 @@ static int check_bytes_and_report(struct
+ 	u8 *addr = page_address(page);
+ 
+ 	metadata_access_enable();
+-	fault = memchr_inv(start, value, bytes);
++	fault = memchr_inv(kasan_reset_tag(start), value, bytes);
+ 	metadata_access_disable();
+ 	if (!fault)
+ 		return 1;
+@@ -874,7 +877,7 @@ static int slab_pad_check(struct kmem_ca
+ 
+ 	pad = end - remainder;
+ 	metadata_access_enable();
+-	fault = memchr_inv(pad, POISON_INUSE, remainder);
++	fault = memchr_inv(kasan_reset_tag(pad), POISON_INUSE, remainder);
+ 	metadata_access_disable();
+ 	if (!fault)
+ 		return 1;
+@@ -1119,7 +1122,7 @@ void setup_page_debug(struct kmem_cache
+ 		return;
+ 
+ 	metadata_access_enable();
+-	memset(addr, POISON_INUSE, page_size(page));
++	memset(kasan_reset_tag(addr), POISON_INUSE, page_size(page));
+ 	metadata_access_disable();
+ }
+ 
+@@ -1572,10 +1575,10 @@ static inline bool slab_free_freelist_ho
+ 			 * Clear the object and the metadata, but don't touch
+ 			 * the redzone.
+ 			 */
+-			memset(object, 0, s->object_size);
++			memset(kasan_reset_tag(object), 0, s->object_size);
+ 			rsize = (s->flags & SLAB_RED_ZONE) ? s->red_left_pad
+ 							   : 0;
+-			memset((char *)object + s->inuse, 0,
++			memset((char *)kasan_reset_tag(object) + s->inuse, 0,
+ 			       s->size - s->inuse - rsize);
+ 
+ 		}
+@@ -2891,10 +2894,10 @@ redo:
+ 		stat(s, ALLOC_FASTPATH);
+ 	}
+ 
+-	maybe_wipe_obj_freeptr(s, object);
++	maybe_wipe_obj_freeptr(s, kasan_reset_tag(object));
+ 
+ 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
+-		memset(object, 0, s->object_size);
++		memset(kasan_reset_tag(object), 0, s->object_size);
+ 
+ out:
+ 	slab_post_alloc_hook(s, objcg, gfpflags, 1, &object);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
