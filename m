@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECE94C388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F9B2C4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E54A2080A
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07E302080A
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="ebVmKsrP"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FfN+SqEZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732100AbgKJW4y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:56:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54430 "EHLO mail.kernel.org"
+        id S1732399AbgKJW44 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:56:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731854AbgKJW4y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:56:54 -0500
+        id S1731854AbgKJW44 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:56:56 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 169AC204EF;
-        Tue, 10 Nov 2020 22:56:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3ED92204EF;
+        Tue, 10 Nov 2020 22:56:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049011;
-        bh=CEEcobeE+CM+z3uKJ2lnbsKxF3CiHC9Lk8HlNrpHsm4=;
+        s=default; t=1605049015;
+        bh=L6oJX7/W2CxhJoLVE8KK2+vjfJSpfv8r01epVtF0Ib8=;
         h=Date:From:To:Subject:From;
-        b=ebVmKsrPnWGc3EgxjQTVn7Bzc/nof00CNz9HV9PY4NHM/gYc3xsLhVx1GqBAKqLM5
-         VATXIkxhQiCC5DGDwamqxOt1RVDGFyPrFy91eXZDic+4e5/zOgxNNBki5LhYkMZfNK
-         8rCxsgR6HvyQiPH6yfw6YyFxkrG07BRusR6LFAGc=
-Date:   Tue, 10 Nov 2020 14:56:50 -0800
+        b=FfN+SqEZGv4Kyvdiw/Bj/GNjN4zxV3dZivGJEnqNyA0s/8LP88Vb5dseCBW19Ff4M
+         frCi01isq3N/RYDdVl+Wc4w9JMBlbOSNUzXsLl4l58c64qPDBN4lP0q0cKp2lT/57x
+         6d6EClznEhFXAkz/0il/Y7yqNexDgATvP483C1/8=
+Date:   Tue, 10 Nov 2020 14:56:54 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + arm64-mte-add-in-kernel-tag-fault-handler.patch added
- to -mm tree
-Message-ID: <20201110225650.f7czjtZl1%akpm@linux-foundation.org>
+Subject:  + arm64-kasan-allow-enabling-in-kernel-mte.patch added to
+ -mm tree
+Message-ID: <20201110225654.ctzUzVEnQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: add in-kernel tag fault handler
+     Subject: arm64: kasan: allow enabling in-kernel MTE
 has been added to the -mm tree.  Its filename is
-     arm64-mte-add-in-kernel-tag-fault-handler.patch
+     arm64-kasan-allow-enabling-in-kernel-mte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-mte-add-in-kernel-tag-fault-handler.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-allow-enabling-in-kernel-mte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-mte-add-in-kernel-tag-fault-handler.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-allow-enabling-in-kernel-mte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,28 +74,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: mte: add in-kernel tag fault handler
+Subject: arm64: kasan: allow enabling in-kernel MTE
 
-Add the implementation of the in-kernel fault handler.
+Hardware tag-based KASAN relies on Memory Tagging Extension (MTE)
+feature and requires it to be enabled. MTE supports
 
-When a tag fault happens on a kernel address:
-* MTE is disabled on the current CPU,
-* the execution continues.
+This patch adds a new mte_init_tags() helper, that enables MTE in
+Synchronous mode in EL1 and is intended to be called from KASAN runtime
+during initialization.
 
-When a tag fault happens on a user address:
-* the kernel executes do_bad_area() and panics.
+The Tag Checking operation causes a synchronous data abort as
+a consequence of a tag check fault when MTE is configured in
+synchronous mode.
 
-The tag fault handler for kernel addresses is currently empty and will be
-filled in by a future commit.
+As part of this change enable match-all tag for EL1 to allow the
+kernel to access user pages without faulting. This is required because
+the kernel does not have knowledge of the tags set by the user in a
+page.
 
-Link: https://lkml.kernel.org/r/96694ab6b5b64f4ab2de32cdc4773857966d62f1.1605046192.git.andreyknvl@google.com
+Note: For MTE, the TCF bit field in SCTLR_EL1 affects only EL1 in a
+similar way as TCF0 affects EL0.
+
+MTE that is built on top of the Top Byte Ignore (TBI) feature hence we
+enable it as part of this patch as well.
+
+Link: https://lkml.kernel.org/r/5ce2fc45920e59623a4a9d8d39b6c96792f1e055.1605046192.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
@@ -105,117 +115,103 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/uaccess.h |   23 ++++++++++++++
- arch/arm64/mm/fault.c            |   45 +++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
+ arch/arm64/include/asm/mte-kasan.h |    6 ++++++
+ arch/arm64/kernel/mte.c            |    7 +++++++
+ arch/arm64/mm/proc.S               |   23 ++++++++++++++++++++---
+ 3 files changed, 33 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/uaccess.h~arm64-mte-add-in-kernel-tag-fault-handler
-+++ a/arch/arm64/include/asm/uaccess.h
-@@ -200,13 +200,36 @@ do {									\
- 				CONFIG_ARM64_PAN));			\
- } while (0)
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -29,6 +29,8 @@ u8 mte_get_mem_tag(void *addr);
+ u8 mte_get_random_tag(void);
+ void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
  
-+/*
-+ * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
-+ * affects EL0 and TCF affects EL1 irrespective of which TTBR is
-+ * used.
-+ * The kernel accesses TTBR0 usually with LDTR/STTR instructions
-+ * when UAO is available, so these would act as EL0 accesses using
-+ * TCF0.
-+ * However futex.h code uses exclusives which would be executed as
-+ * EL1, this can potentially cause a tag check fault even if the
-+ * user disables TCF0.
-+ *
-+ * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
-+ * and reset it in uaccess_disable().
-+ *
-+ * The Tag check override (TCO) bit disables temporarily the tag checking
-+ * preventing the issue.
-+ */
- static inline void uaccess_disable(void)
- {
-+	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
-+				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
++void mte_enable(void);
 +
- 	__uaccess_disable(ARM64_HAS_PAN);
+ #else /* CONFIG_ARM64_MTE */
+ 
+ static inline u8 mte_get_ptr_tag(void *ptr)
+@@ -49,6 +51,10 @@ static inline void *mte_set_mem_tag_rang
+ 	return addr;
  }
  
- static inline void uaccess_enable(void)
- {
-+	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
-+				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
-+
- 	__uaccess_enable(ARM64_HAS_PAN);
- }
- 
---- a/arch/arm64/mm/fault.c~arm64-mte-add-in-kernel-tag-fault-handler
-+++ a/arch/arm64/mm/fault.c
-@@ -34,6 +34,7 @@
- #include <asm/debug-monitors.h>
- #include <asm/esr.h>
- #include <asm/kprobes.h>
-+#include <asm/mte.h>
- #include <asm/processor.h>
- #include <asm/sysreg.h>
- #include <asm/system_misc.h>
-@@ -297,6 +298,44 @@ static void die_kernel_fault(const char
- 	do_exit(SIGKILL);
- }
- 
-+static void report_tag_fault(unsigned long addr, unsigned int esr,
-+			     struct pt_regs *regs)
++static inline void mte_enable(void)
 +{
 +}
 +
-+static void do_tag_recovery(unsigned long addr, unsigned int esr,
-+			   struct pt_regs *regs)
+ #endif /* CONFIG_ARM64_MTE */
+ 
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/mte.c~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/kernel/mte.c
+@@ -129,6 +129,13 @@ void *mte_set_mem_tag_range(void *addr,
+ 	return ptr;
+ }
+ 
++void mte_enable(void)
 +{
-+	static bool reported = false;
-+
-+	if (!READ_ONCE(reported)) {
-+		report_tag_fault(addr, esr, regs);
-+		WRITE_ONCE(reported, true);
-+	}
-+
-+	/*
-+	 * Disable MTE Tag Checking on the local CPU for the current EL.
-+	 * It will be done lazily on the other CPUs when they will hit a
-+	 * tag fault.
-+	 */
-+	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_NONE);
++	/* Enable MTE Sync Mode for EL1. */
++	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
 +	isb();
 +}
 +
-+static bool is_el1_mte_sync_tag_check_fault(unsigned int esr)
-+{
-+	unsigned int ec = ESR_ELx_EC(esr);
-+	unsigned int fsc = esr & ESR_ELx_FSC;
-+
-+	if (ec != ESR_ELx_EC_DABT_CUR)
-+		return false;
-+
-+	if (fsc == ESR_ELx_FSC_MTE)
-+		return true;
-+
-+	return false;
-+}
-+
- static void __do_kernel_fault(unsigned long addr, unsigned int esr,
- 			      struct pt_regs *regs)
+ static void update_sctlr_el1_tcf0(u64 tcf0)
  {
-@@ -313,6 +352,12 @@ static void __do_kernel_fault(unsigned l
- 	    "Ignoring spurious kernel translation fault at virtual address %016lx\n", addr))
- 		return;
+ 	/* ISB required for the kernel uaccess routines */
+--- a/arch/arm64/mm/proc.S~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/mm/proc.S
+@@ -40,9 +40,15 @@
+ #define TCR_CACHE_FLAGS	TCR_IRGN_WBWA | TCR_ORGN_WBWA
  
-+	if (is_el1_mte_sync_tag_check_fault(esr)) {
-+		do_tag_recovery(addr, esr, regs);
+ #ifdef CONFIG_KASAN_SW_TAGS
+-#define TCR_KASAN_FLAGS TCR_TBI1
++#define TCR_KASAN_SW_FLAGS TCR_TBI1
+ #else
+-#define TCR_KASAN_FLAGS 0
++#define TCR_KASAN_SW_FLAGS 0
++#endif
 +
-+		return;
-+	}
++#ifdef CONFIG_KASAN_HW_TAGS
++#define TCR_KASAN_HW_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1
++#else
++#define TCR_KASAN_HW_FLAGS 0
+ #endif
+ 
+ /*
+@@ -427,6 +433,10 @@ SYM_FUNC_START(__cpu_setup)
+ 	 */
+ 	mov_q	x5, MAIR_EL1_SET
+ #ifdef CONFIG_ARM64_MTE
++	mte_tcr	.req	x20
 +
- 	if (is_el1_permission_fault(addr, esr, regs)) {
- 		if (esr & ESR_ELx_WNR)
- 			msg = "write to read-only memory";
++	mov	mte_tcr, #0
++
+ 	/*
+ 	 * Update MAIR_EL1, GCR_EL1 and TFSR*_EL1 if MTE is supported
+ 	 * (ID_AA64PFR1_EL1[11:8] > 1).
+@@ -447,6 +457,9 @@ SYM_FUNC_START(__cpu_setup)
+ 	/* clear any pending tag check faults in TFSR*_EL1 */
+ 	msr_s	SYS_TFSR_EL1, xzr
+ 	msr_s	SYS_TFSRE0_EL1, xzr
++
++	/* set the TCR_EL1 bits */
++	mov_q	mte_tcr, TCR_KASAN_HW_FLAGS
+ 1:
+ #endif
+ 	msr	mair_el1, x5
+@@ -456,7 +469,11 @@ SYM_FUNC_START(__cpu_setup)
+ 	 */
+ 	mov_q	x10, TCR_TxSZ(VA_BITS) | TCR_CACHE_FLAGS | TCR_SMP_FLAGS | \
+ 			TCR_TG_FLAGS | TCR_KASLR_FLAGS | TCR_ASID16 | \
+-			TCR_TBI0 | TCR_A1 | TCR_KASAN_FLAGS
++			TCR_TBI0 | TCR_A1 | TCR_KASAN_SW_FLAGS
++#ifdef CONFIG_ARM64_MTE
++	orr	x10, x10, mte_tcr
++	.unreq	mte_tcr
++#endif
+ 	tcr_clear_errata_bits x10, x9, x5
+ 
+ #ifdef CONFIG_ARM64_VA_BITS_52
 _
 
 Patches currently in -mm which might be from vincenzo.frascino@arm.com are
