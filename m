@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7675C388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3379C55ABD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:22:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65B90207D3
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:22:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A52FD207D3
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:22:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="P3CG60wK"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="cxQcUS+3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732196AbgKJWWG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:22:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43932 "EHLO mail.kernel.org"
+        id S1732233AbgKJWWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:22:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732177AbgKJWWF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:22:05 -0500
+        id S1732221AbgKJWWJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:22:09 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 75EFF206B2;
-        Tue, 10 Nov 2020 22:22:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D552A20781;
+        Tue, 10 Nov 2020 22:22:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605046924;
-        bh=1U5Sd0eUcja9HTZiGmVznz27lNb2PKDiEZ9tFHSxmyI=;
+        s=default; t=1605046928;
+        bh=V2M+4p9Erk10oh6d6uVGAm6a2n5XKkLEdavOZszXUII=;
         h=Date:From:To:Subject:From;
-        b=P3CG60wKbWu9tkhZ7u20JgxoN8uQtu3QE+CddI6LyI+yVNvKFvxCrkDQn+NzxacMP
-         wCz36O4/+WC4Lla+MqJ0gF0We0f3RWmSJ+UcbTi0lG8OMFPF54y8pK5aoi45vORdwI
-         /vPzYb5Q32bRdIO2MkD48ggiDJuM1cPEhRTaUOu4=
-Date:   Tue, 10 Nov 2020 14:22:03 -0800
+        b=cxQcUS+392Mm02Yt+BK8neJQTgWbEBjkv80/lRw7YPtRNhxwLtKg5fNRLrq2k2Bg7
+         rDnyf7TC9ekM2hFDRGC0sircPx9/LXkF9hXdDD+fIA9bJ3WcerQoNo8EAVQ11hySNJ
+         DB2pHz5wOeyB0DcVNz0mN+o5zhjLSL/NjH+NvFrk=
+Date:   Tue, 10 Nov 2020 14:22:07 -0800
 From:   akpm@linux-foundation.org
 To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, tj@kernel.org
-Subject:  + mm-memcg-deprecate-the-non-hierarchical-mode.patch
+Subject:  +
+ docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
  added to -mm tree
-Message-ID: <20201110222203.JPXKd0Dqc%akpm@linux-foundation.org>
+Message-ID: <20201110222207.TVMYJgITG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: deprecate the non-hierarchical mode
+     Subject: docs: cgroup-v1: reflect the deprecation of the non-hierarchical mode
 has been added to the -mm tree.  Its filename is
-     mm-memcg-deprecate-the-non-hierarchical-mode.patch
+     docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-deprecate-the-non-hierarchical-mode.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-deprecate-the-non-hierarchical-mode.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,278 +72,126 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg: deprecate the non-hierarchical mode
+Subject: docs: cgroup-v1: reflect the deprecation of the non-hierarchical mode
 
-Patch series "mm: memcg: deprecate cgroup v1 non-hierarchical mode", v1.
+Update cgroup v1 docs after the deprecation of the non-hierarchical mode
+of the memory controller.
 
-The non-hierarchical cgroup v1 mode is a legacy of early days
-of the memory controller and doesn't bring any value today.
-However, it complicates the code and creates many edge cases
-all over the memory controller code.
-
-It's a good time to deprecate it completely. This patchset removes
-the internal logic, adjusts the user interface and updates
-the documentation. The alt patch removes some bits of the cgroup
-core code, which become obsolete.
-
-Michal Hocko said:
-
-: All that we know today is that we have a warning in place to complain
-: loudly when somebody relies on use_hierarchy=0 with a deeper hierarchy. 
-: For all those years we have seen _zero_ reports that would describe a
-: sensible usecase.
-: 
-: Moreover we (SUSE) have backported this warning into old distribution
-: kernels (since 3.0 based kernels) to extend the coverage and didn't hear
-: even for users who adopt new kernels only very slowly.  The only report we
-: have seen so far was a LTP test suite which doesn't really reflect any
-: real life usecase.
-
-
-This patch (of 3):
-
-The non-hierarchical cgroup v1 mode is a legacy of early days of the
-memory controller and doesn't bring any value today.  However, it
-complicates the code and creates many edge cases all over the memory
-controller code.
-
-It's a good time to deprecate it completely.
-
-Functionally this patch enabled is by default for all cgroups and forbids
-switching it off.  Nothing changes if cgroup v2 is used: hierarchical mode
-was enforced from scratch.
-
-To protect the ABI memory.use_hierarchy interface is preserved with a
-limited functionality: reading always returns "1", writing of "1" passes
-silently, writing of any other value fails with -EINVAL and a warning to
-dmesg (on the first occasion).
-
-Link: https://lkml.kernel.org/r/20201110220800.929549-1-guro@fb.com
-Link: https://lkml.kernel.org/r/20201110220800.929549-2-guro@fb.com
+Link: https://lkml.kernel.org/r/20201110220800.929549-3-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 --
- kernel/cgroup/cgroup.c     |    5 -
- mm/memcontrol.c            |   90 +++++------------------------------
- 3 files changed, 13 insertions(+), 89 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memcg_test.rst |    8 --
+ Documentation/admin-guide/cgroup-v1/memory.rst     |   42 +++--------
+ 2 files changed, 17 insertions(+), 33 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-deprecate-the-non-hierarchical-mode
-+++ a/include/linux/memcontrol.h
-@@ -235,11 +235,6 @@ struct mem_cgroup {
- 	struct vmpressure vmpressure;
+--- a/Documentation/admin-guide/cgroup-v1/memcg_test.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
++++ a/Documentation/admin-guide/cgroup-v1/memcg_test.rst
+@@ -219,13 +219,11 @@ Under below explanation, we assume CONFI
  
- 	/*
--	 * Should the accounting and control be hierarchical, per subtree?
--	 */
--	bool use_hierarchy;
+ 	This is an easy way to test page migration, too.
+ 
+-9.5 mkdir/rmdir
+----------------
++9.5 nested cgroups
++------------------
+ 
+-	When using hierarchy, mkdir/rmdir test should be done.
+-	Use tests like the following::
++	Use tests like the following for testing nested cgroups::
+ 
+-		echo 1 >/opt/cgroup/01/memory/use_hierarchy
+ 		mkdir /opt/cgroup/01/child_a
+ 		mkdir /opt/cgroup/01/child_b
+ 
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -77,6 +77,8 @@ Brief summary of control files.
+  memory.soft_limit_in_bytes	     set/show soft limit of memory usage
+  memory.stat			     show various statistics
+  memory.use_hierarchy		     set/show hierarchical account enabled
++                                     This knob is deprecated and shouldn't be
++                                     used.
+  memory.force_empty		     trigger forced page reclaim
+  memory.pressure_level		     set memory pressure notifications
+  memory.swappiness		     set/show swappiness parameter of vmscan
+@@ -495,16 +497,13 @@ cgroup might have some charge associated
+ tasks have migrated away from it. (because we charge against pages, not
+ against tasks.)
+ 
+-We move the stats to root (if use_hierarchy==0) or parent (if
+-use_hierarchy==1), and no change on the charge except uncharging
++We move the stats to parent, and no change on the charge except uncharging
+ from the child.
+ 
+ Charges recorded in swap information is not updated at removal of cgroup.
+ Recorded information is discarded and a cgroup which uses swap (swapcache)
+ will be charged as a new owner of it.
+ 
+-About use_hierarchy, see Section 6.
 -
--	/*
- 	 * Should the OOM killer kill all belonging tasks, had it kill one?
- 	 */
- 	bool oom_group;
-@@ -775,8 +770,6 @@ static inline bool mem_cgroup_is_descend
- {
- 	if (root == memcg)
- 		return true;
--	if (!root->use_hierarchy)
--		return false;
- 	return cgroup_is_descendant(memcg->css.cgroup, root->css.cgroup);
- }
+ 5. Misc. interfaces
+ ===================
  
---- a/kernel/cgroup/cgroup.c~mm-memcg-deprecate-the-non-hierarchical-mode
-+++ a/kernel/cgroup/cgroup.c
-@@ -281,9 +281,6 @@ bool cgroup_ssid_enabled(int ssid)
-  * - cpuset: a task can be moved into an empty cpuset, and again it takes
-  *   masks of ancestors.
-  *
-- * - memcg: use_hierarchy is on by default and the cgroup file for the flag
-- *   is not created.
-- *
-  * - blkcg: blk-throttle becomes properly hierarchical.
-  *
-  * - debug: disallowed on the default hierarchy.
-@@ -5156,8 +5153,6 @@ static struct cgroup_subsys_state *css_c
- 	    cgroup_parent(parent)) {
- 		pr_warn("%s (%d) created nested cgroup for controller \"%s\" which has incomplete hierarchy support. Nested cgroups may change behavior in the future.\n",
- 			current->comm, current->pid, ss->name);
--		if (!strcmp(ss->name, "memory"))
--			pr_warn("\"memory\" requires setting use_hierarchy to 1 on the root\n");
- 		ss->warned_broken_hierarchy = true;
- 	}
+@@ -527,8 +526,6 @@ About use_hierarchy, see Section 6.
+   write will still return success. In this case, it is expected that
+   memory.kmem.usage_in_bytes == memory.usage_in_bytes.
  
---- a/mm/memcontrol.c~mm-memcg-deprecate-the-non-hierarchical-mode
-+++ a/mm/memcontrol.c
-@@ -1132,12 +1132,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	if (prev && !reclaim)
- 		pos = prev;
- 
--	if (!root->use_hierarchy && root != root_mem_cgroup) {
--		if (prev)
--			goto out;
--		return root;
--	}
+-  About use_hierarchy, see Section 6.
 -
- 	rcu_read_lock();
+ 5.2 stat file
+ -------------
  
- 	if (reclaim) {
-@@ -1217,7 +1211,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
+@@ -675,32 +672,21 @@ hierarchy::
+ 		      d   e
  
- out_unlock:
- 	rcu_read_unlock();
--out:
- 	if (prev && prev != root)
- 		css_put(&prev->css);
- 
-@@ -3408,10 +3401,7 @@ unsigned long mem_cgroup_soft_limit_recl
- }
- 
- /*
-- * Test whether @memcg has children, dead or alive.  Note that this
-- * function doesn't care whether @memcg has use_hierarchy enabled and
-- * returns %true if there are child csses according to the cgroup
-- * hierarchy.  Testing use_hierarchy is the caller's responsibility.
-+ * Test whether @memcg has children, dead or alive.
-  */
- static inline bool memcg_has_children(struct mem_cgroup *memcg)
- {
-@@ -3471,37 +3461,20 @@ static ssize_t mem_cgroup_force_empty_wr
- static u64 mem_cgroup_hierarchy_read(struct cgroup_subsys_state *css,
- 				     struct cftype *cft)
- {
--	return mem_cgroup_from_css(css)->use_hierarchy;
-+	return 1;
- }
- 
- static int mem_cgroup_hierarchy_write(struct cgroup_subsys_state *css,
- 				      struct cftype *cft, u64 val)
- {
--	int retval = 0;
--	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
--	struct mem_cgroup *parent_memcg = mem_cgroup_from_css(memcg->css.parent);
+ In the diagram above, with hierarchical accounting enabled, all memory
+-usage of e, is accounted to its ancestors up until the root (i.e, c and root),
+-that has memory.use_hierarchy enabled. If one of the ancestors goes over its
+-limit, the reclaim algorithm reclaims from the tasks in the ancestor and the
+-children of the ancestor.
 -
--	if (memcg->use_hierarchy == val)
-+	if (val == 1)
- 		return 0;
- 
--	/*
--	 * If parent's use_hierarchy is set, we can't make any modifications
--	 * in the child subtrees. If it is unset, then the change can
--	 * occur, provided the current cgroup has no children.
--	 *
--	 * For the root cgroup, parent_mem is NULL, we allow value to be
--	 * set if there are no children.
--	 */
--	if ((!parent_memcg || !parent_memcg->use_hierarchy) &&
--				(val == 1 || val == 0)) {
--		if (!memcg_has_children(memcg))
--			memcg->use_hierarchy = val;
--		else
--			retval = -EBUSY;
--	} else
--		retval = -EINVAL;
-+	pr_warn_once("Non-hierarchical mode is deprecated. "
-+		     "Please report your usecase to linux-mm@kvack.org if you "
-+		     "depend on this functionality.\n");
- 
--	return retval;
-+	return -EINVAL;
- }
- 
- static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
-@@ -3689,8 +3662,6 @@ static void memcg_offline_kmem(struct me
- 		child = mem_cgroup_from_css(css);
- 		BUG_ON(child->kmemcg_id != kmemcg_id);
- 		child->kmemcg_id = parent->kmemcg_id;
--		if (!memcg->use_hierarchy)
--			break;
- 	}
- 	rcu_read_unlock();
- 
-@@ -5281,38 +5252,22 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	if (parent) {
- 		memcg->swappiness = mem_cgroup_swappiness(parent);
- 		memcg->oom_kill_disable = parent->oom_kill_disable;
--	}
--	if (!parent) {
--		page_counter_init(&memcg->memory, NULL);
--		page_counter_init(&memcg->swap, NULL);
--		page_counter_init(&memcg->kmem, NULL);
--		page_counter_init(&memcg->tcpmem, NULL);
--	} else if (parent->use_hierarchy) {
--		memcg->use_hierarchy = true;
+-6.1 Enabling hierarchical accounting and reclaim
+-------------------------------------------------
++usage of e, is accounted to its ancestors up until the root (i.e, c and root).
++If one of the ancestors goes over its limit, the reclaim algorithm reclaims
++from the tasks in the ancestor and the children of the ancestor.
 +
- 		page_counter_init(&memcg->memory, &parent->memory);
- 		page_counter_init(&memcg->swap, &parent->swap);
- 		page_counter_init(&memcg->kmem, &parent->kmem);
- 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
- 	} else {
--		page_counter_init(&memcg->memory, &root_mem_cgroup->memory);
--		page_counter_init(&memcg->swap, &root_mem_cgroup->swap);
--		page_counter_init(&memcg->kmem, &root_mem_cgroup->kmem);
--		page_counter_init(&memcg->tcpmem, &root_mem_cgroup->tcpmem);
--		/*
--		 * Deeper hierachy with use_hierarchy == false doesn't make
--		 * much sense so let cgroup subsystem know about this
--		 * unfortunate state in our controller.
--		 */
--		if (parent != root_mem_cgroup)
--			memory_cgrp_subsys.broken_hierarchy = true;
--	}
-+		page_counter_init(&memcg->memory, NULL);
-+		page_counter_init(&memcg->swap, NULL);
-+		page_counter_init(&memcg->kmem, NULL);
-+		page_counter_init(&memcg->tcpmem, NULL);
++6.1 Hierarchical accounting and reclaim
++---------------------------------------
++
++Hierarchical accounting is enabled by default. Disabling the hierarchical
++accounting is deprecated. An attempt to do it will result in a failure
++and a warning printed to dmesg.
  
--	/* The following stuff does not apply to the root */
--	if (!parent) {
- 		root_mem_cgroup = memcg;
- 		return &memcg->css;
- 	}
+-A memory cgroup by default disables the hierarchy feature. Support
+-can be enabled by writing 1 to memory.use_hierarchy file of the root cgroup::
++For compatibility reasons writing 1 to memory.use_hierarchy will always pass::
  
-+	/* The following stuff does not apply to the root */
- 	error = memcg_online_kmem(memcg);
- 	if (error)
- 		goto fail;
-@@ -6149,24 +6104,6 @@ static void mem_cgroup_move_task(void)
- }
- #endif
+ 	# echo 1 > memory.use_hierarchy
  
--/*
-- * Cgroup retains root cgroups across [un]mount cycles making it necessary
-- * to verify whether we're attached to the default hierarchy on each mount
-- * attempt.
-- */
--static void mem_cgroup_bind(struct cgroup_subsys_state *root_css)
--{
--	/*
--	 * use_hierarchy is forced on the default hierarchy.  cgroup core
--	 * guarantees that @root doesn't have any children, so turning it
--	 * on for the root memcg is enough.
--	 */
--	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
--		root_mem_cgroup->use_hierarchy = true;
--	else
--		root_mem_cgroup->use_hierarchy = false;
--}
+-The feature can be disabled by::
 -
- static int seq_puts_memcg_tunable(struct seq_file *m, unsigned long value)
- {
- 	if (value == PAGE_COUNTER_MAX)
-@@ -6504,7 +6441,6 @@ struct cgroup_subsys memory_cgrp_subsys
- 	.can_attach = mem_cgroup_can_attach,
- 	.cancel_attach = mem_cgroup_cancel_attach,
- 	.post_attach = mem_cgroup_move_task,
--	.bind = mem_cgroup_bind,
- 	.dfl_cftypes = memory_files,
- 	.legacy_cftypes = mem_cgroup_legacy_files,
- 	.early_init = 0,
+-	# echo 0 > memory.use_hierarchy
+-
+-NOTE1:
+-       Enabling/disabling will fail if either the cgroup already has other
+-       cgroups created below it, or if the parent cgroup has use_hierarchy
+-       enabled.
+-
+-NOTE2:
+-       When panic_on_oom is set to "2", the whole system will panic in
+-       case of an OOM event in any cgroup.
+-
+ 7. Soft limits
+ ==============
+ 
 _
 
 Patches currently in -mm which might be from guro@fb.com are
