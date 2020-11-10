@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 642D9C4742C
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52912C55ABD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FCE1207E8
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F38BF207E8
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="J7dIuaE7"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="jY+qnXi8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732432AbgKJWzp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:55:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53744 "EHLO mail.kernel.org"
+        id S1732123AbgKJWzs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:55:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53774 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727018AbgKJWzp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:55:45 -0500
+        id S1727018AbgKJWzs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:55:48 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 24101205CA;
-        Tue, 10 Nov 2020 22:55:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F3BAE20781;
+        Tue, 10 Nov 2020 22:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605048944;
-        bh=c2rWsYYT5Bm4mdOOunYSYSxs+A6bgwABfdUQvEIdcOo=;
+        s=default; t=1605048947;
+        bh=jpBZk1nDhJzrHwj2FFy4GilcMEMSALY9HdiC3lYlWdw=;
         h=Date:From:To:Subject:From;
-        b=J7dIuaE76v3OXTHrdq5DYGCjVoe08uQpuwpdyO/08FWfj1dr7uQRZVxYEvM0mCZNC
-         Tzr4eoHB0QMPCAHi1gApweEGKlPxGsC95ArsIOlLdJBhWafEZeVKaTUPbZv3BUGmhK
-         pbVO8ZEDaFVph9AnQuLRxQQydhbxRxDUqQVTvGq0=
-Date:   Tue, 10 Nov 2020 14:55:43 -0800
+        b=jY+qnXi8CFVs4KeLq8HIYxdp6jlqyApLmNNXzBzr965V3g6t/QJD1rZHEGfVbQzDA
+         dysT+fMoCFZNedQjbHYtv/0pb65fequl+KkRHWbfob5C6EuzTtDlrNoTfuZkJYBpXc
+         A4ALfOxEGNsBI7ZdY0egTk/CGV5ELTl7vEN3LROw=
+Date:   Tue, 10 Nov 2020 14:55:46 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-rename-report-and-tags-files.patch added to -mm
- tree
-Message-ID: <20201110225543.9RyArBVQF%akpm@linux-foundation.org>
+Subject:  + kasan-dont-duplicate-config-dependencies.patch added to
+ -mm tree
+Message-ID: <20201110225546.2CaCp324q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: rename report and tags files
+     Subject: kasan: don't duplicate config dependencies
 has been added to the -mm tree.  Its filename is
-     kasan-rename-report-and-tags-files.patch
+     kasan-dont-duplicate-config-dependencies.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-report-and-tags-files.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-dont-duplicate-config-dependencies.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-report-and-tags-files.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-dont-duplicate-config-dependencies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,16 +74,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename report and tags files
+Subject: kasan: don't duplicate config dependencies
 
-Rename generic_report.c to report_generic.c and tags_report.c to
-report_sw_tags.c, as their content is more relevant to report.c file.
-Also rename tags.c to sw_tags.c to better reflect that this file contains
-code for software tag-based mode.
+Both KASAN_GENERIC and KASAN_SW_TAGS have common dependencies, move
+those to KASAN.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/37a9648ffa16572583a7513323cc9be88a726eb1.1605046192.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fc3f94183e4229363d0a891abc791af5b85d20f7.1605046192.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -99,59 +95,42 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/Makefile |   16 ++++++++--------
- mm/kasan/report.c |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ lib/Kconfig.kasan |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/Makefile~kasan-rename-report-and-tags-files
-+++ a/mm/kasan/Makefile
-@@ -6,13 +6,13 @@ KCOV_INSTRUMENT := n
- # Disable ftrace to avoid recursion.
- CFLAGS_REMOVE_common.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_generic.o = $(CC_FLAGS_FTRACE)
--CFLAGS_REMOVE_generic_report.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_init.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_quarantine.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_report.o = $(CC_FLAGS_FTRACE)
-+CFLAGS_REMOVE_report_generic.o = $(CC_FLAGS_FTRACE)
-+CFLAGS_REMOVE_report_sw_tags.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_shadow.o = $(CC_FLAGS_FTRACE)
--CFLAGS_REMOVE_tags.o = $(CC_FLAGS_FTRACE)
--CFLAGS_REMOVE_tags_report.o = $(CC_FLAGS_FTRACE)
-+CFLAGS_REMOVE_sw_tags.o = $(CC_FLAGS_FTRACE)
+--- a/lib/Kconfig.kasan~kasan-dont-duplicate-config-dependencies
++++ a/lib/Kconfig.kasan
+@@ -24,6 +24,8 @@ menuconfig KASAN
+ 		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
+ 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
++	select CONSTRUCTORS
++	select STACKDEPOT
+ 	help
+ 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
+ 	  designed to find out-of-bounds accesses and use-after-free bugs.
+@@ -46,10 +48,7 @@ choice
+ config KASAN_GENERIC
+ 	bool "Generic mode"
+ 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
+-	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	select SLUB_DEBUG if SLUB
+-	select CONSTRUCTORS
+-	select STACKDEPOT
+ 	help
+ 	  Enables generic KASAN mode.
  
- # Function splitter causes unnecessary splits in __asan_load1/__asan_store1
- # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63533
-@@ -23,14 +23,14 @@ CC_FLAGS_KASAN_RUNTIME += -DDISABLE_BRAN
+@@ -70,10 +69,7 @@ config KASAN_GENERIC
+ config KASAN_SW_TAGS
+ 	bool "Software tag-based mode"
+ 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
+-	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	select SLUB_DEBUG if SLUB
+-	select CONSTRUCTORS
+-	select STACKDEPOT
+ 	help
+ 	  Enables software tag-based KASAN mode.
  
- CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
--CFLAGS_generic_report.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_report_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_report_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_shadow.o := $(CC_FLAGS_KASAN_RUNTIME)
--CFLAGS_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
--CFLAGS_tags_report.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- 
- obj-$(CONFIG_KASAN) := common.o report.o
--obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o generic_report.o shadow.o quarantine.o
--obj-$(CONFIG_KASAN_SW_TAGS) += init.o shadow.o tags.o tags_report.o
-+obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
-+obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o
---- a/mm/kasan/report.c~kasan-rename-report-and-tags-files
-+++ a/mm/kasan/report.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-- * This file contains common generic and tag-based KASAN error reporting code.
-+ * This file contains common KASAN error reporting code.
-  *
-  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
