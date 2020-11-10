@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C964C55ABD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C58C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5829320829
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C43D208CA
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="B2MGxbdr"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="xiGN1g8F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727018AbgKJVSj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 16:18:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35578 "EHLO mail.kernel.org"
+        id S1731587AbgKJVSn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 16:18:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725862AbgKJVSi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 16:18:38 -0500
+        id S1725862AbgKJVSn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 16:18:43 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 580AF20781;
-        Tue, 10 Nov 2020 21:18:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 450E4206D8;
+        Tue, 10 Nov 2020 21:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605043117;
-        bh=HrIR7+5fFOoPcQCpdghrqbSDU//kaeTnPb6TaKgzkzU=;
+        s=default; t=1605043122;
+        bh=Yu1WSjtaKZDBgboYSr4jgBJlxLhOt9X3Q08ZS37BuC8=;
         h=Date:From:To:Subject:From;
-        b=B2MGxbdroH030mM1MxzN66GlPn2FdzJk6YBwSy6P0PorEygRhdqnpsaZEuBiW/3OH
-         ZP7/H6Kn+k/5+Sb+cqmRCIPEk6C09xPwVt3DXT28I6OCWGEuaUz2UDOymug6ZJL6Ru
-         Y80VE7GfWMJ2TzNOQIEKgzwGkoTSBwOwWu2xDh40=
-Date:   Tue, 10 Nov 2020 13:18:35 -0800
+        b=xiGN1g8F5fHpJzYUSZn1sQWdsufYcbNRDb3pZmBXWk2dA0rRUDrfXie/xTVOYkUBv
+         1bW4p6srrqGw3HW90xn3So+XrjmH3S0Hmg/0x69EMIlfeYOFAnd0eQMcut0HMTxhVD
+         xeGi2zvR1q5MW5ftLn+0rYnWFjyXdxJnPuBCzXSQ=
+Date:   Tue, 10 Nov 2020 13:18:39 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
         andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
@@ -46,8 +46,8 @@ To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
         rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
         tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
         tzimmermann@suse.de, vbabka@suse.cz
-Subject:  + mm-slab-provide-krealloc_array.patch added to -mm tree
-Message-ID: <20201110211835.TEcCTW3BQ%akpm@linux-foundation.org>
+Subject:  + alsa-pcm-use-krealloc_array.patch added to -mm tree
+Message-ID: <20201110211839.HCpxOrwJk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slab: provide krealloc_array()
+     Subject: ALSA: pcm: use krealloc_array()
 has been added to the -mm tree.  Its filename is
-     mm-slab-provide-krealloc_array.patch
+     alsa-pcm-use-krealloc_array.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-provide-krealloc_array.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/alsa-pcm-use-krealloc_array.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-provide-krealloc_array.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/alsa-pcm-use-krealloc_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,21 +78,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: mm: slab: provide krealloc_array()
+Subject: ALSA: pcm: use krealloc_array()
 
-When allocating an array of elements, users should check for
-multiplication overflow or preferably use one of the provided helpers
-like: kmalloc_array().
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-There's no krealloc_array() counterpart but there are many users who use
-regular krealloc() to reallocate arrays.  Let's provide an actual
-krealloc_array() implementation.
-
-While at it: add some documentation regarding krealloc.
-
-Link: https://lkml.kernel.org/r/20201109110654.12547-3-brgl@bgdev.pl
+Link: https://lkml.kernel.org/r/20201109110654.12547-4-brgl@bgdev.pl
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Takashi Iwai <tiwai@suse.de>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -117,56 +110,28 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Robert Richter <rric@kernel.org>
 Cc: Sumit Semwal <sumit.semwal@linaro.org>
 Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Takashi Iwai <tiwai@suse.de>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/memory-allocation.rst |    4 +++
- include/linux/slab.h                         |   18 +++++++++++++++++
- 2 files changed, 22 insertions(+)
+ sound/core/pcm_lib.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/core-api/memory-allocation.rst~mm-slab-provide-krealloc_array
-+++ a/Documentation/core-api/memory-allocation.rst
-@@ -147,6 +147,10 @@ The address of a chunk allocated with `k
- ARCH_KMALLOC_MINALIGN bytes.  For sizes which are a power of two, the
- alignment is also guaranteed to be at least the respective size.
- 
-+Chunks allocated with kmalloc() can be resized with krealloc(). Similarly
-+to kmalloc_array(): a helper for resizing arrays is provided in the form of
-+krealloc_array().
-+
- For large allocations you can use vmalloc() and vzalloc(), or directly
- request pages from the page allocator. The memory allocated by `vmalloc`
- and related functions is not physically contiguous.
---- a/include/linux/slab.h~mm-slab-provide-krealloc_array
-+++ a/include/linux/slab.h
-@@ -593,6 +593,24 @@ static inline void *kmalloc_array(size_t
- }
- 
- /**
-+ * krealloc_array - reallocate memory for an array.
-+ * @p: pointer to the memory chunk to reallocate
-+ * @new_n: new number of elements to alloc
-+ * @new_size: new size of a single member of the array
-+ * @flags: the type of memory to allocate (see kmalloc)
-+ */
-+static __must_check inline void *
-+krealloc_array(void *p, size_t new_n, size_t new_size, gfp_t flags)
-+{
-+	size_t bytes;
-+
-+	if (unlikely(check_mul_overflow(new_n, new_size, &bytes)))
-+		return NULL;
-+
-+	return krealloc(p, bytes, flags);
-+}
-+
-+/**
-  * kcalloc - allocate memory for an array. The memory is set to zero.
-  * @n: number of elements.
-  * @size: element size.
+--- a/sound/core/pcm_lib.c~alsa-pcm-use-krealloc_array
++++ a/sound/core/pcm_lib.c
+@@ -1129,8 +1129,8 @@ int snd_pcm_hw_rule_add(struct snd_pcm_r
+ 	if (constrs->rules_num >= constrs->rules_all) {
+ 		struct snd_pcm_hw_rule *new;
+ 		unsigned int new_rules = constrs->rules_all + 16;
+-		new = krealloc(constrs->rules, new_rules * sizeof(*c),
+-			       GFP_KERNEL);
++		new = krealloc_array(constrs->rules, new_rules,
++				     sizeof(*c), GFP_KERNEL);
+ 		if (!new) {
+ 			va_end(args);
+ 			return -ENOMEM;
 _
 
 Patches currently in -mm which might be from bgolaszewski@baylibre.com are
