@@ -7,41 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F208BC388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:19:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88B9CC388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:29:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D5F32064B
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:19:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D47E20674
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:29:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="K4Ir6nnu"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZoAjf360"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726307AbgKJTTd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 14:19:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57140 "EHLO mail.kernel.org"
+        id S1726179AbgKJT3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 14:29:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59316 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726179AbgKJTTc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 14:19:32 -0500
+        id S1725862AbgKJT3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 14:29:54 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EBCD22054F;
-        Tue, 10 Nov 2020 19:19:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 39FDF20656;
+        Tue, 10 Nov 2020 19:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605035972;
-        bh=91BMwmjOGjUJXy1S3pHkvHEHOae0IQf9T+oGARoW94k=;
+        s=default; t=1605036592;
+        bh=0zGplApPPVOHCiH0mG7LGI5KplDXqVEIM52whU5QaEc=;
         h=Date:From:To:Subject:From;
-        b=K4Ir6nnuHCCgh2/jNSlPCgAfhP0kulng5hFlJNAiD5U0LzRE8H6KJM3Kw+hyFTBB/
-         XTwpsA2vrfl8VAINyvkE1xB5rTKOeY4FVcrU3GpMi/BFFeleDsKsyJtZkrD35MrOPM
-         dBcFfEzIotvzlJel/No4e5clDyo5qHfKmkRHxZPc=
-Date:   Tue, 10 Nov 2020 11:19:31 -0800
+        b=ZoAjf360gDIkSrPiRTgHX0B59+e7TLTpW+NPOm6vhGIpv5JMeDpEnnTzYfXL7VxHp
+         u709ggD204LOfjCNGRrWfxclmjhs33iI1ikMJ9CK8WEEZkgMPHVhmqIvPJPl037KdQ
+         cmSTVzYji8T7I6u/77P+UpOIlkpyztjy61BjrN5g=
+Date:   Tue, 10 Nov 2020 11:29:51 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        yangyicong@hisilicon.com
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de
 Subject:  +
- libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch added to
- -mm tree
-Message-ID: <20201110191931.nGXVjeJ2W%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-?=
+ =?US-ASCII?Q?zero-refcount-page.patch?= added to -mm tree
+Message-ID: <20201110192951.uREXR2kXw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libfs: fix error cast of negative value in simple_attr_write()
+     Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
 has been added to the -mm tree.  Its filename is
-     libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
+     mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,44 +72,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yicong Yang <yangyicong@hisilicon.com>
-Subject: libfs: fix error cast of negative value in simple_attr_write()
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
 
-The attr->set() receive a value of u64, but simple_strtoll() is used
-for doing the conversion. It will lead to the error cast if user inputs
-a negative value.
+Patch series "HWpoison: further fixes and cleanups", v5.
 
-Use kstrtoull() instead of simple_strtoll() to convert a string got
-from the user to an unsigned value. The former will return '-EINVAL' if
-it gets a negetive value, but the latter can't handle the situation
-correctly.
+This patchset includes some more fixes and a cleanup.
 
-Link: https://lkml.kernel.org/r/1605000324-7428-1-git-send-email-yangyicong@hisilicon.com
-Fixes: f7b88631a897 ("fs/libfs.c: fix simple_attr_write() on 32bit machines")
-Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Patch#2 and patch#3 are both fixes for taking a HWpoison page off a buddy
+freelist, since having them there has proved to be bad (see [1] and
+pathch#2's commit log).  Patch#3 does the same for hugetlb pages.
+
+[1] https://lkml.org/lkml/2020/9/22/565
+
+
+This patch (of 4):
+
+A page with 0-refcount and !PageBuddy could perfectly be a pcppage. 
+Currently, we bail out with an error if we encounter such a page, meaning
+that we do not handle pcppages neither from hard-offline nor from
+soft-offline path.
+
+Fix this by draining pcplists whenever we find this kind of page and retry
+the check again.  It might be that pcplists have been spilled into the
+buddy allocator and so we can handle it.
+
+Link: https://lkml.kernel.org/r/20201013144447.6706-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20201013144447.6706-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
---- a/fs/libfs.c~libfs-fix-error-cast-of-negative-value-in-simple_attr_write
-+++ a/fs/libfs.c
-@@ -977,7 +977,9 @@ ssize_t simple_attr_write(struct file *f
- 		goto out;
+--- a/mm/memory-failure.c~mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page
++++ a/mm/memory-failure.c
+@@ -946,13 +946,13 @@ static int page_action(struct page_state
+ }
  
- 	attr->set_buf[size] = '\0';
--	val = simple_strtoll(attr->set_buf, NULL, 0);
-+	ret = kstrtoull(attr->set_buf, 0, &val);
-+	if (ret)
-+		goto out;
- 	ret = attr->set(attr->data, val);
- 	if (ret == 0)
- 		ret = len; /* on success, claim we got the whole input */
+ /**
+- * get_hwpoison_page() - Get refcount for memory error handling:
++ * __get_hwpoison_page() - Get refcount for memory error handling:
+  * @page:	raw error page (hit by memory error)
+  *
+  * Return: return 0 if failed to grab the refcount, otherwise true (some
+  * non-zero value.)
+  */
+-static int get_hwpoison_page(struct page *page)
++static int __get_hwpoison_page(struct page *page)
+ {
+ 	struct page *head = compound_head(page);
+ 
+@@ -982,6 +982,26 @@ static int get_hwpoison_page(struct page
+ 	return 0;
+ }
+ 
++static int get_hwpoison_page(struct page *p)
++{
++	int ret;
++	bool drained = false;
++
++retry:
++	ret = __get_hwpoison_page(p);
++	if (!ret && !is_free_buddy_page(p) && !page_count(p) && !drained) {
++		/*
++		 * The page might be in a pcplist, so try to drain those
++		 * and see if we are lucky.
++		 */
++		drain_all_pages(page_zone(p));
++		drained = true;
++		goto retry;
++	}
++
++	return ret;
++}
++
+ /*
+  * Do all that is necessary to remove user space mappings. Unmap
+  * the pages and send SIGBUS to the processes if the data was dirty.
 _
 
-Patches currently in -mm which might be from yangyicong@hisilicon.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
+mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
+mmhwpoison-take-free-pages-off-the-buddy-freelists-for-hugetlb.patch
+mmhwpoison-drop-unneeded-pcplist-draining.patch
 
