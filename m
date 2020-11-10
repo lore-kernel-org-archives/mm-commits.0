@@ -7,39 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D7D4C388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:31:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E966C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:50:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 09FFE2063A
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:31:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 398242074B
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:50:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="uubsoFoS"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="jRnlZmxz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726737AbgKJUbp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 15:31:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49530 "EHLO mail.kernel.org"
+        id S1726307AbgKJUut (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 15:50:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726400AbgKJUbo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 15:31:44 -0500
+        id S1725862AbgKJUut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 15:50:49 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D8F01205CA;
-        Tue, 10 Nov 2020 20:31:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 00A3020674;
+        Tue, 10 Nov 2020 20:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605040304;
-        bh=U6zCPD4uZgr+C9wiwJLskb2sIgWroqD5VRo8gBoRCi0=;
+        s=default; t=1605041448;
+        bh=r2xBAS5MP82KwF3MG/Q8Vr/L54p5vy0f8je+EctTplc=;
         h=Date:From:To:Subject:From;
-        b=uubsoFoSTd34lFTEzRnZozufwDO8qZ6itpTeWC8Cc/FD31RMYLobUUC1+DSC/PVBz
-         4KYXO/0DDePU56QbUx9tWzFS+dQ+o5lGmkVVqg160VBjnfGCUfreEGmIZ3TfU+rpC6
-         XpvnLezrVVh+MMhpPGwSXUQVZquGhMHXtwgZqhBc=
-Date:   Tue, 10 Nov 2020 12:31:43 -0800
+        b=jRnlZmxz4h6V+JVTs+8LvtBSAvl+mHos6mPKHZMpjcW9rR1TOIjcl8rrKbJt85GWn
+         QtrNlcvM3gXb26xegDG1TfY9YLJBZbbIs29WNjTlJoIjLwM5/lukDd1tVxM6cz/SIK
+         cCt9qaoadfNdr3b12Kh0O2Xi9ineI9jFXLnSIFVQ=
+Date:   Tue, 10 Nov 2020 12:50:47 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, anton@tuxera.com,
-        mm-commits@vger.kernel.org
-Subject:  + fs-ntfs-remove-unused-varible-attr_len.patch added to
- -mm tree
-Message-ID: <20201110203143.7qHHiJN2t%akpm@linux-foundation.org>
+To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  +
+ mm-slub-call-account_slab_page-after-slab-page-initialization.patch added
+ to -mm tree
+Message-ID: <20201110205047.YK1iGHmy8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ntfs: remove unused varible attr_len
+     Subject: mm: slub: call account_slab_page() after slab page initialization
 has been added to the -mm tree.  Its filename is
-     fs-ntfs-remove-unused-varible-attr_len.patch
+     mm-slub-call-account_slab_page-after-slab-page-initialization.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-ntfs-remove-unused-varible-attr_len.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-call-account_slab_page-after-slab-page-initialization.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-ntfs-remove-unused-varible-attr_len.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-call-account_slab_page-after-slab-page-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,48 +70,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: fs/ntfs: remove unused varible attr_len
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: slub: call account_slab_page() after slab page initialization
 
-This varible isn't used anymore, remove it to skip W=1 warning:
-fs/ntfs/inode.c:2350:6: warning: variable `attr_len' set but not used
-[-Wunused-but-set-variable]
+It's convenient to have page->objects initialized before calling into
+account_slab_page().  In particular, this information can be used to
+pre-alloc the obj_cgroup vector.
 
-Link: https://lkml.kernel.org/r/4194376f-898b-b602-81c3-210567712092@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Anton Altaparmakov <anton@tuxera.com>
+Let's call account_slab_page() a bit later, after the initialization of
+page->objects.
+
+This commit doesn't bring any functional change, but is required for
+further optimizations.
+
+Link: https://lkml.kernel.org/r/20201110195753.530157-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/inode.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/slub.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/ntfs/inode.c~fs-ntfs-remove-unused-varible-attr_len
-+++ a/fs/ntfs/inode.c
-@@ -2347,7 +2347,6 @@ int ntfs_truncate(struct inode *vi)
- 	ATTR_RECORD *a;
- 	const char *te = "  Leaving file length out of sync with i_size.";
- 	int err, mp_size, size_change, alloc_change;
--	u32 attr_len;
+--- a/mm/slub.c~mm-slub-call-account_slab_page-after-slab-page-initialization
++++ a/mm/slub.c
+@@ -1616,9 +1616,6 @@ static inline struct page *alloc_slab_pa
+ 	else
+ 		page = __alloc_pages_node(node, flags, order);
  
- 	ntfs_debug("Entering for inode 0x%lx.", vi->i_ino);
- 	BUG_ON(NInoAttr(ni));
-@@ -2721,7 +2720,6 @@ do_non_resident_truncate:
- 	 * this cannot fail since we are making the attribute smaller thus by
- 	 * definition there is enough space to do so.
- 	 */
--	attr_len = le32_to_cpu(a->length);
- 	err = ntfs_attr_record_resize(m, a, mp_size +
- 			le16_to_cpu(a->data.non_resident.mapping_pairs_offset));
- 	BUG_ON(err);
+-	if (page)
+-		account_slab_page(page, order, s);
+-
+ 	return page;
+ }
+ 
+@@ -1771,6 +1768,8 @@ static struct page *allocate_slab(struct
+ 
+ 	page->objects = oo_objects(oo);
+ 
++	account_slab_page(page, oo_order(oo), s, flags);
++
+ 	page->slab_cache = s;
+ 	__SetPageSlab(page);
+ 	if (page_is_pfmemalloc(page))
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from guro@fb.com are
 
-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
-fs-ntfs-remove-unused-varibles.patch
-fs-ntfs-remove-unused-varible-attr_len.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
-mm-memcg-update-page-struct-member-in-comments.patch
+mm-memcontrol-use-helpers-to-read-pages-memcg-data.patch
+mm-memcontrol-slab-use-helpers-to-access-slab-pages-memcg_data.patch
+mm-introduce-page-memcg-flags.patch
+mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
+mm-memcg-fix-obsolete-code-comments.patch
+mm-slub-call-account_slab_page-after-slab-page-initialization.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
