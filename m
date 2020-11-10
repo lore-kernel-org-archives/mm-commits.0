@@ -7,40 +7,39 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19B19C56201
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17FF4C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:46:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF2E820809
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:39:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEA8520797
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:46:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cbvl626R"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="fPRfTrqV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730618AbgKJVjD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 16:39:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40350 "EHLO mail.kernel.org"
+        id S1726688AbgKJVq6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 16:46:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42906 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731955AbgKJVhb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 16:37:31 -0500
+        id S1726706AbgKJVq5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 16:46:57 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 01AEE20781;
-        Tue, 10 Nov 2020 21:37:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 044DD20781;
+        Tue, 10 Nov 2020 21:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605044250;
-        bh=1HmP0MsVyZSBFZ9VbzYo0GhbjsBBMmLN8SbyvuYNad8=;
+        s=default; t=1605044816;
+        bh=g63ICBOVpnDE/4Fkf0MUhGaTqZ4p/7izBbGJUx5LbLo=;
         h=Date:From:To:Subject:From;
-        b=Cbvl626R36CVczCLk3BPqXl7PzzGTl4KAI6bdDgTC0Iwwln/+l6aMjV3hawmJM5uz
-         lu0lrTHf/P8X816mvfGWEwtRx6G8bIW1A13uPcZ7YalGEaxeqkcM55xtEK9TrCpVBH
-         YlDQlDl1G4ghujvBx7FfvG6bfZHlQZYG2dNrk0ak=
-Date:   Tue, 10 Nov 2020 13:37:29 -0800
+        b=fPRfTrqVtObY78EXV13BuKriIP8kjpSvlX6LIeUeA2s2nWvchMCgW52MqSwkt2IP6
+         WGyy/8g4p5OUd+lVZhxZpH52w+/OSRQY35raGVYHgJ689Yopd6Y/C51k9bgEqBQpa7
+         wVa6Q3FzW1JFg86lptoQ21lGETSz/5VPRxxtl1TM=
+Date:   Tue, 10 Nov 2020 13:46:55 -0800
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        sh_def@163.com, shakeelb@google.com, vdavydov.dev@gmail.com
-Subject:  + mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
- added to -mm tree
-Message-ID: <20201110213729.3_XCUtrrY%akpm@linux-foundation.org>
+To:     dwaipayanray1@gmail.com, joe@perches.com,
+        mm-commits@vger.kernel.org
+Subject:  + checkpatch-improve-email-parsing.patch added to -mm
+ tree
+Message-ID: <20201110214655.Q9DmXGp-a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol:rewrite mem_cgroup_page_lruvec()
+     Subject: checkpatch: improve email parsing
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
+     checkpatch-improve-email-parsing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-email-parsing.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-email-parsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,118 +69,226 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm/memcontrol:rewrite mem_cgroup_page_lruvec()
+From: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Subject: checkpatch: improve email parsing
 
-mem_cgroup_page_lruvec() in memcontrol.c and mem_cgroup_lruvec() in
-memcontrol.h is very similar except for the param(page and memcg) which
-also can be convert to each other.
+checkpatch doesn't report warnings for many common mistakes in emails. 
+Some of which are trailing commas and incorrect use of email comments.
 
-So rewrite mem_cgroup_page_lruvec() with mem_cgroup_lruvec().
+At the same time several false positives are reported due to incorrect
+handling of mail comments.  The most common of which is due to the
+pattern:
 
-Link: https://lkml.kernel.org/r/20201108143731.GA74138@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Chris Down <chris@chrisdown.name>
+<stable@vger.kernel.org> # X.X
+
+Improve email parsing in checkpatch.
+
+Some general email rules are defined:
+
+- Multiple name comments should not be allowed.
+- Comments inside address should not be allowed.
+- In general comments should be enclosed within parentheses.
+  Relaxation is given to comments beginning with #.
+- Stable addresses should not begin with a name.
+- Comments in stable addresses should begin only
+  with a #.
+
+Improvements to parsing:
+
+- Detect and report unexpected content after email.
+- Quoted names are excluded from comment parsing.
+- Trailing dots, commas or quotes in email are removed during
+  formatting. Correspondingly a BAD_SIGN_OFF warning
+  is emitted.
+- Improperly quoted email like '"name <address>"' are now
+  warned about.
+
+In addition, added fixes for all the possible rules.
+
+Link: https://lore.kernel.org/linux-kernel-mentees/6c275d95c3033422addfc256a30e6ae3dd37941d.camel@perches.com/
+Link: https://lore.kernel.org/linux-kernel-mentees/20201105200857.GC1333458@kroah.com/
+Link: https://lkml.kernel.org/r/20201108100632.75340-1-dwaipayanray1@gmail.com
+Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   16 +++++++++++++--
- mm/memcontrol.c            |   37 -----------------------------------
- 2 files changed, 14 insertions(+), 39 deletions(-)
+ scripts/checkpatch.pl |  108 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 91 insertions(+), 17 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-rewrite-mem_cgroup_page_lruvec
-+++ a/include/linux/memcontrol.h
-@@ -631,9 +631,10 @@ mem_cgroup_nodeinfo(struct mem_cgroup *m
- /**
-  * mem_cgroup_lruvec - get the lru list vector for a memcg & node
-  * @memcg: memcg of the wanted lruvec
-+ * @pgdat: pglist_data
-  *
-  * Returns the lru list vector holding pages for a given @memcg &
-- * @node combination. This can be the node lruvec, if the memory
-+ * @pgdat combination. This can be the node lruvec, if the memory
-  * controller is disabled.
-  */
- static inline struct lruvec *mem_cgroup_lruvec(struct mem_cgroup *memcg,
-@@ -663,7 +664,18 @@ out:
- 	return lruvec;
+--- a/scripts/checkpatch.pl~checkpatch-improve-email-parsing
++++ a/scripts/checkpatch.pl
+@@ -1159,6 +1159,7 @@ sub parse_email {
+ 	my ($formatted_email) = @_;
+ 
+ 	my $name = "";
++	my $quoted = "";
+ 	my $name_comment = "";
+ 	my $address = "";
+ 	my $comment = "";
+@@ -1190,14 +1191,20 @@ sub parse_email {
+ 		}
+ 	}
+ 
+-	$comment = trim($comment);
+-	$name = trim($name);
+-	$name =~ s/^\"|\"$//g;
+-	if ($name =~ s/(\s*\([^\)]+\))\s*//) {
+-		$name_comment = trim($1);
++	# Extract comments from names excluding quoted parts
++	# "John D. (Doe)" - Do not extract
++	if ($name =~ s/\"(.+)\"//) {
++		$quoted = $1;
++	}
++	while ($name =~ s/\s*($balanced_parens)\s*/ /) {
++		$name_comment .= trim($1);
+ 	}
++	$name =~ s/^[ \"]+|[ \"]+$//g;
++	$name = trim("$quoted $name");
++
+ 	$address = trim($address);
+ 	$address =~ s/^\<|\>$//g;
++	$comment = trim($comment);
+ 
+ 	if ($name =~ /[^\w \-]/i) { ##has "must quote" chars
+ 		$name =~ s/(?<!\\)"/\\"/g; ##escape quotes
+@@ -1212,17 +1219,20 @@ sub format_email {
+ 
+ 	my $formatted_email;
+ 
+-	$name_comment = trim($name_comment);
+-	$comment = trim($comment);
+-	$name = trim($name);
+-	$name =~ s/^\"|\"$//g;
++	$name =~ s/^[ \"]+|[ \"]+$//g;
+ 	$address = trim($address);
++	$address =~ s/(?:\.|\,|\")+$//; ##trailing commas, dots or quotes
+ 
+ 	if ($name =~ /[^\w \-]/i) { ##has "must quote" chars
+ 		$name =~ s/(?<!\\)"/\\"/g; ##escape quotes
+ 		$name = "\"$name\"";
+ 	}
+ 
++	$name_comment = trim($name_comment);
++	$name_comment = " $name_comment" if ($name_comment ne "");
++	$comment = trim($comment);
++	$comment = " $comment" if ($comment ne "");
++
+ 	if ("$name" eq "") {
+ 		$formatted_email = "$address";
+ 	} else {
+@@ -1240,15 +1250,11 @@ sub reformat_email {
  }
  
--struct lruvec *mem_cgroup_page_lruvec(struct page *, struct pglist_data *);
-+/**
-+ * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
-+ * @page: the page
-+ * @pgdat: pgdat of the page
-+ *
-+ * This function relies on page->mem_cgroup being stable.
-+ */
-+static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page,
-+						struct pglist_data *pgdat)
-+{
-+	return mem_cgroup_lruvec(page_memcg(page), pgdat);
-+}
+ sub same_email_addresses {
+-	my ($email1, $email2, $match_comment) = @_;
++	my ($email1, $email2) = @_;
  
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+ 	my ($email1_name, $name1_comment, $email1_address, $comment1) = parse_email($email1);
+ 	my ($email2_name, $name2_comment, $email2_address, $comment2) = parse_email($email2);
  
---- a/mm/memcontrol.c~mm-memcontrol-rewrite-mem_cgroup_page_lruvec
-+++ a/mm/memcontrol.c
-@@ -1311,43 +1311,6 @@ int mem_cgroup_scan_tasks(struct mem_cgr
- }
- 
- /**
-- * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
-- * @page: the page
-- * @pgdat: pgdat of the page
-- *
-- * This function relies on page's memcg being stable - see the
-- * access rules in commit_charge().
-- */
--struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgdat)
--{
--	struct mem_cgroup_per_node *mz;
--	struct mem_cgroup *memcg;
--	struct lruvec *lruvec;
--
--	if (mem_cgroup_disabled()) {
--		lruvec = &pgdat->__lruvec;
--		goto out;
+-	if ($match_comment != 1) {
+-		return $email1_name eq $email2_name &&
+-		       $email1_address eq $email2_address;
 -	}
--
--	memcg = page_memcg(page);
--	VM_WARN_ON_ONCE_PAGE(!memcg, page);
--	if (!memcg)
--		memcg = root_mem_cgroup;
--
--	mz = mem_cgroup_page_nodeinfo(memcg, page);
--	lruvec = &mz->lruvec;
--out:
--	/*
--	 * Since a node can be onlined after the mem_cgroup was created,
--	 * we have to be prepared to initialize lruvec->zone here;
--	 * and if offlined then reonlined, we need to reinitialize it.
--	 */
--	if (unlikely(lruvec->pgdat != pgdat))
--		lruvec->pgdat = pgdat;
--	return lruvec;
--}
--
--/**
-  * mem_cgroup_update_lru_size - account for adding or removing an lru page
-  * @lruvec: mem_cgroup per zone lru vector
-  * @lru: index of lru list the page is sitting on
+ 	return $email1_name eq $email2_name &&
+ 	       $email1_address eq $email2_address &&
+ 	       $name1_comment eq $name2_comment &&
+@@ -2711,7 +2717,7 @@ sub process {
+ 			$signoff++;
+ 			$in_commit_log = 0;
+ 			if ($author ne ''  && $authorsignoff != 1) {
+-				if (same_email_addresses($1, $author, 1)) {
++				if (same_email_addresses($1, $author)) {
+ 					$authorsignoff = 1;
+ 				} else {
+ 					my $ctx = $1;
+@@ -2807,9 +2813,77 @@ sub process {
+ 				$dequoted =~ s/" </ </;
+ 				# Don't force email to have quotes
+ 				# Allow just an angle bracketed address
+-				if (!same_email_addresses($email, $suggested_email, 0)) {
++				if (!same_email_addresses($email, $suggested_email)) {
++					if (WARN("BAD_SIGN_OFF",
++						 "email address '$email' might be better as '$suggested_email'\n" . $herecurr) &&
++					    $fix) {
++						$fixed[$fixlinenr] =~ s/\Q$email\E/$suggested_email/;
++					}
++				}
++
++				# Address part shouldn't have comments
++				my $stripped_address = $email_address;
++				$stripped_address =~ s/\([^\(\)]*\)//g;
++				if ($email_address ne $stripped_address) {
++					if (WARN("BAD_SIGN_OFF",
++						 "address part of email should not have comments: '$email_address'\n" . $herecurr) &&
++					    $fix) {
++						$fixed[$fixlinenr] =~ s/\Q$email_address\E/$stripped_address/;
++					}
++				}
++
++				# Only one name comment should be allowed
++				my $comment_count = () = $name_comment =~ /\([^\)]+\)/g;
++				if ($comment_count > 1) {
+ 					WARN("BAD_SIGN_OFF",
+-					     "email address '$email' might be better as '$suggested_email'\n" . $herecurr);
++					     "Use a single name comment in email: '$email'\n" . $herecurr);
++				}
++
++
++				# stable@vger.kernel.org or stable@kernel.org shouldn't
++				# have an email name. In addition commments should strictly
++				# begin with a #
++				if ($email =~ /^.*stable\@(?:vger\.)?kernel\.org/i) {
++					if (($comment ne "" && $comment !~ /^#.+/) ||
++					    ($email_name ne "")) {
++						my $cur_name = $email_name;
++						my $new_comment = $comment;
++						$cur_name =~ s/[a-zA-Z\s\-\"]+//g;
++
++						# Remove brackets enclosing comment text
++						# and # from start of comments to get comment text
++						$new_comment =~ s/^\((.*)\)$/$1/;
++						$new_comment =~ s/^\[(.*)\]$/$1/;
++						$new_comment =~ s/^[\s\#]+|\s+$//g;
++
++						$new_comment = trim("$new_comment $cur_name") if ($cur_name ne $new_comment);
++						$new_comment = " # $new_comment" if ($new_comment ne "");
++						my $new_email = "$email_address$new_comment";
++
++						if (WARN("BAD_STABLE_ADDRESS_STYLE",
++							 "Invalid email format for stable: '$email', prefer '$new_email'\n" . $herecurr) &&
++						    $fix) {
++							$fixed[$fixlinenr] =~ s/\Q$email\E/$new_email/;
++						}
++					}
++				} elsif ($comment ne "" && $comment !~ /^(?:#.+|\(.+\))$/) {
++					my $new_comment = $comment;
++
++					# Extract comment text from within brackets or
++					# c89 style /*...*/ comments
++					$new_comment =~ s/^\[(.*)\]$/$1/;
++					$new_comment =~ s/^\/\*(.*)\*\/$/$1/;
++
++					$new_comment = trim($new_comment);
++					$new_comment =~ s/^[^\w]$//; # Single lettered comment with non word character is usually a typo
++					$new_comment = "($new_comment)" if ($new_comment ne "");
++					my $new_email = format_email($email_name, $name_comment, $email_address, $new_comment);
++
++					if (WARN("BAD_SIGN_OFF",
++						 "Unexpected content after email: '$email', should be: '$new_email'\n" . $herecurr) &&
++					    $fix) {
++						$fixed[$fixlinenr] =~ s/\Q$email\E/$new_email/;
++					}
+ 				}
+ 			}
+ 
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from dwaipayanray1@gmail.com are
 
-mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
-mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
-mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
-acctc-use-elif-instead-of-end-and-elif.patch
+checkpatch-add-new-exception-to-repeated-word-check.patch
+checkpatch-extend-attributes-check-to-handle-more-patterns.patch
+checkpatch-improve-email-parsing.patch
 
