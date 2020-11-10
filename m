@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F853C388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A258DC4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC7A7207BB
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66F2C20679
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:05:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="G7VjwTfv"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="jdNqZNcM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727018AbgKJXFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 18:05:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57336 "EHLO mail.kernel.org"
+        id S1732175AbgKJXFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 18:05:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732175AbgKJXFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 18:05:31 -0500
+        id S1732252AbgKJXFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 18:05:34 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 08603207E8;
-        Tue, 10 Nov 2020 23:05:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9BE4E20780;
+        Tue, 10 Nov 2020 23:05:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049529;
-        bh=uJZ1OJfSyFV80yHXSosm3lqRQ2Q0Cntci1nXWQ8R/zU=;
+        s=default; t=1605049533;
+        bh=rGfIXoVAyUnO/1wmSvkUqLi9OFG1orYkZU0zr/4yZBs=;
         h=Date:From:To:Subject:From;
-        b=G7VjwTfvQOgJZxOcEkoB7wdukp9U/XzvZ/u5qX+b9ZHLxS5TknaqGDl0w8AV3xTJA
-         i+KIO8r4xZESzaBpaRlhYxJZJPhuZwRwMRH9uxTuMLgsUp3V4sCdSC6SqLRT+3ISr/
-         XuJcPOiGxf4WnwQD4k/IYSYZIXgAdkK74lycbp9o=
-Date:   Tue, 10 Nov 2020 15:05:28 -0800
+        b=jdNqZNcMm23xJFZbM3RCyFZtUwqKEpjt2Zit/0b2fSxP73Iu5NsenVymX5RNP5ENq
+         0USlX4zRPlp0O/D/ga9BhKTCkGD+tA1oEP+Ga+RbaFdELUNfL8crrzZ76D/JPS/UbT
+         pjkW8gzVmaCoCPfHV2Hulv3Wx5hiWcpedcNQ3etk=
+Date:   Tue, 10 Nov 2020 15:05:31 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-allow-vmap_stack-for-hw_tags-mode.patch added to
- -mm tree
-Message-ID: <20201110230528.Hc7z8R25B%akpm@linux-foundation.org>
+Subject:  + kasan-remove-__kasan_unpoison_stack.patch added to -mm
+ tree
+Message-ID: <20201110230531.RTlkgmoZz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: allow VMAP_STACK for HW_TAGS mode
+     Subject: kasan: remove __kasan_unpoison_stack
 has been added to the -mm tree.  Its filename is
-     kasan-allow-vmap_stack-for-hw_tags-mode.patch
+     kasan-remove-__kasan_unpoison_stack.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-allow-vmap_stack-for-hw_tags-mode.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-__kasan_unpoison_stack.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-allow-vmap_stack-for-hw_tags-mode.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-__kasan_unpoison_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,20 +74,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: allow VMAP_STACK for HW_TAGS mode
+Subject: kasan: remove __kasan_unpoison_stack
 
-Even though hardware tag-based mode currently doesn't support checking
-vmalloc allocations, it doesn't use shadow memory and works with
-VMAP_STACK as is. Change VMAP_STACK definition accordingly.
+There's no need for __kasan_unpoison_stack() helper, as it's only
+currently used in a single place. Removing it also removes unneeded
+arithmetic.
 
-Link: https://lkml.kernel.org/r/3443e106c40799e5dc3981dec2011379f3cbbb0c.1605046662.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I3552cbc12321dec82cd7372676e9372a2eb452ac
+No functional changes.
+
+Link: https://lkml.kernel.org/r/462c375f39ba8c4c105b3a9bf3b5db17f3720159.1605046662.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ie5ba549d445292fe629b4a96735e4034957bcc50
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Marco Elver <elver@google.com>
@@ -96,32 +98,33 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/kasan/common.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
---- a/arch/Kconfig~kasan-allow-vmap_stack-for-hw_tags-mode
-+++ a/arch/Kconfig
-@@ -921,16 +921,16 @@ config VMAP_STACK
- 	default y
- 	bool "Use a virtually-mapped stack"
- 	depends on HAVE_ARCH_VMAP_STACK
--	depends on !KASAN || KASAN_VMALLOC
-+	depends on !KASAN || KASAN_HW_TAGS || KASAN_VMALLOC
- 	help
- 	  Enable this if you want the use virtually-mapped kernel stacks
- 	  with guard pages.  This causes kernel stack overflows to be
- 	  caught immediately rather than causing difficult-to-diagnose
- 	  corruption.
+--- a/mm/kasan/common.c~kasan-remove-__kasan_unpoison_stack
++++ a/mm/kasan/common.c
+@@ -60,18 +60,12 @@ void kasan_disable_current(void)
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
  
--	  To use this with KASAN, the architecture must support backing
--	  virtual mappings with real shadow memory, and KASAN_VMALLOC must
--	  be enabled.
-+	  To use this with software KASAN modes, the architecture must support
-+	  backing virtual mappings with real shadow memory, and KASAN_VMALLOC
-+	  must be enabled.
+ #if CONFIG_KASAN_STACK
+-static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
+-{
+-	void *base = task_stack_page(task);
+-	size_t size = sp - base;
+-
+-	kasan_unpoison_memory(base, size);
+-}
+-
+ /* Unpoison the entire stack for a task. */
+ void kasan_unpoison_task_stack(struct task_struct *task)
+ {
+-	__kasan_unpoison_stack(task, task_stack_page(task) + THREAD_SIZE);
++	void *base = task_stack_page(task);
++
++	kasan_unpoison_memory(base, THREAD_SIZE);
+ }
  
- config ARCH_OPTIONAL_KERNEL_RWX
- 	def_bool n
+ /* Unpoison the stack for the current task beyond a watermark sp value. */
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
