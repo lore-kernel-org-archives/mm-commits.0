@@ -7,41 +7,48 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E123EC388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:10:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71D35C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7211320809
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:10:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25A3620825
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="AXsRLCVn"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="w3HEAecZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726179AbgKJVK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 16:10:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34198 "EHLO mail.kernel.org"
+        id S1726467AbgKJVSe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 16:18:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725862AbgKJVK0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 16:10:26 -0500
+        id S1725862AbgKJVSe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 16:18:34 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB7C220781;
-        Tue, 10 Nov 2020 21:10:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 86EA0206B6;
+        Tue, 10 Nov 2020 21:18:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605042626;
-        bh=0xwSRRnD/7IFMqC2qu2gHVV5iKNPF+/R/TVwN6UAlI0=;
+        s=default; t=1605043114;
+        bh=DNubZ4getLijJw/ZTXf0ZHKFvsKo2woINs/n8xF91jU=;
         h=Date:From:To:Subject:From;
-        b=AXsRLCVnvM2/QRwvj9L/z0xejy0Tu1f/pO2tIoZf22q78sSoafKasUSqh+mZ2mOS0
-         prGxKHQE1nonVieMJhb+DHCQ3gX31WOUeqMBCe7pKFpENeUQxpZFPrGAJmzOekFt/A
-         cD8Fz5ALpfSYptEgrfSRQGs9M/vxQO6B600WzMW0=
-Date:   Tue, 10 Nov 2020 13:10:25 -0800
+        b=w3HEAecZ1QbHCNXFjtmjHXOs7Eo6X7Kvt5YcnmJjN3buLHL2SU0acbtrx1TaPy1CH
+         e5OUaqBf0VPXCJhdtbo/rvbiR+aGTBL7Z827crmTC9TrD7a6ad43njOTA2PCM4I3RU
+         h1QEN8t8PYSJnoi+AzWSka0wKrr/tNZnCzvA5Glw=
+Date:   Tue, 10 Nov 2020 13:18:31 -0800
 From:   akpm@linux-foundation.org
-To:     feng.tang@intel.com, hannes@cmpxchg.org,
-        mm-commits@vger.kernel.org, rong.a.chen@intel.com,
-        william.kucharski@oracle.com, willy@infradead.org,
-        zhengjun.xing@linux.intel.com
-Subject:  + mm-fix-madvise-willneed-performance-problem.patch added
- to -mm tree
-Message-ID: <20201110211025.Ds7AusA1Y%akpm@linux-foundation.org>
+To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
+        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
+        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
+        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
+        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  +
+ mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch added to -mm tree
+Message-ID: <20201110211831.mWwHiLgRs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Fix madvise WILLNEED performance problem
+     Subject: mm: slab: clarify krealloc()'s behavior with __GFP_ZERO
 has been added to the -mm tree.  Its filename is
-     mm-fix-madvise-willneed-performance-problem.patch
+     mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-madvise-willneed-performance-problem.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-madvise-willneed-performance-problem.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,43 +78,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: Fix madvise WILLNEED performance problem
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: mm: slab: clarify krealloc()'s behavior with __GFP_ZERO
 
-The calculation of the end page index was incorrect, leading to a
-regression of 70% when running stress-ng.  With this fix, we instead
-see a performance improvement of 3%.
+Patch series "slab: provide and use krealloc_array()", v3.
 
-Link: https://lkml.kernel.org/r/20201109134851.29692-1-willy@infradead.org
-Fixes: e6e88712e43b ("mm: optimise madvise WILLNEED")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: kernel test robot <rong.a.chen@intel.com>
-Tested-by: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: "Chen, Rong A" <rong.a.chen@intel.com>
+Andy brought to my attention the fact that users allocating an array of
+equally sized elements should check if the size multiplication doesn't
+overflow.  This is why we have helpers like kmalloc_array().
+
+However we don't have krealloc_array() equivalent and there are many users
+who do their own multiplication when calling krealloc() for arrays.
+
+This series provides krealloc_array() and uses it in a couple places.
+
+A separate series will follow adding devm_krealloc_array() which is needed
+in the xilinx adc driver.
+
+
+This patch (of 9):
+
+__GFP_ZERO is ignored by krealloc() (unless we fall-back to kmalloc()
+path, in which case it's honored).  Point that out in the kerneldoc.
+
+Link: https://lkml.kernel.org/r/20201109110654.12547-1-brgl@bgdev.pl
+Link: https://lkml.kernel.org/r/20201109110654.12547-2-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab_common.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/madvise.c~mm-fix-madvise-willneed-performance-problem
-+++ a/mm/madvise.c
-@@ -226,7 +226,7 @@ static void force_shm_swapin_readahead(s
- 		struct address_space *mapping)
- {
- 	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
--	pgoff_t end_index = end / PAGE_SIZE;
-+	pgoff_t end_index = linear_page_index(vma, end + PAGE_SIZE - 1);
- 	struct page *page;
- 
- 	rcu_read_lock();
+--- a/mm/slab_common.c~mm-slab-clarify-kreallocs-behavior-with-__gfp_zero
++++ a/mm/slab_common.c
+@@ -1091,9 +1091,9 @@ static __always_inline void *__do_kreall
+  * @flags: the type of memory to allocate.
+  *
+  * The contents of the object pointed to are preserved up to the
+- * lesser of the new and old sizes.  If @p is %NULL, krealloc()
+- * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
+- * %NULL pointer, the object pointed to is freed.
++ * lesser of the new and old sizes (__GFP_ZERO flag is effectively ignored).
++ * If @p is %NULL, krealloc() behaves exactly like kmalloc().  If @new_size
++ * is 0 and @p is not a %NULL pointer, the object pointed to is freed.
+  *
+  * Return: pointer to the allocated memory or %NULL in case of error
+  */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
-mm-fix-readahead_page_batch-for-retry-entries.patch
-mm-fix-madvise-willneed-performance-problem.patch
+mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
+mm-slab-provide-krealloc_array.patch
+alsa-pcm-use-krealloc_array.patch
+vhost-vringh-use-krealloc_array.patch
+pinctrl-use-krealloc_array.patch
+edac-ghes-use-krealloc_array.patch
+drm-atomic-use-krealloc_array.patch
+hwtracing-intel-use-krealloc_array.patch
+dma-buf-use-krealloc_array.patch
 
