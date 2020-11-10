@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B119FC388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1033C55ABD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66DCC208CA
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A99A12151B
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:18:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZvIvvwrV"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="h2dHwNMo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731713AbgKJVSv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 16:18:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35822 "EHLO mail.kernel.org"
+        id S1725862AbgKJVS4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 16:18:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725862AbgKJVSv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 16:18:51 -0500
+        id S1731735AbgKJVS4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 16:18:56 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 44F05207D3;
-        Tue, 10 Nov 2020 21:18:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5772720809;
+        Tue, 10 Nov 2020 21:18:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605043130;
-        bh=Mo7NhJtgK64ejpKHNMgcR+cTUX+viHV6lnnfvfHLgn0=;
+        s=default; t=1605043135;
+        bh=WyUp+eTwfIQN+zLlp2HyNMbTDy8+2r5Vl0LIL/v0P24=;
         h=Date:From:To:Subject:From;
-        b=ZvIvvwrV0cL8BL9jV/WZYTabMQV8DtTJIaMsv9XeddPNz7YYMNP+JILKrNcB7szk2
-         U/nWzXr0h5UdUzReNrgdqzwNFaWyc7MEXc4SvXPR4KHh2hSGXQqZvt7BICDZvXz8eG
-         pzBNu1OPN9duozIuQeukCMd1ggxaLHOdMbdqEGOI=
-Date:   Tue, 10 Nov 2020 13:18:48 -0800
+        b=h2dHwNMonjBjVsiJf061cWqoBGEHV6zy3njVMKxKV7wxJR/vnVBqvSRIABXHJZpCa
+         YexBcyX1+9XVCxk1hsLsYy4SVgbPpbdey/rEi6u+UfN6f82pGd+sJorUvaiStul1ED
+         fGSTXMSr7VZGeHuYbqy0+x7qrT++MJNO0AjyFZHo=
+Date:   Tue, 10 Nov 2020 13:18:53 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
         andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
@@ -46,8 +46,8 @@ To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
         rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
         tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
         tzimmermann@suse.de, vbabka@suse.cz
-Subject:  + pinctrl-use-krealloc_array.patch added to -mm tree
-Message-ID: <20201110211848.406QIF1ct%akpm@linux-foundation.org>
+Subject:  + edac-ghes-use-krealloc_array.patch added to -mm tree
+Message-ID: <20201110211853.YigaskbDs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pinctrl: use krealloc_array()
+     Subject: edac: ghes: use krealloc_array()
 has been added to the -mm tree.  Its filename is
-     pinctrl-use-krealloc_array.patch
+     edac-ghes-use-krealloc_array.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/pinctrl-use-krealloc_array.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/edac-ghes-use-krealloc_array.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/pinctrl-use-krealloc_array.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/edac-ghes-use-krealloc_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,17 +78,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: pinctrl: use krealloc_array()
+Subject: edac: ghes: use krealloc_array()
 
 Use the helper that checks for overflows internally instead of manually
 calculating the size of the new array.
 
-Link: https://lkml.kernel.org/r/20201109110654.12547-6-brgl@bgdev.pl
+Link: https://lkml.kernel.org/r/20201109110654.12547-7-brgl@bgdev.pl
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Borislav Petkov <bp@suse.de>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
 Cc: Christian Knig <christian.koenig@amd.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
@@ -116,20 +116,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pinctrl/pinctrl-utils.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/ghes_edac.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/pinctrl/pinctrl-utils.c~pinctrl-use-krealloc_array
-+++ a/drivers/pinctrl/pinctrl-utils.c
-@@ -39,7 +39,7 @@ int pinctrl_utils_reserve_map(struct pin
- 	if (old_num >= new_num)
- 		return 0;
+--- a/drivers/edac/ghes_edac.c~edac-ghes-use-krealloc_array
++++ a/drivers/edac/ghes_edac.c
+@@ -207,8 +207,8 @@ static void enumerate_dimms(const struct
+ 	if (!hw->num_dimms || !(hw->num_dimms % 16)) {
+ 		struct dimm_info *new;
  
--	new_map = krealloc(*map, sizeof(*new_map) * new_num, GFP_KERNEL);
-+	new_map = krealloc_array(*map, new_num, sizeof(*new_map), GFP_KERNEL);
- 	if (!new_map) {
- 		dev_err(pctldev->dev, "krealloc(map) failed\n");
- 		return -ENOMEM;
+-		new = krealloc(hw->dimms, (hw->num_dimms + 16) * sizeof(struct dimm_info),
+-			        GFP_KERNEL);
++		new = krealloc_array(hw->dimms, hw->num_dimms + 16,
++				     sizeof(struct dimm_info), GFP_KERNEL);
+ 		if (!new) {
+ 			WARN_ON_ONCE(1);
+ 			return;
 _
 
 Patches currently in -mm which might be from bgolaszewski@baylibre.com are
