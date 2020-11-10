@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A4B3C388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2931CC388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16B8A207E8
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D09DE207E8
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="lQceRBow"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="2WwaaUfr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732517AbgKJW4X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:56:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54084 "EHLO mail.kernel.org"
+        id S1732528AbgKJW41 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:56:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732209AbgKJW4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:56:23 -0500
+        id S1732209AbgKJW40 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:56:26 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6FF40204EF;
-        Tue, 10 Nov 2020 22:56:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F1C8820781;
+        Tue, 10 Nov 2020 22:56:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605048983;
-        bh=EML6BOxmDBppHdk70CBtSnD7kgH3z+uAlHzKBrB38pg=;
+        s=default; t=1605048985;
+        bh=T5AYEt+mI88WWHzRz9c7kDX3YdBtD0M6+HbTAzDetwo=;
         h=Date:From:To:Subject:From;
-        b=lQceRBowmoS5M0h3KBGyH4By9xVgMs+HxBuYHr+iqb3Q5abSKLN/rX2uGVJDzYr9U
-         jzrcDiUmoFwR6Vt0pSJeorgYJXHGYrmlCWOZ5BR0vIOSbsdZOXxhnxPuwToll+XUa9
-         2XtEPX+5e1Zkv1FFaED0GTexe62H2NrA5DZ2fgMU=
-Date:   Tue, 10 Nov 2020 14:56:21 -0800
+        b=2WwaaUfrVdnPRbG//00B5/17b1xv8XXdkBb/DXc3skr2YGbvbtHAzI4ZdbReOOiQx
+         oMLOQRct/RCi4jHDumtxkKkQS8PSyDtypNHGo+hs4o88pdkh4fE6/ZemAu1fZpurTR
+         uZAlOFbc+xFDXMnsUt4qPBTaIiSIO9+7uNC6oBRc=
+Date:   Tue, 10 Nov 2020 14:56:24 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,10 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  +
- kasan-kasan_non_canonical_hook-only-for-software-modes.patch added to -mm
- tree
-Message-ID: <20201110225621.WkTwcbzCZ%akpm@linux-foundation.org>
+Subject:  + kasan-rename-shadow-layout-macros-to-meta.patch added
+ to -mm tree
+Message-ID: <20201110225624.okbT_HU3C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: kasan_non_canonical_hook only for software modes
+     Subject: kasan: rename SHADOW layout macros to META
 has been added to the -mm tree.  Its filename is
-     kasan-kasan_non_canonical_hook-only-for-software-modes.patch
+     kasan-rename-shadow-layout-macros-to-meta.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-kasan_non_canonical_hook-only-for-software-modes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-shadow-layout-macros-to-meta.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-kasan_non_canonical_hook-only-for-software-modes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-shadow-layout-macros-to-meta.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,17 +74,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: kasan_non_canonical_hook only for software modes
+Subject: kasan: rename SHADOW layout macros to META
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
 
-kasan_non_canonical_hook() is only applicable to KASAN modes that use
-shadow memory, and won't be needed for hardware tag-based KASAN.
+Hardware tag-based KASAN won't be using shadow memory, but will reuse
+these macros. Rename "SHADOW" to implementation-neutral "META".
 
-No functional changes for software modes.
+No functional changes.
 
-Link: https://lkml.kernel.org/r/49f7f2c12b0d5805f9a7b7092b986bbc2dd077a1.1605046192.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f24f24cf8c75844531a01668b314aced88f5f3e1.1605046192.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -101,21 +100,88 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/kasan/report.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/kasan/report.c~kasan-kasan_non_canonical_hook-only-for-software-modes
+--- a/mm/kasan/report.c~kasan-rename-shadow-layout-macros-to-meta
 +++ a/mm/kasan/report.c
-@@ -403,7 +403,8 @@ bool kasan_report(unsigned long addr, si
- 	return ret;
+@@ -33,11 +33,11 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+-/* Shadow layout customization. */
+-#define SHADOW_BYTES_PER_BLOCK 1
+-#define SHADOW_BLOCKS_PER_ROW 16
+-#define SHADOW_BYTES_PER_ROW (SHADOW_BLOCKS_PER_ROW * SHADOW_BYTES_PER_BLOCK)
+-#define SHADOW_ROWS_AROUND_ADDR 2
++/* Metadata layout customization. */
++#define META_BYTES_PER_BLOCK 1
++#define META_BLOCKS_PER_ROW 16
++#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
++#define META_ROWS_AROUND_ADDR 2
+ 
+ static unsigned long kasan_flags;
+ 
+@@ -240,7 +240,7 @@ static void print_address_description(vo
+ 
+ static bool row_is_guilty(const void *row, const void *guilty)
+ {
+-	return (row <= guilty) && (guilty < row + SHADOW_BYTES_PER_ROW);
++	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
  }
  
--#ifdef CONFIG_KASAN_INLINE
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+	defined(CONFIG_KASAN_INLINE)
- /*
-  * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
-  * canonical half of the address space) cause out-of-bounds shadow memory reads
+ static int shadow_pointer_offset(const void *row, const void *shadow)
+@@ -249,7 +249,7 @@ static int shadow_pointer_offset(const v
+ 	 *    3 + (BITS_PER_LONG/8)*2 chars.
+ 	 */
+ 	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
+-		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
++		(shadow - row) / META_BYTES_PER_BLOCK + 1;
+ }
+ 
+ static void print_memory_metadata(const void *addr)
+@@ -259,15 +259,15 @@ static void print_memory_metadata(const
+ 	const void *shadow_row;
+ 
+ 	shadow_row = (void *)round_down((unsigned long)shadow,
+-					SHADOW_BYTES_PER_ROW)
+-		- SHADOW_ROWS_AROUND_ADDR * SHADOW_BYTES_PER_ROW;
++					META_BYTES_PER_ROW)
++		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
+ 
+ 	pr_err("Memory state around the buggy address:\n");
+ 
+-	for (i = -SHADOW_ROWS_AROUND_ADDR; i <= SHADOW_ROWS_AROUND_ADDR; i++) {
++	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
+ 		const void *kaddr = kasan_shadow_to_mem(shadow_row);
+ 		char buffer[4 + (BITS_PER_LONG/8)*2];
+-		char shadow_buf[SHADOW_BYTES_PER_ROW];
++		char shadow_buf[META_BYTES_PER_ROW];
+ 
+ 		snprintf(buffer, sizeof(buffer),
+ 			(i == 0) ? ">%px: " : " %px: ", kaddr);
+@@ -276,17 +276,17 @@ static void print_memory_metadata(const
+ 		 * function, because generic functions may try to
+ 		 * access kasan mapping for the passed address.
+ 		 */
+-		memcpy(shadow_buf, shadow_row, SHADOW_BYTES_PER_ROW);
++		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
+ 		print_hex_dump(KERN_ERR, buffer,
+-			DUMP_PREFIX_NONE, SHADOW_BYTES_PER_ROW, 1,
+-			shadow_buf, SHADOW_BYTES_PER_ROW, 0);
++			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
++			shadow_buf, META_BYTES_PER_ROW, 0);
+ 
+ 		if (row_is_guilty(shadow_row, shadow))
+ 			pr_err("%*c\n",
+ 				shadow_pointer_offset(shadow_row, shadow),
+ 				'^');
+ 
+-		shadow_row += SHADOW_BYTES_PER_ROW;
++		shadow_row += META_BYTES_PER_ROW;
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
