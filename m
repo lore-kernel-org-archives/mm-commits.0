@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5D69C56201
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:04:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73FE2C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:08:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CEA920781
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:04:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F7542074B
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 21:08:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="DxfDUWcO"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="UIZkRHPd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728272AbgKJVEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 16:04:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33676 "EHLO mail.kernel.org"
+        id S1726179AbgKJVIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 16:08:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34010 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726462AbgKJVEy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 16:04:54 -0500
+        id S1725862AbgKJVIM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 16:08:12 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C6F532074B;
-        Tue, 10 Nov 2020 21:04:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DD67206D8;
+        Tue, 10 Nov 2020 21:08:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605042293;
-        bh=dXdbFTmxIQ4UHIZ6aIyXM8sWTxGt653147zbXUX7/Z8=;
+        s=default; t=1605042490;
+        bh=nFkb+1rgMKdIqVQ66m5ufGVNWa45KbiiMt/0XBmW0aI=;
         h=Date:From:To:Subject:From;
-        b=DxfDUWcO+lSLXD/mLePJADGRuDYNEIv2pgSVuJRKh+uoyVvLCO6iqqdNRTaiCsR0Q
-         10gOCkPaPk3fSwQNsNUdESEPWIxdo8z8X8JuRKpAN1go7yN51w1Pnq+zpozhLiK0MO
-         AGolP5iTeitqeVBJ8GZE19HmR7BhgKPppQk+H4+w=
-Date:   Tue, 10 Nov 2020 13:04:52 -0800
+        b=UIZkRHPda61sDDjCfPyrppXEbF3lRf6sOGkHiS/tFGYsGgeHuSWLKQQkCHnf5+X49
+         3ikSGdlY3vHMCniL4O6/Ij4JvryP0gokHCZlx10iveDEt4QE3RW24AbK14xwcp/9cv
+         lLFAFfOW4e2/Lehi+xzddXXWX+TeO1kxRhew+JDY=
+Date:   Tue, 10 Nov 2020 13:08:09 -0800
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        wen.gang.wang@oracle.com
-Subject:  + ocfs2-initialize-ip_next_orphan.patch added to -mm tree
-Message-ID: <20201110210452.ZfQIEtxhx%akpm@linux-foundation.org>
+To:     arnd@arndb.de, keescook@chromium.org, linux@roeck-us.net,
+        mcroce@microsoft.com, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, pmladek@suse.com, rppt@kernel.org,
+        tyhicks@linux.microsoft.com
+Subject:  + reboot-allow-to-specify-reboot-mode-via-sysfs.patch
+ added to -mm tree
+Message-ID: <20201110210809.wa0u0gm_C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: initialize ip_next_orphan
+     Subject: reboot: allow to specify reboot mode via sysfs
 has been added to the -mm tree.  Its filename is
-     ocfs2-initialize-ip_next_orphan.patch
+     reboot-allow-to-specify-reboot-mode-via-sysfs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-initialize-ip_next_orphan.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/reboot-allow-to-specify-reboot-mode-via-sysfs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-initialize-ip_next_orphan.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/reboot-allow-to-specify-reboot-mode-via-sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,91 +71,309 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: ocfs2: initialize ip_next_orphan
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: reboot: allow to specify reboot mode via sysfs
 
-Though problem if found on a lower 4.1.12 kernel, I think upstream has
-same issue.
+The kernel cmdline reboot= option offers some sort of control on how the
+reboot is issued.  Add handles in sysfs to allow setting these reboot
+options, so they can be changed when the system is booted, other than at
+boot time.
 
-In one node in the cluster, there is the following callback trace:
+The handlers are under <sysfs>/kernel/reboot, can be read to get the
+current configuration and written to alter it.
 
-# cat /proc/21473/stack
-[<ffffffffc09a2f06>] __ocfs2_cluster_lock.isra.36+0x336/0x9e0 [ocfs2]
-[<ffffffffc09a4481>] ocfs2_inode_lock_full_nested+0x121/0x520 [ocfs2]
-[<ffffffffc09b2ce2>] ocfs2_evict_inode+0x152/0x820 [ocfs2]
-[<ffffffff8122b36e>] evict+0xae/0x1a0
-[<ffffffff8122bd26>] iput+0x1c6/0x230
-[<ffffffffc09b60ed>] ocfs2_orphan_filldir+0x5d/0x100 [ocfs2]
-[<ffffffffc0992ae0>] ocfs2_dir_foreach_blk+0x490/0x4f0 [ocfs2]
-[<ffffffffc099a1e9>] ocfs2_dir_foreach+0x29/0x30 [ocfs2]
-[<ffffffffc09b7716>] ocfs2_recover_orphans+0x1b6/0x9a0 [ocfs2]
-[<ffffffffc09b9b4e>] ocfs2_complete_recovery+0x1de/0x5c0 [ocfs2]
-[<ffffffff810a1399>] process_one_work+0x169/0x4a0
-[<ffffffff810a1bcb>] worker_thread+0x5b/0x560
-[<ffffffff810a7a2b>] kthread+0xcb/0xf0
-[<ffffffff816f5d21>] ret_from_fork+0x61/0x90
-[<ffffffffffffffff>] 0xffffffffffffffff
+	# cd /sys/kernel/reboot/
 
-The above stack is not reasonable, the final iput shouldn't happen in
-ocfs2_orphan_filldir() function. Looking at the code,
+	# grep . *
+	cpu:0
+	force:0
+	mode:cold
+	type:acpi
 
-2067         /* Skip inodes which are already added to recover list, since dio may
-2068          * happen concurrently with unlink/rename */
-2069         if (OCFS2_I(iter)->ip_next_orphan) {
-2070                 iput(iter);
-2071                 return 0;
-2072         }
-2073
+	# echo 2 >cpu
+	# echo yes >force
+	# echo soft >mode
+	# echo bios >type
 
-The logic thinks the inode is already in recover list on seeing
-ip_next_orphan is non-NULL, so it skip this inode after dropping a
-reference which incremented in ocfs2_iget().
+	# grep . *
+	cpu:2
+	force:1
+	mode:soft
+	type:bios
 
-While, if the inode is already in recover list, it should have another
-reference and the iput() at line 2070 should not be the final iput
-(dropping the last reference).  So I don't think the inode is really in
-the recover list (no vmcore to confirm).
+Before setting anything, check for CAP_SYS_BOOT capability, so it's
+possible to allow an unpriviledged process to change these settings simply
+by relaxing the handles permissions, without opening them to the world.
 
-Note that ocfs2_queue_orphans(), though not shown up in the call back
-trace, is holding cluster lock on the orphan directory when looking up for
-unlinked inodes.  The on disk inode eviction could involve a lot of IOs
-which may need long time to finish.  That means this node could hold the
-cluster lock for very long time, that can lead to the lock requests (from
-other nodes) to the orhpan directory hang for long time.
-
-Looking at more on ip_next_orphan, I found it's not initialized when
-allocating a new ocfs2_inode_info structure.
-
-Fix: initialize ip_next_orphan as NULL.
-
-Link: https://lkml.kernel.org/r/20201109171746.27884-1-wen.gang.wang@oracle.com
-Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20201110202746.9690-1-mcroce@linux.microsoft.com
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/ABI/testing/sysfs-kernel-reboot |   32 ++
+ kernel/reboot.c                               |  206 ++++++++++++++++
+ 2 files changed, 238 insertions(+)
 
---- a/fs/ocfs2/super.c~ocfs2-initialize-ip_next_orphan
-+++ a/fs/ocfs2/super.c
-@@ -1713,6 +1713,7 @@ static void ocfs2_inode_init_once(void *
- 
- 	oi->ip_blkno = 0ULL;
- 	oi->ip_clusters = 0;
-+	oi->ip_next_orphan = NULL;
- 
- 	ocfs2_resv_init_once(&oi->ip_la_data_resv);
- 
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-reboot
+@@ -0,0 +1,32 @@
++What:		/sys/kernel/reboot
++Date:		November 2020
++KernelVersion:	5.11
++Contact:	Matteo Croce <mcroce@microsoft.com>
++Description:	Interface to set the kernel reboot behavior, similarly to
++		what can be done via the reboot= cmdline option.
++		(see Documentation/admin-guide/kernel-parameters.txt)
++
++What:		/sys/kernel/reboot/mode
++Date:		November 2020
++KernelVersion:	5.11
++Contact:	Matteo Croce <mcroce@microsoft.com>
++Description:	Reboot mode. Valid values are: cold warm hard soft gpio
++
++What:		/sys/kernel/reboot/type
++Date:		November 2020
++KernelVersion:	5.11
++Contact:	Matteo Croce <mcroce@microsoft.com>
++Description:	Reboot type. Valid values are: bios acpi kbd triple efi pci
++
++What:		/sys/kernel/reboot/cpu
++Date:		November 2020
++KernelVersion:	5.11
++Contact:	Matteo Croce <mcroce@microsoft.com>
++Description:	CPU number to use to reboot.
++
++What:		/sys/kernel/reboot/force
++Date:		November 2020
++KernelVersion:	5.11
++Contact:	Matteo Croce <mcroce@microsoft.com>
++Description:	Don't wait for any other CPUs on reboot and
++		avoid anything that could hang.
+--- a/kernel/reboot.c~reboot-allow-to-specify-reboot-mode-via-sysfs
++++ a/kernel/reboot.c
+@@ -598,3 +598,209 @@ static int __init reboot_setup(char *str
+ 	return 1;
+ }
+ __setup("reboot=", reboot_setup);
++
++#ifdef CONFIG_SYSFS
++
++#define REBOOT_COLD_STR		"cold"
++#define REBOOT_WARM_STR		"warm"
++#define REBOOT_HARD_STR		"hard"
++#define REBOOT_SOFT_STR		"soft"
++#define REBOOT_GPIO_STR		"gpio"
++#define REBOOT_UNDEFINED_STR	"undefined"
++
++#define BOOT_TRIPLE_STR		"triple"
++#define BOOT_KBD_STR		"kbd"
++#define BOOT_BIOS_STR		"bios"
++#define BOOT_ACPI_STR		"acpi"
++#define BOOT_EFI_STR		"efi"
++#define BOOT_CF9_FORCE_STR	"cf9_force"
++#define BOOT_CF9_SAFE_STR	"cf9_safe"
++
++static ssize_t mode_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	const char *val;
++
++	switch (reboot_mode) {
++	case REBOOT_COLD:
++		val = REBOOT_COLD_STR;
++		break;
++	case REBOOT_WARM:
++		val = REBOOT_WARM_STR;
++		break;
++	case REBOOT_HARD:
++		val = REBOOT_HARD_STR;
++		break;
++	case REBOOT_SOFT:
++		val = REBOOT_SOFT_STR;
++		break;
++	case REBOOT_GPIO:
++		val = REBOOT_GPIO_STR;
++		break;
++	default:
++		val = REBOOT_UNDEFINED_STR;
++	}
++
++	return sprintf(buf, "%s\n", val);
++}
++static ssize_t mode_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t count)
++{
++	if (!capable(CAP_SYS_BOOT))
++		return -EPERM;
++
++	if (!strncmp(buf, REBOOT_COLD_STR, strlen(REBOOT_COLD_STR)))
++		reboot_mode = REBOOT_COLD;
++	else if (!strncmp(buf, REBOOT_WARM_STR, strlen(REBOOT_WARM_STR)))
++		reboot_mode = REBOOT_WARM;
++	else if (!strncmp(buf, REBOOT_HARD_STR, strlen(REBOOT_HARD_STR)))
++		reboot_mode = REBOOT_HARD;
++	else if (!strncmp(buf, REBOOT_SOFT_STR, strlen(REBOOT_SOFT_STR)))
++		reboot_mode = REBOOT_SOFT;
++	else if (!strncmp(buf, REBOOT_GPIO_STR, strlen(REBOOT_GPIO_STR)))
++		reboot_mode = REBOOT_GPIO;
++	else
++		return -EINVAL;
++
++	return count;
++}
++static struct kobj_attribute reboot_mode_attr = __ATTR_RW(mode);
++
++static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	const char *val;
++
++	switch (reboot_type) {
++	case BOOT_TRIPLE:
++		val = BOOT_TRIPLE_STR;
++		break;
++	case BOOT_KBD:
++		val = BOOT_KBD_STR;
++		break;
++	case BOOT_BIOS:
++		val = BOOT_BIOS_STR;
++		break;
++	case BOOT_ACPI:
++		val = BOOT_ACPI_STR;
++		break;
++	case BOOT_EFI:
++		val = BOOT_EFI_STR;
++		break;
++	case BOOT_CF9_FORCE:
++		val = BOOT_CF9_FORCE_STR;
++		break;
++	case BOOT_CF9_SAFE:
++		val = BOOT_CF9_SAFE_STR;
++		break;
++	default:
++		val = REBOOT_UNDEFINED_STR;
++	}
++
++	return sprintf(buf, "%s\n", val);
++}
++static ssize_t type_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t count)
++{
++	if (!capable(CAP_SYS_BOOT))
++		return -EPERM;
++
++	if (!strncmp(buf, BOOT_TRIPLE_STR, strlen(BOOT_TRIPLE_STR)))
++		reboot_mode = BOOT_TRIPLE;
++	else if (!strncmp(buf, BOOT_KBD_STR, strlen(BOOT_KBD_STR)))
++		reboot_mode = BOOT_KBD;
++	else if (!strncmp(buf, BOOT_BIOS_STR, strlen(BOOT_BIOS_STR)))
++		reboot_mode = BOOT_BIOS;
++	else if (!strncmp(buf, BOOT_ACPI_STR, strlen(BOOT_ACPI_STR)))
++		reboot_mode = BOOT_ACPI;
++	else if (!strncmp(buf, BOOT_EFI_STR, strlen(BOOT_EFI_STR)))
++		reboot_mode = BOOT_EFI;
++	else if (!strncmp(buf, BOOT_CF9_FORCE_STR, strlen(BOOT_CF9_FORCE_STR)))
++		reboot_mode = BOOT_CF9_FORCE;
++	else if (!strncmp(buf, BOOT_CF9_SAFE_STR, strlen(BOOT_CF9_SAFE_STR)))
++		reboot_mode = BOOT_CF9_SAFE;
++	else
++		return -EINVAL;
++
++	return count;
++}
++static struct kobj_attribute reboot_type_attr = __ATTR_RW(type);
++
++static ssize_t cpu_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", reboot_cpu);
++}
++static ssize_t cpu_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t count)
++{
++	unsigned int cpunum;
++	int rc;
++
++	if (!capable(CAP_SYS_BOOT))
++		return -EPERM;
++
++	rc = kstrtouint(buf, 0, &cpunum);
++
++	if (rc)
++		return rc;
++
++	if (cpunum >= num_possible_cpus())
++		return -ERANGE;
++
++	reboot_cpu = cpunum;
++
++	return count;
++}
++static struct kobj_attribute reboot_cpu_attr = __ATTR_RW(cpu);
++
++static ssize_t force_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", reboot_force);
++}
++static ssize_t force_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t count)
++{
++	bool res;
++
++	if (!capable(CAP_SYS_BOOT))
++		return -EPERM;
++
++	if (kstrtobool(buf, &res))
++		return -EINVAL;
++
++	reboot_force = res;
++
++	return count;
++}
++static struct kobj_attribute reboot_force_attr = __ATTR_RW(force);
++
++static struct attribute *reboot_attrs[] = {
++	&reboot_mode_attr.attr,
++	&reboot_type_attr.attr,
++	&reboot_cpu_attr.attr,
++	&reboot_force_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group reboot_attr_group = {
++	.attrs = reboot_attrs,
++};
++
++static int __init reboot_ksysfs_init(void)
++{
++	struct kobject *reboot_kobj;
++	int ret;
++
++	reboot_kobj = kobject_create_and_add("reboot", kernel_kobj);
++	if (!reboot_kobj)
++		return -ENOMEM;
++
++	ret = sysfs_create_group(reboot_kobj, &reboot_attr_group);
++	if (ret) {
++		kobject_put(reboot_kobj);
++		return ret;
++	}
++
++	return 0;
++}
++late_initcall(reboot_ksysfs_init);
++
++#endif
 _
 
-Patches currently in -mm which might be from wen.gang.wang@oracle.com are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
-ocfs2-initialize-ip_next_orphan.patch
+revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
+reboot-fix-overflow-parsing-reboot-cpu-number.patch
+reboot-refactor-and-comment-the-cpu-selection-code.patch
+reboot-allow-to-specify-reboot-mode-via-sysfs.patch
 
