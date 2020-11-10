@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77B92C4742C
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9243EC4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2661120897
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4913D20781
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="KiXodSW0"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="sflY3Gmu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732281AbgKJWzN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:55:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53490 "EHLO mail.kernel.org"
+        id S1731805AbgKJWzS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:55:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727018AbgKJWzN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:55:13 -0500
+        id S1727018AbgKJWzR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:55:17 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 87E02207E8;
-        Tue, 10 Nov 2020 22:55:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 143BF205CA;
+        Tue, 10 Nov 2020 22:55:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605048913;
-        bh=9+CAI3tyPQs0H4o1lI+61mxAK2BKOVm1zsNrPVk5FdU=;
+        s=default; t=1605048916;
+        bh=uaxs2VOf69SDYrKCXYPkRDWYbmj/i5JxvMnMY5jmi9A=;
         h=Date:From:To:Subject:From;
-        b=KiXodSW0qApHxKeiw9E96EHNoGLVdhVZ8Wjzo1QoS0iz2AwhG8U//Z7y/Vhnu+H4u
-         iAv3fqXEzE5vYxsI6rN8sAtyuWJjOlyJbVip5IXetcHRYZ19mVB1H+EfUhtTVYQRZs
-         xeiOmfiInuC5yEA6u35U2b3SCNzc4kON+bgwfvn0=
-Date:   Tue, 10 Nov 2020 14:55:11 -0800
+        b=sflY3GmudrI0B22hoMAyLeeBoYcZoaG1yzxhOY7o9vM2FegrfhNT7U97Tgyj3BL2s
+         m4IvuDeMLMsw09dmdWCq3lpAMWUbFuP3n/k1MQU20a8EgQ/ug52osNFjq/nzM7WTTV
+         OPIkmlXuHV/ZOGoEOvsb9Lfkk+ixSop1fF9bGzaY=
+Date:   Tue, 10 Nov 2020 14:55:15 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + s390-kasan-include-asm-pageh-from-asm-kasanh.patch
+Subject:  + kasan-shadow-declarations-only-for-software-modes.patch
  added to -mm tree
-Message-ID: <20201110225511.OXvRRwcf2%akpm@linux-foundation.org>
+Message-ID: <20201110225515.oi_dYC_lD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/kasan: include asm/page.h from asm/kasan.h
+     Subject: kasan: shadow declarations only for software modes
 has been added to the -mm tree.  Its filename is
-     s390-kasan-include-asm-pageh-from-asm-kasanh.patch
+     kasan-shadow-declarations-only-for-software-modes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/s390-kasan-include-asm-pageh-from-asm-kasanh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-shadow-declarations-only-for-software-modes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/s390-kasan-include-asm-pageh-from-asm-kasanh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-shadow-declarations-only-for-software-modes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,14 +74,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: s390/kasan: include asm/page.h from asm/kasan.h
+Subject: kasan: shadow declarations only for software modes
 
-asm/kasan.h relies on pgd_t and _REGION1_SHIFT definitions and therefore
-requires asm/pgtable.h include. Include asm/pgtable.h from asm/kasan.h.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Link: https://lkml.kernel.org/r/34c72d612b6b06393ef455520c70f37c8b7a2c6f.1605046192.git.andreyknvl@google.com
+Group shadow-related KASAN function declarations and only define them
+for the two existing software modes.
+
+No functional changes for software modes.
+
+Link: https://lkml.kernel.org/r/81fbf12c3455448b2bb4162dd9888d405ee0c00a.1605046192.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Vasily Gorbik <gor@linux.ibm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
@@ -89,26 +95,112 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/kasan.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/kasan.h |   47 ++++++++++++++++++++++++++--------------
+ 1 file changed, 31 insertions(+), 16 deletions(-)
 
---- a/arch/s390/include/asm/kasan.h~s390-kasan-include-asm-pageh-from-asm-kasanh
-+++ a/arch/s390/include/asm/kasan.h
-@@ -4,6 +4,8 @@
+--- a/include/linux/kasan.h~kasan-shadow-declarations-only-for-software-modes
++++ a/include/linux/kasan.h
+@@ -11,7 +11,6 @@ struct task_struct;
  
- #include <asm/pgtable.h>
- 
-+#include <asm/pgtable.h>
-+
  #ifdef CONFIG_KASAN
  
- #define KASAN_SHADOW_SCALE_SHIFT 3
+-#include <linux/pgtable.h>
+ #include <asm/kasan.h>
+ 
+ /* kasan_data struct is used in KUnit tests for KASAN expected failures */
+@@ -20,6 +19,20 @@ struct kunit_kasan_expectation {
+ 	bool report_found;
+ };
+ 
++#endif
++
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
++
++#include <linux/pgtable.h>
++
++/* Software KASAN implementations use shadow memory. */
++
++#ifdef CONFIG_KASAN_SW_TAGS
++#define KASAN_SHADOW_INIT 0xFF
++#else
++#define KASAN_SHADOW_INIT 0
++#endif
++
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+ extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
+ extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+@@ -35,6 +48,23 @@ static inline void *kasan_mem_to_shadow(
+ 		+ KASAN_SHADOW_OFFSET;
+ }
+ 
++int kasan_add_zero_shadow(void *start, unsigned long size);
++void kasan_remove_zero_shadow(void *start, unsigned long size);
++
++#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++static inline int kasan_add_zero_shadow(void *start, unsigned long size)
++{
++	return 0;
++}
++static inline void kasan_remove_zero_shadow(void *start,
++					unsigned long size)
++{}
++
++#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++#ifdef CONFIG_KASAN
++
+ /* Enable reporting bugs after kasan_disable_current() */
+ extern void kasan_enable_current(void);
+ 
+@@ -75,9 +105,6 @@ struct kasan_cache {
+ 	int free_meta_offset;
+ };
+ 
+-int kasan_add_zero_shadow(void *start, unsigned long size);
+-void kasan_remove_zero_shadow(void *start, unsigned long size);
+-
+ size_t __ksize(const void *);
+ static inline void kasan_unpoison_slab(const void *ptr)
+ {
+@@ -143,14 +170,6 @@ static inline bool kasan_slab_free(struc
+ 	return false;
+ }
+ 
+-static inline int kasan_add_zero_shadow(void *start, unsigned long size)
+-{
+-	return 0;
+-}
+-static inline void kasan_remove_zero_shadow(void *start,
+-					unsigned long size)
+-{}
+-
+ static inline void kasan_unpoison_slab(const void *ptr) { }
+ static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
+ 
+@@ -158,8 +177,6 @@ static inline size_t kasan_metadata_size
+ 
+ #ifdef CONFIG_KASAN_GENERIC
+ 
+-#define KASAN_SHADOW_INIT 0
+-
+ void kasan_cache_shrink(struct kmem_cache *cache);
+ void kasan_cache_shutdown(struct kmem_cache *cache);
+ void kasan_record_aux_stack(void *ptr);
+@@ -174,8 +191,6 @@ static inline void kasan_record_aux_stac
+ 
+ #ifdef CONFIG_KASAN_SW_TAGS
+ 
+-#define KASAN_SHADOW_INIT 0xFF
+-
+ void kasan_init_tags(void);
+ 
+ void *kasan_reset_tag(const void *addr);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
