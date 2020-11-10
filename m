@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BA25C4742C
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A4B3C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A076E2080A
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16B8A207E8
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:56:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="v+znQ+iu"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="lQceRBow"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727018AbgKJW4U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:56:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54044 "EHLO mail.kernel.org"
+        id S1732517AbgKJW4X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:56:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732517AbgKJW4U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:56:20 -0500
+        id S1732209AbgKJW4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:56:23 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1598620781;
-        Tue, 10 Nov 2020 22:56:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6FF40204EF;
+        Tue, 10 Nov 2020 22:56:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605048979;
-        bh=S16LAMIuc6ksMlq2WcRFfcKmsODnWrTwM2hbxGqRqoY=;
+        s=default; t=1605048983;
+        bh=EML6BOxmDBppHdk70CBtSnD7kgH3z+uAlHzKBrB38pg=;
         h=Date:From:To:Subject:From;
-        b=v+znQ+iu0CgN4BhCoSfMHMtBrI6rPu2YCrPp8Zf+s8zD0ecsFuElLZscofNeamlsy
-         2XoLSHaNwzeZgClveaHwjO8CIOxqtkQ066JuXrt7zDoWsnn4/OJpF7PzN5ygi2yeR9
-         Us3cycaTNyH5F/J9oZ6xWjoNShcapup7me8nZ6Xc=
-Date:   Tue, 10 Nov 2020 14:56:18 -0800
+        b=lQceRBowmoS5M0h3KBGyH4By9xVgMs+HxBuYHr+iqb3Q5abSKLN/rX2uGVJDzYr9U
+         jzrcDiUmoFwR6Vt0pSJeorgYJXHGYrmlCWOZ5BR0vIOSbsdZOXxhnxPuwToll+XUa9
+         2XtEPX+5e1Zkv1FFaED0GTexe62H2NrA5DZ2fgMU=
+Date:   Tue, 10 Nov 2020 14:56:21 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -42,9 +42,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
 Subject:  +
- kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch added
- to -mm tree
-Message-ID: <20201110225618.QTTvgsJ_O%akpm@linux-foundation.org>
+ kasan-kasan_non_canonical_hook-only-for-software-modes.patch added to -mm
+ tree
+Message-ID: <20201110225621.WkTwcbzCZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: rename print_shadow_for_address to print_memory_metadata
+     Subject: kasan: kasan_non_canonical_hook only for software modes
 has been added to the -mm tree.  Its filename is
-     kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
+     kasan-kasan_non_canonical_hook-only-for-software-modes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-kasan_non_canonical_hook-only-for-software-modes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-kasan_non_canonical_hook-only-for-software-modes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,17 +75,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename print_shadow_for_address to print_memory_metadata
+Subject: kasan: kasan_non_canonical_hook only for software modes
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
 
-Hardware tag-based KASAN won't be using shadow memory, but will reuse
-this function. Rename "shadow" to implementation-neutral "metadata".
+kasan_non_canonical_hook() is only applicable to KASAN modes that use
+shadow memory, and won't be needed for hardware tag-based KASAN.
 
-No functional changes.
+No functional changes for software modes.
 
-Link: https://lkml.kernel.org/r/47785f5259ba9ed493d2ac94ec7c2492fa5c1f14.1605046192.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/49f7f2c12b0d5805f9a7b7092b986bbc2dd077a1.1605046192.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -101,38 +101,21 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/kasan/report.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/report.c~kasan-rename-print_shadow_for_address-to-print_memory_metadata
+--- a/mm/kasan/report.c~kasan-kasan_non_canonical_hook-only-for-software-modes
 +++ a/mm/kasan/report.c
-@@ -252,7 +252,7 @@ static int shadow_pointer_offset(const v
- 		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
+@@ -403,7 +403,8 @@ bool kasan_report(unsigned long addr, si
+ 	return ret;
  }
  
--static void print_shadow_for_address(const void *addr)
-+static void print_memory_metadata(const void *addr)
- {
- 	int i;
- 	const void *shadow = kasan_mem_to_shadow(addr);
-@@ -338,7 +338,7 @@ void kasan_report_invalid_free(void *obj
- 	pr_err("\n");
- 	print_address_description(object, tag);
- 	pr_err("\n");
--	print_shadow_for_address(object);
-+	print_memory_metadata(object);
- 	end_report(&flags);
- }
- 
-@@ -379,7 +379,7 @@ static void __kasan_report(unsigned long
- 	if (addr_has_metadata(untagged_addr)) {
- 		print_address_description(untagged_addr, get_tag(tagged_addr));
- 		pr_err("\n");
--		print_shadow_for_address(info.first_bad_addr);
-+		print_memory_metadata(info.first_bad_addr);
- 	} else {
- 		dump_stack();
- 	}
+-#ifdef CONFIG_KASAN_INLINE
++#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
++	defined(CONFIG_KASAN_INLINE)
+ /*
+  * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
+  * canonical half of the address space) cause out-of-bounds shadow memory reads
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
