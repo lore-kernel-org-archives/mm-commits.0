@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A350BC55ABD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 642D9C4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46A0A207E8
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FCE1207E8
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 22:55:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="SbQ2FEon"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="J7dIuaE7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732426AbgKJWzm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 17:55:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53716 "EHLO mail.kernel.org"
+        id S1732432AbgKJWzp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 17:55:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53744 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727018AbgKJWzl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 17:55:41 -0500
+        id S1727018AbgKJWzp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 17:55:45 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2B602205CA;
-        Tue, 10 Nov 2020 22:55:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 24101205CA;
+        Tue, 10 Nov 2020 22:55:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605048940;
-        bh=1emDq6b8OnZ4K4LdE+ISW9Ea6r6a5mW+eviUrijeDf4=;
+        s=default; t=1605048944;
+        bh=c2rWsYYT5Bm4mdOOunYSYSxs+A6bgwABfdUQvEIdcOo=;
         h=Date:From:To:Subject:From;
-        b=SbQ2FEonponMb/6LK5o9KPmmG0GqLZf0BshsoqicaevCYNwtYGQaxJiLUrxiSJ47L
-         WBHjpxZZnuaWU3k665hyWi1OFzevTs8sf4nOZaYleqDbBmreTKzSmOFFoci15VGFsp
-         /856Iulb0d083uXHbjw9v8GlcOGduMvgB8AxIxXk=
-Date:   Tue, 10 Nov 2020 14:55:39 -0800
+        b=J7dIuaE76v3OXTHrdq5DYGCjVoe08uQpuwpdyO/08FWfj1dr7uQRZVxYEvM0mCZNC
+         Tzr4eoHB0QMPCAHi1gApweEGKlPxGsC95ArsIOlLdJBhWafEZeVKaTUPbZv3BUGmhK
+         pbVO8ZEDaFVph9AnQuLRxQQydhbxRxDUqQVTvGq0=
+Date:   Tue, 10 Nov 2020 14:55:43 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,8 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-define-kasan_granule_page.patch added to -mm tree
-Message-ID: <20201110225539.jtT8uTUlj%akpm@linux-foundation.org>
+Subject:  + kasan-rename-report-and-tags-files.patch added to -mm
+ tree
+Message-ID: <20201110225543.9RyArBVQF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: define KASAN_GRANULE_PAGE
+     Subject: kasan: rename report and tags files
 has been added to the -mm tree.  Its filename is
-     kasan-define-kasan_granule_page.patch
+     kasan-rename-report-and-tags-files.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-define-kasan_granule_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-report-and-tags-files.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-define-kasan_granule_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-report-and-tags-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,13 +74,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: define KASAN_GRANULE_PAGE
+Subject: kasan: rename report and tags files
 
-Define KASAN_GRANULE_PAGE as (KASAN_GRANULE_SIZE << PAGE_SHIFT), which is
-the same as (KASAN_GRANULE_SIZE * PAGE_SIZE), and use it across KASAN code
-to simplify it.
+Rename generic_report.c to report_generic.c and tags_report.c to
+report_sw_tags.c, as their content is more relevant to report.c file.
+Also rename tags.c to sw_tags.c to better reflect that this file contains
+code for software tag-based mode.
 
-Link: https://lkml.kernel.org/r/85aba371903b749412fac34e44e54c89e5ddae30.1605046192.git.andreyknvl@google.com
+No functional changes.
+
+Link: https://lkml.kernel.org/r/37a9648ffa16572583a7513323cc9be88a726eb1.1605046192.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -95,87 +99,59 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/init.c   |   10 ++++------
- mm/kasan/kasan.h  |    1 +
- mm/kasan/shadow.c |   16 +++++++---------
- 3 files changed, 12 insertions(+), 15 deletions(-)
+ mm/kasan/Makefile |   16 ++++++++--------
+ mm/kasan/report.c |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/kasan/init.c~kasan-define-kasan_granule_page
-+++ a/mm/kasan/init.c
-@@ -441,9 +441,8 @@ void kasan_remove_zero_shadow(void *star
- 	addr = (unsigned long)kasan_mem_to_shadow(start);
- 	end = addr + (size >> KASAN_SHADOW_SCALE_SHIFT);
+--- a/mm/kasan/Makefile~kasan-rename-report-and-tags-files
++++ a/mm/kasan/Makefile
+@@ -6,13 +6,13 @@ KCOV_INSTRUMENT := n
+ # Disable ftrace to avoid recursion.
+ CFLAGS_REMOVE_common.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_generic.o = $(CC_FLAGS_FTRACE)
+-CFLAGS_REMOVE_generic_report.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_init.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_quarantine.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_report.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_report_generic.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_report_sw_tags.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_shadow.o = $(CC_FLAGS_FTRACE)
+-CFLAGS_REMOVE_tags.o = $(CC_FLAGS_FTRACE)
+-CFLAGS_REMOVE_tags_report.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_sw_tags.o = $(CC_FLAGS_FTRACE)
  
--	if (WARN_ON((unsigned long)start %
--			(KASAN_GRANULE_SIZE * PAGE_SIZE)) ||
--	    WARN_ON(size % (KASAN_GRANULE_SIZE * PAGE_SIZE)))
-+	if (WARN_ON((unsigned long)start % KASAN_GRANULE_PAGE) ||
-+	    WARN_ON(size % KASAN_GRANULE_PAGE))
- 		return;
+ # Function splitter causes unnecessary splits in __asan_load1/__asan_store1
+ # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63533
+@@ -23,14 +23,14 @@ CC_FLAGS_KASAN_RUNTIME += -DDISABLE_BRAN
  
- 	for (; addr < end; addr = next) {
-@@ -476,9 +475,8 @@ int kasan_add_zero_shadow(void *start, u
- 	shadow_start = kasan_mem_to_shadow(start);
- 	shadow_end = shadow_start + (size >> KASAN_SHADOW_SCALE_SHIFT);
+ CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
+-CFLAGS_generic_report.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME)
++CFLAGS_report_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
++CFLAGS_report_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_shadow.o := $(CC_FLAGS_KASAN_RUNTIME)
+-CFLAGS_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
+-CFLAGS_tags_report.o := $(CC_FLAGS_KASAN_RUNTIME)
++CFLAGS_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
  
--	if (WARN_ON((unsigned long)start %
--			(KASAN_GRANULE_SIZE * PAGE_SIZE)) ||
--	    WARN_ON(size % (KASAN_GRANULE_SIZE * PAGE_SIZE)))
-+	if (WARN_ON((unsigned long)start % KASAN_GRANULE_PAGE) ||
-+	    WARN_ON(size % KASAN_GRANULE_PAGE))
- 		return -EINVAL;
- 
- 	ret = kasan_populate_early_shadow(shadow_start, shadow_end);
---- a/mm/kasan/kasan.h~kasan-define-kasan_granule_page
-+++ a/mm/kasan/kasan.h
-@@ -7,6 +7,7 @@
- 
- #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
- #define KASAN_GRANULE_MASK	(KASAN_GRANULE_SIZE - 1)
-+#define KASAN_GRANULE_PAGE	(KASAN_GRANULE_SIZE << PAGE_SHIFT)
- 
- #define KASAN_TAG_KERNEL	0xFF /* native kernel pointers tag */
- #define KASAN_TAG_INVALID	0xFE /* inaccessible memory tag */
---- a/mm/kasan/shadow.c~kasan-define-kasan_granule_page
-+++ a/mm/kasan/shadow.c
-@@ -173,7 +173,7 @@ static int __meminit kasan_mem_notifier(
- 	shadow_end = shadow_start + shadow_size;
- 
- 	if (WARN_ON(mem_data->nr_pages % KASAN_GRANULE_SIZE) ||
--		WARN_ON(start_kaddr % (KASAN_GRANULE_SIZE << PAGE_SHIFT)))
-+		WARN_ON(start_kaddr % KASAN_GRANULE_PAGE))
- 		return NOTIFY_BAD;
- 
- 	switch (action) {
-@@ -444,22 +444,20 @@ void kasan_release_vmalloc(unsigned long
- 	unsigned long region_start, region_end;
- 	unsigned long size;
- 
--	region_start = ALIGN(start, PAGE_SIZE * KASAN_GRANULE_SIZE);
--	region_end = ALIGN_DOWN(end, PAGE_SIZE * KASAN_GRANULE_SIZE);
-+	region_start = ALIGN(start, KASAN_GRANULE_PAGE);
-+	region_end = ALIGN_DOWN(end, KASAN_GRANULE_PAGE);
- 
--	free_region_start = ALIGN(free_region_start,
--				  PAGE_SIZE * KASAN_GRANULE_SIZE);
-+	free_region_start = ALIGN(free_region_start, KASAN_GRANULE_PAGE);
- 
- 	if (start != region_start &&
- 	    free_region_start < region_start)
--		region_start -= PAGE_SIZE * KASAN_GRANULE_SIZE;
-+		region_start -= KASAN_GRANULE_PAGE;
- 
--	free_region_end = ALIGN_DOWN(free_region_end,
--				     PAGE_SIZE * KASAN_GRANULE_SIZE);
-+	free_region_end = ALIGN_DOWN(free_region_end, KASAN_GRANULE_PAGE);
- 
- 	if (end != region_end &&
- 	    free_region_end > region_end)
--		region_end += PAGE_SIZE * KASAN_GRANULE_SIZE;
-+		region_end += KASAN_GRANULE_PAGE;
- 
- 	shadow_start = kasan_mem_to_shadow((void *)region_start);
- 	shadow_end = kasan_mem_to_shadow((void *)region_end);
+ obj-$(CONFIG_KASAN) := common.o report.o
+-obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o generic_report.o shadow.o quarantine.o
+-obj-$(CONFIG_KASAN_SW_TAGS) += init.o shadow.o tags.o tags_report.o
++obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
++obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o
+--- a/mm/kasan/report.c~kasan-rename-report-and-tags-files
++++ a/mm/kasan/report.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * This file contains common generic and tag-based KASAN error reporting code.
++ * This file contains common KASAN error reporting code.
+  *
+  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
