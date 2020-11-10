@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C3FC4742C
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5290EC56202
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CFF1207E8
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1195C20781
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="vypFZD1n"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="WXLgO+6n"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732236AbgKJXGB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 18:06:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57624 "EHLO mail.kernel.org"
+        id S1732332AbgKJXGC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 18:06:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732372AbgKJXF7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 18:05:59 -0500
+        id S1731805AbgKJXGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 18:06:02 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1F38E20679;
-        Tue, 10 Nov 2020 23:05:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1A12120679;
+        Tue, 10 Nov 2020 23:06:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049557;
-        bh=wsP1AglNPlVGgff49TkS4wUdUOV5O0YycTd2l6STFiU=;
+        s=default; t=1605049561;
+        bh=ggjC4Fvc70LNT2i9x7maGZSGtde3OTRQAUjOU53n/og=;
         h=Date:From:To:Subject:From;
-        b=vypFZD1ngZBueOV/ILoH9tLsN/SiOAjQ3VfUOE8vGUO3LOynLd0g8en1DB3OiG80J
-         yQnHapSB5u05GHTzcMioLcIGuMoABPHPRXLmTfH4Kh2ZmYUCR1qeelpvUVChF9WbAp
-         1XsjCFMQi/TtRtIy0Kpn7/04y395FSuUn3rQc6FY=
-Date:   Tue, 10 Nov 2020 15:05:56 -0800
+        b=WXLgO+6nsgYk/YIElcXmgxHKY1X/gu80f8oL40mxqK81P9/jFa48T/GHr8UyOkq+3
+         jiAiGjYolu9pT/O29EhrPK2Q5jL5MSMNcinAV9ac4S3tWvbgyCktY2oFzJ5L8fUEWF
+         cpqSB4k8ezYh7QJMgGWC3lDk8asesaBhr2D/KepM=
+Date:   Tue, 10 Nov 2020 15:06:00 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-mm-check-kasan_enabled-in-annotations.patch added
- to -mm tree
-Message-ID: <20201110230556._hFAC9ixu%akpm@linux-foundation.org>
+Subject:  + kasan-simplify-kasan_poison_kfree.patch added to -mm
+ tree
+Message-ID: <20201110230600.BL2wldhbn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: check kasan_enabled in annotations
+     Subject: kasan: simplify kasan_poison_kfree
 has been added to the -mm tree.  Its filename is
-     kasan-mm-check-kasan_enabled-in-annotations.patch
+     kasan-simplify-kasan_poison_kfree.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-check-kasan_enabled-in-annotations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-simplify-kasan_poison_kfree.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-check-kasan_enabled-in-annotations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-simplify-kasan_poison_kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,21 +74,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: check kasan_enabled in annotations
+Subject: kasan: simplify kasan_poison_kfree
 
-Declare the kasan_enabled static key in include/linux/kasan.h and in
-include/linux/mm.h and check it in all kasan annotations. This allows to
-avoid any slowdown caused by function calls when kasan_enabled is
-disabled.
+kasan_poison_kfree() is currently only called for mempool allocations
+that are backed by either kmem_cache_alloc() or kmalloc(). Therefore, the
+page passed to kasan_poison_kfree() is always PageSlab() and there's no
+need to do the check. Remove it.
 
-Link: https://lkml.kernel.org/r/22c1a837d4d0c0b241a700c88f180f5e831a1953.1605046662.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I2589451d3c96c97abbcbf714baabe6161c6f153e
+Link: https://lkml.kernel.org/r/a1c57043fb19effce240355e7c57b0d9a58d389e.1605046662.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/If31f88726745da8744c6bea96fb32584e6c2778c
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Marco Elver <elver@google.com>
@@ -97,527 +97,29 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |  224 ++++++++++++++++++++++++++++++----------
- include/linux/mm.h    |   22 ++-
- mm/kasan/common.c     |   60 +++++-----
- 3 files changed, 218 insertions(+), 88 deletions(-)
+ mm/kasan/common.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/include/linux/kasan.h~kasan-mm-check-kasan_enabled-in-annotations
-+++ a/include/linux/kasan.h
-@@ -2,6 +2,7 @@
- #ifndef _LINUX_KASAN_H
- #define _LINUX_KASAN_H
- 
-+#include <linux/jump_label.h>
- #include <linux/types.h>
- 
- struct kmem_cache;
-@@ -74,56 +75,179 @@ static inline void kasan_disable_current
- 
- #ifdef CONFIG_KASAN
- 
--void kasan_alloc_pages(struct page *page, unsigned int order);
--void kasan_free_pages(struct page *page, unsigned int order);
--
--void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
--			slab_flags_t *flags);
--
--void kasan_unpoison_data(const void *address, size_t size);
--void kasan_unpoison_slab(const void *ptr);
--
--void kasan_poison_slab(struct page *page);
--void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
--void kasan_poison_object_data(struct kmem_cache *cache, void *object);
--void * __must_check kasan_init_slab_obj(struct kmem_cache *cache,
--					const void *object);
--
--void * __must_check kasan_kmalloc_large(const void *ptr, size_t size,
--						gfp_t flags);
--void kasan_kfree_large(void *ptr, unsigned long ip);
--void kasan_poison_kfree(void *ptr, unsigned long ip);
--void * __must_check kasan_kmalloc(struct kmem_cache *s, const void *object,
--					size_t size, gfp_t flags);
--void * __must_check kasan_krealloc(const void *object, size_t new_size,
--					gfp_t flags);
--
--void * __must_check kasan_slab_alloc(struct kmem_cache *s, void *object,
--					gfp_t flags);
--bool kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
--
- struct kasan_cache {
- 	int alloc_meta_offset;
- 	int free_meta_offset;
- };
- 
--size_t kasan_metadata_size(struct kmem_cache *cache);
-+#ifdef CONFIG_KASAN_HW_TAGS
-+DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
-+static inline kasan_enabled(void)
-+{
-+	return static_branch_likely(&kasan_flag_enabled);
-+}
-+#else
-+static inline kasan_enabled(void)
-+{
-+	return true;
-+}
-+#endif
-+
-+void __kasan_alloc_pages(struct page *page, unsigned int order);
-+static inline void kasan_alloc_pages(struct page *page, unsigned int order)
-+{
-+	if (kasan_enabled())
-+		__kasan_alloc_pages(page, order);
-+}
-+
-+void __kasan_free_pages(struct page *page, unsigned int order);
-+static inline void kasan_free_pages(struct page *page, unsigned int order)
-+{
-+	if (kasan_enabled())
-+		__kasan_free_pages(page, order);
-+}
-+
-+void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
-+				slab_flags_t *flags);
-+static inline void kasan_cache_create(struct kmem_cache *cache,
-+			unsigned int *size, slab_flags_t *flags)
-+{
-+	if (kasan_enabled())
-+		__kasan_cache_create(cache, size, flags);
-+}
-+
-+size_t __kasan_metadata_size(struct kmem_cache *cache);
-+static inline size_t kasan_metadata_size(struct kmem_cache *cache)
-+{
-+	if (kasan_enabled())
-+		return __kasan_metadata_size(cache);
-+	return 0;
-+}
-+
-+void __kasan_unpoison_data(const void *addr, size_t size);
-+static inline void kasan_unpoison_data(const void *addr, size_t size)
-+{
-+	if (kasan_enabled())
-+		__kasan_unpoison_data(addr, size);
-+}
-+
-+void __kasan_unpoison_slab(const void *ptr);
-+static inline void kasan_unpoison_slab(const void *ptr)
-+{
-+	if (kasan_enabled())
-+		__kasan_unpoison_slab(ptr);
-+}
-+
-+void __kasan_poison_slab(struct page *page);
-+static inline void kasan_poison_slab(struct page *page)
-+{
-+	if (kasan_enabled())
-+		return __kasan_poison_slab(page);
-+}
-+
-+void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
-+static inline void kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
-+{
-+	if (kasan_enabled())
-+		return __kasan_unpoison_object_data(cache, object);
-+}
-+
-+void __kasan_poison_object_data(struct kmem_cache *cache, void *object);
-+static inline void kasan_poison_object_data(struct kmem_cache *cache, void *object)
-+{
-+	if (kasan_enabled())
-+		__kasan_poison_object_data(cache, object);
-+}
-+
-+void * __must_check __kasan_init_slab_obj(struct kmem_cache *cache,
-+					  const void *object);
-+static inline void * __must_check kasan_init_slab_obj(struct kmem_cache *cache,
-+						      const void *object)
-+{
-+	if (kasan_enabled())
-+		return __kasan_init_slab_obj(cache, object);
-+	return (void *)object;
-+}
-+
-+bool __kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
-+static inline bool kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip)
-+{
-+	if (kasan_enabled())
-+		return __kasan_slab_free(s, object, ip);
-+	return false;
-+}
-+
-+void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
-+				       void *object, gfp_t flags);
-+static inline void * __must_check kasan_slab_alloc(struct kmem_cache *s,
-+						   void *object, gfp_t flags)
-+{
-+	if (kasan_enabled())
-+		return __kasan_slab_alloc(s, object, flags);
-+	return object;
-+}
-+
-+void * __must_check __kasan_kmalloc(struct kmem_cache *s, const void *object,
-+				    size_t size, gfp_t flags);
-+static inline void * __must_check kasan_kmalloc(struct kmem_cache *s, const void *object,
-+						size_t size, gfp_t flags)
-+{
-+	if (kasan_enabled())
-+		return __kasan_kmalloc(s, object, size, flags);
-+	return (void *)object;
-+}
-+
-+void * __must_check __kasan_kmalloc_large(const void *ptr,
-+					  size_t size, gfp_t flags);
-+static inline void * __must_check kasan_kmalloc_large(const void *ptr,
-+						      size_t size, gfp_t flags)
-+{
-+	if (kasan_enabled())
-+		return __kasan_kmalloc_large(ptr, size, flags);
-+	return (void *)ptr;
-+}
-+
-+void * __must_check __kasan_krealloc(const void *object,
-+				     size_t new_size, gfp_t flags);
-+static inline void * __must_check kasan_krealloc(const void *object,
-+						 size_t new_size, gfp_t flags)
-+{
-+	if (kasan_enabled())
-+		return __kasan_krealloc(object, new_size, flags);
-+	return (void *)object;
-+}
-+
-+void __kasan_poison_kfree(void *ptr, unsigned long ip);
-+static inline void kasan_poison_kfree(void *ptr, unsigned long ip)
-+{
-+	if (kasan_enabled())
-+		__kasan_poison_kfree(ptr, ip);
-+}
-+
-+void __kasan_kfree_large(void *ptr, unsigned long ip);
-+static inline void kasan_kfree_large(void *ptr, unsigned long ip)
-+{
-+	if (kasan_enabled())
-+		__kasan_kfree_large(ptr, ip);
-+}
- 
- bool kasan_save_enable_multi_shot(void);
- void kasan_restore_multi_shot(bool enabled);
- 
- #else /* CONFIG_KASAN */
- 
-+static inline kasan_enabled(void)
-+{
-+	return false;
-+}
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
--
- static inline void kasan_cache_create(struct kmem_cache *cache,
- 				      unsigned int *size,
- 				      slab_flags_t *flags) {}
--
--static inline void kasan_unpoison_data(const void *address, size_t size) { }
--static inline void kasan_unpoison_slab(const void *ptr) { }
--
-+static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
-+static inline void kasan_unpoison_data(const void *address, size_t size) {}
-+static inline void kasan_unpoison_slab(const void *ptr) {}
- static inline void kasan_poison_slab(struct page *page) {}
- static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
- 					void *object) {}
-@@ -134,36 +258,32 @@ static inline void *kasan_init_slab_obj(
- {
- 	return (void *)object;
- }
--
--static inline void *kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags)
-+static inline bool kasan_slab_free(struct kmem_cache *s, void *object,
-+				   unsigned long ip)
- {
--	return ptr;
-+	return false;
-+}
-+static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
-+				   gfp_t flags)
-+{
-+	return object;
- }
--static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
--static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
- static inline void *kasan_kmalloc(struct kmem_cache *s, const void *object,
- 				size_t size, gfp_t flags)
- {
- 	return (void *)object;
- }
-+static inline void *kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags)
-+{
-+	return (void *)ptr;
-+}
- static inline void *kasan_krealloc(const void *object, size_t new_size,
- 				 gfp_t flags)
- {
- 	return (void *)object;
- }
--
--static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
--				   gfp_t flags)
--{
--	return object;
--}
--static inline bool kasan_slab_free(struct kmem_cache *s, void *object,
--				   unsigned long ip)
--{
--	return false;
--}
--
--static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
-+static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
-+static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
- 
- #endif /* CONFIG_KASAN */
- 
---- a/include/linux/mm.h~kasan-mm-check-kasan_enabled-in-annotations
-+++ a/include/linux/mm.h
-@@ -31,6 +31,7 @@
- #include <linux/sizes.h>
- #include <linux/sched.h>
- #include <linux/pgtable.h>
-+#include <linux/kasan.h>
- 
- struct mempolicy;
- struct anon_vma;
-@@ -1415,22 +1416,30 @@ static inline bool cpupid_match_pid(stru
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+
- static inline u8 page_kasan_tag(const struct page *page)
- {
--	return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
-+	if (kasan_enabled())
-+		return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
-+	return 0xff;
- }
- 
- static inline void page_kasan_tag_set(struct page *page, u8 tag)
- {
--	page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
--	page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
-+	if (kasan_enabled()) {
-+		page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
-+		page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
-+	}
- }
- 
- static inline void page_kasan_tag_reset(struct page *page)
- {
--	page_kasan_tag_set(page, 0xff);
-+	if (kasan_enabled())
-+		page_kasan_tag_set(page, 0xff);
- }
--#else
-+
-+#else /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
-+
- static inline u8 page_kasan_tag(const struct page *page)
- {
- 	return 0xff;
-@@ -1438,7 +1447,8 @@ static inline u8 page_kasan_tag(const st
- 
- static inline void page_kasan_tag_set(struct page *page, u8 tag) { }
- static inline void page_kasan_tag_reset(struct page *page) { }
--#endif
-+
-+#endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
- 
- static inline struct zone *page_zone(const struct page *page)
- {
---- a/mm/kasan/common.c~kasan-mm-check-kasan_enabled-in-annotations
+--- a/mm/kasan/common.c~kasan-simplify-kasan_poison_kfree
 +++ a/mm/kasan/common.c
-@@ -82,7 +82,7 @@ asmlinkage void kasan_unpoison_task_stac
- }
- #endif /* CONFIG_KASAN_STACK */
- 
--void kasan_alloc_pages(struct page *page, unsigned int order)
-+void __kasan_alloc_pages(struct page *page, unsigned int order)
- {
- 	u8 tag;
- 	unsigned long i;
-@@ -96,7 +96,7 @@ void kasan_alloc_pages(struct page *page
- 	kasan_unpoison_memory(page_address(page), PAGE_SIZE << order);
- }
- 
--void kasan_free_pages(struct page *page, unsigned int order)
-+void __kasan_free_pages(struct page *page, unsigned int order)
- {
- 	if (likely(!PageHighMem(page)))
- 		kasan_poison_memory(page_address(page),
-@@ -123,8 +123,8 @@ static inline unsigned int optimal_redzo
- 		object_size <= (1 << 16) - 1024 ? 1024 : 2048;
- }
- 
--void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
--			slab_flags_t *flags)
-+void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
-+			  slab_flags_t *flags)
- {
- 	unsigned int orig_size = *size;
- 	unsigned int redzone_size;
-@@ -169,7 +169,7 @@ void kasan_cache_create(struct kmem_cach
- 	*flags |= SLAB_KASAN;
- }
- 
--size_t kasan_metadata_size(struct kmem_cache *cache)
-+size_t __kasan_metadata_size(struct kmem_cache *cache)
- {
- 	if (!kasan_stack_collection_enabled())
- 		return 0;
-@@ -192,17 +192,17 @@ struct kasan_free_meta *kasan_get_free_m
- 	return kasan_reset_tag(object) + cache->kasan_info.free_meta_offset;
- }
- 
--void kasan_unpoison_data(const void *address, size_t size)
-+void __kasan_unpoison_data(const void *addr, size_t size)
- {
--	kasan_unpoison_memory(address, size);
-+	kasan_unpoison_memory(addr, size);
- }
- 
--void kasan_unpoison_slab(const void *ptr)
-+void __kasan_unpoison_slab(const void *ptr)
- {
- 	kasan_unpoison_memory(ptr, __ksize(ptr));
- }
- 
--void kasan_poison_slab(struct page *page)
-+void __kasan_poison_slab(struct page *page)
- {
- 	unsigned long i;
- 
-@@ -212,12 +212,12 @@ void kasan_poison_slab(struct page *page
- 			KASAN_KMALLOC_REDZONE);
- }
- 
--void kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
-+void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
- {
- 	kasan_unpoison_memory(object, cache->object_size);
- }
- 
--void kasan_poison_object_data(struct kmem_cache *cache, void *object)
-+void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
- {
- 	kasan_poison_memory(object,
- 			round_up(cache->object_size, KASAN_GRANULE_SIZE),
-@@ -270,7 +270,7 @@ static u8 assign_tag(struct kmem_cache *
- #endif
- }
- 
--void * __must_check kasan_init_slab_obj(struct kmem_cache *cache,
-+void * __must_check __kasan_init_slab_obj(struct kmem_cache *cache,
- 						const void *object)
- {
- 	struct kasan_alloc_meta *alloc_meta;
-@@ -289,7 +289,7 @@ void * __must_check kasan_init_slab_obj(
- 	return (void *)object;
- }
- 
--static bool __kasan_slab_free(struct kmem_cache *cache, void *object,
-+static bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
- 			      unsigned long ip, bool quarantine)
- {
- 	u8 tag;
-@@ -335,9 +335,9 @@ static bool __kasan_slab_free(struct kme
- 	return IS_ENABLED(CONFIG_KASAN_GENERIC);
- }
- 
--bool kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
-+bool __kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
- {
--	return __kasan_slab_free(cache, object, ip, true);
-+	return ____kasan_slab_free(cache, object, ip, true);
- }
- 
- static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
-@@ -345,7 +345,7 @@ static void set_alloc_info(struct kmem_c
- 	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
- }
- 
--static void *__kasan_kmalloc(struct kmem_cache *cache, const void *object,
-+static void *____kasan_kmalloc(struct kmem_cache *cache, const void *object,
- 				size_t size, gfp_t flags, bool keep_tag)
- {
- 	unsigned long redzone_start;
-@@ -380,20 +380,20 @@ static void *__kasan_kmalloc(struct kmem
- 	return set_tag(object, tag);
- }
- 
--void * __must_check kasan_slab_alloc(struct kmem_cache *cache, void *object,
--					gfp_t flags)
-+void * __must_check __kasan_slab_alloc(struct kmem_cache *cache,
-+					void *object, gfp_t flags)
- {
--	return __kasan_kmalloc(cache, object, cache->object_size, flags, false);
-+	return ____kasan_kmalloc(cache, object, cache->object_size, flags, false);
- }
- 
--void * __must_check kasan_kmalloc(struct kmem_cache *cache, const void *object,
--				size_t size, gfp_t flags)
-+void * __must_check __kasan_kmalloc(struct kmem_cache *cache, const void *object,
-+					size_t size, gfp_t flags)
- {
--	return __kasan_kmalloc(cache, object, size, flags, true);
-+	return ____kasan_kmalloc(cache, object, size, flags, true);
- }
--EXPORT_SYMBOL(kasan_kmalloc);
-+EXPORT_SYMBOL(__kasan_kmalloc);
- 
--void * __must_check kasan_kmalloc_large(const void *ptr, size_t size,
-+void * __must_check __kasan_kmalloc_large(const void *ptr, size_t size,
- 						gfp_t flags)
- {
- 	struct page *page;
-@@ -418,7 +418,7 @@ void * __must_check kasan_kmalloc_large(
- 	return (void *)ptr;
- }
- 
--void * __must_check kasan_krealloc(const void *object, size_t size, gfp_t flags)
-+void * __must_check __kasan_krealloc(const void *object, size_t size, gfp_t flags)
- {
+@@ -439,16 +439,7 @@ void __kasan_poison_kfree(void *ptr, uns
  	struct page *page;
  
-@@ -428,13 +428,13 @@ void * __must_check kasan_krealloc(const
- 	page = virt_to_head_page(object);
- 
- 	if (unlikely(!PageSlab(page)))
--		return kasan_kmalloc_large(object, size, flags);
-+		return __kasan_kmalloc_large(object, size, flags);
- 	else
--		return __kasan_kmalloc(page->slab_cache, object, size,
-+		return ____kasan_kmalloc(page->slab_cache, object, size,
- 						flags, true);
+ 	page = virt_to_head_page(ptr);
+-
+-	if (unlikely(!PageSlab(page))) {
+-		if (ptr != page_address(page)) {
+-			kasan_report_invalid_free(ptr, ip);
+-			return;
+-		}
+-		kasan_poison_memory(ptr, page_size(page), KASAN_FREE_PAGE);
+-	} else {
+-		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+-	}
++	____kasan_slab_free(page->slab_cache, ptr, ip, false);
  }
  
--void kasan_poison_kfree(void *ptr, unsigned long ip)
-+void __kasan_poison_kfree(void *ptr, unsigned long ip)
- {
- 	struct page *page;
- 
-@@ -447,11 +447,11 @@ void kasan_poison_kfree(void *ptr, unsig
- 		}
- 		kasan_poison_memory(ptr, page_size(page), KASAN_FREE_PAGE);
- 	} else {
--		__kasan_slab_free(page->slab_cache, ptr, ip, false);
-+		____kasan_slab_free(page->slab_cache, ptr, ip, false);
- 	}
- }
- 
--void kasan_kfree_large(void *ptr, unsigned long ip)
-+void __kasan_kfree_large(void *ptr, unsigned long ip)
- {
- 	if (ptr != page_address(virt_to_head_page(ptr)))
- 		kasan_report_invalid_free(ptr, ip);
+ void __kasan_kfree_large(void *ptr, unsigned long ip)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
