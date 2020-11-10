@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B3AC388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:02:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F208BC388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:19:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDA9620780
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:02:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D5F32064B
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 19:19:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="qoupvd0S"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="K4Ir6nnu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731311AbgKJTCI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 14:02:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49532 "EHLO mail.kernel.org"
+        id S1726307AbgKJTTd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 14:19:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726179AbgKJTCI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 14:02:08 -0500
+        id S1726179AbgKJTTc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 14:19:32 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 08F312076E;
-        Tue, 10 Nov 2020 19:02:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EBCD22054F;
+        Tue, 10 Nov 2020 19:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605034926;
-        bh=Pd7JsmXWaQhCLZl4Iqi3Opx95onFpRWTYu3G6yXdcGU=;
+        s=default; t=1605035972;
+        bh=91BMwmjOGjUJXy1S3pHkvHEHOae0IQf9T+oGARoW94k=;
         h=Date:From:To:Subject:From;
-        b=qoupvd0SKioR45noKd7H42iXAIzYyPmYd+t2O4V26mvF/1ZfHvMEzr3K0lRsAo1sg
-         YUWmOzwfSPT0cYQKmDuuGgNaB5jT3HAe3HwA9dYYCHDcqQ6Oc22ApPZdRMLo6rLyGx
-         qSXvyRjeZmj5nB2C5nW6cdRRPvp/V6246IYwubiI=
-Date:   Tue, 10 Nov 2020 11:02:05 -0800
+        b=K4Ir6nnuHCCgh2/jNSlPCgAfhP0kulng5hFlJNAiD5U0LzRE8H6KJM3Kw+hyFTBB/
+         XTwpsA2vrfl8VAINyvkE1xB5rTKOeY4FVcrU3GpMi/BFFeleDsKsyJtZkrD35MrOPM
+         dBcFfEzIotvzlJel/No4e5clDyo5qHfKmkRHxZPc=
+Date:   Tue, 10 Nov 2020 11:19:31 -0800
 From:   akpm@linux-foundation.org
-To:     anders.roxell@linaro.org, dvyukov@google.com, elver@google.com,
-        glider@google.com, jannh@google.com, mm-commits@vger.kernel.org,
-        sjpark@amazon.de
-Subject:  + mm-add-kernel-electric-fence-infrastructure-fix-2.patch
- added to -mm tree
-Message-ID: <20201110190205.zHq0IhvvM%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        yangyicong@hisilicon.com
+Subject:  +
+ libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch added to
+ -mm tree
+Message-ID: <20201110191931.nGXVjeJ2W%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: avoid stalling work queue task without allocations
+     Subject: libfs: fix error cast of negative value in simple_attr_write()
 has been added to the -mm tree.  Its filename is
-     mm-add-kernel-electric-fence-infrastructure-fix-2.patch
+     libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-kernel-electric-fence-infrastructure-fix-2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-kernel-electric-fence-infrastructure-fix-2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,63 +70,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: avoid stalling work queue task without allocations
+From: Yicong Yang <yangyicong@hisilicon.com>
+Subject: libfs: fix error cast of negative value in simple_attr_write()
 
-To toggle the allocation gates, we set up a delayed work that calls
-toggle_allocation_gate().  Here we use wait_event() to await an allocation
-and subsequently disable the static branch again.  However, if the kernel
-has stopped doing allocations entirely, we'd wait indefinitely, and stall
-the worker task.  This may also result in the appropriate warnings if
-CONFIG_DETECT_HUNG_TASK=y.
+The attr->set() receive a value of u64, but simple_strtoll() is used
+for doing the conversion. It will lead to the error cast if user inputs
+a negative value.
 
-Therefore, introduce a 1 second timeout and use wait_event_timeout().  If
-the timeout is reached, the static branch is disabled and a new delayed
-work is scheduled to try setting up an allocation at a later time.
+Use kstrtoull() instead of simple_strtoll() to convert a string got
+from the user to an unsigned value. The former will return '-EINVAL' if
+it gets a negetive value, but the latter can't handle the situation
+correctly.
 
-Note that, this scenario is very unlikely during normal workloads once the
-kernel has booted and user space tasks are running.  It can, however,
-happen during early boot after KFENCE has been enabled, when e.g.  running
-tests that do not result in any allocations.
-
-Link: https://lkml.kernel.org/r/CADYN=9J0DQhizAGB0-jz4HOBBh+05kMBXb4c0cXMS7Qi5NAJiw@mail.gmail.com
-Link: https://lkml.kernel.org/r/20201110135320.3309507-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Anders Roxell <anders.roxell@linaro.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/1605000324-7428-1-git-send-email-yangyicong@hisilicon.com
+Fixes: f7b88631a897 ("fs/libfs.c: fix simple_attr_write() on 32bit machines")
+Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/libfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/kfence/core.c~mm-add-kernel-electric-fence-infrastructure-fix-2
-+++ a/mm/kfence/core.c
-@@ -588,7 +588,11 @@ static void toggle_allocation_gate(struc
- 	/* Enable static key, and await allocation to happen. */
- 	atomic_set(&allocation_gate, 0);
- 	static_branch_enable(&kfence_allocation_key);
--	wait_event(allocation_wait, atomic_read(&allocation_gate) != 0);
-+	/*
-+	 * Await an allocation. Timeout after 1 second, in case the kernel stops
-+	 * doing allocations, to avoid stalling this worker task for too long.
-+	 */
-+	wait_event_timeout(allocation_wait, atomic_read(&allocation_gate) != 0, HZ);
+--- a/fs/libfs.c~libfs-fix-error-cast-of-negative-value-in-simple_attr_write
++++ a/fs/libfs.c
+@@ -977,7 +977,9 @@ ssize_t simple_attr_write(struct file *f
+ 		goto out;
  
- 	/* Disable static key and reset timer. */
- 	static_branch_disable(&kfence_allocation_key);
+ 	attr->set_buf[size] = '\0';
+-	val = simple_strtoll(attr->set_buf, NULL, 0);
++	ret = kstrtoull(attr->set_buf, 0, &val);
++	if (ret)
++		goto out;
+ 	ret = attr->set(attr->data, val);
+ 	if (ret == 0)
+ 		ret = len; /* on success, claim we got the whole input */
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from yangyicong@hisilicon.com are
 
-mm-add-kernel-electric-fence-infrastructure-fix.patch
-mm-add-kernel-electric-fence-infrastructure-fix-2.patch
-arm64-kfence-enable-kfence-for-arm64.patch
-kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch
-kfence-documentation-add-kfence-documentation.patch
-kfence-add-test-suite.patch
-maintainers-add-entry-for-kfence.patch
+libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
 
