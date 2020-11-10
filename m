@@ -7,46 +7,39 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A53C0C55ABD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:08:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9CB7C388F7
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:31:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FC7020781
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:08:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60D332063A
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 20:31:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="bCmHDOak"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="tnSDhcDr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730164AbgKJUI0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 15:08:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44280 "EHLO mail.kernel.org"
+        id S1726706AbgKJUbm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 15:31:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726737AbgKJUI0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 15:08:26 -0500
+        id S1726400AbgKJUbl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 15:31:41 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1BE04206F1;
-        Tue, 10 Nov 2020 20:08:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F39752054F;
+        Tue, 10 Nov 2020 20:31:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605038905;
-        bh=AwwughDtHlIl669RSalFbi28vaQkDqHLCkIVno4AbTs=;
+        s=default; t=1605040301;
+        bh=6bM68zPWdZ5ik9Vt5GXA8a1boQXjfD/uoJ+dqO+ue8M=;
         h=Date:From:To:Subject:From;
-        b=bCmHDOakmBQweQnmKXTfqZNrzuaw1sCx6FqEqWgwBEo9FhTcy1K3+Td3jdDiJRi/l
-         eFl1izQs5+TfDLorH361oP0ijFuLigcUkQbToZaNQYHCgnuFV4PVKPXEt8CAtzXtJx
-         UXJryOVjPeO/FqIk4R2grI67eq/MfKdGgQ6v54dQ=
-Date:   Tue, 10 Nov 2020 12:08:24 -0800
+        b=tnSDhcDrwcWXifDxIFMWjNIApcBOxr/6KIZb+dINGEy+gXR1NkxifCmsafq9qUlze
+         NhHCRI02cdL5pRI9rN3BwFCzAWXPrUnv/ipca+02LSTwnn+45+0azEcRepM+lnbcS4
+         eh6FE/kOmKgnb/xDzy/pCULVaW2vUyVlljvU8TVE=
+Date:   Tue, 10 Nov 2020 12:31:40 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, glider@google.com, keescook@chromium.org,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de,
-        rppt@linux.ibm.com, vbabka@suse.cz
-Subject:  +
- =?US-ASCII?Q?mm-page=5Falloc-clear-pages-in-alloc=5Fcontig=5Fpages-with?=
- =?US-ASCII?Q?-init=5Fon=5Falloc=3D1-or-=5F=5Fgfp=5Fzero.patch?= added to
- -mm tree
-Message-ID: <20201110200824.RD0MTQu_Y%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, anton@tuxera.com,
+        mm-commits@vger.kernel.org
+Subject:  + fs-ntfs-remove-unused-varibles.patch added to -mm tree
+Message-ID: <20201110203140.WrAsQlG5F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: clear pages in alloc_contig_pages() with init_on_alloc=1 or __GFP_ZERO
+     Subject: fs/ntfs: remove unused varibles
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc=1-or-__gfp_zero.patch
+     fs-ntfs-remove-unused-varibles.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc%3D1-or-__gfp_zero.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-ntfs-remove-unused-varibles.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc%3D1-or-__gfp_zero.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-ntfs-remove-unused-varibles.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,112 +68,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: clear pages in alloc_contig_pages() with init_on_alloc=1 or __GFP_ZERO
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: fs/ntfs: remove unused varibles
 
-commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
-init_on_free=1 boot options") resulted with init_on_alloc=1 in all pages
-leaving the buddy via alloc_pages() and friends to be
-initialized/cleared/zeroed on allocation.
+We actually don't use these varibles, so remove them to avoid gcc warning:
+fs/ntfs/file.c:326:14: warning: variable `base_ni' set but not used
+[-Wunused-but-set-variable]
+fs/ntfs/logfile.c:481:21: warning: variable `log_page_mask' set but not
+used [-Wunused-but-set-variable]
 
-However, the same logic is currently not applied to alloc_contig_pages():
-allocated pages leaving the buddy aren't cleared with init_on_alloc=1 and
-init_on_free=0.  Let's also properly clear pages on that allocation path
-and add support for __GFP_ZERO.
-
-With this change, we will see double clearing of pages in some cases.  One
-example are gigantic pages (either allocated via CMA, or allocated
-dynamically via alloc_contig_pages()) - which is the right thing to do
-(and to be optimized outside of the buddy in the callers) as discussed in
-https://lkml.kernel.org/r/20201019182853.7467-1-gpiccoli@canonical.com
-
-This change implies that with init_on_alloc=1
-- All CMA allocations will be cleared
-- Gigantic pages allocated via alloc_contig_pages() will be cleared
-- virtio-mem memory to be unplugged will be cleared. While this is
-  suboptimal, it's similar to memory balloon drivers handling, where
-  all pages to be inflated will get cleared as well.
-
-Link: https://lkml.kernel.org/r/20201110193240.25401-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lkml.kernel.org/r/1604821092-54631-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ fs/ntfs/file.c    |    5 +----
+ fs/ntfs/logfile.c |    3 +--
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc=1-or-__gfp_zero
-+++ a/mm/page_alloc.c
-@@ -8449,6 +8449,19 @@ static int __alloc_contig_migrate_range(
- 	return 0;
- }
+--- a/fs/ntfs/file.c~fs-ntfs-remove-unused-varibles
++++ a/fs/ntfs/file.c
+@@ -323,7 +323,7 @@ static ssize_t ntfs_prepare_file_for_wri
+ 	unsigned long flags;
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *vi = file_inode(file);
+-	ntfs_inode *base_ni, *ni = NTFS_I(vi);
++	ntfs_inode *ni = NTFS_I(vi);
+ 	ntfs_volume *vol = ni->vol;
  
-+static void __alloc_contig_clear_range(unsigned long start_pfn,
-+				       unsigned long end_pfn)
-+{
-+	unsigned long pfn;
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += MAX_ORDER_NR_PAGES) {
-+		cond_resched();
-+		kernel_init_free_pages(pfn_to_page(pfn),
-+				       min_t(unsigned long, end_pfn - pfn,
-+					     MAX_ORDER_NR_PAGES));
-+	}
-+}
-+
- /**
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-@@ -8457,7 +8470,8 @@ static int __alloc_contig_migrate_range(
-  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-  *			in range must have the same migratetype and it must
-  *			be either of the two.
-- * @gfp_mask:	GFP mask to use during compaction
-+ * @gfp_mask:	GFP mask to use during compaction. __GFP_ZERO clears allocated
-+ *		pages.
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned.  The PFN range must belong to a single zone.
-@@ -8484,7 +8498,7 @@ int alloc_contig_range(unsigned long sta
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
- 		.no_set_skip_hint = true,
--		.gfp_mask = current_gfp_context(gfp_mask),
-+		.gfp_mask = current_gfp_context(gfp_mask & ~__GFP_ZERO),
- 		.alloc_contig = true,
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
-@@ -8596,6 +8610,9 @@ int alloc_contig_range(unsigned long sta
- 	if (end != outer_end)
- 		free_contig_range(end, outer_end - end);
+ 	ntfs_debug("Entering for i_ino 0x%lx, attribute type 0x%x, pos "
+@@ -365,9 +365,6 @@ static ssize_t ntfs_prepare_file_for_wri
+ 		err = -EOPNOTSUPP;
+ 		goto out;
+ 	}
+-	base_ni = ni;
+-	if (NInoAttr(ni))
+-		base_ni = ni->ext.base_ntfs_ino;
+ 	err = file_remove_privs(file);
+ 	if (unlikely(err))
+ 		goto out;
+--- a/fs/ntfs/logfile.c~fs-ntfs-remove-unused-varibles
++++ a/fs/ntfs/logfile.c
+@@ -478,7 +478,7 @@ bool ntfs_check_logfile(struct inode *lo
+ 	u8 *kaddr = NULL;
+ 	RESTART_PAGE_HEADER *rstr1_ph = NULL;
+ 	RESTART_PAGE_HEADER *rstr2_ph = NULL;
+-	int log_page_size, log_page_mask, err;
++	int log_page_size, err;
+ 	bool logfile_is_empty = true;
+ 	u8 log_page_bits;
  
-+	if (!want_init_on_free() && want_init_on_alloc(gfp_mask))
-+		__alloc_contig_clear_range(start, end);
-+
- done:
- 	undo_isolate_page_range(pfn_max_align_down(start),
- 				pfn_max_align_up(end), migratetype);
-@@ -8649,7 +8666,8 @@ static bool zone_spans_last_pfn(const st
- /**
-  * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
-  * @nr_pages:	Number of contiguous pages to allocate
-- * @gfp_mask:	GFP mask to limit search and used during compaction
-+ * @gfp_mask:	GFP mask to limit search and used during compaction. __GFP_ZERO
-+ *		clears allocated pages.
-  * @nid:	Target node
-  * @nodemask:	Mask for other possible nodes
-  *
+@@ -501,7 +501,6 @@ bool ntfs_check_logfile(struct inode *lo
+ 		log_page_size = DefaultLogPageSize;
+ 	else
+ 		log_page_size = PAGE_SIZE;
+-	log_page_mask = log_page_size - 1;
+ 	/*
+ 	 * Use ntfs_ffs() instead of ffs() to enable the compiler to
+ 	 * optimize log_page_size and log_page_bits into constants.
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc=1-or-__gfp_zero.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+fs-ntfs-remove-unused-varibles.patch
+fs-ntfs-remove-unused-varible-attr_len.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcg-update-page-struct-member-in-comments.patch
 
