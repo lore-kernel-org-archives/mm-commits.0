@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E0CC388F7
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 902C3C4742C
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 446D820781
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F228207BB
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Nov 2020 23:06:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="DUS1iF/J"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="zHCnDinC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732240AbgKJXGJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Nov 2020 18:06:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57792 "EHLO mail.kernel.org"
+        id S1732264AbgKJXGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Nov 2020 18:06:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731805AbgKJXGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Nov 2020 18:06:09 -0500
+        id S1731805AbgKJXGM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Nov 2020 18:06:12 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 224DD20679;
-        Tue, 10 Nov 2020 23:06:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2690020780;
+        Tue, 10 Nov 2020 23:06:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605049568;
-        bh=ppEOW0I4Rqf8E2LHPBCnayYx2pKgWGms6Up4q9rUYkQ=;
+        s=default; t=1605049571;
+        bh=xg4MkVTH7kXw7B/jRsYAZm/w1lvGjarJkRHt9rFTRLc=;
         h=Date:From:To:Subject:From;
-        b=DUS1iF/JlIMyk1UkQZK8QdkASu1ZMClegHq+JYrX0NYlOw3lErYX3k55lf5hvTe/y
-         6uvcMUURh8L4Gff80f6iEh4kdOVPRpez5cQqV/oJfPomGCfL07wE1yMLxXz25jjhem
-         /Jdrx6V0i53p6f6aitqe+jrxuAFH8iIBJrNPM1qY=
-Date:   Tue, 10 Nov 2020 15:06:07 -0800
+        b=zHCnDinCvDv3bzYNeGXVNAqLHRQeHUX9Mh2Ri5Y/E3FT1/+OPBeIxhZsrj3BdBuby
+         aK7JWVcU3Z5ny71rAoseMq4SJDKq2mFak+Bl881n8DF5z3LEmGz+Fdd0FmQBE+jGp3
+         EBclfufizpvS55Ubzl/z0ZsZbfgFUQmNEbrzVU9w=
+Date:   Tue, 10 Nov 2020 15:06:10 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,8 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-dont-round_up-too-much.patch added to -mm tree
-Message-ID: <20201110230607.M_bX61niP%akpm@linux-foundation.org>
+Subject:  + kasan-simplify-assign_tag-and-set_tag-calls.patch added
+ to -mm tree
+Message-ID: <20201110230610.3KEaQ6gXz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: don't round_up too much
+     Subject: kasan: simplify assign_tag and set_tag calls
 has been added to the -mm tree.  Its filename is
-     kasan-dont-round_up-too-much.patch
+     kasan-simplify-assign_tag-and-set_tag-calls.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-dont-round_up-too-much.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-simplify-assign_tag-and-set_tag-calls.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-dont-round_up-too-much.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-simplify-assign_tag-and-set_tag-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,14 +74,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't round_up too much
+Subject: kasan: simplify assign_tag and set_tag calls
 
-For hardware tag-based mode kasan_poison_memory() already rounds up the
-size. Do the same for software modes and remove round_up() from the common
-code.
+set_tag() already ignores the tag for the generic mode, so just call it
+as is. Add a check for the generic mode to assign_tag(), and simplify its
+call in ____kasan_kmalloc().
 
-Link: https://lkml.kernel.org/r/b11824e1cb87c75c4def2b3ac592abb409cebf82.1605046662.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ib397128fac6eba874008662b4964d65352db4aa4
+Link: https://lkml.kernel.org/r/eae2f21f9e412b508783f72c687cb0b76c151440.1605046662.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I18905ca78fb4a3d60e1a34a4ca00247272480438
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -95,51 +96,43 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    8 ++------
- mm/kasan/shadow.c |    1 +
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ mm/kasan/common.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/kasan/common.c~kasan-dont-round_up-too-much
+--- a/mm/kasan/common.c~kasan-simplify-assign_tag-and-set_tag-calls
 +++ a/mm/kasan/common.c
-@@ -219,9 +219,7 @@ void __kasan_unpoison_object_data(struct
- 
- void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
+@@ -239,6 +239,9 @@ void __kasan_poison_object_data(struct k
+ static u8 assign_tag(struct kmem_cache *cache, const void *object,
+ 			bool init, bool keep_tag)
  {
--	kasan_poison_memory(object,
--			round_up(cache->object_size, KASAN_GRANULE_SIZE),
--			KASAN_KMALLOC_REDZONE);
-+	kasan_poison_memory(object, cache->object_size, KASAN_KMALLOC_REDZONE);
- }
- 
- /*
-@@ -294,7 +292,6 @@ static bool ____kasan_slab_free(struct k
- {
- 	u8 tag;
- 	void *tagged_object;
--	unsigned long rounded_up_size;
- 
- 	tag = get_tag(object);
- 	tagged_object = object;
-@@ -318,8 +315,7 @@ static bool ____kasan_slab_free(struct k
- 		return true;
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
++		return 0xff;
++
+ 	/*
+ 	 * 1. When an object is kmalloc()'ed, two hooks are called:
+ 	 *    kasan_slab_alloc() and kasan_kmalloc(). We assign the
+@@ -281,8 +284,8 @@ void * __must_check __kasan_init_slab_ob
+ 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
  	}
  
--	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
--	kasan_poison_memory(object, rounded_up_size, KASAN_KMALLOC_FREE);
-+	kasan_poison_memory(object, cache->object_size, KASAN_KMALLOC_FREE);
+-	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
+-		object = set_tag(object, assign_tag(cache, object, true, false));
++	/* Tag is ignored in set_tag() without CONFIG_KASAN_SW/HW_TAGS */
++	object = set_tag(object, assign_tag(cache, object, true, false));
  
- 	if (!kasan_stack_collection_enabled())
- 		return false;
---- a/mm/kasan/shadow.c~kasan-dont-round_up-too-much
-+++ a/mm/kasan/shadow.c
-@@ -82,6 +82,7 @@ void kasan_poison_memory(const void *add
- 	 * addresses to this function.
- 	 */
- 	address = kasan_reset_tag(address);
-+	size = round_up(size, KASAN_GRANULE_SIZE);
+ 	return (void *)object;
+ }
+@@ -369,9 +372,7 @@ static void *____kasan_kmalloc(struct km
+ 				KASAN_GRANULE_SIZE);
+ 	redzone_end = round_up((unsigned long)object + cache->object_size,
+ 				KASAN_GRANULE_SIZE);
+-
+-	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
+-		tag = assign_tag(cache, object, false, keep_tag);
++	tag = assign_tag(cache, object, false, keep_tag);
  
- 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
- 	if (is_kfence_address(address))
+ 	/* Tag is ignored in set_tag without CONFIG_KASAN_SW/HW_TAGS */
+ 	kasan_unpoison_memory(set_tag(object, tag), size);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
