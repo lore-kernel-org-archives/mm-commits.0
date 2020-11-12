@@ -7,38 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 061C7C2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 18:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F414C2D0E4
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 19:32:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73E6F2222F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 18:45:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA9252223F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 19:32:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="c9y46rsW"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="f4M3wy2a"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbgKLSpu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 13:45:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36236 "EHLO mail.kernel.org"
+        id S1726473AbgKLTcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 14:32:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726295AbgKLSpu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 13:45:50 -0500
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1726310AbgKLTcN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 14:32:13 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D6EFC22227;
-        Thu, 12 Nov 2020 18:45:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 426ED20A8B;
+        Thu, 12 Nov 2020 19:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605206750;
-        bh=oLwiLx6Dbcl1gztSkmJavpda8pRVWTc1J6Z3cEzRGHo=;
+        s=default; t=1605209532;
+        bh=7FM48VsIJMTMowzIbisvXMeOVRsM3/87F9+L646RJ0w=;
         h=Date:From:To:Subject:From;
-        b=c9y46rsW7mYc4mIXUgtrWkCI+ZYpLSs83n7nIeVI0H5g56xhwZs55oNLsotIwlTOJ
-         kqdGih8FRBBXbaEqrBYJfrvgkQHhJsAgH9OtZ4ZmJom8IOfEh8XscPjeEcdXWSA7V4
-         S2M6iA5Wsyu62DPMYVcavNipwQ7IXd4LNk5kIm/Y=
-Date:   Thu, 12 Nov 2020 10:45:49 -0800
+        b=f4M3wy2ajt/4pBswSl9Qg+XuXRZTHkuUYOkZjqKnCCL4fdcX1CN5Kkgt+TzoG3Pcr
+         PM90o4a3yiRQcLssAPQZTJ7JzjBd8yxI2lIhMVF8uM/fYCryQ/44eS1XwAV1UBerhh
+         vv1Tr3GsupxAKOXruhg6D/rgFg5Hg+bFAnbcW8oU=
+Date:   Thu, 12 Nov 2020 11:32:11 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, wangqing@vivo.com
-Subject:  [merged]
- tool-selftests-fix-spelling-typo-of-writting.patch removed from -mm tree
-Message-ID: <20201112184549.wVIOw_vVp%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, brendanhiggins@google.com,
+        broonie@kernel.org, davidgow@google.com,
+        matti.vaittinen@fi.rohmeurope.com, mm-commits@vger.kernel.org,
+        skhan@linuxfoundation.org, vitor@massaru.org
+Subject:  +
+ lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch added
+ to -mm tree
+Message-ID: <20201112193211.nJauBYzdN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,49 +51,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/testing/selftests/vm/userfaultfd.c: fix spelling typo of 'writting'
-has been removed from the -mm tree.  Its filename was
-     tool-selftests-fix-spelling-typo-of-writting.patch
+     Subject: lib/list_kunit: follow new file name convention for KUnit tests
+has been added to the -mm tree.  Its filename is
+     lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Qing <wangqing@vivo.com>
-Subject: tools/testing/selftests/vm/userfaultfd.c: fix spelling typo of 'writting'
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/list_kunit: follow new file name convention for KUnit tests
 
-writting -> writing
+Follow new file name convention for the KUnit tests.  Since we have
+lib/*test*.c in a few variations, use 'kunit' suffix to distinguish usual
+test cases with KUnit-based ones.
 
-Link: https://lkml.kernel.org/r/1604740776-27082-1-git-send-email-wangqing@vivo.com
-Signed-off-by: Wang Qing <wangqing@vivo.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20201112180732.75589-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: David Gow <davidgow@google.com>
+Acked-by: Brendan Higgins <brendanhiggins@google.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Vitor Massaru Iha <vitor@massaru.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS  |    2 +-
+ lib/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~tool-selftests-fix-spelling-typo-of-writting
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -894,7 +894,7 @@ static int faulting_process(int signal_t
- 				count_verify[nr]);
- 	        }
- 		/*
--		 * Trigger write protection if there is by writting
-+		 * Trigger write protection if there is by writing
- 		 * the same value back.
- 		 */
- 		*area_count(area_dst, nr) = count;
-@@ -922,7 +922,7 @@ static int faulting_process(int signal_t
- 				count_verify[nr]); exit(1);
- 		}
- 		/*
--		 * Trigger write protection if there is by writting
-+		 * Trigger write protection if there is by writing
- 		 * the same value back.
- 		 */
- 		*area_count(area_dst, nr) = count;
+--- a/lib/Makefile~lib-list_kunit-follow-new-file-name-convention-for-kunit-tests
++++ a/lib/Makefile
+@@ -349,6 +349,6 @@ obj-$(CONFIG_PLDMFW) += pldmfw/
+ 
+ # KUnit tests
+ obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
+-obj-$(CONFIG_LIST_KUNIT_TEST) += list-test.o
++obj-$(CONFIG_LIST_KUNIT_TEST) += list_kunit.o
+ obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
+ obj-$(CONFIG_BITS_TEST) += test_bits.o
+--- a/MAINTAINERS~lib-list_kunit-follow-new-file-name-convention-for-kunit-tests
++++ a/MAINTAINERS
+@@ -10183,7 +10183,7 @@ M:	David Gow <davidgow@google.com>
+ L:	linux-kselftest@vger.kernel.org
+ L:	kunit-dev@googlegroups.com
+ S:	Maintained
+-F:	lib/list-test.c
++F:	lib/list_kunit.c
+ 
+ LIVE PATCHING
+ M:	Josh Poimboeuf <jpoimboe@redhat.com>
 _
 
-Patches currently in -mm which might be from wangqing@vivo.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+kernelh-split-out-mathematical-helpers.patch
+bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
+lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+lib-linear_ranges_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
+lib-cmdline-allow-null-to-be-an-output-for-get_option.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
 
