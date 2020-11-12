@@ -7,39 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C3AEC2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:25:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E20A3C2D0E4
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:26:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E908521D7F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:25:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F1D521D7F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:26:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ai7OIGx5"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="I648aw6l"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726130AbgKLXZe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 18:25:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58394 "EHLO mail.kernel.org"
+        id S1726110AbgKLX0R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 18:26:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58444 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726120AbgKLXZe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 18:25:34 -0500
+        id S1725929AbgKLX0Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 18:26:16 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8200B216C4;
-        Thu, 12 Nov 2020 23:25:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE241216C4;
+        Thu, 12 Nov 2020 23:26:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605223533;
-        bh=prkS5Uhz8upTM0foo5HT9fob2v4ipKSASCVi1QYD3IM=;
+        s=default; t=1605223576;
+        bh=oBQb0DRfU69JNoi78O3eue02fj84sQiYSznXQVutp/o=;
         h=Date:From:To:Subject:From;
-        b=Ai7OIGx5TR5PpqmDgJ17PX6AGHDhlP11iX44rDePffhMjWBSsMFOuyaqpIzfPueTK
-         LoQlMfu4/u0daKnL3hQWvhvo1ynAgrWY7JbSD4Z6Vpz2tGXCpQ9a3E/8nYhTDBiakL
-         7Hs4qhmOewTGoPgZL5bOfoOOVOKMNW2QakKkkM30=
-Date:   Thu, 12 Nov 2020 15:25:32 -0800
+        b=I648aw6llB0XJZeQLV2LUSE8527TX/p3IhCP8O6u5rKi+ue5/rs3AiQAJ+9BIvhTq
+         2FrTZJZhIHazW4ZZ7toWcjbpR3o+N/PKO0W8SkOo6lhIdEdKEk3VBpeeTjQBtNT6y/
+         aOSY5BvSZzuX5dvYQeSjDev7Q/Oud0jXOTZ5Fn7o=
+Date:   Thu, 12 Nov 2020 15:26:15 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org, vbabka@suse.cz
+To:     david@redhat.com, mm-commits@vger.kernel.org,
+        rafael.j.wysocki@intel.com, vbabka@suse.cz
 Subject:  [folded-merged]
- mm-page_poison-use-static-key-more-efficiently-fix.patch removed from -mm
- tree
-Message-ID: <20201112232532.JwVJc6Lkn%akpm@linux-foundation.org>
+ kernel-power-allow-hibernation-with-page_poison-sanity-checking-fix.patch
+ removed from -mm tree
+Message-ID: <20201112232615.hqRXsg7Z7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,104 +49,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_poison: use static key more efficiently-fix
+     Date: kernel/power: allow hibernation with page_poison sanity checking-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_poison-use-static-key-more-efficiently-fix.patch
+     kernel-power-allow-hibernation-with-page_poison-sanity-checking-fix.patch
 
-This patch was dropped because it was folded into mm-page_poison-use-static-key-more-efficiently.patch
+This patch was dropped because it was folded into kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_poison: use static key more efficiently-fix
+Date: kernel/power: allow hibernation with page_poison sanity checking-fix
 
-Non-functional cleanups, per David Hildenbrand.
+Adapt to __kernel_unpoison_pages fixup.  Split out
+clear_or_poison_free_page() per David Hildenbrand.
 
-Link: https://lkml.kernel.org/r/c4eb5301-0435-d296-5d32-a76ac58787b2@suse.cz
+Link: https://lkml.kernel.org/r/7811e5ec-c7ae-09a9-7f90-45e14956c4c4@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   16 +++++++++++++---
- mm/page_alloc.c    |    7 +++----
- mm/page_poison.c   |    4 ++--
- 3 files changed, 18 insertions(+), 9 deletions(-)
+ include/linux/mm.h      |    1 +
+ kernel/power/snapshot.c |   18 ++++++++++--------
+ 2 files changed, 11 insertions(+), 8 deletions(-)
 
---- a/include/linux/mm.h~mm-page_poison-use-static-key-more-efficiently-fix
+--- a/include/linux/mm.h~kernel-power-allow-hibernation-with-page_poison-sanity-checking-fix
 +++ a/include/linux/mm.h
-@@ -2852,8 +2852,8 @@ extern int apply_to_existing_page_range(
- 
- extern void init_mem_debugging_and_hardening(void);
- #ifdef CONFIG_PAGE_POISONING
--extern void kernel_poison_pages(struct page *page, int numpages);
--extern void kernel_unpoison_pages(struct page *page, int numpages);
-+extern void __kernel_poison_pages(struct page *page, int numpages);
-+extern void __kernel_unpoison_pages(struct page *page, int numpages);
- extern bool _page_poisoning_enabled_early;
- DECLARE_STATIC_KEY_FALSE(_page_poisoning_enabled);
- static inline bool page_poisoning_enabled(void)
-@@ -2866,7 +2866,17 @@ static inline bool page_poisoning_enable
-  */
- static inline bool page_poisoning_enabled_static(void)
- {
--	return (static_branch_unlikely(&_page_poisoning_enabled));
-+	return static_branch_unlikely(&_page_poisoning_enabled);
-+}
-+static inline void kernel_poison_pages(struct page *page, int numpages)
-+{
-+	if (page_poisoning_enabled_static())
-+		__kernel_poison_pages(page, numpages);
-+}
-+static inline void kernel_unpoison_pages(struct page *page, int numpages)
-+{
-+	if (page_poisoning_enabled_static())
-+		__kernel_unpoison_pages(page, numpages);
- }
+@@ -2871,6 +2871,7 @@ static inline bool page_poisoning_enable
  #else
  static inline bool page_poisoning_enabled(void) { return false; }
---- a/mm/page_alloc.c~mm-page_poison-use-static-key-more-efficiently-fix
-+++ a/mm/page_alloc.c
-@@ -1271,8 +1271,8 @@ static __always_inline bool free_pages_p
- 	if (want_init_on_free())
- 		kernel_init_free_pages(page, 1 << order);
+ static inline bool page_poisoning_enabled_static(void) { return false; }
++static inline void __kernel_poison_pages(struct page *page, int nunmpages) { }
+ static inline void kernel_poison_pages(struct page *page, int numpages) { }
+ static inline void kernel_unpoison_pages(struct page *page, int numpages) { }
+ #endif
+--- a/kernel/power/snapshot.c~kernel-power-allow-hibernation-with-page_poison-sanity-checking-fix
++++ a/kernel/power/snapshot.c
+@@ -1178,6 +1178,14 @@ void free_basic_memory_bitmaps(void)
+ 	pr_debug("Basic memory bitmaps freed\n");
+ }
  
--	if (page_poisoning_enabled_static())
--		kernel_poison_pages(page, 1 << order);
-+	kernel_poison_pages(page, 1 << order);
++static void clear_or_poison_free_page(struct page *page)
++{
++	if (page_poisoning_enabled_static())
++		__kernel_poison_pages(page, 1);
++	else if (want_init_on_free())
++		clear_highpage(page);
++}
 +
- 	/*
- 	 * arch_free_page() can make the page's contents inaccessible.  s390
- 	 * does this.  So nothing which can access the page's contents should
-@@ -2287,8 +2287,7 @@ inline void post_alloc_hook(struct page
- 	arch_alloc_page(page, order);
- 	debug_pagealloc_map_pages(page, 1 << order);
- 	kasan_alloc_pages(page, order);
--	if (page_poisoning_enabled_static())
--		kernel_unpoison_pages(page, 1 << order);
-+	kernel_unpoison_pages(page, 1 << order);
- 	set_page_owner(page, order, gfp_flags);
- }
- 
---- a/mm/page_poison.c~mm-page_poison-use-static-key-more-efficiently-fix
-+++ a/mm/page_poison.c
-@@ -30,7 +30,7 @@ static void poison_page(struct page *pag
- 	kunmap_atomic(addr);
- }
- 
--void kernel_poison_pages(struct page *page, int n)
-+void __kernel_poison_pages(struct page *page, int n)
+ void clear_or_poison_free_pages(void)
  {
- 	int i;
+ 	struct memory_bitmap *bm = free_pages_map;
+@@ -1190,14 +1198,8 @@ void clear_or_poison_free_pages(void)
+ 		memory_bm_position_reset(bm);
+ 		pfn = memory_bm_next_pfn(bm);
+ 		while (pfn != BM_END_OF_MAP) {
+-			if (pfn_valid(pfn)) {
+-				struct page *page = pfn_to_page(pfn);
+-				if (page_poisoning_enabled_static())
+-					kernel_poison_pages(page, 1);
+-				else if (want_init_on_free())
+-					clear_highpage(page);
+-
+-			}
++			if (pfn_valid(pfn))
++				clear_or_poison_free_page(pfn_to_page(pfn));
  
-@@ -89,7 +89,7 @@ static void unpoison_page(struct page *p
- 	kunmap_atomic(addr);
- }
- 
--void kernel_unpoison_pages(struct page *page, int n)
-+void __kernel_unpoison_pages(struct page *page, int n)
- {
- 	int i;
- 
+ 			pfn = memory_bm_next_pfn(bm);
+ 		}
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
@@ -154,7 +125,6 @@ mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
 mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
 mm-page_poison-use-static-key-more-efficiently.patch
 kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
-kernel-power-allow-hibernation-with-page_poison-sanity-checking-fix.patch
 mm-page_poison-remove-config_page_poisoning_no_sanity.patch
 mm-page_poison-remove-config_page_poisoning_zero.patch
 
