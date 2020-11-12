@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56AA9C2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D3D5C5519F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0E312222F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD4A72222F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="SM9wbzsE"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="jzFdwRcz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727459AbgKLWOj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 17:14:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55228 "EHLO mail.kernel.org"
+        id S1727214AbgKLWOt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 17:14:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727214AbgKLWOj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 17:14:39 -0500
+        id S1727466AbgKLWOt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 17:14:49 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 72BCF20709;
-        Thu, 12 Nov 2020 22:14:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 627A022201;
+        Thu, 12 Nov 2020 22:14:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605219277;
-        bh=9yg8HrlT6pLaypWbjo7zZnjKAC+4Awejnb21VUTQ2QQ=;
+        s=default; t=1605219283;
+        bh=SYGJQFD9HB6zsCQnetOrL8SSSHqZG1BFPeuc/gPAbeU=;
         h=Date:From:To:Subject:From;
-        b=SM9wbzsEI7qfDwNtrxaDgpLVFLpQTiM0oHcD8V/IWIXAmzJTDFC6a04iH68pS4fgG
-         PFNXFCrkmWrRRqr/Jlu6cQfvbmJPfK4R5RdVGDcmBDvJFmTu38z3QMUBsMN4aTW3SY
-         lAExj/atbT2xI12JU05PQCnKcav1KOebO+cchY1I=
-Date:   Thu, 12 Nov 2020 14:14:35 -0800
+        b=jzFdwRcz8Qc7DrPKyZq2JTixqLi8q3ltCS7hI9YVoBMUZK6jVH62gLjpVqkMT4sma
+         VXKdjLzgJzAz1JzNeHLGhxavtmR/IhnQh0UNUOVWOmCuX27KNkupL2liRH3XuPK/9T
+         BWJnW6e7USWdnY5jYP5BvA9O6ylt+02UW6UaWBBg=
+Date:   Thu, 12 Nov 2020 14:14:41 -0800
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -47,9 +47,8 @@ To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         tycho@tycho.ws, viro@zeniv.linux.org.uk, will@kernel.org,
         willy@infradead.org
 Subject:  +
- arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch added to -mm
- tree
-Message-ID: <20201112221435.kcHbQbwKo%akpm@linux-foundation.org>
+ secretmem-test-add-basic-selftest-for-memfd_secret2.patch added to -mm tree
+Message-ID: <20201112221441.ZnoDsgNm8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch, mm: wire up memfd_secret system call were relevant
+     Subject: secretmem: test: add basic selftest for memfd_secret(2)
 has been added to the -mm tree.  Its filename is
-     arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+     secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,17 +79,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arch, mm: wire up memfd_secret system call were relevant
+Subject: secretmem: test: add basic selftest for memfd_secret(2)
 
-Wire up memfd_secret system call on architectures that define
-ARCH_HAS_SET_DIRECT_MAP, namely arm64, risc-v and x86.
+The test verifies that file descriptor created with memfd_secret does not
+allow read/write operations, that secret memory mappings respect
+RLIMIT_MEMLOCK and that remote accesses with process_vm_read() and
+ptrace() to the secret memory fail.
 
-Link: https://lkml.kernel.org/r/20201110151444.20662-9-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201110151444.20662-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christopher Lameter <cl@linux.com>
@@ -106,6 +106,7 @@ Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
@@ -116,115 +117,364 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd.h        |    2 +-
- arch/arm64/include/asm/unistd32.h      |    2 ++
- arch/arm64/include/uapi/asm/unistd.h   |    1 +
- arch/riscv/include/asm/unistd.h        |    1 +
- arch/x86/entry/syscalls/syscall_32.tbl |    1 +
- arch/x86/entry/syscalls/syscall_64.tbl |    1 +
- include/linux/syscalls.h               |    1 +
- include/uapi/asm-generic/unistd.h      |    6 +++++-
- scripts/checksyscalls.sh               |    4 ++++
- 9 files changed, 17 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/.gitignore     |    1 
+ tools/testing/selftests/vm/Makefile       |    3 
+ tools/testing/selftests/vm/memfd_secret.c |  298 ++++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests    |   17 +
+ 4 files changed, 318 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/include/asm/unistd32.h~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -891,6 +891,8 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
- __SYSCALL(__NR_process_madvise, sys_process_madvise)
- #define __NR_watch_mount 441
- __SYSCALL(__NR_watch_mount, sys_watch_mount)
-+#define __NR_memfd_secret 442
-+__SYSCALL(__NR_memfd_secret, sys_memfd_secret)
+--- a/tools/testing/selftests/vm/.gitignore~secretmem-test-add-basic-selftest-for-memfd_secret2
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -21,4 +21,5 @@ va_128TBswitch
+ map_fixed_noreplace
+ write_to_hugetlbfs
+ hmm-tests
++memfd_secret
+ local_config.*
+--- a/tools/testing/selftests/vm/Makefile~secretmem-test-add-basic-selftest-for-memfd_secret2
++++ a/tools/testing/selftests/vm/Makefile
+@@ -34,6 +34,7 @@ TEST_GEN_FILES += khugepaged
+ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_hugetlb
+ TEST_GEN_FILES += map_populate
++TEST_GEN_FILES += memfd_secret
+ TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
+ TEST_GEN_FILES += mremap_dontunmap
+@@ -129,7 +130,7 @@ warn_32bit_failure:
+ endif
+ endif
  
- /*
-  * Please add new compat syscalls above this comment and update
---- a/arch/arm64/include/asm/unistd.h~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/arch/arm64/include/asm/unistd.h
-@@ -38,7 +38,7 @@
- #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
- #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
+-$(OUTPUT)/mlock-random-test: LDLIBS += -lcap
++$(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
  
--#define __NR_compat_syscalls		442
-+#define __NR_compat_syscalls		443
- #endif
+ $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
  
- #define __ARCH_WANT_SYS_CLONE
---- a/arch/arm64/include/uapi/asm/unistd.h~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/arch/arm64/include/uapi/asm/unistd.h
-@@ -20,5 +20,6 @@
- #define __ARCH_WANT_SET_GET_RLIMIT
- #define __ARCH_WANT_TIME32_SYSCALLS
- #define __ARCH_WANT_SYS_CLONE3
-+#define __ARCH_WANT_MEMFD_SECRET
- 
- #include <asm-generic/unistd.h>
---- a/arch/riscv/include/asm/unistd.h~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/arch/riscv/include/asm/unistd.h
-@@ -9,6 +9,7 @@
-  */
- 
- #define __ARCH_WANT_SYS_CLONE
-+#define __ARCH_WANT_MEMFD_SECRET
- 
- #include <uapi/asm/unistd.h>
- 
---- a/arch/x86/entry/syscalls/syscall_32.tbl~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -446,3 +446,4 @@
- 439	i386	faccessat2		sys_faccessat2
- 440	i386	process_madvise		sys_process_madvise
- 441	i386	watch_mount		sys_watch_mount
-+442	i386	memfd_secret		sys_memfd_secret
---- a/arch/x86/entry/syscalls/syscall_64.tbl~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -363,6 +363,7 @@
- 439	common	faccessat2		sys_faccessat2
- 440	common	process_madvise		sys_process_madvise
- 441	common	watch_mount		sys_watch_mount
-+442	common	memfd_secret		sys_memfd_secret
- 
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/include/linux/syscalls.h~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/include/linux/syscalls.h
-@@ -1010,6 +1010,7 @@ asmlinkage long sys_pidfd_send_signal(in
- asmlinkage long sys_pidfd_getfd(int pidfd, int fd, unsigned int flags);
- asmlinkage long sys_watch_mount(int dfd, const char __user *path,
- 				unsigned int at_flags, int watch_fd, int watch_id);
-+asmlinkage long sys_memfd_secret(unsigned long flags);
- 
- /*
-  * Architecture-specific system calls
---- a/include/uapi/asm-generic/unistd.h~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -861,9 +861,13 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
- __SYSCALL(__NR_process_madvise, sys_process_madvise)
- #define __NR_watch_mount 441
- __SYSCALL(__NR_watch_mount, sys_watch_mount)
-+#ifdef __ARCH_WANT_MEMFD_SECRET
-+#define __NR_memfd_secret 442
-+__SYSCALL(__NR_memfd_secret, sys_memfd_secret)
-+#endif
- 
- #undef __NR_syscalls
--#define __NR_syscalls 442
-+#define __NR_syscalls 443
- 
- /*
-  * 32 bit systems traditionally used different
---- a/scripts/checksyscalls.sh~arch-mm-wire-up-memfd_secret-system-call-were-relevant
-+++ a/scripts/checksyscalls.sh
-@@ -40,6 +40,10 @@ cat << EOF
- #define __IGNORE_setrlimit	/* setrlimit */
- #endif
- 
-+#ifndef __ARCH_WANT_MEMFD_SECRET
-+#define __IGNORE_memfd_secret
-+#endif
+--- /dev/null
++++ a/tools/testing/selftests/vm/memfd_secret.c
+@@ -0,0 +1,298 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright IBM Corporation, 2020
++ *
++ * Author: Mike Rapoport <rppt@linux.ibm.com>
++ */
 +
- /* Missing flags argument */
- #define __IGNORE_renameat	/* renameat2 */
++#define _GNU_SOURCE
++#include <sys/uio.h>
++#include <sys/mman.h>
++#include <sys/wait.h>
++#include <sys/types.h>
++#include <sys/ptrace.h>
++#include <sys/syscall.h>
++#include <sys/resource.h>
++#include <sys/capability.h>
++
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <errno.h>
++#include <stdio.h>
++
++#include "../kselftest.h"
++
++#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
++#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
++#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
++
++#ifdef __NR_memfd_secret
++
++#include <linux/secretmem.h>
++
++#define PATTERN	0x55
++
++static const int prot = PROT_READ | PROT_WRITE;
++static const int mode = MAP_SHARED;
++
++static unsigned long page_size;
++static unsigned long mlock_limit_cur;
++static unsigned long mlock_limit_max;
++
++static int memfd_secret(unsigned long flags)
++{
++	return syscall(__NR_memfd_secret, flags);
++}
++
++static void test_file_apis(int fd)
++{
++	char buf[64];
++
++	if ((read(fd, buf, sizeof(buf)) >= 0) ||
++	    (write(fd, buf, sizeof(buf)) >= 0) ||
++	    (pread(fd, buf, sizeof(buf), 0) >= 0) ||
++	    (pwrite(fd, buf, sizeof(buf), 0) >= 0))
++		fail("unexpected file IO\n");
++	else
++		pass("file IO is blocked as expected\n");
++}
++
++static void test_mlock_limit(int fd)
++{
++	size_t len;
++	char *mem;
++
++	len = mlock_limit_cur;
++	mem = mmap(NULL, len, prot, mode, fd, 0);
++	if (mem == MAP_FAILED) {
++		fail("unable to mmap secret memory\n");
++		return;
++	}
++	munmap(mem, len);
++
++	len = mlock_limit_max * 2;
++	mem = mmap(NULL, len, prot, mode, fd, 0);
++	if (mem != MAP_FAILED) {
++		fail("unexpected mlock limit violation\n");
++		munmap(mem, len);
++		return;
++	}
++
++	pass("mlock limit is respected\n");
++}
++
++static void try_process_vm_read(int fd, int pipefd[2])
++{
++	struct iovec liov, riov;
++	char buf[64];
++	char *mem;
++
++	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
++		fail("pipe write: %s\n", strerror(errno));
++		exit(KSFT_FAIL);
++	}
++
++	liov.iov_len = riov.iov_len = sizeof(buf);
++	liov.iov_base = buf;
++	riov.iov_base = mem;
++
++	if (process_vm_readv(getppid(), &liov, 1, &riov, 1, 0) < 0) {
++		if (errno == ENOSYS)
++			exit(KSFT_SKIP);
++		exit(KSFT_PASS);
++	}
++
++	exit(KSFT_FAIL);
++}
++
++static void try_ptrace(int fd, int pipefd[2])
++{
++	pid_t ppid = getppid();
++	int status;
++	char *mem;
++	long ret;
++
++	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
++		perror("pipe write");
++		exit(KSFT_FAIL);
++	}
++
++	ret = ptrace(PTRACE_ATTACH, ppid, 0, 0);
++	if (ret) {
++		perror("ptrace_attach");
++		exit(KSFT_FAIL);
++	}
++
++	ret = waitpid(ppid, &status, WUNTRACED);
++	if ((ret != ppid) || !(WIFSTOPPED(status))) {
++		fprintf(stderr, "weird waitppid result %ld stat %x\n",
++			ret, status);
++		exit(KSFT_FAIL);
++	}
++
++	if (ptrace(PTRACE_PEEKDATA, ppid, mem, 0))
++		exit(KSFT_PASS);
++
++	exit(KSFT_FAIL);
++}
++
++static void check_child_status(pid_t pid, const char *name)
++{
++	int status;
++
++	waitpid(pid, &status, 0);
++
++	if (WIFEXITED(status) && WEXITSTATUS(status) == KSFT_SKIP) {
++		skip("%s is not supported\n", name);
++		return;
++	}
++
++	if ((WIFEXITED(status) && WEXITSTATUS(status) == KSFT_PASS) ||
++	    WIFSIGNALED(status)) {
++		pass("%s is blocked as expected\n", name);
++		return;
++	}
++
++	fail("%s: unexpected memory access\n", name);
++}
++
++static void test_remote_access(int fd, const char *name,
++			       void (*func)(int fd, int pipefd[2]))
++{
++	int pipefd[2];
++	pid_t pid;
++	char *mem;
++
++	if (pipe(pipefd)) {
++		fail("pipe failed: %s\n", strerror(errno));
++		return;
++	}
++
++	pid = fork();
++	if (pid < 0) {
++		fail("fork failed: %s\n", strerror(errno));
++		return;
++	}
++
++	if (pid == 0) {
++		func(fd, pipefd);
++		return;
++	}
++
++	mem = mmap(NULL, page_size, prot, mode, fd, 0);
++	if (mem == MAP_FAILED) {
++		fail("Unable to mmap secret memory\n");
++		return;
++	}
++
++	ftruncate(fd, page_size);
++	memset(mem, PATTERN, page_size);
++
++	if (write(pipefd[1], &mem, sizeof(mem)) < 0) {
++		fail("pipe write: %s\n", strerror(errno));
++		return;
++	}
++
++	check_child_status(pid, name);
++}
++
++static void test_process_vm_read(int fd)
++{
++	test_remote_access(fd, "process_vm_read", try_process_vm_read);
++}
++
++static void test_ptrace(int fd)
++{
++	test_remote_access(fd, "ptrace", try_ptrace);
++}
++
++static int set_cap_limits(rlim_t max)
++{
++	struct rlimit new;
++	cap_t cap = cap_init();
++
++	new.rlim_cur = max;
++	new.rlim_max = max;
++	if (setrlimit(RLIMIT_MEMLOCK, &new)) {
++		perror("setrlimit() returns error");
++		return -1;
++	}
++
++	/* drop capabilities including CAP_IPC_LOCK */
++	if (cap_set_proc(cap)) {
++		perror("cap_set_proc() returns error");
++		return -2;
++	}
++
++	return 0;
++}
++
++static void prepare(void)
++{
++	struct rlimit rlim;
++
++	page_size = sysconf(_SC_PAGE_SIZE);
++	if (!page_size)
++		ksft_exit_fail_msg("Failed to get page size %s\n",
++				   strerror(errno));
++
++	if (getrlimit(RLIMIT_MEMLOCK, &rlim))
++		ksft_exit_fail_msg("Unable to detect mlock limit: %s\n",
++				   strerror(errno));
++
++	mlock_limit_cur = rlim.rlim_cur;
++	mlock_limit_max = rlim.rlim_max;
++
++	printf("page_size: %ld, mlock.soft: %ld, mlock.hard: %ld\n",
++	       page_size, mlock_limit_cur, mlock_limit_max);
++
++	if (page_size > mlock_limit_cur)
++		mlock_limit_cur = page_size;
++	if (page_size > mlock_limit_max)
++		mlock_limit_max = page_size;
++
++	if (set_cap_limits(mlock_limit_max))
++		ksft_exit_fail_msg("Unable to set mlock limit: %s\n",
++				   strerror(errno));
++}
++
++#define NUM_TESTS 4
++
++int main(int argc, char *argv[])
++{
++	int fd;
++
++	prepare();
++
++	ksft_print_header();
++	ksft_set_plan(NUM_TESTS);
++
++	fd = memfd_secret(0);
++	if (fd < 0) {
++		if (errno == ENOSYS)
++			ksft_exit_skip("memfd_secret is not supported\n");
++		else
++			ksft_exit_fail_msg("memfd_secret failed: %s\n",
++					   strerror(errno));
++	}
++
++	test_mlock_limit(fd);
++	test_file_apis(fd);
++	test_process_vm_read(fd);
++	test_ptrace(fd);
++
++	close(fd);
++
++	ksft_exit(!ksft_get_fail_cnt());
++}
++
++#else /* __NR_memfd_secret */
++
++int main(int argc, char *argv[])
++{
++	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
++	return KSFT_SKIP;
++}
++
++#endif /* __NR_memfd_secret */
+--- a/tools/testing/selftests/vm/run_vmtests~secretmem-test-add-basic-selftest-for-memfd_secret2
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -346,4 +346,21 @@ else
+ 	exitcode=1
+ fi
  
++echo "running memfd_secret test"
++echo "------------------------------------"
++./memfd_secret
++ret_val=$?
++
++if [ $ret_val -eq 0 ]; then
++	echo "[PASS]"
++elif [ $ret_val -eq $ksft_skip ]; then
++	echo "[SKIP]"
++	exitcode=$ksft_skip
++else
++	echo "[FAIL]"
++	exitcode=1
++fi
++
++exit $exitcode
++
+ exit $exitcode
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
