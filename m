@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24AD8C2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:23:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C3AEC2D0E4
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:25:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8252216FD
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:23:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E908521D7F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:25:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q9kaP3K2"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ai7OIGx5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726054AbgKLXXy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 18:23:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58210 "EHLO mail.kernel.org"
+        id S1726130AbgKLXZe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 18:25:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725929AbgKLXXy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 18:23:54 -0500
+        id S1726120AbgKLXZe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 18:25:34 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E2AEA216C4;
-        Thu, 12 Nov 2020 23:23:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8200B216C4;
+        Thu, 12 Nov 2020 23:25:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605223433;
-        bh=zzxFJZ5t0T2FW/gi/cJdI4pjiEyZn2Vtmyp+PInXIrc=;
+        s=default; t=1605223533;
+        bh=prkS5Uhz8upTM0foo5HT9fob2v4ipKSASCVi1QYD3IM=;
         h=Date:From:To:Subject:From;
-        b=Q9kaP3K2xEjdYiE/vUopxabEt6JOX2fGaY1Mb1sHcFH4mUkJ+i4e4IRSeJj5vAICz
-         85UxarVKAQjnl1pyax0WYnwllPBExXiHm1ZHBKtuvK+Nx4HH6wBItlMpT/+CbfA/gH
-         s0E2UVd/9VraYjTz3BK3pu826jQtjUvMGs/BcYUI=
-Date:   Thu, 12 Nov 2020 15:23:52 -0800
+        b=Ai7OIGx5TR5PpqmDgJ17PX6AGHDhlP11iX44rDePffhMjWBSsMFOuyaqpIzfPueTK
+         LoQlMfu4/u0daKnL3hQWvhvo1ynAgrWY7JbSD4Z6Vpz2tGXCpQ9a3E/8nYhTDBiakL
+         7Hs4qhmOewTGoPgZL5bOfoOOVOKMNW2QakKkkM30=
+Date:   Thu, 12 Nov 2020 15:25:32 -0800
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  +
- mm-page_poison-use-static-key-more-efficiently-fix.patch added to -mm tree
-Message-ID: <20201112232352.i1Ti5BOwt%akpm@linux-foundation.org>
+Subject:  [folded-merged]
+ mm-page_poison-use-static-key-more-efficiently-fix.patch removed from -mm
+ tree
+Message-ID: <20201112232532.JwVJc6Lkn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,24 +49,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm, page_poison: use static key more efficiently-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-page_poison-use-static-key-more-efficiently-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_poison-use-static-key-more-efficiently-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poison-use-static-key-more-efficiently-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-page_poison-use-static-key-more-efficiently.patch
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
@@ -166,7 +153,6 @@ Patches currently in -mm which might be from vbabka@suse.cz are
 mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
 mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
 mm-page_poison-use-static-key-more-efficiently.patch
-mm-page_poison-use-static-key-more-efficiently-fix.patch
 kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
 kernel-power-allow-hibernation-with-page_poison-sanity-checking-fix.patch
 mm-page_poison-remove-config_page_poisoning_no_sanity.patch
