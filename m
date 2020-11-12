@@ -7,43 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73226C2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00AE8C2D0E4
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:56:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A914216FD
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:27:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90E6021D79
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:56:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="ufBr74FC"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="XLTJQxqz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726240AbgKLX1Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 18:27:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58840 "EHLO mail.kernel.org"
+        id S1726217AbgKLX4h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 18:56:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726120AbgKLX1X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 18:27:23 -0500
+        id S1725894AbgKLX4g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 18:56:36 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E18D622201;
-        Thu, 12 Nov 2020 23:27:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F1BAE20723;
+        Thu, 12 Nov 2020 23:56:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605223642;
-        bh=3F4eIhprxOEjMEiqv+YLxGAUxoCmR3h10YvQapVtMdw=;
+        s=default; t=1605225396;
+        bh=88X30uurAbHvQpsFcJ6s4ZcEfLdxzHVnv4Aj4gLufA0=;
         h=Date:From:To:Subject:From;
-        b=ufBr74FC4oD4iHW4xDFBzGedy3Xdg3eJ9bx9L5rFAKmfjnQbpviltt7EtxcQWE06l
-         vEeBJLQJsFwPDNckgl3bPlCf+hXao4lqUk2NtZDY8Ec45rt3sqZsCzOEdCY/zMVmQP
-         YJo3I8VSDuGubZIuOqEOOg1xXADylb//kYFYq97o=
-Date:   Thu, 12 Nov 2020 15:27:21 -0800
+        b=XLTJQxqzxNPmNPNq1qRvswDlADncB/5kYTJMmYnD9K2OSGb52lHXzep3uJ5pKg7Ns
+         CGqAEP3dQsHQGWsdQJgt+gF13ZIbSgmJ6jZlXRJ7ORBZoEo5RXk+dAYI9+dLlnS8yl
+         zKaX/WhcsEaMCznQMHGpbZOojjI/0Yrl/Q/LkUdk=
+Date:   Thu, 12 Nov 2020 15:56:35 -0800
 From:   akpm@linux-foundation.org
-To:     akinobu.mita@gmail.com, david@redhat.com, glider@google.com,
-        keescook@chromium.org, labbott@kernel.org, len.brown@intel.com,
-        mateusznosek0@gmail.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, pavel@ucw.cz, rjw@rjwysocki.net,
-        rppt@linux.ibm.com, vbabka@suse.cz
-Subject:  [to-be-updated]
- mm-page_poison-remove-config_page_poisoning_zero.patch removed from -mm
+To:     david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, vbabka@suse.cz
+Subject:  +
+ mm-page_alloc-disable-pcplists-during-memory-offline-fix.patch added to -mm
  tree
-Message-ID: <20201112232721.4YUZ1q9hW%akpm@linux-foundation.org>
+Message-ID: <20201112235635.NYeQXfWRS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,132 +49,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_ZERO
-has been removed from the -mm tree.  Its filename was
-     mm-page_poison-remove-config_page_poisoning_zero.patch
+     Subject: mm-page_alloc-disable-pcplists-during-memory-offline-fix
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-disable-pcplists-during-memory-offline-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-disable-pcplists-during-memory-offline-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-disable-pcplists-during-memory-offline-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_ZERO
+Subject: mm-page_alloc-disable-pcplists-during-memory-offline-fix
 
-CONFIG_PAGE_POISONING_ZERO uses the zero pattern instead of 0xAA.  It was
-introduced by commit 1414c7f4f7d7 ("mm/page_poisoning.c: allow for zero
-poisoning"), noting that using zeroes retains the benefit of sanitizing
-content of freed pages, with the benefit of not having to zero them again
-on alloc, and the downside of making some forms of corruption (stray
-writes of NULLs) harder to detect than with the 0xAA pattern.  Together
-with CONFIG_PAGE_POISONING_NO_SANITY it made possible to sanitize the
-contents on free without checking it back on alloc.
+add comment, per David
 
-These days we have the init_on_free() option to achieve sanitization with
-zeroes and to save clearing on alloc (and without checking on alloc). 
-Arguably if someone does choose to check the poison for corruption on
-alloc, the savings of not clearing the page are secondary, and it makes
-sense to always use the 0xAA poison pattern.  Thus, remove the
-CONFIG_PAGE_POISONING_ZERO option for being redundant.
-
-Link: https://lkml.kernel.org/r/20201103152237.9853-6-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/527480ef-ed72-e1c1-52a0-1c5b0113df45@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@kernel.org>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Mateusz Nosek <mateusznosek0@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h       |    4 ----
- mm/Kconfig.debug             |   12 ------------
- mm/page_alloc.c              |    8 +-------
- tools/include/linux/poison.h |    6 +-----
- 4 files changed, 2 insertions(+), 28 deletions(-)
+ mm/page_alloc.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/include/linux/poison.h~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/include/linux/poison.h
-@@ -27,11 +27,7 @@
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
- 
- /********** mm/page_poison.c **********/
--#ifdef CONFIG_PAGE_POISONING_ZERO
--#define PAGE_POISON 0x00
--#else
- #define PAGE_POISON 0xaa
--#endif
- 
- /********** mm/page_alloc.c ************/
- 
---- a/mm/Kconfig.debug~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/mm/Kconfig.debug
-@@ -80,18 +80,6 @@ config PAGE_POISONING
- 
- 	  If unsure, say N
- 
--config PAGE_POISONING_ZERO
--	bool "Use zero for poisoning instead of debugging value"
--	depends on PAGE_POISONING
--	help
--	   Instead of using the existing poison value, fill the pages with
--	   zeros. This makes it harder to detect when errors are occurring
--	   due to sanitization but the zeroing at free means that it is
--	   no longer necessary to write zeros when GFP_ZERO is used on
--	   allocation.
--
--	   If unsure, say N
--
- config DEBUG_PAGE_REF
- 	bool "Enable tracepoint to track down page reference manipulation"
- 	depends on DEBUG_KERNEL
---- a/mm/page_alloc.c~mm-page_poison-remove-config_page_poisoning_zero
+--- a/mm/page_alloc.c~mm-page_alloc-disable-pcplists-during-memory-offline-fix
 +++ a/mm/page_alloc.c
-@@ -2222,12 +2222,6 @@ static inline int check_new_page(struct
- 	return 1;
+@@ -3024,6 +3024,16 @@ static void drain_local_pages_wq(struct
+ 	preempt_enable();
  }
  
--static inline bool free_pages_prezeroed(void)
--{
--	return (IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) &&
--		page_poisoning_enabled_static()) || want_init_on_free();
--}
--
- #ifdef CONFIG_DEBUG_VM
- /*
-  * With DEBUG_VM enabled, order-0 pages are checked for expected state when
-@@ -2297,7 +2291,7 @@ static void prep_new_page(struct page *p
++/*
++ * The implementation of drain_all_pages(), exposing an extra parameter to
++ * drain on all cpus.
++ *
++ * drain_all_pages() is optimized to only execute on cpus where pcplists are
++ * not empty. The check for non-emptiness can however race with a free to
++ * pcplist that has not yet increased the pcp->count from 0 to 1. Callers
++ * that need the guarantee that every CPU has drained can disable the
++ * optimizing racy check.
++ */
+ void __drain_all_pages(struct zone *zone, bool force_all_cpus)
  {
- 	post_alloc_hook(page, order, gfp_flags);
- 
--	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
-+	if (!want_init_on_free() && want_init_on_alloc(gfp_flags))
- 		kernel_init_free_pages(page, 1 << order);
- 
- 	if (order && (gfp_flags & __GFP_COMP))
---- a/tools/include/linux/poison.h~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/tools/include/linux/poison.h
-@@ -35,12 +35,8 @@
-  */
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
- 
--/********** mm/debug-pagealloc.c **********/
--#ifdef CONFIG_PAGE_POISONING_ZERO
--#define PAGE_POISON 0x00
--#else
-+/********** mm/page_poison.c **********/
- #define PAGE_POISON 0xaa
--#endif
- 
- /********** mm/page_alloc.c ************/
- 
+ 	int cpu;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
 
 mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
+mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
+mm-page_alloc-calculate-pageset-high-and-batch-once-per-zone.patch
+mm-page_alloc-remove-setup_pageset.patch
+mm-page_alloc-simplify-pageset_update.patch
+mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch
+mm-page_alloc-move-draining-pcplists-to-page-isolation-users.patch
+mm-page_alloc-disable-pcplists-during-memory-offline.patch
+mm-page_alloc-disable-pcplists-during-memory-offline-fix.patch
 
