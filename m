@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ED12C2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2267C388F7
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF4432222F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B2082223F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 22:14:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="OU5neR15"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rws3J0qw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727429AbgKLWO3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 17:14:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55102 "EHLO mail.kernel.org"
+        id S1727446AbgKLWOe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 17:14:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727214AbgKLWO1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 17:14:27 -0500
+        id S1727214AbgKLWOe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 17:14:34 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6CDB422201;
-        Thu, 12 Nov 2020 22:14:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B2DBC22227;
+        Thu, 12 Nov 2020 22:14:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605219266;
-        bh=RYFcS6j6L38/qxFkKhOcmS3W/W0xVdIYAba78ksJqDw=;
+        s=default; t=1605219272;
+        bh=vYMfFLxFt9HOts4SYsquaetCkfRzORIKe2HtuLawQgE=;
         h=Date:From:To:Subject:From;
-        b=OU5neR15rfRSKxy16ZPIaLx63zrVWL6RgDzDyhUxo6j98vXRK+jx8SJXdmsBXOqlo
-         aK/vMwcPMPms0Ogrtu6zGGOX0aFfJpw/MCOALVfEP3NY3i5MIXlBQqJfKcnVy11OTB
-         07qSt62Thac1DSWMq/Ex7mUVF+B9uffHnK6JTZ7s=
-Date:   Thu, 12 Nov 2020 14:14:24 -0800
+        b=Rws3J0qw06R4QyFkgQmWjWNhcD1wSLAj/9LgUMbYLAv8Rek8kgBrLYKVQmMVJtGmK
+         ORqmGOA+M0phes4oev3XK9hU3i1tfWbJHTLshJ+RcyFsO7lOL/IOmZ6/WSgsQ0eo/o
+         K7PaKHIwRw0D1E1CYwoJpOMod9/4jmPxNJ6eeeD8=
+Date:   Thu, 12 Nov 2020 14:14:29 -0800
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -46,8 +46,10 @@ To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         rppt@linux.ibm.com, shuah@kernel.org, tglx@linutronix.de,
         tycho@tycho.ws, viro@zeniv.linux.org.uk, will@kernel.org,
         willy@infradead.org
-Subject:  + secretmem-add-memcg-accounting.patch added to -mm tree
-Message-ID: <20201112221424.jDwTCZHCH%akpm@linux-foundation.org>
+Subject:  +
+ pm-hibernate-disable-when-there-are-active-secretmem-users.patch added to
+ -mm tree
+Message-ID: <20201112221429.xtmkV7cQH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: secretmem: add memcg accounting
+     Subject: PM: hibernate: disable when there are active secretmem users
 has been added to the -mm tree.  Its filename is
-     secretmem-add-memcg-accounting.patch
+     pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/secretmem-add-memcg-accounting.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/secretmem-add-memcg-accounting.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/pm-hibernate-disable-when-there-are-active-secretmem-users.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,12 +80,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: secretmem: add memcg accounting
+Subject: PM: hibernate: disable when there are active secretmem users
 
-Account memory consumed by secretmem to memcg.  The accounting is updated
-when the memory is actually allocated and freed.
+It is unsafe to allow saving of secretmem areas to the hibernation
+snapshot as they would be visible after the resume and this essentially
+will defeat the purpose of secret memory mappings.
 
-Link: https://lkml.kernel.org/r/20201110151444.20662-7-rppt@kernel.org
+Prevent hibernation whenever there are active secret memory users.
+
+Link: https://lkml.kernel.org/r/20201110151444.20662-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -114,103 +119,101 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c   |    2 +-
- mm/secretmem.c |   42 +++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 42 insertions(+), 2 deletions(-)
+ include/linux/secretmem.h |    6 ++++++
+ kernel/power/hibernate.c  |    5 ++++-
+ mm/secretmem.c            |   16 ++++++++++++++++
+ 3 files changed, 26 insertions(+), 1 deletion(-)
 
---- a/mm/filemap.c~secretmem-add-memcg-accounting
-+++ a/mm/filemap.c
-@@ -844,7 +844,7 @@ static noinline int __add_to_page_cache_
- 	page->mapping = mapping;
- 	page->index = offset;
+--- a/include/linux/secretmem.h~pm-hibernate-disable-when-there-are-active-secretmem-users
++++ a/include/linux/secretmem.h
+@@ -6,6 +6,7 @@
  
--	if (!huge) {
-+	if (!huge && !page->memcg_data) {
- 		error = mem_cgroup_charge(page, current->mm, gfp);
- 		if (error)
- 			goto error;
---- a/mm/secretmem.c~secretmem-add-memcg-accounting
+ bool vma_is_secretmem(struct vm_area_struct *vma);
+ bool page_is_secretmem(struct page *page);
++bool secretmem_active(void);
+ 
+ #else
+ 
+@@ -18,6 +19,11 @@ static inline bool page_is_secretmem(str
+ {
+ 	return false;
+ }
++
++static inline bool secretmem_active(void)
++{
++	return false;
++}
+ 
+ #endif /* CONFIG_SECRETMEM */
+ 
+--- a/kernel/power/hibernate.c~pm-hibernate-disable-when-there-are-active-secretmem-users
++++ a/kernel/power/hibernate.c
+@@ -31,6 +31,7 @@
+ #include <linux/genhd.h>
+ #include <linux/ktime.h>
+ #include <linux/security.h>
++#include <linux/secretmem.h>
+ #include <trace/events/power.h>
+ 
+ #include "power.h"
+@@ -81,7 +82,9 @@ void hibernate_release(void)
+ 
+ bool hibernation_available(void)
+ {
+-	return nohibernate == 0 && !security_locked_down(LOCKDOWN_HIBERNATION);
++	return nohibernate == 0 &&
++		!security_locked_down(LOCKDOWN_HIBERNATION) &&
++		!secretmem_active();
+ }
+ 
+ /**
+--- a/mm/secretmem.c~pm-hibernate-disable-when-there-are-active-secretmem-users
 +++ a/mm/secretmem.c
-@@ -17,6 +17,7 @@
- #include <linux/syscalls.h>
- #include <linux/memblock.h>
- #include <linux/pseudo_fs.h>
-+#include <linux/memcontrol.h>
- #include <linux/set_memory.h>
- #include <linux/sched/signal.h>
- 
-@@ -49,6 +50,38 @@ struct secretmem_ctx {
+@@ -50,6 +50,13 @@ struct secretmem_ctx {
  
  static struct cma *secretmem_cma;
  
-+static int secretmem_memcg_charge(struct page *page, gfp_t gfp, int order)
++static atomic_t secretmem_users;
++
++bool secretmem_active(void)
 +{
-+	unsigned long nr_pages = (1 << order);
-+	int i, err;
++	return !!atomic_read(&secretmem_users);
++}
 +
-+	err = memcg_kmem_charge_page(page, gfp, order);
-+	if (err)
-+		return err;
-+
-+	for (i = 1; i < nr_pages; i++) {
-+		struct page *p = page + i;
-+
-+		p->memcg_data = page->memcg_data;
-+	}
-+
+ static int secretmem_memcg_charge(struct page *page, gfp_t gfp, int order)
+ {
+ 	unsigned long nr_pages = (1 << order);
+@@ -189,6 +196,12 @@ static const struct vm_operations_struct
+ 	.fault = secretmem_fault,
+ };
+ 
++static int secretmem_release(struct inode *inode, struct file *file)
++{
++	atomic_dec(&secretmem_users);
 +	return 0;
 +}
 +
-+static void secretmem_memcg_uncharge(struct page *page, int order)
-+{
-+	unsigned long nr_pages = (1 << order);
-+	int i;
-+
-+	for (i = 1; i < nr_pages; i++) {
-+		struct page *p = page + i;
-+
-+		p->memcg_data = 0;
-+	}
-+
-+	memcg_kmem_uncharge_page(page, PMD_PAGE_ORDER);
-+}
-+
- static int secretmem_pool_increase(struct secretmem_ctx *ctx, gfp_t gfp)
+ static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
  {
- 	unsigned long nr_pages = (1 << PMD_PAGE_ORDER);
-@@ -61,10 +94,14 @@ static int secretmem_pool_increase(struc
- 	if (!page)
- 		return -ENOMEM;
+ 	struct secretmem_ctx *ctx = file->private_data;
+@@ -214,7 +227,9 @@ bool vma_is_secretmem(struct vm_area_str
+ 	return vma->vm_ops == &secretmem_vm_ops;
+ }
  
--	err = set_direct_map_invalid_noflush(page, nr_pages);
-+	err = secretmem_memcg_charge(page, gfp, PMD_PAGE_ORDER);
- 	if (err)
- 		goto err_cma_release;
- 
-+	err = set_direct_map_invalid_noflush(page, nr_pages);
-+	if (err)
-+		goto err_memcg_uncharge;
 +
- 	addr = (unsigned long)page_address(page);
- 	err = gen_pool_add(pool, addr, PMD_SIZE, NUMA_NO_NODE);
- 	if (err)
-@@ -81,6 +118,8 @@ err_set_direct_map:
- 	 * won't fail
- 	 */
- 	set_direct_map_default_noflush(page, nr_pages);
-+err_memcg_uncharge:
-+	secretmem_memcg_uncharge(page, PMD_PAGE_ORDER);
- err_cma_release:
- 	cma_release(secretmem_cma, page, nr_pages);
- 	return err;
-@@ -310,6 +349,7 @@ static void secretmem_cleanup_chunk(stru
- 	int i;
+ const struct file_operations secretmem_fops = {
++	.release	= secretmem_release,
+ 	.mmap		= secretmem_mmap,
+ };
  
- 	set_direct_map_default_noflush(page, nr_pages);
-+	secretmem_memcg_uncharge(page, PMD_PAGE_ORDER);
+@@ -332,6 +347,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned l
+ 	file->f_flags |= O_LARGEFILE;
  
- 	for (i = 0; i < nr_pages; i++)
- 		clear_highpage(page + i);
+ 	fd_install(fd, file);
++	atomic_inc(&secretmem_users);
+ 	return fd;
+ 
+ err_put_fd:
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
