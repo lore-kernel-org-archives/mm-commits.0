@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6632FC2D0E4
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:57:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 358F9C5519F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:57:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D9C420825
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:57:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D78D820825
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 23:57:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="aE5ZDy0w"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="LA0wfvEI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726230AbgKLX5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 18:57:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36518 "EHLO mail.kernel.org"
+        id S1726231AbgKLX5V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 18:57:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726229AbgKLX5T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 18:57:19 -0500
+        id S1726229AbgKLX5V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 18:57:21 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3FE5B20723;
-        Thu, 12 Nov 2020 23:57:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1836421D7F;
+        Thu, 12 Nov 2020 23:57:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605225428;
-        bh=frEkka9Gc79E4TaoE6rYgGGfVDgxFiouOOGcU2zJdNU=;
+        s=default; t=1605225440;
+        bh=Rkgl/KJMoIzGmR2FJnsgi+i+nQu4loWrvI58657vG4s=;
         h=Date:From:To:Subject:From;
-        b=aE5ZDy0w6fbmfvU+H071MGeewa5+57aDXzp6UoBEOtiDsiDskhzWqfCfgWpcWF6Pf
-         lPvcKFKVz9KXMa8pxwDOPo1NhccWkB2REkrP5f6MeCP/PBQERZACs7vAuopoG2LRBt
-         X5yzifKqHAoHnjmWaOiA3jAjsAbCA/tdhTg71Rmw=
-Date:   Thu, 12 Nov 2020 15:57:07 -0800
+        b=LA0wfvEI5c1hRhbf5+A2hj/Kpt6yeCk24f9215GRS0rNkUQvAvzR8ZW2OVOH5dTXs
+         KqFTUBt+jHrYDZnstCCLjOzb/lZDYvZUIeoHQ47TJ96J11IoTEPSEJ86NZ0xVDYCSB
+         +lJeHFgrQcL/0vAFACCLjEq7BN/C/d0w1Yjb+bx8=
+Date:   Thu, 12 Nov 2020 15:57:19 -0800
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, pankaj.gupta@cloud.ionos.com, vbabka@suse.cz
+        osalvador@suse.de, vbabka@suse.cz
 Subject:  +
- mm-page_alloc-clean-up-pageset-high-and-batch-update.patch added to -mm
- tree
-Message-ID: <20201112235707.9G2_bUZdE%akpm@linux-foundation.org>
+ mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch added to
+ -mm tree
+Message-ID: <20201112235719.HuyXQ6tTA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: clean up pageset high and batch update
+     Subject: mm, page_alloc: cache pageset high and batch in struct zone
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
+     mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,168 +71,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: clean up pageset high and batch update
+Subject: mm, page_alloc: cache pageset high and batch in struct zone
 
-Patch series "disable pcplists during memory offline", v3.
+All per-cpu pagesets for a zone use the same high and batch values, that
+are duplicated there just for performance (locality) reasons.  This patch
+adds the same variables also to struct zone as a shared copy.
 
-As per the discussions [1] [2] this is an attempt to implement David's
-suggestion that page isolation should disable pcplists to avoid races with
-page freeing in progress.  This is done without extra checks in fast
-paths, as explained in Patch 9.  The repeated draining done by [2] is then
-no longer needed.  Previous version (RFC) is at [3].
+This will be useful later for making possible to disable pcplists
+temporarily by setting high value to 0, while remembering the values for
+restoring them later.  But we can also immediately benefit from not
+updating pagesets of all possible cpus in case the newly recalculated
+values (after sysctl change or memory online/offline) are actually
+unchanged from the previous ones.
 
-The RFC tried to hide pcplists disabling/enabling into page isolation, but
-it wasn't completely possible, as memory offline does not unisolation. 
-Michal suggested an explicit API in [4] so that's the current
-implementation and it seems indeed nicer.
-
-Once we accept that page isolation users need to do explicit actions
-around it depending on the needed guarantees, we can also IMHO accept that
-the current pcplist draining can be also done by the callers, which is
-more effective.  After all, there are only two users of page isolation. 
-So patch 6 does effectively the same thing as Pavel proposed in [5], and
-patch 7 implement stronger guarantees only for memory offline.  If CMA
-decides to opt-in to the stronger guarantee, it can be added later.
-
-Patches 1-5 are preparatory cleanups for pcplist disabling.
-
-Patchset was briefly tested in QEMU so that memory online/offline works,
-but I haven't done a stress test that would prove the race fixed by [2] is
-eliminated.
-
-Note that patch 7 could be avoided if we instead adjusted page freeing in
-shown in [6], but I believe the current implementation of disabling
-pcplists is not too much complex, so I would prefer this instead of adding
-new checks and longer irq-disabled section into page freeing hotpaths.
-
-[1] https://lore.kernel.org/linux-mm/20200901124615.137200-1-pasha.tatashin@soleen.com/
-[2] https://lore.kernel.org/linux-mm/20200903140032.380431-1-pasha.tatashin@soleen.com/
-[3] https://lore.kernel.org/linux-mm/20200907163628.26495-1-vbabka@suse.cz/
-[4] https://lore.kernel.org/linux-mm/20200909113647.GG7348@dhcp22.suse.cz/
-[5] https://lore.kernel.org/linux-mm/20200904151448.100489-3-pasha.tatashin@soleen.com/
-[6] https://lore.kernel.org/linux-mm/3d3b53db-aeaa-ff24-260b-36427fac9b1c@suse.cz/
-[7] https://lore.kernel.org/linux-mm/20200922143712.12048-1-vbabka@suse.cz/
-[8] https://lore.kernel.org/linux-mm/20201008114201.18824-1-vbabka@suse.cz/
-
-
-This patch (of 7):
-
-The updates to pcplists' high and batch values are handled by multiple
-functions that make the calculations hard to follow.  Consolidate
-everything to pageset_set_high_and_batch() and remove pageset_set_batch()
-and pageset_set_high() wrappers.
-
-The only special case using one of the removed wrappers was:
-build_all_zonelists_init()
-
-  setup_pageset()
-    pageset_set_batch()
-
-which was hardcoding batch as 0, so we can just open-code a call to
-pageset_update() with constant parameters instead.
-
-No functional change.
-
-Link: https://lkml.kernel.org/r/20201111092812.11329-1-vbabka@suse.cz
-Link: https://lkml.kernel.org/r/20201111092812.11329-2-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20201111092812.11329-6-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   49 ++++++++++++++++++----------------------------
- 1 file changed, 20 insertions(+), 29 deletions(-)
+ include/linux/mmzone.h |    6 ++++++
+ mm/page_alloc.c        |   16 ++++++++++++++--
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clean-up-pageset-high-and-batch-update
+--- a/include/linux/mmzone.h~mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone
++++ a/include/linux/mmzone.h
+@@ -470,6 +470,12 @@ struct zone {
+ #endif
+ 	struct pglist_data	*zone_pgdat;
+ 	struct per_cpu_pageset __percpu *pageset;
++	/*
++	 * the high and batch values are copied to individual pagesets for
++	 * faster access
++	 */
++	int pageset_high;
++	int pageset_batch;
+ 
+ #ifndef CONFIG_SPARSEMEM
+ 	/*
+--- a/mm/page_alloc.c~mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone
 +++ a/mm/page_alloc.c
-@@ -5905,7 +5905,7 @@ static void build_zonelists(pg_data_t *p
-  * not check if the processor is online before following the pageset pointer.
+@@ -5906,6 +5906,9 @@ static void build_zonelists(pg_data_t *p
   * Other parts of the kernel may not check if the zone is available.
   */
--static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch);
-+static void setup_pageset(struct per_cpu_pageset *p);
+ static void pageset_init(struct per_cpu_pageset *p);
++/* These effectively disable the pcplists in the boot pageset completely */
++#define BOOT_PAGESET_HIGH	0
++#define BOOT_PAGESET_BATCH	1
  static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
  static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
  
-@@ -5973,7 +5973,7 @@ build_all_zonelists_init(void)
- 	 * (a chicken-egg dilemma).
+@@ -6295,8 +6298,8 @@ static void pageset_init(struct per_cpu_
+ 	 * need to be as careful as pageset_update() as nobody can access the
+ 	 * pageset yet.
  	 */
- 	for_each_possible_cpu(cpu)
--		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
-+		setup_pageset(&per_cpu(boot_pageset, cpu));
- 
- 	mminit_verify_zonelist();
- 	cpuset_init_current_mems_allowed();
-@@ -6282,12 +6282,6 @@ static void pageset_update(struct per_cp
- 	pcp->batch = batch;
- }
- 
--/* a companion to pageset_set_high() */
--static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
--{
--	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
--}
--
- static void pageset_init(struct per_cpu_pageset *p)
- {
- 	struct per_cpu_pages *pcp;
-@@ -6300,35 +6294,32 @@ static void pageset_init(struct per_cpu_
- 		INIT_LIST_HEAD(&pcp->lists[migratetype]);
- }
- 
--static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
-+static void setup_pageset(struct per_cpu_pageset *p)
- {
- 	pageset_init(p);
--	pageset_set_batch(p, batch);
-+	pageset_update(&p->pcp, 0, 1);
+-	pcp->high = 0;
+-	pcp->batch = 1;
++	pcp->high = BOOT_PAGESET_HIGH;
++	pcp->batch = BOOT_PAGESET_BATCH;
  }
  
  /*
-- * pageset_set_high() sets the high water mark for hot per_cpu_pagelist
-- * to the value high for the pageset p.
-+ * Calculate and set new high and batch values for given per-cpu pageset of a
-+ * zone, based on the zone's size and the percpu_pagelist_fraction sysctl.
-  */
--static void pageset_set_high(struct per_cpu_pageset *p,
--				unsigned long high)
--{
--	unsigned long batch = max(1UL, high / 4);
--	if ((high / 4) > (PAGE_SHIFT * 8))
--		batch = PAGE_SHIFT * 8;
--
--	pageset_update(&p->pcp, high, batch);
--}
--
- static void pageset_set_high_and_batch(struct zone *zone,
--				       struct per_cpu_pageset *pcp)
-+				       struct per_cpu_pageset *p)
- {
--	if (percpu_pagelist_fraction)
--		pageset_set_high(pcp,
--			(zone_managed_pages(zone) /
--				percpu_pagelist_fraction));
--	else
--		pageset_set_batch(pcp, zone_batchsize(zone));
-+	unsigned long new_high, new_batch;
-+
-+	if (percpu_pagelist_fraction) {
-+		new_high = zone_managed_pages(zone) / percpu_pagelist_fraction;
-+		new_batch = max(1UL, new_high / 4);
-+		if ((new_high / 4) > (PAGE_SHIFT * 8))
-+			new_batch = PAGE_SHIFT * 8;
-+	} else {
-+		new_batch = zone_batchsize(zone);
-+		new_high = 6 * new_batch;
-+		new_batch = max(1UL, 1 * new_batch);
-+	}
-+	pageset_update(&p->pcp, new_high, new_batch);
- }
+@@ -6320,6 +6323,13 @@ static void zone_set_pageset_high_and_ba
+ 		new_batch = max(1UL, 1 * new_batch);
+ 	}
  
- static void __meminit zone_pageset_init(struct zone *zone, int cpu)
++	if (zone->pageset_high == new_high &&
++	    zone->pageset_batch == new_batch)
++		return;
++
++	zone->pageset_high = new_high;
++	zone->pageset_batch = new_batch;
++
+ 	for_each_possible_cpu(cpu) {
+ 		p = per_cpu_ptr(zone->pageset, cpu);
+ 		pageset_update(&p->pcp, new_high, new_batch);
+@@ -6380,6 +6390,8 @@ static __meminit void zone_pcp_init(stru
+ 	 * offset of a (static) per cpu variable into the per cpu area.
+ 	 */
+ 	zone->pageset = &boot_pageset;
++	zone->pageset_high = BOOT_PAGESET_HIGH;
++	zone->pageset_batch = BOOT_PAGESET_BATCH;
+ 
+ 	if (populated_zone(zone))
+ 		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
