@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 400FEC5519F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 19:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9995C2D0E4
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 19:32:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC1122223F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 19:32:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A7302223F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Nov 2020 19:32:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="RImZEGQt"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="d5GpnoeR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726610AbgKLTcY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 14:32:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38886 "EHLO mail.kernel.org"
+        id S1726648AbgKLTcX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 14:32:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726310AbgKLTcY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 14:32:24 -0500
+        id S1726310AbgKLTcW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 14:32:22 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 17A8A20A8B;
-        Thu, 12 Nov 2020 19:32:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1661420A8B;
+        Thu, 12 Nov 2020 19:32:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605209543;
-        bh=50l1T8wjC83plrOuUtmZQckPpO+j0Rtito07mAWv9OY=;
+        s=default; t=1605209539;
+        bh=5twgM1/DRmJmUhUCOwK253m3CokiWtEkc1Gqsi/eDLc=;
         h=Date:From:To:Subject:From;
-        b=RImZEGQtEO/OQWHDnRiEO+M2sUFcB3O1RbtPQEKhOT3UzLwnBkAuI6ke4FlND6qlZ
-         9hck3d4HJTwUD7VYhQjgyr8lZTtSQqqAl0nikn63gp5dqklv7PjW0zZG9chQRMkgOq
-         fJ7EU6+pUViKjEATZ1xxP+UIw3TE2ksca7OHvZyw=
-Date:   Thu, 12 Nov 2020 11:32:22 -0800
+        b=d5GpnoeRMJjHWYdeFwI2gw+UxhMMys+X7gTtULWkOvmXYGLL4ryG5twwZWt2MucpQ
+         Oyx3pwRzGQIkVpzt/gYNBrS0FrysVxh40iUh8XnLTwmaruyGHjer0JNVE/OnZ9jsNN
+         cV/2Il+y5oOldzNzV18ppexV4vpRyGY+J3GlCdd4=
+Date:   Thu, 12 Nov 2020 11:32:18 -0800
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, brendanhiggins@google.com,
         broonie@kernel.org, davidgow@google.com,
         matti.vaittinen@fi.rohmeurope.com, mm-commits@vger.kernel.org,
         skhan@linuxfoundation.org, vitor@massaru.org
 Subject:  +
- lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch added to
- -mm tree
-Message-ID: <20201112193222.BmC7J2J6g%akpm@linux-foundation.org>
+ lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch added
+ to -mm tree
+Message-ID: <20201112193218.3AgHqX6cJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline: fix get_option() for strings starting with hyphen
+     Subject: lib/bits_kunit: follow new file name convention for KUnit tests
 has been added to the -mm tree.  Its filename is
-     lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
+     lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,21 +73,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline: fix get_option() for strings starting with hyphen
+Subject: lib/bits_kunit: follow new file name convention for KUnit tests
 
-When string doesn't have an integer and starts from hyphen get_option()
-may return interesting results.  Fix it to return 0.
+Follow new file name convention for the KUnit tests.  Since we have
+lib/*test*.c in a few variations, use 'kunit' suffix to distinguish usual
+test cases with KUnit-based ones.
 
-The simple_strtoull() is used due to absence of simple_strtoul() in a boot
-code on some architectures.
-
-Note, the Fixes tag below is rather for anthropological curiosity.
-
-Link: https://lkml.kernel.org/r/20201112180732.75589-4-andriy.shevchenko@linux.intel.com
-Fixes: f68565831e72 ("Import 2.4.0-test2pre3")
+Link: https://lkml.kernel.org/r/20201112180732.75589-3-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Gow <davidgow@google.com>
+Reviewed-by: David Gow <davidgow@google.com>
+Acked-by: Brendan Higgins <brendanhiggins@google.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
@@ -95,33 +90,1681 @@ Cc: Vitor Massaru Iha <vitor@massaru.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ lib/Makefile     |    2 
+ lib/bits_kunit.c |   75 ++++
+ lib/list-test.c  |  748 ---------------------------------------------
+ lib/list_kunit.c |  748 +++++++++++++++++++++++++++++++++++++++++++++
+ lib/test_bits.c  |   75 ----
+ 5 files changed, 824 insertions(+), 824 deletions(-)
 
---- a/lib/cmdline.c~lib-cmdline-fix-get_option-for-strings-starting-with-hyphen
-+++ a/lib/cmdline.c
-@@ -45,6 +45,9 @@ static int get_range(char **str, int *pi
-  *	1 - int found, no subsequent comma
-  *	2 - int found including a subsequent comma
-  *	3 - hyphen found to denote a range
+--- /dev/null
++++ a/lib/bits_kunit.c
+@@ -0,0 +1,75 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Test cases for functions and macros in bits.h
++ */
++
++#include <kunit/test.h>
++#include <linux/bits.h>
++
++
++static void genmask_test(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, 1ul, GENMASK(0, 0));
++	KUNIT_EXPECT_EQ(test, 3ul, GENMASK(1, 0));
++	KUNIT_EXPECT_EQ(test, 6ul, GENMASK(2, 1));
++	KUNIT_EXPECT_EQ(test, 0xFFFFFFFFul, GENMASK(31, 0));
++
++#ifdef TEST_GENMASK_FAILURES
++	/* these should fail compilation */
++	GENMASK(0, 1);
++	GENMASK(0, 10);
++	GENMASK(9, 10);
++#endif
++
++
++}
++
++static void genmask_ull_test(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, 1ull, GENMASK_ULL(0, 0));
++	KUNIT_EXPECT_EQ(test, 3ull, GENMASK_ULL(1, 0));
++	KUNIT_EXPECT_EQ(test, 0x000000ffffe00000ull, GENMASK_ULL(39, 21));
++	KUNIT_EXPECT_EQ(test, 0xffffffffffffffffull, GENMASK_ULL(63, 0));
++
++#ifdef TEST_GENMASK_FAILURES
++	/* these should fail compilation */
++	GENMASK_ULL(0, 1);
++	GENMASK_ULL(0, 10);
++	GENMASK_ULL(9, 10);
++#endif
++}
++
++static void genmask_input_check_test(struct kunit *test)
++{
++	unsigned int x, y;
++	int z, w;
++
++	/* Unknown input */
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(x, 0));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(0, x));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(x, y));
++
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(z, 0));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(0, z));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(z, w));
++
++	/* Valid input */
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(1, 1));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(39, 21));
++}
++
++
++static struct kunit_case bits_test_cases[] = {
++	KUNIT_CASE(genmask_test),
++	KUNIT_CASE(genmask_ull_test),
++	KUNIT_CASE(genmask_input_check_test),
++	{}
++};
++
++static struct kunit_suite bits_test_suite = {
++	.name = "bits-test",
++	.test_cases = bits_test_cases,
++};
++kunit_test_suite(bits_test_suite);
++
++MODULE_LICENSE("GPL");
+--- /dev/null
++++ a/lib/list_kunit.c
+@@ -0,0 +1,748 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * KUnit test for the Kernel Linked-list structures.
 + *
-+ *	Leading hyphen without integer is no integer case, but we consume it
-+ *	for the sake of simplification.
-  */
++ * Copyright (C) 2019, Google LLC.
++ * Author: David Gow <davidgow@google.com>
++ */
++#include <kunit/test.h>
++
++#include <linux/list.h>
++
++struct list_test_struct {
++	int data;
++	struct list_head list;
++};
++
++static void list_test_list_init(struct kunit *test)
++{
++	/* Test the different ways of initialising a list. */
++	struct list_head list1 = LIST_HEAD_INIT(list1);
++	struct list_head list2;
++	LIST_HEAD(list3);
++	struct list_head *list4;
++	struct list_head *list5;
++
++	INIT_LIST_HEAD(&list2);
++
++	list4 = kzalloc(sizeof(*list4), GFP_KERNEL | __GFP_NOFAIL);
++	INIT_LIST_HEAD(list4);
++
++	list5 = kmalloc(sizeof(*list5), GFP_KERNEL | __GFP_NOFAIL);
++	memset(list5, 0xFF, sizeof(*list5));
++	INIT_LIST_HEAD(list5);
++
++	/* list_empty_careful() checks both next and prev. */
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list1));
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list3));
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(list4));
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(list5));
++
++	kfree(list4);
++	kfree(list5);
++}
++
++static void list_test_list_add(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add(&a, &list);
++	list_add(&b, &list);
++
++	/* should be [list] -> b -> a */
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
++	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
++	KUNIT_EXPECT_PTR_EQ(test, b.next, &a);
++}
++
++static void list_test_list_add_tail(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	/* should be [list] -> a -> b */
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &a);
++	KUNIT_EXPECT_PTR_EQ(test, a.prev, &list);
++	KUNIT_EXPECT_PTR_EQ(test, a.next, &b);
++}
++
++static void list_test_list_del(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	/* before: [list] -> a -> b */
++	list_del(&a);
++
++	/* now: [list] -> b */
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
++	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
++}
++
++static void list_test_list_replace(struct kunit *test)
++{
++	struct list_head a_old, a_new, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a_old, &list);
++	list_add_tail(&b, &list);
++
++	/* before: [list] -> a_old -> b */
++	list_replace(&a_old, &a_new);
++
++	/* now: [list] -> a_new -> b */
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &a_new);
++	KUNIT_EXPECT_PTR_EQ(test, b.prev, &a_new);
++}
++
++static void list_test_list_replace_init(struct kunit *test)
++{
++	struct list_head a_old, a_new, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a_old, &list);
++	list_add_tail(&b, &list);
++
++	/* before: [list] -> a_old -> b */
++	list_replace_init(&a_old, &a_new);
++
++	/* now: [list] -> a_new -> b */
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &a_new);
++	KUNIT_EXPECT_PTR_EQ(test, b.prev, &a_new);
++
++	/* check a_old is empty (initialized) */
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&a_old));
++}
++
++static void list_test_list_swap(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	/* before: [list] -> a -> b */
++	list_swap(&a, &b);
++
++	/* after: [list] -> b -> a */
++	KUNIT_EXPECT_PTR_EQ(test, &b, list.next);
++	KUNIT_EXPECT_PTR_EQ(test, &a, list.prev);
++
++	KUNIT_EXPECT_PTR_EQ(test, &a, b.next);
++	KUNIT_EXPECT_PTR_EQ(test, &list, b.prev);
++
++	KUNIT_EXPECT_PTR_EQ(test, &list, a.next);
++	KUNIT_EXPECT_PTR_EQ(test, &b, a.prev);
++}
++
++static void list_test_list_del_init(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	/* before: [list] -> a -> b */
++	list_del_init(&a);
++	/* after: [list] -> b, a initialised */
++
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
++	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&a));
++}
++
++static void list_test_list_move(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++
++	list_add_tail(&a, &list1);
++	list_add_tail(&b, &list2);
++
++	/* before: [list1] -> a, [list2] -> b */
++	list_move(&a, &list2);
++	/* after: [list1] empty, [list2] -> a -> b */
++
++	KUNIT_EXPECT_TRUE(test, list_empty(&list1));
++
++	KUNIT_EXPECT_PTR_EQ(test, &a, list2.next);
++	KUNIT_EXPECT_PTR_EQ(test, &b, a.next);
++}
++
++static void list_test_list_move_tail(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++
++	list_add_tail(&a, &list1);
++	list_add_tail(&b, &list2);
++
++	/* before: [list1] -> a, [list2] -> b */
++	list_move_tail(&a, &list2);
++	/* after: [list1] empty, [list2] -> b -> a */
++
++	KUNIT_EXPECT_TRUE(test, list_empty(&list1));
++
++	KUNIT_EXPECT_PTR_EQ(test, &b, list2.next);
++	KUNIT_EXPECT_PTR_EQ(test, &a, b.next);
++}
++
++static void list_test_list_bulk_move_tail(struct kunit *test)
++{
++	struct list_head a, b, c, d, x, y;
++	struct list_head *list1_values[] = { &x, &b, &c, &y };
++	struct list_head *list2_values[] = { &a, &d };
++	struct list_head *ptr;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&x, &list1);
++	list_add_tail(&y, &list1);
++
++	list_add_tail(&a, &list2);
++	list_add_tail(&b, &list2);
++	list_add_tail(&c, &list2);
++	list_add_tail(&d, &list2);
++
++	/* before: [list1] -> x -> y, [list2] -> a -> b -> c -> d */
++	list_bulk_move_tail(&y, &b, &c);
++	/* after: [list1] -> x -> b -> c -> y, [list2] -> a -> d */
++
++	list_for_each(ptr, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, ptr, list1_values[i]);
++		i++;
++	}
++	KUNIT_EXPECT_EQ(test, i, 4);
++	i = 0;
++	list_for_each(ptr, &list2) {
++		KUNIT_EXPECT_PTR_EQ(test, ptr, list2_values[i]);
++		i++;
++	}
++	KUNIT_EXPECT_EQ(test, i, 2);
++}
++
++static void list_test_list_is_first(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	KUNIT_EXPECT_TRUE(test, list_is_first(&a, &list));
++	KUNIT_EXPECT_FALSE(test, list_is_first(&b, &list));
++}
++
++static void list_test_list_is_last(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	KUNIT_EXPECT_FALSE(test, list_is_last(&a, &list));
++	KUNIT_EXPECT_TRUE(test, list_is_last(&b, &list));
++}
++
++static void list_test_list_empty(struct kunit *test)
++{
++	struct list_head a;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++
++	list_add_tail(&a, &list1);
++
++	KUNIT_EXPECT_FALSE(test, list_empty(&list1));
++	KUNIT_EXPECT_TRUE(test, list_empty(&list2));
++}
++
++static void list_test_list_empty_careful(struct kunit *test)
++{
++	/* This test doesn't check correctness under concurrent access */
++	struct list_head a;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++
++	list_add_tail(&a, &list1);
++
++	KUNIT_EXPECT_FALSE(test, list_empty_careful(&list1));
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
++}
++
++static void list_test_list_rotate_left(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++
++	/* before: [list] -> a -> b */
++	list_rotate_left(&list);
++	/* after: [list] -> b -> a */
++
++	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
++	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
++	KUNIT_EXPECT_PTR_EQ(test, b.next, &a);
++}
++
++static void list_test_list_rotate_to_front(struct kunit *test)
++{
++	struct list_head a, b, c, d;
++	struct list_head *list_values[] = { &c, &d, &a, &b };
++	struct list_head *ptr;
++	LIST_HEAD(list);
++	int i = 0;
++
++	list_add_tail(&a, &list);
++	list_add_tail(&b, &list);
++	list_add_tail(&c, &list);
++	list_add_tail(&d, &list);
++
++	/* before: [list] -> a -> b -> c -> d */
++	list_rotate_to_front(&c, &list);
++	/* after: [list] -> c -> d -> a -> b */
++
++	list_for_each(ptr, &list) {
++		KUNIT_EXPECT_PTR_EQ(test, ptr, list_values[i]);
++		i++;
++	}
++	KUNIT_EXPECT_EQ(test, i, 4);
++}
++
++static void list_test_list_is_singular(struct kunit *test)
++{
++	struct list_head a, b;
++	LIST_HEAD(list);
++
++	/* [list] empty */
++	KUNIT_EXPECT_FALSE(test, list_is_singular(&list));
++
++	list_add_tail(&a, &list);
++
++	/* [list] -> a */
++	KUNIT_EXPECT_TRUE(test, list_is_singular(&list));
++
++	list_add_tail(&b, &list);
++
++	/* [list] -> a -> b */
++	KUNIT_EXPECT_FALSE(test, list_is_singular(&list));
++}
++
++static void list_test_list_cut_position(struct kunit *test)
++{
++	struct list_head entries[3], *cur;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list1);
++	list_add_tail(&entries[1], &list1);
++	list_add_tail(&entries[2], &list1);
++
++	/* before: [list1] -> entries[0] -> entries[1] -> entries[2] */
++	list_cut_position(&list2, &list1, &entries[1]);
++	/* after: [list2] -> entries[0] -> entries[1], [list1] -> entries[2] */
++
++	list_for_each(cur, &list2) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 2);
++
++	list_for_each(cur, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++}
++
++static void list_test_list_cut_before(struct kunit *test)
++{
++	struct list_head entries[3], *cur;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list1);
++	list_add_tail(&entries[1], &list1);
++	list_add_tail(&entries[2], &list1);
++
++	/* before: [list1] -> entries[0] -> entries[1] -> entries[2] */
++	list_cut_before(&list2, &list1, &entries[1]);
++	/* after: [list2] -> entries[0], [list1] -> entries[1] -> entries[2] */
++
++	list_for_each(cur, &list2) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 1);
++
++	list_for_each(cur, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++}
++
++static void list_test_list_splice(struct kunit *test)
++{
++	struct list_head entries[5], *cur;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list1);
++	list_add_tail(&entries[1], &list1);
++	list_add_tail(&entries[2], &list2);
++	list_add_tail(&entries[3], &list2);
++	list_add_tail(&entries[4], &list1);
++
++	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
++	list_splice(&list2, &entries[1]);
++	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] uninit */
++
++	list_for_each(cur, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 5);
++}
++
++static void list_test_list_splice_tail(struct kunit *test)
++{
++	struct list_head entries[5], *cur;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list1);
++	list_add_tail(&entries[1], &list1);
++	list_add_tail(&entries[2], &list2);
++	list_add_tail(&entries[3], &list2);
++	list_add_tail(&entries[4], &list1);
++
++	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
++	list_splice_tail(&list2, &entries[4]);
++	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] uninit */
++
++	list_for_each(cur, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 5);
++}
++
++static void list_test_list_splice_init(struct kunit *test)
++{
++	struct list_head entries[5], *cur;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list1);
++	list_add_tail(&entries[1], &list1);
++	list_add_tail(&entries[2], &list2);
++	list_add_tail(&entries[3], &list2);
++	list_add_tail(&entries[4], &list1);
++
++	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
++	list_splice_init(&list2, &entries[1]);
++	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] empty */
++
++	list_for_each(cur, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 5);
++
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
++}
++
++static void list_test_list_splice_tail_init(struct kunit *test)
++{
++	struct list_head entries[5], *cur;
++	LIST_HEAD(list1);
++	LIST_HEAD(list2);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list1);
++	list_add_tail(&entries[1], &list1);
++	list_add_tail(&entries[2], &list2);
++	list_add_tail(&entries[3], &list2);
++	list_add_tail(&entries[4], &list1);
++
++	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
++	list_splice_tail_init(&list2, &entries[4]);
++	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] empty */
++
++	list_for_each(cur, &list1) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 5);
++
++	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
++}
++
++static void list_test_list_entry(struct kunit *test)
++{
++	struct list_test_struct test_struct;
++
++	KUNIT_EXPECT_PTR_EQ(test, &test_struct, list_entry(&(test_struct.list),
++				struct list_test_struct, list));
++}
++
++static void list_test_list_first_entry(struct kunit *test)
++{
++	struct list_test_struct test_struct1, test_struct2;
++	LIST_HEAD(list);
++
++	list_add_tail(&test_struct1.list, &list);
++	list_add_tail(&test_struct2.list, &list);
++
++
++	KUNIT_EXPECT_PTR_EQ(test, &test_struct1, list_first_entry(&list,
++				struct list_test_struct, list));
++}
++
++static void list_test_list_last_entry(struct kunit *test)
++{
++	struct list_test_struct test_struct1, test_struct2;
++	LIST_HEAD(list);
++
++	list_add_tail(&test_struct1.list, &list);
++	list_add_tail(&test_struct2.list, &list);
++
++
++	KUNIT_EXPECT_PTR_EQ(test, &test_struct2, list_last_entry(&list,
++				struct list_test_struct, list));
++}
++
++static void list_test_list_first_entry_or_null(struct kunit *test)
++{
++	struct list_test_struct test_struct1, test_struct2;
++	LIST_HEAD(list);
++
++	KUNIT_EXPECT_FALSE(test, list_first_entry_or_null(&list,
++				struct list_test_struct, list));
++
++	list_add_tail(&test_struct1.list, &list);
++	list_add_tail(&test_struct2.list, &list);
++
++	KUNIT_EXPECT_PTR_EQ(test, &test_struct1,
++			list_first_entry_or_null(&list,
++				struct list_test_struct, list));
++}
++
++static void list_test_list_next_entry(struct kunit *test)
++{
++	struct list_test_struct test_struct1, test_struct2;
++	LIST_HEAD(list);
++
++	list_add_tail(&test_struct1.list, &list);
++	list_add_tail(&test_struct2.list, &list);
++
++
++	KUNIT_EXPECT_PTR_EQ(test, &test_struct2, list_next_entry(&test_struct1,
++				list));
++}
++
++static void list_test_list_prev_entry(struct kunit *test)
++{
++	struct list_test_struct test_struct1, test_struct2;
++	LIST_HEAD(list);
++
++	list_add_tail(&test_struct1.list, &list);
++	list_add_tail(&test_struct2.list, &list);
++
++
++	KUNIT_EXPECT_PTR_EQ(test, &test_struct1, list_prev_entry(&test_struct2,
++				list));
++}
++
++static void list_test_list_for_each(struct kunit *test)
++{
++	struct list_head entries[3], *cur;
++	LIST_HEAD(list);
++	int i = 0;
++
++	list_add_tail(&entries[0], &list);
++	list_add_tail(&entries[1], &list);
++	list_add_tail(&entries[2], &list);
++
++	list_for_each(cur, &list) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 3);
++}
++
++static void list_test_list_for_each_prev(struct kunit *test)
++{
++	struct list_head entries[3], *cur;
++	LIST_HEAD(list);
++	int i = 2;
++
++	list_add_tail(&entries[0], &list);
++	list_add_tail(&entries[1], &list);
++	list_add_tail(&entries[2], &list);
++
++	list_for_each_prev(cur, &list) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		i--;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, -1);
++}
++
++static void list_test_list_for_each_safe(struct kunit *test)
++{
++	struct list_head entries[3], *cur, *n;
++	LIST_HEAD(list);
++	int i = 0;
++
++
++	list_add_tail(&entries[0], &list);
++	list_add_tail(&entries[1], &list);
++	list_add_tail(&entries[2], &list);
++
++	list_for_each_safe(cur, n, &list) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		list_del(&entries[i]);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 3);
++	KUNIT_EXPECT_TRUE(test, list_empty(&list));
++}
++
++static void list_test_list_for_each_prev_safe(struct kunit *test)
++{
++	struct list_head entries[3], *cur, *n;
++	LIST_HEAD(list);
++	int i = 2;
++
++	list_add_tail(&entries[0], &list);
++	list_add_tail(&entries[1], &list);
++	list_add_tail(&entries[2], &list);
++
++	list_for_each_prev_safe(cur, n, &list) {
++		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
++		list_del(&entries[i]);
++		i--;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, -1);
++	KUNIT_EXPECT_TRUE(test, list_empty(&list));
++}
++
++static void list_test_list_for_each_entry(struct kunit *test)
++{
++	struct list_test_struct entries[5], *cur;
++	LIST_HEAD(list);
++	int i = 0;
++
++	for (i = 0; i < 5; ++i) {
++		entries[i].data = i;
++		list_add_tail(&entries[i].list, &list);
++	}
++
++	i = 0;
++
++	list_for_each_entry(cur, &list, list) {
++		KUNIT_EXPECT_EQ(test, cur->data, i);
++		i++;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, 5);
++}
++
++static void list_test_list_for_each_entry_reverse(struct kunit *test)
++{
++	struct list_test_struct entries[5], *cur;
++	LIST_HEAD(list);
++	int i = 0;
++
++	for (i = 0; i < 5; ++i) {
++		entries[i].data = i;
++		list_add_tail(&entries[i].list, &list);
++	}
++
++	i = 4;
++
++	list_for_each_entry_reverse(cur, &list, list) {
++		KUNIT_EXPECT_EQ(test, cur->data, i);
++		i--;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, -1);
++}
++
++static struct kunit_case list_test_cases[] = {
++	KUNIT_CASE(list_test_list_init),
++	KUNIT_CASE(list_test_list_add),
++	KUNIT_CASE(list_test_list_add_tail),
++	KUNIT_CASE(list_test_list_del),
++	KUNIT_CASE(list_test_list_replace),
++	KUNIT_CASE(list_test_list_replace_init),
++	KUNIT_CASE(list_test_list_swap),
++	KUNIT_CASE(list_test_list_del_init),
++	KUNIT_CASE(list_test_list_move),
++	KUNIT_CASE(list_test_list_move_tail),
++	KUNIT_CASE(list_test_list_bulk_move_tail),
++	KUNIT_CASE(list_test_list_is_first),
++	KUNIT_CASE(list_test_list_is_last),
++	KUNIT_CASE(list_test_list_empty),
++	KUNIT_CASE(list_test_list_empty_careful),
++	KUNIT_CASE(list_test_list_rotate_left),
++	KUNIT_CASE(list_test_list_rotate_to_front),
++	KUNIT_CASE(list_test_list_is_singular),
++	KUNIT_CASE(list_test_list_cut_position),
++	KUNIT_CASE(list_test_list_cut_before),
++	KUNIT_CASE(list_test_list_splice),
++	KUNIT_CASE(list_test_list_splice_tail),
++	KUNIT_CASE(list_test_list_splice_init),
++	KUNIT_CASE(list_test_list_splice_tail_init),
++	KUNIT_CASE(list_test_list_entry),
++	KUNIT_CASE(list_test_list_first_entry),
++	KUNIT_CASE(list_test_list_last_entry),
++	KUNIT_CASE(list_test_list_first_entry_or_null),
++	KUNIT_CASE(list_test_list_next_entry),
++	KUNIT_CASE(list_test_list_prev_entry),
++	KUNIT_CASE(list_test_list_for_each),
++	KUNIT_CASE(list_test_list_for_each_prev),
++	KUNIT_CASE(list_test_list_for_each_safe),
++	KUNIT_CASE(list_test_list_for_each_prev_safe),
++	KUNIT_CASE(list_test_list_for_each_entry),
++	KUNIT_CASE(list_test_list_for_each_entry_reverse),
++	{},
++};
++
++static struct kunit_suite list_test_module = {
++	.name = "list-kunit-test",
++	.test_cases = list_test_cases,
++};
++
++kunit_test_suites(&list_test_module);
++
++MODULE_LICENSE("GPL v2");
+--- a/lib/list-test.c
++++ /dev/null
+@@ -1,748 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * KUnit test for the Kernel Linked-list structures.
+- *
+- * Copyright (C) 2019, Google LLC.
+- * Author: David Gow <davidgow@google.com>
+- */
+-#include <kunit/test.h>
+-
+-#include <linux/list.h>
+-
+-struct list_test_struct {
+-	int data;
+-	struct list_head list;
+-};
+-
+-static void list_test_list_init(struct kunit *test)
+-{
+-	/* Test the different ways of initialising a list. */
+-	struct list_head list1 = LIST_HEAD_INIT(list1);
+-	struct list_head list2;
+-	LIST_HEAD(list3);
+-	struct list_head *list4;
+-	struct list_head *list5;
+-
+-	INIT_LIST_HEAD(&list2);
+-
+-	list4 = kzalloc(sizeof(*list4), GFP_KERNEL | __GFP_NOFAIL);
+-	INIT_LIST_HEAD(list4);
+-
+-	list5 = kmalloc(sizeof(*list5), GFP_KERNEL | __GFP_NOFAIL);
+-	memset(list5, 0xFF, sizeof(*list5));
+-	INIT_LIST_HEAD(list5);
+-
+-	/* list_empty_careful() checks both next and prev. */
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list1));
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list3));
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(list4));
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(list5));
+-
+-	kfree(list4);
+-	kfree(list5);
+-}
+-
+-static void list_test_list_add(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add(&a, &list);
+-	list_add(&b, &list);
+-
+-	/* should be [list] -> b -> a */
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
+-	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
+-	KUNIT_EXPECT_PTR_EQ(test, b.next, &a);
+-}
+-
+-static void list_test_list_add_tail(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* should be [list] -> a -> b */
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &a);
+-	KUNIT_EXPECT_PTR_EQ(test, a.prev, &list);
+-	KUNIT_EXPECT_PTR_EQ(test, a.next, &b);
+-}
+-
+-static void list_test_list_del(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* before: [list] -> a -> b */
+-	list_del(&a);
+-
+-	/* now: [list] -> b */
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
+-	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
+-}
+-
+-static void list_test_list_replace(struct kunit *test)
+-{
+-	struct list_head a_old, a_new, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a_old, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* before: [list] -> a_old -> b */
+-	list_replace(&a_old, &a_new);
+-
+-	/* now: [list] -> a_new -> b */
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &a_new);
+-	KUNIT_EXPECT_PTR_EQ(test, b.prev, &a_new);
+-}
+-
+-static void list_test_list_replace_init(struct kunit *test)
+-{
+-	struct list_head a_old, a_new, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a_old, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* before: [list] -> a_old -> b */
+-	list_replace_init(&a_old, &a_new);
+-
+-	/* now: [list] -> a_new -> b */
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &a_new);
+-	KUNIT_EXPECT_PTR_EQ(test, b.prev, &a_new);
+-
+-	/* check a_old is empty (initialized) */
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&a_old));
+-}
+-
+-static void list_test_list_swap(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* before: [list] -> a -> b */
+-	list_swap(&a, &b);
+-
+-	/* after: [list] -> b -> a */
+-	KUNIT_EXPECT_PTR_EQ(test, &b, list.next);
+-	KUNIT_EXPECT_PTR_EQ(test, &a, list.prev);
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &a, b.next);
+-	KUNIT_EXPECT_PTR_EQ(test, &list, b.prev);
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &list, a.next);
+-	KUNIT_EXPECT_PTR_EQ(test, &b, a.prev);
+-}
+-
+-static void list_test_list_del_init(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* before: [list] -> a -> b */
+-	list_del_init(&a);
+-	/* after: [list] -> b, a initialised */
+-
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
+-	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&a));
+-}
+-
+-static void list_test_list_move(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-
+-	list_add_tail(&a, &list1);
+-	list_add_tail(&b, &list2);
+-
+-	/* before: [list1] -> a, [list2] -> b */
+-	list_move(&a, &list2);
+-	/* after: [list1] empty, [list2] -> a -> b */
+-
+-	KUNIT_EXPECT_TRUE(test, list_empty(&list1));
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &a, list2.next);
+-	KUNIT_EXPECT_PTR_EQ(test, &b, a.next);
+-}
+-
+-static void list_test_list_move_tail(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-
+-	list_add_tail(&a, &list1);
+-	list_add_tail(&b, &list2);
+-
+-	/* before: [list1] -> a, [list2] -> b */
+-	list_move_tail(&a, &list2);
+-	/* after: [list1] empty, [list2] -> b -> a */
+-
+-	KUNIT_EXPECT_TRUE(test, list_empty(&list1));
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &b, list2.next);
+-	KUNIT_EXPECT_PTR_EQ(test, &a, b.next);
+-}
+-
+-static void list_test_list_bulk_move_tail(struct kunit *test)
+-{
+-	struct list_head a, b, c, d, x, y;
+-	struct list_head *list1_values[] = { &x, &b, &c, &y };
+-	struct list_head *list2_values[] = { &a, &d };
+-	struct list_head *ptr;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&x, &list1);
+-	list_add_tail(&y, &list1);
+-
+-	list_add_tail(&a, &list2);
+-	list_add_tail(&b, &list2);
+-	list_add_tail(&c, &list2);
+-	list_add_tail(&d, &list2);
+-
+-	/* before: [list1] -> x -> y, [list2] -> a -> b -> c -> d */
+-	list_bulk_move_tail(&y, &b, &c);
+-	/* after: [list1] -> x -> b -> c -> y, [list2] -> a -> d */
+-
+-	list_for_each(ptr, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, ptr, list1_values[i]);
+-		i++;
+-	}
+-	KUNIT_EXPECT_EQ(test, i, 4);
+-	i = 0;
+-	list_for_each(ptr, &list2) {
+-		KUNIT_EXPECT_PTR_EQ(test, ptr, list2_values[i]);
+-		i++;
+-	}
+-	KUNIT_EXPECT_EQ(test, i, 2);
+-}
+-
+-static void list_test_list_is_first(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	KUNIT_EXPECT_TRUE(test, list_is_first(&a, &list));
+-	KUNIT_EXPECT_FALSE(test, list_is_first(&b, &list));
+-}
+-
+-static void list_test_list_is_last(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	KUNIT_EXPECT_FALSE(test, list_is_last(&a, &list));
+-	KUNIT_EXPECT_TRUE(test, list_is_last(&b, &list));
+-}
+-
+-static void list_test_list_empty(struct kunit *test)
+-{
+-	struct list_head a;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-
+-	list_add_tail(&a, &list1);
+-
+-	KUNIT_EXPECT_FALSE(test, list_empty(&list1));
+-	KUNIT_EXPECT_TRUE(test, list_empty(&list2));
+-}
+-
+-static void list_test_list_empty_careful(struct kunit *test)
+-{
+-	/* This test doesn't check correctness under concurrent access */
+-	struct list_head a;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-
+-	list_add_tail(&a, &list1);
+-
+-	KUNIT_EXPECT_FALSE(test, list_empty_careful(&list1));
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
+-}
+-
+-static void list_test_list_rotate_left(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-
+-	/* before: [list] -> a -> b */
+-	list_rotate_left(&list);
+-	/* after: [list] -> b -> a */
+-
+-	KUNIT_EXPECT_PTR_EQ(test, list.next, &b);
+-	KUNIT_EXPECT_PTR_EQ(test, b.prev, &list);
+-	KUNIT_EXPECT_PTR_EQ(test, b.next, &a);
+-}
+-
+-static void list_test_list_rotate_to_front(struct kunit *test)
+-{
+-	struct list_head a, b, c, d;
+-	struct list_head *list_values[] = { &c, &d, &a, &b };
+-	struct list_head *ptr;
+-	LIST_HEAD(list);
+-	int i = 0;
+-
+-	list_add_tail(&a, &list);
+-	list_add_tail(&b, &list);
+-	list_add_tail(&c, &list);
+-	list_add_tail(&d, &list);
+-
+-	/* before: [list] -> a -> b -> c -> d */
+-	list_rotate_to_front(&c, &list);
+-	/* after: [list] -> c -> d -> a -> b */
+-
+-	list_for_each(ptr, &list) {
+-		KUNIT_EXPECT_PTR_EQ(test, ptr, list_values[i]);
+-		i++;
+-	}
+-	KUNIT_EXPECT_EQ(test, i, 4);
+-}
+-
+-static void list_test_list_is_singular(struct kunit *test)
+-{
+-	struct list_head a, b;
+-	LIST_HEAD(list);
+-
+-	/* [list] empty */
+-	KUNIT_EXPECT_FALSE(test, list_is_singular(&list));
+-
+-	list_add_tail(&a, &list);
+-
+-	/* [list] -> a */
+-	KUNIT_EXPECT_TRUE(test, list_is_singular(&list));
+-
+-	list_add_tail(&b, &list);
+-
+-	/* [list] -> a -> b */
+-	KUNIT_EXPECT_FALSE(test, list_is_singular(&list));
+-}
+-
+-static void list_test_list_cut_position(struct kunit *test)
+-{
+-	struct list_head entries[3], *cur;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list1);
+-	list_add_tail(&entries[1], &list1);
+-	list_add_tail(&entries[2], &list1);
+-
+-	/* before: [list1] -> entries[0] -> entries[1] -> entries[2] */
+-	list_cut_position(&list2, &list1, &entries[1]);
+-	/* after: [list2] -> entries[0] -> entries[1], [list1] -> entries[2] */
+-
+-	list_for_each(cur, &list2) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 2);
+-
+-	list_for_each(cur, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-}
+-
+-static void list_test_list_cut_before(struct kunit *test)
+-{
+-	struct list_head entries[3], *cur;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list1);
+-	list_add_tail(&entries[1], &list1);
+-	list_add_tail(&entries[2], &list1);
+-
+-	/* before: [list1] -> entries[0] -> entries[1] -> entries[2] */
+-	list_cut_before(&list2, &list1, &entries[1]);
+-	/* after: [list2] -> entries[0], [list1] -> entries[1] -> entries[2] */
+-
+-	list_for_each(cur, &list2) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 1);
+-
+-	list_for_each(cur, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-}
+-
+-static void list_test_list_splice(struct kunit *test)
+-{
+-	struct list_head entries[5], *cur;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list1);
+-	list_add_tail(&entries[1], &list1);
+-	list_add_tail(&entries[2], &list2);
+-	list_add_tail(&entries[3], &list2);
+-	list_add_tail(&entries[4], &list1);
+-
+-	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
+-	list_splice(&list2, &entries[1]);
+-	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] uninit */
+-
+-	list_for_each(cur, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 5);
+-}
+-
+-static void list_test_list_splice_tail(struct kunit *test)
+-{
+-	struct list_head entries[5], *cur;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list1);
+-	list_add_tail(&entries[1], &list1);
+-	list_add_tail(&entries[2], &list2);
+-	list_add_tail(&entries[3], &list2);
+-	list_add_tail(&entries[4], &list1);
+-
+-	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
+-	list_splice_tail(&list2, &entries[4]);
+-	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] uninit */
+-
+-	list_for_each(cur, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 5);
+-}
+-
+-static void list_test_list_splice_init(struct kunit *test)
+-{
+-	struct list_head entries[5], *cur;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list1);
+-	list_add_tail(&entries[1], &list1);
+-	list_add_tail(&entries[2], &list2);
+-	list_add_tail(&entries[3], &list2);
+-	list_add_tail(&entries[4], &list1);
+-
+-	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
+-	list_splice_init(&list2, &entries[1]);
+-	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] empty */
+-
+-	list_for_each(cur, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 5);
+-
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
+-}
+-
+-static void list_test_list_splice_tail_init(struct kunit *test)
+-{
+-	struct list_head entries[5], *cur;
+-	LIST_HEAD(list1);
+-	LIST_HEAD(list2);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list1);
+-	list_add_tail(&entries[1], &list1);
+-	list_add_tail(&entries[2], &list2);
+-	list_add_tail(&entries[3], &list2);
+-	list_add_tail(&entries[4], &list1);
+-
+-	/* before: [list1]->e[0]->e[1]->e[4], [list2]->e[2]->e[3] */
+-	list_splice_tail_init(&list2, &entries[4]);
+-	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] empty */
+-
+-	list_for_each(cur, &list1) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 5);
+-
+-	KUNIT_EXPECT_TRUE(test, list_empty_careful(&list2));
+-}
+-
+-static void list_test_list_entry(struct kunit *test)
+-{
+-	struct list_test_struct test_struct;
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &test_struct, list_entry(&(test_struct.list),
+-				struct list_test_struct, list));
+-}
+-
+-static void list_test_list_first_entry(struct kunit *test)
+-{
+-	struct list_test_struct test_struct1, test_struct2;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&test_struct1.list, &list);
+-	list_add_tail(&test_struct2.list, &list);
+-
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &test_struct1, list_first_entry(&list,
+-				struct list_test_struct, list));
+-}
+-
+-static void list_test_list_last_entry(struct kunit *test)
+-{
+-	struct list_test_struct test_struct1, test_struct2;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&test_struct1.list, &list);
+-	list_add_tail(&test_struct2.list, &list);
+-
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &test_struct2, list_last_entry(&list,
+-				struct list_test_struct, list));
+-}
+-
+-static void list_test_list_first_entry_or_null(struct kunit *test)
+-{
+-	struct list_test_struct test_struct1, test_struct2;
+-	LIST_HEAD(list);
+-
+-	KUNIT_EXPECT_FALSE(test, list_first_entry_or_null(&list,
+-				struct list_test_struct, list));
+-
+-	list_add_tail(&test_struct1.list, &list);
+-	list_add_tail(&test_struct2.list, &list);
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &test_struct1,
+-			list_first_entry_or_null(&list,
+-				struct list_test_struct, list));
+-}
+-
+-static void list_test_list_next_entry(struct kunit *test)
+-{
+-	struct list_test_struct test_struct1, test_struct2;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&test_struct1.list, &list);
+-	list_add_tail(&test_struct2.list, &list);
+-
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &test_struct2, list_next_entry(&test_struct1,
+-				list));
+-}
+-
+-static void list_test_list_prev_entry(struct kunit *test)
+-{
+-	struct list_test_struct test_struct1, test_struct2;
+-	LIST_HEAD(list);
+-
+-	list_add_tail(&test_struct1.list, &list);
+-	list_add_tail(&test_struct2.list, &list);
+-
+-
+-	KUNIT_EXPECT_PTR_EQ(test, &test_struct1, list_prev_entry(&test_struct2,
+-				list));
+-}
+-
+-static void list_test_list_for_each(struct kunit *test)
+-{
+-	struct list_head entries[3], *cur;
+-	LIST_HEAD(list);
+-	int i = 0;
+-
+-	list_add_tail(&entries[0], &list);
+-	list_add_tail(&entries[1], &list);
+-	list_add_tail(&entries[2], &list);
+-
+-	list_for_each(cur, &list) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 3);
+-}
+-
+-static void list_test_list_for_each_prev(struct kunit *test)
+-{
+-	struct list_head entries[3], *cur;
+-	LIST_HEAD(list);
+-	int i = 2;
+-
+-	list_add_tail(&entries[0], &list);
+-	list_add_tail(&entries[1], &list);
+-	list_add_tail(&entries[2], &list);
+-
+-	list_for_each_prev(cur, &list) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		i--;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, -1);
+-}
+-
+-static void list_test_list_for_each_safe(struct kunit *test)
+-{
+-	struct list_head entries[3], *cur, *n;
+-	LIST_HEAD(list);
+-	int i = 0;
+-
+-
+-	list_add_tail(&entries[0], &list);
+-	list_add_tail(&entries[1], &list);
+-	list_add_tail(&entries[2], &list);
+-
+-	list_for_each_safe(cur, n, &list) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		list_del(&entries[i]);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 3);
+-	KUNIT_EXPECT_TRUE(test, list_empty(&list));
+-}
+-
+-static void list_test_list_for_each_prev_safe(struct kunit *test)
+-{
+-	struct list_head entries[3], *cur, *n;
+-	LIST_HEAD(list);
+-	int i = 2;
+-
+-	list_add_tail(&entries[0], &list);
+-	list_add_tail(&entries[1], &list);
+-	list_add_tail(&entries[2], &list);
+-
+-	list_for_each_prev_safe(cur, n, &list) {
+-		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
+-		list_del(&entries[i]);
+-		i--;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, -1);
+-	KUNIT_EXPECT_TRUE(test, list_empty(&list));
+-}
+-
+-static void list_test_list_for_each_entry(struct kunit *test)
+-{
+-	struct list_test_struct entries[5], *cur;
+-	LIST_HEAD(list);
+-	int i = 0;
+-
+-	for (i = 0; i < 5; ++i) {
+-		entries[i].data = i;
+-		list_add_tail(&entries[i].list, &list);
+-	}
+-
+-	i = 0;
+-
+-	list_for_each_entry(cur, &list, list) {
+-		KUNIT_EXPECT_EQ(test, cur->data, i);
+-		i++;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, 5);
+-}
+-
+-static void list_test_list_for_each_entry_reverse(struct kunit *test)
+-{
+-	struct list_test_struct entries[5], *cur;
+-	LIST_HEAD(list);
+-	int i = 0;
+-
+-	for (i = 0; i < 5; ++i) {
+-		entries[i].data = i;
+-		list_add_tail(&entries[i].list, &list);
+-	}
+-
+-	i = 4;
+-
+-	list_for_each_entry_reverse(cur, &list, list) {
+-		KUNIT_EXPECT_EQ(test, cur->data, i);
+-		i--;
+-	}
+-
+-	KUNIT_EXPECT_EQ(test, i, -1);
+-}
+-
+-static struct kunit_case list_test_cases[] = {
+-	KUNIT_CASE(list_test_list_init),
+-	KUNIT_CASE(list_test_list_add),
+-	KUNIT_CASE(list_test_list_add_tail),
+-	KUNIT_CASE(list_test_list_del),
+-	KUNIT_CASE(list_test_list_replace),
+-	KUNIT_CASE(list_test_list_replace_init),
+-	KUNIT_CASE(list_test_list_swap),
+-	KUNIT_CASE(list_test_list_del_init),
+-	KUNIT_CASE(list_test_list_move),
+-	KUNIT_CASE(list_test_list_move_tail),
+-	KUNIT_CASE(list_test_list_bulk_move_tail),
+-	KUNIT_CASE(list_test_list_is_first),
+-	KUNIT_CASE(list_test_list_is_last),
+-	KUNIT_CASE(list_test_list_empty),
+-	KUNIT_CASE(list_test_list_empty_careful),
+-	KUNIT_CASE(list_test_list_rotate_left),
+-	KUNIT_CASE(list_test_list_rotate_to_front),
+-	KUNIT_CASE(list_test_list_is_singular),
+-	KUNIT_CASE(list_test_list_cut_position),
+-	KUNIT_CASE(list_test_list_cut_before),
+-	KUNIT_CASE(list_test_list_splice),
+-	KUNIT_CASE(list_test_list_splice_tail),
+-	KUNIT_CASE(list_test_list_splice_init),
+-	KUNIT_CASE(list_test_list_splice_tail_init),
+-	KUNIT_CASE(list_test_list_entry),
+-	KUNIT_CASE(list_test_list_first_entry),
+-	KUNIT_CASE(list_test_list_last_entry),
+-	KUNIT_CASE(list_test_list_first_entry_or_null),
+-	KUNIT_CASE(list_test_list_next_entry),
+-	KUNIT_CASE(list_test_list_prev_entry),
+-	KUNIT_CASE(list_test_list_for_each),
+-	KUNIT_CASE(list_test_list_for_each_prev),
+-	KUNIT_CASE(list_test_list_for_each_safe),
+-	KUNIT_CASE(list_test_list_for_each_prev_safe),
+-	KUNIT_CASE(list_test_list_for_each_entry),
+-	KUNIT_CASE(list_test_list_for_each_entry_reverse),
+-	{},
+-};
+-
+-static struct kunit_suite list_test_module = {
+-	.name = "list-kunit-test",
+-	.test_cases = list_test_cases,
+-};
+-
+-kunit_test_suites(&list_test_module);
+-
+-MODULE_LICENSE("GPL v2");
+--- a/lib/Makefile~lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests
++++ a/lib/Makefile
+@@ -349,6 +349,6 @@ obj-$(CONFIG_PLDMFW) += pldmfw/
  
- int get_option(char **str, int *pint)
-@@ -53,7 +56,10 @@ int get_option(char **str, int *pint)
- 
- 	if (!cur || !(*cur))
- 		return 0;
--	*pint = simple_strtol(cur, str, 0);
-+	if (*cur == '-')
-+		*pint = -simple_strtoull(++cur, str, 0);
-+	else
-+		*pint = simple_strtoull(cur, str, 0);
- 	if (cur == *str)
- 		return 0;
- 	if (**str == ',') {
+ # KUnit tests
+ obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
++obj-$(CONFIG_BITS_TEST) += bits_kunit.o
+ obj-$(CONFIG_LINEAR_RANGES_TEST) += linear_ranges_kunit.o
+ obj-$(CONFIG_LIST_KUNIT_TEST) += list_kunit.o
+-obj-$(CONFIG_BITS_TEST) += test_bits.o
+--- a/lib/test_bits.c
++++ /dev/null
+@@ -1,75 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0+
+-/*
+- * Test cases for functions and macros in bits.h
+- */
+-
+-#include <kunit/test.h>
+-#include <linux/bits.h>
+-
+-
+-static void genmask_test(struct kunit *test)
+-{
+-	KUNIT_EXPECT_EQ(test, 1ul, GENMASK(0, 0));
+-	KUNIT_EXPECT_EQ(test, 3ul, GENMASK(1, 0));
+-	KUNIT_EXPECT_EQ(test, 6ul, GENMASK(2, 1));
+-	KUNIT_EXPECT_EQ(test, 0xFFFFFFFFul, GENMASK(31, 0));
+-
+-#ifdef TEST_GENMASK_FAILURES
+-	/* these should fail compilation */
+-	GENMASK(0, 1);
+-	GENMASK(0, 10);
+-	GENMASK(9, 10);
+-#endif
+-
+-
+-}
+-
+-static void genmask_ull_test(struct kunit *test)
+-{
+-	KUNIT_EXPECT_EQ(test, 1ull, GENMASK_ULL(0, 0));
+-	KUNIT_EXPECT_EQ(test, 3ull, GENMASK_ULL(1, 0));
+-	KUNIT_EXPECT_EQ(test, 0x000000ffffe00000ull, GENMASK_ULL(39, 21));
+-	KUNIT_EXPECT_EQ(test, 0xffffffffffffffffull, GENMASK_ULL(63, 0));
+-
+-#ifdef TEST_GENMASK_FAILURES
+-	/* these should fail compilation */
+-	GENMASK_ULL(0, 1);
+-	GENMASK_ULL(0, 10);
+-	GENMASK_ULL(9, 10);
+-#endif
+-}
+-
+-static void genmask_input_check_test(struct kunit *test)
+-{
+-	unsigned int x, y;
+-	int z, w;
+-
+-	/* Unknown input */
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(x, 0));
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(0, x));
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(x, y));
+-
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(z, 0));
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(0, z));
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(z, w));
+-
+-	/* Valid input */
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(1, 1));
+-	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(39, 21));
+-}
+-
+-
+-static struct kunit_case bits_test_cases[] = {
+-	KUNIT_CASE(genmask_test),
+-	KUNIT_CASE(genmask_ull_test),
+-	KUNIT_CASE(genmask_input_check_test),
+-	{}
+-};
+-
+-static struct kunit_suite bits_test_suite = {
+-	.name = "bits-test",
+-	.test_cases = bits_test_cases,
+-};
+-kunit_test_suite(bits_test_suite);
+-
+-MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
