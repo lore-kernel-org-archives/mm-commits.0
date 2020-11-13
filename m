@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B0F2C2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 00:36:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B310FC2D0E4
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 00:41:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B3FF20709
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 00:36:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38BCD2078D
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 00:41:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="R6b2DFDx"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="ya6y7DA4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725972AbgKMAgd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 19:36:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46724 "EHLO mail.kernel.org"
+        id S1725965AbgKMAlY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 19:41:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725894AbgKMAgb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 19:36:31 -0500
+        id S1725894AbgKMAlY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 19:41:24 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DF8AD206CA;
-        Fri, 13 Nov 2020 00:36:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C8A352074B;
+        Fri, 13 Nov 2020 00:41:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605227791;
-        bh=/bfo6cNlyP7B2ltk1vKAzEZRTyvzKNhvMZ+zAovxyGQ=;
+        s=default; t=1605228084;
+        bh=sbL1pI1aRx9IWo0lr0Ueu1Ir0lnsdBaimMzWyQghxyc=;
         h=Date:From:To:Subject:From;
-        b=R6b2DFDxcLMv7DwKOHQiyM50+IujMNGOcRqXsB+CrIWlmEiu1/+2MfNjHe4qnh5dH
-         6fH43IjaXvNq2yKWxC6Efw5pCVrSP6m3NtbHyhC6gL4MXmnRJti7+BjXxef1hwvzim
-         Fy6HACiv5qKx+dUGMpDgOC37D9Lltn4JL1+v2NzY=
-Date:   Thu, 12 Nov 2020 16:36:30 -0800
+        b=ya6y7DA4ip0638gv1EjSi4aoYR5eYlIZgoJ1IJXJBgu/OC0t6M1M/3EW1hkhAgfXw
+         BsjKBU3ERB2V6q76KCv/ODszht58gqVWouPujuDl41RzUuu7XqGfQMtxPn9xYPeIGr
+         mQT8wzAgk4NfF5k8ws7KzWn/viZSvZEbYjCCFhLc=
+Date:   Thu, 12 Nov 2020 16:41:23 -0800
 From:   akpm@linux-foundation.org
-To:     jlayton@kernel.org, mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + mm-remove-pagevec_lookup_range_nr_tag.patch added to
- -mm tree
-Message-ID: <20201113003630.wBjXpQeJv%akpm@linux-foundation.org>
+To:     borntraeger@de.ibm.com, hch@lst.de, mm-commits@vger.kernel.org,
+        ndesaulniers@google.com, sfr@canb.auug.org.au
+Subject:  + mm-simplify-follow_ptepmd-fix.patch added to -mm tree
+Message-ID: <20201113004123.PRr8zUdrT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove pagevec_lookup_range_nr_tag()
+     Subject: merge fix for "s390/pci: remove races against pte updates"
 has been added to the -mm tree.  Its filename is
-     mm-remove-pagevec_lookup_range_nr_tag.patch
+     mm-simplify-follow_ptepmd-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-pagevec_lookup_range_nr_tag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-follow_ptepmd-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-pagevec_lookup_range_nr_tag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-follow_ptepmd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,55 +68,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@kernel.org>
-Subject: mm: remove pagevec_lookup_range_nr_tag()
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: merge fix for "s390/pci: remove races against pte updates"
 
-With the merge of 2e1692966034 ("ceph: have ceph_writepages_start call
-pagevec_lookup_range_tag"), nothing calls this anymore.
-
-Link: https://lkml.kernel.org/r/20201021193926.101474-1-jlayton@kernel.org
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20201111221254.7f6a3658@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    3 ---
- mm/swap.c               |    9 ---------
- 2 files changed, 12 deletions(-)
+ arch/s390/pci/pci_mmio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagevec.h~mm-remove-pagevec_lookup_range_nr_tag
-+++ a/include/linux/pagevec.h
-@@ -43,9 +43,6 @@ static inline unsigned pagevec_lookup(st
- unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
- 		struct address_space *mapping, pgoff_t *index, pgoff_t end,
- 		xa_mark_t tag);
--unsigned pagevec_lookup_range_nr_tag(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *index, pgoff_t end,
--		xa_mark_t tag, unsigned max_pages);
- static inline unsigned pagevec_lookup_tag(struct pagevec *pvec,
- 		struct address_space *mapping, pgoff_t *index, xa_mark_t tag)
- {
---- a/mm/swap.c~mm-remove-pagevec_lookup_range_nr_tag
-+++ a/mm/swap.c
-@@ -1167,15 +1167,6 @@ unsigned pagevec_lookup_range_tag(struct
- }
- EXPORT_SYMBOL(pagevec_lookup_range_tag);
+--- a/arch/s390/pci/pci_mmio.c~mm-simplify-follow_ptepmd-fix
++++ a/arch/s390/pci/pci_mmio.c
+@@ -173,7 +173,7 @@ SYSCALL_DEFINE3(s390_pci_mmio_write, uns
+ 	if (!(vma->vm_flags & VM_WRITE))
+ 		goto out_unlock_mmap;
  
--unsigned pagevec_lookup_range_nr_tag(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *index, pgoff_t end,
--		xa_mark_t tag, unsigned max_pages)
--{
--	pvec->nr = find_get_pages_range_tag(mapping, index, end, tag,
--		min_t(unsigned int, max_pages, PAGEVEC_SIZE), pvec->pages);
--	return pagevec_count(pvec);
--}
--EXPORT_SYMBOL(pagevec_lookup_range_nr_tag);
- /*
-  * Perform any setup for the swap system
-  */
+-	ret = follow_pte_pmd(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
++	ret = follow_pte(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
+ 	if (ret)
+ 		goto out_unlock_mmap;
+ 
+@@ -317,7 +317,7 @@ SYSCALL_DEFINE3(s390_pci_mmio_read, unsi
+ 	if (!(vma->vm_flags & VM_WRITE))
+ 		goto out_unlock_mmap;
+ 
+-	ret = follow_pte_pmd(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
++	ret = follow_pte(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
+ 	if (ret)
+ 		goto out_unlock_mmap;
+ 
 _
 
-Patches currently in -mm which might be from jlayton@kernel.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-remove-pagevec_lookup_range_nr_tag.patch
+kernelh-split-out-mathematical-helpers-fix.patch
+mm-simplify-follow_ptepmd-fix.patch
+kasan-split-out-shadowc-from-commonc-fix2.patch
 
