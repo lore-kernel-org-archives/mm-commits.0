@@ -7,41 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D28D8C55ABD
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:42:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 388D3C4742C
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:42:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 882A722260
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:42:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D229C22260
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:42:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="RbrRnbh1"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="l8qo73zR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726028AbgKMXmd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Nov 2020 18:42:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53490 "EHLO mail.kernel.org"
+        id S1726042AbgKMXmh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Nov 2020 18:42:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53520 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726020AbgKMXmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 13 Nov 2020 18:42:33 -0500
+        id S1726020AbgKMXmg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 13 Nov 2020 18:42:36 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DEBC22225E;
-        Fri, 13 Nov 2020 23:42:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0CE062225D;
+        Fri, 13 Nov 2020 23:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605310952;
-        bh=NmWqDcA3m8Al1eRUpmFzlfX8sqd9ZTVNc40HIXlU26o=;
+        s=default; t=1605310955;
+        bh=ZtWIhM+ccReK0zNYi8lf1qz/081fGLDcJThiDJ6lkkc=;
         h=Date:From:To:Subject:From;
-        b=RbrRnbh1YbrBkP6vWAcXicM8jYpDVOJtLmxPqyu22Du0oGrpXc4pRx1iWm0qcTMwB
-         h70tS+TawNn/uHbxl//6lvkvmKfrmmLroydrG97p+PUwkx3Y3AcYmiIh9njQcHEsbU
-         8On/aIROQDJUFDdL/sFlEVgUDC4WXz1cGvy6A62c=
-Date:   Fri, 13 Nov 2020 15:42:31 -0800
+        b=l8qo73zR8lp0WBi3ai8O9twpm6v4GkerYLuTopPKTsavJL1Y2ZVE6CUeSGq0tENTa
+         DPwoV7Q6ZI8wjXPQcwxTXF4HGJdQ+KAZ8hVlUFIe7SZ+Zwj2ceu+2fxGc1IyrWqGW5
+         m6E0ukl6Qxro//RRMkWumLUUQhmpO+av4i/a1p1A=
+Date:   Fri, 13 Nov 2020 15:42:34 -0800
 From:   akpm@linux-foundation.org
 To:     jack@suse.cz, mgorman@suse.de, mhocko@suse.com,
         mm-commits@vger.kernel.org, shy828301@gmail.com,
         songliubraving@fb.com, willy@infradead.org, ziy@nvidia.com
 Subject:  +
- mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch added to
- -mm tree
-Message-ID: <20201113234231.IIRD1bYL1%akpm@linux-foundation.org>
+ mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch added to -mm tree
+Message-ID: <20201113234234.O27X3ZkvF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: simplify the logic for handling permanent failure
+     Subject: mm: migrate: skip shared exec THP for NUMA balancing
 has been added to the -mm tree.  Its filename is
-     mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch
+     mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,197 +71,82 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: migrate: simplify the logic for handling permanent failure
+Subject: mm: migrate: skip shared exec THP for NUMA balancing
 
-When unmap_and_move{_huge_page}() returns !-EAGAIN and
-!MIGRATEPAGE_SUCCESS, the page would be put back to LRU or proper list if
-it is non-LRU movable page.  But, the callers always call
-putback_movable_pages() to put the failed pages back later on, so it seems
-not very efficient to put every single page back immediately, and the code
-looks convoluted.
+The NUMA balancing skip shared exec base page.  Since
+CONFIG_READ_ONLY_THP_FOR_FS was introduced, there are probably shared exec
+THP, so skip such THPs for NUMA balancing as well.
 
-Put the failed page on a separate list, then splice the list to migrate
-list when all pages are tried.  It is the caller's responsibility to call
-putback_movable_pages() to handle failures.  This also makes the code
-simpler and more readable.
+And Willy's regular filesystem THP support patches could create shared
+exec THP wven without that config.
 
-After the change the rules are:
-    * Success: non hugetlb page will be freed, hugetlb page will be put
-               back
-    * -EAGAIN: stay on the from list
-    * -ENOMEM: stay on the from list
-    * Other errno: put on ret_pages list then splice to from list
+In addition, the page_is_file_lru() is used to tell if the page is file
+cache or not, but it filters out shmem page.  It sounds like a typical
+usecase by putting executables in shmem to achieve performance gain via
+using shmem-THP, so it sounds worth skipping migration for such case too.
 
-The from list would be empty iff all pages are migrated successfully, it
-was not so before.  This has no impact to current existing callsites.
-
-Link: https://lkml.kernel.org/r/20201113205359.556831-3-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20201113205359.556831-4-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Song Liu <songliubraving@fb.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   68 +++++++++++++++++++++++++++----------------------
- 1 file changed, 38 insertions(+), 30 deletions(-)
+ mm/migrate.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-simplify-the-logic-for-handling-permanent-failure
+--- a/mm/migrate.c~mm-migrate-skip-shared-exec-thp-for-numa-balancing
 +++ a/mm/migrate.c
-@@ -1168,7 +1168,8 @@ static int unmap_and_move(new_page_t get
- 				   free_page_t put_new_page,
- 				   unsigned long private, struct page *page,
- 				   int force, enum migrate_mode mode,
--				   enum migrate_reason reason)
-+				   enum migrate_reason reason,
-+				   struct list_head *ret)
- {
- 	int rc = MIGRATEPAGE_SUCCESS;
- 	struct page *newpage = NULL;
-@@ -1205,7 +1206,14 @@ out:
- 		 * migrated will have kept its references and be restored.
- 		 */
- 		list_del(&page->lru);
-+	}
+@@ -2071,6 +2071,17 @@ bool pmd_trans_migrating(pmd_t pmd)
+ 	return PageLocked(page);
+ }
  
-+	/*
-+	 * If migration is successful, releases reference grabbed during
-+	 * isolation. Otherwise, restore the page to right list unless
-+	 * we want to retry.
-+	 */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
- 		/*
- 		 * Compaction can migrate also non-LRU pages which are
- 		 * not accounted to NR_ISOLATED_*. They can be recognized
-@@ -1214,35 +1222,16 @@ out:
- 		if (likely(!__PageMovable(page)))
- 			mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON +
- 					page_is_file_lru(page), -thp_nr_pages(page));
--	}
- 
--	/*
--	 * If migration is successful, releases reference grabbed during
--	 * isolation. Otherwise, restore the page to right list unless
--	 * we want to retry.
--	 */
--	if (rc == MIGRATEPAGE_SUCCESS) {
- 		if (reason != MR_MEMORY_FAILURE)
- 			/*
- 			 * We release the page in page_handle_poison.
- 			 */
- 			put_page(page);
- 	} else {
--		if (rc != -EAGAIN) {
--			if (likely(!__PageMovable(page))) {
--				putback_lru_page(page);
--				goto put_new;
--			}
-+		if (rc != -EAGAIN)
-+			list_add_tail(&page->lru, ret);
- 
--			lock_page(page);
--			if (PageMovable(page))
--				putback_movable_page(page);
--			else
--				__ClearPageIsolated(page);
--			unlock_page(page);
--			put_page(page);
--		}
--put_new:
- 		if (put_new_page)
- 			put_new_page(newpage, private);
- 		else
-@@ -1273,7 +1262,8 @@ put_new:
- static int unmap_and_move_huge_page(new_page_t get_new_page,
- 				free_page_t put_new_page, unsigned long private,
- 				struct page *hpage, int force,
--				enum migrate_mode mode, int reason)
-+				enum migrate_mode mode, int reason,
-+				struct list_head *ret)
- {
- 	int rc = -EAGAIN;
- 	int page_was_mapped = 0;
-@@ -1289,7 +1279,7 @@ static int unmap_and_move_huge_page(new_
- 	 * kicking migration.
++static inline bool is_shared_exec_page(struct vm_area_struct *vma,
++				       struct page *page)
++{
++	if (page_mapcount(page) != 1 &&
++	    (page_is_file_lru(page) || vma_is_shmem(vma)) &&
++	    (vma->vm_flags & VM_EXEC))
++		return true;
++
++	return false;
++}
++
+ /*
+  * Attempt to migrate a misplaced page to the specified destination
+  * node. Caller is expected to have an elevated reference count on
+@@ -2088,8 +2099,7 @@ int migrate_misplaced_page(struct page *
+ 	 * Don't migrate file pages that are mapped in multiple processes
+ 	 * with execute permissions as they are probably shared libraries.
  	 */
- 	if (!hugepage_migration_supported(page_hstate(hpage))) {
--		putback_active_hugepage(hpage);
-+		list_move_tail(&hpage->lru, ret);
- 		return -ENOSYS;
- 	}
- 
-@@ -1374,8 +1364,10 @@ put_anon:
- out_unlock:
- 	unlock_page(hpage);
- out:
--	if (rc != -EAGAIN)
-+	if (rc == MIGRATEPAGE_SUCCESS)
- 		putback_active_hugepage(hpage);
-+	else if (rc != -EAGAIN && rc != MIGRATEPAGE_SUCCESS)
-+		list_move_tail(&hpage->lru, ret);
+-	if (page_mapcount(page) != 1 && page_is_file_lru(page) &&
+-	    (vma->vm_flags & VM_EXEC))
++	if (is_shared_exec_page(vma, page))
+ 		goto out;
  
  	/*
- 	 * If migration was not successful and there's a freeing callback, use
-@@ -1406,8 +1398,8 @@ out:
-  *
-  * The function returns after 10 attempts or if no pages are movable any more
-  * because the list has become empty or no retryable pages exist any more.
-- * The caller should call putback_movable_pages() to return pages to the LRU
-- * or free list only if ret != 0.
-+ * It is caller's responsibility to call putback_movable_pages() to return pages
-+ * to the LRU or free list only if ret != 0.
-  *
-  * Returns the number of pages that were not migrated, or an error code.
-  */
-@@ -1428,6 +1420,7 @@ int migrate_pages(struct list_head *from
- 	struct page *page2;
- 	int swapwrite = current->flags & PF_SWAPWRITE;
- 	int rc, nr_subpages;
-+	LIST_HEAD(ret_pages);
+@@ -2144,6 +2154,9 @@ int migrate_misplaced_transhuge_page(str
+ 	int page_lru = page_is_file_lru(page);
+ 	unsigned long start = address & HPAGE_PMD_MASK;
  
- 	if (!swapwrite)
- 		current->flags |= PF_SWAPWRITE;
-@@ -1450,12 +1443,21 @@ retry:
- 			if (PageHuge(page))
- 				rc = unmap_and_move_huge_page(get_new_page,
- 						put_new_page, private, page,
--						pass > 2, mode, reason);
-+						pass > 2, mode, reason,
-+						&ret_pages);
- 			else
- 				rc = unmap_and_move(get_new_page, put_new_page,
- 						private, page, pass > 2, mode,
--						reason);
--
-+						reason, &ret_pages);
-+			/*
-+			 * The rules are:
-+			 *	Success: non hugetlb page will be freed, hugetlb
-+			 *		 page will be put back
-+			 *	-EAGAIN: stay on the from list
-+			 *	-ENOMEM: stay on the from list
-+			 *	Other errno: put on ret_pages list then splice to
-+			 *		     from list
-+			 */
- 			switch(rc) {
- 			case -ENOMEM:
- 				/*
-@@ -1521,6 +1523,12 @@ retry:
- 	nr_thp_failed += thp_retry;
- 	rc = nr_failed;
- out:
-+	/*
-+	 * Put the permanent failure page back to migration list, they
-+	 * will be put back to the right list by the caller.
-+	 */
-+	list_splice(&ret_pages, from);
++	if (is_shared_exec_page(vma, page))
++		goto out;
 +
- 	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
- 	count_vm_events(PGMIGRATE_FAIL, nr_failed);
- 	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
+ 	new_page = alloc_pages_node(node,
+ 		(GFP_TRANSHUGE_LIGHT | __GFP_THISNODE),
+ 		HPAGE_PMD_ORDER);
+@@ -2255,6 +2268,7 @@ out_fail:
+ 
+ out_unlock:
+ 	unlock_page(page);
++out:
+ 	put_page(page);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
