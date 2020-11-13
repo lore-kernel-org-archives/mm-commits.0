@@ -7,39 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C52CFC2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 02:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACB0DC388F9
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 04:00:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4AF7420B80
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 02:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3ECC922244
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 04:00:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="C9j2L/X2"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="j5JaS8iM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726011AbgKMC5h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 21:57:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54948 "EHLO mail.kernel.org"
+        id S1726069AbgKMEA0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 23:00:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725965AbgKMC5h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 21:57:37 -0500
+        id S1726054AbgKMEA0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 23:00:26 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C927920A8B;
-        Fri, 13 Nov 2020 02:57:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E411422241;
+        Fri, 13 Nov 2020 04:00:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605236256;
-        bh=ouIC4kVC0kon0+/jQePoElttMqRWefLUOoI/7/jRgfQ=;
+        s=default; t=1605240025;
+        bh=CHq4fZJaPIHsiwsizGeWZOZqXGOdukPeUXd4tDDqu9A=;
         h=Date:From:To:Subject:From;
-        b=C9j2L/X27lQbXkHTUodDJCaqo076DxAGFkSZex9+HLIW/y1+bt4v+k/KnoiqFiEuT
-         8LzdYsN8LpMAD6X7Zf95Ey8kkl/jwkMM53OoBweb5A3h7cYRKNIbUmKy3UoDSrYQdD
-         9mrKzihq18zQqayVnyyFtWf4+oN+opiRhq3zuUjM=
-Date:   Thu, 12 Nov 2020 18:57:36 -0800
+        b=j5JaS8iMNJs7FIuVI0QDGkGOE8/W/cXH5PSoSPJ9Gq1PckMsBhVH77R4oOF6itpnS
+         6KJUdIkfFN99+1GoTPGoggnhl4LCpjToR+MNZvIJ4I88E75A2O7f7TsqED3cNNQBrX
+         X471kAFt1IJIbZj4xj4P1QAtj0hZySofB/qYIo7k=
+Date:   Thu, 12 Nov 2020 20:00:23 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        brendanhiggins@google.com, broonie@kernel.org, davidgow@google.com,
+        matti.vaittinen@fi.rohmeurope.com, mm-commits@vger.kernel.org,
+        skhan@linuxfoundation.org, vitor@massaru.org
 Subject:  +
- set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch added
- to -mm tree
-Message-ID: <20201113025736.M7M99HOiA%akpm@linux-foundation.org>
+ lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch added to
+ -mm tree
+Message-ID: <20201113040023.Hpz_yLeg3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix
+     Subject: lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix
 has been added to the -mm tree.  Its filename is
-     set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,25 +73,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix
+Subject: lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix
 
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Vitor Massaru Iha <vitor@massaru.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/cmdline_kunit.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/power/snapshot.c~set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix
-+++ a/kernel/power/snapshot.c
-@@ -99,7 +99,7 @@ static inline void hibernate_unmap_page(
- {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
- 		unsigned long addr = (unsigned long)page_address(page);
--		int ret  = set_direct_map_invalid_noflush(page);
-+		int ret = set_direct_map_invalid_noflush(page, 1);
+--- a/lib/cmdline_kunit.c~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix
++++ a/lib/cmdline_kunit.c
+@@ -13,19 +13,19 @@ static const char *cmdline_test_strings[
+ 	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
+ };
  
- 		if (ret)
- 			pr_warn_once("Failed to remap page\n");
+-static const char *cmdline_test_values[] = {
++static const char cmdline_test_values[] = {
+ 	1, 1, 1, 1, 2, 3, 2, 3,
+ 	1, 3, 2, 1, 1, 1, 3, 1,
+ };
+ 
+-static void cmdline_do_one_test(struct kunit *test, char *in, int rc, int offset)
++static void cmdline_do_one_test(struct kunit *test, const char *in, int rc, int offset)
+ {
+ 	const char *fmt = "Pattern: %s";
+-	char *out = in;
++	const char *out = in;
+ 	int dummy;
+ 	int ret;
+ 
+-	ret = get_option(&out, &dummy);
++	ret = get_option((char **)&out, &dummy);
+ 
+ 	KUNIT_EXPECT_EQ_MSG(test, ret, rc, fmt, in);
+ 	KUNIT_EXPECT_PTR_EQ_MSG(test, out, in + offset, fmt, in);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +124,7 @@ mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
 mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
 mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
 mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
 lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
 linux-next-rejects.patch
 kasan-split-out-shadowc-from-commonc-fix.patch
