@@ -7,39 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CFAC5519F
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 01:35:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6138CC5519F
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 02:53:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C302322243
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 01:35:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0772B221E9
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 02:53:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="JQbnqQPt"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="YevW5T5o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726146AbgKMBfH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Nov 2020 20:35:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43968 "EHLO mail.kernel.org"
+        id S1726302AbgKMCxr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Nov 2020 21:53:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgKMBfG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Nov 2020 20:35:06 -0500
+        id S1725965AbgKMCxr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Nov 2020 21:53:47 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 93FCE21D7F;
-        Fri, 13 Nov 2020 01:35:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5185721D46;
+        Fri, 13 Nov 2020 02:53:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605231305;
-        bh=SYLuI0Tkw4u869R4PhGwMaE56fqE2NGfV/bm0mI8Bis=;
+        s=default; t=1605236025;
+        bh=7gFkyPD2JXvF0KQ+cov1HtxGtqBkFwtdhogq/Yj31qY=;
         h=Date:From:To:Subject:From;
-        b=JQbnqQPtYGyXXGJEtffWn1u/zeu+LLt7y2D2ZB+N5VbGQsDmk4NLZYkF3NgnxSy0f
-         dZos9ljBMKejeTpu4f+HC+WKFOfYHRPvccErS4wC51Z+6o+4EXYVn2E4R9S6GwtL2n
-         Qt9CClr2Y4lBf4GfLTLp0gMIrg6eSXMHN5Nff/KA=
-Date:   Thu, 12 Nov 2020 17:35:05 -0800
+        b=YevW5T5o729WH74cUM/0pHVUGXt0qpMXnL601j7Da74INZHtABvrFNBk6aEPgnxb0
+         Xt9zGAlNx+zx58GElLyzEGajBeeO3cF06Lcq8vzIIFyCQZsrjfQHfHsTokyIT5huN4
+         rr05LFqPJiR67lWLovQxsYZKys0J/HYCEIzNOOTo=
+Date:   Thu, 12 Nov 2020 18:53:44 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com
-Subject:  + secretmem-add-memcg-accounting-fix.patch added to -mm
- tree
-Message-ID: <20201113013505.VoHo-IQ-e%akpm@linux-foundation.org>
+To:     ansuelsmth@gmail.com, catalin.marinas@arm.com,
+        mark.rutland@arm.com, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, stable@vger.kernel.org, will@kernel.org
+Subject:  [alternative-merged]
+ arm64-fix-missing-include-in-asm-uaccessh.patch removed from -mm tree
+Message-ID: <20201113025344.1CLnIBTM8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,65 +49,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: secretmem-add-memcg-accounting-fix
-has been added to the -mm tree.  Its filename is
-     secretmem-add-memcg-accounting-fix.patch
+     Subject: arm64: fix missing include in asm/uaccess.h
+has been removed from the -mm tree.  Its filename was
+     arm64-fix-missing-include-in-asm-uaccessh.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/secretmem-add-memcg-accounting-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/secretmem-add-memcg-accounting-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: secretmem-add-memcg-accounting-fix
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Subject: arm64: fix missing include in asm/uaccess.h
 
-fix CONFIG_MEMCG=n build
+Fix a compilation error as PF_KTHREAD is defined in linux/sched.h and this
+is missing.
 
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+[viro@zeniv.linux.org.uk: use linux/uaccess.h]
+  Link: https://lkml.kernel.org/r/20201111005826.GY3576660@ZenIV.linux.org.uk
+Link: https://lkml.kernel.org/r/20201111004440.8783-1-ansuelsmth@gmail.com
+Fixes: df325e05a682 ("arm64: Validate tagged addresses in access_ok() called from kernel threads")
+Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/uaccess.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/filemap.c~secretmem-add-memcg-accounting-fix
-+++ a/mm/filemap.c
-@@ -844,7 +844,7 @@ static noinline int __add_to_page_cache_
- 	page->mapping = mapping;
- 	page->index = offset;
+--- a/arch/arm64/include/asm/uaccess.h~arm64-fix-missing-include-in-asm-uaccessh
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -7,6 +7,8 @@
+ #ifndef __ASM_UACCESS_H
+ #define __ASM_UACCESS_H
  
--	if (!huge && !page->memcg_data) {
-+	if (!huge && !page_memcg(page)) {
- 		error = mem_cgroup_charge(page, current->mm, gfp);
- 		if (error)
- 			goto error;
++#include <linux/uaccess.h>
++
+ #include <asm/alternative.h>
+ #include <asm/kernel-pgtable.h>
+ #include <asm/sysreg.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ansuelsmth@gmail.com are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-linux-next-rejects.patch
-kasan-split-out-shadowc-from-commonc-fix.patch
-kasan-mm-check-kasan_enabled-in-annotations-fix.patch
-kasan-mm-rename-kasan_poison_kfree-temp-fix.patch
-secretmem-add-memcg-accounting-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
