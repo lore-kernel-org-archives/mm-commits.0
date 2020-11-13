@@ -7,40 +7,41 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D850EC55ABD
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:43:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75075C6369E
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:43:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 865282225D
-	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:43:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 405D72225E
+	for <mm-commits@archiver.kernel.org>; Fri, 13 Nov 2020 23:43:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="wsyqDZjA"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="1KzG4/ky"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726177AbgKMXmj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Nov 2020 18:42:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53566 "EHLO mail.kernel.org"
+        id S1726020AbgKMXmm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Nov 2020 18:42:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726061AbgKMXmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 13 Nov 2020 18:42:39 -0500
+        id S1726064AbgKMXmm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 13 Nov 2020 18:42:42 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 09F0122261;
-        Fri, 13 Nov 2020 23:42:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D971F22263;
+        Fri, 13 Nov 2020 23:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605310958;
-        bh=IzHvyzkuywsY/FlUEvUfq4wVqpfO/PcUZJiylRj7Mz8=;
+        s=default; t=1605310961;
+        bh=dqKbc50NG4ZwSm7W9EMfzFijK5Jn2Pgot7tIgxOhkzs=;
         h=Date:From:To:Subject:From;
-        b=wsyqDZjANV3k9R0sJ1LEfXhBk9B+wdugCjw4rGQgvFn2EjKZcgA9eLPvl73lzhYo5
-         Op31K20yd40kN7q7i6wsZbKd0xaQJrd/wUUZAKNqYbm18xGBmr5+DI2/PpX8iCpCZP
-         o0CvWnnDqR9XOjnqVHCW4OSbBQOYIV1wb4UNcITw=
-Date:   Fri, 13 Nov 2020 15:42:37 -0800
+        b=1KzG4/kyF3PZ0lCG7QWXgBT9VZkSgivoFu1jmIOk1leuK2OarfmE0PLLrNtPusaqQ
+         udTTEzQyFa+byGimYEFaMCf5V1cVKz7AyZfkV1+JXldE3yffZZCfRFTgZillw3rkuX
+         hOOOc2zFLcGp/jEc+RLUv7LMLSDVD6FUrMW5/aaM=
+Date:   Fri, 13 Nov 2020 15:42:40 -0800
 From:   akpm@linux-foundation.org
 To:     jack@suse.cz, mgorman@suse.de, mhocko@suse.com,
         mm-commits@vger.kernel.org, shy828301@gmail.com,
         songliubraving@fb.com, willy@infradead.org, ziy@nvidia.com
-Subject:  + mm-migrate-clean-up-migrate_prep_local.patch added to
- -mm tree
-Message-ID: <20201113234237.A0wD8MqkB%akpm@linux-foundation.org>
+Subject:  +
+ mm-migrate-return-enosys-if-thp-migration-is-unsupported.patch added to -mm
+ tree
+Message-ID: <20201113234240.Mm4g_F3Z9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: clean up migrate_prep{_local}
+     Subject: mm: migrate: return -ENOSYS if THP migration is unsupported
 has been added to the -mm tree.  Its filename is
-     mm-migrate-clean-up-migrate_prep_local.patch
+     mm-migrate-return-enosys-if-thp-migration-is-unsupported.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-clean-up-migrate_prep_local.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-return-enosys-if-thp-migration-is-unsupported.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-clean-up-migrate_prep_local.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-return-enosys-if-thp-migration-is-unsupported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,93 +72,129 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: migrate: clean up migrate_prep{_local}
+Subject: mm: migrate: return -ENOSYS if THP migration is unsupported
 
-The migrate_prep{_local} never fails, so it is pointless to have return
-value and check the return value.
+In the current implementation unmap_and_move() would return -ENOMEM if THP
+migration is unsupported, then the THP will be split.  If split is failed
+just exit without trying to migrate other pages.  It doesn't make too much
+sense since there may be enough free memory to migrate other pages and
+there may be a lot base pages on the list.
 
-Link: https://lkml.kernel.org/r/20201113205359.556831-5-shy828301@gmail.com
+Return -ENOSYS to make consistent with hugetlb.  And if THP split is
+failed just skip and try other pages on the list.
+
+Just skip the whole list and exit when free memory is really low.
+
+Link: https://lkml.kernel.org/r/20201113205359.556831-6-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Song Liu <songliubraving@fb.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 ++--
- mm/mempolicy.c          |    8 ++------
- mm/migrate.c            |    8 ++------
- 3 files changed, 6 insertions(+), 14 deletions(-)
+ mm/migrate.c |   62 ++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 46 insertions(+), 16 deletions(-)
 
---- a/include/linux/migrate.h~mm-migrate-clean-up-migrate_prep_local
-+++ a/include/linux/migrate.h
-@@ -45,8 +45,8 @@ extern struct page *alloc_migration_targ
- extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
- extern void putback_movable_page(struct page *page);
- 
--extern int migrate_prep(void);
--extern int migrate_prep_local(void);
-+extern void migrate_prep(void);
-+extern void migrate_prep_local(void);
- extern void migrate_page_states(struct page *newpage, struct page *page);
- extern void migrate_page_copy(struct page *newpage, struct page *page);
- extern int migrate_huge_page_move_mapping(struct address_space *mapping,
---- a/mm/mempolicy.c~mm-migrate-clean-up-migrate_prep_local
-+++ a/mm/mempolicy.c
-@@ -1114,9 +1114,7 @@ int do_migrate_pages(struct mm_struct *m
- 	int err;
- 	nodemask_t tmp;
- 
--	err = migrate_prep();
--	if (err)
--		return err;
-+	migrate_prep();
- 
- 	mmap_read_lock(mm);
- 
-@@ -1315,9 +1313,7 @@ static long do_mbind(unsigned long start
- 
- 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
- 
--		err = migrate_prep();
--		if (err)
--			goto mpol_out;
-+		migrate_prep();
- 	}
- 	{
- 		NODEMASK_SCRATCH(scratch);
---- a/mm/migrate.c~mm-migrate-clean-up-migrate_prep_local
+--- a/mm/migrate.c~mm-migrate-return-enosys-if-thp-migration-is-unsupported
 +++ a/mm/migrate.c
-@@ -62,7 +62,7 @@
-  * to be migrated using isolate_lru_page(). If scheduling work on other CPUs is
-  * undesirable, use migrate_prep_local()
-  */
--int migrate_prep(void)
-+void migrate_prep(void)
- {
- 	/*
- 	 * Clear the LRU lists so pages can be isolated.
-@@ -71,16 +71,12 @@ int migrate_prep(void)
- 	 * pages that may be busy.
- 	 */
- 	lru_add_drain_all();
--
--	return 0;
+@@ -1171,7 +1171,7 @@ static int unmap_and_move(new_page_t get
+ 	struct page *newpage = NULL;
+ 
+ 	if (!thp_migration_supported() && PageTransHuge(page))
+-		return -ENOMEM;
++		return -ENOSYS;
+ 
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
+@@ -1378,6 +1378,20 @@ out:
+ 	return rc;
  }
  
- /* Do the necessary work of migrate_prep but not if it involves other CPUs */
--int migrate_prep_local(void)
-+void migrate_prep_local(void)
- {
- 	lru_add_drain();
--
--	return 0;
- }
- 
- int isolate_movable_page(struct page *page, isolate_mode_t mode)
++static inline int try_split_thp(struct page *page, struct page **page2,
++				struct list_head *from)
++{
++	int rc = 0;
++
++	lock_page(page);
++	rc = split_huge_page_to_list(page, from);
++	unlock_page(page);
++	if (!rc)
++		list_safe_reset_next(page, *page2, lru);
++
++	return rc;
++}
++
+ /*
+  * migrate_pages - migrate the pages specified in a list, to the free pages
+  *		   supplied as the target for the page migration
+@@ -1455,24 +1469,40 @@ retry:
+ 			 *		     from list
+ 			 */
+ 			switch(rc) {
++			/*
++			 * THP migration might be unsupported or the
++			 * allocation could've failed so we should
++			 * retry on the same page with the THP split
++			 * to base pages.
++			 *
++			 * Head page is retried immediately and tail
++			 * pages are added to the tail of the list so
++			 * we encounter them after the rest of the list
++			 * is processed.
++			 */
++			case -ENOSYS:
++				/* THP migration is unsupported */
++				if (is_thp) {
++					if (!try_split_thp(page, &page2, from)) {
++						nr_thp_split++;
++						goto retry;
++					}
++
++					nr_thp_failed++;
++					nr_failed += nr_subpages;
++					break;
++				}
++
++				/* Hugetlb migration is unsupported */
++				nr_failed++;
++				break;
+ 			case -ENOMEM:
+ 				/*
+-				 * THP migration might be unsupported or the
+-				 * allocation could've failed so we should
+-				 * retry on the same page with the THP split
+-				 * to base pages.
+-				 *
+-				 * Head page is retried immediately and tail
+-				 * pages are added to the tail of the list so
+-				 * we encounter them after the rest of the list
+-				 * is processed.
++				 * When memory is low, don't bother to try to migrate
++				 * other pages, just exit.
+ 				 */
+ 				if (is_thp) {
+-					lock_page(page);
+-					rc = split_huge_page_to_list(page, from);
+-					unlock_page(page);
+-					if (!rc) {
+-						list_safe_reset_next(page, page2, lru);
++					if (!try_split_thp(page, &page2, from)) {
+ 						nr_thp_split++;
+ 						goto retry;
+ 					}
+@@ -1500,7 +1530,7 @@ retry:
+ 				break;
+ 			default:
+ 				/*
+-				 * Permanent failure (-EBUSY, -ENOSYS, etc.):
++				 * Permanent failure (-EBUSY, etc.):
+ 				 * unlike -EAGAIN case, the failed page is
+ 				 * removed from migration page list and not
+ 				 * retried in the next outer loop.
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
