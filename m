@@ -7,133 +7,92 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80043C5519F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:52:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 075A0C63697
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 18:37:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4652520678
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:52:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A57C522265
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 18:37:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="MLbSZfVL"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="xY+VIxWk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726556AbgKNGwZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Nov 2020 01:52:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33904 "EHLO mail.kernel.org"
+        id S1726198AbgKNShV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Nov 2020 13:37:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726479AbgKNGwY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Nov 2020 01:52:24 -0500
+        id S1726174AbgKNShS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Nov 2020 13:37:18 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 792B622277;
-        Sat, 14 Nov 2020 06:52:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6C6BE22254;
+        Sat, 14 Nov 2020 18:37:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605336744;
-        bh=ECtxgYvwoT4pbPImwGMFk+vSEuJ7PChH8z47HraQPjc=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=MLbSZfVLUYdhUwExR6NhqZ3vlgLgXvaZ33lBWS6uDahBZKPOlisPqhbG6OIBTSMVO
-         a8qczJz2HXC0T4WCr16t1c6SKEBv8IBmZMbElBvzYVByEVGFyuFNoVgWP1nk+89VjU
-         0TJ9ZqWh0vnIW9BdV316rbuXUh5zG6st4MjFCS2I=
-Date:   Fri, 13 Nov 2020 22:52:23 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com,
-        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com,
-        mm-commits@vger.kernel.org, piaojun@huawei.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        wen.gang.wang@oracle.com
-Subject:  [patch 14/14] ocfs2: initialize ip_next_orphan
-Message-ID: <20201114065223.JN1eernhY%akpm@linux-foundation.org>
-In-Reply-To: <20201113225115.b24faebc85f710d5aff55aa7@linux-foundation.org>
+        s=default; t=1605379037;
+        bh=4LAVAlBHm9T2MWpuuh8keceRMYnIVza3gLOaAMoX3MM=;
+        h=Date:From:To:Subject:From;
+        b=xY+VIxWkIKhhyhy5auZmOpqCx3DUL2f7hpivFhVYfYykisI3vt0/FL2EAjcDUSSw/
+         a+8snd5e4weSt6KO9JlR00H2aACzjPxDLOnGu8ODTXXA3i8nhvUqiHFoYKaN+qu5ai
+         PxV3w+B464wN9t2LAOM6UJJ9rIZfcUDx4qflZYdo=
+Date:   Sat, 14 Nov 2020 10:37:16 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        yangyicong@hisilicon.com
+Subject:  [to-be-updated]
+ libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch removed
+ from -mm tree
+Message-ID: <20201114183716.d3JmUuKIQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: ocfs2: initialize ip_next_orphan
 
-Though problem if found on a lower 4.1.12 kernel, I think upstream has
-same issue.
+The patch titled
+     Subject: libfs: fix error cast of negative value in simple_attr_write()
+has been removed from the -mm tree.  Its filename was
+     libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
 
-In one node in the cluster, there is the following callback trace:
+This patch was dropped because an updated version will be merged
 
-# cat /proc/21473/stack
-[<ffffffffc09a2f06>] __ocfs2_cluster_lock.isra.36+0x336/0x9e0 [ocfs2]
-[<ffffffffc09a4481>] ocfs2_inode_lock_full_nested+0x121/0x520 [ocfs2]
-[<ffffffffc09b2ce2>] ocfs2_evict_inode+0x152/0x820 [ocfs2]
-[<ffffffff8122b36e>] evict+0xae/0x1a0
-[<ffffffff8122bd26>] iput+0x1c6/0x230
-[<ffffffffc09b60ed>] ocfs2_orphan_filldir+0x5d/0x100 [ocfs2]
-[<ffffffffc0992ae0>] ocfs2_dir_foreach_blk+0x490/0x4f0 [ocfs2]
-[<ffffffffc099a1e9>] ocfs2_dir_foreach+0x29/0x30 [ocfs2]
-[<ffffffffc09b7716>] ocfs2_recover_orphans+0x1b6/0x9a0 [ocfs2]
-[<ffffffffc09b9b4e>] ocfs2_complete_recovery+0x1de/0x5c0 [ocfs2]
-[<ffffffff810a1399>] process_one_work+0x169/0x4a0
-[<ffffffff810a1bcb>] worker_thread+0x5b/0x560
-[<ffffffff810a7a2b>] kthread+0xcb/0xf0
-[<ffffffff816f5d21>] ret_from_fork+0x61/0x90
-[<ffffffffffffffff>] 0xffffffffffffffff
+------------------------------------------------------
+From: Yicong Yang <yangyicong@hisilicon.com>
+Subject: libfs: fix error cast of negative value in simple_attr_write()
 
-The above stack is not reasonable, the final iput shouldn't happen in
-ocfs2_orphan_filldir() function. Looking at the code,
+The attr->set() receive a value of u64, but simple_strtoll() is used
+for doing the conversion. It will lead to the error cast if user inputs
+a negative value.
 
-2067         /* Skip inodes which are already added to recover list, since dio may
-2068          * happen concurrently with unlink/rename */
-2069         if (OCFS2_I(iter)->ip_next_orphan) {
-2070                 iput(iter);
-2071                 return 0;
-2072         }
-2073
+Use kstrtoull() instead of simple_strtoll() to convert a string got
+from the user to an unsigned value. The former will return '-EINVAL' if
+it gets a negetive value, but the latter can't handle the situation
+correctly.
 
-The logic thinks the inode is already in recover list on seeing
-ip_next_orphan is non-NULL, so it skip this inode after dropping a
-reference which incremented in ocfs2_iget().
-
-While, if the inode is already in recover list, it should have another
-reference and the iput() at line 2070 should not be the final iput
-(dropping the last reference).  So I don't think the inode is really in
-the recover list (no vmcore to confirm).
-
-Note that ocfs2_queue_orphans(), though not shown up in the call back
-trace, is holding cluster lock on the orphan directory when looking up for
-unlinked inodes.  The on disk inode eviction could involve a lot of IOs
-which may need long time to finish.  That means this node could hold the
-cluster lock for very long time, that can lead to the lock requests (from
-other nodes) to the orhpan directory hang for long time.
-
-Looking at more on ip_next_orphan, I found it's not initialized when
-allocating a new ocfs2_inode_info structure.
-
-This causes te reflink operations from some nodes hang for very long
-time waiting for the cluster lock on the orphan directory.
-
-Fix: initialize ip_next_orphan as NULL.
-
-Link: https://lkml.kernel.org/r/20201109171746.27884-1-wen.gang.wang@oracle.com
-Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1605000324-7428-1-git-send-email-yangyicong@hisilicon.com
+Fixes: f7b88631a897 ("fs/libfs.c: fix simple_attr_write() on 32bit machines")
+Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/libfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/super.c~ocfs2-initialize-ip_next_orphan
-+++ a/fs/ocfs2/super.c
-@@ -1713,6 +1713,7 @@ static void ocfs2_inode_init_once(void *
+--- a/fs/libfs.c~libfs-fix-error-cast-of-negative-value-in-simple_attr_write
++++ a/fs/libfs.c
+@@ -977,7 +977,9 @@ ssize_t simple_attr_write(struct file *f
+ 		goto out;
  
- 	oi->ip_blkno = 0ULL;
- 	oi->ip_clusters = 0;
-+	oi->ip_next_orphan = NULL;
- 
- 	ocfs2_resv_init_once(&oi->ip_la_data_resv);
- 
+ 	attr->set_buf[size] = '\0';
+-	val = simple_strtoll(attr->set_buf, NULL, 0);
++	ret = kstrtoull(attr->set_buf, 0, &val);
++	if (ret)
++		goto out;
+ 	ret = attr->set(attr->data, val);
+ 	if (ret == 0)
+ 		ret = len; /* on success, claim we got the whole input */
 _
+
+Patches currently in -mm which might be from yangyicong@hisilicon.com are
+
+
