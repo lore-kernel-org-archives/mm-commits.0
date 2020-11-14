@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD7BC4742C
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:45:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2286BC55ABD
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:45:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B90542225F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:45:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D303A2225D
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:45:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="AC4oBrJh"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="bjDANCAL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726184AbgKNBpK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Nov 2020 20:45:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53942 "EHLO mail.kernel.org"
+        id S1726156AbgKNBpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Nov 2020 20:45:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726181AbgKNBpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 13 Nov 2020 20:45:10 -0500
+        id S1726081AbgKNBpO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 13 Nov 2020 20:45:14 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1727F2225D;
-        Sat, 14 Nov 2020 01:45:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F0D9A2225F;
+        Sat, 14 Nov 2020 01:45:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605318309;
-        bh=CMcrz7Is1uUx7W9vzHbOA5lG24tu7Y2zRyLv0HPRKdM=;
+        s=default; t=1605318312;
+        bh=4LfH+fZYxLFXbxq5KyqMuIW5vMRL2c9KpemR+uBDQ+E=;
         h=Date:From:To:Subject:From;
-        b=AC4oBrJhjeCxjh/VV+cfRqN6655yfCqgIGSAVhsMy8oF2BM7hyESNzrnboN3MNnKv
-         JOZYKz3DolrmC5ut9vLkvXUbVvXvOyHOAPAOJDf/+WJiH4WUya3SXjWfd5F4t6Aytd
-         kDNrKb5fiq7dm9CqNrSJ7dPWL6Tbr2CX/++yicFs=
-Date:   Fri, 13 Nov 2020 17:45:08 -0800
+        b=bjDANCAL0VvHFxHlXsP2/V6eDZ5sXIVA+ksynKiXuMDrXRs97vwucQccyQW9mgonA
+         Wqrf/wPoI7V14gEnmJLN0ThUMAsLUXJdvOf7MkaG1bbIMGbAQoIGEeblET/uMcd5f0
+         AaQVmpvbj0bdLdEZDGmJpSnFnSkMgsS3pF4nW3xo=
+Date:   Fri, 13 Nov 2020 17:45:11 -0800
 From:   akpm@linux-foundation.org
 To:     dchinner@redhat.com, hannes@cmpxchg.org, hch@lst.de,
         hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, william.kucharski@oracle.com,
         willy@infradead.org, yang.shi@linux.alibaba.com
 Subject:  +
- mm-make-pagecache-tagged-lookups-return-only-head-pages.patch added to -mm
- tree
-Message-ID: <20201114014508.iLG_MLnzf%akpm@linux-foundation.org>
+ mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch added to -mm tree
+Message-ID: <20201114014511.QK1byLxmJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make pagecache tagged lookups return only head pages
+     Subject: mm/shmem: use pagevec_lookup in shmem_unlock_mapping
 has been added to the -mm tree.  Its filename is
-     mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+     mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,82 +72,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: make pagecache tagged lookups return only head pages
+Subject: mm/shmem: use pagevec_lookup in shmem_unlock_mapping
 
-Patch series "Overhaul multi-page lookups for THP", v4.
+The comment shows that the reason for using find_get_entries() is now
+stale; find_get_pages() will not return 0 if it hits a consecutive run of
+swap entries, and I don't believe it has since 2011.  pagevec_lookup() is
+a simpler function to use than find_get_pages(), so use it instead.
 
-This THP prep patchset changes several page cache iteration APIs to only
-return head pages.
-
- - It's only possible to tag head pages in the page cache, so only
-   return head pages, not all their subpages.
- - Factor a lot of common code out of the various batch lookup routines
- - Add mapping_seek_hole_data()
- - Unify find_get_entries() and pagevec_lookup_entries()
- - Make find_get_entries only return head pages, like find_get_entry().
-
-These are only loosely connected, but they seem to make sense together as
-a series.
-
-
-This patch (of 16):
-
-Pagecache tags are used for dirty page writeback.  Since dirtiness is
-tracked on a per-THP basis, we only want to return the head page rather
-than each subpage of a tagged page.  All the filesystems which use huge
-pages today are in-memory, so there are no tagged huge pages today.
-
-Link: https://lkml.kernel.org/r/20201112212641.27837-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20201112212641.27837-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/shmem.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/mm/filemap.c~mm-make-pagecache-tagged-lookups-return-only-head-pages
-+++ a/mm/filemap.c
-@@ -2066,7 +2066,7 @@ retry:
- EXPORT_SYMBOL(find_get_pages_contig);
+--- a/mm/shmem.c~mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping
++++ a/mm/shmem.c
+@@ -842,7 +842,6 @@ unsigned long shmem_swap_usage(struct vm
+ void shmem_unlock_mapping(struct address_space *mapping)
+ {
+ 	struct pagevec pvec;
+-	pgoff_t indices[PAGEVEC_SIZE];
+ 	pgoff_t index = 0;
  
- /**
-- * find_get_pages_range_tag - find and return pages in given range matching @tag
-+ * find_get_pages_range_tag - Find and return head pages matching @tag.
-  * @mapping:	the address_space to search
-  * @index:	the starting page index
-  * @end:	The final page index (inclusive)
-@@ -2074,8 +2074,9 @@ EXPORT_SYMBOL(find_get_pages_contig);
-  * @nr_pages:	the maximum number of pages
-  * @pages:	where the resulting pages are placed
-  *
-- * Like find_get_pages, except we only return pages which are tagged with
-- * @tag.   We update @index to index the next page for the traversal.
-+ * Like find_get_pages(), except we only return head pages which are tagged
-+ * with @tag.  @index is updated to the index immediately after the last
-+ * page we return, ready for the next iteration.
-  *
-  * Return: the number of pages which were found.
-  */
-@@ -2109,9 +2110,9 @@ unsigned find_get_pages_range_tag(struct
- 		if (unlikely(page != xas_reload(&xas)))
- 			goto put_page;
- 
--		pages[ret] = find_subpage(page, xas.xa_index);
-+		pages[ret] = page;
- 		if (++ret == nr_pages) {
--			*index = xas.xa_index + 1;
-+			*index = page->index + thp_nr_pages(page);
- 			goto out;
- 		}
- 		continue;
+ 	pagevec_init(&pvec);
+@@ -850,16 +849,8 @@ void shmem_unlock_mapping(struct address
+ 	 * Minor point, but we might as well stop if someone else SHM_LOCKs it.
+ 	 */
+ 	while (!mapping_unevictable(mapping)) {
+-		/*
+-		 * Avoid pagevec_lookup(): find_get_pages() returns 0 as if it
+-		 * has finished, if it hits a row of PAGEVEC_SIZE swap entries.
+-		 */
+-		pvec.nr = find_get_entries(mapping, index,
+-					   PAGEVEC_SIZE, pvec.pages, indices);
+-		if (!pvec.nr)
++		if (!pagevec_lookup(&pvec, mapping, &index))
+ 			break;
+-		index = indices[pvec.nr - 1] + 1;
+-		pagevec_remove_exceptionals(&pvec);
+ 		check_move_unevictable_pages(&pvec);
+ 		pagevec_release(&pvec);
+ 		cond_resched();
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
