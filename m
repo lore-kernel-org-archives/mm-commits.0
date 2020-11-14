@@ -7,41 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 665FEC63777
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E55BC55ABD
 	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:08:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B67B2225F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:08:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E99E22225F
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 01:08:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ple3G64S"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="1siuuImO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726081AbgKNBH4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Nov 2020 20:07:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46790 "EHLO mail.kernel.org"
+        id S1726028AbgKNBHu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Nov 2020 20:07:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725885AbgKNBH4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 13 Nov 2020 20:07:56 -0500
+        id S1725885AbgKNBHu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 13 Nov 2020 20:07:50 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 003DF2225F;
-        Sat, 14 Nov 2020 01:07:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E3A092225F;
+        Sat, 14 Nov 2020 01:07:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605316075;
-        bh=7Blz4CeOQPqQFr6+JqjMA/VXZsz5Cqdci960Y7YYDPo=;
+        s=default; t=1605316069;
+        bh=5h1rfVY4Xd6KMUwHpjXq+RDvGD34dDRYKX8LAzOdKic=;
         h=Date:From:To:Subject:From;
-        b=Ple3G64SXDA0RsmEkgCYCFMJnMRm1wtobksNuG+P295eId3LwOSxNaBfCGaupzVyt
-         /ugPcMl3Po+krVo2G3Y5r8jZLeGiQ6VM+XMm6UUVSoHiwDK+RehBNth5z6BLMgPi1q
-         KFzX+aTP3oMaU2kpZQhOHFSubbrC1IXjs91Vvyok=
-Date:   Fri, 13 Nov 2020 17:07:54 -0800
+        b=1siuuImODGRuJoj6HJH1CB3JOH04J5nXc5r7IkSsa9YTsWnNoEzE1nmY68s0UGkkl
+         TI7F1aMCZas7uA9zzl6tQlvgT8unFyWuoV/7dJklsOF2maKKkZ9Zc314ouLHa/e3x+
+         CstS7VPp6j9LDhQwEJ5LJrNmG0wgkbCtZRyOi5hw=
+Date:   Fri, 13 Nov 2020 17:07:48 -0800
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, glider@google.com, keescook@chromium.org,
         labbott@kernel.org, mateusznosek0@gmail.com, mhocko@kernel.org,
         mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
         rppt@linux.ibm.com, vbabka@suse.cz
-Subject:  + mm-page_poison-remove-config_page_poisoning_zero.patch
- added to -mm tree
-Message-ID: <20201114010754.LBgdZQ7RN%akpm@linux-foundation.org>
+Subject:  +
+ kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch added
+ to -mm tree
+Message-ID: <20201114010748.WJ1QzZJcn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_ZERO
+     Subject: kernel/power: allow hibernation with page_poison sanity checking
 has been added to the -mm tree.  Its filename is
-     mm-page_poison-remove-config_page_poisoning_zero.patch
+     kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_poison-remove-config_page_poisoning_zero.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poison-remove-config_page_poisoning_zero.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,29 +73,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_ZERO
+Subject: kernel/power: allow hibernation with page_poison sanity checking
 
-CONFIG_PAGE_POISONING_ZERO uses the zero pattern instead of 0xAA.  It was
-introduced by commit 1414c7f4f7d7 ("mm/page_poisoning.c: allow for zero
-poisoning"), noting that using zeroes retains the benefit of sanitizing
-content of freed pages, with the benefit of not having to zero them again
-on alloc, and the downside of making some forms of corruption (stray
-writes of NULLs) harder to detect than with the 0xAA pattern.  Together
-with CONFIG_PAGE_POISONING_NO_SANITY it made possible to sanitize the
-contents on free without checking it back on alloc.
+Page poisoning used to be incompatible with hibernation, as the state of
+poisoned pages was lost after resume, thus enabling CONFIG_HIBERNATION
+forces CONFIG_PAGE_POISONING_NO_SANITY.  For the same reason, the
+poisoning with zeroes variant CONFIG_PAGE_POISONING_ZERO used to disable
+hibernation.  The latter restriction was removed by commit 1ad1410f632d
+("PM / Hibernate: allow hibernation with PAGE_POISONING_ZERO") and
+similarly for init_on_free by commit 18451f9f9e58 ("PM: hibernate: fix
+crashes with init_on_free=1") by making sure free pages are cleared after
+resume.
 
-These days we have the init_on_free() option to achieve sanitization with
-zeroes and to save clearing on alloc (and without checking on alloc). 
-Arguably if someone does choose to check the poison for corruption on
-alloc, the savings of not clearing the page are secondary, and it makes
-sense to always use the 0xAA poison pattern.  Thus, remove the
-CONFIG_PAGE_POISONING_ZERO option for being redundant.
+We can use the same mechanism to instead poison free pages with
+PAGE_POISON after resume.  This covers both zero and 0xAA patterns.  Thus
+we can remove the Kconfig restriction that disables page poison sanity
+checking when hibernation is enabled.
 
-Link: https://lkml.kernel.org/r/20201113104033.22907-6-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20201113104033.22907-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[hibernation]
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Laura Abbott <labbott@kernel.org>
@@ -103,87 +103,89 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h       |    4 ----
- mm/Kconfig.debug             |   12 ------------
- mm/page_alloc.c              |    8 +-------
- tools/include/linux/poison.h |    6 +-----
- 4 files changed, 2 insertions(+), 28 deletions(-)
+ include/linux/mm.h       |    1 +
+ kernel/power/hibernate.c |    2 +-
+ kernel/power/power.h     |    2 +-
+ kernel/power/snapshot.c  |   14 +++++++++++---
+ mm/Kconfig.debug         |    1 -
+ 5 files changed, 14 insertions(+), 6 deletions(-)
 
---- a/include/linux/poison.h~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/include/linux/poison.h
-@@ -27,11 +27,7 @@
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
+--- a/include/linux/mm.h~kernel-power-allow-hibernation-with-page_poison-sanity-checking
++++ a/include/linux/mm.h
+@@ -2903,6 +2903,7 @@ static inline void kernel_unpoison_pages
+ #else
+ static inline bool page_poisoning_enabled(void) { return false; }
+ static inline bool page_poisoning_enabled_static(void) { return false; }
++static inline void __kernel_poison_pages(struct page *page, int nunmpages) { }
+ static inline void kernel_poison_pages(struct page *page, int numpages) { }
+ static inline void kernel_unpoison_pages(struct page *page, int numpages) { }
+ #endif
+--- a/kernel/power/hibernate.c~kernel-power-allow-hibernation-with-page_poison-sanity-checking
++++ a/kernel/power/hibernate.c
+@@ -326,7 +326,7 @@ static int create_image(int platform_mod
  
- /********** mm/page_poison.c **********/
--#ifdef CONFIG_PAGE_POISONING_ZERO
--#define PAGE_POISON 0x00
--#else
- #define PAGE_POISON 0xaa
--#endif
+ 	if (!in_suspend) {
+ 		events_check_enabled = false;
+-		clear_free_pages();
++		clear_or_poison_free_pages();
+ 	}
  
- /********** mm/page_alloc.c ************/
+ 	platform_leave(platform_mode);
+--- a/kernel/power/power.h~kernel-power-allow-hibernation-with-page_poison-sanity-checking
++++ a/kernel/power/power.h
+@@ -106,7 +106,7 @@ extern int create_basic_memory_bitmaps(v
+ extern void free_basic_memory_bitmaps(void);
+ extern int hibernate_preallocate_memory(void);
  
---- a/mm/Kconfig.debug~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/mm/Kconfig.debug
-@@ -80,18 +80,6 @@ config PAGE_POISONING
+-extern void clear_free_pages(void);
++extern void clear_or_poison_free_pages(void);
  
- 	  If unsure, say N
- 
--config PAGE_POISONING_ZERO
--	bool "Use zero for poisoning instead of debugging value"
--	depends on PAGE_POISONING
--	help
--	   Instead of using the existing poison value, fill the pages with
--	   zeros. This makes it harder to detect when errors are occurring
--	   due to sanitization but the zeroing at free means that it is
--	   no longer necessary to write zeros when GFP_ZERO is used on
--	   allocation.
--
--	   If unsure, say N
--
- config DEBUG_PAGE_REF
- 	bool "Enable tracepoint to track down page reference manipulation"
- 	depends on DEBUG_KERNEL
---- a/mm/page_alloc.c~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/mm/page_alloc.c
-@@ -2224,12 +2224,6 @@ static inline int check_new_page(struct
- 	return 1;
+ /**
+  *	Auxiliary structure used for reading the snapshot image data and
+--- a/kernel/power/snapshot.c~kernel-power-allow-hibernation-with-page_poison-sanity-checking
++++ a/kernel/power/snapshot.c
+@@ -1178,7 +1178,15 @@ void free_basic_memory_bitmaps(void)
+ 	pr_debug("Basic memory bitmaps freed\n");
  }
  
--static inline bool free_pages_prezeroed(void)
--{
--	return (IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) &&
--		page_poisoning_enabled_static()) || want_init_on_free();
--}
--
- #ifdef CONFIG_DEBUG_VM
- /*
-  * With DEBUG_VM enabled, order-0 pages are checked for expected state when
-@@ -2298,7 +2292,7 @@ static void prep_new_page(struct page *p
+-void clear_free_pages(void)
++static void clear_or_poison_free_page(struct page *page)
++{
++	if (page_poisoning_enabled_static())
++		__kernel_poison_pages(page, 1);
++	else if (want_init_on_free())
++		clear_highpage(page);
++}
++
++void clear_or_poison_free_pages(void)
  {
- 	post_alloc_hook(page, order, gfp_flags);
+ 	struct memory_bitmap *bm = free_pages_map;
+ 	unsigned long pfn;
+@@ -1186,12 +1194,12 @@ void clear_free_pages(void)
+ 	if (WARN_ON(!(free_pages_map)))
+ 		return;
  
--	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
-+	if (!want_init_on_free() && want_init_on_alloc(gfp_flags))
- 		kernel_init_free_pages(page, 1 << order);
+-	if (IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) || want_init_on_free()) {
++	if (page_poisoning_enabled() || want_init_on_free()) {
+ 		memory_bm_position_reset(bm);
+ 		pfn = memory_bm_next_pfn(bm);
+ 		while (pfn != BM_END_OF_MAP) {
+ 			if (pfn_valid(pfn))
+-				clear_highpage(pfn_to_page(pfn));
++				clear_or_poison_free_page(pfn_to_page(pfn));
  
- 	if (order && (gfp_flags & __GFP_COMP))
---- a/tools/include/linux/poison.h~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/tools/include/linux/poison.h
-@@ -35,12 +35,8 @@
-  */
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
+ 			pfn = memory_bm_next_pfn(bm);
+ 		}
+--- a/mm/Kconfig.debug~kernel-power-allow-hibernation-with-page_poison-sanity-checking
++++ a/mm/Kconfig.debug
+@@ -64,7 +64,6 @@ config PAGE_OWNER
  
--/********** mm/debug-pagealloc.c **********/
--#ifdef CONFIG_PAGE_POISONING_ZERO
--#define PAGE_POISON 0x00
--#else
-+/********** mm/page_poison.c **********/
- #define PAGE_POISON 0xaa
--#endif
- 
- /********** mm/page_alloc.c ************/
- 
+ config PAGE_POISONING
+ 	bool "Poison pages after freeing"
+-	select PAGE_POISONING_NO_SANITY if HIBERNATION
+ 	help
+ 	  Fill the pages with poison patterns after free_pages() and verify
+ 	  the patterns before alloc_pages. The filling of the memory helps
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
