@@ -7,42 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8617AC56202
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53A1DC63798
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:51:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47C6B22252
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:51:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12E632073C
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:51:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="hIR/jf7G"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="A9FFgz3z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726469AbgKNGvs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Nov 2020 01:51:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33158 "EHLO mail.kernel.org"
+        id S1726481AbgKNGvu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Nov 2020 01:51:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726133AbgKNGvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Nov 2020 01:51:47 -0500
+        id S1726133AbgKNGvu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Nov 2020 01:51:50 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 23EA320678;
-        Sat, 14 Nov 2020 06:51:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3841C22275;
+        Sat, 14 Nov 2020 06:51:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605336707;
-        bh=/eWME7bikkfFWXPjUIomPu63eG2bMX1juxXJj9t3KP4=;
+        s=default; t=1605336710;
+        bh=uIAaau/B5qmCErnkFMC3Pyqu2dp1MxYc0qfoMsdYJ7c=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=hIR/jf7GFS/H290/pN5u0rSbMS06UeJhIMcI5MhKniqOhf4mGjR79Oh0jpxI7rmK5
-         ltjYfgQGhPOACM6bOtgu1O7p7l+ngCWelK+9DMDJOW2SB7OKr8vYNlVSEuXvrczk1u
-         yQRYSJTAmLSKBSeiCCDKqn88g8Ezuk+Z3QHpj6sk=
-Date:   Fri, 13 Nov 2020 22:51:46 -0800
+        b=A9FFgz3zSMHz9v2WNpwtVP+ypp2hQr4n/YfXvEdfeTNyULkwHLMgm/6USD52r4F9F
+         DOu09vRBS9LBiSF/0ikguml6HCApin6rCQQ41U1jrUdroLUB5L9zs+We0FyY3AUtPr
+         B6eU8oSWMreL19Cqit7UYj5cyp1rYhxxpgzDh2Ck=
+Date:   Fri, 13 Nov 2020 22:51:49 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     a.sahrawat@samsung.com, akpm@linux-foundation.org,
-        linux-mm@kvack.org, maninder1.s@samsung.com, mgorman@suse.de,
-        mhocko@suse.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        v.narang@samsung.com, vbabka@suse.cz
-Subject:  [patch 03/14] mm/vmscan: fix NR_ISOLATED_FILE corruption
- on 64-bit
-Message-ID: <20201114065146.3H6OX7gIF%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dbaryshkov@gmail.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 04/14] mailmap: fix entry for Dmitry
+ Baryshkov/Eremin-Solenikov
+Message-ID: <20201114065149.6dSpHAmWc%akpm@linux-foundation.org>
 In-Reply-To: <20201113225115.b24faebc85f710d5aff55aa7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,54 +48,33 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm/vmscan: fix NR_ISOLATED_FILE corruption on 64-bit
+From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: mailmap: fix entry for Dmitry Baryshkov/Eremin-Solenikov
 
-Previously the negated unsigned long would be cast back to signed long
-which would have the correct negative value.  After commit 730ec8c01a2b
-("mm/vmscan.c: change prototype for shrink_page_list"), the large unsigned
-int converts to a large positive signed long.
+Change back surname to new (old) one.  Dmitry Baryshkov -> Dmitry
+Eremin-Solenikov -> Dmitry Baryshkov.  Map several odd entries to main
+identity.
 
-Symptoms include CMA allocations hanging forever holding the cma_mutex due
-to alloc_contig_range->...->isolate_migratepages_block waiting forever in
-"while (unlikely(too_many_isolated(pgdat)))".
-
-[akpm@linux-foundation.org: fix -stat.nr_lazyfree_fail as well, per Michal]
-Link: https://lkml.kernel.org/r/20201029032320.1448441-1-npiggin@gmail.com
-Fixes: 730ec8c01a2b ("mm/vmscan.c: change prototype for shrink_page_list")
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vaneet Narang <v.narang@samsung.com>
-Cc: Maninder Singh <maninder1.s@samsung.com>
-Cc: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20201103005158.1181426-1-dmitry.baryshkov@linaro.org
+Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .mailmap |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-nr_isolated_file-corruption-on-64-bit
-+++ a/mm/vmscan.c
-@@ -1516,7 +1516,8 @@ unsigned int reclaim_clean_pages_from_li
- 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
- 			TTU_IGNORE_ACCESS, &stat, true);
- 	list_splice(&clean_pages, page_list);
--	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -nr_reclaimed);
-+	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
-+			    -(long)nr_reclaimed);
- 	/*
- 	 * Since lazyfree pages are isolated from file LRU from the beginning,
- 	 * they will rotate back to anonymous LRU in the end if it failed to
-@@ -1526,7 +1527,7 @@ unsigned int reclaim_clean_pages_from_li
- 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_ANON,
- 			    stat.nr_lazyfree_fail);
- 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
--			    -stat.nr_lazyfree_fail);
-+			    -(long)stat.nr_lazyfree_fail);
- 	return nr_reclaimed;
- }
- 
+--- a/.mailmap~mailmap-fix-entry-for-dmitry-baryshkov-eremin-solenikov
++++ a/.mailmap
+@@ -82,7 +82,10 @@ Dengcheng Zhu <dzhu@wavecomp.com> <dengc
+ Dengcheng Zhu <dzhu@wavecomp.com> <dengcheng.zhu@imgtec.com>
+ Dengcheng Zhu <dzhu@wavecomp.com> <dengcheng.zhu@mips.com>
+ <dev.kurt@vandijck-laurijssen.be> <kurt.van.dijck@eia.be>
+-Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
++Dmitry Baryshkov <dbaryshkov@gmail.com>
++Dmitry Baryshkov <dbaryshkov@gmail.com> <[dbaryshkov@gmail.com]>
++Dmitry Baryshkov <dbaryshkov@gmail.com> <dmitry_baryshkov@mentor.com>
++Dmitry Baryshkov <dbaryshkov@gmail.com> <dmitry_eremin@mentor.com>
+ Dmitry Safonov <0x7f454c46@gmail.com> <dima@arista.com>
+ Dmitry Safonov <0x7f454c46@gmail.com> <d.safonov@partner.samsung.com>
+ Dmitry Safonov <0x7f454c46@gmail.com> <dsafonov@virtuozzo.com>
 _
