@@ -7,43 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F6FAC56202
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:52:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 282D8C61DD8
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:52:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBE1E22275
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:52:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E30D02073C
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 06:52:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ozxy2OpV"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="1fZAVFGV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726524AbgKNGwK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Nov 2020 01:52:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33578 "EHLO mail.kernel.org"
+        id S1726532AbgKNGwL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Nov 2020 01:52:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726522AbgKNGwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Nov 2020 01:52:10 -0500
+        id S1726522AbgKNGwL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Nov 2020 01:52:11 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8F17E20678;
-        Sat, 14 Nov 2020 06:52:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DAB7022277;
+        Sat, 14 Nov 2020 06:52:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605336728;
-        bh=NifOz68fQKXI9pGg8iRxmwZMGi6d3Bko/+akVfkGwhs=;
+        s=default; t=1605336731;
+        bh=zEYtFxIkXGAzsFbtnuzralpgu2sPRq+8r/h4WDSpnIg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Ozxy2OpVDLaCOwSdhsfg92zBDFXRAaewYOKF7CcL1hfbxWRzgEDo8iqkb7Rs0Gx+B
-         onV+Rx30ePDwtqcC4I5loyCOkytPgRx+DXqDIr5g25rIk5SLbOozR+12muTIB6853J
-         bluTdx1ECNoGybAFjbPSMYxEeKydOSp9q1YZiDNw=
-Date:   Fri, 13 Nov 2020 22:52:07 -0800
+        b=1fZAVFGVp/zlv9WSmMH6YC/9Wfk67Yu+3fQOt3lhLNP8xqkVnGLplY9s7b8h/rjiV
+         bQUF7miXQbDiGa+wvRdtZMguGFxQ6im4yaZOZ+7t5phxYeMSe8N5xg7da7SsgRy25Y
+         zjfQTwcF8gf+FeNgIncOQCR3P2mjdfpOTyjhQ6GE=
+Date:   Fri, 13 Nov 2020 22:52:10 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, fabf@skynet.be,
-        gregkh@linuxfoundation.org, keescook@chromium.org,
-        linux-mm@kvack.org, linux@roeck-us.net, mcroce@microsoft.com,
-        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
-        pmladek@suse.com, robinmholt@gmail.com, rppt@kernel.org,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 09/14] reboot: fix overflow parsing reboot cpu
- number
-Message-ID: <20201114065207.npKalqH36%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, pmladek@suse.com, santosh@fossix.org,
+        tglx@linutronix.de, torvalds@linux-foundation.org
+Subject:  [patch 10/14] kernel/watchdog: fix watchdog_allowed_mask
+ not used warning
+Message-ID: <20201114065210.Pih4Q7Ptk%akpm@linux-foundation.org>
 In-Reply-To: <20201113225115.b24faebc85f710d5aff55aa7@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -51,99 +48,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Matteo Croce <mcroce@microsoft.com>
-Subject: reboot: fix overflow parsing reboot cpu number
+From: Santosh Sivaraj <santosh@fossix.org>
+Subject: kernel/watchdog: fix watchdog_allowed_mask not used warning
 
-Limit the CPU number to num_possible_cpus(), because setting it to a value
-lower than INT_MAX but higher than NR_CPUS produces the following error on
-reboot and shutdown:
+Define watchdog_allowed_mask only when SOFTLOCKUP_DETECTOR is enabled.
 
-    BUG: unable to handle page fault for address: ffffffff90ab1bb0
-    #PF: supervisor read access in kernel mode
-    #PF: error_code(0x0000) - not-present page
-    PGD 1c09067 P4D 1c09067 PUD 1c0a063 PMD 0
-    Oops: 0000 [#1] SMP
-    CPU: 1 PID: 1 Comm: systemd-shutdow Not tainted 5.9.0-rc8-kvm #110
-    Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.13.0-2.fc32 04/01/2014
-    RIP: 0010:migrate_to_reboot_cpu+0xe/0x60
-    Code: ea ea 00 48 89 fa 48 c7 c7 30 57 f1 81 e9 fa ef ff ff 66 2e 0f 1f 84 00 00 00 00 00 53 8b 1d d5 ea ea 00 e8 14 33 fe ff 89 da <48> 0f a3 15 ea fc bd 00 48 89 d0 73 29 89 c2 c1 e8 06 65 48 8b 3c
-    RSP: 0018:ffffc90000013e08 EFLAGS: 00010246
-    RAX: ffff88801f0a0000 RBX: 0000000077359400 RCX: 0000000000000000
-    RDX: 0000000077359400 RSI: 0000000000000002 RDI: ffffffff81c199e0
-    RBP: ffffffff81c1e3c0 R08: ffff88801f41f000 R09: ffffffff81c1e348
-    R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-    R13: 00007f32bedf8830 R14: 00000000fee1dead R15: 0000000000000000
-    FS:  00007f32bedf8980(0000) GS:ffff88801f480000(0000) knlGS:0000000000000000
-    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    CR2: ffffffff90ab1bb0 CR3: 000000001d057000 CR4: 00000000000006a0
-    DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-    DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-    Call Trace:
-    __do_sys_reboot.cold+0x34/0x5b
-    ? vfs_writev+0x92/0xc0
-    ? do_writev+0x52/0xd0
-    do_syscall_64+0x2d/0x40
-    entry_SYSCALL_64_after_hwframe+0x44/0xa9
-    RIP: 0033:0x7f32bfaaecd3
-    Code: 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 89 fa be 69 19 12 28 bf ad de e1 fe b8 a9 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 89 81 0c 00 f7 d8
-    RSP: 002b:00007fff6265fb58 EFLAGS: 00000202 ORIG_RAX: 00000000000000a9
-    RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f32bfaaecd3
-    RDX: 0000000001234567 RSI: 0000000028121969 RDI: 00000000fee1dead
-    RBP: 0000000000000000 R08: 0000000000008020 R09: 00007fff6265ef60
-    R10: 00007f32bedf8830 R11: 0000000000000202 R12: 0000000000000000
-    R13: 0000557bba2c51c0 R14: 0000000000000000 R15: 00007fff6265fbc8
-    CR2: ffffffff90ab1bb0
-    ---[ end trace b813e80157136563 ]---
-    RIP: 0010:migrate_to_reboot_cpu+0xe/0x60
-    Code: ea ea 00 48 89 fa 48 c7 c7 30 57 f1 81 e9 fa ef ff ff 66 2e 0f 1f 84 00 00 00 00 00 53 8b 1d d5 ea ea 00 e8 14 33 fe ff 89 da <48> 0f a3 15 ea fc bd 00 48 89 d0 73 29 89 c2 c1 e8 06 65 48 8b 3c
-    RSP: 0018:ffffc90000013e08 EFLAGS: 00010246
-    RAX: ffff88801f0a0000 RBX: 0000000077359400 RCX: 0000000000000000
-    RDX: 0000000077359400 RSI: 0000000000000002 RDI: ffffffff81c199e0
-    RBP: ffffffff81c1e3c0 R08: ffff88801f41f000 R09: ffffffff81c1e348
-    R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-    R13: 00007f32bedf8830 R14: 00000000fee1dead R15: 0000000000000000
-    FS:  00007f32bedf8980(0000) GS:ffff88801f480000(0000) knlGS:0000000000000000
-    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    CR2: ffffffff90ab1bb0 CR3: 000000001d057000 CR4: 00000000000006a0
-    DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-    DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-    Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009
-    Kernel Offset: disabled
-    ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009 ]---
-
-Link: https://lkml.kernel.org/r/20201103214025.116799-3-mcroce@linux.microsoft.com
-Fixes: 1b3a5d02ee07 ("reboot: move arch/x86 reboot= handling to generic kernel")
-Signed-off-by: Matteo Croce <mcroce@microsoft.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Robin Holt <robinmholt@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20201106015025.1281561-1-santosh@fossix.org
+Fixes: 7feeb9cd4f5b ("watchdog/sysctl: Clean up sysctl variable name space")
+Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/watchdog.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/reboot.c~reboot-fix-overflow-parsing-reboot-cpu-number
-+++ a/kernel/reboot.c
-@@ -558,6 +558,13 @@ static int __init reboot_setup(char *str
- 				reboot_cpu = simple_strtoul(str+3, NULL, 0);
- 			else
- 				*mode = REBOOT_SOFT;
-+			if (reboot_cpu >= num_possible_cpus()) {
-+				pr_err("Ignoring the CPU number in reboot= option. "
-+				       "CPU %d exceeds possible cpu number %d\n",
-+				       reboot_cpu, num_possible_cpus());
-+				reboot_cpu = 0;
-+				break;
-+			}
- 			break;
+--- a/kernel/watchdog.c~kernel-watchdog-fix-watchdog_allowed_mask-not-used-warning
++++ a/kernel/watchdog.c
+@@ -44,8 +44,6 @@ int __read_mostly soft_watchdog_user_ena
+ int __read_mostly watchdog_thresh = 10;
+ static int __read_mostly nmi_watchdog_available;
  
- 		case 'g':
+-static struct cpumask watchdog_allowed_mask __read_mostly;
+-
+ struct cpumask watchdog_cpumask __read_mostly;
+ unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
+ 
+@@ -162,6 +160,8 @@ static void lockup_detector_update_enabl
+ int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ #endif
+ 
++static struct cpumask watchdog_allowed_mask __read_mostly;
++
+ /* Global variables, exported for sysctl */
+ unsigned int __read_mostly softlockup_panic =
+ 			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
 _
