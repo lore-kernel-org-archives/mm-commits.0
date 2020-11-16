@@ -7,39 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9323C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:18:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F807C55ABD
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:19:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89654217A0
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:18:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB1F021D7E
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:19:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="teWlPMrG"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="nUf5Hj4g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729446AbgKPUSQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:18:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52594 "EHLO mail.kernel.org"
+        id S1730097AbgKPUTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:19:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729248AbgKPUSP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 15:18:15 -0500
+        id S1727849AbgKPUTD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 15:19:03 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B0EEE217A0;
-        Mon, 16 Nov 2020 20:18:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C49EB217A0;
+        Mon, 16 Nov 2020 20:19:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605557894;
-        bh=ntUzpBfEV/GFH4KZbubrE29s2gBHoHM2179gXVX+zJQ=;
+        s=default; t=1605557943;
+        bh=2XgugIoBWiZmtBAu4+ea8QjRSGGr8YBSJoFJ3oPqYfQ=;
         h=Date:From:To:Subject:From;
-        b=teWlPMrGe70kFasY2o1ZsvnqekUezaKy8Uir21uKr94bTx9pkEIagI9YDIMoTiamD
-         09OpcV4uKyHPJCyLTj2NA7hw8VFlB4Hxs8oCHkIa5uK86jS84BByk9xNNrj1fU6M7L
-         Ra+12BfKW+GZT9qrrtc0wfXAZuHvEQ7UvJnkYSYI=
-Date:   Mon, 16 Nov 2020 12:18:14 -0800
+        b=nUf5Hj4gqnG4fSafJvZHRpeBK/q1M9cac75Gs652sp6N0Q/OGFxHia2vZHEG+UUat
+         rz0iG6b6Cr87BGSHD76tc3k8E2vYe8y2c1V5ObHKkUF8AeqOLl+jZ2BY4Nl0qXnbTH
+         AS0GmkBZB+HkF1o+X6rYN5NyBB7HaNm+hexe+sz4=
+Date:   Mon, 16 Nov 2020 12:19:02 -0800
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  +
- lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch added to
+ lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch added to
  -mm tree
-Message-ID: <20201116201814.oJQgn6qIC%akpm@linux-foundation.org>
+Message-ID: <20201116201902.YUGWWZpX2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline_kunit: type of expected returned values should be int
+     Subject: lib/cmdline_kunit: provide meaningful MODULE_LICENSE()
 has been added to the -mm tree.  Its filename is
-     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
+     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,29 +71,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline_kunit: type of expected returned values should be int
+Subject: lib/cmdline_kunit: provide meaningful MODULE_LICENSE()
 
-Type of expected returned values should be int.
+modpost complains that module has no licence provided.  Provide it via
+meaningful MODULE_LICENSE().
 
-Link: https://lkml.kernel.org/r/20201116104244.15472-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20201116104257.15527-1-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline_kunit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/cmdline_kunit.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/cmdline_kunit.c~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2
+--- a/lib/cmdline_kunit.c~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3
 +++ a/lib/cmdline_kunit.c
-@@ -13,7 +13,7 @@ static const char *cmdline_test_strings[
- 	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
+@@ -96,3 +96,5 @@ static struct kunit_suite cmdline_test_s
+ 	.test_cases = cmdline_test_cases,
  };
- 
--static const char cmdline_test_values[] = {
-+static const int cmdline_test_values[] = {
- 	1, 1, 1, 1, 2, 3, 2, 3,
- 	1, 3, 2, 1, 1, 1, 3, 1,
- };
+ kunit_test_suite(cmdline_test_suite);
++
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
@@ -106,4 +106,5 @@ lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
 lib-cmdline-allow-null-to-be-an-output-for-get_option.patch
 lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
 lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
 
