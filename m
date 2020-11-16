@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43726C388F9
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1599CC63697
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF1B1223AB
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A83FA22370
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="DYqpqOyo"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="EfyaIMUV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729746AbgKPV5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:57:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42628 "EHLO mail.kernel.org"
+        id S1729179AbgKPV5n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:57:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42702 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727864AbgKPV5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:57:38 -0500
+        id S1727864AbgKPV5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:57:43 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 49E692225E;
-        Mon, 16 Nov 2020 21:57:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4DC3D222EC;
+        Mon, 16 Nov 2020 21:57:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605563857;
-        bh=DxqYpmEcWE5GNc+Ywlzjm6lGNby6+hV7tb3kgf9HXDU=;
+        s=default; t=1605563862;
+        bh=PVizCwKELBcxlyEWcS6eWnicPEH31qKTwq4i/Xm+DlM=;
         h=Date:From:To:Subject:From;
-        b=DYqpqOyoMHO9LFKRw2Jtya7Cam+dBLEECSo2ZqdH15RKNHHOANiA/OpfndA7OU5Xo
-         iBpHx3rerJm0iIRFa8AQhkc6PC7SB//fQbWh2DMxD5RgsNKvUNchuHHM0/m1gV+Ob7
-         /dl2sSEzfI//JilTQdfsMcbE9+fYbZT6I9tCGurA=
-Date:   Mon, 16 Nov 2020 13:57:35 -0800
+        b=EfyaIMUVgZ3oy87ON5d07bg4cjYx3FsbEeye6dZoy5Hd95pyJTVchB9bsubXXcD8x
+         Qdlyoz9a2nKry3tIXj6/SA0/oLHEIewtAgGU6Nsy514PtP+v/UP0lQzeexGddPvKW/
+         TPMJ5AV0UUs8JnSuc2pq80ejgGZhqZRmCJ/tfP7I=
+Date:   Mon, 16 Nov 2020 13:57:39 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -43,13 +43,13 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         kirill@shutemov.name, mgorman@techsingularity.net,
         mhocko@kernel.org, mhocko@suse.com, mika.penttila@nextfour.com,
         minchan@kernel.org, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, shakeelb@google.com, tglx@linutronix.de,
-        tj@kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com,
-        ying.huang@intel.com
-Subject:  + mm-lru-introduce-testclearpagelru.patch added to -mm
- tree
-Message-ID: <20201116215735.E1CCzSU2i%akpm@linux-foundation.org>
+        richard.weiyang@gmail.com, rong.a.chen@intel.com,
+        shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yang.shi@linux.alibaba.com, ying.huang@intel.com
+Subject:  +
+ mm-compaction-do-page-isolation-first-in-compaction.patch added to -mm tree
+Message-ID: <20201116215739.MkwPkTOQN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -61,16 +61,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/lru: introduce TestClearPageLRU()
+     Subject: mm/compaction: do page isolation first in compaction
 has been added to the -mm tree.  Its filename is
-     mm-lru-introduce-testclearpagelru.patch
+     mm-compaction-do-page-isolation-first-in-compaction.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-lru-introduce-testclearpag=
-elru.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-do-page-isolati=
+on-first-in-compaction.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-lru-introduce-testclearpag=
-elru.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-do-page-isolati=
+on-first-in-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,51 +86,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/lru: introduce TestClearPageLRU()
+Subject: mm/compaction: do page isolation first in compaction
 
-Currently lru_lock still guards both lru list and page's lru bit, that's
-ok.  but if we want to use specific lruvec lock on the page, we need to
-pin down the page's lruvec/memcg during locking.  Just taking lruvec lock
-first may be undermined by the page's memcg charge/migration.  To fix this
-problem, we will clear the lru bit out of locking and use it as pin down
-action to block the page isolation in memcg changing.
+Currently, compaction would get the lru_lock and then do page isolation
+which works fine with pgdat->lru_lock, since any page isoltion would
+compete for the lru_lock.  If we want to change to memcg lru_lock, we have
+to isolate the page before getting lru_lock, thus isoltion would block
+page's memcg change which relay on page isoltion too.  Then we could
+safely use per memcg lru_lock later.
 
-So now a standard steps of page isolation is following:
-	1, get_page(); 	       #pin the page avoid to be free
-	2, TestClearPageLRU(); #block other isolation like memcg change
-	3, spin_lock on lru_lock; #serialize lru list access
-	4, delete page from lru list;
+The new page isolation use previous introduced TestClearPageLRU() + pgdat
+lru locking which will be changed to memcg lru lock later.
 
-This patch start with the first part: TestClearPageLRU, which combines
-PageLRU check and ClearPageLRU into a macro func TestClearPageLRU.  This
-function will be used as page isolation precondition to prevent other
-isolations some where else.  Then there are may !PageLRU page on lru list,
-need to remove BUG() checking accordingly.
+Hugh Dickins <hughd@google.com> fixed following bugs in this patch's early
+version:
 
-There 2 rules for lru bit now:
-1, the lru bit still indicate if a page on lru list, just in some
-   temporary moment(isolating), the page may have no lru bit when
-   it's on lru list.  but the page still must be on lru list when the
-   lru bit set.
-2, have to remove lru bit before delete it from lru list.
+Fix lots of crashes under compaction load: isolate_migratepages_block()
+must clean up appropriately when rejecting a page, setting PageLRU again
+if it had been cleared; and a put_page() after get_page_unless_zero()
+cannot safely be done while holding locked_lruvec - it may turn out to be
+the final put_page(), which will take an lruvec lock when PageLRU.
 
-As Andrew Morton mentioned this change would dirty cacheline for a page
-which isn't on the LRU.  But the loss would be acceptable in Rong Chen
-<rong.a.chen@intel.com> report:
-https://lore.kernel.org/lkml/20200304090301.GB5972@shao2-debian/
+And move __isolate_lru_page_prepare back after get_page_unless_zero to
+make trylock_page() safe: trylock_page() is not safe to use at this time:
+its setting PG_locked can race with the page being freed or allocated
+("Bad page"), and can also erase flags being set by one of those "sole
+owners" of a freshly allocated page who use non-atomic __SetPageFlag().
 
-Link: https://lkml.kernel.org/r/1604566549-62481-15-git-send-email-alex.shi=
+Link: https://lkml.kernel.org/r/1604566549-62481-16-git-send-email-alex.shi=
 @linux.alibaba.com
 Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: "Chen, Rong A" <rong.a.chen@intel.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
@@ -138,157 +132,209 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    1=20
- mm/mlock.c                 |    3 --
- mm/vmscan.c                |   39 +++++++++++++++++------------------
- 3 files changed, 21 insertions(+), 22 deletions(-)
+ include/linux/swap.h |    2 -
+ mm/compaction.c      |   42 +++++++++++++++++++++++++++++++---------
+ mm/vmscan.c          |   43 ++++++++++++++++++++---------------------
+ 3 files changed, 56 insertions(+), 31 deletions(-)
 
---- a/include/linux/page-flags.h~mm-lru-introduce-testclearpagelru
-+++ a/include/linux/page-flags.h
-@@ -335,6 +335,7 @@ PAGEFLAG(Referenced, referenced, PF_HEAD
- PAGEFLAG(Dirty, dirty, PF_HEAD) TESTSCFLAG(Dirty, dirty, PF_HEAD)
- 	__CLEARPAGEFLAG(Dirty, dirty, PF_HEAD)
- PAGEFLAG(LRU, lru, PF_HEAD) __CLEARPAGEFLAG(LRU, lru, PF_HEAD)
-+	TESTCLEARFLAG(LRU, lru, PF_HEAD)
- PAGEFLAG(Active, active, PF_HEAD) __CLEARPAGEFLAG(Active, active, PF_HEAD)
- 	TESTCLEARFLAG(Active, active, PF_HEAD)
- PAGEFLAG(Workingset, workingset, PF_HEAD)
---- a/mm/mlock.c~mm-lru-introduce-testclearpagelru
-+++ a/mm/mlock.c
-@@ -276,10 +276,9 @@ static void __munlock_pagevec(struct pag
- 			 * We already have pin from follow_page_mask()
- 			 * so we can spare the get_page() here.
+--- a/include/linux/swap.h~mm-compaction-do-page-isolation-first-in-compact=
+ion
++++ a/include/linux/swap.h
+@@ -356,7 +356,7 @@ extern void lru_cache_add_inactive_or_un
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int orde=
+r,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+-extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
++extern int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mo=
+de);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/compaction.c~mm-compaction-do-page-isolation-first-in-compaction
++++ a/mm/compaction.c
+@@ -890,6 +890,7 @@ isolate_migratepages_block(struct compac
+ 		if (!valid_page && IS_ALIGNED(low_pfn, pageblock_nr_pages)) {
+ 			if (!cc->ignore_skip_hint && get_pageblock_skip(page)) {
+ 				low_pfn =3D end_pfn;
++				page =3D NULL;
+ 				goto isolate_abort;
+ 			}
+ 			valid_page =3D page;
+@@ -971,6 +972,21 @@ isolate_migratepages_block(struct compac
+ 		if (!(cc->gfp_mask & __GFP_FS) && page_mapping(page))
+ 			goto isolate_fail;
+=20
++		/*
++		 * Be careful not to clear PageLRU until after we're
++		 * sure the page is not being freed elsewhere -- the
++		 * page release code relies on it.
++		 */
++		if (unlikely(!get_page_unless_zero(page)))
++			goto isolate_fail;
++
++		if (__isolate_lru_page_prepare(page, isolate_mode) !=3D 0)
++			goto isolate_fail_put;
++
++		/* Try isolate the page */
++		if (!TestClearPageLRU(page))
++			goto isolate_fail_put;
++
+ 		/* If we already hold the lock, we can skip some rechecking */
+ 		if (!locked) {
+ 			locked =3D compact_lock_irqsave(&pgdat->lru_lock,
+@@ -983,10 +999,6 @@ isolate_migratepages_block(struct compac
+ 					goto isolate_abort;
+ 			}
+=20
+-			/* Recheck PageLRU and PageCompound under lock */
+-			if (!PageLRU(page))
+-				goto isolate_fail;
+-
+ 			/*
+ 			 * Page become compound since the non-locked check,
+ 			 * and it's on LRU. It can only be a THP so the order
+@@ -994,16 +1006,13 @@ isolate_migratepages_block(struct compac
  			 */
--			if (PageLRU(page)) {
-+			if (TestClearPageLRU(page)) {
- 				struct lruvec *lruvec;
+ 			if (unlikely(PageCompound(page) && !cc->alloc_contig)) {
+ 				low_pfn +=3D compound_nr(page) - 1;
+-				goto isolate_fail;
++				SetPageLRU(page);
++				goto isolate_fail_put;
+ 			}
+ 		}
 =20
--				ClearPageLRU(page);
- 				lruvec =3D mem_cgroup_page_lruvec(page,
- 							page_pgdat(page));
- 				del_page_from_lru_list(page, lruvec,
---- a/mm/vmscan.c~mm-lru-introduce-testclearpagelru
+ 		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
+=20
+-		/* Try isolate the page */
+-		if (__isolate_lru_page(page, isolate_mode) !=3D 0)
+-			goto isolate_fail;
+-
+ 		/* The whole page is taken off the LRU; skip the tail pages. */
+ 		if (PageCompound(page))
+ 			low_pfn +=3D compound_nr(page) - 1;
+@@ -1032,6 +1041,15 @@ isolate_success:
+ 		}
+=20
+ 		continue;
++
++isolate_fail_put:
++		/* Avoid potential deadlock in freeing page under lru_lock */
++		if (locked) {
++			spin_unlock_irqrestore(&pgdat->lru_lock, flags);
++			locked =3D false;
++		}
++		put_page(page);
++
+ isolate_fail:
+ 		if (!skip_on_failure)
+ 			continue;
+@@ -1068,9 +1086,15 @@ isolate_fail:
+ 	if (unlikely(low_pfn > end_pfn))
+ 		low_pfn =3D end_pfn;
+=20
++	page =3D NULL;
++
+ isolate_abort:
+ 	if (locked)
+ 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
++	if (page) {
++		SetPageLRU(page);
++		put_page(page);
++	}
+=20
+ 	/*
+ 	 * Updated the cached scanner pfn once the pageblock has been scanned
+--- a/mm/vmscan.c~mm-compaction-do-page-isolation-first-in-compaction
 +++ a/mm/vmscan.c
-@@ -1542,7 +1542,7 @@ unsigned int reclaim_clean_pages_from_li
+@@ -1540,7 +1540,7 @@ unsigned int reclaim_clean_pages_from_li
+  *
+  * returns 0 on success, -ve errno on failure.
   */
- int __isolate_lru_page(struct page *page, isolate_mode_t mode)
+-int __isolate_lru_page(struct page *page, isolate_mode_t mode)
++int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
  {
--	int ret =3D -EINVAL;
-+	int ret =3D -EBUSY;
+ 	int ret =3D -EBUSY;
 =20
- 	/* Only take pages on the LRU. */
- 	if (!PageLRU(page))
-@@ -1552,8 +1552,6 @@ int __isolate_lru_page(struct page *page
- 	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
+@@ -1592,22 +1592,9 @@ int __isolate_lru_page(struct page *page
+ 	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
  		return ret;
 =20
--	ret =3D -EBUSY;
--
- 	/*
- 	 * To minimise LRU disruption, the caller can indicate that it only
- 	 * wants to isolate pages it will be able to operate on without
-@@ -1600,8 +1598,10 @@ int __isolate_lru_page(struct page *page
- 		 * sure the page is not being freed elsewhere -- the
- 		 * page release code relies on it.
- 		 */
--		ClearPageLRU(page);
--		ret =3D 0;
-+		if (TestClearPageLRU(page))
-+			ret =3D 0;
-+		else
-+			put_page(page);
- 	}
-=20
- 	return ret;
-@@ -1667,8 +1667,6 @@ static unsigned long isolate_lru_pages(u
- 		page =3D lru_to_page(src);
- 		prefetchw_prev_lru_page(page, src, flags);
-=20
--		VM_BUG_ON_PAGE(!PageLRU(page), page);
--
- 		nr_pages =3D compound_nr(page);
- 		total_scan +=3D nr_pages;
-=20
-@@ -1765,21 +1763,18 @@ int isolate_lru_page(struct page *page)
- 	VM_BUG_ON_PAGE(!page_count(page), page);
- 	WARN_RATELIMIT(PageTail(page), "trying to isolate tail page");
-=20
--	if (PageLRU(page)) {
-+	if (TestClearPageLRU(page)) {
- 		pg_data_t *pgdat =3D page_pgdat(page);
- 		struct lruvec *lruvec;
-=20
--		spin_lock_irq(&pgdat->lru_lock);
-+		get_page(page);
- 		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
--		if (PageLRU(page)) {
--			int lru =3D page_lru(page);
--			get_page(page);
--			ClearPageLRU(page);
--			del_page_from_lru_list(page, lruvec, lru);
+-	if (likely(get_page_unless_zero(page))) {
+-		/*
+-		 * Be careful not to clear PageLRU until after we're
+-		 * sure the page is not being freed elsewhere -- the
+-		 * page release code relies on it.
+-		 */
+-		if (TestClearPageLRU(page))
 -			ret =3D 0;
--		}
-+		spin_lock_irq(&pgdat->lru_lock);
-+		del_page_from_lru_list(page, lruvec, page_lru(page));
- 		spin_unlock_irq(&pgdat->lru_lock);
-+		ret =3D 0;
- 	}
-+
- 	return ret;
+-		else
+-			put_page(page);
+-	}
+-
+-	return ret;
++	return 0;
  }
 =20
-@@ -4290,6 +4285,10 @@ void check_move_unevictable_pages(struct
- 		nr_pages =3D thp_nr_pages(page);
- 		pgscanned +=3D nr_pages;
-=20
-+		/* block memcg migration during page moving between lru */
-+		if (!TestClearPageLRU(page))
-+			continue;
+-
+ /*
+  * Update LRU sizes after isolating pages. The LRU size updates must
+  * be complete before mem_cgroup_update_lru_size due to a sanity check.
+@@ -1687,20 +1674,34 @@ static unsigned long isolate_lru_pages(u
+ 		 * only when the page is being freed somewhere else.
+ 		 */
+ 		scan +=3D nr_pages;
+-		switch (__isolate_lru_page(page, mode)) {
++		switch (__isolate_lru_page_prepare(page, mode)) {
+ 		case 0:
++			/*
++			 * Be careful not to clear PageLRU until after we're
++			 * sure the page is not being freed elsewhere -- the
++			 * page release code relies on it.
++			 */
++			if (unlikely(!get_page_unless_zero(page)))
++				goto busy;
 +
- 		if (pagepgdat !=3D pgdat) {
- 			if (pgdat)
- 				spin_unlock_irq(&pgdat->lru_lock);
-@@ -4298,10 +4297,7 @@ void check_move_unevictable_pages(struct
- 		}
- 		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
++			if (!TestClearPageLRU(page)) {
++				/*
++				 * This page may in other isolation path,
++				 * but we still hold lru_lock.
++				 */
++				put_page(page);
++				goto busy;
++			}
++
+ 			nr_taken +=3D nr_pages;
+ 			nr_zone_taken[page_zonenum(page)] +=3D nr_pages;
+ 			list_move(&page->lru, dst);
+ 			break;
 =20
--		if (!PageLRU(page) || !PageUnevictable(page))
+-		case -EBUSY:
++		default:
++busy:
+ 			/* else it is being freed elsewhere */
+ 			list_move(&page->lru, src);
 -			continue;
 -
--		if (page_evictable(page)) {
-+		if (page_evictable(page) && PageUnevictable(page)) {
- 			enum lru_list lru =3D page_lru_base_type(page);
-=20
- 			VM_BUG_ON_PAGE(PageActive(page), page);
-@@ -4310,12 +4306,15 @@ void check_move_unevictable_pages(struct
- 			add_page_to_lru_list(page, lruvec, lru);
- 			pgrescued +=3D nr_pages;
+-		default:
+-			BUG();
  		}
-+		SetPageLRU(page);
  	}
 =20
- 	if (pgdat) {
- 		__count_vm_events(UNEVICTABLE_PGRESCUED, pgrescued);
- 		__count_vm_events(UNEVICTABLE_PGSCANNED, pgscanned);
- 		spin_unlock_irq(&pgdat->lru_lock);
-+	} else if (pgscanned) {
-+		count_vm_events(UNEVICTABLE_PGSCANNED, pgscanned);
- 	}
- }
- EXPORT_SYMBOL_GPL(check_move_unevictable_pages);
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
