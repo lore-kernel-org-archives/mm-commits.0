@@ -7,38 +7,41 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01920C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40487C4742C
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8EF0221EB
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 064B020782
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:32:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="MMnESKaB"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="115PM5c2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730292AbgKPUXs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:23:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53590 "EHLO mail.kernel.org"
+        id S1732877AbgKPUcZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:32:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730075AbgKPUXs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 15:23:48 -0500
+        id S1726545AbgKPUcZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 15:32:25 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D3B7620781;
-        Mon, 16 Nov 2020 20:23:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CAC6420782;
+        Mon, 16 Nov 2020 20:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605558227;
-        bh=NwlaeqchM6WYntpa4OqamGl83vJ0KxpsVBDh669V6G4=;
+        s=default; t=1605558744;
+        bh=lEfKCZuirohuhNOIyfOunNx2onRC3rYHL67hOCOU9b8=;
         h=Date:From:To:Subject:From;
-        b=MMnESKaB8hSIu9jdajy0KKyaK7PE0dkKgCXZI8afqQ4JGHIX+W+mskp6CEAkPHvTd
-         2FWS0xOdaosw5vaM4y9uz5Lw9CLdX34ZBzPEyPJor/sxq02zKKpa4ovr63uyQ8KCyG
-         3LZlFCJ8JtYdm+9/2abuB7fKGm54hyfr2OgBPdWk=
-Date:   Mon, 16 Nov 2020 12:23:46 -0800
+        b=115PM5c25o8vbM//NsTX3RBY3xU8E0IeHOtLbgDUtgJvOXXqNlTnK2N+po96onvbD
+         gqF5TqjA22vgFhVASlJHBb2kRnOWwjpEkcg9j9nIxZic8Tina28ATZcQaaMzTahb0O
+         e2f3Xxqy9Dpyc4OtCaAdrC6zeQjYK0y23lGtp2eI=
+Date:   Mon, 16 Nov 2020 12:32:23 -0800
 From:   akpm@linux-foundation.org
-To:     mchehab+huawei@kernel.org, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  + mm-fix-kernel-doc-markups.patch added to -mm tree
-Message-ID: <20201116202346.1IWd_gK_S%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        rientjes@google.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
+Subject:  +
+ docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch added to
+ -mm tree
+Message-ID: <20201116203223.oJtwCScXt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kernel-doc markups
+     Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
 has been added to the -mm tree.  Its filename is
-     mm-fix-kernel-doc-markups.patch
+     docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-kernel-doc-markups.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-kernel-doc-markups.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,138 +71,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: mm: fix kernel-doc markups
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
 
-Kernel-doc markups should use this format:
-        identifier - description
+Commit 5647bc293ab1 ("mm: compaction: Move migration fail/success
+stats to migrate.c"), removed 3 items in /proc/vmstat. but the docs
+still has their explanation. let's remove them.
 
-Fix some issues on mm files:
+"compact_blocks_moved",
+"compact_pages_moved",
+"compact_pagemigrate_failed",
 
-1) The definition for get_user_pages_locked() doesn't follow
-   it. Also, it expects a short descrpition at the header,
-   followed by a long one, after the parameters. Fix it.
-
-2) Kernel-doc requires that a kernel-doc markup to be immediatly
-   below the function prototype, as otherwise it will rename it.
-   So, move get_pfnblock_flags_mask() description to the right
-   place.
-
-3) Make invalidate_mapping_pagevec() to also follow the
-   expected kernel-doc format.
-
-While here, fix a few minor English syntax issues, as suggested
-by Matthew:
-	will used -> will be used
-	similar with -> similar to
-
-Link: https://lkml.kernel.org/r/80e85dddc92d333bc2159ee8a2294921612e8745.1605521731.git.mchehab+huawei@kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Suggested-by: Mattew Wilcox <willy@infradead.org>	[English fixes]
+Link: https://lkml.kernel.org/r/1605520282-51993-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c        |   24 +++++++++++++-----------
- mm/page_alloc.c |   16 ++++++++--------
- mm/truncate.c   |   10 ++++++++--
- 3 files changed, 29 insertions(+), 21 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
---- a/mm/gup.c~mm-fix-kernel-doc-markups
-+++ a/mm/gup.c
-@@ -1932,7 +1932,19 @@ long get_user_pages(unsigned long start,
- EXPORT_SYMBOL(get_user_pages);
+--- a/Documentation/admin-guide/mm/transhuge.rst~docs-vm-remove-unused-3-items-explanation-for-proc-vmstat
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -401,21 +401,6 @@ compact_fail
+ 	is incremented if the system tries to compact memory
+ 	but failed.
  
- /**
-- * get_user_pages_locked() is suitable to replace the form:
-+ * get_user_pages_locked() - variant of get_user_pages()
-+ *
-+ * @start:      starting user address
-+ * @nr_pages:   number of pages from start to pin
-+ * @gup_flags:  flags modifying lookup behaviour
-+ * @pages:      array that receives pointers to the pages pinned.
-+ *              Should be at least nr_pages long. Or NULL, if caller
-+ *              only intends to ensure the pages are faulted in.
-+ * @locked:     pointer to lock flag indicating whether lock is held and
-+ *              subsequently whether VM_FAULT_RETRY functionality can be
-+ *              utilised. Lock must initially be held.
-+ *
-+ * It is suitable to replace the form:
-  *
-  *      mmap_read_lock(mm);
-  *      do_something()
-@@ -1948,16 +1960,6 @@ EXPORT_SYMBOL(get_user_pages);
-  *      if (locked)
-  *          mmap_read_unlock(mm);
-  *
-- * @start:      starting user address
-- * @nr_pages:   number of pages from start to pin
-- * @gup_flags:  flags modifying lookup behaviour
-- * @pages:      array that receives pointers to the pages pinned.
-- *              Should be at least nr_pages long. Or NULL, if caller
-- *              only intends to ensure the pages are faulted in.
-- * @locked:     pointer to lock flag indicating whether lock is held and
-- *              subsequently whether VM_FAULT_RETRY functionality can be
-- *              utilised. Lock must initially be held.
-- *
-  * We can leverage the VM_FAULT_RETRY functionality in the page fault
-  * paths better by using either get_user_pages_locked() or
-  * get_user_pages_unlocked().
---- a/mm/page_alloc.c~mm-fix-kernel-doc-markups
-+++ a/mm/page_alloc.c
-@@ -468,14 +468,6 @@ static inline int pfn_to_bitidx(struct p
- 	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
- }
- 
--/**
-- * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
-- * @page: The page within the block of interest
-- * @pfn: The target page frame number
-- * @mask: mask of bits that the caller is interested in
-- *
-- * Return: pageblock_bits flags
-- */
- static __always_inline
- unsigned long __get_pfnblock_flags_mask(struct page *page,
- 					unsigned long pfn,
-@@ -494,6 +486,14 @@ unsigned long __get_pfnblock_flags_mask(
- 	return (word >> bitidx) & mask;
- }
- 
-+/**
-+ * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
-+ * @page: The page within the block of interest
-+ * @pfn: The target page frame number
-+ * @mask: mask of bits that the caller is interested in
-+ *
-+ * Return: pageblock_bits flags
-+ */
- unsigned long get_pfnblock_flags_mask(struct page *page, unsigned long pfn,
- 					unsigned long mask)
- {
---- a/mm/truncate.c~mm-fix-kernel-doc-markups
-+++ a/mm/truncate.c
-@@ -580,9 +580,15 @@ unsigned long invalidate_mapping_pages(s
- EXPORT_SYMBOL(invalidate_mapping_pages);
- 
- /**
-- * This helper is similar with the above one, except that it accounts for pages
-- * that are likely on a pagevec and count them in @nr_pagevec, which will used by
-+ * invalidate_mapping_pagevec - This helper is similar to
-+ * invalidate_mapping_pages(), except that it accounts for pages that are
-+ * likely on a pagevec and count them in @nr_pagevec, which will be used by
-  * the caller.
-+ *
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ *
-  */
- void invalidate_mapping_pagevec(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
+-compact_pages_moved
+-	is incremented each time a page is moved. If
+-	this value is increasing rapidly, it implies that the system
+-	is copying a lot of data to satisfy the huge page allocation.
+-	It is possible that the cost of copying exceeds any savings
+-	from reduced TLB misses.
+-
+-compact_pagemigrate_failed
+-	is incremented when the underlying mechanism
+-	for moving a page failed.
+-
+-compact_blocks_moved
+-	is incremented each time memory compaction examines
+-	a huge page aligned range of pages.
+-
+ It is possible to establish how long the stalls were using the function
+ tracer to record how long was spent in __alloc_pages_nodemask and
+ using the mm_page_alloc tracepoint to identify which allocations were
 _
 
-Patches currently in -mm which might be from mchehab+huawei@kernel.org are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-fix-kernel-doc-markups.patch
-resource-fix-kernel-doc-markups.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+fs-ntfs-remove-unused-varibles.patch
+fs-ntfs-remove-unused-varible-attr_len.patch
+mm-memcg-update-page-struct-member-in-comments.patch
+docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
 
