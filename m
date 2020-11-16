@@ -2,74 +2,137 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30F7FC56202
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 22:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C25CAC55ABD
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:41:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6C0922470
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Nov 2020 22:15:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90C8220A8B
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:41:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="s1nYbcoB"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="p9f1qR5p"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726140AbgKNWPI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Nov 2020 17:15:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42528 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726121AbgKNWPI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Nov 2020 17:15:08 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 242C7C0613D1;
-        Sat, 14 Nov 2020 14:15:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=9WPLF26hKFYUTzyN6Nx1rFU4F1GrltbtRe7RdaEM3j8=; b=s1nYbcoBJadWzH1UGWqRLybfRp
-        TWF6MtPizGtkEM9y1+nCR6ysNl6LQKtbIPatkPoDOD0ra9y4KBCyyR5OYWPxT2UNQgibeYRyX7a28
-        B5RADvYeKowzWLl3zW6okApxB7uDrfdzBxJuCtb0o4dl8R5tzIHwcxKQHtJ7lPWMVAqSsCqGhB4h/
-        m8ikvqjA+jnl78p7JgaSBdDymgjGJ+ncR9ORi+FzokgJfnGRGUa1P+rjuhUNxs0FVAW4YKcebb4ID
-        S415Pmyr13LkqxuFJVs1GjmnsHIU8wlAeTApbDoUlGJsUoJFLh3rJJ5o32Iu5DRDOTKYs8LkXcedy
-        3g10Z1oA==;
-Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1ke3ow-0006Yp-UB; Sat, 14 Nov 2020 22:14:59 +0000
-Date:   Sat, 14 Nov 2020 22:14:58 +0000
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, a.sahrawat@samsung.com,
-        Linux-MM <linux-mm@kvack.org>, maninder1.s@samsung.com,
-        Mel Gorman <mgorman@suse.de>, Michal Hocko <mhocko@suse.com>,
-        mm-commits@vger.kernel.org, Nick Piggin <npiggin@gmail.com>,
-        stable <stable@vger.kernel.org>, v.narang@samsung.com,
-        Vlastimil Babka <vbabka@suse.cz>
-Subject: Re: [patch 03/14] mm/vmscan: fix NR_ISOLATED_FILE corruption on
- 64-bit
-Message-ID: <20201114221458.GP17076@casper.infradead.org>
-References: <20201113225115.b24faebc85f710d5aff55aa7@linux-foundation.org>
- <20201114065146.3H6OX7gIF%akpm@linux-foundation.org>
- <CAHk-=wj847SudR-kt+46fT3+xFFgiwpgThvm7DJWGdi4cVrbnQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wj847SudR-kt+46fT3+xFFgiwpgThvm7DJWGdi4cVrbnQ@mail.gmail.com>
+        id S1727770AbgKPSlJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 13:41:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44770 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727750AbgKPSlI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 13:41:08 -0500
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id EA9C120888;
+        Mon, 16 Nov 2020 18:41:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1605552067;
+        bh=3PKzjywOzpkux6QtO/iuCqwC0ZVI3l/AMDnj5EB2Wzk=;
+        h=Date:From:To:Subject:From;
+        b=p9f1qR5pRnO6QZRqsPY7z7xQMkE7l2U8MNSeyDJE5cBK5QDwZQ8jWcLgNcGvDddeI
+         XhuXt6zSHocmeyfwguvgGMlzUzto01fhbAm9PWB+17V6gxsScPbABIZl0z7o1rtThY
+         /4KLJBuTQiTK6jRvUwO5/RZ/ph2XNrrVvI2hy5g4=
+Date:   Mon, 16 Nov 2020 10:41:06 -0800
+From:   akpm@linux-foundation.org
+To:     mgorman@techsingularity.net, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, riel@surriel.com, shy828301@gmail.com,
+        stable@vger.kernel.org, vbabka@suse.cz, ziy@nvidia.com
+Subject:  [merged]
+ mm-compaction-count-pages-and-stop-correctly-during-page-isolation.patch
+ removed from -mm tree
+Message-ID: <20201116184106.hIvF6hfqf%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, Nov 14, 2020 at 01:39:47PM -0800, Linus Torvalds wrote:
-> I've applied this patch, but I have to say that I absolutely detest it.
-> 
-> This is very fragile, and I think the problem is the nasty interface.
 
-I agree, it's nast.
+The patch titled
+     Subject: mm/compaction: count pages and stop correctly during page isolation
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-count-pages-and-stop-correctly-during-page-isolation.patch
 
-> Why don't we have simple wrappers that internally do that "mod", but
-> actually expose "inc" and "dec" instead, and make it much harder to
-> have these kinds of problems?
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-We actually need 'add' and 'sub', not 'inc' and 'dec'.  Sometimes we inc,
-but often we need to add.  But, yes, 'mod' is a bad name.
+------------------------------------------------------
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/compaction: count pages and stop correctly during page isolation
+
+In isolate_migratepages_block, when cc->alloc_contig is true, we are able
+to isolate compound pages, nr_migratepages and nr_isolated did not count
+compound pages correctly, causing us to isolate more pages than we
+thought.  Count compound pages as the number of base pages they contain. 
+Otherwise, we might be trapped in too_many_isolated while loop, since the
+actual isolated pages can go up to COMPACT_CLUSTER_MAX*512=16384, where
+COMPACT_CLUSTER_MAX is 32, since we stop isolation after
+cc->nr_migratepages reaches to COMPACT_CLUSTER_MAX.
+
+In addition, after we fix the issue above, cc->nr_migratepages could never
+be equal to COMPACT_CLUSTER_MAX if compound pages are isolated, thus page
+isolation could not stop as we intended.  Change the isolation stop
+condition to >=.
+
+The issue can be triggered as follows: In a system with 16GB memory and an
+8GB CMA region reserved by hugetlb_cma, if we first allocate 10GB THPs and
+mlock them (so some THPs are allocated in the CMA region and mlocked),
+reserving 6 1GB hugetlb pages via
+/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages will get stuck
+(looping in too_many_isolated function) until we kill either task.  With
+the patch applied, oom will kill the application with 10GB THPs and let
+hugetlb page reservation finish.
+
+[ziy@nvidia.com: v3]
+  Link: https://lkml.kernel.org/r/20201030183809.3616803-1-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20201029200435.3386066-1-zi.yan@sent.com
+Fixes: 1da2f328fa64 ("cmm,thp,compaction,cma: allow THP migration for CMA allocations")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/compaction.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/mm/compaction.c~mm-compaction-count-pages-and-stop-correctly-during-page-isolation
++++ a/mm/compaction.c
+@@ -1012,8 +1012,8 @@ isolate_migratepages_block(struct compac
+ 
+ isolate_success:
+ 		list_add(&page->lru, &cc->migratepages);
+-		cc->nr_migratepages++;
+-		nr_isolated++;
++		cc->nr_migratepages += compound_nr(page);
++		nr_isolated += compound_nr(page);
+ 
+ 		/*
+ 		 * Avoid isolating too much unless this block is being
+@@ -1021,7 +1021,7 @@ isolate_success:
+ 		 * or a lock is contended. For contention, isolate quickly to
+ 		 * potentially remove one source of contention.
+ 		 */
+-		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX &&
++		if (cc->nr_migratepages >= COMPACT_CLUSTER_MAX &&
+ 		    !cc->rescan && !cc->contended) {
+ 			++low_pfn;
+ 			break;
+@@ -1132,7 +1132,7 @@ isolate_migratepages_range(struct compac
+ 		if (!pfn)
+ 			break;
+ 
+-		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
++		if (cc->nr_migratepages >= COMPACT_CLUSTER_MAX)
+ 			break;
+ 	}
+ 
+_
+
+Patches currently in -mm which might be from ziy@nvidia.com are
+
 
