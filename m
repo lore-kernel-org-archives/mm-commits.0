@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE650C61DD8
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:42:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C7AFC2D0A3
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 19:49:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DF3722450
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:42:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A6B92078E
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 19:49:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="KLCiB4Xu"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FtpfzQdK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726473AbgKPSmg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 13:42:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45216 "EHLO mail.kernel.org"
+        id S1730407AbgKPTta (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 14:49:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45816 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728214AbgKPSlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 13:41:37 -0500
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1727973AbgKPTt3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 14:49:29 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AAB7D20888;
-        Mon, 16 Nov 2020 18:41:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D2B402078E;
+        Mon, 16 Nov 2020 19:49:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605552097;
-        bh=PQCJjtVueW7eRPDdUb6g/VfFEkt2q1VvgIKS7fPnags=;
+        s=default; t=1605556169;
+        bh=V8vpAisuJgrPM/etmBQ9oVpR/UHGiIKnDMhZaHcTgng=;
         h=Date:From:To:Subject:From;
-        b=KLCiB4XuVLo2TNcC40Ytqgiy6960VAJTR8T/62ftyeUa0hCgRYvhBawM0vuRd++Yt
-         piS3Om3Cpjsi2J46PHEKjn4myYmdSK6h4w0/jxizbwq04xeSFtUHbq9hNyb6+gSEjM
-         j58GmxAJbtAnbsGsxt618iM1vlDN0MGrhcbcyex0=
-Date:   Mon, 16 Nov 2020 10:41:36 -0800
+        b=FtpfzQdKeVRvt5IAGaCcA+gGJNge/t64QO5UV8Ltmw6686MSC5PG/PjuEoX2ccEPH
+         45j5M/0iJT1472HyWqEqw4uX8oPFBECc6wM2jzeJNzEE3QQo2EV7iwl/F9WpufNJuS
+         mXtuA0vvGO2Tzt3CS/hX3duzjf0tInteydYrVXYY=
+Date:   Mon, 16 Nov 2020 11:49:28 -0800
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org
-Subject:  [merged]
- mm-memcontrol-fix-missing-wakeup-polling-thread.patch removed from -mm tree
-Message-ID: <20201116184136.ha3gAAwhd%akpm@linux-foundation.org>
+To:     alex.bou9@gmail.com, bigeasy@linutronix.de,
+        mm-commits@vger.kernel.org, mporter@kernel.crashing.org
+Subject:  +
+ rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch added to -mm
+ tree
+Message-ID: <20201116194928.plziP6yym%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,65 +49,175 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix missing wakeup polling thread
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-missing-wakeup-polling-thread.patch
+     Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
+has been added to the -mm tree.  Its filename is
+     rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix missing wakeup polling thread
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
 
-When we poll the swap.events, we can miss being woken up when the swap
-event occurs.  Because we didn't notify.
+The functions rio_get_asm() and rio_get_device() are globally exported
+but have almost no users in tree. The only user is rio_init_mports()
+which invokes it via rio_init().
 
-Link: https://lkml.kernel.org/r/20201105161936.98312-1-songmuchun@bytedance.com
-Fixes: f3a53a3a1e5b ("mm, memcontrol: implement memory.swap.events")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Tejun Heo <tj@kernel.org>
+rio_init() iterates over every registered device and invokes
+rio_fixup_device().  It looks like a fixup function which should perform a
+"change" to the device but does nothing.  It has been like this since its
+introduction in commit 394b701ce4fbf ("[PATCH] RapidIO support: core
+base") which was merged into v2.6.15-rc1.
+
+Remove rio_init() because the performed fixup function
+(rio_fixup_device()) does nothing.  Remove rio_get_asm() and
+rio_get_device() which have no callers now.
+
+Link: https://lkml.kernel.org/r/20201116170004.420143-1-bigeasy@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/rapidio/rio.c   |   81 --------------------------------------
+ include/linux/rio_drv.h |    3 -
+ 2 files changed, 84 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-fix-missing-wakeup-polling-thread
-+++ a/include/linux/memcontrol.h
-@@ -900,12 +900,19 @@ static inline void count_memcg_event_mm(
- static inline void memcg_memory_event(struct mem_cgroup *memcg,
- 				      enum memcg_memory_event event)
- {
-+	bool swap_event = event == MEMCG_SWAP_HIGH || event == MEMCG_SWAP_MAX ||
-+			  event == MEMCG_SWAP_FAIL;
-+
- 	atomic_long_inc(&memcg->memory_events_local[event]);
--	cgroup_file_notify(&memcg->events_local_file);
-+	if (!swap_event)
-+		cgroup_file_notify(&memcg->events_local_file);
+--- a/drivers/rapidio/rio.c~rapidio-remove-unused-rio_get_asm-and-rio_get_device
++++ a/drivers/rapidio/rio.c
+@@ -1413,71 +1413,6 @@ rio_mport_get_feature(struct rio_mport *
+ EXPORT_SYMBOL_GPL(rio_mport_get_feature);
  
- 	do {
- 		atomic_long_inc(&memcg->memory_events[event]);
--		cgroup_file_notify(&memcg->events_file);
-+		if (swap_event)
-+			cgroup_file_notify(&memcg->swap_events_file);
-+		else
-+			cgroup_file_notify(&memcg->events_file);
+ /**
+- * rio_get_asm - Begin or continue searching for a RIO device by vid/did/asm_vid/asm_did
+- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
+- * @did: RIO did to match or %RIO_ANY_ID to match all dids
+- * @asm_vid: RIO asm_vid to match or %RIO_ANY_ID to match all asm_vids
+- * @asm_did: RIO asm_did to match or %RIO_ANY_ID to match all asm_dids
+- * @from: Previous RIO device found in search, or %NULL for new search
+- *
+- * Iterates through the list of known RIO devices. If a RIO device is
+- * found with a matching @vid, @did, @asm_vid, @asm_did, the reference
+- * count to the device is incrememted and a pointer to its device
+- * structure is returned. Otherwise, %NULL is returned. A new search
+- * is initiated by passing %NULL to the @from argument. Otherwise, if
+- * @from is not %NULL, searches continue from next device on the global
+- * list. The reference count for @from is always decremented if it is
+- * not %NULL.
+- */
+-struct rio_dev *rio_get_asm(u16 vid, u16 did,
+-			    u16 asm_vid, u16 asm_did, struct rio_dev *from)
+-{
+-	struct list_head *n;
+-	struct rio_dev *rdev;
+-
+-	WARN_ON(in_interrupt());
+-	spin_lock(&rio_global_list_lock);
+-	n = from ? from->global_list.next : rio_devices.next;
+-
+-	while (n && (n != &rio_devices)) {
+-		rdev = rio_dev_g(n);
+-		if ((vid == RIO_ANY_ID || rdev->vid == vid) &&
+-		    (did == RIO_ANY_ID || rdev->did == did) &&
+-		    (asm_vid == RIO_ANY_ID || rdev->asm_vid == asm_vid) &&
+-		    (asm_did == RIO_ANY_ID || rdev->asm_did == asm_did))
+-			goto exit;
+-		n = n->next;
+-	}
+-	rdev = NULL;
+-      exit:
+-	rio_dev_put(from);
+-	rdev = rio_dev_get(rdev);
+-	spin_unlock(&rio_global_list_lock);
+-	return rdev;
+-}
+-EXPORT_SYMBOL_GPL(rio_get_asm);
+-
+-/**
+- * rio_get_device - Begin or continue searching for a RIO device by vid/did
+- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
+- * @did: RIO did to match or %RIO_ANY_ID to match all dids
+- * @from: Previous RIO device found in search, or %NULL for new search
+- *
+- * Iterates through the list of known RIO devices. If a RIO device is
+- * found with a matching @vid and @did, the reference count to the
+- * device is incrememted and a pointer to its device structure is returned.
+- * Otherwise, %NULL is returned. A new search is initiated by passing %NULL
+- * to the @from argument. Otherwise, if @from is not %NULL, searches
+- * continue from next device on the global list. The reference count for
+- * @from is always decremented if it is not %NULL.
+- */
+-struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from)
+-{
+-	return rio_get_asm(vid, did, RIO_ANY_ID, RIO_ANY_ID, from);
+-}
+-EXPORT_SYMBOL_GPL(rio_get_device);
+-
+-/**
+  * rio_std_route_add_entry - Add switch route table entry using standard
+  *   registers defined in RIO specification rev.1.3
+  * @mport: Master port to issue transaction
+@@ -2106,20 +2041,6 @@ found:
+ 	return rc;
+ }
  
- 		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 			break;
+-static void rio_fixup_device(struct rio_dev *dev)
+-{
+-}
+-
+-static int rio_init(void)
+-{
+-	struct rio_dev *dev = NULL;
+-
+-	while ((dev = rio_get_device(RIO_ANY_ID, RIO_ANY_ID, dev)) != NULL) {
+-		rio_fixup_device(dev);
+-	}
+-	return 0;
+-}
+-
+ static struct workqueue_struct *rio_wq;
+ 
+ struct rio_disc_work {
+@@ -2206,8 +2127,6 @@ int rio_init_mports(void)
+ 	kfree(work);
+ 
+ no_disc:
+-	rio_init();
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(rio_init_mports);
+--- a/include/linux/rio_drv.h~rapidio-remove-unused-rio_get_asm-and-rio_get_device
++++ a/include/linux/rio_drv.h
+@@ -444,9 +444,6 @@ static inline void rio_set_drvdata(struc
+ /* Misc driver helpers */
+ extern u16 rio_local_get_device_id(struct rio_mport *port);
+ extern void rio_local_set_device_id(struct rio_mport *port, u16 did);
+-extern struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from);
+-extern struct rio_dev *rio_get_asm(u16 vid, u16 did, u16 asm_vid, u16 asm_did,
+-				   struct rio_dev *from);
+ extern int rio_init_mports(void);
+ 
+ #endif				/* LINUX_RIO_DRV_H */
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-mm-memcg-slab-fix-root-memcg-vmstats.patch
-mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
-mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
+lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
+rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
 
