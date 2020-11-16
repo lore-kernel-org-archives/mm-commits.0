@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7B69C388F9
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D34CC63697
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91A69223BD
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE2E8223AB
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FrH+whaw"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="m+bbI/Dl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729131AbgKPV5I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:57:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41992 "EHLO mail.kernel.org"
+        id S1729154AbgKPV5N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:57:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729099AbgKPV5I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:57:08 -0500
+        id S1729099AbgKPV5N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:57:13 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B9E0222EC;
-        Mon, 16 Nov 2020 21:57:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 59EEC22370;
+        Mon, 16 Nov 2020 21:57:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605563827;
-        bh=VdeW/binKopmBLgypQvHqtBwjMwTQdGTsYLA346gfIw=;
+        s=default; t=1605563832;
+        bh=7lEdELILH+s6TixI/8DyuBh1pVQKft0vcNWV/a9PXXo=;
         h=Date:From:To:Subject:From;
-        b=FrH+whawSsf6/5fXI01gjUUm/NtIewaiOWVcvG7zBEWXVdY6/to+af9N8lpxv0/8Y
-         ImlQj01y+j7yavmnGTInQoOXqPPgJWlCiO5/NAGVNZTPowFa9qKM4oJI9GibBNJrG4
-         rA2YztpiesJhWWU2ubcPoTwhWyLmP5JFCLNecEjw=
-Date:   Mon, 16 Nov 2020 13:57:05 -0800
+        b=m+bbI/DlGg/P/og0wmnEAC1MGxrGD0EjKKVn+o7AD9nMXBzdxzje8GJFBqU61nR69
+         42xOGwLm1Yxg2dDIp6og8qUdnU57JjV8okCXjK25hgrni8qFq1N9+UX4RqeQrnuacI
+         8rqlgO6o9WdTuf/OLe9B2ImEpm23zL+tN4cupF3U=
+Date:   Mon, 16 Nov 2020 13:57:09 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -47,9 +47,9 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  + mm-page_idle_get_page-does-not-need-lru_lock.patch
+Subject:  + mm-memcg-add-debug-checking-in-lock_page_memcg.patch
  added to -mm tree
-Message-ID: <20201116215705.U2_vjxhgF%akpm@linux-foundation.org>
+Message-ID: <20201116215709.UqXfpcT_9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -61,16 +61,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_idle_get_page() does not need lru_lock
+     Subject: mm/memcg: add debug checking in lock_page_memcg
 has been added to the -mm tree.  Its filename is
-     mm-page_idle_get_page-does-not-need-lru_lock.patch
+     mm-memcg-add-debug-checking-in-lock_page_memcg.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_idle_get_page-does-no=
-t-need-lru_lock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-add-debug-checking-i=
+n-lock_page_memcg.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_idle_get_page-does-no=
-t-need-lru_lock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-add-debug-checking-i=
+n-lock_page_memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -85,35 +85,26 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Hugh Dickins <hughd@google.com>
-Subject: mm: page_idle_get_page() does not need lru_lock
+=46rom: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: add debug checking in lock_page_memcg
 
-It is necessary for page_idle_get_page() to recheck PageLRU() after
-get_page_unless_zero(), but holding lru_lock around that serves no useful
-purpose, and adds to lru_lock contention: delete it.
+Add a debug checking in lock_page_memcg, then we could get alarm if
+anything wrong here.
 
-See https://lore.kernel.org/lkml/20150504031722.GA2768@blaptop for the
-discussion that led to lru_lock there; but __page_set_anon_rmap() now uses
-WRITE_ONCE(), and I see no other risk in page_idle_clear_pte_refs() using
-rmap_walk() (beyond the risk of racing PageAnon->PageKsm, mostly but not
-entirely prevented by page_count() check in ksm.c's write_protect_page():
-that risk being shared with page_referenced() and not helped by lru_lock).
-
-Link: https://lkml.kernel.org/r/1604566549-62481-8-git-send-email-alex.shi@=
+Link: https://lkml.kernel.org/r/1604566549-62481-9-git-send-email-alex.shi@=
 linux.alibaba.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: "Chen, Rong A" <rong.a.chen@intel.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -121,46 +112,65 @@ Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/page_idle.c~mm-page_idle_get_page-does-not-need-lru_lock
-+++ a/mm/page_idle.c
-@@ -32,19 +32,15 @@
- static struct page *page_idle_get_page(unsigned long pfn)
- {
- 	struct page *page =3D pfn_to_online_page(pfn);
--	pg_data_t *pgdat;
-=20
- 	if (!page || !PageLRU(page) ||
- 	    !get_page_unless_zero(page))
+--- a/mm/memcontrol.c~mm-memcg-add-debug-checking-in-lock_page_memcg
++++ a/mm/memcontrol.c
+@@ -2131,6 +2131,12 @@ again:
+ 	if (unlikely(!memcg))
  		return NULL;
 =20
--	pgdat =3D page_pgdat(page);
--	spin_lock_irq(&pgdat->lru_lock);
- 	if (unlikely(!PageLRU(page))) {
- 		put_page(page);
- 		page =3D NULL;
- 	}
--	spin_unlock_irq(&pgdat->lru_lock);
- 	return page;
- }
++#ifdef CONFIG_PROVE_LOCKING
++	local_irq_save(flags);
++	might_lock(&memcg->move_lock);
++	local_irq_restore(flags);
++#endif
++
+ 	if (atomic_read(&memcg->moving_account) <=3D 0)
+ 		return memcg;
 =20
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-page_idle_get_page-does-not-need-lru_lock.patch
-mm-lru-revise-the-comments-of-lru_lock.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+fs-ntfs-remove-unused-varibles.patch
+fs-ntfs-remove-unused-varible-attr_len.patch
+mm-memcg-update-page-struct-member-in-comments.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
+mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
+docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
 
