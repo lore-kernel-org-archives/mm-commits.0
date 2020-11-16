@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C7AFC2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 19:49:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 870FDC4742C
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 19:52:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A6B92078E
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 19:49:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24A5B20829
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 19:52:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FtpfzQdK"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="g5tu2uIh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730407AbgKPTta (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 14:49:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45816 "EHLO mail.kernel.org"
+        id S1727883AbgKPTwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 14:52:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46150 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727973AbgKPTt3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 14:49:29 -0500
+        id S1726575AbgKPTwF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 14:52:05 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D2B402078E;
-        Mon, 16 Nov 2020 19:49:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B8745207BC;
+        Mon, 16 Nov 2020 19:52:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605556169;
-        bh=V8vpAisuJgrPM/etmBQ9oVpR/UHGiIKnDMhZaHcTgng=;
+        s=default; t=1605556325;
+        bh=NqCzLRV+RmUONIyh0hr6W7qBtajx4eOKF6VnbwonxHQ=;
         h=Date:From:To:Subject:From;
-        b=FtpfzQdKeVRvt5IAGaCcA+gGJNge/t64QO5UV8Ltmw6686MSC5PG/PjuEoX2ccEPH
-         45j5M/0iJT1472HyWqEqw4uX8oPFBECc6wM2jzeJNzEE3QQo2EV7iwl/F9WpufNJuS
-         mXtuA0vvGO2Tzt3CS/hX3duzjf0tInteydYrVXYY=
-Date:   Mon, 16 Nov 2020 11:49:28 -0800
+        b=g5tu2uIhEmn+s6eLwpW+VnXGoqyMgZAd7GyophdD/XtmA7KgjuYNC9zEbVZZPxf3O
+         /CPykp/w6TNFOdvBKBsmV6eTufzxnJE9hxQcPUtgdBZ1DROFShUsokOk0z5jRDZSxu
+         La15nnWjIQESO85r9Q37xzAiWS86vu3NIqkLO5y4=
+Date:   Mon, 16 Nov 2020 11:52:04 -0800
 From:   akpm@linux-foundation.org
-To:     alex.bou9@gmail.com, bigeasy@linutronix.de,
-        mm-commits@vger.kernel.org, mporter@kernel.crashing.org
+To:     joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, yashsri421@gmail.com
 Subject:  +
- rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch added to -mm
- tree
-Message-ID: <20201116194928.plziP6yym%akpm@linux-foundation.org>
+ checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
+ added to -mm tree
+Message-ID: <20201116195204.qnYUEMWYd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
+     Subject: checkpatch: avoid COMMIT_LOG_LONG_LINE warning for signature tags
 has been added to the -mm tree.  Its filename is
-     rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+     checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,154 +70,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: avoid COMMIT_LOG_LONG_LINE warning for signature tags
 
-The functions rio_get_asm() and rio_get_device() are globally exported
-but have almost no users in tree. The only user is rio_init_mports()
-which invokes it via rio_init().
+Currently checkpatch warns us for long lines in commits even for signature
+tag lines.
 
-rio_init() iterates over every registered device and invokes
-rio_fixup_device().  It looks like a fixup function which should perform a
-"change" to the device but does nothing.  It has been like this since its
-introduction in commit 394b701ce4fbf ("[PATCH] RapidIO support: core
-base") which was merged into v2.6.15-rc1.
+Generally these lines exceed the 75-character limit because of:
+1) long names and long email address
+2) some comments on scoped review and acknowledgement, i.e., for a
+dedicated pointer on what was reported by the identity in 'Reported-by'
+3) some additional comments on CC: stable@vger.org tags
 
-Remove rio_init() because the performed fixup function
-(rio_fixup_device()) does nothing.  Remove rio_get_asm() and
-rio_get_device() which have no callers now.
+Exclude signature tag lines from this class of warning.
 
-Link: https://lkml.kernel.org/r/20201116170004.420143-1-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
+There were 1896 COMMIT_LOG_LONG_LINE warnings in v5.6..v5.8 before this
+patch application and 1879 afterwards.
+
+A quick manual check found all the dropped warnings related to signature
+tags.
+
+Link: https://lkml.kernel.org/r/20201116083754.10629-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c   |   81 --------------------------------------
- include/linux/rio_drv.h |    3 -
- 2 files changed, 84 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/rapidio/rio.c~rapidio-remove-unused-rio_get_asm-and-rio_get_device
-+++ a/drivers/rapidio/rio.c
-@@ -1413,71 +1413,6 @@ rio_mport_get_feature(struct rio_mport *
- EXPORT_SYMBOL_GPL(rio_mport_get_feature);
- 
- /**
-- * rio_get_asm - Begin or continue searching for a RIO device by vid/did/asm_vid/asm_did
-- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
-- * @did: RIO did to match or %RIO_ANY_ID to match all dids
-- * @asm_vid: RIO asm_vid to match or %RIO_ANY_ID to match all asm_vids
-- * @asm_did: RIO asm_did to match or %RIO_ANY_ID to match all asm_dids
-- * @from: Previous RIO device found in search, or %NULL for new search
-- *
-- * Iterates through the list of known RIO devices. If a RIO device is
-- * found with a matching @vid, @did, @asm_vid, @asm_did, the reference
-- * count to the device is incrememted and a pointer to its device
-- * structure is returned. Otherwise, %NULL is returned. A new search
-- * is initiated by passing %NULL to the @from argument. Otherwise, if
-- * @from is not %NULL, searches continue from next device on the global
-- * list. The reference count for @from is always decremented if it is
-- * not %NULL.
-- */
--struct rio_dev *rio_get_asm(u16 vid, u16 did,
--			    u16 asm_vid, u16 asm_did, struct rio_dev *from)
--{
--	struct list_head *n;
--	struct rio_dev *rdev;
--
--	WARN_ON(in_interrupt());
--	spin_lock(&rio_global_list_lock);
--	n = from ? from->global_list.next : rio_devices.next;
--
--	while (n && (n != &rio_devices)) {
--		rdev = rio_dev_g(n);
--		if ((vid == RIO_ANY_ID || rdev->vid == vid) &&
--		    (did == RIO_ANY_ID || rdev->did == did) &&
--		    (asm_vid == RIO_ANY_ID || rdev->asm_vid == asm_vid) &&
--		    (asm_did == RIO_ANY_ID || rdev->asm_did == asm_did))
--			goto exit;
--		n = n->next;
--	}
--	rdev = NULL;
--      exit:
--	rio_dev_put(from);
--	rdev = rio_dev_get(rdev);
--	spin_unlock(&rio_global_list_lock);
--	return rdev;
--}
--EXPORT_SYMBOL_GPL(rio_get_asm);
--
--/**
-- * rio_get_device - Begin or continue searching for a RIO device by vid/did
-- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
-- * @did: RIO did to match or %RIO_ANY_ID to match all dids
-- * @from: Previous RIO device found in search, or %NULL for new search
-- *
-- * Iterates through the list of known RIO devices. If a RIO device is
-- * found with a matching @vid and @did, the reference count to the
-- * device is incrememted and a pointer to its device structure is returned.
-- * Otherwise, %NULL is returned. A new search is initiated by passing %NULL
-- * to the @from argument. Otherwise, if @from is not %NULL, searches
-- * continue from next device on the global list. The reference count for
-- * @from is always decremented if it is not %NULL.
-- */
--struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from)
--{
--	return rio_get_asm(vid, did, RIO_ANY_ID, RIO_ANY_ID, from);
--}
--EXPORT_SYMBOL_GPL(rio_get_device);
--
--/**
-  * rio_std_route_add_entry - Add switch route table entry using standard
-  *   registers defined in RIO specification rev.1.3
-  * @mport: Master port to issue transaction
-@@ -2106,20 +2041,6 @@ found:
- 	return rc;
- }
- 
--static void rio_fixup_device(struct rio_dev *dev)
--{
--}
--
--static int rio_init(void)
--{
--	struct rio_dev *dev = NULL;
--
--	while ((dev = rio_get_device(RIO_ANY_ID, RIO_ANY_ID, dev)) != NULL) {
--		rio_fixup_device(dev);
--	}
--	return 0;
--}
--
- static struct workqueue_struct *rio_wq;
- 
- struct rio_disc_work {
-@@ -2206,8 +2127,6 @@ int rio_init_mports(void)
- 	kfree(work);
- 
- no_disc:
--	rio_init();
--
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(rio_init_mports);
---- a/include/linux/rio_drv.h~rapidio-remove-unused-rio_get_asm-and-rio_get_device
-+++ a/include/linux/rio_drv.h
-@@ -444,9 +444,6 @@ static inline void rio_set_drvdata(struc
- /* Misc driver helpers */
- extern u16 rio_local_get_device_id(struct rio_mport *port);
- extern void rio_local_set_device_id(struct rio_mport *port, u16 did);
--extern struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from);
--extern struct rio_dev *rio_get_asm(u16 vid, u16 did, u16 asm_vid, u16 asm_did,
--				   struct rio_dev *from);
- extern int rio_init_mports(void);
- 
- #endif				/* LINUX_RIO_DRV_H */
+--- a/scripts/checkpatch.pl~checkpatch-avoid-commit_log_long_line-warning-for-signature-tags
++++ a/scripts/checkpatch.pl
+@@ -2952,8 +2952,8 @@ sub process {
+ 					# file delta changes
+ 		      $line =~ /^\s*(?:[\w\.\-]+\/)++[\w\.\-]+:/ ||
+ 					# filename then :
+-		      $line =~ /^\s*(?:Fixes:|Link:)/i ||
+-					# A Fixes: or Link: line
++		      $line =~ /^\s*(?:Fixes:|Link:|$signature_tags)/i ||
++					# A Fixes: or Link: line or signature tag line
+ 		      $commit_log_possible_stack_dump)) {
+ 			WARN("COMMIT_LOG_LONG_LINE",
+ 			     "Possible unwrapped commit description (prefer a maximum 75 chars per line)\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from yashsri421@gmail.com are
 
-lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
-rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+checkpatch-fix-false-positives-in-repeated_word-warning.patch
+checkpatch-add-fix-option-for-gerrit_change_id.patch
+checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
 
