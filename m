@@ -7,41 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 043F2C2D0A3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBA54C71156
 	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:41:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3E952231B
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:41:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7CE420A8B
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:41:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="vcuPHgFZ"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="WGeCCou+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727885AbgKPSlV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 13:41:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44934 "EHLO mail.kernel.org"
+        id S1727973AbgKPSl1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 13:41:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727883AbgKPSlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 13:41:21 -0500
+        id S1726473AbgKPSl1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 13:41:27 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9D68420867;
-        Mon, 16 Nov 2020 18:41:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9FE4020867;
+        Mon, 16 Nov 2020 18:41:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605552080;
-        bh=xIU8KFCgxD/CPhat5cPEQLa6oofXQgk8tS8dXV2+pAI=;
+        s=default; t=1605552087;
+        bh=ZR2zok4QoE9NJVlggnscUG9GdL6AZGtfkIbNXR3lMN4=;
         h=Date:From:To:Subject:From;
-        b=vcuPHgFZw3ulu3UPKkPfpVqJQ46vR/3i7fN5qdQE1u4JxCSPA5JvE5+PpYLZZW8uM
-         AELEeJBP+NMcgcP1tmCLd2rnvP4ff9GiqcCxgPNXDEHHWvcUgWDhYNomDv2/NsVnDc
-         hSle0/8sjxdIZe/fnwJD5zj9l7USKAhwws8CGHBg=
-Date:   Mon, 16 Nov 2020 10:41:20 -0800
+        b=WGeCCou+5v1L2bV9djFCK93S5iyg9bMUueoA85sNsOmWvML/2ctH6c5d+xaGewg0l
+         Rz/Jz/gEThG7OdcurD/43wvnWqEqE3VRtuut0SpeU7kpwbG4dg7E864TdIus1ZRNT1
+         4iYYeZSJUAQsqh0Po9laYAeYOCsjyk4pyxY36GEU=
+Date:   Mon, 16 Nov 2020 10:41:26 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com,
-        ira.weiny@intel.com, jgg@nvidia.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org
+To:     arnd@arndb.de, fabf@skynet.be, gregkh@linuxfoundation.org,
+        keescook@chromium.org, linux@roeck-us.net, mcroce@microsoft.com,
+        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
+        pmladek@suse.com, robinmholt@gmail.com, rppt@kernel.org,
+        stable@vger.kernel.org
 Subject:  [merged]
- mm-gup-use-unpin_user_pages-in-__gup_longterm_locked.patch removed from -mm
- tree
-Message-ID: <20201116184120.Yl7fF-luC%akpm@linux-foundation.org>
+ revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch removed
+ from -mm tree
+Message-ID: <20201116184126.TBAAN96sK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,74 +52,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: use unpin_user_pages() in __gup_longterm_locked()
+     Subject: Revert "kernel/reboot.c: convert simple_strtoul to kstrtoint"
 has been removed from the -mm tree.  Its filename was
-     mm-gup-use-unpin_user_pages-in-__gup_longterm_locked.patch
+     revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: use unpin_user_pages() in __gup_longterm_locked()
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: Revert "kernel/reboot.c: convert simple_strtoul to kstrtoint"
 
-When FOLL_PIN is passed to __get_user_pages() the page list must be put
-back using unpin_user_pages() otherwise the page pin reference persists in
-a corrupted state.
+Patch series "fix parsing of reboot= cmdline", v3.
 
-There are two places in the unwind of __gup_longterm_locked() that put the
-pages back without checking.  Normally on error this function would return
-the partial page list making this the caller's responsibility, but in
-these two cases the caller is not allowed to see these pages at all.
+The parsing of the reboot= cmdline has two major errors:
 
-Link: https://lkml.kernel.org/r/0-v2-3ae7d9d162e2+2a7-gup_cma_fix_jgg@nvidia.com
-Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Reported-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+- a missing bound check can crash the system on reboot
+- parsing of the cpu number only works if specified last
+
+Fix both.
+
+
+This patch (of 2):
+
+This reverts commit 616feab753972b97.
+
+kstrtoint() and simple_strtoul() have a subtle difference which makes them
+non interchangeable: if a non digit character is found amid the parsing,
+the former will return an error, while the latter will just stop parsing,
+e.g.  simple_strtoul("123xyx") = 123.
+
+The kernel cmdline reboot= argument allows to specify the CPU used for
+rebooting, with the syntax `s####` among the other flags, e.g. 
+"reboot=warm,s31,force", so if this flag is not the last given, it's
+silently ignored as well as the subsequent ones.
+
+Link: https://lkml.kernel.org/r/20201103214025.116799-2-mcroce@linux.microsoft.com
+Fixes: 616feab75397 ("kernel/reboot.c: convert simple_strtoul to kstrtoint")
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Robin Holt <robinmholt@gmail.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ kernel/reboot.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
---- a/mm/gup.c~mm-gup-use-unpin_user_pages-in-__gup_longterm_locked
-+++ a/mm/gup.c
-@@ -1647,8 +1647,11 @@ check_again:
- 		/*
- 		 * drop the above get_user_pages reference.
- 		 */
--		for (i = 0; i < nr_pages; i++)
--			put_page(pages[i]);
-+		if (gup_flags & FOLL_PIN)
-+			unpin_user_pages(pages, nr_pages);
-+		else
-+			for (i = 0; i < nr_pages; i++)
-+				put_page(pages[i]);
+--- a/kernel/reboot.c~revert-kernel-rebootc-convert-simple_strtoul-to-kstrtoint
++++ a/kernel/reboot.c
+@@ -551,22 +551,15 @@ static int __init reboot_setup(char *str
+ 			break;
  
- 		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
-@@ -1728,8 +1731,11 @@ static long __gup_longterm_locked(struct
- 			goto out;
- 
- 		if (check_dax_vmas(vmas_tmp, rc)) {
--			for (i = 0; i < rc; i++)
--				put_page(pages[i]);
-+			if (gup_flags & FOLL_PIN)
-+				unpin_user_pages(pages, rc);
+ 		case 's':
+-		{
+-			int rc;
+-
+-			if (isdigit(*(str+1))) {
+-				rc = kstrtoint(str+1, 0, &reboot_cpu);
+-				if (rc)
+-					return rc;
+-			} else if (str[1] == 'm' && str[2] == 'p' &&
+-				   isdigit(*(str+3))) {
+-				rc = kstrtoint(str+3, 0, &reboot_cpu);
+-				if (rc)
+-					return rc;
+-			} else
++			if (isdigit(*(str+1)))
++				reboot_cpu = simple_strtoul(str+1, NULL, 0);
++			else if (str[1] == 'm' && str[2] == 'p' &&
++							isdigit(*(str+3)))
++				reboot_cpu = simple_strtoul(str+3, NULL, 0);
 +			else
-+				for (i = 0; i < rc; i++)
-+					put_page(pages[i]);
- 			rc = -EOPNOTSUPP;
- 			goto out;
- 		}
+ 				*mode = REBOOT_SOFT;
+ 			break;
+-		}
++
+ 		case 'g':
+ 			*mode = REBOOT_GPIO;
+ 			break;
 _
 
-Patches currently in -mm which might be from jgg@nvidia.com are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
-mm-reorganize-internal_get_user_pages_fast.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork.patch
+reboot-refactor-and-comment-the-cpu-selection-code.patch
+reboot-allow-to-specify-reboot-mode-via-sysfs.patch
+reboot-remove-cf9_safe-from-allowed-types-and-rename-cf9_force.patch
 
