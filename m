@@ -7,39 +7,43 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1779C388F9
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 22:55:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC8BBC388F9
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 22:59:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47E1C2344C
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 22:55:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D9A42344C
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 22:59:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FIM1r8HK"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="k7m7PA5Y"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725710AbgKPWzZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 17:55:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53984 "EHLO mail.kernel.org"
+        id S1726382AbgKPW7s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 17:59:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgKPWzZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 17:55:25 -0500
+        id S1725379AbgKPW7r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 17:59:47 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DCA2D22453;
-        Mon, 16 Nov 2020 22:55:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E89FA22453;
+        Mon, 16 Nov 2020 22:59:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605567325;
-        bh=7JXmpcvd0PQhrAn8QHf9IZ1CHG6nICNvXMxYacC5774=;
+        s=default; t=1605567586;
+        bh=ESAEEXir2XEKWdthDUOJ4zzzojBGvBb9FflN6dpLUm8=;
         h=Date:From:To:Subject:From;
-        b=FIM1r8HKncza3l2rBH2hoH42KjOhIvORra9YeGtDwg+tBnnrzzpYd1I5Cy03oxRKb
-         bBvlluGQq5iS6PFu/UGNDr1ISQGBOY9h86WKth7qgsMC3oiYjDxt+d9hDi1ipIHIuA
-         aXwEv9OqPtC6ur0lSQ6ta/CVg09BsWfnRf9MI5yA=
-Date:   Mon, 16 Nov 2020 14:55:24 -0800
+        b=k7m7PA5Yp1koFy9gXF22xFkBitkcEqIyF9dtr5YtllDcCx6rh3Zi9LtDckTSo8/E+
+         m6uLQ3znWjIDFsK1uRzW1Tc7etuTBB8CLx54Mhla365y3KcofwAfm2uVd5JG1r+TSa
+         v/zV3b6QSjT8KlFsWsYo8ZLWyh/g3667UATlfMPA=
+Date:   Mon, 16 Nov 2020 14:59:45 -0800
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com,
-        mm-commits@vger.kernel.org
-Subject:  + checkpatch-fix-unescaped-left-brace.patch added to -mm
- tree
-Message-ID: <20201116225524.-rX5gHB_o%akpm@linux-foundation.org>
+To:     aruna.ramakrishna@oracle.com, bert.barbe@oracle.com,
+        davem@davemloft.net, dongli.zhang@oracle.com, edumazet@google.com,
+        joe.jin@oracle.com, manjunath.b.patil@oracle.com,
+        mm-commits@vger.kernel.org, rama.nichanamatlu@oracle.com,
+        srinivas.eeda@oracle.com, stable@vger.kernel.org, vbabka@suse.cz,
+        venkat.x.venkatsubra@oracle.com, willy@infradead.org
+Subject:  + page_frag-recover-from-memory-pressure.patch added to
+ -mm tree
+Message-ID: <20201116225945.HWjwagBNS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix unescaped left brace
+     Subject: mm, page_frag: recover from memory pressure
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-unescaped-left-brace.patch
+     page_frag-recover-from-memory-pressure.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-unescaped-left-brace.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/page_frag-recover-from-memory-pressure.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-unescaped-left-brace.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/page_frag-recover-from-memory-pressure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,43 +73,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: fix unescaped left brace
+From: Dongli Zhang <dongli.zhang@oracle.com>
+Subject: mm, page_frag: recover from memory pressure
 
-There is an unescaped left brace in a regex in OPEN_BRACE check.  This
-throws a runtime error when checkpatch is run with --fix flag and the
-OPEN_BRACE check is executed.
+The ethernet driver may allocate skb (and skb->data) via napi_alloc_skb().
+This ends up to page_frag_alloc() to allocate skb->data from
+page_frag_cache->va.
 
-Fix it by escaping the left brace.
+During the memory pressure, page_frag_cache->va may be allocated as
+pfmemalloc page.  As a result, the skb->pfmemalloc is always true as
+skb->data is from page_frag_cache->va.  The skb will be dropped if the
+sock (receiver) does not have SOCK_MEMALLOC.  This is expected behaviour
+under memory pressure.
 
-Link: https://lkml.kernel.org/r/20201115202928.81955-1-dwaipayanray1@gmail.com
-Fixes: 8d1824780f2f ("checkpatch: add --fix option for a couple OPEN_BRACE misuses")
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
+However, once kernel is not under memory pressure any longer (suppose
+large amount of memory pages are just reclaimed), the page_frag_alloc()
+may still re-use the prior pfmemalloc page_frag_cache->va to allocate
+skb->data.  As a result, the skb->pfmemalloc is always true unless
+page_frag_cache->va is re-allocated, even if the kernel is not under
+memory pressure any longer.
+
+Here is how kernel runs into issue.
+
+1. The kernel is under memory pressure and allocation of
+   PAGE_FRAG_CACHE_MAX_ORDER in __page_frag_cache_refill() will fail. 
+   Instead, the pfmemalloc page is allocated for page_frag_cache->va.
+
+2. All skb->data from page_frag_cache->va (pfmemalloc) will have
+   skb->pfmemalloc=true.  The skb will always be dropped by sock without
+   SOCK_MEMALLOC.  This is an expected behaviour.
+
+3. Suppose a large amount of pages are reclaimed and kernel is not
+   under memory pressure any longer.  We expect skb->pfmemalloc drop will
+   not happen.
+
+4. Unfortunately, page_frag_alloc() does not proactively re-allocate
+   page_frag_alloc->va and will always re-use the prior pfmemalloc page. 
+   The skb->pfmemalloc is always true even kernel is not under memory
+   pressure any longer.
+
+Fix this by freeing and re-allocating the page instead of recycling it.
+
+Link: https://lore.kernel.org/lkml/20201103193239.1807-1-dongli.zhang@oracle.com/
+Link: https://lore.kernel.org/linux-mm/20201105042140.5253-1-willy@infradead.org/
+Link: https://lkml.kernel.org/r/20201115201029.11903-1-dongli.zhang@oracle.com
+Fixes: 79930f5892e ("net: do not deplete pfmemalloc reserve")
+Signed-off-by: Dongli Zhang <dongli.zhang@oracle.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+Cc: Bert Barbe <bert.barbe@oracle.com>
+Cc: Rama Nichanamatlu <rama.nichanamatlu@oracle.com>
+Cc: Venkat Venkatsubra <venkat.x.venkatsubra@oracle.com>
+Cc: Manjunath Patil <manjunath.b.patil@oracle.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: SRINIVAS <srinivas.eeda@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-fix-unescaped-left-brace
-+++ a/scripts/checkpatch.pl
-@@ -4505,7 +4505,7 @@ sub process {
- 			    $fix) {
- 				fix_delete_line($fixlinenr, $rawline);
- 				my $fixed_line = $rawline;
--				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*){(.*)$/;
-+				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*)\{(.*)$/;
- 				my $line1 = $1;
- 				my $line2 = $2;
- 				fix_insert_line($fixlinenr, ltrim($line1));
+--- a/mm/page_alloc.c~page_frag-recover-from-memory-pressure
++++ a/mm/page_alloc.c
+@@ -5103,6 +5103,11 @@ refill:
+ 		if (!page_ref_sub_and_test(page, nc->pagecnt_bias))
+ 			goto refill;
+ 
++		if (unlikely(nc->pfmemalloc)) {
++			free_the_page(page, compound_order(page));
++			goto refill;
++		}
++
+ #if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
+ 		/* if size can vary use size else just use PAGE_SIZE */
+ 		size = nc->size;
 _
 
-Patches currently in -mm which might be from dwaipayanray1@gmail.com are
+Patches currently in -mm which might be from dongli.zhang@oracle.com are
 
-checkpatch-add-new-exception-to-repeated-word-check.patch
-checkpatch-extend-attributes-check-to-handle-more-patterns.patch
-checkpatch-improve-email-parsing.patch
-checkpatch-fix-spelling-errors-and-remove-repeated-word.patch
-checkpatch-fix-unescaped-left-brace.patch
+page_frag-recover-from-memory-pressure.patch
 
