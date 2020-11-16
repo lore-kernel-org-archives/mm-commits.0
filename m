@@ -7,49 +7,51 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36FCEC63697
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15473C63798
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C996922370
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC167223AB
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="NvJKvYjA"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="B6/T9CJE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727147AbgKPV5C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:57:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41824 "EHLO mail.kernel.org"
+        id S1726473AbgKPV5E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:57:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41918 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726473AbgKPV5B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:57:01 -0500
+        id S1729099AbgKPV5E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:57:04 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 57F0A2225E;
-        Mon, 16 Nov 2020 21:56:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 420302225B;
+        Mon, 16 Nov 2020 21:57:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605563819;
-        bh=Pt8XMvcukJj4HAx5koI6bNZC8fMXeM9L1M+76zLLask=;
+        s=default; t=1605563823;
+        bh=ipFW0db5YMg6XSjzsIXeuK5ni3/1Jd4goGVk7vUI0Eo=;
         h=Date:From:To:Subject:From;
-        b=NvJKvYjAfBPcWo33eVLUlCNi/asEDRLzBAkLqNDIItRm/lGJp80ZJTGjXQT9CCpF4
-         14wSWqV0O8zgjFz/vaDNbCz0Szhu0RRmAXoskySSPdXq8cUebLoabtxuG8GnUhPvgz
-         3ILpvEb5oDNFwqLsQBHR8/6GeXmBtQJAcNd9oFPI=
-Date:   Mon, 16 Nov 2020 13:56:57 -0800
+        b=B6/T9CJEPHYyUBmwmMQvrOufYQNwXEE/FfCeenMQS5fUXAlhmFHu5wSUe5i6G89kF
+         iw8dhB6cmcvpSSXKkslMgi09nP9tWllSRuQ+hQL8zyF78KNPpATT9Eh1WllpYIarmo
+         YY0eyUUdiDALd71t/YzCIZyjQcW9lLzjpVJp8B/k=
+Date:   Mon, 16 Nov 2020 13:57:01 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
-        alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
-        daniel.m.jordan@oracle.com, hannes@cmpxchg.org, hughd@google.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com,
-        khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com,
-        kirill@shutemov.name, mgorman@techsingularity.net,
-        mhocko@kernel.org, mhocko@suse.com, mika.penttila@nextfour.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, rong.a.chen@intel.com,
-        shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com
+        alexander.duyck@gmail.com, alexander.h.duyck@linux.intel.com,
+        aryabinin@virtuozzo.com, daniel.m.jordan@oracle.com,
+        hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com,
+        jannh@google.com, khlebnikov@yandex-team.ru,
+        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
+        mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com,
+        mika.penttila@nextfour.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        rong.a.chen@intel.com, shakeelb@google.com, tglx@linutronix.de,
+        tj@kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com,
+        willy@infradead.org, yang.shi@linux.alibaba.com,
+        ying.huang@intel.com
 Subject:  +
- mm-rmap-stop-store-reordering-issue-on-page-mapping.patch added to -mm tree
-Message-ID: <20201116215657.rS_79re4B%akpm@linux-foundation.org>
+ mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch added to -mm
+ tree
+Message-ID: <20201116215701.I7RDFcmmf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -61,16 +63,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: stop store reordering issue on page->mapping
+     Subject: mm-rmap-stop-store-reordering-issue-on-page-mapping-fix
 has been added to the -mm tree.  Its filename is
-     mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+     mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
 
 This patch should soon appear at
     https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-stop-store-reordering=
--issue-on-page-mapping.patch
+-issue-on-page-mapping-fix.patch
 and later at
     https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-stop-store-reordering=
--issue-on-page-mapping.patch
+-issue-on-page-mapping-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,64 +88,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/rmap: stop store reordering issue on page->mapping
+Subject: mm-rmap-stop-store-reordering-issue-on-page-mapping-fix
 
-Hugh Dickins and Minchan Kim observed a long time issue which discussed
-here, but actully the mentioned fix missed.=20
-https://lore.kernel.org/lkml/20150504031722.GA2768@blaptop/ The store
-reordering may cause problem in the scenario:
+updated for comments change from Johannes
 
-	CPU 0						CPU1
-   do_anonymous_page
-	page_add_new_anon_rmap()
-	  page->mapping =3D anon_vma + PAGE_MAPPING_ANON
-	lru_cache_add_inactive_or_unevictable()
-	  spin_lock(lruvec->lock)
-	  SetPageLRU()
-	  spin_unlock(lruvec->lock)
-						/* idletacking judged it as LRU
-						 * page so pass the page in
-						 * page_idle_clear_pte_refs
-						 */
-						page_idle_clear_pte_refs
-						  rmap_walk
-						    if PageAnon(page)
-
-Johannes give detailed examples how the store reordering could cause a
-trouble: "The concern is the SetPageLRU may get reorder before
-'page->mapping' setting, That would make CPU 1 will observe at
-page->mapping after observing PageLRU set on the page.
-
-1. anon_vma + PAGE_MAPPING_ANON
-
-   That's the in-order scenario and is fine.
-
-2. NULL
-
-   That's possible if the page->mapping store gets reordered to occur
-   after SetPageLRU. That's fine too because we check for it.
-
-3. anon_vma without the PAGE_MAPPING_ANON bit
-
-   That would be a problem and could lead to all kinds of undesirable
-   behavior including crashes and data corruption.
-
-   Is it possible? AFAICT the compiler is allowed to tear the store to
-   page->mapping and I don't see anything that would prevent it.
-
-That said, I also don't see how the reader testing PageLRU under the
-lru_lock would prevent that in the first place.  AFAICT we need that
-WRITE_ONCE() around the page->mapping assignment."
-
-Link: https://lkml.kernel.org/r/1604566549-62481-7-git-send-email-alex.shi@=
-linux.alibaba.com
+Link: https://lkml.kernel.org/r/e66ef2e5-c74c-6498-e8b3-56c37b9d2d15@linux.=
+alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: "Chen, Rong A" <rong.a.chen@intel.com>
@@ -167,26 +125,25 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/rmap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-stop-store-reordering-issue-on-page-mapping
+--- a/mm/rmap.c~mm-rmap-stop-store-reordering-issue-on-page-mapping-fix
 +++ a/mm/rmap.c
-@@ -1054,8 +1054,13 @@ static void __page_set_anon_rmap(struct
- 	if (!exclusive)
+@@ -1055,9 +1055,10 @@ static void __page_set_anon_rmap(struct
  		anon_vma =3D anon_vma->root;
 =20
-+	/*
-+	 * Prevent page->mapping from pointing to an anon_vma without
-+	 * the PAGE_MAPPING_ANON bit set.  This could happen if the
-+	 * compiler stores anon_vma and then adds PAGE_MAPPING_ANON to it.
-+	 */
+ 	/*
+-	 * Prevent page->mapping from pointing to an anon_vma without
+-	 * the PAGE_MAPPING_ANON bit set.  This could happen if the
+-	 * compiler stores anon_vma and then adds PAGE_MAPPING_ANON to it.
++	 * page_idle does a lockless/optimistic rmap scan on page->mapping.
++	 * Make sure the compiler doesn't split the stores of anon_vma and
++	 * the PAGE_MAPPING_ANON type identifier, otherwise the rmap code
++	 * could mistake the mapping for a struct address_space and crash.
+ 	 */
  	anon_vma =3D (void *) anon_vma + PAGE_MAPPING_ANON;
--	page->mapping =3D (struct address_space *) anon_vma;
-+	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
- 	page->index =3D linear_page_index(vma, address);
- }
-=20
+ 	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
