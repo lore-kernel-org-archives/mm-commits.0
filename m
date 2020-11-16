@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEC23C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:22:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E332C4742C
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4102420781
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:22:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13A8A20781
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="eI6RdKKo"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="TfcFJ1tF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732017AbgKPUV6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:21:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53308 "EHLO mail.kernel.org"
+        id S1732256AbgKPUXC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:23:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727359AbgKPUV6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 15:21:58 -0500
+        id S1727359AbgKPUXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 15:23:02 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D0B7520776;
-        Mon, 16 Nov 2020 20:21:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 59D0F20781;
+        Mon, 16 Nov 2020 20:23:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605558117;
-        bh=BXNnDmDfiojH17iq6CTw+p3Sez8y5SyAtpHqlJtl/cg=;
+        s=default; t=1605558181;
+        bh=fz4tCg2EzADj5PzWqWEtYvq1uU51RxpoSZM1RBJZPnE=;
         h=Date:From:To:Subject:From;
-        b=eI6RdKKoCrUTzXFSGbVHk68aZlVXBqlCQiCqsjyB9xVciTC7dkMHXkyyspYN5P8m+
-         EKU68mgrWw5nTUfR5sxdwmSVu39Z8ziNXv9F5ZrVvqQhcx/fb0RMyApIBixS9+0xvH
-         FrzUx9e5h8yMNrSscq8pcipv347KtkZ2aDlP1Jb0=
-Date:   Mon, 16 Nov 2020 12:21:56 -0800
+        b=TfcFJ1tFntyYDt3Lt/XTJGJ+w/KbnDm+jjaq3FMpK5/cHaNRD21HEs7ml0fhhmlhc
+         dLKbPvg9AysSKen7vq1tZL/d8Cfp37gCJhZFU+0qkRX/Q89B4rnP6FvEKV/Pygzs1H
+         ygr5Fu0mruOQBAc+RDMedNzLtbW/5J4AWZJ0wqaU=
+Date:   Mon, 16 Nov 2020 12:23:00 -0800
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, mchehab+huawei@kernel.org,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + resource-fix-kernel-doc-markups.patch added to -mm tree
-Message-ID: <20201116202156.prKE2IAdH%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net,
+        mchehab+huawei@kernel.org, mm-commits@vger.kernel.org
+Subject:  + resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+ added to -mm tree
+Message-ID: <20201116202300.BmG8IEbOY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource.c: fix kernel-doc markups
+     Subject: resource-fix-kernel-doc-markups-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     resource-fix-kernel-doc-markups.patch
+     resource-fix-kernel-doc-markups-checkpatch-fixes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/resource-fix-kernel-doc-markups.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/resource-fix-kernel-doc-markups-checkpatch-fixes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/resource-fix-kernel-doc-markups.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/resource-fix-kernel-doc-markups-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,91 +69,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: kernel/resource.c: fix kernel-doc markups
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: resource-fix-kernel-doc-markups-checkpatch-fixes
 
-Kernel-doc markups should use this format:
-        identifier - description
+WARNING: please, no space before tabs
+#78: FILE: kernel/resource.c:1381:
++ * ^Imerge it with adjacent, mergeable resources$
 
-While here, fix a kernel-doc tag that was using, instead,
-a normal comment block.
+total: 0 errors, 1 warnings, 55 lines checked
 
-Link: https://lkml.kernel.org/r/c5e38e1070f8dbe2f9607a10b44afe2875bd966c.1605521731.git.mchehab+huawei@kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/resource-fix-kernel-doc-markups.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: "Jonathan Corbet" <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ kernel/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/resource.c~resource-fix-kernel-doc-markups
+--- a/kernel/resource.c~resource-fix-kernel-doc-markups-checkpatch-fixes
 +++ a/kernel/resource.c
-@@ -320,9 +320,8 @@ int release_resource(struct resource *ol
- EXPORT_SYMBOL(release_resource);
+@@ -1378,7 +1378,7 @@ static bool system_ram_resources_mergeab
  
  /**
-- * Finds the lowest iomem resource that covers part of [@start..@end].  The
-- * caller must specify @start, @end, @flags, and @desc (which may be
-- * IORES_DESC_NONE).
-+ * find_next_iomem_res - Finds the lowest iomem resource that covers part of
-+ *			 [@start..@end].
-  *
-  * If a resource is found, returns 0 and @*res is overwritten with the part
-  * of the resource that's within [@start..@end]; if none is found, returns
-@@ -337,6 +336,9 @@ EXPORT_SYMBOL(release_resource);
-  * @desc:	descriptor the resource must have
-  * @first_lvl:	walk only the first level children, if set
-  * @res:	return ptr, if resource found
-+ *
-+ * The caller must specify @start, @end, @flags, and @desc
-+ * (which may be IORES_DESC_NONE).
-  */
- static int find_next_iomem_res(resource_size_t start, resource_size_t end,
- 			       unsigned long flags, unsigned long desc,
-@@ -416,11 +418,9 @@ static int __walk_iomem_res_desc(resourc
- }
- 
- /**
-- * Walks through iomem resources and calls func() with matching resource
-- * ranges. This walks through whole tree and not just first level children.
-- * All the memory ranges which overlap start,end and also match flags and
-- * desc are valid candidates.
-- *
-+ * walk_iomem_res_desc - Walks through iomem resources and calls func()
-+ *			 with matching resource ranges.
-+ * *
-  * @desc: I/O resource descriptor. Use IORES_DESC_NONE to skip @desc check.
-  * @flags: I/O resource flags
-  * @start: start addr
-@@ -428,6 +428,10 @@ static int __walk_iomem_res_desc(resourc
-  * @arg: function argument for the callback @func
-  * @func: callback function that is called for each qualifying resource area
-  *
-+ * This walks through whole tree and not just first level children.
-+ * All the memory ranges which overlap start,end and also match flags and
-+ * desc are valid candidates.
-+ *
-  * NOTE: For a new descriptor search, define a new IORES_DESC in
-  * <linux/ioport.h> and set it in 'desc' of a target resource entry.
-  */
-@@ -1372,9 +1376,9 @@ static bool system_ram_resources_mergeab
- 	       !r1->child && !r2->child;
- }
- 
--/*
-+/**
   * merge_system_ram_resource - mark the System RAM resource mergeable and try to
-- * merge it with adjacent, mergeable resources
-+ * 	merge it with adjacent, mergeable resources
+- * 	merge it with adjacent, mergeable resources
++ *	merge it with adjacent, mergeable resources
   * @res: resource descriptor
   *
   * This interface is intended for memory hotplug, whereby lots of contiguous
 _
 
-Patches currently in -mm which might be from mchehab+huawei@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-resource-fix-kernel-doc-markups.patch
-mm-fix-kernel-doc-markups.patch
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+secretmem-add-memcg-accounting-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
