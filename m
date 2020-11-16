@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EED7C388F9
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E1E6C63697
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 380912225E
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD564223AB
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="RpFl5T8A"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="L2MfNR7C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728063AbgKPV5a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:57:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42476 "EHLO mail.kernel.org"
+        id S1728806AbgKPV5e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:57:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727864AbgKPV5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:57:30 -0500
+        id S1727864AbgKPV5e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:57:34 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4F1E6223FB;
-        Mon, 16 Nov 2020 21:57:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 50EDC2225B;
+        Mon, 16 Nov 2020 21:57:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605563849;
-        bh=D+nWh0pOxQHhFgNi7Uz4w3IAoeeiVQfCwSgV9RfnZ3o=;
+        s=default; t=1605563853;
+        bh=X8MRoGYKWDAyd1mFN3kZEbr1i4+hI744jF0hgYgoMRY=;
         h=Date:From:To:Subject:From;
-        b=RpFl5T8ADoRPJkUGPm0LaeyHjlEriuR0A59znyGlwNDb/G36DDsxCe41C/nkGSEFx
-         uubrO1p2QpZGnYgkxUDQrAt4KvUnHXcQVjFTtd/zlQMhLUdwNxMjrSZPtKqbx5Hy4s
-         04Cy7OgwNFssIUKlcoZG7a4NmBzKLyhq6QAhvt+k=
-Date:   Mon, 16 Nov 2020 13:57:27 -0800
+        b=L2MfNR7CKYN0E6XLBuuPGkpAgifEGCRBq5hV0CfB0S+PC+RuxB+djANvbaU6x7x31
+         5gDu2afGiD387qNPW9Rx/RtahL+/rZfkpl+tbvt2lXCelQGw8YDSw4Ajb8W/bI3J7m
+         vfRUU8nDJZjiCASbUO5Yf8La279H27TG7h31QY3I=
+Date:   Mon, 16 Nov 2020 13:57:31 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -47,9 +47,9 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  + mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
- added to -mm tree
-Message-ID: <20201116215727.2p8WzMQoV%akpm@linux-foundation.org>
+Subject:  + mm-mlock-remove-__munlock_isolate_lru_page.patch added
+ to -mm tree
+Message-ID: <20201116215731.oQR1-OF0w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -61,16 +61,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock: remove lru_lock on TestClearPageMlocked
+     Subject: mm/mlock: remove __munlock_isolate_lru_page()
 has been added to the -mm tree.  Its filename is
-     mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+     mm-mlock-remove-__munlock_isolate_lru_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-remove-lru_lock-on-t=
-estclearpagemlocked.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-remove-__munlock_iso=
+late_lru_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-remove-lru_lock-on-t=
-estclearpagemlocked.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-remove-__munlock_iso=
+late_lru_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,23 +86,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/mlock: remove lru_lock on TestClearPageMlocked
+Subject: mm/mlock: remove __munlock_isolate_lru_page()
 
-In the func munlock_vma_page, comments mentained lru_lock needed for
-serialization with split_huge_pages.  But the page must be PageLocked as
-well as pages in split_huge_page series funcs.  Thus the PageLocked is
-enough to serialize both funcs.
+__munlock_isolate_lru_page() only has one caller, remove it to clean up
+and simplify code.
 
-Further more, Hugh Dickins pointed: before splitting in
-split_huge_page_to_list, the page was unmap_page() to remove pmd/ptes
-which protect the page from munlock.  Thus, no needs to guard
-__split_huge_page_tail for mlock clean, just keep the lru_lock there for
-isolation purpose.
-
-LKP found a preempt issue on __mod_zone_page_state which need change to
-mod_zone_page_state.  Thanks!
-
-Link: https://lkml.kernel.org/r/1604566549-62481-13-git-send-email-alex.shi=
+Link: https://lkml.kernel.org/r/1604566549-62481-14-git-send-email-alex.shi=
 @linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
@@ -134,57 +123,57 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   26 +++++---------------------
- 1 file changed, 5 insertions(+), 21 deletions(-)
+ mm/mlock.c |   31 +++++++++----------------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
---- a/mm/mlock.c~mm-mlock-remove-lru_lock-on-testclearpagemlocked
+--- a/mm/mlock.c~mm-mlock-remove-__munlock_isolate_lru_page
 +++ a/mm/mlock.c
-@@ -187,40 +187,24 @@ static void __munlock_isolation_failed(s
- unsigned int munlock_vma_page(struct page *page)
- {
- 	int nr_pages;
--	pg_data_t *pgdat =3D page_pgdat(page);
-=20
- 	/* For try_to_munlock() and to serialize with page migration */
- 	BUG_ON(!PageLocked(page));
--
- 	VM_BUG_ON_PAGE(PageTail(page), page);
-=20
--	/*
--	 * Serialize with any parallel __split_huge_page_refcount() which
--	 * might otherwise copy PageMlocked to part of the tail pages before
--	 * we clear it in the head page. It also stabilizes thp_nr_pages().
--	 */
--	spin_lock_irq(&pgdat->lru_lock);
--
- 	if (!TestClearPageMlocked(page)) {
- 		/* Potentially, PTE-mapped THP: do not skip the rest PTEs */
--		nr_pages =3D 1;
--		goto unlock_out;
-+		return 0;
- 	}
-=20
- 	nr_pages =3D thp_nr_pages(page);
--	__mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
-+	mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
-=20
--	if (__munlock_isolate_lru_page(page, true)) {
--		spin_unlock_irq(&pgdat->lru_lock);
-+	if (!isolate_lru_page(page))
- 		__munlock_isolated_page(page);
--		goto out;
--	}
--	__munlock_isolation_failed(page);
--
--unlock_out:
--	spin_unlock_irq(&pgdat->lru_lock);
-+	else
-+		__munlock_isolation_failed(page);
-=20
--out:
- 	return nr_pages - 1;
+@@ -106,26 +106,6 @@ void mlock_vma_page(struct page *page)
  }
 =20
+ /*
+- * Isolate a page from LRU with optional get_page() pin.
+- * Assumes lru_lock already held and page already pinned.
+- */
+-static bool __munlock_isolate_lru_page(struct page *page, bool getpage)
+-{
+-	if (PageLRU(page)) {
+-		struct lruvec *lruvec;
+-
+-		lruvec =3D mem_cgroup_page_lruvec(page, page_pgdat(page));
+-		if (getpage)
+-			get_page(page);
+-		ClearPageLRU(page);
+-		del_page_from_lru_list(page, lruvec, page_lru(page));
+-		return true;
+-	}
+-
+-	return false;
+-}
+-
+-/*
+  * Finish munlock after successful page isolation
+  *
+  * Page must be locked. This is a wrapper for try_to_munlock()
+@@ -296,9 +276,16 @@ static void __munlock_pagevec(struct pag
+ 			 * We already have pin from follow_page_mask()
+ 			 * so we can spare the get_page() here.
+ 			 */
+-			if (__munlock_isolate_lru_page(page, false))
++			if (PageLRU(page)) {
++				struct lruvec *lruvec;
++
++				ClearPageLRU(page);
++				lruvec =3D mem_cgroup_page_lruvec(page,
++							page_pgdat(page));
++				del_page_from_lru_list(page, lruvec,
++							page_lru(page));
+ 				continue;
+-			else
++			} else
+ 				__munlock_isolation_failed(page);
+ 		} else {
+ 			delta_munlocked++;
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
