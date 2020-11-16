@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9EF8C5519F
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 23:16:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08116C63798
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 23:16:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 869D02419B
+	by mail.kernel.org (Postfix) with ESMTP id BFE4823A32
 	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 23:16:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="qN8oI35A"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z9+5sbtw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727173AbgKPXPt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 18:15:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36536 "EHLO mail.kernel.org"
+        id S1728073AbgKPXPy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 18:15:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgKPXPt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 18:15:49 -0500
+        id S1725379AbgKPXPy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 18:15:54 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1164E23A32;
-        Mon, 16 Nov 2020 23:15:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E475A2223D;
+        Mon, 16 Nov 2020 23:15:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605568548;
-        bh=w47SfsdezqrpxNNOs3Iucko6uHMoFntVmJ1SdvMTCp8=;
+        s=default; t=1605568552;
+        bh=aXyJ5suE05cbFMf/44vIxnsax0oQe0yRwTZbJQDsYvw=;
         h=Date:From:To:Subject:From;
-        b=qN8oI35A3iqtLnYQ2qMYhDY1KYGltkzwoP/kw31dDWSgj+xDD2yvzw56B5QD9mk/y
-         7FmIlmSZidcnTX+fZnUVl/D14qrVg3r8S84tzpd4TmLoNo2Cu908F2n4k0SouaoNYg
-         KF43UZqchdjCZuGpwz43dLrnmFJMwJFJVNwBfQGs=
-Date:   Mon, 16 Nov 2020 15:15:47 -0800
+        b=Z9+5sbtwGK9tvHR2sVVEfw2adrgambqhSw1HBEw+GY/lJkY5OeymEL9AJY3TqwG6A
+         hxrMbT5aJ0szaVf8JnfWqbM50GIX41C8RicDu2eKx1g5qk3cpcjno2/D+Bg/n8vD2e
+         p88x7COr87N6GQVjCRcPj47Y4+H+RubI0ViCta8k=
+Date:   Mon, 16 Nov 2020 15:15:50 -0800
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, gregkh@linuxfoundation.org, hughd@google.com,
         iamjoonsoo.kim@lge.com, joe@perches.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, willy@infradead.org
 Subject:  +
- mm-backing-dev-use-sysfs_emit-in-macro-defining-functions.patch added to
- -mm tree
-Message-ID: <20201116231547.CZfCifXID%akpm@linux-foundation.org>
+ mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at.patch added to -mm
+ tree
+Message-ID: <20201116231550.gSWGabEuQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm:backing-dev: use sysfs_emit in macro defining functions
+     Subject: mm: shmem: convert shmem_enabled_show to use sysfs_emit_at
 has been added to the -mm tree.  Its filename is
-     mm-backing-dev-use-sysfs_emit-in-macro-defining-functions.patch
+     mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-backing-dev-use-sysfs_emit-in-macro-defining-functions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-backing-dev-use-sysfs_emit-in-macro-defining-functions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,15 +73,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: mm:backing-dev: use sysfs_emit in macro defining functions
+Subject: mm: shmem: convert shmem_enabled_show to use sysfs_emit_at
 
-The cocci script used in commit bdacbb8d04f ("mm: Use sysfs_emit for
-struct kobject * uses") does not convert the name##_show macro because the
-macro uses concatenation via ##.
+Update the function to use sysfs_emit_at while neatening the uses of
+sprintf and overwriting the last space char with a newline to avoid
+possible output buffer overflow.
 
-Convert it by hand.
+Miscellanea:
 
-Link: https://lkml.kernel.org/r/45ec6cfc177d743f9c0ebaf35e43969dce43af42.1605376435.git.joe@perches.com
+o in shmem_enabled_show, the removal of the indirected use of fmt
+  allows __printf verification
+
+Link: https://lkml.kernel.org/r/b612a93825e5ea330cb68d2e8b516e9687a06cc6.1605376435.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -94,39 +97,48 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/shmem.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/mm/backing-dev.c~mm-backing-dev-use-sysfs_emit-in-macro-defining-functions
-+++ a/mm/backing-dev.c
-@@ -150,11 +150,11 @@ static ssize_t read_ahead_kb_store(struc
+--- a/mm/shmem.c~mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at
++++ a/mm/shmem.c
+@@ -3918,7 +3918,7 @@ out2:
  
- #define BDI_SHOW(name, expr)						\
- static ssize_t name##_show(struct device *dev,				\
--			   struct device_attribute *attr, char *page)	\
-+			   struct device_attribute *attr, char *buf)	\
- {									\
- 	struct backing_dev_info *bdi = dev_get_drvdata(dev);		\
- 									\
--	return snprintf(page, PAGE_SIZE-1, "%lld\n", (long long)expr);	\
-+	return sysfs_emit(buf, "%lld\n", (long long)expr);		\
- }									\
- static DEVICE_ATTR_RW(name);
- 
-@@ -200,11 +200,11 @@ BDI_SHOW(max_ratio, bdi->max_ratio)
- 
- static ssize_t stable_pages_required_show(struct device *dev,
- 					  struct device_attribute *attr,
--					  char *page)
-+					  char *buf)
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
+ static ssize_t shmem_enabled_show(struct kobject *kobj,
+-		struct kobj_attribute *attr, char *buf)
++				  struct kobj_attribute *attr, char *buf)
  {
- 	dev_warn_once(dev,
- 		"the stable_pages_required attribute has been removed. Use the stable_writes queue attribute instead.\n");
--	return snprintf(page, PAGE_SIZE-1, "%d\n", 0);
-+	return sysfs_emit(buf, "%d\n", 0);
- }
- static DEVICE_ATTR_RO(stable_pages_required);
+ 	static const int values[] = {
+ 		SHMEM_HUGE_ALWAYS,
+@@ -3928,16 +3928,19 @@ static ssize_t shmem_enabled_show(struct
+ 		SHMEM_HUGE_DENY,
+ 		SHMEM_HUGE_FORCE,
+ 	};
+-	int i, count;
++	int len = 0;
++	int i;
  
+-	for (i = 0, count = 0; i < ARRAY_SIZE(values); i++) {
+-		const char *fmt = shmem_huge == values[i] ? "[%s] " : "%s ";
+-
+-		count += sprintf(buf + count, fmt,
+-				shmem_format_huge(values[i]));
++	for (i = 0; i < ARRAY_SIZE(values); i++) {
++		len += sysfs_emit_at(buf, len,
++				     shmem_huge == values[i] ? "%s[%s]" : "%s%s",
++				     i ? " " : "",
++				     shmem_format_huge(values[i]));
+ 	}
+-	buf[count - 1] = '\n';
+-	return count;
++
++	len += sysfs_emit_at(buf, len, "\n");
++
++	return len;
+ }
+ 
+ static ssize_t shmem_enabled_store(struct kobject *kobj,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
