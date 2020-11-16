@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D49C2D0A3
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:58:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7012EC3E8C5
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:03:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 781AB22265
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 20:58:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20F7A2224F
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:03:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="L/7HbmMH"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="JvtZFvq6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728581AbgKPU6w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:58:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45502 "EHLO mail.kernel.org"
+        id S1726227AbgKPVCq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:02:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728505AbgKPU6v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 15:58:51 -0500
+        id S1726219AbgKPVCq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:02:46 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4DDF72224B;
-        Mon, 16 Nov 2020 20:58:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AF30A207BC;
+        Mon, 16 Nov 2020 21:02:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605560331;
-        bh=AM/F1DvZ0zKmT8FpncVPTPc97dWUYt70t9fgHkJYaAo=;
+        s=default; t=1605560565;
+        bh=6Y2+JeKd1u0rjdqZ/W0UbUKdhzVTULPVkcWKZu4TPck=;
         h=Date:From:To:Subject:From;
-        b=L/7HbmMHHh8pyx9PzA2JW4kGH3Ux9GyuqaIvAdboZwYtnNB9U0+t3Gfg0Q/eK/xpX
-         ZWB+8Su+s53mYPhf8SoJ4qgEtTXOPcVJJGdT3Fnyhc25jsg97WuciDIyhluK1VdeRb
-         n8xTu8MZdMRVa19MD/uPasbZ3JB9X8l14Zw6mIcQ=
-Date:   Mon, 16 Nov 2020 12:58:50 -0800
+        b=JvtZFvq6OCKna7zzoeVKqsuQ0pnsgS7vqO6ZrizkNmlWyzqq7k5KVBJ0OdAGPXjMH
+         F7qlyDIRaoQozrxLg3WhRf1vsqxA8P6Q63+YYBcNOtcHkb/zRuI9o5kCdDXoL1PszV
+         fFQvT6W9sqR9m5/6/dLrHvx0rJy1PmPrD6JiUarQ=
+Date:   Mon, 16 Nov 2020 13:02:45 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, lukas.bulwahn@gmail.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org
-Subject:  + mm-memcg-remove-obsolete-memcg_has_children.patch added
+To:     jianpeng.ma@intel.com, mm-commits@vger.kernel.org,
+        yury.norov@gmail.com
+Subject:  + bitmap-remove-unused-function-declaration.patch added
  to -mm tree
-Message-ID: <20201116205850.oEjQalPoN%akpm@linux-foundation.org>
+Message-ID: <20201116210245.Fo1rEmajm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: remove obsolete memcg_has_children()
+     Subject: bitmap: remove unused function declaration
 has been added to the -mm tree.  Its filename is
-     mm-memcg-remove-obsolete-memcg_has_children.patch
+     bitmap-remove-unused-function-declaration.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-remove-obsolete-memcg_has_children.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/bitmap-remove-unused-function-declaration.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-remove-obsolete-memcg_has_children.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/bitmap-remove-unused-function-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,57 +69,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: mm: memcg: remove obsolete memcg_has_children()
+From: "Ma, Jianpeng" <jianpeng.ma@intel.com>
+Subject: bitmap: remove unused function declaration
 
-Commit 2ef1bf118c40 ("mm: memcg: deprecate the non-hierarchical mode")
-removed the only use of memcg_has_children() in
-mem_cgroup_hierarchy_write() as part of the feature deprecation.
-
-Hence, since then, make CC=clang W=1 warns:
-
-  mm/memcontrol.c:3421:20:
-    warning: unused function 'memcg_has_children' [-Wunused-function]
-
-Simply remove this obsolete unused function.
-
-Link: https://lkml.kernel.org/r/20201116055043.20886-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/BN7PR11MB26097166B6B46387D8A1ABA4FDE30@BN7PR11MB2609.namprd11.prod.outlook.com
+Signed-off-by: Jianpeng Ma <jianpeng.ma@intel.com>
+Acked-by: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ include/linux/bitmap.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-remove-obsolete-memcg_has_children
-+++ a/mm/memcontrol.c
-@@ -3454,19 +3454,6 @@ unsigned long mem_cgroup_soft_limit_recl
- }
+--- a/include/linux/bitmap.h~bitmap-remove-unused-function-declaration
++++ a/include/linux/bitmap.h
+@@ -126,8 +126,6 @@ extern void bitmap_free(const unsigned l
+  * lib/bitmap.c provides these functions:
+  */
  
- /*
-- * Test whether @memcg has children, dead or alive.
-- */
--static inline bool memcg_has_children(struct mem_cgroup *memcg)
--{
--	bool ret;
--
--	rcu_read_lock();
--	ret = css_next_child(NULL, &memcg->css);
--	rcu_read_unlock();
--	return ret;
--}
--
--/*
-  * Reclaims as many pages from the given memcg as possible.
-  *
-  * Caller is responsible for holding css reference for memcg.
+-extern int __bitmap_empty(const unsigned long *bitmap, unsigned int nbits);
+-extern int __bitmap_full(const unsigned long *bitmap, unsigned int nbits);
+ extern int __bitmap_equal(const unsigned long *bitmap1,
+ 			  const unsigned long *bitmap2, unsigned int nbits);
+ extern bool __pure __bitmap_or_equal(const unsigned long *src1,
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from jianpeng.ma@intel.com are
 
-mm-memcg-remove-obsolete-memcg_has_children.patch
-mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+bitmap-remove-unused-function-declaration.patch
 
