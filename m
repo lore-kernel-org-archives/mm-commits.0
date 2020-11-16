@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75BFFC388F9
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:56:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3D42C388F9
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:56:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FE0E223AB
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:56:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55B8A22370
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:56:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZDQ9OEfR"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="feBWm6Sq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728968AbgKPV4o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:56:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41484 "EHLO mail.kernel.org"
+        id S1728884AbgKPV4s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:56:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728884AbgKPV4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:56:44 -0500
+        id S1727147AbgKPV4r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:56:47 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5709F222E8;
-        Mon, 16 Nov 2020 21:56:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EF2642225B;
+        Mon, 16 Nov 2020 21:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605563803;
-        bh=lZ7QQ4O8txmhoaTCoXL7Pt8n09wT/dS7DeYXPFgFSoE=;
+        s=default; t=1605563807;
+        bh=kGRgY/i5Af+LTpdwsX6K6oFSp/p99EeLVQ3kBUQrFyQ=;
         h=Date:From:To:Subject:From;
-        b=ZDQ9OEfR69zS1kF+nMCXGFPxLk53OjIBSdvtOU+3j3tm+Q5JOQby1CzqO4INebdZ+
-         Om0oF0E3xRVSJScBkLeBgt4ULOtzIiaFhkH9JRUzxgOnI80GjM/Y5gUnlI/bnP714a
-         xDIuOn5kzm9bwB4oQTXTSNYaKAWG1zu8PQ8XS4co=
-Date:   Mon, 16 Nov 2020 13:56:41 -0800
+        b=feBWm6SqkVurqIkuIS8eDkM8Yr5DnzdvWGLN8yyUNHFPizcQT6E/pDGTTMx2xQAXS
+         22xvoN0ou8oGpFNxtbR5EUf0zyF+GJ48v6fzuUrEGAgoEmrsYszppGJKewi8KF2AX+
+         lql/Q38HyHyAKuFMmo0uuctct/EhkkPAvKswAB4Y=
+Date:   Mon, 16 Nov 2020 13:56:45 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -47,9 +47,9 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  +
- mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch added to -mm tree
-Message-ID: <20201116215641.McpY5j5Sp%akpm@linux-foundation.org>
+Subject:  + mm-thp-simplify-lru_add_page_tail.patch added to -mm
+ tree
+Message-ID: <20201116215645.rcEeglNvc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -61,16 +61,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: use head for head page in lru_add_page_tail()
+     Subject: mm/thp: simplify lru_add_page_tail()
 has been added to the -mm tree.  Its filename is
-     mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+     mm-thp-simplify-lru_add_page_tail.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-use-head-for-head-page=
--in-lru_add_page_tail.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-simplify-lru_add_page_=
+tail.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-use-head-for-head-page=
--in-lru_add_page_tail.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-simplify-lru_add_page_=
+tail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,18 +86,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/thp: use head for head page in lru_add_page_tail()
+Subject: mm/thp: simplify lru_add_page_tail()
 
-Since the first parameter is only used by head page, it's better to make
-it explicit.
+Simplify lru_add_page_tail(), there are actually only two cases possible:
+split_huge_page_to_list(), with list supplied and head isolated from lru
+by its caller; or split_huge_page(), with NULL list and head on lru -
+because when head is racily isolated from lru, the isolator's reference
+will stop the split from getting any further than its page_ref_freeze().
 
-Link: https://lkml.kernel.org/r/1604566549-62481-3-git-send-email-alex.shi@=
+So decide between the two cases by "list", but add VM_WARN_ON()s to
+verify that they match our lru expectations.
+
+[Hugh Dickins: rewrite commit log]
+Link: https://lkml.kernel.org/r/1604566549-62481-4-git-send-email-alex.shi@=
 linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -111,7 +119,6 @@ Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -123,53 +130,39 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ mm/huge_memory.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-use-head-for-head-page-in-lru_add_page_tail
+--- a/mm/huge_memory.c~mm-thp-simplify-lru_add_page_tail
 +++ a/mm/huge_memory.c
-@@ -2345,33 +2345,32 @@ static void remap_page(struct page *page
- 	}
- }
-=20
--static void lru_add_page_tail(struct page *page, struct page *page_tail,
-+static void lru_add_page_tail(struct page *head, struct page *tail,
- 		struct lruvec *lruvec, struct list_head *list)
- {
--	VM_BUG_ON_PAGE(!PageHead(page), page);
--	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
--	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
-+	VM_BUG_ON_PAGE(!PageHead(head), head);
-+	VM_BUG_ON_PAGE(PageCompound(tail), head);
-+	VM_BUG_ON_PAGE(PageLRU(tail), head);
+@@ -2353,24 +2353,16 @@ static void lru_add_page_tail(struct pag
+ 	VM_BUG_ON_PAGE(PageLRU(tail), head);
  	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
 =20
- 	if (!list)
--		SetPageLRU(page_tail);
-+		SetPageLRU(tail);
-=20
--	if (likely(PageLRU(page)))
--		list_add_tail(&page_tail->lru, &page->lru);
-+	if (likely(PageLRU(head)))
-+		list_add_tail(&tail->lru, &head->lru);
- 	else if (list) {
+-	if (!list)
+-		SetPageLRU(tail);
+-
+-	if (likely(PageLRU(head)))
+-		list_add_tail(&tail->lru, &head->lru);
+-	else if (list) {
++	if (list) {
  		/* page reclaim is reclaiming a huge page */
--		get_page(page_tail);
--		list_add_tail(&page_tail->lru, list);
-+		get_page(tail);
-+		list_add_tail(&tail->lru, list);
++		VM_WARN_ON(PageLRU(head));
+ 		get_page(tail);
+ 		list_add_tail(&tail->lru, list);
  	} else {
- 		/*
- 		 * Head page has not yet been counted, as an hpage,
- 		 * so we must account for each subpage individually.
- 		 *
--		 * Put page_tail on the list at the correct position
-+		 * Put tail on the list at the correct position
- 		 * so they all end up in order.
- 		 */
--		add_page_to_lru_list_tail(page_tail, lruvec,
--					  page_lru(page_tail));
-+		add_page_to_lru_list_tail(tail, lruvec, page_lru(tail));
+-		/*
+-		 * Head page has not yet been counted, as an hpage,
+-		 * so we must account for each subpage individually.
+-		 *
+-		 * Put tail on the list at the correct position
+-		 * so they all end up in order.
+-		 */
+-		add_page_to_lru_list_tail(tail, lruvec, page_lru(tail));
++		/* head is still on lru (and we have it frozen) */
++		VM_WARN_ON(!PageLRU(head));
++		SetPageLRU(tail);
++		list_add_tail(&tail->lru, &head->lru);
  	}
  }
 =20
