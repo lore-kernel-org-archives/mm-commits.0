@@ -7,41 +7,39 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C907FC63798
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A48A7C63777
 	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:42:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98B7E217A0
+	by mail.kernel.org (Postfix) with ESMTP id 78E4621D7E
 	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 18:42:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="nPJLfRXB"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="U//6qHS3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728553AbgKPSlr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 13:41:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45314 "EHLO mail.kernel.org"
+        id S1728446AbgKPSln (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 13:41:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45280 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727864AbgKPSlr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 13:41:47 -0500
+        id S1728527AbgKPSln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 13:41:43 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AB35E20888;
-        Mon, 16 Nov 2020 18:41:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 979CC20867;
+        Mon, 16 Nov 2020 18:41:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605552105;
-        bh=uIpvrMnfZiHC2X8YfNJV3paHWMO6Z7xOhywLgcTsMgM=;
+        s=default; t=1605552102;
+        bh=TPaLoO8O79eKB0UnCPCU/OffgiT1P0zDWnNiOj0OyQg=;
         h=Date:From:To:Subject:From;
-        b=nPJLfRXBz9V2uRle3TXM5uChMvpBY5UTBHzN8hi5AP2JZJM5aK8R7TJeOzMq7yOL5
-         RCYeuSLNsiKT1hq/oFVj0C5TWmxAFBhSD2bLF86Y82ijWpwK9XtiYjDU+/inlDXJhb
-         RE9HGbFD6wcPkBacRPVwLa5Rwp12DYEm52XvBA5E=
-Date:   Mon, 16 Nov 2020 10:41:44 -0800
+        b=U//6qHS3d30dFGAYvEnb8FAZGiWXEk9cSsJSjXG+Hmp3nQgPiMlviipcCzVaTIWLM
+         tEOc1IJEgxQ8pPzTJihkzz1uC6BXrukz62kQKhNuH0VXN7sWSb3YmZ4R4ABlk59ooC
+         8EVKo723mnrbAil68y+Hc+PI9r3gORrZShUvjKsI=
+Date:   Mon, 16 Nov 2020 10:41:42 -0800
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        stable@vger.kernel.org, wen.gang.wang@oracle.com
-Subject:  [merged] ocfs2-initialize-ip_next_orphan.patch removed
- from -mm tree
-Message-ID: <20201116184144.bLK1ChtmF%akpm@linux-foundation.org>
+To:     aik@ozlabs.ru, christophe.leroy@csgroup.eu,
+        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
+Subject:  [merged] panic-dont-dump-stack-twice-on-warn.patch
+ removed from -mm tree
+Message-ID: <20201116184142.oWxQP-YTs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,101 +48,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: initialize ip_next_orphan
+     Subject: panic: don't dump stack twice on warn
 has been removed from the -mm tree.  Its filename was
-     ocfs2-initialize-ip_next_orphan.patch
+     panic-dont-dump-stack-twice-on-warn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: ocfs2: initialize ip_next_orphan
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: panic: don't dump stack twice on warn
 
-Though problem if found on a lower 4.1.12 kernel, I think upstream has
-same issue.
+Before commit 3f388f28639f ("panic: dump registers on panic_on_warn"),
+__warn() was calling show_regs() when regs was not NULL, and show_stack()
+otherwise.
 
-In one node in the cluster, there is the following callback trace:
+After that commit, show_stack() is called regardless of whether
+show_regs() has been called or not, leading to duplicated Call Trace:
 
-# cat /proc/21473/stack
-[<ffffffffc09a2f06>] __ocfs2_cluster_lock.isra.36+0x336/0x9e0 [ocfs2]
-[<ffffffffc09a4481>] ocfs2_inode_lock_full_nested+0x121/0x520 [ocfs2]
-[<ffffffffc09b2ce2>] ocfs2_evict_inode+0x152/0x820 [ocfs2]
-[<ffffffff8122b36e>] evict+0xae/0x1a0
-[<ffffffff8122bd26>] iput+0x1c6/0x230
-[<ffffffffc09b60ed>] ocfs2_orphan_filldir+0x5d/0x100 [ocfs2]
-[<ffffffffc0992ae0>] ocfs2_dir_foreach_blk+0x490/0x4f0 [ocfs2]
-[<ffffffffc099a1e9>] ocfs2_dir_foreach+0x29/0x30 [ocfs2]
-[<ffffffffc09b7716>] ocfs2_recover_orphans+0x1b6/0x9a0 [ocfs2]
-[<ffffffffc09b9b4e>] ocfs2_complete_recovery+0x1de/0x5c0 [ocfs2]
-[<ffffffff810a1399>] process_one_work+0x169/0x4a0
-[<ffffffff810a1bcb>] worker_thread+0x5b/0x560
-[<ffffffff810a7a2b>] kthread+0xcb/0xf0
-[<ffffffff816f5d21>] ret_from_fork+0x61/0x90
-[<ffffffffffffffff>] 0xffffffffffffffff
+[    7.112617] ------------[ cut here ]------------
+[    7.117041] WARNING: CPU: 0 PID: 1 at arch/powerpc/mm/nohash/8xx.c:186 mmu_mark_initmem_nx+0x24/0x94
+[    7.126021] CPU: 0 PID: 1 Comm: swapper Not tainted 5.10.0-rc2-s3k-dev-01375-gf46ec0d3ecbd-dirty #4092
+[    7.135202] NIP:  c00128b4 LR: c0010228 CTR: 00000000
+[    7.140205] REGS: c9023e40 TRAP: 0700   Not tainted  (5.10.0-rc2-s3k-dev-01375-gf46ec0d3ecbd-dirty)
+[    7.149131] MSR:  00029032 <EE,ME,IR,DR,RI>  CR: 24000424  XER: 00000000
+[    7.155760]
+[    7.155760] GPR00: c0010228 c9023ef8 c2100000 0074c000 ffffffff 00000000 c2151000 c07b3880
+[    7.155760] GPR08: ff000900 0074c000 c8000000 c33b53a8 24000822 00000000 c0003a20 00000000
+[    7.155760] GPR16: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    7.155760] GPR24: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00800000
+[    7.191092] NIP [c00128b4] mmu_mark_initmem_nx+0x24/0x94
+[    7.196333] LR [c0010228] free_initmem+0x20/0x58
+[    7.200855] Call Trace:
+[    7.203319] [c9023f18] [c0010228] free_initmem+0x20/0x58
+[    7.208564] [c9023f28] [c0003a3c] kernel_init+0x1c/0x114
+[    7.213813] [c9023f38] [c000f184] ret_from_kernel_thread+0x14/0x1c
+[    7.219869] Instruction dump:
+[    7.222805] 7d291850 7d234b78 4e800020 9421ffe0 7c0802a6 bfc10018 3fe0c060 3bff0000
+[    7.230462] 3fff4080 3bffffff 90010024 57ff0010 <0fe00000> 392001cd 7c3e0b78 953e0008
+[    7.238327] CPU: 0 PID: 1 Comm: swapper Not tainted 5.10.0-rc2-s3k-dev-01375-gf46ec0d3ecbd-dirty #4092
+[    7.247500] Call Trace:
+[    7.249977] [c9023dc0] [c001e070] __warn+0x8c/0xd8 (unreliable)
+[    7.255815] [c9023de0] [c05e0e5c] report_bug+0x11c/0x154
+[    7.261085] [c9023e10] [c0009ea4] program_check_exception+0x1dc/0x6e0
+[    7.267430] [c9023e30] [c000f43c] ret_from_except_full+0x0/0x4
+[    7.273238] --- interrupt: 700 at mmu_mark_initmem_nx+0x24/0x94
+[    7.273238]     LR = free_initmem+0x20/0x58
+[    7.283155] [c9023ef8] [00000000] 0x0 (unreliable)
+[    7.287913] [c9023f18] [c0010228] free_initmem+0x20/0x58
+[    7.293160] [c9023f28] [c0003a3c] kernel_init+0x1c/0x114
+[    7.298410] [c9023f38] [c000f184] ret_from_kernel_thread+0x14/0x1c
+[    7.304479] ---[ end trace 31702cd2a9570752 ]---
 
-The above stack is not reasonable, the final iput shouldn't happen in
-ocfs2_orphan_filldir() function. Looking at the code,
+Only call show_stack() when regs is NULL.
 
-2067         /* Skip inodes which are already added to recover list, since dio may
-2068          * happen concurrently with unlink/rename */
-2069         if (OCFS2_I(iter)->ip_next_orphan) {
-2070                 iput(iter);
-2071                 return 0;
-2072         }
-2073
-
-The logic thinks the inode is already in recover list on seeing
-ip_next_orphan is non-NULL, so it skip this inode after dropping a
-reference which incremented in ocfs2_iget().
-
-While, if the inode is already in recover list, it should have another
-reference and the iput() at line 2070 should not be the final iput
-(dropping the last reference).  So I don't think the inode is really in
-the recover list (no vmcore to confirm).
-
-Note that ocfs2_queue_orphans(), though not shown up in the call back
-trace, is holding cluster lock on the orphan directory when looking up for
-unlinked inodes.  The on disk inode eviction could involve a lot of IOs
-which may need long time to finish.  That means this node could hold the
-cluster lock for very long time, that can lead to the lock requests (from
-other nodes) to the orhpan directory hang for long time.
-
-Looking at more on ip_next_orphan, I found it's not initialized when
-allocating a new ocfs2_inode_info structure.
-
-This causes te reflink operations from some nodes hang for very long
-time waiting for the cluster lock on the orphan directory.
-
-Fix: initialize ip_next_orphan as NULL.
-
-Link: https://lkml.kernel.org/r/20201109171746.27884-1-wen.gang.wang@oracle.com
-Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/e8c055458b080707f1bc1a98ff8bea79d0cec445.1604748361.git.christophe.leroy@csgroup.eu
+Fixes: 3f388f28639f ("panic: dump registers on panic_on_warn")
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Alexey Kardashevskiy <aik@ozlabs.ru>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/panic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/super.c~ocfs2-initialize-ip_next_orphan
-+++ a/fs/ocfs2/super.c
-@@ -1713,6 +1713,7 @@ static void ocfs2_inode_init_once(void *
+--- a/kernel/panic.c~panic-dont-dump-stack-twice-on-warn
++++ a/kernel/panic.c
+@@ -605,7 +605,8 @@ void __warn(const char *file, int line,
+ 		panic("panic_on_warn set ...\n");
+ 	}
  
- 	oi->ip_blkno = 0ULL;
- 	oi->ip_clusters = 0;
-+	oi->ip_next_orphan = NULL;
+-	dump_stack();
++	if (!regs)
++		dump_stack();
  
- 	ocfs2_resv_init_once(&oi->ip_la_data_resv);
+ 	print_irqtrace_events(current);
  
 _
 
-Patches currently in -mm which might be from wen.gang.wang@oracle.com are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
+asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision.patch
 
