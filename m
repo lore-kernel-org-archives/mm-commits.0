@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FF0BC63697
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4F4AC388F9
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:58:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E8F7223BF
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:57:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9A88223AB
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 21:58:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="mAMhpuS3"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="YSiGpt67"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728009AbgKPV57 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:57:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42970 "EHLO mail.kernel.org"
+        id S1730105AbgKPV6D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 16:58:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727864AbgKPV56 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:57:58 -0500
+        id S1727864AbgKPV6D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 16:58:03 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5E77A2225B;
-        Mon, 16 Nov 2020 21:57:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 475292225E;
+        Mon, 16 Nov 2020 21:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605563877;
-        bh=BPnjKMvis8pVyQaYpLdLOcdkKocr8BO8i3S5BCPuK5A=;
+        s=default; t=1605563882;
+        bh=jCbqHCdoDJBir0qM/7GKooYKB4lE1Sd+adXXkTGLchU=;
         h=Date:From:To:Subject:From;
-        b=mAMhpuS3ZiGL8Jmfs+R9NprqZeJcmAyyNvVCVo/bQwoOofCemYGNLdrMLpTyC7Zhf
-         DQSDoyQhjfMG8NkIjJNv/I5n1EXZIBqepqz3E9mPgyZPiOqAZ4K7XTLdebc75muSjs
-         hlkspKZY8YTpiaP237UDLAAD66XgcUxEMrng5A5k=
-Date:   Mon, 16 Nov 2020 13:57:55 -0800
+        b=YSiGpt67mMf68MnBzwkH5QTKUD6b0AkS1j0wKimoC8ZrwJR86FOjf/kuxaQ3xAUOi
+         AdOpcz7WDCg8Lr7rT2DFbqa0stp0A6kXN+VZvdR6NKxQkhak/fLVcGHfdg2vQO40n3
+         e9tpkahRw9GpaHwTtBlPKiE1vHQmb4ZAV2ktzUS0=
+Date:   Mon, 16 Nov 2020 13:57:59 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        alex.shi@linux.alibaba.com, alexander.duyck@gmail.com,
-        aryabinin@virtuozzo.com, daniel.m.jordan@oracle.com,
-        hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com,
-        jannh@google.com, khlebnikov@yandex-team.ru,
-        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
-        mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com,
-        mika.penttila@nextfour.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
-        rong.a.chen@intel.com, shakeelb@google.com, tglx@linutronix.de,
-        tj@kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com,
-        ying.huang@intel.com
+To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
+        alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
+        daniel.m.jordan@oracle.com, hannes@cmpxchg.org, hughd@google.com,
+        iamjoonsoo.kim@lge.com, jannh@google.com,
+        khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com,
+        kirill@shutemov.name, mgorman@techsingularity.net,
+        mhocko@kernel.org, mhocko@suse.com, mika.penttila@nextfour.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, rong.a.chen@intel.com,
+        shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yang.shi@linux.alibaba.com, ying.huang@intel.com
 Subject:  +
- mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch added to -mm tree
-Message-ID: <20201116215755.qH0H8iQ58%akpm@linux-foundation.org>
+ mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch added to -mm
+ tree
+Message-ID: <20201116215759.fzQzkrmQS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -62,16 +62,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix
+     Subject: mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+     mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
 
 This patch should soon appear at
     https://ozlabs.org/~akpm/mmots/broken-out/mm-lru-replace-pgdat-lru_lock=
--with-lruvec-lock-fix.patch
+-with-lruvec-lock-fix-2.patch
 and later at
     https://ozlabs.org/~akpm/mmotm/broken-out/mm-lru-replace-pgdat-lru_lock=
--with-lruvec-lock-fix.patch
+-with-lruvec-lock-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,42 +87,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix
+Subject: mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2
 
-fix comment typo
+use page_memcg()
 
-This patch moves per node lru_lock into lruvec, thus bring a lru_lock for
-each of memcg per node. So on a large machine, each of memcg don't
-have to suffer from per node pgdat->lru_lock competition. They could go
-fast with their self lru_lock.
-
-After move memcg charge before lru inserting, page isolation could
-serialize page's memcg, then per memcg lruvec lock is stable and could
-replace per node lru lock.
-
-In func isolate_migratepages_block, compact_unlock_should_abort and
-lock_page_lruvec_irqsave are open coded to work with compact_control.
-Also add a debug func in locking which may give some clues if there are
-sth out of hands.
-
-Daniel Jordan's testing show 62% improvement on modified readtwice case
-on his 2P * 10 core * 2 HT broadwell box.
-https://lore.kernel.org/lkml/20200915165807.kpp7uhiw7l3loofu@ca-dmjordan1.u=
-s.oracle.com/
-
-On a large machine with memcg enabled but not used, the page's lruvec
-seeking pass a few pointers, that may lead to lru_lock holding time
-increase and a bit regression.
-
-Hugh Dickins helped on the patch polish, thanks!
-
-Link: https://lkml.kernel.org/r/5b085715-292a-4b43-50b3-d73dc90d1de5@linux.=
+Link: https://lkml.kernel.org/r/5a4c2b72-7ee8-2478-fc0e-85eb83aafec4@linux.=
 alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Rong Chen <rong.a.chen@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
@@ -130,9 +104,6 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: cgroups@vger.kernel.org
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -153,19 +124,40 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix
+--- a/mm/memcontrol.c~mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2
 +++ a/mm/memcontrol.c
-@@ -1374,6 +1374,7 @@ out:
-  *
-  * This series functions should be used in either conditions:
-  * PageLRU is cleared or unset
-+ * or page->_refcount is zero
-  * or page is locked.
+@@ -1318,13 +1318,17 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+ #ifdef CONFIG_DEBUG_VM
+ void lruvec_memcg_debug(struct lruvec *lruvec, struct page *page)
+ {
++	struct mem_cgroup *memcg;
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+=20
+-	if (!page->mem_cgroup)
++	memcg =3D page_memcg(page);
++
++	if (!memcg)
+ 		VM_BUG_ON_PAGE(lruvec_memcg(lruvec) !=3D root_mem_cgroup, page);
+ 	else
+-		VM_BUG_ON_PAGE(lruvec_memcg(lruvec) !=3D page->mem_cgroup, page);
++		VM_BUG_ON_PAGE(lruvec_memcg(lruvec) !=3D memcg, page);
+ }
+ #endif
+=20
+@@ -3333,7 +3337,7 @@ void obj_cgroup_uncharge(struct obj_cgro
+=20
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * Because page->mem_cgroup is not set on compound tails, set it now.
++ * Because page_memcg(head) is not set on compound tails, set it now.
   */
- struct lruvec *lock_page_lruvec(struct page *page)
+ void mem_cgroup_split_huge_fixup(struct page *head)
+ {
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
