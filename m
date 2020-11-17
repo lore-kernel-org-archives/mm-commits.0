@@ -2,341 +2,427 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,TVD_SPACE_RATIO autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 281DBC5519F
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 23:21:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A094C5519F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 00:24:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB29920729
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Nov 2020 23:21:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40FD624679
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 00:24:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="VHCmDihV"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ge0Zj0vB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729277AbgKPXV3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 18:21:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37216 "EHLO mail.kernel.org"
+        id S1731140AbgKQAYN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 19:24:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725710AbgKPXV2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 18:21:28 -0500
+        id S1726156AbgKQAYN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 19:24:13 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 31A9E20729;
-        Mon, 16 Nov 2020 23:21:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3F63224677;
+        Tue, 17 Nov 2020 00:24:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605568886;
-        bh=tIpFPa47loi0K+K3DjBmYOpKBNqlaJlM1HlTxjgAJQw=;
+        s=default; t=1605572652;
+        bh=5Vai6IpMdfJV4Y7o5+iDRuMy7Y5V0AsuVlHjKHU0fik=;
         h=Date:From:To:Subject:From;
-        b=VHCmDihVWcPbowzxXRziURG3pDXKYZhrgLTVF/OF1MVgSCTMWfFwaFIZ74LKm+fiM
-         SgjrTAUvwtC9jPs/YiGr48loXbG74ph1xmcJdfVx8ewMaoZnROZ6HlUO4or+6QtjBi
-         y6tat7pvjrUIsqG4H74Ae5WM74Mbnc5ykGGrGg1M=
-Date:   Mon, 16 Nov 2020 15:21:24 -0800
+        b=Ge0Zj0vBg5SljMi7oFx3UDw4nsw4OM3fSDzags3xmn/G8wwgPDgYSAvk4AJNY7aXX
+         /asAp7Ohv1psEX9OLFZbZa99UjioXzZUxBOJqoletWYfgXy3Tr/7ZFkiYy9W9qmc5L
+         uKuP1Eu7LLtWv4qIjMkhai57bDg+fdnx+rqR4TtA=
+Date:   Mon, 16 Nov 2020 16:24:11 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
-        alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
-        daniel.m.jordan@oracle.com, hannes@cmpxchg.org, hughd@google.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com,
-        khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com,
-        kirill@shutemov.name, mgorman@techsingularity.net,
-        mhocko@kernel.org, mhocko@suse.com, mika.penttila@nextfour.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, rong.a.chen@intel.com,
-        shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  + mm-lru-revise-the-comments-of-lru_lock.patch added to
- -mm tree
-Message-ID: <20201116232124.IshhG85Mx%akpm@linux-foundation.org>
+To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+Subject:  mmotm 2020-11-16-16-23 uploaded
+Message-ID: <20201117002411.n6I8A7VX_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: application/octet-stream; charset=binary
-Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9scnU6IHJldmlzZSB0aGUgY29tbWVu
-dHMgb2YgbHJ1X2xvY2sKaGFzIGJlZW4gYWRkZWQgdG8gdGhlIC1tbSB0cmVlLiAgSXRzIGZpbGVu
-YW1lIGlzCiAgICAgbW0tbHJ1LXJldmlzZS10aGUtY29tbWVudHMtb2YtbHJ1X2xvY2sucGF0Y2gK
-ClRoaXMgcGF0Y2ggc2hvdWxkIHNvb24gYXBwZWFyIGF0CiAgICBodHRwczovL296bGFicy5vcmcv
-fmFrcG0vbW1vdHMvYnJva2VuLW91dC9tbS1scnUtcmV2aXNlLXRoZS1jb21tZW50cy1vZi1scnVf
-bG9jay5wYXRjaAphbmQgbGF0ZXIgYXQKICAgIGh0dHBzOi8vb3psYWJzLm9yZy9+YWtwbS9tbW90
-bS9icm9rZW4tb3V0L21tLWxydS1yZXZpc2UtdGhlLWNvbW1lbnRzLW9mLWxydV9sb2NrLnBhdGNo
-CgpCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHkiLCBwbGVhc2U6CiAgIGEpIENvbnNp
-ZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydlZAogICBiKSBQcmVmZXIgdG8gY2MgYSBzdWl0YWJs
-ZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAogICBjKSBJZGVhbGx5OiBmaW5kIHRoZSBvcmlnaW5hbCBw
-YXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhCiAgICAgIHJlcGx5LXRvLWFsbCB0byB0
-aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydzCgoqKiogUmVtZW1iZXIgdG8gdXNl
-IERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJtaXQtY2hlY2tsaXN0LnJzdCB3aGVuIHRlc3Rpbmcg
-eW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlzIGluY2x1ZGVkIGludG8gbGludXgtbmV4dCBh
-bmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAzLTQgd29ya2luZyBkYXlzCgotLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRnJvbTogSHVnaCBEaWNr
-aW5zIDxodWdoZEBnb29nbGUuY29tPgpTdWJqZWN0OiBtbS9scnU6IHJldmlzZSB0aGUgY29tbWVu
-dHMgb2YgbHJ1X2xvY2sKClNpbmNlIHdlIGNoYW5nZWQgdGhlIHBnZGF0LT5scnVfbG9jayB0byBs
-cnV2ZWMtPmxydV9sb2NrLCBpdCdzIHRpbWUgdG8gZml4CnRoZSBpbmNvcnJlY3QgY29tbWVudHMg
-aW4gY29kZS4gIEFsc28gZml4ZWQgc29tZSB6b25lLT5scnVfbG9jayBjb21tZW50CmVycm9yIGZy
-b20gYW5jaWVudCB0aW1lLiAgZXRjLgoKSSBzdHJ1Z2dsZWQgdG8gdW5kZXJzdGFuZCB0aGUgY29t
-bWVudCBhYm92ZSBtb3ZlX3BhZ2VzX3RvX2xydSgpIChzdXJlbHkKaXQQIG5ldmVyIGNhbGxzIHBh
-Z2VfcmVmZXJlbmNlZCgpKSwgYW5kIGV2ZW50dWFsbHkgcmVhbGl6ZWQgdGhhdCBtb3N0IG9mCml0
-IGhhZCBnb3Qgc2VwYXJhdGVkIGZyb20gc2hyaW5rX2FjdGl2ZV9saXN0KCk6IG1vdmUgdGhhdCBj
-b21tZW50IGJhY2suCgpMaW5rOiBodHRwczovL2xrbWwua2VybmVsLm9yZy9yLzE2MDQ1NjY1NDkt
-NjI0ODEtMjAtZ2l0LXNlbmQtZW1haWwtYWxleC5zaGlAbGludXguYWxpYmFiYS5jb20KU2lnbmVk
-LW9mZi1ieTogSHVnaCBEaWNraW5zIDxodWdoZEBnb29nbGUuY29tPgpTaWduZWQtb2ZmLWJ5OiBB
-bGV4IFNoaSA8YWxleC5zaGlAbGludXguYWxpYmFiYS5jb20+CkFja2VkLWJ5OiBKb2hhbm5lcyBX
-ZWluZXIgPGhhbm5lc0BjbXB4Y2hnLm9yZz4KQWNrZWQtYnk6IFZsYXN0aW1pbCBCYWJrYSA8dmJh
-YmthQHN1c2UuY3o+CkNjOiBUZWp1biBIZW8gPHRqQGtlcm5lbC5vcmc+CkNjOiBBbmRyZXkgUnlh
-YmluaW4gPGFyeWFiaW5pbkB2aXJ0dW96em8uY29tPgpDYzogSmFubiBIb3JuIDxqYW5uaEBnb29n
-bGUuY29tPgpDYzogTWVsIEdvcm1hbiA8bWdvcm1hbkB0ZWNoc2luZ3VsYXJpdHkubmV0PgpDYzog
-TWF0dGhldyBXaWxjb3ggPHdpbGx5QGluZnJhZGVhZC5vcmc+CkNjOiBBbGV4YW5kZXIgRHV5Y2sg
-PGFsZXhhbmRlci5kdXlja0BnbWFpbC5jb20+CkNjOiBBbmRyZWEgQXJjYW5nZWxpIDxhYXJjYW5n
-ZUByZWRoYXQuY29tPgpDYzogIkNoZW4sIFJvbmcgQSIgPHJvbmcuYS5jaGVuQGludGVsLmNvbT4K
-Q2M6IERhbmllbCBKb3JkYW4gPGRhbmllbC5tLmpvcmRhbkBvcmFjbGUuY29tPgpDYzogIkh1YW5n
-LCBZaW5nIiA8eWluZy5odWFuZ0BpbnRlbC5jb20+CkNjOiBKb29uc29vIEtpbSA8aWFtam9vbnNv
-by5raW1AbGdlLmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxp
-bnV4LmludGVsLmNvbT4KQ2M6IEtpcmlsbCBBLiBTaHV0ZW1vdiA8a2lyaWxsQHNodXRlbW92Lm5h
-bWU+CkNjOiBLb25zdGFudGluIEtobGVibmlrb3YgPGtobGVibmlrb3ZAeWFuZGV4LXRlYW0ucnU+
-CkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BrZXJuZWwub3JnPgpDYzogTWljaGFsIEhvY2tvIDxt
-aG9ja29Ac3VzZS5jb20+CkNjOiBNaWthIFBlbnR0aWzDpCA8bWlrYS5wZW50dGlsYUBuZXh0Zm91
-ci5jb20+CkNjOiBNaW5jaGFuIEtpbSA8bWluY2hhbkBrZXJuZWwub3JnPgpDYzogU2hha2VlbCBC
-dXR0IDxzaGFrZWVsYkBnb29nbGUuY29tPgpDYzogVGhvbWFzIEdsZWl4bmVyIDx0Z2x4QGxpbnV0
-cm9uaXguZGU+CkNjOiBWbGFkaW1pciBEYXZ5ZG92IDx2ZGF2eWRvdi5kZXZAZ21haWwuY29tPgpD
-YzogV2VpIFlhbmcgPHJpY2hhcmQud2VpeWFuZ0BnbWFpbC5jb20+CkNjOiBZYW5nIFNoaSA8eWFu
-Zy5zaGlAbGludXguYWxpYmFiYS5jb20+ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0b24gPGFr
-cG1AbGludXgtZm91bmRhdGlvbi5vcmc+Ci0tLQoKIERvY3VtZW50YXRpb24vYWRtaW4tZ3VpZGUv
-Y2dyb3VwLXYxL21lbWNnX3Rlc3QucnN0IHwgICAxNSAtLS0tCiBEb2N1bWVudGF0aW9uL2FkbWlu
-LWd1aWRlL2Nncm91cC12MS9tZW1vcnkucnN0ICAgICB8ICAgMjMgKystLS0tCiBEb2N1bWVudGF0
-aW9uL3RyYWNlL2V2ZW50cy1rbWVtLnJzdCAgICAgICAgICAgICAgICB8ICAgIDIgCiBEb2N1bWVu
-dGF0aW9uL3ZtL3VuZXZpY3RhYmxlLWxydS5yc3QgICAgICAgICAgICAgICB8ICAgMjIgKystLS0K
-IGluY2x1ZGUvbGludXgvbW1fdHlwZXMuaCAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAg
-MiAKIGluY2x1ZGUvbGludXgvbW16b25lLmggICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwg
-ICAgMyAKIG1tL2ZpbGVtYXAuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICAgNCAtCiBtbS9ybWFwLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAgIDQgLQogbW0vdm1zY2FuLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgfCAgIDQxICsrKysrKy0tLS0tCiA5IGZpbGVzIGNoYW5nZWQsIDUxIGluc2VydGlv
-bnMoKyksIDY1IGRlbGV0aW9ucygtKQoKLS0tIGEvRG9jdW1lbnRhdGlvbi9hZG1pbi1ndWlkZS9j
-Z3JvdXAtdjEvbWVtY2dfdGVzdC5yc3R+bW0tbHJ1LXJldmlzZS10aGUtY29tbWVudHMtb2YtbHJ1
-X2xvY2sKKysrIGEvRG9jdW1lbnRhdGlvbi9hZG1pbi1ndWlkZS9jZ3JvdXAtdjEvbWVtY2dfdGVz
-dC5yc3QKQEAgLTEzMywxOCArMTMzLDkgQEAgVW5kZXIgYmVsb3cgZXhwbGFuYXRpb24sIHdlIGFz
-c3VtZSBDT05GSQogCiA4LiBMUlUKID09PT09PQotICAgICAgICBFYWNoIG1lbWNnIGhhcyBpdHMg
-b3duIHByaXZhdGUgTFJVLiBOb3csIGl0cyBoYW5kbGluZyBpcyB1bmRlciBnbG9iYWwKLQlWTSdz
-IGNvbnRyb2wgKG1lYW5zIHRoYXQgaXQncyBoYW5kbGVkIHVuZGVyIGdsb2JhbCBwZ2RhdC0+bHJ1
-X2xvY2spLgotCUFsbW9zdCBhbGwgcm91dGluZXMgYXJvdW5kIG1lbWNnJ3MgTFJVIGlzIGNhbGxl
-ZCBieSBnbG9iYWwgTFJVJ3MKLQlsaXN0IG1hbmFnZW1lbnQgZnVuY3Rpb25zIHVuZGVyIHBnZGF0
-LT5scnVfbG9jay4KLQotCUEgc3BlY2lhbCBmdW5jdGlvbiBpcyBtZW1fY2dyb3VwX2lzb2xhdGVf
-cGFnZXMoKS4gVGhpcyBzY2FucwotCW1lbWNnJ3MgcHJpdmF0ZSBMUlUgYW5kIGNhbGwgX19pc29s
-YXRlX2xydV9wYWdlKCkgdG8gZXh0cmFjdCBhIHBhZ2UKLQlmcm9tIExSVS4KLQotCShCeSBfX2lz
-b2xhdGVfbHJ1X3BhZ2UoKSwgdGhlIHBhZ2UgaXMgcmVtb3ZlZCBmcm9tIGJvdGggb2YgZ2xvYmFs
-IGFuZAotCXByaXZhdGUgTFJVLikKLQorCUVhY2ggbWVtY2cgaGFzIGl0cyBvd24gdmVjdG9yIG9m
-IExSVXMgKGluYWN0aXZlIGFub24sIGFjdGl2ZSBhbm9uLAorCWluYWN0aXZlIGZpbGUsIGFjdGl2
-ZSBmaWxlLCB1bmV2aWN0YWJsZSkgb2YgcGFnZXMgZnJvbSBlYWNoIG5vZGUsCisJZWFjaCBMUlUg
-aGFuZGxlZCB1bmRlciBhIHNpbmdsZSBscnVfbG9jayBmb3IgdGhhdCBtZW1jZyBhbmQgbm9kZS4K
-IAogOS4gVHlwaWNhbCBUZXN0cy4KID09PT09PT09PT09PT09PT09Ci0tLSBhL0RvY3VtZW50YXRp
-b24vYWRtaW4tZ3VpZGUvY2dyb3VwLXYxL21lbW9yeS5yc3R+bW0tbHJ1LXJldmlzZS10aGUtY29t
-bWVudHMtb2YtbHJ1X2xvY2sKKysrIGEvRG9jdW1lbnRhdGlvbi9hZG1pbi1ndWlkZS9jZ3JvdXAt
-djEvbWVtb3J5LnJzdApAQCAtMjg3LDIwICsyODcsMTcgQEAgV2hlbiBvb20gZXZlbnQgbm90aWZp
-ZXIgaXMgcmVnaXN0ZXJlZCwgZQogMi42IExvY2tpbmcKIC0tLS0tLS0tLS0tCiAKLSAgIGxvY2tf
-cGFnZV9jZ3JvdXAoKS91bmxvY2tfcGFnZV9jZ3JvdXAoKSBzaG91bGQgbm90IGJlIGNhbGxlZCB1
-bmRlcgotICAgdGhlIGlfcGFnZXMgbG9jay4KK0xvY2sgb3JkZXIgaXMgYXMgZm9sbG93czoKIAot
-ICAgT3RoZXIgbG9jayBvcmRlciBpcyBmb2xsb3dpbmc6Ci0KLSAgIFBHX2xvY2tlZC4KLSAgICAg
-bW0tPnBhZ2VfdGFibGVfbG9jawotICAgICAgICAgcGdkYXQtPmxydV9sb2NrCi0JICAgbG9ja19w
-YWdlX2Nncm91cC4KLQotICBJbiBtYW55IGNhc2VzLCBqdXN0IGxvY2tfcGFnZV9jZ3JvdXAoKSBp
-cyBjYWxsZWQuCi0KLSAgcGVyLXpvbmUtcGVyLWNncm91cCBMUlUgKGNncm91cCdzIHByaXZhdGUg
-TFJVKSBpcyBqdXN0IGd1YXJkZWQgYnkKLSAgcGdkYXQtPmxydV9sb2NrLCBpdCBoYXMgbm8gbG9j
-ayBvZiBpdHMgb3duLgorICBQYWdlIGxvY2sgKFBHX2xvY2tlZCBiaXQgb2YgcGFnZS0+ZmxhZ3Mp
-CisgICAgbW0tPnBhZ2VfdGFibGVfbG9jayBvciBzcGxpdCBwdGVfbG9jaworICAgICAgbG9ja19w
-YWdlX21lbWNnIChtZW1jZy0+bW92ZV9sb2NrKQorICAgICAgICBtYXBwaW5nLT5pX3BhZ2VzIGxv
-Y2sKKyAgICAgICAgICBscnV2ZWMtPmxydV9sb2NrLgorCitQZXItbm9kZS1wZXItbWVtY2dyb3Vw
-IExSVSAoY2dyb3VwJ3MgcHJpdmF0ZSBMUlUpIGlzIGd1YXJkZWQgYnkKK2xydXZlYy0+bHJ1X2xv
-Y2s7IFBHX2xydSBiaXQgb2YgcGFnZS0+ZmxhZ3MgaXMgY2xlYXJlZCBiZWZvcmUKK2lzb2xhdGlu
-ZyBhIHBhZ2UgZnJvbSBpdHMgTFJVIHVuZGVyIGxydXZlYy0+bHJ1X2xvY2suCiAKIDIuNyBLZXJu
-ZWwgTWVtb3J5IEV4dGVuc2lvbiAoQ09ORklHX01FTUNHX0tNRU0pCiAtLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQotLS0gYS9Eb2N1bWVudGF0aW9uL3RyYWNl
-L2V2ZW50cy1rbWVtLnJzdH5tbS1scnUtcmV2aXNlLXRoZS1jb21tZW50cy1vZi1scnVfbG9jawor
-KysgYS9Eb2N1bWVudGF0aW9uL3RyYWNlL2V2ZW50cy1rbWVtLnJzdApAQCAtNjksNyArNjksNyBA
-QCBXaGVuIHBhZ2VzIGFyZSBmcmVlZCBpbiBiYXRjaCwgdGhlIGFsc28KIEJyb2FkbHkgc3BlYWtp
-bmcsIHBhZ2VzIGFyZSB0YWtlbiBvZmYgdGhlIExSVSBsb2NrIGluIGJ1bGsgYW5kCiBmcmVlZCBp
-biBiYXRjaCB3aXRoIGEgcGFnZSBsaXN0LiBTaWduaWZpY2FudCBhbW91bnRzIG9mIGFjdGl2aXR5
-IGhlcmUgY291bGQKIGluZGljYXRlIHRoYXQgdGhlIHN5c3RlbSBpcyB1bmRlciBtZW1vcnkgcHJl
-c3N1cmUgYW5kIGNhbiBhbHNvIGluZGljYXRlCi1jb250ZW50aW9uIG9uIHRoZSB6b25lLT5scnVf
-bG9jay4KK2NvbnRlbnRpb24gb24gdGhlIGxydXZlYy0+bHJ1X2xvY2suCiAKIDQuIFBlci1DUFUg
-QWxsb2NhdG9yIEFjdGl2aXR5CiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gYS9E
-b2N1bWVudGF0aW9uL3ZtL3VuZXZpY3RhYmxlLWxydS5yc3R+bW0tbHJ1LXJldmlzZS10aGUtY29t
-bWVudHMtb2YtbHJ1X2xvY2sKKysrIGEvRG9jdW1lbnRhdGlvbi92bS91bmV2aWN0YWJsZS1scnUu
-cnN0CkBAIC0zMyw3ICszMyw3IEBAIHJlY2xhaW0gaW4gTGludXguICBUaGUgcHJvYmxlbXMgaGF2
-ZSBiZWUKIG1lbW9yeSB4ODZfNjQgc3lzdGVtcy4KIAogVG8gaWxsdXN0cmF0ZSB0aGlzIHdpdGgg
-YW4gZXhhbXBsZSwgYSBub24tTlVNQSB4ODZfNjQgcGxhdGZvcm0gd2l0aCAxMjhHQiBvZgotbWFp
-biBtZW1vcnkgd2lsbCBoYXZlIG92ZXIgMzIgbWlsbGlvbiA0ayBwYWdlcyBpbiBhIHNpbmdsZSB6
-b25lLiAgV2hlbiBhIGxhcmdlCittYWluIG1lbW9yeSB3aWxsIGhhdmUgb3ZlciAzMiBtaWxsaW9u
-IDRrIHBhZ2VzIGluIGEgc2luZ2xlIG5vZGUuICBXaGVuIGEgbGFyZ2UKIGZyYWN0aW9uIG9mIHRo
-ZXNlIHBhZ2VzIGFyZSBub3QgZXZpY3RhYmxlIGZvciBhbnkgcmVhc29uIFtzZWUgYmVsb3ddLCB2
-bXNjYW4KIHdpbGwgc3BlbmQgYSBsb3Qgb2YgdGltZSBzY2FubmluZyB0aGUgTFJVIGxpc3RzIGxv
-b2tpbmcgZm9yIHRoZSBzbWFsbCBmcmFjdGlvbgogb2YgcGFnZXMgdGhhdCBhcmUgZXZpY3RhYmxl
-LiAgVGhpcyBjYW4gcmVzdWx0IGluIGEgc2l0dWF0aW9uIHdoZXJlIGFsbCBDUFVzIGFyZQpAQCAt
-NTUsNyArNTUsNyBAQCB1bmV2aWN0YWJsZSwgZWl0aGVyIGJ5IGRlZmluaXRpb24gb3IgYnkKIFRo
-ZSBVbmV2aWN0YWJsZSBQYWdlIExpc3QKIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIAotVGhl
-IFVuZXZpY3RhYmxlIExSVSBpbmZyYXN0cnVjdHVyZSBjb25zaXN0cyBvZiBhbiBhZGRpdGlvbmFs
-LCBwZXItem9uZSwgTFJVIGxpc3QKK1RoZSBVbmV2aWN0YWJsZSBMUlUgaW5mcmFzdHJ1Y3R1cmUg
-Y29uc2lzdHMgb2YgYW4gYWRkaXRpb25hbCwgcGVyLW5vZGUsIExSVSBsaXN0CiBjYWxsZWQgdGhl
-ICJ1bmV2aWN0YWJsZSIgbGlzdCBhbmQgYW4gYXNzb2NpYXRlZCBwYWdlIGZsYWcsIFBHX3VuZXZp
-Y3RhYmxlLCB0bwogaW5kaWNhdGUgdGhhdCB0aGUgcGFnZSBpcyBiZWluZyBtYW5hZ2VkIG9uIHRo
-ZSB1bmV2aWN0YWJsZSBsaXN0LgogCkBAIC04NCwxNSArODQsOSBAQCBUaGUgdW5ldmljdGFibGUg
-bGlzdCBkb2VzIG5vdCBkaWZmZXJlbnRpCiBzd2FwLWJhY2tlZCBwYWdlcy4gIFRoaXMgZGlmZmVy
-ZW50aWF0aW9uIGlzIG9ubHkgaW1wb3J0YW50IHdoaWxlIHRoZSBwYWdlcyBhcmUsCiBpbiBmYWN0
-LCBldmljdGFibGUuCiAKLVRoZSB1bmV2aWN0YWJsZSBsaXN0IGJlbmVmaXRzIGZyb20gdGhlICJh
-cnJheWlmaWNhdGlvbiIgb2YgdGhlIHBlci16b25lIExSVQorVGhlIHVuZXZpY3RhYmxlIGxpc3Qg
-YmVuZWZpdHMgZnJvbSB0aGUgImFycmF5aWZpY2F0aW9uIiBvZiB0aGUgcGVyLW5vZGUgTFJVCiBs
-aXN0cyBhbmQgc3RhdGlzdGljcyBvcmlnaW5hbGx5IHByb3Bvc2VkIGFuZCBwb3N0ZWQgYnkgQ2hy
-aXN0b3BoIExhbWV0ZXIuCiAKLVRoZSB1bmV2aWN0YWJsZSBsaXN0IGRvZXMgbm90IHVzZSB0aGUg
-TFJVIHBhZ2V2ZWMgbWVjaGFuaXNtLiBSYXRoZXIsCi11bmV2aWN0YWJsZSBwYWdlcyBhcmUgcGxh
-Y2VkIGRpcmVjdGx5IG9uIHRoZSBwYWdlJ3Mgem9uZSdzIHVuZXZpY3RhYmxlIGxpc3QKLXVuZGVy
-IHRoZSB6b25lIGxydV9sb2NrLiAgVGhpcyBhbGxvd3MgdXMgdG8gcHJldmVudCB0aGUgc3RyYW5k
-aW5nIG9mIHBhZ2VzIG9uCi10aGUgdW5ldmljdGFibGUgbGlzdCB3aGVuIG9uZSB0YXNrIGhhcyB0
-aGUgcGFnZSBpc29sYXRlZCBmcm9tIHRoZSBMUlUgYW5kIG90aGVyCi10YXNrcyBhcmUgY2hhbmdp
-bmcgdGhlICJldmljdGFiaWxpdHkiIHN0YXRlIG9mIHRoZSBwYWdlLgotCiAKIE1lbW9yeSBDb250
-cm9sIEdyb3VwIEludGVyYWN0aW9uCiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpA
-QCAtMTAxLDggKzk1LDggQEAgVGhlIHVuZXZpY3RhYmxlIExSVSBmYWNpbGl0eSBpbnRlcmFjdHMg
-dwogbWVtb3J5IGNvbnRyb2xsZXI7IHNlZSBEb2N1bWVudGF0aW9uL2FkbWluLWd1aWRlL2Nncm91
-cC12MS9tZW1vcnkucnN0XSBieSBleHRlbmRpbmcgdGhlCiBscnVfbGlzdCBlbnVtLgogCi1UaGUg
-bWVtb3J5IGNvbnRyb2xsZXIgZGF0YSBzdHJ1Y3R1cmUgYXV0b21hdGljYWxseSBnZXRzIGEgcGVy
-LXpvbmUgdW5ldmljdGFibGUKLWxpc3QgYXMgYSByZXN1bHQgb2YgdGhlICJhcnJheWlmaWNhdGlv
-biIgb2YgdGhlIHBlci16b25lIExSVSBsaXN0cyAob25lIHBlcgorVGhlIG1lbW9yeSBjb250cm9s
-bGVyIGRhdGEgc3RydWN0dXJlIGF1dG9tYXRpY2FsbHkgZ2V0cyBhIHBlci1ub2RlIHVuZXZpY3Rh
-YmxlCitsaXN0IGFzIGEgcmVzdWx0IG9mIHRoZSAiYXJyYXlpZmljYXRpb24iIG9mIHRoZSBwZXIt
-bm9kZSBMUlUgbGlzdHMgKG9uZSBwZXIKIGxydV9saXN0IGVudW0gZWxlbWVudCkuICBUaGUgbWVt
-b3J5IGNvbnRyb2xsZXIgdHJhY2tzIHRoZSBtb3ZlbWVudCBvZiBwYWdlcyB0bwogYW5kIGZyb20g
-dGhlIHVuZXZpY3RhYmxlIGxpc3QuCiAKQEAgLTE5Niw3ICsxOTAsNyBAQCBmb3IgdGhlIHNha2Ug
-b2YgZXhwZWRpZW5jeSwgdG8gbGVhdmUgYSB1CiBhY3RpdmUvaW5hY3RpdmUgTFJVIGxpc3RzIGZv
-ciB2bXNjYW4gdG8gZGVhbCB3aXRoLiAgdm1zY2FuIGNoZWNrcyBmb3Igc3VjaAogcGFnZXMgaW4g
-YWxsIG9mIHRoZSBzaHJpbmtfe2FjdGl2ZXxpbmFjdGl2ZXxwYWdlfV9saXN0KCkgZnVuY3Rpb25z
-IGFuZCB3aWxsCiAiY3VsbCIgc3VjaCBwYWdlcyB0aGF0IGl0IGVuY291bnRlcnM6IHRoYXQgaXMs
-IGl0IGRpdmVydHMgdGhvc2UgcGFnZXMgdG8gdGhlCi11bmV2aWN0YWJsZSBsaXN0IGZvciB0aGUg
-em9uZSBiZWluZyBzY2FubmVkLgordW5ldmljdGFibGUgbGlzdCBmb3IgdGhlIG5vZGUgYmVpbmcg
-c2Nhbm5lZC4KIAogVGhlcmUgbWF5IGJlIHNpdHVhdGlvbnMgd2hlcmUgYSBwYWdlIGlzIG1hcHBl
-ZCBpbnRvIGEgVk1fTE9DS0VEIFZNQSwgYnV0IHRoZQogcGFnZSBpcyBub3QgbWFya2VkIGFzIFBH
-X21sb2NrZWQuICBTdWNoIHBhZ2VzIHdpbGwgbWFrZSBpdCBhbGwgdGhlIHdheSB0bwpAQCAtMzI4
-LDcgKzMyMiw3IEBAIElmIHRoZSBwYWdlIHdhcyBOT1QgYWxyZWFkeSBtbG9ja2VkLCBtbG8KIHBh
-Z2UgZnJvbSB0aGUgTFJVLCBhcyBpdCBpcyBsaWtlbHkgb24gdGhlIGFwcHJvcHJpYXRlIGFjdGl2
-ZSBvciBpbmFjdGl2ZSBsaXN0CiBhdCB0aGF0IHRpbWUuICBJZiB0aGUgaXNvbGF0ZV9scnVfcGFn
-ZSgpIHN1Y2NlZWRzLCBtbG9ja192bWFfcGFnZSgpIHdpbGwgcHV0CiBiYWNrIHRoZSBwYWdlIC0g
-YnkgY2FsbGluZyBwdXRiYWNrX2xydV9wYWdlKCkgLSB3aGljaCB3aWxsIG5vdGljZSB0aGF0IHRo
-ZSBwYWdlCi1pcyBub3cgbWxvY2tlZCBhbmQgZGl2ZXJ0IHRoZSBwYWdlIHRvIHRoZSB6b25lJ3Mg
-dW5ldmljdGFibGUgbGlzdC4gIElmCitpcyBub3cgbWxvY2tlZCBhbmQgZGl2ZXJ0IHRoZSBwYWdl
-IHRvIHRoZSBub2RlJ3MgdW5ldmljdGFibGUgbGlzdC4gIElmCiBtbG9ja192bWFfcGFnZSgpIGlz
-IHVuYWJsZSB0byBpc29sYXRlIHRoZSBwYWdlIGZyb20gdGhlIExSVSwgdm1zY2FuIHdpbGwgaGFu
-ZGxlCiBpdCBsYXRlciBpZiBhbmQgd2hlbiBpdCBhdHRlbXB0cyB0byByZWNsYWltIHRoZSBwYWdl
-LgogCkBAIC02MDMsNyArNTk3LDcgQEAgU29tZSBleGFtcGxlcyBvZiB0aGVzZSB1bmV2aWN0YWJs
-ZSBwYWdlcwogICAgICB1bmV2aWN0YWJsZSBsaXN0IGluIG1sb2NrX3ZtYV9wYWdlKCkuCiAKIHNo
-cmlua19pbmFjdGl2ZV9saXN0KCkgYWxzbyBkaXZlcnRzIGFueSB1bmV2aWN0YWJsZSBwYWdlcyB0
-aGF0IGl0IGZpbmRzIG9uIHRoZQotaW5hY3RpdmUgbGlzdHMgdG8gdGhlIGFwcHJvcHJpYXRlIHpv
-bmUncyB1bmV2aWN0YWJsZSBsaXN0LgoraW5hY3RpdmUgbGlzdHMgdG8gdGhlIGFwcHJvcHJpYXRl
-IG5vZGUncyB1bmV2aWN0YWJsZSBsaXN0LgogCiBzaHJpbmtfaW5hY3RpdmVfbGlzdCgpIHNob3Vs
-ZCBvbmx5IHNlZSBTSE1fTE9DSydkIHBhZ2VzIHRoYXQgYmVjYW1lIFNITV9MT0NLJ2QKIGFmdGVy
-IHNocmlua19hY3RpdmVfbGlzdCgpIGhhZCBtb3ZlZCB0aGVtIHRvIHRoZSBpbmFjdGl2ZSBsaXN0
-LCBvciBwYWdlcyBtYXBwZWQKLS0tIGEvaW5jbHVkZS9saW51eC9tbV90eXBlcy5ofm1tLWxydS1y
-ZXZpc2UtdGhlLWNvbW1lbnRzLW9mLWxydV9sb2NrCisrKyBhL2luY2x1ZGUvbGludXgvbW1fdHlw
-ZXMuaApAQCAtNzksNyArNzksNyBAQCBzdHJ1Y3QgcGFnZSB7CiAJCXN0cnVjdCB7CS8qIFBhZ2Ug
-Y2FjaGUgYW5kIGFub255bW91cyBwYWdlcyAqLwogCQkJLyoqCiAJCQkgKiBAbHJ1OiBQYWdlb3V0
-IGxpc3QsIGVnLiBhY3RpdmVfbGlzdCBwcm90ZWN0ZWQgYnkKLQkJCSAqIHBnZGF0LT5scnVfbG9j
-ay4gIFNvbWV0aW1lcyB1c2VkIGFzIGEgZ2VuZXJpYyBsaXN0CisJCQkgKiBscnV2ZWMtPmxydV9s
-b2NrLiAgU29tZXRpbWVzIHVzZWQgYXMgYSBnZW5lcmljIGxpc3QKIAkJCSAqIGJ5IHRoZSBwYWdl
-IG93bmVyLgogCQkJICovCiAJCQlzdHJ1Y3QgbGlzdF9oZWFkIGxydTsKLS0tIGEvaW5jbHVkZS9s
-aW51eC9tbXpvbmUuaH5tbS1scnUtcmV2aXNlLXRoZS1jb21tZW50cy1vZi1scnVfbG9jaworKysg
-YS9pbmNsdWRlL2xpbnV4L21tem9uZS5oCkBAIC0xMTMsOCArMTEzLDcgQEAgc3RhdGljIGlubGlu
-ZSBib29sIGZyZWVfYXJlYV9lbXB0eShzdHJ1Ywogc3RydWN0IHBnbGlzdF9kYXRhOwogCiAvKgot
-ICogem9uZS0+bG9jayBhbmQgdGhlIHpvbmUgbHJ1X2xvY2sgYXJlIHR3byBvZiB0aGUgaG90dGVz
-dCBsb2NrcyBpbiB0aGUga2VybmVsLgotICogU28gYWRkIGEgd2lsZCBhbW91bnQgb2YgcGFkZGlu
-ZyBoZXJlIHRvIGVuc3VyZSB0aGF0IHRoZXkgZmFsbCBpbnRvIHNlcGFyYXRlCisgKiBBZGQgYSB3
-aWxkIGFtb3VudCBvZiBwYWRkaW5nIGhlcmUgdG8gZW5zdXJlIGRhdGFzIGZhbGwgaW50byBzZXBh
-cmF0ZQogICogY2FjaGVsaW5lcy4gIFRoZXJlIGFyZSB2ZXJ5IGZldyB6b25lIHN0cnVjdHVyZXMg
-aW4gdGhlIG1hY2hpbmUsIHNvIHNwYWNlCiAgKiBjb25zdW1wdGlvbiBpcyBub3QgYSBjb25jZXJu
-IGhlcmUuCiAgKi8KLS0tIGEvbW0vZmlsZW1hcC5jfm1tLWxydS1yZXZpc2UtdGhlLWNvbW1lbnRz
-LW9mLWxydV9sb2NrCisrKyBhL21tL2ZpbGVtYXAuYwpAQCAtMTAyLDggKzEwMiw4IEBACiAgKiAg
-ICAtPnN3YXBfbG9jawkJKHRyeV90b191bm1hcF9vbmUpCiAgKiAgICAtPnByaXZhdGVfbG9jawkJ
-KHRyeV90b191bm1hcF9vbmUpCiAgKiAgICAtPmlfcGFnZXMgbG9jawkJKHRyeV90b191bm1hcF9v
-bmUpCi0gKiAgICAtPnBnZGF0LT5scnVfbG9jawkJKGZvbGxvd19wYWdlLT5tYXJrX3BhZ2VfYWNj
-ZXNzZWQpCi0gKiAgICAtPnBnZGF0LT5scnVfbG9jawkJKGNoZWNrX3B0ZV9yYW5nZS0+aXNvbGF0
-ZV9scnVfcGFnZSkKKyAqICAgIC0+bHJ1dmVjLT5scnVfbG9jawkoZm9sbG93X3BhZ2UtPm1hcmtf
-cGFnZV9hY2Nlc3NlZCkKKyAqICAgIC0+bHJ1dmVjLT5scnVfbG9jawkoY2hlY2tfcHRlX3Jhbmdl
-LT5pc29sYXRlX2xydV9wYWdlKQogICogICAgLT5wcml2YXRlX2xvY2sJCShwYWdlX3JlbW92ZV9y
-bWFwLT5zZXRfcGFnZV9kaXJ0eSkKICAqICAgIC0+aV9wYWdlcyBsb2NrCQkocGFnZV9yZW1vdmVf
-cm1hcC0+c2V0X3BhZ2VfZGlydHkpCiAgKiAgICBiZGkud2ItPmxpc3RfbG9jawkJKHBhZ2VfcmVt
-b3ZlX3JtYXAtPnNldF9wYWdlX2RpcnR5KQotLS0gYS9tbS9ybWFwLmN+bW0tbHJ1LXJldmlzZS10
-aGUtY29tbWVudHMtb2YtbHJ1X2xvY2sKKysrIGEvbW0vcm1hcC5jCkBAIC0yOCwxMiArMjgsMTIg
-QEAKICAqICAgICAgICAgICBodWdldGxiX2ZhdWx0X211dGV4IChodWdldGxiZnMgc3BlY2lmaWMg
-cGFnZSBmYXVsdCBtdXRleCkKICAqICAgICAgICAgICBhbm9uX3ZtYS0+cndzZW0KICAqICAgICAg
-ICAgICAgIG1tLT5wYWdlX3RhYmxlX2xvY2sgb3IgcHRlX2xvY2sKLSAqICAgICAgICAgICAgICAg
-cGdkYXQtPmxydV9sb2NrIChpbiBtYXJrX3BhZ2VfYWNjZXNzZWQsIGlzb2xhdGVfbHJ1X3BhZ2Up
-CiAgKiAgICAgICAgICAgICAgIHN3YXBfbG9jayAoaW4gc3dhcF9kdXBsaWNhdGUsIHN3YXBfaW5m
-b19nZXQpCiAgKiAgICAgICAgICAgICAgICAgbW1saXN0X2xvY2sgKGluIG1tcHV0LCBkcmFpbl9t
-bWxpc3QgYW5kIG90aGVycykKICAqICAgICAgICAgICAgICAgICBtYXBwaW5nLT5wcml2YXRlX2xv
-Y2sgKGluIF9fc2V0X3BhZ2VfZGlydHlfYnVmZmVycykKLSAqICAgICAgICAgICAgICAgICAgIG1l
-bV9jZ3JvdXBfe2JlZ2luLGVuZH1fcGFnZV9zdGF0IChtZW1jZy0+bW92ZV9sb2NrKQorICogICAg
-ICAgICAgICAgICAgICAgbG9ja19wYWdlX21lbWNnIG1vdmVfbG9jayAoaW4gX19zZXRfcGFnZV9k
-aXJ0eV9idWZmZXJzKQogICogICAgICAgICAgICAgICAgICAgICBpX3BhZ2VzIGxvY2sgKHdpZGVs
-eSB1c2VkKQorICogICAgICAgICAgICAgICAgICAgICAgIGxydXZlYy0+bHJ1X2xvY2sgKGluIGxv
-Y2tfcGFnZV9scnV2ZWNfaXJxKQogICogICAgICAgICAgICAgICAgIGlub2RlLT5pX2xvY2sgKGlu
-IHNldF9wYWdlX2RpcnR5J3MgX19tYXJrX2lub2RlX2RpcnR5KQogICogICAgICAgICAgICAgICAg
-IGJkaS53Yi0+bGlzdF9sb2NrIChpbiBzZXRfcGFnZV9kaXJ0eSdzIF9fbWFya19pbm9kZV9kaXJ0
-eSkKICAqICAgICAgICAgICAgICAgICAgIHNiX2xvY2sgKHdpdGhpbiBpbm9kZV9sb2NrIGluIGZz
-L2ZzLXdyaXRlYmFjay5jKQotLS0gYS9tbS92bXNjYW4uY35tbS1scnUtcmV2aXNlLXRoZS1jb21t
-ZW50cy1vZi1scnVfbG9jaworKysgYS9tbS92bXNjYW4uYwpAQCAtMTYxNCwxNCArMTYxNCwxNiBA
-QCBzdGF0aWMgX19hbHdheXNfaW5saW5lIHZvaWQgdXBkYXRlX2xydV9zCiB9CiAKIC8qKgotICog
-cGdkYXQtPmxydV9sb2NrIGlzIGhlYXZpbHkgY29udGVuZGVkLiAgU29tZSBvZiB0aGUgZnVuY3Rp
-b25zIHRoYXQKKyAqIElzb2xhdGluZyBwYWdlIGZyb20gdGhlIGxydXZlYyB0byBmaWxsIGluIEBk
-c3QgbGlzdCBieSBucl90b19zY2FuIHRpbWVzLgorICoKKyAqIGxydXZlYy0+bHJ1X2xvY2sgaXMg
-aGVhdmlseSBjb250ZW5kZWQuICBTb21lIG9mIHRoZSBmdW5jdGlvbnMgdGhhdAogICogc2hyaW5r
-IHRoZSBsaXN0cyBwZXJmb3JtIGJldHRlciBieSB0YWtpbmcgb3V0IGEgYmF0Y2ggb2YgcGFnZXMK
-ICAqIGFuZCB3b3JraW5nIG9uIHRoZW0gb3V0c2lkZSB0aGUgTFJVIGxvY2suCiAgKgogICogRm9y
-IHBhZ2VjYWNoZSBpbnRlbnNpdmUgd29ya2xvYWRzLCB0aGlzIGZ1bmN0aW9uIGlzIHRoZSBob3R0
-ZXN0CiAgKiBzcG90IGluIHRoZSBrZXJuZWwgKGFwYXJ0IGZyb20gY29weV8qX3VzZXIgZnVuY3Rp
-b25zKS4KICAqCi0gKiBBcHByb3ByaWF0ZSBsb2NrcyBtdXN0IGJlIGhlbGQgYmVmb3JlIGNhbGxp
-bmcgdGhpcyBmdW5jdGlvbi4KKyAqIExydV9sb2NrIG11c3QgYmUgaGVsZCBiZWZvcmUgY2FsbGlu
-ZyB0aGlzIGZ1bmN0aW9uLgogICoKICAqIEBucl90b19zY2FuOglUaGUgbnVtYmVyIG9mIGVsaWdp
-YmxlIHBhZ2VzIHRvIGxvb2sgdGhyb3VnaCBvbiB0aGUgbGlzdC4KICAqIEBscnV2ZWM6CVRoZSBM
-UlUgdmVjdG9yIHRvIHB1bGwgcGFnZXMgZnJvbS4KQEAgLTE4MTUsMjUgKzE4MTcsMTEgQEAgc3Rh
-dGljIGludCB0b29fbWFueV9pc29sYXRlZChzdHJ1Y3QgcGdsaQogfQogCiAvKgotICogVGhpcyBt
-b3ZlcyBwYWdlcyBmcm9tIEBsaXN0IHRvIGNvcnJlc3BvbmRpbmcgTFJVIGxpc3QuCi0gKgotICog
-V2UgbW92ZSB0aGVtIHRoZSBvdGhlciB3YXkgaWYgdGhlIHBhZ2UgaXMgcmVmZXJlbmNlZCBieSBv
-bmUgb3IgbW9yZQotICogcHJvY2Vzc2VzLCBmcm9tIHJtYXAuCi0gKgotICogSWYgdGhlIHBhZ2Vz
-IGFyZSBtb3N0bHkgdW5tYXBwZWQsIHRoZSBwcm9jZXNzaW5nIGlzIGZhc3QgYW5kIGl0IGlzCi0g
-KiBhcHByb3ByaWF0ZSB0byBob2xkIHpvbmVfbHJ1X2xvY2sgYWNyb3NzIHRoZSB3aG9sZSBvcGVy
-YXRpb24uICBCdXQgaWYKLSAqIHRoZSBwYWdlcyBhcmUgbWFwcGVkLCB0aGUgcHJvY2Vzc2luZyBp
-cyBzbG93IChwYWdlX3JlZmVyZW5jZWQoKSkgc28gd2UKLSAqIHNob3VsZCBkcm9wIHpvbmVfbHJ1
-X2xvY2sgYXJvdW5kIGVhY2ggcGFnZS4gIEl0J3MgaW1wb3NzaWJsZSB0byBiYWxhbmNlCi0gKiB0
-aGlzLCBzbyBpbnN0ZWFkIHdlIHJlbW92ZSB0aGUgcGFnZXMgZnJvbSB0aGUgTFJVIHdoaWxlIHBy
-b2Nlc3NpbmcgdGhlbS4KLSAqIEl0IGlzIHNhZmUgdG8gcmVseSBvbiBQR19hY3RpdmUgYWdhaW5z
-dCB0aGUgbm9uLUxSVSBwYWdlcyBpbiBoZXJlIGJlY2F1c2UKLSAqIG5vYm9keSB3aWxsIHBsYXkg
-d2l0aCB0aGF0IGJpdCBvbiBhIG5vbi1MUlUgcGFnZS4KLSAqCi0gKiBUaGUgZG93bnNpZGUgaXMg
-dGhhdCB3ZSBoYXZlIHRvIHRvdWNoIHBhZ2UtPl9yZWZjb3VudCBhZ2FpbnN0IGVhY2ggcGFnZS4K
-LSAqIEJ1dCB3ZSBoYWQgdG8gYWx0ZXIgcGFnZS0+ZmxhZ3MgYW55d2F5LgorICogbW92ZV9wYWdl
-c190b19scnUoKSBtb3ZlcyBwYWdlcyBmcm9tIHByaXZhdGUgQGxpc3QgdG8gYXBwcm9wcmlhdGUg
-TFJVIGxpc3QuCisgKiBPbiByZXR1cm4sIEBsaXN0IGlzIHJldXNlZCBhcyBhIGxpc3Qgb2YgcGFn
-ZXMgdG8gYmUgZnJlZWQgYnkgdGhlIGNhbGxlci4KICAqCiAgKiBSZXR1cm5zIHRoZSBudW1iZXIg
-b2YgcGFnZXMgbW92ZWQgdG8gdGhlIGdpdmVuIGxydXZlYy4KICAqLwotCiBzdGF0aWMgdW5zaWdu
-ZWQgbm9pbmxpbmVfZm9yX3N0YWNrIG1vdmVfcGFnZXNfdG9fbHJ1KHN0cnVjdCBscnV2ZWMgKmxy
-dXZlYywKIAkJCQkJCSAgICAgc3RydWN0IGxpc3RfaGVhZCAqbGlzdCkKIHsKQEAgLTIwMTEsNiAr
-MTk5OSwyMyBAQCBzaHJpbmtfaW5hY3RpdmVfbGlzdCh1bnNpZ25lZCBsb25nIG5yX3RvCiAJcmV0
-dXJuIG5yX3JlY2xhaW1lZDsKIH0KIAorLyoKKyAqIHNocmlua19hY3RpdmVfbGlzdCgpIG1vdmVz
-IHBhZ2VzIGZyb20gdGhlIGFjdGl2ZSBMUlUgdG8gdGhlIGluYWN0aXZlIExSVS4KKyAqCisgKiBX
-ZSBtb3ZlIHRoZW0gdGhlIG90aGVyIHdheSBpZiB0aGUgcGFnZSBpcyByZWZlcmVuY2VkIGJ5IG9u
-ZSBvciBtb3JlCisgKiBwcm9jZXNzZXMuCisgKgorICogSWYgdGhlIHBhZ2VzIGFyZSBtb3N0bHkg
-dW5tYXBwZWQsIHRoZSBwcm9jZXNzaW5nIGlzIGZhc3QgYW5kIGl0IGlzCisgKiBhcHByb3ByaWF0
-ZSB0byBob2xkIGxydV9sb2NrIGFjcm9zcyB0aGUgd2hvbGUgb3BlcmF0aW9uLiAgQnV0IGlmCisg
-KiB0aGUgcGFnZXMgYXJlIG1hcHBlZCwgdGhlIHByb2Nlc3NpbmcgaXMgc2xvdyAocGFnZV9yZWZl
-cmVuY2VkKCkpLCBzbworICogd2Ugc2hvdWxkIGRyb3AgbHJ1X2xvY2sgYXJvdW5kIGVhY2ggcGFn
-ZS4gIEl0J3MgaW1wb3NzaWJsZSB0byBiYWxhbmNlCisgKiB0aGlzLCBzbyBpbnN0ZWFkIHdlIHJl
-bW92ZSB0aGUgcGFnZXMgZnJvbSB0aGUgTFJVIHdoaWxlIHByb2Nlc3NpbmcgdGhlbS4KKyAqIEl0
-IGlzIHNhZmUgdG8gcmVseSBvbiBQR19hY3RpdmUgYWdhaW5zdCB0aGUgbm9uLUxSVSBwYWdlcyBp
-biBoZXJlIGJlY2F1c2UKKyAqIG5vYm9keSB3aWxsIHBsYXkgd2l0aCB0aGF0IGJpdCBvbiBhIG5v
-bi1MUlUgcGFnZS4KKyAqCisgKiBUaGUgZG93bnNpZGUgaXMgdGhhdCB3ZSBoYXZlIHRvIHRvdWNo
-IHBhZ2UtPl9yZWZjb3VudCBhZ2FpbnN0IGVhY2ggcGFnZS4KKyAqIEJ1dCB3ZSBoYWQgdG8gYWx0
-ZXIgcGFnZS0+ZmxhZ3MgYW55d2F5LgorICovCiBzdGF0aWMgdm9pZCBzaHJpbmtfYWN0aXZlX2xp
-c3QodW5zaWduZWQgbG9uZyBucl90b19zY2FuLAogCQkJICAgICAgIHN0cnVjdCBscnV2ZWMgKmxy
-dXZlYywKIAkJCSAgICAgICBzdHJ1Y3Qgc2Nhbl9jb250cm9sICpzYywKXwoKUGF0Y2hlcyBjdXJy
-ZW50bHkgaW4gLW1tIHdoaWNoIG1pZ2h0IGJlIGZyb20gaHVnaGRAZ29vZ2xlLmNvbSBhcmUKCm1t
-LXBhZ2VfaWRsZV9nZXRfcGFnZS1kb2VzLW5vdC1uZWVkLWxydV9sb2NrLnBhdGNoCm1tLWxydS1y
-ZXZpc2UtdGhlLWNvbW1lbnRzLW9mLWxydV9sb2NrLnBhdGNoCgo=
+The mm-of-the-moment snapshot 2020-11-16-16-23 has been uploaded to
+
+   https://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+https://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (5.x
+or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+https://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
+
+	https://github.com/hnaz/linux-mm
+
+The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
+
+A git copy of this tree is also available at
+
+	https://github.com/hnaz/linux-mm
+
+
+
+This mmotm tree contains the following patches against 5.10-rc4:
+(patches marked "*" will be included in linux-next)
+
+* mm-madvise-fix-memory-leak-from-process_madvise.patch
+* mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+* mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
+* mm-fix-readahead_page_batch-for-retry-entries.patch
+* mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+* mm-memcg-slab-fix-root-memcg-vmstats.patch
+* mm-userfaultfd-do-not-access-vma-vm_mm-after-calling-handle_userfault.patch
+* libfs-fix-error-cast-of-negative-value-in-simple_attr_write.patch
+* mm-fix-madvise-willneed-performance-problem.patch
+* page_frag-recover-from-memory-pressure.patch
+* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
+* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
+* kthread-add-kthread_work-tracepoints.patch
+* kthread_worker-document-cpu-hotplug-handling.patch
+* kthread_worker-document-cpu-hotplug-handling-fix.patch
+* uapi-move-constants-from-linux-kernelh-to-linux-consth.patch
+* fs-ntfs-remove-unused-varibles.patch
+* fs-ntfs-remove-unused-varible-attr_len.patch
+* fs-ocfs2-remove-unneeded-break.patch
+* ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch
+* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
+* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+* ramfs-support-o_tmpfile.patch
+* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+  mm.patch
+* mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+* mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
+* mm-slab-provide-krealloc_array.patch
+* alsa-pcm-use-krealloc_array.patch
+* vhost-vringh-use-krealloc_array.patch
+* pinctrl-use-krealloc_array.patch
+* edac-ghes-use-krealloc_array.patch
+* drm-atomic-use-krealloc_array.patch
+* hwtracing-intel-use-krealloc_array.patch
+* dma-buf-use-krealloc_array.patch
+* mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
+* device-dax-kmem-use-struct_size.patch
+* mm-fix-page_owner-initializing-issue-for-arm32.patch
+* fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
+* fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch
+* mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
+* mm-gup_benchmark-rename-to-mm-gup_test.patch
+* selftests-vm-use-a-common-gup_testh.patch
+* selftests-vm-rename-run_vmtests-run_vmtestssh.patch
+* selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
+* selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
+* selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
+* selftests-vm-run_vmtestssh-update-and-clean-up-gup_test-invocation.patch
+* selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
+* selftests-vm-2x-speedup-for-run_vmtestssh.patch
+* mm-gup_benchmark-mark-gup_benchmark_init-as-__init-function.patch
+* mm-gup_benchmark-gup_benchmark-depends-on-debug_fs.patch
+* mm-gup_benchmark-gup_benchmark-depends-on-debug_fs-v2.patch
+* mm-reorganize-internal_get_user_pages_fast.patch
+* mm-prevent-gup_fast-from-racing-with-cow-during-fork.patch
+* mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+* mm-handle-zone-device-pages-in-release_pages.patch
+* mm-swapfilec-use-helper-function-swap_count-in-add_swap_count_continuation.patch
+* mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0.patch
+* mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+* mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate.patch
+* mm-swap-use-memset-to-fill-the-swap_map-with-swap_has_cache.patch
+* mm-remove-pagevec_lookup_range_nr_tag.patch
+* mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
+* mmthpshm-limit-gfp-mask-to-no-more-than-specified.patch
+* mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+* mm-shmemc-make-shmem_mapping-inline.patch
+* mm-memcontrol-add-file_thp-shmem_thp-to-memorystat.patch
+* mm-memcontrol-add-file_thp-shmem_thp-to-memorystat-fix.patch
+* mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
+* mm-memcontrol-eliminate-redundant-check-in-__mem_cgroup_insert_exceeded.patch
+* mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+* mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
+* mm-rmap-always-do-ttu_ignore_access.patch
+* mm-memcg-update-page-struct-member-in-comments.patch
+* mm-memcg-fix-obsolete-code-comments.patch
+* mm-memcg-deprecate-the-non-hierarchical-mode.patch
+* docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
+* cgroup-remove-obsoleted-broken_hierarchy-and-warned_broken_hierarchy.patch
+* mm-page_counter-use-page_counter_read-in-page_counter_set_max.patch
+* mm-memcg-remove-obsolete-memcg_has_children.patch
+* mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+* mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+* mm-thp-simplify-lru_add_page_tail.patch
+* mm-thp-narrow-lru-locking.patch
+* mm-vmscan-remove-unnecessary-lruvec-adding.patch
+* mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+* mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
+* mm-page_idle_get_page-does-not-need-lru_lock.patch
+* mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+* mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+* mm-lru-move-lock-into-lru_note_cost.patch
+* mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+* mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+* mm-mlock-remove-__munlock_isolate_lru_page.patch
+* mm-lru-introduce-testclearpagelru.patch
+* mm-compaction-do-page-isolation-first-in-compaction.patch
+* mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+* mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+* mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+* mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
+* mm-lru-introduce-the-relock_page_lruvec-function.patch
+* mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
+* mm-lru-revise-the-comments-of-lru_lock.patch
+* xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
+* kselftests-vm-add-mremap-tests.patch
+* mm-speedup-mremap-on-1gb-or-larger-regions.patch
+* arm64-mremap-speedup-enable-have_move_pud.patch
+* x86-mremap-speedup-enable-have_move_pud.patch
+* mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch
+* mm-mmap-fix-the-adjusted-length-error.patch
+* mm-mremap-account-memory-on-do_munmap-failure.patch
+* mm-mremap-for-mremap_dontunmap-check-security_vm_enough_memory_mm.patch
+* mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
+* vm_ops-rename-split-callback-to-may_split.patch
+* mremap-check-if-its-possible-to-split-original-vma.patch
+* mm-forbid-splitting-special-mappings.patch
+* mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+* mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
+* mmhwpoison-take-free-pages-off-the-buddy-freelists-for-hugetlb.patch
+* mmhwpoison-drop-unneeded-pcplist-draining.patch
+* mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+* mm-vmalloc-use-free_vm_area-if-an-allocation-fails.patch
+* mm-vmalloc-rework-the-drain-logic.patch
+* docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+* mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
+* alpha-switch-from-discontigmem-to-sparsemem.patch
+* ia64-remove-custom-__early_pfn_to_nid.patch
+* ia64-remove-ifdef-config_zone_dma32-statements.patch
+* ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
+* ia64-split-virtual-map-initialization-out-of-paging_init.patch
+* ia64-forbid-using-virtual_mem_map-with-flatmem.patch
+* ia64-make-sparsemem-default-and-disable-discontigmem.patch
+* arm-remove-config_arch_has_holes_memorymodel.patch
+* arm-arm64-move-free_unused_memmap-to-generic-mm.patch
+* arc-use-flatmem-with-freeing-of-unused-memory-map-instead-of-discontigmem.patch
+* m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
+* m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
+* m68k-deprecate-discontigmem.patch
+* mm-introduce-debug_pagealloc_mapunmap_pages-helpers.patch
+* pm-hibernate-make-direct-map-manipulations-more-explicit.patch
+* arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc.patch
+* arch-mm-make-kernel_page_present-always-available.patch
+* mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
+* mm-page_alloc-calculate-pageset-high-and-batch-once-per-zone.patch
+* mm-page_alloc-remove-setup_pageset.patch
+* mm-page_alloc-simplify-pageset_update.patch
+* mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch
+* mm-page_alloc-move-draining-pcplists-to-page-isolation-users.patch
+* mm-page_alloc-disable-pcplists-during-memory-offline.patch
+* mm-page_alloc-disable-pcplists-during-memory-offline-fix.patch
+* mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc=1-or-__gfp_zero.patch
+* page-flags-remove-unused-__pageprivate.patch
+* mm-page-flags-fix-comment.patch
+* mm-page_alloc-add-__free_pages-documentation.patch
+* mm-page_alloc-mark-some-symbols-with-static-keyword.patch
+* mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
+* mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
+* mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+* include-linux-huge_mmh-remove-extern-keyword.patch
+* mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled.patch
+* mm-vmscan-drop-unneeded-assignment-in-kswapd.patch
+* mm-remove-the-filename-in-the-top-of-file-comment-in-vmscanc.patch
+* mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone.patch
+* mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+* mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+* mm-migrate-fix-comment-spelling.patch
+* mm-optimize-migrate_vma_pages-mmu-notifier.patch
+* mm-truncate_complete_page-is-not-existed-anymore.patch
+* mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch
+* mm-migrate-skip-shared-exec-thp-for-numa-balancing.patch
+* mm-migrate-clean-up-migrate_prep_local.patch
+* mm-migrate-return-enosys-if-thp-migration-is-unsupported.patch
+* mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+* mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+* mm-swap-optimise-get_shadow_from_swap_cache.patch
+* mm-add-fgp_entry.patch
+* mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+* mm-filemap-add-helper-for-finding-pages.patch
+* mm-filemap-add-mapping_seek_hole_data.patch
+* iomap-use-mapping_seek_hole_data.patch
+* mm-add-and-use-find_lock_entries.patch
+* mm-add-an-end-parameter-to-find_get_entries.patch
+* mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+* mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+* mm-pass-pvec-directly-to-find_get_entries.patch
+* mm-remove-pagevec_lookup_entries.patch
+* mm-truncateshmem-handle-truncates-that-split-thps.patch
+* mm-filemap-return-only-head-pages-from-find_get_entries.patch
+* mm-cmac-remove-redundant-cma_mutex-lock.patch
+* mm-page_alloc-do-not-rely-on-the-order-of-page_poison-and-init_on_alloc-free-parameters.patch
+* mm-page_poison-use-static-key-more-efficiently.patch
+* kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
+* mm-page_poison-remove-config_page_poisoning_no_sanity.patch
+* mm-page_poison-remove-config_page_poisoning_zero.patch
+* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+* mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
+* mm-zswap-fix-passing-zero-to-ptr_err-warning.patch
+* mm-zswap-move-to-use-crypto_acomp-api-for-hardware-acceleration.patch
+* zsmalloc-rework-the-list_add-code-in-insert_zspage.patch
+* mm-process_vm_access-remove-redundant-initialization-of-iov_r.patch
+* zram-support-a-page-writeback.patch
+* mm-fix-kernel-doc-markups.patch
+* mm-use-sysfs_emit-for-struct-kobject-uses.patch
+* mm-huge_memory-convert-remaining-use-of-sprintf-to-sysfs_emit-and-neatening.patch
+* mm-backing-dev-use-sysfs_emit-in-macro-defining-functions.patch
+* mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at.patch
+* mm-slub-convert-sysfs-sprintf-family-to-sysfs_emit-sysfs_emit_at.patch
+* mm-add-kernel-electric-fence-infrastructure.patch
+* mm-add-kernel-electric-fence-infrastructure-fix.patch
+* mm-add-kernel-electric-fence-infrastructure-fix-2.patch
+* x86-kfence-enable-kfence-for-x86.patch
+* arm64-kfence-enable-kfence-for-arm64.patch
+* kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch
+* mm-kfence-insert-kfence-hooks-for-slab.patch
+* mm-kfence-insert-kfence-hooks-for-slub.patch
+* kfence-kasan-make-kfence-compatible-with-kasan.patch
+* kfence-documentation-add-kfence-documentation.patch
+* kfence-add-test-suite.patch
+* maintainers-add-entry-for-kfence.patch
+* info-task-hung-in-generic_file_write_iter.patch
+* info-task-hung-in-generic_file_write-fix.patch
+* kernel-hung_taskc-monitor-killed-tasks.patch
+* alpha-replace-bogus-in_interrupt.patch
+* procfs-delete-duplicated-words-other-fixes.patch
+* proc-provide-details-on-indirect-branch-speculation.patch
+* proc-provide-details-on-indirect-branch-speculation-v2.patch
+* proc-sysctl-make-protected_-world-readable.patch
+* asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision.patch
+* kernelh-split-out-mathematical-helpers.patch
+* kernelh-split-out-mathematical-helpers-fix.patch
+* acctc-use-elif-instead-of-end-and-elif.patch
+* reboot-refactor-and-comment-the-cpu-selection-code.patch
+* bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
+* bitmap-remove-unused-function-declaration.patch
+* lib-stackdepot-add-support-to-configure-stack_hash_size.patch
+* lib-test_free_pages-add-basic-progress-indicators.patch
+* lib-stackdepotc-replace-one-element-array-with-flexible-array-member.patch
+* lib-stackdepotc-use-flex_array_size-helper-in-memcpy.patch
+* lib-stackdepotc-use-array_size-helper-in-jhash2.patch
+* lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
+* lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+* lib-linear_ranges_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+* lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch
+* lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
+* lib-cmdline-allow-null-to-be-an-output-for-get_option.patch
+* lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
+* lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+* lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
+* lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
+* bitops-introduce-the-for_each_set_clump-macro.patch
+* lib-test_bitmapc-add-for_each_set_clump-test-cases.patch
+* lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+* gpio-thunderx-utilize-for_each_set_clump-macro.patch
+* gpio-xilinx-utilize-generic-bitmap_get_value-and-_set_value.patch
+* checkpatch-add-new-exception-to-repeated-word-check.patch
+* checkpatch-fix-false-positives-in-repeated_word-warning.patch
+* checkpatch-ignore-generated-camelcase-defines-and-enum-values.patch
+* checkpatch-prefer-static-const-declarations.patch
+* checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
+* checkpatch-extend-attributes-check-to-handle-more-patterns.patch
+* checkpatch-add-a-fixer-for-missing-newline-at-eof.patch
+* checkpatch-update-__attribute__sectionname-quote-removal.patch
+* checkpatch-update-__attribute__sectionname-quote-removal-v2.patch
+* checkpatch-add-fix-option-for-gerrit_change_id.patch
+* checkpatch-add-__alias-and-__weak-to-suggested-__attribute__-conversions.patch
+* checkpatch-improve-email-parsing.patch
+* checkpatch-fix-spelling-errors-and-remove-repeated-word.patch
+* checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
+* checkpatch-fix-unescaped-left-brace.patch
+* reiserfs-add-check-for-an-invalid-ih_entry_count.patch
+* kdump-append-uts_namespacename-offset-to-vmcoreinfo.patch
+* rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+* gcov-remove-support-for-gcc-49.patch
+* aio-simplify-read_events.patch
+* resource-fix-kernel-doc-markups.patch
+* resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+* reboot-allow-to-specify-reboot-mode-via-sysfs.patch
+* reboot-fix-variable-assignments-in-type_store.patch
+* reboot-remove-cf9_safe-from-allowed-types-and-rename-cf9_force.patch
+* fault-injection-handle-ei_etype_true.patch
+* lib-lzo-make-lzogeneric1x_1_compress-static.patch
+  linux-next.patch
+  linux-next-rejects.patch
+* mm-memcontrol-use-helpers-to-read-pages-memcg-data.patch
+* mm-memcontrol-slab-use-helpers-to-access-slab-pages-memcg_data.patch
+* mm-introduce-page-memcg-flags.patch
+* mm-convert-page-kmemcg-type-to-a-page-memcg-flag.patch
+* mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+* mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+* mm-memcg-remove-unused-definitions.patch
+* mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
+* mm-slub-call-account_slab_page-after-slab-page-initialization.patch
+* mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+* mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-v2.patch
+* mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
+* treewide-remove-stringification-from-__alias-macro-definition.patch
+* treewide-remove-stringification-from-__alias-macro-definition-fix.patch
+* compiler-clang-remove-version-check-for-bpf-tracing.patch
+* epoll-check-for-events-when-removing-a-timed-out-thread-from-the-wait-queue.patch
+* epoll-simplify-signal-handling.patch
+* epoll-pull-fatal-signal-checks-into-ep_send_events.patch
+* epoll-move-eavail-next-to-the-list_empty_careful-check.patch
+* epoll-simplify-and-optimize-busy-loop-logic.patch
+* epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop.patch
+* epoll-replace-gotos-with-a-proper-loop.patch
+* epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+* mm-unexport-follow_pte_pmd.patch
+* mm-simplify-follow_ptepmd.patch
+* mm-simplify-follow_ptepmd-fix.patch
+* mm-add-definition-of-pmd_page_order.patch
+* mmap-make-mlock_future_check-global.patch
+* set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+* set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+* secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+* secretmem-add-memcg-accounting.patch
+* secretmem-add-memcg-accounting-fix.patch
+* pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+* arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+* secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+* mmap-locking-api-dont-check-locking-if-the-mm-isnt-live-yet.patch
+* mm-gup-assert-that-the-mmap-lock-is-held-in-__get_user_pages.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  mutex-subsystem-synchro-test-module.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  workaround-for-a-pci-restoring-bug.patch
