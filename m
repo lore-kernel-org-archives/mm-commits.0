@@ -2,159 +2,185 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4C3DC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 04:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3E7BC63697
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 06:17:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6035024692
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 04:29:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72DFE221FD
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 06:17:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="ozMzpEC8"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Hob4BGb4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbgKQE3l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 23:29:41 -0500
-Received: from bilbo.ozlabs.org ([203.11.71.1]:44903 "EHLO ozlabs.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726315AbgKQE3k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 23:29:40 -0500
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4CZtJK1qJPz9sPB;
-        Tue, 17 Nov 2020 15:29:37 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1605587378;
-        bh=ImjDN5NvGz7wblCoL2s/XWWxwSic8aSCysujXk7XdZE=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=ozMzpEC8SY+VplDwGALTvE3/0MbR9LtIBm3O78UE6r7pYaxZcvsHLhSFLFb6g0blR
-         zZ+oZ/5nY2P7pIMRQX7S32LPhc3zS/wGlHjXZA+xBNa4PRLDrNdmcTY0s8InRg8Tjj
-         L5xc5dIBgstwThZZdnxkIdSccad7nAfSZ+2VCCE0sNjdyw96OKGXVp7LpzqgC4nNbZ
-         trbnjiLSjQU/Oa68DegI8M9mxfZhaXwEzO1xN9ZjBLF/idDf/IhtKa0nF7kAWqtBYz
-         do9t7Ix2WaoHEyi40DllrDn7iD5Ub/HcY3UMAZrBC+T7uzG9RT98oerOFuXhAyie/E
-         BZ5g3iC22JqgA==
-Date:   Tue, 17 Nov 2020 15:29:36 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, Mike Rapoport <rppt@kernel.org>
-Subject: Re: mmotm 2020-11-16-16-47 uploaded (m/secretmem.c)
-Message-ID: <20201117152936.4bad2b74@canb.auug.org.au>
-In-Reply-To: <e7cc79ce-2448-98bc-6ae9-306f6991986f@infradead.org>
-References: <20201117004837.VMxSd_ozW%akpm@linux-foundation.org>
-        <e7cc79ce-2448-98bc-6ae9-306f6991986f@infradead.org>
+        id S1726560AbgKQGRh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Nov 2020 01:17:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50520 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726289AbgKQGRg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2020 01:17:36 -0500
+Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AC8BC0617A6
+        for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2020 22:17:36 -0800 (PST)
+Received: by mail-ot1-x330.google.com with SMTP id n11so18435536ota.2
+        for <mm-commits@vger.kernel.org>; Mon, 16 Nov 2020 22:17:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:from:to:cc:subject:in-reply-to:message-id:references
+         :user-agent:mime-version;
+        bh=XS8dxxvzXqHyhSnJeYWiMmMdvaRFstVe2miK9SNdJ8A=;
+        b=Hob4BGb4uJ/2tg2eIVEKPsyCU5Ghz1ujqJpPBWjC1k1O8iaxGv1C5PZSDOFkj79XH0
+         LPGbskncFA/yubrHVib8oPdx8/6gmeqgvTvql9DauuQkf/m8ulmZMjk20GBGcOvN+HN8
+         hDqAvTFY8FvrG6mbY4WZ8iZ1nJ+n5HPrdLBe0SpEqN0pTZpwlgJQJQk/WAPYvY7wiaKO
+         bg3AHmVMaosAX9tGC2egkoGe8omiEDmgQvJt6YOIJcHATDizC+LPHKpl0jNHyAChkjcU
+         N6RbbwM2Naiv+YLonq5NHGjNbkZ8L3ECr+XvMQHP5V0WIwXd/ez0EH9ZSChhWV9fOgYg
+         z9kw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:in-reply-to:message-id
+         :references:user-agent:mime-version;
+        bh=XS8dxxvzXqHyhSnJeYWiMmMdvaRFstVe2miK9SNdJ8A=;
+        b=n+YZSzPpHSZ1IlE3Z/aABJNlOYTYKnyrdIS5P8sQ6iGRdtafM9SV3LYfv/lQod7U/f
+         AJDoEBrIiww4mYcmfQYSU8UYYVCocGt1o7Q/5ao4stamYK0Nc8u1ftGkLS9iH4cbXRtu
+         xbxOAARjIh02ZzZCsD8NDo62Ct3/DIwwxTMu2WuZUAlbNWR45OwJ7qLZnI9EgIFOtTj0
+         ds8E9wr5e0OV0q31USGMOD6zb30D8Bak0xJsSPrAuza+LrWDH6oma5C605EALgKq7Gjr
+         Q24Vp/TQ20gou8Ea9x530925m8oAMIUfCOyPDxJgw9g9otinRQfP1besjW5vW1bXR7yN
+         gCoQ==
+X-Gm-Message-State: AOAM5332XW2gOxmlc8lGGdPSVsddUHIGMEIM+RYEReN8rNO/rBTN7QyN
+        6y7XNi3l8Or8IUb9Dr7KzMbpjQ==
+X-Google-Smtp-Source: ABdhPJylatU3dtHMrFCyVFB6nlBVDHBkl3BMnWrz6zItu1ISz+YO2VszqoQi0UPXzC14Yo8YOXZY3Q==
+X-Received: by 2002:a9d:27e8:: with SMTP id c95mr2057356otb.262.1605593855434;
+        Mon, 16 Nov 2020 22:17:35 -0800 (PST)
+Received: from eggly.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
+        by smtp.gmail.com with ESMTPSA id v8sm5861847ooh.6.2020.11.16.22.17.33
+        (version=TLS1 cipher=ECDHE-ECDSA-AES128-SHA bits=128/128);
+        Mon, 16 Nov 2020 22:17:34 -0800 (PST)
+Date:   Mon, 16 Nov 2020 22:17:20 -0800 (PST)
+From:   Hugh Dickins <hughd@google.com>
+X-X-Sender: hugh@eggly.anvils
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+cc:     hughd@google.com, mm-commits@vger.kernel.org, sh_def@163.com,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: + mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+ added to -mm tree
+In-Reply-To: <20201116230526.NkEfmeDCH%akpm@linux-foundation.org>
+Message-ID: <alpine.LSU.2.11.2011162149210.1082@eggly.anvils>
+References: <20201116230526.NkEfmeDCH%akpm@linux-foundation.org>
+User-Agent: Alpine 2.11 (LSU 23 2013-08-11)
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/wVV9CRWE5LCHOT4y+AlfTZY";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/wVV9CRWE5LCHOT4y+AlfTZY
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Mon, 16 Nov 2020, akpm@linux-foundation.org wrote:
+> 
+> The patch titled
+>      Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
+> has been added to the -mm tree.  Its filename is
+>      mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+> 
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Hui Su <sh_def@163.com>
+> Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
 
-Hi all,
+Andrew, Stephen, please revert this untested "cleanup" from your
+trees a.s.a.p: it's a disaster for anyone using shmem/tmpfs.
 
-On Mon, 16 Nov 2020 20:20:12 -0800 Randy Dunlap <rdunlap@infradead.org> wro=
-te:
->
-> on x86_64:
->=20
-> as reported on 2020-11-12:
->=20
-> when CONFIG_MEMCG is not set:
->=20
-> ../mm/secretmem.c: In function =E2=80=98secretmem_memcg_charge=E2=80=99:
-> ../mm/secretmem.c:72:4: error: =E2=80=98struct page=E2=80=99 has no membe=
-r named =E2=80=98memcg_data=E2=80=99
->    p->memcg_data =3D page->memcg_data;
->     ^~
-> ../mm/secretmem.c:72:23: error: =E2=80=98struct page=E2=80=99 has no memb=
-er named =E2=80=98memcg_data=E2=80=99
->    p->memcg_data =3D page->memcg_data;
->                        ^~
-> ../mm/secretmem.c: In function =E2=80=98secretmem_memcg_uncharge=E2=80=99:
-> ../mm/secretmem.c:86:4: error: =E2=80=98struct page=E2=80=99 has no membe=
-r named =E2=80=98memcg_data=E2=80=99
->    p->memcg_data =3D 0;
->     ^~
+> 
+> in shmem_get_inode():
+> new_inode();
+>   new_inode_pseudo();
+>     alloc_inode();
+>       ops->alloc_inode(); -> shmem_alloc_inode()
+>         kmem_cache_alloc();
+> 
+> memset(info, 0, (char *)inode - (char *)info);
+> 
+> So use kmem_cache_zalloc() in shmem_alloc_inode(),
+> and remove the memset in shmem_get_inode().
 
-(As I said earlier today,) I will apply the following to linux-next today:
+I could not follow that argument at all.  The shmem_inode_cachep
+uses a constructor, and the memset shown is of only a portion of
+the whole inode.  zeroing the entire inode quickly crashes the
+kernel, after showing errors.
 
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Mon, 16 Nov 2020 16:55:10 +1100
-Subject: [PATCH] secretmem-add-memcg-accounting-fix2
+(If you're lucky enough to have a readable display at that point:
+I did not, but got on better with framebuffer than drm/i915; and
+I wonder if there's a separate bug in that area too, because fixing
+this shmem issue is not enough to get my drm/i915 rc4-mm1 booting.)
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- mm/secretmem.c | 4 ++++
- 1 file changed, 4 insertions(+)
+> 
+> Link: https://lkml.kernel.org/r/20201115174026.GA365412@rlk
+> Signed-off-by: Hui Su <sh_def@163.com>
 
-diff --git a/mm/secretmem.c b/mm/secretmem.c
-index 5ed6b2070136..c7a37b2d01ed 100644
---- a/mm/secretmem.c
-+++ b/mm/secretmem.c
-@@ -59,6 +59,7 @@ bool secretmem_active(void)
-=20
- static int secretmem_memcg_charge(struct page *page, gfp_t gfp, int order)
- {
-+#ifdef CONFIG_MEMCG
- 	unsigned long nr_pages =3D (1 << order);
- 	int i, err;
-=20
-@@ -72,11 +73,13 @@ static int secretmem_memcg_charge(struct page *page, gf=
-p_t gfp, int order)
- 		p->memcg_data =3D page->memcg_data;
- 	}
-=20
-+#endif
- 	return 0;
- }
-=20
- static void secretmem_memcg_uncharge(struct page *page, int order)
- {
-+#ifdef CONFIG_MEMCG
- 	unsigned long nr_pages =3D (1 << order);
- 	int i;
-=20
-@@ -87,6 +90,7 @@ static void secretmem_memcg_uncharge(struct page *page, i=
-nt order)
- 	}
-=20
- 	memcg_kmem_uncharge_page(page, PMD_PAGE_ORDER);
-+#endif
- }
-=20
- static int secretmem_pool_increase(struct secretmem_ctx *ctx, gfp_t gfp)
---=20
-2.29.2
+NAK.  Hui Su, please test your "cleanups" before sending them.
 
---=20
-Cheers,
-Stephen Rothwell
+I'm sorry for being slow to respond, but the priority appeared
+to be to get Matthew Wilcox's series running reliably, so I had not
+got around to checking the less urgent shmem patches before they
+slipped into mmotm - there may well be more that I want to NAK,
+but this is the dangerous one.
 
---Sig_/wVV9CRWE5LCHOT4y+AlfTZY
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Thanks,
+Hugh
 
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl+zUbAACgkQAVBC80lX
-0GwR1AgAlvTptd4g+UnCn+Gckha4GEgqfh8tJPIK8i4E8FgjKwtdl25Z57It1n92
-BGB6igVN0JEMBW59i0dBr7kCs0xz15x9vQFqo9ysW4J2evtd0y2IUMxgSbxUcS68
-FQKcxSuayPRQgoeUwDyBm+9k8Kcgm3DS9mxQllwaZjonakXXRR64c0gpiu8fvLIp
-d7jmxJJF21xIx5tAGe58/AbZAPwERhWk2QXBgqE8uyPfE6MkMORpntec5VE29hKM
-plP+cgDKJgkTHPPf0w4EhYq5jga9IF/KRf4PfwMUSkcOzfyqpW5qXWtu/bG0eMIc
-ihA+DyM/dDCQjekWdmHNZwIcUVNpvw==
-=gUYS
------END PGP SIGNATURE-----
-
---Sig_/wVV9CRWE5LCHOT4y+AlfTZY--
+> Cc: Hugh Dickins <hughd@google.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/shmem.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> --- a/mm/shmem.c~mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode
+> +++ a/mm/shmem.c
+> @@ -2331,7 +2331,6 @@ static struct inode *shmem_get_inode(str
+>  		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+>  		inode->i_generation = prandom_u32();
+>  		info = SHMEM_I(inode);
+> -		memset(info, 0, (char *)inode - (char *)info);
+>  		spin_lock_init(&info->lock);
+>  		atomic_set(&info->stop_eviction, 0);
+>  		info->seals = F_SEAL_SEAL;
+> @@ -3851,7 +3850,7 @@ static struct kmem_cache *shmem_inode_ca
+>  static struct inode *shmem_alloc_inode(struct super_block *sb)
+>  {
+>  	struct shmem_inode_info *info;
+> -	info = kmem_cache_alloc(shmem_inode_cachep, GFP_KERNEL);
+> +	info = kmem_cache_zalloc(shmem_inode_cachep, GFP_KERNEL);
+>  	if (!info)
+>  		return NULL;
+>  	return &info->vfs_inode;
+> _
+> 
+> Patches currently in -mm which might be from sh_def@163.com are
+> 
+> mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+> mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+> mm-page_counter-use-page_counter_read-in-page_counter_set_max.patch
+> mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
+> mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+> mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+> acctc-use-elif-instead-of-end-and-elif.patch
+> mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
