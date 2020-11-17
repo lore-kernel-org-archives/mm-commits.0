@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A094C5519F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 00:24:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBB1BC388F9
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 00:48:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40FD624679
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 00:24:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 427942467B
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 00:48:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ge0Zj0vB"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="wo0cErAz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731140AbgKQAYN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Nov 2020 19:24:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44070 "EHLO mail.kernel.org"
+        id S1731283AbgKQAsk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Nov 2020 19:48:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726156AbgKQAYN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Nov 2020 19:24:13 -0500
+        id S1726523AbgKQAsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Nov 2020 19:48:39 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3F63224677;
-        Tue, 17 Nov 2020 00:24:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4AC6B2467A;
+        Tue, 17 Nov 2020 00:48:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605572652;
-        bh=5Vai6IpMdfJV4Y7o5+iDRuMy7Y5V0AsuVlHjKHU0fik=;
+        s=default; t=1605574118;
+        bh=JldAWLRXge+Sa3JVWZv7AwgmFCx2+nkM2ot3z2QIErA=;
         h=Date:From:To:Subject:From;
-        b=Ge0Zj0vBg5SljMi7oFx3UDw4nsw4OM3fSDzags3xmn/G8wwgPDgYSAvk4AJNY7aXX
-         /asAp7Ohv1psEX9OLFZbZa99UjioXzZUxBOJqoletWYfgXy3Tr/7ZFkiYy9W9qmc5L
-         uKuP1Eu7LLtWv4qIjMkhai57bDg+fdnx+rqR4TtA=
-Date:   Mon, 16 Nov 2020 16:24:11 -0800
+        b=wo0cErAzUe1AQNTJq+nOXZ23tTxQcbc8BiXhClOr7JyB/1OzmlPtPRZjgNMIczutn
+         /L13nQC/Uy05LcZaD25V0VjiLf/RwdZAKPcVhy8zFJ+KcJui9wDbNil4PsJXSM/+Ay
+         4MVo7CPNprtyyBtGM2F5q+VCf4kkUbK0UdQy3BUo=
+Date:   Mon, 16 Nov 2020 16:48:37 -0800
 From:   akpm@linux-foundation.org
 To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         linux-next@vger.kernel.org, mhocko@suse.cz,
         mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  mmotm 2020-11-16-16-23 uploaded
-Message-ID: <20201117002411.n6I8A7VX_%akpm@linux-foundation.org>
+Subject:  mmotm 2020-11-16-16-47 uploaded
+Message-ID: <20201117004837.VMxSd_ozW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2020-11-16-16-23 has been uploaded to
+The mm-of-the-moment snapshot 2020-11-16-16-47 has been uploaded to
 
    https://www.ozlabs.org/~akpm/mmotm/
 
