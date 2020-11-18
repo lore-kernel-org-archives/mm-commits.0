@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFDCC6369E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 06:02:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE5F1C5519F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 22:52:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8855E246AA
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 06:02:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E342246E4
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 22:52:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lebwtoAh"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wn8df3rP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726343AbgKRGCc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 01:02:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41654 "EHLO mail.kernel.org"
+        id S1726300AbgKRWwg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 17:52:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgKRGCc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 01:02:32 -0500
+        id S1726502AbgKRWwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 17:52:35 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E134E24695;
-        Wed, 18 Nov 2020 06:02:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 76E0B246DC;
+        Wed, 18 Nov 2020 22:52:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605679351;
-        bh=t/UtcbDSKYYKVLOD79XGvUWkNxZC/z4a6rV8f9A7pTA=;
+        s=korg; t=1605739963;
+        bh=vBUc24L5nCNBgM39E0vhYOCRkZoQfnlYqlckdMHLWv0=;
         h=Date:From:To:Subject:From;
-        b=lebwtoAhz5RZ0+fklVvFkqlDQ/Dsx9DGTykeHh51XMBWPgdtySC9l0tsJFUPjml+1
-         lj/2m5sUjFdikUyB5epJa37LbQ0hoOMLY8KJEZtNXprJjNUucs2bKSJDLSfCV9GsNE
-         LcFZSe6xYdrWPLca/uKQ7FpW3XNNJnCDLUVESqZ4=
-Date:   Tue, 17 Nov 2020 22:02:30 -0800
+        b=wn8df3rPxkgqc/yP1Vkbp2dGQriyPGS8NlQ3yALEhKHb0cfxBVPbw1rgzUesXjJ8t
+         /gozbpkh1J+56GfOWiGPDOjB+I8CLC+PqOhpOc/m3BLtWHKj6TQ4w53lgBzGyYMyEc
+         6vsCLo9uG+cVsLJfiKJ4kpyoelmdFZ7781d7jU60=
+Date:   Wed, 18 Nov 2020 14:52:41 -0800
 From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, dan.j.williams@intel.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
+To:     aneesh.kumar@linux.ibm.com, bharata@linux.ibm.com, cl@linux.com,
+        guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, vbabka@suse.cz
 Subject:  +
- =?US-ASCII?Q?mm-fix-phys=5Fto=5Ftarget=5Fnode-and-memory=5Fadd=5Fphysaddr?=
- =?US-ASCII?Q?=5Fto=5Fnid-exports-v4-fix.patch?= added to -mm tree
-Message-ID: <20201118060230.WTrimVxMT%akpm@linux-foundation.org>
+ mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch added
+ to -mm tree
+Message-ID: <20201118225241.du8BN_c5p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: fix create_section_mapping compile warning
+     Subject: mm/slub: let number of online CPUs determine the slub page order
 has been added to the -mm tree.  Its filename is
-     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix.patch
+     mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,74 +72,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: powerpc: fix create_section_mapping compile warning
+From: Bharata B Rao <bharata@linux.ibm.com>
+Subject: mm/slub: let number of online CPUs determine the slub page order
 
-0day robot reports that a recent rework of how
-memory_add_physaddr_to_nid() and phys_to_target_node() are declared
-resulted in the following new compilation warning:
+The page order of the slab that gets chosen for a given slab cache depends
+on the number of objects that can be fit in the slab while meeting other
+requirements.  We start with a value of minimum objects based on
+nr_cpu_ids that is driven by possible number of CPUs and hence could be
+higher than the actual number of CPUs present in the system.  This leads
+to calculate_order() chosing a page order that is on the higher side
+leading to increased slab memory consumption on systems that have bigger
+page sizes.
 
-arch/powerpc/mm/mem.c:91:12: warning: no previous prototype for 'create_section_mapping' [-Wmissing-prototypes]
-   91 | int __weak create_section_mapping(unsigned long start, unsigned long end,
-      |            ^~~~~~~~~~~~~~~~~~~~~~
+Hence rely on the number of online CPUs when determining the mininum
+objects, thereby increasing the chances of chosing a lower conservative
+page order for the slab.
 
-...fix this by moving the declaration of create_section_mapping()
-outside of the CONFIG_NEED_MULTIPLE_NODES ifdef guard, and include an
-explicit include of asm/mmzone.h in mem.c. An include of linux/mmzone.h
-is not sufficient.
+Vlastimil:
 
-Link: https://lkml.kernel.org/r/160558386174.2948926.2740149041249041764.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+: Ideally, we would react to hotplug events and update existing caches 
+: accordingly. But for that, recalculation of order for existing caches 
+: would have to be made safe, while not affecting hot paths. We have 
+: removed the sysfs interface with 32a6f409b693 ("mm, slub: remove runtime 
+: allocation order changes") as it didn't seem easy and worth the trouble.
+: 
+: In case somebody wants to start with a large order right from the boot 
+: because they know they will hotplug lots of cpus later, they can use 
+: slub_min_objects= boot param to override this heuristic. So in case this 
+: change regresses somebody's performance, there's a way around it and 
+: thus the risk is low IMHO.
+
+Link: https://lkml.kernel.org/r/20201118082759.1413056-1-bharata@linux.ibm.com
+Signed-off-by: Bharata B Rao <bharata@linux.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mmzone.h |    7 +++++--
- arch/powerpc/mm/mem.c             |    1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/include/asm/mmzone.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -33,8 +33,6 @@ extern struct pglist_data *node_data[];
- extern int numa_cpu_lookup_table[];
- extern cpumask_var_t node_to_cpumask_map[];
- #ifdef CONFIG_MEMORY_HOTPLUG
--extern int create_section_mapping(unsigned long start, unsigned long end,
--				  int nid, pgprot_t prot);
- extern unsigned long max_pfn;
- u64 memory_hotplug_max(void);
- #else
-@@ -48,5 +46,10 @@ u64 memory_hotplug_max(void);
- #define __HAVE_ARCH_RESERVED_KERNEL_PAGES
- #endif
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+extern int create_section_mapping(unsigned long start, unsigned long end,
-+				  int nid, pgprot_t prot);
-+#endif
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_MMZONE_H_ */
---- a/arch/powerpc/mm/mem.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix
-+++ a/arch/powerpc/mm/mem.c
-@@ -50,6 +50,7 @@
- #include <asm/rtas.h>
- #include <asm/kasan.h>
- #include <asm/svm.h>
-+#include <asm/mmzone.h>
- 
- #include <mm/mmu_decl.h>
+--- a/mm/slub.c~mm-slub-let-number-of-online-cpus-determine-the-slub-page-order
++++ a/mm/slub.c
+@@ -3431,7 +3431,7 @@ static inline int calculate_order(unsign
+ 	 */
+ 	min_objects = slub_min_objects;
+ 	if (!min_objects)
+-		min_objects = 4 * (fls(nr_cpu_ids) + 1);
++		min_objects = 4 * (fls(num_online_cpus()) + 1);
+ 	max_objects = order_objects(slub_max_order, size);
+ 	min_objects = min(min_objects, max_objects);
  
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from bharata@linux.ibm.com are
 
-mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
-mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
-mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix.patch
-device-dax-kmem-use-struct_size.patch
-xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
+mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
 
