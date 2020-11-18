@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED604C5519F
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:54:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B93B1C5519F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:56:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8701124698
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:54:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43CF02469D
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:56:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s2O0axy/"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ewB36c43"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725772AbgKRFyg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 00:54:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40100 "EHLO mail.kernel.org"
+        id S1726089AbgKRF4E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 00:56:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgKRFyg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 00:54:36 -0500
+        id S1725794AbgKRF4D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 00:56:03 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 059EF2468F;
-        Wed, 18 Nov 2020 05:54:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 658CE24695;
+        Wed, 18 Nov 2020 05:56:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605678875;
-        bh=BgPq5mjMtUPFDShJGQax0mJTrg2Ors+CwQk3DgMSFDI=;
+        s=korg; t=1605678962;
+        bh=BbrgLHRmELm3AI/xtV2jFUd+sXNI+ufCtOkqLTV1u80=;
         h=Date:From:To:Subject:From;
-        b=s2O0axy/YBcAaQXxm0f1RUEwZ6dacUhHa6x5e93C6qKIzEWCWExslNLuBr9JIHgnZ
-         maz9zi45mu5UpyBc6viwF084a6elokmy+7jZe9cEbfN2wwnbQ+c9q4fm1KFjjNfIYS
-         LCVD1qc9rIxAvZ/I32AnveaY82N05VxuuuAg9ILI=
-Date:   Tue, 17 Nov 2020 21:54:34 -0800
+        b=ewB36c43Xet/BkBuHJd+LYfsqagGluy2+mcupIrA+gwGJ/wVXY/YkyaUfWbPvA44d
+         bGr1ZDox3LeyoRGUNadwVAcQX/ynT4+lHVs6dMmU9NZ/AJZOQMKiFUiO594qNEvcT7
+         Ldm1PuEzansn8h6gJDw4fexXh4NOwvzmT0nhFajQ=
+Date:   Tue, 17 Nov 2020 21:56:01 -0800
 From:   akpm@linux-foundation.org
 To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
         mm-commits@vger.kernel.org, rdunlap@infradead.org
 Subject:  +
- khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
- added to -mm tree
-Message-ID: <20201118055434.WzwREc-KU%akpm@linux-foundation.org>
+ mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch added to
+ -mm tree
+Message-ID: <20201118055601.yz1Q8LDjM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: add parameter explanations for kernel-doc markup
+     Subject: mm/page_vma_mapped.c: add colon to fix kernel-doc markups error for check_pte
 has been added to the -mm tree.  Its filename is
-     khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+     mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,75 +71,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: khugepaged: add parameter explanations for kernel-doc markup
+Subject: mm/page_vma_mapped.c: add colon to fix kernel-doc markups error for check_pte
 
-Add missed parameter explanation for some kernel-doc warnings:
-mm/khugepaged.c:102: warning: Function parameter or member
-'nr_pte_mapped_thp' not described in 'mm_slot'
-mm/khugepaged.c:102: warning: Function parameter or member
-'pte_mapped_thp' not described in 'mm_slot'
-mm/khugepaged.c:1424: warning: Function parameter or member 'mm' not
-described in 'collapse_pte_mapped_thp'
-mm/khugepaged.c:1424: warning: Function parameter or member 'addr' not
-described in 'collapse_pte_mapped_thp'
-mm/khugepaged.c:1626: warning: Function parameter or member 'mm' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'file' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'start' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'hpage' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'node' not
-described in 'collapse_file'
+check_pte() needs a correct colon for kernel-doc markup, otherwise, gcc
+has the following warning for W=1, mm/page_vma_mapped.c:86: warning:
+Function parameter or member 'pvmw' not described in 'check_pte'
 
-Link: https://lkml.kernel.org/r/1605597325-25284-1-git-send-email-alex.shi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/1605597167-25145-1-git-send-email-alex.shi@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ mm/page_vma_mapped.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup
-+++ a/mm/khugepaged.c
-@@ -90,6 +90,8 @@ static struct kmem_cache *mm_slot_cache
-  * @hash: hash collision list
-  * @mm_node: khugepaged scan list headed in khugepaged_scan.mm_head
-  * @mm: the mm that this information is valid for
-+ * @nr_pte_mapped_thp: number of pte mapped THP
-+ * @pte_mapped_thp: address array corresponding pte mapped THP
-  */
- struct mm_slot {
- 	struct hlist_node hash;
-@@ -1414,7 +1416,11 @@ static int khugepaged_add_pte_mapped_thp
- }
+--- a/mm/page_vma_mapped.c~mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte
++++ a/mm/page_vma_mapped.c
+@@ -66,18 +66,19 @@ static inline bool pfn_is_match(struct p
  
  /**
-- * Try to collapse a pte-mapped THP for mm at address haddr.
-+ * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
-+ * address haddr.
-+ *
-+ * @mm: process address space where collapse happens
-+ * @addr: THP collapse address
+  * check_pte - check if @pvmw->page is mapped at the @pvmw->pte
++ * @pvmw: page_vma_mapped_walk struct, includes a pair pte and page for checking
   *
-  * This function checks whether all the PTEs in the PMD are pointing to the
-  * right THP. If so, retract the page table so the THP can refault in with
-@@ -1605,6 +1611,12 @@ static void retract_page_tables(struct a
- /**
-  * collapse_file - collapse filemap/tmpfs/shmem pages into huge one.
+  * page_vma_mapped_walk() found a place where @pvmw->page is *potentially*
+  * mapped. check_pte() has to validate this.
   *
-+ * @mm: process address space where collapse happens
-+ * @file: file that collapse on
-+ * @start: collapse start address 
-+ * @hpage: new allocated huge page for collapse
-+ * @node: appointed node the new huge page allocate from
-+ *
-  * Basic scheme is simple, details are more complex:
-  *  - allocate and lock a new huge page;
-  *  - scan page cache replacing old pages with the new one
+- * @pvmw->pte may point to empty PTE, swap PTE or PTE pointing to arbitrary
+- * page.
++ * pvmw->pte may point to empty PTE, swap PTE or PTE pointing to
++ * arbitrary page.
+  *
+  * If PVMW_MIGRATION flag is set, returns true if @pvmw->pte contains migration
+  * entry that points to @pvmw->page or any subpage in case of THP.
+  *
+- * If PVMW_MIGRATION flag is not set, returns true if @pvmw->pte points to
+- * @pvmw->page or any subpage in case of THP.
++ * If PVMW_MIGRATION flag is not set, returns true if pvmw->pte points to
++ * pvmw->page or any subpage in case of THP.
+  *
+  * Otherwise, return false.
+  *
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
@@ -170,6 +143,7 @@ mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
 mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
 mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
 mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
+mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
 mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
 docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
 khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
