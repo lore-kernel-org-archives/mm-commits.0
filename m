@@ -2,45 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4569DC6369E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:18:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62782C5519F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E016824654
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:18:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04CBE24695
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I7GY0nSI"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fi+6VcP3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725772AbgKRFSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 00:18:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56212 "EHLO mail.kernel.org"
+        id S1725787AbgKRFuo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 00:50:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726300AbgKRFSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 00:18:46 -0500
+        id S1725355AbgKRFuo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 00:50:44 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0E6B824654;
-        Wed, 18 Nov 2020 05:18:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 322B324655;
+        Wed, 18 Nov 2020 05:50:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605676725;
-        bh=uJ2yaRpp3xOZzVHwZ6cl8syQlBayqXLn6oyOhwtAOPk=;
+        s=korg; t=1605678643;
+        bh=VBhjMPS6WlntxcxhnQXVZPp4PX3BmsFOzlNmqor30NM=;
         h=Date:From:To:Subject:From;
-        b=I7GY0nSIz2kdr1y5MHUVieQWyfmBgG2ZGt9tOTEXERCR2Qe+Pene0UpE8EXKMBs/C
-         1ZBBM6jynQyawTwKbLb+GMMgoNm7ldofpfsysmKwABEJwTW3B/PLwcRHqaMDt6lpNA
-         +ENFmSU0lOI7u9oqWcGfI3PUdMyDOYr6/K/ogpPs=
-Date:   Tue, 17 Nov 2020 21:18:44 -0800
+        b=Fi+6VcP35xMWCd4laU3RbW/pxVjrl+B8fO1736VW8ngToh7AkDZ/sBUOkOcR+2Jb0
+         V4fUAP1+MvA1+QH5W8R+UCHhik/Et3Q9HwmZb4go7P0Ddo93+7xc42iNcYZpJRwBSV
+         p02agBFYInsNZXEuoXPZxyUTdNCzOkaempDz/W9I=
+Date:   Tue, 17 Nov 2020 21:50:41 -0800
 From:   akpm@linux-foundation.org
-To:     harish@linux.ibm.com, hch@infradead.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
-        stable@vger.kernel.org, tony@atomide.com, urezki@gmail.com
-Subject:  + mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch added
- to -mm tree
-Message-ID: <20201118051844.VJ0VzT8MU%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  +
+ mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+ added to -mm tree
+Message-ID: <20201118055041.UNwtcfI7-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: drop ZSMALLOC_PGTABLE_MAPPING
+     Subject: mm/truncate: add parameter explanation for invalidate_mapping_pagevec
 has been added to the -mm tree.  Its filename is
-     mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
+     mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,196 +70,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm/zsmalloc.c: drop ZSMALLOC_PGTABLE_MAPPING
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/truncate: add parameter explanation for invalidate_mapping_pagevec
 
-While I was doing zram testing, I found sometimes decompression failed
-since the compression buffer was corrupted.  With investigation, I found
-below commit calls cond_resched unconditionally so it could make a problem
-in atomic context if the task is reschedule.
+To fix a kernel-doc markups issue:
+mm/truncate.c:646: warning: Function parameter or member 'mapping' not
+described in 'invalidate_mapping_pagevec'
+mm/truncate.c:646: warning: Function parameter or member 'start' not
+described in 'invalidate_mapping_pagevec'
+mm/truncate.c:646: warning: Function parameter or member 'end' not
+described in 'invalidate_mapping_pagevec'
+mm/truncate.c:646: warning: Function parameter or member 'nr_pagevec'
+not described in 'invalidate_mapping_pagevec'
 
-[   55.109012] BUG: sleeping function called from invalid context at mm/vmalloc.c:108
-[   55.110774] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 946, name: memhog
-[   55.111973] 3 locks held by memhog/946:
-[   55.112807]  #0: ffff9d01d4b193e8 (&mm->mmap_lock#2){++++}-{4:4}, at: __mm_populate+0x103/0x160
-[   55.114151]  #1: ffffffffa3d53de0 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0xa98/0x1160
-[   55.115848]  #2: ffff9d01d56b8110 (&zspage->lock){.+.+}-{3:3}, at: zs_map_object+0x8e/0x1f0
-[   55.118947] CPU: 0 PID: 946 Comm: memhog Not tainted 5.9.3-00011-gc5bfc0287345-dirty #316
-[   55.121265] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-[   55.122540] Call Trace:
-[   55.122974]  dump_stack+0x8b/0xb8
-[   55.123588]  ___might_sleep.cold+0xb6/0xc6
-[   55.124328]  unmap_kernel_range_noflush+0x2eb/0x350
-[   55.125198]  unmap_kernel_range+0x14/0x30
-[   55.125920]  zs_unmap_object+0xd5/0xe0
-[   55.126604]  zram_bvec_rw.isra.0+0x38c/0x8e0
-[   55.127462]  zram_rw_page+0x90/0x101
-[   55.128199]  bdev_write_page+0x92/0xe0
-[   55.128957]  ? swap_slot_free_notify+0xb0/0xb0
-[   55.129841]  __swap_writepage+0x94/0x4a0
-[   55.130636]  ? do_raw_spin_unlock+0x4b/0xa0
-[   55.131462]  ? _raw_spin_unlock+0x1f/0x30
-[   55.132261]  ? page_swapcount+0x6c/0x90
-[   55.133038]  pageout+0xe3/0x3a0
-[   55.133702]  shrink_page_list+0xb94/0xd60
-[   55.134626]  shrink_inactive_list+0x158/0x460
-
-We can fix this by removing the ZSMALLOC_PGTABLE_MAPPING feature (whcih
-contains the offending calling code) from zsmalloc.
-
-Even though this option showed some amount improvement(e.g., 30%) in some
-arm32 platforms, it has been headache to maintain since it have abused
-APIs[1](e.g., unmap_kernel_range in atomic context).
-
-Since we are approaching to deprecate 32bit machines and already made the
-config option available for only builtin build since v5.8, lastly it has
-been not default option in zsmalloc, it's time to drop the option for
-better maintainance.
-
-[1] http://lore.kernel.org/linux-mm/20201105170249.387069-1-minchan@kernel.org
-
-Link: https://lkml.kernel.org/r/20201117202916.GA3856507@google.com
-Fixes: e47110e90584 ("mm/vunmap: add cond_resched() in vunmap_pmd_range")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Harish Sriram <harish@linux.ibm.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1605605088-30668-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/omap2plus_defconfig |    1 
- include/linux/zsmalloc.h             |    1 
- mm/Kconfig                           |   13 ------
- mm/zsmalloc.c                        |   54 -------------------------
- 4 files changed, 69 deletions(-)
+ mm/truncate.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/arch/arm/configs/omap2plus_defconfig~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
-+++ a/arch/arm/configs/omap2plus_defconfig
-@@ -81,7 +81,6 @@ CONFIG_PARTITION_ADVANCED=y
- CONFIG_BINFMT_MISC=y
- CONFIG_CMA=y
- CONFIG_ZSMALLOC=m
--CONFIG_ZSMALLOC_PGTABLE_MAPPING=y
- CONFIG_NET=y
- CONFIG_PACKET=y
- CONFIG_UNIX=y
---- a/include/linux/zsmalloc.h~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
-+++ a/include/linux/zsmalloc.h
-@@ -20,7 +20,6 @@
-  * zsmalloc mapping modes
-  *
-  * NOTE: These only make a difference when a mapped object spans pages.
-- * They also have no effect when ZSMALLOC_PGTABLE_MAPPING is selected.
+--- a/mm/truncate.c~mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec
++++ a/mm/truncate.c
+@@ -637,9 +637,15 @@ unsigned long invalidate_mapping_pages(s
+ EXPORT_SYMBOL(invalidate_mapping_pages);
+ 
+ /**
+- * This helper is similar with the above one, except that it accounts for pages
+- * that are likely on a pagevec and count them in @nr_pagevec, which will used by
+- * the caller.
++ * invalidate_mapping_pagevec - Invalidate all the unlocked pages of one inode
++ * @mapping: the address_space which holds the pages to invalidate
++ * @start: the offset 'from' which to invalidate
++ * @end: the offset 'to' which to invalidate (inclusive)
++ * @nr_pagevec: invalidate failed page number for caller
++ *
++ * This helper is similar with invalidate_mapping_pages, except that it accounts
++ * for pages that failed to invalidate on a pagevec and count them in
++ * @nr_pagevec, which will used by the caller.
   */
- enum zs_mapmode {
- 	ZS_MM_RW, /* normal read-write mapping */
---- a/mm/Kconfig~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
-+++ a/mm/Kconfig
-@@ -707,19 +707,6 @@ config ZSMALLOC
- 	  returned by an alloc().  This handle must be mapped in order to
- 	  access the allocated space.
- 
--config ZSMALLOC_PGTABLE_MAPPING
--	bool "Use page table mapping to access object in zsmalloc"
--	depends on ZSMALLOC=y
--	help
--	  By default, zsmalloc uses a copy-based object mapping method to
--	  access allocations that span two pages. However, if a particular
--	  architecture (ex, ARM) performs VM mapping faster than copying,
--	  then you should select this. This causes zsmalloc to use page table
--	  mapping rather than copying for object mapping.
--
--	  You can check speed with zsmalloc benchmark:
--	  https://github.com/spartacus06/zsmapbench
--
- config ZSMALLOC_STAT
- 	bool "Export zsmalloc statistics"
- 	depends on ZSMALLOC
---- a/mm/zsmalloc.c~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
-+++ a/mm/zsmalloc.c
-@@ -293,11 +293,7 @@ struct zspage {
- };
- 
- struct mapping_area {
--#ifdef CONFIG_ZSMALLOC_PGTABLE_MAPPING
--	struct vm_struct *vm; /* vm area for mapping object that span pages */
--#else
- 	char *vm_buf; /* copy buffer for objects that span pages */
--#endif
- 	char *vm_addr; /* address of kmap_atomic()'ed pages */
- 	enum zs_mapmode vm_mm; /* mapping mode */
- };
-@@ -1113,54 +1109,6 @@ static struct zspage *find_get_zspage(st
- 	return zspage;
- }
- 
--#ifdef CONFIG_ZSMALLOC_PGTABLE_MAPPING
--static inline int __zs_cpu_up(struct mapping_area *area)
--{
--	/*
--	 * Make sure we don't leak memory if a cpu UP notification
--	 * and zs_init() race and both call zs_cpu_up() on the same cpu
--	 */
--	if (area->vm)
--		return 0;
--	area->vm = get_vm_area(PAGE_SIZE * 2, 0);
--	if (!area->vm)
--		return -ENOMEM;
--
--	/*
--	 * Populate ptes in advance to avoid pte allocation with GFP_KERNEL
--	 * in non-preemtible context of zs_map_object.
--	 */
--	return apply_to_page_range(&init_mm, (unsigned long)area->vm->addr,
--			PAGE_SIZE * 2, NULL, NULL);
--}
--
--static inline void __zs_cpu_down(struct mapping_area *area)
--{
--	if (area->vm)
--		free_vm_area(area->vm);
--	area->vm = NULL;
--}
--
--static inline void *__zs_map_object(struct mapping_area *area,
--				struct page *pages[2], int off, int size)
--{
--	unsigned long addr = (unsigned long)area->vm->addr;
--
--	BUG_ON(map_kernel_range(addr, PAGE_SIZE * 2, PAGE_KERNEL, pages) < 0);
--	area->vm_addr = area->vm->addr;
--	return area->vm_addr + off;
--}
--
--static inline void __zs_unmap_object(struct mapping_area *area,
--				struct page *pages[2], int off, int size)
--{
--	unsigned long addr = (unsigned long)area->vm_addr;
--
--	unmap_kernel_range(addr, PAGE_SIZE * 2);
--}
--
--#else /* CONFIG_ZSMALLOC_PGTABLE_MAPPING */
--
- static inline int __zs_cpu_up(struct mapping_area *area)
- {
- 	/*
-@@ -1241,8 +1189,6 @@ out:
- 	pagefault_enable();
- }
- 
--#endif /* CONFIG_ZSMALLOC_PGTABLE_MAPPING */
--
- static int zs_cpu_prepare(unsigned int cpu)
- {
- 	struct mapping_area *area;
+ void invalidate_mapping_pagevec(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
-zram-support-a-page-writeback.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+fs-ntfs-remove-unused-varibles.patch
+fs-ntfs-remove-unused-varible-attr_len.patch
+mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
+mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+mm-memcg-update-page-struct-member-in-comments.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
+mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
+docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
 
