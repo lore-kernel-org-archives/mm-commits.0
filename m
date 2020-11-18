@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE5F1C5519F
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 22:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C46EC63697
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 23:59:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E342246E4
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 22:52:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0CE2246EB
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 23:59:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wn8df3rP"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UzQHbuXJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726300AbgKRWwg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 17:52:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56226 "EHLO mail.kernel.org"
+        id S1726412AbgKRX6v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 18:58:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726502AbgKRWwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 17:52:35 -0500
+        id S1726340AbgKRX6v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 18:58:51 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76E0B246DC;
-        Wed, 18 Nov 2020 22:52:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 27A3A246BB;
+        Wed, 18 Nov 2020 23:58:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605739963;
-        bh=vBUc24L5nCNBgM39E0vhYOCRkZoQfnlYqlckdMHLWv0=;
+        s=korg; t=1605743930;
+        bh=gh0Z289yMQHgj2d4gwPDZzPBuC/miMoGntD4aOPyxvI=;
         h=Date:From:To:Subject:From;
-        b=wn8df3rPxkgqc/yP1Vkbp2dGQriyPGS8NlQ3yALEhKHb0cfxBVPbw1rgzUesXjJ8t
-         /gozbpkh1J+56GfOWiGPDOjB+I8CLC+PqOhpOc/m3BLtWHKj6TQ4w53lgBzGyYMyEc
-         6vsCLo9uG+cVsLJfiKJ4kpyoelmdFZ7781d7jU60=
-Date:   Wed, 18 Nov 2020 14:52:41 -0800
+        b=UzQHbuXJBbfHwnauYETQHWBSJN/SRK2wATENmu1pViSJPALDoiAgzZJ4CENhmMph5
+         k9ZL+rvb3hw2dlP4D5Ur/PDnGxdGgXLwnJ4/3ZYlmH2MddoYUE5xkYTt3vmzHib88q
+         vtuKaS3rr2kgB83ifAkUpNUOWpFCCbbVRJUQEXkk=
+Date:   Wed, 18 Nov 2020 15:58:49 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, bharata@linux.ibm.com, cl@linux.com,
-        guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        shakeelb@google.com, vbabka@suse.cz
+To:     hannes@cmpxchg.org, jrdr.linux@gmail.com, kaixuxia@tencent.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        tencent_os_robot@tencent.com, vdavydov.dev@gmail.com
 Subject:  +
- mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch added
- to -mm tree
-Message-ID: <20201118225241.du8BN_c5p%akpm@linux-foundation.org>
+ mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch added to -mm
+ tree
+Message-ID: <20201118235849.rXtPdcqe_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: let number of online CPUs determine the slub page order
+     Subject: mm: memcontrol: Assign boolean values to a bool variable
 has been added to the -mm tree.  Its filename is
-     mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
+     mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,66 +71,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bharata B Rao <bharata@linux.ibm.com>
-Subject: mm/slub: let number of online CPUs determine the slub page order
+From: Kaixu Xia <kaixuxia@tencent.com>
+Subject: mm: memcontrol: Assign boolean values to a bool variable
 
-The page order of the slab that gets chosen for a given slab cache depends
-on the number of objects that can be fit in the slab while meeting other
-requirements.  We start with a value of minimum objects based on
-nr_cpu_ids that is driven by possible number of CPUs and hence could be
-higher than the actual number of CPUs present in the system.  This leads
-to calculate_order() chosing a page order that is on the higher side
-leading to increased slab memory consumption on systems that have bigger
-page sizes.
+Fix the following coccinelle warnings:
 
-Hence rely on the number of online CPUs when determining the mininum
-objects, thereby increasing the chances of chosing a lower conservative
-page order for the slab.
+./mm/memcontrol.c:7341:2-22: WARNING: Assignment of 0/1 to bool variable
+./mm/memcontrol.c:7343:2-22: WARNING: Assignment of 0/1 to bool variable
 
-Vlastimil:
-
-: Ideally, we would react to hotplug events and update existing caches 
-: accordingly. But for that, recalculation of order for existing caches 
-: would have to be made safe, while not affecting hot paths. We have 
-: removed the sysfs interface with 32a6f409b693 ("mm, slub: remove runtime 
-: allocation order changes") as it didn't seem easy and worth the trouble.
-: 
-: In case somebody wants to start with a large order right from the boot 
-: because they know they will hotplug lots of cpus later, they can use 
-: slub_min_objects= boot param to override this heuristic. So in case this 
-: change regresses somebody's performance, there's a way around it and 
-: thus the risk is low IMHO.
-
-Link: https://lkml.kernel.org/r/20201118082759.1413056-1-bharata@linux.ibm.com
-Signed-off-by: Bharata B Rao <bharata@linux.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/1604737495-6418-1-git-send-email-kaixuxia@tencent.com
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
+Reported-by: Tosk Robot <tencent_os_robot@tencent.com>
+Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-let-number-of-online-cpus-determine-the-slub-page-order
-+++ a/mm/slub.c
-@@ -3431,7 +3431,7 @@ static inline int calculate_order(unsign
- 	 */
- 	min_objects = slub_min_objects;
- 	if (!min_objects)
--		min_objects = 4 * (fls(nr_cpu_ids) + 1);
-+		min_objects = 4 * (fls(num_online_cpus()) + 1);
- 	max_objects = order_objects(slub_max_order, size);
- 	min_objects = min(min_objects, max_objects);
- 
+--- a/mm/memcontrol.c~mm-memcontrol-assign-boolean-values-to-a-bool-variable
++++ a/mm/memcontrol.c
+@@ -7340,9 +7340,9 @@ bool mem_cgroup_swap_full(struct page *p
+ static int __init setup_swap_account(char *s)
+ {
+ 	if (!strcmp(s, "1"))
+-		cgroup_memory_noswap = 0;
++		cgroup_memory_noswap = false;
+ 	else if (!strcmp(s, "0"))
+-		cgroup_memory_noswap = 1;
++		cgroup_memory_noswap = true;
+ 	return 1;
+ }
+ __setup("swapaccount=", setup_swap_account);
 _
 
-Patches currently in -mm which might be from bharata@linux.ibm.com are
+Patches currently in -mm which might be from kaixuxia@tencent.com are
 
-mm-slub-let-number-of-online-cpus-determine-the-slub-page-order.patch
+mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
 
