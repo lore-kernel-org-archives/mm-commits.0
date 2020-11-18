@@ -2,107 +2,112 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 572DAC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 15:33:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCE4C63697
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 00:25:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9E672463D
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Nov 2020 15:33:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DDD822240
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 00:25:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="V9sb2iZ0"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="edP6JKmS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725901AbgKQPdN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Nov 2020 10:33:13 -0500
-Received: from m12-12.163.com ([220.181.12.12]:60800 "EHLO m12-12.163.com"
+        id S1726182AbgKRAZP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Nov 2020 19:25:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726156AbgKQPdM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Nov 2020 10:33:12 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=Date:From:Subject:Message-ID:MIME-Version; bh=QXb/z
-        g1X4H1k8Xsn4vadPNzXgtECSKbY8Ay5LD6piDE=; b=V9sb2iZ0eNiRjSsdrgUVj
-        Z5SQETLe1/Sa8fwSdcsUTXWW7i4wKsqwzYEeGU+C1LH/sSHDYLUMgV/jVZACgmms
-        rAUJ5OO+2rEbf/PR0Hx/xj2Tu4cCUWX7OS0MxBNHg/KXNlH0ThgJzicUvvQUiffL
-        iSq8X+heQ+nz0mbNwnEycc=
-Received: from localhost (unknown [101.86.213.176])
-        by smtp8 (Coremail) with SMTP id DMCowABXe+zU7LNf+Ef_CA--.52617S2;
-        Tue, 17 Nov 2020 23:31:32 +0800 (CST)
-Date:   Tue, 17 Nov 2020 23:31:32 +0800
-From:   Hui Su <sh_def@163.com>
-To:     Stephen Rothwell <sfr@canb.auug.org.au>, hughd@google.com
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, sh_def@163.com,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: + mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
- added to -mm tree
-Message-ID: <20201117153132.GA4153@rlk>
-References: <20201116230526.NkEfmeDCH%akpm@linux-foundation.org>
- <alpine.LSU.2.11.2011162149210.1082@eggly.anvils>
- <20201117181246.5f29f9ca@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201117181246.5f29f9ca@canb.auug.org.au>
-X-CM-TRANSID: DMCowABXe+zU7LNf+Ef_CA--.52617S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7AF48Gr1Duw4rXF1fKryrXrb_yoW8AF4xpF
-        WfGFsxta1DJryxGryxK3Z2qr109rWftrWjqFy5Jw18ZFn5ZF1DKr4vkr1rWF95CFyrGF1j
-        vF4UWr1xur4UAaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zMCJm9UUUUU=
-X-Originating-IP: [101.86.213.176]
-X-CM-SenderInfo: xvkbvvri6rljoofrz/1tbiMRTfX1UMWYUOOgAAsU
+        id S1725943AbgKRAZO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Nov 2020 19:25:14 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 789052223D;
+        Wed, 18 Nov 2020 00:25:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1605659112;
+        bh=3UrOa6jePV/e9mHS0H9mhn/MS+KkA+f1rRrF8UnIlPw=;
+        h=Date:From:To:Subject:From;
+        b=edP6JKmS7cdqVziyjS69C5i2VlYbdku3Oj5G2QG+AiU0ldSCrOqDoLbb6GJCmSNdW
+         3WhAZn4mXEFI0KtKEtkgEy9eZT3cUTfEIB6QS38AQm0C/gkwzEOeArUqmUcuIYW/bv
+         QEub10nOr5v/23zm8xVBD6fQd6Gda3aMtHT9xnY8=
+Date:   Tue, 17 Nov 2020 16:25:11 -0800
+From:   akpm@linux-foundation.org
+To:     hughd@google.com, mm-commits@vger.kernel.org, sh_def@163.com
+Subject:  [failures]
+ mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch removed from -mm
+ tree
+Message-ID: <20201118002511.fiLuxz54x%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Nov 17, 2020 at 06:12:46PM +1100, Stephen Rothwell wrote:
-> Hi Hugh,
-> 
-> On Mon, 16 Nov 2020 22:17:20 -0800 (PST) Hugh Dickins <hughd@google.com> wrote:
-> >
-> > On Mon, 16 Nov 2020, akpm@linux-foundation.org wrote:
-> > > 
-> > > The patch titled
-> > >      Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
-> > > has been added to the -mm tree.  Its filename is
-> > >      mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
-> > > 
-> > > This patch should soon appear at
-> > >     https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
-> > > and later at
-> > >     https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
-> > > 
-> > > Before you just go and hit "reply", please:
-> > >    a) Consider who else should be cc'ed
-> > >    b) Prefer to cc a suitable mailing list as well
-> > >    c) Ideally: find the original patch on the mailing list and do a
-> > >       reply-to-all to that, adding suitable additional cc's
-> > > 
-> > > *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> > > 
-> > > The -mm tree is included into linux-next and is updated
-> > > there every 3-4 working days
-> > > 
-> > > ------------------------------------------------------
-> > > From: Hui Su <sh_def@163.com>
-> > > Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()  
-> > 
-> > Andrew, Stephen, please revert this untested "cleanup" from your
-> > trees a.s.a.p: it's a disaster for anyone using shmem/tmpfs.
-> 
-> Thanks for that.  I have also bisected my boot failures to that commit
-> and so have reverted it from linux-next today.
-> 
-> -- 
-> Cheers,
-> Stephen Rothwell
 
-Sorry for not full testing the change.
-Please ignore this change.
+The patch titled
+     Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
+has been removed from the -mm tree.  Its filename was
+     mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
 
-Thanks.
+This patch was dropped because it had testing failures
 
+------------------------------------------------------
+From: Hui Su <sh_def@163.com>
+Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
+
+in shmem_get_inode():
+new_inode();
+  new_inode_pseudo();
+    alloc_inode();
+      ops->alloc_inode(); -> shmem_alloc_inode()
+        kmem_cache_alloc();
+
+memset(info, 0, (char *)inode - (char *)info);
+
+So use kmem_cache_zalloc() in shmem_alloc_inode(),
+and remove the memset in shmem_get_inode().
+
+Link: https://lkml.kernel.org/r/20201115174026.GA365412@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/shmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/mm/shmem.c~mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode
++++ a/mm/shmem.c
+@@ -2331,7 +2331,6 @@ static struct inode *shmem_get_inode(str
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+ 		inode->i_generation = prandom_u32();
+ 		info = SHMEM_I(inode);
+-		memset(info, 0, (char *)inode - (char *)info);
+ 		spin_lock_init(&info->lock);
+ 		atomic_set(&info->stop_eviction, 0);
+ 		info->seals = F_SEAL_SEAL;
+@@ -3851,7 +3850,7 @@ static struct kmem_cache *shmem_inode_ca
+ static struct inode *shmem_alloc_inode(struct super_block *sb)
+ {
+ 	struct shmem_inode_info *info;
+-	info = kmem_cache_alloc(shmem_inode_cachep, GFP_KERNEL);
++	info = kmem_cache_zalloc(shmem_inode_cachep, GFP_KERNEL);
+ 	if (!info)
+ 		return NULL;
+ 	return &info->vfs_inode;
+_
+
+Patches currently in -mm which might be from sh_def@163.com are
+
+mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+mm-shmemc-make-shmem_mapping-inline.patch
+mm-page_counter-use-page_counter_read-in-page_counter_set_max.patch
+mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
+mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+acctc-use-elif-instead-of-end-and-elif.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
