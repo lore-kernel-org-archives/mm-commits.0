@@ -7,43 +7,41 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA69C5519F
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 758B4C5519F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:53:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B60B24698
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0536524698
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:53:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIHh9hIB"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0+J6xYZL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725800AbgKRFuw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 00:50:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39252 "EHLO mail.kernel.org"
+        id S1726164AbgKRFxW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 00:53:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgKRFuw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 00:50:52 -0500
+        id S1725355AbgKRFxW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 00:53:22 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0CEC624695;
-        Wed, 18 Nov 2020 05:50:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E11F32468F;
+        Wed, 18 Nov 2020 05:53:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605678650;
-        bh=Lj65MCsYyyL8xGmertAaNoDaQ73sygqyUly/9+//V2w=;
+        s=korg; t=1605678801;
+        bh=y8j5NuFgvyN790FFOLPVbCT+VP/LTubQJxCBstAarqw=;
         h=Date:From:To:Subject:From;
-        b=zIHh9hIBImlVQ8B0trts0wmuOw5T2gkoY8ikGGa+6TdHdkboO9xjMk52ps46v3IY6
-         71z3pMwGZpqZtiQPKWuDmYHlGtE9nnCFtKPsA3ahR/SYf8qYmXgyhsBboArPUYghqc
-         z8BQ/5HlwqMmObfrrHWPmePPP2Drgtq9yaopnFqw=
-Date:   Tue, 17 Nov 2020 21:50:49 -0800
+        b=0+J6xYZLXCZfQeskatb8TgWTjGWBPHgR5d/Wpg4p3F5j+mi8TmlrB2R2w2K2OdZ/g
+         KNfuOADZNlB9jyVSOt8VFNIdIY3HOb5NVvwVULPLW8ohZkvu++OOhsoq3rAMghWsvi
+         NtDKGVG8sQM5kl4x/g2CKVpi6k8bqKy/ZfejEmow=
+Date:   Tue, 17 Nov 2020 21:53:20 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org
+To:     guro@fb.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com, songmuchun@bytedance.com
 Subject:  +
- =?US-ASCII?Q?mm-vmalloc-add-align-parameter-explanation-for-pvm=5Fdete?=
- =?US-ASCII?Q?rmine=5Fend=5Ffrom=5Freverse.patch?= added to -mm tree
-Message-ID: <20201118055049.ipQ3oS_uO%akpm@linux-foundation.org>
+ mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch added
+ to -mm tree
+Message-ID: <20201118055320.Vr6mq7qfq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: add 'align' parameter explanation for pvm_determine_end_from_reverse
+     Subject: mm: memcg/slab: rename *_lruvec_slab_state to *_lruvec_kmem_state
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+     mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,66 +70,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmalloc: add 'align' parameter explanation for pvm_determine_end_from_reverse
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcg/slab: rename *_lruvec_slab_state to *_lruvec_kmem_state
 
-Kernel-doc markup has a issue on pvm_determine_end_from_reverse:
-mm/vmalloc.c:3145: warning: Function parameter or member 'align' not
-described in 'pvm_determine_end_from_reverse'
-Add a explanation for it to remove the warning.
+The *_lruvec_slab_state is also suitable for pages allocated from buddy,
+not just for the slab objects.  But the function name seems to tell us
+that only slab object is applicable.  So we can rename the keyword of slab
+to kmem.
 
-Link: https://lkml.kernel.org/r/1605605088-30668-3-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20201117085249.24319-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |   18 +++++++++---------
+ kernel/fork.c              |    2 +-
+ mm/memcontrol.c            |    2 +-
+ mm/workingset.c            |    8 ++++----
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse
-+++ a/mm/vmalloc.c
-@@ -3134,6 +3134,7 @@ pvm_find_va_enclose_addr(unsigned long a
-  * @va:
-  *   in - the VA we start the search(reverse order);
-  *   out - the VA with the highest aligned end address.
-+ * @align: alignment for required highest address
-  *
-  * Returns: determined end address within vmap_area
-  */
+--- a/include/linux/memcontrol.h~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/include/linux/memcontrol.h
+@@ -817,15 +817,15 @@ void __mod_memcg_lruvec_state(struct lru
+ 			      int val);
+ void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			int val);
+-void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
++void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val);
+ 
+-static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					 int val)
+ {
+ 	unsigned long flags;
+ 
+ 	local_irq_save(flags);
+-	__mod_lruvec_slab_state(p, idx, val);
++	__mod_lruvec_kmem_state(p, idx, val);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -1291,7 +1291,7 @@ static inline void mod_lruvec_page_state
+ 	mod_node_page_state(page_pgdat(page), idx, val);
+ }
+ 
+-static inline void __mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++static inline void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					   int val)
+ {
+ 	struct page *page = virt_to_head_page(p);
+@@ -1299,7 +1299,7 @@ static inline void __mod_lruvec_slab_sta
+ 	__mod_node_page_state(page_pgdat(page), idx, val);
+ }
+ 
+-static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					 int val)
+ {
+ 	struct page *page = virt_to_head_page(p);
+@@ -1398,14 +1398,14 @@ static inline void __dec_lruvec_page_sta
+ 	__mod_lruvec_page_state(page, idx, -1);
+ }
+ 
+-static inline void __inc_lruvec_slab_state(void *p, enum node_stat_item idx)
++static inline void __inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
+ {
+-	__mod_lruvec_slab_state(p, idx, 1);
++	__mod_lruvec_kmem_state(p, idx, 1);
+ }
+ 
+-static inline void __dec_lruvec_slab_state(void *p, enum node_stat_item idx)
++static inline void __dec_lruvec_kmem_state(void *p, enum node_stat_item idx)
+ {
+-	__mod_lruvec_slab_state(p, idx, -1);
++	__mod_lruvec_kmem_state(p, idx, -1);
+ }
+ 
+ /* idx can be of type enum memcg_stat_item or node_stat_item */
+--- a/kernel/fork.c~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/kernel/fork.c
+@@ -385,7 +385,7 @@ static void account_kernel_stack(struct
+ 		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
+ 				      account * (THREAD_SIZE / 1024));
+ 	else
+-		mod_lruvec_slab_state(stack, NR_KERNEL_STACK_KB,
++		mod_lruvec_kmem_state(stack, NR_KERNEL_STACK_KB,
+ 				      account * (THREAD_SIZE / 1024));
+ }
+ 
+--- a/mm/memcontrol.c~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/mm/memcontrol.c
+@@ -856,7 +856,7 @@ void __mod_lruvec_state(struct lruvec *l
+ 		__mod_memcg_lruvec_state(lruvec, idx, val);
+ }
+ 
+-void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val)
++void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
+ {
+ 	pg_data_t *pgdat = page_pgdat(virt_to_page(p));
+ 	struct mem_cgroup *memcg;
+--- a/mm/workingset.c~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/mm/workingset.c
+@@ -443,12 +443,12 @@ void workingset_update_node(struct xa_no
+ 	if (node->count && node->count == node->nr_values) {
+ 		if (list_empty(&node->private_list)) {
+ 			list_lru_add(&shadow_nodes, &node->private_list);
+-			__inc_lruvec_slab_state(node, WORKINGSET_NODES);
++			__inc_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 		}
+ 	} else {
+ 		if (!list_empty(&node->private_list)) {
+ 			list_lru_del(&shadow_nodes, &node->private_list);
+-			__dec_lruvec_slab_state(node, WORKINGSET_NODES);
++			__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 		}
+ 	}
+ }
+@@ -542,7 +542,7 @@ static enum lru_status shadow_lru_isolat
+ 	}
+ 
+ 	list_lru_isolate(lru, item);
+-	__dec_lruvec_slab_state(node, WORKINGSET_NODES);
++	__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 
+ 	spin_unlock(lru_lock);
+ 
+@@ -557,7 +557,7 @@ static enum lru_status shadow_lru_isolat
+ 		goto out_invalid;
+ 	mapping->nrexceptional -= node->nr_values;
+ 	xa_delete_node(node, workingset_update_node);
+-	__inc_lruvec_slab_state(node, WORKINGSET_NODERECLAIM);
++	__inc_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM);
+ 
+ out_invalid:
+ 	xa_unlock_irq(&mapping->i_pages);
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
-fs-ntfs-remove-unused-varibles.patch
-fs-ntfs-remove-unused-varible-attr_len.patch
-mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
-mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
-mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
-mm-memcg-update-page-struct-member-in-comments.patch
-mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
-mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
-mm-thp-simplify-lru_add_page_tail.patch
-mm-thp-narrow-lru-locking.patch
-mm-vmscan-remove-unnecessary-lruvec-adding.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
-mm-memcg-add-debug-checking-in-lock_page_memcg.patch
-mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
-mm-lru-move-lock-into-lru_note_cost.patch
-mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
-mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
-mm-mlock-remove-__munlock_isolate_lru_page.patch
-mm-lru-introduce-testclearpagelru.patch
-mm-compaction-do-page-isolation-first-in-compaction.patch
-mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
-mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
-docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcg-slab-fix-root-memcg-vmstats.patch
+mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
+mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
+mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 
