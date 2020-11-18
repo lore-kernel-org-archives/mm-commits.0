@@ -7,39 +7,41 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCE4C63697
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 00:25:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 499E2C5519F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 04:04:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DDD822240
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 00:25:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C566520A8B
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 04:04:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="edP6JKmS"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1xAWZ19W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726182AbgKRAZP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Nov 2020 19:25:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52600 "EHLO mail.kernel.org"
+        id S1726792AbgKREDz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Nov 2020 23:03:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725943AbgKRAZO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Nov 2020 19:25:14 -0500
+        id S1725947AbgKREDz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Nov 2020 23:03:55 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 789052223D;
-        Wed, 18 Nov 2020 00:25:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1EBE12225E;
+        Wed, 18 Nov 2020 04:03:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605659112;
-        bh=3UrOa6jePV/e9mHS0H9mhn/MS+KkA+f1rRrF8UnIlPw=;
+        s=korg; t=1605672233;
+        bh=aZHTt28z1oVx0YCLV2f4C1QQ6L4eKDXi/I4V9AH7zFk=;
         h=Date:From:To:Subject:From;
-        b=edP6JKmS7cdqVziyjS69C5i2VlYbdku3Oj5G2QG+AiU0ldSCrOqDoLbb6GJCmSNdW
-         3WhAZn4mXEFI0KtKEtkgEy9eZT3cUTfEIB6QS38AQm0C/gkwzEOeArUqmUcuIYW/bv
-         QEub10nOr5v/23zm8xVBD6fQd6Gda3aMtHT9xnY8=
-Date:   Tue, 17 Nov 2020 16:25:11 -0800
+        b=1xAWZ19WB4cyFviBVeIovI1Jtu+Wrh7DKsDJrdOzdJRLzFiBkrJXqdw76S0JNrIdH
+         tWiFimHFCsnbsCfeZbJzTUt/G/CjtOV3uHEh6TVPOIGCJW7GtNdrHF9giZGLI1Wy/D
+         q6C/JLuilZYtQret79XMEVzaFSidTQMLLYjekl34=
+Date:   Tue, 17 Nov 2020 20:03:52 -0800
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org, sh_def@163.com
-Subject:  [failures]
- mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch removed from -mm
+To:     anshuman.khandual@arm.com, dave.hansen@intel.com, jgross@suse.com,
+        jinyuqi@huawei.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, paul.burton@mips.com, rppt@linux.ibm.com,
+        rusty@rustcorp.com.au, zhangshaokun@hisilicon.com
+Subject:  + lib-optimize-cpumask_local_spread.patch added to -mm
  tree
-Message-ID: <20201118002511.fiLuxz54x%akpm@linux-foundation.org>
+Message-ID: <20201118040352.0lt2UXggX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,66 +50,218 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode.patch
+     Subject: lib: optimize cpumask_local_spread()
+has been added to the -mm tree.  Its filename is
+     lib-optimize-cpumask_local_spread.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_local_spread.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_local_spread.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm/shmem: use kmem_cache_zalloc in shmem_alloc_inode()
+From: Yuqi Jin <jinyuqi@huawei.com>
+Subject: lib: optimize cpumask_local_spread()
 
-in shmem_get_inode():
-new_inode();
-  new_inode_pseudo();
-    alloc_inode();
-      ops->alloc_inode(); -> shmem_alloc_inode()
-        kmem_cache_alloc();
+In multi-processor and NUMA system, I/O driver will find cpu cores that
+which shall be bound IRQ.  When cpu cores in the local numa have been used
+up, it is better to find the node closest to the local numa node for
+performance, instead of choosing any online cpu immediately.
 
-memset(info, 0, (char *)inode - (char *)info);
+On arm64 or x86 platform that has 2-sockets and 4-NUMA nodes, if the
+network card is located in node2 of socket1, while the number queues of
+network card is greater than the number of cores of node2, when all cores
+of node2 has been bound to the queues, the remaining queues will be bound
+to the cores of node0 which is further than NUMA node3.  It is not
+friendly for performance or Intel's DDIO (Data Direct I/O Technology) when
+if the user enables SNC (sub-NUMA-clustering).  Let's improve it and find
+the nearest unused node through NUMA distance for the non-local NUMA
+nodes.
 
-So use kmem_cache_zalloc() in shmem_alloc_inode(),
-and remove the memset in shmem_get_inode().
+On Huawei Kunpeng 920 server, there are 4 NUMA node(0 - 3) in the 2-cpu
+system(0 - 1). The topology of this server is followed:
+available: 4 nodes (0-3)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+node 0 size: 63379 MB
+node 0 free: 61899 MB
+node 1 cpus: 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
+node 1 size: 64509 MB
+node 1 free: 63942 MB
+node 2 cpus: 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71
+node 2 size: 64509 MB
+node 2 free: 63056 MB
+node 3 cpus: 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
+node 3 size: 63997 MB
+node 3 free: 63420 MB
+node distances:
+node   0   1   2   3
+  0:  10  16  32  33
+  1:  16  10  25  32
+  2:  32  25  10  16
+  3:  33  32  16  10
 
-Link: https://lkml.kernel.org/r/20201115174026.GA365412@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Cc: Hugh Dickins <hughd@google.com>
+We perform PS (parameter server) business test, the behavior of the
+service is that the client initiates a request through the network card,
+the server responds to the request after calculation.  When two PS
+processes run on node2 and node3 separately and the network card is
+located on 'node2' which is in cpu1, the performance of node2 (26W QPS)
+and node3 (22W QPS) is different.
+
+It is better that the NIC queues are bound to the cpu1 cores in turn, then
+XPS will also be properly initialized, while cpumask_local_spread only
+considers the local node.  When the number of NIC queues exceeds the
+number of cores in the local node, it returns to the online core directly.
+So when PS runs on node3 sending a calculated request, the performance is
+not as good as the node2.
+
+The IRQ from 369-392 will be bound from NUMA node0 to NUMA node3 with this
+patch, before the patch:
+
+Euler:/sys/bus/pci # cat /proc/irq/369/smp_affinity_list
+0
+Euler:/sys/bus/pci # cat /proc/irq/370/smp_affinity_list
+1
+...
+Euler:/sys/bus/pci # cat /proc/irq/391/smp_affinity_list
+22
+Euler:/sys/bus/pci # cat /proc/irq/392/smp_affinity_list
+23
+After the patch:
+Euler:/sys/bus/pci # cat /proc/irq/369/smp_affinity_list
+72
+Euler:/sys/bus/pci # cat /proc/irq/370/smp_affinity_list
+73
+...
+Euler:/sys/bus/pci # cat /proc/irq/391/smp_affinity_list
+94
+Euler:/sys/bus/pci # cat /proc/irq/392/smp_affinity_list
+95
+
+So the performance of the node3 is the same as node2 that is 26W QPS when
+the network card is still in 'node2' with the patch.
+
+Link: https://lkml.kernel.org/r/1605668072-44780-1-git-send-email-zhangshaokun@hisilicon.com
+Signed-off-by: Yuqi Jin <jinyuqi@huawei.com>
+Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/cpumask.c |   60 +++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 47 insertions(+), 13 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-use-kmem_cache_zalloc-in-shmem_alloc_inode
-+++ a/mm/shmem.c
-@@ -2331,7 +2331,6 @@ static struct inode *shmem_get_inode(str
- 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
- 		inode->i_generation = prandom_u32();
- 		info = SHMEM_I(inode);
--		memset(info, 0, (char *)inode - (char *)info);
- 		spin_lock_init(&info->lock);
- 		atomic_set(&info->stop_eviction, 0);
- 		info->seals = F_SEAL_SEAL;
-@@ -3851,7 +3850,7 @@ static struct kmem_cache *shmem_inode_ca
- static struct inode *shmem_alloc_inode(struct super_block *sb)
+--- a/lib/cpumask.c~lib-optimize-cpumask_local_spread
++++ a/lib/cpumask.c
+@@ -193,20 +193,47 @@ void __init free_bootmem_cpumask_var(cpu
+ }
+ #endif
+ 
++static int find_nearest_node(int node, bool *used)
++{
++	int i, min_dist, node_id = -1;
++
++	/* Choose the first unused node to compare */
++	for (i = 0; i < nr_node_ids; i++) {
++		if (used[i] == false) {
++			min_dist = node_distance(node, i);
++			node_id = i;
++			break;
++		}
++	}
++
++	/* Compare and return the nearest node */
++	for (i = 0; i < nr_node_ids; i++) {
++		if (node_distance(node, i) < min_dist && used[i] == false) {
++			min_dist = node_distance(node, i);
++			node_id = i;
++		}
++	}
++
++	return node_id;
++}
++
+ /**
+  * cpumask_local_spread - select the i'th cpu with local numa cpu's first
+  * @i: index number
+  * @node: local numa_node
+  *
+  * This function selects an online CPU according to a numa aware policy;
+- * local cpus are returned first, followed by non-local ones, then it
+- * wraps around.
++ * local cpus are returned first, followed by the next one which is the
++ * nearest unused NUMA node based on NUMA distance, then it wraps around.
+  *
+  * It's not very efficient, but useful for setup.
+  */
+ unsigned int cpumask_local_spread(unsigned int i, int node)
  {
- 	struct shmem_inode_info *info;
--	info = kmem_cache_alloc(shmem_inode_cachep, GFP_KERNEL);
-+	info = kmem_cache_zalloc(shmem_inode_cachep, GFP_KERNEL);
- 	if (!info)
- 		return NULL;
- 	return &info->vfs_inode;
+-	int cpu, hk_flags;
++	static DEFINE_SPINLOCK(spread_lock);
++	static bool used[MAX_NUMNODES];
++	unsigned long flags;
++	int cpu, hk_flags, j, id;
+ 	const struct cpumask *mask;
+ 
+ 	hk_flags = HK_FLAG_DOMAIN | HK_FLAG_MANAGED_IRQ;
+@@ -220,20 +247,27 @@ unsigned int cpumask_local_spread(unsign
+ 				return cpu;
+ 		}
+ 	} else {
+-		/* NUMA first. */
+-		for_each_cpu_and(cpu, cpumask_of_node(node), mask) {
+-			if (i-- == 0)
+-				return cpu;
+-		}
++		spin_lock_irqsave(&spread_lock, flags);
++		memset(used, 0, nr_node_ids * sizeof(bool));
++		/* select node according to the distance from local node */
++		for (j = 0; j < nr_node_ids; j++) {
++			id = find_nearest_node(node, used);
++			if (id < 0)
++				break;
+ 
+-		for_each_cpu(cpu, mask) {
+-			/* Skip NUMA nodes, done above. */
+-			if (cpumask_test_cpu(cpu, cpumask_of_node(node)))
+-				continue;
++			for_each_cpu_and(cpu, cpumask_of_node(id), mask)
++				if (i-- == 0) {
++					spin_unlock_irqrestore(&spread_lock,
++							       flags);
++					return cpu;
++				}
++			used[id] = true;
++		}
++		spin_unlock_irqrestore(&spread_lock, flags);
+ 
++		for_each_cpu(cpu, mask)
+ 			if (i-- == 0)
+ 				return cpu;
+-		}
+ 	}
+ 	BUG();
+ }
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from jinyuqi@huawei.com are
 
-mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
-mm-shmemc-make-shmem_mapping-inline.patch
-mm-page_counter-use-page_counter_read-in-page_counter_set_max.patch
-mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
-mm-compaction-move-compaction_suitables-comment-to-right-place.patch
-mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
-acctc-use-elif-instead-of-end-and-elif.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
+lib-optimize-cpumask_local_spread.patch
 
