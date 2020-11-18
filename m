@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62782C5519F
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ECB1C56202
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04CBE24695
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D3E224698
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:50:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fi+6VcP3"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fejpdjh2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725787AbgKRFuo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 00:50:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39178 "EHLO mail.kernel.org"
+        id S1725794AbgKRFus (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 00:50:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgKRFuo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 00:50:44 -0500
+        id S1725355AbgKRFus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 00:50:48 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 322B324655;
-        Wed, 18 Nov 2020 05:50:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 017602468F;
+        Wed, 18 Nov 2020 05:50:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605678643;
-        bh=VBhjMPS6WlntxcxhnQXVZPp4PX3BmsFOzlNmqor30NM=;
+        s=korg; t=1605678646;
+        bh=6pFmzvlivulcdFVZARiz4JW6Otzo8610EP+H1Ajkp74=;
         h=Date:From:To:Subject:From;
-        b=Fi+6VcP35xMWCd4laU3RbW/pxVjrl+B8fO1736VW8ngToh7AkDZ/sBUOkOcR+2Jb0
-         V4fUAP1+MvA1+QH5W8R+UCHhik/Et3Q9HwmZb4go7P0Ddo93+7xc42iNcYZpJRwBSV
-         p02agBFYInsNZXEuoXPZxyUTdNCzOkaempDz/W9I=
-Date:   Tue, 17 Nov 2020 21:50:41 -0800
+        b=fejpdjh26czWDOWsaDNJ7SEqpkAWyelj60WSfKLJ/CqyEISG5TgwQjT7cG5ZZgkNE
+         dMCBRT7DdEcAuLj1kMwdrDFubK38O7AmTZ2V8ynj3BL/z3Hwett7nRWQJT4Nmun81j
+         a+ET+dMaKuPmdXOtTRPrqPgdhXcRH16Q2nkl8kcQ=
+Date:   Tue, 17 Nov 2020 21:50:45 -0800
 From:   akpm@linux-foundation.org
 To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
         mm-commits@vger.kernel.org, rdunlap@infradead.org
 Subject:  +
- mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
- added to -mm tree
-Message-ID: <20201118055041.UNwtcfI7-%akpm@linux-foundation.org>
+ mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch added to -mm
+ tree
+Message-ID: <20201118055045.1DLaKPmO5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/truncate: add parameter explanation for invalidate_mapping_pagevec
+     Subject: mm/mapping_dirty_helpers: enhance the kernel-doc markups
 has been added to the -mm tree.  Its filename is
-     mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+     mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,49 +71,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/truncate: add parameter explanation for invalidate_mapping_pagevec
+Subject: mm/mapping_dirty_helpers: enhance the kernel-doc markups
 
-To fix a kernel-doc markups issue:
-mm/truncate.c:646: warning: Function parameter or member 'mapping' not
-described in 'invalidate_mapping_pagevec'
-mm/truncate.c:646: warning: Function parameter or member 'start' not
-described in 'invalidate_mapping_pagevec'
-mm/truncate.c:646: warning: Function parameter or member 'end' not
-described in 'invalidate_mapping_pagevec'
-mm/truncate.c:646: warning: Function parameter or member 'nr_pagevec'
-not described in 'invalidate_mapping_pagevec'
+Add and change parameter explanation for wp_pte and clean_record_pte, to
+avoid W1 warning:
+mm/mapping_dirty_helpers.c:34: warning: Function parameter or member
+'end' not described in 'wp_pte'
+mm/mapping_dirty_helpers.c:88: warning: Function parameter or member
+'end' not described in 'clean_record_pte'
 
-Link: https://lkml.kernel.org/r/1605605088-30668-1-git-send-email-alex.shi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/1605605088-30668-2-git-send-email-alex.shi@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/mapping_dirty_helpers.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec
-+++ a/mm/truncate.c
-@@ -637,9 +637,15 @@ unsigned long invalidate_mapping_pages(s
- EXPORT_SYMBOL(invalidate_mapping_pages);
- 
+--- a/mm/mapping_dirty_helpers.c~mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups
++++ a/mm/mapping_dirty_helpers.c
+@@ -23,7 +23,8 @@ struct wp_walk {
  /**
-- * This helper is similar with the above one, except that it accounts for pages
-- * that are likely on a pagevec and count them in @nr_pagevec, which will used by
-- * the caller.
-+ * invalidate_mapping_pagevec - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ * @nr_pagevec: invalidate failed page number for caller
-+ *
-+ * This helper is similar with invalidate_mapping_pages, except that it accounts
-+ * for pages that failed to invalidate on a pagevec and count them in
-+ * @nr_pagevec, which will used by the caller.
-  */
- void invalidate_mapping_pagevec(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
+  * wp_pte - Write-protect a pte
+  * @pte: Pointer to the pte
+- * @addr: The virtual page address
++ * @addr: The start of protecting virtual address
++ * @end: The end of protecting virtual address
+  * @walk: pagetable walk callback argument
+  *
+  * The function write-protects a pte and records the range in
+@@ -74,7 +75,8 @@ struct clean_walk {
+  * clean_record_pte - Clean a pte and record its address space offset in a
+  * bitmap
+  * @pte: Pointer to the pte
+- * @addr: The virtual page address
++ * @addr: The start of virtual address to be clean
++ * @end: The end of virtual address to be clean
+  * @walk: pagetable walk callback argument
+  *
+  * The function cleans a pte and records the range in
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
