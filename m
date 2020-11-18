@@ -2,46 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 499E2C5519F
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 04:04:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4569DC6369E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:18:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C566520A8B
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 04:04:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E016824654
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 05:18:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1xAWZ19W"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I7GY0nSI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726792AbgKREDz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Nov 2020 23:03:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59096 "EHLO mail.kernel.org"
+        id S1725772AbgKRFSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Nov 2020 00:18:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725947AbgKREDz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Nov 2020 23:03:55 -0500
+        id S1726300AbgKRFSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Nov 2020 00:18:46 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1EBE12225E;
-        Wed, 18 Nov 2020 04:03:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0E6B824654;
+        Wed, 18 Nov 2020 05:18:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605672233;
-        bh=aZHTt28z1oVx0YCLV2f4C1QQ6L4eKDXi/I4V9AH7zFk=;
+        s=korg; t=1605676725;
+        bh=uJ2yaRpp3xOZzVHwZ6cl8syQlBayqXLn6oyOhwtAOPk=;
         h=Date:From:To:Subject:From;
-        b=1xAWZ19WB4cyFviBVeIovI1Jtu+Wrh7DKsDJrdOzdJRLzFiBkrJXqdw76S0JNrIdH
-         tWiFimHFCsnbsCfeZbJzTUt/G/CjtOV3uHEh6TVPOIGCJW7GtNdrHF9giZGLI1Wy/D
-         q6C/JLuilZYtQret79XMEVzaFSidTQMLLYjekl34=
-Date:   Tue, 17 Nov 2020 20:03:52 -0800
+        b=I7GY0nSIz2kdr1y5MHUVieQWyfmBgG2ZGt9tOTEXERCR2Qe+Pene0UpE8EXKMBs/C
+         1ZBBM6jynQyawTwKbLb+GMMgoNm7ldofpfsysmKwABEJwTW3B/PLwcRHqaMDt6lpNA
+         +ENFmSU0lOI7u9oqWcGfI3PUdMyDOYr6/K/ogpPs=
+Date:   Tue, 17 Nov 2020 21:18:44 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, dave.hansen@intel.com, jgross@suse.com,
-        jinyuqi@huawei.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, paul.burton@mips.com, rppt@linux.ibm.com,
-        rusty@rustcorp.com.au, zhangshaokun@hisilicon.com
-Subject:  + lib-optimize-cpumask_local_spread.patch added to -mm
- tree
-Message-ID: <20201118040352.0lt2UXggX%akpm@linux-foundation.org>
+To:     harish@linux.ibm.com, hch@infradead.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com,
+        stable@vger.kernel.org, tony@atomide.com, urezki@gmail.com
+Subject:  + mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch added
+ to -mm tree
+Message-ID: <20201118051844.VJ0VzT8MU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: optimize cpumask_local_spread()
+     Subject: mm/zsmalloc.c: drop ZSMALLOC_PGTABLE_MAPPING
 has been added to the -mm tree.  Its filename is
-     lib-optimize-cpumask_local_spread.patch
+     mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_local_spread.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_local_spread.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,197 +70,196 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yuqi Jin <jinyuqi@huawei.com>
-Subject: lib: optimize cpumask_local_spread()
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm/zsmalloc.c: drop ZSMALLOC_PGTABLE_MAPPING
 
-In multi-processor and NUMA system, I/O driver will find cpu cores that
-which shall be bound IRQ.  When cpu cores in the local numa have been used
-up, it is better to find the node closest to the local numa node for
-performance, instead of choosing any online cpu immediately.
+While I was doing zram testing, I found sometimes decompression failed
+since the compression buffer was corrupted.  With investigation, I found
+below commit calls cond_resched unconditionally so it could make a problem
+in atomic context if the task is reschedule.
 
-On arm64 or x86 platform that has 2-sockets and 4-NUMA nodes, if the
-network card is located in node2 of socket1, while the number queues of
-network card is greater than the number of cores of node2, when all cores
-of node2 has been bound to the queues, the remaining queues will be bound
-to the cores of node0 which is further than NUMA node3.  It is not
-friendly for performance or Intel's DDIO (Data Direct I/O Technology) when
-if the user enables SNC (sub-NUMA-clustering).  Let's improve it and find
-the nearest unused node through NUMA distance for the non-local NUMA
-nodes.
+[   55.109012] BUG: sleeping function called from invalid context at mm/vmalloc.c:108
+[   55.110774] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 946, name: memhog
+[   55.111973] 3 locks held by memhog/946:
+[   55.112807]  #0: ffff9d01d4b193e8 (&mm->mmap_lock#2){++++}-{4:4}, at: __mm_populate+0x103/0x160
+[   55.114151]  #1: ffffffffa3d53de0 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0xa98/0x1160
+[   55.115848]  #2: ffff9d01d56b8110 (&zspage->lock){.+.+}-{3:3}, at: zs_map_object+0x8e/0x1f0
+[   55.118947] CPU: 0 PID: 946 Comm: memhog Not tainted 5.9.3-00011-gc5bfc0287345-dirty #316
+[   55.121265] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
+[   55.122540] Call Trace:
+[   55.122974]  dump_stack+0x8b/0xb8
+[   55.123588]  ___might_sleep.cold+0xb6/0xc6
+[   55.124328]  unmap_kernel_range_noflush+0x2eb/0x350
+[   55.125198]  unmap_kernel_range+0x14/0x30
+[   55.125920]  zs_unmap_object+0xd5/0xe0
+[   55.126604]  zram_bvec_rw.isra.0+0x38c/0x8e0
+[   55.127462]  zram_rw_page+0x90/0x101
+[   55.128199]  bdev_write_page+0x92/0xe0
+[   55.128957]  ? swap_slot_free_notify+0xb0/0xb0
+[   55.129841]  __swap_writepage+0x94/0x4a0
+[   55.130636]  ? do_raw_spin_unlock+0x4b/0xa0
+[   55.131462]  ? _raw_spin_unlock+0x1f/0x30
+[   55.132261]  ? page_swapcount+0x6c/0x90
+[   55.133038]  pageout+0xe3/0x3a0
+[   55.133702]  shrink_page_list+0xb94/0xd60
+[   55.134626]  shrink_inactive_list+0x158/0x460
 
-On Huawei Kunpeng 920 server, there are 4 NUMA node(0 - 3) in the 2-cpu
-system(0 - 1). The topology of this server is followed:
-available: 4 nodes (0-3)
-node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
-node 0 size: 63379 MB
-node 0 free: 61899 MB
-node 1 cpus: 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
-node 1 size: 64509 MB
-node 1 free: 63942 MB
-node 2 cpus: 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71
-node 2 size: 64509 MB
-node 2 free: 63056 MB
-node 3 cpus: 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
-node 3 size: 63997 MB
-node 3 free: 63420 MB
-node distances:
-node   0   1   2   3
-  0:  10  16  32  33
-  1:  16  10  25  32
-  2:  32  25  10  16
-  3:  33  32  16  10
+We can fix this by removing the ZSMALLOC_PGTABLE_MAPPING feature (whcih
+contains the offending calling code) from zsmalloc.
 
-We perform PS (parameter server) business test, the behavior of the
-service is that the client initiates a request through the network card,
-the server responds to the request after calculation.  When two PS
-processes run on node2 and node3 separately and the network card is
-located on 'node2' which is in cpu1, the performance of node2 (26W QPS)
-and node3 (22W QPS) is different.
+Even though this option showed some amount improvement(e.g., 30%) in some
+arm32 platforms, it has been headache to maintain since it have abused
+APIs[1](e.g., unmap_kernel_range in atomic context).
 
-It is better that the NIC queues are bound to the cpu1 cores in turn, then
-XPS will also be properly initialized, while cpumask_local_spread only
-considers the local node.  When the number of NIC queues exceeds the
-number of cores in the local node, it returns to the online core directly.
-So when PS runs on node3 sending a calculated request, the performance is
-not as good as the node2.
+Since we are approaching to deprecate 32bit machines and already made the
+config option available for only builtin build since v5.8, lastly it has
+been not default option in zsmalloc, it's time to drop the option for
+better maintainance.
 
-The IRQ from 369-392 will be bound from NUMA node0 to NUMA node3 with this
-patch, before the patch:
+[1] http://lore.kernel.org/linux-mm/20201105170249.387069-1-minchan@kernel.org
 
-Euler:/sys/bus/pci # cat /proc/irq/369/smp_affinity_list
-0
-Euler:/sys/bus/pci # cat /proc/irq/370/smp_affinity_list
-1
-...
-Euler:/sys/bus/pci # cat /proc/irq/391/smp_affinity_list
-22
-Euler:/sys/bus/pci # cat /proc/irq/392/smp_affinity_list
-23
-After the patch:
-Euler:/sys/bus/pci # cat /proc/irq/369/smp_affinity_list
-72
-Euler:/sys/bus/pci # cat /proc/irq/370/smp_affinity_list
-73
-...
-Euler:/sys/bus/pci # cat /proc/irq/391/smp_affinity_list
-94
-Euler:/sys/bus/pci # cat /proc/irq/392/smp_affinity_list
-95
-
-So the performance of the node3 is the same as node2 that is 26W QPS when
-the network card is still in 'node2' with the patch.
-
-Link: https://lkml.kernel.org/r/1605668072-44780-1-git-send-email-zhangshaokun@hisilicon.com
-Signed-off-by: Yuqi Jin <jinyuqi@huawei.com>
-Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/20201117202916.GA3856507@google.com
+Fixes: e47110e90584 ("mm/vunmap: add cond_resched() in vunmap_pmd_range")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Harish Sriram <harish@linux.ibm.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cpumask.c |   60 +++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 47 insertions(+), 13 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |    1 
+ include/linux/zsmalloc.h             |    1 
+ mm/Kconfig                           |   13 ------
+ mm/zsmalloc.c                        |   54 -------------------------
+ 4 files changed, 69 deletions(-)
 
---- a/lib/cpumask.c~lib-optimize-cpumask_local_spread
-+++ a/lib/cpumask.c
-@@ -193,20 +193,47 @@ void __init free_bootmem_cpumask_var(cpu
- }
- #endif
- 
-+static int find_nearest_node(int node, bool *used)
-+{
-+	int i, min_dist, node_id = -1;
-+
-+	/* Choose the first unused node to compare */
-+	for (i = 0; i < nr_node_ids; i++) {
-+		if (used[i] == false) {
-+			min_dist = node_distance(node, i);
-+			node_id = i;
-+			break;
-+		}
-+	}
-+
-+	/* Compare and return the nearest node */
-+	for (i = 0; i < nr_node_ids; i++) {
-+		if (node_distance(node, i) < min_dist && used[i] == false) {
-+			min_dist = node_distance(node, i);
-+			node_id = i;
-+		}
-+	}
-+
-+	return node_id;
-+}
-+
- /**
-  * cpumask_local_spread - select the i'th cpu with local numa cpu's first
-  * @i: index number
-  * @node: local numa_node
+--- a/arch/arm/configs/omap2plus_defconfig~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
++++ a/arch/arm/configs/omap2plus_defconfig
+@@ -81,7 +81,6 @@ CONFIG_PARTITION_ADVANCED=y
+ CONFIG_BINFMT_MISC=y
+ CONFIG_CMA=y
+ CONFIG_ZSMALLOC=m
+-CONFIG_ZSMALLOC_PGTABLE_MAPPING=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+--- a/include/linux/zsmalloc.h~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
++++ a/include/linux/zsmalloc.h
+@@ -20,7 +20,6 @@
+  * zsmalloc mapping modes
   *
-  * This function selects an online CPU according to a numa aware policy;
-- * local cpus are returned first, followed by non-local ones, then it
-- * wraps around.
-+ * local cpus are returned first, followed by the next one which is the
-+ * nearest unused NUMA node based on NUMA distance, then it wraps around.
-  *
-  * It's not very efficient, but useful for setup.
+  * NOTE: These only make a difference when a mapped object spans pages.
+- * They also have no effect when ZSMALLOC_PGTABLE_MAPPING is selected.
   */
- unsigned int cpumask_local_spread(unsigned int i, int node)
- {
--	int cpu, hk_flags;
-+	static DEFINE_SPINLOCK(spread_lock);
-+	static bool used[MAX_NUMNODES];
-+	unsigned long flags;
-+	int cpu, hk_flags, j, id;
- 	const struct cpumask *mask;
+ enum zs_mapmode {
+ 	ZS_MM_RW, /* normal read-write mapping */
+--- a/mm/Kconfig~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
++++ a/mm/Kconfig
+@@ -707,19 +707,6 @@ config ZSMALLOC
+ 	  returned by an alloc().  This handle must be mapped in order to
+ 	  access the allocated space.
  
- 	hk_flags = HK_FLAG_DOMAIN | HK_FLAG_MANAGED_IRQ;
-@@ -220,20 +247,27 @@ unsigned int cpumask_local_spread(unsign
- 				return cpu;
- 		}
- 	} else {
--		/* NUMA first. */
--		for_each_cpu_and(cpu, cpumask_of_node(node), mask) {
--			if (i-- == 0)
--				return cpu;
--		}
-+		spin_lock_irqsave(&spread_lock, flags);
-+		memset(used, 0, nr_node_ids * sizeof(bool));
-+		/* select node according to the distance from local node */
-+		for (j = 0; j < nr_node_ids; j++) {
-+			id = find_nearest_node(node, used);
-+			if (id < 0)
-+				break;
+-config ZSMALLOC_PGTABLE_MAPPING
+-	bool "Use page table mapping to access object in zsmalloc"
+-	depends on ZSMALLOC=y
+-	help
+-	  By default, zsmalloc uses a copy-based object mapping method to
+-	  access allocations that span two pages. However, if a particular
+-	  architecture (ex, ARM) performs VM mapping faster than copying,
+-	  then you should select this. This causes zsmalloc to use page table
+-	  mapping rather than copying for object mapping.
+-
+-	  You can check speed with zsmalloc benchmark:
+-	  https://github.com/spartacus06/zsmapbench
+-
+ config ZSMALLOC_STAT
+ 	bool "Export zsmalloc statistics"
+ 	depends on ZSMALLOC
+--- a/mm/zsmalloc.c~mm-zsmallocc-drop-zsmalloc_pgtable_mapping
++++ a/mm/zsmalloc.c
+@@ -293,11 +293,7 @@ struct zspage {
+ };
  
--		for_each_cpu(cpu, mask) {
--			/* Skip NUMA nodes, done above. */
--			if (cpumask_test_cpu(cpu, cpumask_of_node(node)))
--				continue;
-+			for_each_cpu_and(cpu, cpumask_of_node(id), mask)
-+				if (i-- == 0) {
-+					spin_unlock_irqrestore(&spread_lock,
-+							       flags);
-+					return cpu;
-+				}
-+			used[id] = true;
-+		}
-+		spin_unlock_irqrestore(&spread_lock, flags);
- 
-+		for_each_cpu(cpu, mask)
- 			if (i-- == 0)
- 				return cpu;
--		}
- 	}
- 	BUG();
+ struct mapping_area {
+-#ifdef CONFIG_ZSMALLOC_PGTABLE_MAPPING
+-	struct vm_struct *vm; /* vm area for mapping object that span pages */
+-#else
+ 	char *vm_buf; /* copy buffer for objects that span pages */
+-#endif
+ 	char *vm_addr; /* address of kmap_atomic()'ed pages */
+ 	enum zs_mapmode vm_mm; /* mapping mode */
+ };
+@@ -1113,54 +1109,6 @@ static struct zspage *find_get_zspage(st
+ 	return zspage;
  }
+ 
+-#ifdef CONFIG_ZSMALLOC_PGTABLE_MAPPING
+-static inline int __zs_cpu_up(struct mapping_area *area)
+-{
+-	/*
+-	 * Make sure we don't leak memory if a cpu UP notification
+-	 * and zs_init() race and both call zs_cpu_up() on the same cpu
+-	 */
+-	if (area->vm)
+-		return 0;
+-	area->vm = get_vm_area(PAGE_SIZE * 2, 0);
+-	if (!area->vm)
+-		return -ENOMEM;
+-
+-	/*
+-	 * Populate ptes in advance to avoid pte allocation with GFP_KERNEL
+-	 * in non-preemtible context of zs_map_object.
+-	 */
+-	return apply_to_page_range(&init_mm, (unsigned long)area->vm->addr,
+-			PAGE_SIZE * 2, NULL, NULL);
+-}
+-
+-static inline void __zs_cpu_down(struct mapping_area *area)
+-{
+-	if (area->vm)
+-		free_vm_area(area->vm);
+-	area->vm = NULL;
+-}
+-
+-static inline void *__zs_map_object(struct mapping_area *area,
+-				struct page *pages[2], int off, int size)
+-{
+-	unsigned long addr = (unsigned long)area->vm->addr;
+-
+-	BUG_ON(map_kernel_range(addr, PAGE_SIZE * 2, PAGE_KERNEL, pages) < 0);
+-	area->vm_addr = area->vm->addr;
+-	return area->vm_addr + off;
+-}
+-
+-static inline void __zs_unmap_object(struct mapping_area *area,
+-				struct page *pages[2], int off, int size)
+-{
+-	unsigned long addr = (unsigned long)area->vm_addr;
+-
+-	unmap_kernel_range(addr, PAGE_SIZE * 2);
+-}
+-
+-#else /* CONFIG_ZSMALLOC_PGTABLE_MAPPING */
+-
+ static inline int __zs_cpu_up(struct mapping_area *area)
+ {
+ 	/*
+@@ -1241,8 +1189,6 @@ out:
+ 	pagefault_enable();
+ }
+ 
+-#endif /* CONFIG_ZSMALLOC_PGTABLE_MAPPING */
+-
+ static int zs_cpu_prepare(unsigned int cpu)
+ {
+ 	struct mapping_area *area;
 _
 
-Patches currently in -mm which might be from jinyuqi@huawei.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-lib-optimize-cpumask_local_spread.patch
+mm-zsmallocc-drop-zsmalloc_pgtable_mapping.patch
+zram-support-a-page-writeback.patch
 
