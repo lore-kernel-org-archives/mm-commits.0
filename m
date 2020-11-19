@@ -2,113 +2,76 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C46EC63697
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 23:59:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D8EAC388F9
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Nov 2020 06:28:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0CE2246EB
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Nov 2020 23:59:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UzQHbuXJ"
+	by mail.kernel.org (Postfix) with ESMTP id 206EB246AD
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Nov 2020 06:28:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726412AbgKRX6v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Nov 2020 18:58:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46706 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726340AbgKRX6v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Nov 2020 18:58:51 -0500
-Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 27A3A246BB;
-        Wed, 18 Nov 2020 23:58:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605743930;
-        bh=gh0Z289yMQHgj2d4gwPDZzPBuC/miMoGntD4aOPyxvI=;
-        h=Date:From:To:Subject:From;
-        b=UzQHbuXJBbfHwnauYETQHWBSJN/SRK2wATENmu1pViSJPALDoiAgzZJ4CENhmMph5
-         k9ZL+rvb3hw2dlP4D5Ur/PDnGxdGgXLwnJ4/3ZYlmH2MddoYUE5xkYTt3vmzHib88q
-         vtuKaS3rr2kgB83ifAkUpNUOWpFCCbbVRJUQEXkk=
-Date:   Wed, 18 Nov 2020 15:58:49 -0800
-From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, jrdr.linux@gmail.com, kaixuxia@tencent.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
-        tencent_os_robot@tencent.com, vdavydov.dev@gmail.com
-Subject:  +
- mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch added to -mm
- tree
-Message-ID: <20201118235849.rXtPdcqe_%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S1725915AbgKSG20 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Nov 2020 01:28:26 -0500
+Received: from out30-133.freemail.mail.aliyun.com ([115.124.30.133]:55120 "EHLO
+        out30-133.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725907AbgKSG20 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 19 Nov 2020 01:28:26 -0500
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R671e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04407;MF=alex.shi@linux.alibaba.com;NM=1;PH=DS;RN=28;SR=0;TI=SMTPD_---0UFsdp9c_1605767299;
+Received: from IT-FVFX43SYHV2H.local(mailfrom:alex.shi@linux.alibaba.com fp:SMTPD_---0UFsdp9c_1605767299)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 19 Nov 2020 14:28:20 +0800
+Subject: Re: + mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch added to
+ -mm tree
+To:     akpm@linux-foundation.org, aarcange@redhat.com,
+        alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
+        daniel.m.jordan@oracle.com, hannes@cmpxchg.org, hughd@google.com,
+        iamjoonsoo.kim@lge.com, jannh@google.com,
+        khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com,
+        kirill@shutemov.name, mgorman@techsingularity.net,
+        mhocko@kernel.org, mhocko@suse.com, mika.penttila@nextfour.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, rong.a.chen@intel.com,
+        shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
+        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
+        yang.shi@linux.alibaba.com, ying.huang@intel.com
+References: <20201116215748.Yk38422l-%akpm@linux-foundation.org>
+From:   Alex Shi <alex.shi@linux.alibaba.com>
+Message-ID: <2ecb6ce8-f0ae-04a7-c6dd-b1b0968a217c@linux.alibaba.com>
+Date:   Thu, 19 Nov 2020 14:26:46 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
+ Gecko/20100101 Thunderbird/68.12.0
+MIME-Version: 1.0
+In-Reply-To: <20201116215748.Yk38422l-%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: memcontrol: Assign boolean values to a bool variable
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
+在 2020/11/17 上午5:57, akpm@linux-foundation.org 写道:
+> On a large machine with memcg enabled but not used, the page's lruvec
+> seeking pass a few pointers, that may lead to lru_lock holding time
+> increase and a bit regression.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Hi Andrew,
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Few pointer walking actually has no clear impact in above mentioned
+situation, so could you please remove above section? when you merge the
+3 'replace lru pgdat lru_lock' patches linux-next/akpm or master branch.
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+3d0d6a8434e1 mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2
+6bffb6674742 mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix
+7c3520054e02 mm/lru: replace pgdat lru_lock with lruvec lock
 
-------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm: memcontrol: Assign boolean values to a bool variable
 
-Fix the following coccinelle warnings:
+Also thanks a lot for couple commit log polish on whole series!
 
-./mm/memcontrol.c:7341:2-22: WARNING: Assignment of 0/1 to bool variable
-./mm/memcontrol.c:7343:2-22: WARNING: Assignment of 0/1 to bool variable
-
-Link: https://lkml.kernel.org/r/1604737495-6418-1-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Reported-by: Tosk Robot <tencent_os_robot@tencent.com>
-Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/mm/memcontrol.c~mm-memcontrol-assign-boolean-values-to-a-bool-variable
-+++ a/mm/memcontrol.c
-@@ -7340,9 +7340,9 @@ bool mem_cgroup_swap_full(struct page *p
- static int __init setup_swap_account(char *s)
- {
- 	if (!strcmp(s, "1"))
--		cgroup_memory_noswap = 0;
-+		cgroup_memory_noswap = false;
- 	else if (!strcmp(s, "0"))
--		cgroup_memory_noswap = 1;
-+		cgroup_memory_noswap = true;
- 	return 1;
- }
- __setup("swapaccount=", setup_swap_account);
-_
-
-Patches currently in -mm which might be from kaixuxia@tencent.com are
-
-mm-memcontrol-assign-boolean-values-to-a-bool-variable.patch
-
+Thanks again!
+Alex
