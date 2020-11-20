@@ -2,43 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAC5FC388F9
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 01:25:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 924E6C2D0E4
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 19:12:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5957B22256
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 01:25:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 398FA2240A
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 19:12:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZifFPW3b"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oBlTy90a"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726260AbgKTBZr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Nov 2020 20:25:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35384 "EHLO mail.kernel.org"
+        id S1732236AbgKTTMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Nov 2020 14:12:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725936AbgKTBZq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 19 Nov 2020 20:25:46 -0500
-Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
+        id S1728909AbgKTTMW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Nov 2020 14:12:22 -0500
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E182F22254;
-        Fri, 20 Nov 2020 01:25:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 499D22245F;
+        Fri, 20 Nov 2020 19:12:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605835546;
-        bh=Wuc+OIblcghswG+fPfmEEO4gEZv3pVQrUI1H7b7aj0k=;
+        s=korg; t=1605899541;
+        bh=l0ufam+W3QAfMoqNJtpWVFBDfsLiis1R0pKqEwLx5u4=;
         h=Date:From:To:Subject:From;
-        b=ZifFPW3bbP1qGwsD7Z8dMIAtaTFs3T/4PF6BbTOdBeWIBforNUMDVbxxHhhjTarPW
-         EZ6g6lkcwG/KWz+GvynbsDRNk6RmVxDDDeGVA5vvw3ikhZ+d9prYGYKHeD6sWxj+e/
-         /KJ94AjpcISyhC4dVJRSYXbeD/Yy8vzWTUPDE0iU=
-Date:   Thu, 19 Nov 2020 17:25:45 -0800
+        b=oBlTy90a3QMF38QSgJxAyP12HKljmMB+nTzLrUunI1kimy4yDIeP8fe4tU4OQg+JW
+         ALFnA5wXpaXQCkZ9r3I6599Lo3g+/5BsrpnVbBcDAYE5uisiAM0GYs9A8wP5ZMrvSo
+         uL7S/PcS5Yw8etQ3a7KKxmVj/jY+pCeMHB/zk4XI=
+Date:   Fri, 20 Nov 2020 11:12:20 -0800
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, mm-commits@vger.kernel.org, nsaenzjulienne@suse.de
-Subject:  + mm-remove-examples-from-enum-zone_type-comment.patch
- added to -mm tree
-Message-ID: <20201120012545.MqVoEa_L3%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20201120191220.A2khlzHpJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/mmzone.h: remove examples from enum zone_type comment
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-remove-examples-from-enum-zone_type-comment.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-examples-from-enum-zone_type-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-examples-from-enum-zone_type-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,55 +67,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
-Subject: include/linux/mmzone.h: remove examples from enum zone_type comment
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-We can't really list every setup in common code.  On top of that they are
-unlikely to stay true for long as things change in the arch trees
-independently of this comment.
-
-Link: https://lkml.kernel.org/r/20201119175400.9995-8-nsaenzjulienne@suse.de
-Signed-off-by: Nicolas Saenz Julienne <nsaenzjulienne@suse.de>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   20 --------------------
- 1 file changed, 20 deletions(-)
+ drivers/dma/idxd/device.c    |    5 -----
+ drivers/dma/idxd/registers.h |    6 ------
+ drivers/dma/idxd/submit.c    |    4 ----
+ sound/soc/intel/catpt/pcm.c  |    7 -------
+ 4 files changed, 22 deletions(-)
 
---- a/include/linux/mmzone.h~mm-remove-examples-from-enum-zone_type-comment
-+++ a/include/linux/mmzone.h
-@@ -355,26 +355,6 @@ enum zone_type {
- 	 * DMA mask is assumed when ZONE_DMA32 is defined. Some 64-bit
- 	 * platforms may need both zones as they support peripherals with
- 	 * different DMA addressing limitations.
--	 *
--	 * Some examples:
--	 *
--	 *  - i386 and x86_64 have a fixed 16M ZONE_DMA and ZONE_DMA32 for the
--	 *    rest of the lower 4G.
--	 *
--	 *  - arm only uses ZONE_DMA, the size, up to 4G, may vary depending on
--	 *    the specific device.
--	 *
--	 *  - arm64 has a fixed 1G ZONE_DMA and ZONE_DMA32 for the rest of the
--	 *    lower 4G.
--	 *
--	 *  - powerpc only uses ZONE_DMA, the size, up to 2G, may vary
--	 *    depending on the specific device.
--	 *
--	 *  - s390 uses ZONE_DMA fixed to the lower 2G.
--	 *
--	 *  - ia64 and riscv only use ZONE_DMA32.
--	 *
--	 *  - parisc uses neither.
- 	 */
- #ifdef CONFIG_ZONE_DMA
- 	ZONE_DMA,
+--- a/drivers/dma/idxd/device.c~linux-next-git-rejects
++++ a/drivers/dma/idxd/device.c
+@@ -616,10 +616,6 @@ static int idxd_wq_config_write(struct i
+ 
+ 	/* byte 8-11 */
+ 	wq->wqcfg->priv = !!(wq->type == IDXD_WQT_KERNEL);
+-<<<<<<< HEAD
+-	wq->wqcfg->mode = 1;
+-	wq->wqcfg->priority = wq->priority;
+-=======
+ 	if (wq_dedicated(wq))
+ 		wq->wqcfg->mode = 1;
+ 
+@@ -634,7 +630,6 @@ static int idxd_wq_config_write(struct i
+ 	if (idxd->hw.gen_cap.block_on_fault &&
+ 	    test_bit(WQ_FLAG_BLOCK_ON_FAULT, &wq->flags))
+ 		wq->wqcfg->bof = 1;
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* bytes 12-15 */
+ 	wq->wqcfg->max_xfer_shift = ilog2(wq->max_xfer_bytes);
+--- a/drivers/dma/idxd/registers.h~linux-next-git-rejects
++++ a/drivers/dma/idxd/registers.h
+@@ -338,11 +338,8 @@ union wqcfg {
+ 	u32 bits[8];
+ } __packed;
+ 
+-<<<<<<< HEAD
+-=======
+ #define WQCFG_PASID_IDX                2
+ 
+->>>>>>> linux-next/akpm-base
+ /*
+  * This macro calculates the offset into the WQCFG register
+  * idxd - struct idxd *
+@@ -361,8 +358,6 @@ union wqcfg {
+ 
+ #define WQCFG_STRIDES(_idxd_dev) ((_idxd_dev)->wqcfg_size / sizeof(u32))
+ 
+-<<<<<<< HEAD
+-=======
+ #define GRPCFG_SIZE		64
+ #define GRPWQCFG_STRIDES	4
+ 
+@@ -381,5 +376,4 @@ union wqcfg {
+ #define GRPENGCFG_OFFSET(idxd_dev, n) ((idxd_dev)->grpcfg_offset + (n) * GRPCFG_SIZE + 32)
+ #define GRPFLGCFG_OFFSET(idxd_dev, n) ((idxd_dev)->grpcfg_offset + (n) * GRPCFG_SIZE + 40)
+ 
+->>>>>>> linux-next/akpm-base
+ #endif
+--- a/drivers/dma/idxd/submit.c~linux-next-git-rejects
++++ a/drivers/dma/idxd/submit.c
+@@ -86,12 +86,8 @@ int idxd_submit_desc(struct idxd_wq *wq,
+ 	if (idxd->state != IDXD_DEV_ENABLED)
+ 		return -EIO;
+ 
+-<<<<<<< HEAD
+-	portal = wq->dportal;
+-=======
+ 	portal = wq->portal;
+ 
+->>>>>>> linux-next/akpm-base
+ 	/*
+ 	 * The wmb() flushes writes to coherent DMA data before
+ 	 * possibly triggering a DMA read. The wmb() is necessary
+--- a/sound/soc/intel/catpt/pcm.c~linux-next-git-rejects
++++ a/sound/soc/intel/catpt/pcm.c
+@@ -462,13 +462,6 @@ static int catpt_dai_prepare(struct snd_
+ 	if (ret)
+ 		return CATPT_IPC_ERROR(ret);
+ 
+-<<<<<<< HEAD
+-	ret = catpt_dai_apply_usettings(dai, stream);
+-	if (ret)
+-		return ret;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	stream->prepared = true;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from nsaenzjulienne@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-examples-from-enum-zone_type-comment.patch
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
