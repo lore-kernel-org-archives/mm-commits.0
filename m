@@ -7,39 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73FF7C8300F
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 22:21:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20939C2D0E4
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 22:29:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 21CD32245F
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 22:21:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F7EC22464
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Nov 2020 22:29:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PlxlRQqV"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VB9Q0LQx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728606AbgKTWVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Nov 2020 17:21:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60872 "EHLO mail.kernel.org"
+        id S1728318AbgKTW3a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Nov 2020 17:29:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728174AbgKTWVo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 20 Nov 2020 17:21:44 -0500
+        id S1728282AbgKTW3a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Nov 2020 17:29:30 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E43842240C;
-        Fri, 20 Nov 2020 22:21:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0B32A2245F;
+        Fri, 20 Nov 2020 22:29:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1605910903;
-        bh=X9ZNgVo9fs8z/MrjQJ/cGCRcKcR3hdl65XcbBnntMSA=;
+        s=korg; t=1605911369;
+        bh=8dNOP5U3SNEMDFIo91jLuXzIwMkIXD2EjigzCDn+cW8=;
         h=Date:From:To:Subject:From;
-        b=PlxlRQqVI2ggJgOjia2pnH1/lOer8gJqCAjnHiAa08Wamv5hDBw3mbS1M86yvOyLL
-         JzA6KtZKjTOtQwzeWFiJAFwqbsIjkXyI5ejUOnKY9tsga/oFkH4QiI+3vWMNjl/Ib2
-         fy3xHxYY87DZs4YuUmjImQNdtRHxL1PIbLrT7Eq8=
-Date:   Fri, 20 Nov 2020 14:21:42 -0800
+        b=VB9Q0LQxfqtC4VWr+wOdvWi1xIpawpi9lqvR93hzgbut2i+LZNTdZROdvYY5bP29C
+         Kn8oveMNkh+VTxiuZyg5GJWOQ0pvSTxOExfdOLFx6FZbx3Hf5aPGvZ6RBVUqudcJYz
+         2DNCIKn5uQ4SMuxag7lxkbxYE2NP9vbq/gqiCGik=
+Date:   Fri, 20 Nov 2020 14:29:28 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
-Subject:  + mm-memcg-remove-incorrect-comments.patch added to -mm
- tree
-Message-ID: <20201120222142.SU6Nowv67%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, alexander.h.duyck@linux.intel.com,
+        guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, sh_def@163.com, shakeelb@google.com
+Subject:  + mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
+ added to -mm tree
+Message-ID: <20201120222928.LUs3YgRPs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: remove incorrect comment
+     Subject: mm/memcg: add missed warning in mem_cgroup_lruvec
 has been added to the -mm tree.  Its filename is
-     mm-memcg-remove-incorrect-comments.patch
+     mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-remove-incorrect-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-remove-incorrect-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,32 +72,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/memcg: remove incorrect comment
+Subject: mm/memcg: add missed warning in mem_cgroup_lruvec
 
-Swapcache readahead pages are charged before being used, so it is unlikely
-that they will be migrated before charging.  Remove the incorrect comment.
+commit "(mm/memcontrol:rewrite mem_cgroup_page_lruvec())" on mm tree use
+mem_cgroup_lruvec to rewrite mem_cgroup_page_lruvec, but it missed a
+DEBUG_VM warning as following, since we always charge a page before
+return from allocation. Add back this warning is helpful:
 
-Link: https://lkml.kernel.org/r/1605864930-49405-1-git-send-email-alex.shi@linux.alibaba.com
+	VM_WARN_ON_ONCE(!memcg);
+
+Link: https://lkml.kernel.org/r/94f17bb7-ec61-5b72-3555-fabeb5a4d73b@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Hui Su <sh_def@163.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/memcontrol.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memcontrol.c~mm-memcg-remove-incorrect-comments
-+++ a/mm/memcontrol.c
-@@ -6981,7 +6981,6 @@ void mem_cgroup_migrate(struct page *old
- 	if (newpage->mem_cgroup)
- 		return;
+--- a/include/linux/memcontrol.h~mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix
++++ a/include/linux/memcontrol.h
+@@ -618,6 +618,7 @@ static inline struct lruvec *mem_cgroup_
+ 		goto out;
+ 	}
  
--	/* Swapcache readahead pages can get replaced before being charged */
- 	memcg = oldpage->mem_cgroup;
++	VM_WARN_ON_ONCE(!memcg);
  	if (!memcg)
- 		return;
+ 		memcg = root_mem_cgroup;
+ 
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
@@ -133,4 +144,5 @@ docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
 khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
 mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
 mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
