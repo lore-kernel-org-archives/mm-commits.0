@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56138C63777
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38770C56201
 	for <mm-commits@archiver.kernel.org>; Sun, 22 Nov 2020 06:11:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 166A6208B3
-	for <mm-commits@archiver.kernel.org>; Sun, 22 Nov 2020 06:11:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D60222078B
+	for <mm-commits@archiver.kernel.org>; Sun, 22 Nov 2020 06:11:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jvWeubkM"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bMWv4ql1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727330AbgKVGLK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 22 Nov 2020 01:11:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50926 "EHLO mail.kernel.org"
+        id S1726957AbgKVGLH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 22 Nov 2020 01:11:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726461AbgKVGLJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 22 Nov 2020 01:11:09 -0500
+        id S1726461AbgKVGLG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 22 Nov 2020 01:11:06 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BBD3120885;
-        Sun, 22 Nov 2020 06:11:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D23462078B;
+        Sun, 22 Nov 2020 06:11:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606025469;
-        bh=KxBuU4PMpd+nMUiNLfaIh9rgmSw5mCFD6KTXGzXiOuc=;
+        s=korg; t=1606025466;
+        bh=oWPiRvmkIlplBT5LtCcfyg0fr0BToJJO2S7V+Wr/HoM=;
         h=Date:From:To:Subject:From;
-        b=jvWeubkMzpN/tcM3ov4UVZREnoaikSgkgxrB3H33wfxsUTbi37GV8Xejz7RK0cKGY
-         dQYdN0EdGPR+wEldNU1E5Q1Z5W1kPbIrhBQ60ZyjmnDpJhQS0AByh9YI4lf/l/agqY
-         ZLG5v84cbu31EtrWomJhAdm9go6Zw/Hq78F/hTlY=
-Date:   Sat, 21 Nov 2020 22:11:08 -0800
+        b=bMWv4ql1ls1R1s/hp2YY5wZqgDTMZpC+eOApEIaDbRYD913kB74AJF29NHuUiej/3
+         FJCY8ygHXZC7/DNIug7iAq8MbUxGi5XcO05QUxmSuD5wE4ovFsrC+/xRmamDzImz94
+         ZFGnVjWvz1SYxv81+ZRzBa9w9puFxDV+bnLy8tig=
+Date:   Sat, 21 Nov 2020 22:11:05 -0800
 From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, dan.j.williams@intel.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
+To:     benh@kernel.crashing.org, dan.j.williams@intel.com,
+        fenghua.yu@intel.com, hch@infradead.org, hch@lst.de,
+        joao.m.martins@oracle.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
+        rdunlap@infradead.org, sfr@canb.auug.org.au, tglx@linutronix.de,
+        tony.luck@intel.com, vishal.l.verma@intel.com
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-fix-phys=5Fto=5Ftarget=5Fnode-and-memory=5Fadd=5Fphysaddr?=
- =?US-ASCII?Q?=5Fto=5Fnid-exports-v4-fix.patch?= removed from -mm tree
-Message-ID: <20201122061108.GEPx1U8Dw%akpm@linux-foundation.org>
+ mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
+ removed from -mm tree
+Message-ID: <20201122061105.6gE3ylmvK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,79 +53,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: fix create_section_mapping compile warning
+     Subject: mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
 has been removed from the -mm tree.  Its filename was
-     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix.patch
+     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4.patch
 
 This patch was dropped because it was folded into mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: powerpc: fix create_section_mapping compile warning
+Subject: mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
 
-0day robot reports that a recent rework of how
-memory_add_physaddr_to_nid() and phys_to_target_node() are declared
-resulted in the following new compilation warning:
+(Stephen) PowerPC header include dependencies make it difficult to include
+asm/sparsemem.h in linux/numa.h due to missing definition of pgprot.  Move
+the declaration of create_section_mapping() to asm/mmzone.h.  This has
+received a build success notification from the kbuild-robot over 159
+configs.
 
-arch/powerpc/mm/mem.c:91:12: warning: no previous prototype for 'create_section_mapping' [-Wmissing-prototypes]
-   91 | int __weak create_section_mapping(unsigned long start, unsigned long end,
-      |            ^~~~~~~~~~~~~~~~~~~~~~
-
-...fix this by moving the declaration of create_section_mapping()
-outside of the CONFIG_NEED_MULTIPLE_NODES ifdef guard, and include an
-explicit include of asm/mmzone.h in mem.c. An include of linux/mmzone.h
-is not sufficient.
-
-Link: https://lkml.kernel.org/r/160558386174.2948926.2740149041249041764.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/160461461867.1505359.5301571728749534585.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
 Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mmzone.h |    7 +++++--
- arch/powerpc/mm/mem.c             |    1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ arch/powerpc/include/asm/mmzone.h    |    2 ++
+ arch/powerpc/include/asm/sparsemem.h |    2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/include/asm/mmzone.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix
+--- a/arch/powerpc/include/asm/mmzone.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
 +++ a/arch/powerpc/include/asm/mmzone.h
-@@ -33,8 +33,6 @@ extern struct pglist_data *node_data[];
+@@ -33,6 +33,8 @@ extern struct pglist_data *node_data[];
  extern int numa_cpu_lookup_table[];
  extern cpumask_var_t node_to_cpumask_map[];
  #ifdef CONFIG_MEMORY_HOTPLUG
--extern int create_section_mapping(unsigned long start, unsigned long end,
--				  int nid, pgprot_t prot);
++extern int create_section_mapping(unsigned long start, unsigned long end,
++				  int nid, pgprot_t prot);
  extern unsigned long max_pfn;
  u64 memory_hotplug_max(void);
  #else
-@@ -48,5 +46,10 @@ u64 memory_hotplug_max(void);
- #define __HAVE_ARCH_RESERVED_KERNEL_PAGES
- #endif
+--- a/arch/powerpc/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4
++++ a/arch/powerpc/include/asm/sparsemem.h
+@@ -13,8 +13,6 @@
+ #endif /* CONFIG_SPARSEMEM */
  
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+extern int create_section_mapping(unsigned long start, unsigned long end,
-+				  int nid, pgprot_t prot);
-+#endif
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_MMZONE_H_ */
---- a/arch/powerpc/mm/mem.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix
-+++ a/arch/powerpc/mm/mem.c
-@@ -50,6 +50,7 @@
- #include <asm/rtas.h>
- #include <asm/kasan.h>
- #include <asm/svm.h>
-+#include <asm/mmzone.h>
- 
- #include <mm/mmu_decl.h>
- 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-extern int create_section_mapping(unsigned long start, unsigned long end,
+-				  int nid, pgprot_t prot);
+ extern int remove_section_mapping(unsigned long start, unsigned long end);
+ extern int memory_add_physaddr_to_nid(u64 start);
+ #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports-v4-fix.patch
 device-dax-kmem-use-struct_size.patch
 xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
 
