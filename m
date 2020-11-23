@@ -7,39 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5469FC64E75
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AE28C63697
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:48:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED682206CA
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2A9920719
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:48:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rkQb9VSQ"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MbThk+5n"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731922AbgKWTTg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 14:19:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55494 "EHLO mail.kernel.org"
+        id S1730584AbgKWTsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 14:48:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59514 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729435AbgKWTTg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 14:19:36 -0500
+        id S1730569AbgKWTsD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 14:48:03 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1C9B12063A;
-        Mon, 23 Nov 2020 19:19:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E83B1206F1;
+        Mon, 23 Nov 2020 19:48:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606159175;
-        bh=0Og4zz03afqZKeKSu/y3j+i6GTd5XL3jxdIFjNz4O3c=;
+        s=korg; t=1606160883;
+        bh=VjMYHANGKQ/s/oPUkXFaJ1tRO7LRfAc+qWGEL7CZeSM=;
         h=Date:From:To:Subject:From;
-        b=rkQb9VSQJMOUcpSvRE46Wm0Jq2QAbEWy+ST2iqS/G+HQ3FI220Vcj0jjseV+kJNWd
-         UtIQ4QJXgmovcrVDriSvabi9jF5ixUhTKxtWjvTNh/iykAGYC6XQksnlIL2XiE6tRf
-         Ews1csU8rYask72AY8kCyPW6+K8e2ohz0H13+Grg=
-Date:   Mon, 23 Nov 2020 11:19:34 -0800
+        b=MbThk+5n66f3MIvUt7pWhlaZKN9jhn5EIoEONRSL5etm4Ix45jzuc8VMPVja40q/5
+         G+biELNUa+RYSGstH1PBepMmpwaRNXl/fN40+0W4qlwxk+ydsYV8yV4yW5p/EVWtAo
+         zZGLSlGMXPUmMRKiDaKpGYhlcVrV8KIFIJJOQDoQ=
+Date:   Mon, 23 Nov 2020 11:48:02 -0800
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, hch@infradead.org, jani.nikula@intel.com,
-        kvalo@codeaurora.org, mm-commits@vger.kernel.org
-Subject:  + ath9k-make-relay-callbacks-const.patch added to -mm
- tree
-Message-ID: <20201123191934.FX4IsgiqU%akpm@linux-foundation.org>
+To:     bhe@redhat.com, iamjoonsoo.kim@lge.com, mateusznosek0@gmail.com,
+        mm-commits@vger.kernel.org, nigupta@nvidia.com, sh_def@163.com,
+        vbabka@suse.cz
+Subject:  +
+ mm-compaction-make-defer_compaction-and-compaction_deferred-static.patch
+ added to -mm tree
+Message-ID: <20201123194802.0kmZxKmei%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ath9k: make relay callbacks const
+     Subject: mm/compaction: make defer_compaction and compaction_deferred static
 has been added to the -mm tree.  Its filename is
-     ath9k-make-relay-callbacks-const.patch
+     mm-compaction-make-defer_compaction-and-compaction_deferred-static.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ath9k-make-relay-callbacks-const.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-make-defer_compaction-and-compaction_deferred-static.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ath9k-make-relay-callbacks-const.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-make-defer_compaction-and-compaction_deferred-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,45 +71,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: ath9k: make relay callbacks const
+From: Hui Su <sh_def@163.com>
+Subject: mm/compaction: make defer_compaction and compaction_deferred static
 
-Now that relay_open() accepts const callbacks, make relay callbacks
-const.
+defer_compaction() and compaction_deferred() and compaction_restarting()
+in mm/compaction.c won't be used in other files, so make them static, and
+remove the declaration in the header file.
 
-Link: https://lkml.kernel.org/r/7db0286c428f3a478dd7544afef04a3b131f1aa0.1606153547.git.jani.nikula@intel.com
-Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Acked-by: Kalle Valo <kvalo@codeaurora.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Take the chance to fix a typo.
+
+Link: https://lkml.kernel.org/r/20201123170801.GA9625@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Cc: Nitin Gupta <nigupta@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Mateusz Nosek <mateusznosek0@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath/ath9k/common-spectral.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compaction.h |   12 ------------
+ mm/compaction.c            |    8 ++++----
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
---- a/drivers/net/wireless/ath/ath9k/common-spectral.c~ath9k-make-relay-callbacks-const
-+++ a/drivers/net/wireless/ath/ath9k/common-spectral.c
-@@ -1053,7 +1053,7 @@ static int remove_buf_file_handler(struc
- 	return 0;
+--- a/include/linux/compaction.h~mm-compaction-make-defer_compaction-and-compaction_deferred-static
++++ a/include/linux/compaction.h
+@@ -98,11 +98,8 @@ extern void reset_isolation_suitable(pg_
+ extern enum compact_result compaction_suitable(struct zone *zone, int order,
+ 		unsigned int alloc_flags, int highest_zoneidx);
+ 
+-extern void defer_compaction(struct zone *zone, int order);
+-extern bool compaction_deferred(struct zone *zone, int order);
+ extern void compaction_defer_reset(struct zone *zone, int order,
+ 				bool alloc_success);
+-extern bool compaction_restarting(struct zone *zone, int order);
+ 
+ /* Compaction has made some progress and retrying makes sense */
+ static inline bool compaction_made_progress(enum compact_result result)
+@@ -194,15 +191,6 @@ static inline enum compact_result compac
+ 	return COMPACT_SKIPPED;
  }
  
--static struct rchan_callbacks rfs_spec_scan_cb = {
-+static const struct rchan_callbacks rfs_spec_scan_cb = {
- 	.create_buf_file = create_buf_file_handler,
- 	.remove_buf_file = remove_buf_file_handler,
- };
+-static inline void defer_compaction(struct zone *zone, int order)
+-{
+-}
+-
+-static inline bool compaction_deferred(struct zone *zone, int order)
+-{
+-	return true;
+-}
+-
+ static inline bool compaction_made_progress(enum compact_result result)
+ {
+ 	return false;
+--- a/mm/compaction.c~mm-compaction-make-defer_compaction-and-compaction_deferred-static
++++ a/mm/compaction.c
+@@ -157,7 +157,7 @@ EXPORT_SYMBOL(__ClearPageMovable);
+  * allocation success. 1 << compact_defer_shift, compactions are skipped up
+  * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
+  */
+-void defer_compaction(struct zone *zone, int order)
++static void defer_compaction(struct zone *zone, int order)
+ {
+ 	zone->compact_considered = 0;
+ 	zone->compact_defer_shift++;
+@@ -172,7 +172,7 @@ void defer_compaction(struct zone *zone,
+ }
+ 
+ /* Returns true if compaction should be skipped this time */
+-bool compaction_deferred(struct zone *zone, int order)
++static bool compaction_deferred(struct zone *zone, int order)
+ {
+ 	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
+ 
+@@ -209,7 +209,7 @@ void compaction_defer_reset(struct zone
+ }
+ 
+ /* Returns true if restarting compaction after many failures */
+-bool compaction_restarting(struct zone *zone, int order)
++static bool compaction_restarting(struct zone *zone, int order)
+ {
+ 	if (order < zone->compact_order_failed)
+ 		return false;
+@@ -237,7 +237,7 @@ static void reset_cached_positions(struc
+ }
+ 
+ /*
+- * Compound pages of >= pageblock_order should consistenly be skipped until
++ * Compound pages of >= pageblock_order should consistently be skipped until
+  * released. It is always pointless to compact pages of such order (if they are
+  * migratable), and the pageblocks they occupy cannot contain any free pages.
+  */
 _
 
-Patches currently in -mm which might be from jani.nikula@intel.com are
+Patches currently in -mm which might be from sh_def@163.com are
 
-relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
-relay-require-non-null-callbacks-in-relay_open.patch
-relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
-relay-allow-the-use-of-const-callback-structs.patch
-drm-i915-make-relay-callbacks-const.patch
-ath10k-make-relay-callbacks-const.patch
-ath11k-make-relay-callbacks-const.patch
-ath9k-make-relay-callbacks-const.patch
-blktrace-make-relay-callbacks-const.patch
+mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+mm-shmemc-make-shmem_mapping-inline.patch
+mm-page_counter-use-page_counter_read-in-page_counter_set_max.patch
+mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
+mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+mm-compaction-make-defer_compaction-and-compaction_deferred-static.patch
+mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+acctc-use-elif-instead-of-end-and-elif.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
