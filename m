@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DA3C63798
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5469FC64E75
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18DAF206CA
+	by mail.kernel.org (Postfix) with ESMTP id ED682206CA
 	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ibrn3l0p"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rkQb9VSQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731890AbgKWTTY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 14:19:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55404 "EHLO mail.kernel.org"
+        id S1731922AbgKWTTg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 14:19:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729435AbgKWTTY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 14:19:24 -0500
+        id S1729435AbgKWTTg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 14:19:36 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 181D62063A;
-        Mon, 23 Nov 2020 19:19:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1C9B12063A;
+        Mon, 23 Nov 2020 19:19:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606159163;
-        bh=gOQWBSqm7+tqHrsSeTMNbdBfEGiYYON/bMcE3iXO8/M=;
+        s=korg; t=1606159175;
+        bh=0Og4zz03afqZKeKSu/y3j+i6GTd5XL3jxdIFjNz4O3c=;
         h=Date:From:To:Subject:From;
-        b=ibrn3l0pKEhmCxbCvelaBtja8pDOxsj5IonpEG1BQFlowPdIQO5MA/IfYDFmPk76x
-         yiYDvtgzLJjlXsg/iXlnmJa0q5q8DA0ZeTzoRNl2lvMXeabl/Y63xCXpyK+zGK/cVa
-         zdkqtfMRWX29a0u74jiCmyy1J2sgT0mDbqZbqtdk=
-Date:   Mon, 23 Nov 2020 11:19:22 -0800
+        b=rkQb9VSQJMOUcpSvRE46Wm0Jq2QAbEWy+ST2iqS/G+HQ3FI220Vcj0jjseV+kJNWd
+         UtIQ4QJXgmovcrVDriSvabi9jF5ixUhTKxtWjvTNh/iykAGYC6XQksnlIL2XiE6tRf
+         Ews1csU8rYask72AY8kCyPW6+K8e2ohz0H13+Grg=
+Date:   Mon, 23 Nov 2020 11:19:34 -0800
 From:   akpm@linux-foundation.org
 To:     axboe@kernel.dk, hch@infradead.org, jani.nikula@intel.com,
         kvalo@codeaurora.org, mm-commits@vger.kernel.org
-Subject:  + relay-allow-the-use-of-const-callback-structs.patch
- added to -mm tree
-Message-ID: <20201123191922.GIq1KJi5c%akpm@linux-foundation.org>
+Subject:  + ath9k-make-relay-callbacks-const.patch added to -mm
+ tree
+Message-ID: <20201123191934.FX4IsgiqU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: allow the use of const callback structs
+     Subject: ath9k: make relay callbacks const
 has been added to the -mm tree.  Its filename is
-     relay-allow-the-use-of-const-callback-structs.patch
+     ath9k-make-relay-callbacks-const.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/relay-allow-the-use-of-const-callback-structs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ath9k-make-relay-callbacks-const.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/relay-allow-the-use-of-const-callback-structs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ath9k-make-relay-callbacks-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,127 +70,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jani Nikula <jani.nikula@intel.com>
-Subject: relay: allow the use of const callback structs
+Subject: ath9k: make relay callbacks const
 
-None of the relay users require the use of mutable structs for callbacks,
-however the relay code does.  Instead of assigning the default callback
-for subbuf_start, add a wrapper to conditionally call the client callback
-if available, and fall back to default behaviour otherwise.
+Now that relay_open() accepts const callbacks, make relay callbacks
+const.
 
-This lets all relay users make their struct rchan_callbacks const data.
-
-Link: https://lkml.kernel.org/r/cc3ff292e4eb4fdc56bee3d690c7b8e39209cd37.1606153547.git.jani.nikula@intel.com
+Link: https://lkml.kernel.org/r/7db0286c428f3a478dd7544afef04a3b131f1aa0.1606153547.git.jani.nikula@intel.com
 Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kalle Valo <kvalo@codeaurora.org>
+Acked-by: Kalle Valo <kvalo@codeaurora.org>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/relay.h |    4 ++--
- kernel/relay.c        |   35 +++++++++++------------------------
- 2 files changed, 13 insertions(+), 26 deletions(-)
+ drivers/net/wireless/ath/ath9k/common-spectral.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/relay.h~relay-allow-the-use-of-const-callback-structs
-+++ a/include/linux/relay.h
-@@ -62,7 +62,7 @@ struct rchan
- 	size_t subbuf_size;		/* sub-buffer size */
- 	size_t n_subbufs;		/* number of sub-buffers per buffer */
- 	size_t alloc_size;		/* total buffer size allocated */
--	struct rchan_callbacks *cb;	/* client callbacks */
-+	const struct rchan_callbacks *cb; /* client callbacks */
- 	struct kref kref;		/* channel refcount */
- 	void *private_data;		/* for user-defined data */
- 	size_t last_toobig;		/* tried to log event > subbuf size */
-@@ -157,7 +157,7 @@ struct rchan *relay_open(const char *bas
- 			 struct dentry *parent,
- 			 size_t subbuf_size,
- 			 size_t n_subbufs,
--			 struct rchan_callbacks *cb,
-+			 const struct rchan_callbacks *cb,
- 			 void *private_data);
- extern int relay_late_setup_files(struct rchan *chan,
- 				  const char *base_filename,
---- a/kernel/relay.c~relay-allow-the-use-of-const-callback-structs
-+++ a/kernel/relay.c
-@@ -252,19 +252,14 @@ EXPORT_SYMBOL_GPL(relay_buf_full);
-  * High-level relay kernel API and associated functions.
-  */
- 
--/*
-- * rchan_callback implementations defining default channel behavior.  Used
-- * in place of corresponding NULL values in client callback struct.
-- */
-+/* subbuf_start callback wrapper */
-+static int cb_subbuf_start(struct rchan_buf *buf, void *subbuf,
-+			   void *prev_subbuf, size_t prev_padding)
-+{
-+	if (buf->chan->cb->subbuf_start)
-+		return buf->chan->cb->subbuf_start(buf, subbuf,
-+						   prev_subbuf, prev_padding);
- 
--/*
-- * subbuf_start() default callback.  Does nothing.
-- */
--static int subbuf_start_default_callback (struct rchan_buf *buf,
--					  void *subbuf,
--					  void *prev_subbuf,
--					  size_t prev_padding)
--{
- 	if (relay_buf_full(buf))
- 		return 0;
- 
-@@ -314,7 +309,7 @@ static void __relay_reset(struct rchan_b
- 	for (i = 0; i < buf->chan->n_subbufs; i++)
- 		buf->padding[i] = 0;
- 
--	buf->chan->cb->subbuf_start(buf, buf->data, NULL, 0);
-+	cb_subbuf_start(buf, buf->data, NULL, 0);
+--- a/drivers/net/wireless/ath/ath9k/common-spectral.c~ath9k-make-relay-callbacks-const
++++ a/drivers/net/wireless/ath/ath9k/common-spectral.c
+@@ -1053,7 +1053,7 @@ static int remove_buf_file_handler(struc
+ 	return 0;
  }
  
- /**
-@@ -442,14 +437,6 @@ static void relay_close_buf(struct rchan
- 	kref_put(&buf->kref, relay_remove_buf);
- }
- 
--static void setup_callbacks(struct rchan *chan,
--				   struct rchan_callbacks *cb)
--{
--	if (!cb->subbuf_start)
--		cb->subbuf_start = subbuf_start_default_callback;
--	chan->cb = cb;
--}
--
- int relay_prepare_cpu(unsigned int cpu)
- {
- 	struct rchan *chan;
-@@ -495,7 +482,7 @@ struct rchan *relay_open(const char *bas
- 			 struct dentry *parent,
- 			 size_t subbuf_size,
- 			 size_t n_subbufs,
--			 struct rchan_callbacks *cb,
-+			 const struct rchan_callbacks *cb,
- 			 void *private_data)
- {
- 	unsigned int i;
-@@ -529,7 +516,7 @@ struct rchan *relay_open(const char *bas
- 		chan->has_base_filename = 1;
- 		strlcpy(chan->base_filename, base_filename, NAME_MAX);
- 	}
--	setup_callbacks(chan, cb);
-+	chan->cb = cb;
- 	kref_init(&chan->kref);
- 
- 	mutex_lock(&relay_channels_mutex);
-@@ -712,7 +699,7 @@ size_t relay_switch_subbuf(struct rchan_
- 	new_subbuf = buf->subbufs_produced % buf->chan->n_subbufs;
- 	new = buf->start + new_subbuf * buf->chan->subbuf_size;
- 	buf->offset = 0;
--	if (!buf->chan->cb->subbuf_start(buf, new, old, buf->prev_padding)) {
-+	if (!cb_subbuf_start(buf, new, old, buf->prev_padding)) {
- 		buf->offset = buf->chan->subbuf_size + 1;
- 		return 0;
- 	}
+-static struct rchan_callbacks rfs_spec_scan_cb = {
++static const struct rchan_callbacks rfs_spec_scan_cb = {
+ 	.create_buf_file = create_buf_file_handler,
+ 	.remove_buf_file = remove_buf_file_handler,
+ };
 _
 
 Patches currently in -mm which might be from jani.nikula@intel.com are
