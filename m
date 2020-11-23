@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB491C2D0E4
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 18:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11821C63777
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 775A92075A
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 18:02:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FEFB2072C
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvLtDcLL"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZELE5Xva"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731340AbgKWSCJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 13:02:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55244 "EHLO mail.kernel.org"
+        id S1731248AbgKWTTQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 14:19:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728717AbgKWSCJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 13:02:09 -0500
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1729407AbgKWTTP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 14:19:15 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1545B206B2;
-        Mon, 23 Nov 2020 18:02:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 40C282063A;
+        Mon, 23 Nov 2020 19:19:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606154528;
-        bh=OnA0xsLOfbHWRBkHlWDdpiQh9T8u1jkFy1SlEtlW7qA=;
+        s=korg; t=1606159154;
+        bh=3b2EKbJuOov52bNpfS73A9VuKo9lO+n9q7da4TsrT7A=;
         h=Date:From:To:Subject:From;
-        b=GvLtDcLLClBslXDNXdUjNtEmTgreDOYIdFR/VwTGXM5wxkfsdh+gBw3xwaGP4vMCq
-         CNJizhsQmHhbaJ+hGdqJMYEeCdcRG3RiopuMKDJQ6uEa0Nl56Jo1oEfX1qc+hplJvd
-         iZ0I50PgFrd+FIQVJn4ibsWsMcBL8gLZqCOVvVyU=
-Date:   Mon, 23 Nov 2020 10:02:07 -0800
+        b=ZELE5XvaeoTqvBkM5McVLu/9H4O0PAl9eQwCfYUz7DskaDwjJXwQr9hlwy0MN7Db7
+         eHW7UqsYOzkUCDg0CaSxG9DhM286reXRnx2FuUs8KFpNE5luYf73rwx3ArRjMXyUHL
+         X23LmlXEdfYUV5esZUiAoouYhnDdKSNela/kcK3Q=
+Date:   Mon, 23 Nov 2020 11:19:13 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20201123180207.owbtNDY17%akpm@linux-foundation.org>
+To:     axboe@kernel.dk, hch@infradead.org, jani.nikula@intel.com,
+        kvalo@codeaurora.org, mm-commits@vger.kernel.org
+Subject:  +
+ relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch added to
+ -mm tree
+Message-ID: <20201123191913.tXJkcClnl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,120 +49,187 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: relay: remove unused buf_mapped and buf_unmapped callbacks
+has been added to the -mm tree.  Its filename is
+     relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: relay: remove unused buf_mapped and buf_unmapped callbacks
 
+Patch series "relay: cleanup and const callbacks", v2.
+
+None of the relay users require the use of mutable structs for callbacks,
+however the relay code does.  Instead of assigning default callbacks when
+there is none, add callback wrappers to conditionally call the client
+callbacks if available, and fall back to default behaviour (typically
+no-op) otherwise.
+
+This lets all relay users make their struct rchan_callbacks const data.
+
+This series starts with a number of cleanups first based on Christoph's
+feedback.
+
+
+This patch (of 9):
+
+No relay client uses the buf_mapped or buf_unmapped callbacks.  Remove
+them.  This makes relay's vm_operations_struct close callback a dummy,
+remove it as well.
+
+Link: https://lkml.kernel.org/r/cover.1606153547.git.jani.nikula@intel.com
+Link: https://lkml.kernel.org/r/c69fff6e0cd485563604240bbfcc028434983bec.1606153547.git.jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/idxd/device.c    |    5 -----
- drivers/dma/idxd/registers.h |    6 ------
- drivers/dma/idxd/submit.c    |    4 ----
- sound/soc/intel/catpt/pcm.c  |    7 -------
- 4 files changed, 22 deletions(-)
+ include/linux/relay.h |   19 -------------------
+ kernel/relay.c        |   34 ----------------------------------
+ 2 files changed, 53 deletions(-)
 
---- a/drivers/dma/idxd/device.c~linux-next-git-rejects
-+++ a/drivers/dma/idxd/device.c
-@@ -616,10 +616,6 @@ static int idxd_wq_config_write(struct i
+--- a/include/linux/relay.h~relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks
++++ a/include/linux/relay.h
+@@ -102,25 +102,6 @@ struct rchan_callbacks
+ 			     size_t prev_padding);
  
- 	/* byte 8-11 */
- 	wq->wqcfg->priv = !!(wq->type == IDXD_WQT_KERNEL);
--<<<<<<< HEAD
--	wq->wqcfg->mode = 1;
--	wq->wqcfg->priority = wq->priority;
--=======
- 	if (wq_dedicated(wq))
- 		wq->wqcfg->mode = 1;
- 
-@@ -634,7 +630,6 @@ static int idxd_wq_config_write(struct i
- 	if (idxd->hw.gen_cap.block_on_fault &&
- 	    test_bit(WQ_FLAG_BLOCK_ON_FAULT, &wq->flags))
- 		wq->wqcfg->bof = 1;
-->>>>>>> linux-next/akpm-base
- 
- 	/* bytes 12-15 */
- 	wq->wqcfg->max_xfer_shift = ilog2(wq->max_xfer_bytes);
---- a/drivers/dma/idxd/registers.h~linux-next-git-rejects
-+++ a/drivers/dma/idxd/registers.h
-@@ -338,11 +338,8 @@ union wqcfg {
- 	u32 bits[8];
- } __packed;
- 
--<<<<<<< HEAD
--=======
- #define WQCFG_PASID_IDX                2
- 
-->>>>>>> linux-next/akpm-base
- /*
-  * This macro calculates the offset into the WQCFG register
-  * idxd - struct idxd *
-@@ -361,8 +358,6 @@ union wqcfg {
- 
- #define WQCFG_STRIDES(_idxd_dev) ((_idxd_dev)->wqcfg_size / sizeof(u32))
- 
--<<<<<<< HEAD
--=======
- #define GRPCFG_SIZE		64
- #define GRPWQCFG_STRIDES	4
- 
-@@ -381,5 +376,4 @@ union wqcfg {
- #define GRPENGCFG_OFFSET(idxd_dev, n) ((idxd_dev)->grpcfg_offset + (n) * GRPCFG_SIZE + 32)
- #define GRPFLGCFG_OFFSET(idxd_dev, n) ((idxd_dev)->grpcfg_offset + (n) * GRPCFG_SIZE + 40)
- 
-->>>>>>> linux-next/akpm-base
- #endif
---- a/drivers/dma/idxd/submit.c~linux-next-git-rejects
-+++ a/drivers/dma/idxd/submit.c
-@@ -86,12 +86,8 @@ int idxd_submit_desc(struct idxd_wq *wq,
- 	if (idxd->state != IDXD_DEV_ENABLED)
- 		return -EIO;
- 
--<<<<<<< HEAD
--	portal = wq->dportal;
--=======
- 	portal = wq->portal;
- 
-->>>>>>> linux-next/akpm-base
  	/*
- 	 * The wmb() flushes writes to coherent DMA data before
- 	 * possibly triggering a DMA read. The wmb() is necessary
---- a/sound/soc/intel/catpt/pcm.c~linux-next-git-rejects
-+++ a/sound/soc/intel/catpt/pcm.c
-@@ -462,13 +462,6 @@ static int catpt_dai_prepare(struct snd_
- 	if (ret)
- 		return CATPT_IPC_ERROR(ret);
- 
--<<<<<<< HEAD
--	ret = catpt_dai_apply_usettings(dai, stream);
--	if (ret)
--		return ret;
+-	 * buf_mapped - relay buffer mmap notification
+-	 * @buf: the channel buffer
+-	 * @filp: relay file pointer
+-	 *
+-	 * Called when a relay file is successfully mmapped
+-	 */
+-        void (*buf_mapped)(struct rchan_buf *buf,
+-			   struct file *filp);
 -
--=======
-->>>>>>> linux-next/akpm-base
- 	stream->prepared = true;
+-	/*
+-	 * buf_unmapped - relay buffer unmap notification
+-	 * @buf: the channel buffer
+-	 * @filp: relay file pointer
+-	 *
+-	 * Called when a relay file is successfully unmapped
+-	 */
+-        void (*buf_unmapped)(struct rchan_buf *buf,
+-			     struct file *filp);
+-	/*
+ 	 * create_buf_file - create file to represent a relay channel buffer
+ 	 * @filename: the name of the file to create
+ 	 * @parent: the parent of the file to create
+--- a/kernel/relay.c~relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks
++++ a/kernel/relay.c
+@@ -28,15 +28,6 @@ static DEFINE_MUTEX(relay_channels_mutex
+ static LIST_HEAD(relay_channels);
+ 
+ /*
+- * close() vm_op implementation for relay file mapping.
+- */
+-static void relay_file_mmap_close(struct vm_area_struct *vma)
+-{
+-	struct rchan_buf *buf = vma->vm_private_data;
+-	buf->chan->cb->buf_unmapped(buf, vma->vm_file);
+-}
+-
+-/*
+  * fault() vm_op implementation for relay file mapping.
+  */
+ static vm_fault_t relay_buf_fault(struct vm_fault *vmf)
+@@ -62,7 +53,6 @@ static vm_fault_t relay_buf_fault(struct
+  */
+ static const struct vm_operations_struct relay_file_mmap_ops = {
+ 	.fault = relay_buf_fault,
+-	.close = relay_file_mmap_close,
+ };
+ 
+ /*
+@@ -96,7 +86,6 @@ static void relay_free_page_array(struct
+ static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
+ {
+ 	unsigned long length = vma->vm_end - vma->vm_start;
+-	struct file *filp = vma->vm_file;
+ 
+ 	if (!buf)
+ 		return -EBADF;
+@@ -107,7 +96,6 @@ static int relay_mmap_buf(struct rchan_b
+ 	vma->vm_ops = &relay_file_mmap_ops;
+ 	vma->vm_flags |= VM_DONTEXPAND;
+ 	vma->vm_private_data = buf;
+-	buf->chan->cb->buf_mapped(buf, filp);
+ 
  	return 0;
  }
+@@ -284,22 +272,6 @@ static int subbuf_start_default_callback
+ }
+ 
+ /*
+- * buf_mapped() default callback.  Does nothing.
+- */
+-static void buf_mapped_default_callback(struct rchan_buf *buf,
+-					struct file *filp)
+-{
+-}
+-
+-/*
+- * buf_unmapped() default callback.  Does nothing.
+- */
+-static void buf_unmapped_default_callback(struct rchan_buf *buf,
+-					  struct file *filp)
+-{
+-}
+-
+-/*
+  * create_buf_file_create() default callback.  Does nothing.
+  */
+ static struct dentry *create_buf_file_default_callback(const char *filename,
+@@ -322,8 +294,6 @@ static int remove_buf_file_default_callb
+ /* relay channel default callbacks */
+ static struct rchan_callbacks default_channel_callbacks = {
+ 	.subbuf_start = subbuf_start_default_callback,
+-	.buf_mapped = buf_mapped_default_callback,
+-	.buf_unmapped = buf_unmapped_default_callback,
+ 	.create_buf_file = create_buf_file_default_callback,
+ 	.remove_buf_file = remove_buf_file_default_callback,
+ };
+@@ -509,10 +479,6 @@ static void setup_callbacks(struct rchan
+ 
+ 	if (!cb->subbuf_start)
+ 		cb->subbuf_start = subbuf_start_default_callback;
+-	if (!cb->buf_mapped)
+-		cb->buf_mapped = buf_mapped_default_callback;
+-	if (!cb->buf_unmapped)
+-		cb->buf_unmapped = buf_unmapped_default_callback;
+ 	if (!cb->create_buf_file)
+ 		cb->create_buf_file = create_buf_file_default_callback;
+ 	if (!cb->remove_buf_file)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
+relay-require-non-null-callbacks-in-relay_open.patch
+relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
+relay-allow-the-use-of-const-callback-structs.patch
+drm-i915-make-relay-callbacks-const.patch
+ath10k-make-relay-callbacks-const.patch
+ath11k-make-relay-callbacks-const.patch
+ath9k-make-relay-callbacks-const.patch
+blktrace-make-relay-callbacks-const.patch
 
