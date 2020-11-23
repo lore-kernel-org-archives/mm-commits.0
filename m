@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA634C64E69
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A49AC64E7A
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7FE1A206CA
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 335C620663
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 19:19:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YHT25B8f"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TEpcdwt0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729948AbgKWTTa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 14:19:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55446 "EHLO mail.kernel.org"
+        id S1729388AbgKWTTj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 14:19:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729435AbgKWTTa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 14:19:30 -0500
+        id S1729435AbgKWTTj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 14:19:39 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0F5B82063A;
-        Mon, 23 Nov 2020 19:19:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DB342063A;
+        Mon, 23 Nov 2020 19:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606159169;
-        bh=Kf16W+Ql9+RALxgB2C36mBRjvsyVstTE/1TOSpDh6Ig=;
+        s=korg; t=1606159178;
+        bh=sAzKU6PiVZxBCh5sBBqOLcdugXebopQyzko3RtErUHo=;
         h=Date:From:To:Subject:From;
-        b=YHT25B8fS3ZupEr05PrVjUucqlBBzIHL5ZlLwgCAu1tJ6kZkmqHrI/K28EDuDrceK
-         UCJeR1LXh09FQ8RXOaiNjEOuK/i8aMr176IyDF29YeAUCZn33X1HeIuymSyZ7EyQVk
-         kZF7RXUpmfKnzFj4PONEMM+UvCxEAFzAQEYzY10s=
-Date:   Mon, 23 Nov 2020 11:19:28 -0800
+        b=TEpcdwt0OC2Hg4CodrvBKxtkbaUz1zH+rrzaMjqmqdrPxs8+ydYEJUNicfjHxGDnl
+         O50Hz2q1MloAsr1wVNiuJuQ2h0LJ6Y5DQCrN/WB4/hBB/ZKGEbB/QN0q6RbH+gOa6p
+         4OO/852GfW+WsKuwmuzE/R9oNwpWq368q08/uvO4=
+Date:   Mon, 23 Nov 2020 11:19:37 -0800
 From:   akpm@linux-foundation.org
 To:     axboe@kernel.dk, hch@infradead.org, jani.nikula@intel.com,
         kvalo@codeaurora.org, mm-commits@vger.kernel.org
-Subject:  + ath10k-make-relay-callbacks-const.patch added to -mm
+Subject:  + blktrace-make-relay-callbacks-const.patch added to -mm
  tree
-Message-ID: <20201123191928.iF3qG9vGj%akpm@linux-foundation.org>
+Message-ID: <20201123191937.HOyH0ZtSS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ath10k: make relay callbacks const
+     Subject: blktrace: make relay callbacks const
 has been added to the -mm tree.  Its filename is
-     ath10k-make-relay-callbacks-const.patch
+     blktrace-make-relay-callbacks-const.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ath10k-make-relay-callbacks-const.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/blktrace-make-relay-callbacks-const.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ath10k-make-relay-callbacks-const.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/blktrace-make-relay-callbacks-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,32 +70,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jani Nikula <jani.nikula@intel.com>
-Subject: ath10k: make relay callbacks const
+Subject: blktrace: make relay callbacks const
 
-Now that relay_open() accepts const callbacks, make relay callbacks const.
+Now that relay_open() accepts const callbacks, make relay callbacks
+const.
 
-Link: https://lkml.kernel.org/r/85cabc6d4b0d0ca43d4e0fb94897ccd16e3b7930.1606153547.git.jani.nikula@intel.com
+Link: https://lkml.kernel.org/r/7ff5ce0b735901eb4f10e13da2704f1d8c4a2507.1606153547.git.jani.nikula@intel.com
 Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Acked-by: Kalle Valo <kvalo@codeaurora.org>
-Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath/ath10k/spectral.c |    2 +-
+ kernel/trace/blktrace.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/net/wireless/ath/ath10k/spectral.c~ath10k-make-relay-callbacks-const
-+++ a/drivers/net/wireless/ath/ath10k/spectral.c
-@@ -497,7 +497,7 @@ static int remove_buf_file_handler(struc
- 	return 0;
+--- a/kernel/trace/blktrace.c~blktrace-make-relay-callbacks-const
++++ a/kernel/trace/blktrace.c
+@@ -449,7 +449,7 @@ static struct dentry *blk_create_buf_fil
+ 					&relay_file_operations);
  }
  
--static struct rchan_callbacks rfs_spec_scan_cb = {
-+static const struct rchan_callbacks rfs_spec_scan_cb = {
- 	.create_buf_file = create_buf_file_handler,
- 	.remove_buf_file = remove_buf_file_handler,
- };
+-static struct rchan_callbacks blk_relay_callbacks = {
++static const struct rchan_callbacks blk_relay_callbacks = {
+ 	.subbuf_start		= blk_subbuf_start_callback,
+ 	.create_buf_file	= blk_create_buf_file_callback,
+ 	.remove_buf_file	= blk_remove_buf_file_callback,
 _
 
 Patches currently in -mm which might be from jani.nikula@intel.com are
