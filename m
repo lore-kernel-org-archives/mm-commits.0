@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BD50C56202
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 893F2C63697
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9B3E2075A
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34AA620782
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hcyc2ijX"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1wFUDjiP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730771AbgKXAhi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:37:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43930 "EHLO mail.kernel.org"
+        id S1730780AbgKXAhs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:37:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730211AbgKXAhi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:37:38 -0500
+        id S1727922AbgKXAhq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:37:46 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9B2AB2075B;
-        Tue, 24 Nov 2020 00:37:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2E4742075A;
+        Tue, 24 Nov 2020 00:37:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178257;
-        bh=MKmxLAYLFSnbESN4Sz4pik3oWWtYH84hqf3YbqUtB3Q=;
+        s=korg; t=1606178263;
+        bh=iyq7aUIMOFbKh9pXhoL1T1GtGFm7HpWOoCDYvxUGf8Q=;
         h=Date:From:To:Subject:From;
-        b=Hcyc2ijXdzfaizgmzW707TNWkVXhybuW6Vib3/oMwSwZL4mvz8TSBJvgMe5WPdDhb
-         K+UjNZ9BY8KNwxW4NrKzMl0CwM0YlSMgQ7H79j3RIikcb9eZB56JZ3NCBq0O0POFZx
-         XZLyrcb1npv72M2uzSA4XeKxklANn4TLB0klWjjU=
-Date:   Mon, 23 Nov 2020 16:37:35 -0800
+        b=1wFUDjiPH2kq91KLi+2Dh9JbBvLz+GWskBdRJ1h0APVPOD5iqXM73Oijlyx5THwbW
+         pqX/pT7mh5fDAUhSGULrqtMRz5jWzPIyS4E/SYTjFzCeQomqo9J93jyJL4ePVHJaww
+         I1YFG0X77vxp5vtpbOyijcjold+bXw/i5t1Ut+bI=
+Date:   Mon, 23 Nov 2020 16:37:42 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-arm64-enable-config_kasan_hw_tags.patch added to
- -mm tree
-Message-ID: <20201124003735.VZ6730RFc%akpm@linux-foundation.org>
+Subject:  +
+ kselftest-arm64-check-gcr_el1-after-context-switch.patch added to -mm tree
+Message-ID: <20201124003742.IwJf3_7Dy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: enable CONFIG_KASAN_HW_TAGS
+     Subject: kselftest/arm64: check GCR_EL1 after context switch
 has been added to the -mm tree.  Its filename is
-     kasan-arm64-enable-config_kasan_hw_tags.patch
+     kselftest-arm64-check-gcr_el1-after-context-switch.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-enable-config_kasan_hw_tags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kselftest-arm64-check-gcr_el1-after-context-switch.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-enable-config_kasan_hw_tags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kselftest-arm64-check-gcr_el1-after-context-switch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,17 +73,26 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: enable CONFIG_KASAN_HW_TAGS
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: kselftest/arm64: check GCR_EL1 after context switch
 
-Hardware tag-based KASAN is now ready, enable the configuration option.
+This test is specific to MTE and verifies that the GCR_EL1 register is
+context switched correctly.
 
-Link: https://lkml.kernel.org/r/a6fa50d3bb6b318e05c6389a44095be96442b8b0.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+It spawns 1024 processes and each process spawns 5 threads.  Each thread
+writes a random setting of GCR_EL1 through the prctl() system call and
+reads it back verifying that it is the same.  If the values are not the
+same it reports a failure.
+
+Note: The test has been extended to verify that even SYNC and ASYNC mode
+setting is preserved correctly over context switching.
+
+Link: https://lkml.kernel.org/r/b51a165426e906e7ec8a68d806ef3f8cd92581a6.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -95,73 +104,191 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/arm64/mte/Makefile                |    2 
+ tools/testing/selftests/arm64/mte/check_gcr_el1_cswitch.c |  155 ++++++++++
+ 2 files changed, 156 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/Kconfig~kasan-arm64-enable-config_kasan_hw_tags
-+++ a/arch/arm64/Kconfig
-@@ -136,6 +136,7 @@ config ARM64
- 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
- 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
- 	select HAVE_ARCH_KASAN_SW_TAGS if (HAVE_ARCH_KASAN && !ARM64_MTE)
-+	select HAVE_ARCH_KASAN_HW_TAGS if (HAVE_ARCH_KASAN && ARM64_MTE)
- 	select HAVE_ARCH_KFENCE
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS
+--- /dev/null
++++ a/tools/testing/selftests/arm64/mte/check_gcr_el1_cswitch.c
+@@ -0,0 +1,155 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2020 ARM Limited
++
++#define _GNU_SOURCE
++
++#include <errno.h>
++#include <pthread.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <time.h>
++#include <unistd.h>
++#include <sys/auxv.h>
++#include <sys/mman.h>
++#include <sys/prctl.h>
++#include <sys/types.h>
++#include <sys/wait.h>
++
++#include "kselftest.h"
++#include "mte_common_util.h"
++
++#define PR_SET_TAGGED_ADDR_CTRL 55
++#define PR_GET_TAGGED_ADDR_CTRL 56
++# define PR_TAGGED_ADDR_ENABLE  (1UL << 0)
++# define PR_MTE_TCF_SHIFT	1
++# define PR_MTE_TCF_NONE	(0UL << PR_MTE_TCF_SHIFT)
++# define PR_MTE_TCF_SYNC	(1UL << PR_MTE_TCF_SHIFT)
++# define PR_MTE_TCF_ASYNC	(2UL << PR_MTE_TCF_SHIFT)
++# define PR_MTE_TCF_MASK	(3UL << PR_MTE_TCF_SHIFT)
++# define PR_MTE_TAG_SHIFT	3
++# define PR_MTE_TAG_MASK	(0xffffUL << PR_MTE_TAG_SHIFT)
++
++#include "mte_def.h"
++
++#define NUM_ITERATIONS		1024
++#define MAX_THREADS		5
++#define THREAD_ITERATIONS	1000
++
++void *execute_thread(void *x)
++{
++	pid_t pid = *((pid_t *)x);
++	pid_t tid = gettid();
++	uint64_t prctl_tag_mask;
++	uint64_t prctl_set;
++	uint64_t prctl_get;
++	uint64_t prctl_tcf;
++
++	srand(time(NULL) ^ (pid << 16) ^ (tid << 16));
++
++	prctl_tag_mask = rand() & 0xffff;
++
++	if (prctl_tag_mask % 2)
++		prctl_tcf = PR_MTE_TCF_SYNC;
++	else
++		prctl_tcf = PR_MTE_TCF_ASYNC;
++
++	prctl_set = PR_TAGGED_ADDR_ENABLE | prctl_tcf | (prctl_tag_mask << PR_MTE_TAG_SHIFT);
++
++	for (int j = 0; j < THREAD_ITERATIONS; j++) {
++		if (prctl(PR_SET_TAGGED_ADDR_CTRL, prctl_set, 0, 0, 0)) {
++			perror("prctl() failed");
++			goto fail;
++		}
++
++		prctl_get = prctl(PR_GET_TAGGED_ADDR_CTRL, 0, 0, 0, 0);
++
++		if (prctl_set != prctl_get) {
++			ksft_print_msg("Error: prctl_set: 0x%lx != prctl_get: 0x%lx\n",
++						prctl_set, prctl_get);
++			goto fail;
++		}
++	}
++
++	return (void *)KSFT_PASS;
++
++fail:
++	return (void *)KSFT_FAIL;
++}
++
++int execute_test(pid_t pid)
++{
++	pthread_t thread_id[MAX_THREADS];
++	int thread_data[MAX_THREADS];
++
++	for (int i = 0; i < MAX_THREADS; i++)
++		pthread_create(&thread_id[i], NULL,
++			       execute_thread, (void *)&pid);
++
++	for (int i = 0; i < MAX_THREADS; i++)
++		pthread_join(thread_id[i], (void *)&thread_data[i]);
++
++	for (int i = 0; i < MAX_THREADS; i++)
++		if (thread_data[i] == KSFT_FAIL)
++			return KSFT_FAIL;
++
++	return KSFT_PASS;
++}
++
++int mte_gcr_fork_test(void)
++{
++	pid_t pid;
++	int results[NUM_ITERATIONS];
++	pid_t cpid;
++	int res;
++
++	for (int i = 0; i < NUM_ITERATIONS; i++) {
++		pid = fork();
++
++		if (pid < 0)
++			return KSFT_FAIL;
++
++		if (pid == 0) {
++			cpid = getpid();
++
++			res = execute_test(cpid);
++
++			exit(res);
++		}
++	}
++
++	for (int i = 0; i < NUM_ITERATIONS; i++) {
++		wait(&res);
++
++		if (WIFEXITED(res))
++			results[i] = WEXITSTATUS(res);
++		else
++			--i;
++	}
++
++	for (int i = 0; i < NUM_ITERATIONS; i++)
++		if (results[i] == KSFT_FAIL)
++			return KSFT_FAIL;
++
++	return KSFT_PASS;
++}
++
++int main(int argc, char *argv[])
++{
++	int err;
++
++	err = mte_default_setup();
++	if (err)
++		return err;
++
++	ksft_set_plan(1);
++
++	evaluate_test(mte_gcr_fork_test(),
++		"Verify that GCR_EL1 is set correctly on context switch\n");
++
++	mte_restore_setup();
++	ksft_print_cnts();
++
++	return ksft_get_fail_cnt() == 0 ? KSFT_PASS : KSFT_FAIL;
++}
++
+--- a/tools/testing/selftests/arm64/mte/Makefile~kselftest-arm64-check-gcr_el1-after-context-switch
++++ a/tools/testing/selftests/arm64/mte/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Copyright (C) 2020 ARM Limited
+ 
+-CFLAGS += -std=gnu99 -I.
++CFLAGS += -std=gnu99 -I. -lpthread
+ SRCS := $(filter-out mte_common_util.c,$(wildcard *.c))
+ PROGS := $(patsubst %.c,%,$(SRCS))
+ 
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
-kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
-kasan-kasan_vmalloc-depends-on-kasan_generic.patch
-kasan-group-vmalloc-code.patch
-kasan-shadow-declarations-only-for-software-modes.patch
-kasan-rename-unpoison_shadow-to-unpoison_range.patch
-kasan-rename-kasan_shadow_-to-kasan_granule_.patch
-kasan-only-build-initc-for-software-modes.patch
-kasan-split-out-shadowc-from-commonc.patch
-kasan-define-kasan_memory_per_shadow_page.patch
-kasan-rename-report-and-tags-files.patch
-kasan-dont-duplicate-config-dependencies.patch
-kasan-hide-invalid-free-check-implementation.patch
-kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
-kasan-arm64-only-init-shadow-for-software-modes.patch
-kasan-arm64-only-use-kasan_depth-for-software-modes.patch
-kasan-arm64-move-initialization-message.patch
-kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
-kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
-kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
-kasan-rename-shadow-layout-macros-to-meta.patch
-kasan-separate-metadata_fetch_row-for-each-mode.patch
-kasan-arm64-dont-allow-sw_tags-with-arm64_mte.patch
-kasan-introduce-config_kasan_hw_tags.patch
-arm64-kasan-align-allocations-for-hw_tags.patch
-arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
-kasan-define-kasan_granule_size-for-hw_tags.patch
-kasan-x86-s390-update-undef-config_kasan.patch
-kasan-arm64-expand-config_kasan-checks.patch
-kasan-arm64-implement-hw_tags-runtime.patch
-kasan-arm64-print-report-from-tag-fault-handler.patch
-kasan-mm-reset-tags-when-accessing-metadata.patch
-kasan-arm64-enable-config_kasan_hw_tags.patch
-kasan-add-documentation-for-hardware-tag-based-mode.patch
-kasan-simplify-quarantine_put-call-site.patch
-kasan-rename-get_alloc-free_info.patch
-kasan-introduce-set_alloc_info.patch
-kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
-kasan-allow-vmap_stack-for-hw_tags-mode.patch
-kasan-remove-__kasan_unpoison_stack.patch
-kasan-inline-kasan_reset_tag-for-tag-based-modes.patch
-kasan-inline-random_tag-for-hw_tags.patch
-kasan-open-code-kasan_unpoison_slab.patch
-kasan-inline-unpoison_range-and-check_invalid_free.patch
-kasan-add-and-integrate-kasan-boot-parameters.patch
-kasan-mm-check-kasan_enabled-in-annotations.patch
-kasan-mm-rename-kasan_poison_kfree.patch
-kasan-dont-round_up-too-much.patch
-kasan-simplify-assign_tag-and-set_tag-calls.patch
-kasan-clarify-comment-in-__kasan_kfree_large.patch
-kasan-sanitize-objects-when-metadata-doesnt-fit.patch
-kasan-mm-allow-cache-merging-with-no-metadata.patch
-kasan-update-documentation.patch
+mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
+arm64-enable-armv85-a-asm-arch-option.patch
+arm64-mte-add-in-kernel-mte-helpers.patch
+arm64-mte-reset-the-page-tag-in-page-flags.patch
+arm64-mte-add-in-kernel-tag-fault-handler.patch
+arm64-kasan-allow-enabling-in-kernel-mte.patch
+arm64-mte-convert-gcr_user-into-an-exclude-mask.patch
+arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit.patch
+kasan-mm-untag-page-address-in-free_reserved_area.patch
+kselftest-arm64-check-gcr_el1-after-context-switch.patch
 
