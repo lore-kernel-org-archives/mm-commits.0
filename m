@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA694C2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAD8AC63697
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59C5A20781
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C05820781
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vY0QMoPa"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oP3OA+78"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730767AbgKXAhO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:37:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43758 "EHLO mail.kernel.org"
+        id S1727107AbgKXAhP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:37:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727107AbgKXAhL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:37:11 -0500
+        id S1730768AbgKXAhO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:37:14 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0ACEF20758;
-        Tue, 24 Nov 2020 00:37:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1CC462075B;
+        Tue, 24 Nov 2020 00:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178230;
-        bh=K3Cc0CWEsz9z3CxrbifYfNK0aJh43DgGrMWqUwGB/x8=;
+        s=korg; t=1606178233;
+        bh=J9xeJllMiQ1agQ+Nsg8RHMp7I9Bj7pnpZCCMI9NXYpw=;
         h=Date:From:To:Subject:From;
-        b=vY0QMoPaIDhU3P8L/Xzn8H1BrpEIRsmQ4Qx2Fi784BDJ/R5frH4FXfgHL3RAZanY1
-         F5hJNqjuQu7ZbxcAvP0BPasFeNf6Tt5WQYzxBPqgyvYT73wF07NlIj6IYDO//qzFRV
-         ed0lDl2t0MjaGAO251AmcUxMdpYB1D5QdGAjSsJE=
-Date:   Mon, 23 Nov 2020 16:37:09 -0800
+        b=oP3OA+78Xropd8Co1hrLJokx1ExtRbQMOuyol4sJZUlB6basL6h6ehcJoab+Rjv3q
+         4XC7FKBxYAp6khAk3zAtq6N/3sUlQ4vUDpBKf83jMPfbd/n6VwMlcmhgNcUDa3Gbqd
+         UqdZOMXp5YbYTd9kBNr6C6aPDDFdY/AJx0Mdy5z4=
+Date:   Mon, 23 Nov 2020 16:37:12 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-define-kasan_granule_size-for-hw_tags.patch added
- to -mm tree
-Message-ID: <20201124003709.q40o2EAig%akpm@linux-foundation.org>
+Subject:  + kasan-x86-s390-update-undef-config_kasan.patch added to
+ -mm tree
+Message-ID: <20201124003712.QJ5lInRnH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: define KASAN_GRANULE_SIZE for HW_TAGS
+     Subject: kasan, x86, s390: update undef CONFIG_KASAN
 has been added to the -mm tree.  Its filename is
-     kasan-define-kasan_granule_size-for-hw_tags.patch
+     kasan-x86-s390-update-undef-config_kasan.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-define-kasan_granule_size-for-hw_tags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-x86-s390-update-undef-config_kasan.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-define-kasan_granule_size-for-hw_tags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-x86-s390-update-undef-config_kasan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,15 +74,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: define KASAN_GRANULE_SIZE for HW_TAGS
+Subject: kasan, x86, s390: update undef CONFIG_KASAN
 
-Hardware tag-based KASAN has granules of MTE_GRANULE_SIZE.  Define
-KASAN_GRANULE_SIZE to MTE_GRANULE_SIZE for CONFIG_KASAN_HW_TAGS.
+With the intoduction of hardware tag-based KASAN some kernel checks of
+this kind:
 
-Link: https://lkml.kernel.org/r/3d15794b3d1b27447fd7fdf862c073192ba657bd.1606161801.git.andreyknvl@google.com
+  ifdef CONFIG_KASAN
+
+will be updated to:
+
+  if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+
+x86 and s390 use a trick to #undef CONFIG_KASAN for some of the code
+that isn't linked with KASAN runtime and shouldn't have any KASAN
+annotations.
+
+Also #undef CONFIG_KASAN_GENERIC with CONFIG_KASAN.
+
+Link: https://lkml.kernel.org/r/9d84bfaaf8fabe0fc89f913c9e420a30bd31a260.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Vasily Gorbik <gor@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -91,30 +104,34 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/s390/boot/string.c         |    1 +
+ arch/x86/boot/compressed/misc.h |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/mm/kasan/kasan.h~kasan-define-kasan_granule_size-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -5,7 +5,13 @@
- #include <linux/kasan.h>
- #include <linux/stackdepot.h>
+--- a/arch/s390/boot/string.c~kasan-x86-s390-update-undef-config_kasan
++++ a/arch/s390/boot/string.c
+@@ -3,6 +3,7 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #undef CONFIG_KASAN
++#undef CONFIG_KASAN_GENERIC
+ #include "../lib/string.c"
  
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
-+#else
-+#include <asm/mte-kasan.h>
-+#define KASAN_GRANULE_SIZE	MTE_GRANULE_SIZE
-+#endif
-+
- #define KASAN_GRANULE_MASK	(KASAN_GRANULE_SIZE - 1)
+ int strncmp(const char *cs, const char *ct, size_t count)
+--- a/arch/x86/boot/compressed/misc.h~kasan-x86-s390-update-undef-config_kasan
++++ a/arch/x86/boot/compressed/misc.h
+@@ -12,6 +12,7 @@
+ #undef CONFIG_PARAVIRT_XXL
+ #undef CONFIG_PARAVIRT_SPINLOCKS
+ #undef CONFIG_KASAN
++#undef CONFIG_KASAN_GENERIC
  
- #define KASAN_MEMORY_PER_SHADOW_PAGE	(KASAN_GRANULE_SIZE << PAGE_SHIFT)
+ /* cpu_feature_enabled() cannot be used this early */
+ #define USE_EARLY_PGTABLE_L5
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
