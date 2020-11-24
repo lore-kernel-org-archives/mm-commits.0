@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60420C56202
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F2B6C2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E8C620757
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BBF9920758
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lgPiEc1c"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WEV122g8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729810AbgKXAiV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:38:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44244 "EHLO mail.kernel.org"
+        id S1730607AbgKXAi0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:38:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728093AbgKXAiV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:38:21 -0500
+        id S1728093AbgKXAi0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:38:26 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0D69220758;
-        Tue, 24 Nov 2020 00:38:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D880920782;
+        Tue, 24 Nov 2020 00:38:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178300;
-        bh=rMDoP6dilxnXwke6UWQBv1obtOUb8At/9hhGqWELO2A=;
+        s=korg; t=1606178303;
+        bh=DK4410IVJ1fa41hHZKuscw0lh0dfmjmaC7IE+bxpaWo=;
         h=Date:From:To:Subject:From;
-        b=lgPiEc1c+wek48ELOUy00XRDFAK/RS9n1/YY9uC0ZR2Gz3MvqWnL0xzbTdZAXK1if
-         DgNyitsrpjCSAkBcb+y8l9KOan5CL/1LGu8rY7BMLEDTehhysP+o3x1B3CgdCI18u3
-         VbSkXso3gAQ5xMrJqa3Tl11ZqO8oTb1YvMkmRUsk=
-Date:   Mon, 23 Nov 2020 16:38:19 -0800
+        b=WEV122g8wLzEiZWXwlx1lRtqDqOvnPKMJeLmrvNHzxFMPDyr1+Z39a3GG1DsJGeDW
+         JiDfeSttjr24JDGTxNB8lV8zmI3HKhEhNiz+0A9CapH1KFTieyEFyLdt1YGICC8Kjb
+         qpOhW31NwUYr2yM6DmqM4n1rjjSuEXNmEcCtbR4M=
+Date:   Mon, 23 Nov 2020 16:38:22 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-open-code-kasan_unpoison_slab.patch added to -mm
- tree
-Message-ID: <20201124003819.7_OyeV-8l%akpm@linux-foundation.org>
+Subject:  +
+ kasan-inline-unpoison_range-and-check_invalid_free.patch added to -mm tree
+Message-ID: <20201124003822.arCkHj1DP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: open-code kasan_unpoison_slab
+     Subject: kasan: inline (un)poison_range and check_invalid_free
 has been added to the -mm tree.  Its filename is
-     kasan-open-code-kasan_unpoison_slab.patch
+     kasan-inline-unpoison_range-and-check_invalid_free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-open-code-kasan_unpoison_slab.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-inline-unpoison_range-and-check_invalid_free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-open-code-kasan_unpoison_slab.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-inline-unpoison_range-and-check_invalid_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,15 +74,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: open-code kasan_unpoison_slab
+Subject: kasan: inline (un)poison_range and check_invalid_free
 
-There's the external annotation kasan_unpoison_slab() that is currently
-defined as static inline and uses kasan_unpoison_range(). Open-code this
-function in mempool.c. Otherwise with an upcoming change this function
-will result in an unnecessary function call.
+Using (un)poison_range() or check_invalid_free() currently results in
+function calls. Move their definitions to mm/kasan/kasan.h and turn them
+into static inline functions for hardware tag-based mode to avoid
+unneeded function calls.
 
-Link: https://lkml.kernel.org/r/131a6694a978a9a8b150187e539eecc8bcbf759b.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ia7c8b659f79209935cbaab3913bf7f082cc43a0e
+Link: https://lkml.kernel.org/r/7007955b69eb31b5376a7dc1e0f4ac49138504f2.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ia9d8191024a12d1374675b3d27197f10193f50bb
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
@@ -98,43 +98,131 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    6 ------
- mm/mempool.c          |    2 +-
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ mm/kasan/hw_tags.c |   30 ----------------------------
+ mm/kasan/kasan.h   |   45 ++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 40 insertions(+), 35 deletions(-)
 
---- a/include/linux/kasan.h~kasan-open-code-kasan_unpoison_slab
-+++ a/include/linux/kasan.h
-@@ -106,11 +106,6 @@ struct kasan_cache {
- 	int free_meta_offset;
- };
+--- a/mm/kasan/hw_tags.c~kasan-inline-unpoison_range-and-check_invalid_free
++++ a/mm/kasan/hw_tags.c
+@@ -10,7 +10,6 @@
  
--size_t __ksize(const void *);
--static inline void kasan_unpoison_slab(const void *ptr)
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
+-#include <linux/kfence.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
+ #include <linux/string.h>
+@@ -31,35 +30,6 @@ void __init kasan_init_hw_tags(void)
+ 	pr_info("KernelAddressSanitizer initialized\n");
+ }
+ 
+-void poison_range(const void *address, size_t size, u8 value)
 -{
--	kasan_unpoison_range(ptr, __ksize(ptr));
+-	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(address))
+-		return;
+-
+-	hw_set_mem_tag_range(kasan_reset_tag(address),
+-			round_up(size, KASAN_GRANULE_SIZE), value);
 -}
- size_t kasan_metadata_size(struct kmem_cache *cache);
- 
- bool kasan_save_enable_multi_shot(void);
-@@ -166,7 +161,6 @@ static inline bool kasan_slab_free(struc
- 	return false;
- }
- 
--static inline void kasan_unpoison_slab(const void *ptr) { }
- static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
- 
- #endif /* CONFIG_KASAN */
---- a/mm/mempool.c~kasan-open-code-kasan_unpoison_slab
-+++ a/mm/mempool.c
-@@ -112,7 +112,7 @@ static __always_inline void kasan_poison
- static void kasan_unpoison_element(mempool_t *pool, void *element)
+-
+-void unpoison_range(const void *address, size_t size)
+-{
+-	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(address))
+-		return;
+-
+-	hw_set_mem_tag_range(kasan_reset_tag(address),
+-			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+-}
+-
+-bool check_invalid_free(void *addr)
+-{
+-	u8 ptr_tag = get_tag(addr);
+-	u8 mem_tag = hw_get_mem_tag(addr);
+-
+-	return (mem_tag == KASAN_TAG_INVALID) ||
+-		(ptr_tag != KASAN_TAG_KERNEL && ptr_tag != mem_tag);
+-}
+-
+ void kasan_set_free_info(struct kmem_cache *cache,
+ 				void *object, u8 tag)
  {
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
--		kasan_unpoison_slab(element);
-+		kasan_unpoison_range(element, __ksize(element));
- 	else if (pool->alloc == mempool_alloc_pages)
- 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
- }
+--- a/mm/kasan/kasan.h~kasan-inline-unpoison_range-and-check_invalid_free
++++ a/mm/kasan/kasan.h
+@@ -3,6 +3,7 @@
+ #define __MM_KASAN_KASAN_H
+ 
+ #include <linux/kasan.h>
++#include <linux/kfence.h>
+ #include <linux/stackdepot.h>
+ 
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+@@ -154,9 +155,6 @@ struct kasan_alloc_meta *kasan_get_alloc
+ struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
+ 						const void *object);
+ 
+-void poison_range(const void *address, size_t size, u8 value);
+-void unpoison_range(const void *address, size_t size);
+-
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 
+ static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
+@@ -196,8 +194,6 @@ void print_tags(u8 addr_tag, const void
+ static inline void print_tags(u8 addr_tag, const void *addr) { }
+ #endif
+ 
+-bool check_invalid_free(void *addr);
+-
+ void *find_first_bad_addr(void *addr, size_t size);
+ const char *get_bug_type(struct kasan_access_info *info);
+ void metadata_fetch_row(char *buffer, void *row);
+@@ -278,6 +274,45 @@ static inline u8 random_tag(void) { retu
+ static inline u8 random_tag(void) { return 0; }
+ #endif
+ 
++#ifdef CONFIG_KASAN_HW_TAGS
++
++static inline void poison_range(const void *address, size_t size, u8 value)
++{
++	/* Skip KFENCE memory if called explicitly outside of sl*b. */
++	if (is_kfence_address(address))
++		return;
++
++	hw_set_mem_tag_range(kasan_reset_tag(address),
++			round_up(size, KASAN_GRANULE_SIZE), value);
++}
++
++static inline void unpoison_range(const void *address, size_t size)
++{
++	/* Skip KFENCE memory if called explicitly outside of sl*b. */
++	if (is_kfence_address(address))
++		return;
++
++	hw_set_mem_tag_range(kasan_reset_tag(address),
++			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
++}
++
++static inline bool check_invalid_free(void *addr)
++{
++	u8 ptr_tag = get_tag(addr);
++	u8 mem_tag = hw_get_mem_tag(addr);
++
++	return (mem_tag == KASAN_TAG_INVALID) ||
++		(ptr_tag != KASAN_TAG_KERNEL && ptr_tag != mem_tag);
++}
++
++#else /* CONFIG_KASAN_HW_TAGS */
++
++void poison_range(const void *address, size_t size, u8 value);
++void unpoison_range(const void *address, size_t size);
++bool check_invalid_free(void *addr);
++
++#endif /* CONFIG_KASAN_HW_TAGS */
++
+ /*
+  * Exported functions for interfaces called from assembly or from generated
+  * code. Declarations here to avoid warning about missing declarations.
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
