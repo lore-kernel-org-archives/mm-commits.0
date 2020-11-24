@@ -5,41 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A45CC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 03:51:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04756C56201
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 04:07:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C808020866
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 03:51:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6C602085B
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 04:07:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NG+apC3m"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nn12wRsz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728309AbgKXDvi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 22:51:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44818 "EHLO mail.kernel.org"
+        id S1728003AbgKXEGn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 23:06:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46434 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728300AbgKXDvi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 22:51:38 -0500
+        id S1728320AbgKXEGm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 23:06:42 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EBA5F20857;
-        Tue, 24 Nov 2020 03:51:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CBDF720857;
+        Tue, 24 Nov 2020 04:06:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606189897;
-        bh=K0tQmwOlysj/7tUCB6MM9XIk6ZQ/TUEzBe0UwKUginQ=;
+        s=korg; t=1606190802;
+        bh=W0jB2uMmOVJF+WYrdu1ZZxFp7R8wJN0evuAlQbU756Q=;
         h=Date:From:To:Subject:From;
-        b=NG+apC3mDDm1JB2ycdAK2Q0G6C/Tpmjxh9y8a+M77NjOPPRquyQSUSQUYGLPp0E6I
-         ErIdhP7BkQwKrHYoXHuONl1F7aZynEjAKPVddI+Ciz3Ns5bgxIlWSmLp3Zq8D5mQJ5
-         +5TMkOWC1XYbl3EUEPzqwhjsMtVPlXiARQmgZn/w=
-Date:   Mon, 23 Nov 2020 19:51:36 -0800
+        b=Nn12wRszKy+1ObVJL9V+D0xW/0yPtRZ7uVfA3llXOor9cviNR/zLXYKGTsTajAJBg
+         lcKIJeM9ErGo+Unc2jta8JQzF0443zXzTZln+Sfp1OeeQ4V3RnxfYhAiKX9BSJQo8m
+         40lIy1ugDfRR5GTtptnQ+bOQXcxbquZ9GweMeIkI=
+Date:   Mon, 23 Nov 2020 20:06:41 -0800
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org, yashsri421@gmail.com
-Subject:  +
- checkpatch-add-fix-option-for-assignment_continuations.patch added to -mm
- tree
-Message-ID: <20201124035136.guPVxhooJ%akpm@linux-foundation.org>
+To:     dong.menglong@zte.com.cn, jwilk@jwilk.net,
+        mm-commits@vger.kernel.org, nhorman@tuxdriver.com,
+        pabs3@bonedaddy.net, stable@vger.kernel.org
+Subject:  + coredump-fix-core_pattern-parse-error.patch added to
+ -mm tree
+Message-ID: <20201124040641.i-uZVI7PN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add fix option for ASSIGNMENT_CONTINUATIONS
+     Subject: coredump: fix core_pattern parse error
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-fix-option-for-assignment_continuations.patch
+     coredump-fix-core_pattern-parse-error.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-assignment_continuations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/coredump-fix-core_pattern-parse-error.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-assignment_continuations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/coredump-fix-core_pattern-parse-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,57 +70,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aditya Srivastava <yashsri421@gmail.com>
-Subject: checkpatch: add fix option for ASSIGNMENT_CONTINUATIONS
+From: Menglong Dong <dong.menglong@zte.com.cn>
+Subject: coredump: fix core_pattern parse error
 
-Currently, checkpatch warns us if an assignment operator is placed at the
-start of a line and not at the end of previous line.
+'format_corename()' will splite 'core_pattern' on spaces when it is in
+pipe mode, and take helper_argv[0] as the path to usermode executable.
 
-E.g., running checkpatch on commit 8195b1396ec8 ("hv_netvsc: fix
-deadlock on hotplug") reports:
+It works fine in most cases. However, if there is a space between
+'|' and '/file/path', such as
+'| /usr/lib/systemd/systemd-coredump %P %u %g',
+helper_argv[0] will be parsed as '', and users will get a
+'Core dump to | disabled'.
 
-CHECK: Assignment operator '=' should be on the previous line
-+	struct netvsc_device *nvdev
-+		= container_of(w, struct netvsc_device, subchan_work);
+It is not friendly to users, as the pattern above was valid previously. 
+Fix this by ignoring the spaces between '|' and '/file/path'.
 
-Provide a simple fix by appending assignment operator to the previous
-line and removing from the current line, if both the lines are additions
-(ie start with '+')
-
-Link: https://lkml.kernel.org/r/20201121120407.22942-1-yashsri421@gmail.com
-Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/5fb62870.1c69fb81.8ef5d.af76@mx.google.com
+Fixes: 315c69261dd3 ("coredump: split pipe command whitespace before expanding template")
+Signed-off-by: Menglong Dong <dong.menglong@zte.com.cn>
+Cc: Paul Wise <pabs3@bonedaddy.net>
+Cc: Jakub Wilk <jwilk@jwilk.net> [https://bugs.debian.org/924398]
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/coredump.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-assignment_continuations
-+++ a/scripts/checkpatch.pl
-@@ -3533,8 +3533,14 @@ sub process {
- 
- # check for assignments on the start of a line
- 		if ($sline =~ /^\+\s+($Assignment)[^=]/) {
--			CHK("ASSIGNMENT_CONTINUATIONS",
--			    "Assignment operator '$1' should be on the previous line\n" . $hereprev);
-+			my $operator = $1;
-+			if (CHK("ASSIGNMENT_CONTINUATIONS",
-+				"Assignment operator '$1' should be on the previous line\n" . $hereprev) &&
-+			    $fix && $prevrawline =~ /^\+/) {
-+				# add assignment operator to the previous line, remove from current line
-+				$fixed[$fixlinenr - 1] .= " $operator";
-+				$fixed[$fixlinenr] =~ s/\Q$operator\E\s*//;
-+			}
- 		}
- 
- # check for && or || at the start of a line
+--- a/fs/coredump.c~coredump-fix-core_pattern-parse-error
++++ a/fs/coredump.c
+@@ -229,7 +229,8 @@ static int format_corename(struct core_n
+ 		 */
+ 		if (ispipe) {
+ 			if (isspace(*pat_ptr)) {
+-				was_space = true;
++				if (cn->used != 0)
++					was_space = true;
+ 				pat_ptr++;
+ 				continue;
+ 			} else if (was_space) {
 _
 
-Patches currently in -mm which might be from yashsri421@gmail.com are
+Patches currently in -mm which might be from dong.menglong@zte.com.cn are
 
-checkpatch-fix-false-positives-in-repeated_word-warning.patch
-checkpatch-add-fix-option-for-gerrit_change_id.patch
-checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
-checkpatch-add-fix-option-for-assignment_continuations.patch
+coredump-fix-core_pattern-parse-error.patch
 
