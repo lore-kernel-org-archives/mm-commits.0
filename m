@@ -2,45 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57493C63798
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 20:13:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54899C2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1283020657
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Nov 2020 20:13:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E016A2075A
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ifGQWgxQ"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hkJE4L4Q"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728670AbgKWUM4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 15:12:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38094 "EHLO mail.kernel.org"
+        id S1729686AbgKXAfI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:35:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730734AbgKWUMz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 15:12:55 -0500
+        id S1729496AbgKXAfH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:35:07 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 62B3020715;
-        Mon, 23 Nov 2020 20:12:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 845E720729;
+        Tue, 24 Nov 2020 00:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606162374;
-        bh=xxjEnMPhVyU/XvSBhwTLwNANrDpmYhuSzTMGvPvS9CI=;
+        s=korg; t=1606178105;
+        bh=jpssR/ifhMLYBTOdrQ1HaR5HIKtrTGl89PtUlyNWVN8=;
         h=Date:From:To:Subject:From;
-        b=ifGQWgxQRG6eL7DGK5e3VJOU7d02Sn4C0AIxo+N55dyWjQ4dHdYVhKlLWjPdiiptV
-         CbYoS2Xyv9RxSz6xOteLvaS7CnQGAglmbWLU5tzyHhN0yy5le7hqjuqG3BxmvSVxi/
-         HHZOfAcpGm7bZVm6R42NRzho/dhaj1UlkgjVlUww=
-Date:   Mon, 23 Nov 2020 12:12:53 -0800
+        b=hkJE4L4QtfakFR3B0p4WlB9FAi/71CPeF1r1bv9+6uJMnK8FRoFbos3J1CY3LLUEo
+         MsztMeQMT0Vvw6ZRODQNin7ljSV2htYKjHv7X3GPBkpIntTRMJoJukzYHmTqg8P2rJ
+         8yoBpyz2Z8euyNHFhDSVDoXsKdI5tF3ZNmptKYQk=
+Date:   Mon, 23 Nov 2020 16:35:03 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, hughd@google.com, mgorman@suse.de,
-        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
-        vbabka@suse.cz, willy@infradead.org, xuyu@linux.alibaba.com
-Subject:  [to-be-updated]
- mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch removed from -mm tree
-Message-ID: <20201123201253.mVa0UoZA6%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        will.deacon@arm.com
+Subject:  +
+ kasan-drop-unnecessary-gpl-text-from-comment-headers.patch added to -mm
+ tree
+Message-ID: <20201124003503.0Vf5-nLPt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,151 +53,351 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,thp,shmem: limit shmem THP alloc gfp_mask
-has been removed from the -mm tree.  Its filename was
-     mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
+     Subject: kasan: drop unnecessary GPL text from comment headers
+has been added to the -mm tree.  Its filename is
+     kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,thp,shmem: limit shmem THP alloc gfp_mask
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: drop unnecessary GPL text from comment headers
 
-Patch series "mm,thp,shm: limit shmem THP alloc gfp_mask".
+Patch series "kasan: add hardware tag-based mode for arm64", v11.
 
-The allocation flags of anonymous transparent huge pages can be controlled
-through the files in /sys/kernel/mm/transparent_hugepage/defrag, which can
-help the system from getting bogged down in the page reclaim and
-compaction code when many THPs are getting allocated simultaneously.
+This patchset adds a new hardware tag-based mode to KASAN [1].  The new
+mode is similar to the existing software tag-based KASAN, but relies on
+arm64 Memory Tagging Extension (MTE) [2] to perform memory and pointer
+tagging (instead of shadow memory and compiler instrumentation).
 
-However, the gfp_mask for shmem THP allocations were not limited by those
-configuration settings, and some workloads ended up with all CPUs stuck on
-the LRU lock in the page reclaim code, trying to allocate dozens of THPs
-simultaneously.
+This patchset is co-developed and tested by
+Vincenzo Frascino <vincenzo.frascino@arm.com>.
 
-This patch applies the same configurated limitation of THPs to shmem
-hugepage allocations, to prevent that from happening.
+This patchset is available here:
 
-This way a THP defrag setting of "never" or "defer+madvise" will result in
-quick allocation failures without direct reclaim when no 2MB free pages
-are available.
+https://github.com/xairy/linux/tree/up-kasan-mte-v11
 
-With this patch applied, THP allocations for tmpfs will be a little more
-aggressive than today for files mmapped with MADV_HUGEPAGE, and a little
-less aggressive for files that are not mmapped or mapped without that
-flag.
+For testing in QEMU hardware tag-based KASAN requires:
+
+1. QEMU built from master [4] (use "-machine virt,mte=on -cpu max" arguments
+   to run).
+2. GCC version 10.
+
+[1] https://www.kernel.org/doc/html/latest/dev-tools/kasan.html
+[2] https://community.arm.com/developer/ip-products/processors/b/processors-ip-blog/posts/enhancing-memory-safety
+[3] git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux for-next/mte
+[4] https://github.com/qemu/qemu
+
+====== Overview
+
+The underlying ideas of the approach used by hardware tag-based KASAN are:
+
+1. By relying on the Top Byte Ignore (TBI) arm64 CPU feature, pointer tags
+   are stored in the top byte of each kernel pointer.
+
+2. With the Memory Tagging Extension (MTE) arm64 CPU feature, memory tags
+   for kernel memory allocations are stored in a dedicated memory not
+   accessible via normal instuctions.
+
+3. On each memory allocation, a random tag is generated, embedded it into
+   the returned pointer, and the corresponding memory is tagged with the
+   same tag value.
+
+4. With MTE the CPU performs a check on each memory access to make sure
+   that the pointer tag matches the memory tag.
+
+5. On a tag mismatch the CPU generates a tag fault, and a KASAN report is
+   printed.
+
+Same as other KASAN modes, hardware tag-based KASAN is intended as a
+debugging feature at this point.
+
+====== Rationale
+
+There are two main reasons for this new hardware tag-based mode:
+
+1. Previously implemented software tag-based KASAN is being successfully
+   used on dogfood testing devices due to its low memory overhead (as
+   initially planned). The new hardware mode keeps the same low memory
+   overhead, and is expected to have significantly lower performance
+   impact, due to the tag checks being performed by the hardware.
+   Therefore the new mode can be used as a better alternative in dogfood
+   testing for hardware that supports MTE.
+
+2. The new mode lays the groundwork for the planned in-kernel MTE-based
+   memory corruption mitigation to be used in production.
+
+====== Technical details
+
+Considering the implementation perspective, hardware tag-based KASAN is
+almost identical to the software mode.  The key difference is using MTE
+for assigning and checking tags.
+
+Compared to the software mode, the hardware mode uses 4 bits per tag, as
+dictated by MTE.  Pointer tags are stored in bits [56:60), the top 4 bits
+have the normal value 0xF.  Having less distict tags increases the
+probablity of false negatives (from ~1/256 to ~1/16) in certain cases.
+
+Only synchronous exceptions are set up and used by hardware tag-based KASAN.
+
+====== Benchmarks
+
+Note: all measurements have been performed with software emulation of Memory
+Tagging Extension, performance numbers for hardware tag-based KASAN on the
+actual hardware are expected to be better.
+
+Boot time [1]:
+* 2.8 sec for clean kernel
+* 5.7 sec for hardware tag-based KASAN
+* 11.8 sec for software tag-based KASAN
+* 11.6 sec for generic KASAN
+
+Slab memory usage after boot [2]:
+* 7.0 kb for clean kernel
+* 9.7 kb for hardware tag-based KASAN
+* 9.7 kb for software tag-based KASAN
+* 41.3 kb for generic KASAN
+
+Measurements have been performed with:
+* defconfig-based configs
+* Manually built QEMU master
+* QEMU arguments: -machine virt,mte=on -cpu max
+* CONFIG_KASAN_STACK_ENABLE disabled
+* CONFIG_KASAN_INLINE enabled
+* clang-10 as the compiler and gcc-10 as the assembler
+    
+[1] Time before the ext4 driver is initialized.
+[2] Measured as `cat /proc/meminfo | grep Slab`.
+
+====== Notes
+
+The cover letter for software tag-based KASAN patchset can be found here:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0116523cfffa62aeb5aa3b85ce7419f3dae0c1b8
+
+===== Tags
+
+Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 
 
-This patch (of 2):
+This patch (of 42):
 
-The allocation flags of anonymous transparent huge pages can be controlled
-through the files in /sys/kernel/mm/transparent_hugepage/defrag, which can
-help the system from getting bogged down in the page reclaim and
-compaction code when many THPs are getting allocated simultaneously.
+Don't mention "GNU General Public License version 2" text explicitly, as
+it's already covered by the SPDX-License-Identifier.
 
-However, the gfp_mask for shmem THP allocations were not limited by those
-configuration settings, and some workloads ended up with all CPUs stuck on
-the LRU lock in the page reclaim code, trying to allocate dozens of THPs
-simultaneously.
-
-This patch applies the same configurated limitation of THPs to shmem
-hugepage allocations, to prevent that from happening.
-
-This way a THP defrag setting of "never" or "defer+madvise" will result in
-quick allocation failures without direct reclaim when no 2MB free pages
-are available.
-
-With this patch applied, THP allocations for tmpfs will be a little more
-aggressive than today for files mmapped with MADV_HUGEPAGE, and a little
-less aggressive for files that are not mmapped or mapped without that
-flag.
-
-Link: https://lkml.kernel.org/r/20201105191508.1961686-1-riel@surriel.com
-Link: https://lkml.kernel.org/r/20201105191508.1961686-2-riel@surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/cover.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/6ea9f5f4aa9dbbffa0d0c0a780b37699a4531034.1606161801.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 ++
- mm/huge_memory.c    |    6 +++---
- mm/shmem.c          |    8 +++++---
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ mm/kasan/common.c         |    5 -----
+ mm/kasan/generic.c        |    5 -----
+ mm/kasan/generic_report.c |    5 -----
+ mm/kasan/init.c           |    5 -----
+ mm/kasan/quarantine.c     |   10 ----------
+ mm/kasan/report.c         |    5 -----
+ mm/kasan/tags.c           |    5 -----
+ mm/kasan/tags_report.c    |    5 -----
+ 8 files changed, 45 deletions(-)
 
---- a/include/linux/gfp.h~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
-+++ a/include/linux/gfp.h
-@@ -614,6 +614,8 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
- extern void pm_restrict_gfp_mask(void);
- extern void pm_restore_gfp_mask(void);
- 
-+extern gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma);
-+
- #ifdef CONFIG_PM_SLEEP
- extern bool pm_suspended_storage(void);
- #else
---- a/mm/huge_memory.c~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
-+++ a/mm/huge_memory.c
-@@ -649,9 +649,9 @@ release:
-  *	    available
-  * never: never stall for any thp allocation
+--- a/mm/kasan/common.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/common.c
+@@ -7,11 +7,6 @@
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
   */
--static inline gfp_t alloc_hugepage_direct_gfpmask(struct vm_area_struct *vma)
-+gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma)
- {
--	const bool vma_madvised = !!(vma->vm_flags & VM_HUGEPAGE);
-+	const bool vma_madvised = vma && (vma->vm_flags & VM_HUGEPAGE);
  
- 	/* Always do synchronous compaction */
- 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
-@@ -743,7 +743,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
- 		}
- 		return ret;
- 	}
--	gfp = alloc_hugepage_direct_gfpmask(vma);
-+	gfp = vma_thp_gfp_mask(vma);
- 	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
- 	if (unlikely(!page)) {
- 		count_vm_event(THP_FAULT_FALLBACK);
---- a/mm/shmem.c~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
-+++ a/mm/shmem.c
-@@ -1545,8 +1545,8 @@ static struct page *shmem_alloc_hugepage
- 		return NULL;
+ #include <linux/export.h>
+--- a/mm/kasan/generic.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/generic.c
+@@ -7,11 +7,6 @@
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+  */
  
- 	shmem_pseudo_vma_init(&pvma, info, hindex);
--	page = alloc_pages_vma(gfp | __GFP_COMP | __GFP_NORETRY | __GFP_NOWARN,
--			HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(), true);
-+	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
-+			       true);
- 	shmem_pseudo_vma_destroy(&pvma);
- 	if (page)
- 		prep_transhuge_page(page);
-@@ -1802,6 +1802,7 @@ static int shmem_getpage_gfp(struct inod
- 	struct page *page;
- 	enum sgp_type sgp_huge = sgp;
- 	pgoff_t hindex = index;
-+	gfp_t huge_gfp;
- 	int error;
- 	int once = 0;
- 	int alloced = 0;
-@@ -1887,7 +1888,8 @@ repeat:
- 	}
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+--- a/mm/kasan/generic_report.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/generic_report.c
+@@ -7,11 +7,6 @@
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+  */
  
- alloc_huge:
--	page = shmem_alloc_and_acct_page(gfp, inode, index, true);
-+	huge_gfp = vma_thp_gfp_mask(vma);
-+	page = shmem_alloc_and_acct_page(huge_gfp, inode, index, true);
- 	if (IS_ERR(page)) {
- alloc_nohuge:
- 		page = shmem_alloc_and_acct_page(gfp, inode,
+ #include <linux/bitops.h>
+--- a/mm/kasan/init.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/init.c
+@@ -4,11 +4,6 @@
+  *
+  * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+  */
+ 
+ #include <linux/memblock.h>
+--- a/mm/kasan/quarantine.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/quarantine.c
+@@ -6,16 +6,6 @@
+  * Copyright (C) 2016 Google, Inc.
+  *
+  * Based on code by Dmitry Chernenkov.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+  */
+ 
+ #include <linux/gfp.h>
+--- a/mm/kasan/report.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/report.c
+@@ -7,11 +7,6 @@
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+  */
+ 
+ #include <linux/bitops.h>
+--- a/mm/kasan/tags.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/tags.c
+@@ -4,11 +4,6 @@
+  *
+  * Copyright (c) 2018 Google, Inc.
+  * Author: Andrey Konovalov <andreyknvl@google.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+--- a/mm/kasan/tags_report.c~kasan-drop-unnecessary-gpl-text-from-comment-headers
++++ a/mm/kasan/tags_report.c
+@@ -7,11 +7,6 @@
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+  */
+ 
+ #include <linux/bitops.h>
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mmthpshm-limit-gfp-mask-to-no-more-than-specified.patch
+kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
+kasan-kasan_vmalloc-depends-on-kasan_generic.patch
+kasan-group-vmalloc-code.patch
+kasan-shadow-declarations-only-for-software-modes.patch
+kasan-rename-unpoison_shadow-to-unpoison_range.patch
+kasan-rename-kasan_shadow_-to-kasan_granule_.patch
+kasan-only-build-initc-for-software-modes.patch
+kasan-split-out-shadowc-from-commonc.patch
+kasan-define-kasan_memory_per_shadow_page.patch
+kasan-rename-report-and-tags-files.patch
+kasan-dont-duplicate-config-dependencies.patch
+kasan-hide-invalid-free-check-implementation.patch
+kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
+kasan-arm64-only-init-shadow-for-software-modes.patch
+kasan-arm64-only-use-kasan_depth-for-software-modes.patch
+kasan-arm64-move-initialization-message.patch
+kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
+kasan-rename-shadow-layout-macros-to-meta.patch
+kasan-separate-metadata_fetch_row-for-each-mode.patch
+kasan-arm64-dont-allow-sw_tags-with-arm64_mte.patch
+kasan-introduce-config_kasan_hw_tags.patch
+arm64-kasan-align-allocations-for-hw_tags.patch
+arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
+kasan-define-kasan_granule_size-for-hw_tags.patch
+kasan-x86-s390-update-undef-config_kasan.patch
+kasan-arm64-expand-config_kasan-checks.patch
+kasan-arm64-implement-hw_tags-runtime.patch
+kasan-arm64-print-report-from-tag-fault-handler.patch
+kasan-mm-reset-tags-when-accessing-metadata.patch
+kasan-arm64-enable-config_kasan_hw_tags.patch
+kasan-add-documentation-for-hardware-tag-based-mode.patch
+kasan-simplify-quarantine_put-call-site.patch
+kasan-rename-get_alloc-free_info.patch
+kasan-introduce-set_alloc_info.patch
+kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+kasan-allow-vmap_stack-for-hw_tags-mode.patch
+kasan-remove-__kasan_unpoison_stack.patch
+kasan-inline-kasan_reset_tag-for-tag-based-modes.patch
+kasan-inline-random_tag-for-hw_tags.patch
+kasan-open-code-kasan_unpoison_slab.patch
+kasan-inline-unpoison_range-and-check_invalid_free.patch
+kasan-add-and-integrate-kasan-boot-parameters.patch
+kasan-mm-check-kasan_enabled-in-annotations.patch
+kasan-mm-rename-kasan_poison_kfree.patch
+kasan-dont-round_up-too-much.patch
+kasan-simplify-assign_tag-and-set_tag-calls.patch
+kasan-clarify-comment-in-__kasan_kfree_large.patch
+kasan-sanitize-objects-when-metadata-doesnt-fit.patch
+kasan-mm-allow-cache-merging-with-no-metadata.patch
+kasan-update-documentation.patch
 
