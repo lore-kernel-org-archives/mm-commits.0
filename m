@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39D9BC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73905C56202
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E785420757
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 244B72075B
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKuFKmVv"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h/Plyjbu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730762AbgKXAhE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:37:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43698 "EHLO mail.kernel.org"
+        id S1730006AbgKXAhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:37:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727107AbgKXAhE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:37:04 -0500
+        id S1727107AbgKXAhI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:37:08 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 204F220758;
-        Tue, 24 Nov 2020 00:37:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BDE9620729;
+        Tue, 24 Nov 2020 00:37:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178223;
-        bh=Hki2beOzpW4EG/Hl3GzJROwpJlEuB6NoRTl5BI4p/Wg=;
+        s=korg; t=1606178227;
+        bh=BK36t2S75FZVYxNR3/3/8q6gqF6zckS2X1QD6mY15Sw=;
         h=Date:From:To:Subject:From;
-        b=TKuFKmVvDwBPoKlK+m5cdOXPvm6OYeoxfVkSe9eRfZ41CWPPuXI1AUWK96sTnxWZ3
-         QYc1e9LaxaJKFUT3FDZyelx2btw7nBhc7UpNkU0BBaUlGpSBmL5s7BsU6dKT50H2Ps
-         QaYHULhK3XhCQclr3uta1md4Vi6wZfUizjmmVijU=
-Date:   Mon, 23 Nov 2020 16:37:02 -0800
+        b=h/PlyjbuhlyQ5tidKpGJ8h6WaQG1HJgdOW7+AXRIrB1u28gtoc9ER0HLpSPcqdAab
+         URZtmT6LRCKvN0Vv5zBL1jazWWGMLgp1vheJYmtjXJlALjhOxE6bgAHlg0SuHKK6Bu
+         ItUSiiE4y5aFD05eGTJJVk4Xg7rGW8+4rbLL8nRw=
+Date:   Mon, 23 Nov 2020 16:37:05 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + arm64-kasan-align-allocations-for-hw_tags.patch added
- to -mm tree
-Message-ID: <20201124003702.jUWeThogn%akpm@linux-foundation.org>
+Subject:  +
+ arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch added to -mm
+ tree
+Message-ID: <20201124003705.-XW9JRWfI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kasan: align allocations for HW_TAGS
+     Subject: arm64: kasan: add arch layer for memory tagging helpers
 has been added to the -mm tree.  Its filename is
-     arm64-kasan-align-allocations-for-hw_tags.patch
+     arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-align-allocations-for-hw_tags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-align-allocations-for-hw_tags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,19 +75,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64: kasan: align allocations for HW_TAGS
+Subject: arm64: kasan: add arch layer for memory tagging helpers
 
-Hardware tag-based KASAN uses the memory tagging approach, which requires
-all allocations to be aligned to the memory granule size.  Align the
-allocations to MTE_GRANULE_SIZE via ARCH_SLAB_MINALIGN when
-CONFIG_KASAN_HW_TAGS is enabled.
+This patch add a set of arch_*() memory tagging helpers currently only
+defined for arm64 when hardware tag-based KASAN is enabled.  These helpers
+will be used by KASAN runtime to implement the hardware tag-based mode.
 
-Link: https://lkml.kernel.org/r/fe64131606b1c2aabfd34ae99554c0d9df18eb19.1606161801.git.andreyknvl@google.com
+The arch-level indirection level is introduced to simplify adding hardware
+tag-based KASAN support for other architectures in the future by defining
+the appropriate arch_*() macros.
+
+Link: https://lkml.kernel.org/r/fc9e5bb71201c03131a2fc00a74125723568dda9.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -98,28 +103,63 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/cache.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm64/include/asm/memory.h |    9 +++++++++
+ mm/kasan/kasan.h                |   26 ++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
---- a/arch/arm64/include/asm/cache.h~arm64-kasan-align-allocations-for-hw_tags
-+++ a/arch/arm64/include/asm/cache.h
-@@ -6,6 +6,7 @@
- #define __ASM_CACHE_H
+--- a/arch/arm64/include/asm/memory.h~arm64-kasan-add-arch-layer-for-memory-tagging-helpers
++++ a/arch/arm64/include/asm/memory.h
+@@ -230,6 +230,15 @@ static inline const void *__tag_set(cons
+ 	return (const void *)(__addr | __tag_shifted(tag));
+ }
  
- #include <asm/cputype.h>
-+#include <asm/mte-kasan.h>
++#ifdef CONFIG_KASAN_HW_TAGS
++#define arch_enable_tagging()			mte_enable_kernel()
++#define arch_init_tags(max_tag)			mte_init_tags(max_tag)
++#define arch_get_random_tag()			mte_get_random_tag()
++#define arch_get_mem_tag(addr)			mte_get_mem_tag(addr)
++#define arch_set_mem_tag_range(addr, size, tag)	\
++			mte_set_mem_tag_range((addr), (size), (tag))
++#endif /* CONFIG_KASAN_HW_TAGS */
++
+ /*
+  * Physical vs virtual RAM address space conversion.  These are
+  * private definitions which should NOT be used outside memory.h
+--- a/mm/kasan/kasan.h~arm64-kasan-add-arch-layer-for-memory-tagging-helpers
++++ a/mm/kasan/kasan.h
+@@ -243,6 +243,32 @@ static inline const void *arch_kasan_set
+ #define reset_tag(addr)		((void *)arch_kasan_reset_tag(addr))
+ #define get_tag(addr)		arch_kasan_get_tag(addr)
  
- #define CTR_L1IP_SHIFT		14
- #define CTR_L1IP_MASK		3
-@@ -51,6 +52,8 @@
- 
- #ifdef CONFIG_KASAN_SW_TAGS
- #define ARCH_SLAB_MINALIGN	(1ULL << KASAN_SHADOW_SCALE_SHIFT)
-+#elif defined(CONFIG_KASAN_HW_TAGS)
-+#define ARCH_SLAB_MINALIGN	MTE_GRANULE_SIZE
- #endif
- 
- #ifndef __ASSEMBLY__
++#ifdef CONFIG_KASAN_HW_TAGS
++
++#ifndef arch_enable_tagging
++#define arch_enable_tagging()
++#endif
++#ifndef arch_init_tags
++#define arch_init_tags(max_tag)
++#endif
++#ifndef arch_get_random_tag
++#define arch_get_random_tag()	(0xFF)
++#endif
++#ifndef arch_get_mem_tag
++#define arch_get_mem_tag(addr)	(0xFF)
++#endif
++#ifndef arch_set_mem_tag_range
++#define arch_set_mem_tag_range(addr, size, tag) ((void *)(addr))
++#endif
++
++#define hw_enable_tagging()			arch_enable_tagging()
++#define hw_init_tags(max_tag)			arch_init_tags(max_tag)
++#define hw_get_random_tag()			arch_get_random_tag()
++#define hw_get_mem_tag(addr)			arch_get_mem_tag(addr)
++#define hw_set_mem_tag_range(addr, size, tag)	arch_set_mem_tag_range((addr), (size), (tag))
++
++#endif /* CONFIG_KASAN_HW_TAGS */
++
+ /*
+  * Exported functions for interfaces called from assembly or from generated
+  * code. Declarations here to avoid warning about missing declarations.
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
