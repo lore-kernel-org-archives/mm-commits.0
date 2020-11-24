@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0934DC6379F
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 03:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A45CC2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 03:51:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 96CF820866
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 03:46:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C808020866
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 03:51:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LAzsio21"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NG+apC3m"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727106AbgKXDqT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 22:46:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43840 "EHLO mail.kernel.org"
+        id S1728309AbgKXDvi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 22:51:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726315AbgKXDqT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 22:46:19 -0500
+        id S1728300AbgKXDvi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 22:51:38 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B9D8720857;
-        Tue, 24 Nov 2020 03:46:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EBA5F20857;
+        Tue, 24 Nov 2020 03:51:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606189577;
-        bh=cirMHIj4AiRRfR4IdbKTnyL6wTcr080d06eR7WNiP2Y=;
+        s=korg; t=1606189897;
+        bh=K0tQmwOlysj/7tUCB6MM9XIk6ZQ/TUEzBe0UwKUginQ=;
         h=Date:From:To:Subject:From;
-        b=LAzsio21XffVHhvGsbesJ1IzRz/YJoMuVUvscwV+EpGeEbMlw9WvTZ7jOzQlHJgDp
-         IyyApU0W/Si4TlhYbP7x25Le/r2ukvln4Rl21ViSxsu6zQmw+qUBysEAKre+VDLgoY
-         V7QQSariQs0/TtbhNqK8qkZHFlRrse8oVUDwfV/I=
-Date:   Mon, 23 Nov 2020 19:46:16 -0800
+        b=NG+apC3mDDm1JB2ycdAK2Q0G6C/Tpmjxh9y8a+M77NjOPPRquyQSUSQUYGLPp0E6I
+         ErIdhP7BkQwKrHYoXHuONl1F7aZynEjAKPVddI+Ciz3Ns5bgxIlWSmLp3Zq8D5mQJ5
+         +5TMkOWC1XYbl3EUEPzqwhjsMtVPlXiARQmgZn/w=
+Date:   Mon, 23 Nov 2020 19:51:36 -0800
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, davem@davemloft.net,
-        mm-commits@vger.kernel.org
-Subject:  + ide-falcon-remove-in_interrupt-usage.patch added to -mm
+To:     joe@perches.com, mm-commits@vger.kernel.org, yashsri421@gmail.com
+Subject:  +
+ checkpatch-add-fix-option-for-assignment_continuations.patch added to -mm
  tree
-Message-ID: <20201124034616.FOqkQJbBa%akpm@linux-foundation.org>
+Message-ID: <20201124035136.guPVxhooJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ide/falcon: remove in_interrupt() usage
+     Subject: checkpatch: add fix option for ASSIGNMENT_CONTINUATIONS
 has been added to the -mm tree.  Its filename is
-     ide-falcon-remove-in_interrupt-usage.patch
+     checkpatch-add-fix-option-for-assignment_continuations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ide-falcon-remove-in_interrupt-usage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-assignment_continuations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ide-falcon-remove-in_interrupt-usage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-assignment_continuations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,42 +69,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: ide/falcon: remove in_interrupt() usage
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: add fix option for ASSIGNMENT_CONTINUATIONS
 
-falconide_get_lock() is called by ide_lock_host() and its caller
-(ide_issue_rq()) has already a might_sleep() check.
+Currently, checkpatch warns us if an assignment operator is placed at the
+start of a line and not at the end of previous line.
 
-stdma_lock() has wait_event() which also has a might_sleep() check.
+E.g., running checkpatch on commit 8195b1396ec8 ("hv_netvsc: fix
+deadlock on hotplug") reports:
 
-Remove the in_interrupt() check.
+CHECK: Assignment operator '=' should be on the previous line
++	struct netvsc_device *nvdev
++		= container_of(w, struct netvsc_device, subchan_work);
 
-Link: https://lkml.kernel.org/r/20201113161021.2217361-2-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Provide a simple fix by appending assignment operator to the previous
+line and removing from the current line, if both the lines are additions
+(ie start with '+')
+
+Link: https://lkml.kernel.org/r/20201121120407.22942-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/falconide.c |    2 --
- 1 file changed, 2 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/drivers/ide/falconide.c~ide-falcon-remove-in_interrupt-usage
-+++ a/drivers/ide/falconide.c
-@@ -51,8 +51,6 @@ static void falconide_release_lock(void)
- static void falconide_get_lock(irq_handler_t handler, void *data)
- {
- 	if (falconide_intr_lock == 0) {
--		if (in_interrupt() > 0)
--			panic("Falcon IDE hasn't ST-DMA lock in interrupt");
- 		stdma_lock(handler, data);
- 		falconide_intr_lock = 1;
- 	}
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-assignment_continuations
++++ a/scripts/checkpatch.pl
+@@ -3533,8 +3533,14 @@ sub process {
+ 
+ # check for assignments on the start of a line
+ 		if ($sline =~ /^\+\s+($Assignment)[^=]/) {
+-			CHK("ASSIGNMENT_CONTINUATIONS",
+-			    "Assignment operator '$1' should be on the previous line\n" . $hereprev);
++			my $operator = $1;
++			if (CHK("ASSIGNMENT_CONTINUATIONS",
++				"Assignment operator '$1' should be on the previous line\n" . $hereprev) &&
++			    $fix && $prevrawline =~ /^\+/) {
++				# add assignment operator to the previous line, remove from current line
++				$fixed[$fixlinenr - 1] .= " $operator";
++				$fixed[$fixlinenr] =~ s/\Q$operator\E\s*//;
++			}
+ 		}
+ 
+ # check for && or || at the start of a line
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from yashsri421@gmail.com are
 
-ide-falcon-remove-in_interrupt-usage.patch
-ide-remove-bug_onin_interrupt-irqs_disabled-from-ide_unregister.patch
-lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
-rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+checkpatch-fix-false-positives-in-repeated_word-warning.patch
+checkpatch-add-fix-option-for-gerrit_change_id.patch
+checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
+checkpatch-add-fix-option-for-assignment_continuations.patch
 
