@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF9BDC6379F
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 04:22:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF31AC63777
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 04:23:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5480E2085B
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 04:22:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D5072086A
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 04:23:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3PqwSV5"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B8S21d3f"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726716AbgKXEW6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 23:22:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50702 "EHLO mail.kernel.org"
+        id S1726158AbgKXEX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 23:23:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50964 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726039AbgKXEW5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 23:22:57 -0500
+        id S1726039AbgKXEX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 23:23:28 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF96D20857;
-        Tue, 24 Nov 2020 04:22:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D782F20857;
+        Tue, 24 Nov 2020 04:23:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606191777;
-        bh=3NE9xB6ZI7XJpwK0Zam04BATqIEKZW9C1s0RXDNxzVw=;
+        s=korg; t=1606191808;
+        bh=pDrcBtmRTE+y5YkOHxJ3e3TPb6hdag8MPh6Xq5Y4yfo=;
         h=Date:From:To:Subject:From;
-        b=j3PqwSV54xXoOs5+sh953xQqRKcc/psVB0z3YYcVP07ftIEYYguSI2je1euiO9X4Q
-         YlsdgZiLxJCtTHHHd1Xnf0R9exVzJfFOeV/oW0UOwDAhKUjbAfcEEsZblNsQuaB2vs
-         f7BtKIXIjPTF5Ivckrrwmdl3LOP9PjWcwUHEfsaQ=
-Date:   Mon, 23 Nov 2020 20:22:56 -0800
+        b=B8S21d3fkUtfxxH2nUHL4ITrlxoMGflILO4Iyob7dOjFdT0MqEGLTYT6oyPQpHS0E
+         WvUfFR0TtO5iKb3upmzbcIH4orTdpLARd3kxTNmWMP4nc5JC9r4hzStDz7A5vzlOMt
+         4c22c9kvYAokzky3guXAIRJWXUvbiImWqLUqQqWM=
+Date:   Mon, 23 Nov 2020 20:23:27 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + mm-filemap-add-helper-for-finding-pages-fix.patch added
- to -mm tree
-Message-ID: <20201124042256.SBZm1nsSC%akpm@linux-foundation.org>
+Subject:  + mm-add-and-use-find_lock_entries-fix.patch added to -mm
+ tree
+Message-ID: <20201124042327.8F8FDq0GP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix mm-filemap-add-helper-for-finding-pages.patch
+     Subject: fix mm-add-and-use-find_lock_entries.patch
 has been added to the -mm tree.  Its filename is
-     mm-filemap-add-helper-for-finding-pages-fix.patch
+     mm-add-and-use-find_lock_entries-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-add-helper-for-finding-pages-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-and-use-find_lock_entries-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-add-helper-for-finding-pages-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-and-use-find_lock_entries-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,26 +69,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fix mm-filemap-add-helper-for-finding-pages.patch
+Subject: fix mm-add-and-use-find_lock_entries.patch
 
-Link: https://lkml.kernel.org/r/20201124041507.28996-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20201124041507.28996-3-willy@infradead.org
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/filemap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/filemap.c~mm-filemap-add-helper-for-finding-pages-fix
+--- a/mm/filemap.c~mm-add-and-use-find_lock_entries-fix
 +++ a/mm/filemap.c
-@@ -1858,7 +1858,6 @@ retry:
- 		put_page(page);
- 		goto reset;
- 	}
--	VM_BUG_ON_PAGE(!thp_contains(page, xas->xa_index), page);
- 
- 	return page;
- reset:
+@@ -1963,6 +1963,8 @@ unsigned find_lock_entries(struct addres
+ 				goto put;
+ 			if (page->mapping != mapping || PageWriteback(page))
+ 				goto unlock;
++			VM_BUG_ON_PAGE(!thp_contains(page, xas.xa_index),
++					page);
+ 		}
+ 		indices[pvec->nr] = xas.xa_index;
+ 		if (!pagevec_add(pvec, page))
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -106,6 +107,7 @@ mm-filemap-add-helper-for-finding-pages-fix.patch
 mm-filemap-add-mapping_seek_hole_data.patch
 iomap-use-mapping_seek_hole_data.patch
 mm-add-and-use-find_lock_entries.patch
+mm-add-and-use-find_lock_entries-fix.patch
 mm-add-an-end-parameter-to-find_get_entries.patch
 mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
 mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
