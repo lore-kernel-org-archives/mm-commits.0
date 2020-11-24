@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6E8C2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C3A5C56202
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 742A62075A
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7F732075A
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CmGS0DiG"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FqmAuPJ8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729333AbgKXAiC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:38:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44094 "EHLO mail.kernel.org"
+        id S1730790AbgKXAiE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:38:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730785AbgKXAiB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:38:01 -0500
+        id S1730785AbgKXAiE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:38:04 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1FDA0204EA;
-        Tue, 24 Nov 2020 00:37:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0633A20757;
+        Tue, 24 Nov 2020 00:38:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178279;
-        bh=m7oC43Ks+KK4X3EzKmuMzSHD/+gpEc3suB8RiRJiPPQ=;
+        s=korg; t=1606178283;
+        bh=UKuQoibbADwD5IP1+cWq4XNSHJzlluUTzrdDVX7XB2I=;
         h=Date:From:To:Subject:From;
-        b=CmGS0DiGPoqboq2zZ6h9FoN89bPKci8MgvaDm/B9OduChpfYU68hVYTCHRfC/WGYu
-         CmpP6Qb/nZRxrJS6nf08xw1Lo7spcuoddwUbpqgRB8cKtGG5Kk5ByxrK0mr4Bfw4zz
-         9UsUZ921BcJm2D695PNDPMR7OpUYqrGZkxSjvjDk=
-Date:   Mon, 23 Nov 2020 16:37:58 -0800
+        b=FqmAuPJ86C0RwWV3lZlPFiCu8UPSOnpAqj7fP6OepYoBdEW7jlDf1deGI+BqlVhgV
+         VGQArLsVkvjsFM8ssp+6rzgmA+BWUEWJ1UinGhNN4aKXdBlwB2edrqbAgUo3tOZKEw
+         EsV8xmMaHjcXjLRUr8SO7SwvWz91TdhWUYXvV7KA=
+Date:   Mon, 23 Nov 2020 16:38:02 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,10 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  +
- kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch added to -mm
- tree
-Message-ID: <20201124003758.fNXd_H_NH%akpm@linux-foundation.org>
+Subject:  + kasan-allow-vmap_stack-for-hw_tags-mode.patch added to
+ -mm tree
+Message-ID: <20201124003802.zFnMfKnwK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+     Subject: kasan: allow VMAP_STACK for HW_TAGS mode
 has been added to the -mm tree.  Its filename is
-     kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+     kasan-allow-vmap_stack-for-hw_tags-mode.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-allow-vmap_stack-for-hw_tags-mode.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-allow-vmap_stack-for-hw_tags-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,22 +74,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+Subject: kasan: allow VMAP_STACK for HW_TAGS mode
 
-There's a config option CONFIG_KASAN_STACK that has to be enabled for
-KASAN to use stack instrumentation and perform validity checks for
-stack variables.
+Even though hardware tag-based mode currently doesn't support checking
+vmalloc allocations, it doesn't use shadow memory and works with
+VMAP_STACK as is. Change VMAP_STACK definition accordingly.
 
-There's no need to unpoison stack when CONFIG_KASAN_STACK is not enabled.
-Only call kasan_unpoison_task_stack[_below]() when CONFIG_KASAN_STACK is
-enabled.
-
-Note, that CONFIG_KASAN_STACK is an option that is currently always
-defined when CONFIG_KASAN is enabled, and therefore has to be tested
-with #if instead of #ifdef.
-
-Link: https://lkml.kernel.org/r/d09dd3f8abb388da397fd11598c5edeaa83fe559.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/If8a891e9fe01ea543e00b576852685afec0887e3
+Link: https://lkml.kernel.org/r/ecdb2a1658ebd88eb276dee2493518ac0e82de41.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I3552cbc12321dec82cd7372676e9372a2eb452ac
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
@@ -106,85 +97,32 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/sleep.S        |    2 +-
- arch/x86/kernel/acpi/wakeup_64.S |    2 +-
- include/linux/kasan.h            |   10 ++++++----
- mm/kasan/common.c                |    2 ++
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ arch/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/kernel/sleep.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/arm64/kernel/sleep.S
-@@ -133,7 +133,7 @@ SYM_FUNC_START(_cpu_resume)
- 	 */
- 	bl	cpu_do_resume
+--- a/arch/Kconfig~kasan-allow-vmap_stack-for-hw_tags-mode
++++ a/arch/Kconfig
+@@ -955,16 +955,16 @@ config VMAP_STACK
+ 	default y
+ 	bool "Use a virtually-mapped stack"
+ 	depends on HAVE_ARCH_VMAP_STACK
+-	depends on !KASAN || KASAN_VMALLOC
++	depends on !KASAN || KASAN_HW_TAGS || KASAN_VMALLOC
+ 	help
+ 	  Enable this if you want the use virtually-mapped kernel stacks
+ 	  with guard pages.  This causes kernel stack overflows to be
+ 	  caught immediately rather than causing difficult-to-diagnose
+ 	  corruption.
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	mov	x0, sp
- 	bl	kasan_unpoison_task_stack_below
- #endif
---- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/x86/kernel/acpi/wakeup_64.S
-@@ -112,7 +112,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
- 	movq	pt_regs_r14(%rax), %r14
- 	movq	pt_regs_r15(%rax), %r15
+-	  To use this with KASAN, the architecture must support backing
+-	  virtual mappings with real shadow memory, and KASAN_VMALLOC must
+-	  be enabled.
++	  To use this with software KASAN modes, the architecture must support
++	  backing virtual mappings with real shadow memory, and KASAN_VMALLOC
++	  must be enabled.
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	/*
- 	 * The suspend path may have poisoned some areas deeper in the stack,
- 	 * which we now need to unpoison.
---- a/include/linux/kasan.h~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/include/linux/kasan.h
-@@ -76,8 +76,6 @@ static inline void kasan_disable_current
- 
- void kasan_unpoison_range(const void *address, size_t size);
- 
--void kasan_unpoison_task_stack(struct task_struct *task);
--
- void kasan_alloc_pages(struct page *page, unsigned int order);
- void kasan_free_pages(struct page *page, unsigned int order);
- 
-@@ -122,8 +120,6 @@ void kasan_restore_multi_shot(bool enabl
- 
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
- 
--static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
--
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
- 
-@@ -175,6 +171,12 @@ static inline size_t kasan_metadata_size
- 
- #endif /* CONFIG_KASAN */
- 
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
-+void kasan_unpoison_task_stack(struct task_struct *task);
-+#else
-+static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
-+#endif
-+
- #ifdef CONFIG_KASAN_GENERIC
- 
- void kasan_cache_shrink(struct kmem_cache *cache);
---- a/mm/kasan/common.c~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/mm/kasan/common.c
-@@ -64,6 +64,7 @@ void kasan_unpoison_range(const void *ad
- 	unpoison_range(address, size);
- }
- 
-+#if CONFIG_KASAN_STACK
- static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
- {
- 	void *base = task_stack_page(task);
-@@ -90,6 +91,7 @@ asmlinkage void kasan_unpoison_task_stac
- 
- 	unpoison_range(base, watermark - base);
- }
-+#endif /* CONFIG_KASAN_STACK */
- 
- void kasan_alloc_pages(struct page *page, unsigned int order)
- {
+ config ARCH_OPTIONAL_KERNEL_RWX
+ 	def_bool n
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
