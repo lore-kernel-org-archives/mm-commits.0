@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86E6EC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E3BC2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 484C320758
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93E3620758
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XApYc+Yj"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wqcalf2o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730049AbgKXAgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:36:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43256 "EHLO mail.kernel.org"
+        id S1728474AbgKXAgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:36:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727107AbgKXAgJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:36:09 -0500
+        id S1727107AbgKXAgN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:36:13 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 259B920757;
-        Tue, 24 Nov 2020 00:36:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2C88120729;
+        Tue, 24 Nov 2020 00:36:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178168;
-        bh=BslE0r8oEe2CMcCAlMINc5tlIw9eDIbVFqrX+pQRqBw=;
+        s=korg; t=1606178172;
+        bh=fLNWeKJNjZz9m1j1LYaCdMqBL0DrNIH1MMNMk5mhqps=;
         h=Date:From:To:Subject:From;
-        b=XApYc+YjOH/2H7pDcMju6NuGNCgIjRss+7McKbvPfpwsqCNhnIxgIerDsKRmrLjYF
-         cpOEyD/b0pPYA4dbrkzTJLjXa7GitfkA/1ZlxHqtPQPn4AwnSzG20i/YA/sYxZ9NEf
-         aMniVGQNbIo3FTZVHJLVMgj/MqgOL6in1S/dPdJk=
-Date:   Mon, 23 Nov 2020 16:36:07 -0800
+        b=Wqcalf2obzn960uOxI0H0gti19gICMY+HvcRFRsRgyApRiEg4x7a+Y7wc/PzDWf4S
+         2fbf8FCrwilyA1sikPAujr2HdG/dXdnD9BSNgPASOI8HgJ7VLNyT7NjKU7G5t8FSv+
+         XjTN4JrySmBt9vNTrcOVqayHWzTKLTJjQNdsz8o0=
+Date:   Mon, 23 Nov 2020 16:36:11 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,10 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  +
- kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch added to -mm
- tree
-Message-ID: <20201124003607.t0k2ZX594%akpm@linux-foundation.org>
+Subject:  + kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+ added to -mm tree
+Message-ID: <20201124003611.8XKgF27eD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: rename kasan_init_tags and mark as __init
+     Subject: kasan: rename addr_has_shadow to addr_has_metadata
 has been added to the -mm tree.  Its filename is
-     kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+     kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,87 +74,85 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: rename kasan_init_tags and mark as __init
+Subject: kasan: rename addr_has_shadow to addr_has_metadata
 
-Rename kasan_init_tags() to kasan_init_sw_tags() as the upcoming hardware
-tag-based KASAN mode will have its own initialization routine.  Also
-similarly to kasan_init() mark kasan_init_tags() as __init.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Link: https://lkml.kernel.org/r/71e52af72a09f4b50c8042f16101c60e50649fbb.1606161801.git.andreyknvl@google.com
+Hardware tag-based KASAN won't be using shadow memory, but will reuse this
+function.  Rename "shadow" to implementation-neutral "metadata".
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/370466fba590a4596b55ffd38adfd990f8886db4.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/setup.c  |    2 +-
- arch/arm64/mm/kasan_init.c |    2 +-
- include/linux/kasan.h      |    4 ++--
- mm/kasan/sw_tags.c         |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ mm/kasan/kasan.h          |    2 +-
+ mm/kasan/report.c         |    6 +++---
+ mm/kasan/report_generic.c |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/kernel/setup.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/arch/arm64/kernel/setup.c
-@@ -358,7 +358,7 @@ void __init __no_sanitize_address setup_
- 	smp_build_mpidr_hash();
- 
- 	/* Init percpu seeds for random tags after cpus are set up. */
--	kasan_init_tags();
-+	kasan_init_sw_tags();
- 
- #ifdef CONFIG_ARM64_SW_TTBR0_PAN
- 	/*
---- a/arch/arm64/mm/kasan_init.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -283,7 +283,7 @@ void __init kasan_init(void)
- 	kasan_init_shadow();
- 	kasan_init_depth();
- #if defined(CONFIG_KASAN_GENERIC)
--	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_tags(). */
-+	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_sw_tags(). */
- 	pr_info("KernelAddressSanitizer initialized\n");
- #endif
+--- a/mm/kasan/kasan.h~kasan-rename-addr_has_shadow-to-addr_has_metadata
++++ a/mm/kasan/kasan.h
+@@ -147,7 +147,7 @@ static inline const void *kasan_shadow_t
+ 		<< KASAN_SHADOW_SCALE_SHIFT);
  }
---- a/include/linux/kasan.h~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/include/linux/kasan.h
-@@ -191,7 +191,7 @@ static inline void kasan_record_aux_stac
  
- #ifdef CONFIG_KASAN_SW_TAGS
- 
--void kasan_init_tags(void);
-+void __init kasan_init_sw_tags(void);
- 
- void *kasan_reset_tag(const void *addr);
- 
-@@ -200,7 +200,7 @@ bool kasan_report(unsigned long addr, si
- 
- #else /* CONFIG_KASAN_SW_TAGS */
- 
--static inline void kasan_init_tags(void) { }
-+static inline void kasan_init_sw_tags(void) { }
- 
- static inline void *kasan_reset_tag(const void *addr)
+-static inline bool addr_has_shadow(const void *addr)
++static inline bool addr_has_metadata(const void *addr)
  {
---- a/mm/kasan/sw_tags.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/mm/kasan/sw_tags.c
-@@ -35,7 +35,7 @@
+ 	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
+ }
+--- a/mm/kasan/report.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
++++ a/mm/kasan/report.c
+@@ -361,7 +361,7 @@ static void __kasan_report(unsigned long
+ 	untagged_addr = reset_tag(tagged_addr);
  
- static DEFINE_PER_CPU(u32, prng_state);
+ 	info.access_addr = tagged_addr;
+-	if (addr_has_shadow(untagged_addr))
++	if (addr_has_metadata(untagged_addr))
+ 		info.first_bad_addr = find_first_bad_addr(tagged_addr, size);
+ 	else
+ 		info.first_bad_addr = untagged_addr;
+@@ -372,11 +372,11 @@ static void __kasan_report(unsigned long
+ 	start_report(&flags);
  
--void kasan_init_tags(void)
-+void __init kasan_init_sw_tags(void)
- {
- 	int cpu;
+ 	print_error_description(&info);
+-	if (addr_has_shadow(untagged_addr))
++	if (addr_has_metadata(untagged_addr))
+ 		print_tags(get_tag(tagged_addr), info.first_bad_addr);
+ 	pr_err("\n");
  
+-	if (addr_has_shadow(untagged_addr)) {
++	if (addr_has_metadata(untagged_addr)) {
+ 		print_address_description(untagged_addr, get_tag(tagged_addr));
+ 		pr_err("\n");
+ 		print_shadow_for_address(info.first_bad_addr);
+--- a/mm/kasan/report_generic.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
++++ a/mm/kasan/report_generic.c
+@@ -118,7 +118,7 @@ const char *get_bug_type(struct kasan_ac
+ 	if (info->access_addr + info->access_size < info->access_addr)
+ 		return "out-of-bounds";
+ 
+-	if (addr_has_shadow(info->access_addr))
++	if (addr_has_metadata(info->access_addr))
+ 		return get_shadow_bug_type(info);
+ 	return get_wild_bug_type(info);
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
