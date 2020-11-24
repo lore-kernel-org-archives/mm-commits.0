@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 414E6C2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7029EC56202
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9B6D20757
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C50820757
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X6LPFxvk"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kxxlw9W3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729799AbgKXAfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:35:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42844 "EHLO mail.kernel.org"
+        id S1729829AbgKXAfQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:35:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729496AbgKXAfP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:35:15 -0500
+        id S1729496AbgKXAfQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:35:16 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E33420758;
-        Tue, 24 Nov 2020 00:35:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0C2CF20729;
+        Tue, 24 Nov 2020 00:35:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178112;
-        bh=VTnhW9jvmZAg2UEBdqOhfKrNgMa1PYQQ4hXmDbq+OMs=;
+        s=korg; t=1606178115;
+        bh=rs4dt++nk7OirRbfEbEHq8vDFiXMgWYKJgldYysZk54=;
         h=Date:From:To:Subject:From;
-        b=X6LPFxvkBClkxGzdDeDH1ie8N4x6UvxOZ+5SlDawtQGmBQmKAji9K0VcpMDS32Ggm
-         AqorHyLVoEE3Yac2gKMLGTs9qZ7le1LMTA9ZnThDOfmBR6Kzl7uoi8YmVCykF5477j
-         uI4btPP+6T3HHy+6o0Ld/EYCVS/rHJJjnj6WJGZw=
-Date:   Mon, 23 Nov 2020 16:35:11 -0800
+        b=Kxxlw9W3OvZWKO2zRIeouVrbYKsT7rX/iGFn/cysX0oaZbxaXcdHEmsp24G1Ktpn1
+         /8u/SkESRQbGFCdULHWFGGYURyTXYQfctGex4Rk5nWj1ZEGlj8MrVlt2VWWINWht7e
+         cq66Gur4A9Ma2yXxUQTM6M5sa7nlMcLxS8SJXXmY=
+Date:   Mon, 23 Nov 2020 16:35:14 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,8 +41,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-group-vmalloc-code.patch added to -mm tree
-Message-ID: <20201124003511.ODZnGRDOJ%akpm@linux-foundation.org>
+Subject:  + kasan-shadow-declarations-only-for-software-modes.patch
+ added to -mm tree
+Message-ID: <20201124003514.MGX_Smaq5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: group vmalloc code
+     Subject: kasan: shadow declarations only for software modes
 has been added to the -mm tree.  Its filename is
-     kasan-group-vmalloc-code.patch
+     kasan-shadow-declarations-only-for-software-modes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-group-vmalloc-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-shadow-declarations-only-for-software-modes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-group-vmalloc-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-shadow-declarations-only-for-software-modes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,17 +74,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: group vmalloc code
+Subject: kasan: shadow declarations only for software modes
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
 
-Group all vmalloc-related function declarations in include/linux/kasan.h,
-and their implementations in mm/kasan/common.c.
+Group shadow-related KASAN function declarations and only define them for
+the two existing software modes.
 
-No functional changes.
+No functional changes for software modes.
 
-Link: https://lkml.kernel.org/r/80a6fdd29b039962843bd6cf22ce2643a7c8904e.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/e88d94eff94db883a65dca52e1736d80d28dd9bc.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -100,186 +101,107 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   41 +++++++++++----------
- mm/kasan/common.c     |   78 ++++++++++++++++++++--------------------
- 2 files changed, 63 insertions(+), 56 deletions(-)
+ include/linux/kasan.h |   47 ++++++++++++++++++++++++++--------------
+ 1 file changed, 31 insertions(+), 16 deletions(-)
 
---- a/include/linux/kasan.h~kasan-group-vmalloc-code
+--- a/include/linux/kasan.h~kasan-shadow-declarations-only-for-software-modes
 +++ a/include/linux/kasan.h
-@@ -75,19 +75,6 @@ struct kasan_cache {
+@@ -11,7 +11,6 @@ struct task_struct;
+ 
+ #ifdef CONFIG_KASAN
+ 
+-#include <linux/pgtable.h>
+ #include <asm/kasan.h>
+ 
+ /* kasan_data struct is used in KUnit tests for KASAN expected failures */
+@@ -20,6 +19,20 @@ struct kunit_kasan_expectation {
+ 	bool report_found;
+ };
+ 
++#endif
++
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
++
++#include <linux/pgtable.h>
++
++/* Software KASAN implementations use shadow memory. */
++
++#ifdef CONFIG_KASAN_SW_TAGS
++#define KASAN_SHADOW_INIT 0xFF
++#else
++#define KASAN_SHADOW_INIT 0
++#endif
++
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+ extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
+ extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+@@ -35,6 +48,23 @@ static inline void *kasan_mem_to_shadow(
+ 		+ KASAN_SHADOW_OFFSET;
+ }
+ 
++int kasan_add_zero_shadow(void *start, unsigned long size);
++void kasan_remove_zero_shadow(void *start, unsigned long size);
++
++#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++static inline int kasan_add_zero_shadow(void *start, unsigned long size)
++{
++	return 0;
++}
++static inline void kasan_remove_zero_shadow(void *start,
++					unsigned long size)
++{}
++
++#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++#ifdef CONFIG_KASAN
++
+ /* Enable reporting bugs after kasan_disable_current() */
+ extern void kasan_enable_current(void);
+ 
+@@ -75,9 +105,6 @@ struct kasan_cache {
  	int free_meta_offset;
  };
  
--/*
-- * These functions provide a special case to support backing module
-- * allocations with real shadow memory. With KASAN vmalloc, the special
-- * case is unnecessary, as the work is handled in the generic case.
-- */
--#ifndef CONFIG_KASAN_VMALLOC
--int kasan_module_alloc(void *addr, size_t size);
--void kasan_free_shadow(const struct vm_struct *vm);
--#else
--static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
--static inline void kasan_free_shadow(const struct vm_struct *vm) {}
--#endif
+-int kasan_add_zero_shadow(void *start, unsigned long size);
+-void kasan_remove_zero_shadow(void *start, unsigned long size);
 -
- int kasan_add_zero_shadow(void *start, unsigned long size);
- void kasan_remove_zero_shadow(void *start, unsigned long size);
- 
-@@ -156,9 +143,6 @@ static inline bool kasan_slab_free(struc
+ size_t __ksize(const void *);
+ static inline void kasan_unpoison_slab(const void *ptr)
+ {
+@@ -143,14 +170,6 @@ static inline bool kasan_slab_free(struc
  	return false;
  }
  
--static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
--static inline void kasan_free_shadow(const struct vm_struct *vm) {}
--
- static inline int kasan_add_zero_shadow(void *start, unsigned long size)
- {
- 	return 0;
-@@ -211,13 +195,16 @@ static inline void *kasan_reset_tag(cons
- #endif /* CONFIG_KASAN_SW_TAGS */
- 
- #ifdef CONFIG_KASAN_VMALLOC
-+
- int kasan_populate_vmalloc(unsigned long addr, unsigned long size);
- void kasan_poison_vmalloc(const void *start, unsigned long size);
- void kasan_unpoison_vmalloc(const void *start, unsigned long size);
- void kasan_release_vmalloc(unsigned long start, unsigned long end,
- 			   unsigned long free_region_start,
- 			   unsigned long free_region_end);
--#else
-+
-+#else /* CONFIG_KASAN_VMALLOC */
-+
- static inline int kasan_populate_vmalloc(unsigned long start,
- 					unsigned long size)
- {
-@@ -232,7 +219,25 @@ static inline void kasan_release_vmalloc
- 					 unsigned long end,
- 					 unsigned long free_region_start,
- 					 unsigned long free_region_end) {}
--#endif
-+
-+#endif /* CONFIG_KASAN_VMALLOC */
-+
-+#if defined(CONFIG_KASAN) && !defined(CONFIG_KASAN_VMALLOC)
-+
-+/*
-+ * These functions provide a special case to support backing module
-+ * allocations with real shadow memory. With KASAN vmalloc, the special
-+ * case is unnecessary, as the work is handled in the generic case.
-+ */
-+int kasan_module_alloc(void *addr, size_t size);
-+void kasan_free_shadow(const struct vm_struct *vm);
-+
-+#else /* CONFIG_KASAN && !CONFIG_KASAN_VMALLOC */
-+
-+static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
-+static inline void kasan_free_shadow(const struct vm_struct *vm) {}
-+
-+#endif /* CONFIG_KASAN && !CONFIG_KASAN_VMALLOC */
- 
- #ifdef CONFIG_KASAN_INLINE
- void kasan_non_canonical_hook(unsigned long addr);
---- a/mm/kasan/common.c~kasan-group-vmalloc-code
-+++ a/mm/kasan/common.c
-@@ -555,44 +555,6 @@ void kasan_kfree_large(void *ptr, unsign
- 	/* The object will be poisoned by page_alloc. */
- }
- 
--#ifndef CONFIG_KASAN_VMALLOC
--int kasan_module_alloc(void *addr, size_t size)
+-static inline int kasan_add_zero_shadow(void *start, unsigned long size)
 -{
--	void *ret;
--	size_t scaled_size;
--	size_t shadow_size;
--	unsigned long shadow_start;
--
--	shadow_start = (unsigned long)kasan_mem_to_shadow(addr);
--	scaled_size = (size + KASAN_SHADOW_MASK) >> KASAN_SHADOW_SCALE_SHIFT;
--	shadow_size = round_up(scaled_size, PAGE_SIZE);
--
--	if (WARN_ON(!PAGE_ALIGNED(shadow_start)))
--		return -EINVAL;
--
--	ret = __vmalloc_node_range(shadow_size, 1, shadow_start,
--			shadow_start + shadow_size,
--			GFP_KERNEL,
--			PAGE_KERNEL, VM_NO_GUARD, NUMA_NO_NODE,
--			__builtin_return_address(0));
--
--	if (ret) {
--		__memset(ret, KASAN_SHADOW_INIT, shadow_size);
--		find_vm_area(addr)->flags |= VM_KASAN;
--		kmemleak_ignore(ret);
--		return 0;
--	}
--
--	return -ENOMEM;
+-	return 0;
 -}
+-static inline void kasan_remove_zero_shadow(void *start,
+-					unsigned long size)
+-{}
 -
--void kasan_free_shadow(const struct vm_struct *vm)
--{
--	if (vm->flags & VM_KASAN)
--		vfree(kasan_mem_to_shadow(vm->addr));
--}
--#endif
--
- #ifdef CONFIG_MEMORY_HOTPLUG
- static bool shadow_mapped(unsigned long addr)
- {
-@@ -704,6 +666,7 @@ core_initcall(kasan_memhotplug_init);
- #endif
+ static inline void kasan_unpoison_slab(const void *ptr) { }
+ static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
  
- #ifdef CONFIG_KASAN_VMALLOC
-+
- static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
- 				      void *unused)
- {
-@@ -942,4 +905,43 @@ void kasan_release_vmalloc(unsigned long
- 				       (unsigned long)shadow_end);
- 	}
- }
-+
-+#else /* CONFIG_KASAN_VMALLOC */
-+
-+int kasan_module_alloc(void *addr, size_t size)
-+{
-+	void *ret;
-+	size_t scaled_size;
-+	size_t shadow_size;
-+	unsigned long shadow_start;
-+
-+	shadow_start = (unsigned long)kasan_mem_to_shadow(addr);
-+	scaled_size = (size + KASAN_SHADOW_MASK) >> KASAN_SHADOW_SCALE_SHIFT;
-+	shadow_size = round_up(scaled_size, PAGE_SIZE);
-+
-+	if (WARN_ON(!PAGE_ALIGNED(shadow_start)))
-+		return -EINVAL;
-+
-+	ret = __vmalloc_node_range(shadow_size, 1, shadow_start,
-+			shadow_start + shadow_size,
-+			GFP_KERNEL,
-+			PAGE_KERNEL, VM_NO_GUARD, NUMA_NO_NODE,
-+			__builtin_return_address(0));
-+
-+	if (ret) {
-+		__memset(ret, KASAN_SHADOW_INIT, shadow_size);
-+		find_vm_area(addr)->flags |= VM_KASAN;
-+		kmemleak_ignore(ret);
-+		return 0;
-+	}
-+
-+	return -ENOMEM;
-+}
-+
-+void kasan_free_shadow(const struct vm_struct *vm)
-+{
-+	if (vm->flags & VM_KASAN)
-+		vfree(kasan_mem_to_shadow(vm->addr));
-+}
-+
- #endif
+@@ -158,8 +177,6 @@ static inline size_t kasan_metadata_size
+ 
+ #ifdef CONFIG_KASAN_GENERIC
+ 
+-#define KASAN_SHADOW_INIT 0
+-
+ void kasan_cache_shrink(struct kmem_cache *cache);
+ void kasan_cache_shutdown(struct kmem_cache *cache);
+ void kasan_record_aux_stack(void *ptr);
+@@ -174,8 +191,6 @@ static inline void kasan_record_aux_stac
+ 
+ #ifdef CONFIG_KASAN_SW_TAGS
+ 
+-#define KASAN_SHADOW_INIT 0xFF
+-
+ void kasan_init_tags(void);
+ 
+ void *kasan_reset_tag(const void *addr);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
