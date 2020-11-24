@@ -7,37 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2096CC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 02:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4D9DC6379D
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 02:54:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3C2E20720
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 02:45:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9FFE12071E
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 02:54:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HqTV8Sff"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MTbpI5AB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728120AbgKXCpM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 21:45:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36290 "EHLO mail.kernel.org"
+        id S1728291AbgKXCxw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 21:53:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726498AbgKXCpL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 21:45:11 -0500
+        id S1727381AbgKXCxw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 21:53:52 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B471120720;
-        Tue, 24 Nov 2020 02:45:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3CEA620719;
+        Tue, 24 Nov 2020 02:53:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606185910;
-        bh=03pOwkrV5H1BorShpkwdTjyHMnIjrtnJvYBESJdM3Vg=;
+        s=korg; t=1606186430;
+        bh=tbMq/L0rPiyD9uNaRlf2xwBz1p0S1jYbMZy+x7mmMaU=;
         h=Date:From:To:Subject:From;
-        b=HqTV8Sff71f01qGHgR13420a8KD45k2RmZROtGd4/pmxwoH9f4QAFOMK6rC4Vjyzp
-         +9qrEDr7owyQlOJemG95/nNTSM5VPy6P73rNK8q7CRCBfiTl3NyQ450tFObyOtT9+n
-         KKxQTgnUJs0d/PtevIrdadsozTyjylud8zvXByaE=
-Date:   Mon, 23 Nov 2020 18:45:10 -0800
+        b=MTbpI5ABi3817ecHVoc5nse+f0OEEabQ5pv+qAHZcRiKZF/mnoBfl219Y/IsrTMLF
+         pJMRL54k0Rc0ZyMtVWaHqxBwseS4NoHi2RNMFWNSMnuoCwW00sGA0EGkpaU8akTxME
+         /LRXzPK5MqVsZoE3K4zrnvep66WhNDZ6q1nUYfCE=
+Date:   Mon, 23 Nov 2020 18:53:47 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
-Subject:  + lib-cleanup-kstrto-usage.patch added to -mm tree
-Message-ID: <20201124024510.rXbAowod5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, willy@infradead.org, yuzhao@google.com
+Subject:  + mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+ added to -mm tree
+Message-ID: <20201124025347.xGaMMXvcS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: cleanup kstrto*() usage
+     Subject: mm/vmscan: __isolate_lru_page_prepare() cleanup
 has been added to the -mm tree.  Its filename is
-     lib-cleanup-kstrto-usage.patch
+     mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-cleanup-kstrto-usage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-cleanup-kstrto-usage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,121 +70,211 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: lib: cleanup kstrto*() usage
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/vmscan: __isolate_lru_page_prepare() cleanup
 
-Use proper conversion functions.  kstrto*() variants exist for all
-standard types.
+The function just returns 2 results, so using a 'switch' to deal with its
+result is unnecessary.  Also simplify it to a bool func as Vlastimil
+suggested.
 
-Link: https://lkml.kernel.org/r/20201122123410.GB92364@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Also remove 'goto' by reusing list_move(), and take Matthew Wilcox's
+suggestion to update comments in function.
+
+Link: https://lkml.kernel.org/r/728874d7-2d93-4049-68c1-dcc3b2d52ccd@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_firmware.c |    9 +++------
- lib/test_kmod.c     |   26 ++++++++++----------------
- 2 files changed, 13 insertions(+), 22 deletions(-)
+ include/linux/swap.h |    2 -
+ mm/compaction.c      |    2 -
+ mm/vmscan.c          |   68 ++++++++++++++++++-----------------------
+ 3 files changed, 33 insertions(+), 39 deletions(-)
 
---- a/lib/test_firmware.c~lib-cleanup-kstrto-usage
-+++ a/lib/test_firmware.c
-@@ -364,18 +364,15 @@ static ssize_t test_dev_config_show_int(
+--- a/include/linux/swap.h~mm-vmscan-__isolate_lru_page_prepare-clean-up
++++ a/include/linux/swap.h
+@@ -356,7 +356,7 @@ extern void lru_cache_add_inactive_or_un
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+-extern int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
++extern bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/compaction.c~mm-vmscan-__isolate_lru_page_prepare-clean-up
++++ a/mm/compaction.c
+@@ -988,7 +988,7 @@ isolate_migratepages_block(struct compac
+ 		if (unlikely(!get_page_unless_zero(page)))
+ 			goto isolate_fail;
  
- static int test_dev_config_update_u8(const char *buf, size_t size, u8 *cfg)
+-		if (__isolate_lru_page_prepare(page, isolate_mode) != 0)
++		if (!__isolate_lru_page_prepare(page, isolate_mode))
+ 			goto isolate_fail_put;
+ 
+ 		/* Try isolate the page */
+--- a/mm/vmscan.c~mm-vmscan-__isolate_lru_page_prepare-clean-up
++++ a/mm/vmscan.c
+@@ -1536,19 +1536,17 @@ unsigned int reclaim_clean_pages_from_li
+  * page:	page to consider
+  * mode:	one of the LRU isolation modes defined above
+  *
+- * returns 0 on success, -ve errno on failure.
++ * returns true on success, false on failure.
+  */
+-int __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
++bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
  {
-+	u8 val;
- 	int ret;
--	long new;
- 
--	ret = kstrtol(buf, 10, &new);
-+	ret = kstrtou8(buf, 10, &val);
- 	if (ret)
- 		return ret;
- 
--	if (new > U8_MAX)
--		return -EINVAL;
+-	int ret = -EBUSY;
 -
- 	mutex_lock(&test_fw_mutex);
--	*(u8 *)cfg = new;
-+	*(u8 *)cfg = val;
- 	mutex_unlock(&test_fw_mutex);
+ 	/* Only take pages on the LRU. */
+ 	if (!PageLRU(page))
+-		return ret;
++		return false;
  
- 	/* Always return full write size even if we didn't consume all */
---- a/lib/test_kmod.c~lib-cleanup-kstrto-usage
-+++ a/lib/test_kmod.c
-@@ -877,20 +877,17 @@ static int test_dev_config_update_uint_s
- 					    int (*test_sync)(struct kmod_test_device *test_dev))
- {
- 	int ret;
--	unsigned long new;
-+	unsigned int val;
- 	unsigned int old_val;
+ 	/* Compaction should not handle unevictable pages but CMA can do so */
+ 	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
+-		return ret;
++		return false;
  
--	ret = kstrtoul(buf, 10, &new);
-+	ret = kstrtouint(buf, 10, &val);
- 	if (ret)
- 		return ret;
+ 	/*
+ 	 * To minimise LRU disruption, the caller can indicate that it only
+@@ -1561,7 +1559,7 @@ int __isolate_lru_page_prepare(struct pa
+ 	if (mode & ISOLATE_ASYNC_MIGRATE) {
+ 		/* All the caller can do on PageWriteback is block */
+ 		if (PageWriteback(page))
+-			return ret;
++			return false;
  
--	if (new > UINT_MAX)
--		return -EINVAL;
+ 		if (PageDirty(page)) {
+ 			struct address_space *mapping;
+@@ -1577,20 +1575,20 @@ int __isolate_lru_page_prepare(struct pa
+ 			 * from the page cache.
+ 			 */
+ 			if (!trylock_page(page))
+-				return ret;
++				return false;
+ 
+ 			mapping = page_mapping(page);
+ 			migrate_dirty = !mapping || mapping->a_ops->migratepage;
+ 			unlock_page(page);
+ 			if (!migrate_dirty)
+-				return ret;
++				return false;
+ 		}
+ 	}
+ 
+ 	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
+-		return ret;
++		return false;
+ 
+-	return 0;
++	return true;
+ }
+ 
+ /*
+@@ -1674,35 +1672,31 @@ static unsigned long isolate_lru_pages(u
+ 		 * only when the page is being freed somewhere else.
+ 		 */
+ 		scan += nr_pages;
+-		switch (__isolate_lru_page_prepare(page, mode)) {
+-		case 0:
+-			/*
+-			 * Be careful not to clear PageLRU until after we're
+-			 * sure the page is not being freed elsewhere -- the
+-			 * page release code relies on it.
+-			 */
+-			if (unlikely(!get_page_unless_zero(page)))
+-				goto busy;
++		if (!__isolate_lru_page_prepare(page, mode)) {
++			/* It is being freed elsewhere */
++			list_move(&page->lru, src);
++			continue;
++		}
++		/*
++		 * Be careful not to clear PageLRU until after we're
++		 * sure the page is not being freed elsewhere -- the
++		 * page release code relies on it.
++		 */
++		if (unlikely(!get_page_unless_zero(page))) {
++			list_move(&page->lru, src);
++			continue;
++		}
+ 
+-			if (!TestClearPageLRU(page)) {
+-				/*
+-				 * This page may in other isolation path,
+-				 * but we still hold lru_lock.
+-				 */
+-				put_page(page);
+-				goto busy;
+-			}
 -
- 	mutex_lock(&test_dev->config_mutex);
- 
- 	old_val = *config;
--	*(unsigned int *)config = new;
-+	*(unsigned int *)config = val;
- 
- 	ret = test_sync(test_dev);
- 	if (ret) {
-@@ -914,18 +911,18 @@ static int test_dev_config_update_uint_r
- 					     unsigned int min,
- 					     unsigned int max)
- {
-+	unsigned int val;
- 	int ret;
--	unsigned long new;
- 
--	ret = kstrtoul(buf, 10, &new);
-+	ret = kstrtouint(buf, 10, &val);
- 	if (ret)
- 		return ret;
- 
--	if (new < min || new > max)
-+	if (val < min || val > max)
- 		return -EINVAL;
- 
- 	mutex_lock(&test_dev->config_mutex);
--	*config = new;
-+	*config = val;
- 	mutex_unlock(&test_dev->config_mutex);
- 
- 	/* Always return full write size even if we didn't consume all */
-@@ -936,18 +933,15 @@ static int test_dev_config_update_int(st
- 				      const char *buf, size_t size,
- 				      int *config)
- {
-+	int val;
- 	int ret;
--	long new;
- 
--	ret = kstrtol(buf, 10, &new);
-+	ret = kstrtoint(buf, 10, &val);
- 	if (ret)
- 		return ret;
- 
--	if (new < INT_MIN || new > INT_MAX)
--		return -EINVAL;
+-			nr_taken += nr_pages;
+-			nr_zone_taken[page_zonenum(page)] += nr_pages;
+-			list_move(&page->lru, dst);
+-			break;
 -
- 	mutex_lock(&test_dev->config_mutex);
--	*config = new;
-+	*config = val;
- 	mutex_unlock(&test_dev->config_mutex);
- 	/* Always return full write size even if we didn't consume all */
- 	return size;
+-		default:
+-busy:
+-			/* else it is being freed elsewhere */
++		if (!TestClearPageLRU(page)) {
++			/* Another thread is already isolating this page */
++			put_page(page);
+ 			list_move(&page->lru, src);
++			continue;
+ 		}
++
++		nr_taken += nr_pages;
++		nr_zone_taken[page_zonenum(page)] += nr_pages;
++		list_move(&page->lru, dst);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-ramfs-support-o_tmpfile.patch
-mm-cleanup-kstrto-usage.patch
-lib-cleanup-kstrto-usage.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+fs-ntfs-remove-unused-varibles.patch
+fs-ntfs-remove-unused-varible-attr_len.patch
+mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+mm-memcg-update-page-struct-member-in-comments.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
+mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
+mm-memcg-remove-incorrect-comments.patch
+mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
+mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
+mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
