@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 418A4C2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76570C56202
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E527820782
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 326C720758
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IIw+WNcV"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lbJL3u+P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728687AbgKXAih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:38:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44366 "EHLO mail.kernel.org"
+        id S1728989AbgKXAil (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:38:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728093AbgKXAih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:38:37 -0500
+        id S1728093AbgKXAij (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:38:39 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 05BCF20729;
-        Tue, 24 Nov 2020 00:38:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0D0502083E;
+        Tue, 24 Nov 2020 00:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178314;
-        bh=que5vzTosqQoRkAsGp6BlR0B7oRGQ/AFR8lPCXy+SO0=;
+        s=korg; t=1606178318;
+        bh=M4ftmRnmj/dHCGn4iEMh/xtO8DttqoPZWVpyHyMgDCM=;
         h=Date:From:To:Subject:From;
-        b=IIw+WNcVNVkrfvlbCI/FhYA+DMS57DWE6DWmAmlcvVHKckU3axUutDzmCZ4NZ/ZBC
-         6ANaP7V6wpT+py6xJhlDaythlU90u/TEskgN/8o2IxZJrsBgA5zwgF8JmvhNlFGIAO
-         Yo2i6OEHVfZ3nAqsmkeZ4AaJkVeDSqI0SJsDlFTA=
-Date:   Mon, 23 Nov 2020 16:38:33 -0800
+        b=lbJL3u+PwWTz0D/+t0Bxi5N8LjSWB5xlTcU7CtCE0ZV+tqJAtmaxfomwSYVw84hsl
+         kuJyVG01uYl4Fsy4yvb1famGEBb/mt+WUlG96Wuuiy65Zq6hQ/sSdrx81v+VFp0Atl
+         M+mcajnX8cgrRTd8DdEsAScyYnGPwu2bzQazIXSM=
+Date:   Mon, 23 Nov 2020 16:38:37 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,8 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-mm-rename-kasan_poison_kfree.patch added to -mm
- tree
-Message-ID: <20201124003833.MoOnTR4sL%akpm@linux-foundation.org>
+Subject:  + kasan-dont-round_up-too-much.patch added to -mm tree
+Message-ID: <20201124003837.4yqdh2o2x%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: rename kasan_poison_kfree
+     Subject: kasan: don't round_up too much
 has been added to the -mm tree.  Its filename is
-     kasan-mm-rename-kasan_poison_kfree.patch
+     kasan-dont-round_up-too-much.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-rename-kasan_poison_kfree.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-dont-round_up-too-much.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-rename-kasan_poison_kfree.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-dont-round_up-too-much.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,24 +73,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: rename kasan_poison_kfree
+Subject: kasan: don't round_up too much
 
-Rename kasan_poison_kfree() to kasan_slab_free_mempool() as it better
-reflects what this annotation does. Also add a comment that explains the
-PageSlab() check.
+For hardware tag-based mode kasan_poison_memory() already rounds up the
+size. Do the same for software modes and remove round_up() from the common
+code.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/141675fb493555e984c5dca555e9d9f768c7bbaa.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I5026f87364e556b506ef1baee725144bb04b8810
+Link: https://lkml.kernel.org/r/47b232474f1f89dc072aeda0fa58daa6efade377.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ib397128fac6eba874008662b4964d65352db4aa4
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -99,124 +96,51 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   16 ++++++++--------
- mm/kasan/common.c     |   40 +++++++++++++++++++++++-----------------
- mm/mempool.c          |    2 +-
- 3 files changed, 32 insertions(+), 26 deletions(-)
+ mm/kasan/common.c |    8 ++------
+ mm/kasan/shadow.c |    1 +
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
---- a/include/linux/kasan.h~kasan-mm-rename-kasan_poison_kfree
-+++ a/include/linux/kasan.h
-@@ -175,6 +175,13 @@ static __always_inline bool kasan_slab_f
- 	return false;
- }
- 
-+void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
-+static __always_inline void kasan_slab_free_mempool(void *ptr, unsigned long ip)
-+{
-+	if (kasan_enabled())
-+		__kasan_slab_free_mempool(ptr, ip);
-+}
-+
- void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
- 				       void *object, gfp_t flags);
- static __always_inline void * __must_check kasan_slab_alloc(
-@@ -215,13 +222,6 @@ static __always_inline void * __must_che
- 	return (void *)object;
- }
- 
--void __kasan_poison_kfree(void *ptr, unsigned long ip);
--static __always_inline void kasan_poison_kfree(void *ptr, unsigned long ip)
--{
--	if (kasan_enabled())
--		__kasan_poison_kfree(ptr, ip);
--}
--
- void __kasan_kfree_large(void *ptr, unsigned long ip);
- static __always_inline void kasan_kfree_large(void *ptr, unsigned long ip)
- {
-@@ -260,6 +260,7 @@ static inline bool kasan_slab_free(struc
- {
- 	return false;
- }
-+static inline void kasan_slab_free_mempool(void *ptr, unsigned long ip) {}
- static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
- 				   gfp_t flags)
- {
-@@ -279,7 +280,6 @@ static inline void *kasan_krealloc(const
- {
- 	return (void *)object;
- }
--static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
- static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
- 
- #endif /* CONFIG_KASAN */
---- a/mm/kasan/common.c~kasan-mm-rename-kasan_poison_kfree
+--- a/mm/kasan/common.c~kasan-dont-round_up-too-much
 +++ a/mm/kasan/common.c
-@@ -335,6 +335,29 @@ bool __kasan_slab_free(struct kmem_cache
- 	return ____kasan_slab_free(cache, object, ip, true);
+@@ -214,9 +214,7 @@ void __kasan_unpoison_object_data(struct
+ 
+ void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
+ {
+-	poison_range(object,
+-			round_up(cache->object_size, KASAN_GRANULE_SIZE),
+-			KASAN_KMALLOC_REDZONE);
++	poison_range(object, cache->object_size, KASAN_KMALLOC_REDZONE);
  }
  
-+void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
-+{
-+	struct page *page;
-+
-+	page = virt_to_head_page(ptr);
-+
-+	/*
-+	 * Even though this function is only called for kmem_cache_alloc and
-+	 * kmalloc backed mempool allocations, those allocations can still be
-+	 * !PageSlab() when the size provided to kmalloc is larger than
-+	 * KMALLOC_MAX_SIZE, and kmalloc falls back onto page_alloc.
-+	 */
-+	if (unlikely(!PageSlab(page))) {
-+		if (ptr != page_address(page)) {
-+			kasan_report_invalid_free(ptr, ip);
-+			return;
-+		}
-+		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
-+	} else {
-+		____kasan_slab_free(page->slab_cache, ptr, ip, false);
-+	}
-+}
-+
- static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+ /*
+@@ -289,7 +287,6 @@ static bool ____kasan_slab_free(struct k
  {
- 	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
-@@ -429,23 +452,6 @@ void * __must_check __kasan_krealloc(con
- 						flags, true);
- }
+ 	u8 tag;
+ 	void *tagged_object;
+-	unsigned long rounded_up_size;
  
--void __kasan_poison_kfree(void *ptr, unsigned long ip)
--{
--	struct page *page;
--
--	page = virt_to_head_page(ptr);
--
--	if (unlikely(!PageSlab(page))) {
--		if (ptr != page_address(page)) {
--			kasan_report_invalid_free(ptr, ip);
--			return;
--		}
--		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
--	} else {
--		____kasan_slab_free(page->slab_cache, ptr, ip, false);
--	}
--}
--
- void __kasan_kfree_large(void *ptr, unsigned long ip)
- {
- 	if (ptr != page_address(virt_to_head_page(ptr)))
---- a/mm/mempool.c~kasan-mm-rename-kasan_poison_kfree
-+++ a/mm/mempool.c
-@@ -104,7 +104,7 @@ static inline void poison_element(mempoo
- static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
- {
- 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
--		kasan_poison_kfree(element, _RET_IP_);
-+		kasan_slab_free_mempool(element, _RET_IP_);
- 	else if (pool->alloc == mempool_alloc_pages)
- 		kasan_free_pages(element, (unsigned long)pool->pool_data);
- }
+ 	tag = get_tag(object);
+ 	tagged_object = object;
+@@ -313,8 +310,7 @@ static bool ____kasan_slab_free(struct k
+ 		return true;
+ 	}
+ 
+-	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
+-	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
++	poison_range(object, cache->object_size, KASAN_KMALLOC_FREE);
+ 
+ 	if (!kasan_stack_collection_enabled())
+ 		return false;
+--- a/mm/kasan/shadow.c~kasan-dont-round_up-too-much
++++ a/mm/kasan/shadow.c
+@@ -83,6 +83,7 @@ void poison_range(const void *address, s
+ 	 * addresses to this function.
+ 	 */
+ 	address = kasan_reset_tag(address);
++	size = round_up(size, KASAN_GRANULE_SIZE);
+ 
+ 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+ 	if (is_kfence_address(address))
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
