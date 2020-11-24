@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E3BC2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 794F6C2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 93E3620758
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26BFE20758
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:36:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wqcalf2o"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MCwiizoC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728474AbgKXAgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:36:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43290 "EHLO mail.kernel.org"
+        id S1730167AbgKXAgS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:36:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727107AbgKXAgN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:36:13 -0500
+        id S1727107AbgKXAgS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:36:18 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2C88120729;
-        Tue, 24 Nov 2020 00:36:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2832A20729;
+        Tue, 24 Nov 2020 00:36:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178172;
-        bh=fLNWeKJNjZz9m1j1LYaCdMqBL0DrNIH1MMNMk5mhqps=;
+        s=korg; t=1606178177;
+        bh=F1Jvcf/HbKVSqT3jA5+xL0/8pJZLQT7fo5vusAEEZjM=;
         h=Date:From:To:Subject:From;
-        b=Wqcalf2obzn960uOxI0H0gti19gICMY+HvcRFRsRgyApRiEg4x7a+Y7wc/PzDWf4S
-         2fbf8FCrwilyA1sikPAujr2HdG/dXdnD9BSNgPASOI8HgJ7VLNyT7NjKU7G5t8FSv+
-         XjTN4JrySmBt9vNTrcOVqayHWzTKLTJjQNdsz8o0=
-Date:   Mon, 23 Nov 2020 16:36:11 -0800
+        b=MCwiizoCoKjv+WcnU2oy/nQ/POcc3rTvKHtsJ2AdU8jWwnbITxAHx92VNqAvvBnQb
+         fh/hXqYmhJI+RS5ypb1bCZwL/jVz9DDCZe/AcCykxkY+UHoQkopwV4PO9CjJbNrSH5
+         Yd2OCAysyorq1fHCk7BiQLh39v/PiTiOFjU27z+Q=
+Date:   Mon, 23 Nov 2020 16:36:15 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
- added to -mm tree
-Message-ID: <20201124003611.8XKgF27eD%akpm@linux-foundation.org>
+Subject:  +
+ kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch added
+ to -mm tree
+Message-ID: <20201124003615.8zfCCL0FT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: rename addr_has_shadow to addr_has_metadata
+     Subject: kasan: rename print_shadow_for_address to print_memory_metadata
 has been added to the -mm tree.  Its filename is
-     kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+     kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,7 +75,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename addr_has_shadow to addr_has_metadata
+Subject: kasan: rename print_shadow_for_address to print_memory_metadata
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
@@ -84,7 +85,7 @@ function.  Rename "shadow" to implementation-neutral "metadata".
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/370466fba590a4596b55ffd38adfd990f8886db4.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/dd955c5aadaee16aef451a6189d19172166a23f5.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -101,58 +102,38 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h          |    2 +-
- mm/kasan/report.c         |    6 +++---
- mm/kasan/report_generic.c |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/kasan/report.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/kasan.h
-@@ -147,7 +147,7 @@ static inline const void *kasan_shadow_t
- 		<< KASAN_SHADOW_SCALE_SHIFT);
- }
- 
--static inline bool addr_has_shadow(const void *addr)
-+static inline bool addr_has_metadata(const void *addr)
- {
- 	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
- }
---- a/mm/kasan/report.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
+--- a/mm/kasan/report.c~kasan-rename-print_shadow_for_address-to-print_memory_metadata
 +++ a/mm/kasan/report.c
-@@ -361,7 +361,7 @@ static void __kasan_report(unsigned long
- 	untagged_addr = reset_tag(tagged_addr);
+@@ -252,7 +252,7 @@ static int shadow_pointer_offset(const v
+ 		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
+ }
  
- 	info.access_addr = tagged_addr;
--	if (addr_has_shadow(untagged_addr))
-+	if (addr_has_metadata(untagged_addr))
- 		info.first_bad_addr = find_first_bad_addr(tagged_addr, size);
- 	else
- 		info.first_bad_addr = untagged_addr;
-@@ -372,11 +372,11 @@ static void __kasan_report(unsigned long
- 	start_report(&flags);
- 
- 	print_error_description(&info);
--	if (addr_has_shadow(untagged_addr))
-+	if (addr_has_metadata(untagged_addr))
- 		print_tags(get_tag(tagged_addr), info.first_bad_addr);
+-static void print_shadow_for_address(const void *addr)
++static void print_memory_metadata(const void *addr)
+ {
+ 	int i;
+ 	const void *shadow = kasan_mem_to_shadow(addr);
+@@ -338,7 +338,7 @@ void kasan_report_invalid_free(void *obj
  	pr_err("\n");
+ 	print_address_description(object, tag);
+ 	pr_err("\n");
+-	print_shadow_for_address(object);
++	print_memory_metadata(object);
+ 	end_report(&flags);
+ }
  
--	if (addr_has_shadow(untagged_addr)) {
-+	if (addr_has_metadata(untagged_addr)) {
+@@ -379,7 +379,7 @@ static void __kasan_report(unsigned long
+ 	if (addr_has_metadata(untagged_addr)) {
  		print_address_description(untagged_addr, get_tag(tagged_addr));
  		pr_err("\n");
- 		print_shadow_for_address(info.first_bad_addr);
---- a/mm/kasan/report_generic.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/report_generic.c
-@@ -118,7 +118,7 @@ const char *get_bug_type(struct kasan_ac
- 	if (info->access_addr + info->access_size < info->access_addr)
- 		return "out-of-bounds";
- 
--	if (addr_has_shadow(info->access_addr))
-+	if (addr_has_metadata(info->access_addr))
- 		return get_shadow_bug_type(info);
- 	return get_wild_bug_type(info);
- }
+-		print_shadow_for_address(info.first_bad_addr);
++		print_memory_metadata(info.first_bad_addr);
+ 	} else {
+ 		dump_stack();
+ 	}
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
