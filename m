@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 903E8C2D0E4
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6E8C2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B89B20782
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:37:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 742A62075A
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:38:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Aw0myVVX"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CmGS0DiG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730781AbgKXAh5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:37:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44062 "EHLO mail.kernel.org"
+        id S1729333AbgKXAiC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:38:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729333AbgKXAh5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:37:57 -0500
+        id S1730785AbgKXAiB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:38:01 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 26BFF20757;
-        Tue, 24 Nov 2020 00:37:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1FDA0204EA;
+        Tue, 24 Nov 2020 00:37:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178276;
-        bh=RdTIkYYipsIOeLodU2R0GFL7/keHCytpPu8K+/Ca8aI=;
+        s=korg; t=1606178279;
+        bh=m7oC43Ks+KK4X3EzKmuMzSHD/+gpEc3suB8RiRJiPPQ=;
         h=Date:From:To:Subject:From;
-        b=Aw0myVVXZT9SZa/JAafXLnvMfwLJVkLtUu8a6hN2NTiGxWxH0ukWPH+xc0uO1E/Zc
-         TPG2ZZtXxjkiqp/elEF/+01pn2bp00VwBlb4yIa5gFwRRuCGb9gzE2OsIseDUNrWR1
-         XkvBzeFltDGe6HVPie0AcOkdUXfjADiWLHAl2vcg=
-Date:   Mon, 23 Nov 2020 16:37:55 -0800
+        b=CmGS0DiGPoqboq2zZ6h9FoN89bPKci8MgvaDm/B9OduChpfYU68hVYTCHRfC/WGYu
+         CmpP6Qb/nZRxrJS6nf08xw1Lo7spcuoddwUbpqgRB8cKtGG5Kk5ByxrK0mr4Bfw4zz
+         9UsUZ921BcJm2D695PNDPMR7OpUYqrGZkxSjvjDk=
+Date:   Mon, 23 Nov 2020 16:37:58 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,8 +41,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-introduce-set_alloc_info.patch added to -mm tree
-Message-ID: <20201124003755.ENUhAIAR8%akpm@linux-foundation.org>
+Subject:  +
+ kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch added to -mm
+ tree
+Message-ID: <20201124003758.fNXd_H_NH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: introduce set_alloc_info
+     Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
 has been added to the -mm tree.  Its filename is
-     kasan-introduce-set_alloc_info.patch
+     kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-introduce-set_alloc_info.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-introduce-set_alloc_info.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,23 +75,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce set_alloc_info
+Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
 
-Add set_alloc_info() helper and move kasan_set_track() into it. This will
-simplify the code for one of the upcoming changes.
+There's a config option CONFIG_KASAN_STACK that has to be enabled for
+KASAN to use stack instrumentation and perform validity checks for
+stack variables.
 
-No functional changes.
+There's no need to unpoison stack when CONFIG_KASAN_STACK is not enabled.
+Only call kasan_unpoison_task_stack[_below]() when CONFIG_KASAN_STACK is
+enabled.
 
-Link: https://lkml.kernel.org/r/b2393e8f1e311a70fc3aaa2196461b6acdee7d21.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I0316193cbb4ecc9b87b7c2eee0dd79f8ec908c1a
+Note, that CONFIG_KASAN_STACK is an option that is currently always
+defined when CONFIG_KASAN is enabled, and therefore has to be tested
+with #if instead of #ifdef.
+
+Link: https://lkml.kernel.org/r/d09dd3f8abb388da397fd11598c5edeaa83fe559.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/If8a891e9fe01ea543e00b576852685afec0887e3
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -97,32 +106,85 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/arm64/kernel/sleep.S        |    2 +-
+ arch/x86/kernel/acpi/wakeup_64.S |    2 +-
+ include/linux/kasan.h            |   10 ++++++----
+ mm/kasan/common.c                |    2 ++
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/common.c~kasan-introduce-set_alloc_info
-+++ a/mm/kasan/common.c
-@@ -327,6 +327,11 @@ bool kasan_slab_free(struct kmem_cache *
- 	return __kasan_slab_free(cache, object, ip, true);
- }
+--- a/arch/arm64/kernel/sleep.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
++++ a/arch/arm64/kernel/sleep.S
+@@ -133,7 +133,7 @@ SYM_FUNC_START(_cpu_resume)
+ 	 */
+ 	bl	cpu_do_resume
  
-+static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
-+{
-+	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
-+}
+-#ifdef CONFIG_KASAN
++#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
+ 	mov	x0, sp
+ 	bl	kasan_unpoison_task_stack_below
+ #endif
+--- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
++++ a/arch/x86/kernel/acpi/wakeup_64.S
+@@ -112,7 +112,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
+ 	movq	pt_regs_r14(%rax), %r14
+ 	movq	pt_regs_r15(%rax), %r15
+ 
+-#ifdef CONFIG_KASAN
++#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
+ 	/*
+ 	 * The suspend path may have poisoned some areas deeper in the stack,
+ 	 * which we now need to unpoison.
+--- a/include/linux/kasan.h~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
++++ a/include/linux/kasan.h
+@@ -76,8 +76,6 @@ static inline void kasan_disable_current
+ 
+ void kasan_unpoison_range(const void *address, size_t size);
+ 
+-void kasan_unpoison_task_stack(struct task_struct *task);
+-
+ void kasan_alloc_pages(struct page *page, unsigned int order);
+ void kasan_free_pages(struct page *page, unsigned int order);
+ 
+@@ -122,8 +120,6 @@ void kasan_restore_multi_shot(bool enabl
+ 
+ static inline void kasan_unpoison_range(const void *address, size_t size) {}
+ 
+-static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
+-
+ static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
+ static inline void kasan_free_pages(struct page *page, unsigned int order) {}
+ 
+@@ -175,6 +171,12 @@ static inline size_t kasan_metadata_size
+ 
+ #endif /* CONFIG_KASAN */
+ 
++#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
++void kasan_unpoison_task_stack(struct task_struct *task);
++#else
++static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
++#endif
 +
- static void *__kasan_kmalloc(struct kmem_cache *cache, const void *object,
- 				size_t size, gfp_t flags, bool keep_tag)
- {
-@@ -357,7 +362,7 @@ static void *__kasan_kmalloc(struct kmem
- 		     KASAN_KMALLOC_REDZONE);
+ #ifdef CONFIG_KASAN_GENERIC
  
- 	if (cache->flags & SLAB_KASAN)
--		kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
-+		set_alloc_info(cache, (void *)object, flags);
- 
- 	return set_tag(object, tag);
+ void kasan_cache_shrink(struct kmem_cache *cache);
+--- a/mm/kasan/common.c~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
++++ a/mm/kasan/common.c
+@@ -64,6 +64,7 @@ void kasan_unpoison_range(const void *ad
+ 	unpoison_range(address, size);
  }
+ 
++#if CONFIG_KASAN_STACK
+ static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
+ {
+ 	void *base = task_stack_page(task);
+@@ -90,6 +91,7 @@ asmlinkage void kasan_unpoison_task_stac
+ 
+ 	unpoison_range(base, watermark - base);
+ }
++#endif /* CONFIG_KASAN_STACK */
+ 
+ void kasan_alloc_pages(struct page *page, unsigned int order)
+ {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
