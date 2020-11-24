@@ -2,47 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 237C8C56202
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:52:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFBB9C56202
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:58:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC7D42075A
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:52:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E8A220729
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:58:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ASu37nNM"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1jsO93C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725308AbgKXAwX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:52:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46044 "EHLO mail.kernel.org"
+        id S1728712AbgKXA6b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:58:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725970AbgKXAwX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:52:23 -0500
+        id S1728703AbgKXA6a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:58:30 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F081B206D8;
-        Tue, 24 Nov 2020 00:52:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0080F20715;
+        Tue, 24 Nov 2020 00:58:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606179142;
-        bh=yMpFAp+H0KfODxF4Y9JSoRjeVWt2o8WG4rmNNspb3cs=;
+        s=korg; t=1606179510;
+        bh=U9xJXdczPS28NoT7l7noHX21nr9fIP+/zzZnvQZGnlg=;
         h=Date:From:To:Subject:From;
-        b=ASu37nNMIpmCj68FfsANg/zNBz3Ws4y588HWR4rCSNbCI4S2gqjqmf5aB8Smxn24R
-         +3zK69YFiTg+7sFwzq0SAcxnUA7UpHP1Z7+Za/ySGa9CAFSpg4/gsAsiJFd35bcYOL
-         Iwyk9LDcTBB2Jr0rx9RFoty7mpZ+YdD6zOiBDUHw=
-Date:   Mon, 23 Nov 2020 16:52:21 -0800
+        b=n1jsO93C2mAEBSaKS58ITTXMDTukXE+4j7Rmfl/rwafdgjohiaHnL1JXRIBfPPF4e
+         HmXBUQGtNpVyLfECm+hHtN6KlqehFtNz6LIXhe8h9R/xCSysusAnZj2A0XQpGQXi6t
+         cdrNirA5fsaru2oUrMxK0czIUDzL//KcWKflljt4=
+Date:   Mon, 23 Nov 2020 16:58:29 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        miles.chen@mediatek.com, mm-commits@vger.kernel.org,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + proc-use-untagged_addr-for-pagemap_read-addresses.patch
- added to -mm tree
-Message-ID: <20201124005221.8yJVXx3VF%akpm@linux-foundation.org>
+To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        iii@linux.ibm.com, lkp@intel.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, zaslonko@linux.ibm.com
+Subject:  + zlib-export-s390-symbols-for-zlib-modules.patch added
+ to -mm tree
+Message-ID: <20201124005829.lVxJJnnSg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: use untagged_addr() for pagemap_read addresses
+     Subject: zlib: export S390 symbols for zlib modules
 has been added to the -mm tree.  Its filename is
-     proc-use-untagged_addr-for-pagemap_read-addresses.patch
+     zlib-export-s390-symbols-for-zlib-modules.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-use-untagged_addr-for-pagemap_read-addresses.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/zlib-export-s390-symbols-for-zlib-modules.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-use-untagged_addr-for-pagemap_read-addresses.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/zlib-export-s390-symbols-for-zlib-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,102 +70,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: proc: use untagged_addr() for pagemap_read addresses
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: zlib: export S390 symbols for zlib modules
 
-When we try to visit the pagemap of a tagged userspace pointer, we find
-that the start_vaddr is not correct because of the tag.
-To fix it, we should untag the usespace pointers in pagemap_read().
+Fix build errors when ZLIB_INFLATE=m and ZLIB_DEFLATE=m and ZLIB_DFLTCC=y
+by exporting the 2 needed symbols in dfltcc_inflate.c.
 
-I tested with 5.10-rc4 and the issue remains.
+Fixes these build errors:
 
-My test code is baed on [1]:
+ERROR: modpost: "dfltcc_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
+ERROR: modpost: "dfltcc_can_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
 
-A userspace pointer which has been tagged by 0xb4: 0xb400007662f541c8
-
-=== userspace program ===
-
-uint64 OsLayer::VirtualToPhysical(void *vaddr) {
-	uint64 frame, paddr, pfnmask, pagemask;
-	int pagesize = sysconf(_SC_PAGESIZE);
-	off64_t off = ((uintptr_t)vaddr) / pagesize * 8; // off = 0xb400007662f541c8 / pagesize * 8 = 0x5a00003b317aa0
-	int fd = open(kPagemapPath, O_RDONLY);
-	...
-
-	if (lseek64(fd, off, SEEK_SET) != off || read(fd, &frame, 8) != 8) {
-		int err = errno;
-		string errtxt = ErrorString(err);
-		if (fd >= 0)
-			close(fd);
-		return 0;
-	}
-...
-}
-
-=== kernel fs/proc/task_mmu.c ===
-
-static ssize_t pagemap_read(struct file *file, char __user *buf,
-		size_t count, loff_t *ppos)
-{
-	...
-	src = *ppos;
-	svpfn = src / PM_ENTRY_BYTES; // svpfn == 0xb400007662f54
-	start_vaddr = svpfn << PAGE_SHIFT; // start_vaddr == 0xb400007662f54000
-	end_vaddr = mm->task_size;
-
-	/* watch out for wraparound */
-	// svpfn == 0xb400007662f54
-	// (mm->task_size >> PAGE) == 0x8000000
-	if (svpfn > mm->task_size >> PAGE_SHIFT) // the condition is true because of the tag 0xb4
-		start_vaddr = end_vaddr;
-
-	ret = 0;
-	while (count && (start_vaddr < end_vaddr)) { // we cannot visit correct entry because start_vaddr is set to end_vaddr
-		int len;
-		unsigned long end;
-		...
-	}
-	...
-}
-
-[1] https://github.com/stressapptest/stressapptest/blob/master/src/os.cc#L158
-
-Link: https://lkml.kernel.org/r/20201123063835.18981-1-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: https://lkml.kernel.org/r/20201123191712.4882-1-rdunlap@infradead.org
+Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/zlib_dfltcc/dfltcc_inflate.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/proc/task_mmu.c~proc-use-untagged_addr-for-pagemap_read-addresses
-+++ a/fs/proc/task_mmu.c
-@@ -1599,11 +1599,11 @@ static ssize_t pagemap_read(struct file
+--- a/lib/zlib_dfltcc/dfltcc_inflate.c~zlib-export-s390-symbols-for-zlib-modules
++++ a/lib/zlib_dfltcc/dfltcc_inflate.c
+@@ -4,6 +4,7 @@
+ #include "dfltcc_util.h"
+ #include "dfltcc.h"
+ #include <asm/setup.h>
++#include <linux/export.h>
+ #include <linux/zutil.h>
  
- 	src = *ppos;
- 	svpfn = src / PM_ENTRY_BYTES;
--	start_vaddr = svpfn << PAGE_SHIFT;
-+	start_vaddr = untagged_addr(svpfn << PAGE_SHIFT);
- 	end_vaddr = mm->task_size;
+ /*
+@@ -29,6 +30,7 @@ int dfltcc_can_inflate(
+     return is_bit_set(dfltcc_state->af.fns, DFLTCC_XPND) &&
+                is_bit_set(dfltcc_state->af.fmts, DFLTCC_FMT0);
+ }
++EXPORT_SYMBOL(dfltcc_can_inflate);
  
- 	/* watch out for wraparound */
--	if (svpfn > mm->task_size >> PAGE_SHIFT)
-+	if (start_vaddr > mm->task_size)
- 		start_vaddr = end_vaddr;
- 
- 	/*
+ static int dfltcc_was_inflate_used(
+     z_streamp strm
+@@ -147,3 +149,4 @@ dfltcc_inflate_action dfltcc_inflate(
+     return (cc == DFLTCC_CC_OP1_TOO_SHORT || cc == DFLTCC_CC_OP2_TOO_SHORT) ?
+         DFLTCC_INFLATE_BREAK : DFLTCC_INFLATE_CONTINUE;
+ }
++EXPORT_SYMBOL(dfltcc_inflate);
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-proc-use-untagged_addr-for-pagemap_read-addresses.patch
+zlib-export-s390-symbols-for-zlib-modules.patch
+procfs-delete-duplicated-words-other-fixes.patch
 
