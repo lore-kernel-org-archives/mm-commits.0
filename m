@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E47BCC56202
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD1EC2D0E4
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD62620729
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C39CD20758
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 00:35:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OP/ggwV1"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K9GAsh7r"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729950AbgKXAft (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Nov 2020 19:35:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43120 "EHLO mail.kernel.org"
+        id S1730344AbgKXAfy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Nov 2020 19:35:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727107AbgKXAft (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Nov 2020 19:35:49 -0500
+        id S1727107AbgKXAfy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Nov 2020 19:35:54 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4F43720757;
-        Tue, 24 Nov 2020 00:35:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 12C7A20729;
+        Tue, 24 Nov 2020 00:35:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606178147;
-        bh=3u17YYegfmyh1aAMSWYD+3cSTFfu8blcKBS4MOoXWdM=;
+        s=korg; t=1606178151;
+        bh=c33NGjqHBrSVL7pF6jT1vTVIHHHt8cdStDXKl6QFWOg=;
         h=Date:From:To:Subject:From;
-        b=OP/ggwV1mnDXUijTsGPz/VsfI1cgpQOg+KfFjouy5DMmK00muY6Utwd1Y2tLv1og1
-         /l1LSd/IyYwLGCYGPUL75KnrdiimZnE3g4EPXdtds24PX1/13V7brPNdq5aY+jUiTy
-         FJxG5PyvnPCgyrvd694R+zyVpanLHeF1lfzHjcG8=
-Date:   Mon, 23 Nov 2020 16:35:46 -0800
+        b=K9GAsh7rO7Dv3xdl5ukq5TLgaGWV4IS+MiA2MI1H7vAJK3baXqgh3xgI7IFLAtwbI
+         fBTMRtJwrepmjuLVhFczdEypLKDbgS/o9hkMqEHXy7uuaSRyhQ3eB1EaH56E70teNv
+         mTmCI4UhgGln71PvYt7vlAbbLzBbd3YRoEj5/JSk=
+Date:   Mon, 23 Nov 2020 16:35:50 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -41,9 +41,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  + kasan-hide-invalid-free-check-implementation.patch
- added to -mm tree
-Message-ID: <20201124003546.QUP0MEOp3%akpm@linux-foundation.org>
+Subject:  +
+ kasan-decode-stack-frame-only-with-kasan_stack_enable.patch added to -mm
+ tree
+Message-ID: <20201124003550._aB-q57Q2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: hide invalid free check implementation
+     Subject: kasan: decode stack frame only with KASAN_STACK_ENABLE
 has been added to the -mm tree.  Its filename is
-     kasan-hide-invalid-free-check-implementation.patch
+     kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-hide-invalid-free-check-implementation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-hide-invalid-free-check-implementation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,20 +75,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: hide invalid free check implementation
+Subject: kasan: decode stack frame only with KASAN_STACK_ENABLE
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
-
-For software KASAN modes the check is based on the value in the shadow
-memory.  Hardware tag-based KASAN won't be using shadow, so hide the
-implementation of the check in check_invalid_free().
-
-Also simplify the code for software tag-based mode.
+Decoding routines aren't needed when CONFIG_KASAN_STACK_ENABLE is not
+enabled.  Currently only generic KASAN mode implements stack error
+reporting.
 
 No functional changes for software modes.
 
-Link: https://lkml.kernel.org/r/d01534a4b977f97d87515dc590e6348e1406de81.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/05a24db36f5ec876af876a299bbea98c29468ebd.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -104,95 +100,375 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c  |   19 +------------------
- mm/kasan/generic.c |    7 +++++++
- mm/kasan/kasan.h   |    2 ++
- mm/kasan/sw_tags.c |    9 +++++++++
- 4 files changed, 19 insertions(+), 18 deletions(-)
+ mm/kasan/kasan.h          |    6 +
+ mm/kasan/report.c         |  162 ------------------------------------
+ mm/kasan/report_generic.c |  162 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 168 insertions(+), 162 deletions(-)
 
---- a/mm/kasan/common.c~kasan-hide-invalid-free-check-implementation
-+++ a/mm/kasan/common.c
-@@ -278,25 +278,9 @@ void * __must_check kasan_init_slab_obj(
- 	return (void *)object;
- }
- 
--static inline bool shadow_invalid(u8 tag, s8 shadow_byte)
--{
--	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
--		return shadow_byte < 0 ||
--			shadow_byte >= KASAN_GRANULE_SIZE;
--
--	/* else CONFIG_KASAN_SW_TAGS: */
--	if ((u8)shadow_byte == KASAN_TAG_INVALID)
--		return true;
--	if ((tag != KASAN_TAG_KERNEL) && (tag != (u8)shadow_byte))
--		return true;
--
--	return false;
--}
--
- static bool __kasan_slab_free(struct kmem_cache *cache, void *object,
- 			      unsigned long ip, bool quarantine)
- {
--	s8 shadow_byte;
- 	u8 tag;
- 	void *tagged_object;
- 	unsigned long rounded_up_size;
-@@ -318,8 +302,7 @@ static bool __kasan_slab_free(struct kme
- 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
- 		return false;
- 
--	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
--	if (shadow_invalid(tag, shadow_byte)) {
-+	if (check_invalid_free(tagged_object)) {
- 		kasan_report_invalid_free(tagged_object, ip);
- 		return true;
- 	}
---- a/mm/kasan/generic.c~kasan-hide-invalid-free-check-implementation
-+++ a/mm/kasan/generic.c
-@@ -188,6 +188,13 @@ bool check_memory_region(unsigned long a
- 	return check_memory_region_inline(addr, size, write, ret_ip);
- }
- 
-+bool check_invalid_free(void *addr)
-+{
-+	s8 shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(addr));
-+
-+	return shadow_byte < 0 || shadow_byte >= KASAN_GRANULE_SIZE;
-+}
-+
- void kasan_cache_shrink(struct kmem_cache *cache)
- {
- 	quarantine_remove_cache(cache);
---- a/mm/kasan/kasan.h~kasan-hide-invalid-free-check-implementation
+--- a/mm/kasan/kasan.h~kasan-decode-stack-frame-only-with-kasan_stack_enable
 +++ a/mm/kasan/kasan.h
-@@ -166,6 +166,8 @@ void unpoison_range(const void *address,
- bool check_memory_region(unsigned long addr, size_t size, bool write,
- 				unsigned long ret_ip);
- 
-+bool check_invalid_free(void *addr);
-+
+@@ -171,6 +171,12 @@ bool check_invalid_free(void *addr);
  void *find_first_bad_addr(void *addr, size_t size);
  const char *get_bug_type(struct kasan_access_info *info);
  
---- a/mm/kasan/sw_tags.c~kasan-hide-invalid-free-check-implementation
-+++ a/mm/kasan/sw_tags.c
-@@ -121,6 +121,15 @@ bool check_memory_region(unsigned long a
- 	return true;
++#if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
++void print_address_stack_frame(const void *addr);
++#else
++static inline void print_address_stack_frame(const void *addr) { }
++#endif
++
+ bool kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ void kasan_report_invalid_free(void *object, unsigned long ip);
+--- a/mm/kasan/report.c~kasan-decode-stack-frame-only-with-kasan_stack_enable
++++ a/mm/kasan/report.c
+@@ -211,168 +211,6 @@ static inline bool init_task_stack_addr(
+ 			sizeof(init_thread_union.stack));
  }
  
-+bool check_invalid_free(void *addr)
+-static bool __must_check tokenize_frame_descr(const char **frame_descr,
+-					      char *token, size_t max_tok_len,
+-					      unsigned long *value)
+-{
+-	const char *sep = strchr(*frame_descr, ' ');
+-
+-	if (sep == NULL)
+-		sep = *frame_descr + strlen(*frame_descr);
+-
+-	if (token != NULL) {
+-		const size_t tok_len = sep - *frame_descr;
+-
+-		if (tok_len + 1 > max_tok_len) {
+-			pr_err("KASAN internal error: frame description too long: %s\n",
+-			       *frame_descr);
+-			return false;
+-		}
+-
+-		/* Copy token (+ 1 byte for '\0'). */
+-		strlcpy(token, *frame_descr, tok_len + 1);
+-	}
+-
+-	/* Advance frame_descr past separator. */
+-	*frame_descr = sep + 1;
+-
+-	if (value != NULL && kstrtoul(token, 10, value)) {
+-		pr_err("KASAN internal error: not a valid number: %s\n", token);
+-		return false;
+-	}
+-
+-	return true;
+-}
+-
+-static void print_decoded_frame_descr(const char *frame_descr)
+-{
+-	/*
+-	 * We need to parse the following string:
+-	 *    "n alloc_1 alloc_2 ... alloc_n"
+-	 * where alloc_i looks like
+-	 *    "offset size len name"
+-	 * or "offset size len name:line".
+-	 */
+-
+-	char token[64];
+-	unsigned long num_objects;
+-
+-	if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
+-				  &num_objects))
+-		return;
+-
+-	pr_err("\n");
+-	pr_err("this frame has %lu %s:\n", num_objects,
+-	       num_objects == 1 ? "object" : "objects");
+-
+-	while (num_objects--) {
+-		unsigned long offset;
+-		unsigned long size;
+-
+-		/* access offset */
+-		if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
+-					  &offset))
+-			return;
+-		/* access size */
+-		if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
+-					  &size))
+-			return;
+-		/* name length (unused) */
+-		if (!tokenize_frame_descr(&frame_descr, NULL, 0, NULL))
+-			return;
+-		/* object name */
+-		if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
+-					  NULL))
+-			return;
+-
+-		/* Strip line number; without filename it's not very helpful. */
+-		strreplace(token, ':', '\0');
+-
+-		/* Finally, print object information. */
+-		pr_err(" [%lu, %lu) '%s'", offset, offset + size, token);
+-	}
+-}
+-
+-static bool __must_check get_address_stack_frame_info(const void *addr,
+-						      unsigned long *offset,
+-						      const char **frame_descr,
+-						      const void **frame_pc)
+-{
+-	unsigned long aligned_addr;
+-	unsigned long mem_ptr;
+-	const u8 *shadow_bottom;
+-	const u8 *shadow_ptr;
+-	const unsigned long *frame;
+-
+-	BUILD_BUG_ON(IS_ENABLED(CONFIG_STACK_GROWSUP));
+-
+-	/*
+-	 * NOTE: We currently only support printing frame information for
+-	 * accesses to the task's own stack.
+-	 */
+-	if (!object_is_on_stack(addr))
+-		return false;
+-
+-	aligned_addr = round_down((unsigned long)addr, sizeof(long));
+-	mem_ptr = round_down(aligned_addr, KASAN_GRANULE_SIZE);
+-	shadow_ptr = kasan_mem_to_shadow((void *)aligned_addr);
+-	shadow_bottom = kasan_mem_to_shadow(end_of_stack(current));
+-
+-	while (shadow_ptr >= shadow_bottom && *shadow_ptr != KASAN_STACK_LEFT) {
+-		shadow_ptr--;
+-		mem_ptr -= KASAN_GRANULE_SIZE;
+-	}
+-
+-	while (shadow_ptr >= shadow_bottom && *shadow_ptr == KASAN_STACK_LEFT) {
+-		shadow_ptr--;
+-		mem_ptr -= KASAN_GRANULE_SIZE;
+-	}
+-
+-	if (shadow_ptr < shadow_bottom)
+-		return false;
+-
+-	frame = (const unsigned long *)(mem_ptr + KASAN_GRANULE_SIZE);
+-	if (frame[0] != KASAN_CURRENT_STACK_FRAME_MAGIC) {
+-		pr_err("KASAN internal error: frame info validation failed; invalid marker: %lu\n",
+-		       frame[0]);
+-		return false;
+-	}
+-
+-	*offset = (unsigned long)addr - (unsigned long)frame;
+-	*frame_descr = (const char *)frame[1];
+-	*frame_pc = (void *)frame[2];
+-
+-	return true;
+-}
+-
+-static void print_address_stack_frame(const void *addr)
+-{
+-	unsigned long offset;
+-	const char *frame_descr;
+-	const void *frame_pc;
+-
+-	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
+-		return;
+-
+-	if (!get_address_stack_frame_info(addr, &offset, &frame_descr,
+-					  &frame_pc))
+-		return;
+-
+-	/*
+-	 * get_address_stack_frame_info only returns true if the given addr is
+-	 * on the current task's stack.
+-	 */
+-	pr_err("\n");
+-	pr_err("addr %px is located in stack of task %s/%d at offset %lu in frame:\n",
+-	       addr, current->comm, task_pid_nr(current), offset);
+-	pr_err(" %pS\n", frame_pc);
+-
+-	if (!frame_descr)
+-		return;
+-
+-	print_decoded_frame_descr(frame_descr);
+-}
+-
+ static void print_address_description(void *addr, u8 tag)
+ {
+ 	struct page *page = kasan_addr_to_page(addr);
+--- a/mm/kasan/report_generic.c~kasan-decode-stack-frame-only-with-kasan_stack_enable
++++ a/mm/kasan/report_generic.c
+@@ -16,6 +16,7 @@
+ #include <linux/mm.h>
+ #include <linux/printk.h>
+ #include <linux/sched.h>
++#include <linux/sched/task_stack.h>
+ #include <linux/slab.h>
+ #include <linux/stackdepot.h>
+ #include <linux/stacktrace.h>
+@@ -122,6 +123,167 @@ const char *get_bug_type(struct kasan_ac
+ 	return get_wild_bug_type(info);
+ }
+ 
++#if CONFIG_KASAN_STACK
++static bool __must_check tokenize_frame_descr(const char **frame_descr,
++					      char *token, size_t max_tok_len,
++					      unsigned long *value)
 +{
-+	u8 tag = get_tag(addr);
-+	u8 shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(reset_tag(addr)));
++	const char *sep = strchr(*frame_descr, ' ');
 +
-+	return (shadow_byte == KASAN_TAG_INVALID) ||
-+		(tag != KASAN_TAG_KERNEL && tag != shadow_byte);
++	if (sep == NULL)
++		sep = *frame_descr + strlen(*frame_descr);
++
++	if (token != NULL) {
++		const size_t tok_len = sep - *frame_descr;
++
++		if (tok_len + 1 > max_tok_len) {
++			pr_err("KASAN internal error: frame description too long: %s\n",
++			       *frame_descr);
++			return false;
++		}
++
++		/* Copy token (+ 1 byte for '\0'). */
++		strlcpy(token, *frame_descr, tok_len + 1);
++	}
++
++	/* Advance frame_descr past separator. */
++	*frame_descr = sep + 1;
++
++	if (value != NULL && kstrtoul(token, 10, value)) {
++		pr_err("KASAN internal error: not a valid number: %s\n", token);
++		return false;
++	}
++
++	return true;
 +}
 +
- #define DEFINE_HWASAN_LOAD_STORE(size)					\
- 	void __hwasan_load##size##_noabort(unsigned long addr)		\
- 	{								\
++static void print_decoded_frame_descr(const char *frame_descr)
++{
++	/*
++	 * We need to parse the following string:
++	 *    "n alloc_1 alloc_2 ... alloc_n"
++	 * where alloc_i looks like
++	 *    "offset size len name"
++	 * or "offset size len name:line".
++	 */
++
++	char token[64];
++	unsigned long num_objects;
++
++	if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
++				  &num_objects))
++		return;
++
++	pr_err("\n");
++	pr_err("this frame has %lu %s:\n", num_objects,
++	       num_objects == 1 ? "object" : "objects");
++
++	while (num_objects--) {
++		unsigned long offset;
++		unsigned long size;
++
++		/* access offset */
++		if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
++					  &offset))
++			return;
++		/* access size */
++		if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
++					  &size))
++			return;
++		/* name length (unused) */
++		if (!tokenize_frame_descr(&frame_descr, NULL, 0, NULL))
++			return;
++		/* object name */
++		if (!tokenize_frame_descr(&frame_descr, token, sizeof(token),
++					  NULL))
++			return;
++
++		/* Strip line number; without filename it's not very helpful. */
++		strreplace(token, ':', '\0');
++
++		/* Finally, print object information. */
++		pr_err(" [%lu, %lu) '%s'", offset, offset + size, token);
++	}
++}
++
++static bool __must_check get_address_stack_frame_info(const void *addr,
++						      unsigned long *offset,
++						      const char **frame_descr,
++						      const void **frame_pc)
++{
++	unsigned long aligned_addr;
++	unsigned long mem_ptr;
++	const u8 *shadow_bottom;
++	const u8 *shadow_ptr;
++	const unsigned long *frame;
++
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_STACK_GROWSUP));
++
++	/*
++	 * NOTE: We currently only support printing frame information for
++	 * accesses to the task's own stack.
++	 */
++	if (!object_is_on_stack(addr))
++		return false;
++
++	aligned_addr = round_down((unsigned long)addr, sizeof(long));
++	mem_ptr = round_down(aligned_addr, KASAN_GRANULE_SIZE);
++	shadow_ptr = kasan_mem_to_shadow((void *)aligned_addr);
++	shadow_bottom = kasan_mem_to_shadow(end_of_stack(current));
++
++	while (shadow_ptr >= shadow_bottom && *shadow_ptr != KASAN_STACK_LEFT) {
++		shadow_ptr--;
++		mem_ptr -= KASAN_GRANULE_SIZE;
++	}
++
++	while (shadow_ptr >= shadow_bottom && *shadow_ptr == KASAN_STACK_LEFT) {
++		shadow_ptr--;
++		mem_ptr -= KASAN_GRANULE_SIZE;
++	}
++
++	if (shadow_ptr < shadow_bottom)
++		return false;
++
++	frame = (const unsigned long *)(mem_ptr + KASAN_GRANULE_SIZE);
++	if (frame[0] != KASAN_CURRENT_STACK_FRAME_MAGIC) {
++		pr_err("KASAN internal error: frame info validation failed; invalid marker: %lu\n",
++		       frame[0]);
++		return false;
++	}
++
++	*offset = (unsigned long)addr - (unsigned long)frame;
++	*frame_descr = (const char *)frame[1];
++	*frame_pc = (void *)frame[2];
++
++	return true;
++}
++
++void print_address_stack_frame(const void *addr)
++{
++	unsigned long offset;
++	const char *frame_descr;
++	const void *frame_pc;
++
++	if (!get_address_stack_frame_info(addr, &offset, &frame_descr,
++					  &frame_pc))
++		return;
++
++	/*
++	 * get_address_stack_frame_info only returns true if the given addr is
++	 * on the current task's stack.
++	 */
++	pr_err("\n");
++	pr_err("addr %px is located in stack of task %s/%d at offset %lu in frame:\n",
++	       addr, current->comm, task_pid_nr(current), offset);
++	pr_err(" %pS\n", frame_pc);
++
++	if (!frame_descr)
++		return;
++
++	print_decoded_frame_descr(frame_descr);
++}
++#endif /* CONFIG_KASAN_STACK */
++
+ #define DEFINE_ASAN_REPORT_LOAD(size)                     \
+ void __asan_report_load##size##_noabort(unsigned long addr) \
+ {                                                         \
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
