@@ -7,175 +7,104 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB8BC56201
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 10:22:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E422C56201
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Nov 2020 20:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F0D820708
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Nov 2020 10:22:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96C6D2075A
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Nov 2020 20:33:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=privacyrequired.com header.i=@privacyrequired.com header.b="DQm9j8Ej"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d/X7vuKD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731618AbgKXKWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Nov 2020 05:22:09 -0500
-Received: from devianza.investici.org ([198.167.222.108]:22429 "EHLO
-        devianza.investici.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732046AbgKXKWJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2020 05:22:09 -0500
-X-Greylist: delayed 496 seconds by postgrey-1.27 at vger.kernel.org; Tue, 24 Nov 2020 05:22:07 EST
-Received: from mx2.investici.org (unknown [127.0.0.1])
-        by devianza.investici.org (Postfix) with ESMTP id 4CgKcF229Bz6vQS;
-        Tue, 24 Nov 2020 10:13:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=privacyrequired.com;
-        s=stigmate; t=1606212829;
-        bh=gUPEztGhslPpv6bFeoHpymci/BNaaG0nIMg6StC1KnQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DQm9j8EjcCjuzKZQqU5UPeV7+Nf1DgRd/HvFduYTGSXoj5rDqGhEttpyxFaDncIbB
-         p0bq8I7BqV9zPBbzKesCMXgp+WJfgDpTGtg6PADeqWgtdwfPz5b/dsK58OFDYVrAHq
-         6yuDdN08XfcZNIWU0Y3UxI6L1fdHPSZj+Pljoiig=
-Received: from [198.167.222.108] (mx2.investici.org [198.167.222.108]) (Authenticated sender: laniel_francis@privacyrequired.com) by localhost (Postfix) with ESMTPSA id 4CgKcD6sjGz6vQ7;
-        Tue, 24 Nov 2020 10:13:48 +0000 (UTC)
-From:   Francis Laniel <laniel_francis@privacyrequired.com>
-To:     akpm@linux-foundation.org
-Cc:     danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org,
-        mm-commits@vger.kernel.org
-Subject: Re: + correct-wrong-filenames-in-comment.patch added to -mm tree
-Date:   Tue, 24 Nov 2020 11:13:48 +0100
-Message-ID: <6349599.higeI0jBtf@machine>
-In-Reply-To: <20201124011927.EkMZzlqAw%akpm@linux-foundation.org>
-References: <20201124011927.EkMZzlqAw%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        id S1729937AbgKYUdJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Nov 2020 15:33:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32946 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725876AbgKYUdJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 25 Nov 2020 15:33:09 -0500
+Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3DCF9206F7;
+        Wed, 25 Nov 2020 20:33:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1606336388;
+        bh=hTBiyhomEIUYir858sWS2UHVgvw8LoApXHv0vUtrDuk=;
+        h=Date:From:To:Subject:From;
+        b=d/X7vuKDnU+lRICHN4Sc0B0kVSpY909h02Aa0FfTHGbcmIF41gt02H2azys7yEtq+
+         kMoHowdtMD6utdrLylDc2GaTx7vaqmE9HMXiORnKXgipGIjyueHMGohl5NuU4e3bx8
+         iVaB7Ja+y7n4e61C7QJKNeuN/ehLwfphgJDbF0wY=
+Date:   Wed, 25 Nov 2020 12:33:07 -0800
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20201125203307.vKXrVG72w%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-I am not sure if I should add a mailing list to this mail but thank you for=
-=20
-the addition of the patches!
 
-Le mardi 24 novembre 2020, 02:19:27 CET akpm@linux-foundation.org a =E9crit=
- :
-> The patch titled
->      Subject: drivers/misc/lkdtm/lkdtm.h: correct wrong filenames in comm=
-ent
-> has been added to the -mm tree.  Its filename is
->      correct-wrong-filenames-in-comment.patch
->=20
-> This patch should soon appear at
->   =20
-> https://ozlabs.org/~akpm/mmots/broken-out/correct-wrong-filenames-in-comm=
-en
-> t.patch and later at
->   =20
-> https://ozlabs.org/~akpm/mmotm/broken-out/correct-wrong-filenames-in-comm=
-en
-> t.patch
->=20
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->=20
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng
-> your code ***
->=20
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
->=20
-> ------------------------------------------------------
-> From: Francis Laniel <laniel_francis@privacyrequired.com>
-> Subject: drivers/misc/lkdtm/lkdtm.h: correct wrong filenames in comment
->=20
-> In lkdtm.h, files targeted in comments are named "lkdtm_file.c" while
-> there are named "file.c" in directory.
->=20
-> Link:
-> https://lkml.kernel.org/r/20201122162451.27551-6-laniel_francis@privacyre=
-qu
-> ired.com Signed-off-by: Francis Laniel <laniel_francis@privacyrequired.co=
-m>
-> Acked-by: Kees Cook <keescook@chromium.org>
-> Cc: Daniel Axtens <dja@axtens.net>
-> Cc: Daniel Micay <danielmicay@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->=20
->  drivers/misc/lkdtm/lkdtm.h |   14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
->=20
-> --- a/drivers/misc/lkdtm/lkdtm.h~correct-wrong-filenames-in-comment
-> +++ a/drivers/misc/lkdtm/lkdtm.h
-> @@ -6,7 +6,7 @@
->=20
->  #include <linux/kernel.h>
->=20
-> -/* lkdtm_bugs.c */
-> +/* bugs.c */
->  void __init lkdtm_bugs_init(int *recur_param);
->  void lkdtm_PANIC(void);
->  void lkdtm_BUG(void);
-> @@ -35,7 +35,7 @@ void lkdtm_CORRUPT_PAC(void);
->  void lkdtm_FORTIFY_OBJECT(void);
->  void lkdtm_FORTIFY_SUBOBJECT(void);
->=20
-> -/* lkdtm_heap.c */
-> +/* heap.c */
->  void __init lkdtm_heap_init(void);
->  void __exit lkdtm_heap_exit(void);
->  void lkdtm_OVERWRITE_ALLOCATION(void);
-> @@ -47,7 +47,7 @@ void lkdtm_SLAB_FREE_DOUBLE(void);
->  void lkdtm_SLAB_FREE_CROSS(void);
->  void lkdtm_SLAB_FREE_PAGE(void);
->=20
-> -/* lkdtm_perms.c */
-> +/* perms.c */
->  void __init lkdtm_perms_init(void);
->  void lkdtm_WRITE_RO(void);
->  void lkdtm_WRITE_RO_AFTER_INIT(void);
-> @@ -62,7 +62,7 @@ void lkdtm_EXEC_NULL(void);
->  void lkdtm_ACCESS_USERSPACE(void);
->  void lkdtm_ACCESS_NULL(void);
->=20
-> -/* lkdtm_refcount.c */
-> +/* refcount.c */
->  void lkdtm_REFCOUNT_INC_OVERFLOW(void);
->  void lkdtm_REFCOUNT_ADD_OVERFLOW(void);
->  void lkdtm_REFCOUNT_INC_NOT_ZERO_OVERFLOW(void);
-> @@ -83,10 +83,10 @@ void lkdtm_REFCOUNT_SUB_AND_TEST_SATURAT
->  void lkdtm_REFCOUNT_TIMING(void);
->  void lkdtm_ATOMIC_TIMING(void);
->=20
-> -/* lkdtm_rodata.c */
-> +/* rodata.c */
->  void lkdtm_rodata_do_nothing(void);
->=20
-> -/* lkdtm_usercopy.c */
-> +/* usercopy.c */
->  void __init lkdtm_usercopy_init(void);
->  void __exit lkdtm_usercopy_exit(void);
->  void lkdtm_USERCOPY_HEAP_SIZE_TO(void);
-> @@ -98,7 +98,7 @@ void lkdtm_USERCOPY_STACK_FRAME_FROM(voi
->  void lkdtm_USERCOPY_STACK_BEYOND(void);
->  void lkdtm_USERCOPY_KERNEL(void);
->=20
-> -/* lkdtm_stackleak.c */
-> +/* stackleak.c */
->  void lkdtm_STACKLEAK_ERASING(void);
->=20
->  /* cfi.c */
-> _
->=20
-> Patches currently in -mm which might be from
-> laniel_francis@privacyrequired.com are
->=20
-> stringh-add-fortify-coverage-for-strscpy.patch
-> add-new-file-in-lkdtm-to-test-fortified-strscpy.patch
-> correct-wrong-filenames-in-comment.patch
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/media/platform/marvell-ccic/mmp-driver.c |    4 ----
+ 1 file changed, 4 deletions(-)
+
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c~linux-next-git-rejects
++++ a/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -308,11 +308,7 @@ static int mmpcam_platform_remove(struct
+  */
+ 
+ #ifdef CONFIG_PM
+-<<<<<<< HEAD
+-static int mmpcam_runtime_resume(struct device *dev)
+-=======
+ static int __maybe_unused mmpcam_runtime_resume(struct device *dev)
+->>>>>>> linux-next/akpm-base
+ {
+ 	struct mmp_camera *cam = dev_get_drvdata(dev);
+ 	struct mcam_camera *mcam = &cam->mcam;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
 
