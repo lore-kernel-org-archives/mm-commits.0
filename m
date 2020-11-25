@@ -2,45 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D00E7C64E75
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Nov 2020 23:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71704C56202
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Nov 2020 23:25:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B19D207BC
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Nov 2020 23:24:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15D662083E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Nov 2020 23:25:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e78Jc3YR"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iP1gxvXA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726908AbgKYXYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Nov 2020 18:24:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34252 "EHLO mail.kernel.org"
+        id S1731411AbgKYXZc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Nov 2020 18:25:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729720AbgKYXYV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Nov 2020 18:24:21 -0500
+        id S1731392AbgKYXZc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 25 Nov 2020 18:25:32 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 465A3207BC;
-        Wed, 25 Nov 2020 23:24:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2A364207BC;
+        Wed, 25 Nov 2020 23:25:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606346655;
-        bh=uFkaHMAa8nHxCXqalfnK/5VLI1kE6ehSPZxGYGcW1FY=;
+        s=korg; t=1606346731;
+        bh=OXwiOoOJvMvwcTHA7Q07V4qlRvRcOoLldKIYdGWYVzU=;
         h=Date:From:To:Subject:From;
-        b=e78Jc3YRhGC7rn7QV+dZo0Wv4hcetyr+/TqPav51U7M4BoNkuNh/VCnCQ/mOmgU4z
-         +F+cXJtDjp4v/cjDvdTUt73EQoY3J4r4Ssh34v9pRzhqe/1lEG7BVv6Y4nvtA6xU8/
-         mKgt/H51kbrqKwZvhEMcltXVYtyNuDi0Y/9d0DJY=
-Date:   Wed, 25 Nov 2020 15:24:14 -0800
+        b=iP1gxvXAB/iJUIF7RvafSw4p54HqWyig9v0b8xDg2NhDEHubTwBvLY8LyM7jlLvED
+         5tnbD2de0RTsWBBXkABECAgHHFL17DpwSrutyEEbsVLEsqyUneeqor2u69KCDgJCbG
+         U9V68S5nsj8L/4u2Tx4YoZLuldHybId56fPFcUQ4=
+Date:   Wed, 25 Nov 2020 15:25:30 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, hughd@google.com, mgorman@suse.de,
-        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
-        vbabka@suse.cz, willy@infradead.org, xuyu@linux.alibaba.com
-Subject:  + mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch added
- to -mm tree
-Message-ID: <20201125232414.Ngf10s7Zz%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, catalin.marinas@arm.com,
+        dvyukov@google.com, ebiederm@xmission.com, elver@google.com,
+        glider@google.com, miles.chen@mediatek.com,
+        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        will.deacon@arm.com
+Subject:  [to-be-updated]
+ proc-use-untagged_addr-for-pagemap_read-addresses.patch removed from -mm
+ tree
+Message-ID: <20201125232530.zPBaC4gfs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,172 +53,109 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,thp,shmem: limit shmem THP alloc gfp_mask
-has been added to the -mm tree.  Its filename is
-     mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
+     Subject: proc: use untagged_addr() for pagemap_read addresses
+has been removed from the -mm tree.  Its filename was
+     proc-use-untagged_addr-for-pagemap_read-addresses.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,thp,shmem: limit shmem THP alloc gfp_mask
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: proc: use untagged_addr() for pagemap_read addresses
 
-Patch series "mm,thp,shm: limit shmem THP alloc gfp_mask", v6.
+When we try to visit the pagemap of a tagged userspace pointer, we find
+that the start_vaddr is not correct because of the tag.
+To fix it, we should untag the usespace pointers in pagemap_read().
 
-The allocation flags of anonymous transparent huge pages can be controlled
-through the files in /sys/kernel/mm/transparent_hugepage/defrag, which can
-help the system from getting bogged down in the page reclaim and
-compaction code when many THPs are getting allocated simultaneously.
+I tested with 5.10-rc4 and the issue remains.
 
-However, the gfp_mask for shmem THP allocations were not limited by those
-configuration settings, and some workloads ended up with all CPUs stuck on
-the LRU lock in the page reclaim code, trying to allocate dozens of THPs
-simultaneously.
+My test code is baed on [1]:
 
-This patch applies the same configurated limitation of THPs to shmem
-hugepage allocations, to prevent that from happening.
+A userspace pointer which has been tagged by 0xb4: 0xb400007662f541c8
 
-This way a THP defrag setting of "never" or "defer+madvise" will result in
-quick allocation failures without direct reclaim when no 2MB free pages
-are available.
+=== userspace program ===
 
-With this patch applied, THP allocations for tmpfs will be a little more
-aggressive than today for files mmapped with MADV_HUGEPAGE, and a little
-less aggressive for files that are not mmapped or mapped without that
-flag.
+uint64 OsLayer::VirtualToPhysical(void *vaddr) {
+	uint64 frame, paddr, pfnmask, pagemask;
+	int pagesize = sysconf(_SC_PAGESIZE);
+	off64_t off = ((uintptr_t)vaddr) / pagesize * 8; // off = 0xb400007662f541c8 / pagesize * 8 = 0x5a00003b317aa0
+	int fd = open(kPagemapPath, O_RDONLY);
+	...
 
+	if (lseek64(fd, off, SEEK_SET) != off || read(fd, &frame, 8) != 8) {
+		int err = errno;
+		string errtxt = ErrorString(err);
+		if (fd >= 0)
+			close(fd);
+		return 0;
+	}
+...
+}
 
-This patch (of 3):
+=== kernel fs/proc/task_mmu.c ===
 
-The allocation flags of anonymous transparent huge pages can be controlled
-through the files in /sys/kernel/mm/transparent_hugepage/defrag, which can
-help the system from getting bogged down in the page reclaim and
-compaction code when many THPs are getting allocated simultaneously.
+static ssize_t pagemap_read(struct file *file, char __user *buf,
+		size_t count, loff_t *ppos)
+{
+	...
+	src = *ppos;
+	svpfn = src / PM_ENTRY_BYTES; // svpfn == 0xb400007662f54
+	start_vaddr = svpfn << PAGE_SHIFT; // start_vaddr == 0xb400007662f54000
+	end_vaddr = mm->task_size;
 
-However, the gfp_mask for shmem THP allocations were not limited by those
-configuration settings, and some workloads ended up with all CPUs stuck on
-the LRU lock in the page reclaim code, trying to allocate dozens of THPs
-simultaneously.
+	/* watch out for wraparound */
+	// svpfn == 0xb400007662f54
+	// (mm->task_size >> PAGE) == 0x8000000
+	if (svpfn > mm->task_size >> PAGE_SHIFT) // the condition is true because of the tag 0xb4
+		start_vaddr = end_vaddr;
 
-This patch applies the same configurated limitation of THPs to shmem
-hugepage allocations, to prevent that from happening.
+	ret = 0;
+	while (count && (start_vaddr < end_vaddr)) { // we cannot visit correct entry because start_vaddr is set to end_vaddr
+		int len;
+		unsigned long end;
+		...
+	}
+	...
+}
 
-Controlling the gfp_mask of THP allocations through the knobs in sysfs
-allows users to determine the balance between how aggressively the system
-tries to allocate THPs at fault time, and how much the application may end
-up stalling attempting those allocations.
+[1] https://github.com/stressapptest/stressapptest/blob/master/src/os.cc#L158
 
-This way a THP defrag setting of "never" or "defer+madvise" will result in
-quick allocation failures without direct reclaim when no 2MB free pages
-are available.
-
-With this patch applied, THP allocations for tmpfs will be a little more
-aggressive than today for files mmapped with MADV_HUGEPAGE, and a little
-less aggressive for files that are not mmapped or mapped without that
-flag.
-
-Link: https://lkml.kernel.org/r/20201124194925.623931-1-riel@surriel.com
-Link: https://lkml.kernel.org/r/20201124194925.623931-2-riel@surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Cc: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20201123063835.18981-1-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 ++
- mm/huge_memory.c    |    6 +++---
- mm/shmem.c          |    8 +++++---
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/gfp.h~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
-+++ a/include/linux/gfp.h
-@@ -612,6 +612,8 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
- extern void pm_restrict_gfp_mask(void);
- extern void pm_restore_gfp_mask(void);
+--- a/fs/proc/task_mmu.c~proc-use-untagged_addr-for-pagemap_read-addresses
++++ a/fs/proc/task_mmu.c
+@@ -1599,11 +1599,11 @@ static ssize_t pagemap_read(struct file
  
-+extern gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma);
-+
- #ifdef CONFIG_PM_SLEEP
- extern bool pm_suspended_storage(void);
- #else
---- a/mm/huge_memory.c~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
-+++ a/mm/huge_memory.c
-@@ -650,9 +650,9 @@ release:
-  *	    available
-  * never: never stall for any thp allocation
-  */
--static inline gfp_t alloc_hugepage_direct_gfpmask(struct vm_area_struct *vma)
-+gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma)
- {
--	const bool vma_madvised = !!(vma->vm_flags & VM_HUGEPAGE);
-+	const bool vma_madvised = vma && (vma->vm_flags & VM_HUGEPAGE);
+ 	src = *ppos;
+ 	svpfn = src / PM_ENTRY_BYTES;
+-	start_vaddr = svpfn << PAGE_SHIFT;
++	start_vaddr = untagged_addr(svpfn << PAGE_SHIFT);
+ 	end_vaddr = mm->task_size;
  
- 	/* Always do synchronous compaction */
- 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
-@@ -745,7 +745,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
- 		}
- 		return ret;
- 	}
--	gfp = alloc_hugepage_direct_gfpmask(vma);
-+	gfp = vma_thp_gfp_mask(vma);
- 	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
- 	if (unlikely(!page)) {
- 		count_vm_event(THP_FAULT_FALLBACK);
---- a/mm/shmem.c~mmthpshmem-limit-shmem-thp-alloc-gfp_mask
-+++ a/mm/shmem.c
-@@ -1466,8 +1466,8 @@ static struct page *shmem_alloc_hugepage
- 		return NULL;
+ 	/* watch out for wraparound */
+-	if (svpfn > mm->task_size >> PAGE_SHIFT)
++	if (start_vaddr > mm->task_size)
+ 		start_vaddr = end_vaddr;
  
- 	shmem_pseudo_vma_init(&pvma, info, hindex);
--	page = alloc_pages_vma(gfp | __GFP_COMP | __GFP_NORETRY | __GFP_NOWARN,
--			HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(), true);
-+	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
-+			       true);
- 	shmem_pseudo_vma_destroy(&pvma);
- 	if (page)
- 		prep_transhuge_page(page);
-@@ -1723,6 +1723,7 @@ static int shmem_getpage_gfp(struct inod
- 	struct page *page;
- 	enum sgp_type sgp_huge = sgp;
- 	pgoff_t hindex = index;
-+	gfp_t huge_gfp;
- 	int error;
- 	int once = 0;
- 	int alloced = 0;
-@@ -1809,7 +1810,8 @@ repeat:
- 	}
- 
- alloc_huge:
--	page = shmem_alloc_and_acct_page(gfp, inode, index, true);
-+	huge_gfp = vma_thp_gfp_mask(vma);
-+	page = shmem_alloc_and_acct_page(huge_gfp, inode, index, true);
- 	if (IS_ERR(page)) {
- alloc_nohuge:
- 		page = shmem_alloc_and_acct_page(gfp, inode,
+ 	/*
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
-mmthpshm-limit-gfp-mask-to-no-more-than-specified.patch
-mmthpshmem-make-khugepaged-obey-tmpfs-mount-flags.patch
 
