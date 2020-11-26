@@ -7,39 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 184C8C56202
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Nov 2020 00:07:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C9BC56202
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Nov 2020 00:16:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD31B2168B
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Nov 2020 00:07:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82CCE20B1F
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Nov 2020 00:16:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MwAI6kwC"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x/slwGZm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729045AbgKZAHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Nov 2020 19:07:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41392 "EHLO mail.kernel.org"
+        id S1728545AbgKZAQx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Nov 2020 19:16:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729040AbgKZAHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Nov 2020 19:07:39 -0500
+        id S1728449AbgKZAQx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 25 Nov 2020 19:16:53 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF74F206C0;
-        Thu, 26 Nov 2020 00:07:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EBAC820770;
+        Thu, 26 Nov 2020 00:16:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606349258;
-        bh=8Q9rfpbLiwu7MWYcaMdEmNfZfIneyHhraP1K4tQ7azw=;
+        s=korg; t=1606349812;
+        bh=3340Yjrhu2E2zk5/WW5xP25mSJsHlYZKiqUn+ODl1RU=;
         h=Date:From:To:Subject:From;
-        b=MwAI6kwC+mDZACxO8xYevkCpPahfYg+mTVZneXkdViZ0IyXxKbqZG/ytE4wV5qKEU
-         JYsQjQcZddVpelEeRqbnluuNnuX02/olJllCTLLckK85vZp+v4JrYqefIAVBXjKuNR
-         oaXbGAiaPswQIDyb7E//yc6e/owyrDKkpl3K3Hoc=
-Date:   Wed, 25 Nov 2020 16:07:37 -0800
+        b=x/slwGZmoGSjvd8L1GNaO2vc6gW7+Jix2z66lWYqQKFutHTyLFD+gbvFfHhqEyutN
+         9WnPLmK5dgGN6NEiXmRVuBWYW52h5YiJbXxBT2TCqH9vSN4r0LGJRVmHxi9R5NKvqI
+         gNBag9SID924ZazlzxkZkiimY/tbByt5d5FrdzfM=
+Date:   Wed, 25 Nov 2020 16:16:51 -0800
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, hch@lst.de, jani.nikula@intel.com,
-        kvalo@codeaurora.org, mm-commits@vger.kernel.org
-Subject:  + relay-allow-the-use-of-const-callback-structs-v3.patch
- added to -mm tree
-Message-ID: <20201126000737.NiODJxG5F%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dchinner@redhat.com, hannes@cmpxchg.org,
+        hch@lst.de, hughd@google.com, jack@suse.cz,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        william.kucharski@oracle.com, willy@infradead.org,
+        yang.shi@linux.alibaba.com
+Subject:  +
+ mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch added to
+ -mm tree
+Message-ID: <20201126001651.7AB-fqk3c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay-allow-the-use-of-const-callback-structs-v3
+     Subject: mm-truncateshmem-handle-truncates-that-split-thps-fix-fix
 has been added to the -mm tree.  Its filename is
-     relay-allow-the-use-of-const-callback-structs-v3.patch
+     mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/relay-allow-the-use-of-const-callback-structs-v3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/relay-allow-the-use-of-const-callback-structs-v3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,80 +73,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: relay-allow-the-use-of-const-callback-structs-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-truncateshmem-handle-truncates-that-split-thps-fix-fix
 
-cleanups, per Christoph
+fix page unlocking, per Hugh
 
-Link: https://lkml.kernel.org/r/20201124115412.32402-1-jani.nikula@intel.com
-Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kalle Valo <kvalo@codeaurora.org>
+Link: https://lkml.kernel.org/r/CANsGZ6a95WK7+2H4Zyg5FwDxhdJQqR8nKND1Cn6r6e3QxWeW4Q@mail.gmail.com
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ mm/shmem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/relay.c~relay-allow-the-use-of-const-callback-structs-v3
-+++ a/kernel/relay.c
-@@ -252,18 +252,14 @@ EXPORT_SYMBOL_GPL(relay_buf_full);
-  * High-level relay kernel API and associated functions.
-  */
- 
--/* subbuf_start callback wrapper */
--static int cb_subbuf_start(struct rchan_buf *buf, void *subbuf,
--			   void *prev_subbuf, size_t prev_padding)
--{
--	if (buf->chan->cb->subbuf_start)
--		return buf->chan->cb->subbuf_start(buf, subbuf,
--						   prev_subbuf, prev_padding);
--
--	if (relay_buf_full(buf))
--		return 0;
-+static int relay_subbuf_start(struct rchan_buf *buf, void *subbuf,
-+			      void *prev_subbuf, size_t prev_padding)
-+{
-+	if (!buf->chan->cb->subbuf_start)
-+		return !relay_buf_full(buf);
- 
--	return 1;
-+	return buf->chan->cb->subbuf_start(buf, subbuf,
-+					   prev_subbuf, prev_padding);
- }
- 
- /**
-@@ -309,7 +305,7 @@ static void __relay_reset(struct rchan_b
- 	for (i = 0; i < buf->chan->n_subbufs; i++)
- 		buf->padding[i] = 0;
- 
--	cb_subbuf_start(buf, buf->data, NULL, 0);
-+	relay_subbuf_start(buf, buf->data, NULL, 0);
- }
- 
- /**
-@@ -699,7 +695,7 @@ size_t relay_switch_subbuf(struct rchan_
- 	new_subbuf = buf->subbufs_produced % buf->chan->n_subbufs;
- 	new = buf->start + new_subbuf * buf->chan->subbuf_size;
- 	buf->offset = 0;
--	if (!cb_subbuf_start(buf, new, old, buf->prev_padding)) {
-+	if (!relay_subbuf_start(buf, new, old, buf->prev_padding)) {
- 		buf->offset = buf->chan->subbuf_size + 1;
- 		return 0;
- 	}
+--- a/mm/shmem.c~mm-truncateshmem-handle-truncates-that-split-thps-fix-fix
++++ a/mm/shmem.c
+@@ -962,7 +962,10 @@ static void shmem_undo_range(struct inod
+ 				if (index > end)
+ 					end = indices[i] - 1;
+ 			}
++		} else {
++			unlock_page(page);
+ 		}
++
+ 		index = indices[i - 1] + 1;
+ 		pagevec_remove_exceptionals(&pvec);
+ 		pagevec_reinit(&pvec);
 _
 
-Patches currently in -mm which might be from jani.nikula@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
-relay-require-non-null-callbacks-in-relay_open.patch
-relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
-relay-allow-the-use-of-const-callback-structs.patch
-relay-allow-the-use-of-const-callback-structs-v3.patch
-drm-i915-make-relay-callbacks-const.patch
-ath10k-make-relay-callbacks-const.patch
-ath11k-make-relay-callbacks-const.patch
-ath9k-make-relay-callbacks-const.patch
-blktrace-make-relay-callbacks-const.patch
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
