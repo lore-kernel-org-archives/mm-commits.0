@@ -7,41 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7F69C3E8C5
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:12:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C315C3E8C5
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:13:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7B258206DF
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:12:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32EF52075E
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:13:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PJixLnMm"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pnrnlAcy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730739AbgK1CMT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 Nov 2020 21:12:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38556 "EHLO mail.kernel.org"
+        id S1731751AbgK1CMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 Nov 2020 21:12:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38668 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731896AbgK1CIp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 21:08:45 -0500
+        id S1732106AbgK1CKH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 27 Nov 2020 21:10:07 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A638A22245;
-        Sat, 28 Nov 2020 02:08:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7BF1E2224E;
+        Sat, 28 Nov 2020 02:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606529325;
-        bh=wHleIMXsNVx453TMJ0do5bDMTUW3sBBSlTvbO5/kM0c=;
+        s=korg; t=1606529330;
+        bh=Q7nq7Jg6VvdZxR9pqQmNqPwy7KsZvxDJ2oxbJHDcl74=;
         h=Date:From:To:Subject:From;
-        b=PJixLnMmEpXBjdFClP70saENiDv2jnErkS2LYGMSxa+U1NfCff6BASpVMjEqGhFo5
-         60fIscamgoeydWqlWtEAgBr5KtJSsr54FUh0c5dP8j1cCqtDRmKrAhilcPk4yCsvNs
-         X6Praggl7M6Thhf1OZiHS16h2mqkPOdlhXsVoCFU=
-Date:   Fri, 27 Nov 2020 18:08:44 -0800
+        b=pnrnlAcyOwj8T9kPR4Ou2pAyZ85hFJGY4NpR4x77kc46HovrjEGthaRcnY0gw8Cl9
+         1usXYw3e8wCpBi+p3vZhcDiVvTLPyOP5pCYGVrLeX9OULMFmiPK2CmM0DXdmdEI5V4
+         GtmGoypT42ZyjvVbjNGVxlc12WLFq5d8WcslAwRk=
+Date:   Fri, 27 Nov 2020 18:08:50 -0800
 From:   akpm@linux-foundation.org
-To:     feng.tang@intel.com, hannes@cmpxchg.org,
-        mm-commits@vger.kernel.org, rong.a.chen@intel.com,
-        william.kucharski@oracle.com, willy@infradead.org,
-        zhengjun.xing@linux.intel.com
+To:     jack@suse.cz, mm-commits@vger.kernel.org, rkovhaev@gmail.com
 Subject:  [merged]
- mm-fix-madvise-willneed-performance-problem.patch removed from -mm tree
-Message-ID: <20201128020844.T6L13TwnD%akpm@linux-foundation.org>
+ reiserfs-add-check-for-an-invalid-ih_entry_count.patch removed from -mm
+ tree
+Message-ID: <20201128020850.xO-WawmxV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,74 +48,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix madvise WILLNEED performance problem
+     Subject: reiserfs: add check for an invalid ih_entry_count
 has been removed from the -mm tree.  Its filename was
-     mm-fix-madvise-willneed-performance-problem.patch
+     reiserfs-add-check-for-an-invalid-ih_entry_count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix madvise WILLNEED performance problem
+From: Rustam Kovhaev <rkovhaev@gmail.com>
+Subject: reiserfs: add check for an invalid ih_entry_count
 
-The calculation of the end page index was incorrect, leading to a
-regression of 70% when running stress-ng.  With this fix, we instead
-see a performance improvement of 3%.
+When a directory item has an invalid value set for ih_entry_count it might
+trigger use-after-free or out-of-bounds read in bin_search_in_dir_item()
 
-Link: https://lkml.kernel.org/r/20201109134851.29692-1-willy@infradead.org
-Fixes: e6e88712e43b ("mm: optimise madvise WILLNEED")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: kernel test robot <rong.a.chen@intel.com>
-Tested-by: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: "Chen, Rong A" <rong.a.chen@intel.com>
+ih_entry_count * IH_SIZE for directory item should not be larger than
+ih_item_len
+
+Link: https://syzkaller.appspot.com/bug?extid=83b6f7cf9922cae5c4d7
+Link: https://lkml.kernel.org/r/20201101140958.3650143-1-rkovhaev@gmail.com
+Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
+Reported-and-tested-by: syzbot+83b6f7cf9922cae5c4d7@syzkaller.appspotmail.com
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/stree.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/madvise.c~mm-fix-madvise-willneed-performance-problem
-+++ a/mm/madvise.c
-@@ -226,7 +226,7 @@ static void force_shm_swapin_readahead(s
- 		struct address_space *mapping)
- {
- 	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
--	pgoff_t end_index = end / PAGE_SIZE;
-+	pgoff_t end_index = linear_page_index(vma, end + PAGE_SIZE - 1);
- 	struct page *page;
+--- a/fs/reiserfs/stree.c~reiserfs-add-check-for-an-invalid-ih_entry_count
++++ a/fs/reiserfs/stree.c
+@@ -454,6 +454,12 @@ static int is_leaf(char *buf, int blocks
+ 					 "(second one): %h", ih);
+ 			return 0;
+ 		}
++		if (is_direntry_le_ih(ih) && (ih_item_len(ih) < (ih_entry_count(ih) * IH_SIZE))) {
++			reiserfs_warning(NULL, "reiserfs-5093",
++					 "item entry count seems wrong %h",
++					 ih);
++			return 0;
++		}
+ 		prev_location = ih_location(ih);
+ 	}
  
- 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from rkovhaev@gmail.com are
 
-sparc-fix-handling-of-page-table-constructor-failure.patch
-mm-move-free_unref_page-to-mm-internalh.patch
-mm-page-flags-fix-comment.patch
-mm-page_alloc-add-__free_pages-documentation.patch
-mm-support-thps-in-zero_user_segments.patch
-mm-support-thps-in-zero_user_segments-fix.patch
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
-mm-truncateshmem-handle-truncates-that-split-thps.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix.patch
-mm-filemap-return-only-head-pages-from-find_get_entries.patch
 
