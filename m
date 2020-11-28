@@ -5,41 +5,44 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C315C3E8C5
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:13:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44E9EC3E8C5
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32EF52075E
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:13:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 018B3206DF
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pnrnlAcy"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1P57MgHB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731751AbgK1CMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 Nov 2020 21:12:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38668 "EHLO mail.kernel.org"
+        id S1731980AbgK1CM3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 Nov 2020 21:12:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38478 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732106AbgK1CKH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 21:10:07 -0500
+        id S1731751AbgK1CIh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 27 Nov 2020 21:08:37 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7BF1E2224E;
-        Sat, 28 Nov 2020 02:08:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AD6732223F;
+        Sat, 28 Nov 2020 02:08:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606529330;
-        bh=Q7nq7Jg6VvdZxR9pqQmNqPwy7KsZvxDJ2oxbJHDcl74=;
+        s=korg; t=1606529317;
+        bh=2iN8HDvlE8/nMEvferhtIOcfkMKvU91MlMTULSyyRIA=;
         h=Date:From:To:Subject:From;
-        b=pnrnlAcyOwj8T9kPR4Ou2pAyZ85hFJGY4NpR4x77kc46HovrjEGthaRcnY0gw8Cl9
-         1usXYw3e8wCpBi+p3vZhcDiVvTLPyOP5pCYGVrLeX9OULMFmiPK2CmM0DXdmdEI5V4
-         GtmGoypT42ZyjvVbjNGVxlc12WLFq5d8WcslAwRk=
-Date:   Fri, 27 Nov 2020 18:08:50 -0800
+        b=1P57MgHBhI7YFMI3PxrcGZnmMNOVSGOVMCz4RLHhGNw40S0fa5IzfOETaIG8ZSeXz
+         hHlRxXGtkRTG7DnYZ7wQ1GOnae9qlxwHrVkKPSaCESsOOgDHPghLjKFxkg8Sj7xiJM
+         pmQvmORgM+Sl6SW7zKVfFi/U9thSFMmzzukrl9TI=
+Date:   Fri, 27 Nov 2020 18:08:36 -0800
 From:   akpm@linux-foundation.org
-To:     jack@suse.cz, mm-commits@vger.kernel.org, rkovhaev@gmail.com
-Subject:  [merged]
- reiserfs-add-check-for-an-invalid-ih_entry_count.patch removed from -mm
- tree
-Message-ID: <20201128020850.xO-WawmxV%akpm@linux-foundation.org>
+To:     chris@chrisdown.name, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, laoar.shao@gmail.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com, songmuchun@bytedance.com,
+        stable@vger.kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com
+Subject:  [merged] mm-memcg-slab-fix-root-memcg-vmstats.patch
+ removed from -mm tree
+Message-ID: <20201128020836.jsKUmkuAN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,50 +51,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: add check for an invalid ih_entry_count
+     Subject: mm: memcg/slab: fix root memcg vmstats
 has been removed from the -mm tree.  Its filename was
-     reiserfs-add-check-for-an-invalid-ih_entry_count.patch
+     mm-memcg-slab-fix-root-memcg-vmstats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rustam Kovhaev <rkovhaev@gmail.com>
-Subject: reiserfs: add check for an invalid ih_entry_count
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcg/slab: fix root memcg vmstats
 
-When a directory item has an invalid value set for ih_entry_count it might
-trigger use-after-free or out-of-bounds read in bin_search_in_dir_item()
+If we reparent the slab objects to the root memcg, when we free the slab
+object, we need to update the per-memcg vmstats to keep it correct for the
+root memcg.  Now this at least affects the vmstat of NR_KERNEL_STACK_KB
+for !CONFIG_VMAP_STACK when the thread stack size is smaller than the
+PAGE_SIZE.
 
-ih_entry_count * IH_SIZE for directory item should not be larger than
-ih_item_len
+David said: "I assume that without this fix that the root memcg's
+vmstat would always be inflated if we reparented."
 
-Link: https://syzkaller.appspot.com/bug?extid=83b6f7cf9922cae5c4d7
-Link: https://lkml.kernel.org/r/20201101140958.3650143-1-rkovhaev@gmail.com
-Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
-Reported-and-tested-by: syzbot+83b6f7cf9922cae5c4d7@syzkaller.appspotmail.com
-Cc: Jan Kara <jack@suse.cz>
+Link: https://lkml.kernel.org/r/20201110031015.15715-1-songmuchun@bytedance.com
+Fixes: ec9f02384f60 ("mm: workingset: fix vmstat counters for shadow nodes")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: <stable@vger.kernel.org>	[5.3+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/stree.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/fs/reiserfs/stree.c~reiserfs-add-check-for-an-invalid-ih_entry_count
-+++ a/fs/reiserfs/stree.c
-@@ -454,6 +454,12 @@ static int is_leaf(char *buf, int blocks
- 					 "(second one): %h", ih);
- 			return 0;
- 		}
-+		if (is_direntry_le_ih(ih) && (ih_item_len(ih) < (ih_entry_count(ih) * IH_SIZE))) {
-+			reiserfs_warning(NULL, "reiserfs-5093",
-+					 "item entry count seems wrong %h",
-+					 ih);
-+			return 0;
-+		}
- 		prev_location = ih_location(ih);
- 	}
+--- a/mm/memcontrol.c~mm-memcg-slab-fix-root-memcg-vmstats
++++ a/mm/memcontrol.c
+@@ -867,8 +867,13 @@ void __mod_lruvec_slab_state(void *p, en
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_obj(p);
  
+-	/* Untracked pages have no memcg, no lruvec. Update only the node */
+-	if (!memcg || memcg == root_mem_cgroup) {
++	/*
++	 * Untracked pages have no memcg, no lruvec. Update only the
++	 * node. If we reparent the slab objects to the root memcg,
++	 * when we free the slab object, we need to update the per-memcg
++	 * vmstats to keep it correct for the root memcg.
++	 */
++	if (!memcg) {
+ 		__mod_node_page_state(pgdat, idx, val);
+ 	} else {
+ 		lruvec = mem_cgroup_lruvec(memcg, pgdat);
 _
 
-Patches currently in -mm which might be from rkovhaev@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
+mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
+mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
+mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 
