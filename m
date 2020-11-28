@@ -5,41 +5,46 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DF6C3E8C5
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C9E6C63798
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:17:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6909F22210
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EDF8207CD
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:17:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z8jWZdu+"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wu8AQ31q"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727149AbgK1CPZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 Nov 2020 21:15:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38452 "EHLO mail.kernel.org"
+        id S1730194AbgK1CPk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 Nov 2020 21:15:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731627AbgK1CIf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 21:08:35 -0500
+        id S1731252AbgK1CIc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 27 Nov 2020 21:08:32 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C7D4F22210;
-        Sat, 28 Nov 2020 02:08:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C52DD206D8;
+        Sat, 28 Nov 2020 02:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606529314;
-        bh=zAN4kQSGNx5You0VLeLf5Zd+BTYXxW0B7Ee/gz5EUeA=;
+        s=korg; t=1606529311;
+        bh=mL6fu5ksQw/H1idkXMuRSf2AiUFoIqfhqh4EG3EujWQ=;
         h=Date:From:To:Subject:From;
-        b=z8jWZdu+Solib+dzMMkLfJfK6WypDIvHbOrf0nhGSPiTb8wP5ZuZUimQNsvyxh4Oq
-         IbgHo+bVUP8+vEJdb24SUws6YRA59ZEcLOwkhN+In6dxR9y/Rufit+xWVyQnlHtM1Z
-         uwGL8Igfm+G7rmnB3QnXH0UoJHZ2qsH4Q0qWqk+8=
-Date:   Fri, 27 Nov 2020 18:08:33 -0800
+        b=wu8AQ31qqYT84SwHwP8Tt7irZQU+qX3kDjeEGz+8CORdkwWQ2HTpqgJ7F28y3BIxb
+         09C4Gq+NnikBZjk2xHDYXzMZ8YSjxl+53rZTcrk9cDjr40V5688lpTCpwmQBRY8Syf
+         3wpARtoEKn7apWFjzG2V5jFp72yT3CzkKcxkbdtk=
+Date:   Fri, 27 Nov 2020 18:08:30 -0800
 From:   akpm@linux-foundation.org
-To:     dsterba@suse.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, vvghjk1234@gmail.com, willy@infradead.org
+To:     benh@kernel.crashing.org, dan.j.williams@intel.com,
+        fenghua.yu@intel.com, hch@infradead.org, hch@lst.de,
+        joao.m.martins@oracle.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
+        rdunlap@infradead.org, sfr@canb.auug.org.au, tglx@linutronix.de,
+        tony.luck@intel.com, vishal.l.verma@intel.com
 Subject:  [merged]
- mm-fix-readahead_page_batch-for-retry-entries.patch removed from -mm tree
-Message-ID: <20201128020833.qtyNR4961%akpm@linux-foundation.org>
+ mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+ removed from -mm tree
+Message-ID: <20201128020830.CvUMkUQCy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,101 +53,294 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix readahead_page_batch for retry entries
+     Subject: mm: fix phys_to_target_node() and memory_add_physaddr_to_nid() exports
 has been removed from the -mm tree.  Its filename was
-     mm-fix-readahead_page_batch-for-retry-entries.patch
+     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix readahead_page_batch for retry entries
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix phys_to_target_node() and memory_add_physaddr_to_nid() exports
 
-Both btrfs and fuse have reported faults caused by seeing a retry entry
-instead of the page they were looking for.  This was caused by a missing
-check in the iterator.
+The core-mm has a default __weak implementation of phys_to_target_node()
+to mirror the weak definition of memory_add_physaddr_to_nid().  That
+symbol is exported for modules.  However, while the export in
+mm/memory_hotplug.c exported the symbol in the configuration cases of:
 
-As can be seen in the below panic log, the accessing 0x402 causes a
-panic.  In the xarray.h, 0x402 means RETRY_ENTRY.
+	CONFIG_NUMA_KEEP_MEMINFO=y
+	CONFIG_MEMORY_HOTPLUG=y
 
-BUG: kernel NULL pointer dereference, address: 0000000000000402
-CPU: 14 PID: 306003 Comm: as Not tainted 5.9.0-1-amd64 #1 Debian 5.9.1-1
-Hardware name: Lenovo ThinkSystem SR665/7D2VCTO1WW, BIOS D8E106Q-1.01 05/30/2020
-RIP: 0010:fuse_readahead+0x152/0x470 [fuse]
-Code: 41 8b 57 18 4c 8d 54 10 ff 4c 89 d6 48 8d 7c 24 10 e8 d2 e3 28
-f9 48 85 c0 0f 84 fe 00 00 00 44 89 f2 49 89 04 d4 44 8d 72 01 <48> 8b
-10 41 8b 4f 1c 48 c1 ea 10 83 e2 01 80 fa 01 19 d2 81 e2 01
-RSP: 0018:ffffad99ceaebc50 EFLAGS: 00010246
-RAX: 0000000000000402 RBX: 0000000000000001 RCX: 0000000000000002
-RDX: 0000000000000000 RSI: ffff94c5af90bd98 RDI: ffffad99ceaebc60
-RBP: ffff94ddc1749a00 R08: 0000000000000402 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000100 R12: ffff94de6c429ce0
-R13: ffff94de6c4d3700 R14: 0000000000000001 R15: ffffad99ceaebd68
-FS:  00007f228c5c7040(0000) GS:ffff94de8ed80000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000402 CR3: 0000001dbd9b4000 CR4: 0000000000350ee0
-Call Trace:
-  read_pages+0x83/0x270
-  page_cache_readahead_unbounded+0x197/0x230
-  generic_file_buffered_read+0x57a/0xa20
-  new_sync_read+0x112/0x1a0
-  vfs_read+0xf8/0x180
-  ksys_read+0x5f/0xe0
-  do_syscall_64+0x33/0x80
-  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+...and:
 
-Link: https://lkml.kernel.org/r/20201103142852.8543-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20201103124349.16722-1-vvghjk1234@gmail.com
-Fixes: 042124cc64c3 ("mm: add new readahead_control API")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: David Sterba <dsterba@suse.com>
-Reported-by: Wonhyuk Yang <vvghjk1234@gmail.com>
-Cc: <stable@vger.kernel.org>
+	CONFIG_NUMA_KEEP_MEMINFO=n
+	CONFIG_MEMORY_HOTPLUG=y
+
+...it failed to export the symbol in the case of:
+
+	CONFIG_NUMA_KEEP_MEMINFO=y
+	CONFIG_MEMORY_HOTPLUG=n
+
+Not only is that broken, but Christoph points out that the kernel should
+not be exporting any __weak symbol, which means that
+memory_add_physaddr_to_nid() example that phys_to_target_node() copied is
+broken too.
+
+Rework the definition of phys_to_target_node() and
+memory_add_physaddr_to_nid() to not require weak symbols.  Move to the
+common arch override design-pattern of an asm header defining a symbol to
+replace the default implementation.
+
+The only common header that all memory_add_physaddr_to_nid() producing
+architectures implement is asm/sparsemem.h.  In fact, powerpc already
+defines its memory_add_physaddr_to_nid() helper in sparsemem.h. 
+Double-down on that observation and define phys_to_target_node() where
+necessary in asm/sparsemem.h.  An alternate consideration that was
+discarded was to put this override in asm/numa.h, but that entangles with
+the definition of MAX_NUMNODES relative to the inclusion of
+linux/nodemask.h, and requires powerpc to grow a new header.
+
+The dependency on NUMA_KEEP_MEMINFO for DEV_DAX_HMEM_DEVICES is invalid
+now that the symbol is properly exported / stubbed in all combinations of
+CONFIG_NUMA_KEEP_MEMINFO and CONFIG_MEMORY_HOTPLUG.
+
+[dan.j.williams@intel.com: v4]
+  Link: https://lkml.kernel.org/r/160461461867.1505359.5301571728749534585.stgit@dwillia2-desk3.amr.corp.intel.com
+[dan.j.williams@intel.com: powerpc: fix create_section_mapping compile warning]
+  Link: https://lkml.kernel.org/r/160558386174.2948926.2740149041249041764.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/160447639846.1133764.7044090803980177548.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/ia64/include/asm/sparsemem.h    |    6 +++++
+ arch/powerpc/include/asm/mmzone.h    |    5 ++++
+ arch/powerpc/include/asm/sparsemem.h |    5 +---
+ arch/powerpc/mm/mem.c                |    1 
+ arch/x86/include/asm/sparsemem.h     |   10 ++++++++
+ arch/x86/mm/numa.c                   |    2 +
+ drivers/dax/Kconfig                  |    1 
+ include/linux/memory_hotplug.h       |   14 -----------
+ include/linux/numa.h                 |   30 ++++++++++++++++++++++++-
+ mm/memory_hotplug.c                  |   18 ---------------
+ 10 files changed, 55 insertions(+), 37 deletions(-)
 
---- a/include/linux/pagemap.h~mm-fix-readahead_page_batch-for-retry-entries
-+++ a/include/linux/pagemap.h
-@@ -906,6 +906,8 @@ static inline unsigned int __readahead_b
- 	xas_set(&xas, rac->_index);
- 	rcu_read_lock();
- 	xas_for_each(&xas, page, rac->_index + rac->_nr_pages - 1) {
-+		if (xas_retry(&xas, page))
-+			continue;
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
- 		VM_BUG_ON_PAGE(PageTail(page), page);
- 		array[i++] = page;
+--- a/arch/ia64/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/ia64/include/asm/sparsemem.h
+@@ -18,4 +18,10 @@
+ #endif
+ 
+ #endif /* CONFIG_SPARSEMEM */
++
++#ifdef CONFIG_MEMORY_HOTPLUG
++int memory_add_physaddr_to_nid(u64 addr);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
++#endif
++
+ #endif /* _ASM_IA64_SPARSEMEM_H */
+--- a/arch/powerpc/include/asm/mmzone.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/powerpc/include/asm/mmzone.h
+@@ -46,5 +46,10 @@ u64 memory_hotplug_max(void);
+ #define __HAVE_ARCH_RESERVED_KERNEL_PAGES
+ #endif
+ 
++#ifdef CONFIG_MEMORY_HOTPLUG
++extern int create_section_mapping(unsigned long start, unsigned long end,
++				  int nid, pgprot_t prot);
++#endif
++
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_MMZONE_H_ */
+--- a/arch/powerpc/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/powerpc/include/asm/sparsemem.h
+@@ -13,9 +13,9 @@
+ #endif /* CONFIG_SPARSEMEM */
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-extern int create_section_mapping(unsigned long start, unsigned long end,
+-				  int nid, pgprot_t prot);
+ extern int remove_section_mapping(unsigned long start, unsigned long end);
++extern int memory_add_physaddr_to_nid(u64 start);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
+ 
+ #ifdef CONFIG_NUMA
+ extern int hot_add_scn_to_nid(unsigned long scn_addr);
+@@ -26,6 +26,5 @@ static inline int hot_add_scn_to_nid(uns
+ }
+ #endif /* CONFIG_NUMA */
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+-
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_SPARSEMEM_H */
+--- a/arch/powerpc/mm/mem.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/powerpc/mm/mem.c
+@@ -50,6 +50,7 @@
+ #include <asm/rtas.h>
+ #include <asm/kasan.h>
+ #include <asm/svm.h>
++#include <asm/mmzone.h>
+ 
+ #include <mm/mmu_decl.h>
+ 
+--- a/arch/x86/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/x86/include/asm/sparsemem.h
+@@ -28,4 +28,14 @@
+ #endif
+ 
+ #endif /* CONFIG_SPARSEMEM */
++
++#ifndef __ASSEMBLY__
++#ifdef CONFIG_NUMA_KEEP_MEMINFO
++extern int phys_to_target_node(phys_addr_t start);
++#define phys_to_target_node phys_to_target_node
++extern int memory_add_physaddr_to_nid(u64 start);
++#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
++#endif
++#endif /* __ASSEMBLY__ */
++
+ #endif /* _ASM_X86_SPARSEMEM_H */
+--- a/arch/x86/mm/numa.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/arch/x86/mm/numa.c
+@@ -938,6 +938,7 @@ int phys_to_target_node(phys_addr_t star
+ 
+ 	return meminfo_to_nid(&numa_reserved_meminfo, start);
+ }
++EXPORT_SYMBOL_GPL(phys_to_target_node);
+ 
+ int memory_add_physaddr_to_nid(u64 start)
+ {
+@@ -947,4 +948,5 @@ int memory_add_physaddr_to_nid(u64 start
+ 		nid = numa_meminfo.blk[0].nid;
+ 	return nid;
+ }
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+ #endif
+--- a/drivers/dax/Kconfig~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/drivers/dax/Kconfig
+@@ -50,7 +50,6 @@ config DEV_DAX_HMEM
+ 	  Say M if unsure.
+ 
+ config DEV_DAX_HMEM_DEVICES
+-	depends on NUMA_KEEP_MEMINFO # for phys_to_target_node()
+ 	depends on DEV_DAX_HMEM && DAX=y
+ 	def_bool y
+ 
+--- a/include/linux/memory_hotplug.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/include/linux/memory_hotplug.h
+@@ -281,20 +281,6 @@ static inline bool movable_node_is_enabl
+ }
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+-#ifdef CONFIG_NUMA
+-extern int memory_add_physaddr_to_nid(u64 start);
+-extern int phys_to_target_node(u64 start);
+-#else
+-static inline int memory_add_physaddr_to_nid(u64 start)
+-{
+-	return 0;
+-}
+-static inline int phys_to_target_node(u64 start)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
+ /*
+  * pgdat resizing functions
+--- a/include/linux/numa.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/include/linux/numa.h
+@@ -21,13 +21,41 @@
+ #endif
+ 
+ #ifdef CONFIG_NUMA
++#include <linux/printk.h>
++#include <asm/sparsemem.h>
++
+ /* Generic implementation available */
+ int numa_map_to_online_node(int node);
+-#else
++
++#ifndef memory_add_physaddr_to_nid
++static inline int memory_add_physaddr_to_nid(u64 start)
++{
++	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++#endif
++#ifndef phys_to_target_node
++static inline int phys_to_target_node(u64 start)
++{
++	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
++			start);
++	return 0;
++}
++#endif
++#else /* !CONFIG_NUMA */
+ static inline int numa_map_to_online_node(int node)
+ {
+ 	return NUMA_NO_NODE;
+ }
++static inline int memory_add_physaddr_to_nid(u64 start)
++{
++	return 0;
++}
++static inline int phys_to_target_node(u64 start)
++{
++	return 0;
++}
+ #endif
+ 
+ #endif /* _LINUX_NUMA_H */
+--- a/mm/memory_hotplug.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
++++ a/mm/memory_hotplug.c
+@@ -350,24 +350,6 @@ int __ref __add_pages(int nid, unsigned
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_NUMA
+-int __weak memory_add_physaddr_to_nid(u64 start)
+-{
+-	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+-
+-int __weak phys_to_target_node(u64 start)
+-{
+-	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
+-			start);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(phys_to_target_node);
+-#endif
+-
+ /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
+ static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
+ 				     unsigned long start_pfn,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-sparc-fix-handling-of-page-table-constructor-failure.patch
-mm-move-free_unref_page-to-mm-internalh.patch
-mm-page-flags-fix-comment.patch
-mm-page_alloc-add-__free_pages-documentation.patch
-mm-support-thps-in-zero_user_segments.patch
-mm-support-thps-in-zero_user_segments-fix.patch
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
-mm-truncateshmem-handle-truncates-that-split-thps.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix.patch
-mm-filemap-return-only-head-pages-from-find_get_entries.patch
+device-dax-kmem-use-struct_size.patch
+xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
 
