@@ -5,44 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44E9EC3E8C5
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9300BC3E8C5
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 018B3206DF
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A7542075E
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:15:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1P57MgHB"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jDJz5uE0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731980AbgK1CM3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 Nov 2020 21:12:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38478 "EHLO mail.kernel.org"
+        id S1731652AbgK1CIe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 Nov 2020 21:08:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38336 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731751AbgK1CIh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 21:08:37 -0500
+        id S1730194AbgK1CIY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 27 Nov 2020 21:08:24 -0500
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AD6732223F;
-        Sat, 28 Nov 2020 02:08:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 816AC206D8;
+        Sat, 28 Nov 2020 02:08:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606529317;
-        bh=2iN8HDvlE8/nMEvferhtIOcfkMKvU91MlMTULSyyRIA=;
+        s=korg; t=1606529303;
+        bh=RujZv6VSFEgyh+70tfrdQNRteefhY90jtbm94uq6KGI=;
         h=Date:From:To:Subject:From;
-        b=1P57MgHBhI7YFMI3PxrcGZnmMNOVSGOVMCz4RLHhGNw40S0fa5IzfOETaIG8ZSeXz
-         hHlRxXGtkRTG7DnYZ7wQ1GOnae9qlxwHrVkKPSaCESsOOgDHPghLjKFxkg8Sj7xiJM
-         pmQvmORgM+Sl6SW7zKVfFi/U9thSFMmzzukrl9TI=
-Date:   Fri, 27 Nov 2020 18:08:36 -0800
+        b=jDJz5uE0dp6TJixMZvVuU0l/7fbcmM9a4+kdq2JlpuujW96QHTQ44L2RRFbM1alCP
+         8g34rNJ3pyNJIZpNPs6T5qn93Blj2PwaxOXC1LL8lSK3/Gg+E6xfSlmQhmlekETJY3
+         NSEvp0c16udjqN+g1Kw6DddXycXnQUpVdQn2KGEE=
+Date:   Fri, 27 Nov 2020 18:08:22 -0800
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, laoar.shao@gmail.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, shakeelb@google.com, songmuchun@bytedance.com,
-        stable@vger.kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com
-Subject:  [merged] mm-memcg-slab-fix-root-memcg-vmstats.patch
- removed from -mm tree
-Message-ID: <20201128020836.jsKUmkuAN%akpm@linux-foundation.org>
+To:     edumazet@google.com, minchan@kernel.org, mm-commits@vger.kernel.org
+Subject:  [merged]
+ mm-madvise-fix-memory-leak-from-process_madvise.patch removed from -mm tree
+Message-ID: <20201128020822.4XswYJcMx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,72 +47,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg/slab: fix root memcg vmstats
+     Subject: mm/madvise: fix memory leak from process_madvise
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-slab-fix-root-memcg-vmstats.patch
+     mm-madvise-fix-memory-leak-from-process_madvise.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcg/slab: fix root memcg vmstats
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/madvise: fix memory leak from process_madvise
 
-If we reparent the slab objects to the root memcg, when we free the slab
-object, we need to update the per-memcg vmstats to keep it correct for the
-root memcg.  Now this at least affects the vmstat of NR_KERNEL_STACK_KB
-for !CONFIG_VMAP_STACK when the thread stack size is smaller than the
-PAGE_SIZE.
+The early return in process_madvise() will produce a memory leak.  Fix it.
 
-David said: "I assume that without this fix that the root memcg's
-vmstat would always be inflated if we reparented."
-
-Link: https://lkml.kernel.org/r/20201110031015.15715-1-songmuchun@bytedance.com
-Fixes: ec9f02384f60 ("mm: workingset: fix vmstat counters for shadow nodes")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: <stable@vger.kernel.org>	[5.3+]
+Link: https://lkml.kernel.org/r/20201116155132.GA3805951@google.com
+Fixes: ecb8ac8b1f14 ("mm/madvise: introduce process_madvise() syscall: an external memory hinting API")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/madvise.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-slab-fix-root-memcg-vmstats
-+++ a/mm/memcontrol.c
-@@ -867,8 +867,13 @@ void __mod_lruvec_slab_state(void *p, en
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_obj(p);
+--- a/mm/madvise.c~mm-madvise-fix-memory-leak-from-process_madvise
++++ a/mm/madvise.c
+@@ -1231,8 +1231,6 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 		ret = total_len - iov_iter_count(&iter);
  
--	/* Untracked pages have no memcg, no lruvec. Update only the node */
--	if (!memcg || memcg == root_mem_cgroup) {
-+	/*
-+	 * Untracked pages have no memcg, no lruvec. Update only the
-+	 * node. If we reparent the slab objects to the root memcg,
-+	 * when we free the slab object, we need to update the per-memcg
-+	 * vmstats to keep it correct for the root memcg.
-+	 */
-+	if (!memcg) {
- 		__mod_node_page_state(pgdat, idx, val);
- 	} else {
- 		lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 	mmput(mm);
+-	return ret;
+-
+ release_task:
+ 	put_task_struct(task);
+ put_pid:
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from edumazet@google.com are
 
-mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
-mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
-mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 
