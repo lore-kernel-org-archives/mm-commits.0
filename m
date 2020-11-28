@@ -7,45 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C9E6C63798
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:17:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BED5C3E8C5
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:28:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EDF8207CD
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:17:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29F5221D46
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 02:28:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wu8AQ31q"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="12GCDV78"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730194AbgK1CPk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 Nov 2020 21:15:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38402 "EHLO mail.kernel.org"
+        id S1729695AbgK1C1h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 Nov 2020 21:27:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40858 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731252AbgK1CIc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 21:08:32 -0500
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1730624AbgK1C1J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 27 Nov 2020 21:27:09 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C52DD206D8;
-        Sat, 28 Nov 2020 02:08:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B390920809;
+        Sat, 28 Nov 2020 02:27:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606529311;
-        bh=mL6fu5ksQw/H1idkXMuRSf2AiUFoIqfhqh4EG3EujWQ=;
+        s=korg; t=1606530421;
+        bh=sRt+h5n5DWINTmwI3XX+YjziSh1N8SikOA6ZEQGNRw4=;
         h=Date:From:To:Subject:From;
-        b=wu8AQ31qqYT84SwHwP8Tt7irZQU+qX3kDjeEGz+8CORdkwWQ2HTpqgJ7F28y3BIxb
-         09C4Gq+NnikBZjk2xHDYXzMZ8YSjxl+53rZTcrk9cDjr40V5688lpTCpwmQBRY8Syf
-         3wpARtoEKn7apWFjzG2V5jFp72yT3CzkKcxkbdtk=
-Date:   Fri, 27 Nov 2020 18:08:30 -0800
+        b=12GCDV788qloIvtn7nHXP3ecRelp9eN6yVMvLjqtNNu/Lrm+pPrByP2SoPBavICb+
+         67mxS9LW70BYONEmBBCaW1Pk2Y5IuVNBStU35kUNqbiTpY80hCE7ObC/stC29D6Axu
+         ISGkUYE70iSryRj/SrOgrtFDB2sxM/WSCr558tHo=
+Date:   Fri, 27 Nov 2020 18:27:01 -0800
 From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, dan.j.williams@intel.com,
-        fenghua.yu@intel.com, hch@infradead.org, hch@lst.de,
-        joao.m.martins@oracle.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
-        rdunlap@infradead.org, sfr@canb.auug.org.au, tglx@linutronix.de,
-        tony.luck@intel.com, vishal.l.verma@intel.com
-Subject:  [merged]
- mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
- removed from -mm tree
-Message-ID: <20201128020830.CvUMkUQCy%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, u.kleine-koenig@pengutronix.de
+Subject:  +
+ mailmap-add-two-more-addresses-of-uwe-kleine-oenig.patch added to -mm tree
+Message-ID: <20201128022701.VATEQy6B2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,294 +50,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix phys_to_target_node() and memory_add_physaddr_to_nid() exports
-has been removed from the -mm tree.  Its filename was
-     mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports.patch
+     Subject: mailmap: add two more addresses of Uwe Kleine-K=C3=B6nig
+has been added to the -mm tree.  Its filename is
+     mailmap-add-two-more-addresses-of-uwe-kleine-oenig.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-two-more-addresse=
+s-of-uwe-kleine-oenig.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-two-more-addresse=
+s-of-uwe-kleine-oenig.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix phys_to_target_node() and memory_add_physaddr_to_nid() exports
+=46rom: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Subject: mailmap: add two more addresses of Uwe Kleine-K=C3=B6nig
 
-The core-mm has a default __weak implementation of phys_to_target_node()
-to mirror the weak definition of memory_add_physaddr_to_nid().  That
-symbol is exported for modules.  However, while the export in
-mm/memory_hotplug.c exported the symbol in the configuration cases of:
+This fixes attribution for the commits (among others)
 
-	CONFIG_NUMA_KEEP_MEMINFO=y
-	CONFIG_MEMORY_HOTPLUG=y
+- d4097456cd1d ("video/framebuffer: move the probe func into
+  .devinit.text in Blackfin LCD driver")
 
-...and:
+- 0312e024d6cd ("mfd: mc13xxx: Add support for mc34708")
 
-	CONFIG_NUMA_KEEP_MEMINFO=n
-	CONFIG_MEMORY_HOTPLUG=y
-
-...it failed to export the symbol in the case of:
-
-	CONFIG_NUMA_KEEP_MEMINFO=y
-	CONFIG_MEMORY_HOTPLUG=n
-
-Not only is that broken, but Christoph points out that the kernel should
-not be exporting any __weak symbol, which means that
-memory_add_physaddr_to_nid() example that phys_to_target_node() copied is
-broken too.
-
-Rework the definition of phys_to_target_node() and
-memory_add_physaddr_to_nid() to not require weak symbols.  Move to the
-common arch override design-pattern of an asm header defining a symbol to
-replace the default implementation.
-
-The only common header that all memory_add_physaddr_to_nid() producing
-architectures implement is asm/sparsemem.h.  In fact, powerpc already
-defines its memory_add_physaddr_to_nid() helper in sparsemem.h. 
-Double-down on that observation and define phys_to_target_node() where
-necessary in asm/sparsemem.h.  An alternate consideration that was
-discarded was to put this override in asm/numa.h, but that entangles with
-the definition of MAX_NUMNODES relative to the inclusion of
-linux/nodemask.h, and requires powerpc to grow a new header.
-
-The dependency on NUMA_KEEP_MEMINFO for DEV_DAX_HMEM_DEVICES is invalid
-now that the symbol is properly exported / stubbed in all combinations of
-CONFIG_NUMA_KEEP_MEMINFO and CONFIG_MEMORY_HOTPLUG.
-
-[dan.j.williams@intel.com: v4]
-  Link: https://lkml.kernel.org/r/160461461867.1505359.5301571728749534585.stgit@dwillia2-desk3.amr.corp.intel.com
-[dan.j.williams@intel.com: powerpc: fix create_section_mapping compile warning]
-  Link: https://lkml.kernel.org/r/160558386174.2948926.2740149041249041764.stgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/160447639846.1133764.7044090803980177548.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20201127213358.3440830-1-u.kleine-koenig@pe=
+ngutronix.de
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/sparsemem.h    |    6 +++++
- arch/powerpc/include/asm/mmzone.h    |    5 ++++
- arch/powerpc/include/asm/sparsemem.h |    5 +---
- arch/powerpc/mm/mem.c                |    1 
- arch/x86/include/asm/sparsemem.h     |   10 ++++++++
- arch/x86/mm/numa.c                   |    2 +
- drivers/dax/Kconfig                  |    1 
- include/linux/memory_hotplug.h       |   14 -----------
- include/linux/numa.h                 |   30 ++++++++++++++++++++++++-
- mm/memory_hotplug.c                  |   18 ---------------
- 10 files changed, 55 insertions(+), 37 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/ia64/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/arch/ia64/include/asm/sparsemem.h
-@@ -18,4 +18,10 @@
- #endif
- 
- #endif /* CONFIG_SPARSEMEM */
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+int memory_add_physaddr_to_nid(u64 addr);
-+#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
-+#endif
-+
- #endif /* _ASM_IA64_SPARSEMEM_H */
---- a/arch/powerpc/include/asm/mmzone.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -46,5 +46,10 @@ u64 memory_hotplug_max(void);
- #define __HAVE_ARCH_RESERVED_KERNEL_PAGES
- #endif
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+extern int create_section_mapping(unsigned long start, unsigned long end,
-+				  int nid, pgprot_t prot);
-+#endif
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_MMZONE_H_ */
---- a/arch/powerpc/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/arch/powerpc/include/asm/sparsemem.h
-@@ -13,9 +13,9 @@
- #endif /* CONFIG_SPARSEMEM */
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--extern int create_section_mapping(unsigned long start, unsigned long end,
--				  int nid, pgprot_t prot);
- extern int remove_section_mapping(unsigned long start, unsigned long end);
-+extern int memory_add_physaddr_to_nid(u64 start);
-+#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
- 
- #ifdef CONFIG_NUMA
- extern int hot_add_scn_to_nid(unsigned long scn_addr);
-@@ -26,6 +26,5 @@ static inline int hot_add_scn_to_nid(uns
- }
- #endif /* CONFIG_NUMA */
- #endif /* CONFIG_MEMORY_HOTPLUG */
--
- #endif /* __KERNEL__ */
- #endif /* _ASM_POWERPC_SPARSEMEM_H */
---- a/arch/powerpc/mm/mem.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/arch/powerpc/mm/mem.c
-@@ -50,6 +50,7 @@
- #include <asm/rtas.h>
- #include <asm/kasan.h>
- #include <asm/svm.h>
-+#include <asm/mmzone.h>
- 
- #include <mm/mmu_decl.h>
- 
---- a/arch/x86/include/asm/sparsemem.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/arch/x86/include/asm/sparsemem.h
-@@ -28,4 +28,14 @@
- #endif
- 
- #endif /* CONFIG_SPARSEMEM */
-+
-+#ifndef __ASSEMBLY__
-+#ifdef CONFIG_NUMA_KEEP_MEMINFO
-+extern int phys_to_target_node(phys_addr_t start);
-+#define phys_to_target_node phys_to_target_node
-+extern int memory_add_physaddr_to_nid(u64 start);
-+#define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
-+#endif
-+#endif /* __ASSEMBLY__ */
-+
- #endif /* _ASM_X86_SPARSEMEM_H */
---- a/arch/x86/mm/numa.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/arch/x86/mm/numa.c
-@@ -938,6 +938,7 @@ int phys_to_target_node(phys_addr_t star
- 
- 	return meminfo_to_nid(&numa_reserved_meminfo, start);
- }
-+EXPORT_SYMBOL_GPL(phys_to_target_node);
- 
- int memory_add_physaddr_to_nid(u64 start)
- {
-@@ -947,4 +948,5 @@ int memory_add_physaddr_to_nid(u64 start
- 		nid = numa_meminfo.blk[0].nid;
- 	return nid;
- }
-+EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
- #endif
---- a/drivers/dax/Kconfig~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/drivers/dax/Kconfig
-@@ -50,7 +50,6 @@ config DEV_DAX_HMEM
- 	  Say M if unsure.
- 
- config DEV_DAX_HMEM_DEVICES
--	depends on NUMA_KEEP_MEMINFO # for phys_to_target_node()
- 	depends on DEV_DAX_HMEM && DAX=y
- 	def_bool y
- 
---- a/include/linux/memory_hotplug.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/include/linux/memory_hotplug.h
-@@ -281,20 +281,6 @@ static inline bool movable_node_is_enabl
- }
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
--#ifdef CONFIG_NUMA
--extern int memory_add_physaddr_to_nid(u64 start);
--extern int phys_to_target_node(u64 start);
--#else
--static inline int memory_add_physaddr_to_nid(u64 start)
--{
--	return 0;
--}
--static inline int phys_to_target_node(u64 start)
--{
--	return 0;
--}
--#endif
--
- #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
- /*
-  * pgdat resizing functions
---- a/include/linux/numa.h~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/include/linux/numa.h
-@@ -21,13 +21,41 @@
- #endif
- 
- #ifdef CONFIG_NUMA
-+#include <linux/printk.h>
-+#include <asm/sparsemem.h>
-+
- /* Generic implementation available */
- int numa_map_to_online_node(int node);
--#else
-+
-+#ifndef memory_add_physaddr_to_nid
-+static inline int memory_add_physaddr_to_nid(u64 start)
-+{
-+	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
-+			start);
-+	return 0;
-+}
-+#endif
-+#ifndef phys_to_target_node
-+static inline int phys_to_target_node(u64 start)
-+{
-+	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
-+			start);
-+	return 0;
-+}
-+#endif
-+#else /* !CONFIG_NUMA */
- static inline int numa_map_to_online_node(int node)
- {
- 	return NUMA_NO_NODE;
- }
-+static inline int memory_add_physaddr_to_nid(u64 start)
-+{
-+	return 0;
-+}
-+static inline int phys_to_target_node(u64 start)
-+{
-+	return 0;
-+}
- #endif
- 
- #endif /* _LINUX_NUMA_H */
---- a/mm/memory_hotplug.c~mm-fix-phys_to_target_node-and-memory_add_physaddr_to_nid-exports
-+++ a/mm/memory_hotplug.c
-@@ -350,24 +350,6 @@ int __ref __add_pages(int nid, unsigned
- 	return err;
- }
- 
--#ifdef CONFIG_NUMA
--int __weak memory_add_physaddr_to_nid(u64 start)
--{
--	pr_info_once("Unknown online node for memory at 0x%llx, assuming node 0\n",
--			start);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
--
--int __weak phys_to_target_node(u64 start)
--{
--	pr_info_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
--			start);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(phys_to_target_node);
--#endif
--
- /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
- static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
- 				     unsigned long start_pfn,
+--- a/.mailmap~mailmap-add-two-more-addresses-of-uwe-kleine-oenig
++++ a/.mailmap
+@@ -322,6 +322,8 @@ TripleX Chung <xxx.phy@gmail.com> <zhong
+ Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
+ Tycho Andersen <tycho@tycho.pizza> <tycho@tycho.ws>
+ Uwe Kleine-K=C3=B6nig <ukleinek@informatik.uni-freiburg.de>
++Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
++Uwe Kleine-K=C3=B6nig <ukleinek@strlen.de>
+ Uwe Kleine-K=C3=B6nig <ukl@pengutronix.de>
+ Uwe Kleine-K=C3=B6nig <Uwe.Kleine-Koenig@digi.com>
+ Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de=
+ are
 
-device-dax-kmem-use-struct_size.patch
-xen-unpopulated-alloc-consolidate-pgmap-manipulation.patch
+mailmap-add-two-more-addresses-of-uwe-kleine-oenig.patch
 
