@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31951C56201
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 03:45:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53FF7C64E7C
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 17:56:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7EB4207CD
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 03:45:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04A5E246E2
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 17:56:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TtrdCjBq"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NkSXe9mt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731374AbgK1DpK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 Nov 2020 22:45:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49602 "EHLO mail.kernel.org"
+        id S1731830AbgK1Rz4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 28 Nov 2020 12:55:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730942AbgK1Dlc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 22:41:32 -0500
+        id S1732231AbgK1EUr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 27 Nov 2020 23:20:47 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0B833207CD;
-        Sat, 28 Nov 2020 03:41:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C1A3321973;
+        Sat, 28 Nov 2020 04:20:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606534891;
-        bh=i/FkubaYfBa7nfu+yLfTWa0av44cCLUeVoyKp8BJ84Q=;
+        s=korg; t=1606537246;
+        bh=fRtphAePVQdrNObhctcaG7jErgwK1zuYLWo0rwirOH4=;
         h=Date:From:To:Subject:From;
-        b=TtrdCjBqPHw5EoXTKPngG4elP2JD8ZoEeV8p+gCpbz9f0L4v391f1UpBmiJ1ngydv
-         KLhizbUtwBa4M/P/KvKd6idwsOp6JNaq0ug4/H2R/yIkCwF+kIbcbsqGEdgfDU9CJN
-         PFlQhm1tzYIWOy8VotFZTNpi11FgFKFxPGLFGtzY=
-Date:   Fri, 27 Nov 2020 19:41:30 -0800
+        b=NkSXe9mtEwx/i5U0TJyhGnXuIQhRjy4qTLkJRm22FenP7ycVoeCrKuh7Fo4Cd5gmw
+         mLCRuCrkulHD6mMlkCfQUSRe/KRhV3DN7o+bI7rM4VDUpqxa11rjL0l4qVC/jE70uY
+         32g7pg/3Gjd/IC5IBwfR7yhnBsdFw9yQRH0XIDIU=
+Date:   Fri, 27 Nov 2020 20:20:45 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, glider@google.com, keescook@chromium.org,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de,
-        rppt@linux.ibm.com, vbabka@suse.cz
-Subject:  [obsolete]
- =?US-ASCII?Q?mm-page=5Falloc-clear-pages-in-alloc=5Fcontig=5Fpages-with?=
- =?US-ASCII?Q?-init=5Fon=5Falloc=3D1-or-=5F=5Fgfp=5Fzero.patch?= removed
- from -mm tree
-Message-ID: <20201128034130.TW68MfnqT%akpm@linux-foundation.org>
+To:     broonie@kernel.org, dan.j.williams@intel.com, glider@google.com,
+        mhiramat@kernel.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, vinmenon@codeaurora.org,
+        vjitta@codeaurora.org, ylal@codeaurora.org, zhenhuah@codeaurora.org
+Subject:  +
+ lib-stackdepot-add-support-to-configure-stack_hash_size.patch added to -mm
+ tree
+Message-ID: <20201128042045._tVB28VY1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,123 +51,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: clear pages in alloc_contig_pages() with init_on_alloc=1 or __GFP_ZERO
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc=1-or-__gfp_zero.patch
+     Subject: lib: stackdepot: add support to configure STACK_HASH_SIZE
+has been added to the -mm tree.  Its filename is
+     lib-stackdepot-add-support-to-configure-stack_hash_size.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-add-support-to-configure-stack_hash_size.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-add-support-to-configure-stack_hash_size.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: clear pages in alloc_contig_pages() with init_on_alloc=1 or __GFP_ZERO
+From: Yogesh Lal <ylal@codeaurora.org>
+Subject: lib: stackdepot: add support to configure STACK_HASH_SIZE
 
-commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
-init_on_free=1 boot options") resulted with init_on_alloc=1 in all pages
-leaving the buddy via alloc_pages() and friends to be
-initialized/cleared/zeroed on allocation.
+Add a kernel parameter stack_hash_order to configure STACK_HASH_SIZE.
 
-However, the same logic is currently not applied to alloc_contig_pages():
-allocated pages leaving the buddy aren't cleared with init_on_alloc=1 and
-init_on_free=0.  Let's also properly clear pages on that allocation path
-and add support for __GFP_ZERO.
+Aim is to have configurable value for STACK_HASH_SIZE, so that one can
+configure it depending on usecase there by reducing the static memory
+overhead.
 
-With this change, we will see double clearing of pages in some cases.  One
-example are gigantic pages (either allocated via CMA, or allocated
-dynamically via alloc_contig_pages()) - which is the right thing to do
-(and to be optimized outside of the buddy in the callers) as discussed in
-https://lkml.kernel.org/r/20201019182853.7467-1-gpiccoli@canonical.com
+One example is of Page Owner, default value of STACK_HASH_SIZE lead stack
+depot to consume 8MB of static memory.  Making it configurable and use
+lower value helps to enable features like CONFIG_PAGE_OWNER without any
+significant overhead.
 
-This change implies that with init_on_alloc=1
-- All CMA allocations will be cleared
-- Gigantic pages allocated via alloc_contig_pages() will be cleared
-- virtio-mem memory to be unplugged will be cleared. While this is
-  suboptimal, it's similar to memory balloon drivers handling, where
-  all pages to be inflated will get cleared as well.
-
-__GFP_ZERO is not used yet.  It's intended to be used in
-https://lkml.kernel.org/r/20201029162718.29910-1-david@redhat.com and I
-can move that change into a separate patch if desired.
-
-Link: https://lkml.kernel.org/r/20201110193240.25401-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/1606365835-3242-1-git-send-email-vjitta@codeaurora.org
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Yogesh Lal <ylal@codeaurora.org>
+Signed-off-by: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Zhenhua Huang <zhenhuah@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ lib/stackdepot.c |   27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clear-pages-in-alloc_contig_pages-with-init_on_alloc=1-or-__gfp_zero
-+++ a/mm/page_alloc.c
-@@ -8477,6 +8477,19 @@ static int __alloc_contig_migrate_range(
- 	return 0;
+--- a/lib/stackdepot.c~lib-stackdepot-add-support-to-configure-stack_hash_size
++++ a/lib/stackdepot.c
+@@ -141,14 +141,31 @@ static struct stack_record *depot_alloc_
+ 	return stack;
  }
  
-+static void __alloc_contig_clear_range(unsigned long start_pfn,
-+				       unsigned long end_pfn)
-+{
-+	unsigned long pfn;
+-#define STACK_HASH_ORDER 20
+-#define STACK_HASH_SIZE (1L << STACK_HASH_ORDER)
++static unsigned int stack_hash_order = 20;
++#define STACK_HASH_SIZE (1L << stack_hash_order)
+ #define STACK_HASH_MASK (STACK_HASH_SIZE - 1)
+ #define STACK_HASH_SEED 0x9747b28c
+ 
+-static struct stack_record *stack_table[STACK_HASH_SIZE] = {
+-	[0 ...	STACK_HASH_SIZE - 1] = NULL
+-};
++static struct stack_record **stack_table;
 +
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += MAX_ORDER_NR_PAGES) {
-+		cond_resched();
-+		kernel_init_free_pages(pfn_to_page(pfn),
-+				       min_t(unsigned long, end_pfn - pfn,
-+					     MAX_ORDER_NR_PAGES));
-+	}
++static int __init setup_stack_hash_order(char *str)
++{
++	kstrtouint(str, 0, &stack_hash_order);
++	return 0;
++}
++early_param("stack_hash_order", setup_stack_hash_order);
++
++static int __init init_stackdepot(void)
++{
++	int i;
++
++	stack_table = kvmalloc(sizeof(struct stack_record *) * STACK_HASH_SIZE, GFP_KERNEL);
++	for (i = 0; i < STACK_HASH_SIZE; i++)
++		stack_table[i] = NULL;
++	return 0;
 +}
 +
- /**
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-@@ -8485,7 +8498,8 @@ static int __alloc_contig_migrate_range(
-  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-  *			in range must have the same migratetype and it must
-  *			be either of the two.
-- * @gfp_mask:	GFP mask to use during compaction
-+ * @gfp_mask:	GFP mask to use during compaction. __GFP_ZERO clears allocated
-+ *		pages.
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned.  The PFN range must belong to a single zone.
-@@ -8512,7 +8526,7 @@ int alloc_contig_range(unsigned long sta
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
- 		.no_set_skip_hint = true,
--		.gfp_mask = current_gfp_context(gfp_mask),
-+		.gfp_mask = current_gfp_context(gfp_mask & ~__GFP_ZERO),
- 		.alloc_contig = true,
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
-@@ -8626,6 +8640,9 @@ int alloc_contig_range(unsigned long sta
- 	if (end != outer_end)
- 		free_contig_range(end, outer_end - end);
++early_initcall(init_stackdepot);
  
-+	if (!want_init_on_free() && want_init_on_alloc(gfp_mask))
-+		__alloc_contig_clear_range(start, end);
-+
- done:
- 	undo_isolate_page_range(pfn_max_align_down(start),
- 				pfn_max_align_up(end), migratetype);
-@@ -8679,7 +8696,8 @@ static bool zone_spans_last_pfn(const st
- /**
-  * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
-  * @nr_pages:	Number of contiguous pages to allocate
-- * @gfp_mask:	GFP mask to limit search and used during compaction
-+ * @gfp_mask:	GFP mask to limit search and used during compaction. __GFP_ZERO
-+ *		clears allocated pages.
-  * @nid:	Target node
-  * @nodemask:	Mask for other possible nodes
-  *
+ /* Calculate hash for a stack */
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ylal@codeaurora.org are
 
-mm-page_alloc-clear-all-pages-in-post_alloc_hook-with-init_on_alloc=1.patch
+lib-stackdepot-add-support-to-configure-stack_hash_size.patch
 
