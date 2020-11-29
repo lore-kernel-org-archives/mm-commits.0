@@ -7,43 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEAFDC3E8C5
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:59:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F27F4C3E8C5
+	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 00:00:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C943206F9
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:59:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A229220719
+	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 00:00:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RqbVdH9d"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kJyTZLxr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727897AbgK2X6r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 Nov 2020 18:58:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43776 "EHLO mail.kernel.org"
+        id S1726304AbgK3AA3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 29 Nov 2020 19:00:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726660AbgK2X6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 29 Nov 2020 18:58:47 -0500
+        id S1726470AbgK3AA2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 29 Nov 2020 19:00:28 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF7F7206F9;
-        Sun, 29 Nov 2020 23:58:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D36B7206F9;
+        Sun, 29 Nov 2020 23:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606694287;
-        bh=km61wlTlatEKKe9mCn3X/7rpFXNJbE7ItBPvP3/VYTg=;
+        s=korg; t=1606694388;
+        bh=/00yp+KU0cUK5eZJ/eM6gtxZuDn5nOBpdcfVLUaXaR8=;
         h=Date:From:To:Subject:From;
-        b=RqbVdH9d+Ta/miVT7bhg0rNwqP6EwObeLzZE9jmwh9beGeZc4VFlwMBV0uY5AaDxq
-         Tkivhh4GNfuQhlDoraUW0oEDvMAQQlnLjODBDBOj2zOAFsztl7a7FTs/QYeNr3nsA2
-         ZUfGF3MjIEzc0AYI1LggaGjpCUQYRzI5J50Aqmz0=
-Date:   Sun, 29 Nov 2020 15:58:06 -0800
+        b=kJyTZLxrceeGqI/3BEbC+nLQAsec1aCxRBIZgwV6wkNuDVp9VFBASwTURWosn2McW
+         rG9QLmpoVd3+LmWpJNcfMWsBctC/wCVBVWLo+cEqvRkDmBzmGD0Z20e2nr/CtSCJsW
+         K2LCZxtpf7US16QLrRjPl5UZHmEcqim1/Aac+Xzg=
+Date:   Sun, 29 Nov 2020 15:59:47 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, alexander.h.duyck@linux.intel.com,
-        guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com,
-        lstoakes@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, sfr@canb.auug.org.au,
-        shakeelb@google.com
+To:     joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, yashsri421@gmail.com
 Subject:  +
- mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch added to -mm
- tree
-Message-ID: <20201129235806.-epVwaSUd%akpm@linux-foundation.org>
+ checkpatch-add-fix-and-improve-warning-msg-for-non-standard-signature.patch
+ added to -mm tree
+Message-ID: <20201129235947.jQkLKuvQ8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: bail out early when !memcg in mem_cgroup_lruvec
+     Subject: checkpatch: add fix and improve warning msg for non-standard signature
 has been added to the -mm tree.  Its filename is
-     mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch
+     checkpatch-add-fix-and-improve-warning-msg-for-non-standard-signature.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-and-improve-warning-msg-for-non-standard-signature.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-and-improve-warning-msg-for-non-standard-signature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,100 +70,142 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/memcg: bail out early when !memcg in mem_cgroup_lruvec
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: add fix and improve warning msg for non-standard signature
 
-Sometime, we use NULL memcg in mem_cgroup_lruvec(memcg, pgdat) so we could
-get out early in the situation to avoid useless checking.
+Currently checkpatch warns for BAD_SIGN_OFF on non-standard signature
+styles.
 
-Polished as Andrew Morton's suggestion.
+A large number of these warnings occur because of typo mistakes in
+signature tags.  An evaluation over v4.13..v5.8 showed that out of 539
+warnings due to non-standard signatures, 87 are due to typo mistakes.
 
-Link: https://lkml.kernel.org/r/9ddb17cd-cf5f-15b1-6a7d-986ee44fd5df@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Following are the standard signature tags which are often incorrectly
+used, along with their individual counts of incorrect use (over
+v4.13..v5.8):
+
+ Reviewed-by: 42
+ Signed-off-by: 25
+ Reported-by: 6
+ Acked-by: 4
+ Tested-by: 4
+ Suggested-by: 4
+
+Provide a fix by calculating levenshtein distance for the signature tag
+with all the standard signatures and suggest a fix with a signature, whose
+edit distance is less than or equal to 2 with the misspelled signature.
+
+Out of the 86 mispelled signatures fixed with this approach, 85 were found
+to be good corrections and 1 was bad correction.
+
+Following was found to be a bad correction:
+ Tweeted-by (count: 1) => Tested-by
+
+Link: https://lkml.kernel.org/r/20201128204333.7054-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ scripts/checkpatch.pl |   71 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 69 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec
-+++ a/include/linux/memcontrol.h
-@@ -459,20 +459,17 @@ mem_cgroup_nodeinfo(struct mem_cgroup *m
- static inline struct lruvec *mem_cgroup_lruvec(struct mem_cgroup *memcg,
- 					       struct pglist_data *pgdat)
- {
--	struct mem_cgroup_per_node *mz;
- 	struct lruvec *lruvec;
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-and-improve-warning-msg-for-non-standard-signature
++++ a/scripts/checkpatch.pl
+@@ -506,6 +506,64 @@ our $signature_tags = qr{(?xi:
+ 	Cc:
+ )};
  
--	if (mem_cgroup_disabled()) {
-+	if (mem_cgroup_disabled() || !memcg) {
- 		lruvec = &pgdat->__lruvec;
--		goto out;
--	}
-+	} else {
-+		struct mem_cgroup_per_node *mz;
- 
--	if (!memcg)
--		memcg = root_mem_cgroup;
-+		mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
-+		lruvec = &mz->lruvec;
++sub edit_distance_min {
++	my (@arr) = @_;
++	my $len = scalar @arr;
++	if ((scalar @arr) < 1) {
++		# if underflow, return
++		return;
 +	}
++	my $min = $arr[0];
++	for my $i (0 .. ($len-1)) {
++		if ($arr[$i] < $min) {
++			$min = $arr[$i];
++		}
++	}
++	return $min;
++}
++
++sub get_edit_distance {
++	my ($str1, $str2) = @_;
++	$str1 = lc($str1);
++	$str2 = lc($str2);
++	$str1 =~ s/-//g;
++	$str2 =~ s/-//g;
++	my $len1 = length($str1);
++	my $len2 = length($str2);
++	# two dimensional array storing minimum edit distance
++	my @distance;
++	for my $i (0 .. $len1) {
++		for my $j (0 .. $len2) {
++			if ($i == 0) {
++				$distance[$i][$j] = $j;
++			} elsif ($j == 0) {
++				$distance[$i][$j] = $i;
++			} elsif (substr($str1, $i-1, 1) eq substr($str2, $j-1, 1)) {
++				$distance[$i][$j] = $distance[$i - 1][$j - 1];
++			} else {
++				my $dist1 = $distance[$i][$j - 1]; #insert distance
++				my $dist2 = $distance[$i - 1][$j]; # remove
++				my $dist3 = $distance[$i - 1][$j - 1]; #replace
++				$distance[$i][$j] = 1 + edit_distance_min($dist1, $dist2, $dist3);
++			}
++		}
++	}
++	return $distance[$len1][$len2];
++}
++
++sub find_standard_signature {
++	my ($sign_off) = @_;
++	my @standard_signature_tags = (
++		'Signed-off-by:', 'Co-developed-by:', 'Acked-by:', 'Tested-by:',
++		'Reviewed-by:', 'Reported-by:', 'Suggested-by:'
++	);
++	foreach my $signature (@standard_signature_tags) {
++		return $signature if (get_edit_distance($sign_off, $signature) <= 2);
++	}
++
++	return "";
++}
++
+ our @typeListMisordered = (
+ 	qr{char\s+(?:un)?signed},
+ 	qr{int\s+(?:(?:un)?signed\s+)?short\s},
+@@ -2773,8 +2831,17 @@ sub process {
+ 			my $ucfirst_sign_off = ucfirst(lc($sign_off));
  
--	mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
--	lruvec = &mz->lruvec;
--out:
- 	/*
- 	 * Since a node can be onlined after the mem_cgroup was created,
- 	 * we have to be prepared to initialize lruvec->pgdat here;
+ 			if ($sign_off !~ /$signature_tags/) {
+-				WARN("BAD_SIGN_OFF",
+-				     "Non-standard signature: $sign_off\n" . $herecurr);
++				my $suggested_signature = find_standard_signature($sign_off);
++				if ($suggested_signature eq "") {
++					WARN("BAD_SIGN_OFF",
++					     "Non-standard signature: $sign_off\n" . $herecurr);
++				} else {
++					if (WARN("BAD_SIGN_OFF",
++						 "Non-standard signature: '$sign_off' - perhaps '$suggested_signature'?\n" . $herecurr) &&
++					    $fix) {
++						$fixed[$fixlinenr] =~ s/$sign_off/$suggested_signature/;
++					}
++				}
+ 			}
+ 			if (defined $space_before && $space_before ne "") {
+ 				if (WARN("BAD_SIGN_OFF",
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from yashsri421@gmail.com are
 
-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
-fs-ntfs-remove-unused-varibles.patch
-fs-ntfs-remove-unused-varible-attr_len.patch
-mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
-mm-memcg-update-page-struct-member-in-comments.patch
-mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
-mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
-mm-thp-simplify-lru_add_page_tail.patch
-mm-thp-narrow-lru-locking.patch
-mm-vmscan-remove-unnecessary-lruvec-adding.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
-mm-memcg-add-debug-checking-in-lock_page_memcg.patch
-mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
-mm-lru-move-lock-into-lru_note_cost.patch
-mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
-mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
-mm-mlock-remove-__munlock_isolate_lru_page.patch
-mm-lru-introduce-testclearpagelru.patch
-mm-compaction-do-page-isolation-first-in-compaction.patch
-mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
-mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
-mm-memcg-remove-incorrect-comments.patch
-mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch
-mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
-mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
-mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
-docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
-khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
-mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
-gcov-fix-kernel-doc-markup-issue.patch
-mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
+checkpatch-fix-false-positives-in-repeated_word-warning.patch
+checkpatch-add-fix-option-for-gerrit_change_id.patch
+checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
+checkpatch-add-fix-option-for-assignment_continuations.patch
+checkpatch-add-fix-option-for-logical_continuations.patch
+checkpatch-add-fix-and-improve-warning-msg-for-non-standard-signature.patch
 
