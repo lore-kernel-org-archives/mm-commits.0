@@ -7,39 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CA5C3E8C5
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD6FC3E8C5
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:57:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAD5B206F1
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:51:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E94B1206F9
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:57:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zb6N5QF1"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ScYjQU/o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726470AbgK2Xvc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 Nov 2020 18:51:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40988 "EHLO mail.kernel.org"
+        id S1726512AbgK2X4q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 29 Nov 2020 18:56:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726304AbgK2Xvb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 29 Nov 2020 18:51:31 -0500
+        id S1726304AbgK2X4q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 29 Nov 2020 18:56:46 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BCCB0206D8;
-        Sun, 29 Nov 2020 23:50:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B7BC7206F9;
+        Sun, 29 Nov 2020 23:56:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606693851;
-        bh=B/EiwXUdqasiREQ2muClxnMXiYe3h910tUtSP3Vrf5Y=;
+        s=korg; t=1606694165;
+        bh=kn5rajJ5upjRMN4j9nXrTWGb9zMjRqqey8AkZ1Up1b4=;
         h=Date:From:To:Subject:From;
-        b=Zb6N5QF1tcUx5DcVMyRVeBq4DwHfmrzXeP/bkHXRu2+33cdHAl3eHtUV+wFNxomrP
-         5Swxw2rJ5SsAlIdkqplW3ImXaYBww4yOXaALQBB6jcO3k0TqUiS2jpL7DiYxRtzlvh
-         Usz2vwxMlPENUoEU8rhXmqagsSqNgYj6o3+1sKlU=
-Date:   Sun, 29 Nov 2020 15:50:50 -0800
+        b=ScYjQU/oZFMvjbSPtXNwQCEm31g4JMKPs+H6ZZA3wzejQG8awJeQdES1XXfcX0QTq
+         QKLjn4VVcQxvQA9T/ZRkXvmLcCFWJ+7bQV1r+eNsZK7JHUTrwvNja2OKpaprnC42Dq
+         +u6JEOJvC4etNrMn/uXfnwAtmS08O8uk37JGeHpQ=
+Date:   Sun, 29 Nov 2020 15:56:04 -0800
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, yashsri421@gmail.com
+To:     bhe@redhat.com, guro@fb.com, lstoakes@gmail.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, vbabka@suse.cz
 Subject:  +
- checkpatch-add-fix-option-for-logical_continuations.patch added to -mm tree
-Message-ID: <20201129235050.DFL8PHGAS%akpm@linux-foundation.org>
+ mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch added to -mm
+ tree
+Message-ID: <20201129235604.iTlLgfap4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add fix option for LOGICAL_CONTINUATIONS
+     Subject: mm: page_alloc: refactor setup_per_zone_lowmem_reserve()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-fix-option-for-logical_continuations.patch
+     mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-logical_continuations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-logical_continuations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,62 +70,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aditya Srivastava <yashsri421@gmail.com>
-Subject: checkpatch: add fix option for LOGICAL_CONTINUATIONS
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: page_alloc: refactor setup_per_zone_lowmem_reserve()
 
-Currently, checkpatch warns if logical continuations are placed at the
-start of a line and not at the end of previous line.
+setup_per_zone_lowmem_reserve() iterates through each zone setting
+zone->lowmem_reserve[j] = 0 (where j is the zone's index) then iterates
+backwards through all proceeding zones, setting
+lower_zone->lowmem_reserve[j] = sum(managed pages of higher zones) /
+lowmem_reserve_ratio[idx] for each (where idx is the lower zone's index).
 
-E.g., running checkpatch on commit 3485507fc272 ("staging: bcm2835-camera:
-Reduce length of enum names") reports:
+If the lower zone has no managed pages or its ratio is 0 then all of its
+lowmem_reserve[] entries are effectively zeroed.
 
-CHECK:LOGICAL_CONTINUATIONS: Logical continuations should be on the
-previous line
-+	if (!ret
-+	    && camera_port ==
+As these arrays are only assigned here and all lowmem_reserve[] entries
+for index < this zone's index are implicitly assumed to be 0 (as these are
+specifically output in show_free_areas() and zoneinfo_show_print() for
+example) there is no need to additionally zero index == this zone's index
+too.  This patch avoids zeroing unnecessarily.
 
-Provide a simple fix by inserting logical operator at the last
-non-comment, non-whitespace char of the previous line and removing from
-current line, if both the lines are additions(ie start with '+')
+Rather than iterating through zones and setting lowmem_reserve[j] for each
+lower zone this patch reverse the process and populates each zone's
+lowmem_reserve[] values in ascending order.
 
-Link: https://lkml.kernel.org/r/20201123102818.24364-1-yashsri421@gmail.com
-Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+This clarifies what is going on especially in the case of zero managed
+pages or ratio which is now explicitly shown to clear these values.
+
+Link: https://lkml.kernel.org/r/20201129162758.115907-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   33 +++++++++++++--------------------
+ 1 file changed, 13 insertions(+), 20 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-logical_continuations
-+++ a/scripts/checkpatch.pl
-@@ -3545,8 +3545,16 @@ sub process {
+--- a/mm/page_alloc.c~mm-page_alloc-refactor-setup_per_zone_lowmem_reserve
++++ a/mm/page_alloc.c
+@@ -7861,31 +7861,24 @@ static void calculate_totalreserve_pages
+ static void setup_per_zone_lowmem_reserve(void)
+ {
+ 	struct pglist_data *pgdat;
+-	enum zone_type j, idx;
++	enum zone_type i, j;
  
- # check for && or || at the start of a line
- 		if ($rawline =~ /^\+\s*(&&|\|\|)/) {
--			CHK("LOGICAL_CONTINUATIONS",
--			    "Logical continuations should be on the previous line\n" . $hereprev);
-+			my $operator = $1;
-+			if (CHK("LOGICAL_CONTINUATIONS",
-+				"Logical continuations should be on the previous line\n" . $hereprev) &&
-+			    $fix && $prevrawline =~ /^\+/) {
-+				# insert logical operator at last non-comment, non-whitepsace char on previous line
-+				$prevline =~ /[\s$;]*$/;
-+				my $line_end = substr($prevrawline, $-[0]);
-+				$fixed[$fixlinenr - 1] =~ s/\Q$line_end\E$/ $operator$line_end/;
-+				$fixed[$fixlinenr] =~ s/\Q$operator\E\s*//;
-+			}
+ 	for_each_online_pgdat(pgdat) {
+-		for (j = 0; j < MAX_NR_ZONES; j++) {
+-			struct zone *zone = pgdat->node_zones + j;
+-			unsigned long managed_pages = zone_managed_pages(zone);
++		for (i = 0; i < MAX_NR_ZONES - 1; i++) {
++			struct zone *zone = &pgdat->node_zones[i];
++			int ratio = sysctl_lowmem_reserve_ratio[i];
++			bool clear = !ratio || !zone_managed_pages(zone);
++			unsigned long managed_pages = 0;
+ 
+-			zone->lowmem_reserve[j] = 0;
+-
+-			idx = j;
+-			while (idx) {
+-				struct zone *lower_zone;
+-
+-				idx--;
+-				lower_zone = pgdat->node_zones + idx;
+-
+-				if (!sysctl_lowmem_reserve_ratio[idx] ||
+-				    !zone_managed_pages(lower_zone)) {
+-					lower_zone->lowmem_reserve[j] = 0;
+-					continue;
++			for (j = i + 1; j < MAX_NR_ZONES; j++) {
++				if (clear) {
++					zone->lowmem_reserve[j] = 0;
+ 				} else {
+-					lower_zone->lowmem_reserve[j] =
+-						managed_pages / sysctl_lowmem_reserve_ratio[idx];
++					struct zone *upper_zone = &pgdat->node_zones[j];
++
++					managed_pages += zone_managed_pages(upper_zone);
++					zone->lowmem_reserve[j] = managed_pages / ratio;
+ 				}
+-				managed_pages += zone_managed_pages(lower_zone);
+ 			}
  		}
- 
- # check indentation starts on a tab stop
+ 	}
 _
 
-Patches currently in -mm which might be from yashsri421@gmail.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-checkpatch-fix-false-positives-in-repeated_word-warning.patch
-checkpatch-add-fix-option-for-gerrit_change_id.patch
-checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
-checkpatch-add-fix-option-for-assignment_continuations.patch
-checkpatch-add-fix-option-for-logical_continuations.patch
+mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix-fix.patch
 
