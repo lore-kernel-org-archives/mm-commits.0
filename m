@@ -2,49 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CB81C64E7C
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 17:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CA5C3E8C5
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:51:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEA6C246E4
-	for <mm-commits@archiver.kernel.org>; Sat, 28 Nov 2020 17:57:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAD5B206F1
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Nov 2020 23:51:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hGsxxvJY"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zb6N5QF1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733132AbgK1Rzz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 28 Nov 2020 12:55:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53252 "EHLO mail.kernel.org"
+        id S1726470AbgK2Xvc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 29 Nov 2020 18:51:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732179AbgK1EQQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 27 Nov 2020 23:16:16 -0500
+        id S1726304AbgK2Xvb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 29 Nov 2020 18:51:31 -0500
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5E61621973;
-        Sat, 28 Nov 2020 03:52:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BCCB0206D8;
+        Sun, 29 Nov 2020 23:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606535574;
-        bh=yiMtPpJzJnZaI1ixBS7a0a34VOTzn9p9nMCGsRJIuR8=;
+        s=korg; t=1606693851;
+        bh=B/EiwXUdqasiREQ2muClxnMXiYe3h910tUtSP3Vrf5Y=;
         h=Date:From:To:Subject:From;
-        b=hGsxxvJYBnTtk7Jof1Bl20rm3r1WxM03+xLnBlfuaBVcJakw9/FF5sTMG2Rq8F98z
-         YmU4woDfkTsXbwKPy+wTRcCn/wP4byvhxkD2vgpD0iUKBPyiwhX+DhHjtVtxYaLvvl
-         31zi82EQGQiiMXyP261lIwdHs24p7uuBb5u/OZEk=
-Date:   Fri, 27 Nov 2020 19:52:53 -0800
+        b=Zb6N5QF1tcUx5DcVMyRVeBq4DwHfmrzXeP/bkHXRu2+33cdHAl3eHtUV+wFNxomrP
+         5Swxw2rJ5SsAlIdkqplW3ImXaYBww4yOXaALQBB6jcO3k0TqUiS2jpL7DiYxRtzlvh
+         Usz2vwxMlPENUoEU8rhXmqagsSqNgYj6o3+1sKlU=
+Date:   Sun, 29 Nov 2020 15:50:50 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, catalin.marinas@arm.com,
-        dvyukov@google.com, ebiederm@xmission.com, elver@google.com,
-        glider@google.com, miles.chen@mediatek.com,
-        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com,
-        stable@vger.kernel.org, vincenzo.frascino@arm.com,
-        will.deacon@arm.com
-Subject:  + proc-use-untagged_addr-for-pagemap_read-addresses.patch
- added to -mm tree
-Message-ID: <20201128035253.0uYNNDp0B%akpm@linux-foundation.org>
+To:     joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, yashsri421@gmail.com
+Subject:  +
+ checkpatch-add-fix-option-for-logical_continuations.patch added to -mm tree
+Message-ID: <20201129235050.DFL8PHGAS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: use untagged_addr() for pagemap_read addresses
+     Subject: checkpatch: add fix option for LOGICAL_CONTINUATIONS
 has been added to the -mm tree.  Its filename is
-     proc-use-untagged_addr-for-pagemap_read-addresses.patch
+     checkpatch-add-fix-option-for-logical_continuations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-use-untagged_addr-for-pagemap_read-addresses.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-logical_continuations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-use-untagged_addr-for-pagemap_read-addresses.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-logical_continuations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,124 +69,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: proc: use untagged_addr() for pagemap_read addresses
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: add fix option for LOGICAL_CONTINUATIONS
 
-When we try to visit the pagemap of a tagged userspace pointer, we find
-that the start_vaddr is not correct because of the tag.  To fix it, we
-should untag the usespace pointers in pagemap_read().
+Currently, checkpatch warns if logical continuations are placed at the
+start of a line and not at the end of previous line.
 
-I tested with 5.10-rc4 and the issue remains.
+E.g., running checkpatch on commit 3485507fc272 ("staging: bcm2835-camera:
+Reduce length of enum names") reports:
 
-Explanation from Catalin in [1]:
+CHECK:LOGICAL_CONTINUATIONS: Logical continuations should be on the
+previous line
++	if (!ret
++	    && camera_port ==
 
-: Arguably, that's a user-space bug since tagged file offsets were never
-: supported.  In this case it's not even a tag at bit 56 as per the arm64
-: tagged address ABI but rather down to bit 47.  You could say that the
-: problem is caused by the C library (malloc()) or whoever created the
-: tagged vaddr and passed it to this function.  It's not a kernel regression
-: as we've never supported it.
-: 
-: Now, pagemap is a special case where the offset is usually not generated
-: as a classic file offset but rather derived by shifting a user virtual
-: address.  I guess we can make a concession for pagemap (only) and allow
-: such offset with the tag at bit (56 - PAGE_SHIFT + 3).
+Provide a simple fix by inserting logical operator at the last
+non-comment, non-whitespace char of the previous line and removing from
+current line, if both the lines are additions(ie start with '+')
 
-My test code is baed on [2]:
-
-A userspace pointer which has been tagged by 0xb4: 0xb400007662f541c8
-
-=== userspace program ===
-
-uint64 OsLayer::VirtualToPhysical(void *vaddr) {
-	uint64 frame, paddr, pfnmask, pagemask;
-	int pagesize = sysconf(_SC_PAGESIZE);
-	off64_t off = ((uintptr_t)vaddr) / pagesize * 8; // off = 0xb400007662f541c8 / pagesize * 8 = 0x5a00003b317aa0
-	int fd = open(kPagemapPath, O_RDONLY);
-	...
-
-	if (lseek64(fd, off, SEEK_SET) != off || read(fd, &frame, 8) != 8) {
-		int err = errno;
-		string errtxt = ErrorString(err);
-		if (fd >= 0)
-			close(fd);
-		return 0;
-	}
-...
-}
-
-=== kernel fs/proc/task_mmu.c ===
-
-static ssize_t pagemap_read(struct file *file, char __user *buf,
-		size_t count, loff_t *ppos)
-{
-	...
-	src = *ppos;
-	svpfn = src / PM_ENTRY_BYTES; // svpfn == 0xb400007662f54
-	start_vaddr = svpfn << PAGE_SHIFT; // start_vaddr == 0xb400007662f54000
-	end_vaddr = mm->task_size;
-
-	/* watch out for wraparound */
-	// svpfn == 0xb400007662f54
-	// (mm->task_size >> PAGE) == 0x8000000
-	if (svpfn > mm->task_size >> PAGE_SHIFT) // the condition is true because of the tag 0xb4
-		start_vaddr = end_vaddr;
-
-	ret = 0;
-	while (count && (start_vaddr < end_vaddr)) { // we cannot visit correct entry because start_vaddr is set to end_vaddr
-		int len;
-		unsigned long end;
-		...
-	}
-	...
-}
-
-[1] https://lore.kernel.org/patchwork/patch/1343258/
-[2] https://github.com/stressapptest/stressapptest/blob/master/src/os.cc#L158
-
-Link: https://lkml.kernel.org/r/20201127050738.14440-1-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Song Bao Hua (Barry Song) <song.bao.hua@hisilicon.com>
-Cc: <stable@vger.kernel.org>	[5.4+]
+Link: https://lkml.kernel.org/r/20201123102818.24364-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-use-untagged_addr-for-pagemap_read-addresses
-+++ a/fs/proc/task_mmu.c
-@@ -1599,11 +1599,15 @@ static ssize_t pagemap_read(struct file
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-logical_continuations
++++ a/scripts/checkpatch.pl
+@@ -3545,8 +3545,16 @@ sub process {
  
- 	src = *ppos;
- 	svpfn = src / PM_ENTRY_BYTES;
--	start_vaddr = svpfn << PAGE_SHIFT;
- 	end_vaddr = mm->task_size;
+ # check for && or || at the start of a line
+ 		if ($rawline =~ /^\+\s*(&&|\|\|)/) {
+-			CHK("LOGICAL_CONTINUATIONS",
+-			    "Logical continuations should be on the previous line\n" . $hereprev);
++			my $operator = $1;
++			if (CHK("LOGICAL_CONTINUATIONS",
++				"Logical continuations should be on the previous line\n" . $hereprev) &&
++			    $fix && $prevrawline =~ /^\+/) {
++				# insert logical operator at last non-comment, non-whitepsace char on previous line
++				$prevline =~ /[\s$;]*$/;
++				my $line_end = substr($prevrawline, $-[0]);
++				$fixed[$fixlinenr - 1] =~ s/\Q$line_end\E$/ $operator$line_end/;
++				$fixed[$fixlinenr] =~ s/\Q$operator\E\s*//;
++			}
+ 		}
  
- 	/* watch out for wraparound */
--	if (svpfn > mm->task_size >> PAGE_SHIFT)
-+	start_vaddr = end_vaddr;
-+	if (svpfn < (ULONG_MAX >> PAGE_SHIFT))
-+		start_vaddr = untagged_addr(svpfn << PAGE_SHIFT);
-+
-+	/* Ensure the address is inside the task */
-+	if (start_vaddr > mm->task_size)
- 		start_vaddr = end_vaddr;
- 
- 	/*
+ # check indentation starts on a tab stop
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from yashsri421@gmail.com are
 
-proc-use-untagged_addr-for-pagemap_read-addresses.patch
+checkpatch-fix-false-positives-in-repeated_word-warning.patch
+checkpatch-add-fix-option-for-gerrit_change_id.patch
+checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
+checkpatch-add-fix-option-for-assignment_continuations.patch
+checkpatch-add-fix-option-for-logical_continuations.patch
 
