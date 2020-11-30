@@ -7,38 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C269BC63777
-	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 18:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55B48C64E7B
+	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 20:23:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C5FE2073C
-	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 18:57:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0214D207F7
+	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 20:23:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iuq7FYoA"
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GyySwzNM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728741AbgK3S5W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Nov 2020 13:57:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41652 "EHLO mail.kernel.org"
+        id S1726339AbgK3UXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Nov 2020 15:23:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728727AbgK3S5W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 30 Nov 2020 13:57:22 -0500
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1727527AbgK3UXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 30 Nov 2020 15:23:33 -0500
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 35187206B5;
-        Mon, 30 Nov 2020 18:56:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 52B962073C;
+        Mon, 30 Nov 2020 20:22:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606762601;
-        bh=CS4SBoDtYHUPybsE0nCqeVo0jVFiwTKpG1fOHOUopVw=;
+        s=korg; t=1606767766;
+        bh=c4vqtWtnnkzsTeQRmTWkdeYeNXtXHy4HPwp7Q5S+As0=;
         h=Date:From:To:Subject:From;
-        b=iuq7FYoAGy589m9Tt+WSdxuca2CiG7MJhyzqGdBT5m+GH85A16iFG5KxiWgGVjgxL
-         SWZGJGU7WxxYYSktAwfnjLg527bqiz+AoxA6loNS+VE+SAbsb9myhcpdDNPAATVeuk
-         pWHJHXwBqWL+B5sFg9kr2Vo9JKgUCW+1WbYI7aIs=
-Date:   Mon, 30 Nov 2020 10:56:40 -0800
+        b=GyySwzNMA1PVWQR38Y8KRYWOrWJ4MqvHksRdSFr9KktLUQkWukCRoQ9zWGvUyWKnn
+         M/YtFvg3eLRTApVSa8YR5U5xfpmCWaFXARQ2HIAq6HWUgu23LG6sqkw9sDpSAa3bSi
+         vwS0hruO7hMHavQ4z0MIuxd72UeVCLBmRmgKtF6U=
+Date:   Mon, 30 Nov 2020 12:22:44 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20201130185640.TWq07QoZU%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, alexander.h.duyck@linux.intel.com,
+        guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com,
+        lstoakes@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, sfr@canb.auug.org.au,
+        shakeelb@google.com
+Subject:  [failures]
+ mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch removed from
+ -mm tree
+Message-ID: <20201130202244.1HtlYOuKE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,236 +52,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/memcg: bail out early when !memcg in mem_cgroup_lruvec
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: bail out early when !memcg in mem_cgroup_lruvec
 
+Sometime, we use NULL memcg in mem_cgroup_lruvec(memcg, pgdat) so we could
+get out early in the situation to avoid useless checking.
+
+Polished as Andrew Morton's suggestion.
+
+Link: https://lkml.kernel.org/r/9ddb17cd-cf5f-15b1-6a7d-986ee44fd5df@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/Kconfig                |    3 ---
- drivers/gpu/drm/ast/ast_mode.c             |    7 -------
- drivers/gpu/drm/i915/gvt/gvt.h             |    3 ---
- drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c |    4 ----
- drivers/mtd/nand/raw/cs553x_nand.c         |    4 ----
- drivers/mtd/nand/raw/davinci_nand.c        |    7 -------
- drivers/mtd/nand/raw/fsmc_nand.c           |    4 ----
- drivers/mtd/nand/raw/lpc32xx_slc.c         |    4 ----
- drivers/mtd/nand/raw/sharpsl.c             |    4 ----
- drivers/net/can/usb/gs_usb.c               |    6 ------
- fs/btrfs/inode.c                           |    5 -----
- include/linux/platform_data/ti-sysc.h      |    3 ---
- 12 files changed, 54 deletions(-)
+ include/linux/memcontrol.h |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/arch/arm/mach-omap2/Kconfig~linux-next-git-rejects
-+++ a/arch/arm/mach-omap2/Kconfig
-@@ -10,10 +10,7 @@ config ARCH_OMAP2
- 	depends on ARCH_MULTI_V6
- 	select ARCH_OMAP2PLUS
- 	select CPU_V6
--<<<<<<< HEAD
--=======
- 	select OMAP_HWMOD
-->>>>>>> linux-next/akpm-base
- 	select SOC_HAS_OMAP2_SDRC
- 
- config ARCH_OMAP3
---- a/drivers/gpu/drm/ast/ast_mode.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/ast/ast_mode.c
-@@ -779,12 +779,6 @@ static int ast_crtc_helper_atomic_check(
- }
- 
- static void
--<<<<<<< HEAD
--ast_crtc_helper_atomic_flush(struct drm_crtc *crtc, struct drm_crtc_state *old_crtc_state)
--{
--	struct ast_private *ast = to_ast_private(crtc->dev);
--	struct ast_crtc_state *ast_crtc_state = to_ast_crtc_state(crtc->state);
--=======
- ast_crtc_helper_atomic_flush(struct drm_crtc *crtc,
- 			     struct drm_atomic_state *state)
+--- a/include/linux/memcontrol.h~mm-memcg-bail-out-early-when-memcg-in-mem_cgroup_lruvec
++++ a/include/linux/memcontrol.h
+@@ -459,20 +459,17 @@ mem_cgroup_nodeinfo(struct mem_cgroup *m
+ static inline struct lruvec *mem_cgroup_lruvec(struct mem_cgroup *memcg,
+ 					       struct pglist_data *pgdat)
  {
-@@ -794,7 +788,6 @@ ast_crtc_helper_atomic_flush(struct drm_
- 									      crtc);
- 	struct ast_private *ast = to_ast_private(crtc->dev);
- 	struct ast_crtc_state *ast_crtc_state = to_ast_crtc_state(crtc_state);
-->>>>>>> linux-next/akpm-base
- 	struct ast_crtc_state *old_ast_crtc_state = to_ast_crtc_state(old_crtc_state);
+-	struct mem_cgroup_per_node *mz;
+ 	struct lruvec *lruvec;
  
+-	if (mem_cgroup_disabled()) {
++	if (mem_cgroup_disabled() || !memcg) {
+ 		lruvec = &pgdat->__lruvec;
+-		goto out;
+-	}
++	} else {
++		struct mem_cgroup_per_node *mz;
+ 
+-	if (!memcg)
+-		memcg = root_mem_cgroup;
++		mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
++		lruvec = &mz->lruvec;
++	}
+ 
+-	mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
+-	lruvec = &mz->lruvec;
+-out:
  	/*
---- a/drivers/gpu/drm/i915/gvt/gvt.h~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/gvt/gvt.h
-@@ -255,11 +255,8 @@ struct intel_gvt_mmio {
- #define F_CMD_ACCESS	(1 << 3)
- /* This reg has been accessed by a VM */
- #define F_ACCESSED	(1 << 4)
--<<<<<<< HEAD
--=======
- /* This reg requires save & restore during host PM suspend/resume */
- #define F_PM_SAVE	(1 << 5)
-->>>>>>> linux-next/akpm-base
- /* This reg could be accessed by unaligned address */
- #define F_UNALIGN	(1 << 6)
- /* This reg is in GVT's mmio save-restor list and in hardware
---- a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c~linux-next-git-rejects
-+++ a/drivers/iommu/arm/arm-smmu/arm-smmu-qcom.c
-@@ -313,11 +313,7 @@ static struct arm_smmu_device *qcom_smmu
- 	if (!qcom_scm_is_available())
- 		return ERR_PTR(-EPROBE_DEFER);
- 
--<<<<<<< HEAD
--	qsmmu = devm_kzalloc(smmu->dev, sizeof(*qsmmu), GFP_KERNEL);
--=======
- 	qsmmu = devm_krealloc(smmu->dev, smmu, sizeof(*qsmmu), GFP_KERNEL);
-->>>>>>> linux-next/akpm-base
- 	if (!qsmmu)
- 		return ERR_PTR(-ENOMEM);
- 
---- a/drivers/mtd/nand/raw/cs553x_nand.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/raw/cs553x_nand.c
-@@ -251,11 +251,7 @@ static int cs553x_attach_chip(struct nan
- 	chip->ecc.bytes = 3;
- 	chip->ecc.hwctl  = cs_enable_hwecc;
- 	chip->ecc.calculate = cs_calculate_ecc;
--<<<<<<< HEAD
--	chip->ecc.correct  = nand_correct_data;
--=======
- 	chip->ecc.correct  = rawnand_sw_hamming_correct;
-->>>>>>> linux-next/akpm-base
- 	chip->ecc.strength = 1;
- 
- 	return 0;
---- a/drivers/mtd/nand/raw/davinci_nand.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/raw/davinci_nand.c
-@@ -586,17 +586,10 @@ static int davinci_nand_attach_chip(stru
- 		return PTR_ERR(pdata);
- 
- 	/* Use board-specific ECC config */
--<<<<<<< HEAD
--	info->chip.ecc.engine_type = pdata->engine_type;
--	info->chip.ecc.placement = pdata->ecc_placement;
--
--	switch (info->chip.ecc.engine_type) {
--=======
- 	chip->ecc.engine_type = pdata->engine_type;
- 	chip->ecc.placement = pdata->ecc_placement;
- 
- 	switch (chip->ecc.engine_type) {
-->>>>>>> linux-next/akpm-base
- 	case NAND_ECC_ENGINE_TYPE_NONE:
- 		pdata->ecc_bits = 0;
- 		break;
---- a/drivers/mtd/nand/raw/fsmc_nand.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/raw/fsmc_nand.c
-@@ -917,11 +917,7 @@ static int fsmc_nand_attach_chip(struct
- 	case NAND_ECC_ENGINE_TYPE_ON_HOST:
- 		dev_info(host->dev, "Using 1-bit HW ECC scheme\n");
- 		nand->ecc.calculate = fsmc_read_hwecc_ecc1;
--<<<<<<< HEAD
--		nand->ecc.correct = nand_correct_data;
--=======
- 		nand->ecc.correct = rawnand_sw_hamming_correct;
-->>>>>>> linux-next/akpm-base
- 		nand->ecc.hwctl = fsmc_enable_hwecc;
- 		nand->ecc.bytes = 3;
- 		nand->ecc.strength = 1;
---- a/drivers/mtd/nand/raw/lpc32xx_slc.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/raw/lpc32xx_slc.c
-@@ -802,11 +802,7 @@ static int lpc32xx_nand_attach_chip(stru
- 	chip->ecc.write_oob = lpc32xx_nand_write_oob_syndrome;
- 	chip->ecc.read_oob = lpc32xx_nand_read_oob_syndrome;
- 	chip->ecc.calculate = lpc32xx_nand_ecc_calculate;
--<<<<<<< HEAD
--	chip->ecc.correct = nand_correct_data;
--=======
- 	chip->ecc.correct = rawnand_sw_hamming_correct;
-->>>>>>> linux-next/akpm-base
- 	chip->ecc.hwctl = lpc32xx_nand_ecc_enable;
- 
- 	/*
---- a/drivers/mtd/nand/raw/sharpsl.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/raw/sharpsl.c
-@@ -106,11 +106,7 @@ static int sharpsl_attach_chip(struct na
- 	chip->ecc.strength = 1;
- 	chip->ecc.hwctl = sharpsl_nand_enable_hwecc;
- 	chip->ecc.calculate = sharpsl_nand_calculate_ecc;
--<<<<<<< HEAD
--	chip->ecc.correct = nand_correct_data;
--=======
- 	chip->ecc.correct = rawnand_sw_hamming_correct;
-->>>>>>> linux-next/akpm-base
- 
- 	return 0;
- }
---- a/drivers/net/can/usb/gs_usb.c~linux-next-git-rejects
-+++ a/drivers/net/can/usb/gs_usb.c
-@@ -510,16 +510,10 @@ static netdev_tx_t gs_can_start_xmit(str
- 
- 	cf = (struct can_frame *)skb->data;
- 
--<<<<<<< HEAD
--	hf->can_id = cpu_to_le32(cf->can_id);
--	hf->can_dlc = cf->can_dlc;
--	memcpy(hf->data, cf->data, cf->can_dlc);
--=======
- 	hf->can_id = cf->can_id;
- 	hf->can_dlc = can_get_cc_dlc(cf, dev->can.ctrlmode);
- 
- 	memcpy(hf->data, cf->data, cf->len);
-->>>>>>> linux-next/akpm-base
- 
- 	usb_fill_bulk_urb(urb, dev->udev,
- 			  usb_sndbulkpipe(dev->udev, GSUSB_ENDPOINT_OUT),
---- a/fs/btrfs/inode.c~linux-next-git-rejects
-+++ a/fs/btrfs/inode.c
-@@ -2348,13 +2348,8 @@ static int btrfs_find_new_delalloc_bytes
- 
- 		ret = set_extent_bit(&inode->io_tree, search_start,
- 				     search_start + em_len - 1,
--<<<<<<< HEAD
--				     EXTENT_DELALLOC_NEW,
--				     NULL, cached_state, GFP_NOFS);
--=======
- 				     EXTENT_DELALLOC_NEW, 0, NULL, cached_state,
- 				     GFP_NOFS, NULL);
-->>>>>>> linux-next/akpm-base
- next:
- 		search_start = extent_map_end(em);
- 		free_extent_map(em);
---- a/include/linux/platform_data/ti-sysc.h~linux-next-git-rejects
-+++ a/include/linux/platform_data/ti-sysc.h
-@@ -50,10 +50,7 @@ struct sysc_regbits {
- 	s8 emufree_shift;
- };
- 
--<<<<<<< HEAD
--=======
- #define SYSC_QUIRK_GPMC_DEBUG		BIT(26)
-->>>>>>> linux-next/akpm-base
- #define SYSC_MODULE_QUIRK_ENA_RESETDONE	BIT(25)
- #define SYSC_MODULE_QUIRK_PRUSS		BIT(24)
- #define SYSC_MODULE_QUIRK_DSS_RESET	BIT(23)
+ 	 * Since a node can be onlined after the mem_cgroup was created,
+ 	 * we have to be prepared to initialize lruvec->pgdat here;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+fs-ntfs-remove-unused-varibles.patch
+fs-ntfs-remove-unused-varible-attr_len.patch
+mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+mm-memcg-update-page-struct-member-in-comments.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
+mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
+mm-memcg-remove-incorrect-comments.patch
+mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
+mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
+mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
