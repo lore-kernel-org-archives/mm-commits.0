@@ -2,318 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E953C64E90
-	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 23:59:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25FFDC64E90
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Dec 2020 03:13:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D5B32075F
-	for <mm-commits@archiver.kernel.org>; Mon, 30 Nov 2020 23:59:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC9E020725
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Dec 2020 03:13:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KoSxJtNV"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V2FQNyRn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730746AbgK3X70 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Nov 2020 18:59:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48728 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730761AbgK3X70 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 30 Nov 2020 18:59:26 -0500
-Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9C98E206E9;
-        Mon, 30 Nov 2020 23:58:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606780724;
-        bh=J5kVEtjgGVpM8KAL2DvYpanbCeytgFPMmNGw2arwLHo=;
-        h=Date:From:To:Subject:From;
-        b=KoSxJtNV+0Qw19nxRmvJN5AYu1eTPFVtVXjevhjk4RXdPSjK4Asgm1PjuvHSDI2bv
-         rzxnKlcsZckfp9RzOFrIYNSf6d4ua9izPMgS0Xpw/ND5iBXG7w5ZeJfDYbDxTm36cy
-         budAWW360OUBLlRireQ/QfKL9ExKPVWzTB0EIPVw=
-Date:   Mon, 30 Nov 2020 15:58:42 -0800
-From:   akpm@linux-foundation.org
-To:     axelrasmussen@google.com, chinwen.chang@mediatek.com,
-        daniel.m.jordan@oracle.com, dbueso@suse.de, jannh@google.com,
-        laoar.shao@gmail.com, ldufour@linux.ibm.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        rostedt@goodmis.org, vbabka@suse.cz, walken@google.com
-Subject:  +
- mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch added to -mm
- tree
-Message-ID: <20201130235842.DeugeS3TW%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S1727153AbgLADNj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Nov 2020 22:13:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54196 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727368AbgLADNj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2020 22:13:39 -0500
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E47C0613CF
+        for <mm-commits@vger.kernel.org>; Mon, 30 Nov 2020 19:12:59 -0800 (PST)
+Received: by mail-pf1-x436.google.com with SMTP id w187so177732pfd.5
+        for <mm-commits@vger.kernel.org>; Mon, 30 Nov 2020 19:12:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=/FFtbtzP3kTJAWGQByPQ8U+/ZFp1Aap8O/73nyaHCY4=;
+        b=V2FQNyRnat/pHQF4c6zLaW9BYOkFGGNqO9gaAVT2/QEf6+OO9+mtZqgWM9PNpbOtNW
+         HB0iedoZLaTL6nAxlCA6yk0O8jtG2jQZ7u05XvpMW3h1FpLKeQorthg15tfv2fEkDurJ
+         dSA+GDsGq+TxcRdPkqac/rhObuMarGJfy+WqNydLOd7SIPimXlw88/I3dFbf4NgfQ64Z
+         6P9MQy3fUMZvBPljWZihwY5IToQQRiqoY5HikxW3EPdX8BeJ5QhVJt5WKg82yQm+PGGT
+         trdUj8zW9rgODiMNf1nOL0H1hzLWpJU92u8of3f4bVU5U43IbgQy2JOzNHH0HPfgRq1G
+         Ve6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=/FFtbtzP3kTJAWGQByPQ8U+/ZFp1Aap8O/73nyaHCY4=;
+        b=owD9SZU5QWE3z77r92NfYIwE4HlfB53xszVjgPoJnBPj2R4K2gJ9izoCRuLc7e1Nwx
+         cxAISRyJ/4EYH/SnhsCWmeFNRBqW/M8EDm5CZ2ZBcfTZ0qaNCA6OH1AL5Ay1dB+WUEzS
+         nq+M1SlDuEiz5ComJQM7Rgsdyoau32/EFcNmSezjS7Xe7M7z+eUq7GJ27YaUSZEbzQYh
+         RFg81LQRrlUuPQ9Um6Lo95i1wP5TqOaIBjUVtjQWjD1ZF+oQDxcrVZ+V76Q3eQSVatNF
+         0B874/i4K0gS4Gqo7WS4ERVseIfis7iIuucULjIKJg80EebwXRqipBwh7Vu9KJOO5nfi
+         KrGw==
+X-Gm-Message-State: AOAM532uvIiCLLvgzJ2Hxc2ZAdOuB9jF0XRcn1XXOTDH4PdL0+qgDkzH
+        ENX2VpW09LMaG1z1IKE/tiM=
+X-Google-Smtp-Source: ABdhPJzoM4gPmQq7kR3afI/1pa2FvvGAI2/n2zv07izWxI+7iUFaA1svIXf1tV3wwjM/cbfMZJ4FCA==
+X-Received: by 2002:a63:1c25:: with SMTP id c37mr507072pgc.164.1606792378580;
+        Mon, 30 Nov 2020 19:12:58 -0800 (PST)
+Received: from localhost ([2401:fa00:8f:203:a6ae:11ff:fe11:4b46])
+        by smtp.gmail.com with ESMTPSA id r7sm334215pjd.8.2020.11.30.19.12.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 30 Nov 2020 19:12:57 -0800 (PST)
+Date:   Tue, 1 Dec 2020 12:12:55 +0900
+From:   Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+To:     akpm@linux-foundation.org
+Cc:     minchan@kernel.org, mm-commits@vger.kernel.org,
+        sergey.senozhatsky.work@gmail.com
+Subject: Re: +
+ zram-add-stat-to-gather-incompressible-pages-since-zram-set-up.patch added
+ to -mm tree
+Message-ID: <20201201031255.GD3723071@google.com>
+References: <20201130204126.vQeku2E_m%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201130204126.vQeku2E_m%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On (20/11/30 12:41), akpm@linux-foundation.org wrote:
+> 
+> Currently, zram supports the stat via /sys/block/zram/mm_stat to represent
+> how many of incompressible pages are stored at the moment but it couldn't
+> show how many times incompressible pages were wrote down since zram set
+> up.  It's also good indication to see how zram is effective in the system.
+> 
+> Link: https://lkml.kernel.org/r/20201130201907.1284910-1-minchan@kernel.org
+> Signed-off-by: Minchan Kim <minchan@kernel.org>
+> Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: mm: mmap_lock: fix use-after-free race and css ref leak in tracepoints
-has been added to the -mm tree.  Its filename is
-     mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch
+Looks good to me
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: mm: mmap_lock: fix use-after-free race and css ref leak in tracepoints
-
-syzbot reported[1] a use-after-free introduced in 0f818c4bc1f3.  The bug
-is that an ongoing trace event might race with the tracepoint being
-disabled (and therefore the _unreg() callback being called).  Consider
-this ordering:
-
-T1: trace event fires, get_mm_memcg_path() is called
-T1: get_memcg_path_buf() returns a buffer pointer
-T2: trace_mmap_lock_unreg() is called, buffers are freed
-T1: cgroup_path() is called with the now-freed buffer
-
-The solution in this commit is to modify trace_mmap_lock_unreg() to
-first stop new buffers from being handed out, and then to wait (spin)
-until any existing buffer references are dropped (i.e., those trace
-events complete).
-
-I have a simple reproducer program which spins up two pools of threads,
-doing the following in a tight loop:
-
-  Pool 1:
-  mmap(NULL, 4096, PROT_READ | PROT_WRITE,
-       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)
-  munmap()
-
-  Pool 2:
-  echo 1 > /sys/kernel/debug/tracing/events/mmap_lock/enable
-  echo 0 > /sys/kernel/debug/tracing/events/mmap_lock/enable
-
-This triggers the use-after-free very quickly. With this patch, I let it
-run for an hour without any BUGs.
-
-While fixing this, I also noticed and fixed a css ref leak. Previously
-we called get_mem_cgroup_from_mm(), but we never called css_put() to
-release that reference. get_mm_memcg_path() now does this properly.
-
-[1]: https://syzkaller.appspot.com/bug?extid=19e6dd9943972fa1c58a
-
-Link: https://lkml.kernel.org/r/20201130233504.3725241-1-axelrasmussen@google.com
-Fixes: 0f818c4bc1f3 ("mm: mmap_lock: add tracepoints around lock acquisition")
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/mmap_lock.c |  100 +++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 85 insertions(+), 15 deletions(-)
-
---- a/mm/mmap_lock.c~mmap_lock-add-tracepoints-around-lock-acquisition-fix
-+++ a/mm/mmap_lock.c
-@@ -3,6 +3,7 @@
- #include <trace/events/mmap_lock.h>
- 
- #include <linux/mm.h>
-+#include <linux/atomic.h>
- #include <linux/cgroup.h>
- #include <linux/memcontrol.h>
- #include <linux/mmap_lock.h>
-@@ -18,13 +19,28 @@ EXPORT_TRACEPOINT_SYMBOL(mmap_lock_relea
- #ifdef CONFIG_MEMCG
- 
- /*
-- * Our various events all share the same buffer (because we don't want or need
-- * to allocate a set of buffers *per event type*), so we need to protect against
-- * concurrent _reg() and _unreg() calls, and count how many _reg() calls have
-- * been made.
-+ * This is unfortunately complicated... _reg() and _unreg() may be called
-+ * in parallel, separately for each of our three event types. To save memory,
-+ * all of the event types share the same buffers. Furthermore, trace events
-+ * might happen in parallel with _unreg(); we need to ensure we don't free the
-+ * buffers before all inflights have finished. Because these events happen
-+ * "frequently", we also want to prevent new inflights from starting once the
-+ * _unreg() process begins. And, for performance reasons, we want to avoid any
-+ * locking in the trace event path.
-+ *
-+ * So:
-+ *
-+ * - Use a spinlock to serialize _reg() and _unreg() calls.
-+ * - Keep track of nested _reg() calls with a lock-protected counter.
-+ * - Define a flag indicating whether or not unregistration has begun (and
-+ *   therefore that there should be no new buffer uses going forward).
-+ * - Keep track of inflight buffer users with a reference count.
-  */
- static DEFINE_SPINLOCK(reg_lock);
--static int reg_refcount;
-+static int reg_types_rc; /* Protected by reg_lock. */
-+static bool unreg_started; /* Doesn't need synchronization. */
-+/* atomic_t instead of refcount_t, as we want ordered inc without locks. */
-+static atomic_t inflight_rc = ATOMIC_INIT(0);
- 
- /*
-  * Size of the buffer for memcg path names. Ignoring stack trace support,
-@@ -46,9 +62,14 @@ int trace_mmap_lock_reg(void)
- 	unsigned long flags;
- 	int cpu;
- 
-+	/*
-+	 * Serialize _reg() and _unreg(). Without this, e.g. _unreg() might
-+	 * start cleaning up while _reg() is only partially completed.
-+	 */
- 	spin_lock_irqsave(&reg_lock, flags);
- 
--	if (reg_refcount++)
-+	/* If the refcount is going 0->1, proceed with allocating buffers. */
-+	if (reg_types_rc++)
- 		goto out;
- 
- 	for_each_possible_cpu(cpu) {
-@@ -62,6 +83,11 @@ int trace_mmap_lock_reg(void)
- 		per_cpu(memcg_path_buf_idx, cpu) = 0;
- 	}
- 
-+	/* Reset unreg_started flag, allowing new trace events. */
-+	WRITE_ONCE(unreg_started, false);
-+	/* Add the registration +1 to the inflight refcount. */
-+	atomic_inc(&inflight_rc);
-+
- out:
- 	spin_unlock_irqrestore(&reg_lock, flags);
- 	return 0;
-@@ -74,7 +100,8 @@ out_fail:
- 			break;
- 	}
- 
--	--reg_refcount;
-+	/* Since we failed, undo the earlier increment. */
-+	--reg_types_rc;
- 
- 	spin_unlock_irqrestore(&reg_lock, flags);
- 	return -ENOMEM;
-@@ -87,9 +114,23 @@ void trace_mmap_lock_unreg(void)
- 
- 	spin_lock_irqsave(&reg_lock, flags);
- 
--	if (--reg_refcount)
-+	/* If the refcount is going 1->0, proceed with freeing buffers. */
-+	if (--reg_types_rc)
- 		goto out;
- 
-+	/* This was the last registration; start preventing new events... */
-+	WRITE_ONCE(unreg_started, true);
-+	/* Remove the registration +1 from the inflight refcount. */
-+	atomic_dec(&inflight_rc);
-+	/*
-+	 * Wait for inflight refcount to be zero (all inflights stopped). Since
-+	 * we have a spinlock we can't sleep, so just spin. Because trace events
-+	 * are "fast", and because we stop new inflights from starting at this
-+	 * point with unreg_started, this should be a short spin.
-+	 */
-+	while (atomic_read(&inflight_rc))
-+		barrier();
-+
- 	for_each_possible_cpu(cpu) {
- 		kfree(per_cpu(memcg_path_buf, cpu));
- 	}
-@@ -102,6 +143,20 @@ static inline char *get_memcg_path_buf(v
- {
- 	int idx;
- 
-+	/*
-+	 * If unregistration is happening, stop. Yes, this check is racy;
-+	 * that's fine. It just means _unreg() might spin waiting for an extra
-+	 * event or two. Use-after-free is actually prevented by the refcount.
-+	 */
-+	if (READ_ONCE(unreg_started))
-+		return NULL;
-+	/*
-+	 * Take a reference, unless the registration +1 has been released
-+	 * and there aren't already existing inflights (refcount is zero).
-+	 */
-+	if (!atomic_inc_not_zero(&inflight_rc))
-+		return NULL;
-+
- 	idx = this_cpu_add_return(memcg_path_buf_idx, MEMCG_PATH_BUF_SIZE) -
- 	      MEMCG_PATH_BUF_SIZE;
- 	return &this_cpu_read(memcg_path_buf)[idx];
-@@ -110,27 +165,42 @@ static inline char *get_memcg_path_buf(v
- static inline void put_memcg_path_buf(void)
- {
- 	this_cpu_sub(memcg_path_buf_idx, MEMCG_PATH_BUF_SIZE);
-+	/* We're done with this buffer; drop the reference. */
-+	atomic_dec(&inflight_rc);
- }
- 
- /*
-  * Write the given mm_struct's memcg path to a percpu buffer, and return a
-- * pointer to it. If the path cannot be determined, NULL is returned.
-+ * pointer to it. If the path cannot be determined, or no buffer was available
-+ * (because the trace event is being unregistered), NULL is returned.
-  *
-  * Note: buffers are allocated per-cpu to avoid locking, so preemption must be
-  * disabled by the caller before calling us, and re-enabled only after the
-  * caller is done with the pointer.
-+ *
-+ * The caller must call put_memcg_path_buf() once the buffer is no longer
-+ * needed. This must be done while preemption is still disabled.
-  */
- static const char *get_mm_memcg_path(struct mm_struct *mm)
- {
-+	char *buf = NULL;
- 	struct mem_cgroup *memcg = get_mem_cgroup_from_mm(mm);
- 
--	if (memcg != NULL && likely(memcg->css.cgroup != NULL)) {
--		char *buf = get_memcg_path_buf();
-+	if (memcg == NULL)
-+		goto out;
-+	if (unlikely(memcg->css.cgroup == NULL))
-+		goto out_put;
- 
--		cgroup_path(memcg->css.cgroup, buf, MEMCG_PATH_BUF_SIZE);
--		return buf;
--	}
--	return NULL;
-+	buf = get_memcg_path_buf();
-+	if (buf == NULL)
-+		goto out_put;
-+
-+	cgroup_path(memcg->css.cgroup, buf, MEMCG_PATH_BUF_SIZE);
-+
-+out_put:
-+	css_put(&memcg->css);
-+out:
-+	return buf;
- }
- 
- #define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-_
-
-Patches currently in -mm which might be from axelrasmussen@google.com are
-
-mmap_lock-add-tracepoints-around-lock-acquisition.patch
-mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch
-
+	-ss
