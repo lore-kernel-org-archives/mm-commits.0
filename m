@@ -2,95 +2,164 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-22.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25FFDC64E90
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Dec 2020 03:13:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD583C64E7A
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 02:04:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC9E020725
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Dec 2020 03:13:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V2FQNyRn"
+	by mail.kernel.org (Postfix) with ESMTP id 4F618221F9
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 02:04:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727153AbgLADNj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Nov 2020 22:13:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54196 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727368AbgLADNj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2020 22:13:39 -0500
-Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E47C0613CF
-        for <mm-commits@vger.kernel.org>; Mon, 30 Nov 2020 19:12:59 -0800 (PST)
-Received: by mail-pf1-x436.google.com with SMTP id w187so177732pfd.5
-        for <mm-commits@vger.kernel.org>; Mon, 30 Nov 2020 19:12:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=/FFtbtzP3kTJAWGQByPQ8U+/ZFp1Aap8O/73nyaHCY4=;
-        b=V2FQNyRnat/pHQF4c6zLaW9BYOkFGGNqO9gaAVT2/QEf6+OO9+mtZqgWM9PNpbOtNW
-         HB0iedoZLaTL6nAxlCA6yk0O8jtG2jQZ7u05XvpMW3h1FpLKeQorthg15tfv2fEkDurJ
-         dSA+GDsGq+TxcRdPkqac/rhObuMarGJfy+WqNydLOd7SIPimXlw88/I3dFbf4NgfQ64Z
-         6P9MQy3fUMZvBPljWZihwY5IToQQRiqoY5HikxW3EPdX8BeJ5QhVJt5WKg82yQm+PGGT
-         trdUj8zW9rgODiMNf1nOL0H1hzLWpJU92u8of3f4bVU5U43IbgQy2JOzNHH0HPfgRq1G
-         Ve6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=/FFtbtzP3kTJAWGQByPQ8U+/ZFp1Aap8O/73nyaHCY4=;
-        b=owD9SZU5QWE3z77r92NfYIwE4HlfB53xszVjgPoJnBPj2R4K2gJ9izoCRuLc7e1Nwx
-         cxAISRyJ/4EYH/SnhsCWmeFNRBqW/M8EDm5CZ2ZBcfTZ0qaNCA6OH1AL5Ay1dB+WUEzS
-         nq+M1SlDuEiz5ComJQM7Rgsdyoau32/EFcNmSezjS7Xe7M7z+eUq7GJ27YaUSZEbzQYh
-         RFg81LQRrlUuPQ9Um6Lo95i1wP5TqOaIBjUVtjQWjD1ZF+oQDxcrVZ+V76Q3eQSVatNF
-         0B874/i4K0gS4Gqo7WS4ERVseIfis7iIuucULjIKJg80EebwXRqipBwh7Vu9KJOO5nfi
-         KrGw==
-X-Gm-Message-State: AOAM532uvIiCLLvgzJ2Hxc2ZAdOuB9jF0XRcn1XXOTDH4PdL0+qgDkzH
-        ENX2VpW09LMaG1z1IKE/tiM=
-X-Google-Smtp-Source: ABdhPJzoM4gPmQq7kR3afI/1pa2FvvGAI2/n2zv07izWxI+7iUFaA1svIXf1tV3wwjM/cbfMZJ4FCA==
-X-Received: by 2002:a63:1c25:: with SMTP id c37mr507072pgc.164.1606792378580;
-        Mon, 30 Nov 2020 19:12:58 -0800 (PST)
-Received: from localhost ([2401:fa00:8f:203:a6ae:11ff:fe11:4b46])
-        by smtp.gmail.com with ESMTPSA id r7sm334215pjd.8.2020.11.30.19.12.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Nov 2020 19:12:57 -0800 (PST)
-Date:   Tue, 1 Dec 2020 12:12:55 +0900
-From:   Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-To:     akpm@linux-foundation.org
-Cc:     minchan@kernel.org, mm-commits@vger.kernel.org,
-        sergey.senozhatsky.work@gmail.com
-Subject: Re: +
- zram-add-stat-to-gather-incompressible-pages-since-zram-set-up.patch added
+        id S1726023AbgLBCEp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Dec 2020 21:04:45 -0500
+Received: from mailgw01.mediatek.com ([210.61.82.183]:44685 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727798AbgLBCEo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2020 21:04:44 -0500
+X-UUID: 0d420efe3ae3424bb69ec4bd128bbf9c-20201202
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
+        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=OXgXiT5a8Mnp5ypB6as3xIIju8PcjOaG2sQKArLxEL4=;
+        b=PuqDEF9jUiBcksY9aI02gdjG9T8wmwEQfQZr0CVqJ63+WfV8CENYzsLhxrfTn5lqT0qdowpVdL4Lwi03gE6h9OumbnbeqlCf3O7qi5nX9gpjwT8VbD7oYj/NtVvo1D8ZP/ST9mEHwNgt8Ex+qFRZupWR5hPQEjqsKNkpng/hziU=;
+X-UUID: 0d420efe3ae3424bb69ec4bd128bbf9c-20201202
+Received: from mtkcas10.mediatek.inc [(172.21.101.39)] by mailgw01.mediatek.com
+        (envelope-from <miles.chen@mediatek.com>)
+        (Cellopoint E-mail Firewall v4.1.14 Build 0819 with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 379939401; Wed, 02 Dec 2020 10:03:59 +0800
+Received: from mtkcas10.mediatek.inc (172.21.101.39) by
+ mtkmbs02n1.mediatek.inc (172.21.101.77) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Wed, 2 Dec 2020 10:03:47 +0800
+Received: from [172.21.77.33] (172.21.77.33) by mtkcas10.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Wed, 2 Dec 2020 10:03:49 +0800
+Message-ID: <1606874629.22275.5.camel@mtkswgap22>
+Subject: Re: + proc-use-untagged_addr-for-pagemap_read-addresses.patch added
  to -mm tree
-Message-ID: <20201201031255.GD3723071@google.com>
-References: <20201130204126.vQeku2E_m%akpm@linux-foundation.org>
+From:   Miles Chen <miles.chen@mediatek.com>
+To:     <akpm@linux-foundation.org>
+CC:     <adobriyan@gmail.com>, <andreyknvl@google.com>,
+        <aryabinin@virtuozzo.com>, <catalin.marinas@arm.com>,
+        <dvyukov@google.com>, <ebiederm@xmission.com>, <elver@google.com>,
+        <glider@google.com>, <mm-commits@vger.kernel.org>,
+        <song.bao.hua@hisilicon.com>, <stable@vger.kernel.org>,
+        <vincenzo.frascino@arm.com>, <will.deacon@arm.com>
+Date:   Wed, 2 Dec 2020 10:03:49 +0800
+In-Reply-To: <20201128035253.0uYNNDp0B%akpm@linux-foundation.org>
+References: <20201128035253.0uYNNDp0B%akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.2.3-0ubuntu6 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201130204126.vQeku2E_m%akpm@linux-foundation.org>
+X-MTK:  N
+Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On (20/11/30 12:41), akpm@linux-foundation.org wrote:
-> 
-> Currently, zram supports the stat via /sys/block/zram/mm_stat to represent
-> how many of incompressible pages are stored at the moment but it couldn't
-> show how many times incompressible pages were wrote down since zram set
-> up.  It's also good indication to see how zram is effective in the system.
-> 
-> Link: https://lkml.kernel.org/r/20201130201907.1284910-1-minchan@kernel.org
-> Signed-off-by: Minchan Kim <minchan@kernel.org>
-> Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+T24gRnJpLCAyMDIwLTExLTI3IGF0IDE5OjUyIC0wODAwLCBha3BtQGxpbnV4LWZvdW5kYXRpb24u
+b3JnIHdyb3RlOg0KPiBUaGUgcGF0Y2ggdGl0bGVkDQo+ICAgICAgU3ViamVjdDogcHJvYzogdXNl
+IHVudGFnZ2VkX2FkZHIoKSBmb3IgcGFnZW1hcF9yZWFkIGFkZHJlc3Nlcw0KPiBoYXMgYmVlbiBh
+ZGRlZCB0byB0aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgaXMNCj4gICAgICBwcm9jLXVzZS11
+bnRhZ2dlZF9hZGRyLWZvci1wYWdlbWFwX3JlYWQtYWRkcmVzc2VzLnBhdGNoDQo+IA0KPiBUaGlz
+IHBhdGNoIHNob3VsZCBzb29uIGFwcGVhciBhdA0KPiAgICAgaHR0cHM6Ly9vemxhYnMub3JnL35h
+a3BtL21tb3RzL2Jyb2tlbi1vdXQvcHJvYy11c2UtdW50YWdnZWRfYWRkci1mb3ItcGFnZW1hcF9y
+ZWFkLWFkZHJlc3Nlcy5wYXRjaA0KPiBhbmQgbGF0ZXIgYXQNCj4gICAgIGh0dHBzOi8vb3psYWJz
+Lm9yZy9+YWtwbS9tbW90bS9icm9rZW4tb3V0L3Byb2MtdXNlLXVudGFnZ2VkX2FkZHItZm9yLXBh
+Z2VtYXBfcmVhZC1hZGRyZXNzZXMucGF0Y2gNCj4gDQo+IEJlZm9yZSB5b3UganVzdCBnbyBhbmQg
+aGl0ICJyZXBseSIsIHBsZWFzZToNCj4gICAgYSkgQ29uc2lkZXIgd2hvIGVsc2Ugc2hvdWxkIGJl
+IGNjJ2VkDQo+ICAgIGIpIFByZWZlciB0byBjYyBhIHN1aXRhYmxlIG1haWxpbmcgbGlzdCBhcyB3
+ZWxsDQo+ICAgIGMpIElkZWFsbHk6IGZpbmQgdGhlIG9yaWdpbmFsIHBhdGNoIG9uIHRoZSBtYWls
+aW5nIGxpc3QgYW5kIGRvIGENCj4gICAgICAgcmVwbHktdG8tYWxsIHRvIHRoYXQsIGFkZGluZyBz
+dWl0YWJsZSBhZGRpdGlvbmFsIGNjJ3MNCj4gDQo+ICoqKiBSZW1lbWJlciB0byB1c2UgRG9jdW1l
+bnRhdGlvbi9wcm9jZXNzL3N1Ym1pdC1jaGVja2xpc3QucnN0IHdoZW4gdGVzdGluZyB5b3VyIGNv
+ZGUgKioqDQo+IA0KPiBUaGUgLW1tIHRyZWUgaXMgaW5jbHVkZWQgaW50byBsaW51eC1uZXh0IGFu
+ZCBpcyB1cGRhdGVkDQo+IHRoZXJlIGV2ZXJ5IDMtNCB3b3JraW5nIGRheXMNCg0KU29ycnkgZm9y
+IGJvdGhlcmluZywgSSBjaGVja2VkIHRoZSBuZXh0LTIwMjAxMjAxIHRhZyBhbmQgdGhlIHBhdGNo
+IGluDQpuZXh0LTIwMjAxMjAxIGlzIFsxXSwgYnV0IHRoZXJlIGlzIGEgb3ZlcmZsb3cgaXNzdWUg
+aW4gWzFdIHNvIEkNCnN1Ym1pdHRlZCB2MiBbMl0uIFdlIHNob3VsZCB0YWtlIFsyXSwgcmlnaHQ/
+IA0KKHRoZSBwYXRjaCBpbiB0aGlzIGVtYWlsIGlzIFsyXSBidXQgdGhlIHBhdGNoIGluIG5leHQt
+MjAyMDEyMDEgaXMgWzFdKQ0KDQpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvcGF0Y2h3b3Jr
+L3BhdGNoLzEzNDMyNTgvDQpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvcGF0Y2h3b3JrL3Bh
+dGNoLzEzNDU4NzQvDQoNCg0KDQo+IA0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gRnJvbTogTWlsZXMgQ2hlbiA8bWlsZXMuY2hlbkBt
+ZWRpYXRlay5jb20+DQo+IFN1YmplY3Q6IHByb2M6IHVzZSB1bnRhZ2dlZF9hZGRyKCkgZm9yIHBh
+Z2VtYXBfcmVhZCBhZGRyZXNzZXMNCj4gDQo+IFdoZW4gd2UgdHJ5IHRvIHZpc2l0IHRoZSBwYWdl
+bWFwIG9mIGEgdGFnZ2VkIHVzZXJzcGFjZSBwb2ludGVyLCB3ZSBmaW5kDQo+IHRoYXQgdGhlIHN0
+YXJ0X3ZhZGRyIGlzIG5vdCBjb3JyZWN0IGJlY2F1c2Ugb2YgdGhlIHRhZy4gIFRvIGZpeCBpdCwg
+d2UNCj4gc2hvdWxkIHVudGFnIHRoZSB1c2VzcGFjZSBwb2ludGVycyBpbiBwYWdlbWFwX3JlYWQo
+KS4NCj4gDQo+IEkgdGVzdGVkIHdpdGggNS4xMC1yYzQgYW5kIHRoZSBpc3N1ZSByZW1haW5zLg0K
+PiANCj4gRXhwbGFuYXRpb24gZnJvbSBDYXRhbGluIGluIFsxXToNCj4gDQo+IDogQXJndWFibHks
+IHRoYXQncyBhIHVzZXItc3BhY2UgYnVnIHNpbmNlIHRhZ2dlZCBmaWxlIG9mZnNldHMgd2VyZSBu
+ZXZlcg0KPiA6IHN1cHBvcnRlZC4gIEluIHRoaXMgY2FzZSBpdCdzIG5vdCBldmVuIGEgdGFnIGF0
+IGJpdCA1NiBhcyBwZXIgdGhlIGFybTY0DQo+IDogdGFnZ2VkIGFkZHJlc3MgQUJJIGJ1dCByYXRo
+ZXIgZG93biB0byBiaXQgNDcuICBZb3UgY291bGQgc2F5IHRoYXQgdGhlDQo+IDogcHJvYmxlbSBp
+cyBjYXVzZWQgYnkgdGhlIEMgbGlicmFyeSAobWFsbG9jKCkpIG9yIHdob2V2ZXIgY3JlYXRlZCB0
+aGUNCj4gOiB0YWdnZWQgdmFkZHIgYW5kIHBhc3NlZCBpdCB0byB0aGlzIGZ1bmN0aW9uLiAgSXQn
+cyBub3QgYSBrZXJuZWwgcmVncmVzc2lvbg0KPiA6IGFzIHdlJ3ZlIG5ldmVyIHN1cHBvcnRlZCBp
+dC4NCj4gOiANCj4gOiBOb3csIHBhZ2VtYXAgaXMgYSBzcGVjaWFsIGNhc2Ugd2hlcmUgdGhlIG9m
+ZnNldCBpcyB1c3VhbGx5IG5vdCBnZW5lcmF0ZWQNCj4gOiBhcyBhIGNsYXNzaWMgZmlsZSBvZmZz
+ZXQgYnV0IHJhdGhlciBkZXJpdmVkIGJ5IHNoaWZ0aW5nIGEgdXNlciB2aXJ0dWFsDQo+IDogYWRk
+cmVzcy4gIEkgZ3Vlc3Mgd2UgY2FuIG1ha2UgYSBjb25jZXNzaW9uIGZvciBwYWdlbWFwIChvbmx5
+KSBhbmQgYWxsb3cNCj4gOiBzdWNoIG9mZnNldCB3aXRoIHRoZSB0YWcgYXQgYml0ICg1NiAtIFBB
+R0VfU0hJRlQgKyAzKS4NCj4gDQo+IE15IHRlc3QgY29kZSBpcyBiYWVkIG9uIFsyXToNCj4gDQo+
+IEEgdXNlcnNwYWNlIHBvaW50ZXIgd2hpY2ggaGFzIGJlZW4gdGFnZ2VkIGJ5IDB4YjQ6IDB4YjQw
+MDAwNzY2MmY1NDFjOA0KPiANCj4gPT09IHVzZXJzcGFjZSBwcm9ncmFtID09PQ0KPiANCj4gdWlu
+dDY0IE9zTGF5ZXI6OlZpcnR1YWxUb1BoeXNpY2FsKHZvaWQgKnZhZGRyKSB7DQo+IAl1aW50NjQg
+ZnJhbWUsIHBhZGRyLCBwZm5tYXNrLCBwYWdlbWFzazsNCj4gCWludCBwYWdlc2l6ZSA9IHN5c2Nv
+bmYoX1NDX1BBR0VTSVpFKTsNCj4gCW9mZjY0X3Qgb2ZmID0gKCh1aW50cHRyX3QpdmFkZHIpIC8g
+cGFnZXNpemUgKiA4OyAvLyBvZmYgPSAweGI0MDAwMDc2NjJmNTQxYzggLyBwYWdlc2l6ZSAqIDgg
+PSAweDVhMDAwMDNiMzE3YWEwDQo+IAlpbnQgZmQgPSBvcGVuKGtQYWdlbWFwUGF0aCwgT19SRE9O
+TFkpOw0KPiAJLi4uDQo+IA0KPiAJaWYgKGxzZWVrNjQoZmQsIG9mZiwgU0VFS19TRVQpICE9IG9m
+ZiB8fCByZWFkKGZkLCAmZnJhbWUsIDgpICE9IDgpIHsNCj4gCQlpbnQgZXJyID0gZXJybm87DQo+
+IAkJc3RyaW5nIGVycnR4dCA9IEVycm9yU3RyaW5nKGVycik7DQo+IAkJaWYgKGZkID49IDApDQo+
+IAkJCWNsb3NlKGZkKTsNCj4gCQlyZXR1cm4gMDsNCj4gCX0NCj4gLi4uDQo+IH0NCj4gDQo+ID09
+PSBrZXJuZWwgZnMvcHJvYy90YXNrX21tdS5jID09PQ0KPiANCj4gc3RhdGljIHNzaXplX3QgcGFn
+ZW1hcF9yZWFkKHN0cnVjdCBmaWxlICpmaWxlLCBjaGFyIF9fdXNlciAqYnVmLA0KPiAJCXNpemVf
+dCBjb3VudCwgbG9mZl90ICpwcG9zKQ0KPiB7DQo+IAkuLi4NCj4gCXNyYyA9ICpwcG9zOw0KPiAJ
+c3ZwZm4gPSBzcmMgLyBQTV9FTlRSWV9CWVRFUzsgLy8gc3ZwZm4gPT0gMHhiNDAwMDA3NjYyZjU0
+DQo+IAlzdGFydF92YWRkciA9IHN2cGZuIDw8IFBBR0VfU0hJRlQ7IC8vIHN0YXJ0X3ZhZGRyID09
+IDB4YjQwMDAwNzY2MmY1NDAwMA0KPiAJZW5kX3ZhZGRyID0gbW0tPnRhc2tfc2l6ZTsNCj4gDQo+
+IAkvKiB3YXRjaCBvdXQgZm9yIHdyYXBhcm91bmQgKi8NCj4gCS8vIHN2cGZuID09IDB4YjQwMDAw
+NzY2MmY1NA0KPiAJLy8gKG1tLT50YXNrX3NpemUgPj4gUEFHRSkgPT0gMHg4MDAwMDAwDQo+IAlp
+ZiAoc3ZwZm4gPiBtbS0+dGFza19zaXplID4+IFBBR0VfU0hJRlQpIC8vIHRoZSBjb25kaXRpb24g
+aXMgdHJ1ZSBiZWNhdXNlIG9mIHRoZSB0YWcgMHhiNA0KPiAJCXN0YXJ0X3ZhZGRyID0gZW5kX3Zh
+ZGRyOw0KPiANCj4gCXJldCA9IDA7DQo+IAl3aGlsZSAoY291bnQgJiYgKHN0YXJ0X3ZhZGRyIDwg
+ZW5kX3ZhZGRyKSkgeyAvLyB3ZSBjYW5ub3QgdmlzaXQgY29ycmVjdCBlbnRyeSBiZWNhdXNlIHN0
+YXJ0X3ZhZGRyIGlzIHNldCB0byBlbmRfdmFkZHINCj4gCQlpbnQgbGVuOw0KPiAJCXVuc2lnbmVk
+IGxvbmcgZW5kOw0KPiAJCS4uLg0KPiAJfQ0KPiAJLi4uDQo+IH0NCj4gDQo+IFsxXSBodHRwczov
+L2xvcmUua2VybmVsLm9yZy9wYXRjaHdvcmsvcGF0Y2gvMTM0MzI1OC8NCj4gWzJdIGh0dHBzOi8v
+Z2l0aHViLmNvbS9zdHJlc3NhcHB0ZXN0L3N0cmVzc2FwcHRlc3QvYmxvYi9tYXN0ZXIvc3JjL29z
+LmNjI0wxNTgNCj4gDQo+IExpbms6IGh0dHBzOi8vbGttbC5rZXJuZWwub3JnL3IvMjAyMDExMjcw
+NTA3MzguMTQ0NDAtMS1taWxlcy5jaGVuQG1lZGlhdGVrLmNvbQ0KPiBTaWduZWQtb2ZmLWJ5OiBN
+aWxlcyBDaGVuIDxtaWxlcy5jaGVuQG1lZGlhdGVrLmNvbT4NCj4gQ2M6IEFsZXhleSBEb2JyaXlh
+biA8YWRvYnJpeWFuQGdtYWlsLmNvbT4NCj4gQ2M6IEFuZHJleSBLb25vdmFsb3YgPGFuZHJleWtu
+dmxAZ29vZ2xlLmNvbT4NCj4gQ2M6IEFsZXhhbmRlciBQb3RhcGVua28gPGdsaWRlckBnb29nbGUu
+Y29tPg0KPiBDYzogVmluY2Vuem8gRnJhc2Npbm8gPHZpbmNlbnpvLmZyYXNjaW5vQGFybS5jb20+
+DQo+IENjOiBBbmRyZXkgUnlhYmluaW4gPGFyeWFiaW5pbkB2aXJ0dW96em8uY29tPg0KPiBDYzog
+Q2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1hcmluYXNAYXJtLmNvbT4NCj4gQ2M6IERtaXRyeSBW
+eXVrb3YgPGR2eXVrb3ZAZ29vZ2xlLmNvbT4NCj4gQ2M6IE1hcmNvIEVsdmVyIDxlbHZlckBnb29n
+bGUuY29tPg0KPiBDYzogV2lsbCBEZWFjb24gPHdpbGwuZGVhY29uQGFybS5jb20+DQo+IENjOiBF
+cmljIFcuIEJpZWRlcm1hbiA8ZWJpZWRlcm1AeG1pc3Npb24uY29tPg0KPiBDYzogU29uZyBCYW8g
+SHVhIChCYXJyeSBTb25nKSA8c29uZy5iYW8uaHVhQGhpc2lsaWNvbi5jb20+DQo+IENjOiA8c3Rh
+YmxlQHZnZXIua2VybmVsLm9yZz4JWzUuNCtdDQo+IFNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0
+b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+DQo+IC0tLQ0KPiANCj4gIGZzL3Byb2MvdGFz
+a19tbXUuYyB8ICAgIDggKysrKysrLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2VydGlvbnMo
+KyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiAtLS0gYS9mcy9wcm9jL3Rhc2tfbW11LmN+cHJvYy11
+c2UtdW50YWdnZWRfYWRkci1mb3ItcGFnZW1hcF9yZWFkLWFkZHJlc3Nlcw0KPiArKysgYS9mcy9w
+cm9jL3Rhc2tfbW11LmMNCj4gQEAgLTE1OTksMTEgKzE1OTksMTUgQEAgc3RhdGljIHNzaXplX3Qg
+cGFnZW1hcF9yZWFkKHN0cnVjdCBmaWxlDQo+ICANCj4gIAlzcmMgPSAqcHBvczsNCj4gIAlzdnBm
+biA9IHNyYyAvIFBNX0VOVFJZX0JZVEVTOw0KPiAtCXN0YXJ0X3ZhZGRyID0gc3ZwZm4gPDwgUEFH
+RV9TSElGVDsNCj4gIAllbmRfdmFkZHIgPSBtbS0+dGFza19zaXplOw0KPiAgDQo+ICAJLyogd2F0
+Y2ggb3V0IGZvciB3cmFwYXJvdW5kICovDQo+IC0JaWYgKHN2cGZuID4gbW0tPnRhc2tfc2l6ZSA+
+PiBQQUdFX1NISUZUKQ0KPiArCXN0YXJ0X3ZhZGRyID0gZW5kX3ZhZGRyOw0KPiArCWlmIChzdnBm
+biA8IChVTE9OR19NQVggPj4gUEFHRV9TSElGVCkpDQo+ICsJCXN0YXJ0X3ZhZGRyID0gdW50YWdn
+ZWRfYWRkcihzdnBmbiA8PCBQQUdFX1NISUZUKTsNCj4gKw0KPiArCS8qIEVuc3VyZSB0aGUgYWRk
+cmVzcyBpcyBpbnNpZGUgdGhlIHRhc2sgKi8NCj4gKwlpZiAoc3RhcnRfdmFkZHIgPiBtbS0+dGFz
+a19zaXplKQ0KPiAgCQlzdGFydF92YWRkciA9IGVuZF92YWRkcjsNCj4gIA0KPiAgCS8qDQo+IF8N
+Cj4gDQo+IFBhdGNoZXMgY3VycmVudGx5IGluIC1tbSB3aGljaCBtaWdodCBiZSBmcm9tIG1pbGVz
+LmNoZW5AbWVkaWF0ZWsuY29tIGFyZQ0KPiANCj4gcHJvYy11c2UtdW50YWdnZWRfYWRkci1mb3It
+cGFnZW1hcF9yZWFkLWFkZHJlc3Nlcy5wYXRjaA0KPiANCg0K
 
-Looks good to me
-
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-
-	-ss
