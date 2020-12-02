@@ -2,164 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-22.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD583C64E7A
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 02:04:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45AA7C6369E
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 21:38:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F618221F9
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 02:04:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2EC3217A0
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 21:38:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726023AbgLBCEp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Dec 2020 21:04:45 -0500
-Received: from mailgw01.mediatek.com ([210.61.82.183]:44685 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727798AbgLBCEo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2020 21:04:44 -0500
-X-UUID: 0d420efe3ae3424bb69ec4bd128bbf9c-20201202
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
-        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=OXgXiT5a8Mnp5ypB6as3xIIju8PcjOaG2sQKArLxEL4=;
-        b=PuqDEF9jUiBcksY9aI02gdjG9T8wmwEQfQZr0CVqJ63+WfV8CENYzsLhxrfTn5lqT0qdowpVdL4Lwi03gE6h9OumbnbeqlCf3O7qi5nX9gpjwT8VbD7oYj/NtVvo1D8ZP/ST9mEHwNgt8Ex+qFRZupWR5hPQEjqsKNkpng/hziU=;
-X-UUID: 0d420efe3ae3424bb69ec4bd128bbf9c-20201202
-Received: from mtkcas10.mediatek.inc [(172.21.101.39)] by mailgw01.mediatek.com
-        (envelope-from <miles.chen@mediatek.com>)
-        (Cellopoint E-mail Firewall v4.1.14 Build 0819 with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 379939401; Wed, 02 Dec 2020 10:03:59 +0800
-Received: from mtkcas10.mediatek.inc (172.21.101.39) by
- mtkmbs02n1.mediatek.inc (172.21.101.77) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2; Wed, 2 Dec 2020 10:03:47 +0800
-Received: from [172.21.77.33] (172.21.77.33) by mtkcas10.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Wed, 2 Dec 2020 10:03:49 +0800
-Message-ID: <1606874629.22275.5.camel@mtkswgap22>
-Subject: Re: + proc-use-untagged_addr-for-pagemap_read-addresses.patch added
- to -mm tree
-From:   Miles Chen <miles.chen@mediatek.com>
-To:     <akpm@linux-foundation.org>
-CC:     <adobriyan@gmail.com>, <andreyknvl@google.com>,
-        <aryabinin@virtuozzo.com>, <catalin.marinas@arm.com>,
-        <dvyukov@google.com>, <ebiederm@xmission.com>, <elver@google.com>,
-        <glider@google.com>, <mm-commits@vger.kernel.org>,
-        <song.bao.hua@hisilicon.com>, <stable@vger.kernel.org>,
-        <vincenzo.frascino@arm.com>, <will.deacon@arm.com>
-Date:   Wed, 2 Dec 2020 10:03:49 +0800
-In-Reply-To: <20201128035253.0uYNNDp0B%akpm@linux-foundation.org>
-References: <20201128035253.0uYNNDp0B%akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.2.3-0ubuntu6 
-MIME-Version: 1.0
-X-MTK:  N
-Content-Transfer-Encoding: base64
+        id S1726471AbgLBVi5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Dec 2020 16:38:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52408 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725900AbgLBVi5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Dec 2020 16:38:57 -0500
+Date:   Wed, 02 Dec 2020 13:38:09 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1606945090;
+        bh=fVmMzaaLH7oEYw7k8V/E4FhnbP5LoamBjq/PGr1gOV4=;
+        h=From:To:Subject:From;
+        b=q9fqYORhTm4urPjb0xa9SWVSXdhhU7QLmfkBPZmhhdcLmcmL5S250pYF9xOjEGIGN
+         Btsy+AIntcfxOKZlUD/4p8Fakkd51YDUi/YG7alwWCLziNHrIX5LqcEXIf7sySpNTE
+         lgTzFDvluVO3X8aUqiQfnf2aG1PaRGjkfooYi8Gc=
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20201202213809.0RWeIqdSD%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-T24gRnJpLCAyMDIwLTExLTI3IGF0IDE5OjUyIC0wODAwLCBha3BtQGxpbnV4LWZvdW5kYXRpb24u
-b3JnIHdyb3RlOg0KPiBUaGUgcGF0Y2ggdGl0bGVkDQo+ICAgICAgU3ViamVjdDogcHJvYzogdXNl
-IHVudGFnZ2VkX2FkZHIoKSBmb3IgcGFnZW1hcF9yZWFkIGFkZHJlc3Nlcw0KPiBoYXMgYmVlbiBh
-ZGRlZCB0byB0aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgaXMNCj4gICAgICBwcm9jLXVzZS11
-bnRhZ2dlZF9hZGRyLWZvci1wYWdlbWFwX3JlYWQtYWRkcmVzc2VzLnBhdGNoDQo+IA0KPiBUaGlz
-IHBhdGNoIHNob3VsZCBzb29uIGFwcGVhciBhdA0KPiAgICAgaHR0cHM6Ly9vemxhYnMub3JnL35h
-a3BtL21tb3RzL2Jyb2tlbi1vdXQvcHJvYy11c2UtdW50YWdnZWRfYWRkci1mb3ItcGFnZW1hcF9y
-ZWFkLWFkZHJlc3Nlcy5wYXRjaA0KPiBhbmQgbGF0ZXIgYXQNCj4gICAgIGh0dHBzOi8vb3psYWJz
-Lm9yZy9+YWtwbS9tbW90bS9icm9rZW4tb3V0L3Byb2MtdXNlLXVudGFnZ2VkX2FkZHItZm9yLXBh
-Z2VtYXBfcmVhZC1hZGRyZXNzZXMucGF0Y2gNCj4gDQo+IEJlZm9yZSB5b3UganVzdCBnbyBhbmQg
-aGl0ICJyZXBseSIsIHBsZWFzZToNCj4gICAgYSkgQ29uc2lkZXIgd2hvIGVsc2Ugc2hvdWxkIGJl
-IGNjJ2VkDQo+ICAgIGIpIFByZWZlciB0byBjYyBhIHN1aXRhYmxlIG1haWxpbmcgbGlzdCBhcyB3
-ZWxsDQo+ICAgIGMpIElkZWFsbHk6IGZpbmQgdGhlIG9yaWdpbmFsIHBhdGNoIG9uIHRoZSBtYWls
-aW5nIGxpc3QgYW5kIGRvIGENCj4gICAgICAgcmVwbHktdG8tYWxsIHRvIHRoYXQsIGFkZGluZyBz
-dWl0YWJsZSBhZGRpdGlvbmFsIGNjJ3MNCj4gDQo+ICoqKiBSZW1lbWJlciB0byB1c2UgRG9jdW1l
-bnRhdGlvbi9wcm9jZXNzL3N1Ym1pdC1jaGVja2xpc3QucnN0IHdoZW4gdGVzdGluZyB5b3VyIGNv
-ZGUgKioqDQo+IA0KPiBUaGUgLW1tIHRyZWUgaXMgaW5jbHVkZWQgaW50byBsaW51eC1uZXh0IGFu
-ZCBpcyB1cGRhdGVkDQo+IHRoZXJlIGV2ZXJ5IDMtNCB3b3JraW5nIGRheXMNCg0KU29ycnkgZm9y
-IGJvdGhlcmluZywgSSBjaGVja2VkIHRoZSBuZXh0LTIwMjAxMjAxIHRhZyBhbmQgdGhlIHBhdGNo
-IGluDQpuZXh0LTIwMjAxMjAxIGlzIFsxXSwgYnV0IHRoZXJlIGlzIGEgb3ZlcmZsb3cgaXNzdWUg
-aW4gWzFdIHNvIEkNCnN1Ym1pdHRlZCB2MiBbMl0uIFdlIHNob3VsZCB0YWtlIFsyXSwgcmlnaHQ/
-IA0KKHRoZSBwYXRjaCBpbiB0aGlzIGVtYWlsIGlzIFsyXSBidXQgdGhlIHBhdGNoIGluIG5leHQt
-MjAyMDEyMDEgaXMgWzFdKQ0KDQpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvcGF0Y2h3b3Jr
-L3BhdGNoLzEzNDMyNTgvDQpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvcGF0Y2h3b3JrL3Bh
-dGNoLzEzNDU4NzQvDQoNCg0KDQo+IA0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gRnJvbTogTWlsZXMgQ2hlbiA8bWlsZXMuY2hlbkBt
-ZWRpYXRlay5jb20+DQo+IFN1YmplY3Q6IHByb2M6IHVzZSB1bnRhZ2dlZF9hZGRyKCkgZm9yIHBh
-Z2VtYXBfcmVhZCBhZGRyZXNzZXMNCj4gDQo+IFdoZW4gd2UgdHJ5IHRvIHZpc2l0IHRoZSBwYWdl
-bWFwIG9mIGEgdGFnZ2VkIHVzZXJzcGFjZSBwb2ludGVyLCB3ZSBmaW5kDQo+IHRoYXQgdGhlIHN0
-YXJ0X3ZhZGRyIGlzIG5vdCBjb3JyZWN0IGJlY2F1c2Ugb2YgdGhlIHRhZy4gIFRvIGZpeCBpdCwg
-d2UNCj4gc2hvdWxkIHVudGFnIHRoZSB1c2VzcGFjZSBwb2ludGVycyBpbiBwYWdlbWFwX3JlYWQo
-KS4NCj4gDQo+IEkgdGVzdGVkIHdpdGggNS4xMC1yYzQgYW5kIHRoZSBpc3N1ZSByZW1haW5zLg0K
-PiANCj4gRXhwbGFuYXRpb24gZnJvbSBDYXRhbGluIGluIFsxXToNCj4gDQo+IDogQXJndWFibHks
-IHRoYXQncyBhIHVzZXItc3BhY2UgYnVnIHNpbmNlIHRhZ2dlZCBmaWxlIG9mZnNldHMgd2VyZSBu
-ZXZlcg0KPiA6IHN1cHBvcnRlZC4gIEluIHRoaXMgY2FzZSBpdCdzIG5vdCBldmVuIGEgdGFnIGF0
-IGJpdCA1NiBhcyBwZXIgdGhlIGFybTY0DQo+IDogdGFnZ2VkIGFkZHJlc3MgQUJJIGJ1dCByYXRo
-ZXIgZG93biB0byBiaXQgNDcuICBZb3UgY291bGQgc2F5IHRoYXQgdGhlDQo+IDogcHJvYmxlbSBp
-cyBjYXVzZWQgYnkgdGhlIEMgbGlicmFyeSAobWFsbG9jKCkpIG9yIHdob2V2ZXIgY3JlYXRlZCB0
-aGUNCj4gOiB0YWdnZWQgdmFkZHIgYW5kIHBhc3NlZCBpdCB0byB0aGlzIGZ1bmN0aW9uLiAgSXQn
-cyBub3QgYSBrZXJuZWwgcmVncmVzc2lvbg0KPiA6IGFzIHdlJ3ZlIG5ldmVyIHN1cHBvcnRlZCBp
-dC4NCj4gOiANCj4gOiBOb3csIHBhZ2VtYXAgaXMgYSBzcGVjaWFsIGNhc2Ugd2hlcmUgdGhlIG9m
-ZnNldCBpcyB1c3VhbGx5IG5vdCBnZW5lcmF0ZWQNCj4gOiBhcyBhIGNsYXNzaWMgZmlsZSBvZmZz
-ZXQgYnV0IHJhdGhlciBkZXJpdmVkIGJ5IHNoaWZ0aW5nIGEgdXNlciB2aXJ0dWFsDQo+IDogYWRk
-cmVzcy4gIEkgZ3Vlc3Mgd2UgY2FuIG1ha2UgYSBjb25jZXNzaW9uIGZvciBwYWdlbWFwIChvbmx5
-KSBhbmQgYWxsb3cNCj4gOiBzdWNoIG9mZnNldCB3aXRoIHRoZSB0YWcgYXQgYml0ICg1NiAtIFBB
-R0VfU0hJRlQgKyAzKS4NCj4gDQo+IE15IHRlc3QgY29kZSBpcyBiYWVkIG9uIFsyXToNCj4gDQo+
-IEEgdXNlcnNwYWNlIHBvaW50ZXIgd2hpY2ggaGFzIGJlZW4gdGFnZ2VkIGJ5IDB4YjQ6IDB4YjQw
-MDAwNzY2MmY1NDFjOA0KPiANCj4gPT09IHVzZXJzcGFjZSBwcm9ncmFtID09PQ0KPiANCj4gdWlu
-dDY0IE9zTGF5ZXI6OlZpcnR1YWxUb1BoeXNpY2FsKHZvaWQgKnZhZGRyKSB7DQo+IAl1aW50NjQg
-ZnJhbWUsIHBhZGRyLCBwZm5tYXNrLCBwYWdlbWFzazsNCj4gCWludCBwYWdlc2l6ZSA9IHN5c2Nv
-bmYoX1NDX1BBR0VTSVpFKTsNCj4gCW9mZjY0X3Qgb2ZmID0gKCh1aW50cHRyX3QpdmFkZHIpIC8g
-cGFnZXNpemUgKiA4OyAvLyBvZmYgPSAweGI0MDAwMDc2NjJmNTQxYzggLyBwYWdlc2l6ZSAqIDgg
-PSAweDVhMDAwMDNiMzE3YWEwDQo+IAlpbnQgZmQgPSBvcGVuKGtQYWdlbWFwUGF0aCwgT19SRE9O
-TFkpOw0KPiAJLi4uDQo+IA0KPiAJaWYgKGxzZWVrNjQoZmQsIG9mZiwgU0VFS19TRVQpICE9IG9m
-ZiB8fCByZWFkKGZkLCAmZnJhbWUsIDgpICE9IDgpIHsNCj4gCQlpbnQgZXJyID0gZXJybm87DQo+
-IAkJc3RyaW5nIGVycnR4dCA9IEVycm9yU3RyaW5nKGVycik7DQo+IAkJaWYgKGZkID49IDApDQo+
-IAkJCWNsb3NlKGZkKTsNCj4gCQlyZXR1cm4gMDsNCj4gCX0NCj4gLi4uDQo+IH0NCj4gDQo+ID09
-PSBrZXJuZWwgZnMvcHJvYy90YXNrX21tdS5jID09PQ0KPiANCj4gc3RhdGljIHNzaXplX3QgcGFn
-ZW1hcF9yZWFkKHN0cnVjdCBmaWxlICpmaWxlLCBjaGFyIF9fdXNlciAqYnVmLA0KPiAJCXNpemVf
-dCBjb3VudCwgbG9mZl90ICpwcG9zKQ0KPiB7DQo+IAkuLi4NCj4gCXNyYyA9ICpwcG9zOw0KPiAJ
-c3ZwZm4gPSBzcmMgLyBQTV9FTlRSWV9CWVRFUzsgLy8gc3ZwZm4gPT0gMHhiNDAwMDA3NjYyZjU0
-DQo+IAlzdGFydF92YWRkciA9IHN2cGZuIDw8IFBBR0VfU0hJRlQ7IC8vIHN0YXJ0X3ZhZGRyID09
-IDB4YjQwMDAwNzY2MmY1NDAwMA0KPiAJZW5kX3ZhZGRyID0gbW0tPnRhc2tfc2l6ZTsNCj4gDQo+
-IAkvKiB3YXRjaCBvdXQgZm9yIHdyYXBhcm91bmQgKi8NCj4gCS8vIHN2cGZuID09IDB4YjQwMDAw
-NzY2MmY1NA0KPiAJLy8gKG1tLT50YXNrX3NpemUgPj4gUEFHRSkgPT0gMHg4MDAwMDAwDQo+IAlp
-ZiAoc3ZwZm4gPiBtbS0+dGFza19zaXplID4+IFBBR0VfU0hJRlQpIC8vIHRoZSBjb25kaXRpb24g
-aXMgdHJ1ZSBiZWNhdXNlIG9mIHRoZSB0YWcgMHhiNA0KPiAJCXN0YXJ0X3ZhZGRyID0gZW5kX3Zh
-ZGRyOw0KPiANCj4gCXJldCA9IDA7DQo+IAl3aGlsZSAoY291bnQgJiYgKHN0YXJ0X3ZhZGRyIDwg
-ZW5kX3ZhZGRyKSkgeyAvLyB3ZSBjYW5ub3QgdmlzaXQgY29ycmVjdCBlbnRyeSBiZWNhdXNlIHN0
-YXJ0X3ZhZGRyIGlzIHNldCB0byBlbmRfdmFkZHINCj4gCQlpbnQgbGVuOw0KPiAJCXVuc2lnbmVk
-IGxvbmcgZW5kOw0KPiAJCS4uLg0KPiAJfQ0KPiAJLi4uDQo+IH0NCj4gDQo+IFsxXSBodHRwczov
-L2xvcmUua2VybmVsLm9yZy9wYXRjaHdvcmsvcGF0Y2gvMTM0MzI1OC8NCj4gWzJdIGh0dHBzOi8v
-Z2l0aHViLmNvbS9zdHJlc3NhcHB0ZXN0L3N0cmVzc2FwcHRlc3QvYmxvYi9tYXN0ZXIvc3JjL29z
-LmNjI0wxNTgNCj4gDQo+IExpbms6IGh0dHBzOi8vbGttbC5rZXJuZWwub3JnL3IvMjAyMDExMjcw
-NTA3MzguMTQ0NDAtMS1taWxlcy5jaGVuQG1lZGlhdGVrLmNvbQ0KPiBTaWduZWQtb2ZmLWJ5OiBN
-aWxlcyBDaGVuIDxtaWxlcy5jaGVuQG1lZGlhdGVrLmNvbT4NCj4gQ2M6IEFsZXhleSBEb2JyaXlh
-biA8YWRvYnJpeWFuQGdtYWlsLmNvbT4NCj4gQ2M6IEFuZHJleSBLb25vdmFsb3YgPGFuZHJleWtu
-dmxAZ29vZ2xlLmNvbT4NCj4gQ2M6IEFsZXhhbmRlciBQb3RhcGVua28gPGdsaWRlckBnb29nbGUu
-Y29tPg0KPiBDYzogVmluY2Vuem8gRnJhc2Npbm8gPHZpbmNlbnpvLmZyYXNjaW5vQGFybS5jb20+
-DQo+IENjOiBBbmRyZXkgUnlhYmluaW4gPGFyeWFiaW5pbkB2aXJ0dW96em8uY29tPg0KPiBDYzog
-Q2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1hcmluYXNAYXJtLmNvbT4NCj4gQ2M6IERtaXRyeSBW
-eXVrb3YgPGR2eXVrb3ZAZ29vZ2xlLmNvbT4NCj4gQ2M6IE1hcmNvIEVsdmVyIDxlbHZlckBnb29n
-bGUuY29tPg0KPiBDYzogV2lsbCBEZWFjb24gPHdpbGwuZGVhY29uQGFybS5jb20+DQo+IENjOiBF
-cmljIFcuIEJpZWRlcm1hbiA8ZWJpZWRlcm1AeG1pc3Npb24uY29tPg0KPiBDYzogU29uZyBCYW8g
-SHVhIChCYXJyeSBTb25nKSA8c29uZy5iYW8uaHVhQGhpc2lsaWNvbi5jb20+DQo+IENjOiA8c3Rh
-YmxlQHZnZXIua2VybmVsLm9yZz4JWzUuNCtdDQo+IFNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0
-b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+DQo+IC0tLQ0KPiANCj4gIGZzL3Byb2MvdGFz
-a19tbXUuYyB8ICAgIDggKysrKysrLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2VydGlvbnMo
-KyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiAtLS0gYS9mcy9wcm9jL3Rhc2tfbW11LmN+cHJvYy11
-c2UtdW50YWdnZWRfYWRkci1mb3ItcGFnZW1hcF9yZWFkLWFkZHJlc3Nlcw0KPiArKysgYS9mcy9w
-cm9jL3Rhc2tfbW11LmMNCj4gQEAgLTE1OTksMTEgKzE1OTksMTUgQEAgc3RhdGljIHNzaXplX3Qg
-cGFnZW1hcF9yZWFkKHN0cnVjdCBmaWxlDQo+ICANCj4gIAlzcmMgPSAqcHBvczsNCj4gIAlzdnBm
-biA9IHNyYyAvIFBNX0VOVFJZX0JZVEVTOw0KPiAtCXN0YXJ0X3ZhZGRyID0gc3ZwZm4gPDwgUEFH
-RV9TSElGVDsNCj4gIAllbmRfdmFkZHIgPSBtbS0+dGFza19zaXplOw0KPiAgDQo+ICAJLyogd2F0
-Y2ggb3V0IGZvciB3cmFwYXJvdW5kICovDQo+IC0JaWYgKHN2cGZuID4gbW0tPnRhc2tfc2l6ZSA+
-PiBQQUdFX1NISUZUKQ0KPiArCXN0YXJ0X3ZhZGRyID0gZW5kX3ZhZGRyOw0KPiArCWlmIChzdnBm
-biA8IChVTE9OR19NQVggPj4gUEFHRV9TSElGVCkpDQo+ICsJCXN0YXJ0X3ZhZGRyID0gdW50YWdn
-ZWRfYWRkcihzdnBmbiA8PCBQQUdFX1NISUZUKTsNCj4gKw0KPiArCS8qIEVuc3VyZSB0aGUgYWRk
-cmVzcyBpcyBpbnNpZGUgdGhlIHRhc2sgKi8NCj4gKwlpZiAoc3RhcnRfdmFkZHIgPiBtbS0+dGFz
-a19zaXplKQ0KPiAgCQlzdGFydF92YWRkciA9IGVuZF92YWRkcjsNCj4gIA0KPiAgCS8qDQo+IF8N
-Cj4gDQo+IFBhdGNoZXMgY3VycmVudGx5IGluIC1tbSB3aGljaCBtaWdodCBiZSBmcm9tIG1pbGVz
-LmNoZW5AbWVkaWF0ZWsuY29tIGFyZQ0KPiANCj4gcHJvYy11c2UtdW50YWdnZWRfYWRkci1mb3It
-cGFnZW1hcF9yZWFkLWFkZHJlc3Nlcy5wYXRjaA0KPiANCg0K
+
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
+
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/arm64/include/asm/exception.h |    4 ----
+ 1 file changed, 4 deletions(-)
+
+--- a/arch/arm64/include/asm/exception.h~linux-next-git-rejects
++++ a/arch/arm64/include/asm/exception.h
+@@ -37,11 +37,7 @@ asmlinkage void enter_from_user_mode(voi
+ asmlinkage void exit_to_user_mode(void);
+ void arm64_enter_nmi(struct pt_regs *regs);
+ void arm64_exit_nmi(struct pt_regs *regs);
+-<<<<<<< HEAD
+-void do_mem_abort(unsigned long addr, unsigned int esr, struct pt_regs *regs);
+-=======
+ void do_mem_abort(unsigned long far, unsigned int esr, struct pt_regs *regs);
+->>>>>>> linux-next/akpm-base
+ void do_undefinstr(struct pt_regs *regs);
+ void do_bti(struct pt_regs *regs);
+ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
 
