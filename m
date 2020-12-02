@@ -7,30 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45AA7C6369E
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 21:38:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F6BC6369E
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 22:56:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2EC3217A0
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 21:38:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCCEB221FD
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 22:56:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726471AbgLBVi5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Dec 2020 16:38:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52408 "EHLO mail.kernel.org"
+        id S1727185AbgLBWz5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Dec 2020 17:55:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725900AbgLBVi5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Dec 2020 16:38:57 -0500
-Date:   Wed, 02 Dec 2020 13:38:09 -0800
+        id S1726770AbgLBWz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Dec 2020 17:55:56 -0500
+Date:   Wed, 02 Dec 2020 14:55:14 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606945090;
-        bh=fVmMzaaLH7oEYw7k8V/E4FhnbP5LoamBjq/PGr1gOV4=;
+        s=korg; t=1606949715;
+        bh=1v9t1anpYsiDxhZVPEzCZRMUqxgDjPJc0fYhhEdcTnE=;
         h=From:To:Subject:From;
-        b=q9fqYORhTm4urPjb0xa9SWVSXdhhU7QLmfkBPZmhhdcLmcmL5S250pYF9xOjEGIGN
-         Btsy+AIntcfxOKZlUD/4p8Fakkd51YDUi/YG7alwWCLziNHrIX5LqcEXIf7sySpNTE
-         lgTzFDvluVO3X8aUqiQfnf2aG1PaRGjkfooYi8Gc=
+        b=lXd7L9K6JlRBqGSj6BaI7aQU7omH140j6RvRJhRXIyHoyfdiaTxtpIJcmk/KRJs17
+         KYg13LdP4Fffq0zSm4amQ5dUbOc3Nu/24ypT8h5UbmPsNlf35QHmiYk9o4LgY0KrZ2
+         a6BtybjAFzwOwslZcp+JCgHtS/P565zZibDKTyN8=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20201202213809.0RWeIqdSD%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, axelrasmussen@google.com, dgilbert@redhat.com,
+        gthelen@google.com, joe@perches.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, rppt@linux.vnet.ibm.com, shuah@kernel.org
+Subject:  +
+ userfaultfd-selftests-make-__su64-format-specifiers-portable.patch added to
+ -mm tree
+Message-ID: <20201202225514.D_OZlC7As%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,45 +64,200 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
 
+On certain platforms (powerpcle is the one on which I ran into this),
+"%Ld" and "%Lu" are unsuitable for printing __s64 and __u64, respectively,
+resulting in a build warning.  Cast to {u,}int64_t, and use the PRI{d,u}64
+macros defined in inttypes.h to print them.  This ought to be portable to
+all platforms.
+
+Splitting this off into a separate function lets us remove some lines, and
+get rid of some (I would argue) stylistically odd cases where we joined
+printf() and exit() into a single statement with a ,.
+
+Finally, this also fixes a "missing braces around initializer" warning
+when we initialize prms in wp_range().
+
+Link: https://lkml.kernel.org/r/20201202211542.1121189-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Alan Gilbert <dgilbert@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/exception.h |    4 ----
- 1 file changed, 4 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   77 +++++++++------------
+ 1 file changed, 36 insertions(+), 41 deletions(-)
 
---- a/arch/arm64/include/asm/exception.h~linux-next-git-rejects
-+++ a/arch/arm64/include/asm/exception.h
-@@ -37,11 +37,7 @@ asmlinkage void enter_from_user_mode(voi
- asmlinkage void exit_to_user_mode(void);
- void arm64_enter_nmi(struct pt_regs *regs);
- void arm64_exit_nmi(struct pt_regs *regs);
--<<<<<<< HEAD
--void do_mem_abort(unsigned long addr, unsigned int esr, struct pt_regs *regs);
--=======
- void do_mem_abort(unsigned long far, unsigned int esr, struct pt_regs *regs);
-->>>>>>> linux-next/akpm-base
- void do_undefinstr(struct pt_regs *regs);
- void do_bti(struct pt_regs *regs);
- asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr);
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-make-__su64-format-specifiers-portable
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -55,6 +55,8 @@
+ #include <setjmp.h>
+ #include <stdbool.h>
+ #include <assert.h>
++#include <inttypes.h>
++#include <stdint.h>
+ 
+ #include "../kselftest.h"
+ 
+@@ -135,6 +137,12 @@ static void usage(void)
+ 	exit(1);
+ }
+ 
++static void uffd_error(const char *message, __s64 code)
++{
++	fprintf(stderr, "%s: %" PRId64 "\n", message, (int64_t)code);
++	exit(1);
++}
++
+ static void uffd_stats_reset(struct uffd_stats *uffd_stats,
+ 			     unsigned long n_cpus)
+ {
+@@ -331,7 +339,7 @@ static int my_bcmp(char *str1, char *str
+ 
+ static void wp_range(int ufd, __u64 start, __u64 len, bool wp)
+ {
+-	struct uffdio_writeprotect prms = { 0 };
++	struct uffdio_writeprotect prms;
+ 
+ 	/* Write protection page faults */
+ 	prms.range.start = start;
+@@ -340,7 +348,8 @@ static void wp_range(int ufd, __u64 star
+ 	prms.mode = wp ? UFFDIO_WRITEPROTECT_MODE_WP : 0;
+ 
+ 	if (ioctl(ufd, UFFDIO_WRITEPROTECT, &prms)) {
+-		fprintf(stderr, "clear WP failed for address 0x%Lx\n", start);
++		fprintf(stderr, "clear WP failed for address 0x%" PRIx64 "\n",
++			(uint64_t)start);
+ 		exit(1);
+ 	}
+ }
+@@ -474,14 +483,11 @@ static void retry_copy_page(int ufd, str
+ 	if (ioctl(ufd, UFFDIO_COPY, uffdio_copy)) {
+ 		/* real retval in ufdio_copy.copy */
+ 		if (uffdio_copy->copy != -EEXIST) {
+-			fprintf(stderr, "UFFDIO_COPY retry error %Ld\n",
+-				uffdio_copy->copy);
+-			exit(1);
++			uffd_error("UFFDIO_COPY retry error",
++				   uffdio_copy->copy);
+ 		}
+-	} else {
+-		fprintf(stderr,	"UFFDIO_COPY retry unexpected %Ld\n",
+-			uffdio_copy->copy); exit(1);
+-	}
++	} else
++		uffd_error("UFFDIO_COPY retry unexpected", uffdio_copy->copy);
+ }
+ 
+ static int __copy_page(int ufd, unsigned long offset, bool retry)
+@@ -502,15 +508,11 @@ static int __copy_page(int ufd, unsigned
+ 	uffdio_copy.copy = 0;
+ 	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
+ 		/* real retval in ufdio_copy.copy */
+-		if (uffdio_copy.copy != -EEXIST) {
+-			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
+-				uffdio_copy.copy);
+-			exit(1);
+-		}
+-	} else if (uffdio_copy.copy != page_size) {
+-		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
+-			uffdio_copy.copy); exit(1);
+-	} else {
++		if (uffdio_copy.copy != -EEXIST)
++			uffd_error("UFFDIO_COPY error", uffdio_copy.copy);
++	} else if (uffdio_copy.copy != page_size)
++		uffd_error("UFFDIO_COPY unexpected copy", uffdio_copy.copy);
++	else {
+ 		if (test_uffdio_copy_eexist && retry) {
+ 			test_uffdio_copy_eexist = false;
+ 			retry_copy_page(ufd, &uffdio_copy, offset);
+@@ -788,7 +790,8 @@ static int userfaultfd_open(int features
+ 		return 1;
+ 	}
+ 	if (uffdio_api.api != UFFD_API) {
+-		fprintf(stderr, "UFFDIO_API error %Lu\n", uffdio_api.api);
++		fprintf(stderr, "UFFDIO_API error: %" PRIu64 "\n",
++			(uint64_t)uffdio_api.api);
+ 		return 1;
+ 	}
+ 
+@@ -950,13 +953,12 @@ static void retry_uffdio_zeropage(int uf
+ 				     offset);
+ 	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
+ 		if (uffdio_zeropage->zeropage != -EEXIST) {
+-			fprintf(stderr, "UFFDIO_ZEROPAGE retry error %Ld\n",
+-				uffdio_zeropage->zeropage);
+-			exit(1);
++			uffd_error("UFFDIO_ZEROPAGE retry error",
++				   uffdio_zeropage->zeropage);
+ 		}
+ 	} else {
+-		fprintf(stderr, "UFFDIO_ZEROPAGE retry unexpected %Ld\n",
+-			uffdio_zeropage->zeropage); exit(1);
++		uffd_error("UFFDIO_ZEROPAGE retry unexpected",
++			   uffdio_zeropage->zeropage);
+ 	}
+ }
+ 
+@@ -979,26 +981,20 @@ static int __uffdio_zeropage(int ufd, un
+ 	if (ret) {
+ 		/* real retval in ufdio_zeropage.zeropage */
+ 		if (has_zeropage) {
+-			if (uffdio_zeropage.zeropage == -EEXIST) {
+-				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n");
+-				exit(1);
+-			} else {
+-				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
+-					uffdio_zeropage.zeropage);
+-				exit(1);
+-			}
++			uffd_error(uffdio_zeropage.zeropage == -EEXIST ?
++						 "UFFDIO_ZEROPAGE -EEXIST" :
++						 "UFFDIO_ZEROPAGE error",
++				   uffdio_zeropage.zeropage);
+ 		} else {
+ 			if (uffdio_zeropage.zeropage != -EINVAL) {
+-				fprintf(stderr,
+-					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
+-					uffdio_zeropage.zeropage);
+-				exit(1);
++				uffd_error("UFFDIO_ZEROPAGE not -EINVAL",
++					   uffdio_zeropage.zeropage);
+ 			}
+ 		}
+ 	} else if (has_zeropage) {
+ 		if (uffdio_zeropage.zeropage != page_size) {
+-			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
+-				uffdio_zeropage.zeropage); exit(1);
++			uffd_error("UFFDIO_ZEROPAGE unexpected",
++				   uffdio_zeropage.zeropage);
+ 		} else {
+ 			if (test_uffdio_zeropage_eexist && retry) {
+ 				test_uffdio_zeropage_eexist = false;
+@@ -1008,9 +1004,8 @@ static int __uffdio_zeropage(int ufd, un
+ 			return 1;
+ 		}
+ 	} else {
+-		fprintf(stderr,
+-			"UFFDIO_ZEROPAGE succeeded %Ld\n",
+-			uffdio_zeropage.zeropage); exit(1);
++		uffd_error("UFFDIO_ZEROPAGE succeeded",
++			   uffdio_zeropage.zeropage);
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mmap_lock-add-tracepoints-around-lock-acquisition.patch
+mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch
+userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
 
