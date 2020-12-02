@@ -7,31 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09924C6369E
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 23:36:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 264D9C6369E
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 23:45:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A069221EB
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 23:36:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF492221EB
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Dec 2020 23:45:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726253AbgLBXgE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Dec 2020 18:36:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44160 "EHLO mail.kernel.org"
+        id S1726915AbgLBXpi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Dec 2020 18:45:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726108AbgLBXgE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Dec 2020 18:36:04 -0500
-Date:   Wed, 02 Dec 2020 15:35:22 -0800
+        id S1726108AbgLBXpi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Dec 2020 18:45:38 -0500
+Date:   Wed, 02 Dec 2020 15:44:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606952123;
-        bh=ju5bW9verE3DXpH77ua6JYtKV/sbe3upcLjWmXNbEfY=;
+        s=korg; t=1606952691;
+        bh=AhNK84sXXpi2EOJXD2PoDmauHvqTa6A33rxQkr1O5is=;
         h=From:To:Subject:From;
-        b=OH36eEkiOa7ideGaA0Xrc0iuB664RJS6vnEbF/lvE4LlcKhj8HHYJpmUySVAbS6y2
-         J7Rc0uwCn4fxb/muYaW8dCx7yOtUxE4v2uU8U6gQb0d9ZTfXC1SMytDKOdHqirTb8J
-         8G5u6hRp2EnavFpKjoBXFXp7Di/DIrR3Eio9MCME=
+        b=GtCY0E8q7cmiK7P5xn5sFhu1BeZySA3FkNepzT/2hmSU5lFP8UyPDXacVB3BwNZtq
+         cNOwJvmsOhgg+RoVl4OSSRmPked+ycBMhCIIbbjc2Swvj6EAsoS2ia36bEF2BE4tOo
+         pjCqZSA4a9bjsyZRFDCk5z0x/RWh+XuvH5t26JBY=
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, hughd@google.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
-Subject:  + tmpfs-fix-documentation-nits.patch added to -mm tree
-Message-ID: <20201202233522.5a1lMYdfS%akpm@linux-foundation.org>
+To:     dwaipayanray1@gmail.com, joe@perches.com,
+        mm-commits@vger.kernel.org, yepeilin.cs@gmail.com
+Subject:  +
+ checkpatch-fix-typo_spelling-check-for-words-with-apostrophe.patch added to
+ -mm tree
+Message-ID: <20201202234450.KzsSAsjqe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix Documentation nits
+     Subject: checkpatch: fix TYPO_SPELLING check for words with apostrophe
 has been added to the -mm tree.  Its filename is
-     tmpfs-fix-documentation-nits.patch
+     checkpatch-fix-typo_spelling-check-for-words-with-apostrophe.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tmpfs-fix-documentation-nits.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-typo_spelling-check-for-words-with-apostrophe.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-fix-documentation-nits.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-typo_spelling-check-for-words-with-apostrophe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,65 +63,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: tmpfs: fix Documentation nits
+From: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Subject: checkpatch: fix TYPO_SPELLING check for words with apostrophe
 
-Fix a typo, punctuation, use uppercase for CPUs, and limit
-tmpfs to keeping only its files in virtual memory (phrasing).
+checkpatch reports a false TYPO_SPELLING warning for some words containing
+an apostrophe when run with --codespell option.
 
-Link: https://lkml.kernel.org/r/20201202010934.18566-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Chris Down <chris@chrisdown.name>
+A false positive is "doesn't".  Occurrence of the word causes checkpatch
+to emit the following warning:
+
+"WARNING: 'doesn'' may be misspelled - perhaps 'doesn't'?"
+
+Modify the regex pattern to be more in line with the codespell default
+word matching regex.  This fixes the word capture and avoids the false
+warning.
+
+In addition, highlight the misspelled word location by adding a caret
+below the word.
+
+Link: https://lkml.kernel.org/r/20201201190729.169733-1-dwaipayanray1@gmail.com
+Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Reported-by: Peilin Ye <yepeilin.cs@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.rst |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/Documentation/filesystems/tmpfs.rst~tmpfs-fix-documentation-nits
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -4,7 +4,7 @@
- Tmpfs
- =====
- 
--Tmpfs is a file system which keeps all files in virtual memory.
-+Tmpfs is a file system which keeps all of its files in virtual memory.
- 
- 
- Everything in tmpfs is temporary in the sense that no files will be
-@@ -35,7 +35,7 @@ tmpfs has the following uses:
-    memory.
- 
-    This mount does not depend on CONFIG_TMPFS. If CONFIG_TMPFS is not
--   set, the user visible part of tmpfs is not build. But the internal
-+   set, the user visible part of tmpfs is not built. But the internal
-    mechanisms are always present.
- 
- 2) glibc 2.2 and above expects tmpfs to be mounted at /dev/shm for
-@@ -50,7 +50,7 @@ tmpfs has the following uses:
-    This mount is _not_ needed for SYSV shared memory. The internal
-    mount is used for that. (In the 2.3 kernel versions it was
-    necessary to mount the predecessor of tmpfs (shm fs) to use SYSV
--   shared memory)
-+   shared memory.)
- 
- 3) Some people (including me) find it very convenient to mount it
-    e.g. on /tmp and /var/tmp and have a big swap partition. And now
-@@ -83,7 +83,7 @@ If nr_blocks=0 (or size=0), blocks will
- if nr_inodes=0, inodes will not be limited.  It is generally unwise to
- mount with such options, since it allows any user with write access to
- use up all the memory on the machine; but enhances the scalability of
--that instance in a system with many cpus making intensive use of it.
-+that instance in a system with many CPUs making intensive use of it.
- 
- 
- tmpfs has a mount option to set the NUMA memory allocation policy for
+--- a/scripts/checkpatch.pl~checkpatch-fix-typo_spelling-check-for-words-with-apostrophe
++++ a/scripts/checkpatch.pl
+@@ -3182,15 +3182,18 @@ sub process {
+ # Check for various typo / spelling mistakes
+ 		if (defined($misspellings) &&
+ 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
+-			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:\b|$|[^a-z@])/gi) {
++			while ($rawline =~ /(?:^|[^\w\-'`])($misspellings)(?:[^\w\-'`]|$)/gi) {
+ 				my $typo = $1;
++				my $blank = copy_spacing($rawline);
++				my $ptr = substr($blank, 0, $-[1]) . "^";
++				my $hereptr = "$hereline$ptr\n";
+ 				my $typo_fix = $spelling_fix{lc($typo)};
+ 				$typo_fix = ucfirst($typo_fix) if ($typo =~ /^[A-Z]/);
+ 				$typo_fix = uc($typo_fix) if ($typo =~ /^[A-Z]+$/);
+ 				my $msg_level = \&WARN;
+ 				$msg_level = \&CHK if ($file);
+ 				if (&{$msg_level}("TYPO_SPELLING",
+-						  "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $herecurr) &&
++						  "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $hereptr) &&
+ 				    $fix) {
+ 					$fixed[$fixlinenr] =~ s/(^|[^A-Za-z@])($typo)($|[^A-Za-z@])/$1$typo_fix$3/;
+ 				}
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from dwaipayanray1@gmail.com are
 
-zlib-export-s390-symbols-for-zlib-modules.patch
-tmpfs-fix-documentation-nits.patch
-procfs-delete-duplicated-words-other-fixes.patch
+checkpatch-add-new-exception-to-repeated-word-check.patch
+checkpatch-extend-attributes-check-to-handle-more-patterns.patch
+checkpatch-improve-email-parsing.patch
+checkpatch-fix-spelling-errors-and-remove-repeated-word.patch
+checkpatch-fix-unescaped-left-brace.patch
+checkpatch-add-warning-for-unnecessary-use-of-%h-and-%hh.patch
+checkpatch-add-warning-for-lines-starting-with-a-in-commit-log.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe.patch
 
