@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C1FC4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:55:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 752FBC4361A
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E917D22224
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:55:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 284FD224B1
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727877AbgLCXy7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 18:54:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50162 "EHLO mail.kernel.org"
+        id S1728173AbgLCX74 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 18:59:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727303AbgLCXy7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 18:54:59 -0500
-Date:   Thu, 03 Dec 2020 15:54:17 -0800
+        id S1726525AbgLCX7z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 18:59:55 -0500
+Date:   Thu, 03 Dec 2020 15:59:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607039658;
-        bh=eTXRluKWMe2jtL+jaK6tgq4hA0WvjWvhccIoLuUOkec=;
+        s=korg; t=1607039951;
+        bh=bOTlSyaivugRV09k8WR60fCqa6eDgtumagsijqnPaJs=;
         h=From:To:Subject:From;
-        b=kj6BDXf+I8beMkKNmLh5O3C/AcN5vo0YPoqMnUYpr2XGSlATX1YAKqv7QXv6HpgkO
-         IKK34fs77HE2n4dtbgd+0VabEj9YWtM2ZAWuLkhhjANyku8LEFQ4o3wEV8Qcab/4QT
-         LiaSpF3QAvDou0BKg6b8aHMoW1crIXJZtAstoq5s=
+        b=HIou+cQ2F6sVjSx+X5rK4uegDuaowQrLJjkzLJDdgQNEbdrKIYDgb3fGJoVubZ2D3
+         Ae8xnsazEjj3TPSMq89LGgn9pRsqErM0KzPNxQ6uoY7wcsSSTKMUbT2ynfl8l2LYl0
+         9pDc+tFxU75d4f4ZbBsGFChi3DbXqv23ds8kG7fc=
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        vdavydov.dev@gmail.com
-Subject:  +
- mm-memcontrol-make-the-slab-calculation-consistent.patch added to -mm tree
-Message-ID: <20201203235417.08svO92cT%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com, corbet@lwn.net,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        jiangshanlai@gmail.com, matthias.bgg@gmail.com,
+        mm-commits@vger.kernel.org, tj@kernel.org,
+        walter-zh.wu@mediatek.com
+Subject:  + kasan-print-workqueue-stack.patch added to -mm tree
+Message-ID: <20201203235909.rFWJMHzzT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: make the slab calculation consistent
+     Subject: kasan: print workqueue stack
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-make-the-slab-calculation-consistent.patch
+     kasan-print-workqueue-stack.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-the-slab-calculation-consistent.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-print-workqueue-stack.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-the-slab-calculation-consistent.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-print-workqueue-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,80 +64,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/memcontrol: make the slab calculation consistent
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: print workqueue stack
 
-Although the ratio of the slab is one, we also should read the ratio from
-the related memory_stats instead of hard-coding.  And the local variable
-of size is already the value of slab_unreclaimable.  So we do not need to
-read again.  Simplify the code here.
+The aux_stack[2] is reused to record the call_rcu() call stack and
+enqueuing work call stacks.  So that we need to change the auxiliary stack
+title for common title, print them in KASAN report.
 
-Link: https://lkml.kernel.org/r/20201203031111.3187-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20201203022715.30635-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Marco Elver <elver@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ mm/kasan/generic.c |    3 ---
+ mm/kasan/report.c  |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-make-the-slab-calculation-consistent
-+++ a/mm/memcontrol.c
-@@ -1612,12 +1612,22 @@ static int __init memory_stats_init(void
- 	int i;
+--- a/mm/kasan/generic.c~kasan-print-workqueue-stack
++++ a/mm/kasan/generic.c
+@@ -339,9 +339,6 @@ void kasan_record_aux_stack(void *addr)
+ 	object = nearest_obj(cache, page, addr);
+ 	alloc_info = get_alloc_info(cache, object);
  
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
-+		switch (memory_stats[i].idx) {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memory_stats[i].idx == NR_ANON_THPS ||
--		    memory_stats[i].idx == NR_FILE_THPS ||
--		    memory_stats[i].idx == NR_SHMEM_THPS)
-+		case NR_ANON_THPS:
-+		case NR_FILE_THPS:
-+		case NR_SHMEM_THPS:
- 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
-+			break;
- #endif
-+		case NR_SLAB_UNRECLAIMABLE_B:
-+			VM_BUG_ON(i < 1);
-+			VM_BUG_ON(memory_stats[i - 1].idx != NR_SLAB_RECLAIMABLE_B);
-+			break;
-+		default:
-+			break;
-+		}
-+
- 		VM_BUG_ON(!memory_stats[i].ratio);
- 		VM_BUG_ON(memory_stats[i].idx >= MEMCG_NR_STAT);
- 	}
-@@ -1653,9 +1663,15 @@ static char *memory_stat_format(struct m
- 		size *= memory_stats[i].ratio;
- 		seq_buf_printf(&s, "%s %llu\n", memory_stats[i].name, size);
+-	/*
+-	 * record the last two call_rcu() call stacks.
+-	 */
+ 	alloc_info->aux_stack[1] = alloc_info->aux_stack[0];
+ 	alloc_info->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
+ }
+--- a/mm/kasan/report.c~kasan-print-workqueue-stack
++++ a/mm/kasan/report.c
+@@ -185,12 +185,12 @@ static void describe_object(struct kmem_
  
-+		/*
-+		 * We are printing reclaimable, unreclaimable of the slab
-+		 * and the sum of both.
-+		 */
- 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
--			size = memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
--			       memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B);
-+			int idx = i - 1;
-+
-+			size += memcg_page_state(memcg, memory_stats[idx].idx) *
-+				memory_stats[idx].ratio;
- 			seq_buf_printf(&s, "slab %llu\n", size);
+ #ifdef CONFIG_KASAN_GENERIC
+ 		if (alloc_info->aux_stack[0]) {
+-			pr_err("Last call_rcu():\n");
++			pr_err("Last potentially related work creation:\n");
+ 			print_stack(alloc_info->aux_stack[0]);
+ 			pr_err("\n");
  		}
- 	}
+ 		if (alloc_info->aux_stack[1]) {
+-			pr_err("Second to last call_rcu():\n");
++			pr_err("Second to last potentially related work creation:\n");
+ 			print_stack(alloc_info->aux_stack[1]);
+ 			pr_err("\n");
+ 		}
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
-mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
-mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
-mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
-mm-page_isolation-do-not-isolate-the-max-order-page.patch
+workqueue-kasan-record-workqueue-stack.patch
+kasan-print-workqueue-stack.patch
+lib-test_kasanc-add-workqueue-test-case.patch
+kasan-update-documentation-for-generic-kasan.patch
 
