@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 752FBC4361A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C601C433FE
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 284FD224B1
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01A27222B6
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728173AbgLCX74 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 18:59:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51960 "EHLO mail.kernel.org"
+        id S1728012AbgLCX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 18:59:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
         id S1726525AbgLCX7z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 3 Dec 2020 18:59:55 -0500
-Date:   Thu, 03 Dec 2020 15:59:09 -0800
+Date:   Thu, 03 Dec 2020 15:59:06 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607039951;
-        bh=bOTlSyaivugRV09k8WR60fCqa6eDgtumagsijqnPaJs=;
+        s=korg; t=1607039948;
+        bh=B2qnvfUrwVCypUd/7MGnp/FtG1ZCZd3WG0HqerS2BsU=;
         h=From:To:Subject:From;
-        b=HIou+cQ2F6sVjSx+X5rK4uegDuaowQrLJjkzLJDdgQNEbdrKIYDgb3fGJoVubZ2D3
-         Ae8xnsazEjj3TPSMq89LGgn9pRsqErM0KzPNxQ6uoY7wcsSSTKMUbT2ynfl8l2LYl0
-         9pDc+tFxU75d4f4ZbBsGFChi3DbXqv23ds8kG7fc=
+        b=vM4CMe2xA6ButRDDFRFFi3RJph0e68mZw0aSmVyOxduTCwZXn2XPI6NRE1oN21TGk
+         CsU3jNpUoH5NqouQIwIcO9jtHgxd/in0tBVHknJ9S+7tgQgoO77qzZk6j2Uind1OlW
+         teACtR61LORqs4SxlKp/4UPYRQmX69eQyX01r0xY=
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, corbet@lwn.net,
         dvyukov@google.com, elver@google.com, glider@google.com,
         jiangshanlai@gmail.com, matthias.bgg@gmail.com,
         mm-commits@vger.kernel.org, tj@kernel.org,
         walter-zh.wu@mediatek.com
-Subject:  + kasan-print-workqueue-stack.patch added to -mm tree
-Message-ID: <20201203235909.rFWJMHzzT%akpm@linux-foundation.org>
+Subject:  + workqueue-kasan-record-workqueue-stack.patch added to
+ -mm tree
+Message-ID: <20201203235906.QZHXHVKCI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: print workqueue stack
+     Subject: workqueue: kasan: record workqueue stack
 has been added to the -mm tree.  Its filename is
-     kasan-print-workqueue-stack.patch
+     workqueue-kasan-record-workqueue-stack.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-print-workqueue-stack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/workqueue-kasan-record-workqueue-stack.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-print-workqueue-stack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/workqueue-kasan-record-workqueue-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,60 +66,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: kasan: print workqueue stack
+Subject: workqueue: kasan: record workqueue stack
 
-The aux_stack[2] is reused to record the call_rcu() call stack and
-enqueuing work call stacks.  So that we need to change the auxiliary stack
-title for common title, print them in KASAN report.
+Patch series "kasan: add workqueue stack for generic KASAN", v5.
 
-Link: https://lkml.kernel.org/r/20201203022715.30635-1-walter-zh.wu@mediatek.com
+Syzbot reports many UAF issues for workqueue, see [1].
+In some of these access/allocation happened in process_one_work(),
+we see the free stack is useless in KASAN report, it doesn't help
+programmers to solve UAF for workqueue issue.
+
+This patchset improves KASAN reports by making them to have workqueue
+queueing stack. It is useful for programmers to solve use-after-free
+or double-free memory issue.
+
+Generic KASAN also records the last two workqueue stacks and prints
+them in KASAN report. It is only suitable for generic KASAN.
+
+[1]https://groups.google.com/g/syzkaller-bugs/search?q=%22use-after-free%22+process_one_work
+[2]https://bugzilla.kernel.org/show_bug.cgi?id=198437
+
+
+This patch (of 4):
+
+When analyzing use-after-free or double-free issue, recording the
+enqueuing work stacks is helpful to preserve usage history which
+potentially gives a hint about the affected code.
+
+For workqueue it has turned out to be useful to record the enqueuing work
+call stacks.  Because user can see KASAN report to determine whether it is
+root cause.  They don't need to enable debugobjects, but they have a
+chance to find out the root cause.
+
+Link: https://lkml.kernel.org/r/20201203022148.29754-1-walter-zh.wu@mediatek.com
+Link: https://lkml.kernel.org/r/20201203022442.30006-1-walter-zh.wu@mediatek.com
 Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
 Suggested-by: Marco Elver <elver@google.com>
 Acked-by: Marco Elver <elver@google.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |    3 ---
- mm/kasan/report.c  |    4 ++--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ kernel/workqueue.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/kasan/generic.c~kasan-print-workqueue-stack
-+++ a/mm/kasan/generic.c
-@@ -339,9 +339,6 @@ void kasan_record_aux_stack(void *addr)
- 	object = nearest_obj(cache, page, addr);
- 	alloc_info = get_alloc_info(cache, object);
+--- a/kernel/workqueue.c~workqueue-kasan-record-workqueue-stack
++++ a/kernel/workqueue.c
+@@ -1327,6 +1327,9 @@ static void insert_work(struct pool_work
+ {
+ 	struct worker_pool *pool = pwq->pool;
  
--	/*
--	 * record the last two call_rcu() call stacks.
--	 */
- 	alloc_info->aux_stack[1] = alloc_info->aux_stack[0];
- 	alloc_info->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
- }
---- a/mm/kasan/report.c~kasan-print-workqueue-stack
-+++ a/mm/kasan/report.c
-@@ -185,12 +185,12 @@ static void describe_object(struct kmem_
- 
- #ifdef CONFIG_KASAN_GENERIC
- 		if (alloc_info->aux_stack[0]) {
--			pr_err("Last call_rcu():\n");
-+			pr_err("Last potentially related work creation:\n");
- 			print_stack(alloc_info->aux_stack[0]);
- 			pr_err("\n");
- 		}
- 		if (alloc_info->aux_stack[1]) {
--			pr_err("Second to last call_rcu():\n");
-+			pr_err("Second to last potentially related work creation:\n");
- 			print_stack(alloc_info->aux_stack[1]);
- 			pr_err("\n");
- 		}
++	/* record the work call stack in order to print it in KASAN reports */
++	kasan_record_aux_stack(work);
++
+ 	/* we own @work, set data and link */
+ 	set_work_pwq(work, pwq, extra_flags);
+ 	list_add_tail(&work->entry, head);
 _
 
 Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
