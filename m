@@ -2,31 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF725C4361A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFBAFC433FE
 	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:43:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6326F223C8
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:43:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83FF822482
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:43:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726179AbgLCXn0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 18:43:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45870 "EHLO mail.kernel.org"
+        id S1726451AbgLCXn2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 18:43:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726063AbgLCXn0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 18:43:26 -0500
-Date:   Thu, 03 Dec 2020 15:42:43 -0800
+        id S1726063AbgLCXn2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 18:43:28 -0500
+Date:   Thu, 03 Dec 2020 15:42:37 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607038966;
-        bh=b5svqqWuyzEFPcF+7wLdsG42npSmeSsH+gaK+TfVGTE=;
+        s=korg; t=1607038961;
+        bh=6DsN8o45EHav5GBGd+HqvXEZT4oHPFQh4alH9ek6C50=;
         h=From:To:Subject:From;
-        b=BKwTKM+jiTmK+RDYHdFLCq8iB9rXHBy2OLEE2cdyrYR54HcGH0FEgHsTbLz2QCtHU
-         tR8mMQqp9UbJcFOFVmTujfxv3uDY1HckUbwV8dKkUIecGVGmQz4y1tADnBWeNuQEzP
-         QcElTLjnv8Ayah5DZSH51T2SWhJVLQIykERbyMZE=
+        b=MPQnJ7F9awO9xaj27W2FWmo4olB+XfietK7MgSTx1Z/51M81DnIqk8p6+Q0qFup/k
+         rZHhWoTey0uGf4st+c9uGmLTpriBmA/7tH7RCfUgzyeLv1bgSJ4TCZp7O+gqOzPXJv
+         43n6GR0lqJ6/4EGvkuPTuvMrl7p5K2fAEqSlKn+8=
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -40,9 +40,9 @@ To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
         tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
         will@kernel.org, willy@infradead.org
-Subject:  + mmap-make-mlock_future_check-global.patch added to -mm
+Subject:  + mm-add-definition-of-pmd_page_order.patch added to -mm
  tree
-Message-ID: <20201203234243.2OKqdlLgf%akpm@linux-foundation.org>
+Message-ID: <20201203234237.WSlpAiXv3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: make mlock_future_check() global
+     Subject: mm: add definition of PMD_PAGE_ORDER
 has been added to the -mm tree.  Its filename is
-     mmap-make-mlock_future_check-global.patch
+     mm-add-definition-of-pmd_page_order.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmap-make-mlock_future_check-global.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-definition-of-pmd_page_order.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmap-make-mlock_future_check-global.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-definition-of-pmd_page_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,12 +73,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mmap: make mlock_future_check() global
+Subject: mm: add definition of PMD_PAGE_ORDER
 
-It will be used by the upcoming secret memory implementation.
+Patch series "mm: introduce memfd_secret system call to create "secret" memory areas", v14.
 
-Link: https://lkml.kernel.org/r/20201203062949.5484-3-rppt@kernel.org
+This is an implementation of "secret" mappings backed by a file descriptor.
+
+The file descriptor backing secret memory mappings is created using a
+dedicated memfd_secret system call The desired protection mode for the
+memory is configured using flags parameter of the system call.  The mmap()
+of the file descriptor created with memfd_secret() will create a "secret"
+memory mapping.  The pages in that mapping will be marked as not present
+in the direct map and will be present only in the page table of the owning
+mm.
+
+Although normally Linux userspace mappings are protected from other users,
+such secret mappings are useful for environments where a hostile tenant is
+trying to trick the kernel into giving them access to other tenants
+mappings.
+
+Additionally, in the future the secret mappings may be used as a mean to
+protect guest memory in a virtual machine host.
+
+For demonstration of secret memory usage we've created a userspace library
+
+https://git.kernel.org/pub/scm/linux/kernel/git/jejb/secret-memory-preloader.git
+
+that does two things: the first is act as a preloader for openssl to
+redirect all the OPENSSL_malloc calls to secret memory meaning any secret
+keys get automatically protected this way and the other thing it does is
+expose the API to the user who needs it.  We anticipate that a lot of the
+use cases would be like the openssl one: many toolkits that deal with
+secret keys already have special handling for the memory to try to give
+them greater protection, so this would simply be pluggable into the
+toolkits without any need for user application modification.
+
+Hiding secret memory mappings behind an anonymous file allows (ab)use of
+the page cache for tracking pages allocated for the "secret" mappings as
+well as using address_space_operations for e.g.  page migration callbacks.
+
+The anonymous file may be also used implicitly, like hugetlb files, to
+implement mmap(MAP_SECRET) and use the secret memory areas with "native"
+mm ABIs in the future.
+
+To limit fragmentation of the direct map to splitting only PUD-size pages,
+I've added an amortizing cache of PMD-size pages to each file descriptor
+that is used as an allocation pool for the secret memory areas.
+
+As the memory allocated by secretmem becomes unmovable, we use CMA to back
+large page caches so that page allocator won't be surprised by failing
+attempt to migrate these pages.
+
+
+This patch (of 10):
+
+The definition of PMD_PAGE_ORDER denoting the number of base pages in the
+second-level leaf page is already used by DAX and maybe handy in other
+cases as well.
+
+Several architectures already have definition of PMD_ORDER as the size of
+second level page table, so to avoid conflict with these definitions use
+PMD_PAGE_ORDER name and update DAX respectively.
+
+Link: https://lkml.kernel.org/r/20201203062949.5484-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201203062949.5484-2-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -87,18 +147,15 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christopher Lameter <cl@linux.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Elena Reshetova <elena.reshetova@intel.com>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: James Bottomley <jejb@linux.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
@@ -108,39 +165,75 @@ Cc: Shuah Khan <shuah@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tycho Andersen <tycho@tycho.ws>
 Cc: Will Deacon <will@kernel.org>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 +++
- mm/mmap.c     |    5 ++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ fs/dax.c                |   11 ++++-------
+ include/linux/pgtable.h |    3 +++
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/internal.h~mmap-make-mlock_future_check-global
-+++ a/mm/internal.h
-@@ -353,6 +353,9 @@ static inline void munlock_vma_pages_all
- extern void mlock_vma_page(struct page *page);
- extern unsigned int munlock_vma_page(struct page *page);
+--- a/fs/dax.c~mm-add-definition-of-pmd_page_order
++++ a/fs/dax.c
+@@ -49,9 +49,6 @@ static inline unsigned int pe_order(enum
+ #define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+ #define PG_PMD_NR	(PMD_SIZE >> PAGE_SHIFT)
  
-+extern int mlock_future_check(struct mm_struct *mm, unsigned long flags,
-+			      unsigned long len);
-+
- /*
-  * Clear the page's PageMlocked().  This can be useful in a situation where
-  * we want to unconditionally remove a page from the pagecache -- e.g.,
---- a/mm/mmap.c~mmap-make-mlock_future_check-global
-+++ a/mm/mmap.c
-@@ -1348,9 +1348,8 @@ static inline unsigned long round_hint_t
- 	return hint;
+-/* The order of a PMD entry */
+-#define PMD_ORDER	(PMD_SHIFT - PAGE_SHIFT)
+-
+ static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
+ 
+ static int __init init_dax_wait_table(void)
+@@ -98,7 +95,7 @@ static bool dax_is_locked(void *entry)
+ static unsigned int dax_entry_order(void *entry)
+ {
+ 	if (xa_to_value(entry) & DAX_PMD)
+-		return PMD_ORDER;
++		return PMD_PAGE_ORDER;
+ 	return 0;
  }
  
--static inline int mlock_future_check(struct mm_struct *mm,
--				     unsigned long flags,
--				     unsigned long len)
-+int mlock_future_check(struct mm_struct *mm, unsigned long flags,
-+		       unsigned long len)
+@@ -1470,7 +1467,7 @@ static vm_fault_t dax_iomap_pmd_fault(st
  {
- 	unsigned long locked, lock_limit;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+-	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, PMD_ORDER);
++	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, PMD_PAGE_ORDER);
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	bool sync;
+@@ -1529,7 +1526,7 @@ static vm_fault_t dax_iomap_pmd_fault(st
+ 	 * entry is already in the array, for instance), it will return
+ 	 * VM_FAULT_FALLBACK.
+ 	 */
+-	entry = grab_mapping_entry(&xas, mapping, PMD_ORDER);
++	entry = grab_mapping_entry(&xas, mapping, PMD_PAGE_ORDER);
+ 	if (xa_is_internal(entry)) {
+ 		result = xa_to_internal(entry);
+ 		goto fallback;
+@@ -1695,7 +1692,7 @@ dax_insert_pfn_mkwrite(struct vm_fault *
+ 	if (order == 0)
+ 		ret = vmf_insert_mixed_mkwrite(vmf->vma, vmf->address, pfn);
+ #ifdef CONFIG_FS_DAX_PMD
+-	else if (order == PMD_ORDER)
++	else if (order == PMD_PAGE_ORDER)
+ 		ret = vmf_insert_pfn_pmd(vmf, pfn, FAULT_FLAG_WRITE);
+ #endif
+ 	else
+--- a/include/linux/pgtable.h~mm-add-definition-of-pmd_page_order
++++ a/include/linux/pgtable.h
+@@ -28,6 +28,9 @@
+ #define USER_PGTABLES_CEILING	0UL
+ #endif
  
++/* Number of base pages in a second level leaf page */
++#define PMD_PAGE_ORDER	(PMD_SHIFT - PAGE_SHIFT)
++
+ /*
+  * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
+  *
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
