@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B9EAC4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:32:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D701C4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:33:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D138221EA
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:32:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 329A6221F2
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:33:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727347AbgLCUcQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 15:32:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45664 "EHLO mail.kernel.org"
+        id S1728324AbgLCUdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 15:33:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46192 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727154AbgLCUcQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 15:32:16 -0500
-Date:   Thu, 03 Dec 2020 12:31:33 -0800
+        id S1726915AbgLCUdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 15:33:46 -0500
+Date:   Thu, 03 Dec 2020 12:33:04 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607027495;
-        bh=1Jk3yeEnV+DAaRp4m+THNSKNWqeCl7fNt31c/tY9gKs=;
+        s=korg; t=1607027586;
+        bh=VhLNH66xuZu7tvdjMFERbHL8lQmH0oB9Ej64+P8CRuU=;
         h=From:To:Subject:From;
-        b=rcWKMSBk0uR6PL665t5T/WmaiHEl7VbbMjOaxBijI22ssVf95SlXjVC/CsGGV1AeS
-         jKpg3NXFc9zsmKltFTlLMbEaZM7CE5ykEfIl0aiwx2DXqz6w135L9w8XsBU1AA8ugD
-         OOJAdrjqrVs4zAPR4acRlgo7vb+kro2mEsKLwx+s=
+        b=C+Fp4DvBFSAZq/BonIVWMQLiN9hPCXhaL3Ve6otvpYeulvWihAAGz67RyLJrviWzA
+         OGguhinzEs1rNBzlcmUVqhNYkfx7yip/EKnFIK3WvI1XvGDrSFSRZZiEYtXQyoxCKc
+         32HSxx1GZ2GJpa79tW5t4Jg5IGCpfdg70A3+RSTE=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, broonie@kernel.org,
-        dan.j.williams@intel.com, glider@google.com, mhiramat@kernel.org,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        vinmenon@codeaurora.org, vjitta@codeaurora.org,
-        ylal@codeaurora.org, zhenhuah@codeaurora.org
-Subject:  [folded-merged]
- lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch removed
- from -mm tree
-Message-ID: <20201203203133.l9QNrl7Iq%akpm@linux-foundation.org>
+To:     broonie@kernel.org, dan.j.williams@intel.com, glider@google.com,
+        mhiramat@kernel.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, vinmenon@codeaurora.org,
+        vjitta@codeaurora.org, ylal@codeaurora.org, zhenhuah@codeaurora.org
+Subject:  [failures]
+ lib-stackdepot-add-support-to-configure-stack_hash_size.patch removed from
+ -mm tree
+Message-ID: <20201203203304.mg6ClYQU4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,69 +44,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-stackdepot-add-support-to-configure-stack_hash_size-fix
+     Subject: lib: stackdepot: add support to configure STACK_HASH_SIZE
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch
+     lib-stackdepot-add-support-to-configure-stack_hash_size.patch
 
-This patch was dropped because it was folded into lib-stackdepot-add-support-to-configure-stack_hash_size.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-stackdepot-add-support-to-configure-stack_hash_size-fix
+From: Yogesh Lal <ylal@codeaurora.org>
+Subject: lib: stackdepot: add support to configure STACK_HASH_SIZE
 
-fix warning
+Add a kernel parameter stack_hash_order to configure STACK_HASH_SIZE.
 
-lib/stackdepot.c:153:2: warning: ignoring return value of kstrtouint, declared with attribute warn_unused_result [-Wunused-result]
+Aim is to have configurable value for STACK_HASH_SIZE, so that one can
+configure it depending on usecase there by reducing the static memory
+overhead.
 
+One example is of Page Owner, default value of STACK_HASH_SIZE lead stack
+depot to consume 8MB of static memory.  Making it configurable and use
+lower value helps to enable features like CONFIG_PAGE_OWNER without any
+significant overhead.
+
+[akpm@linux-foundation.org: fix warning]
+Link: https://lkml.kernel.org/r/1606365835-3242-1-git-send-email-vjitta@codeaurora.org
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Yogesh Lal <ylal@codeaurora.org>
+Signed-off-by: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Yogesh Lal <ylal@codeaurora.org>
 Cc: Zhenhua Huang <zhenhuah@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/stackdepot.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-add-support-to-configure-stack_hash_size-fix
+--- a/lib/stackdepot.c~lib-stackdepot-add-support-to-configure-stack_hash_size
 +++ a/lib/stackdepot.c
-@@ -150,8 +150,7 @@ static struct stack_record **stack_table
- 
- static int __init setup_stack_hash_order(char *str)
- {
--	kstrtouint(str, 0, &stack_hash_order);
--	return 0;
-+	return kstrtouint(str, 0, &stack_hash_order);
+@@ -141,14 +141,30 @@ static struct stack_record *depot_alloc_
+ 	return stack;
  }
- early_param("stack_hash_order", setup_stack_hash_order);
  
+-#define STACK_HASH_ORDER 20
+-#define STACK_HASH_SIZE (1L << STACK_HASH_ORDER)
++static unsigned int stack_hash_order = 20;
++#define STACK_HASH_SIZE (1L << stack_hash_order)
+ #define STACK_HASH_MASK (STACK_HASH_SIZE - 1)
+ #define STACK_HASH_SEED 0x9747b28c
+ 
+-static struct stack_record *stack_table[STACK_HASH_SIZE] = {
+-	[0 ...	STACK_HASH_SIZE - 1] = NULL
+-};
++static struct stack_record **stack_table;
++
++static int __init setup_stack_hash_order(char *str)
++{
++	return kstrtouint(str, 0, &stack_hash_order);
++}
++early_param("stack_hash_order", setup_stack_hash_order);
++
++static int __init init_stackdepot(void)
++{
++	int i;
++
++	stack_table = kvmalloc(sizeof(struct stack_record *) * STACK_HASH_SIZE, GFP_KERNEL);
++	for (i = 0; i < STACK_HASH_SIZE; i++)
++		stack_table[i] = NULL;
++	return 0;
++}
++
++early_initcall(init_stackdepot);
+ 
+ /* Calculate hash for a stack */
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ylal@codeaurora.org are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
-mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-stackdepot-add-support-to-configure-stack_hash_size.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kmap-stupid-hacks-to-make-it-compile.patch
-init-kconfig-dont-assume-scripts-lld-versionsh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
