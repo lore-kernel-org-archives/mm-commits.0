@@ -2,110 +2,143 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44C25C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:35:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25759C4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:37:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E2A1B223C8
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:35:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B78EF223DB
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:37:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729313AbgLCWfe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 17:35:34 -0500
-Received: from ozlabs.org ([203.11.71.1]:35825 "EHLO ozlabs.org"
+        id S1727415AbgLCWhA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 17:37:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56882 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727415AbgLCWfe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 17:35:34 -0500
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Cn9d45gkYz9sVJ;
-        Fri,  4 Dec 2020 09:34:48 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1607034891;
-        bh=VrxoLFii3XtXFphKy9zwC0afo2U9H3/0MV4x2B1n/9c=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=N0ga7O3vq/pN8Q7oMT8hzsMk/UCM9Yptjv6HMq6cJb6b4CZunLiykXwdSwXU/YIFZ
-         7AddrX1PNqTqmInXAprdY40tczVszfLg8rHd1hwFDYJkEvNq0xSoGMm6J203v7eUQT
-         h2Ps2EiiwV5PghTAlEWe30GnQFXE3TMWcXcvD6XfcNCl/yzZBwGggtY/D/ZhQr7oCD
-         n5OfDJKPBKo/imMEg3UrVd+Bq+nQ/wPxk1gma1ucXcuuh7UWI29LdjG/GGPBmeDfuO
-         q6J/kdqsKrn5gyOLNaYmnlyWU4L8PiAdyMjx0mx+4PJs62zevigZ/ikXNV5a80d7EN
-         4iTss967j5aLA==
-Date:   Fri, 4 Dec 2020 09:34:47 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Hugh Dickins <hughd@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        m.szyprowski@samsung.com, qcai@redhat.com, dchinner@redhat.com,
-        hannes@cmpxchg.org, hch@lst.de, jack@suse.cz,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, william.kucharski@oracle.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com
-Subject: Re: +
- mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch added to
- -mm tree
-Message-ID: <20201204093447.2cf9d164@canb.auug.org.au>
-In-Reply-To: <alpine.LSU.2.11.2012031348120.12944@eggly.anvils>
-References: <20201126054713.GmEiU5MZ_%akpm@linux-foundation.org>
-        <alpine.LSU.2.11.2012031348120.12944@eggly.anvils>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/UibknY4IjlQ9I0lgzOL6.ag";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S1727050AbgLCWg7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 17:36:59 -0500
+Date:   Thu, 03 Dec 2020 14:36:17 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1607034978;
+        bh=oj0M9lxP/IkXeFDeOE9ImAvzkTFCj436yGpAocLn87Y=;
+        h=From:To:Subject:From;
+        b=GTwMUqyHbfiN/kYVXZNQpOX12qslOeHx1D8CKXweabqmbzUvLEOeBJ+HsdLl2Va5z
+         hmwubJl3LuGB1zDo4YxqYbhwDEPtlXm3RxkwPRxKHJAdQDl+W0Kds92+y9RbW+P2oo
+         f/UhyBECI+62LrJBdGNurnVykRLGK6CJolQTOIr8=
+From:   akpm@linux-foundation.org
+To:     david@redhat.com, hushiyuan@huawei.com, jgg@ziepe.ca,
+        linmiaohe@huawei.com, liuzixian4@huawei.com,
+        louhongxiang@huawei.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org
+Subject:  +
+ fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch added to -mm
+ tree
+Message-ID: <20201203223617.JyvaFW_Z5%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/UibknY4IjlQ9I0lgzOL6.ag
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Hugh,
+The patch titled
+     Subject: mm/mmap.c: fix mmap return value when vma is merged after call_mmap()
+has been added to the -mm tree.  Its filename is
+     fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
 
-On Thu, 3 Dec 2020 14:04:18 -0800 (PST) Hugh Dickins <hughd@google.com> wro=
-te:
->
-> On Wed, 25 Nov 2020, akpm@linux-foundation.org wrote:
-> >=20
-> > The patch titled
-> >      Subject: mm-truncateshmem-handle-truncates-that-split-thps-fix-fix
-> > has been added to the -mm tree.  Its filename is
-> >      mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch =20
->=20
-> This lot is proving to be a work in progress,
-> the current state breaks booting on 32-bit, livelocks trinity,
-> and breaks shmem in more ways than I can quickly explain.
-> Please revert (in reverse order):
->=20
-> mm-truncateshmem-handle-truncates-that-split-thps.patch
-> mm-truncateshmem-handle-truncates-that-split-thps-fix.patch
-> mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
-> mm-filemap-return-only-head-pages-from-find_get_entries.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
 
-I have removed all 4 patches from linux-next for today.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/UibknY4IjlQ9I0lgzOL6.ag
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Liu Zixian <liuzixian4@huawei.com>
+Subject: mm/mmap.c: fix mmap return value when vma is merged after call_mmap()
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/JaAcACgkQAVBC80lX
-0GwEQAgAgheUQdaeeJkyOAWwDDVh74tnjSTadn8z2CerfltVQxpU0EQDLNPlJU2R
-h5HijEmgz+ZOcujo1O2Toh/U7DJ47jBhuvmueRCDt/PQM7K+bXOPx6RtrL/M68KV
-lMQYVkFAnEXwEmNeINL8D2gBrI3gLg1DvcL4bbCUQjbcvyUUSnEaBWWicJtp3ig/
-2ecetXicKF41Q2YgrCZZoprC7sLck/pQcEfGmgyrqai6a8U1k6Zr5F76uvhFihnk
-azn5q37X1zFRsvkIpzihyucA+rDCPiN3JgZ1s4DxVUEPGn1DvJeHGRFSKv03T1na
-wCIVvi0zbM7jUNUU3bUrHOjPsCXakA==
-=Zfx1
------END PGP SIGNATURE-----
+On success, mmap should return the begin address of newly mapped area, but
+patch "mm: mmap: merge vma after call_mmap() if possible" set vm_start of
+newly merged vma to return value addr.  Users of mmap will get wrong
+address if vma is merged after call_mmap().  We fix this by moving the
+assignment to addr before merging vma.
 
---Sig_/UibknY4IjlQ9I0lgzOL6.ag--
+Link: https://lkml.kernel.org/r/20201203085350.22624-1-liuzixian4@huawei.com
+Fixes: d70cec898324 ("mm: mmap: merge vma after call_mmap() if possible")
+Signed-off-by: Liu Zixian <liuzixian4@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hongxiang Lou <louhongxiang@huawei.com>
+Cc: Hu Shiyuan <hushiyuan@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/mmap.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
+
+--- a/mm/mmap.c~fix-mmap-return-value-when-vma-is-merged-after-call_mmap
++++ a/mm/mmap.c
+@@ -1808,6 +1808,17 @@ unsigned long mmap_region(struct file *f
+ 		if (error)
+ 			goto unmap_and_free_vma;
+ 
++		/* Can addr have changed??
++		 *
++		 * Answer: Yes, several device drivers can do it in their
++		 *         f_op->mmap method. -DaveM
++		 * Bug: If addr is changed, prev, rb_link, rb_parent should
++		 *      be updated for vma_link()
++		 */
++		WARN_ON_ONCE(addr != vma->vm_start);
++
++		addr = vma->vm_start;
++
+ 		/* If vm_flags changed after call_mmap(), we should try merge vma again
+ 		 * as we may succeed this time.
+ 		 */
+@@ -1822,25 +1833,12 @@ unsigned long mmap_region(struct file *f
+ 				fput(vma->vm_file);
+ 				vm_area_free(vma);
+ 				vma = merge;
+-				/* Update vm_flags and possible addr to pick up the change. We don't
+-				 * warn here if addr changed as the vma is not linked by vma_link().
+-				 */
+-				addr = vma->vm_start;
++				/* Update vm_flags to pick up the change. */
+ 				vm_flags = vma->vm_flags;
+ 				goto unmap_writable;
+ 			}
+ 		}
+ 
+-		/* Can addr have changed??
+-		 *
+-		 * Answer: Yes, several device drivers can do it in their
+-		 *         f_op->mmap method. -DaveM
+-		 * Bug: If addr is changed, prev, rb_link, rb_parent should
+-		 *      be updated for vma_link()
+-		 */
+-		WARN_ON_ONCE(addr != vma->vm_start);
+-
+-		addr = vma->vm_start;
+ 		vm_flags = vma->vm_flags;
+ 	} else if (vm_flags & VM_SHARED) {
+ 		error = shmem_zero_setup(vma);
+_
+
+Patches currently in -mm which might be from liuzixian4@huawei.com are
+
+fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+
