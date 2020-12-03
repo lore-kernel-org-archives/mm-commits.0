@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25759C4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6792CC433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:44:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B78EF223DB
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:37:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15361223E4
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:44:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727415AbgLCWhA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 17:37:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56882 "EHLO mail.kernel.org"
+        id S1728973AbgLCWow (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 17:44:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727050AbgLCWg7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 17:36:59 -0500
-Date:   Thu, 03 Dec 2020 14:36:17 -0800
+        id S1727664AbgLCWow (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 17:44:52 -0500
+Date:   Thu, 03 Dec 2020 14:44:10 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607034978;
-        bh=oj0M9lxP/IkXeFDeOE9ImAvzkTFCj436yGpAocLn87Y=;
+        s=korg; t=1607035452;
+        bh=dTV/qZoYjXhbGFzQSNKdk0hBv7GMFYcukQ6WBjaGv4I=;
         h=From:To:Subject:From;
-        b=GTwMUqyHbfiN/kYVXZNQpOX12qslOeHx1D8CKXweabqmbzUvLEOeBJ+HsdLl2Va5z
-         hmwubJl3LuGB1zDo4YxqYbhwDEPtlXm3RxkwPRxKHJAdQDl+W0Kds92+y9RbW+P2oo
-         f/UhyBECI+62LrJBdGNurnVykRLGK6CJolQTOIr8=
+        b=Sayavku97E3NAUbkpEaPVU8wrtHFEgi8H5rp8FAmevLxMj6j+5B4ZB5NBMCZ3eqyu
+         Djl0ywHPOu2ew3sBQmOAiJ55VDk/jmNUtP+NXHifcRNrwOwzb8o3MOeBOtWt0xYX65
+         W56XmXnAkqcrpzsUCThcwSca1XsBjMS84MegxTug=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, hushiyuan@huawei.com, jgg@ziepe.ca,
-        linmiaohe@huawei.com, liuzixian4@huawei.com,
-        louhongxiang@huawei.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org
-Subject:  +
- fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch added to -mm
+To:     andriy.shevchenko@linux.intel.com, arnd@arndb.de, bp@suse.de,
+        jpa@git.mail.kapsi.fi, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, ndesaulniers@google.com
+Subject:  + selftest-fpu-avoid-clang-warning.patch added to -mm
  tree
-Message-ID: <20201203223617.JyvaFW_Z5%akpm@linux-foundation.org>
+Message-ID: <20201203224410.J8FKJ1amv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: fix mmap return value when vma is merged after call_mmap()
+     Subject: selftest/fpu: avoid clang warning
 has been added to the -mm tree.  Its filename is
-     fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+     selftest-fpu-avoid-clang-warning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftest-fpu-avoid-clang-warning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-fpu-avoid-clang-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,80 +63,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Zixian <liuzixian4@huawei.com>
-Subject: mm/mmap.c: fix mmap return value when vma is merged after call_mmap()
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: selftest/fpu: avoid clang warning
 
-On success, mmap should return the begin address of newly mapped area, but
-patch "mm: mmap: merge vma after call_mmap() if possible" set vm_start of
-newly merged vma to return value addr.  Users of mmap will get wrong
-address if vma is merged after call_mmap().  We fix this by moving the
-assignment to addr before merging vma.
+With extra warnings enabled, clang complains about the redundant
+-mhard-float argument:
 
-Link: https://lkml.kernel.org/r/20201203085350.22624-1-liuzixian4@huawei.com
-Fixes: d70cec898324 ("mm: mmap: merge vma after call_mmap() if possible")
-Signed-off-by: Liu Zixian <liuzixian4@huawei.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hongxiang Lou <louhongxiang@huawei.com>
-Cc: Hu Shiyuan <hushiyuan@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: <stable@vger.kernel.org>
+clang: error: argument unused during compilation: '-mhard-float' [-Werror,-Wunused-command-line-argument]
+
+Move this into the gcc-only part of the Makefile.
+
+Link: https://lkml.kernel.org/r/20201203223652.1320700-1-arnd@kernel.org
+Fixes: 4185b3b92792 ("selftests/fpu: Add an FPU selftest")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Petteri Aimonen <jpa@git.mail.kapsi.fi>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ lib/Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mmap.c~fix-mmap-return-value-when-vma-is-merged-after-call_mmap
-+++ a/mm/mmap.c
-@@ -1808,6 +1808,17 @@ unsigned long mmap_region(struct file *f
- 		if (error)
- 			goto unmap_and_free_vma;
+--- a/lib/Makefile~selftest-fpu-avoid-clang-warning
++++ a/lib/Makefile
+@@ -107,7 +107,7 @@ obj-$(CONFIG_TEST_FREE_PAGES) += test_fr
+ # off the generation of FPU/SSE* instructions for kernel proper but FPU_FLAGS
+ # get appended last to CFLAGS and thus override those previous compiler options.
+ #
+-FPU_CFLAGS := -mhard-float -msse -msse2
++FPU_CFLAGS := -msse -msse2
+ ifdef CONFIG_CC_IS_GCC
+ # Stack alignment mismatch, proceed with caution.
+ # GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
+@@ -120,6 +120,7 @@ ifdef CONFIG_CC_IS_GCC
+ #  -mpreferred-stack-boundary=3 is not between 4 and 12
+ #
+ # can be triggered. Otherwise gcc doesn't complain.
++FPU_CFLAGS += -mhard-float
+ FPU_CFLAGS += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
+ endif
  
-+		/* Can addr have changed??
-+		 *
-+		 * Answer: Yes, several device drivers can do it in their
-+		 *         f_op->mmap method. -DaveM
-+		 * Bug: If addr is changed, prev, rb_link, rb_parent should
-+		 *      be updated for vma_link()
-+		 */
-+		WARN_ON_ONCE(addr != vma->vm_start);
-+
-+		addr = vma->vm_start;
-+
- 		/* If vm_flags changed after call_mmap(), we should try merge vma again
- 		 * as we may succeed this time.
- 		 */
-@@ -1822,25 +1833,12 @@ unsigned long mmap_region(struct file *f
- 				fput(vma->vm_file);
- 				vm_area_free(vma);
- 				vma = merge;
--				/* Update vm_flags and possible addr to pick up the change. We don't
--				 * warn here if addr changed as the vma is not linked by vma_link().
--				 */
--				addr = vma->vm_start;
-+				/* Update vm_flags to pick up the change. */
- 				vm_flags = vma->vm_flags;
- 				goto unmap_writable;
- 			}
- 		}
- 
--		/* Can addr have changed??
--		 *
--		 * Answer: Yes, several device drivers can do it in their
--		 *         f_op->mmap method. -DaveM
--		 * Bug: If addr is changed, prev, rb_link, rb_parent should
--		 *      be updated for vma_link()
--		 */
--		WARN_ON_ONCE(addr != vma->vm_start);
--
--		addr = vma->vm_start;
- 		vm_flags = vma->vm_flags;
- 	} else if (vm_flags & VM_SHARED) {
- 		error = shmem_zero_setup(vma);
 _
 
-Patches currently in -mm which might be from liuzixian4@huawei.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+selftest-fpu-avoid-clang-warning.patch
 
