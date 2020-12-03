@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FB52C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2A91C4361B
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E630224BD
+	by mail.kernel.org (Postfix) with ESMTP id 71D1C22224
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726525AbgLCX74 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 18:59:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51992 "EHLO mail.kernel.org"
+        id S1729762AbgLDAAE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 19:00:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52030 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727871AbgLCX7z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 18:59:55 -0500
-Date:   Thu, 03 Dec 2020 15:59:13 -0800
+        id S1728240AbgLDAAD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 19:00:03 -0500
+Date:   Thu, 03 Dec 2020 15:59:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607039954;
-        bh=ZUCJf2fUb0ui7sqhXWgseIYjXg7jgx6j0Ko4Q34rZpc=;
+        s=korg; t=1607039957;
+        bh=65iVujU5TWewewwBthYUrNfMlr2K3RerQVb/gD9rCj0=;
         h=From:To:Subject:From;
-        b=0UPqk3kq/zLYmMwDdQ9cbtS19tywif8xRaq9yBqDmQifSqD2QZYIREHkah4mS+WMH
-         3sE5UzhTL+ki3/BEJBrOqj5DyD60c3fvI4Yqd6aEXxzHbgyiWtnxsHT4n9LomkN3WO
-         3P+GIXhLpqyYD5p7webuQkjvohZWlpxeiLabikpQ=
+        b=QSB6Hn0duLyd8p1H1uLPXKBam0dDBFazNeo7+MGiArQ4oEl1l7M94sk4149ejjbru
+         zl1PUCRrJ74THpmaBfG3Efzbuk1CPwpJFBuWYQuEgLA0MwLNbxdnQ8nFWj0C6NP6ny
+         Dw63zok8BcaYlEXn88UkkcRGLsxoTigyKzfN6tn0=
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, corbet@lwn.net,
         dvyukov@google.com, elver@google.com, glider@google.com,
         jiangshanlai@gmail.com, matthias.bgg@gmail.com,
         mm-commits@vger.kernel.org, tj@kernel.org,
         walter-zh.wu@mediatek.com
-Subject:  + lib-test_kasanc-add-workqueue-test-case.patch added to
- -mm tree
-Message-ID: <20201203235913.zzLU2DDu9%akpm@linux-foundation.org>
+Subject:  + kasan-update-documentation-for-generic-kasan.patch
+ added to -mm tree
+Message-ID: <20201203235916.CsokYuYi_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_kasan.c: add workqueue test case
+     Subject: kasan: update documentation for generic kasan
 has been added to the -mm tree.  Its filename is
-     lib-test_kasanc-add-workqueue-test-case.patch
+     kasan-update-documentation-for-generic-kasan.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-test_kasanc-add-workqueue-test-case.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-update-documentation-for-generic-kasan.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-test_kasanc-add-workqueue-test-case.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-update-documentation-for-generic-kasan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,94 +66,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: lib/test_kasan.c: add workqueue test case
+Subject: kasan: update documentation for generic kasan
 
-Adds a test to verify workqueue stack recording and print it in
-KASAN report.
+Generic KASAN also supports to record the last two workqueue stacks and
+print them in KASAN report.  So that need to update documentation.
 
-The KASAN report was as follows(cleaned up slightly):
-
- BUG: KASAN: use-after-free in kasan_workqueue_uaf
-
- Freed by task 54:
-  kasan_save_stack+0x24/0x50
-  kasan_set_track+0x24/0x38
-  kasan_set_free_info+0x20/0x40
-  __kasan_slab_free+0x10c/0x170
-  kasan_slab_free+0x10/0x18
-  kfree+0x98/0x270
-  kasan_workqueue_work+0xc/0x18
-
- Last potentially related work creation:
-  kasan_save_stack+0x24/0x50
-  kasan_record_wq_stack+0xa8/0xb8
-  insert_work+0x48/0x288
-  __queue_work+0x3e8/0xc40
-  queue_work_on+0xf4/0x118
-  kasan_workqueue_uaf+0xfc/0x190
-
-Link: https://lkml.kernel.org/r/20201203022748.30681-1-walter-zh.wu@mediatek.com
+Link: https://lkml.kernel.org/r/20201203023037.30792-1-walter-zh.wu@mediatek.com
 Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Marco Elver <elver@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan_module.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ Documentation/dev-tools/kasan.rst |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/test_kasan_module.c~lib-test_kasanc-add-workqueue-test-case
-+++ a/lib/test_kasan_module.c
-@@ -91,6 +91,34 @@ static noinline void __init kasan_rcu_ua
- 	call_rcu(&global_rcu_ptr->rcu, kasan_rcu_reclaim);
- }
+--- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation-for-generic-kasan
++++ a/Documentation/dev-tools/kasan.rst
+@@ -190,8 +190,9 @@ function calls GCC directly inserts the
+ This option significantly enlarges kernel but it gives x1.1-x2 performance
+ boost over outline instrumented kernel.
  
-+static noinline void __init kasan_workqueue_work(struct work_struct *work)
-+{
-+	kfree(work);
-+}
-+
-+static noinline void __init kasan_workqueue_uaf(void)
-+{
-+	struct workqueue_struct *workqueue;
-+	struct work_struct *work;
-+
-+	workqueue = create_workqueue("kasan_wq_test");
-+	if (!workqueue) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+	work = kmalloc(sizeof(struct work_struct), GFP_KERNEL);
-+	if (!work) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	INIT_WORK(work, kasan_workqueue_work);
-+	queue_work(workqueue, work);
-+	destroy_workqueue(workqueue);
-+
-+	pr_info("use-after-free on workqueue\n");
-+	((volatile struct work_struct *)work)->data;
-+}
+-Generic KASAN prints up to 2 call_rcu() call stacks in reports, the last one
+-and the second to last.
++Generic KASAN also reports the last 2 call stacks to creation of work that
++potentially has access to an object. Call stacks for the following are shown:
++call_rcu() and workqueue queuing.
  
- static int __init test_kasan_module_init(void)
- {
-@@ -102,6 +130,7 @@ static int __init test_kasan_module_init
- 
- 	copy_user_test();
- 	kasan_rcu_uaf();
-+	kasan_workqueue_uaf();
- 
- 	kasan_restore_multi_shot(multishot);
- 	return -EAGAIN;
+ Software tag-based KASAN
+ ~~~~~~~~~~~~~~~~~~~~~~~~
 _
 
 Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
