@@ -7,34 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1A96C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2D1DC4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:27:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95671221F2
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:23:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65765221E3
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:27:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727153AbgLCUXo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 15:23:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42852 "EHLO mail.kernel.org"
+        id S1726166AbgLCU1d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 15:27:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725885AbgLCUXo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 15:23:44 -0500
-Date:   Thu, 03 Dec 2020 12:22:56 -0800
+        id S1726037AbgLCU1c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 15:27:32 -0500
+Date:   Thu, 03 Dec 2020 12:26:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607026977;
-        bh=Gfo9GTN0s76EECfSPEOhVJrc1xspxYr2T9tFRxsz8DU=;
+        s=korg; t=1607027210;
+        bh=sFe8q0fachdMOCEVafeHy/gXV9qG/fcgUWVCWEjFt7M=;
         h=From:To:Subject:From;
-        b=ygvF/X6NoRRH+kVXrl+bYa3PEqTpfYqacAB/HQkvPXX7cu1RO7y17x/IyvEqH3AwB
-         QH7qWaOfkyz5SjWCpZS9ne7PSmxolCM2sbnhn9fZsmqK4jLCGoZ2/6f+bqhjB1udPU
-         QGky9YRZ1kUhIwA/NGm8JCiv+ZWlJ0iViSB9doAA=
+        b=q1B0fcoptWb0oTXmM+9J1OiQ+QVJ/7ElMnDy9RakUpjfGouHdTjYuRprLtW8uBJgg
+         F5uWMiGLBSQjTlq02gA1n8vDhwgSODMbzAgew+HG4rW4kDS7yE3qC3cAcXa0unpebU
+         d+4hR3HZzUvScV2zBqgzRS6HS+pUPZ2U1Z9jkxhs=
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        catalin.marinas@arm.com, glider@google.com,
-        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com
-Subject:  + arm64-mte-add-in-kernel-tag-fault-handler-fix.patch
- added to -mm tree
-Message-ID: <20201203202256.jOdlGRMB4%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, bhe@redhat.com, cai@lca.pw, david@redhat.com,
+        lstoakes@gmail.com, mgorman@suse.de, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        sfr@canb.auug.org.au, vbabka@suse.cz
+Subject:  +
+ =?US-ASCII?Q?mm-refactor-initialization-of-stuct-page-for-holes-in-mem?=
+ =?US-ASCII?Q?ory-layout-fix.patch?= added to -mm tree
+Message-ID: <20201203202649.eYvGSeY0K%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: ensure CONFIG_ARM64_PAN is enabled with MTE
+     Subject: fixup for "mm: refactor initialization of stuct page for holes"
 has been added to the -mm tree.  Its filename is
-     arm64-mte-add-in-kernel-tag-fault-handler-fix.patch
+     mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-mte-add-in-kernel-tag-fault-handler-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-mte-add-in-kernel-tag-fault-handler-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,44 +67,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: arm64: mte: ensure CONFIG_ARM64_PAN is enabled with MTE
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: fixup for "mm: refactor initialization of stuct page for holes"
 
-The uaccess routines like get/put_user() rely on the user TCF0 mode
-setting for tag checking.  However, if CONFIG_ARM64_PAN is disabled, these
-routines would use the standard LDR/STR instructions and therefore the
-kernel TCF mode.  In 5.10, the kernel TCF==0, so no tag checking, but this
-will change with the in-kernel MTE support.
+Fix boot-time panic.  The change to initialization of "unavailable" memory
+missed pfn 0.
 
-Make ARM64_MTE depend on ARM64_PAN.
-
-Link: https://lkml.kernel.org/r/20201203102628.GB2224@gaia
-Fixes: 89b94df9dfb1 ("arm64: mte: Kconfig entry")
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Link: https://lkml.kernel.org/r/00000000000056f29e05b58d448f@google.com
+Link: https://lkml.kernel.org/r/20201203122354.GI751215@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: syzbot+86800a8349c0f3f9466e@syzkaller.appspotmail.com
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-mte-add-in-kernel-tag-fault-handler-fix
-+++ a/arch/arm64/Kconfig
-@@ -1650,6 +1650,8 @@ config ARM64_MTE
- 	default y
- 	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
- 	depends on AS_HAS_ARMV8_5
-+	# Required for tag checking in the uaccess routines
-+	depends on ARM64_PAN
- 	select ARCH_USES_HIGH_VMA_FLAGS
- 	help
- 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
+--- a/mm/page_alloc.c~mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix
++++ a/mm/page_alloc.c
+@@ -6291,7 +6291,8 @@ void __init __weak memmap_init(unsigned
+ 			       unsigned long zone,
+ 			       unsigned long range_start_pfn)
+ {
+-	unsigned long start_pfn, end_pfn, next_pfn = 0;
++	static unsigned long hole_start_pfn;
++	unsigned long start_pfn, end_pfn;
+ 	unsigned long range_end_pfn = range_start_pfn + size;
+ 	u64 pgcnt = 0;
+ 	int i;
+@@ -6299,7 +6300,6 @@ void __init __weak memmap_init(unsigned
+ 	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
+ 		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
+ 		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
+-		next_pfn = clamp(next_pfn, range_start_pfn, range_end_pfn);
+ 
+ 		if (end_pfn > start_pfn) {
+ 			size = end_pfn - start_pfn;
+@@ -6307,10 +6307,10 @@ void __init __weak memmap_init(unsigned
+ 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 		}
+ 
+-		if (next_pfn < start_pfn)
+-			pgcnt += init_unavailable_range(next_pfn, start_pfn,
+-							zone, nid);
+-		next_pfn = end_pfn;
++		if (hole_start_pfn < start_pfn)
++			pgcnt += init_unavailable_range(hole_start_pfn,
++							start_pfn, zone, nid);
++		hole_start_pfn = end_pfn;
+ 	}
+ 
+ 	/*
+@@ -6320,8 +6320,8 @@ void __init __weak memmap_init(unsigned
+ 	 * considered initialized. Make sure that memmap has a well defined
+ 	 * state.
+ 	 */
+-	if (next_pfn < range_end_pfn)
+-		pgcnt += init_unavailable_range(next_pfn, range_end_pfn,
++	if (hole_start_pfn < range_end_pfn)
++		pgcnt += init_unavailable_range(hole_start_pfn, range_end_pfn,
+ 						zone, nid);
+ 
+ 	if (pgcnt)
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-arm64-mte-add-in-kernel-tag-fault-handler-fix.patch
+alpha-switch-from-discontigmem-to-sparsemem.patch
+ia64-remove-custom-__early_pfn_to_nid.patch
+ia64-remove-ifdef-config_zone_dma32-statements.patch
+ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
+ia64-split-virtual-map-initialization-out-of-paging_init.patch
+ia64-forbid-using-virtual_mem_map-with-flatmem.patch
+ia64-make-sparsemem-default-and-disable-discontigmem.patch
+arm-remove-config_arch_has_holes_memorymodel.patch
+arm-arm64-move-free_unused_memmap-to-generic-mm.patch
+arc-use-flatmem-with-freeing-of-unused-memory-map-instead-of-discontigmem.patch
+m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
+m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
+m68k-deprecate-discontigmem.patch
+mm-introduce-debug_pagealloc_mapunmap_pages-helpers.patch
+pm-hibernate-make-direct-map-manipulations-more-explicit.patch
+arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc.patch
+arch-mm-make-kernel_page_present-always-available.patch
+mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout.patch
+mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
 
