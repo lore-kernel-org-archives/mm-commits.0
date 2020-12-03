@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6792CC433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30275C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:20:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15361223E4
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:44:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDA552245C
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 23:20:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728973AbgLCWow (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 17:44:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58082 "EHLO mail.kernel.org"
+        id S1727848AbgLCXUU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 18:20:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727664AbgLCWow (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 17:44:52 -0500
-Date:   Thu, 03 Dec 2020 14:44:10 -0800
+        id S1727146AbgLCXUU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 18:20:20 -0500
+Date:   Thu, 03 Dec 2020 15:19:38 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607035452;
-        bh=dTV/qZoYjXhbGFzQSNKdk0hBv7GMFYcukQ6WBjaGv4I=;
+        s=korg; t=1607037579;
+        bh=db5rRAH85wgDQfhH0ycOb7YfOT+7cqn9LTL2Rt7n5qU=;
         h=From:To:Subject:From;
-        b=Sayavku97E3NAUbkpEaPVU8wrtHFEgi8H5rp8FAmevLxMj6j+5B4ZB5NBMCZ3eqyu
-         Djl0ywHPOu2ew3sBQmOAiJ55VDk/jmNUtP+NXHifcRNrwOwzb8o3MOeBOtWt0xYX65
-         W56XmXnAkqcrpzsUCThcwSca1XsBjMS84MegxTug=
+        b=xPeikDfRZL/MCEZQLMO2/eA/YTBPaoeLTZ12DxTH8fN6AmnIIyvtWBEpkOKMxFGgS
+         rmN9jSW7ysNfp2lqFutkh+aTKCf5dQIazV61ZkG8a8zQ9LkPoeJzKbJ3fpLh2uHhBD
+         Y25fWDpZkbJum2XgXUWAEsGmgKcUp80wCojLwkXY=
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, arnd@arndb.de, bp@suse.de,
-        jpa@git.mail.kapsi.fi, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, ndesaulniers@google.com
-Subject:  + selftest-fpu-avoid-clang-warning.patch added to -mm
- tree
-Message-ID: <20201203224410.J8FKJ1amv%akpm@linux-foundation.org>
+To:     ardb@kernel.org, arnd@arndb.de, arnd@kernel.org,
+        keescook@chromium.org, masahiroy@kernel.org,
+        michal.lkml@markovi.net, mm-commits@vger.kernel.org,
+        rikard.falkeborn@gmail.com, stable@vger.kernel.org
+Subject:  + kbuild-avoid-static_assert-for-genksyms.patch added to
+ -mm tree
+Message-ID: <20201203231938.H9QeK_2X3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/fpu: avoid clang warning
+     Subject: kbuild: avoid static_assert for genksyms
 has been added to the -mm tree.  Its filename is
-     selftest-fpu-avoid-clang-warning.patch
+     kbuild-avoid-static_assert-for-genksyms.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftest-fpu-avoid-clang-warning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kbuild-avoid-static_assert-for-genksyms.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-fpu-avoid-clang-warning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kbuild-avoid-static_assert-for-genksyms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,53 +64,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: selftest/fpu: avoid clang warning
+From: Arnd Bergmann <arnd@kernel.org>
+Subject: kbuild: avoid static_assert for genksyms
 
-With extra warnings enabled, clang complains about the redundant
--mhard-float argument:
 
-clang: error: argument unused during compilation: '-mhard-float' [-Werror,-Wunused-command-line-argument]
+genksyms does not know or care about the _Static_assert() built-in,
+and sometimes falls back to ignoring the later symbols, which causes
+undefined behavior such as
 
-Move this into the gcc-only part of the Makefile.
+WARNING: modpost: EXPORT symbol "ethtool_set_ethtool_phy_ops" [vmlinux] version generation failed, symbol will not be versioned.
+ld: net/ethtool/common.o: relocation R_AARCH64_ABS32 against `__crc_ethtool_set_ethtool_phy_ops' can not be used when making a shared object
+net/ethtool/common.o:(_ftrace_annotated_branch+0x0): dangerous relocation: unsupported relocation
 
-Link: https://lkml.kernel.org/r/20201203223652.1320700-1-arnd@kernel.org
-Fixes: 4185b3b92792 ("selftests/fpu: Add an FPU selftest")
+Redefine static_assert for genksyms to avoid that.
+
+Link: https://lkml.kernel.org/r/20201203230955.1482058-1-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Petteri Aimonen <jpa@git.mail.kapsi.fi>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Ard Biesheuvel <ardb@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/build_bug.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/lib/Makefile~selftest-fpu-avoid-clang-warning
-+++ a/lib/Makefile
-@@ -107,7 +107,7 @@ obj-$(CONFIG_TEST_FREE_PAGES) += test_fr
- # off the generation of FPU/SSE* instructions for kernel proper but FPU_FLAGS
- # get appended last to CFLAGS and thus override those previous compiler options.
- #
--FPU_CFLAGS := -mhard-float -msse -msse2
-+FPU_CFLAGS := -msse -msse2
- ifdef CONFIG_CC_IS_GCC
- # Stack alignment mismatch, proceed with caution.
- # GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
-@@ -120,6 +120,7 @@ ifdef CONFIG_CC_IS_GCC
- #  -mpreferred-stack-boundary=3 is not between 4 and 12
- #
- # can be triggered. Otherwise gcc doesn't complain.
-+FPU_CFLAGS += -mhard-float
- FPU_CFLAGS += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
- endif
+--- a/include/linux/build_bug.h~kbuild-avoid-static_assert-for-genksyms
++++ a/include/linux/build_bug.h
+@@ -77,4 +77,9 @@
+ #define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
+ #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
  
++#ifdef __GENKSYMS__
++/* genksyms gets confused by _Static_assert */
++#define _Static_assert(expr, ...)
++#endif
++
+ #endif	/* _LINUX_BUILD_BUG_H */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from arnd@kernel.org are
 
-selftest-fpu-avoid-clang-warning.patch
+kbuild-avoid-static_assert-for-genksyms.patch
 
