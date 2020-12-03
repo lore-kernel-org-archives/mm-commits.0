@@ -2,104 +2,174 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1,
-	USER_IN_DEF_DKIM_WL autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 747A4C4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:05:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34778C4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:19:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 272A42228A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:05:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C53C32223E
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 22:19:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729550AbgLCWFC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 17:05:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54472 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727315AbgLCWFC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2020 17:05:02 -0500
-Received: from mail-oo1-xc29.google.com (mail-oo1-xc29.google.com [IPv6:2607:f8b0:4864:20::c29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF646C061A53
-        for <mm-commits@vger.kernel.org>; Thu,  3 Dec 2020 14:04:21 -0800 (PST)
-Received: by mail-oo1-xc29.google.com with SMTP id w9so889621ooh.13
-        for <mm-commits@vger.kernel.org>; Thu, 03 Dec 2020 14:04:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:from:to:cc:subject:in-reply-to:message-id:references
-         :user-agent:mime-version;
-        bh=4YCLxQL4vZEXb1u6jH6YjMbpDto6nNiHo0QnmRk7W9k=;
-        b=VLH8hevNwNB8U/fmW2bxkA8b2+H+e2QrxYo/ka2+x6h/D4O1qDXlEl0m8t/G7/7DIL
-         ctg6ukbw8rnndQoGFSGwC0WhNQyBwtCv5ak3gYkAYev0CkS1VaUiQ3azsRSSSel+KyKP
-         fY8hIOIYsNpsGGUOkwLu02BdZyxtDprxf2WTVFsQT5TAgbZ6vrfR9zQEd/F/GU1aVuOP
-         EvoPMpCrjwQpj7Gb5ejNvKy99gicaWJX3jaMEE66phljmsBjWyTM3t0PHJlH7DNo6S4W
-         pDnH+7nLsF3GH5/7JPfxPDDQh4gCaOupMz39ZPNKuH60+3Vg8NnHXb8HdavrFFsS+B6k
-         vRvQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:in-reply-to:message-id
-         :references:user-agent:mime-version;
-        bh=4YCLxQL4vZEXb1u6jH6YjMbpDto6nNiHo0QnmRk7W9k=;
-        b=aXTg2lBxeEZSk8Xn0qqKVtaKCu5vUulwRRWY8gMscuBD08jDo8G7Vd3Qf3L4l+4qjD
-         IU+VSVK2vMuiM/0hvXj4u5pqUS0MdxBbSw6ewTWG1e5e63qVTVBTjj8lp8mHy5OavWwj
-         XqSePR+sacoxLR95zwERsquu1TsmOWzD4wpLwKMaxB84tlEp7zYtoZMWSoP9y9A7skJ1
-         Ph3hdGeqCscfiXYxnCv6jZ4QqWD/pKblcAZXiZzQaarU+U6DM753sYdYyx9pjj60twuN
-         ZIe1ISIzxBR04svZqdzPsAEMhD8eS9Laue3VHsJ6bacWYEK+e4O775utm7HmQaVo42wB
-         LFJA==
-X-Gm-Message-State: AOAM531NpV/OcsCV6L0LxvFHpKTnh/5n9/ZJrqerE4OdaZoH8nyuJWrj
-        5I8n+2OozAx3+yLgQt2L3lOFXw==
-X-Google-Smtp-Source: ABdhPJxB2NFOv6D3zsYFN6XwPNVyyjM2gNw86QtwdEDwQiaWnibkXM4bneaneATEQYleZoku8pxBxg==
-X-Received: by 2002:a4a:dc49:: with SMTP id q9mr1018936oov.85.1607033060919;
-        Thu, 03 Dec 2020 14:04:20 -0800 (PST)
-Received: from eggly.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id 186sm204276oof.16.2020.12.03.14.04.18
-        (version=TLS1 cipher=ECDHE-ECDSA-AES128-SHA bits=128/128);
-        Thu, 03 Dec 2020 14:04:19 -0800 (PST)
-Date:   Thu, 3 Dec 2020 14:04:18 -0800 (PST)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@eggly.anvils
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-cc:     m.szyprowski@samsung.com, qcai@redhat.com, dchinner@redhat.com,
-        hannes@cmpxchg.org, hch@lst.de, hughd@google.com, jack@suse.cz,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, william.kucharski@oracle.com,
-        willy@infradead.org, yang.shi@linux.alibaba.com
-Subject: Re: + mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
- added to -mm tree
-In-Reply-To: <20201126054713.GmEiU5MZ_%akpm@linux-foundation.org>
-Message-ID: <alpine.LSU.2.11.2012031348120.12944@eggly.anvils>
-References: <20201126054713.GmEiU5MZ_%akpm@linux-foundation.org>
-User-Agent: Alpine 2.11 (LSU 23 2013-08-11)
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+        id S1726186AbgLCWTK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 17:19:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51710 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725885AbgLCWTK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 17:19:10 -0500
+Date:   Thu, 03 Dec 2020 14:18:28 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1607033909;
+        bh=f0NjfHgCopEUdp6ligK1WBuo0oRtzYPKGZQMtGeV5q8=;
+        h=From:To:Subject:From;
+        b=M+PWXgslXM+XRqqbq84CgY5oAExs9xb1MZSgvPRpDM7DZwDf3U13ajdCmTpQtChpm
+         7SUmViq6yfuxbdxG/n1s0SshxoNtjRgUjJNXrI3kRBxCbJ1OdFbL3Q53PeAX6IGr6U
+         OO0PWJZQuZ6BxddPMayZFdOJxFX2nXB/jmLgak44=
+From:   akpm@linux-foundation.org
+To:     almasrymina@google.com, amorenoz@redhat.com, gthelen@google.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com,
+        shuah@kernel.org, stable@vger.kernel.org
+Subject:  +
+ hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch added
+ to -mm tree
+Message-ID: <20201203221828.Lcb1jIedB%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, 25 Nov 2020, akpm@linux-foundation.org wrote:
-> 
-> The patch titled
->      Subject: mm-truncateshmem-handle-truncates-that-split-thps-fix-fix
-> has been added to the -mm tree.  Its filename is
->      mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
 
-Andrew, Stephen,
+The patch titled
+     Subject: hugetlb_cgroup: fix offline of hugetlb cgroup with reservations
+has been added to the -mm tree.  Its filename is
+     hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch
 
-This lot is proving to be a work in progress,
-the current state breaks booting on 32-bit, livelocks trinity,
-and breaks shmem in more ways than I can quickly explain.
-Please revert (in reverse order):
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch
 
-mm-truncateshmem-handle-truncates-that-split-thps.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix.patch
-mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
-mm-filemap-return-only-head-pages-from-find_get_entries.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-(I don't think there's any problem with that last patch, but
-assume that it relies on ..split-thpfs.patch being in already.)
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Thanks,
-Hugh
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb_cgroup: fix offline of hugetlb cgroup with reservations
+
+Adrian Moreno was ruuning a kubernetes 1.19 + containerd/docker workload
+using hugetlbfs.  In this environment the issue is reproduced by:
+1 - Start a simple pod that uses the recently added HugePages medium
+    feature (pod yaml attached)
+2 - Start a DPDK app. It doesn't need to run successfully (as in transfer
+    packets) nor interact with real hardware. It seems just initializing
+    the EAL layer (which handles hugepage reservation and locking) is
+    enough to trigger the issue
+3 - Delete the Pod (or let it "Complete").
+
+This would result in a kworker thread going into a tight loop (top output):
+ 1425 root      20   0       0      0      0 R  99.7   0.0   5:22.45
+kworker/28:7+cgroup_destroy
+
+'perf top -g' reports:
+-   63.28%     0.01%  [kernel]                    [k] worker_thread
+   - 49.97% worker_thread
+      - 52.64% process_one_work
+         - 62.08% css_killed_work_fn
+            - hugetlb_cgroup_css_offline
+                 41.52% _raw_spin_lock
+               - 2.82% _cond_resched
+                    rcu_all_qs
+                 2.66% PageHuge
+      - 0.57% schedule
+         - 0.57% __schedule
+
+We are spinning in the do-while loop in hugetlb_cgroup_css_offline.
+Worse yet, we are holding the master cgroup lock (cgroup_mutex) while
+infinitely spinning.  Little else can be done on the system as the
+cgroup_mutex can not be acquired.
+
+Do note that the issue can be reproduced by simply offlining a hugetlb
+cgroup containing pages with reservation counts.
+
+The loop in hugetlb_cgroup_css_offline is moving page counts from the
+cgroup being offlined to the parent cgroup.  This is done for each hstate,
+and is repeated until hugetlb_cgroup_have_usage returns false.  The routine
+moving counts (hugetlb_cgroup_move_parent) is only moving 'usage' counts.
+The routine hugetlb_cgroup_have_usage is checking for both 'usage' and
+'reservation' counts.  Discussion about what to do with reservation
+counts when reparenting was discussed here:
+
+https://lore.kernel.org/linux-kselftest/CAHS8izMFAYTgxym-Hzb_JmkTK1N_S9tGN71uS6MFV+R7swYu5A@mail.gmail.com/
+
+The decision was made to leave a zombie cgroup for with reservation
+counts.  Unfortunately, the code checking reservation counts was
+incorrectly added to hugetlb_cgroup_have_usage.
+
+To fix the issue, simply remove the check for reservation counts.  While
+fixing this issue, a related bug in hugetlb_cgroup_css_offline was noticed.
+The hstate index is not reinitialized each time through the do-while loop.
+Fix this as well.
+
+Link: https://lkml.kernel.org/r/20201203220242.158165-1-mike.kravetz@oracle.com
+Fixes: 1adc4d419aa2 ("hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations")
+Reported-by: Adrian Moreno <amorenoz@redhat.com>
+Tested-by: Adrian Moreno <amorenoz@redhat.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb_cgroup.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations
++++ a/mm/hugetlb_cgroup.c
+@@ -82,11 +82,8 @@ static inline bool hugetlb_cgroup_have_u
+ 
+ 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
+ 		if (page_counter_read(
+-			    hugetlb_cgroup_counter_from_cgroup(h_cg, idx)) ||
+-		    page_counter_read(hugetlb_cgroup_counter_from_cgroup_rsvd(
+-			    h_cg, idx))) {
++				hugetlb_cgroup_counter_from_cgroup(h_cg, idx)))
+ 			return true;
+-		}
+ 	}
+ 	return false;
+ }
+@@ -202,9 +199,10 @@ static void hugetlb_cgroup_css_offline(s
+ 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(css);
+ 	struct hstate *h;
+ 	struct page *page;
+-	int idx = 0;
++	int idx;
+ 
+ 	do {
++		idx = 0;
+ 		for_each_hstate(h) {
+ 			spin_lock(&hugetlb_lock);
+ 			list_for_each_entry(page, &h->hugepage_activelist, lru)
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch
+
