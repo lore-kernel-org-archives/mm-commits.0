@@ -2,94 +2,107 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA1D3C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:34:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2830C4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:50:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 585ED2229C
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:34:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF6902223E
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:50:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728312AbgLCVeC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 16:34:02 -0500
-Received: from ozlabs.org ([203.11.71.1]:40803 "EHLO ozlabs.org"
+        id S1726152AbgLCVu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 16:50:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728252AbgLCVeB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 16:34:01 -0500
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Cn8G42TTkz9sSf;
-        Fri,  4 Dec 2020 08:33:16 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1607031199;
-        bh=2SDUYgleWp3BW+wFrxjsUMhCIgFEFardpokeZL67Oj0=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=tyTSUn2fl1YxKB8zBh6dir02tNq4w/IKV7Rs1BFsCS3V97gTfKsHMVg71G9WFKz6F
-         tLE0reupnpgB94FsAnmj+m9mq6rXxPwySXUqVfuxes4+cy/gG8IMtPNBU7426ml1aM
-         D2ue2x0hxZsAwBfQgsEh9QA+VDaWjT7rLPvda9RxwsvdTXonq69d9BgNopTFO2R4FK
-         09wJnoZriC5KUXsJKm6kQjkftuzqy4PS4QytV4SoZOqJDFSjd51jht8cVb072O0YdG
-         rtoZUGri+S5ERRrb0CcET9sxdYh9zL/v8Kb7N9hN8v3+Y16h6/2l53qZIi6QmvkNdB
-         6axNpyTt8EO9g==
-Date:   Fri, 4 Dec 2020 08:33:15 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     aarcange@redhat.com, bhe@redhat.com, cai@lca.pw, david@redhat.com,
-        lstoakes@gmail.com, mgorman@suse.de, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz
-Subject: Re: +
- mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
+        id S1729470AbgLCVu5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 16:50:57 -0500
+Date:   Thu, 03 Dec 2020 13:50:15 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1607032216;
+        bh=V6cxy38tPHeTr9Okza+x3YOjKtTpVA/DZBJ+P6+dec8=;
+        h=From:To:Subject:From;
+        b=oGybwUo2xhOSdlxoPMMQCCt41RURSoL1bJZRTyu0+zpyJvTFeLziwyxz98LZDFjyc
+         38F1prQPg4+1DCQYTndIMvyqbmFugCaSKEh4ylAbJVTMCMnBjVIe+ITO4RLiZw9pRW
+         T3MDYRrwoWMDzbuZWTHRDgfRsyafLi903BZiOZrg=
+From:   akpm@linux-foundation.org
+To:     aivazian.tigran@gmail.com, dvyukov@google.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        viro@ZenIV.linux.org.uk
+Subject:  + bfs-dont-use-warning-string-when-its-just-info.patch
  added to -mm tree
-Message-ID: <20201204083315.7982cd36@canb.auug.org.au>
-In-Reply-To: <20201203202649.eYvGSeY0K%akpm@linux-foundation.org>
-References: <20201203202649.eYvGSeY0K%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/i8G1j.P08l9/MJUuRcQmw8J";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+Message-ID: <20201203215015.a8-32YWal%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/i8G1j.P08l9/MJUuRcQmw8J
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+The patch titled
+     Subject: bfs: don't use WARNING: string when it's just info.
+has been added to the -mm tree.  Its filename is
+     bfs-dont-use-warning-string-when-its-just-info.patch
 
-On Thu, 03 Dec 2020 12:26:49 -0800 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: fixup for "mm: refactor initialization of stuct page for ho=
-les"
-> has been added to the -mm tree.  Its filename is
->      mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-=
-fix.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/bfs-dont-use-warning-string-when-its-just-info.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/bfs-dont-use-warning-string-when-its-just-info.patch
 
-Added to linux-next today.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/i8G1j.P08l9/MJUuRcQmw8J
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: bfs: don't use WARNING: string when it's just info.
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/JWZsACgkQAVBC80lX
-0GwVkAgAoHyaywViS9Kf8jkeMxoN/GxY8jV6woIjKZjjUVlkOiWa103gpiEbZQrz
-HiekJnsqjqwNhsLDHA0Ifbk89ueMefzOflF7JQyn6zUM/CHcSwGcVC27Ob8TxBA3
-32pHGhrvK0dLLCD0gJ6u5O9JXGUwJjWvcgi2PI34UJPCedVB16aHF68vzwq44z+E
-UuFvVyF5ccMTw2cpa69e3fVxFiOM2AjRy5QZ89P1gb+80QrgnO2KcklQn45gnLIC
-IhhSKnWCOeDlnS8/NfdUbBdVrFb6UrxAlVF99GX8janfq/DDT6Sj4HjkeJ6+oKPk
-v85Ja0zgOXwX3qHS2PxzSpSw4Ft3nQ==
-=2Nuq
------END PGP SIGNATURE-----
+Make the printk() [bfs "printf" macro] seem less severe by changing
+"WARNING:" to "NOTE:".
 
---Sig_/i8G1j.P08l9/MJUuRcQmw8J--
+<asm-generic/bug.h> warns us about using WARNING or BUG in a format string
+other than in WARN() or BUG() family macros.  bfs/inode.c is doing just
+that in a normal printk() call, so change the "WARNING" string to be
+"NOTE".
+
+Link: https://lkml.kernel.org/r/20201203212634.17278-1-rdunlap@infradead.org
+Reported-by: syzbot+3fd34060f26e766536ff@syzkaller.appspotmail.com
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: "Tigran A. Aivazian" <aivazian.tigran@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/bfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/fs/bfs/inode.c~bfs-dont-use-warning-string-when-its-just-info
++++ a/fs/bfs/inode.c
+@@ -350,7 +350,7 @@ static int bfs_fill_super(struct super_b
+ 
+ 	info->si_lasti = (le32_to_cpu(bfs_sb->s_start) - BFS_BSIZE) / sizeof(struct bfs_inode) + BFS_ROOT_INO - 1;
+ 	if (info->si_lasti == BFS_MAX_LASTI)
+-		printf("WARNING: filesystem %s was created with 512 inodes, the real maximum is 511, mounting anyway\n", s->s_id);
++		printf("NOTE: filesystem %s was created with 512 inodes, the real maximum is 511, mounting anyway\n", s->s_id);
+ 	else if (info->si_lasti > BFS_MAX_LASTI) {
+ 		printf("Impossible last inode number %lu > %d on %s\n", info->si_lasti, BFS_MAX_LASTI, s->s_id);
+ 		goto out1;
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+zlib-export-s390-symbols-for-zlib-modules.patch
+tmpfs-fix-documentation-nits.patch
+procfs-delete-duplicated-words-other-fixes.patch
+bfs-dont-use-warning-string-when-its-just-info.patch
+
