@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2830C4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:50:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7CBFC4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:57:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF6902223E
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:50:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58B3C2053B
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 21:57:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726152AbgLCVu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 16:50:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44180 "EHLO mail.kernel.org"
+        id S1731838AbgLCV5M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 16:57:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46606 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729470AbgLCVu5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 16:50:57 -0500
-Date:   Thu, 03 Dec 2020 13:50:15 -0800
+        id S1729579AbgLCV5L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 16:57:11 -0500
+Date:   Thu, 03 Dec 2020 13:55:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607032216;
-        bh=V6cxy38tPHeTr9Okza+x3YOjKtTpVA/DZBJ+P6+dec8=;
+        s=korg; t=1607032550;
+        bh=EY9m23Iha2H1ziQdH9UaHUohllcPzu2zIe1G0dXfUD8=;
         h=From:To:Subject:From;
-        b=oGybwUo2xhOSdlxoPMMQCCt41RURSoL1bJZRTyu0+zpyJvTFeLziwyxz98LZDFjyc
-         38F1prQPg4+1DCQYTndIMvyqbmFugCaSKEh4ylAbJVTMCMnBjVIe+ITO4RLiZw9pRW
-         T3MDYRrwoWMDzbuZWTHRDgfRsyafLi903BZiOZrg=
+        b=LTunJJTvxU3GA/LZBUJQzNvHo1T51bTi+MMy6l66V9+DseeQLFNIkYvwnkh8XlGEG
+         nPniVj44G8jKTHG+WjNqyLCGGmsF/aIWFdP+ZpuwC1Wm/+L3yh7CmWvIBywmwR2G1h
+         FiCD3Su/y1jOCgAbALCu2EIghQyqVxsK9EQmxaaY=
 From:   akpm@linux-foundation.org
-To:     aivazian.tigran@gmail.com, dvyukov@google.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        viro@ZenIV.linux.org.uk
-Subject:  + bfs-dont-use-warning-string-when-its-just-info.patch
- added to -mm tree
-Message-ID: <20201203215015.a8-32YWal%akpm@linux-foundation.org>
+To:     liu.hailong6@zte.com.cn, mm-commits@vger.kernel.org,
+        rppt@kernel.org
+Subject:  +
+ =?US-ASCII?Q?mm-memblock-use-a-more-appropriate-order-calculation-when-f?=
+ =?US-ASCII?Q?ree-memblock-pages.patch?= added to -mm tree
+Message-ID: <20201203215549.M_m76UXUS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bfs: don't use WARNING: string when it's just info.
+     Subject: mm/memblock: use a more appropriate order calculation when free memblock pages
 has been added to the -mm tree.  Its filename is
-     bfs-dont-use-warning-string-when-its-just-info.patch
+     mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/bfs-dont-use-warning-string-when-its-just-info.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/bfs-dont-use-warning-string-when-its-just-info.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,46 +65,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: bfs: don't use WARNING: string when it's just info.
+From: Hailong Liu <liu.hailong6@zte.com.cn>
+Subject: mm/memblock: use a more appropriate order calculation when free memblock pages
 
-Make the printk() [bfs "printf" macro] seem less severe by changing
-"WARNING:" to "NOTE:".
+When system in the booting stage, pages span from [start, end] of a
+memblock are freed to buddy in a order as large as possible (less than
+MAX_ORDER) at first, then decrease gradually to a proper order(less than
+end) in a loop.
 
-<asm-generic/bug.h> warns us about using WARNING or BUG in a format string
-other than in WARN() or BUG() family macros.  bfs/inode.c is doing just
-that in a normal printk() call, so change the "WARNING" string to be
-"NOTE".
+However, *min(MAX_ORDER - 1UL, __ffs(start))* can not get the largest
+order in some cases.  Instead, *__ffs(end - start)* may be more
+appropriate and meaningful.
 
-Link: https://lkml.kernel.org/r/20201203212634.17278-1-rdunlap@infradead.org
-Reported-by: syzbot+3fd34060f26e766536ff@syzkaller.appspotmail.com
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: "Tigran A. Aivazian" <aivazian.tigran@gmail.com>
+Link: https://lkml.kernel.org/r/20201203152311.5272-1-carver4lio@163.com
+Signed-off-by: Hailong Liu <liu.hailong6@zte.com.cn>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/inode.c |    2 +-
+ mm/memblock.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/bfs/inode.c~bfs-dont-use-warning-string-when-its-just-info
-+++ a/fs/bfs/inode.c
-@@ -350,7 +350,7 @@ static int bfs_fill_super(struct super_b
+--- a/mm/memblock.c~mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages
++++ a/mm/memblock.c
+@@ -2010,7 +2010,7 @@ static void __init __free_pages_memory(u
+ 	int order;
  
- 	info->si_lasti = (le32_to_cpu(bfs_sb->s_start) - BFS_BSIZE) / sizeof(struct bfs_inode) + BFS_ROOT_INO - 1;
- 	if (info->si_lasti == BFS_MAX_LASTI)
--		printf("WARNING: filesystem %s was created with 512 inodes, the real maximum is 511, mounting anyway\n", s->s_id);
-+		printf("NOTE: filesystem %s was created with 512 inodes, the real maximum is 511, mounting anyway\n", s->s_id);
- 	else if (info->si_lasti > BFS_MAX_LASTI) {
- 		printf("Impossible last inode number %lu > %d on %s\n", info->si_lasti, BFS_MAX_LASTI, s->s_id);
- 		goto out1;
+ 	while (start < end) {
+-		order = min(MAX_ORDER - 1UL, __ffs(start));
++		order = min(MAX_ORDER - 1UL, __ffs(end - start));
+ 
+ 		while (start + (1UL << order) > end)
+ 			order--;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from liu.hailong6@zte.com.cn are
 
-zlib-export-s390-symbols-for-zlib-modules.patch
-tmpfs-fix-documentation-nits.patch
-procfs-delete-duplicated-words-other-fixes.patch
-bfs-dont-use-warning-string-when-its-just-info.patch
+mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
 
