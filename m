@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07FE3C6369E
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 02:51:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB7D6C64E7C
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 02:54:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A7B9F21D91
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 02:51:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65E8A21D91
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 02:54:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729349AbgLCCu6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Dec 2020 21:50:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57772 "EHLO mail.kernel.org"
+        id S1729542AbgLCCyW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Dec 2020 21:54:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725893AbgLCCu6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 2 Dec 2020 21:50:58 -0500
-Date:   Wed, 02 Dec 2020 18:50:16 -0800
+        id S1727761AbgLCCyU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 2 Dec 2020 21:54:20 -0500
+Date:   Wed, 02 Dec 2020 18:53:38 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1606963817;
-        bh=JRdLIkxe3D8C5os4eVadDqK8QLngweeTB+szR3PFuF0=;
+        s=korg; t=1606964019;
+        bh=s7wUZwxgFKDhyZLXFu+rVGc4QIqORBzd8UAx2TmTt0Y=;
         h=From:To:Subject:From;
-        b=md9N6NIJd5ijq6AHWIIoN3N+iSkYQeDhzo4TpAFbNYdJAJXXbUX7rX6++kc28HxZb
-         02o+nA8sjjvgKyIMd9Pv/fE3gNNlyCzSWelOXHCkFvXilGoWQzxhLD/uGqG/Aeni5Q
-         WGVbHWwf9Z5Kv4eNYg76aRn1uwEEjMEP9OtcGpm4=
+        b=0+yK+CK8z9fbR5+vCDrJnJ0Fu4fwf6PXNXHq5MmCBKjhoS1g6iF+DC+0hDCE9ap/b
+         qV1ea2TtddiTo9UMVlmhGyI9m3kmDJpGAZi6SqOOfJEtJfySbf7am1V2psueHcYOnc
+         epFGLGQ705cv4uOQF3UF9WibN8LrFjOfXHTPbGhk=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, charante@codeaurora.org,
-        david@redhat.com, jrdr.linux@gmail.com, mm-commits@vger.kernel.org,
-        vbabka@suse.cz
-Subject:  + mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
- added to -mm tree
-Message-ID: <20201203025016._MAdyNsCd%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, broonie@kernel.org,
+        dan.j.williams@intel.com, glider@google.com, mhiramat@kernel.org,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        vinmenon@codeaurora.org, vjitta@codeaurora.org,
+        ylal@codeaurora.org, zhenhuah@codeaurora.org
+Subject:  +
+ lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch added to
+ -mm tree
+Message-ID: <20201203025338.cJWrTAR1-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-improve-pr_debug-log-in-cma_release-fix
+     Subject: lib-stackdepot-add-support-to-configure-stack_hash_size-fix
 has been added to the -mm tree.  Its filename is
-     mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+     lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,30 +67,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-improve-pr_debug-log-in-cma_release-fix
+Subject: lib-stackdepot-add-support-to-configure-stack_hash_size-fix
 
-fix printk warning
+fix warning
 
-Cc: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+lib/stackdepot.c:153:2: warning: ignoring return value of kstrtouint, declared with attribute warn_unused_result [-Wunused-result]
+
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Yogesh Lal <ylal@codeaurora.org>
+Cc: Zhenhua Huang <zhenhuah@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/cma.c~mm-cma-improve-pr_debug-log-in-cma_release-fix
-+++ a/mm/cma.c
-@@ -510,7 +510,7 @@ bool cma_release(struct cma *cma, const
- 	if (!cma || !pages)
- 		return false;
+--- a/lib/stackdepot.c~lib-stackdepot-add-support-to-configure-stack_hash_size-fix
++++ a/lib/stackdepot.c
+@@ -150,8 +150,7 @@ static struct stack_record **stack_table
  
--	pr_debug("%s(page %p, count %zu)\n", __func__, (void *)pages, count);
-+	pr_debug("%s(page %p, count %u)\n", __func__, (void *)pages, count);
- 
- 	pfn = page_to_pfn(pages);
+ static int __init setup_stack_hash_order(char *str)
+ {
+-	kstrtouint(str, 0, &stack_hash_order);
+-	return 0;
++	return kstrtouint(str, 0, &stack_hash_order);
+ }
+ early_param("stack_hash_order", setup_stack_hash_order);
  
 _
 
@@ -112,4 +123,5 @@ linux-next-git-rejects.patch
 kmap-stupid-hacks-to-make-it-compile.patch
 init-kconfig-dont-assume-scripts-lld-versionsh-is-executable.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch
 
