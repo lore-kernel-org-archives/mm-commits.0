@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2D1DC4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:27:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B9EAC4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:32:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65765221E3
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:27:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D138221EA
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:32:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726166AbgLCU1d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 15:27:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44122 "EHLO mail.kernel.org"
+        id S1727347AbgLCUcQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 15:32:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726037AbgLCU1c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 15:27:32 -0500
-Date:   Thu, 03 Dec 2020 12:26:49 -0800
+        id S1727154AbgLCUcQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 15:32:16 -0500
+Date:   Thu, 03 Dec 2020 12:31:33 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607027210;
-        bh=sFe8q0fachdMOCEVafeHy/gXV9qG/fcgUWVCWEjFt7M=;
+        s=korg; t=1607027495;
+        bh=1Jk3yeEnV+DAaRp4m+THNSKNWqeCl7fNt31c/tY9gKs=;
         h=From:To:Subject:From;
-        b=q1B0fcoptWb0oTXmM+9J1OiQ+QVJ/7ElMnDy9RakUpjfGouHdTjYuRprLtW8uBJgg
-         F5uWMiGLBSQjTlq02gA1n8vDhwgSODMbzAgew+HG4rW4kDS7yE3qC3cAcXa0unpebU
-         d+4hR3HZzUvScV2zBqgzRS6HS+pUPZ2U1Z9jkxhs=
+        b=rcWKMSBk0uR6PL665t5T/WmaiHEl7VbbMjOaxBijI22ssVf95SlXjVC/CsGGV1AeS
+         jKpg3NXFc9zsmKltFTlLMbEaZM7CE5ykEfIl0aiwx2DXqz6w135L9w8XsBU1AA8ugD
+         OOJAdrjqrVs4zAPR4acRlgo7vb+kro2mEsKLwx+s=
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, bhe@redhat.com, cai@lca.pw, david@redhat.com,
-        lstoakes@gmail.com, mgorman@suse.de, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        sfr@canb.auug.org.au, vbabka@suse.cz
-Subject:  +
- =?US-ASCII?Q?mm-refactor-initialization-of-stuct-page-for-holes-in-mem?=
- =?US-ASCII?Q?ory-layout-fix.patch?= added to -mm tree
-Message-ID: <20201203202649.eYvGSeY0K%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, broonie@kernel.org,
+        dan.j.williams@intel.com, glider@google.com, mhiramat@kernel.org,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        vinmenon@codeaurora.org, vjitta@codeaurora.org,
+        ylal@codeaurora.org, zhenhuah@codeaurora.org
+Subject:  [folded-merged]
+ lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch removed
+ from -mm tree
+Message-ID: <20201203203133.l9QNrl7Iq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,119 +45,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fixup for "mm: refactor initialization of stuct page for holes"
-has been added to the -mm tree.  Its filename is
-     mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
+     Subject: lib-stackdepot-add-support-to-configure-stack_hash_size-fix
+has been removed from the -mm tree.  Its filename was
+     lib-stackdepot-add-support-to-configure-stack_hash_size-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into lib-stackdepot-add-support-to-configure-stack_hash_size.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: fixup for "mm: refactor initialization of stuct page for holes"
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-stackdepot-add-support-to-configure-stack_hash_size-fix
 
-Fix boot-time panic.  The change to initialization of "unavailable" memory
-missed pfn 0.
+fix warning
 
-Link: https://lkml.kernel.org/r/00000000000056f29e05b58d448f@google.com
-Link: https://lkml.kernel.org/r/20201203122354.GI751215@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: syzbot+86800a8349c0f3f9466e@syzkaller.appspotmail.com
-Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+lib/stackdepot.c:153:2: warning: ignoring return value of kstrtouint, declared with attribute warn_unused_result [-Wunused-result]
+
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Yogesh Lal <ylal@codeaurora.org>
+Cc: Zhenhua Huang <zhenhuah@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ lib/stackdepot.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix
-+++ a/mm/page_alloc.c
-@@ -6291,7 +6291,8 @@ void __init __weak memmap_init(unsigned
- 			       unsigned long zone,
- 			       unsigned long range_start_pfn)
+--- a/lib/stackdepot.c~lib-stackdepot-add-support-to-configure-stack_hash_size-fix
++++ a/lib/stackdepot.c
+@@ -150,8 +150,7 @@ static struct stack_record **stack_table
+ 
+ static int __init setup_stack_hash_order(char *str)
  {
--	unsigned long start_pfn, end_pfn, next_pfn = 0;
-+	static unsigned long hole_start_pfn;
-+	unsigned long start_pfn, end_pfn;
- 	unsigned long range_end_pfn = range_start_pfn + size;
- 	u64 pgcnt = 0;
- 	int i;
-@@ -6299,7 +6300,6 @@ void __init __weak memmap_init(unsigned
- 	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
- 		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
- 		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
--		next_pfn = clamp(next_pfn, range_start_pfn, range_end_pfn);
+-	kstrtouint(str, 0, &stack_hash_order);
+-	return 0;
++	return kstrtouint(str, 0, &stack_hash_order);
+ }
+ early_param("stack_hash_order", setup_stack_hash_order);
  
- 		if (end_pfn > start_pfn) {
- 			size = end_pfn - start_pfn;
-@@ -6307,10 +6307,10 @@ void __init __weak memmap_init(unsigned
- 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 		}
- 
--		if (next_pfn < start_pfn)
--			pgcnt += init_unavailable_range(next_pfn, start_pfn,
--							zone, nid);
--		next_pfn = end_pfn;
-+		if (hole_start_pfn < start_pfn)
-+			pgcnt += init_unavailable_range(hole_start_pfn,
-+							start_pfn, zone, nid);
-+		hole_start_pfn = end_pfn;
- 	}
- 
- 	/*
-@@ -6320,8 +6320,8 @@ void __init __weak memmap_init(unsigned
- 	 * considered initialized. Make sure that memmap has a well defined
- 	 * state.
- 	 */
--	if (next_pfn < range_end_pfn)
--		pgcnt += init_unavailable_range(next_pfn, range_end_pfn,
-+	if (hole_start_pfn < range_end_pfn)
-+		pgcnt += init_unavailable_range(hole_start_pfn, range_end_pfn,
- 						zone, nid);
- 
- 	if (pgcnt)
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-alpha-switch-from-discontigmem-to-sparsemem.patch
-ia64-remove-custom-__early_pfn_to_nid.patch
-ia64-remove-ifdef-config_zone_dma32-statements.patch
-ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
-ia64-split-virtual-map-initialization-out-of-paging_init.patch
-ia64-forbid-using-virtual_mem_map-with-flatmem.patch
-ia64-make-sparsemem-default-and-disable-discontigmem.patch
-arm-remove-config_arch_has_holes_memorymodel.patch
-arm-arm64-move-free_unused_memmap-to-generic-mm.patch
-arc-use-flatmem-with-freeing-of-unused-memory-map-instead-of-discontigmem.patch
-m68k-mm-make-node-data-and-node-setup-depend-on-config_discontigmem.patch
-m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
-m68k-deprecate-discontigmem.patch
-mm-introduce-debug_pagealloc_mapunmap_pages-helpers.patch
-pm-hibernate-make-direct-map-manipulations-more-explicit.patch
-arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc.patch
-arch-mm-make-kernel_page_present-always-available.patch
-mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout.patch
-mm-refactor-initialization-of-stuct-page-for-holes-in-memory-layout-fix.patch
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-truncateshmem-handle-truncates-that-split-thps-fix-fix.patch
+mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-stackdepot-add-support-to-configure-stack_hash_size.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+init-kconfig-dont-assume-scripts-lld-versionsh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
