@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FC77C4361A
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05209C4361A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:59:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C82A221F4
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:53:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99DA1207AF
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Dec 2020 20:59:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726606AbgLCUxM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 15:53:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52664 "EHLO mail.kernel.org"
+        id S1726102AbgLCU6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 15:58:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726597AbgLCUxM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 15:53:12 -0500
-Date:   Thu, 03 Dec 2020 12:52:30 -0800
+        id S1725885AbgLCU6x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 15:58:53 -0500
+Date:   Thu, 03 Dec 2020 12:58:10 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607028751;
-        bh=SVgCNT0eFBEO9LlFM9FAEsRrRFEBUnM6lNmjGWU/LlA=;
+        s=korg; t=1607029091;
+        bh=bdAX9sUhVBOtD81xHmsd93kw+UOk4HiARjgLQP6J/Pk=;
         h=From:To:Subject:From;
-        b=XNS1N2m1OKkziqjXwIg88lSsDrK8il5xHV7mAWCx8d33zWEHlpGYLB5SblaRjYMJB
-         fOw2I+6Vo+3VIiMHazqe3nkuWL+q08A+Ulm2lx0buGU42+DQV9cly9SysbBC/5K1Jb
-         LtvXKYAPJssi6HwXeXoKduJvEq02tMdSHxnkv9HI=
+        b=TeShdDrBEgUYWT6mbJHYUUHaB6Kt3U7nHr9UsZ4Cn0emrNEM55GaK44KWNRqx8SSB
+         D2kpKo5cEPzRSUpdCueXc5xMS/Cf/itGxorAzhpRn2ZYWHcPc+zd/Qmjj1VTh4VLNL
+         4lOLZy5Ai9Gf3z4BYHOv26yXsWb3otmfpmgBxNQE=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        vbabka@suse.cz
-Subject:  [nacked]
- mm-page_alloc-speeding-up-the-iteration-of-max_order.patch removed from -mm
- tree
-Message-ID: <20201203205230.CdOI0QUFH%akpm@linux-foundation.org>
+To:     aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com,
+        guangye.yang@mediatek.com, Kuan-Ying.Lee@mediatek.com,
+        matthias.bgg@gmail.com, miles.chen@mediatek.com,
+        mm-commits@vger.kernel.org, nicholas.tang@mediatek.com,
+        qcai@redhat.com, sfr@canb.auug.org.au
+Subject:  [failures]
+ kasan-fix-object-remain-in-offline-per-cpu-quarantine.patch removed from
+ -mm tree
+Message-ID: <20201203205810.Tat-xsb2E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,57 +45,160 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: speed up the iteration of max_order
+     Subject: kasan: fix object remaining in offline per-cpu quarantine
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-speeding-up-the-iteration-of-max_order.patch
+     kasan-fix-object-remain-in-offline-per-cpu-quarantine.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_alloc: speed up the iteration of max_order
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: kasan: fix object remaining in offline per-cpu quarantine
 
-When we free a page whose order is very close to MAX_ORDER and greater
-than pageblock_order, it wastes some CPU cycles to increase max_order to
-MAX_ORDER one by one and check the pageblock migratetype of that page
-repeatedly especially when MAX_ORDER is much larger than pageblock_order.
+We hit this issue in our internal test.  When enabling generic kasan, a
+kfree()'d object is put into per-cpu quarantine first.  If the cpu goes
+offline, object still remains in the per-cpu quarantine.  If we call
+kmem_cache_destroy() now, slub will report "Objects remaining" error.
 
-Link: https://lkml.kernel.org/r/20201202121838.75218-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[   74.982625] =============================================================================
+[   74.983380] BUG test_module_slab (Not tainted): Objects remaining in test_module_slab on __kmem_cache_shutdown()
+[   74.984145] -----------------------------------------------------------------------------
+[   74.984145]
+[   74.984883] Disabling lock debugging due to kernel taint
+[   74.985561] INFO: Slab 0x(____ptrval____) objects=34 used=1 fp=0x(____ptrval____) flags=0x2ffff00000010200
+[   74.986638] CPU: 3 PID: 176 Comm: cat Tainted: G    B             5.10.0-rc1-00007-g4525c8781ec0-dirty #10
+[   74.987262] Hardware name: linux,dummy-virt (DT)
+[   74.987606] Call trace:
+[   74.987924]  dump_backtrace+0x0/0x2b0
+[   74.988296]  show_stack+0x18/0x68
+[   74.988698]  dump_stack+0xfc/0x168
+[   74.989030]  slab_err+0xac/0xd4
+[   74.989346]  __kmem_cache_shutdown+0x1e4/0x3c8
+[   74.989779]  kmem_cache_destroy+0x68/0x130
+[   74.990176]  test_version_show+0x84/0xf0
+[   74.990679]  module_attr_show+0x40/0x60
+[   74.991218]  sysfs_kf_seq_show+0x128/0x1c0
+[   74.991656]  kernfs_seq_show+0xa0/0xb8
+[   74.992059]  seq_read+0x1f0/0x7e8
+[   74.992415]  kernfs_fop_read+0x70/0x338
+[   74.993051]  vfs_read+0xe4/0x250
+[   74.993498]  ksys_read+0xc8/0x180
+[   74.993825]  __arm64_sys_read+0x44/0x58
+[   74.994203]  el0_svc_common.constprop.0+0xac/0x228
+[   74.994708]  do_el0_svc+0x38/0xa0
+[   74.995088]  el0_sync_handler+0x170/0x178
+[   74.995497]  el0_sync+0x174/0x180
+[   74.996050] INFO: Object 0x(____ptrval____) @offset=15848
+[   74.996752] INFO: Allocated in test_version_show+0x98/0xf0 age=8188 cpu=6 pid=172
+[   75.000802]  stack_trace_save+0x9c/0xd0
+[   75.002420]  set_track+0x64/0xf0
+[   75.002770]  alloc_debug_processing+0x104/0x1a0
+[   75.003171]  ___slab_alloc+0x628/0x648
+[   75.004213]  __slab_alloc.isra.0+0x2c/0x58
+[   75.004757]  kmem_cache_alloc+0x560/0x588
+[   75.005376]  test_version_show+0x98/0xf0
+[   75.005756]  module_attr_show+0x40/0x60
+[   75.007035]  sysfs_kf_seq_show+0x128/0x1c0
+[   75.007433]  kernfs_seq_show+0xa0/0xb8
+[   75.007800]  seq_read+0x1f0/0x7e8
+[   75.008128]  kernfs_fop_read+0x70/0x338
+[   75.008507]  vfs_read+0xe4/0x250
+[   75.008990]  ksys_read+0xc8/0x180
+[   75.009462]  __arm64_sys_read+0x44/0x58
+[   75.010085]  el0_svc_common.constprop.0+0xac/0x228
+[   75.011006] kmem_cache_destroy test_module_slab: Slab cache still has objects
+
+Register a cpu hotplug function to remove all objects in the offline
+per-cpu quarantine when cpu is going offline.  Set a per-cpu variable to
+indicate this cpu is offline.
+
+Link: https://lkml.kernel.org/r/1606895585-17382-2-git-send-email-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: Guangye Yang <guangye.yang@mediatek.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Nicholas Tang <nicholas.tang@mediatek.com>
+Cc: Miles Chen <miles.chen@mediatek.com>
+Cc: Qian Cai <qcai@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/kasan/quarantine.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-speeding-up-the-iteration-of-max_order
-+++ a/mm/page_alloc.c
-@@ -1035,7 +1035,7 @@ continue_merging:
- 		pfn = combined_pfn;
- 		order++;
- 	}
--	if (max_order < MAX_ORDER) {
-+	if (max_order < MAX_ORDER && order < MAX_ORDER - 1) {
- 		/* If we are here, it means order is >= pageblock_order.
- 		 * We want to prevent merge between freepages on isolate
- 		 * pageblock and normal pageblock. Without this, pageblock
-@@ -1056,6 +1056,8 @@ continue_merging:
- 						is_migrate_isolate(buddy_mt)))
- 				goto done_merging;
- 		}
-+		if (unlikely(order != max_order - 1))
-+			max_order = order + 1;
- 		max_order++;
- 		goto continue_merging;
- 	}
+--- a/mm/kasan/quarantine.c~kasan-fix-object-remain-in-offline-per-cpu-quarantine
++++ a/mm/kasan/quarantine.c
+@@ -29,6 +29,7 @@
+ #include <linux/srcu.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
++#include <linux/cpuhotplug.h>
+ 
+ #include "../slab.h"
+ #include "kasan.h"
+@@ -43,6 +44,7 @@ struct qlist_head {
+ 	struct qlist_node *head;
+ 	struct qlist_node *tail;
+ 	size_t bytes;
++	bool offline;
+ };
+ 
+ #define QLIST_INIT { NULL, NULL, 0 }
+@@ -188,6 +190,11 @@ void quarantine_put(struct kasan_free_me
+ 	local_irq_save(flags);
+ 
+ 	q = this_cpu_ptr(&cpu_quarantine);
++	if (q->offline) {
++		qlink_free(&info->quarantine_link, cache);
++		local_irq_restore(flags);
++		return;
++	}
+ 	qlist_put(q, &info->quarantine_link, cache->size);
+ 	if (unlikely(q->bytes > QUARANTINE_PERCPU_SIZE)) {
+ 		qlist_move_all(q, &temp);
+@@ -328,3 +335,36 @@ void quarantine_remove_cache(struct kmem
+ 
+ 	synchronize_srcu(&remove_cache_srcu);
+ }
++
++static int kasan_cpu_online(unsigned int cpu)
++{
++	this_cpu_ptr(&cpu_quarantine)->offline = false;
++	return 0;
++}
++
++static int kasan_cpu_offline(unsigned int cpu)
++{
++	struct qlist_head *q;
++
++	q = this_cpu_ptr(&cpu_quarantine);
++	/* Ensure the ordering between the writing to q->offline and
++	 * qlist_free_all. Otherwise, cpu_quarantine may be corrupted
++	 * by interrupt.
++	 */
++	WRITE_ONCE(q->offline, true);
++	barrier();
++	qlist_free_all(q, NULL);
++	return 0;
++}
++
++static int __init kasan_cpu_quarantine_init(void)
++{
++	int ret = 0;
++
++	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "mm/kasan:online",
++				kasan_cpu_online, kasan_cpu_offline);
++	if (ret < 0)
++		pr_err("kasan cpu quarantine register failed [%d]\n", ret);
++	return ret;
++}
++late_initcall(kasan_cpu_quarantine_init);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
-mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
-mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
-mm-page_isolation-do-not-isolate-the-max-order-page.patch
 
