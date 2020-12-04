@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2A91C4361B
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B9C3C4361A
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:04:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 71D1C22224
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:00:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39FD9224BE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:04:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729762AbgLDAAE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Dec 2020 19:00:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52030 "EHLO mail.kernel.org"
+        id S2389471AbgLDAE3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Dec 2020 19:04:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728240AbgLDAAD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 3 Dec 2020 19:00:03 -0500
-Date:   Thu, 03 Dec 2020 15:59:16 -0800
+        id S2389470AbgLDAE3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 3 Dec 2020 19:04:29 -0500
+Date:   Thu, 03 Dec 2020 16:03:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607039957;
-        bh=65iVujU5TWewewwBthYUrNfMlr2K3RerQVb/gD9rCj0=;
+        s=korg; t=1607040228;
+        bh=+nmMTn50oIvbl11W95IjmulUkbDamiA9SEGriglVAyU=;
         h=From:To:Subject:From;
-        b=QSB6Hn0duLyd8p1H1uLPXKBam0dDBFazNeo7+MGiArQ4oEl1l7M94sk4149ejjbru
-         zl1PUCRrJ74THpmaBfG3Efzbuk1CPwpJFBuWYQuEgLA0MwLNbxdnQ8nFWj0C6NP6ny
-         Dw63zok8BcaYlEXn88UkkcRGLsxoTigyKzfN6tn0=
+        b=Z0gVOjvNm2qEIQmQX6eqrCG4Fxf/dE4s1SL2Zl9PXRXk6gpGWIhnOjxKe3cnNJBP5
+         rI6qJ9qtasVAVaMpTTeDbowFmoEHSJAZWvsiNbUot3l20zOgCRNaJF82w/uxqyxnTB
+         VSLlTl7cAxF9MYDZSlvFkgcmqz7bEdGltigenGIA=
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com, corbet@lwn.net,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        jiangshanlai@gmail.com, matthias.bgg@gmail.com,
-        mm-commits@vger.kernel.org, tj@kernel.org,
-        walter-zh.wu@mediatek.com
-Subject:  + kasan-update-documentation-for-generic-kasan.patch
+To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
+        dvyukov@google.com, elver@google.com, georgepope@android.com,
+        herbert@gondor.apana.org.au, keescook@chromium.org,
+        masahiroy@kernel.org, michal.lkml@markovi.net,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ndesaulniers@google.com, oberpar@linux.ibm.com,
+        rdunlap@infradead.org, torvalds@linux-foundation.org
+Subject:  + ubsan-remove-redundant-wno-maybe-uninitialized.patch
  added to -mm tree
-Message-ID: <20201203235916.CsokYuYi_%akpm@linux-foundation.org>
+Message-ID: <20201204000346.KuRoBQhBg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: update documentation for generic kasan
+     Subject: ubsan: remove redundant -Wno-maybe-uninitialized
 has been added to the -mm tree.  Its filename is
-     kasan-update-documentation-for-generic-kasan.patch
+     ubsan-remove-redundant-wno-maybe-uninitialized.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-update-documentation-for-generic-kasan.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ubsan-remove-redundant-wno-maybe-uninitialized.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-update-documentation-for-generic-kasan.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ubsan-remove-redundant-wno-maybe-uninitialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,50 +67,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: kasan: update documentation for generic kasan
+From: Kees Cook <keescook@chromium.org>
+Subject: ubsan: remove redundant -Wno-maybe-uninitialized
 
-Generic KASAN also supports to record the last two workqueue stacks and
-print them in KASAN report.  So that need to update documentation.
+Patch series "Clean up UBSAN Makefile", v2.
 
-Link: https://lkml.kernel.org/r/20201203023037.30792-1-walter-zh.wu@mediatek.com
-Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+This series attempts to address the issues seen with UBSAN's object-size
+sanitizer causing problems under GCC.  In the process, the Kconfig and
+Makefile are refactored to do all the cc-option calls in the Kconfig. 
+Additionally start to detangle -Wno-maybe-uninitialized, disable
+UBSAN_TRAP under COMPILE_TEST for wider build coverage, and expand the
+libusan tests.
+
+
+This patch (of 7):
+
+In commit 78a5255ffb6a ("Stop the ad-hoc games with
+-Wno-maybe-initialized") -Wmaybe-uninitialized was disabled globally, so
+keeping the disabling logic here too doesn't make sense.
+
+Link: https://lkml.kernel.org/r/20201203004437.389959-1-keescook@chromium.org
+Link: https://lkml.kernel.org/r/20201203004437.389959-2-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: George Popescu <georgepope@android.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/Kconfig.ubsan      |    4 ----
+ scripts/Makefile.ubsan |    4 ----
+ 2 files changed, 8 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation-for-generic-kasan
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -190,8 +190,9 @@ function calls GCC directly inserts the
- This option significantly enlarges kernel but it gives x1.1-x2 performance
- boost over outline instrumented kernel.
- 
--Generic KASAN prints up to 2 call_rcu() call stacks in reports, the last one
--and the second to last.
-+Generic KASAN also reports the last 2 call stacks to creation of work that
-+potentially has access to an object. Call stacks for the following are shown:
-+call_rcu() and workqueue queuing.
- 
- Software tag-based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
+--- a/lib/Kconfig.ubsan~ubsan-remove-redundant-wno-maybe-uninitialized
++++ a/lib/Kconfig.ubsan
+@@ -72,10 +72,6 @@ config UBSAN_MISC
+ config UBSAN_SANITIZE_ALL
+ 	bool "Enable instrumentation for the entire kernel"
+ 	depends on ARCH_HAS_UBSAN_SANITIZE_ALL
+-
+-	# We build with -Wno-maybe-uninitilzed, but we still want to
+-	# use -Wmaybe-uninitilized in allmodconfig builds.
+-	# So dependsy bellow used to disable this option in allmodconfig
+ 	depends on !COMPILE_TEST
+ 	default y
+ 	help
+--- a/scripts/Makefile.ubsan~ubsan-remove-redundant-wno-maybe-uninitialized
++++ a/scripts/Makefile.ubsan
+@@ -31,7 +31,3 @@ endif
+ ifdef CONFIG_UBSAN_TRAP
+       CFLAGS_UBSAN += $(call cc-option, -fsanitize-undefined-trap-on-error)
+ endif
+-
+-      # -fsanitize=* options makes GCC less smart than usual and
+-      # increase number of 'maybe-uninitialized false-positives
+-      CFLAGS_UBSAN += $(call cc-option, -Wno-maybe-uninitialized)
 _
 
-Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-workqueue-kasan-record-workqueue-stack.patch
-kasan-print-workqueue-stack.patch
-lib-test_kasanc-add-workqueue-test-case.patch
-kasan-update-documentation-for-generic-kasan.patch
+ubsan-remove-redundant-wno-maybe-uninitialized.patch
+ubsan-move-cc-option-tests-into-kconfig.patch
+ubsan-disable-object-size-sanitizer-under-gcc.patch
+ubsan-disable-ubsan_trap-for-allconfig.patch
+ubsan-enable-for-allconfig-builds.patch
+ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch
+ubsan-expand-tests-and-reporting.patch
 
