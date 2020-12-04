@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C605C4361A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49B2DC433FE
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:05:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 271E7224BE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:05:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00F83224B8
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Dec 2020 00:05:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387468AbgLDAFK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1728135AbgLDAFK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 3 Dec 2020 19:05:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54452 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727836AbgLDAFK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727256AbgLDAFK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 3 Dec 2020 19:05:10 -0500
-Date:   Thu, 03 Dec 2020 16:04:08 -0800
+Date:   Thu, 03 Dec 2020 16:04:04 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607040250;
-        bh=Wuh/AqM6DnY8xlF+nJ9thI68izJURjCG+ZfnhIZlrW4=;
+        s=korg; t=1607040246;
+        bh=atLBaqW44BoN1pMtlcwl/w4pC9mvk76id9HjXHJTtD8=;
         h=From:To:Subject:From;
-        b=KS+R78SF+be3Y8x1UhqxGAlWUEgb51IzVVI0uWNEXokaH+UYQfEp83qXQn0Lm23xt
-         zC7IqsVSNFKAf9C9O/potFW2jeYzUZTFiJVMbdhzMaOfIlExigsKmcLrOQWxI0KDkg
-         57n2nvNdU7XJT/Fy/JDsQN0ZXIZ9fjMRe9ea+FDA=
+        b=nyzYN50w4JSwqOYFOOo+7X1E1Rc9t3LrRGhf8n6yME7kSh0abKayTqDCz5SsQdNxz
+         OsA+tySeD3DWHfOED/05p9hEz/6wgoOkLC+Zqwn7cz0bpLYQ7RvjnCVrnIrzWLnp6x
+         bIoZIAuO/Gey4QToCYgJZ8kjRzlDKeeP5tvzqYJc=
 From:   akpm@linux-foundation.org
 To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
         dvyukov@google.com, elver@google.com, georgepope@android.com,
@@ -35,9 +35,10 @@ To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
         mm-commits@vger.kernel.org, natechancellor@gmail.com,
         ndesaulniers@google.com, oberpar@linux.ibm.com,
         rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  + ubsan-expand-tests-and-reporting.patch added to -mm
+Subject:  +
+ ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch added to -mm
  tree
-Message-ID: <20201204000408.5fCsbGcqf%akpm@linux-foundation.org>
+Message-ID: <20201204000404.GhZCZ9eHV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: expand tests and reporting
+     Subject: ubsan: remove UBSAN_MISC in favor of individual options
 has been added to the -mm tree.  Its filename is
-     ubsan-expand-tests-and-reporting.patch
+     ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ubsan-expand-tests-and-reporting.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ubsan-expand-tests-and-reporting.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,13 +69,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: expand tests and reporting
+Subject: ubsan: remove UBSAN_MISC in favor of individual options
 
-Expand the UBSAN tests to include some additional UB cases.  Notably the
-out-of-bounds enum loading appears not to work.  Also include per-test
-reporting, including the relevant CONFIG_UBSAN...  Kconfigs.
+Make each UBSAN option individually selectable and remove UBSAN_MISC which
+no longer has any purpose.  Add help text for each Kconfig, and include a
+reference to the Clang sanitizer documentation.  Disable unsigned overflow
+by default (not available with GCC and makes x86 unbootable with Clang). 
+Disable unreachable when objtool is in use (redundant and confuses things:
+instrumentation appears at unreachable locations).
 
-Link: https://lkml.kernel.org/r/20201203004437.389959-8-keescook@chromium.org
+Link: https://lkml.kernel.org/r/20201203004437.389959-7-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -93,193 +97,141 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_ubsan.c |   74 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 66 insertions(+), 8 deletions(-)
+ Documentation/dev-tools/ubsan.rst |    1 
+ lib/Kconfig.ubsan                 |   82 +++++++++++++++++++---------
+ 2 files changed, 57 insertions(+), 26 deletions(-)
 
---- a/lib/test_ubsan.c~ubsan-expand-tests-and-reporting
-+++ a/lib/test_ubsan.c
-@@ -5,32 +5,54 @@
+--- a/Documentation/dev-tools/ubsan.rst~ubsan-remove-ubsan_misc-in-favor-of-individual-options
++++ a/Documentation/dev-tools/ubsan.rst
+@@ -86,3 +86,4 @@ References
  
- typedef void(*test_ubsan_fp)(void);
+ .. _1: https://gcc.gnu.org/onlinedocs/gcc-4.9.0/gcc/Debugging-Options.html
+ .. _2: https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html
++.. _3: https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+--- a/lib/Kconfig.ubsan~ubsan-remove-ubsan_misc-in-favor-of-individual-options
++++ a/lib/Kconfig.ubsan
+@@ -84,48 +84,88 @@ config UBSAN_LOCAL_BOUNDS
+ 	  where an added offset (which may not be known statically) is
+ 	  out-of-bounds.
  
-+#define UBSAN_TEST(config, ...)	do {					\
-+		pr_info("%s " __VA_ARGS__ "%s(%s=%s)\n", __func__,	\
-+			sizeof(" " __VA_ARGS__) > 2 ? " " : "",		\
-+			#config, IS_ENABLED(config) ? "y" : "n");	\
-+	} while (0)
+-config UBSAN_MISC
+-	bool "Enable all other Undefined Behavior sanity checks"
+-	default UBSAN
+-	help
+-	  This option enables all sanity checks that don't have their
+-	  own Kconfig options. Disable this if you only want to have
+-	  individually selected checks.
+-
+ config UBSAN_SHIFT
+-	def_bool UBSAN_MISC
++	bool "Perform checking for bit-shift overflows"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=shift)
++	help
++	  This option enables -fsanitize=shift which checks for bit-shift
++	  operations that overflow to the left or go switch to negative
++	  for signed types.
+ 
+ config UBSAN_DIV_ZERO
+-	def_bool UBSAN_MISC
++	bool "Perform checking for integer divide-by-zero"
+ 	depends on $(cc-option,-fsanitize=integer-divide-by-zero)
++	help
++	  This option enables -fsanitize=integer-divide-by-zero which checks
++	  for integer division by zero. This is effectively redundant with the
++	  kernel's existing exception handling, though it can provide greater
++	  debugging information under CONFIG_UBSAN_REPORT_FULL.
+ 
+ config UBSAN_UNREACHABLE
+-	def_bool UBSAN_MISC
++	bool "Perform checking for unreachable code"
++	# objtool already handles unreachable checking and gets angry about
++	# seeing UBSan instrumentation located in unreachable places.
++	depends on !STACK_VALIDATION
+ 	depends on $(cc-option,-fsanitize=unreachable)
++	help
++	  This option enables -fsanitize=unreachable which checks for control
++	  flow reaching an expected-to-be-unreachable position.
+ 
+ config UBSAN_SIGNED_OVERFLOW
+-	def_bool UBSAN_MISC
++	bool "Perform checking for signed arithmetic overflow"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=signed-integer-overflow)
++	help
++	  This option enables -fsanitize=signed-integer-overflow which checks
++	  for overflow of any arithmetic operations with signed integers.
+ 
+ config UBSAN_UNSIGNED_OVERFLOW
+-	def_bool UBSAN_MISC
++	bool "Perform checking for unsigned arithmetic overflow"
+ 	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
++	help
++	  This option enables -fsanitize=unsigned-integer-overflow which checks
++	  for overflow of any arithmetic operations with unsigned integers. This
++	  currently causes x86 to fail to boot.
+ 
+ config UBSAN_OBJECT_SIZE
+-	def_bool UBSAN_MISC
++	bool "Perform checking for accesses beyond the end of objects"
++	default UBSAN
+ 	# gcc hugely expands stack usage with -fsanitize=object-size
+ 	# https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
+ 	depends on !CC_IS_GCC
+ 	depends on $(cc-option,-fsanitize=object-size)
++	help
++	  This option enables -fsanitize=object-size which checks for accesses
++	  beyond the end of objects where the optimizer can determine both the
++	  object being operated on and its size, usually seen with bad downcasts,
++	  or access to struct members from NULL pointers.
+ 
+ config UBSAN_BOOL
+-	def_bool UBSAN_MISC
++	bool "Perform checking for non-boolean values used as boolean"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=bool)
++	help
++	  This option enables -fsanitize=bool which checks for boolean values being
++	  loaded that are neither 0 nor 1.
+ 
+ config UBSAN_ENUM
+-	def_bool UBSAN_MISC
++	bool "Perform checking for out of bounds enum values"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=enum)
++	help
++	  This option enables -fsanitize=enum which checks for values being loaded
++	  into an enum that are outside the range of given values for the given enum.
 +
- static void test_ubsan_add_overflow(void)
- {
- 	volatile int val = INT_MAX;
-+	volatile unsigned int uval = UINT_MAX;
++config UBSAN_ALIGNMENT
++	bool "Perform checking for misaligned pointer usage"
++	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
++	depends on !UBSAN_TRAP && !COMPILE_TEST
++	depends on $(cc-option,-fsanitize=alignment)
++	help
++	  This option enables the check of unaligned memory accesses.
++	  Enabling this option on architectures that support unaligned
++	  accesses may produce a lot of false positives.
  
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
- 	val += 2;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_UNSIGNED_OVERFLOW);
-+	uval += 2;
- }
+ config UBSAN_SANITIZE_ALL
+ 	bool "Enable instrumentation for the entire kernel"
+@@ -138,16 +178,6 @@ config UBSAN_SANITIZE_ALL
+ 	  Enabling this option will get kernel image size increased
+ 	  significantly.
  
- static void test_ubsan_sub_overflow(void)
- {
- 	volatile int val = INT_MIN;
-+	volatile unsigned int uval = 0;
- 	volatile int val2 = 2;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
- 	val -= val2;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_UNSIGNED_OVERFLOW);
-+	uval -= val2;
- }
- 
- static void test_ubsan_mul_overflow(void)
- {
- 	volatile int val = INT_MAX / 2;
-+	volatile unsigned int uval = UINT_MAX / 2;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
- 	val *= 3;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_UNSIGNED_OVERFLOW);
-+	uval *= 3;
- }
- 
- static void test_ubsan_negate_overflow(void)
- {
- 	volatile int val = INT_MIN;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_SIGNED_OVERFLOW);
- 	val = -val;
- }
- 
-@@ -39,37 +61,67 @@ static void test_ubsan_divrem_overflow(v
- 	volatile int val = 16;
- 	volatile int val2 = 0;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_DIV_ZERO);
- 	val /= val2;
- }
- 
- static void test_ubsan_shift_out_of_bounds(void)
- {
--	volatile int val = -1;
--	int val2 = 10;
-+	volatile int neg = -1, wrap = 4;
-+	int val1 = 10;
-+	int val2 = INT_MAX;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_SHIFT, "negative exponent");
-+	val1 <<= neg;
- 
--	val2 <<= val;
-+	UBSAN_TEST(CONFIG_UBSAN_SHIFT, "left overflow");
-+	val2 <<= wrap;
- }
- 
- static void test_ubsan_out_of_bounds(void)
- {
--	volatile int i = 4, j = 5;
-+	volatile int i = 4, j = 5, k = -1;
-+	volatile char above[4] = { }; /* Protect surrounding memory. */
- 	volatile int arr[4];
-+	volatile char below[4] = { }; /* Protect surrounding memory. */
- 
-+	above[0] = below[0];
-+
-+	UBSAN_TEST(CONFIG_UBSAN_BOUNDS, "above");
- 	arr[j] = i;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_BOUNDS, "below");
-+	arr[k] = i;
- }
- 
-+enum ubsan_test_enum {
-+	UBSAN_TEST_ZERO = 0,
-+	UBSAN_TEST_ONE,
-+	UBSAN_TEST_MAX,
-+};
-+
- static void test_ubsan_load_invalid_value(void)
- {
- 	volatile char *dst, *src;
- 	bool val, val2, *ptr;
--	char c = 4;
-+	enum ubsan_test_enum eval, eval2, *eptr;
-+	unsigned char c = 0xff;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_BOOL, "bool");
- 	dst = (char *)&val;
- 	src = &c;
- 	*dst = *src;
- 
- 	ptr = &val2;
- 	val2 = val;
-+
-+	UBSAN_TEST(CONFIG_UBSAN_ENUM, "enum");
-+	dst = (char *)&eval;
-+	src = &c;
-+	*dst = *src;
-+
-+	eptr = &eval2;
-+	eval2 = eval;
- }
- 
- static void test_ubsan_null_ptr_deref(void)
-@@ -77,6 +129,7 @@ static void test_ubsan_null_ptr_deref(vo
- 	volatile int *ptr = NULL;
- 	int val;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_OBJECT_SIZE);
- 	val = *ptr;
- }
- 
-@@ -85,6 +138,7 @@ static void test_ubsan_misaligned_access
- 	volatile char arr[5] __aligned(4) = {1, 2, 3, 4, 5};
- 	volatile int *ptr, val = 6;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_ALIGNMENT);
- 	ptr = (int *)(arr + 1);
- 	*ptr = val;
- }
-@@ -95,6 +149,7 @@ static void test_ubsan_object_size_misma
- 	volatile int val __aligned(8) = 4;
- 	volatile long long *ptr, val2;
- 
-+	UBSAN_TEST(CONFIG_UBSAN_OBJECT_SIZE);
- 	ptr = (long long *)&val;
- 	val2 = *ptr;
- }
-@@ -104,15 +159,19 @@ static const test_ubsan_fp test_ubsan_ar
- 	test_ubsan_sub_overflow,
- 	test_ubsan_mul_overflow,
- 	test_ubsan_negate_overflow,
--	test_ubsan_divrem_overflow,
- 	test_ubsan_shift_out_of_bounds,
- 	test_ubsan_out_of_bounds,
- 	test_ubsan_load_invalid_value,
--	//test_ubsan_null_ptr_deref, /* exclude it because there is a crash */
- 	test_ubsan_misaligned_access,
- 	test_ubsan_object_size_mismatch,
- };
- 
-+/* Excluded because they Oops the module. */
-+static const test_ubsan_fp skip_ubsan_array[] = {
-+	test_ubsan_divrem_overflow,
-+	test_ubsan_null_ptr_deref,
-+};
-+
- static int __init test_ubsan_init(void)
- {
- 	unsigned int i;
-@@ -120,7 +179,6 @@ static int __init test_ubsan_init(void)
- 	for (i = 0; i < ARRAY_SIZE(test_ubsan_array); i++)
- 		test_ubsan_array[i]();
- 
--	(void)test_ubsan_null_ptr_deref; /* to avoid unsed-function warning */
- 	return 0;
- }
- module_init(test_ubsan_init);
+-config UBSAN_ALIGNMENT
+-	bool "Enable checks for pointers alignment"
+-	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
+-	depends on !UBSAN_TRAP && !COMPILE_TEST
+-	depends on $(cc-option,-fsanitize=alignment)
+-	help
+-	  This option enables the check of unaligned memory accesses.
+-	  Enabling this option on architectures that support unaligned
+-	  accesses may produce a lot of false positives.
+-
+ config TEST_UBSAN
+ 	tristate "Module for testing for undefined behavior detection"
+ 	depends on m
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
