@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86CDDC433FE
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 00:40:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31A97C4361A
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 00:50:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 347C922D71
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 00:40:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0ED522D70
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 00:50:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726070AbgLEAk0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Dec 2020 19:40:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48642 "EHLO mail.kernel.org"
+        id S1730659AbgLEAua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Dec 2020 19:50:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725300AbgLEAk0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Dec 2020 19:40:26 -0500
-Date:   Fri, 04 Dec 2020 16:39:39 -0800
+        id S1729421AbgLEAua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Dec 2020 19:50:30 -0500
+Date:   Fri, 04 Dec 2020 16:49:57 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607128779;
-        bh=RUJQ6sGZIOrwcSDTmVvMgOH6g4pGEHnsF6StLRxAUzs=;
+        s=korg; t=1607129398;
+        bh=GYEvG5HdXH/yIjv8fZZIKSVXd3R+szR2wRyfW9AgXdE=;
         h=From:To:Subject:From;
-        b=XXNi0uG2Zqnx3dBPBbgs1rSHdcuhLp+XpLrvcThYi27s1cJeT+jYyITGMRTyeAAot
-         VyX9iGPliwv4vcMNh2jYY0v94z7x7GqetEoADWqOGiJu6RfYEI5qTUFp4ucvxnTovG
-         sJ5vlLSYy9VmLbi6vMTBbidZBda5i317XcDpv68o=
+        b=j8xQBgekZBtj5Bn05DwI26sr+ZKeoLozgimWX3soJxT5DX/g5ckJS3+okOVsTg+n+
+         r8nbVE716Ofyhvz4A3GVK93W4GTRCCx71G2Q0rwDnDFAA4kJix+pUFypwxF2udC2B5
+         XbKGcYEV8bNAKn/7PwBwoMFSesnqq05a0TY0AWiM=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        vbabka@suse.cz
-Subject:  +
- mm-page_alloc-speeding-up-the-iteration-of-max_order.patch added to -mm
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        vdavydov.dev@gmail.com
+Subject:  [to-be-updated]
+ mm-memcontrol-make-the-slab-calculation-consistent.patch removed from -mm
  tree
-Message-ID: <20201205003939.Kl1Ww0uSS%akpm@linux-foundation.org>
+Message-ID: <20201205004957.sQoKNsBmQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,91 +43,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: speed up the iteration of max_order
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-speeding-up-the-iteration-of-max_order.patch
+     Subject: mm/memcontrol: make the slab calculation consistent
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-make-the-slab-calculation-consistent.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-speeding-up-the-iteration-of-max_order.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-speeding-up-the-iteration-of-max_order.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_alloc: speed up the iteration of max_order
+Subject: mm/memcontrol: make the slab calculation consistent
 
-When we free a page whose order is very close to MAX_ORDER and greater
-than pageblock_order, it wastes some CPU cycles to increase max_order to
-MAX_ORDER one by one and check the pageblock migratetype of that page
-repeatedly especially when MAX_ORDER is much larger than pageblock_order.
+Although the ratio of the slab is one, we also should read the ratio from
+the related memory_stats instead of hard-coding.  And the local variable
+of size is already the value of slab_unreclaimable.  So we do not need to
+read again.  Simplify the code here.
 
-We also should not be checking migratetype of buddy when "order ==
-MAX_ORDER - 1" as the buddy pfn may be invalid, so adjust the condition. 
-With the new check, we don't need the max_order check anymore, so we
-replace it.
-
-Also adjust max_order initialization so that it's lower by one than
-previously, which makes the code hopefully more clear.
-
-Link: https://lkml.kernel.org/r/20201204155109.55451-1-songmuchun@bytedance.com
-Fixes: d9dddbf55667 ("mm/page_alloc: prevent merging between isolated and other pageblocks")
+Link: https://lkml.kernel.org/r/20201203031111.3187-1-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-speeding-up-the-iteration-of-max_order
-+++ a/mm/page_alloc.c
-@@ -996,7 +996,7 @@ static inline void __free_one_page(struc
- 	struct page *buddy;
- 	bool to_tail;
+--- a/mm/memcontrol.c~mm-memcontrol-make-the-slab-calculation-consistent
++++ a/mm/memcontrol.c
+@@ -1612,12 +1612,22 @@ static int __init memory_stats_init(void
+ 	int i;
  
--	max_order = min_t(unsigned int, MAX_ORDER, pageblock_order + 1);
-+	max_order = min_t(unsigned int, MAX_ORDER - 1, pageblock_order);
- 
- 	VM_BUG_ON(!zone_is_initialized(zone));
- 	VM_BUG_ON_PAGE(page->flags & PAGE_FLAGS_CHECK_AT_PREP, page);
-@@ -1009,7 +1009,7 @@ static inline void __free_one_page(struc
- 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
- 
- continue_merging:
--	while (order < max_order - 1) {
-+	while (order < max_order) {
- 		if (compaction_capture(capc, page, order, migratetype)) {
- 			__mod_zone_freepage_state(zone, -(1 << order),
- 								migratetype);
-@@ -1035,7 +1035,7 @@ continue_merging:
- 		pfn = combined_pfn;
- 		order++;
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
++		switch (memory_stats[i].idx) {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		if (memory_stats[i].idx == NR_ANON_THPS ||
+-		    memory_stats[i].idx == NR_FILE_THPS ||
+-		    memory_stats[i].idx == NR_SHMEM_THPS)
++		case NR_ANON_THPS:
++		case NR_FILE_THPS:
++		case NR_SHMEM_THPS:
+ 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
++			break;
+ #endif
++		case NR_SLAB_UNRECLAIMABLE_B:
++			VM_BUG_ON(i < 1);
++			VM_BUG_ON(memory_stats[i - 1].idx != NR_SLAB_RECLAIMABLE_B);
++			break;
++		default:
++			break;
++		}
++
+ 		VM_BUG_ON(!memory_stats[i].ratio);
+ 		VM_BUG_ON(memory_stats[i].idx >= MEMCG_NR_STAT);
  	}
--	if (max_order < MAX_ORDER) {
-+	if (order < MAX_ORDER - 1) {
- 		/* If we are here, it means order is >= pageblock_order.
- 		 * We want to prevent merge between freepages on isolate
- 		 * pageblock and normal pageblock. Without this, pageblock
-@@ -1056,7 +1056,7 @@ continue_merging:
- 						is_migrate_isolate(buddy_mt)))
- 				goto done_merging;
+@@ -1653,9 +1663,15 @@ static char *memory_stat_format(struct m
+ 		size *= memory_stats[i].ratio;
+ 		seq_buf_printf(&s, "%s %llu\n", memory_stats[i].name, size);
+ 
++		/*
++		 * We are printing reclaimable, unreclaimable of the slab
++		 * and the sum of both.
++		 */
+ 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
+-			size = memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
+-			       memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B);
++			int idx = i - 1;
++
++			size += memcg_page_state(memcg, memory_stats[idx].idx) *
++				memory_stats[idx].ratio;
+ 			seq_buf_printf(&s, "slab %llu\n", size);
  		}
--		max_order++;
-+		max_order = order + 1;
- 		goto continue_merging;
  	}
- 
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
@@ -135,7 +124,6 @@ mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
 mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
 mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
 mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
 mm-page_alloc-speeding-up-the-iteration-of-max_order.patch
 mm-page_isolation-do-not-isolate-the-max-order-page.patch
 
