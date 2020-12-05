@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BD8DC4361A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 430F9C433FE
 	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 01:22:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F087622D72
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 01:22:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 156C222D74
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 01:22:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726930AbgLEBWc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Dec 2020 20:22:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52324 "EHLO mail.kernel.org"
+        id S1727258AbgLEBWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Dec 2020 20:22:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726917AbgLEBWc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Dec 2020 20:22:32 -0500
-Date:   Fri, 04 Dec 2020 17:21:50 -0800
+        id S1726917AbgLEBWk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Dec 2020 20:22:40 -0500
+Date:   Fri, 04 Dec 2020 17:21:53 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607131311;
-        bh=2hnY9DFIAOB6rnu+5f/89nb7fPVejkqKeeYNDGkd31A=;
+        s=korg; t=1607131314;
+        bh=b/fL/FL7mU64BIzxdFmUWNmzEr4HC9Cc6P3wYb9CUTQ=;
         h=From:To:Subject:From;
-        b=e5uJgd5zbrn9/Vidxs5REZoQ434dXJqvhhceLVphA1+983Ucy+IuNjgrcOhwAFMJS
-         754dzzXOUm26fA4IvBDVBYIsAAfKt8LVoBe4BDPT3HDyHV4C+UZvwNgcgNMfP/WzPn
-         H1e34EfkRh0Bk2k4qMv4hJA/PanMa5LLGlgJ82wg=
+        b=SSJhOdP58GM3hdTPfisieG3pMYl+Qf17NicrDbVVsIAWb/2B0EgP2j/msnio6xXWt
+         mMNVZJlTI0tkZKsMl0mt4BmbaBVZCeClKfL3egfE4UC+wrvSp7TH7R32NPwzTmOHVp
+         E9uzIO8Cb0WCMZeR8VqfKp4e388Ogna+u6/ggVR8=
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, qcai@redhat.com, Vbabka@suse.cz
-Subject:  + mmhwpoison-refactor-get_any_page.patch added to -mm
+        osalvador@suse.de, qcai@redhat.com, vbabka@suse.cz
+Subject:  +
+ mmhwpoison-disable-pcplists-before-grabbing-a-refcount.patch added to -mm
  tree
-Message-ID: <20201205012150.BDaNT4D67%akpm@linux-foundation.org>
+Message-ID: <20201205012153.c0Kk_D3dy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: refactor get_any_page
+     Subject: mm,hwpoison: disable pcplists before grabbing a refcount
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-refactor-get_any_page.patch
+     mmhwpoison-disable-pcplists-before-grabbing-a-refcount.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-get_any_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-disable-pcplists-before-grabbing-a-refcount.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-get_any_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-disable-pcplists-before-grabbing-a-refcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,126 +64,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: refactor get_any_page
+Subject: mm,hwpoison: disable pcplists before grabbing a refcount
 
-Patch series "HWPoison: Refactor get page interface", v2.
+Currently, we have a sort of retry mechanism to make sure pages in
+pcp-lists are spilled to the buddy system, so we can handle those.
 
+We can save us this extra checks with the new disable-pcplist mechanism
+that is available with [1].
 
-This patch (of 3):
+zone_pcplist_disable makes sure to 1) disable pcplists, so any page that
+is freed up from that point onwards will end up in the buddy system and 2)
+drain pcplists, so those pages that already in pcplists are spilled to
+buddy.
 
-When we want to grab a refcount via get_any_page, we call __get_any_page
-that calls get_hwpoison_page to get the actual refcount.
+With that, we can make a common entry point for grabbing a refcount from
+both soft_offline and memory_failure paths that is guarded by
+zone_pcplist_disable/zone_pcplist_enable.
 
-get_any_page() is only there because we have a sort of retry mechanism in
-case the page we met is unknown to us or if we raced with an allocation.
+[1] https://patchwork.kernel.org/project/linux-mm/cover/20201111092812.11329-1-vbabka@suse.cz/
 
-Also __get_any_page() prints some messages about the page type in case the
-page was a free page or the page type was unknown, but if anything, we
-only need to print a message in case the pagetype was unknown, as that is
-reporting an error down the chain.
-
-Let us merge get_any_page() and __get_any_page(), and let the message be
-printed in soft_offline_page.  While we are it, we can also remove the
-'pfn' parameter as it is no longer used.
-
-Link: https://lkml.kernel.org/r/20201204102558.31607-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20201204102558.31607-2-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20201204102558.31607-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Vlastimil Babka <Vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Qian Cai <qcai@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   99 +++++++++++++++++-------------------------
- 1 file changed, 42 insertions(+), 57 deletions(-)
+ mm/memory-failure.c |  132 ++++++++++++++++++++----------------------
+ 1 file changed, 65 insertions(+), 67 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-refactor-get_any_page
+--- a/mm/memory-failure.c~mmhwpoison-disable-pcplists-before-grabbing-a-refcount
 +++ a/mm/memory-failure.c
-@@ -1707,70 +1707,51 @@ EXPORT_SYMBOL(unpoison_memory);
+@@ -985,26 +985,73 @@ static int __get_hwpoison_page(struct pa
+ 	return 0;
+ }
  
- /*
-  * Safely get reference count of an arbitrary page.
-- * Returns 0 for a free page, -EIO for a zero refcount page
-- * that is not free, and 1 for any other page type.
-- * For 1 the page is returned with increased page count, otherwise not.
-+ * Returns 0 for a free page, 1 for an in-use page, -EIO for a page-type we
-+ * cannot handle and -EBUSY if we raced with an allocation.
-+ * We only incremented refcount in case the page was already in-use and it is
-+ * a known type we can handle.
-  */
--static int __get_any_page(struct page *p, unsigned long pfn, int flags)
-+static int get_any_page(struct page *p, int flags)
+-static int get_hwpoison_page(struct page *p)
++/*
++ * Safely get reference count of an arbitrary page.
++ *
++ * Returns 0 for a free page, 1 for an in-use page,
++ * -EIO for a page-type we cannot handle and -EBUSY if we raced with an
++ * allocation.
++ * We only incremented refcount in case the page was already in-use and it
++ * is a known type we can handle.
++ */
++static int get_any_page(struct page *p, unsigned long flags)
  {
 -	int ret;
+-	bool drained = false;
 +	int ret = 0, pass = 0;
 +	bool count_increased = false;
  
- 	if (flags & MF_COUNT_INCREASED)
--		return 1;
+-retry:
+-	ret = __get_hwpoison_page(p);
+-	if (!ret && !is_free_buddy_page(p) && !page_count(p) && !drained) {
+-		/*
+-		 * The page might be in a pcplist, so try to drain those
+-		 * and see if we are lucky.
+-		 */
+-		drain_all_pages(page_zone(p));
+-		drained = true;
+-		goto retry;
++	if (flags & MF_COUNT_INCREASED)
 +		count_increased = true;
- 
--	/*
--	 * When the target page is a free hugepage, just remove it
--	 * from free hugepage list.
--	 */
--	if (!get_hwpoison_page(p)) {
--		if (PageHuge(p)) {
--			pr_info("%s: %#lx free huge page\n", __func__, pfn);
--			ret = 0;
--		} else if (is_free_buddy_page(p)) {
--			pr_info("%s: %#lx free buddy page\n", __func__, pfn);
--			ret = 0;
--		} else if (page_count(p)) {
--			/* raced with allocation */
++
 +try_again:
-+	if (!count_increased && !get_hwpoison_page(p)) {
++	if (!count_increased && !__get_hwpoison_page(p)) {
 +		if (page_count(p)) {
 +			/* We raced with an allocation, retry. */
 +			if (pass++ < 3)
 +				goto try_again;
- 			ret = -EBUSY;
--		} else {
--			pr_info("%s: %#lx: unknown zero refcount page type %lx\n",
--				__func__, pfn, p->flags);
++			ret = -EBUSY;
 +		} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
 +			/* We raced with put_page, retry. */
 +			if (pass++ < 3)
 +				goto try_again;
- 			ret = -EIO;
- 		}
- 	} else {
--		/* Not a free page */
--		ret = 1;
--	}
--	return ret;
--}
--
--static int get_any_page(struct page *page, unsigned long pfn, int flags)
--{
--	int ret = __get_any_page(page, pfn, flags);
--
--	if (ret == -EBUSY)
--		ret = __get_any_page(page, pfn, flags);
--
--	if (ret == 1 && !PageHuge(page) &&
--	    !PageLRU(page) && !__PageMovable(page)) {
--		/*
--		 * Try to free it.
--		 */
--		put_page(page);
--		shake_page(page, 1);
--
--		/*
--		 * Did it turn free?
--		 */
--		ret = __get_any_page(page, pfn, 0);
--		if (ret == 1 && !PageLRU(page)) {
--			/* Drop page reference which is from __get_any_page() */
--			put_page(page);
--			pr_info("soft_offline: %#lx: unknown non LRU page type %lx (%pGp)\n",
--				pfn, page->flags, &page->flags);
--			return -EIO;
++			ret = -EIO;
++		}
++	} else {
 +		if (PageHuge(p) || PageLRU(p) || __PageMovable(p)) {
 +			ret = 1;
 +		} else {
@@ -198,45 +159,131 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +			}
 +			put_page(p);
 +			ret = -EIO;
- 		}
++		}
  	}
-+
+ 
  	return ret;
  }
  
-@@ -1939,7 +1920,7 @@ int soft_offline_page(unsigned long pfn,
- 		return -EIO;
++static int get_hwpoison_page(struct page *p, unsigned long flags,
++			     enum mf_flags ctxt)
++{
++	int ret;
++
++	zone_pcp_disable(page_zone(p));
++	if (ctxt == MF_SOFT_OFFLINE)
++		ret = get_any_page(p, flags);
++	else
++		ret = __get_hwpoison_page(p);
++	zone_pcp_enable(page_zone(p));
++
++	return ret;
++}
++
+ /*
+  * Do all that is necessary to remove user space mappings. Unmap
+  * the pages and send SIGBUS to the processes if the data was dirty.
+@@ -1185,7 +1232,7 @@ static int memory_failure_hugetlb(unsign
  
- 	if (PageHWPoison(page)) {
--		pr_info("soft offline: %#lx page already poisoned\n", pfn);
-+		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
- 		if (flags & MF_COUNT_INCREASED)
- 			put_page(page);
+ 	num_poisoned_pages_inc();
+ 
+-	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
++	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p, flags, 0)) {
+ 		/*
+ 		 * Check "filter hit" and "race with other subpage."
+ 		 */
+@@ -1387,7 +1434,7 @@ try_again:
+ 	 * In fact it's dangerous to directly bump up page count from 0,
+ 	 * that may make page_ref_freeze()/page_ref_unfreeze() mismatch.
+ 	 */
+-	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
++	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p, flags, 0)) {
+ 		if (is_free_buddy_page(p)) {
+ 			if (take_page_off_buddy(p)) {
+ 				page_ref_inc(p);
+@@ -1630,6 +1677,7 @@ int unpoison_memory(unsigned long pfn)
+ 	struct page *page;
+ 	struct page *p;
+ 	int freeit = 0;
++	unsigned long flags = 0;
+ 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					DEFAULT_RATELIMIT_BURST);
+ 
+@@ -1674,7 +1722,7 @@ int unpoison_memory(unsigned long pfn)
  		return 0;
-@@ -1947,16 +1928,20 @@ int soft_offline_page(unsigned long pfn,
+ 	}
+ 
+-	if (!get_hwpoison_page(p)) {
++	if (!get_hwpoison_page(p, flags, 0)) {
+ 		if (TestClearPageHWPoison(p))
+ 			num_poisoned_pages_dec();
+ 		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
+@@ -1705,56 +1753,6 @@ int unpoison_memory(unsigned long pfn)
+ }
+ EXPORT_SYMBOL(unpoison_memory);
+ 
+-/*
+- * Safely get reference count of an arbitrary page.
+- * Returns 0 for a free page, 1 for an in-use page, -EIO for a page-type we
+- * cannot handle and -EBUSY if we raced with an allocation.
+- * We only incremented refcount in case the page was already in-use and it is
+- * a known type we can handle.
+- */
+-static int get_any_page(struct page *p, int flags)
+-{
+-	int ret = 0, pass = 0;
+-	bool count_increased = false;
+-
+-	if (flags & MF_COUNT_INCREASED)
+-		count_increased = true;
+-
+-try_again:
+-	if (!count_increased && !get_hwpoison_page(p)) {
+-		if (page_count(p)) {
+-			/* We raced with an allocation, retry. */
+-			if (pass++ < 3)
+-				goto try_again;
+-			ret = -EBUSY;
+-		} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
+-			/* We raced with put_page, retry. */
+-			if (pass++ < 3)
+-				goto try_again;
+-			ret = -EIO;
+-		}
+-	} else {
+-		if (PageHuge(p) || PageLRU(p) || __PageMovable(p)) {
+-			ret = 1;
+-		} else {
+-			/*
+-			 * A page we cannot handle. Check whether we can turn
+-			 * it into something we can handle.
+-			 */
+-			if (pass++ < 3) {
+-				put_page(p);
+-				shake_page(p, 1);
+-				count_increased = false;
+-				goto try_again;
+-			}
+-			put_page(p);
+-			ret = -EIO;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+ static bool isolate_page(struct page *page, struct list_head *pagelist)
+ {
+ 	bool isolated = false;
+@@ -1928,7 +1926,7 @@ int soft_offline_page(unsigned long pfn,
  
  retry:
  	get_online_mems();
--	ret = get_any_page(page, pfn, flags);
-+	ret = get_any_page(page, flags);
+-	ret = get_any_page(page, flags);
++	ret = get_hwpoison_page(page, flags, MF_SOFT_OFFLINE);
  	put_online_mems();
  
--	if (ret > 0)
-+	if (ret > 0) {
- 		ret = soft_offline_in_use_page(page);
--	else if (ret == 0)
-+	} else if (ret == 0) {
- 		if (soft_offline_free_page(page) && try_again) {
- 			try_again = false;
- 			goto retry;
- 		}
-+	} else if (ret == -EIO) {
-+		pr_info("%s: %#lx: unknown page type: %lx (%pGP)\n",
-+			 __func__, pfn, page->flags, &page->flags);
-+	}
- 
- 	return ret;
- }
+ 	if (ret > 0) {
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
