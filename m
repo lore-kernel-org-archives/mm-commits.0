@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31A97C4361A
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 00:50:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F06EC433FE
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 01:00:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0ED522D70
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 00:50:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 082A422D6F
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 01:00:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730659AbgLEAua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Dec 2020 19:50:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50334 "EHLO mail.kernel.org"
+        id S1731293AbgLEBAV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Dec 2020 20:00:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729421AbgLEAua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 4 Dec 2020 19:50:30 -0500
-Date:   Fri, 04 Dec 2020 16:49:57 -0800
+        id S1726242AbgLEBAV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 4 Dec 2020 20:00:21 -0500
+Date:   Fri, 04 Dec 2020 16:59:40 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607129398;
-        bh=GYEvG5HdXH/yIjv8fZZIKSVXd3R+szR2wRyfW9AgXdE=;
+        s=korg; t=1607129981;
+        bh=fSjFI0vZ2JMHbOGayPu+mQmGzJivy72gUjSFNRbeih0=;
         h=From:To:Subject:From;
-        b=j8xQBgekZBtj5Bn05DwI26sr+ZKeoLozgimWX3soJxT5DX/g5ckJS3+okOVsTg+n+
-         r8nbVE716Ofyhvz4A3GVK93W4GTRCCx71G2Q0rwDnDFAA4kJix+pUFypwxF2udC2B5
-         XbKGcYEV8bNAKn/7PwBwoMFSesnqq05a0TY0AWiM=
+        b=jTFUH9Eoc/AMl0UOnJR2fx7qb2YIl0weNJT58XDPvsdcrOBQOZBZr4AU3Su6XZ2wy
+         rWm4e/LRpwWmh1gD2fRJsr18ZYvC6ykS7LhxkyESbjecLreqEkx4vdvUowWhgjbK/O
+         6wDnSCPse4Q6CSuYg9LpJw8S/9XE9x1reKS4KY8k=
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        vdavydov.dev@gmail.com
-Subject:  [to-be-updated]
- mm-memcontrol-make-the-slab-calculation-consistent.patch removed from -mm
- tree
-Message-ID: <20201205004957.sQoKNsBmQ%akpm@linux-foundation.org>
+To:     jonathanh@nvidia.com, liu.hailong6@zte.com.cn,
+        m.szyprowski@samsung.com, mm-commits@vger.kernel.org,
+        qcai@redhat.com, rppt@kernel.org, sfr@canb.auug.org.au
+Subject:  [failures]
+ =?US-ASCII?Q?mm-memblock-use-a-more-appropriate-order-calculation-when-f?=
+ =?US-ASCII?Q?ree-memblock-pages.patch?= removed from -mm tree
+Message-ID: <20201205005940.ztFbAZFWC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,87 +45,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: make the slab calculation consistent
+     Subject: mm/memblock: use a more appropriate order calculation when free memblock pages
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-make-the-slab-calculation-consistent.patch
+     mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/memcontrol: make the slab calculation consistent
+From: Hailong Liu <liu.hailong6@zte.com.cn>
+Subject: mm/memblock: use a more appropriate order calculation when free memblock pages
 
-Although the ratio of the slab is one, we also should read the ratio from
-the related memory_stats instead of hard-coding.  And the local variable
-of size is already the value of slab_unreclaimable.  So we do not need to
-read again.  Simplify the code here.
+When system in the booting stage, pages span from [start, end] of a
+memblock are freed to buddy in a order as large as possible (less than
+MAX_ORDER) at first, then decrease gradually to a proper order(less than
+end) in a loop.
 
-Link: https://lkml.kernel.org/r/20201203031111.3187-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+However, *min(MAX_ORDER - 1UL, __ffs(start))* can not get the largest
+order in some cases.  Instead, *__ffs(end - start)* may be more
+appropriate and meaningful.
+
+Link: https://lkml.kernel.org/r/20201203152311.5272-1-carver4lio@163.com
+Signed-off-by: Hailong Liu <liu.hailong6@zte.com.cn>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qian Cai <qcai@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Jon Hunter <jonathanh@nvidia.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-make-the-slab-calculation-consistent
-+++ a/mm/memcontrol.c
-@@ -1612,12 +1612,22 @@ static int __init memory_stats_init(void
- 	int i;
+--- a/mm/memblock.c~mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages
++++ a/mm/memblock.c
+@@ -2010,7 +2010,7 @@ static void __init __free_pages_memory(u
+ 	int order;
  
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
-+		switch (memory_stats[i].idx) {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memory_stats[i].idx == NR_ANON_THPS ||
--		    memory_stats[i].idx == NR_FILE_THPS ||
--		    memory_stats[i].idx == NR_SHMEM_THPS)
-+		case NR_ANON_THPS:
-+		case NR_FILE_THPS:
-+		case NR_SHMEM_THPS:
- 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
-+			break;
- #endif
-+		case NR_SLAB_UNRECLAIMABLE_B:
-+			VM_BUG_ON(i < 1);
-+			VM_BUG_ON(memory_stats[i - 1].idx != NR_SLAB_RECLAIMABLE_B);
-+			break;
-+		default:
-+			break;
-+		}
-+
- 		VM_BUG_ON(!memory_stats[i].ratio);
- 		VM_BUG_ON(memory_stats[i].idx >= MEMCG_NR_STAT);
- 	}
-@@ -1653,9 +1663,15 @@ static char *memory_stat_format(struct m
- 		size *= memory_stats[i].ratio;
- 		seq_buf_printf(&s, "%s %llu\n", memory_stats[i].name, size);
+ 	while (start < end) {
+-		order = min(MAX_ORDER - 1UL, __ffs(start));
++		order = min(MAX_ORDER - 1UL, __ffs(end - start));
  
-+		/*
-+		 * We are printing reclaimable, unreclaimable of the slab
-+		 * and the sum of both.
-+		 */
- 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
--			size = memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
--			       memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B);
-+			int idx = i - 1;
-+
-+			size += memcg_page_state(memcg, memory_stats[idx].idx) *
-+				memory_stats[idx].ratio;
- 			seq_buf_printf(&s, "slab %llu\n", size);
- 		}
- 	}
+ 		while (start + (1UL << order) > end)
+ 			order--;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from liu.hailong6@zte.com.cn are
 
-mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
-mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
-mm-memcg-slab-fix-use-after-free-in-obj_cgroup_charge.patch
-mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
-mm-page_alloc-speeding-up-the-iteration-of-max_order.patch
-mm-page_isolation-do-not-isolate-the-max-order-page.patch
 
