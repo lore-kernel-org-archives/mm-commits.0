@@ -4,74 +4,96 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32BD5C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 588C7C4361B
 	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:16:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F332622D0B
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:16:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1802E22D2A
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725879AbgLFGQC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725379AbgLFGQC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 6 Dec 2020 01:16:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58992 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgLFGQA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 6 Dec 2020 01:16:00 -0500
-Date:   Sat, 05 Dec 2020 22:14:58 -0800
+        id S1725874AbgLFGQB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 6 Dec 2020 01:16:01 -0500
+Date:   Sat, 05 Dec 2020 22:15:02 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607235299;
-        bh=VCYQU5172HyRceXQnWz4lrS1BeIbfVsVDviDRKyMdEw=;
+        s=korg; t=1607235303;
+        bh=19d+bCl5PW06u7fz0lTdoweffI2aFMvA4VGQHKFoQoU=;
         h=From:To:Subject:In-Reply-To:From;
-        b=VI284WkQPo8yfwtIIDvu23lEFySziPoXAdh3NRuIDytD58m9TNTRMvWLX64RLAZhA
-         txtWHZpUghCG9IKgA+oRF2u+mPV5+/MoSGoyJOgMuLcLSiLfJt7Km3Oia+2DHRFvDA
-         PP8jP0sUb8RZjF1Sj/3RlExBnVEUYrlvP4ikgGcI=
+        b=mL7aKVMl85/+NbgIqrXHhhfPcoxmNItnOXGB6lAgI+MjIZ+ZRXvoTu/PzMi4XY1a+
+         qJk++DnjryGIZ0/ZDb3bH684D6iWIaC8YOd+Cy6/j/wkngaqS6z81KC74LWrngVigV
+         qi8uiykVDy5S9WoAKKIDuuZs8Eqza05VISb062n0=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        u.kleine-koenig@pengutronix.de
-Subject:  [patch 07/12] mailmap: add two more addresses of Uwe
- =?utf-8?Q?Kleine-K=C3=B6nig?=
-Message-ID: <20201206061458.WikZEuFQW%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, almasrymina@google.com,
+        bgeffon@google.com, dave.hansen@intel.com, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, sandipan@linux.ibm.com,
+        shuah@kernel.org, suxingxing@loongson.cn,
+        torvalds@linux-foundation.org
+Subject:  [patch 08/12] tools/testing/selftests/vm: fix build error
+Message-ID: <20201206061502.wIrp8YXQT%akpm@linux-foundation.org>
 In-Reply-To: <20201205221412.67f14b9b3a5ef531c76dd452@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
-Subject: mailmap: add two more addresses of Uwe Kleine-K=C3=B6nig
+From: Xingxing Su <suxingxing@loongson.cn>
+Subject: tools/testing/selftests/vm: fix build error
 
-This fixes attribution for the commits (among others)
+Only x86 and PowerPC implement the pkey-xxx.h, and an error was reported
+when compiling protection_keys.c.
 
-- d4097456cd1d ("video/framebuffer: move the probe func into
-  .devinit.text in Blackfin LCD driver")
+Add a Arch judgment to compile "protection_keys" in the Makefile.
 
-- 0312e024d6cd ("mfd: mc13xxx: Add support for mc34708")
+If other arch implement this, add the arch name to the Makefile.
+eg:
+    ifneq (,$(findstring $(ARCH),powerpc mips ... ))
 
-Link: https://lkml.kernel.org/r/20201127213358.3440830-1-u.kleine-koenig@pe=
-ngutronix.de
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Following build errors:
+    pkey-helpers.h:93:2: error: #error Architecture not supported
+     #error Architecture not supported
+    pkey-helpers.h:96:20: error: `PKEY_DISABLE_ACCESS' undeclared
+     #define PKEY_MASK (PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE)
+                        ^
+    protection_keys.c:218:45: error: `PKEY_DISABLE_WRITE' undeclared
+     pkey_assert(flags & (PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE));
+                                                ^
+
+Link: https://lkml.kernel.org/r/1606826876-30656-1-git-send-email-suxingxing@loongson.cn
+Signed-off-by: Xingxing Su <suxingxing@loongson.cn>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/vm/Makefile |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/.mailmap~mailmap-add-two-more-addresses-of-uwe-kleine-oenig
-+++ a/.mailmap
-@@ -322,6 +322,8 @@ TripleX Chung <xxx.phy@gmail.com> <zhong
- Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
- Tycho Andersen <tycho@tycho.pizza> <tycho@tycho.ws>
- Uwe Kleine-K=C3=B6nig <ukleinek@informatik.uni-freiburg.de>
-+Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
-+Uwe Kleine-K=C3=B6nig <ukleinek@strlen.de>
- Uwe Kleine-K=C3=B6nig <ukl@pengutronix.de>
- Uwe Kleine-K=C3=B6nig <Uwe.Kleine-Koenig@digi.com>
- Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+--- a/tools/testing/selftests/vm/Makefile~selftest-vm-fix-build-error
++++ a/tools/testing/selftests/vm/Makefile
+@@ -60,9 +60,13 @@ ifeq ($(CAN_BUILD_X86_64),1)
+ TEST_GEN_FILES += $(BINARIES_64)
+ endif
+ else
++
++ifneq (,$(findstring $(ARCH),powerpc))
+ TEST_GEN_FILES += protection_keys
+ endif
+ 
++endif
++
+ ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64))
+ TEST_GEN_FILES += va_128TBswitch
+ TEST_GEN_FILES += virtual_address_range
 _
