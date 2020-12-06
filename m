@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CDC7C433FE
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 05:24:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC77C4361B
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 00:54:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FE3522D2B
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Dec 2020 05:24:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94BB023138
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 00:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726011AbgLEFYN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 5 Dec 2020 00:24:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57622 "EHLO mail.kernel.org"
+        id S1726023AbgLFAyn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 5 Dec 2020 19:54:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725730AbgLEFYM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 5 Dec 2020 00:24:12 -0500
-Date:   Fri, 04 Dec 2020 21:23:30 -0800
+        id S1725922AbgLFAyn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 5 Dec 2020 19:54:43 -0500
+Date:   Sat, 05 Dec 2020 16:54:01 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607145811;
-        bh=lOclzvdp1a8BJC7B0DiA/fVKU+DOsbHRPKObtO4gl30=;
+        s=korg; t=1607216042;
+        bh=D01izbM81DESjHAbmKsAs8ZrWLqmboTck7C/BOVR4XE=;
         h=From:To:Subject:From;
-        b=BbZdg4cAKM5MqYeZsZhDBa5Qib73tYV/zaQ4tXyBu/WWA8mnsZWcadaYFz5SiCvu3
-         0xDHYBt2MPj6L/AxMs6Bvo9hliYOCNYrlU+dLthRa5Sy7BAUjzBIfZY1w7QT1+3+C6
-         JCiHl8EnWOMaXWuVU2Mk2GWJMuQ5JAFHdk5DtE0o=
+        b=Rq6yKUuvnbpEokXBFTUrjWR6umAMD2tPI9yXD/TSF+rtLgMG67yWhG11R9SPZ1JQN
+         EqaNP8flCp2VvoZahxQ9ohzhQ8DMOhYztUIyFRiX5femgr6jo7g6R+qrCnFYLHXBEp
+         WmkxShFeu05yhTNwBj2PLLb5/y2HWeQ42GVMFbj4=
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, catalin.marinas@arm.com,
-        dvyukov@google.com, ebiederm@xmission.com, elver@google.com,
-        glider@google.com, miles.chen@mediatek.com,
-        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com,
-        stable@vger.kernel.org, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + proc-use-untagged_addr-for-pagemap_read-addresses.patch
- added to -mm tree
-Message-ID: <20201205052330.3j7UaX5dA%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, bhe@redhat.com, cai@lca.pw, david@redhat.com,
+        mgorman@suse.de, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, stable@vger.kernel.org, vbabka@suse.cz
+Subject:  +
+ =?US-ASCII?Q?mm-initialize-struct-pages-in-reserved-regions-outside-of-t?=
+ =?US-ASCII?Q?he-zone-ranges.patch?= added to -mm tree
+Message-ID: <20201206005401.qKuAVgOXr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: use untagged_addr() for pagemap_read addresses
+     Subject: mm: initialize struct pages in reserved regions outside of the zone ranges
 has been added to the -mm tree.  Its filename is
-     proc-use-untagged_addr-for-pagemap_read-addresses.patch
+     mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-use-untagged_addr-for-pagemap_read-addresses.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-use-untagged_addr-for-pagemap_read-addresses.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,126 +66,225 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: proc: use untagged_addr() for pagemap_read addresses
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: initialize struct pages in reserved regions outside of the zone ranges
 
-When we try to visit the pagemap of a tagged userspace pointer, we find
-that the start_vaddr is not correct because of the tag.
-To fix it, we should untag the userspace pointers in pagemap_read().
+Without this change, the pfn 0 isn't in any zone spanned range, and it's
+also not in any memory.memblock range, so the struct page of pfn 0 wasn't
+initialized and the PagePoison remained set when reserve_bootmem_region
+called __SetPageReserved, inducing a silent boot failure with DEBUG_VM
+(and correctly so, because the crash signaled the nodeid/nid of pfn 0
+would be again wrong).
 
-I tested with 5.10-rc4 and the issue remains.
+There's no enforcement that all memblock.reserved ranges must overlap
+memblock.memory ranges, so the memblock.reserved ranges also require an
+explicit initialization and the zones ranges need to be extended to
+include all memblock.reserved ranges with struct pages too or they'll be
+left uninitialized with PagePoison as it happened to pfn 0.
 
-Explanation from Catalin in [1]:
-
-:Arguably, that's a user-space bug since tagged file offsets were never
-:supported. In this case it's not even a tag at bit 56 as per the arm64
-:tagged address ABI but rather down to bit 47. You could say that the
-:problem is caused by the C library (malloc()) or whoever created the
-:tagged vaddr and passed it to this function. It's not a kernel
-:regression as we've never supported it.
-:
-:Now, pagemap is a special case where the offset is usually not generated
-:as a classic file offset but rather derived by shifting a user virtual
-:address. I guess we can make a concession for pagemap (only) and allow
-:such offset with the tag at bit (56 - PAGE_SHIFT + 3).
-
-My test code is based on [2]:
-
-A userspace pointer which has been tagged by 0xb4: 0xb400007662f541c8
-
-=== userspace program ===
-
-uint64 OsLayer::VirtualToPhysical(void *vaddr) {
-	uint64 frame, paddr, pfnmask, pagemask;
-	int pagesize = sysconf(_SC_PAGESIZE);
-	off64_t off = ((uintptr_t)vaddr) / pagesize * 8; // off = 0xb400007662f541c8 / pagesize * 8 = 0x5a00003b317aa0
-	int fd = open(kPagemapPath, O_RDONLY);
-	...
-
-	if (lseek64(fd, off, SEEK_SET) != off || read(fd, &frame, 8) != 8) {
-		int err = errno;
-		string errtxt = ErrorString(err);
-		if (fd >= 0)
-			close(fd);
-		return 0;
-	}
-...
-}
-
-=== kernel fs/proc/task_mmu.c ===
-
-static ssize_t pagemap_read(struct file *file, char __user *buf,
-		size_t count, loff_t *ppos)
-{
-	...
-	src = *ppos;
-	svpfn = src / PM_ENTRY_BYTES; // svpfn == 0xb400007662f54
-	start_vaddr = svpfn << PAGE_SHIFT; // start_vaddr == 0xb400007662f54000
-	end_vaddr = mm->task_size;
-
-	/* watch out for wraparound */
-	// svpfn == 0xb400007662f54
-	// (mm->task_size >> PAGE) == 0x8000000
-	if (svpfn > mm->task_size >> PAGE_SHIFT) // the condition is true because of the tag 0xb4
-		start_vaddr = end_vaddr;
-
-	ret = 0;
-	while (count && (start_vaddr < end_vaddr)) { // we cannot visit correct entry because start_vaddr is set to end_vaddr
-		int len;
-		unsigned long end;
-		...
-	}
-	...
-}
-
-[1] https://lore.kernel.org/patchwork/patch/1343258/
-[2] https://github.com/stressapptest/stressapptest/blob/master/src/os.cc#L158
-
-Link: https://lkml.kernel.org/r/20201204024347.8295-1-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Song Bao Hua (Barry Song) <song.bao.hua@hisilicon.com>
-Cc: <stable@vger.kernel.org>	[5.4-]
+Link: https://lkml.kernel.org/r/20201205013238.21663-2-aarcange@redhat.com
+Fixes: 73a6e474cb37 ("mm: memmap_init: iterate over memblock regions rather that check each PFN")
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/memblock.h |   17 ++++++++---
+ mm/debug.c               |    3 +
+ mm/memblock.c            |    4 +-
+ mm/page_alloc.c          |   57 +++++++++++++++++++++++++++++--------
+ 4 files changed, 63 insertions(+), 18 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-use-untagged_addr-for-pagemap_read-addresses
-+++ a/fs/proc/task_mmu.c
-@@ -1599,11 +1599,15 @@ static ssize_t pagemap_read(struct file
+--- a/include/linux/memblock.h~mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges
++++ a/include/linux/memblock.h
+@@ -251,7 +251,8 @@ static inline bool memblock_is_nomap(str
+ int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
+ 			    unsigned long  *end_pfn);
+ void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
+-			  unsigned long *out_end_pfn, int *out_nid);
++			  unsigned long *out_end_pfn, int *out_nid,
++			  struct memblock_type *type);
  
- 	src = *ppos;
- 	svpfn = src / PM_ENTRY_BYTES;
--	start_vaddr = svpfn << PAGE_SHIFT;
- 	end_vaddr = mm->task_size;
- 
- 	/* watch out for wraparound */
--	if (svpfn > mm->task_size >> PAGE_SHIFT)
-+	start_vaddr = end_vaddr;
-+	if (svpfn <= (ULONG_MAX >> PAGE_SHIFT))
-+		start_vaddr = untagged_addr(svpfn << PAGE_SHIFT);
+ /**
+  * for_each_mem_pfn_range - early memory pfn range iterator
+@@ -263,9 +264,17 @@ void __next_mem_pfn_range(int *idx, int
+  *
+  * Walks over configured memory ranges.
+  */
+-#define for_each_mem_pfn_range(i, nid, p_start, p_end, p_nid)		\
+-	for (i = -1, __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid); \
+-	     i >= 0; __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid))
++#define for_each_mem_pfn_range(i, nid, p_start, p_end, p_nid)		  \
++	for (i = -1, __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid, \
++					  &memblock.memory);		  \
++	     i >= 0; __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid, \
++					  &memblock.memory))
 +
-+	/* Ensure the address is inside the task */
-+	if (start_vaddr > mm->task_size)
- 		start_vaddr = end_vaddr;
++#define for_each_res_pfn_range(i, nid, p_start, p_end, p_nid)		  \
++	for (i = -1, __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid, \
++					  &memblock.reserved);		  \
++	     i >= 0; __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid, \
++					  &memblock.reserved))
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ void __next_mem_pfn_range_in_zone(u64 *idx, struct zone *zone,
+--- a/mm/debug.c~mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges
++++ a/mm/debug.c
+@@ -64,7 +64,8 @@ void __dump_page(struct page *page, cons
+ 	 * dump_page() when detected.
+ 	 */
+ 	if (page_poisoned) {
+-		pr_warn("page:%px is uninitialized and poisoned", page);
++		pr_warn("page:%px pfn:%ld is uninitialized and poisoned",
++			page, page_to_pfn(page));
+ 		goto hex_only;
+ 	}
+ 
+--- a/mm/memblock.c~mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges
++++ a/mm/memblock.c
+@@ -1198,9 +1198,9 @@ void __init_memblock __next_mem_range_re
+  */
+ void __init_memblock __next_mem_pfn_range(int *idx, int nid,
+ 				unsigned long *out_start_pfn,
+-				unsigned long *out_end_pfn, int *out_nid)
++				unsigned long *out_end_pfn, int *out_nid,
++				struct memblock_type *type)
+ {
+-	struct memblock_type *type = &memblock.memory;
+ 	struct memblock_region *r;
+ 	int r_nid;
+ 
+--- a/mm/page_alloc.c~mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges
++++ a/mm/page_alloc.c
+@@ -1458,6 +1458,7 @@ static void __meminit init_reserved_page
+ {
+ 	pg_data_t *pgdat;
+ 	int nid, zid;
++	bool found = false;
+ 
+ 	if (!early_page_uninitialised(pfn))
+ 		return;
+@@ -1468,10 +1469,15 @@ static void __meminit init_reserved_page
+ 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+ 		struct zone *zone = &pgdat->node_zones[zid];
+ 
+-		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
++		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone)) {
++			found = true;
+ 			break;
++		}
+ 	}
+-	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
++	if (likely(found))
++		__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
++	else
++		WARN_ON_ONCE(1);
+ }
+ #else
+ static inline void init_reserved_page(unsigned long pfn)
+@@ -6227,7 +6233,7 @@ void __init __weak memmap_init(unsigned
+ 			       unsigned long zone,
+ 			       unsigned long range_start_pfn)
+ {
+-	unsigned long start_pfn, end_pfn, next_pfn = 0;
++	unsigned long start_pfn, end_pfn, prev_pfn = 0;
+ 	unsigned long range_end_pfn = range_start_pfn + size;
+ 	u64 pgcnt = 0;
+ 	int i;
+@@ -6235,7 +6241,7 @@ void __init __weak memmap_init(unsigned
+ 	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
+ 		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
+ 		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
+-		next_pfn = clamp(next_pfn, range_start_pfn, range_end_pfn);
++		prev_pfn = clamp(prev_pfn, range_start_pfn, range_end_pfn);
+ 
+ 		if (end_pfn > start_pfn) {
+ 			size = end_pfn - start_pfn;
+@@ -6243,10 +6249,10 @@ void __init __weak memmap_init(unsigned
+ 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 		}
+ 
+-		if (next_pfn < start_pfn)
+-			pgcnt += init_unavailable_range(next_pfn, start_pfn,
++		if (prev_pfn < start_pfn)
++			pgcnt += init_unavailable_range(prev_pfn, start_pfn,
+ 							zone, nid);
+-		next_pfn = end_pfn;
++		prev_pfn = end_pfn;
+ 	}
  
  	/*
+@@ -6256,12 +6262,31 @@ void __init __weak memmap_init(unsigned
+ 	 * considered initialized. Make sure that memmap has a well defined
+ 	 * state.
+ 	 */
+-	if (next_pfn < range_end_pfn)
+-		pgcnt += init_unavailable_range(next_pfn, range_end_pfn,
++	if (prev_pfn < range_end_pfn)
++		pgcnt += init_unavailable_range(prev_pfn, range_end_pfn,
+ 						zone, nid);
+ 
++	/*
++	 * memblock.reserved isn't enforced to overlap with
++	 * memblock.memory so initialize the struct pages for
++	 * memblock.reserved too in case it wasn't overlapping.
++	 *
++	 * If any struct page associated with a memblock.reserved
++	 * range isn't overlapping with a zone range, it'll be left
++	 * uninitialized, ideally with PagePoison, and it'll be a more
++	 * easily detectable error.
++	 */
++	for_each_res_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
++		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
++		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
++
++		if (end_pfn > start_pfn)
++			pgcnt += init_unavailable_range(start_pfn, end_pfn,
++							zone, nid);
++	}
++
+ 	if (pgcnt)
+-		pr_info("%s: Zeroed struct page in unavailable ranges: %lld\n",
++		pr_info("%s: pages in unavailable ranges: %lld\n",
+ 			zone_names[zone], pgcnt);
+ }
+ 
+@@ -6499,6 +6524,10 @@ void __init get_pfn_range_for_nid(unsign
+ 		*start_pfn = min(*start_pfn, this_start_pfn);
+ 		*end_pfn = max(*end_pfn, this_end_pfn);
+ 	}
++	for_each_res_pfn_range(i, nid, &this_start_pfn, &this_end_pfn, NULL) {
++		*start_pfn = min(*start_pfn, this_start_pfn);
++		*end_pfn = max(*end_pfn, this_end_pfn);
++	}
+ 
+ 	if (*start_pfn == -1UL)
+ 		*start_pfn = 0;
+@@ -7126,7 +7155,13 @@ unsigned long __init node_map_pfn_alignm
+  */
+ unsigned long __init find_min_pfn_with_active_regions(void)
+ {
+-	return PHYS_PFN(memblock_start_of_DRAM());
++	/*
++	 * reserved regions must be included so that their page
++	 * structure can be part of a zone and obtain a valid zoneid
++	 * before __SetPageReserved().
++	 */
++	return min(PHYS_PFN(memblock_start_of_DRAM()),
++		   PHYS_PFN(memblock.reserved.regions[0].base));
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-proc-use-untagged_addr-for-pagemap_read-addresses.patch
+mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
 
