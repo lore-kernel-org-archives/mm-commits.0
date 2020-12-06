@@ -2,248 +2,98 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 961A5C4361B
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 19:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D98B1C433FE
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 20:52:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5813123101
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 19:32:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A33F52311B
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 20:52:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728095AbgLFTbs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Dec 2020 14:31:48 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:37954 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727781AbgLFTbs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Dec 2020 14:31:48 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607283022;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=pbSdJYttwFuWfBw/mUTLBlKAAj9+lnMr03kmIdRNGXM=;
-        b=hmYIQgSPRwQoyAVMtMytei9p/9PEMC9RE77faTXrv7gItAy6AwlY9kl+3hTXN4u97f3XdK
-        BOEI3B55ZUwAX7/xsD1cx4OcqEapSsVrw+I/ap4M+XOUJUpuqxdHV2p0/HOJ4zNuiUtYaE
-        xX6dMp93wSv1GhoQ0ulRZnlVYFGgbts=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-231-LTBLgYnnMGeP2ECXFQRvAA-1; Sun, 06 Dec 2020 14:30:18 -0500
-X-MC-Unique: LTBLgYnnMGeP2ECXFQRvAA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1728039AbgLFUwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Dec 2020 15:52:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46982 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726731AbgLFUwd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Dec 2020 15:52:33 -0500
+Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FF28C0613D1
+        for <mm-commits@vger.kernel.org>; Sun,  6 Dec 2020 12:51:53 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AB13C801ADB;
-        Sun,  6 Dec 2020 19:30:16 +0000 (UTC)
-Received: from mail (ovpn-112-148.rdu2.redhat.com [10.10.112.148])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8204F5D9C2;
-        Sun,  6 Dec 2020 19:30:12 +0000 (UTC)
-Date:   Sun, 6 Dec 2020 14:30:11 -0500
-From:   Andrea Arcangeli <aarcange@redhat.com>
-To:     Mike Rapoport <rppt@linux.ibm.com>
-Cc:     akpm@linux-foundation.org, bhe@redhat.com, cai@lca.pw,
-        david@redhat.com, mgorman@suse.de, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
-Subject: Re: +
- mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
- added to -mm tree
-Message-ID: <X80xQ6mvSwJZ0RvC@redhat.com>
-References: <20201206005401.qKuAVgOXr%akpm@linux-foundation.org>
- <20201206064849.GW123287@linux.ibm.com>
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4CpzBq0jt4z9sW0;
+        Mon,  7 Dec 2020 07:51:46 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1607287909;
+        bh=1qh9CYZDyTscbgIWPXre6ddHPXCVIBBCPxk5nJgBx3w=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=HRxj0i1muM+hitZxifxKGQlqWEv8t5MThXlMMfuGzpZ9qb+XjKpYVLuRfuPJYa0II
+         QqBkCN8XBRwIttmdFgKcWuJ9gL1Cs87HlHOpvlhHl2gQVbFJGeigftpEMFt3HwM0RS
+         /w9z+T9Fh9tWqJg/GrqjkXgvllU3uVzQpnIh1sM5H4ISQ+BoEaudlwAb8W6cTduwg4
+         0Lw6kOTvyVy+W7ChC7mZgfNXFAQKXKmD8nzSRnhtGMsX3iWhBhkSjgVATTd7fLQvIX
+         atcja3lMYl3C/rac89sgB3yBxc4l8XTqkOg4i6WE5jTCOgbn7350cc+gevKPXcN2Lu
+         H0/Vl2w7TSNdg==
+Date:   Mon, 7 Dec 2020 07:51:46 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     jonathanh@nvidia.com, liu.hailong6@zte.com.cn,
+        m.szyprowski@samsung.com, mm-commits@vger.kernel.org,
+        qcai@redhat.com, rppt@kernel.org
+Subject: Re: [failures]
+ mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
+ removed from -mm tree
+Message-ID: <20201207075146.062cf752@canb.auug.org.au>
+In-Reply-To: <20201205005940.ztFbAZFWC%akpm@linux-foundation.org>
+References: <20201205005940.ztFbAZFWC%akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201206064849.GW123287@linux.ibm.com>
-User-Agent: Mutt/2.0.2 (2020-11-20)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: multipart/signed; boundary="Sig_/c2r.J/4+1r1yIpvpSzXQqMd";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, Dec 06, 2020 at 08:48:49AM +0200, Mike Rapoport wrote:
-> I don't see why we need all this complexity when a simple fixup was
-> enough.
+--Sig_/c2r.J/4+1r1yIpvpSzXQqMd
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Note the memblock bug crashed my systems:
+Hi all,
 
-	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
+On Fri, 04 Dec 2020 16:59:40 -0800 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: mm/memblock: use a more appropriate order calculation when =
+free memblock pages
+> has been removed from the -mm tree.  Its filename was
+>      mm-memblock-use-a-more-appropriate-order-calculation-when-free-membl=
+ock-pages.patch
+>=20
+> This patch was dropped because it had testing failures
 
-Please note how zone_spans_pfn expands:
+I have dropped this from linux-next today.
 
-static inline bool zone_spans_pfn(const struct zone *zone, unsigned long pfn)
-{
-	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
-}
+--=20
+Cheers,
+Stephen Rothwell
 
-For pfn_to_page(0), the zone_start_pfn is 1 for DMA zone. pfn is 0.
+--Sig_/c2r.J/4+1r1yIpvpSzXQqMd
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-How is the above not going to trigger a false positive once again with
-the simple fix?
+-----BEGIN PGP SIGNATURE-----
 
-Not just pfn 0 in fact, any pfn reserved that happens to be the at the
-start of each nid.
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/NRGIACgkQAVBC80lX
+0GydjAf+OhrRjURX95MxKkbH2aR2yG9Pa0fvDLzqE4K+cgPsZJwHh9K+2x0L7n5Y
+tzIobYpaxstI7nc9qdIxTq08HbSZUWjBYxL6lwkS10lXhdvrKCQ2rRtE1yUA7AxC
+MweEyupX4mS7ibM/jBv2TB7ZEf7Wqgc197BDT/i66AFspdY8mnMp1v9jgBCd2KHq
+YwswhF66PU+RPefnBJh8pmcDYX0CWy2is3wb5rwJndMUM+dtvf51jbABRgbvkg3U
+ig2UiWp65agWpP8qGjOakKBHMomt1eZORd74mR2ZQIIKfeNe8YNrpVN8QiDxBEJM
+Z1T6DJ2mUB2qQcd2ARzs6ZcLdXN2VA==
+=j2H1
+-----END PGP SIGNATURE-----
 
-Doesn't the simple fix reintroduce the same broken invariant that was
-meant to be fixed by the patch that required the simple fix or it
-won't boot?
-
-> > +	/*
-> > +	 * memblock.reserved isn't enforced to overlap with
-> > +	 * memblock.memory so initialize the struct pages for
-> > +	 * memblock.reserved too in case it wasn't overlapping.
-> > +	 *
-> > +	 * If any struct page associated with a memblock.reserved
-> > +	 * range isn't overlapping with a zone range, it'll be left
-> > +	 * uninitialized, ideally with PagePoison, and it'll be a more
-> > +	 * easily detectable error.
-> > +	 */
-> > +	for_each_res_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
-> > +		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
-> > +		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
-> > +
-> > +		if (end_pfn > start_pfn)
-> > +			pgcnt += init_unavailable_range(start_pfn, end_pfn,
-> > +							zone, nid);
-> > +	}
-> 
-> This means we are going iterate over all memory allocated before
-> free_area_ini() from memblock extra time. One time here and another time
-> in reserve_bootmem_region().
-> And this can be substantial for CMA and alloc_large_system_hash().
-
-The above loops over memory.reserved only.
-
-Now the simple fix also has to loops over some memblock.reserved or it
-still wouldn't boot.
-
-You worry about memory.reserved which is bound by RAM.
-
-I worry about holes that aren't bound by RAM.
-
-The simple fix won't just restrict itself to the RAM in
-memblock.reserved, it'll also go goes over the holes (that's all it
-can do in order to cover memblock.reserved ranges without looking at
-it).
-
-The simple fix doesn't only go over pfn 0, it can keep looping from
-last page in the previous nid to the first page in the next nid across
-regions that weren't even in memblock.reserved and that may be larger
-than any memory reserved region.
-
-Reserved regions aren't holes, so the complex fix is more likely to
-work stable since unlike the simple fix, it won't waste any CPU over
-any non-RAM hole that isn't part of memblock.reserved nor
-memblock.memory.
-
-In addition the "static unsigned long hole_start_pfn" of the simple
-fix also pushed complexity into the common code caller: it made
-memmap_init non thread safe and in addition it required the
-memmap_init to be called in paddr physical order or it won't even boot
-anymore.
-
-Now maybe it's safe now, but these memmap already gets initialized in
-the background during boot, so the moment more than one thread does it
-in parallel the simple patch will break because it's non-reentrant.
-
-> > @@ -7126,7 +7155,13 @@ unsigned long __init node_map_pfn_alignm
-> >   */
-> >  unsigned long __init find_min_pfn_with_active_regions(void)
-> >  {
-> > -	return PHYS_PFN(memblock_start_of_DRAM());
-> > +	/*
-> > +	 * reserved regions must be included so that their page
-> > +	 * structure can be part of a zone and obtain a valid zoneid
-> > +	 * before __SetPageReserved().
-> > +	 */
-> > +	return min(PHYS_PFN(memblock_start_of_DRAM()),
-> > +		   PHYS_PFN(memblock.reserved.regions[0].base));
-> 
-> So this implies that reserved memory starts before memory. Don't you
-> find this weird?
-
-That happens because the current API doesn't require overlap.
-
-	for (i = 0; i < e820_table->nr_entries; i++) {
-		struct e820_entry *entry = &e820_table->entries[i];
-
-		end = entry->addr + entry->size;
-		if (end != (resource_size_t)end)
-			continue;
-
-		if (entry->type == E820_TYPE_SOFT_RESERVED)
-			memblock_reserve(entry->addr, entry->size);
-
-		if (entry->type != E820_TYPE_RAM && entry->type != E820_TYPE_RESERVED_KERN)
-			continue;
-
-		memblock_add(entry->addr, entry->size);
-	}
-
-The above is a more complex way to write the below, which will make it
-more clear there's never overlap:
-
-		if (entry->type == E820_TYPE_SOFT_RESERVED)
-			memblock_reserve(entry->addr, entry->size);
-		else if (entry->type == E820_TYPE_RAM || entry->type == E820_TYPE_RESERVED_KERN)
-			memblock_add(entry->addr, entry->size);
-
-If you want to enforce that there is always overlap and in turn a zone
-cannot start with a reserved pfn, then you could add a bugcheck if
-memblock.reserved doesn't overlap to an already registered
-memblock.memory range, and then the above e820 code above will break.
-
-I thought the reason there couldn't be full overlap is the direct
-mapping issue so there's a very good reason for it.
-
-So given there's current zero overlap, I'm not exactly sure what's
-weird that memblock.reserved starts before memblock.memory. The fact
-pfn 0 is reserved is a bios thing, weird or not weird it's not in our
-control.
-
-I don't see any alternative on how to give a consistent zoneid to pfn
-0, if zoneid 0 still starts at pfn 1 and you're not going to enforce
-full overlap between memblock.reserved and memblock.memory either.
-
-One only alternative I can see is to leave PagePoison in there and add
-PagePoison or PageReserved checks all over the place starting from
-reserve_bootmem_region like this:
-
-void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
-{
-	unsigned long start_pfn = PFN_DOWN(start);
-	unsigned long end_pfn = PFN_UP(end);
-
-	for (; start_pfn < end_pfn; start_pfn++) {
-		if (pfn_valid(start_pfn)) {
-			struct page *page = pfn_to_page(start_pfn);
-
-+			if (PagePoison(page))
-+				continue
-
-			init_reserved_page(start_pfn);
-
-The above is still preferable since then we could then add PagePoison
-checks all over the VM code like this:
-
-       VM_BUG_ON(!PagePoison(page) && page_to_pfn(page) >= page_zone(page)->zone_start_pfn)
-
-The above PagePoison mention assumes we'd need to extend PagePoison to
-DEBUG_VM=n or switch to PageReserved or a NO_NODEID.
-
-The whole point is we don't need to do any of the above since zones
-can include all reserved pages too so once the kernel finished
-booting, it'll be simpler if we have a valid zoneid so the invariant
-bugchecks will pass for all valid pfn and they'll stop crashing
-kernels with false positives.
-
-Keeping all complexity in memblock common code and keeping the arch
-caller raw is not a bad thing since memblock is common code and it'll
-benefit all archs. I wouldn't go in the direction of
-124049decbb121ec32742c94fb5d9d6bed8f24d8 once again.
-
-Thanks,
-Andrea
-
+--Sig_/c2r.J/4+1r1yIpvpSzXQqMd--
