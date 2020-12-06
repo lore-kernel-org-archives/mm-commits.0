@@ -4,37 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BDF2C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94398C1B087
 	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:15:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 212B4230FE
+	by mail.kernel.org (Postfix) with ESMTP id 795552312E
 	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:15:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725772AbgLFGPU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Dec 2020 01:15:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58474 "EHLO mail.kernel.org"
+        id S1725787AbgLFGP1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Dec 2020 01:15:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgLFGPU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 6 Dec 2020 01:15:20 -0500
-Date:   Sat, 05 Dec 2020 22:14:38 -0800
+        id S1725379AbgLFGP1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 6 Dec 2020 01:15:27 -0500
+Date:   Sat, 05 Dec 2020 22:14:45 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607235279;
-        bh=t4LN4sTAM7eanVG8PipPCQnEghUrIQauovzhcf/UU3g=;
+        s=korg; t=1607235286;
+        bh=eAfzf1HXdPcS85CCArRsVIv3KL0OiSlNphIbfm68+Bw=;
         h=From:To:Subject:In-Reply-To:From;
-        b=odFXzXN0t9pRvgCPSriWgIsQdAuTOg6PXxIyMrVxvaZkqjsbP5gtrBynnM1VHOtGc
-         MrQQDAICEuf9/F+LV1kbvVFNs88xoBchJ4+4xk4kdbCQYNL9vtnxsbUfymOT0IEs6Z
-         REeaeFfBrIQ1uGYX7mk0q6Hc9176Kp3DlrN9ReOI=
+        b=Mh7Jh5eXlMEhlQqYLQ2FVN0Q9lEwUraaYnjTY5Va2NtRMjfSqqwPrY3ejL5ExI7uh
+         Dbbv/1JgoIweDj+Fs6GJeWRzw1C9WsuATGF82N75OMEPEsMiaGT5zXGcP7JTFEBScE
+         Ccxob/DBfctjLvr9G243MJ+weBYvFN4hXQkYPisk=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
-        gor@linux.ibm.com, hca@linux.ibm.com, iii@linux.ibm.com,
-        linux-mm@kvack.org, lkp@intel.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org,
-        zaslonko@linux.ibm.com
-Subject:  [patch 01/12] zlib: export S390 symbols for zlib modules
-Message-ID: <20201206061438.EIlu-Bvu8%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
+        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 03/12] mm: memcg/slab: fix obj_cgroup_charge()
+ return value handling
+Message-ID: <20201206061445.FBPPaghTp%akpm@linux-foundation.org>
 In-Reply-To: <20201205221412.67f14b9b3a5ef531c76dd452@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,53 +42,118 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: zlib: export S390 symbols for zlib modules
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: memcg/slab: fix obj_cgroup_charge() return value handling
 
-Fix build errors when ZLIB_INFLATE=m and ZLIB_DEFLATE=m and ZLIB_DFLTCC=y
-by exporting the 2 needed symbols in dfltcc_inflate.c.
+Commit 10befea91b61 ("mm: memcg/slab: use a single set of kmem_caches for
+all allocations") introduced a regression into the handling of the
+obj_cgroup_charge() return value.  If a non-zero value is returned
+(indicating of exceeding one of memory.max limits), the allocation should
+fail, instead of falling back to non-accounted mode.
 
-Fixes these build errors:
+To make the code more readable, move memcg_slab_pre_alloc_hook() and
+memcg_slab_post_alloc_hook() calling conditions into bodies of these
+hooks.
 
-ERROR: modpost: "dfltcc_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
-ERROR: modpost: "dfltcc_can_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
-
-Link: https://lkml.kernel.org/r/20201123191712.4882-1-rdunlap@infradead.org
-Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Link: https://lkml.kernel.org/r/20201127161828.GD840171@carbon.dhcp.thefacebook.com
+Fixes: 10befea91b61 ("mm: memcg/slab: use a single set of kmem_caches for all allocations")
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_dfltcc/dfltcc_inflate.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/slab.h |   40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
---- a/lib/zlib_dfltcc/dfltcc_inflate.c~zlib-export-s390-symbols-for-zlib-modules
-+++ a/lib/zlib_dfltcc/dfltcc_inflate.c
-@@ -4,6 +4,7 @@
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- #include <asm/setup.h>
-+#include <linux/export.h>
- #include <linux/zutil.h>
- 
- /*
-@@ -29,6 +30,7 @@ int dfltcc_can_inflate(
-     return is_bit_set(dfltcc_state->af.fns, DFLTCC_XPND) &&
-                is_bit_set(dfltcc_state->af.fmts, DFLTCC_FMT0);
+--- a/mm/slab.h~mm-memcg-slab-fix-obj_cgroup_charge-return-value-handling
++++ a/mm/slab.h
+@@ -274,22 +274,32 @@ static inline size_t obj_full_size(struc
+ 	return s->size + sizeof(struct obj_cgroup *);
  }
-+EXPORT_SYMBOL(dfltcc_can_inflate);
  
- static int dfltcc_was_inflate_used(
-     z_streamp strm
-@@ -147,3 +149,4 @@ dfltcc_inflate_action dfltcc_inflate(
-     return (cc == DFLTCC_CC_OP1_TOO_SHORT || cc == DFLTCC_CC_OP2_TOO_SHORT) ?
-         DFLTCC_INFLATE_BREAK : DFLTCC_INFLATE_CONTINUE;
+-static inline struct obj_cgroup *memcg_slab_pre_alloc_hook(struct kmem_cache *s,
+-							   size_t objects,
+-							   gfp_t flags)
++/*
++ * Returns false if the allocation should fail.
++ */
++static inline bool memcg_slab_pre_alloc_hook(struct kmem_cache *s,
++					     struct obj_cgroup **objcgp,
++					     size_t objects, gfp_t flags)
+ {
+ 	struct obj_cgroup *objcg;
+ 
++	if (!memcg_kmem_enabled())
++		return true;
++
++	if (!(flags & __GFP_ACCOUNT) && !(s->flags & SLAB_ACCOUNT))
++		return true;
++
+ 	objcg = get_obj_cgroup_from_current();
+ 	if (!objcg)
+-		return NULL;
++		return true;
+ 
+ 	if (obj_cgroup_charge(objcg, flags, objects * obj_full_size(s))) {
+ 		obj_cgroup_put(objcg);
+-		return NULL;
++		return false;
+ 	}
+ 
+-	return objcg;
++	*objcgp = objcg;
++	return true;
  }
-+EXPORT_SYMBOL(dfltcc_inflate);
+ 
+ static inline void mod_objcg_state(struct obj_cgroup *objcg,
+@@ -315,7 +325,7 @@ static inline void memcg_slab_post_alloc
+ 	unsigned long off;
+ 	size_t i;
+ 
+-	if (!objcg)
++	if (!memcg_kmem_enabled() || !objcg)
+ 		return;
+ 
+ 	flags &= ~__GFP_ACCOUNT;
+@@ -400,11 +410,11 @@ static inline void memcg_free_page_obj_c
+ {
+ }
+ 
+-static inline struct obj_cgroup *memcg_slab_pre_alloc_hook(struct kmem_cache *s,
+-							   size_t objects,
+-							   gfp_t flags)
++static inline bool memcg_slab_pre_alloc_hook(struct kmem_cache *s,
++					     struct obj_cgroup **objcgp,
++					     size_t objects, gfp_t flags)
+ {
+-	return NULL;
++	return true;
+ }
+ 
+ static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
+@@ -508,9 +518,8 @@ static inline struct kmem_cache *slab_pr
+ 	if (should_failslab(s, flags))
+ 		return NULL;
+ 
+-	if (memcg_kmem_enabled() &&
+-	    ((flags & __GFP_ACCOUNT) || (s->flags & SLAB_ACCOUNT)))
+-		*objcgp = memcg_slab_pre_alloc_hook(s, size, flags);
++	if (!memcg_slab_pre_alloc_hook(s, objcgp, size, flags))
++		return NULL;
+ 
+ 	return s;
+ }
+@@ -529,8 +538,7 @@ static inline void slab_post_alloc_hook(
+ 					 s->flags, flags);
+ 	}
+ 
+-	if (memcg_kmem_enabled())
+-		memcg_slab_post_alloc_hook(s, objcg, flags, size, p);
++	memcg_slab_post_alloc_hook(s, objcg, flags, size, p);
+ }
+ 
+ #ifndef CONFIG_SLOB
 _
