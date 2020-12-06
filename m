@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 588C7C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B07EC4167B
 	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:16:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1802E22D2A
+	by mail.kernel.org (Postfix) with ESMTP id 367EA22D0B
 	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 06:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725379AbgLFGQC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Dec 2020 01:16:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58994 "EHLO mail.kernel.org"
+        id S1725943AbgLFGQE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Dec 2020 01:16:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725874AbgLFGQB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 6 Dec 2020 01:16:01 -0500
-Date:   Sat, 05 Dec 2020 22:15:02 -0800
+        id S1725874AbgLFGQE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 6 Dec 2020 01:16:04 -0500
+Date:   Sat, 05 Dec 2020 22:15:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607235303;
-        bh=19d+bCl5PW06u7fz0lTdoweffI2aFMvA4VGQHKFoQoU=;
+        s=korg; t=1607235309;
+        bh=u/TZ0/sDMhzVQKE+Iuw6n1atZMzd/neqVZblPQVEQBg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=mL7aKVMl85/+NbgIqrXHhhfPcoxmNItnOXGB6lAgI+MjIZ+ZRXvoTu/PzMi4XY1a+
-         qJk++DnjryGIZ0/ZDb3bH684D6iWIaC8YOd+Cy6/j/wkngaqS6z81KC74LWrngVigV
-         qi8uiykVDy5S9WoAKKIDuuZs8Eqza05VISb062n0=
+        b=c/YNVtoIndRk+SMcNiliiQPEr6EEd6fmeW/J3odFvjElvfcEqgy3aigChMtw3pU1z
+         ITc4Iya7ARpxOreSx9LEkI8E6LVixDoWh76l9CJ5HRF4r2M0flzogux11nvJKZCVV8
+         EJc8z2BGRSpjou9AcYnmsmhtgeymUpr3KM3R1a2o=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, almasrymina@google.com,
-        bgeffon@google.com, dave.hansen@intel.com, jhubbard@nvidia.com,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, sandipan@linux.ibm.com,
-        shuah@kernel.org, suxingxing@loongson.cn,
-        torvalds@linux-foundation.org
-Subject:  [patch 08/12] tools/testing/selftests/vm: fix build error
-Message-ID: <20201206061502.wIrp8YXQT%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        jrdr.linux@gmail.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 10/12] mm/filemap: add static for function
+ __add_to_page_cache_locked
+Message-ID: <20201206061509.ktTlES2yY%akpm@linux-foundation.org>
 In-Reply-To: <20201205221412.67f14b9b3a5ef531c76dd452@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,57 +41,31 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Xingxing Su <suxingxing@loongson.cn>
-Subject: tools/testing/selftests/vm: fix build error
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/filemap: add static for function __add_to_page_cache_locked
 
-Only x86 and PowerPC implement the pkey-xxx.h, and an error was reported
-when compiling protection_keys.c.
+../mm/filemap.c:830:14: warning: no previous prototype for
+`__add_to_page_cache_locked' [-Wmissing-prototypes]
+ noinline int __add_to_page_cache_locked(struct page *page,
 
-Add a Arch judgment to compile "protection_keys" in the Makefile.
-
-If other arch implement this, add the arch name to the Makefile.
-eg:
-    ifneq (,$(findstring $(ARCH),powerpc mips ... ))
-
-Following build errors:
-    pkey-helpers.h:93:2: error: #error Architecture not supported
-     #error Architecture not supported
-    pkey-helpers.h:96:20: error: `PKEY_DISABLE_ACCESS' undeclared
-     #define PKEY_MASK (PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE)
-                        ^
-    protection_keys.c:218:45: error: `PKEY_DISABLE_WRITE' undeclared
-     pkey_assert(flags & (PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE));
-                                                ^
-
-Link: https://lkml.kernel.org/r/1606826876-30656-1-git-send-email-suxingxing@loongson.cn
-Signed-off-by: Xingxing Su <suxingxing@loongson.cn>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Mina Almasry <almasrymina@google.com>
+Link: https://lkml.kernel.org/r/1604661895-5495-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftest-vm-fix-build-error
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -60,9 +60,13 @@ ifeq ($(CAN_BUILD_X86_64),1)
- TEST_GEN_FILES += $(BINARIES_64)
- endif
- else
-+
-+ifneq (,$(findstring $(ARCH),powerpc))
- TEST_GEN_FILES += protection_keys
- endif
+--- a/mm/filemap.c~mm-filemap-add-static-for-function-__add_to_page_cache_locked
++++ a/mm/filemap.c
+@@ -827,7 +827,7 @@ int replace_page_cache_page(struct page
+ }
+ EXPORT_SYMBOL_GPL(replace_page_cache_page);
  
-+endif
-+
- ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64))
- TEST_GEN_FILES += va_128TBswitch
- TEST_GEN_FILES += virtual_address_range
+-noinline int __add_to_page_cache_locked(struct page *page,
++static noinline int __add_to_page_cache_locked(struct page *page,
+ 					struct address_space *mapping,
+ 					pgoff_t offset, gfp_t gfp,
+ 					void **shadowp)
 _
