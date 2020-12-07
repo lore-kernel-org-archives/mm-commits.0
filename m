@@ -2,98 +2,131 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D98B1C433FE
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 20:52:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 502A2C4361B
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Dec 2020 09:00:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A33F52311B
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Dec 2020 20:52:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BA6623341
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Dec 2020 09:00:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728039AbgLFUwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Dec 2020 15:52:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46982 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726731AbgLFUwd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Dec 2020 15:52:33 -0500
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FF28C0613D1
-        for <mm-commits@vger.kernel.org>; Sun,  6 Dec 2020 12:51:53 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        id S1726024AbgLGJAM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Dec 2020 04:00:12 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:42411 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726083AbgLGJAM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2020 04:00:12 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1607331529;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=8K41Zx9hmF0XbY232+l+gSsS96Mr1ICD4AgjtdBRXzo=;
+        b=VSXN//4jtIjXtbOukXQWu2l450aOql9VITvQwbgEuJpfIM2hn58FXIlK9qnSYGPKaf6kqH
+        5py8KXS/pR3NALdggXnOFwe2bCQhj/05m+Ae4fhGmlFGuqQCx9RPvaNra53cR1H3S+1nM+
+        yoUQcCkvje8WLBikgvsn/tbjRggOhAA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-423-l15_P3LQP72ZCuSiMEZ5Tw-1; Mon, 07 Dec 2020 03:58:42 -0500
+X-MC-Unique: l15_P3LQP72ZCuSiMEZ5Tw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4CpzBq0jt4z9sW0;
-        Mon,  7 Dec 2020 07:51:46 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1607287909;
-        bh=1qh9CYZDyTscbgIWPXre6ddHPXCVIBBCPxk5nJgBx3w=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=HRxj0i1muM+hitZxifxKGQlqWEv8t5MThXlMMfuGzpZ9qb+XjKpYVLuRfuPJYa0II
-         QqBkCN8XBRwIttmdFgKcWuJ9gL1Cs87HlHOpvlhHl2gQVbFJGeigftpEMFt3HwM0RS
-         /w9z+T9Fh9tWqJg/GrqjkXgvllU3uVzQpnIh1sM5H4ISQ+BoEaudlwAb8W6cTduwg4
-         0Lw6kOTvyVy+W7ChC7mZgfNXFAQKXKmD8nzSRnhtGMsX3iWhBhkSjgVATTd7fLQvIX
-         atcja3lMYl3C/rac89sgB3yBxc4l8XTqkOg4i6WE5jTCOgbn7350cc+gevKPXcN2Lu
-         H0/Vl2w7TSNdg==
-Date:   Mon, 7 Dec 2020 07:51:46 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     jonathanh@nvidia.com, liu.hailong6@zte.com.cn,
-        m.szyprowski@samsung.com, mm-commits@vger.kernel.org,
-        qcai@redhat.com, rppt@kernel.org
-Subject: Re: [failures]
- mm-memblock-use-a-more-appropriate-order-calculation-when-free-memblock-pages.patch
- removed from -mm tree
-Message-ID: <20201207075146.062cf752@canb.auug.org.au>
-In-Reply-To: <20201205005940.ztFbAZFWC%akpm@linux-foundation.org>
-References: <20201205005940.ztFbAZFWC%akpm@linux-foundation.org>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 240E4809DCD;
+        Mon,  7 Dec 2020 08:58:40 +0000 (UTC)
+Received: from [10.36.114.33] (ovpn-114-33.ams2.redhat.com [10.36.114.33])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 29BC960BD8;
+        Mon,  7 Dec 2020 08:58:37 +0000 (UTC)
+Subject: Re: +
+ mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
+ added to -mm tree
+To:     akpm@linux-foundation.org, aarcange@redhat.com, bhe@redhat.com,
+        cai@lca.pw, mgorman@suse.de, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        stable@vger.kernel.org, vbabka@suse.cz
+References: <20201206005401.qKuAVgOXr%akpm@linux-foundation.org>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat GmbH
+Message-ID: <cb3bfacb-821d-6251-03c5-498dd07727cd@redhat.com>
+Date:   Mon, 7 Dec 2020 09:58:37 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/c2r.J/4+1r1yIpvpSzXQqMd";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+In-Reply-To: <20201206005401.qKuAVgOXr%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/c2r.J/4+1r1yIpvpSzXQqMd
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi all,
-
-On Fri, 04 Dec 2020 16:59:40 -0800 akpm@linux-foundation.org wrote:
->
+On 06.12.20 01:54, akpm@linux-foundation.org wrote:
+> 
 > The patch titled
->      Subject: mm/memblock: use a more appropriate order calculation when =
-free memblock pages
-> has been removed from the -mm tree.  Its filename was
->      mm-memblock-use-a-more-appropriate-order-calculation-when-free-membl=
-ock-pages.patch
->=20
-> This patch was dropped because it had testing failures
+>      Subject: mm: initialize struct pages in reserved regions outside of the zone ranges
+> has been added to the -mm tree.  Its filename is
+>      mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
+> 
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/mm-initialize-struct-pages-in-reserved-regions-outside-of-the-zone-ranges.patch
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Andrea Arcangeli <aarcange@redhat.com>
+> Subject: mm: initialize struct pages in reserved regions outside of the zone ranges
+> 
+> Without this change, the pfn 0 isn't in any zone spanned range, and it's
+> also not in any memory.memblock range, so the struct page of pfn 0 wasn't
+> initialized and the PagePoison remained set when reserve_bootmem_region
+> called __SetPageReserved, inducing a silent boot failure with DEBUG_VM
+> (and correctly so, because the crash signaled the nodeid/nid of pfn 0
+> would be again wrong).
+> 
+> There's no enforcement that all memblock.reserved ranges must overlap
+> memblock.memory ranges, so the memblock.reserved ranges also require an
+> explicit initialization and the zones ranges need to be extended to
+> include all memblock.reserved ranges with struct pages too or they'll be
+> left uninitialized with PagePoison as it happened to pfn 0.
+> 
+> Link: https://lkml.kernel.org/r/20201205013238.21663-2-aarcange@redhat.com
+> Fixes: 73a6e474cb37 ("mm: memmap_init: iterate over memblock regions rather that check each PFN")
+> Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+> Cc: Mike Rapoport <rppt@linux.ibm.com>
+> Cc: Baoquan He <bhe@redhat.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Mel Gorman <mgorman@suse.de>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Qian Cai <cai@lca.pw>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-I have dropped this from linux-next today.
+[...]
 
---=20
-Cheers,
-Stephen Rothwell
+I've lost track which patches are we considering right now to solve the
+overall issue. I'd appreciate a proper patch series with all relevant
+patches.
 
---Sig_/c2r.J/4+1r1yIpvpSzXQqMd
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+-- 
+Thanks,
 
------BEGIN PGP SIGNATURE-----
+David / dhildenb
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/NRGIACgkQAVBC80lX
-0GydjAf+OhrRjURX95MxKkbH2aR2yG9Pa0fvDLzqE4K+cgPsZJwHh9K+2x0L7n5Y
-tzIobYpaxstI7nc9qdIxTq08HbSZUWjBYxL6lwkS10lXhdvrKCQ2rRtE1yUA7AxC
-MweEyupX4mS7ibM/jBv2TB7ZEf7Wqgc197BDT/i66AFspdY8mnMp1v9jgBCd2KHq
-YwswhF66PU+RPefnBJh8pmcDYX0CWy2is3wb5rwJndMUM+dtvf51jbABRgbvkg3U
-ig2UiWp65agWpP8qGjOakKBHMomt1eZORd74mR2ZQIIKfeNe8YNrpVN8QiDxBEJM
-Z1T6DJ2mUB2qQcd2ARzs6ZcLdXN2VA==
-=j2H1
------END PGP SIGNATURE-----
-
---Sig_/c2r.J/4+1r1yIpvpSzXQqMd--
