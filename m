@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48348C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D870DC433FE
 	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:47:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C57723A22
+	by mail.kernel.org (Postfix) with ESMTP id B08BD23A22
 	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:47:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728826AbgLHAre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Dec 2020 19:47:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60224 "EHLO mail.kernel.org"
+        id S1728832AbgLHArf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Dec 2020 19:47:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728824AbgLHAre (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Dec 2020 19:47:34 -0500
-Date:   Mon, 07 Dec 2020 16:46:36 -0800
+        id S1728822AbgLHArf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Dec 2020 19:47:35 -0500
+Date:   Mon, 07 Dec 2020 16:46:33 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607388397;
-        bh=ZnM0Ni/KfyhNKHTaQqc4qkE7CmY05/rEAwNlZTpqulI=;
+        s=korg; t=1607388394;
+        bh=zUWxD+wImBg7cELnxorlezM0MwN7gceIg0wVtw59kRA=;
         h=From:To:Subject:From;
-        b=mzjYWecJolpBmnQZor/VP6X2pTTY6pxTBmrqZLfXDXLQGymkIdcEKycFh4XVXaIRp
-         Ut6FiKhekBJY8GAenKE4N+tvQwDoiuu2bDDT7/LmIDHLr6h3LBiNUaQcoRPigj01xQ
-         XbFX5lsV6FnLfjUhOhj+O70jDfH/uF4K9D4ANfYc=
+        b=RvMSYGrwqh7jyNj1Tce/P6JuRsimbu+pwZAC5PVm3jo1NjjioiQruO9g1twBXCq+H
+         Zet22/tBwnikpHvCBWYgz5SW/fmpJ/gwKYHZ39qzVPLO7Tc5AMyB8ZOh7+TiOf6fG0
+         aa9mp/Z0XwFY9chP+hZFKs1bFZCm5GZJfeiqosIc=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, hushiyuan@huawei.com, jgg@nvidia.com,
-        linmiaohe@huawei.com, liuzixian4@huawei.com,
-        louhongxiang@huawei.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
+To:     almasrymina@google.com, amorenoz@redhat.com, gthelen@google.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com,
+        shuah@kernel.org, stable@vger.kernel.org
 Subject:  [merged]
- fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch removed from
- -mm tree
-Message-ID: <20201208004636.4CDuHZ25x%akpm@linux-foundation.org>
+ hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch
+ removed from -mm tree
+Message-ID: <20201208004633.mXUsIPLpX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,89 +44,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: fix mmap return value when vma is merged after call_mmap()
+     Subject: hugetlb_cgroup: fix offline of hugetlb cgroup with reservations
 has been removed from the -mm tree.  Its filename was
-     fix-mmap-return-value-when-vma-is-merged-after-call_mmap.patch
+     hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liu Zixian <liuzixian4@huawei.com>
-Subject: mm/mmap.c: fix mmap return value when vma is merged after call_mmap()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb_cgroup: fix offline of hugetlb cgroup with reservations
 
-On success, mmap should return the begin address of newly mapped area, but
-patch "mm: mmap: merge vma after call_mmap() if possible" set vm_start of
-newly merged vma to return value addr.  Users of mmap will get wrong
-address if vma is merged after call_mmap().  We fix this by moving the
-assignment to addr before merging vma.
+Adrian Moreno was ruuning a kubernetes 1.19 + containerd/docker workload
+using hugetlbfs.  In this environment the issue is reproduced by:
+1 - Start a simple pod that uses the recently added HugePages medium
+    feature (pod yaml attached)
+2 - Start a DPDK app. It doesn't need to run successfully (as in transfer
+    packets) nor interact with real hardware. It seems just initializing
+    the EAL layer (which handles hugepage reservation and locking) is
+    enough to trigger the issue
+3 - Delete the Pod (or let it "Complete").
 
-We have a driver which changes vm_flags, and this bug is found by our
-testcases.
+This would result in a kworker thread going into a tight loop (top output):
+ 1425 root      20   0       0      0      0 R  99.7   0.0   5:22.45
+kworker/28:7+cgroup_destroy
 
-Link: https://lkml.kernel.org/r/20201203085350.22624-1-liuzixian4@huawei.com
-Fixes: d70cec898324 ("mm: mmap: merge vma after call_mmap() if possible")
-Signed-off-by: Liu Zixian <liuzixian4@huawei.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hongxiang Lou <louhongxiang@huawei.com>
-Cc: Hu Shiyuan <hushiyuan@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+'perf top -g' reports:
+-   63.28%     0.01%  [kernel]                    [k] worker_thread
+   - 49.97% worker_thread
+      - 52.64% process_one_work
+         - 62.08% css_killed_work_fn
+            - hugetlb_cgroup_css_offline
+                 41.52% _raw_spin_lock
+               - 2.82% _cond_resched
+                    rcu_all_qs
+                 2.66% PageHuge
+      - 0.57% schedule
+         - 0.57% __schedule
+
+We are spinning in the do-while loop in hugetlb_cgroup_css_offline.
+Worse yet, we are holding the master cgroup lock (cgroup_mutex) while
+infinitely spinning.  Little else can be done on the system as the
+cgroup_mutex can not be acquired.
+
+Do note that the issue can be reproduced by simply offlining a hugetlb
+cgroup containing pages with reservation counts.
+
+The loop in hugetlb_cgroup_css_offline is moving page counts from the
+cgroup being offlined to the parent cgroup.  This is done for each hstate,
+and is repeated until hugetlb_cgroup_have_usage returns false.  The routine
+moving counts (hugetlb_cgroup_move_parent) is only moving 'usage' counts.
+The routine hugetlb_cgroup_have_usage is checking for both 'usage' and
+'reservation' counts.  Discussion about what to do with reservation
+counts when reparenting was discussed here:
+
+https://lore.kernel.org/linux-kselftest/CAHS8izMFAYTgxym-Hzb_JmkTK1N_S9tGN71uS6MFV+R7swYu5A@mail.gmail.com/
+
+The decision was made to leave a zombie cgroup for with reservation
+counts.  Unfortunately, the code checking reservation counts was
+incorrectly added to hugetlb_cgroup_have_usage.
+
+To fix the issue, simply remove the check for reservation counts.  While
+fixing this issue, a related bug in hugetlb_cgroup_css_offline was noticed.
+The hstate index is not reinitialized each time through the do-while loop.
+Fix this as well.
+
+Link: https://lkml.kernel.org/r/20201203220242.158165-1-mike.kravetz@oracle.com
+Fixes: 1adc4d419aa2 ("hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations")
+Reported-by: Adrian Moreno <amorenoz@redhat.com>
+Tested-by: Adrian Moreno <amorenoz@redhat.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ mm/hugetlb_cgroup.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/mmap.c~fix-mmap-return-value-when-vma-is-merged-after-call_mmap
-+++ a/mm/mmap.c
-@@ -1808,6 +1808,17 @@ unsigned long mmap_region(struct file *f
- 		if (error)
- 			goto unmap_and_free_vma;
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-offline-of-hugetlb-cgroup-with-reservations
++++ a/mm/hugetlb_cgroup.c
+@@ -82,11 +82,8 @@ static inline bool hugetlb_cgroup_have_u
  
-+		/* Can addr have changed??
-+		 *
-+		 * Answer: Yes, several device drivers can do it in their
-+		 *         f_op->mmap method. -DaveM
-+		 * Bug: If addr is changed, prev, rb_link, rb_parent should
-+		 *      be updated for vma_link()
-+		 */
-+		WARN_ON_ONCE(addr != vma->vm_start);
-+
-+		addr = vma->vm_start;
-+
- 		/* If vm_flags changed after call_mmap(), we should try merge vma again
- 		 * as we may succeed this time.
- 		 */
-@@ -1822,25 +1833,12 @@ unsigned long mmap_region(struct file *f
- 				fput(vma->vm_file);
- 				vm_area_free(vma);
- 				vma = merge;
--				/* Update vm_flags and possible addr to pick up the change. We don't
--				 * warn here if addr changed as the vma is not linked by vma_link().
--				 */
--				addr = vma->vm_start;
-+				/* Update vm_flags to pick up the change. */
- 				vm_flags = vma->vm_flags;
- 				goto unmap_writable;
- 			}
- 		}
+ 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
+ 		if (page_counter_read(
+-			    hugetlb_cgroup_counter_from_cgroup(h_cg, idx)) ||
+-		    page_counter_read(hugetlb_cgroup_counter_from_cgroup_rsvd(
+-			    h_cg, idx))) {
++				hugetlb_cgroup_counter_from_cgroup(h_cg, idx)))
+ 			return true;
+-		}
+ 	}
+ 	return false;
+ }
+@@ -202,9 +199,10 @@ static void hugetlb_cgroup_css_offline(s
+ 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(css);
+ 	struct hstate *h;
+ 	struct page *page;
+-	int idx = 0;
++	int idx;
  
--		/* Can addr have changed??
--		 *
--		 * Answer: Yes, several device drivers can do it in their
--		 *         f_op->mmap method. -DaveM
--		 * Bug: If addr is changed, prev, rb_link, rb_parent should
--		 *      be updated for vma_link()
--		 */
--		WARN_ON_ONCE(addr != vma->vm_start);
--
--		addr = vma->vm_start;
- 		vm_flags = vma->vm_flags;
- 	} else if (vm_flags & VM_SHARED) {
- 		error = shmem_zero_setup(vma);
+ 	do {
++		idx = 0;
+ 		for_each_hstate(h) {
+ 			spin_lock(&hugetlb_lock);
+ 			list_for_each_entry(page, &h->hugepage_activelist, lru)
 _
 
-Patches currently in -mm which might be from liuzixian4@huawei.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
