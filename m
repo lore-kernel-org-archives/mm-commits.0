@@ -2,168 +2,222 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF2EC433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 08:20:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0892EC433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 08:42:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E4B323A5B
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 08:20:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B48F6239E5
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 08:42:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727998AbgLHIUD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Dec 2020 03:20:03 -0500
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:16352 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726734AbgLHIUD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2020 03:20:03 -0500
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0B88EjwX102362;
-        Tue, 8 Dec 2020 03:19:15 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=I6pqXL0B9swGQcYt1Khwuq4HRuBDMUebtYmBLP1MNXs=;
- b=jcgGM4oFZ66W6Sq+Ng2qhtOUqWMw+YrtHoltYSGje8XHQnO53MirEOeCdmo/PslsSBfp
- po8nTv07gyn6DFZIbOa95aonHFJRYf0L/gskmTtCgAS8pOggjKBgMNK7Z9EK/Lb3knkc
- xEvup2e0mGW4K9Q2Hx2hS8bre2Hhm9jem2fc5iGzxmDcvkjthvuXMGpF03hUAWR3i4Dd
- Ya5c5OGZy2l8shHnKEhReK/ZTK8+SyW7LiJ2m0ASUZnntkrKUuZ4kaJ8ydvrtay89cxw
- Ij63S5kNLMsGw5Ys3Zyz/bPiYDF+FyxrpSB4DUGUrB8S70U61qT7gtvFVnEprjXRpdTD ew== 
-Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 35a5tcr4bx-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 08 Dec 2020 03:19:15 -0500
-Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
-        by ppma02dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0B88C1oT003290;
-        Tue, 8 Dec 2020 08:19:14 GMT
-Received: from b03cxnp07029.gho.boulder.ibm.com (b03cxnp07029.gho.boulder.ibm.com [9.17.130.16])
-        by ppma02dal.us.ibm.com with ESMTP id 3581u9kra7-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 08 Dec 2020 08:19:14 +0000
-Received: from b03ledav005.gho.boulder.ibm.com (b03ledav005.gho.boulder.ibm.com [9.17.130.236])
-        by b03cxnp07029.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0B88JCgq22479118
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 8 Dec 2020 08:19:12 GMT
-Received: from b03ledav005.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 28663BE053;
-        Tue,  8 Dec 2020 08:19:12 +0000 (GMT)
-Received: from b03ledav005.gho.boulder.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 309B3BE056;
-        Tue,  8 Dec 2020 08:19:09 +0000 (GMT)
-Received: from [9.171.50.178] (unknown [9.171.50.178])
-        by b03ledav005.gho.boulder.ibm.com (Postfix) with ESMTPS;
-        Tue,  8 Dec 2020 08:19:08 +0000 (GMT)
-Subject: Re: [patch 01/12] zlib: export S390 symbols for zlib modules
-To:     Randy Dunlap <rdunlap@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        iii@linux.ibm.com, linux-mm@kvack.org, lkp@intel.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-References: <20201206061438.EIlu-Bvu8%akpm@linux-foundation.org>
- <13e195ba-413a-ebba-ea90-c3a15ad514ea@linux.ibm.com>
- <45544373-754c-ad37-e020-f4864b963852@infradead.org>
-From:   Zaslonko Mikhail <zaslonko@linux.ibm.com>
-Message-ID: <1d4cccc2-5e71-d09b-9b1b-03f30427af56@linux.ibm.com>
-Date:   Tue, 8 Dec 2020 09:19:08 +0100
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.5.1
+        id S1728318AbgLHIml (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Dec 2020 03:42:41 -0500
+Received: from out30-54.freemail.mail.aliyun.com ([115.124.30.54]:56412 "EHLO
+        out30-54.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728078AbgLHIml (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2020 03:42:41 -0500
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R721e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=alex.shi@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0UHyM2jv_1607416903;
+Received: from IT-FVFX43SYHV2H.local(mailfrom:alex.shi@linux.alibaba.com fp:SMTPD_---0UHyM2jv_1607416903)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 08 Dec 2020 16:41:44 +0800
+Subject: Re: + mm-swapc-reduce-lock-contention-in-lru_cache_add.patch added to
+ -mm tree
+To:     akpm@linux-foundation.org, hughd@google.com, koct9i@gmail.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org, yuzhao@google.com
+References: <20201124011231.SlSNRYgMC%akpm@linux-foundation.org>
+From:   Alex Shi <alex.shi@linux.alibaba.com>
+Message-ID: <19cb1892-cbe1-9fc9-5e22-f1541a747a2e@linux.alibaba.com>
+Date:   Tue, 8 Dec 2020 16:41:43 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
+ Gecko/20100101 Thunderbird/68.12.0
 MIME-Version: 1.0
-In-Reply-To: <45544373-754c-ad37-e020-f4864b963852@infradead.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.343,18.0.737
- definitions=2020-12-08_03:2020-12-04,2020-12-08 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 bulkscore=0
- impostorscore=0 mlxlogscore=999 mlxscore=0 adultscore=0 clxscore=1015
- lowpriorityscore=0 spamscore=0 priorityscore=1501 phishscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2012080046
+In-Reply-To: <20201124011231.SlSNRYgMC%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=gbk
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi Andrew,
+
+Would you like to drop this patch, since a better inplace sorting patchset
+in cooking.
+
+Thanks a lot!
+Alex
 
 
-On 08.12.2020 01:45, Randy Dunlap wrote:
-> On 12/7/20 1:03 AM, Zaslonko Mikhail wrote:
->> Hello,
->>
->> should we probably put these to lib/zlib_dfltcc/dfltcc_syms.c along with the other EXPORT_SYMBOL statements?
+ÔÚ 2020/11/24 ÉÏÎç9:12, akpm@linux-foundation.org Ð´µÀ:
+> The patch titled
+>      Subject: mm/swap.c: reduce lock contention in lru_cache_add
+> has been added to the -mm tree.  Its filename is
+>      mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
 > 
-> Hi,
-> I didn't know about that file. :)
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
 > 
-> That change makes sense. At least that's how some modules used
-> to do it. Not so much nowadays, but this one might as well
-> consistent within itself.
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
 > 
-> Do you want to fix it or should I?
-
-Please, go ahead.
-
-Thanks.
-
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 > 
-> Thanks.
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
 > 
->> Reviewed-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
->>
->> On 06.12.2020 07:14, Andrew Morton wrote:
->>> From: Randy Dunlap <rdunlap@infradead.org>
->>> Subject: zlib: export S390 symbols for zlib modules
->>>
->>> Fix build errors when ZLIB_INFLATE=m and ZLIB_DEFLATE=m and ZLIB_DFLTCC=y
->>> by exporting the 2 needed symbols in dfltcc_inflate.c.
->>>
->>> Fixes these build errors:
->>>
->>> ERROR: modpost: "dfltcc_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
->>> ERROR: modpost: "dfltcc_can_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
->>>
->>> Link: https://lkml.kernel.org/r/20201123191712.4882-1-rdunlap@infradead.org
->>> Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
->>> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
->>> Reported-by: kernel test robot <lkp@intel.com>
->>> Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
->>> Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
->>> Cc: Heiko Carstens <hca@linux.ibm.com>
->>> Cc: Vasily Gorbik <gor@linux.ibm.com>
->>> Cc: Christian Borntraeger <borntraeger@de.ibm.com>
->>> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->>> ---
->>>
->>>  lib/zlib_dfltcc/dfltcc_inflate.c |    3 +++
->>>  1 file changed, 3 insertions(+)
->>>
->>> --- a/lib/zlib_dfltcc/dfltcc_inflate.c~zlib-export-s390-symbols-for-zlib-modules
->>> +++ a/lib/zlib_dfltcc/dfltcc_inflate.c
->>> @@ -4,6 +4,7 @@
->>>  #include "dfltcc_util.h"
->>>  #include "dfltcc.h"
->>>  #include <asm/setup.h>
->>> +#include <linux/export.h>
->>>  #include <linux/zutil.h>
->>>  
->>>  /*
->>> @@ -29,6 +30,7 @@ int dfltcc_can_inflate(
->>>      return is_bit_set(dfltcc_state->af.fns, DFLTCC_XPND) &&
->>>                 is_bit_set(dfltcc_state->af.fmts, DFLTCC_FMT0);
->>>  }
->>> +EXPORT_SYMBOL(dfltcc_can_inflate);
->>>  
->>>  static int dfltcc_was_inflate_used(
->>>      z_streamp strm
->>> @@ -147,3 +149,4 @@ dfltcc_inflate_action dfltcc_inflate(
->>>      return (cc == DFLTCC_CC_OP1_TOO_SHORT || cc == DFLTCC_CC_OP2_TOO_SHORT) ?
->>>          DFLTCC_INFLATE_BREAK : DFLTCC_INFLATE_CONTINUE;
->>>  }
->>> +EXPORT_SYMBOL(dfltcc_inflate);
->>> _
->>>
+> ------------------------------------------------------
+> From: Alex Shi <alex.shi@linux.alibaba.com>
+> Subject: mm/swap.c: reduce lock contention in lru_cache_add
 > 
+> The current relock logic will change lru_lock when it finds a new lruvec,
+> so if 2 memcgs are reading a file or allocating pages at same time, they
+> could hold the lru_lock alternately, and wait for each other for fairness
+> attribute of ticket spin lock.
+> 
+> This patch will sort all lru_locks and only hold them once in the above
+> scenario.  That could reduce fairness waiting for lock reacquision. 
+> vm-scalability/case-lru-file-readtwice gets a ~5% performance gain on my
+> 2P*20core*HT machine.
+> 
+> Testing when all or most of the pages belong to the same lruvec show no
+> regression - most time is spent on lru_lock for lru sensitive cases.
+> 
+> Link: https://lkml.kernel.org/r/1605860847-47445-1-git-send-email-alex.shi@linux.alibaba.com
+> Suggested-by: Konstantin Khlebnikov <koct9i@gmail.com>
+> Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+> Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Hugh Dickins <hughd@google.com>
+> Cc: Yu Zhao <yuzhao@google.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/swap.c |   57 ++++++++++++++++++++++++++++++++++++++++++++--------
+>  1 file changed, 49 insertions(+), 8 deletions(-)
+> 
+> --- a/mm/swap.c~mm-swapc-reduce-lock-contention-in-lru_cache_add
+> +++ a/mm/swap.c
+> @@ -1009,24 +1009,65 @@ static void __pagevec_lru_add_fn(struct
+>  	trace_mm_lru_insertion(page, lru);
+>  }
+>  
+> +struct lruvecs {
+> +	struct list_head lists[PAGEVEC_SIZE];
+> +	struct lruvec *vecs[PAGEVEC_SIZE];
+> +};
+> +
+> +/* Sort pvec pages on their lruvec */
+> +int sort_page_lruvec(struct lruvecs *lruvecs, struct pagevec *pvec)
+> +{
+> +	int i, j, nr_lruvec;
+> +	struct page *page;
+> +	struct lruvec *lruvec = NULL;
+> +
+> +	lruvecs->vecs[0] = NULL;
+> +	for (i = nr_lruvec = 0; i < pagevec_count(pvec); i++) {
+> +		page = pvec->pages[i];
+> +		lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
+> +
+> +		/* Try to find a same lruvec */
+> +		for (j = 0; j <= nr_lruvec; j++)
+> +			if (lruvec == lruvecs->vecs[j])
+> +				break;
+> +
+> +		/* A new lruvec */
+> +		if (j > nr_lruvec) {
+> +			INIT_LIST_HEAD(&lruvecs->lists[nr_lruvec]);
+> +			lruvecs->vecs[nr_lruvec] = lruvec;
+> +			j = nr_lruvec++;
+> +			lruvecs->vecs[nr_lruvec] = 0;
+> +		}
+> +
+> +		list_add_tail(&page->lru, &lruvecs->lists[j]);
+> +	}
+> +
+> +	return nr_lruvec;
+> +}
+> +
+>  /*
+>   * Add the passed pages to the LRU, then drop the caller's refcount
+>   * on them.  Reinitialises the caller's pagevec.
+>   */
+>  void __pagevec_lru_add(struct pagevec *pvec)
+>  {
+> -	int i;
+> -	struct lruvec *lruvec = NULL;
+> +	int i, nr_lruvec;
+>  	unsigned long flags = 0;
+> +	struct page *page;
+> +	struct lruvecs lruvecs;
+>  
+> -	for (i = 0; i < pagevec_count(pvec); i++) {
+> -		struct page *page = pvec->pages[i];
+> +	nr_lruvec = sort_page_lruvec(&lruvecs, pvec);
+>  
+> -		lruvec = relock_page_lruvec_irqsave(page, lruvec, &flags);
+> -		__pagevec_lru_add_fn(page, lruvec);
+> +	for (i = 0; i < nr_lruvec; i++) {
+> +		spin_lock_irqsave(&lruvecs.vecs[i]->lru_lock, flags);
+> +		while (!list_empty(&lruvecs.lists[i])) {
+> +			page = lru_to_page(&lruvecs.lists[i]);
+> +			list_del(&page->lru);
+> +			__pagevec_lru_add_fn(page, lruvecs.vecs[i]);
+> +		}
+> +		spin_unlock_irqrestore(&lruvecs.vecs[i]->lru_lock, flags);
+>  	}
+> -	if (lruvec)
+> -		unlock_page_lruvec_irqrestore(lruvec, flags);
+> +
+>  	release_pages(pvec->pages, pvec->nr);
+>  	pagevec_reinit(pvec);
+>  }
+> _
+> 
+> Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+> 
+> mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+> fs-ntfs-remove-unused-varibles.patch
+> fs-ntfs-remove-unused-varible-attr_len.patch
+> mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+> mm-memcg-update-page-struct-member-in-comments.patch
+> mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+> mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+> mm-thp-simplify-lru_add_page_tail.patch
+> mm-thp-narrow-lru-locking.patch
+> mm-vmscan-remove-unnecessary-lruvec-adding.patch
+> mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+> mm-rmap-stop-store-reordering-issue-on-page-mapping-fix.patch
+> mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+> mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+> mm-lru-move-lock-into-lru_note_cost.patch
+> mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+> mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+> mm-mlock-remove-__munlock_isolate_lru_page.patch
+> mm-lru-introduce-testclearpagelru.patch
+> mm-compaction-do-page-isolation-first-in-compaction.patch
+> mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+> mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+> mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix.patch
+> mm-lru-replace-pgdat-lru_lock-with-lruvec-lock-fix-2.patch
+> mm-lru-introduce-the-relock_page_lruvec-function-fix.patch
+> mm-memcg-remove-incorrect-comments.patch
+> mm-mapping_dirty_helpers-enhance-the-kernel-doc-markups.patch
+> mm-add-colon-to-fix-kernel-doc-markups-error-for-check_pte.patch
+> mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
+> docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+> khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+> gcov-fix-kernel-doc-markup-issue.patch
+> mm-swapc-reduce-lock-contention-in-lru_cache_add.patch
+> mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+> mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+> mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 > 
