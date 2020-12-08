@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A95C4361B
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AFA2C433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:47:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9961623A23
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:47:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F48023A1C
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:47:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728312AbgLHAr3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Dec 2020 19:47:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60112 "EHLO mail.kernel.org"
+        id S1728731AbgLHArb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Dec 2020 19:47:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726190AbgLHAr3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Dec 2020 19:47:29 -0500
-Date:   Mon, 07 Dec 2020 16:46:22 -0800
+        id S1726190AbgLHArb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Dec 2020 19:47:31 -0500
+Date:   Mon, 07 Dec 2020 16:46:28 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607388382;
-        bh=nLkD9zgO/lixia7sk0Pv6rkBI6WVPgKOgl5ASw22p4c=;
+        s=korg; t=1607388389;
+        bh=qqOOy9MsNgnFzi1ff9u7LIV8ueOv6mHQaz0oL9k4H5E=;
         h=From:To:Subject:From;
-        b=wAVcJ7HIBC1DMv8RRvBE92s0Bz2KcsLOEBdp3D39lUcITfoRWvOgP2coKRtU1BgEX
-         rOSUHq6ICGyGmyTKfErpzfqsXaEtDRaIXwl89mnnCP02AJo5X0Hf3AZOk4cuWTsXHg
-         4ioopKvnmRpRp7q0sZ3IbJHn+9eNaT5W3ZrhyLA4=
+        b=XWIw2if9e+qUDrFWil5NemTztbn0nWoxPRZVDNi/cmskf7F0O6BAzBlnmfUNk4IrY
+         ocFOSMA7aoCpunCFHTk+o9g0crr/27ll1egEMvBKZEsq3Jq5tXHOTISlC6ySatG05X
+         89YqV6LZcqQbnmPS4W+MPoLDa0bdPaFfCJm/zCaA=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, u.kleine-koenig@pengutronix.de
+To:     aarcange@redhat.com, axelrasmussen@google.com, dgilbert@redhat.com,
+        joe@perches.com, mm-commits@vger.kernel.org, peterx@redhat.com,
+        rppt@linux.vnet.ibm.com, shuah@kernel.org
 Subject:  [merged]
- mailmap-add-two-more-addresses-of-uwe-kleine-oenig.patch removed from -mm
+ userfaultfd-selftests-fix-sigsegv-if-huge-mmap-fails.patch removed from -mm
  tree
-Message-ID: <20201208004622.DWdvO17EJ%akpm@linux-foundation.org>
+Message-ID: <20201208004628.3_Fn439E-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,47 +43,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add two more addresses of Uwe Kleine-K=C3=B6nig
+     Subject: userfaultfd: selftests: fix SIGSEGV if huge mmap fails
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-two-more-addresses-of-uwe-kleine-oenig.patch
+     userfaultfd-selftests-fix-sigsegv-if-huge-mmap-fails.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
-Subject: mailmap: add two more addresses of Uwe Kleine-K=C3=B6nig
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: selftests: fix SIGSEGV if huge mmap fails
 
-This fixes attribution for the commits (among others)
+The error handling in hugetlb_allocate_area() was incorrect for the
+hugetlb_shared test case.
 
-- d4097456cd1d ("video/framebuffer: move the probe func into
-  .devinit.text in Blackfin LCD driver")
+Previously the behavior was:
 
-- 0312e024d6cd ("mfd: mc13xxx: Add support for mc34708")
+- mmap a hugetlb area
+  - If this fails, set the pointer to NULL, and carry on
+- mmap an alias of the same hugetlb fd
+  - If this fails, munmap the original area
 
-Link: https://lkml.kernel.org/r/20201127213358.3440830-1-u.kleine-koenig@pe=
-ngutronix.de
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+If the original mmap failed, it's likely the second one did too.  If both
+failed, we'd blindly try to munmap a NULL pointer, causing a SIGSEGV. 
+Instead, "goto fail" so we return before trying to mmap the alias.
+
+This issue can be hit "in real life" by forgetting to set
+/proc/sys/vm/nr_hugepages (leaving it at 0), and then trying to run the
+hugetlb_shared test.
+
+Another small improvement is, when the original mmap fails, don't just
+print "it failed": perror(), so we can see *why*.  :)
+
+Link: https://lkml.kernel.org/r/20201204203443.2714693-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Alan Gilbert <dgilbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/vm/userfaultfd.c |   25 +++++++++++++--------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
---- a/.mailmap~mailmap-add-two-more-addresses-of-uwe-kleine-oenig
-+++ a/.mailmap
-@@ -322,6 +322,8 @@ TripleX Chung <xxx.phy@gmail.com> <zhong
- Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
- Tycho Andersen <tycho@tycho.pizza> <tycho@tycho.ws>
- Uwe Kleine-K=C3=B6nig <ukleinek@informatik.uni-freiburg.de>
-+Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
-+Uwe Kleine-K=C3=B6nig <ukleinek@strlen.de>
- Uwe Kleine-K=C3=B6nig <ukl@pengutronix.de>
- Uwe Kleine-K=C3=B6nig <Uwe.Kleine-Koenig@digi.com>
- Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-fix-sigsegv-if-huge-mmap-fails
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -206,19 +206,19 @@ static int hugetlb_release_pages(char *r
+ 	return ret;
+ }
+ 
+-
+ static void hugetlb_allocate_area(void **alloc_area)
+ {
+ 	void *area_alias = NULL;
+ 	char **alloc_area_alias;
++
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
+ 			   MAP_HUGETLB,
+ 			   huge_fd, *alloc_area == area_src ? 0 :
+ 			   nr_pages * page_size);
+ 	if (*alloc_area == MAP_FAILED) {
+-		fprintf(stderr, "mmap of hugetlbfs file failed\n");
+-		*alloc_area = NULL;
++		perror("mmap of hugetlbfs file failed");
++		goto fail;
+ 	}
+ 
+ 	if (map_shared) {
+@@ -227,14 +227,11 @@ static void hugetlb_allocate_area(void *
+ 				  huge_fd, *alloc_area == area_src ? 0 :
+ 				  nr_pages * page_size);
+ 		if (area_alias == MAP_FAILED) {
+-			if (munmap(*alloc_area, nr_pages * page_size) < 0) {
+-				perror("hugetlb munmap");
+-				exit(1);
+-			}
+-			*alloc_area = NULL;
+-			return;
++			perror("mmap of hugetlb file alias failed");
++			goto fail_munmap;
+ 		}
+ 	}
++
+ 	if (*alloc_area == area_src) {
+ 		huge_fd_off0 = *alloc_area;
+ 		alloc_area_alias = &area_src_alias;
+@@ -243,6 +240,16 @@ static void hugetlb_allocate_area(void *
+ 	}
+ 	if (area_alias)
+ 		*alloc_area_alias = area_alias;
++
++	return;
++
++fail_munmap:
++	if (munmap(*alloc_area, nr_pages * page_size) < 0) {
++		perror("hugetlb munmap");
++		exit(1);
++	}
++fail:
++	*alloc_area = NULL;
+ }
+ 
+ static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de=
- are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
+mmap_lock-add-tracepoints-around-lock-acquisition.patch
+mmap_lock-add-tracepoints-around-lock-acquisition-fix.patch
+userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
+userfaultfd-selftests-make-__su64-format-specifiers-portable-v2.patch
 
