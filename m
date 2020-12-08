@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00ABEC433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 23:39:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 499D9C4361B
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 23:53:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B17A823A5A
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 23:39:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F7AB23B19
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 23:53:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731646AbgLHXjP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Dec 2020 18:39:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60464 "EHLO mail.kernel.org"
+        id S1729961AbgLHXw7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Dec 2020 18:52:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36332 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731735AbgLHXjP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 8 Dec 2020 18:39:15 -0500
-Date:   Tue, 08 Dec 2020 15:38:27 -0800
+        id S1725940AbgLHXw7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 8 Dec 2020 18:52:59 -0500
+Date:   Tue, 08 Dec 2020 15:52:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607470708;
-        bh=wTtOPQY6s8v55z0XQGMjoVRNudIHavg2ch7Fx81AHmY=;
+        s=korg; t=1607471538;
+        bh=zrbSON/wu0TYgDiYK1pbX0RNGZmECWEgTAJLf5wLylI=;
         h=From:To:Subject:From;
-        b=q5ED1PZtfDmGiwqqLAyvXYV4CPOGuU2wmpfolRWpMuQrGSU2V0kLc81BtlDee20Y2
-         dg5ic2uKscgNOttBl1KtZKLL+vpxhrfLvbfso1Lj2LaIlBjotxkNMp0wOm9i2WFFSY
-         1roddvbAbIxR8oW+whF5OUZYtC0ABTsqmuW4B+K8=
+        b=UbxKtjfYvgN5veqaRy/voDK4KWP8RHZwmIfQDji7KIA0+ewbMv+fBZpRr61yXwCRa
+         cfQl8bPIOic/uwOsMjZnwGlzdTzskyH4PhKFqGF71m54fHNhFgu2zJZjDmSBqX3Kto
+         t+62XgSw5f/kpWyRj2e1R+UcDLrrpPx+zykNICPo=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, mike.kravetz@oracle.com,
-        borntraeger@de.ibm.com, gerald.schaefer@linux.ibm.com
-Subject:  +
- mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch added to -mm
- tree
-Message-ID: <20201208233827.2yXQC%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com,
+        minchan@kernel.org, rsalvaterra@gmail.com
+Subject:  + zram-break-the-strict-dependency-from-lzo.patch added to
+ -mm tree
+Message-ID: <20201208235217.uwCNP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: clear compound_nr before freeing gigantic pages
+     Subject: zram: break the strict dependency from lzo
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch
+     zram-break-the-strict-dependency-from-lzo.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/zram-break-the-strict-dependency-from-lzo.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/zram-break-the-strict-dependency-from-lzo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,76 +62,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Subject: mm/hugetlb: clear compound_nr before freeing gigantic pages
+From: Rui Salvaterra <rsalvaterra@gmail.com>
+Subject: zram: break the strict dependency from lzo
 
-Commit 1378a5ee451a ("mm: store compound_nr as well as compound_order")
-added compound_nr counter to first tail struct page, overlaying with
-page->mapping.  The overlay itself is fine, but while freeing gigantic
-hugepages via free_contig_range(), a "bad page" check will trigger for
-non-NULL page->mapping on the first tail page:
+>From the beginning, the zram block device always enabled CRYPTO_LZO, since
+lzo-rle is hardcoded as the fallback compression algorithm. As a consequence, on
+systems where another compression algorithm is chosen (e.g. CRYPTO_ZSTD), the
+lzo kernel module becomes unused, while still having to be built/loaded.
 
-[  276.681603] BUG: Bad page state in process bash  pfn:380001
-[  276.681614] page:00000000c35f0856 refcount:0 mapcount:0 mapping:00000000126b68aa index:0x0 pfn:0x380001
-[  276.681620] aops:0x0
-[  276.681622] flags: 0x3ffff00000000000()
-[  276.681626] raw: 3ffff00000000000 0000000000000100 0000000000000122 0000000100000000
-[  276.681628] raw: 0000000000000000 0000000000000000 ffffffff00000000 0000000000000000
-[  276.681630] page dumped because: non-NULL mapping
-[  276.681632] Modules linked in:
-[  276.681637] CPU: 6 PID: 616 Comm: bash Not tainted 5.10.0-rc7-next-20201208 #1
-[  276.681639] Hardware name: IBM 3906 M03 703 (LPAR)
-[  276.681641] Call Trace:
-[  276.681648]  [<0000000458c252b6>] show_stack+0x6e/0xe8
-[  276.681652]  [<000000045971cf60>] dump_stack+0x90/0xc8
-[  276.681656]  [<0000000458e8b186>] bad_page+0xd6/0x130
-[  276.681658]  [<0000000458e8cdea>] free_pcppages_bulk+0x26a/0x800
-[  276.681661]  [<0000000458e8e67e>] free_unref_page+0x6e/0x90
-[  276.681663]  [<0000000458e8ea6c>] free_contig_range+0x94/0xe8
-[  276.681666]  [<0000000458ea5e54>] update_and_free_page+0x1c4/0x2c8
-[  276.681669]  [<0000000458ea784e>] free_pool_huge_page+0x11e/0x138
-[  276.681671]  [<0000000458ea8530>] set_max_huge_pages+0x228/0x300
-[  276.681673]  [<0000000458ea86c0>] nr_hugepages_store_common+0xb8/0x130
-[  276.681678]  [<0000000458fd5b6a>] kernfs_fop_write+0xd2/0x218
-[  276.681681]  [<0000000458ef9da0>] vfs_write+0xb0/0x2b8
-[  276.681684]  [<0000000458efa15c>] ksys_write+0xac/0xe0
-[  276.681687]  [<000000045972c5ca>] system_call+0xe6/0x288
-[  276.681730] Disabling lock debugging due to kernel taint
+This patch removes the hardcoded lzo-rle dependency and allows the user to
+select the default compression algorithm for zram at build time. The previous
+behaviour is kept, as the default algorithm is still lzo-rle.
 
-This is because only the compound_order is cleared in
-destroy_compound_gigantic_page(), and compound_nr is set to 1U << order ==
-1 for order 0 in set_compound_order(page, 0).
-
-Fix this by explicitly clearing compound_nr for first tail page after
-calling set_compound_order(page, 0).
-
-Link: https://lkml.kernel.org/r/20201208182813.66391-2-gerald.schaefer@linux.ibm.com
-Fixes: 1378a5ee451a ("mm: store compound_nr as well as compound_order")
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc; Heiko Carstens <hca@linux.ibm.com>
-Cc: <stable@vger.kernel.org>	[5.9+]
+Link: https://lkml.kernel.org/r/20201207121245.50529-1-rsalvaterra@gmail.com
+Signed-off-by: Rui Salvaterra <rsalvaterra@gmail.com>
+Suggested-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/zram/Kconfig    |   42 +++++++++++++++++++++++++++++++-
+ drivers/block/zram/zcomp.c    |    2 +
+ drivers/block/zram/zram_drv.c |    2 -
+ 3 files changed, 44 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages
-+++ a/mm/hugetlb.c
-@@ -1216,6 +1216,7 @@ static void destroy_compound_gigantic_pa
- 	}
+--- a/drivers/block/zram/Kconfig~zram-break-the-strict-dependency-from-lzo
++++ a/drivers/block/zram/Kconfig
+@@ -2,7 +2,7 @@
+ config ZRAM
+ 	tristate "Compressed RAM block device support"
+ 	depends on BLOCK && SYSFS && ZSMALLOC && CRYPTO
+-	select CRYPTO_LZO
++	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842
+ 	help
+ 	  Creates virtual block devices called /dev/zramX (X = 0, 1, ...).
+ 	  Pages written to these disks are compressed and stored in memory
+@@ -14,6 +14,46 @@ config ZRAM
  
- 	set_compound_order(page, 0);
-+	page[1].compound_nr = 0;
- 	__ClearPageHead(page);
- }
+ 	  See Documentation/admin-guide/blockdev/zram.rst for more information.
  
++choice
++	prompt "Default zram compressor"
++	default ZRAM_DEF_COMP_LZORLE
++	depends on ZRAM
++
++config ZRAM_DEF_COMP_LZORLE
++	bool "lzo-rle"
++	depends on CRYPTO_LZO
++
++config ZRAM_DEF_COMP_ZSTD
++	bool "zstd"
++	depends on CRYPTO_ZSTD
++
++config ZRAM_DEF_COMP_LZ4
++	bool "lz4"
++	depends on CRYPTO_LZ4
++
++config ZRAM_DEF_COMP_LZO
++	bool "lzo"
++	depends on CRYPTO_LZO
++
++config ZRAM_DEF_COMP_LZ4HC
++	bool "lz4hc"
++	depends on CRYPTO_LZ4HC
++
++config ZRAM_DEF_COMP_842
++	bool "842"
++	depends on CRYPTO_842
++
++endchoice
++
++config ZRAM_DEF_COMP
++	string
++	default "lzo-rle" if ZRAM_DEF_COMP_LZORLE
++	default "zstd" if ZRAM_DEF_COMP_ZSTD
++	default "lz4" if ZRAM_DEF_COMP_LZ4
++	default "lzo" if ZRAM_DEF_COMP_LZO
++	default "lz4hc" if ZRAM_DEF_COMP_LZ4HC
++	default "842" if ZRAM_DEF_COMP_842
++
+ config ZRAM_WRITEBACK
+        bool "Write back incompressible or idle page to backing device"
+        depends on ZRAM
+--- a/drivers/block/zram/zcomp.c~zram-break-the-strict-dependency-from-lzo
++++ a/drivers/block/zram/zcomp.c
+@@ -15,8 +15,10 @@
+ #include "zcomp.h"
+ 
+ static const char * const backends[] = {
++#if IS_ENABLED(CONFIG_CRYPTO_LZO)
+ 	"lzo",
+ 	"lzo-rle",
++#endif
+ #if IS_ENABLED(CONFIG_CRYPTO_LZ4)
+ 	"lz4",
+ #endif
+--- a/drivers/block/zram/zram_drv.c~zram-break-the-strict-dependency-from-lzo
++++ a/drivers/block/zram/zram_drv.c
+@@ -42,7 +42,7 @@ static DEFINE_IDR(zram_index_idr);
+ static DEFINE_MUTEX(zram_index_mutex);
+ 
+ static int zram_major;
+-static const char *default_compressor = "lzo-rle";
++static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
+ 
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
 _
 
-Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
+Patches currently in -mm which might be from rsalvaterra@gmail.com are
 
-mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch
+zram-break-the-strict-dependency-from-lzo.patch
 
