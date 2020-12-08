@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE1FC4361B
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B545C433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0430223A1C
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC9A823A1C
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728789AbgLHAqs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Dec 2020 19:46:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59780 "EHLO mail.kernel.org"
+        id S1728798AbgLHAqu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Dec 2020 19:46:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728735AbgLHAqs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Dec 2020 19:46:48 -0500
-Date:   Mon, 07 Dec 2020 16:46:06 -0800
+        id S1728735AbgLHAqu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Dec 2020 19:46:50 -0500
+Date:   Mon, 07 Dec 2020 16:46:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607388367;
-        bh=i1auv3vONj8SJZcKspky7KQk0EmUZ4AE7V5pXAqiqm8=;
+        s=korg; t=1607388369;
+        bh=j/vL2wqV0LJjwoxjiR3HOb2JYmwiIxqjW+rhfJhJ5m4=;
         h=From:To:Subject:From;
-        b=1NYntMHtzrt7TwlIba85M3rSeN3BCXu1WLn56H0BZoyZHZspscEThaOk7o3Dinu9F
-         jztDFvc4S63dOG1Uwo253SV4Lbe+jiSXgFn5Q0ZaRSvDD5UdNEYNXjjC3AQ7zOdjvi
-         HWpkMMRmlokPGhToVs+Ab3J3kBpjEZ2rH5EZK/4c=
+        b=w8yTKsFZOU/aeMslbnLAqBgVtK6/zQWgEc1e7jp11s5mNotIkHuAbNeLneK1A0hXv
+         JNK7bp9MErXgWgxmigQTjzzHzD0tqu1Pr0NFcQY/YBrZI3v6qCp4MdgUYibfxRng3L
+         XfCeXq+TCe8ov7pKWVhClL9Vv8/A4uznchiCcaoU=
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        iii@linux.ibm.com, lkp@intel.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, zaslonko@linux.ibm.com
-Subject:  [merged] zlib-export-s390-symbols-for-zlib-modules.patch
+To:     dong.menglong@zte.com.cn, jwilk@jwilk.net,
+        mm-commits@vger.kernel.org, nhorman@tuxdriver.com,
+        pabs3@bonedaddy.net, stable@vger.kernel.org
+Subject:  [merged] coredump-fix-core_pattern-parse-error.patch
  removed from -mm tree
-Message-ID: <20201208004606.4NK8aWQ-V%akpm@linux-foundation.org>
+Message-ID: <20201208004609.lEjCN5cfC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,67 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zlib: export S390 symbols for zlib modules
+     Subject: coredump: fix core_pattern parse error
 has been removed from the -mm tree.  Its filename was
-     zlib-export-s390-symbols-for-zlib-modules.patch
+     coredump-fix-core_pattern-parse-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: zlib: export S390 symbols for zlib modules
+From: Menglong Dong <dong.menglong@zte.com.cn>
+Subject: coredump: fix core_pattern parse error
 
-Fix build errors when ZLIB_INFLATE=m and ZLIB_DEFLATE=m and ZLIB_DFLTCC=y
-by exporting the 2 needed symbols in dfltcc_inflate.c.
+'format_corename()' will splite 'core_pattern' on spaces when it is in
+pipe mode, and take helper_argv[0] as the path to usermode executable.
 
-Fixes these build errors:
+It works fine in most cases. However, if there is a space between
+'|' and '/file/path', such as
+'| /usr/lib/systemd/systemd-coredump %P %u %g',
+helper_argv[0] will be parsed as '', and users will get a
+'Core dump to | disabled'.
 
-ERROR: modpost: "dfltcc_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
-ERROR: modpost: "dfltcc_can_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
+It is not friendly to users, as the pattern above was valid previously. 
+Fix this by ignoring the spaces between '|' and '/file/path'.
 
-Link: https://lkml.kernel.org/r/20201123191712.4882-1-rdunlap@infradead.org
-Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Link: https://lkml.kernel.org/r/5fb62870.1c69fb81.8ef5d.af76@mx.google.com
+Fixes: 315c69261dd3 ("coredump: split pipe command whitespace before expanding template")
+Signed-off-by: Menglong Dong <dong.menglong@zte.com.cn>
+Cc: Paul Wise <pabs3@bonedaddy.net>
+Cc: Jakub Wilk <jwilk@jwilk.net> [https://bugs.debian.org/924398]
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_dfltcc/dfltcc_inflate.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/coredump.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/zlib_dfltcc/dfltcc_inflate.c~zlib-export-s390-symbols-for-zlib-modules
-+++ a/lib/zlib_dfltcc/dfltcc_inflate.c
-@@ -4,6 +4,7 @@
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- #include <asm/setup.h>
-+#include <linux/export.h>
- #include <linux/zutil.h>
- 
- /*
-@@ -29,6 +30,7 @@ int dfltcc_can_inflate(
-     return is_bit_set(dfltcc_state->af.fns, DFLTCC_XPND) &&
-                is_bit_set(dfltcc_state->af.fmts, DFLTCC_FMT0);
- }
-+EXPORT_SYMBOL(dfltcc_can_inflate);
- 
- static int dfltcc_was_inflate_used(
-     z_streamp strm
-@@ -147,3 +149,4 @@ dfltcc_inflate_action dfltcc_inflate(
-     return (cc == DFLTCC_CC_OP1_TOO_SHORT || cc == DFLTCC_CC_OP2_TOO_SHORT) ?
-         DFLTCC_INFLATE_BREAK : DFLTCC_INFLATE_CONTINUE;
- }
-+EXPORT_SYMBOL(dfltcc_inflate);
+--- a/fs/coredump.c~coredump-fix-core_pattern-parse-error
++++ a/fs/coredump.c
+@@ -229,7 +229,8 @@ static int format_corename(struct core_n
+ 		 */
+ 		if (ispipe) {
+ 			if (isspace(*pat_ptr)) {
+-				was_space = true;
++				if (cn->used != 0)
++					was_space = true;
+ 				pat_ptr++;
+ 				continue;
+ 			} else if (was_space) {
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from dong.menglong@zte.com.cn are
 
-tmpfs-fix-documentation-nits.patch
-procfs-delete-duplicated-words-other-fixes.patch
-bfs-dont-use-warning-string-when-its-just-info.patch
 
