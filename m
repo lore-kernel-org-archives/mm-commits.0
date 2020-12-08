@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1510C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE1FC4361B
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80DAF23A50
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0430223A1C
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Dec 2020 00:46:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726481AbgLHAqh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Dec 2020 19:46:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59742 "EHLO mail.kernel.org"
+        id S1728789AbgLHAqs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Dec 2020 19:46:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726231AbgLHAqh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 7 Dec 2020 19:46:37 -0500
-Date:   Mon, 07 Dec 2020 16:45:49 -0800
+        id S1728735AbgLHAqs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 7 Dec 2020 19:46:48 -0500
+Date:   Mon, 07 Dec 2020 16:46:06 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607388350;
-        bh=A1JZb8rOkclU4QuRp/DgfPstk7Lt8eAiMD2ZNos5RYE=;
+        s=korg; t=1607388367;
+        bh=i1auv3vONj8SJZcKspky7KQk0EmUZ4AE7V5pXAqiqm8=;
         h=From:To:Subject:From;
-        b=BRu1tYUkBhLY+9B/K4XABGt9huv/t1AOIl23C0yUzex0YB5PkhJJYVQT4G90wECur
-         tkAf0RMPW0cVb/zDfJQlhl+63m/CJ465Qr/JyiFwUBiYJYlq7QupeKJ/ihgnpXaMD8
-         A1kk7gecdiAfBkGvjm1Zxt5CNJ5DvW2ieB/SSQ3A=
+        b=1NYntMHtzrt7TwlIba85M3rSeN3BCXu1WLn56H0BZoyZHZspscEThaOk7o3Dinu9F
+         jztDFvc4S63dOG1Uwo253SV4Lbe+jiSXgFn5Q0ZaRSvDD5UdNEYNXjjC3AQ7zOdjvi
+         HWpkMMRmlokPGhToVs+Ab3J3kBpjEZ2rH5EZK/4c=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20201208004549.dF2WVqNXG%akpm@linux-foundation.org>
+To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        iii@linux.ibm.com, lkp@intel.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, zaslonko@linux.ibm.com
+Subject:  [merged] zlib-export-s390-symbols-for-zlib-modules.patch
+ removed from -mm tree
+Message-ID: <20201208004606.4NK8aWQ-V%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,125 +42,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: zlib: export S390 symbols for zlib modules
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     zlib-export-s390-symbols-for-zlib-modules.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: zlib: export S390 symbols for zlib modules
 
+Fix build errors when ZLIB_INFLATE=m and ZLIB_DEFLATE=m and ZLIB_DFLTCC=y
+by exporting the 2 needed symbols in dfltcc_inflate.c.
+
+Fixes these build errors:
+
+ERROR: modpost: "dfltcc_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
+ERROR: modpost: "dfltcc_can_inflate" [lib/zlib_inflate/zlib_inflate.ko] undefined!
+
+Link: https://lkml.kernel.org/r/20201123191712.4882-1-rdunlap@infradead.org
+Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/dc/clk_mgr/dcn21/rn_clk_mgr.c |   12 ----------
- drivers/md/dm.c                                           |   11 ---------
- drivers/net/ethernet/ibm/ibmvnic.c                        |   10 --------
- 3 files changed, 33 deletions(-)
+ lib/zlib_dfltcc/dfltcc_inflate.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn21/rn_clk_mgr.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn21/rn_clk_mgr.c
-@@ -195,18 +195,6 @@ void rn_update_clocks(struct clk_mgr *cl
- 		new_clocks->dispclk_khz = clk_mgr_base->clks.dispclk_khz;
- 	}
+--- a/lib/zlib_dfltcc/dfltcc_inflate.c~zlib-export-s390-symbols-for-zlib-modules
++++ a/lib/zlib_dfltcc/dfltcc_inflate.c
+@@ -4,6 +4,7 @@
+ #include "dfltcc_util.h"
+ #include "dfltcc.h"
+ #include <asm/setup.h>
++#include <linux/export.h>
+ #include <linux/zutil.h>
  
--<<<<<<< HEAD
--	/*
--	 * Temporally ignore thew 0 cases for disp and dpp clks.
--	 * We may have a new feature that requires 0 clks in the future.
--	 */
--	if (new_clocks->dppclk_khz == 0 || new_clocks->dispclk_khz == 0) {
--		new_clocks->dppclk_khz = clk_mgr_base->clks.dppclk_khz;
--		new_clocks->dispclk_khz = clk_mgr_base->clks.dispclk_khz;
--	}
--
--=======
-->>>>>>> linux-next/akpm-base
- 	if (should_set_clock(safe_to_lower, new_clocks->dppclk_khz, clk_mgr_base->clks.dppclk_khz)) {
- 		if (clk_mgr_base->clks.dppclk_khz > new_clocks->dppclk_khz)
- 			dpp_clock_lowered = true;
---- a/drivers/md/dm.c~linux-next-git-rejects
-+++ a/drivers/md/dm.c
-@@ -1043,16 +1043,6 @@ static sector_t max_io_len(struct dm_tar
- 	 * Does the target need to split IO even further?
- 	 * - varied (per target) IO splitting is a tenet of DM; this
- 	 *   explains why stacked chunk_sectors based splitting via
--<<<<<<< HEAD
--	 *   blk_max_size_offset() isn't possible here. So pass in
--	 *   ti->max_io_len to override stacked chunk_sectors.
--	 */
--	if (ti->max_io_len) {
--		max_len = blk_max_size_offset(ti->table->md->queue,
--					      target_offset, ti->max_io_len);
--		if (len > max_len)
--			len = max_len;
--=======
- 	 *   blk_max_size_offset() isn't possible here.
- 	 */
- 	if (max_io_len) {
-@@ -1063,7 +1053,6 @@ static sector_t max_io_len(struct dm_tar
+ /*
+@@ -29,6 +30,7 @@ int dfltcc_can_inflate(
+     return is_bit_set(dfltcc_state->af.fns, DFLTCC_XPND) &&
+                is_bit_set(dfltcc_state->af.fmts, DFLTCC_FMT0);
+ }
++EXPORT_SYMBOL(dfltcc_can_inflate);
  
- 		if (len > max_io_len)
- 			len = max_io_len;
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	return len;
---- a/drivers/net/ethernet/ibm/ibmvnic.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/ibm/ibmvnic.c
-@@ -2499,11 +2499,7 @@ restart_poll:
- 		 * holds a valid descriptor before reading its contents.
- 		 */
- 		dma_rmb();
--<<<<<<< HEAD
--		next = ibmvnic_next_scrq(adapter, adapter->rx_scrq[scrq_num]);
--=======
- 		next = ibmvnic_next_scrq(adapter, rx_scrq);
-->>>>>>> linux-next/akpm-base
- 		rx_buff =
- 		    (struct ibmvnic_rx_buff *)be64_to_cpu(next->
- 							  rx_comp.correlator);
-@@ -2978,18 +2974,12 @@ static int reset_one_sub_crq_queue(struc
- 		irq_dispose_mapping(scrq->irq);
- 		scrq->irq = 0;
- 	}
--<<<<<<< HEAD
--=======
- 
-->>>>>>> linux-next/akpm-base
- 	if (scrq->msgs) {
- 		memset(scrq->msgs, 0, 4 * PAGE_SIZE);
- 		atomic_set(&scrq->used, 0);
- 		scrq->cur = 0;
--<<<<<<< HEAD
--=======
- 		scrq->ind_buf.index = 0;
-->>>>>>> linux-next/akpm-base
- 	} else {
- 		netdev_dbg(adapter->netdev, "Invalid scrq reset\n");
- 		return -EINVAL;
+ static int dfltcc_was_inflate_used(
+     z_streamp strm
+@@ -147,3 +149,4 @@ dfltcc_inflate_action dfltcc_inflate(
+     return (cc == DFLTCC_CC_OP1_TOO_SHORT || cc == DFLTCC_CC_OP2_TOO_SHORT) ?
+         DFLTCC_INFLATE_BREAK : DFLTCC_INFLATE_CONTINUE;
+ }
++EXPORT_SYMBOL(dfltcc_inflate);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-linux-next-rejects.patch
-kmap-stupid-hacks-to-make-it-compile.patch
-init-kconfig-dont-assume-scripts-lld-versionsh-is-executable.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tmpfs-fix-documentation-nits.patch
+procfs-delete-duplicated-words-other-fixes.patch
+bfs-dont-use-warning-string-when-its-just-info.patch
 
