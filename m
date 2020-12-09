@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 514ACC19425
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:44:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 763C6C4167B
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:46:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 217E72343F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:44:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D4F423B45
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731087AbgLIXny (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 18:43:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32788 "EHLO mail.kernel.org"
+        id S1726683AbgLIXqa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 18:46:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33306 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388621AbgLIXno (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 18:43:44 -0500
-Date:   Wed, 09 Dec 2020 15:43:02 -0800
+        id S1729080AbgLIXqQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 18:46:16 -0500
+Date:   Wed, 09 Dec 2020 15:45:34 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607557383;
-        bh=570lAJpvcycKCGeRkLCf9mvoCYRNpYz9Zni/RqAlTes=;
+        s=korg; t=1607557535;
+        bh=r+A6tPMsmDUo1pK16ZS/f5WTM7HuiZ6HiMJtMnqjWiM=;
         h=From:To:Subject:From;
-        b=aE0fZmPbbeZ0Qd/aJ40bTbJ+Yc7f8cQbKT7PwIeWtLFvr+jwmN1xHvDPWmATUxKFN
-         zXHy0W8KGhv+72PR5POo1U7FGlQ9286Jy92GY0NtfY5QtQrIkXGHPQJbplCtyucV+f
-         mJUmF0IyO6mMWJ+zOen5IA+ZA0HNk3qmT4NSG9FA=
+        b=bYjqY9KTUTa1LQItxJKEaLeFJNSmGlZexkIfdRjCdXdUzordMorRmpHwT9E/iXqbH
+         6zHXmb7x6oUisU/f2cIjdiSzUMXeNik9bbW68lC7Zm9hphCzzsr75FJRcc8kgJybHP
+         rLio+hKfNqobtTe83QfJvLZcclxH4fL2ZGrVy1wY=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, bigeasy@linutronix.de,
-        vitaly.wool@konsulko.com
-Subject:  + z3fold-remove-preempt-disabled-sections-for-rt.patch
- added to -mm tree
-Message-ID: <20201209234302.subJO%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        georgi.djakov@linaro.org, corbet@lwn.net, lmark@codeaurora.org
+Subject:  + mm-page_owner-record-timestamp-and-pid.patch added to -mm
+ tree
+Message-ID: <20201209234534.LcSsS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: remove preempt disabled sections for RT
+     Subject: mm/page_owner: Record timestamp and pid
 has been added to the -mm tree.  Its filename is
-     z3fold-remove-preempt-disabled-sections-for-rt.patch
+     mm-page_owner-record-timestamp-and-pid.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/z3fold-remove-preempt-disabled-sections-for-rt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-record-timestamp-and-pid.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/z3fold-remove-preempt-disabled-sections-for-rt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-record-timestamp-and-pid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,87 +62,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitaly.wool@konsulko.com>
-Subject: z3fold: remove preempt disabled sections for RT
+From: Liam Mark <lmark@codeaurora.org>
+Subject: mm/page_owner: Record timestamp and pid
 
-Replace get_cpu_ptr() with migrate_disable()+this_cpu_ptr() so RT can take
-spinlocks that become sleeping locks.
+Collect the time for each allocation recorded in page owner so that
+allocation "surges" can be measured.
 
-Signed-off-by Mike Galbraith <efault@gmx.de>
-Link: https://lkml.kernel.org/r/20201209145151.18994-3-vitaly.wool@konsulko.com
-Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Record the pid for each allocation recorded in page owner so that the
+source of allocation "surges" can be better identified.
+
+The above is very useful when doing memory analysis.  On a crash for
+example, we can get this information from kdump (or ramdump) and parse it
+to figure out memory allocation problems.
+
+Please note that on x86_64 this increases the size of struct page_owner
+from 16 bytes to 32.
+
+Vlastimil: it's not a functionality intended for production, so unless
+somebody says they need to enable page_owner for debugging and this
+increase prevents them from fitting into available memory, let's not
+complicate things with making this optional.
+
+Link: https://lkml.kernel.org/r/20201209125153.10533-1-georgi.djakov@linaro.org
+Signed-off-by: Liam Mark <lmark@codeaurora.org>
+Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ Documentation/vm/page_owner.rst |   12 ++++++------
+ mm/page_owner.c                 |   17 +++++++++++++----
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
---- a/mm/z3fold.c~z3fold-remove-preempt-disabled-sections-for-rt
-+++ a/mm/z3fold.c
-@@ -623,14 +623,16 @@ static inline void add_to_unbuddied(stru
- {
- 	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0 ||
- 			zhdr->middle_chunks == 0) {
--		struct list_head *unbuddied = get_cpu_ptr(pool->unbuddied);
--
-+		struct list_head *unbuddied;
- 		int freechunks = num_free_chunks(zhdr);
-+
-+		migrate_disable();
-+		unbuddied = this_cpu_ptr(pool->unbuddied);
- 		spin_lock(&pool->lock);
- 		list_add(&zhdr->buddy, &unbuddied[freechunks]);
- 		spin_unlock(&pool->lock);
- 		zhdr->cpu = smp_processor_id();
--		put_cpu_ptr(pool->unbuddied);
-+		migrate_enable();
- 	}
- }
+--- a/Documentation/vm/page_owner.rst~mm-page_owner-record-timestamp-and-pid
++++ a/Documentation/vm/page_owner.rst
+@@ -41,17 +41,17 @@ size change due to this facility.
+ - Without page owner::
  
-@@ -880,8 +882,9 @@ static inline struct z3fold_header *__z3
- 	int chunks = size_to_chunks(size), i;
+    text    data     bss     dec     hex filename
+-   40662   1493     644   42799    a72f mm/page_alloc.o
++  48392    2333     644   51369    c8a9 mm/page_alloc.o
  
- lookup:
-+	migrate_disable();
- 	/* First, try to find an unbuddied z3fold page. */
--	unbuddied = get_cpu_ptr(pool->unbuddied);
-+	unbuddied = this_cpu_ptr(pool->unbuddied);
- 	for_each_unbuddied_list(i, chunks) {
- 		struct list_head *l = &unbuddied[i];
+ - With page owner::
  
-@@ -899,7 +902,7 @@ lookup:
- 		    !z3fold_page_trylock(zhdr)) {
- 			spin_unlock(&pool->lock);
- 			zhdr = NULL;
--			put_cpu_ptr(pool->unbuddied);
-+			migrate_enable();
- 			if (can_sleep)
- 				cond_resched();
- 			goto lookup;
-@@ -913,7 +916,7 @@ lookup:
- 		    test_bit(PAGE_CLAIMED, &page->private)) {
- 			z3fold_page_unlock(zhdr);
- 			zhdr = NULL;
--			put_cpu_ptr(pool->unbuddied);
-+			migrate_enable();
- 			if (can_sleep)
- 				cond_resched();
- 			goto lookup;
-@@ -928,7 +931,7 @@ lookup:
- 		kref_get(&zhdr->refcount);
- 		break;
- 	}
--	put_cpu_ptr(pool->unbuddied);
-+	migrate_enable();
+    text    data     bss     dec     hex filename
+-   40892   1493     644   43029    a815 mm/page_alloc.o
+-   1427      24       8    1459     5b3 mm/page_ext.o
+-   2722      50       0    2772     ad4 mm/page_owner.o
++  48800    2445     644   51889    cab1 mm/page_alloc.o
++   6574     108      29    6711    1a37 mm/page_owner.o
++   1025       8       8    1041     411 mm/page_ext.o
  
- 	if (!zhdr) {
- 		int cpu;
+-Although, roughly, 4 KB code is added in total, page_alloc.o increase by
+-230 bytes and only half of it is in hotpath. Building the kernel with
++Although, roughly, 8 KB code is added in total, page_alloc.o increase by
++520 bytes and less than half of it is in hotpath. Building the kernel with
+ page owner and turning it on if needed would be great option to debug
+ kernel memory problem.
+ 
+--- a/mm/page_owner.c~mm-page_owner-record-timestamp-and-pid
++++ a/mm/page_owner.c
+@@ -10,6 +10,7 @@
+ #include <linux/migrate.h>
+ #include <linux/stackdepot.h>
+ #include <linux/seq_file.h>
++#include <linux/sched/clock.h>
+ 
+ #include "internal.h"
+ 
+@@ -25,6 +26,8 @@ struct page_owner {
+ 	gfp_t gfp_mask;
+ 	depot_stack_handle_t handle;
+ 	depot_stack_handle_t free_handle;
++	u64 ts_nsec;
++	pid_t pid;
+ };
+ 
+ static bool page_owner_enabled = false;
+@@ -172,6 +175,8 @@ static inline void __set_page_owner_hand
+ 		page_owner->order = order;
+ 		page_owner->gfp_mask = gfp_mask;
+ 		page_owner->last_migrate_reason = -1;
++		page_owner->pid = current->pid;
++		page_owner->ts_nsec = local_clock();
+ 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+ 
+@@ -236,6 +241,8 @@ void __copy_page_owner(struct page *oldp
+ 	new_page_owner->last_migrate_reason =
+ 		old_page_owner->last_migrate_reason;
+ 	new_page_owner->handle = old_page_owner->handle;
++	new_page_owner->pid = old_page_owner->pid;
++	new_page_owner->ts_nsec = old_page_owner->ts_nsec;
+ 
+ 	/*
+ 	 * We don't clear the bit on the oldpage as it's going to be freed
+@@ -349,9 +356,10 @@ print_page_owner(char __user *buf, size_
+ 		return -ENOMEM;
+ 
+ 	ret = snprintf(kbuf, count,
+-			"Page allocated via order %u, mask %#x(%pGg)\n",
++			"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns\n",
+ 			page_owner->order, page_owner->gfp_mask,
+-			&page_owner->gfp_mask);
++			&page_owner->gfp_mask, page_owner->pid,
++			page_owner->ts_nsec);
+ 
+ 	if (ret >= count)
+ 		goto err;
+@@ -427,8 +435,9 @@ void __dump_page_owner(struct page *page
+ 	else
+ 		pr_alert("page_owner tracks the page as freed\n");
+ 
+-	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg)\n",
+-		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask);
++	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, ts %llu\n",
++		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
++		 page_owner->pid, page_owner->ts_nsec);
+ 
+ 	handle = READ_ONCE(page_owner->handle);
+ 	if (!handle) {
 _
 
-Patches currently in -mm which might be from vitaly.wool@konsulko.com are
+Patches currently in -mm which might be from lmark@codeaurora.org are
 
-z3fold-simplify-freeing-slots.patch
-z3fold-stricter-locking-and-more-careful-reclaim.patch
-z3fold-remove-preempt-disabled-sections-for-rt.patch
+mm-page_owner-record-timestamp-and-pid.patch
 
