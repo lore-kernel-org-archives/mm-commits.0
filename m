@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF87C433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:21:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FD17C4361B
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:31:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 217F023AFD
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:21:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEF1622C7B
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:31:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730695AbgLIXVG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 18:21:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53440 "EHLO mail.kernel.org"
+        id S1726671AbgLIXbb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 18:31:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728064AbgLIXVG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 18:21:06 -0500
-Date:   Wed, 09 Dec 2020 15:20:23 -0800
+        id S1725885AbgLIXbb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 18:31:31 -0500
+Date:   Wed, 09 Dec 2020 15:30:48 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607556025;
-        bh=bZLF/2rv9zWbE5/0pKDuLv0H+5Q2AJrvHGX79WUm51c=;
+        s=korg; t=1607556650;
+        bh=lDYvvaQ1bQeq69wo0tbu+1mwPzmAudR669VqmFju7Xk=;
         h=From:To:Subject:From;
-        b=v4ck1zrJ0NQQgh67iSjhOfjfA2GOofwmAetiCVsVAtpGppzd6RpEiZdOBc9tnzHTO
-         dYC5M9Q/nTYDpT5M2btMtpvNS2I/KRsznChMkY2Eh5igc9cdj1tMdMr4JtYy5IzLKL
-         1RvaJWVb9o3iYim35lDdq+4wJzVotz6GJ/c+tK/U=
+        b=zMEF+mRYl0UvdmID5VMFk6K03fnz8XA7PvD0+pc2ZFxiz+PwoH221OqFKKftGJv/G
+         RgyQuN5HLEPb1Gzsr4w9JmHWb4IaK9fljvuVE6UgQSn21GeSrj9mZZ52XNi/4Z4q9Y
+         MnndgBFYfJRQCj6RvrO/89IJ6XEA+VPmwvCSd1hM=
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
         vincenzo.frascino@arm.com, kevin.brodsky@arm.com,
-        gor@linux.ibm.com, glider@google.com, eugenis@google.com,
+        keescook@chromium.org, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         Branislav.Rankov@arm.com, aryabinin@virtuozzo.com,
         andreyknvl@google.com
-Subject:  [withdrawn]
- kasan-arm64-dont-allow-sw_tags-with-arm64_mte.patch removed from -mm tree
-Message-ID: <20201209232023.MIPgj%akpm@linux-foundation.org>
+Subject:  + kasan-add-and-integrate-kasan-boot-parameters-fix.patch
+ added to -mm tree
+Message-ID: <20201209233048.m5QHe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,51 +45,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: don't allow SW_TAGS with ARM64_MTE
-has been removed from the -mm tree.  Its filename was
-     kasan-arm64-dont-allow-sw_tags-with-arm64_mte.patch
+     Subject: kasan: don't use read-only static keys
+has been added to the -mm tree.  Its filename is
+     kasan-add-and-integrate-kasan-boot-parameters-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-and-integrate-kasan-boot-parameters-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-and-integrate-kasan-boot-parameters-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: don't allow SW_TAGS with ARM64_MTE
+Subject: kasan: don't use read-only static keys
 
-Software tag-based KASAN provides its own tag checking machinery that can
-conflict with MTE.  Don't allow enabling software tag-based KASAN when MTE
-is enabled.
+__ro_after_init static keys are incompatible with usage in loadable kernel
+modules and cause crashes.  Don't use those, use normal static keys.
 
-Link: https://lkml.kernel.org/r/0b8cd898a49ba0c9574f822c87e351ea567a80d3.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f2ded589eba1597f7360a972226083de9afd86e2.1607537948.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/hw_tags.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/Kconfig~kasan-arm64-dont-allow-sw_tags-with-arm64_mte
-+++ a/arch/arm64/Kconfig
-@@ -136,7 +136,7 @@ config ARM64
- 	select HAVE_ARCH_JUMP_LABEL
- 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
- 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
--	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
-+	select HAVE_ARCH_KASAN_SW_TAGS if (HAVE_ARCH_KASAN && !ARM64_MTE)
- 	select HAVE_ARCH_KFENCE
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS
+--- a/mm/kasan/hw_tags.c~kasan-add-and-integrate-kasan-boot-parameters-fix
++++ a/mm/kasan/hw_tags.c
+@@ -43,11 +43,11 @@ static enum kasan_arg_stacktrace kasan_a
+ static enum kasan_arg_fault kasan_arg_fault __ro_after_init;
+ 
+ /* Whether KASAN is enabled at all. */
+-DEFINE_STATIC_KEY_FALSE_RO(kasan_flag_enabled);
++DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
+ EXPORT_SYMBOL(kasan_flag_enabled);
+ 
+ /* Whether to collect alloc/free stack traces. */
+-DEFINE_STATIC_KEY_FALSE_RO(kasan_flag_stacktrace);
++DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
+ 
+ /* Whether panic or disable tag checking on fault. */
+ bool kasan_flag_panic __ro_after_init;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
@@ -137,6 +154,7 @@ kasan-inline-random_tag-for-hw_tags.patch
 kasan-open-code-kasan_unpoison_slab.patch
 kasan-inline-unpoison_range-and-check_invalid_free.patch
 kasan-add-and-integrate-kasan-boot-parameters.patch
+kasan-add-and-integrate-kasan-boot-parameters-fix.patch
 kasan-mm-check-kasan_enabled-in-annotations.patch
 kasan-mm-rename-kasan_poison_kfree.patch
 kasan-dont-round_up-too-much.patch
