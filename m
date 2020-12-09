@@ -7,36 +7,31 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FD17C4361B
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:31:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C88A4C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:43:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEF1622C7B
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:31:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69768238A0
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:43:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726671AbgLIXbb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 18:31:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57210 "EHLO mail.kernel.org"
+        id S1731849AbgLIXnj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 18:43:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60972 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725885AbgLIXbb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 18:31:31 -0500
-Date:   Wed, 09 Dec 2020 15:30:48 -0800
+        id S1731087AbgLIXni (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 18:43:38 -0500
+Date:   Wed, 09 Dec 2020 15:42:56 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607556650;
-        bh=lDYvvaQ1bQeq69wo0tbu+1mwPzmAudR669VqmFju7Xk=;
+        s=korg; t=1607557377;
+        bh=ztAjnrNJps1DQm0Vfbb0W4mYztb0ZWCWFsB3Ei9sduI=;
         h=From:To:Subject:From;
-        b=zMEF+mRYl0UvdmID5VMFk6K03fnz8XA7PvD0+pc2ZFxiz+PwoH221OqFKKftGJv/G
-         RgyQuN5HLEPb1Gzsr4w9JmHWb4IaK9fljvuVE6UgQSn21GeSrj9mZZ52XNi/4Z4q9Y
-         MnndgBFYfJRQCj6RvrO/89IJ6XEA+VPmwvCSd1hM=
+        b=g1k3jtEazY8Cxz8HsjBlpLdqfIQtbNZa5m5aMe4E/L6/5pexrIqnzKNieW9ceXsCQ
+         HGf9PlxF/Z12cX0Rjv8n0Ls9bcmEYt6YgItxkC7YU0CFRInnbz+wzBNO7mt6MbrPGB
+         hGCNLKlxZde+buxQMYHgxIe2LOcU43e31H6li4T4=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
-        vincenzo.frascino@arm.com, kevin.brodsky@arm.com,
-        keescook@chromium.org, glider@google.com, eugenis@google.com,
-        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
-        Branislav.Rankov@arm.com, aryabinin@virtuozzo.com,
-        andreyknvl@google.com
-Subject:  + kasan-add-and-integrate-kasan-boot-parameters-fix.patch
- added to -mm tree
-Message-ID: <20201209233048.m5QHe%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, efault@gmx.de,
+        bigeasy@linutronix.de, vitaly.wool@konsulko.com
+Subject:  + z3fold-simplify-freeing-slots.patch added to -mm tree
+Message-ID: <20201209234256.ENL_d%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: don't use read-only static keys
+     Subject: z3fold: simplify freeing slots
 has been added to the -mm tree.  Its filename is
-     kasan-add-and-integrate-kasan-boot-parameters-fix.patch
+     z3fold-simplify-freeing-slots.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-and-integrate-kasan-boot-parameters-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/z3fold-simplify-freeing-slots.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-and-integrate-kasan-boot-parameters-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/z3fold-simplify-freeing-slots.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,101 +61,187 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't use read-only static keys
+From: Vitaly Wool <vitaly.wool@konsulko.com>
+Subject: z3fold: simplify freeing slots
 
-__ro_after_init static keys are incompatible with usage in loadable kernel
-modules and cause crashes.  Don't use those, use normal static keys.
+Patch series "z3fold: stability / rt fixes".
 
-Link: https://lkml.kernel.org/r/f2ded589eba1597f7360a972226083de9afd86e2.1607537948.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Kees Cook <keescook@chromium.org>
+Address z3fold stability issues under stress load, primarily in the
+reclaim and free aspects.  Besides, it fixes the locking problems that
+were only seen in real-time kernel configuration.
+
+
+This patch (of 3):
+
+There used to be two places in the code where slots could be freed, namely
+when freeing the last allocated handle from the slots and when releasing
+the z3fold header these slots aree linked to.  The logic to decide on
+whether to free certain slots was complicated and error prone in both
+functions and it led to failures in RT case.
+
+To fix that, make free_handle() the single point of freeing slots.
+
+Link: https://lkml.kernel.org/r/20201209145151.18994-1-vitaly.wool@konsulko.com
+Link: https://lkml.kernel.org/r/20201209145151.18994-2-vitaly.wool@konsulko.com
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Tested-by: Mike Galbraith <efault@gmx.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/z3fold.c |   55 +++++++++++---------------------------------------
+ 1 file changed, 13 insertions(+), 42 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-add-and-integrate-kasan-boot-parameters-fix
-+++ a/mm/kasan/hw_tags.c
-@@ -43,11 +43,11 @@ static enum kasan_arg_stacktrace kasan_a
- static enum kasan_arg_fault kasan_arg_fault __ro_after_init;
+--- a/mm/z3fold.c~z3fold-simplify-freeing-slots
++++ a/mm/z3fold.c
+@@ -90,7 +90,7 @@ struct z3fold_buddy_slots {
+ 	 * be enough slots to hold all possible variants
+ 	 */
+ 	unsigned long slot[BUDDY_MASK + 1];
+-	unsigned long pool; /* back link + flags */
++	unsigned long pool; /* back link */
+ 	rwlock_t lock;
+ };
+ #define HANDLE_FLAG_MASK	(0x03)
+@@ -182,13 +182,6 @@ enum z3fold_page_flags {
+ };
  
- /* Whether KASAN is enabled at all. */
--DEFINE_STATIC_KEY_FALSE_RO(kasan_flag_enabled);
-+DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
- EXPORT_SYMBOL(kasan_flag_enabled);
+ /*
+- * handle flags, go under HANDLE_FLAG_MASK
+- */
+-enum z3fold_handle_flags {
+-	HANDLES_ORPHANED = 0,
+-};
+-
+-/*
+  * Forward declarations
+  */
+ static struct z3fold_header *__z3fold_alloc(struct z3fold_pool *, size_t, bool);
+@@ -303,10 +296,9 @@ static inline void put_z3fold_header(str
+ 		z3fold_page_unlock(zhdr);
+ }
  
- /* Whether to collect alloc/free stack traces. */
--DEFINE_STATIC_KEY_FALSE_RO(kasan_flag_stacktrace);
-+DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
+-static inline void free_handle(unsigned long handle)
++static inline void free_handle(unsigned long handle, struct z3fold_header *zhdr)
+ {
+ 	struct z3fold_buddy_slots *slots;
+-	struct z3fold_header *zhdr;
+ 	int i;
+ 	bool is_free;
  
- /* Whether panic or disable tag checking on fault. */
- bool kasan_flag_panic __ro_after_init;
+@@ -316,22 +308,13 @@ static inline void free_handle(unsigned
+ 	if (WARN_ON(*(unsigned long *)handle == 0))
+ 		return;
+ 
+-	zhdr = handle_to_z3fold_header(handle);
+ 	slots = handle_to_slots(handle);
+ 	write_lock(&slots->lock);
+ 	*(unsigned long *)handle = 0;
+-	if (zhdr->slots == slots) {
+-		write_unlock(&slots->lock);
+-		return; /* simple case, nothing else to do */
+-	}
++	if (zhdr->slots != slots)
++		zhdr->foreign_handles--;
+ 
+-	/* we are freeing a foreign handle if we are here */
+-	zhdr->foreign_handles--;
+ 	is_free = true;
+-	if (!test_bit(HANDLES_ORPHANED, &slots->pool)) {
+-		write_unlock(&slots->lock);
+-		return;
+-	}
+ 	for (i = 0; i <= BUDDY_MASK; i++) {
+ 		if (slots->slot[i]) {
+ 			is_free = false;
+@@ -343,6 +326,8 @@ static inline void free_handle(unsigned
+ 	if (is_free) {
+ 		struct z3fold_pool *pool = slots_to_pool(slots);
+ 
++		if (zhdr->slots == slots)
++			zhdr->slots = NULL;
+ 		kmem_cache_free(pool->c_handle, slots);
+ 	}
+ }
+@@ -525,8 +510,6 @@ static void __release_z3fold_page(struct
+ {
+ 	struct page *page = virt_to_page(zhdr);
+ 	struct z3fold_pool *pool = zhdr_to_pool(zhdr);
+-	bool is_free = true;
+-	int i;
+ 
+ 	WARN_ON(!list_empty(&zhdr->buddy));
+ 	set_bit(PAGE_STALE, &page->private);
+@@ -536,21 +519,6 @@ static void __release_z3fold_page(struct
+ 		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
+ 
+-	/* If there are no foreign handles, free the handles array */
+-	read_lock(&zhdr->slots->lock);
+-	for (i = 0; i <= BUDDY_MASK; i++) {
+-		if (zhdr->slots->slot[i]) {
+-			is_free = false;
+-			break;
+-		}
+-	}
+-	if (!is_free)
+-		set_bit(HANDLES_ORPHANED, &zhdr->slots->pool);
+-	read_unlock(&zhdr->slots->lock);
+-
+-	if (is_free)
+-		kmem_cache_free(pool->c_handle, zhdr->slots);
+-
+ 	if (locked)
+ 		z3fold_page_unlock(zhdr);
+ 
+@@ -973,6 +941,9 @@ lookup:
+ 		}
+ 	}
+ 
++	if (zhdr && !zhdr->slots)
++		zhdr->slots = alloc_slots(pool,
++					can_sleep ? GFP_NOIO : GFP_ATOMIC);
+ 	return zhdr;
+ }
+ 
+@@ -1270,7 +1241,7 @@ static void z3fold_free(struct z3fold_po
+ 	}
+ 
+ 	if (!page_claimed)
+-		free_handle(handle);
++		free_handle(handle, zhdr);
+ 	if (kref_put(&zhdr->refcount, release_z3fold_page_locked_list)) {
+ 		atomic64_dec(&pool->pages_nr);
+ 		return;
+@@ -1429,19 +1400,19 @@ static int z3fold_reclaim_page(struct z3
+ 			ret = pool->ops->evict(pool, middle_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(middle_handle);
++			free_handle(middle_handle, zhdr);
+ 		}
+ 		if (first_handle) {
+ 			ret = pool->ops->evict(pool, first_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(first_handle);
++			free_handle(first_handle, zhdr);
+ 		}
+ 		if (last_handle) {
+ 			ret = pool->ops->evict(pool, last_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(last_handle);
++			free_handle(last_handle, zhdr);
+ 		}
+ next:
+ 		if (test_bit(PAGE_HEADLESS, &page->private)) {
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vitaly.wool@konsulko.com are
 
-kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
-kasan-kasan_vmalloc-depends-on-kasan_generic.patch
-kasan-group-vmalloc-code.patch
-kasan-shadow-declarations-only-for-software-modes.patch
-kasan-rename-unpoison_shadow-to-unpoison_range.patch
-kasan-rename-kasan_shadow_-to-kasan_granule_.patch
-kasan-only-build-initc-for-software-modes.patch
-kasan-split-out-shadowc-from-commonc.patch
-kasan-define-kasan_memory_per_shadow_page.patch
-kasan-rename-report-and-tags-files.patch
-kasan-dont-duplicate-config-dependencies.patch
-kasan-hide-invalid-free-check-implementation.patch
-kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
-kasan-arm64-only-init-shadow-for-software-modes.patch
-kasan-arm64-only-use-kasan_depth-for-software-modes.patch
-kasan-arm64-move-initialization-message.patch
-kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
-kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
-kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
-kasan-rename-shadow-layout-macros-to-meta.patch
-kasan-separate-metadata_fetch_row-for-each-mode.patch
-kasan-introduce-config_kasan_hw_tags.patch
-arm64-kasan-align-allocations-for-hw_tags.patch
-arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
-kasan-define-kasan_granule_size-for-hw_tags.patch
-kasan-x86-s390-update-undef-config_kasan.patch
-kasan-arm64-expand-config_kasan-checks.patch
-kasan-arm64-implement-hw_tags-runtime.patch
-kasan-arm64-print-report-from-tag-fault-handler.patch
-kasan-mm-reset-tags-when-accessing-metadata.patch
-kasan-arm64-enable-config_kasan_hw_tags.patch
-kasan-add-documentation-for-hardware-tag-based-mode.patch
-kasan-simplify-quarantine_put-call-site.patch
-kasan-rename-get_alloc-free_info.patch
-kasan-introduce-set_alloc_info.patch
-kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
-kasan-allow-vmap_stack-for-hw_tags-mode.patch
-kasan-remove-__kasan_unpoison_stack.patch
-kasan-inline-kasan_reset_tag-for-tag-based-modes.patch
-kasan-inline-random_tag-for-hw_tags.patch
-kasan-open-code-kasan_unpoison_slab.patch
-kasan-inline-unpoison_range-and-check_invalid_free.patch
-kasan-add-and-integrate-kasan-boot-parameters.patch
-kasan-add-and-integrate-kasan-boot-parameters-fix.patch
-kasan-mm-check-kasan_enabled-in-annotations.patch
-kasan-mm-rename-kasan_poison_kfree.patch
-kasan-dont-round_up-too-much.patch
-kasan-simplify-assign_tag-and-set_tag-calls.patch
-kasan-clarify-comment-in-__kasan_kfree_large.patch
-kasan-sanitize-objects-when-metadata-doesnt-fit.patch
-kasan-mm-allow-cache-merging-with-no-metadata.patch
-kasan-update-documentation.patch
+z3fold-simplify-freeing-slots.patch
+z3fold-stricter-locking-and-more-careful-reclaim.patch
+z3fold-remove-preempt-disabled-sections-for-rt.patch
 
