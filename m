@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17DBBC4361B
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:16:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF87C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:21:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC3C7238EB
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:16:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 217F023AFD
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:21:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730446AbgLIXQl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 18:16:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51574 "EHLO mail.kernel.org"
+        id S1730695AbgLIXVG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 18:21:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729348AbgLIXQl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 18:16:41 -0500
-Date:   Wed, 09 Dec 2020 15:15:58 -0800
+        id S1728064AbgLIXVG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 18:21:06 -0500
+Date:   Wed, 09 Dec 2020 15:20:23 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607555760;
-        bh=MYA9SdpHQPEhJ8Y7a4l/uTcdkP34pmFjk9GWTtFAzKA=;
+        s=korg; t=1607556025;
+        bh=bZLF/2rv9zWbE5/0pKDuLv0H+5Q2AJrvHGX79WUm51c=;
         h=From:To:Subject:From;
-        b=c19WOZpYdsBhU9R+/6cOz66BiuEKzNxahXNgvwUTjmAti7m98+e4APeqtVoNmVgPT
-         VufUURYzOV2jZTSCj+xZ4MVjHotjdjXMmo6WTEV93bc54AZv4FXDS9EAaIon3+idY9
-         clT34V7vo3kE//UwYdAFSmv+zV49yEBQ5x2c5wZQ=
+        b=v4ck1zrJ0NQQgh67iSjhOfjfA2GOofwmAetiCVsVAtpGppzd6RpEiZdOBc9tnzHTO
+         dYC5M9Q/nTYDpT5M2btMtpvNS2I/KRsznChMkY2Eh5igc9cdj1tMdMr4JtYy5IzLKL
+         1RvaJWVb9o3iYim35lDdq+4wJzVotz6GJ/c+tK/U=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        songmuchun@bytedance.com, shuah@kernel.org,
-        mike.kravetz@oracle.com, mhocko@suse.com,
-        kirill.shutemov@linux.intel.com, joao.m.martins@oracle.com,
-        jhubbard@nvidia.com, jane.chu@oracle.com, jack@suse.cz,
-        ira.weiny@intel.com, hch@infradead.org, david@fromorbit.com,
-        dan.j.williams@intel.com, corbet@lwn.net, jgg@nvidia.com
-Subject:  + mm-up-combine-put_compound_head-and-unpin_user_page.patch
- added to -mm tree
-Message-ID: <20201209231558.d0hSJ%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
+        vincenzo.frascino@arm.com, kevin.brodsky@arm.com,
+        gor@linux.ibm.com, glider@google.com, eugenis@google.com,
+        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
+        Branislav.Rankov@arm.com, aryabinin@virtuozzo.com,
+        andreyknvl@google.com
+Subject:  [withdrawn]
+ kasan-arm64-dont-allow-sw_tags-with-arm64_mte.patch removed from -mm tree
+Message-ID: <20201209232023.MIPgj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,211 +45,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: combine put_compound_head() and unpin_user_page()
-has been added to the -mm tree.  Its filename is
-     mm-up-combine-put_compound_head-and-unpin_user_page.patch
+     Subject: kasan, arm64: don't allow SW_TAGS with ARM64_MTE
+has been removed from the -mm tree.  Its filename was
+     kasan-arm64-dont-allow-sw_tags-with-arm64_mte.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-up-combine-put_compound_head-and-unpin_user_page.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-up-combine-put_compound_head-and-unpin_user_page.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: combine put_compound_head() and unpin_user_page()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan, arm64: don't allow SW_TAGS with ARM64_MTE
 
-These functions accomplish the same thing but have different
-implementations.
+Software tag-based KASAN provides its own tag checking machinery that can
+conflict with MTE.  Don't allow enabling software tag-based KASAN when MTE
+is enabled.
 
-unpin_user_page() has a bug where it calls mod_node_page_state() after
-calling put_page() which creates a risk that the page could have been
-hot-uplugged from the system.
-
-Fix this by using put_compound_head() as the only implementation.
-
-__unpin_devmap_managed_user_page() and related can be deleted as well in
-favour of the simpler, but slower, version in put_compound_head() that has
-an extra atomic page_ref_sub, but always calls put_page() which internally
-contains the special devmap code.
-
-Move put_compound_head() to be directly after try_grab_compound_head() so
-people can find it in future.
-
-Link: https://lkml.kernel.org/r/0-v1-6730d4ee0d32+40e6-gup_combine_put_jgg@nvidia.com
-Fixes: 1970dc6f5226 ("mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN) reporting")
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-CC: Joao Martins <joao.m.martins@oracle.com>
-CC: Jonathan Corbet <corbet@lwn.net>
-CC: Dan Williams <dan.j.williams@intel.com>
-CC: Dave Chinner <david@fromorbit.com>
-CC: Christoph Hellwig <hch@infradead.org>
-CC: Ira Weiny <ira.weiny@intel.com>
-CC: Jan Kara <jack@suse.cz>
-CC: Jane Chu <jane.chu@oracle.com>
-CC: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-CC: Michal Hocko <mhocko@suse.com>
-CC: Mike Kravetz <mike.kravetz@oracle.com>
-CC: Shuah Khan <shuah@kernel.org>
-CC: Muchun Song <songmuchun@bytedance.com>
-CC: Vlastimil Babka <vbabka@suse.cz>
-CC: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/0b8cd898a49ba0c9574f822c87e351ea567a80d3.1606161801.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  103 +++++++++++------------------------------------------
- 1 file changed, 23 insertions(+), 80 deletions(-)
+ arch/arm64/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-up-combine-put_compound_head-and-unpin_user_page
-+++ a/mm/gup.c
-@@ -123,6 +123,28 @@ static __maybe_unused struct page *try_g
- 	return NULL;
- }
- 
-+static void put_compound_head(struct page *page, int refs, unsigned int flags)
-+{
-+	if (flags & FOLL_PIN) {
-+		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
-+				    refs);
-+
-+		if (hpage_pincount_available(page))
-+			hpage_pincount_sub(page, refs);
-+		else
-+			refs *= GUP_PIN_COUNTING_BIAS;
-+	}
-+
-+	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
-+	/*
-+	 * Calling put_page() for each ref is unnecessarily slow. Only the last
-+	 * ref needs a put_page().
-+	 */
-+	if (refs > 1)
-+		page_ref_sub(page, refs - 1);
-+	put_page(page);
-+}
-+
- /**
-  * try_grab_page() - elevate a page's refcount by a flag-dependent amount
-  *
-@@ -177,41 +199,6 @@ bool __must_check try_grab_page(struct p
- 	return true;
- }
- 
--#ifdef CONFIG_DEV_PAGEMAP_OPS
--static bool __unpin_devmap_managed_user_page(struct page *page)
--{
--	int count, refs = 1;
--
--	if (!page_is_devmap_managed(page))
--		return false;
--
--	if (hpage_pincount_available(page))
--		hpage_pincount_sub(page, 1);
--	else
--		refs = GUP_PIN_COUNTING_BIAS;
--
--	count = page_ref_sub_return(page, refs);
--
--	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
--	/*
--	 * devmap page refcounts are 1-based, rather than 0-based: if
--	 * refcount is 1, then the page is free and the refcount is
--	 * stable because nobody holds a reference on the page.
--	 */
--	if (count == 1)
--		free_devmap_managed_page(page);
--	else if (!count)
--		__put_page(page);
--
--	return true;
--}
--#else
--static bool __unpin_devmap_managed_user_page(struct page *page)
--{
--	return false;
--}
--#endif /* CONFIG_DEV_PAGEMAP_OPS */
--
- /**
-  * unpin_user_page() - release a dma-pinned page
-  * @page:            pointer to page to be released
-@@ -223,28 +210,7 @@ static bool __unpin_devmap_managed_user_
-  */
- void unpin_user_page(struct page *page)
- {
--	int refs = 1;
--
--	page = compound_head(page);
--
--	/*
--	 * For devmap managed pages we need to catch refcount transition from
--	 * GUP_PIN_COUNTING_BIAS to 1, when refcount reach one it means the
--	 * page is free and we need to inform the device driver through
--	 * callback. See include/linux/memremap.h and HMM for details.
--	 */
--	if (__unpin_devmap_managed_user_page(page))
--		return;
--
--	if (hpage_pincount_available(page))
--		hpage_pincount_sub(page, 1);
--	else
--		refs = GUP_PIN_COUNTING_BIAS;
--
--	if (page_ref_sub_and_test(page, refs))
--		__put_page(page);
--
--	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
-+	put_compound_head(compound_head(page), 1, FOLL_PIN);
- }
- EXPORT_SYMBOL(unpin_user_page);
- 
-@@ -2009,29 +1975,6 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  * This code is based heavily on the PowerPC implementation by Nick Piggin.
-  */
- #ifdef CONFIG_HAVE_FAST_GUP
--
--static void put_compound_head(struct page *page, int refs, unsigned int flags)
--{
--	if (flags & FOLL_PIN) {
--		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
--				    refs);
--
--		if (hpage_pincount_available(page))
--			hpage_pincount_sub(page, refs);
--		else
--			refs *= GUP_PIN_COUNTING_BIAS;
--	}
--
--	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
--	/*
--	 * Calling put_page() for each ref is unnecessarily slow. Only the last
--	 * ref needs a put_page().
--	 */
--	if (refs > 1)
--		page_ref_sub(page, refs - 1);
--	put_page(page);
--}
--
- #ifdef CONFIG_GUP_GET_PTE_LOW_HIGH
- 
- /*
+--- a/arch/arm64/Kconfig~kasan-arm64-dont-allow-sw_tags-with-arm64_mte
++++ a/arch/arm64/Kconfig
+@@ -136,7 +136,7 @@ config ARM64
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
+ 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
+-	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
++	select HAVE_ARCH_KASAN_SW_TAGS if (HAVE_ARCH_KASAN && !ARM64_MTE)
+ 	select HAVE_ARCH_KFENCE
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
 _
 
-Patches currently in -mm which might be from jgg@nvidia.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-reorganize-internal_get_user_pages_fast.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork.patch
-mm-gup-remove-the-vma-allocation-from-gup_longterm_locked.patch
-mm-up-combine-put_compound_head-and-unpin_user_page.patch
+kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
+kasan-kasan_vmalloc-depends-on-kasan_generic.patch
+kasan-group-vmalloc-code.patch
+kasan-shadow-declarations-only-for-software-modes.patch
+kasan-rename-unpoison_shadow-to-unpoison_range.patch
+kasan-rename-kasan_shadow_-to-kasan_granule_.patch
+kasan-only-build-initc-for-software-modes.patch
+kasan-split-out-shadowc-from-commonc.patch
+kasan-define-kasan_memory_per_shadow_page.patch
+kasan-rename-report-and-tags-files.patch
+kasan-dont-duplicate-config-dependencies.patch
+kasan-hide-invalid-free-check-implementation.patch
+kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
+kasan-arm64-only-init-shadow-for-software-modes.patch
+kasan-arm64-only-use-kasan_depth-for-software-modes.patch
+kasan-arm64-move-initialization-message.patch
+kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
+kasan-rename-shadow-layout-macros-to-meta.patch
+kasan-separate-metadata_fetch_row-for-each-mode.patch
+kasan-introduce-config_kasan_hw_tags.patch
+arm64-kasan-align-allocations-for-hw_tags.patch
+arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
+kasan-define-kasan_granule_size-for-hw_tags.patch
+kasan-x86-s390-update-undef-config_kasan.patch
+kasan-arm64-expand-config_kasan-checks.patch
+kasan-arm64-implement-hw_tags-runtime.patch
+kasan-arm64-print-report-from-tag-fault-handler.patch
+kasan-mm-reset-tags-when-accessing-metadata.patch
+kasan-arm64-enable-config_kasan_hw_tags.patch
+kasan-add-documentation-for-hardware-tag-based-mode.patch
+kasan-simplify-quarantine_put-call-site.patch
+kasan-rename-get_alloc-free_info.patch
+kasan-introduce-set_alloc_info.patch
+kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+kasan-allow-vmap_stack-for-hw_tags-mode.patch
+kasan-remove-__kasan_unpoison_stack.patch
+kasan-inline-kasan_reset_tag-for-tag-based-modes.patch
+kasan-inline-random_tag-for-hw_tags.patch
+kasan-open-code-kasan_unpoison_slab.patch
+kasan-inline-unpoison_range-and-check_invalid_free.patch
+kasan-add-and-integrate-kasan-boot-parameters.patch
+kasan-mm-check-kasan_enabled-in-annotations.patch
+kasan-mm-rename-kasan_poison_kfree.patch
+kasan-dont-round_up-too-much.patch
+kasan-simplify-assign_tag-and-set_tag-calls.patch
+kasan-clarify-comment-in-__kasan_kfree_large.patch
+kasan-sanitize-objects-when-metadata-doesnt-fit.patch
+kasan-mm-allow-cache-merging-with-no-metadata.patch
+kasan-update-documentation.patch
 
