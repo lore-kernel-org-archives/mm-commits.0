@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 996BBC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:02:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 870F9C4361B
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:03:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D18723B51
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:02:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31D7E22D06
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728026AbgLJACE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 19:02:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39338 "EHLO mail.kernel.org"
+        id S1726860AbgLJADC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 19:03:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725914AbgLJACE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 19:02:04 -0500
-Date:   Wed, 09 Dec 2020 16:01:22 -0800
+        id S1725914AbgLJADC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 19:03:02 -0500
+Date:   Wed, 09 Dec 2020 16:02:20 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607558483;
-        bh=1wCMy/N9fqkLAxhQ3HDdu/cbLMeOpmRMTSYhE08ttDM=;
+        s=korg; t=1607558541;
+        bh=0LBlUW/NUjspfMkM3pKgfaWCTiPqCRux9dvHZXBHahE=;
         h=From:To:Subject:From;
-        b=hEJnNUiIvXXPGyKTYdpVKKGJYJmKPfynyl7NnOezQz+OCmzNE1DnV8DYVuA6IC3HG
-         TF7ci/1+fHWxRMze3K7sRfcG5qs/kUhpDIWxgS94jU5VLSdzH70gh/HNMOGjhcV2k8
-         ShcJxZRD1zwDi6F4Pil+I5Dh8F4Go9oGLuFMFlnk=
+        b=cNmG5kGCRrBX08JdxKpq6zZyc6aOL4zV4i6fcwlr54D2jqm0WXBBkLZGU1bdLwmaI
+         60hey7n528ixpem6QzL77wHcXWyxR27gjimE27cGZ4of5VtQRjf+yG2V4J2jMQSZZ7
+         hCYrlHbPsX/DxIeE48/DnBeYDBP4e+lnPi5PjvM4=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        naoya.horiguchi@nec.com, david@redhat.com, osalvador@suse.de
-Subject:  + mmhwpoison-return-ebusy-when-migration-fails.patch added
- to -mm tree
-Message-ID: <20201210000122.OryER%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, joe@perches.com
+Subject:  +
+ =?us-ascii?Q?checkpatch-add-printk=5Fonce-and-printk=5Fratelimit-to-prefe?=
+ =?us-ascii?Q?r-pr=5Flevel-warning.patch?= added to -mm tree
+Message-ID: <20201210000220.qQxGM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: return -EBUSY when migration fails
+     Subject: checkpatch: add printk_once and printk_ratelimit to prefer pr_<level> warning
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-return-ebusy-when-migration-fails.patch
+     checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-return-ebusy-when-migration-fails.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-return-ebusy-when-migration-fails.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,61 +64,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: return -EBUSY when migration fails
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add printk_once and printk_ratelimit to prefer pr_<level> warning
 
-Currently, we return -EIO when we fail to migrate the page.
+Add the _once and _ratelimited variants to the test for
+printk(KERN_<LEVEL> that should prefer pr_<level>.
 
-Migrations' failures are rather transient as they can happen due to
-several reasons, e.g: high page refcount bump, mapping->migrate_page
-failing etc.  All meaning that at that time the page could not be
-migrated, but that has nothing to do with an EIO error.
+Miscellanea:
 
-Let us return -EBUSY instead, as we do in case we failed to isolate the
-page.
+o Add comment description for the conversions
 
-While are it, let us remove the "ret" print as its value does not change.
-
-Link: https://lkml.kernel.org/r/20201209092818.30417-1-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/993b72b2ef91a57c5e725b52971ce3fd31375061.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-return-ebusy-when-migration-fails
-+++ a/mm/memory-failure.c
-@@ -1855,11 +1855,11 @@ static int __soft_offline_page(struct pa
- 			pr_info("soft offline: %#lx: %s migration failed %d, type %lx (%pGp)\n",
- 				pfn, msg_page[huge], ret, page->flags, &page->flags);
- 			if (ret > 0)
--				ret = -EIO;
-+				ret = -EBUSY;
+--- a/scripts/checkpatch.pl~checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning
++++ a/scripts/checkpatch.pl
+@@ -4543,16 +4543,22 @@ sub process {
+ 			     "printk() should include KERN_<LEVEL> facility level\n" . $herecurr);
  		}
- 	} else {
--		pr_info("soft offline: %#lx: %s isolation failed: %d, page count %d, type %lx (%pGp)\n",
--			pfn, msg_page[huge], ret, page_count(page), page->flags, &page->flags);
-+		pr_info("soft offline: %#lx: %s isolation failed, page count %d, type %lx (%pGp)\n",
-+			pfn, msg_page[huge], page_count(page), page->flags, &page->flags);
- 		ret = -EBUSY;
- 	}
- 	return ret;
+ 
+-		if ($line =~ /\bprintk\s*\(\s*KERN_([A-Z]+)/) {
+-			my $orig = $1;
++# prefer variants of (subsystem|netdev|dev|pr)_<level> to printk(KERN_<LEVEL>
++		if ($line =~ /\b(printk(_once|_ratelimited)?)\s*\(\s*KERN_([A-Z]+)/) {
++			my $printk = $1;
++			my $modifier = $2;
++			my $orig = $3;
+ 			my $level = lc($orig);
+ 			$level = "warn" if ($level eq "warning");
+ 			my $level2 = $level;
+ 			$level2 = "dbg" if ($level eq "debug");
++			$level .= $modifier;
++			$level2 .= $modifier;
+ 			WARN("PREFER_PR_LEVEL",
+-			     "Prefer [subsystem eg: netdev]_$level2([subsystem]dev, ... then dev_$level2(dev, ... then pr_$level(...  to printk(KERN_$orig ...\n" . $herecurr);
++			     "Prefer [subsystem eg: netdev]_$level2([subsystem]dev, ... then dev_$level2(dev, ... then pr_$level(...  to $printk(KERN_$orig ...\n" . $herecurr);
+ 		}
+ 
++# prefer dev_<level> to dev_printk(KERN_<LEVEL>
+ 		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
+ 			my $orig = $1;
+ 			my $level = lc($orig);
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from joe@perches.com are
 
-mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
-mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
-mmhwpoison-take-free-pages-off-the-buddy-freelists-for-hugetlb.patch
-mmhwpoison-drop-unneeded-pcplist-draining.patch
-mmhwpoison-refactor-get_any_page.patch
-mmhwpoison-disable-pcplists-before-grabbing-a-refcount.patch
-mmhwpoison-remove-drain_all_pages-from-shake_page.patch
-mmmemory_failure-always-pin-the-page-in-madvise_inject_error.patch
-mmhwpoison-return-ebusy-when-migration-fails.patch
-mmhugetlb-remove-unneded-initialization.patch
+mm-zswap-make-struct-kernel_param_ops-definitions-const.patch
+mm-use-sysfs_emit-for-struct-kobject-uses.patch
+mm-huge_memory-convert-remaining-use-of-sprintf-to-sysfs_emit-and-neatening.patch
+mm-backing-dev-use-sysfs_emit-in-macro-defining-functions.patch
+mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at.patch
+mm-slub-convert-sysfs-sprintf-family-to-sysfs_emit-sysfs_emit_at.patch
+checkpatch-prefer-static-const-declarations.patch
+checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
+checkpatch-update-__attribute__sectionname-quote-removal.patch
+checkpatch-update-__attribute__sectionname-quote-removal-v2.patch
+checkpatch-add-__alias-and-__weak-to-suggested-__attribute__-conversions.patch
+checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning.patch
+treewide-remove-stringification-from-__alias-macro-definition.patch
 
