@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42958C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:10:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7429EC4361B
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:31:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DF9E23C31
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:10:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D8D223D98
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:31:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbgLJAJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 19:09:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41336 "EHLO mail.kernel.org"
+        id S1726672AbgLJAbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 19:31:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726147AbgLJAJ7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 19:09:59 -0500
-Date:   Wed, 09 Dec 2020 16:09:17 -0800
+        id S1726253AbgLJAbj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 19:31:39 -0500
+Date:   Wed, 09 Dec 2020 16:30:57 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607558958;
-        bh=4/apy4EFz2lpaftNEQn2nbLAWa9kYiRlQ5Opz7sSMAI=;
+        s=korg; t=1607560259;
+        bh=VummB0D1mpnYNxK+H8xMPqZicUrri1zfuzgGfJdb7d4=;
         h=From:To:Subject:From;
-        b=cfKQS61w9asFMsuFkmIoN0txPnWnj8W2Z0UA/9imInlraqQqver7vV2Bxo/OkRkvq
-         pDHkxlUEQx29LcjkR6smlkJe6zm7Q3HGHSVfI3bT5SfWT/V94+1IMTW8B4wat4ExtR
-         Vvuoz/JRL9WuEnQy5TGneFKsYbWkpcXO4wCZxB5g=
+        b=bvMkguLiWfh2bFqYI/9XGiym9shX4EGGr6dd5F7rPQy3QkTdlbqPk7HCyouNFED+N
+         Fy2XhUH+kXHG8jYTx9Bd/WRJzT4ikdFEnSnsJsnqkX1L49h7JZFwfz2bKocLWnRCL0
+         O1B6n96B/r1DyXqMo9J4jj3L1KVh7pPf/kjK6tZA=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, npiggin@gmail.com, mpe@ellerman.id.au,
-        malat@debian.org, keescook@chromium.org, sfr@canb.auug.org.au
-Subject:  + ubsan-enable-for-allconfig-builds-fix.patch added to -mm
- tree
-Message-ID: <20201210000917.Ny3aZ%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org
+Subject:  [obsolete]
+ init-kconfig-dont-assume-scripts-lld-versionsh-is-executable.patch removed
+ from -mm tree
+Message-ID: <20201210003057.LZ78w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,67 +41,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add .data..Lubsan_data*/.data..Lubsan_type* sections explicitly
-has been added to the -mm tree.  Its filename is
-     ubsan-enable-for-allconfig-builds-fix.patch
+     Subject: init/Kconfig: don't assume scripts/lld-version.sh is executable
+has been removed from the -mm tree.  Its filename was
+     init-kconfig-dont-assume-scripts-lld-versionsh-is-executable.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ubsan-enable-for-allconfig-builds-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ubsan-enable-for-allconfig-builds-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: powerpc: add .data..Lubsan_data*/.data..Lubsan_type* sections explicitly
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: init/Kconfig: don't assume scripts/lld-version.sh is executable
 
-Similarly to commit
+Kbuild should not assume that scripts have the x bit set.  This is because
+downloading and applying patch-X.Y.gz is a supported way of updating the
+kernel source, and patch(1) loses the x bit.
 
-  beba24ac5913 ("powerpc/32: Add .data..Lubsan_data*/.data..Lubsan_type* se=
-ctions explicitly")
-
-since CONFIG_UBSAN bits can now be enabled for all*config.
-
-Link: https://lkml.kernel.org/r/20201208230157.42c42789@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mathieu Malaterre <malat@debian.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vmlinux.lds.S |    4 ++++
- 1 file changed, 4 insertions(+)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/kernel/vmlinux.lds.S~ubsan-enable-for-allconfig-builds-fix
-+++ a/arch/powerpc/kernel/vmlinux.lds.S
-@@ -313,6 +313,10 @@ SECTIONS
- #else
- 	.data : AT(ADDR(.data) - LOAD_OFFSET) {
- 		DATA_DATA
-+#ifdef CONFIG_UBSAN
-+		*(.data..Lubsan_data*)
-+		*(.data..Lubsan_type*)
-+#endif
- 		*(.data.rel*)
- 		*(.toc1)
- 		*(.branch_lt)
+--- a/init/Kconfig~init-kconfig-dont-assume-scripts-lld-versionsh-is-executable
++++ a/init/Kconfig
+@@ -49,7 +49,7 @@ config CLANG_VERSION
+ 
+ config LLD_VERSION
+ 	int
+-	default $(shell,$(srctree)/scripts/lld-version.sh $(LD))
++	default $(shell,/bin/sh $(srctree)/scripts/lld-version.sh $(LD))
+ 
+ config CC_CAN_LINK
+ 	bool
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernelh-split-out-mathematical-helpers-fix.patch
-ubsan-enable-for-allconfig-builds-fix.patch
-mm-simplify-follow_ptepmd-fix.patch
+revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+kthread_worker-document-cpu-hotplug-handling-fix.patch
+mm.patch
+mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
