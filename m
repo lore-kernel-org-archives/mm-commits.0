@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06652C1B0E3
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:50:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 996BBC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:02:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC28B23B53
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Dec 2020 23:50:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D18723B51
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Dec 2020 00:02:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387628AbgLIXuk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Dec 2020 18:50:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35296 "EHLO mail.kernel.org"
+        id S1728026AbgLJACE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Dec 2020 19:02:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730136AbgLIXuk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 9 Dec 2020 18:50:40 -0500
-Date:   Wed, 09 Dec 2020 15:49:58 -0800
+        id S1725914AbgLJACE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 9 Dec 2020 19:02:04 -0500
+Date:   Wed, 09 Dec 2020 16:01:22 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607557799;
-        bh=xhVPKZh2BRMCpr6W7wIIFJoPqFCYUa999IWIh1wyXDY=;
+        s=korg; t=1607558483;
+        bh=1wCMy/N9fqkLAxhQ3HDdu/cbLMeOpmRMTSYhE08ttDM=;
         h=From:To:Subject:From;
-        b=v2s6BE9ZCpnXhHw63R30hQkzo57+TLpgVdJuzCHcxN4wEbjqQJ9EoF3n11a1Dtr3b
-         HabT38G8Fy8iKSv4sxauGLWcbOIOMrrlcVkaMDlOdNzZ5ZskDnA8j8gKsK7oToHnn2
-         89dcO2s+80MZCqrzcrH4kQNuYPIBIh/rpd0lxmL4=
+        b=hEJnNUiIvXXPGyKTYdpVKKGJYJmKPfynyl7NnOezQz+OCmzNE1DnV8DYVuA6IC3HG
+         TF7ci/1+fHWxRMze3K7sRfcG5qs/kUhpDIWxgS94jU5VLSdzH70gh/HNMOGjhcV2k8
+         ShcJxZRD1zwDi6F4Pil+I5Dh8F4Go9oGLuFMFlnk=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        keescook@chromium.org, elver@google.com, andreyknvl@google.com,
-        dvyukov@google.com
-Subject:  + kcov-dont-instrument-with-ubsan.patch added to -mm tree
-Message-ID: <20201209234958.2KKnl%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        naoya.horiguchi@nec.com, david@redhat.com, osalvador@suse.de
+Subject:  + mmhwpoison-return-ebusy-when-migration-fails.patch added
+ to -mm tree
+Message-ID: <20201210000122.OryER%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: don't instrument with UBSAN
+     Subject: mm,hwpoison: return -EBUSY when migration fails
 has been added to the -mm tree.  Its filename is
-     kcov-dont-instrument-with-ubsan.patch
+     mmhwpoison-return-ebusy-when-migration-fails.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kcov-dont-instrument-with-ubsan.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-return-ebusy-when-migration-fails.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-dont-instrument-with-ubsan.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-return-ebusy-when-migration-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,55 +62,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kcov: don't instrument with UBSAN
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: return -EBUSY when migration fails
 
-Both KCOV and UBSAN use compiler instrumentation.  If UBSAN detects a bug
-in KCOV, it may cause infinite recursion via printk and other common
-functions.  We already don't instrument KCOV with KASAN/KCSAN for this
-reason, don't instrument it with UBSAN as well.
+Currently, we return -EIO when we fail to migrate the page.
 
-As a side effect this also resolves the following gcc warning:
+Migrations' failures are rather transient as they can happen due to
+several reasons, e.g: high page refcount bump, mapping->migrate_page
+failing etc.  All meaning that at that time the page could not be
+migrated, but that has nothing to do with an EIO error.
 
-conflicting types for built-in function '__sanitizer_cov_trace_switch';
-expected 'void(long unsigned int, void *)'
-[-Wbuiltin-declaration-mismatch]
+Let us return -EBUSY instead, as we do in case we failed to isolate the
+page.
 
-It's only reported when kcov.c is compiled with any of the sanitizers
-enabled.  Size of the arguments is correct, it's just that gcc uses 'long'
-on 64-bit arches and 'long long' on 32-bit arches, while kernel type is
-always 'long long'.
+While are it, let us remove the "ret" print as its value does not change.
 
-Link: https://lkml.kernel.org/r/20201209100152.2492072-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Suggested-by: Marco Elver <elver@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Link: https://lkml.kernel.org/r/20201209092818.30417-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/Makefile~kcov-dont-instrument-with-ubsan
-+++ a/kernel/Makefile
-@@ -34,8 +34,11 @@ KCOV_INSTRUMENT_extable.o := n
- KCOV_INSTRUMENT_stacktrace.o := n
- # Don't self-instrument.
- KCOV_INSTRUMENT_kcov.o := n
-+# If sanitizers detect any issues in kcov, it may lead to recursion
-+# via printk, etc.
- KASAN_SANITIZE_kcov.o := n
- KCSAN_SANITIZE_kcov.o := n
-+UBSAN_SANITIZE_kcov.o := n
- CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack) -fno-stack-protector
- 
- obj-y += sched/
+--- a/mm/memory-failure.c~mmhwpoison-return-ebusy-when-migration-fails
++++ a/mm/memory-failure.c
+@@ -1855,11 +1855,11 @@ static int __soft_offline_page(struct pa
+ 			pr_info("soft offline: %#lx: %s migration failed %d, type %lx (%pGp)\n",
+ 				pfn, msg_page[huge], ret, page->flags, &page->flags);
+ 			if (ret > 0)
+-				ret = -EIO;
++				ret = -EBUSY;
+ 		}
+ 	} else {
+-		pr_info("soft offline: %#lx: %s isolation failed: %d, page count %d, type %lx (%pGp)\n",
+-			pfn, msg_page[huge], ret, page_count(page), page->flags, &page->flags);
++		pr_info("soft offline: %#lx: %s isolation failed, page count %d, type %lx (%pGp)\n",
++			pfn, msg_page[huge], page_count(page), page->flags, &page->flags);
+ 		ret = -EBUSY;
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-kcov-dont-instrument-with-ubsan.patch
+mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page.patch
+mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
+mmhwpoison-take-free-pages-off-the-buddy-freelists-for-hugetlb.patch
+mmhwpoison-drop-unneeded-pcplist-draining.patch
+mmhwpoison-refactor-get_any_page.patch
+mmhwpoison-disable-pcplists-before-grabbing-a-refcount.patch
+mmhwpoison-remove-drain_all_pages-from-shake_page.patch
+mmmemory_failure-always-pin-the-page-in-madvise_inject_error.patch
+mmhwpoison-return-ebusy-when-migration-fails.patch
+mmhugetlb-remove-unneded-initialization.patch
 
