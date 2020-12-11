@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23A63C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 05:16:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE788C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 05:19:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B36A123EB2
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 05:16:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A51823EB3
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 05:19:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729203AbgLKFPq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Dec 2020 00:15:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57560 "EHLO mail.kernel.org"
+        id S1728167AbgLKFS0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Dec 2020 00:18:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728576AbgLKFPR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Dec 2020 00:15:17 -0500
-Date:   Thu, 10 Dec 2020 21:14:36 -0800
+        id S1726464AbgLKFR6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 11 Dec 2020 00:17:58 -0500
+Date:   Thu, 10 Dec 2020 21:17:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607663677;
-        bh=fkiQql2Pzf6GZM4Cr1R4e7hzsbjrvcdnmoDMP1izzu4=;
+        s=korg; t=1607663837;
+        bh=lg8pN91foWCHPblJG+FazjMAxcfSyvCGkWavKIf1LEc=;
         h=From:To:Subject:From;
-        b=myi0UvMG9qRRhJVF0QUKNbqkyR55HopRUb8DDtGuHdrh3aSk8dY/uetNNE24jn+Wz
-         dRjuLuMHExATMmQxLQ3uJ9iGoHJOmGQmxSODvUVXoSgDtSl102ukkbMqYSpSRB4I+p
-         O92CDXSCs3zQ8BG8KdMXxPP3AV2S3M2fAykHWKVI=
+        b=crMyxfaQlbBdzwhsxoiRJR9I/y6QBDu4i1NBZ1ndQM85EWnRrVBff2i4z+vuzZxgG
+         XFIQLFCmbtm2Hxgmzmev3lC4UqfhE6MQPgJJAKL/PRUl7SWf02W6qcPNzQWOUShcK8
+         2Z8ooOat8eOBAJ9TTy+LmQlcpdRN2slNs3KsG77w=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  + mm-memcontrol-account-pagetables-per-node-fix.patch
- added to -mm tree
-Message-ID: <20201211051436.ocUSTNZkm%akpm@linux-foundation.org>
+To:     alex.popov@linux.com, cl@linux.com, glider@google.com,
+        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com
+Subject:  + mm-slab-perform-init_on_free-earlier.patch added to -mm
+ tree
+Message-ID: <20201211051717.Dl75jGFI_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-account-pagetables-per-node-fix
+     Subject: mm/slab: rerform init_on_free earlier
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-account-pagetables-per-node-fix.patch
+     mm-slab-perform-init_on_free-earlier.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-account-pagetables-per-node-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-perform-init_on_free-earlier.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-account-pagetables-per-node-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-perform-init_on_free-earlier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,55 +63,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-account-pagetables-per-node-fix
+From: Alexander Popov <alex.popov@linux.com>
+Subject: mm/slab: rerform init_on_free earlier
 
-export __mod_lruvec_page_state to modules for arch/mips/kvm/
+Currently in CONFIG_SLAB init_on_free happens too late, and heap objects
+go to the heap quarantine not being erased.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Lets move init_on_free clearing before calling kasan_slab_free().  In that
+case heap quarantine will store erased objects, similarly to CONFIG_SLUB=y
+behavior.
+
+Link: https://lkml.kernel.org/r/20201210183729.1261524-1-alex.popov@linux.com
+Signed-off-by: Alexander Popov <alex.popov@linux.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-account-pagetables-per-node-fix
-+++ a/mm/memcontrol.c
-@@ -872,6 +872,7 @@ void __mod_lruvec_page_state(struct page
- 	lruvec = mem_cgroup_lruvec(head->mem_cgroup, pgdat);
- 	__mod_lruvec_state(lruvec, idx, val);
- }
-+EXPORT_SYMBOL(__mod_lruvec_page_state);
- 
- void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
+--- a/mm/slab.c~mm-slab-perform-init_on_free-earlier
++++ a/mm/slab.c
+@@ -3416,6 +3416,9 @@ free_done:
+ static __always_inline void __cache_free(struct kmem_cache *cachep, void *objp,
+ 					 unsigned long caller)
  {
++	if (unlikely(slab_want_init_on_free(cachep)))
++		memset(objp, 0, cachep->object_size);
++
+ 	/* Put the object into the quarantine, don't touch it for now. */
+ 	if (kasan_slab_free(cachep, objp, _RET_IP_))
+ 		return;
+@@ -3434,8 +3437,6 @@ void ___cache_free(struct kmem_cache *ca
+ 	struct array_cache *ac = cpu_cache_get(cachep);
+ 
+ 	check_irq_off();
+-	if (unlikely(slab_want_init_on_free(cachep)))
+-		memset(objp, 0, cachep->object_size);
+ 	kmemleak_free_recursive(objp, cachep->flags);
+ 	objp = cache_free_debugcheck(cachep, objp, caller);
+ 	memcg_slab_free_hook(cachep, &objp, 1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alex.popov@linux.com are
 
-revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-memcontrol-account-pagetables-per-node-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
-mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-linux-next-rejects.patch
-scripts-ld-versionsh-fix-build.patch
-kmap-stupid-hacks-to-make-it-compile.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-slab-perform-init_on_free-earlier.patch
 
