@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07CBEC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 05:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 848B3C4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 06:27:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B44AF22DA9
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 05:30:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 568CA23F2A
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 06:27:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392584AbgLKF3k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Dec 2020 00:29:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36274 "EHLO mail.kernel.org"
+        id S2390505AbgLKG06 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Dec 2020 01:26:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391490AbgLKF3h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Dec 2020 00:29:37 -0500
-Date:   Thu, 10 Dec 2020 21:28:56 -0800
+        id S2389253AbgLKG0d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 11 Dec 2020 01:26:33 -0500
+Date:   Thu, 10 Dec 2020 22:25:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607664536;
-        bh=xGum4VJvi1cIwa6GMBiMI2wAh8A0/sHo33AaBwQGJdg=;
+        s=korg; t=1607667951;
+        bh=ypn9Qvt0zAonODJ9NZmV2ceb5ffjb3NpmrlLihmwVAk=;
         h=From:To:Subject:From;
-        b=F0xLyk6QeTZrfX44pa2XtOmJt8xgSom3Syznhohlq8KVIo8+rtA1+9tRSwjxFy2VW
-         MmKETi3gBul6ueKFOvJJ/AZ53VJvfXZ36Ur060u2rRbqvDHCBG1ZsM56MPYQOy6sVf
-         k2RKQkAWGxwyvKTZen2ukc7uP17YpZYh/W5x2vxk=
+        b=EoMBPcaJoN/O5EGjB/hROgckhssxMCstHCbbNmfGsjiCcZtzvqKjRhGlxNQDbQwgQ
+         tdfGIpnzIwYnnc1HQvABy5Xyf8YLmKpB5OQyJSCxJU1gYca34/rVGj0T/QbBmw99iW
+         O4K3KDzyBKWz7yFZgHycLXNSVHiBBzGB3O2n/qTQ=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        zou_wei@huawei.com
-Subject:  +
- lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch added to -mm
+To:     adobriyan@gmail.com, ebiederm@xmission.com,
+        mm-commits@vger.kernel.org, sh_def@163.com
+Subject:  + fs-proc-make-pde_get-return-nothing.patch added to -mm
  tree
-Message-ID: <20201211052856.FwcLmCCKE%akpm@linux-foundation.org>
+Message-ID: <20201211062550.CsoVL-S6F%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix
+     Subject: fs/proc: make pde_get() return nothing
 has been added to the -mm tree.  Its filename is
-     lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+     fs-proc-make-pde_get-return-nothing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-make-pde_get-return-nothing.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-make-pde_get-return-nothing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,54 +62,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix
+From: Hui Su <sh_def@163.com>
+Subject: fs/proc: make pde_get() return nothing
 
-make it `staitc const char * const' while we're in there
+We don't need pde_get()'s return value, so make pde_get() return nothing
 
-Cc: Zou Wei <zou_wei@huawei.com>
+Link: https://lkml.kernel.org/r/20201211061944.GA2387571@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/internal.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/ubsan.c~lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix
-+++ a/lib/ubsan.c
-@@ -17,7 +17,7 @@
+--- a/fs/proc/internal.h~fs-proc-make-pde_get-return-nothing
++++ a/fs/proc/internal.h
+@@ -190,10 +190,9 @@ struct dentry *proc_lookup_de(struct ino
+ extern int proc_readdir(struct file *, struct dir_context *);
+ int proc_readdir_de(struct file *, struct dir_context *, struct proc_dir_entry *);
  
- #include "ubsan.h"
+-static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
++static inline void pde_get(struct proc_dir_entry *pde)
+ {
+ 	refcount_inc(&pde->refcnt);
+-	return pde;
+ }
+ extern void pde_put(struct proc_dir_entry *);
  
--static const char *type_check_kinds[] = {
-+static const char * const type_check_kinds[] = {
- 	"load of",
- 	"store to",
- 	"reference binding to",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sh_def@163.com are
 
-revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-memcontrol-account-pagetables-per-node-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
-mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
-linux-next-rejects.patch
-scripts-ld-versionsh-fix-build.patch
-kmap-stupid-hacks-to-make-it-compile.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+mm-shmemc-make-shmem_mapping-inline.patch
+mm-page_counter-use-page_counter_read-in-page_counter_set_max.patch
+mm-hugetlbc-just-use-put_page_testzero-instead-of-page_count.patch
+mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+mm-compaction-make-defer_compaction-and-compaction_deferred-static.patch
+mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
+fs-proc-make-pde_get-return-nothing.patch
+acctc-use-elif-instead-of-end-and-elif.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
