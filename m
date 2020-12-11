@@ -2,97 +2,79 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1546AC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 22:36:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BC5FC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 22:36:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA17623E20
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 22:36:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0822D23E20
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Dec 2020 22:36:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391317AbgLKVgs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Dec 2020 16:36:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60606 "EHLO mail.kernel.org"
+        id S2405674AbgLKVh0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Dec 2020 16:37:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60744 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390903AbgLKVgh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 11 Dec 2020 16:36:37 -0500
-Date:   Fri, 11 Dec 2020 13:35:55 -0800
+        id S2392163AbgLKVhR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 11 Dec 2020 16:37:17 -0500
+Date:   Fri, 11 Dec 2020 13:36:27 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607722556;
-        bh=6lAtr240I9RyBGdjItIaO6oEUlsrEDTw/Pe6YbmaUAs=;
-        h=From:To:Cc:Subject:From;
-        b=1eLM4XsIx4vnXj++Jsg/7I+WMNhae0GuvUdxQsXa0ylgkINrKPqa5ct2+Pdh9wQhR
-         /UcQnvNlA7uZjf/tHyOq3ue0pWxNMDypmRGjk+r4Y/5FScPmGqm09zTZhgkiwdhb2s
-         bOctrfRO8q3foBTNOY+eSbSpRpUGffOQcla2FGM8=
+        s=korg; t=1607722589;
+        bh=dy/vexMOeot19V8Dqiad/cPmps1LRViBmFF4Y0w7Dn0=;
+        h=From:To:Subject:In-Reply-To:From;
+        b=EFf7Kworho4zlMbTXZUcKgbrF84obgXaKxCV3F2mjtjoSgAuJLvt2oA1aZME9ToYv
+         4lKAxNrP4koGstnsoG8aX6XT80zemvVHA52aKgMPSW8OhTGvITxsmNXQRMs7EkiAm2
+         qToYSFM1pCIV6EQlrk/TTjLxh/BN7UEoBt3t38uI=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20201211133555.88407977f082963499ed343c@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        ast@kernel.org, daniel@iogearbox.net, gthelen@google.com,
+        jmforbes@linuxtx.org, josef@toxicpanda.com, jrdr.linux@gmail.com,
+        linux-mm@kvack.org, mkubecek@suse.cz, mm-commits@vger.kernel.org,
+        tony.luck@gmail.com, torvalds@linux-foundation.org
+Subject:  [patch 1/8] revert "mm/filemap: add static for function
+ __add_to_page_cache_locked"
+Message-ID: <20201211213627.Y0ZoNFaFt%akpm@linux-foundation.org>
+In-Reply-To: <20201211133555.88407977f082963499ed343c@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-8 patches, based on 33dc9614dc208291d0c4bcdeb5d30d481dcd2c4c.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "mm/filemap: add static for function __add_to_page_cache_locked"
 
-Subsystems affected by this patch series:
+Revert 3351b16af494 ("mm/filemap: add static for function
+__add_to_page_cache_locked") due to incompatibility with
+ALLOW_ERROR_INJECTION which result in build errors.
 
-  mm/pagecache
-  proc
-  selftests
-  kbuild
-  mm/kasan
-  mm/hugetlb
+Link: https://lkml.kernel.org/r/CAADnVQJ6tmzBXvtroBuEH6QA0H+q7yaSKxrVvVxhqr3KBZdEXg@mail.gmail.com
+Tested-by: Justin Forbes <jmforbes@linuxtx.org>
+Tested-by: Greg Thelen <gthelen@google.com>
+Acked-by: Alexei Starovoitov <ast@kernel.org>
+Cc: Michal Kubecek <mkubecek@suse.cz>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Tony Luck <tony.luck@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: mm/pagecache
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    Andrew Morton <akpm@linux-foundation.org>:
-      revert "mm/filemap: add static for function __add_to_page_cache_locked"
-
-Subsystem: proc
-
-    Miles Chen <miles.chen@mediatek.com>:
-      proc: use untagged_addr() for pagemap_read addresses
-
-Subsystem: selftests
-
-    Arnd Bergmann <arnd@arndb.de>:
-      selftest/fpu: avoid clang warning
-
-Subsystem: kbuild
-
-    Arnd Bergmann <arnd@arndb.de>:
-      kbuild: avoid static_assert for genksyms
-      initramfs: fix clang build failure
-      elfcore: fix building with clang
-
-Subsystem: mm/kasan
-
-    Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>:
-      kasan: fix object remaining in offline per-cpu quarantine
-
-Subsystem: mm/hugetlb
-
-    Gerald Schaefer <gerald.schaefer@linux.ibm.com>:
-      mm/hugetlb: clear compound_nr before freeing gigantic pages
-
- fs/proc/task_mmu.c        |    8 ++++++--
- include/linux/build_bug.h |    5 +++++
- include/linux/elfcore.h   |   22 ++++++++++++++++++++++
- init/initramfs.c          |    2 +-
- kernel/Makefile           |    1 -
- kernel/elfcore.c          |   26 --------------------------
- lib/Makefile              |    3 ++-
- mm/filemap.c              |    2 +-
- mm/hugetlb.c              |    1 +
- mm/kasan/quarantine.c     |   39 +++++++++++++++++++++++++++++++++++++++
- 10 files changed, 77 insertions(+), 32 deletions(-)
-
+--- a/mm/filemap.c~revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked
++++ a/mm/filemap.c
+@@ -827,7 +827,7 @@ int replace_page_cache_page(struct page
+ }
+ EXPORT_SYMBOL_GPL(replace_page_cache_page);
+ 
+-static noinline int __add_to_page_cache_locked(struct page *page,
++noinline int __add_to_page_cache_locked(struct page *page,
+ 					struct address_space *mapping,
+ 					pgoff_t offset, gfp_t gfp,
+ 					void **shadowp)
+_
