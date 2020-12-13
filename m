@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B8AC4361B
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Dec 2020 06:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FB1EC433FE
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Dec 2020 06:06:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1C5A2313B
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Dec 2020 06:06:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11CFC2313B
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Dec 2020 06:06:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730701AbgLMGFv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Dec 2020 01:05:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51938 "EHLO mail.kernel.org"
+        id S1730764AbgLMGGD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Dec 2020 01:06:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730543AbgLMGFr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Dec 2020 01:05:47 -0500
-Date:   Sat, 12 Dec 2020 22:05:05 -0800
+        id S1730779AbgLMGF4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 13 Dec 2020 01:05:56 -0500
+Date:   Sat, 12 Dec 2020 22:05:15 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607839506;
-        bh=YCQmwGPd8yp7gErXfKY+TWPfpRT8M7wvItqcCc6n4ko=;
+        s=korg; t=1607839516;
+        bh=AQE66dma2JaAhR6j8gtFFTDrZhlUgu1sh1kFi9eVAZM=;
         h=From:To:Subject:From;
-        b=AyQlo9N0tvseffLcYeDQ0Cjq8SkAc46L4mJ9eNsGo1kWAxwbMKw+26d9cpGl4jDly
-         v1KMA9YiYrRy690ARH7npCycCHN4hppUN9ToRNis+Oc5tXmlWzIw12RokQdJdHK131
-         W7HhwrdLJbn/Jw22qb6OqXr1yN+GYypPImNoqVgw=
+        b=bm494jXcLCM4Cav4r6t1RJbCJYHErUIhvcgh71ufkXLItbmyz1nGym7BujdupWedu
+         ue2z9SpY1pXFhS/1ppGL2LkRsEW75XoZ0gZjSoZdMfPP8CCpXAhcl7AjuYnzD0Io/e
+         Y/GVTVvU25/apPsaLM6wn9mfkwpWqosbXNvtcA8g=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        ast@kernel.org, daniel@iogearbox.net, gthelen@google.com,
-        jmforbes@linuxtx.org, josef@toxicpanda.com, jrdr.linux@gmail.com,
-        mkubecek@suse.cz, mm-commits@vger.kernel.org, tony.luck@gmail.com
-Subject:  [merged]
- revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+To:     ardb@kernel.org, arnd@arndb.de, elver@google.com,
+        keescook@chromium.org, masahiroy@kernel.org,
+        michal.lkml@markovi.net, mm-commits@vger.kernel.org,
+        rikard.falkeborn@gmail.com, stable@vger.kernel.org
+Subject:  [merged] kbuild-avoid-static_assert-for-genksyms.patch
  removed from -mm tree
-Message-ID: <20201213060505.QLKNUNBXo%akpm@linux-foundation.org>
+Message-ID: <20201213060515.yAjN3k7sP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,70 +43,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "mm/filemap: add static for function __add_to_page_cache_locked"
+     Subject: kbuild: avoid static_assert for genksyms
 has been removed from the -mm tree.  Its filename was
-     revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked.patch
+     kbuild-avoid-static_assert-for-genksyms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "mm/filemap: add static for function __add_to_page_cache_locked"
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kbuild: avoid static_assert for genksyms
 
-Revert 3351b16af494 ("mm/filemap: add static for function
-__add_to_page_cache_locked") due to incompatibility with
-ALLOW_ERROR_INJECTION which result in build errors.
+genksyms does not know or care about the _Static_assert() built-in,
+and sometimes falls back to ignoring the later symbols, which causes
+undefined behavior such as
 
-Link: https://lkml.kernel.org/r/CAADnVQJ6tmzBXvtroBuEH6QA0H+q7yaSKxrVvVxhqr3KBZdEXg@mail.gmail.com
-Tested-by: Justin Forbes <jmforbes@linuxtx.org>
-Tested-by: Greg Thelen <gthelen@google.com>
-Acked-by: Alexei Starovoitov <ast@kernel.org>
-Cc: Michal Kubecek <mkubecek@suse.cz>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Tony Luck <tony.luck@gmail.com>
+WARNING: modpost: EXPORT symbol "ethtool_set_ethtool_phy_ops" [vmlinux] version generation failed, symbol will not be versioned.
+ld: net/ethtool/common.o: relocation R_AARCH64_ABS32 against `__crc_ethtool_set_ethtool_phy_ops' can not be used when making a shared object
+net/ethtool/common.o:(_ftrace_annotated_branch+0x0): dangerous relocation: unsupported relocation
+
+Redefine static_assert for genksyms to avoid that.
+
+Link: https://lkml.kernel.org/r/20201203230955.1482058-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Suggested-by: Ard Biesheuvel <ardb@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/build_bug.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/filemap.c~revert-mm-filemap-add-static-for-function-__add_to_page_cache_locked
-+++ a/mm/filemap.c
-@@ -827,7 +827,7 @@ int replace_page_cache_page(struct page
- }
- EXPORT_SYMBOL_GPL(replace_page_cache_page);
+--- a/include/linux/build_bug.h~kbuild-avoid-static_assert-for-genksyms
++++ a/include/linux/build_bug.h
+@@ -77,4 +77,9 @@
+ #define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
+ #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
  
--static noinline int __add_to_page_cache_locked(struct page *page,
-+noinline int __add_to_page_cache_locked(struct page *page,
- 					struct address_space *mapping,
- 					pgoff_t offset, gfp_t gfp,
- 					void **shadowp)
++#ifdef __GENKSYMS__
++/* genksyms gets confused by _Static_assert */
++#define _Static_assert(expr, ...)
++#endif
++
+ #endif	/* _LINUX_BUILD_BUG_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-kthread_worker-document-cpu-hotplug-handling-fix.patch
-mm.patch
-mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-memcontrol-account-pagetables-per-node-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
-mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
-linux-next-rejects.patch
-kmap-stupid-hacks-to-make-it-compile.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
