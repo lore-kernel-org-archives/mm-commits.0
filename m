@@ -2,123 +2,183 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E6EEC4361B
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Dec 2020 06:06:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81148C4361B
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 05:47:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 450E323139
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Dec 2020 06:06:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41B07229EF
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 05:47:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730996AbgLMGGo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Dec 2020 01:06:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52176 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730947AbgLMGGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 13 Dec 2020 01:06:31 -0500
-Date:   Sat, 12 Dec 2020 22:05:27 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607839528;
-        bh=E04UfW/zDVoGLYg/VnDr08mDQvspzEgZXolcDb/jekA=;
-        h=From:To:Subject:From;
-        b=Fz6DTkxWPG/cmYkGTG2Pem9ULwZlHL5UODvNy5SYlMSKgM705CtO+ULeLiufBXGGp
-         PBYVCQkHvkeWZqZ/kxHZI9CEGR8xIIjT0h5hcfNoB8MGBFsvHtOblZQqrc9lX5TGN2
-         1AJ1rxgsoGsvoanS8HXTCXuNchPZ7qSP6YCXedt4=
-From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, gerald.schaefer@linux.ibm.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, willy@infradead.org
-Subject:  [merged]
- mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch removed
- from -mm tree
-Message-ID: <20201213060527.PR47Wukpy%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S2389760AbgLNFrm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 00:47:42 -0500
+Received: from mailgw01.mediatek.com ([210.61.82.183]:59612 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S2389733AbgLNFrm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Dec 2020 00:47:42 -0500
+X-UUID: 90959f39d8ad4c178498b19b399042a9-20201214
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
+        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=+J1Tg3WJwqjXEIK4GnShBRCuhTbxCSWOVg1VRrIbHwg=;
+        b=IOrhcuH+HdO8IH1WofWSi97O8dWhz1nDaDYGcn/wNtPIDclz642VTSgdY0/Nzj5UNlW7rHGQaX57k+YiXEZZU5X2AsD5hA433BpNPKKoRVpb06TXr2ItWybmxGjGJazm4qV9JRzvqdVuAtc5ogFDPPbqyy3gIe+sZEr4HVGPooQ=;
+X-UUID: 90959f39d8ad4c178498b19b399042a9-20201214
+Received: from mtkcas06.mediatek.inc [(172.21.101.30)] by mailgw01.mediatek.com
+        (envelope-from <kuan-ying.lee@mediatek.com>)
+        (Cellopoint E-mail Firewall v4.1.14 Build 0819 with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 1266390183; Mon, 14 Dec 2020 13:46:54 +0800
+Received: from MTKCAS06.mediatek.inc (172.21.101.30) by
+ mtkmbs08n1.mediatek.inc (172.21.101.55) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Mon, 14 Dec 2020 13:46:50 +0800
+Received: from [172.21.84.99] (172.21.84.99) by MTKCAS06.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Mon, 14 Dec 2020 13:46:50 +0800
+Message-ID: <1607924810.31376.14.camel@mtksdccf07>
+Subject: Re: [merged]
+ kasan-fix-object-remain-in-offline-per-cpu-quarantine.patch removed from
+ -mm tree
+From:   Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+To:     <akpm@linux-foundation.org>
+CC:     <aryabinin@virtuozzo.com>, <dvyukov@google.com>,
+        <glider@google.com>, <guangye.yang@mediatek.com>,
+        <matthias.bgg@gmail.com>, <miles.chen@mediatek.com>,
+        <mm-commits@vger.kernel.org>, <nicholas.tang@mediatek.com>,
+        <qcai@redhat.com>, <qiang.zhang@windriver.com>,
+        <sfr@canb.auug.org.au>
+Date:   Mon, 14 Dec 2020 13:46:50 +0800
+In-Reply-To: <20201213060524.pmMPPz32b%akpm@linux-foundation.org>
+References: <20201213060524.pmMPPz32b%akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.2.3-0ubuntu6 
+MIME-Version: 1.0
+X-MTK:  N
+Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-
-The patch titled
-     Subject: mm/hugetlb: clear compound_nr before freeing gigantic pages
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages.patch
-
-This patch was dropped because it was merged into mainline or a subsystem tree
-
-------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Subject: mm/hugetlb: clear compound_nr before freeing gigantic pages
-
-Commit 1378a5ee451a ("mm: store compound_nr as well as compound_order")
-added compound_nr counter to first tail struct page, overlaying with
-page->mapping.  The overlay itself is fine, but while freeing gigantic
-hugepages via free_contig_range(), a "bad page" check will trigger for
-non-NULL page->mapping on the first tail page:
-
-[  276.681603] BUG: Bad page state in process bash  pfn:380001
-[  276.681614] page:00000000c35f0856 refcount:0 mapcount:0 mapping:00000000126b68aa index:0x0 pfn:0x380001
-[  276.681620] aops:0x0
-[  276.681622] flags: 0x3ffff00000000000()
-[  276.681626] raw: 3ffff00000000000 0000000000000100 0000000000000122 0000000100000000
-[  276.681628] raw: 0000000000000000 0000000000000000 ffffffff00000000 0000000000000000
-[  276.681630] page dumped because: non-NULL mapping
-[  276.681632] Modules linked in:
-[  276.681637] CPU: 6 PID: 616 Comm: bash Not tainted 5.10.0-rc7-next-20201208 #1
-[  276.681639] Hardware name: IBM 3906 M03 703 (LPAR)
-[  276.681641] Call Trace:
-[  276.681648]  [<0000000458c252b6>] show_stack+0x6e/0xe8
-[  276.681652]  [<000000045971cf60>] dump_stack+0x90/0xc8
-[  276.681656]  [<0000000458e8b186>] bad_page+0xd6/0x130
-[  276.681658]  [<0000000458e8cdea>] free_pcppages_bulk+0x26a/0x800
-[  276.681661]  [<0000000458e8e67e>] free_unref_page+0x6e/0x90
-[  276.681663]  [<0000000458e8ea6c>] free_contig_range+0x94/0xe8
-[  276.681666]  [<0000000458ea5e54>] update_and_free_page+0x1c4/0x2c8
-[  276.681669]  [<0000000458ea784e>] free_pool_huge_page+0x11e/0x138
-[  276.681671]  [<0000000458ea8530>] set_max_huge_pages+0x228/0x300
-[  276.681673]  [<0000000458ea86c0>] nr_hugepages_store_common+0xb8/0x130
-[  276.681678]  [<0000000458fd5b6a>] kernfs_fop_write+0xd2/0x218
-[  276.681681]  [<0000000458ef9da0>] vfs_write+0xb0/0x2b8
-[  276.681684]  [<0000000458efa15c>] ksys_write+0xac/0xe0
-[  276.681687]  [<000000045972c5ca>] system_call+0xe6/0x288
-[  276.681730] Disabling lock debugging due to kernel taint
-
-This is because only the compound_order is cleared in
-destroy_compound_gigantic_page(), and compound_nr is set to 1U << order ==
-1 for order 0 in set_compound_order(page, 0).
-
-Fix this by explicitly clearing compound_nr for first tail page after
-calling set_compound_order(page, 0).
-
-Link: https://lkml.kernel.org/r/20201208182813.66391-2-gerald.schaefer@linux.ibm.com
-Fixes: 1378a5ee451a ("mm: store compound_nr as well as compound_order")
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc; Heiko Carstens <hca@linux.ibm.com>
-Cc: <stable@vger.kernel.org>	[5.9+]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- a/mm/hugetlb.c~mm-hugetlb-clear-compound_nr-before-freeing-gigantic-pages
-+++ a/mm/hugetlb.c
-@@ -1216,6 +1216,7 @@ static void destroy_compound_gigantic_pa
- 	}
- 
- 	set_compound_order(page, 0);
-+	page[1].compound_nr = 0;
- 	__ClearPageHead(page);
- }
- 
-_
-
-Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
-
+T24gU2F0LCAyMDIwLTEyLTEyIGF0IDIyOjA1IC0wODAwLCBha3BtQGxpbnV4LWZvdW5kYXRpb24u
+b3JnIHdyb3RlOg0KPiBUaGUgcGF0Y2ggdGl0bGVkDQo+ICAgICAgU3ViamVjdDoga2FzYW46IGZp
+eCBvYmplY3QgcmVtYWluaW5nIGluIG9mZmxpbmUgcGVyLWNwdSBxdWFyYW50aW5lDQo+IGhhcyBi
+ZWVuIHJlbW92ZWQgZnJvbSB0aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgd2FzDQo+ICAgICAg
+a2FzYW4tZml4LW9iamVjdC1yZW1haW4taW4tb2ZmbGluZS1wZXItY3B1LXF1YXJhbnRpbmUucGF0
+Y2gNCj4gDQo+IFRoaXMgcGF0Y2ggd2FzIGRyb3BwZWQgYmVjYXVzZSBpdCB3YXMgbWVyZ2VkIGlu
+dG8gbWFpbmxpbmUgb3IgYSBzdWJzeXN0ZW0gdHJlZQ0KPiANCg0KSGkgQW5kcmV3LA0KDQpTb3Jy
+eSB0byBib3RoZXIuDQpUaGlzIHBhdGNoIGhhcyBkZXBlbmRlbmN5IHdpdGggdHdvIHBhdGNoZXMg
+b2YgQW5kcmV5J3MgcGF0Y2ggc2VyaWVzIGFzDQpiZWxvdy4NCiJrYXNhbjogcmVuYW1lIGdldF9h
+bGxvYy9mcmVlX2luZm8iDQoia2FzYW46IHNhbml0aXplIG9iamVjdHMgd2hlbiBtZXRhZGF0YSBk
+b2VzbnQgZml0Ig0KDQpJZiBvbmx5IG1lcmdlIHRoaXMgcGF0Y2gsIGl0IG1heSBjYXVzZSBzb21l
+IG1lbW9yeSBsZWFrLg0KQ291bGQgeW91IHBsZWFzZSBtZXJnZSBBbmRyZXkncyB3aG9sZSBwYXRj
+aCBzZXJpZXMgaW4gbW0tdHJlZQ0KaW50byBtYWlubGluZSB0b2dldGhlcj8NCg0KVGhhbmtzLg0K
+DQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQ0KPiBGcm9tOiBLdWFuLVlpbmcgTGVlIDxLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbT4NCj4g
+U3ViamVjdDoga2FzYW46IGZpeCBvYmplY3QgcmVtYWluaW5nIGluIG9mZmxpbmUgcGVyLWNwdSBx
+dWFyYW50aW5lDQo+IA0KPiBXZSBoaXQgdGhpcyBpc3N1ZSBpbiBvdXIgaW50ZXJuYWwgdGVzdC4g
+IFdoZW4gZW5hYmxpbmcgZ2VuZXJpYyBrYXNhbiwgYQ0KPiBrZnJlZSgpJ2Qgb2JqZWN0IGlzIHB1
+dCBpbnRvIHBlci1jcHUgcXVhcmFudGluZSBmaXJzdC4gIElmIHRoZSBjcHUgZ29lcw0KPiBvZmZs
+aW5lLCBvYmplY3Qgc3RpbGwgcmVtYWlucyBpbiB0aGUgcGVyLWNwdSBxdWFyYW50aW5lLiAgSWYg
+d2UgY2FsbA0KPiBrbWVtX2NhY2hlX2Rlc3Ryb3koKSBub3csIHNsdWIgd2lsbCByZXBvcnQgIk9i
+amVjdHMgcmVtYWluaW5nIiBlcnJvci4NCj4gDQo+IFsgICA3NC45ODI2MjVdID09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09DQo+IFsgICA3NC45ODMzODBdIEJVRyB0ZXN0X21vZHVsZV9zbGFiIChOb3QgdGFp
+bnRlZCk6IE9iamVjdHMgcmVtYWluaW5nIGluIHRlc3RfbW9kdWxlX3NsYWIgb24gX19rbWVtX2Nh
+Y2hlX3NodXRkb3duKCkNCj4gWyAgIDc0Ljk4NDE0NV0gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4g
+WyAgIDc0Ljk4NDE0NV0NCj4gWyAgIDc0Ljk4NDg4M10gRGlzYWJsaW5nIGxvY2sgZGVidWdnaW5n
+IGR1ZSB0byBrZXJuZWwgdGFpbnQNCj4gWyAgIDc0Ljk4NTU2MV0gSU5GTzogU2xhYiAweChfX19f
+cHRydmFsX19fXykgb2JqZWN0cz0zNCB1c2VkPTEgZnA9MHgoX19fX3B0cnZhbF9fX18pIGZsYWdz
+PTB4MmZmZmYwMDAwMDAxMDIwMA0KPiBbICAgNzQuOTg2NjM4XSBDUFU6IDMgUElEOiAxNzYgQ29t
+bTogY2F0IFRhaW50ZWQ6IEcgICAgQiAgICAgICAgICAgICA1LjEwLjAtcmMxLTAwMDA3LWc0NTI1
+Yzg3ODFlYzAtZGlydHkgIzEwDQo+IFsgICA3NC45ODcyNjJdIEhhcmR3YXJlIG5hbWU6IGxpbnV4
+LGR1bW15LXZpcnQgKERUKQ0KPiBbICAgNzQuOTg3NjA2XSBDYWxsIHRyYWNlOg0KPiBbICAgNzQu
+OTg3OTI0XSAgZHVtcF9iYWNrdHJhY2UrMHgwLzB4MmIwDQo+IFsgICA3NC45ODgyOTZdICBzaG93
+X3N0YWNrKzB4MTgvMHg2OA0KPiBbICAgNzQuOTg4Njk4XSAgZHVtcF9zdGFjaysweGZjLzB4MTY4
+DQo+IFsgICA3NC45ODkwMzBdICBzbGFiX2VycisweGFjLzB4ZDQNCj4gWyAgIDc0Ljk4OTM0Nl0g
+IF9fa21lbV9jYWNoZV9zaHV0ZG93bisweDFlNC8weDNjOA0KPiBbICAgNzQuOTg5Nzc5XSAga21l
+bV9jYWNoZV9kZXN0cm95KzB4NjgvMHgxMzANCj4gWyAgIDc0Ljk5MDE3Nl0gIHRlc3RfdmVyc2lv
+bl9zaG93KzB4ODQvMHhmMA0KPiBbICAgNzQuOTkwNjc5XSAgbW9kdWxlX2F0dHJfc2hvdysweDQw
+LzB4NjANCj4gWyAgIDc0Ljk5MTIxOF0gIHN5c2ZzX2tmX3NlcV9zaG93KzB4MTI4LzB4MWMwDQo+
+IFsgICA3NC45OTE2NTZdICBrZXJuZnNfc2VxX3Nob3crMHhhMC8weGI4DQo+IFsgICA3NC45OTIw
+NTldICBzZXFfcmVhZCsweDFmMC8weDdlOA0KPiBbICAgNzQuOTkyNDE1XSAga2VybmZzX2ZvcF9y
+ZWFkKzB4NzAvMHgzMzgNCj4gWyAgIDc0Ljk5MzA1MV0gIHZmc19yZWFkKzB4ZTQvMHgyNTANCj4g
+WyAgIDc0Ljk5MzQ5OF0gIGtzeXNfcmVhZCsweGM4LzB4MTgwDQo+IFsgICA3NC45OTM4MjVdICBf
+X2FybTY0X3N5c19yZWFkKzB4NDQvMHg1OA0KPiBbICAgNzQuOTk0MjAzXSAgZWwwX3N2Y19jb21t
+b24uY29uc3Rwcm9wLjArMHhhYy8weDIyOA0KPiBbICAgNzQuOTk0NzA4XSAgZG9fZWwwX3N2Yysw
+eDM4LzB4YTANCj4gWyAgIDc0Ljk5NTA4OF0gIGVsMF9zeW5jX2hhbmRsZXIrMHgxNzAvMHgxNzgN
+Cj4gWyAgIDc0Ljk5NTQ5N10gIGVsMF9zeW5jKzB4MTc0LzB4MTgwDQo+IFsgICA3NC45OTYwNTBd
+IElORk86IE9iamVjdCAweChfX19fcHRydmFsX19fXykgQG9mZnNldD0xNTg0OA0KPiBbICAgNzQu
+OTk2NzUyXSBJTkZPOiBBbGxvY2F0ZWQgaW4gdGVzdF92ZXJzaW9uX3Nob3crMHg5OC8weGYwIGFn
+ZT04MTg4IGNwdT02IHBpZD0xNzINCj4gWyAgIDc1LjAwMDgwMl0gIHN0YWNrX3RyYWNlX3NhdmUr
+MHg5Yy8weGQwDQo+IFsgICA3NS4wMDI0MjBdICBzZXRfdHJhY2srMHg2NC8weGYwDQo+IFsgICA3
+NS4wMDI3NzBdICBhbGxvY19kZWJ1Z19wcm9jZXNzaW5nKzB4MTA0LzB4MWEwDQo+IFsgICA3NS4w
+MDMxNzFdICBfX19zbGFiX2FsbG9jKzB4NjI4LzB4NjQ4DQo+IFsgICA3NS4wMDQyMTNdICBfX3Ns
+YWJfYWxsb2MuaXNyYS4wKzB4MmMvMHg1OA0KPiBbICAgNzUuMDA0NzU3XSAga21lbV9jYWNoZV9h
+bGxvYysweDU2MC8weDU4OA0KPiBbICAgNzUuMDA1Mzc2XSAgdGVzdF92ZXJzaW9uX3Nob3crMHg5
+OC8weGYwDQo+IFsgICA3NS4wMDU3NTZdICBtb2R1bGVfYXR0cl9zaG93KzB4NDAvMHg2MA0KPiBb
+ICAgNzUuMDA3MDM1XSAgc3lzZnNfa2Zfc2VxX3Nob3crMHgxMjgvMHgxYzANCj4gWyAgIDc1LjAw
+NzQzM10gIGtlcm5mc19zZXFfc2hvdysweGEwLzB4YjgNCj4gWyAgIDc1LjAwNzgwMF0gIHNlcV9y
+ZWFkKzB4MWYwLzB4N2U4DQo+IFsgICA3NS4wMDgxMjhdICBrZXJuZnNfZm9wX3JlYWQrMHg3MC8w
+eDMzOA0KPiBbICAgNzUuMDA4NTA3XSAgdmZzX3JlYWQrMHhlNC8weDI1MA0KPiBbICAgNzUuMDA4
+OTkwXSAga3N5c19yZWFkKzB4YzgvMHgxODANCj4gWyAgIDc1LjAwOTQ2Ml0gIF9fYXJtNjRfc3lz
+X3JlYWQrMHg0NC8weDU4DQo+IFsgICA3NS4wMTAwODVdICBlbDBfc3ZjX2NvbW1vbi5jb25zdHBy
+b3AuMCsweGFjLzB4MjI4DQo+IFsgICA3NS4wMTEwMDZdIGttZW1fY2FjaGVfZGVzdHJveSB0ZXN0
+X21vZHVsZV9zbGFiOiBTbGFiIGNhY2hlIHN0aWxsIGhhcyBvYmplY3RzDQo+IA0KPiBSZWdpc3Rl
+ciBhIGNwdSBob3RwbHVnIGZ1bmN0aW9uIHRvIHJlbW92ZSBhbGwgb2JqZWN0cyBpbiB0aGUgb2Zm
+bGluZQ0KPiBwZXItY3B1IHF1YXJhbnRpbmUgd2hlbiBjcHUgaXMgZ29pbmcgb2ZmbGluZS4gIFNl
+dCBhIHBlci1jcHUgdmFyaWFibGUgdG8NCj4gaW5kaWNhdGUgdGhpcyBjcHUgaXMgb2ZmbGluZS4N
+Cj4gDQo+IFtxaWFuZy56aGFuZ0B3aW5kcml2ZXIuY29tOiBmaXggc2xhYiBkb3VibGUgZnJlZSB3
+aGVuIGNwdS1ob3RwbHVnXQ0KPiAgIExpbms6IGh0dHBzOi8vbGttbC5rZXJuZWwub3JnL3IvMjAy
+MDEyMDQxMDIyMDYuMjAyMzctMS1xaWFuZy56aGFuZ0B3aW5kcml2ZXIuY29tDQo+IExpbms6IGh0
+dHBzOi8vbGttbC5rZXJuZWwub3JnL3IvMTYwNjg5NTU4NS0xNzM4Mi0yLWdpdC1zZW5kLWVtYWls
+LUt1YW4tWWluZy5MZWVAbWVkaWF0ZWsuY29tDQo+IFNpZ25lZC1vZmYtYnk6IEt1YW4tWWluZyBM
+ZWUgPEt1YW4tWWluZy5MZWVAbWVkaWF0ZWsuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBacWlhbmcg
+PHFpYW5nLnpoYW5nQHdpbmRyaXZlci5jb20+DQo+IFN1Z2dlc3RlZC1ieTogRG1pdHJ5IFZ5dWtv
+diA8ZHZ5dWtvdkBnb29nbGUuY29tPg0KPiBSZXBvcnRlZC1ieTogR3Vhbmd5ZSBZYW5nIDxndWFu
+Z3llLnlhbmdAbWVkaWF0ZWsuY29tPg0KPiBSZXZpZXdlZC1ieTogRG1pdHJ5IFZ5dWtvdiA8ZHZ5
+dWtvdkBnb29nbGUuY29tPg0KPiBDYzogQW5kcmV5IFJ5YWJpbmluIDxhcnlhYmluaW5AdmlydHVv
+enpvLmNvbT4NCj4gQ2M6IEFsZXhhbmRlciBQb3RhcGVua28gPGdsaWRlckBnb29nbGUuY29tPg0K
+PiBDYzogTWF0dGhpYXMgQnJ1Z2dlciA8bWF0dGhpYXMuYmdnQGdtYWlsLmNvbT4NCj4gQ2M6IE5p
+Y2hvbGFzIFRhbmcgPG5pY2hvbGFzLnRhbmdAbWVkaWF0ZWsuY29tPg0KPiBDYzogTWlsZXMgQ2hl
+biA8bWlsZXMuY2hlbkBtZWRpYXRlay5jb20+DQo+IENjOiBRaWFuIENhaSA8cWNhaUByZWRoYXQu
+Y29tPg0KPiBDYzogU3RlcGhlbiBSb3Rod2VsbCA8c2ZyQGNhbmIuYXV1Zy5vcmcuYXU+DQo+IFNp
+Z25lZC1vZmYtYnk6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+DQo+
+IC0tLQ0KPiANCj4gIG1tL2thc2FuL3F1YXJhbnRpbmUuYyB8ICAgMzkgKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgMzkgaW5zZXJ0aW9u
+cygrKQ0KPiANCj4gLS0tIGEvbW0va2FzYW4vcXVhcmFudGluZS5jfmthc2FuLWZpeC1vYmplY3Qt
+cmVtYWluLWluLW9mZmxpbmUtcGVyLWNwdS1xdWFyYW50aW5lDQo+ICsrKyBhL21tL2thc2FuL3F1
+YXJhbnRpbmUuYw0KPiBAQCAtMjksNiArMjksNyBAQA0KPiAgI2luY2x1ZGUgPGxpbnV4L3NyY3Uu
+aD4NCj4gICNpbmNsdWRlIDxsaW51eC9zdHJpbmcuaD4NCj4gICNpbmNsdWRlIDxsaW51eC90eXBl
+cy5oPg0KPiArI2luY2x1ZGUgPGxpbnV4L2NwdWhvdHBsdWcuaD4NCj4gIA0KPiAgI2luY2x1ZGUg
+Ii4uL3NsYWIuaCINCj4gICNpbmNsdWRlICJrYXNhbi5oIg0KPiBAQCAtNDMsNiArNDQsNyBAQCBz
+dHJ1Y3QgcWxpc3RfaGVhZCB7DQo+ICAJc3RydWN0IHFsaXN0X25vZGUgKmhlYWQ7DQo+ICAJc3Ry
+dWN0IHFsaXN0X25vZGUgKnRhaWw7DQo+ICAJc2l6ZV90IGJ5dGVzOw0KPiArCWJvb2wgb2ZmbGlu
+ZTsNCj4gIH07DQo+ICANCj4gICNkZWZpbmUgUUxJU1RfSU5JVCB7IE5VTEwsIE5VTEwsIDAgfQ0K
+PiBAQCAtMTg4LDYgKzE5MCwxMCBAQCB2b2lkIHF1YXJhbnRpbmVfcHV0KHN0cnVjdCBrYXNhbl9m
+cmVlX21lDQo+ICAJbG9jYWxfaXJxX3NhdmUoZmxhZ3MpOw0KPiAgDQo+ICAJcSA9IHRoaXNfY3B1
+X3B0cigmY3B1X3F1YXJhbnRpbmUpOw0KPiArCWlmIChxLT5vZmZsaW5lKSB7DQo+ICsJCWxvY2Fs
+X2lycV9yZXN0b3JlKGZsYWdzKTsNCj4gKwkJcmV0dXJuOw0KPiArCX0NCj4gIAlxbGlzdF9wdXQo
+cSwgJmluZm8tPnF1YXJhbnRpbmVfbGluaywgY2FjaGUtPnNpemUpOw0KPiAgCWlmICh1bmxpa2Vs
+eShxLT5ieXRlcyA+IFFVQVJBTlRJTkVfUEVSQ1BVX1NJWkUpKSB7DQo+ICAJCXFsaXN0X21vdmVf
+YWxsKHEsICZ0ZW1wKTsNCj4gQEAgLTMyOCwzICszMzQsMzYgQEAgdm9pZCBxdWFyYW50aW5lX3Jl
+bW92ZV9jYWNoZShzdHJ1Y3Qga21lbQ0KPiAgDQo+ICAJc3luY2hyb25pemVfc3JjdSgmcmVtb3Zl
+X2NhY2hlX3NyY3UpOw0KPiAgfQ0KPiArDQo+ICtzdGF0aWMgaW50IGthc2FuX2NwdV9vbmxpbmUo
+dW5zaWduZWQgaW50IGNwdSkNCj4gK3sNCj4gKwl0aGlzX2NwdV9wdHIoJmNwdV9xdWFyYW50aW5l
+KS0+b2ZmbGluZSA9IGZhbHNlOw0KPiArCXJldHVybiAwOw0KPiArfQ0KPiArDQo+ICtzdGF0aWMg
+aW50IGthc2FuX2NwdV9vZmZsaW5lKHVuc2lnbmVkIGludCBjcHUpDQo+ICt7DQo+ICsJc3RydWN0
+IHFsaXN0X2hlYWQgKnE7DQo+ICsNCj4gKwlxID0gdGhpc19jcHVfcHRyKCZjcHVfcXVhcmFudGlu
+ZSk7DQo+ICsJLyogRW5zdXJlIHRoZSBvcmRlcmluZyBiZXR3ZWVuIHRoZSB3cml0aW5nIHRvIHEt
+Pm9mZmxpbmUgYW5kDQo+ICsJICogcWxpc3RfZnJlZV9hbGwuIE90aGVyd2lzZSwgY3B1X3F1YXJh
+bnRpbmUgbWF5IGJlIGNvcnJ1cHRlZA0KPiArCSAqIGJ5IGludGVycnVwdC4NCj4gKwkgKi8NCj4g
+KwlXUklURV9PTkNFKHEtPm9mZmxpbmUsIHRydWUpOw0KPiArCWJhcnJpZXIoKTsNCj4gKwlxbGlz
+dF9mcmVlX2FsbChxLCBOVUxMKTsNCj4gKwlyZXR1cm4gMDsNCj4gK30NCj4gKw0KPiArc3RhdGlj
+IGludCBfX2luaXQga2FzYW5fY3B1X3F1YXJhbnRpbmVfaW5pdCh2b2lkKQ0KPiArew0KPiArCWlu
+dCByZXQgPSAwOw0KPiArDQo+ICsJcmV0ID0gY3B1aHBfc2V0dXBfc3RhdGUoQ1BVSFBfQVBfT05M
+SU5FX0RZTiwgIm1tL2thc2FuOm9ubGluZSIsDQo+ICsJCQkJa2FzYW5fY3B1X29ubGluZSwga2Fz
+YW5fY3B1X29mZmxpbmUpOw0KPiArCWlmIChyZXQgPCAwKQ0KPiArCQlwcl9lcnIoImthc2FuIGNw
+dSBxdWFyYW50aW5lIHJlZ2lzdGVyIGZhaWxlZCBbJWRdXG4iLCByZXQpOw0KPiArCXJldHVybiBy
+ZXQ7DQo+ICt9DQo+ICtsYXRlX2luaXRjYWxsKGthc2FuX2NwdV9xdWFyYW50aW5lX2luaXQpOw0K
+PiBfDQo+IA0KPiBQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJvbSBL
+dWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbSBhcmUNCj4gDQo+IA0KDQo=
 
