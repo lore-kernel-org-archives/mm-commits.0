@@ -7,33 +7,31 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E86C4361B
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 23:31:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA50C4361B
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 23:51:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F0C82250F
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 23:31:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8370F2074B
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 23:51:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726931AbgLNXbf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 18:31:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49176 "EHLO mail.kernel.org"
+        id S1727628AbgLNXvh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 18:51:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53676 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726774AbgLNXbf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 18:31:35 -0500
-Date:   Mon, 14 Dec 2020 15:30:54 -0800
+        id S1727377AbgLNXve (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 18:51:34 -0500
+Date:   Mon, 14 Dec 2020 15:50:53 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607988654;
-        bh=T6taWbcdU8EpE9wiAMF4VPbKnEox2zqeSRDWtPSQtn0=;
+        s=korg; t=1607989854;
+        bh=Y59LMpOhbi0Xfyp7ksgguJJMY+Jz5d+hSsnoNysQf08=;
         h=From:To:Subject:From;
-        b=c4cXRPTb7ww1fSbTYAEPyeTQAI6Dl72F4JntS6n+m+ZCcB39sIb3XG1pb7cAeIaLM
-         sEmWTzat/hUE8fvD9rZ8NntSTuEmcgB8wERR0MbWwkkFLUTvoY1XjirqAQZbtpvs7r
-         QzIOx+CY6Y2y2ylzzyhqnTPoa/aJy53ZPAFBZTKM=
+        b=qd9cltDU2srPePkrSzbivQbijHZ64uTiulFlg02HBsS/E/TA8igjtyD82pYVLMkmX
+         mB5M0TEhRjsRaBOixbnJE5Ds99gimslmFpUh4N5pxE+ji4/CHSV4aQBqmZk/C/gcOA
+         QrG+l8afxtc1BeWqXiQJXMzet6vopKDBEyAPePeg=
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, sfr@canb.auug.org.au
-Subject:  +
- secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch added to -mm
- tree
-Message-ID: <20201214233054.jj4o_opls%akpm@linux-foundation.org>
+To:     huangzhaoyang@gmail.com, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, zhaoyang.huang@unisoc.com
+Subject:  + mm-fix-a-race-on-nr_swap_pages.patch added to -mm tree
+Message-ID: <20201214235053.hw9A35aPt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: secretmem-test-add-basic-selftest-for-memfd_secret2-fix
+     Subject: mm: fix a race on nr_swap_pages
 has been added to the -mm tree.  Its filename is
-     secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+     mm-fix-a-race-on-nr_swap_pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-a-race-on-nr_swap_pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-a-race-on-nr_swap_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,44 +61,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: secretmem-test-add-basic-selftest-for-memfd_secret2-fix
+From: Zhaoyang Huang <huangzhaoyang@gmail.com>
+Subject: mm: fix a race on nr_swap_pages
 
-fix build
+The scenario on which "Free swap = -4kB" happens in my system, which is caused
+by several get_swap_pages racing with each other and show_swap_cache_info
+happens simutaniously. No need to add a lock on get_swap_page_of_type as we
+remove "Presub/PosAdd" here.
 
-Link: https://lkml.kernel.org/r/248f928b-1383-48ea-8584-ec10146e60c9@nvidia.com
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+ProcessA			ProcessB			ProcessC
+ngoals = 1			ngoals = 1
+avail = nr_swap_pages(1)	avail = nr_swap_pages(1)
+nr_swap_pages(1) -= ngoals
+				nr_swap_pages(0) -= ngoals
+								nr_swap_pages = -1
+
+Link: https://lkml.kernel.org/r/1607050340-4535-1-git-send-email-zhaoyang.huang@unisoc.com
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/memfd_secret.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/swapfile.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/memfd_secret.c~secretmem-test-add-basic-selftest-for-memfd_secret2-fix
-+++ a/tools/testing/selftests/vm/memfd_secret.c
-@@ -29,8 +29,6 @@
+--- a/mm/swapfile.c~mm-fix-a-race-on-nr_swap_pages
++++ a/mm/swapfile.c
+@@ -1045,16 +1045,18 @@ int get_swap_pages(int n_goal, swp_entry
+ 	/* Only single cluster request supported */
+ 	WARN_ON_ONCE(n_goal > 1 && size == SWAPFILE_CLUSTER);
  
- #ifdef __NR_memfd_secret
++	spin_lock(&swap_avail_lock);
++
+ 	avail_pgs = atomic_long_read(&nr_swap_pages) / size;
+-	if (avail_pgs <= 0)
++	if (avail_pgs <= 0) {
++		spin_unlock(&swap_avail_lock);
+ 		goto noswap;
++	}
  
--#include <linux/secretmem.h>
+ 	n_goal = min3((long)n_goal, (long)SWAP_BATCH, avail_pgs);
+ 
+ 	atomic_long_sub(n_goal * size, &nr_swap_pages);
+ 
+-	spin_lock(&swap_avail_lock);
 -
- #define PATTERN	0x55
+ start_over:
+ 	node = numa_node_id();
+ 	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
+@@ -1128,14 +1130,13 @@ swp_entry_t get_swap_page_of_type(int ty
  
- static const int prot = PROT_READ | PROT_WRITE;
+ 	spin_lock(&si->lock);
+ 	if (si->flags & SWP_WRITEOK) {
+-		atomic_long_dec(&nr_swap_pages);
+ 		/* This is called for allocating swap entry, not cache */
+ 		offset = scan_swap_map(si, 1);
+ 		if (offset) {
++			atomic_long_dec(&nr_swap_pages);
+ 			spin_unlock(&si->lock);
+ 			return swp_entry(type, offset);
+ 		}
+-		atomic_long_inc(&nr_swap_pages);
+ 	}
+ 	spin_unlock(&si->lock);
+ fail:
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from huangzhaoyang@gmail.com are
 
-mm-gup_benchmark-rename-to-mm-gup_test.patch
-selftests-vm-use-a-common-gup_testh.patch
-selftests-vm-rename-run_vmtests-run_vmtestssh.patch
-selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
-selftests-vm-only-some-gup_test-items-are-really-benchmarks.patch
-selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
-selftests-vm-run_vmtestssh-update-and-clean-up-gup_test-invocation.patch
-selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
-selftests-vm-2x-speedup-for-run_vmtestssh.patch
-mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+mm-fix-a-race-on-nr_swap_pages.patch
 
