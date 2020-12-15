@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 187D5C35296
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C609C352B3
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E78FE22CAE
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 269CD22CAE
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726920AbgLOX7x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32844 "EHLO mail.kernel.org"
+        id S1726921AbgLOX7y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729792AbgLOX0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729835AbgLOX0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:26:08 -0500
-Date:   Tue, 15 Dec 2020 15:18:22 -0800
+Date:   Tue, 15 Dec 2020 15:17:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074302;
-        bh=xyukLdPbA5ayF0jKGb0xP0ZX9vmzDcWIg65mZjX9hi8=;
+        s=korg; t=1608074270;
+        bh=8zdSO9jbwQ29PJuniiPcpdwgRdEtAkipOSNJLRh8fVM=;
         h=From:To:Subject:From;
-        b=1cZxV+/hsCMewlpOVzBWbqm9hKEnJTaZSyItcYFgVdhp0OhXInSUsxPWmTvxCC1Qk
-         GPOUWKGjMqqcuHwdUZ4GFlS2QFUgGJsdrTW2dKW5B0W8GvugDR07tjC3g971gH0+9S
-         ydszCdn6KLJbGk+BhUzyfwWrL6i9z+45Q7l/YzL4=
+        b=rRopbS4Dt0MtWNXWb7DmSOrjL6OaRRoOaWgucJrSaFfZDyIl3EejMIa5FqNJzAMsC
+         m5N68B0VtNhBMDz9H1hfC7sHqpScU3TQYZANpp9xX5rkdDm3UkgO9lNTkWrGOZ2Rdb
+         S9AoezFga9WGcf07wbva9B9BmVOkEeGqcETRsRaA=
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  [merged] mm-memcg-fix-obsolete-code-comments.patch
- removed from -mm tree
-Message-ID: <20201215231822.BHZiHeJ4O%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate.patch removed
+ from -mm tree
+Message-ID: <20201215231750.OnCuN_Z-C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,81 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: fix obsolete code comments
+     Subject: mm/swapfile.c: remove unnecessary out label in __swap_duplicate()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-fix-obsolete-code-comments.patch
+     mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg: fix obsolete code comments
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swapfile.c: remove unnecessary out label in __swap_duplicate()
 
-This patch fixes/removes some obsolete comments in the code related
-to the kernel memory accounting:
-- kmem_cache->memcg_params.memcg_caches has been removed
-  by commit 9855609bde03 ("mm: memcg/slab: use a single set of
-  kmem_caches for all accounted allocations")
-- memcg->kmemcg_id is not used as a gate for kmem accounting since
-  commit 0b8f73e10428 ("mm: memcontrol: clean up alloc, online,
-  offline, free functions")
+When the code went to the out label, it must have p == NULL.  So what out
+label really does is redundant if check and return err.  We should Remove
+this unnecessary out label because it does not handle resource free and so
+on.
 
-Link: https://lkml.kernel.org/r/20201110184615.311974-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/20201009130337.29698-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ++----
- mm/memcontrol.c            |    6 ------
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ mm/swapfile.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-fix-obsolete-code-comments
-+++ a/include/linux/memcontrol.h
-@@ -296,7 +296,6 @@ struct mem_cgroup {
- 	int			tcpmem_pressure;
+--- a/mm/swapfile.c~mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate
++++ a/mm/swapfile.c
+@@ -3445,11 +3445,11 @@ static int __swap_duplicate(swp_entry_t
+ 	unsigned long offset;
+ 	unsigned char count;
+ 	unsigned char has_cache;
+-	int err = -EINVAL;
++	int err;
  
- #ifdef CONFIG_MEMCG_KMEM
--        /* Index in the kmem_cache->memcg_params.memcg_caches array */
- 	int kmemcg_id;
- 	enum memcg_kmem_state kmem_state;
- 	struct obj_cgroup __rcu *objcg;
-@@ -1562,9 +1561,8 @@ static inline void memcg_kmem_uncharge(s
- }
+ 	p = get_swap_device(entry);
+ 	if (!p)
+-		goto out;
++		return -EINVAL;
  
- /*
-- * helper for accessing a memcg's index. It will be used as an index in the
-- * child cache array in kmem_cache, and also to derive its name. This function
-- * will return -1 when this is not a kmem-limited memcg.
-+ * A helper for accessing memcg's kmem_id, used for getting
-+ * corresponding LRU lists.
-  */
- static inline int memcg_cache_id(struct mem_cgroup *memcg)
- {
---- a/mm/memcontrol.c~mm-memcg-fix-obsolete-code-comments
-+++ a/mm/memcontrol.c
-@@ -3703,12 +3703,6 @@ static int memcg_online_kmem(struct mem_
+ 	offset = swp_offset(entry);
+ 	ci = lock_cluster_or_swap_info(p, offset);
+@@ -3496,7 +3496,6 @@ static int __swap_duplicate(swp_entry_t
  
- 	static_branch_enable(&memcg_kmem_enabled_key);
- 
--	/*
--	 * A memory cgroup is considered kmem-online as soon as it gets
--	 * kmemcg_id. Setting the id after enabling static branching will
--	 * guarantee no one starts accounting before all call sites are
--	 * patched.
--	 */
- 	memcg->kmemcg_id = memcg_id;
- 	memcg->kmem_state = KMEM_ONLINE;
- 
+ unlock_out:
+ 	unlock_cluster_or_swap_info(p, ci);
+-out:
+ 	if (p)
+ 		put_swap_device(p);
+ 	return err;
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
-mm-slub-call-account_slab_page-after-slab-page-initialization.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-v2.patch
 
