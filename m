@@ -7,36 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81694C2BBCA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD24EC2BBCF
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49BF122D02
+	by mail.kernel.org (Postfix) with ESMTP id 9854622D07
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726395AbgLOX7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32898 "EHLO mail.kernel.org"
+        id S1726402AbgLOX7T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728020AbgLOXW6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:58 -0500
-Date:   Tue, 15 Dec 2020 15:20:56 -0800
+        id S1728060AbgLOXX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:23:28 -0500
+Date:   Tue, 15 Dec 2020 15:21:28 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074457;
-        bh=ucyiMaNRFgDZKMxPs71jRsyYwiGGzQdc5leJsWRtYoA=;
+        s=korg; t=1608074489;
+        bh=sFYnQX6Iam1i0mvHbB3OBE/irRdC+9desht5NNa3imw=;
         h=From:To:Subject:From;
-        b=yyJnCZvJ4qgcuZSI1+v+4CNx80EvLLvo1+8MV6sAXiNJxAtMkOIKse2wAwFRrpUhN
-         ucdDGJMh7imX0IWxJ4yDHUqeSkUhJMZ8WRtGrBFaYwSe/ZYkDPVbe2mbWaRt+Wk46F
-         //sUi2X32grie5fDlVtM2ZJKyu4luaDsw2e2ZBH8=
+        b=CzE1JjSkVXgR4SSGvLR2t5RlPWYxkmlJKb/CVgMVeNbwpGa+a2fZmCtixJZgxp4yt
+         vQ5sbuv+Yq1qum34wv0eUsDEkSHw7kYNw5Eq7V6bhx46wTHihpASvrF/8sD6lb8iYT
+         t2VsDYu4CKudHTJsR+zlXtRTW7U5kXWAbb9NijlM=
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
-        geert@linux-m68k.org, gerg@linux-m68k.org,
-        glaubitz@physik.fu-berlin.de, linux@armlinux.org.uk,
-        mattst88@gmail.com, mm-commits@vger.kernel.org, mroos@linux.ee,
-        rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
-        vgupta@synopsys.com, will@kernel.org
+To:     david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, pankaj.gupta@cloud.ionos.com, vbabka@suse.cz
 Subject:  [merged]
- arm-remove-config_arch_has_holes_memorymodel.patch removed from -mm tree
-Message-ID: <20201215232056.j8xYCEe7R%akpm@linux-foundation.org>
+ mm-page_alloc-clean-up-pageset-high-and-batch-update.patch removed from -mm
+ tree
+Message-ID: <20201215232128.28KWu24CA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,286 +42,178 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+     Subject: mm, page_alloc: clean up pageset high and batch update
 has been removed from the -mm tree.  Its filename was
-     arm-remove-config_arch_has_holes_memorymodel.patch
+     mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arm: remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: clean up pageset high and batch update
 
-ARM is the only architecture that defines CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
-which in turn enables memmap_valid_within() function that is intended to
-verify existence  of struct page associated with a pfn when there are holes
-in the memory map.
+Patch series "disable pcplists during memory offline", v3.
 
-However, the ARCH_HAS_HOLES_MEMORYMODEL also enables HAVE_ARCH_PFN_VALID
-and arch-specific pfn_valid() implementation that also deals with the holes
-in the memory map.
+As per the discussions [1] [2] this is an attempt to implement David's
+suggestion that page isolation should disable pcplists to avoid races with
+page freeing in progress.  This is done without extra checks in fast
+paths, as explained in Patch 9.  The repeated draining done by [2] is then
+no longer needed.  Previous version (RFC) is at [3].
 
-The only two users of memmap_valid_within() call this function after
-a call to pfn_valid() so the memmap_valid_within() check becomes redundant.
+The RFC tried to hide pcplists disabling/enabling into page isolation, but
+it wasn't completely possible, as memory offline does not unisolation. 
+Michal suggested an explicit API in [4] so that's the current
+implementation and it seems indeed nicer.
 
-Remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL and memmap_valid_within() and rely
-entirely on ARM's implementation of pfn_valid() that is now enabled
-unconditionally.
+Once we accept that page isolation users need to do explicit actions
+around it depending on the needed guarantees, we can also IMHO accept that
+the current pcplist draining can be also done by the callers, which is
+more effective.  After all, there are only two users of page isolation. 
+So patch 6 does effectively the same thing as Pavel proposed in [5], and
+patch 7 implement stronger guarantees only for memory offline.  If CMA
+decides to opt-in to the stronger guarantee, it can be added later.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-9-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Michael Schmitz <schmitzmic@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
+Patches 1-5 are preparatory cleanups for pcplist disabling.
+
+Patchset was briefly tested in QEMU so that memory online/offline works,
+but I haven't done a stress test that would prove the race fixed by [2] is
+eliminated.
+
+Note that patch 7 could be avoided if we instead adjusted page freeing in
+shown in [6], but I believe the current implementation of disabling
+pcplists is not too much complex, so I would prefer this instead of adding
+new checks and longer irq-disabled section into page freeing hotpaths.
+
+[1] https://lore.kernel.org/linux-mm/20200901124615.137200-1-pasha.tatashin@soleen.com/
+[2] https://lore.kernel.org/linux-mm/20200903140032.380431-1-pasha.tatashin@soleen.com/
+[3] https://lore.kernel.org/linux-mm/20200907163628.26495-1-vbabka@suse.cz/
+[4] https://lore.kernel.org/linux-mm/20200909113647.GG7348@dhcp22.suse.cz/
+[5] https://lore.kernel.org/linux-mm/20200904151448.100489-3-pasha.tatashin@soleen.com/
+[6] https://lore.kernel.org/linux-mm/3d3b53db-aeaa-ff24-260b-36427fac9b1c@suse.cz/
+[7] https://lore.kernel.org/linux-mm/20200922143712.12048-1-vbabka@suse.cz/
+[8] https://lore.kernel.org/linux-mm/20201008114201.18824-1-vbabka@suse.cz/
+
+
+This patch (of 7):
+
+The updates to pcplists' high and batch values are handled by multiple
+functions that make the calculations hard to follow.  Consolidate
+everything to pageset_set_high_and_batch() and remove pageset_set_batch()
+and pageset_set_high() wrappers.
+
+The only special case using one of the removed wrappers was:
+build_all_zonelists_init()
+
+  setup_pageset()
+    pageset_set_batch()
+
+which was hardcoding batch as 0, so we can just open-code a call to
+pageset_update() with constant parameters instead.
+
+No functional change.
+
+Link: https://lkml.kernel.org/r/20201111092812.11329-1-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20201111092812.11329-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/memory-model.rst |    3 --
- arch/arm/Kconfig                  |    8 +------
- arch/arm/mach-bcm/Kconfig         |    1 
- arch/arm/mach-davinci/Kconfig     |    1 
- arch/arm/mach-exynos/Kconfig      |    1 
- arch/arm/mach-highbank/Kconfig    |    1 
- arch/arm/mach-omap2/Kconfig       |    1 
- arch/arm/mach-s5pv210/Kconfig     |    1 
- arch/arm/mach-tango/Kconfig       |    1 
- fs/proc/kcore.c                   |    2 -
- include/linux/mmzone.h            |   31 ----------------------------
- mm/mmzone.c                       |   14 ------------
- mm/vmstat.c                       |    4 ---
- 13 files changed, 3 insertions(+), 66 deletions(-)
+ mm/page_alloc.c |   49 ++++++++++++++++++----------------------------
+ 1 file changed, 20 insertions(+), 29 deletions(-)
 
---- a/arch/arm/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/Kconfig
-@@ -25,7 +25,7 @@ config ARM
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAS_GCOV_PROFILE_ALL
--	select ARCH_KEEP_MEMBLOCK if HAVE_ARCH_PFN_VALID || KEXEC
-+	select ARCH_KEEP_MEMBLOCK
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_NO_SG_CHAIN if !ARM_HAS_SG_CHAIN
- 	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
-@@ -520,7 +520,6 @@ config ARCH_S3C24XX
- config ARCH_OMAP1
- 	bool "TI OMAP1"
- 	depends on MMU
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_OMAP
- 	select CLKDEV_LOOKUP
- 	select CLKSRC_MMIO
-@@ -1480,9 +1479,6 @@ config OABI_COMPAT
- 	  UNPREDICTABLE (in fact it can be predicted that it won't work
- 	  at all). If in doubt say N.
+--- a/mm/page_alloc.c~mm-page_alloc-clean-up-pageset-high-and-batch-update
++++ a/mm/page_alloc.c
+@@ -5919,7 +5919,7 @@ static void build_zonelists(pg_data_t *p
+  * not check if the processor is online before following the pageset pointer.
+  * Other parts of the kernel may not check if the zone is available.
+  */
+-static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch);
++static void setup_pageset(struct per_cpu_pageset *p);
+ static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
+ static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
  
--config ARCH_HAS_HOLES_MEMORYMODEL
--	bool
--
- config ARCH_SELECT_MEMORY_MODEL
- 	bool
+@@ -5987,7 +5987,7 @@ build_all_zonelists_init(void)
+ 	 * (a chicken-egg dilemma).
+ 	 */
+ 	for_each_possible_cpu(cpu)
+-		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
++		setup_pageset(&per_cpu(boot_pageset, cpu));
  
-@@ -1494,7 +1490,7 @@ config ARCH_SPARSEMEM_ENABLE
- 	select SPARSEMEM_STATIC if SPARSEMEM
- 
- config HAVE_ARCH_PFN_VALID
--	def_bool ARCH_HAS_HOLES_MEMORYMODEL || !SPARSEMEM
-+	def_bool y
- 
- config HIGHMEM
- 	bool "High Memory Support"
---- a/arch/arm/mach-bcm/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-bcm/Kconfig
-@@ -211,7 +211,6 @@ config ARCH_BRCMSTB
- 	select BCM7038_L1_IRQ
- 	select BRCMSTB_L2_IRQ
- 	select BCM7120_L2_IRQ
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ZONE_DMA if ARM_LPAE
- 	select SOC_BRCMSTB
- 	select SOC_BUS
---- a/arch/arm/mach-davinci/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-davinci/Kconfig
-@@ -5,7 +5,6 @@ menuconfig ARCH_DAVINCI
- 	depends on ARCH_MULTI_V5
- 	select DAVINCI_TIMER
- 	select ZONE_DMA
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select PM_GENERIC_DOMAINS if PM
- 	select PM_GENERIC_DOMAINS_OF if PM && OF
- 	select REGMAP_MMIO
---- a/arch/arm/mach-exynos/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-exynos/Kconfig
-@@ -8,7 +8,6 @@
- menuconfig ARCH_EXYNOS
- 	bool "Samsung Exynos"
- 	depends on ARCH_MULTI_V7
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_SUPPORTS_BIG_ENDIAN
- 	select ARM_AMBA
- 	select ARM_GIC
---- a/arch/arm/mach-highbank/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-highbank/Kconfig
-@@ -2,7 +2,6 @@
- config ARCH_HIGHBANK
- 	bool "Calxeda ECX-1000/2000 (Highbank/Midway)"
- 	depends on ARCH_MULTI_V7
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_SUPPORTS_BIG_ENDIAN
- 	select ARM_AMBA
- 	select ARM_ERRATA_764369 if SMP
---- a/arch/arm/mach-omap2/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-omap2/Kconfig
-@@ -93,7 +93,6 @@ config SOC_DRA7XX
- config ARCH_OMAP2PLUS
- 	bool
- 	select ARCH_HAS_BANDGAP
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_HAS_RESET_CONTROLLER
- 	select ARCH_OMAP
- 	select CLKSRC_MMIO
---- a/arch/arm/mach-s5pv210/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-s5pv210/Kconfig
-@@ -8,7 +8,6 @@
- config ARCH_S5PV210
- 	bool "Samsung S5PV210/S5PC110"
- 	depends on ARCH_MULTI_V7
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARM_VIC
- 	select CLKSRC_SAMSUNG_PWM
- 	select COMMON_CLK_SAMSUNG
---- a/arch/arm/mach-tango/Kconfig~arm-remove-config_arch_has_holes_memorymodel
-+++ a/arch/arm/mach-tango/Kconfig
-@@ -3,7 +3,6 @@ config ARCH_TANGO
- 	bool "Sigma Designs Tango4 (SMP87xx)"
- 	depends on ARCH_MULTI_V7
- 	# Cortex-A9 MPCore r3p0, PL310 r3p2
--	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARM_ERRATA_754322
- 	select ARM_ERRATA_764369 if SMP
- 	select ARM_ERRATA_775420
---- a/Documentation/vm/memory-model.rst~arm-remove-config_arch_has_holes_memorymodel
-+++ a/Documentation/vm/memory-model.rst
-@@ -51,8 +51,7 @@ call :c:func:`free_area_init` function.
- usable until the call to :c:func:`memblock_free_all` that hands all the
- memory to the page allocator.
- 
--If an architecture enables `CONFIG_ARCH_HAS_HOLES_MEMORYMODEL` option,
--it may free parts of the `mem_map` array that do not cover the
-+An architecture may free parts of the `mem_map` array that do not cover the
- actual physical pages. In such case, the architecture specific
- :c:func:`pfn_valid` implementation should take the holes in the
- `mem_map` into account.
---- a/fs/proc/kcore.c~arm-remove-config_arch_has_holes_memorymodel
-+++ a/fs/proc/kcore.c
-@@ -193,8 +193,6 @@ kclist_add_private(unsigned long pfn, un
- 		return 1;
- 
- 	p = pfn_to_page(pfn);
--	if (!memmap_valid_within(pfn, p, page_zone(p)))
--		return 1;
- 
- 	ent = kmalloc(sizeof(*ent), GFP_KERNEL);
- 	if (!ent)
---- a/include/linux/mmzone.h~arm-remove-config_arch_has_holes_memorymodel
-+++ a/include/linux/mmzone.h
-@@ -1440,37 +1440,6 @@ void sparse_init(void);
- #define pfn_valid_within(pfn) (1)
- #endif
- 
--#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
--/*
-- * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
-- * associated with it or not. This means that a struct page exists for this
-- * pfn. The caller cannot assume the page is fully initialized in general.
-- * Hotplugable pages might not have been onlined yet. pfn_to_online_page()
-- * will ensure the struct page is fully online and initialized. Special pages
-- * (e.g. ZONE_DEVICE) are never onlined and should be treated accordingly.
-- *
-- * In FLATMEM, it is expected that holes always have valid memmap as long as
-- * there is valid PFNs either side of the hole. In SPARSEMEM, it is assumed
-- * that a valid section has a memmap for the entire section.
-- *
-- * However, an ARM, and maybe other embedded architectures in the future
-- * free memmap backing holes to save memory on the assumption the memmap is
-- * never used. The page_zone linkages are then broken even though pfn_valid()
-- * returns true. A walker of the full memmap must then do this additional
-- * check to ensure the memmap they are looking at is sane by making sure
-- * the zone and PFN linkages are still valid. This is expensive, but walkers
-- * of the full memmap are extremely rare.
-- */
--bool memmap_valid_within(unsigned long pfn,
--					struct page *page, struct zone *zone);
--#else
--static inline bool memmap_valid_within(unsigned long pfn,
--					struct page *page, struct zone *zone)
--{
--	return true;
--}
--#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
--
- #endif /* !__GENERATING_BOUNDS.H */
- #endif /* !__ASSEMBLY__ */
- #endif /* _LINUX_MMZONE_H */
---- a/mm/mmzone.c~arm-remove-config_arch_has_holes_memorymodel
-+++ a/mm/mmzone.c
-@@ -72,20 +72,6 @@ struct zoneref *__next_zones_zonelist(st
- 	return z;
+ 	mminit_verify_zonelist();
+ 	cpuset_init_current_mems_allowed();
+@@ -6296,12 +6296,6 @@ static void pageset_update(struct per_cp
+ 	pcp->batch = batch;
  }
  
--#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
--bool memmap_valid_within(unsigned long pfn,
--					struct page *page, struct zone *zone)
+-/* a companion to pageset_set_high() */
+-static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
 -{
--	if (page_to_pfn(page) != pfn)
--		return false;
--
--	if (page_zone(page) != zone)
--		return false;
--
--	return true;
+-	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
 -}
--#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
 -
- void lruvec_init(struct lruvec *lruvec)
+ static void pageset_init(struct per_cpu_pageset *p)
  {
- 	enum lru_list lru;
---- a/mm/vmstat.c~arm-remove-config_arch_has_holes_memorymodel
-+++ a/mm/vmstat.c
-@@ -1503,10 +1503,6 @@ static void pagetypeinfo_showblockcount_
- 		if (!page)
- 			continue;
+ 	struct per_cpu_pages *pcp;
+@@ -6314,35 +6308,32 @@ static void pageset_init(struct per_cpu_
+ 		INIT_LIST_HEAD(&pcp->lists[migratetype]);
+ }
  
--		/* Watch for unexpected holes punched in the memmap */
--		if (!memmap_valid_within(pfn, page, zone))
--			continue;
+-static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
++static void setup_pageset(struct per_cpu_pageset *p)
+ {
+ 	pageset_init(p);
+-	pageset_set_batch(p, batch);
++	pageset_update(&p->pcp, 0, 1);
+ }
+ 
+ /*
+- * pageset_set_high() sets the high water mark for hot per_cpu_pagelist
+- * to the value high for the pageset p.
++ * Calculate and set new high and batch values for given per-cpu pageset of a
++ * zone, based on the zone's size and the percpu_pagelist_fraction sysctl.
+  */
+-static void pageset_set_high(struct per_cpu_pageset *p,
+-				unsigned long high)
+-{
+-	unsigned long batch = max(1UL, high / 4);
+-	if ((high / 4) > (PAGE_SHIFT * 8))
+-		batch = PAGE_SHIFT * 8;
 -
- 		if (page_zone(page) != zone)
- 			continue;
+-	pageset_update(&p->pcp, high, batch);
+-}
+-
+ static void pageset_set_high_and_batch(struct zone *zone,
+-				       struct per_cpu_pageset *pcp)
++				       struct per_cpu_pageset *p)
+ {
+-	if (percpu_pagelist_fraction)
+-		pageset_set_high(pcp,
+-			(zone_managed_pages(zone) /
+-				percpu_pagelist_fraction));
+-	else
+-		pageset_set_batch(pcp, zone_batchsize(zone));
++	unsigned long new_high, new_batch;
++
++	if (percpu_pagelist_fraction) {
++		new_high = zone_managed_pages(zone) / percpu_pagelist_fraction;
++		new_batch = max(1UL, new_high / 4);
++		if ((new_high / 4) > (PAGE_SHIFT * 8))
++			new_batch = PAGE_SHIFT * 8;
++	} else {
++		new_batch = zone_batchsize(zone);
++		new_high = 6 * new_batch;
++		new_batch = max(1UL, 1 * new_batch);
++	}
++	pageset_update(&p->pcp, new_high, new_batch);
+ }
  
+ static void __meminit zone_pageset_init(struct zone *zone, int cpu)
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
-mm-add-definition-of-pmd_page_order.patch
-mmap-make-mlock_future_check-global.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
-secretmem-add-memcg-accounting.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
