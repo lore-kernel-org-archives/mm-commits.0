@@ -7,33 +7,31 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35D61C2BBCA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50E60C2BB48
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F121222D02
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CE2022CB8
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726945AbgLPAAB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34580 "EHLO mail.kernel.org"
+        id S1726962AbgLPAAC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729903AbgLOX0m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1728754AbgLOX0m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:26:42 -0500
-Date:   Tue, 15 Dec 2020 15:16:04 -0800
+Date:   Tue, 15 Dec 2020 15:17:55 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074164;
-        bh=X3B2txZ/c1QOlHUCGVFos1MdhsWoF7KlS33LSZoj9tU=;
+        s=korg; t=1608074275;
+        bh=xAC0DdTM4Z4BQ2Ix0NYgT6CS7ey0/AS2ZeCQla75Kak=;
         h=From:To:Subject:From;
-        b=quIRGgLNbghrz3ARAkNbGeBcO55vEljGP4DjUk8r1axVrdU9bB3nO11ahVAthAKib
-         Au/FFQ014Z3kw4pf6EkgK8UTRbXgmOvXbg2WTGcCFmQmo1XlH+03VM9X25+eKdPXgR
-         B4lGh7SuxEr1v2zx3PsRm07ZhALMEuT2sSEL09iM=
+        b=phhSREgkpVhjhPLGuqdnffyJUhZG1jcFfHnMzIucrYnHyx83CgXqQ2bJVJXwMmkDo
+         j58kIcbM5KzdPqvUgyygsCMDs2e/wFSbrN0yBYo4cgTbWCH5yjUCbdTzgo3wBJGcrR
+         273VZagGzOvhcZNEcD14usrT5eJXaruRmnuAoGeU=
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, sh_def@163.com
-Subject:  [merged]
- mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+To:     jlayton@kernel.org, mm-commits@vger.kernel.org, willy@infradead.org
+Subject:  [merged] mm-remove-pagevec_lookup_range_nr_tag.patch
  removed from -mm tree
-Message-ID: <20201215231604.Hgjvi5Tg6%akpm@linux-foundation.org>
+Message-ID: <20201215231755.IdVagQUQU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,59 +40,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: use list_for_each_entry in dump_unreclaimable_slab()
+     Subject: mm: remove pagevec_lookup_range_nr_tag()
 has been removed from the -mm tree.  Its filename was
-     mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab.patch
+     mm-remove-pagevec_lookup_range_nr_tag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm/slab_common.c: use list_for_each_entry in dump_unreclaimable_slab()
+From: Jeff Layton <jlayton@kernel.org>
+Subject: mm: remove pagevec_lookup_range_nr_tag()
 
-dump_unreclaimable_slab() acquires the slab_mutex first, and it won't
-remove any slab_caches list entry when itering the slab_caches lists.
+With the merge of 2e1692966034 ("ceph: have ceph_writepages_start call
+pagevec_lookup_range_tag"), nothing calls this anymore.
 
-Thus we do not need list_for_each_entry_safe here, which is against
-removal of list entry.
-
-Link: https://lkml.kernel.org/r/20200926043440.GA180545@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20201021193926.101474-1-jlayton@kernel.org
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pagevec.h |    3 ---
+ mm/swap.c               |    9 ---------
+ 2 files changed, 12 deletions(-)
 
---- a/mm/slab_common.c~mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab
-+++ a/mm/slab_common.c
-@@ -978,7 +978,7 @@ static int slab_show(struct seq_file *m,
- 
- void dump_unreclaimable_slab(void)
+--- a/include/linux/pagevec.h~mm-remove-pagevec_lookup_range_nr_tag
++++ a/include/linux/pagevec.h
+@@ -43,9 +43,6 @@ static inline unsigned pagevec_lookup(st
+ unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
+ 		struct address_space *mapping, pgoff_t *index, pgoff_t end,
+ 		xa_mark_t tag);
+-unsigned pagevec_lookup_range_nr_tag(struct pagevec *pvec,
+-		struct address_space *mapping, pgoff_t *index, pgoff_t end,
+-		xa_mark_t tag, unsigned max_pages);
+ static inline unsigned pagevec_lookup_tag(struct pagevec *pvec,
+ 		struct address_space *mapping, pgoff_t *index, xa_mark_t tag)
  {
--	struct kmem_cache *s, *s2;
-+	struct kmem_cache *s;
- 	struct slabinfo sinfo;
+--- a/mm/swap.c~mm-remove-pagevec_lookup_range_nr_tag
++++ a/mm/swap.c
+@@ -1167,15 +1167,6 @@ unsigned pagevec_lookup_range_tag(struct
+ }
+ EXPORT_SYMBOL(pagevec_lookup_range_tag);
  
- 	/*
-@@ -996,7 +996,7 @@ void dump_unreclaimable_slab(void)
- 	pr_info("Unreclaimable slab info:\n");
- 	pr_info("Name                      Used          Total\n");
- 
--	list_for_each_entry_safe(s, s2, &slab_caches, list) {
-+	list_for_each_entry(s, &slab_caches, list) {
- 		if (s->flags & SLAB_RECLAIM_ACCOUNT)
- 			continue;
- 
+-unsigned pagevec_lookup_range_nr_tag(struct pagevec *pvec,
+-		struct address_space *mapping, pgoff_t *index, pgoff_t end,
+-		xa_mark_t tag, unsigned max_pages)
+-{
+-	pvec->nr = find_get_pages_range_tag(mapping, index, end, tag,
+-		min_t(unsigned int, max_pages, PAGEVEC_SIZE), pvec->pages);
+-	return pagevec_count(pvec);
+-}
+-EXPORT_SYMBOL(pagevec_lookup_range_nr_tag);
+ /*
+  * Perform any setup for the swap system
+  */
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from jlayton@kernel.org are
 
-fs-proc-make-pde_get-return-nothing.patch
-acctc-use-elif-instead-of-end-and-elif.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
