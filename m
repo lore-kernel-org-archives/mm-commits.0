@@ -4,42 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FFAEC2BBD5
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C69C352A2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E113322D2B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D40E22D73
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725995AbgLOX66 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:58:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59710 "EHLO mail.kernel.org"
+        id S1726076AbgLOX7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726861AbgLOXUs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:20:48 -0500
-Date:   Tue, 15 Dec 2020 15:19:29 -0800
+        id S1727472AbgLOXVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:21:00 -0500
+Date:   Tue, 15 Dec 2020 15:19:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074370;
-        bh=lF03VEVHInk0ePmJfoK+Gq1Kv2jEuGNMlDnkdplGxuc=;
+        s=korg; t=1608074399;
+        bh=zWUOPoDAiBcJu6T8i2YA1xl5M1l21dY33n8gSKulw9U=;
         h=From:To:Subject:From;
-        b=nEhJHvdp8x39vUZd6+KYShfpDoUaYQhX2usiHfuvXTagP8C/oTXYV/AFsW20BY/YX
-         UvFvlNaVaMAwnP9pSS8ymlYrjHGvWyxrTLbyBaE6gbIy447q51maNinvkSDDMNaVR8
-         Uw1rmkYSJzTb86kfp35PoW2YDFRTZFD3l9NcwBuM=
+        b=VTQIuXZNUCPE1vg5807XjJMpQ+wnaEYsiRo5/PaY2OAXArNJUh8HX+6rqI1NwJgti
+         OiPBhp65TXQhzSiHMNmuKaqUdffESPjSOu9NxpM9IajtO50FYKtqkme/BBrrSivUnf
+         Jgp1CKfE5x0YAYzb77Ut34AKW/+xcQF1NJoJZ6N0=
 From:   akpm@linux-foundation.org
-To:     bgeffon@google.com, catalin.marinas@arm.com,
-        dan.carpenter@oracle.com, dan.j.williams@intel.com,
-        dave.jiang@intel.com, dima@arista.com, hughd@google.com,
-        jgg@ziepe.ca, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
-        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, tglx@linutronix.de,
-        tsbogend@alpha.franken.de, vbabka@suse.cz, viro@zeniv.linux.org.uk,
-        vishal.l.verma@intel.com, will@kernel.org
+To:     akpm@linux-foundation.org, hsinhuiwu@gmail.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-mremap-account-memory-on-do_munmap-failure.patch removed from -mm tree
-Message-ID: <20201215231929.OqSmBLCaG%akpm@linux-foundation.org>
+ mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch removed from
+ -mm tree
+Message-ID: <20201215231959.8R__isc88%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,73 +42,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: account memory on do_munmap() failure
+     Subject: mm/vmalloc.c:__vmalloc_area_node(): avoid 32-bit overflow
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-account-memory-on-do_munmap-failure.patch
+     mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Safonov <dima@arista.com>
-Subject: mm/mremap: account memory on do_munmap() failure
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/vmalloc.c:__vmalloc_area_node(): avoid 32-bit overflow
 
-Patch series "mremap: move_vma() fixes".
+With a machine with 3 TB (more than 2 TB memory).  If you use vmalloc to
+allocate > 2 TB memory, the array_size below will be overflowed.
 
+The array_size is an unsigned int and can only be used to allocate less
+than 2 TB memory.  If you pass 2*1028*1028*1024*1024 = 2 * 2^40 in the
+argument of vmalloc.  The array_size will become 2*2^31 = 2^32.  The 2^32
+cannot be store with a 32 bit integer.
 
-This patch (of 6):
+The fix is to change the type of array_size to unsigned long.
 
-move_vma() copies VMA without adding it to account, then unmaps old part
-of VMA.  On failure it unmaps the new VMA.  With hacks accounting in
-munmap is disabled as it's a copy of existing VMA.
-
-Account the memory on munmap() failure which was previously copied into
-a new VMA.
-
-Link: https://lkml.kernel.org/r/20201013013416.390574-1-dima@arista.com
-Link: https://lkml.kernel.org/r/20201013013416.390574-2-dima@arista.com
-Fixes: commit e2ea83742133 ("[PATCH] mremap: move_vma fixes and cleanup")
-Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+[akpm@linux-foundation.org: rework for current mainline]
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=210023
+Reported-by: <hsinhuiwu@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-account-memory-on-do_munmap-failure
-+++ a/mm/mremap.c
-@@ -600,7 +600,8 @@ static unsigned long move_vma(struct vm_
+--- a/mm/vmalloc.c~mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow
++++ a/mm/vmalloc.c
+@@ -2461,9 +2461,11 @@ static void *__vmalloc_area_node(struct
+ {
+ 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
+ 	unsigned int nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
+-	unsigned int array_size = nr_pages * sizeof(struct page *), i;
++	unsigned long array_size;
++	unsigned int i;
+ 	struct page **pages;
  
- 	if (do_munmap(mm, old_addr, old_len, uf_unmap) < 0) {
- 		/* OOM: unable to split vma, just get accounts right */
--		vm_unacct_memory(excess >> PAGE_SHIFT);
-+		if (vm_flags & VM_ACCOUNT)
-+			vm_acct_memory(new_len >> PAGE_SHIFT);
- 		excess = 0;
- 	}
- 
++	array_size = (unsigned long)nr_pages * sizeof(struct page *);
+ 	gfp_mask |= __GFP_NOWARN;
+ 	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
+ 		gfp_mask |= __GFP_HIGHMEM;
 _
 
-Patches currently in -mm which might be from dima@arista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+epoll-wire-up-syscall-epoll_pwait2-fix.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
