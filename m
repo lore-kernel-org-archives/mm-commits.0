@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D63AC4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D007C2BB48
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF10B223E0
+	by mail.kernel.org (Postfix) with ESMTP id E5BCC2247F
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727813AbgLODQF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:16:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43082 "EHLO mail.kernel.org"
+        id S1725208AbgLODQL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:16:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728089AbgLODPM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:15:12 -0500
-Date:   Mon, 14 Dec 2020 19:14:25 -0800
+        id S1728109AbgLODPR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:15:17 -0500
+Date:   Mon, 14 Dec 2020 19:14:35 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002066;
-        bh=VDDsRcEPkHj+4tymAuu2Kw1c3vL5jbFuBmEb0CH4u4I=;
+        s=korg; t=1608002076;
+        bh=ptBliU7y2Jkvb1cOI7FqclgPNbjZTw+YOi3QVVwgMPI=;
         h=From:To:Subject:In-Reply-To:From;
-        b=cIz4X+PnD4HDOzic8+FGvsIJ3g0bRx30YqZKQecHLajE8mhoErOylgTETFpdvkxvh
-         NmWTFJBSyfbftRzk2ZUgfpDnmhiEcjbf5BRPcyujvNqHMGiU9b9GNz1/Iyb/cLp+cO
-         cjvJJUXWGT7gxE8oLw/1MtUWC9pio466XFiXfKv8=
+        b=gVahuj8S4ZLy6Q25iYGFrp3V1Qs2b8FnTw1QizpdBWIGMvLR3ojihZRZoMdwqgYv6
+         1YEVhLqKfwWALmF+en/wzAVGQscK/zkCNfkdWsU11RdlfBtZuE5PQv5GpKqyo+c5Oo
+         Ol6j7xC0b2be5vy21nzFsGq4i5/mfHJGpXZ4w6Oc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colin.king@canonical.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 189/200] mm/process_vm_access: remove redundant
- initialization of iov_r
-Message-ID: <20201215031425.Q3V0eXY6G%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, rsalvaterra@gmail.com,
+        sergey.senozhatsky.work@gmail.com, torvalds@linux-foundation.org
+Subject:  [patch 192/200] zram: break the strict dependency from
+ lzo
+Message-ID: <20201215031435.lygEVD9OD%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,32 +41,111 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/process_vm_access: remove redundant initialization of iov_r
+From: Rui Salvaterra <rsalvaterra@gmail.com>
+Subject: zram: break the strict dependency from lzo
 
-The pointer iov_r is being initialized with a value that is never read and
-it is being updated later with a new value.  The initialization is
-redundant and can be removed.
+>From the beginning, the zram block device always enabled CRYPTO_LZO, since
+lzo-rle is hardcoded as the fallback compression algorithm. As a consequence, on
+systems where another compression algorithm is chosen (e.g. CRYPTO_ZSTD), the
+lzo kernel module becomes unused, while still having to be built/loaded.
 
-Addresses-Coverity: ("Unused value")
-Link: https://lkml.kernel.org/r/20201102120614.694917-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+This patch removes the hardcoded lzo-rle dependency and allows the user to
+select the default compression algorithm for zram at build time. The previous
+behaviour is kept, as the default algorithm is still lzo-rle.
+
+Link: https://lkml.kernel.org/r/20201207121245.50529-1-rsalvaterra@gmail.com
+Signed-off-by: Rui Salvaterra <rsalvaterra@gmail.com>
+Suggested-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/process_vm_access.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/zram/Kconfig    |   42 +++++++++++++++++++++++++++++++-
+ drivers/block/zram/zcomp.c    |    2 +
+ drivers/block/zram/zram_drv.c |    2 -
+ 3 files changed, 44 insertions(+), 2 deletions(-)
 
---- a/mm/process_vm_access.c~mm-process_vm_access-remove-redundant-initialization-of-iov_r
-+++ a/mm/process_vm_access.c
-@@ -260,7 +260,7 @@ static ssize_t process_vm_rw(pid_t pid,
- 	struct iovec iovstack_l[UIO_FASTIOV];
- 	struct iovec iovstack_r[UIO_FASTIOV];
- 	struct iovec *iov_l = iovstack_l;
--	struct iovec *iov_r = iovstack_r;
-+	struct iovec *iov_r;
- 	struct iov_iter iter;
- 	ssize_t rc;
- 	int dir = vm_write ? WRITE : READ;
+--- a/drivers/block/zram/Kconfig~zram-break-the-strict-dependency-from-lzo
++++ a/drivers/block/zram/Kconfig
+@@ -2,7 +2,7 @@
+ config ZRAM
+ 	tristate "Compressed RAM block device support"
+ 	depends on BLOCK && SYSFS && ZSMALLOC && CRYPTO
+-	select CRYPTO_LZO
++	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842
+ 	help
+ 	  Creates virtual block devices called /dev/zramX (X = 0, 1, ...).
+ 	  Pages written to these disks are compressed and stored in memory
+@@ -14,6 +14,46 @@ config ZRAM
+ 
+ 	  See Documentation/admin-guide/blockdev/zram.rst for more information.
+ 
++choice
++	prompt "Default zram compressor"
++	default ZRAM_DEF_COMP_LZORLE
++	depends on ZRAM
++
++config ZRAM_DEF_COMP_LZORLE
++	bool "lzo-rle"
++	depends on CRYPTO_LZO
++
++config ZRAM_DEF_COMP_ZSTD
++	bool "zstd"
++	depends on CRYPTO_ZSTD
++
++config ZRAM_DEF_COMP_LZ4
++	bool "lz4"
++	depends on CRYPTO_LZ4
++
++config ZRAM_DEF_COMP_LZO
++	bool "lzo"
++	depends on CRYPTO_LZO
++
++config ZRAM_DEF_COMP_LZ4HC
++	bool "lz4hc"
++	depends on CRYPTO_LZ4HC
++
++config ZRAM_DEF_COMP_842
++	bool "842"
++	depends on CRYPTO_842
++
++endchoice
++
++config ZRAM_DEF_COMP
++	string
++	default "lzo-rle" if ZRAM_DEF_COMP_LZORLE
++	default "zstd" if ZRAM_DEF_COMP_ZSTD
++	default "lz4" if ZRAM_DEF_COMP_LZ4
++	default "lzo" if ZRAM_DEF_COMP_LZO
++	default "lz4hc" if ZRAM_DEF_COMP_LZ4HC
++	default "842" if ZRAM_DEF_COMP_842
++
+ config ZRAM_WRITEBACK
+        bool "Write back incompressible or idle page to backing device"
+        depends on ZRAM
+--- a/drivers/block/zram/zcomp.c~zram-break-the-strict-dependency-from-lzo
++++ a/drivers/block/zram/zcomp.c
+@@ -15,8 +15,10 @@
+ #include "zcomp.h"
+ 
+ static const char * const backends[] = {
++#if IS_ENABLED(CONFIG_CRYPTO_LZO)
+ 	"lzo",
+ 	"lzo-rle",
++#endif
+ #if IS_ENABLED(CONFIG_CRYPTO_LZ4)
+ 	"lz4",
+ #endif
+--- a/drivers/block/zram/zram_drv.c~zram-break-the-strict-dependency-from-lzo
++++ a/drivers/block/zram/zram_drv.c
+@@ -42,7 +42,7 @@ static DEFINE_IDR(zram_index_idr);
+ static DEFINE_MUTEX(zram_index_mutex);
+ 
+ static int zram_major;
+-static const char *default_compressor = "lzo-rle";
++static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
+ 
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
 _
