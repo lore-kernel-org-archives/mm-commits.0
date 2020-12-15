@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD9EC2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4730DC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CAA6D225AB
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AE3D224DE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726308AbgLODHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:07:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34968 "EHLO mail.kernel.org"
+        id S1726294AbgLODIP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:08:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725825AbgLODHD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:07:03 -0500
-Date:   Mon, 14 Dec 2020 19:06:20 -0800
+        id S1726059AbgLODIF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:08:05 -0500
+Date:   Mon, 14 Dec 2020 19:07:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001582;
-        bh=UT5n9Bu8N2O2zWPjs+I59OADqa2ESrQSGWxQiZpR/iI=;
+        s=korg; t=1608001638;
+        bh=lHHjZUdTRuhi/620uitSiR6ut9eXMPjWwmWUTtb/hig=;
         h=From:To:Subject:In-Reply-To:From;
-        b=CcJWIVQjcO67/EwAUnDZWW9j3+mhrI3wEP+D7mJ4/z2k6D3sf6hmRJ65rLlCdS3xv
-         GtcnOH0I2lG0C1dV0K3kcX6MkQgU+Ee1gZ/1fOXSCEPj0ZOpu+SuqZ0/YBxrPhaKz3
-         peONQaS0kBuPFppbHTwOOZit+3PF4BcOaSzgxwbA=
+        b=OA/A56pwtuVKfrl9nhzKqUhMlcftZZkLBdYGKqZ7zzD1PtrO3mbB2a31Q6Mr1RIOh
+         cEnsdYNjVkSVdb+8Byy9V+nlR3BmDSOKOoLnRG3s0vkQLIdHhe1aXu40yvbbnUPStt
+         8Rm25JWKcH/p5X546kFwjhUzlOB992pXIeYtgfMk=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
-        rientjes@google.com, shakeelb@google.com, songliubraving@fb.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 055/200] mm: memcontrol: add file_thp, shmem_thp
- to memory.stat
-Message-ID: <20201215030620.kwmNIBasi%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
+        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, torvalds@linux-foundation.org
+Subject:  [patch 072/200] mm: memcontrol: account pagetables per
+ node
+Message-ID: <20201215030717.2bkBIm6a2%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,128 +41,224 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: add file_thp, shmem_thp to memory.stat
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: memcontrol: account pagetables per node
 
-As huge page usage in the page cache and for shmem files proliferates in
-our production environment, the performance monitoring team has asked for
-per-cgroup stats on those pages.
+For many workloads, pagetable consumption is significant and it makes
+sense to expose it in the memory.stat for the memory cgroups.  However at
+the moment, the pagetables are accounted per-zone.  Converting them to
+per-node and using the right interface will correctly account for the
+memory cgroups as well.
 
-We already track and export anon_thp per cgroup.  We already track file
-THP and shmem THP per node, so making them per-cgroup is only a matter of
-switching from node to lruvec counters.  All callsites are in places where
-the pages are charged and locked, so page->memcg is stable.
-
-[hannes@cmpxchg.org: add documentation]
-  Link: https://lkml.kernel.org/r/20201026174029.GC548555@cmpxchg.org
-Link: https://lkml.kernel.org/r/20201022151844.489337-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Song Liu <songliubraving@fb.com>
+[akpm@linux-foundation.org: export __mod_lruvec_page_state to modules for arch/mips/kvm/]
+Link: https://lkml.kernel.org/r/20201130212541.2781790-3-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    8 ++++++++
- mm/filemap.c                            |    4 ++--
- mm/huge_memory.c                        |    4 ++--
- mm/khugepaged.c                         |    4 ++--
- mm/memcontrol.c                         |    6 +++++-
- mm/shmem.c                              |    2 +-
- 6 files changed, 20 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |    3 +++
+ arch/nds32/mm/mm-nds32.c                |    6 +++---
+ drivers/base/node.c                     |    2 +-
+ fs/proc/meminfo.c                       |    2 +-
+ include/linux/mm.h                      |    8 ++++----
+ include/linux/mmzone.h                  |    2 +-
+ mm/memcontrol.c                         |    2 ++
+ mm/page_alloc.c                         |    6 +++---
+ mm/vmstat.c                             |    2 +-
+ 9 files changed, 19 insertions(+), 14 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
+--- a/arch/nds32/mm/mm-nds32.c~mm-memcontrol-account-pagetables-per-node
++++ a/arch/nds32/mm/mm-nds32.c
+@@ -34,8 +34,8 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
+ 	cpu_dcache_wb_range((unsigned long)new_pgd,
+ 			    (unsigned long)new_pgd +
+ 			    PTRS_PER_PGD * sizeof(pgd_t));
+-	inc_zone_page_state(virt_to_page((unsigned long *)new_pgd),
+-			    NR_PAGETABLE);
++	inc_lruvec_page_state(virt_to_page((unsigned long *)new_pgd),
++			      NR_PAGETABLE);
+ 
+ 	return new_pgd;
+ }
+@@ -59,7 +59,7 @@ void pgd_free(struct mm_struct *mm, pgd_
+ 
+ 	pte = pmd_page(*pmd);
+ 	pmd_clear(pmd);
+-	dec_zone_page_state(virt_to_page((unsigned long *)pgd), NR_PAGETABLE);
++	dec_lruvec_page_state(virt_to_page((unsigned long *)pgd), NR_PAGETABLE);
+ 	pte_free(mm, pte);
+ 	mm_dec_nr_ptes(mm);
+ 	pmd_free(mm, pmd);
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-account-pagetables-per-node
 +++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1300,6 +1300,14 @@ PAGE_SIZE multiple when read back.
- 		Amount of memory used in anonymous mappings backed by
- 		transparent hugepages
+@@ -1274,6 +1274,9 @@ PAGE_SIZE multiple when read back.
+ 	  kernel_stack
+ 		Amount of memory allocated to kernel stacks.
  
-+	  file_thp
-+		Amount of cached filesystem data backed by transparent
-+		hugepages
++	  pagetables
++                Amount of memory allocated for page tables.
 +
-+	  shmem_thp
-+		Amount of shm, tmpfs, shared anonymous mmap()s backed by
-+		transparent hugepages
-+
- 	  inactive_anon, active_anon, inactive_file, active_file, unevictable
- 		Amount of memory, swap-backed and filesystem-backed,
- 		on the internal memory management lists used by the
---- a/mm/filemap.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/filemap.c
-@@ -204,9 +204,9 @@ static void unaccount_page_cache_page(st
- 	if (PageSwapBacked(page)) {
- 		__mod_lruvec_page_state(page, NR_SHMEM, -nr);
- 		if (PageTransHuge(page))
--			__dec_node_page_state(page, NR_SHMEM_THPS);
-+			__dec_lruvec_page_state(page, NR_SHMEM_THPS);
- 	} else if (PageTransHuge(page)) {
--		__dec_node_page_state(page, NR_FILE_THPS);
-+		__dec_lruvec_page_state(page, NR_FILE_THPS);
- 		filemap_nr_thps_dec(mapping);
- 	}
+ 	  percpu(npn)
+ 		Amount of memory used for storing per-cpu kernel
+ 		data structures.
+--- a/drivers/base/node.c~mm-memcontrol-account-pagetables-per-node
++++ a/drivers/base/node.c
+@@ -450,7 +450,7 @@ static ssize_t node_read_meminfo(struct
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ 			     nid, node_page_state(pgdat, NR_KERNEL_SCS_KB),
+ #endif
+-			     nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
++			     nid, K(node_page_state(pgdat, NR_PAGETABLE)),
+ 			     nid, 0UL,
+ 			     nid, K(sum_zone_node_page_state(nid, NR_BOUNCE)),
+ 			     nid, K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+--- a/fs/proc/meminfo.c~mm-memcontrol-account-pagetables-per-node
++++ a/fs/proc/meminfo.c
+@@ -107,7 +107,7 @@ static int meminfo_proc_show(struct seq_
+ 		   global_node_page_state(NR_KERNEL_SCS_KB));
+ #endif
+ 	show_val_kb(m, "PageTables:     ",
+-		    global_zone_page_state(NR_PAGETABLE));
++		    global_node_page_state(NR_PAGETABLE));
  
---- a/mm/huge_memory.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/huge_memory.c
-@@ -2710,9 +2710,9 @@ int split_huge_page_to_list(struct page
- 		spin_unlock(&ds_queue->split_queue_lock);
- 		if (mapping) {
- 			if (PageSwapBacked(head))
--				__dec_node_page_state(head, NR_SHMEM_THPS);
-+				__dec_lruvec_page_state(head, NR_SHMEM_THPS);
- 			else
--				__dec_node_page_state(head, NR_FILE_THPS);
-+				__dec_lruvec_page_state(head, NR_FILE_THPS);
- 		}
+ 	show_val_kb(m, "NFS_Unstable:   ", 0);
+ 	show_val_kb(m, "Bounce:         ",
+--- a/include/linux/mm.h~mm-memcontrol-account-pagetables-per-node
++++ a/include/linux/mm.h
+@@ -2203,7 +2203,7 @@ static inline bool pgtable_pte_page_ctor
+ 	if (!ptlock_init(page))
+ 		return false;
+ 	__SetPageTable(page);
+-	inc_zone_page_state(page, NR_PAGETABLE);
++	inc_lruvec_page_state(page, NR_PAGETABLE);
+ 	return true;
+ }
  
- 		__split_huge_page(page, list, end, flags);
---- a/mm/khugepaged.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/khugepaged.c
-@@ -1845,9 +1845,9 @@ out_unlock:
- 	}
+@@ -2211,7 +2211,7 @@ static inline void pgtable_pte_page_dtor
+ {
+ 	ptlock_free(page);
+ 	__ClearPageTable(page);
+-	dec_zone_page_state(page, NR_PAGETABLE);
++	dec_lruvec_page_state(page, NR_PAGETABLE);
+ }
  
- 	if (is_shmem)
--		__inc_node_page_state(new_page, NR_SHMEM_THPS);
-+		__inc_lruvec_page_state(new_page, NR_SHMEM_THPS);
- 	else {
--		__inc_node_page_state(new_page, NR_FILE_THPS);
-+		__inc_lruvec_page_state(new_page, NR_FILE_THPS);
- 		filemap_nr_thps_inc(mapping);
- 	}
+ #define pte_offset_map_lock(mm, pmd, address, ptlp)	\
+@@ -2298,7 +2298,7 @@ static inline bool pgtable_pmd_page_ctor
+ 	if (!pmd_ptlock_init(page))
+ 		return false;
+ 	__SetPageTable(page);
+-	inc_zone_page_state(page, NR_PAGETABLE);
++	inc_lruvec_page_state(page, NR_PAGETABLE);
+ 	return true;
+ }
  
---- a/mm/memcontrol.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
+@@ -2306,7 +2306,7 @@ static inline void pgtable_pmd_page_dtor
+ {
+ 	pmd_ptlock_free(page);
+ 	__ClearPageTable(page);
+-	dec_zone_page_state(page, NR_PAGETABLE);
++	dec_lruvec_page_state(page, NR_PAGETABLE);
+ }
+ 
+ /*
+--- a/include/linux/mmzone.h~mm-memcontrol-account-pagetables-per-node
++++ a/include/linux/mmzone.h
+@@ -152,7 +152,6 @@ enum zone_stat_item {
+ 	NR_ZONE_UNEVICTABLE,
+ 	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
+ 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
+-	NR_PAGETABLE,		/* used for pagetables */
+ 	/* Second 128 byte cacheline */
+ 	NR_BOUNCE,
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+@@ -207,6 +206,7 @@ enum node_stat_item {
+ #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+ 	NR_KERNEL_SCS_KB,	/* measured in KiB */
+ #endif
++	NR_PAGETABLE,		/* used for pagetables */
+ 	NR_VM_NODE_STAT_ITEMS
+ };
+ 
+--- a/mm/memcontrol.c~mm-memcontrol-account-pagetables-per-node
 +++ a/mm/memcontrol.c
-@@ -1512,6 +1512,8 @@ static struct memory_stat memory_stats[]
- 	 * constant(e.g. powerpc).
- 	 */
- 	{ "anon_thp", 0, NR_ANON_THPS },
-+	{ "file_thp", 0, NR_FILE_THPS },
-+	{ "shmem_thp", 0, NR_SHMEM_THPS },
- #endif
- 	{ "inactive_anon", PAGE_SIZE, NR_INACTIVE_ANON },
- 	{ "active_anon", PAGE_SIZE, NR_ACTIVE_ANON },
-@@ -1542,7 +1544,9 @@ static int __init memory_stats_init(void
+@@ -869,6 +869,7 @@ void __mod_lruvec_page_state(struct page
+ 	lruvec = mem_cgroup_lruvec(head->mem_cgroup, pgdat);
+ 	__mod_lruvec_state(lruvec, idx, val);
+ }
++EXPORT_SYMBOL(__mod_lruvec_page_state);
  
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memory_stats[i].idx == NR_ANON_THPS)
-+		if (memory_stats[i].idx == NR_ANON_THPS ||
-+		    memory_stats[i].idx == NR_FILE_THPS ||
-+		    memory_stats[i].idx == NR_SHMEM_THPS)
- 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
+ void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
+ {
+@@ -1493,6 +1494,7 @@ static struct memory_stat memory_stats[]
+ 	{ "anon", PAGE_SIZE, NR_ANON_MAPPED },
+ 	{ "file", PAGE_SIZE, NR_FILE_PAGES },
+ 	{ "kernel_stack", 1024, NR_KERNEL_STACK_KB },
++	{ "pagetables", PAGE_SIZE, NR_PAGETABLE },
+ 	{ "percpu", 1, MEMCG_PERCPU_B },
+ 	{ "sock", PAGE_SIZE, MEMCG_SOCK },
+ 	{ "shmem", PAGE_SIZE, NR_SHMEM },
+--- a/mm/page_alloc.c~mm-memcontrol-account-pagetables-per-node
++++ a/mm/page_alloc.c
+@@ -5465,7 +5465,7 @@ void show_free_areas(unsigned int filter
+ 		global_node_page_state_pages(NR_SLAB_UNRECLAIMABLE_B),
+ 		global_node_page_state(NR_FILE_MAPPED),
+ 		global_node_page_state(NR_SHMEM),
+-		global_zone_page_state(NR_PAGETABLE),
++		global_node_page_state(NR_PAGETABLE),
+ 		global_zone_page_state(NR_BOUNCE),
+ 		global_zone_page_state(NR_FREE_PAGES),
+ 		free_pcp,
+@@ -5497,6 +5497,7 @@ void show_free_areas(unsigned int filter
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ 			" shadow_call_stack:%lukB"
  #endif
- 		VM_BUG_ON(!memory_stats[i].ratio);
---- a/mm/shmem.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/shmem.c
-@@ -713,7 +713,7 @@ next:
- 		}
- 		if (PageTransHuge(page)) {
- 			count_vm_event(THP_FILE_ALLOC);
--			__inc_node_page_state(page, NR_SHMEM_THPS);
-+			__inc_lruvec_page_state(page, NR_SHMEM_THPS);
- 		}
- 		mapping->nrpages += nr;
- 		__mod_lruvec_page_state(page, NR_FILE_PAGES, nr);
++			" pagetables:%lukB"
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -5522,6 +5523,7 @@ void show_free_areas(unsigned int filter
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ 			node_page_state(pgdat, NR_KERNEL_SCS_KB),
+ #endif
++			K(node_page_state(pgdat, NR_PAGETABLE)),
+ 			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
+ 				"yes" : "no");
+ 	}
+@@ -5553,7 +5555,6 @@ void show_free_areas(unsigned int filter
+ 			" present:%lukB"
+ 			" managed:%lukB"
+ 			" mlocked:%lukB"
+-			" pagetables:%lukB"
+ 			" bounce:%lukB"
+ 			" free_pcp:%lukB"
+ 			" local_pcp:%ukB"
+@@ -5574,7 +5575,6 @@ void show_free_areas(unsigned int filter
+ 			K(zone->present_pages),
+ 			K(zone_managed_pages(zone)),
+ 			K(zone_page_state(zone, NR_MLOCK)),
+-			K(zone_page_state(zone, NR_PAGETABLE)),
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+ 			K(free_pcp),
+ 			K(this_cpu_read(zone->pageset->pcp.count)),
+--- a/mm/vmstat.c~mm-memcontrol-account-pagetables-per-node
++++ a/mm/vmstat.c
+@@ -1157,7 +1157,6 @@ const char * const vmstat_text[] = {
+ 	"nr_zone_unevictable",
+ 	"nr_zone_write_pending",
+ 	"nr_mlock",
+-	"nr_page_table_pages",
+ 	"nr_bounce",
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	"nr_zspages",
+@@ -1215,6 +1214,7 @@ const char * const vmstat_text[] = {
+ #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+ 	"nr_shadow_call_stack",
+ #endif
++	"nr_page_table_pages",
+ 
+ 	/* enum writeback_stat_item counters */
+ 	"nr_dirty_threshold",
 _
