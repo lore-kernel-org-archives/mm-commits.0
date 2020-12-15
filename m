@@ -5,37 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C47C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB2FC4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39441224BD
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B15F223E0
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727822AbgLODPF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:15:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42694 "EHLO mail.kernel.org"
+        id S1726619AbgLODPQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:15:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728089AbgLODOk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:14:40 -0500
-Date:   Mon, 14 Dec 2020 19:13:58 -0800
+        id S1727558AbgLODMy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:54 -0500
+Date:   Mon, 14 Dec 2020 19:11:45 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002039;
-        bh=xhWSAVnCi8GLn7c4hbVoC3Mlgi+wTPI7i3oODOAl2qs=;
+        s=korg; t=1608001906;
+        bh=3RFDvv86usBIA4vkJx/E9cHf2f4ncmK3DX1az5cUfQc=;
         h=From:To:Subject:In-Reply-To:From;
-        b=kHe/EW/qcGx+sGZcz5syyC99MSmaqRrftRfaAUKfNrkD8r38E4fD8BlLE+XlyBCeC
-         K3Fp2rbVvjHJDkqsdb7GnEUxJ1t2shzyLSIwoAUvran1oUi2PeyNY9L0JDySDd8/MB
-         GDtlqLXrTTo8hT14JZzpWpraTnlgrCI/twdZZKKE=
+        b=Tw7gNzqGi72nbqXA2KZ65M79sowsJEMh6mB90IlfrrpFlTCvb/QX5bKJy0egm066i
+         p7q5w6b+naYkAU/wiUbybDpjO/Frhn0rKuAz6gwJjYMD+x9jWmRVwYgG9bjeqxPiaU
+         wvJY/ZUtni4C8nP5BUEtATsWZwQ19JhCnwRVVEOU=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        axelrasmussen@google.com, dgilbert@redhat.com, gthelen@google.com,
-        joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        peterx@redhat.com, rppt@linux.vnet.ibm.com, shuah@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 181/200] userfaultfd: selftests: make __{s,u}64
- format specifiers portable
-Message-ID: <20201215031358.1TNhsPII9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, qcai@redhat.com, torvalds@linux-foundation.org,
+        vbabka@suse.cz
+Subject:  [patch 143/200] mm,hwpoison: remove drain_all_pages from
+ shake_page
+Message-ID: <20201215031145.gnGYH2Pe3%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,205 +42,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: remove drain_all_pages from shake_page
 
-On certain platforms (powerpcle is the one on which I ran into this),
-"%Ld" and "%Lu" are unsuitable for printing __s64 and __u64, respectively,
-resulting in build warnings.  Cast to {u,}int64_t, and use the PRI{d,u}64
-macros defined in inttypes.h to print them.  This ought to be portable to
-all platforms.
+get_hwpoison_page already drains pcplists, previously disabling them when
+trying to grab a refcount.  We do not need shake_page to take care of it
+anymore.
 
-Splitting this off into a separate macro lets us remove some lines, and
-get rid of some (I would argue) stylistically odd cases where we joined
-printf() and exit() into a single statement with a ,.
-
-Finally, this also fixes a "missing braces around initializer" warning
-when we initialize prms in wp_range().
-
-[axelrasmussen@google.com: v2]
-  Link: https://lkml.kernel.org/r/20201203180244.1811601-1-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20201202211542.1121189-1-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Alan Gilbert <dgilbert@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
+Link: https://lkml.kernel.org/r/20201204102558.31607-4-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Qian Cai <qcai@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   81 +++++++++------------
- 1 file changed, 35 insertions(+), 46 deletions(-)
+ mm/memory-failure.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-make-__su64-format-specifiers-portable
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -55,6 +55,8 @@
- #include <setjmp.h>
- #include <stdbool.h>
- #include <assert.h>
-+#include <inttypes.h>
-+#include <stdint.h>
- 
- #include "../kselftest.h"
- 
-@@ -135,6 +137,13 @@ static void usage(void)
- 	exit(1);
+--- a/mm/memory-failure.c~mmhwpoison-remove-drain_all_pages-from-shake_page
++++ a/mm/memory-failure.c
+@@ -263,8 +263,8 @@ static int kill_proc(struct to_kill *tk,
  }
  
-+#define uffd_error(code, fmt, ...)                                             \
-+	do {                                                                   \
-+		fprintf(stderr, fmt, ##__VA_ARGS__);                           \
-+		fprintf(stderr, ": %" PRId64 "\n", (int64_t)(code));           \
-+		exit(1);                                                       \
-+	} while (0)
-+
- static void uffd_stats_reset(struct uffd_stats *uffd_stats,
- 			     unsigned long n_cpus)
+ /*
+- * When a unknown page type is encountered drain as many buffers as possible
+- * in the hope to turn the page into a LRU or free page, which we can handle.
++ * Unknown page type encountered. Try to check whether it can turn PageLRU by
++ * lru_add_drain_all, or a free page by reclaiming slabs when possible.
+  */
+ void shake_page(struct page *p, int access)
  {
-@@ -338,7 +347,7 @@ static int my_bcmp(char *str1, char *str
+@@ -273,9 +273,6 @@ void shake_page(struct page *p, int acce
  
- static void wp_range(int ufd, __u64 start, __u64 len, bool wp)
- {
--	struct uffdio_writeprotect prms = { 0 };
-+	struct uffdio_writeprotect prms;
- 
- 	/* Write protection page faults */
- 	prms.range.start = start;
-@@ -347,7 +356,8 @@ static void wp_range(int ufd, __u64 star
- 	prms.mode = wp ? UFFDIO_WRITEPROTECT_MODE_WP : 0;
- 
- 	if (ioctl(ufd, UFFDIO_WRITEPROTECT, &prms)) {
--		fprintf(stderr, "clear WP failed for address 0x%Lx\n", start);
-+		fprintf(stderr, "clear WP failed for address 0x%" PRIx64 "\n",
-+			(uint64_t)start);
- 		exit(1);
+ 	if (!PageSlab(p)) {
+ 		lru_add_drain_all();
+-		if (PageLRU(p))
+-			return;
+-		drain_all_pages(page_zone(p));
+ 		if (PageLRU(p) || is_free_buddy_page(p))
+ 			return;
  	}
- }
-@@ -481,14 +491,11 @@ static void retry_copy_page(int ufd, str
- 	if (ioctl(ufd, UFFDIO_COPY, uffdio_copy)) {
- 		/* real retval in ufdio_copy.copy */
- 		if (uffdio_copy->copy != -EEXIST) {
--			fprintf(stderr, "UFFDIO_COPY retry error %Ld\n",
--				uffdio_copy->copy);
--			exit(1);
-+			uffd_error(uffdio_copy->copy,
-+				   "UFFDIO_COPY retry error");
- 		}
--	} else {
--		fprintf(stderr,	"UFFDIO_COPY retry unexpected %Ld\n",
--			uffdio_copy->copy); exit(1);
--	}
-+	} else
-+		uffd_error(uffdio_copy->copy, "UFFDIO_COPY retry unexpected");
- }
- 
- static int __copy_page(int ufd, unsigned long offset, bool retry)
-@@ -509,14 +516,10 @@ static int __copy_page(int ufd, unsigned
- 	uffdio_copy.copy = 0;
- 	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
- 		/* real retval in ufdio_copy.copy */
--		if (uffdio_copy.copy != -EEXIST) {
--			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
--				uffdio_copy.copy);
--			exit(1);
--		}
-+		if (uffdio_copy.copy != -EEXIST)
-+			uffd_error(uffdio_copy.copy, "UFFDIO_COPY error");
- 	} else if (uffdio_copy.copy != page_size) {
--		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
--			uffdio_copy.copy); exit(1);
-+		uffd_error(uffdio_copy.copy, "UFFDIO_COPY unexpected copy");
- 	} else {
- 		if (test_uffdio_copy_eexist && retry) {
- 			test_uffdio_copy_eexist = false;
-@@ -795,7 +798,8 @@ static int userfaultfd_open(int features
- 		return 1;
- 	}
- 	if (uffdio_api.api != UFFD_API) {
--		fprintf(stderr, "UFFDIO_API error %Lu\n", uffdio_api.api);
-+		fprintf(stderr, "UFFDIO_API error: %" PRIu64 "\n",
-+			(uint64_t)uffdio_api.api);
- 		return 1;
- 	}
- 
-@@ -957,13 +961,12 @@ static void retry_uffdio_zeropage(int uf
- 				     offset);
- 	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
- 		if (uffdio_zeropage->zeropage != -EEXIST) {
--			fprintf(stderr, "UFFDIO_ZEROPAGE retry error %Ld\n",
--				uffdio_zeropage->zeropage);
--			exit(1);
-+			uffd_error(uffdio_zeropage->zeropage,
-+				   "UFFDIO_ZEROPAGE retry error");
- 		}
- 	} else {
--		fprintf(stderr, "UFFDIO_ZEROPAGE retry unexpected %Ld\n",
--			uffdio_zeropage->zeropage); exit(1);
-+		uffd_error(uffdio_zeropage->zeropage,
-+			   "UFFDIO_ZEROPAGE retry unexpected");
- 	}
- }
- 
-@@ -972,6 +975,7 @@ static int __uffdio_zeropage(int ufd, un
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
- 	unsigned long has_zeropage;
-+	__s64 res;
- 
- 	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
- 
-@@ -983,29 +987,17 @@ static int __uffdio_zeropage(int ufd, un
- 	uffdio_zeropage.range.len = page_size;
- 	uffdio_zeropage.mode = 0;
- 	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
-+	res = uffdio_zeropage.zeropage;
- 	if (ret) {
- 		/* real retval in ufdio_zeropage.zeropage */
- 		if (has_zeropage) {
--			if (uffdio_zeropage.zeropage == -EEXIST) {
--				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n");
--				exit(1);
--			} else {
--				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
--					uffdio_zeropage.zeropage);
--				exit(1);
--			}
--		} else {
--			if (uffdio_zeropage.zeropage != -EINVAL) {
--				fprintf(stderr,
--					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
--					uffdio_zeropage.zeropage);
--				exit(1);
--			}
--		}
-+			uffd_error(res, "UFFDIO_ZEROPAGE %s",
-+				   res == -EEXIST ? "-EEXIST" : "error");
-+		} else if (res != -EINVAL)
-+			uffd_error(res, "UFFDIO_ZEROPAGE not -EINVAL");
- 	} else if (has_zeropage) {
--		if (uffdio_zeropage.zeropage != page_size) {
--			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
--				uffdio_zeropage.zeropage); exit(1);
-+		if (res != page_size) {
-+			uffd_error(res, "UFFDIO_ZEROPAGE unexpected");
- 		} else {
- 			if (test_uffdio_zeropage_eexist && retry) {
- 				test_uffdio_zeropage_eexist = false;
-@@ -1014,11 +1006,8 @@ static int __uffdio_zeropage(int ufd, un
- 			}
- 			return 1;
- 		}
--	} else {
--		fprintf(stderr,
--			"UFFDIO_ZEROPAGE succeeded %Ld\n",
--			uffdio_zeropage.zeropage); exit(1);
--	}
-+	} else
-+		uffd_error(res, "UFFDIO_ZEROPAGE succeeded");
- 
- 	return 0;
- }
 _
