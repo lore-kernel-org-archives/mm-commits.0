@@ -7,32 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1250C3526F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68191C3526D
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CC6F22CAE
+	by mail.kernel.org (Postfix) with ESMTP id 4212722D75
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726890AbgLOX7u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60878 "EHLO mail.kernel.org"
+        id S1726867AbgLOX7s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729769AbgLOX0H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:07 -0500
-Date:   Tue, 15 Dec 2020 15:17:56 -0800
+        id S1729716AbgLOX0G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:26:06 -0500
+Date:   Tue, 15 Dec 2020 15:23:25 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074276;
-        bh=nXturh9k982heIICGpVYdY5HVA7xi7o+uGiRAliVF/o=;
+        s=korg; t=1608074606;
+        bh=V7lWidfYSi1irEPV4KpWz3MX9A58ExB13Av2JGUXkwE=;
         h=From:To:Subject:From;
-        b=gNYnTknPwWEyph7Y9A06L6DmNbeCVy+Gbf3SxewexT4iVbrukmZiNTOI7/5ln+qoH
-         7yYV9GzujXAkXtSWPggr+ywp1KwaF3GpOJd80XnMc/KJRuzubmVVsOYs4jSapZgTSk
-         6wJTZLJj72RhTUViXIQuS9VWKH+RT+g9jPxZLFTE=
+        b=qAuoeeD4go5NcI3VnSiPbtCeYbR7yp0sIJr/IBNLxVPE9pg5dq8z5Fwnrcnwi7PYc
+         ODRMMqMyYeIoGCkM+yURNDiYVVFFzcU+Ix5zH22Kvi6a8oYHlXG3jjepNqdniB7oUt
+         xSNybthzrdhuiLI/6jSz4wfolUFcqA3zF71zEh5g=
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org, sh_def@163.com,
-        vbabka@suse.cz
-Subject:  [merged] mm-shmemc-make-shmem_mapping-inline.patch
- removed from -mm tree
-Message-ID: <20201215231756.-1sPs0Lug%akpm@linux-foundation.org>
+To:     jack@suse.cz, mgorman@suse.de, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shy828301@gmail.com,
+        songliubraving@fb.com, willy@infradead.org, ziy@nvidia.com
+Subject:  [merged]
+ mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch removed
+ from -mm tree
+Message-ID: <20201215232325.Ay0FyQ3Bt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,124 +43,207 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem.c: make shmem_mapping() inline
+     Subject: mm: migrate: simplify the logic for handling permanent failure
 has been removed from the -mm tree.  Its filename was
-     mm-shmemc-make-shmem_mapping-inline.patch
+     mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm/shmem.c: make shmem_mapping() inline
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: migrate: simplify the logic for handling permanent failure
 
-shmem_mapping() isn't worth an out-of-line call from any callsite.
+When unmap_and_move{_huge_page}() returns !-EAGAIN and
+!MIGRATEPAGE_SUCCESS, the page would be put back to LRU or proper list if
+it is non-LRU movable page.  But, the callers always call
+putback_movable_pages() to put the failed pages back later on, so it seems
+not very efficient to put every single page back immediately, and the code
+looks convoluted.
 
-So make it inline by
-- make shmem_aops global
-- export shmem_aops
-- inline the shmem_mapping()
+Put the failed page on a separate list, then splice the list to migrate
+list when all pages are tried.  It is the caller's responsibility to call
+putback_movable_pages() to handle failures.  This also makes the code
+simpler and more readable.
 
-and replace the direct call 'shmem_aops' with shmem_mapping()
-in shmem.c.
+After the change the rules are:
+    * Success: non hugetlb page will be freed, hugetlb page will be put
+               back
+    * -EAGAIN: stay on the from list
+    * -ENOMEM: stay on the from list
+    * Other errno: put on ret_pages list then splice to from list
 
-Link: https://lkml.kernel.org/r/20201115165207.GA265355@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+The from list would be empty iff all pages are migrated successfully, it
+was not so before.  This has no impact to current existing callsites.
+
+Link: https://lkml.kernel.org/r/20201113205359.556831-3-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    6 +++++-
- mm/shmem.c               |   16 ++++++----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ mm/migrate.c |   68 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 38 insertions(+), 30 deletions(-)
 
---- a/include/linux/shmem_fs.h~mm-shmemc-make-shmem_mapping-inline
-+++ a/include/linux/shmem_fs.h
-@@ -67,7 +67,11 @@ extern unsigned long shmem_get_unmapped_
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
- #ifdef CONFIG_SHMEM
--extern bool shmem_mapping(struct address_space *mapping);
-+extern const struct address_space_operations shmem_aops;
-+static inline bool shmem_mapping(struct address_space *mapping)
-+{
-+	return mapping->a_ops == &shmem_aops;
-+}
- #else
- static inline bool shmem_mapping(struct address_space *mapping)
+--- a/mm/migrate.c~mm-migrate-simplify-the-logic-for-handling-permanent-failure
++++ a/mm/migrate.c
+@@ -1168,7 +1168,8 @@ static int unmap_and_move(new_page_t get
+ 				   free_page_t put_new_page,
+ 				   unsigned long private, struct page *page,
+ 				   int force, enum migrate_mode mode,
+-				   enum migrate_reason reason)
++				   enum migrate_reason reason,
++				   struct list_head *ret)
  {
---- a/mm/shmem.c~mm-shmemc-make-shmem_mapping-inline
-+++ a/mm/shmem.c
-@@ -246,7 +246,7 @@ static inline void shmem_inode_unacct_bl
- }
+ 	int rc = MIGRATEPAGE_SUCCESS;
+ 	struct page *newpage = NULL;
+@@ -1205,7 +1206,14 @@ out:
+ 		 * migrated will have kept its references and be restored.
+ 		 */
+ 		list_del(&page->lru);
++	}
  
- static const struct super_operations shmem_ops;
--static const struct address_space_operations shmem_aops;
-+const struct address_space_operations shmem_aops;
- static const struct file_operations shmem_file_operations;
- static const struct inode_operations shmem_inode_operations;
- static const struct inode_operations shmem_dir_inode_operations;
-@@ -1152,7 +1152,7 @@ static void shmem_evict_inode(struct ino
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++	/*
++	 * If migration is successful, releases reference grabbed during
++	 * isolation. Otherwise, restore the page to right list unless
++	 * we want to retry.
++	 */
++	if (rc == MIGRATEPAGE_SUCCESS) {
+ 		/*
+ 		 * Compaction can migrate also non-LRU pages which are
+ 		 * not accounted to NR_ISOLATED_*. They can be recognized
+@@ -1214,35 +1222,16 @@ out:
+ 		if (likely(!__PageMovable(page)))
+ 			mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON +
+ 					page_is_file_lru(page), -thp_nr_pages(page));
+-	}
  
--	if (inode->i_mapping->a_ops == &shmem_aops) {
-+	if (shmem_mapping(inode->i_mapping)) {
- 		shmem_unacct_size(info->flags, inode->i_size);
- 		inode->i_size = 0;
- 		shmem_truncate_range(inode, 0, (loff_t)-1);
-@@ -1858,7 +1858,7 @@ repeat:
+-	/*
+-	 * If migration is successful, releases reference grabbed during
+-	 * isolation. Otherwise, restore the page to right list unless
+-	 * we want to retry.
+-	 */
+-	if (rc == MIGRATEPAGE_SUCCESS) {
+ 		if (reason != MR_MEMORY_FAILURE)
+ 			/*
+ 			 * We release the page in page_handle_poison.
+ 			 */
+ 			put_page(page);
+ 	} else {
+-		if (rc != -EAGAIN) {
+-			if (likely(!__PageMovable(page))) {
+-				putback_lru_page(page);
+-				goto put_new;
+-			}
++		if (rc != -EAGAIN)
++			list_add_tail(&page->lru, ret);
+ 
+-			lock_page(page);
+-			if (PageMovable(page))
+-				putback_movable_page(page);
+-			else
+-				__ClearPageIsolated(page);
+-			unlock_page(page);
+-			put_page(page);
+-		}
+-put_new:
+ 		if (put_new_page)
+ 			put_new_page(newpage, private);
+ 		else
+@@ -1273,7 +1262,8 @@ put_new:
+ static int unmap_and_move_huge_page(new_page_t get_new_page,
+ 				free_page_t put_new_page, unsigned long private,
+ 				struct page *hpage, int force,
+-				enum migrate_mode mode, int reason)
++				enum migrate_mode mode, int reason,
++				struct list_head *ret)
+ {
+ 	int rc = -EAGAIN;
+ 	int page_was_mapped = 0;
+@@ -1289,7 +1279,7 @@ static int unmap_and_move_huge_page(new_
+ 	 * kicking migration.
+ 	 */
+ 	if (!hugepage_migration_supported(page_hstate(hpage))) {
+-		putback_active_hugepage(hpage);
++		list_move_tail(&hpage->lru, ret);
+ 		return -ENOSYS;
  	}
  
- 	/* shmem_symlink() */
--	if (mapping->a_ops != &shmem_aops)
-+	if (!shmem_mapping(mapping))
- 		goto alloc_nohuge;
- 	if (shmem_huge == SHMEM_HUGE_DENY || sgp_huge == SGP_NOHUGE)
- 		goto alloc_nohuge;
-@@ -2352,11 +2352,6 @@ static struct inode *shmem_get_inode(str
- 	return inode;
- }
+@@ -1374,8 +1364,10 @@ put_anon:
+ out_unlock:
+ 	unlock_page(hpage);
+ out:
+-	if (rc != -EAGAIN)
++	if (rc == MIGRATEPAGE_SUCCESS)
+ 		putback_active_hugepage(hpage);
++	else if (rc != -EAGAIN && rc != MIGRATEPAGE_SUCCESS)
++		list_move_tail(&hpage->lru, ret);
  
--bool shmem_mapping(struct address_space *mapping)
--{
--	return mapping->a_ops == &shmem_aops;
--}
+ 	/*
+ 	 * If migration was not successful and there's a freeing callback, use
+@@ -1406,8 +1398,8 @@ out:
+  *
+  * The function returns after 10 attempts or if no pages are movable any more
+  * because the list has become empty or no retryable pages exist any more.
+- * The caller should call putback_movable_pages() to return pages to the LRU
+- * or free list only if ret != 0.
++ * It is caller's responsibility to call putback_movable_pages() to return pages
++ * to the LRU or free list only if ret != 0.
+  *
+  * Returns the number of pages that were not migrated, or an error code.
+  */
+@@ -1428,6 +1420,7 @@ int migrate_pages(struct list_head *from
+ 	struct page *page2;
+ 	int swapwrite = current->flags & PF_SWAPWRITE;
+ 	int rc, nr_subpages;
++	LIST_HEAD(ret_pages);
+ 
+ 	if (!swapwrite)
+ 		current->flags |= PF_SWAPWRITE;
+@@ -1450,12 +1443,21 @@ retry:
+ 			if (PageHuge(page))
+ 				rc = unmap_and_move_huge_page(get_new_page,
+ 						put_new_page, private, page,
+-						pass > 2, mode, reason);
++						pass > 2, mode, reason,
++						&ret_pages);
+ 			else
+ 				rc = unmap_and_move(get_new_page, put_new_page,
+ 						private, page, pass > 2, mode,
+-						reason);
 -
- static int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
- 				  pmd_t *dst_pmd,
- 				  struct vm_area_struct *dst_vma,
-@@ -3865,7 +3860,7 @@ static void shmem_destroy_inodecache(voi
- 	kmem_cache_destroy(shmem_inode_cachep);
- }
- 
--static const struct address_space_operations shmem_aops = {
-+const struct address_space_operations shmem_aops = {
- 	.writepage	= shmem_writepage,
- 	.set_page_dirty	= __set_page_dirty_no_writeback,
- #ifdef CONFIG_TMPFS
-@@ -3877,6 +3872,7 @@ static const struct address_space_operat
- #endif
- 	.error_remove_page = generic_error_remove_page,
- };
-+EXPORT_SYMBOL(shmem_aops);
- 
- static const struct file_operations shmem_file_operations = {
- 	.mmap		= shmem_mmap,
-@@ -4312,7 +4308,7 @@ struct page *shmem_read_mapping_page_gfp
- 	struct page *page;
- 	int error;
- 
--	BUG_ON(mapping->a_ops != &shmem_aops);
-+	BUG_ON(!shmem_mapping(mapping));
- 	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
- 				  gfp, NULL, NULL, NULL);
- 	if (error)
++						reason, &ret_pages);
++			/*
++			 * The rules are:
++			 *	Success: non hugetlb page will be freed, hugetlb
++			 *		 page will be put back
++			 *	-EAGAIN: stay on the from list
++			 *	-ENOMEM: stay on the from list
++			 *	Other errno: put on ret_pages list then splice to
++			 *		     from list
++			 */
+ 			switch(rc) {
+ 			case -ENOMEM:
+ 				/*
+@@ -1521,6 +1523,12 @@ retry:
+ 	nr_thp_failed += thp_retry;
+ 	rc = nr_failed;
+ out:
++	/*
++	 * Put the permanent failure page back to migration list, they
++	 * will be put back to the right list by the caller.
++	 */
++	list_splice(&ret_pages, from);
++
+ 	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
+ 	count_vm_events(PGMIGRATE_FAIL, nr_failed);
+ 	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-fs-proc-make-pde_get-return-nothing.patch
-acctc-use-elif-instead-of-end-and-elif.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
