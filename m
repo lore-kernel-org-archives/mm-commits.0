@@ -7,37 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2C35C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17B45C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0471224D4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E462320721
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726678AbgLODSB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:18:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36826 "EHLO mail.kernel.org"
+        id S1726703AbgLODSL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:18:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727724AbgLODMX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:23 -0500
-Date:   Mon, 14 Dec 2020 19:10:11 -0800
+        id S1727943AbgLODMU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:20 -0500
+Date:   Mon, 14 Dec 2020 19:09:24 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001813;
-        bh=Tu62egCYS3Qb1L9yFu8xPVSPLj5LtPbOEae9vzBdbSg=;
+        s=korg; t=1608001765;
+        bh=h6IcqHUVRxqsYEEEosg3/yVLmCImuMCpNgbygP8kzOc=;
         h=From:To:Subject:In-Reply-To:From;
-        b=AvgZoGApPjWAlAfA0gtbqsZ9G3oQjVUs2UQeQwss3stZmlIvg+rqkCzXuhiYQ4n3j
-         5KFwo/hzFP5Usbwl/ij4Oraesowxybl2GWaNWrOqIl4shAv5DR63Hm0uGGaSUeoLyq
-         yi6Lo293X5KzThpEt/y0JbzHJimmpg7LOewLctRI=
+        b=eyTodMmHo7WaLpq2h9SbrJh9diEDd6t5gwi2DwcHVP4MtyP/5590QjXDY9Pb3N0M2
+         I3EJmxtfCl0PMeFsNTfnzVAgXhfXrbouFtjQbFlhV/0fNVAnSnIqKgYMUrN7bsKyD+
+         1YxDOpgEV2L9cfcpS3BPhoyBPhWLzZDVcW0mj6tE=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
-        gerg@linux-m68k.org, glaubitz@physik.fu-berlin.de,
-        linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
-        schmitzmic@gmail.com, tony.luck@intel.com,
-        torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
-Subject:  [patch 117/200] m68k/mm: enable use of generic
- memory_model.h for !DISCONTIGMEM
-Message-ID: <20201215031011.SAEXY-Yt3%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com, arnd@arndb.de,
+        dvyukov@google.com, elver@google.com, gregkh@linuxfoundation.org,
+        keescook@chromium.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 105/200] lkdtm: disable KASAN for rodata.o
+Message-ID: <20201215030924._Zr2uvTm3%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,113 +41,56 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM
+From: Marco Elver <elver@google.com>
+Subject: lkdtm: disable KASAN for rodata.o
 
-The pg_data_map and pg_data_table arrays as well as page_to_pfn() and
-pfn_to_page() are required only for DISCONTIGMEM. Other memory models can
-use the generic definitions in asm-generic/memory_model.h.
+Building lkdtm with KASAN and Clang 11 or later results in the following
+error when attempting to load the module:
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-13-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Michael Schmitz <schmitzmic@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
+  kernel tried to execute NX-protected page - exploit attempt? (uid: 0)
+  BUG: unable to handle page fault for address: ffffffffc019cd70
+  #PF: supervisor instruction fetch in kernel mode
+  #PF: error_code(0x0011) - permissions violation
+  ...
+  RIP: 0010:asan.module_ctor+0x0/0xffffffffffffa290 [lkdtm]
+  ...
+  Call Trace:
+   do_init_module+0x17c/0x570
+   load_module+0xadee/0xd0b0
+   __x64_sys_finit_module+0x16c/0x1a0
+   do_syscall_64+0x34/0x50
+   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The reason is that rodata.o generates a dummy function that lives in
+.rodata to validate that .rodata can't be executed; however, Clang 11 adds
+KASAN globals support by generating module constructors to initialize
+globals redzones.  When Clang 11 adds a module constructor to rodata.o, it
+is also added to .rodata: any attempt to call it on initialization results
+in the above error.
+
+Therefore, disable KASAN instrumentation for rodata.o.
+
+Link: https://lkml.kernel.org/r/20201214191413.3164796-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig.cpu               |    1 -
- arch/m68k/include/asm/page.h        |    2 ++
- arch/m68k/include/asm/page_mm.h     |    5 +++++
- arch/m68k/include/asm/virtconvert.h |    5 -----
- arch/m68k/mm/init.c                 |    6 +++---
- 5 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/misc/lkdtm/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/m68k/include/asm/page.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/include/asm/page.h
-@@ -62,8 +62,10 @@ extern unsigned long _ramend;
- #include <asm/page_no.h>
- #endif
+--- a/drivers/misc/lkdtm/Makefile~lkdtm-disable-kasan-for-rodatao
++++ a/drivers/misc/lkdtm/Makefile
+@@ -11,6 +11,7 @@ lkdtm-$(CONFIG_LKDTM)		+= usercopy.o
+ lkdtm-$(CONFIG_LKDTM)		+= stackleak.o
+ lkdtm-$(CONFIG_LKDTM)		+= cfi.o
  
-+#ifdef CONFIG_DISCONTIGMEM
- #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
- #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
-+#endif
++KASAN_SANITIZE_rodata.o		:= n
+ KASAN_SANITIZE_stackleak.o	:= n
+ KCOV_INSTRUMENT_rodata.o	:= n
  
- #include <asm-generic/getorder.h>
- 
---- a/arch/m68k/include/asm/page_mm.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -153,6 +153,7 @@ static inline __attribute_const__ int __
- 	pfn_to_virt(page_to_pfn(page));					\
- })
- 
-+#ifdef CONFIG_DISCONTIGMEM
- #define pfn_to_page(pfn) ({						\
- 	unsigned long __pfn = (pfn);					\
- 	struct pglist_data *pgdat;					\
-@@ -165,6 +166,10 @@ static inline __attribute_const__ int __
- 	pgdat = &pg_data_map[page_to_nid(__p)];				\
- 	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
- })
-+#else
-+#define ARCH_PFN_OFFSET (m68k_memory[0].addr)
-+#include <asm-generic/memory_model.h>
-+#endif
- 
- #define virt_addr_valid(kaddr)	((void *)(kaddr) >= (void *)PAGE_OFFSET && (void *)(kaddr) < high_memory)
- #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))
---- a/arch/m68k/include/asm/virtconvert.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/include/asm/virtconvert.h
-@@ -29,12 +29,7 @@ static inline void *phys_to_virt(unsigne
- }
- 
- /* Permanent address of a page. */
--#if defined(CONFIG_MMU) && !defined(CONFIG_DISCONTIGMEM)
--#define page_to_phys(page) \
--	__pa(PAGE_OFFSET + (((page) - pg_data_map[0].node_mem_map) << PAGE_SHIFT))
--#else
- #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
--#endif
- 
- /*
-  * IO bus memory addresses are 1:1 with the physical address,
---- a/arch/m68k/Kconfig.cpu~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/Kconfig.cpu
-@@ -374,7 +374,6 @@ config SINGLE_MEMORY_CHUNK
- 	bool "Use one physical chunk of memory only" if ADVANCED && !SUN3
- 	depends on MMU
- 	default y if SUN3 || MMU_COLDFIRE
--	select NEED_MULTIPLE_NODES
- 	help
- 	  Ignore all but the first contiguous chunk of physical memory for VM
- 	  purposes.  This will save a few bytes kernel size and may speed up
---- a/arch/m68k/mm/init.c~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/mm/init.c
-@@ -42,12 +42,12 @@ EXPORT_SYMBOL(empty_zero_page);
- 
- #ifdef CONFIG_MMU
- 
--pg_data_t pg_data_map[MAX_NUMNODES];
--EXPORT_SYMBOL(pg_data_map);
--
- int m68k_virt_to_node_shift;
- 
- #ifdef CONFIG_DISCONTIGMEM
-+pg_data_t pg_data_map[MAX_NUMNODES];
-+EXPORT_SYMBOL(pg_data_map);
-+
- pg_data_t *pg_data_table[65];
- EXPORT_SYMBOL(pg_data_table);
- #endif
 _
