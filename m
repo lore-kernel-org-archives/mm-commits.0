@@ -2,37 +2,47 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 728D9C2BB9A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:35:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDE99C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:35:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B205224BE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:35:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE9B1223D6
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:35:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726296AbgLODez (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:34:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60682 "EHLO mail.kernel.org"
+        id S1726452AbgLODfF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:35:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727201AbgLODEm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:04:42 -0500
-Date:   Mon, 14 Dec 2020 19:03:44 -0800
+        id S1727216AbgLODE6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:04:58 -0500
+Date:   Mon, 14 Dec 2020 19:04:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001424;
-        bh=fcREoDAT0+oYpDObQ0dz5RNNqnUhikJiQBkp5yxMRk4=;
+        s=korg; t=1608001458;
+        bh=p5C0kYaerSwoDqufo2uL+XPn1vNE05k4QOtvrFN80es=;
         h=From:To:Subject:In-Reply-To:From;
-        b=K4BW1ymGfgi0QIDjHmNLl07h82iSvkc/xFfFeajyyjz7A1Yv/WqPqVO5U9nEn6dlJ
-         zD4+AvxVMNz5J1LCEzBZMAD7VHWXu3dKIv3D6err82iRyG+BHAVPEF0gYh7j9wNg0G
-         Q8GFBmtj83YfyGgRBPShDcv04gSAgQIc0Fsm/Vxs=
+        b=nYMK7bv1nAKC0flGdRlrMlddJt+9bzjdpwHszk1OBRF8fy2079pCePEysHZo0xe8/
+         kYeqXEt3nX5uOT91S5Flz1L0Qk0EdIMwHdUZRzvHFlJhbomVQiCI9+eebls1xN1JQ4
+         lQGQvJvHagJpvvj7JWEdutDGKUCCVs4RA6Vb8cGc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colin.king@canonical.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 010/200] arch/Kconfig: fix spelling mistakes
-Message-ID: <20201215030344.R92btvML4%akpm@linux-foundation.org>
+To:     airlied@linux.ie, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, linux-mm@kvack.org,
+        maarten.lankhorst@linux.intel.com, mchehab@kernel.org,
+        mm-commits@vger.kernel.org, mripard@kernel.org, mst@redhat.com,
+        penberg@kernel.org, perex@perex.cz, rientjes@google.com,
+        rric@kernel.org, sumit.semwal@linaro.org, tiwai@suse.com,
+        tiwai@suse.de, tony.luck@intel.com, torvalds@linux-foundation.org,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  [patch 018/200] drm: atomic: use krealloc_array()
+Message-ID: <20201215030416.CBqWTf4L1%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,56 +50,58 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-Subject: arch/Kconfig: fix spelling mistakes
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: drm: atomic: use krealloc_array()
 
-There are a few spelling mistakes in the Kconfig comments and help text. 
-Fix these.
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-Link: https://lkml.kernel.org/r/20201207155004.171962-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20201109110654.12547-8-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/drm_atomic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/Kconfig~arch-fix-spelling-mistakes-in-kconfig
-+++ a/arch/Kconfig
-@@ -261,7 +261,7 @@ config ARCH_HAS_SET_DIRECT_MAP
+--- a/drivers/gpu/drm/drm_atomic.c~drm-atomic-use-krealloc_array
++++ a/drivers/gpu/drm/drm_atomic.c
+@@ -960,7 +960,8 @@ drm_atomic_get_connector_state(struct dr
+ 		struct __drm_connnectors_state *c;
+ 		int alloc = max(index + 1, config->num_connector);
  
- #
- # Select if the architecture provides the arch_dma_set_uncached symbol to
--# either provide an uncached segement alias for a DMA allocation, or
-+# either provide an uncached segment alias for a DMA allocation, or
- # to remap the page tables in place.
- #
- config ARCH_HAS_DMA_SET_UNCACHED
-@@ -314,14 +314,14 @@ config ARCH_32BIT_OFF_T
- config HAVE_ASM_MODVERSIONS
- 	bool
- 	help
--	  This symbol should be selected by an architecure if it provides
-+	  This symbol should be selected by an architecture if it provides
- 	  <asm/asm-prototypes.h> to support the module versioning for symbols
- 	  exported from assembly code.
- 
- config HAVE_REGS_AND_STACK_ACCESS_API
- 	bool
- 	help
--	  This symbol should be selected by an architecure if it supports
-+	  This symbol should be selected by an architecture if it supports
- 	  the API needed to access registers and stack entries from pt_regs,
- 	  declared in asm/ptrace.h
- 	  For example the kprobes-based event tracer needs this API.
-@@ -336,7 +336,7 @@ config HAVE_RSEQ
- config HAVE_FUNCTION_ARG_ACCESS_API
- 	bool
- 	help
--	  This symbol should be selected by an architecure if it supports
-+	  This symbol should be selected by an architecture if it supports
- 	  the API needed to access function arguments from pt_regs,
- 	  declared in asm/ptrace.h
+-		c = krealloc(state->connectors, alloc * sizeof(*state->connectors), GFP_KERNEL);
++		c = krealloc_array(state->connectors, alloc,
++				   sizeof(*state->connectors), GFP_KERNEL);
+ 		if (!c)
+ 			return ERR_PTR(-ENOMEM);
  
 _
