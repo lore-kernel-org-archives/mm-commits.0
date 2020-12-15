@@ -7,44 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B77B7C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:17:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F1F4C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:17:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74C23224B2
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:17:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF95B224B2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726433AbgLODRP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:17:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36468 "EHLO mail.kernel.org"
+        id S1727932AbgLODM3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:12:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727964AbgLODMb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:31 -0500
-Date:   Mon, 14 Dec 2020 19:10:30 -0800
+        id S1726703AbgLODMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:18 -0500
+Date:   Mon, 14 Dec 2020 19:09:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001833;
-        bh=0EhzC+Bjx2/v7UiixwDnND8zAO03B9FNDJj92nlBM2U=;
+        s=korg; t=1608001801;
+        bh=Y8/9DAcBZzpYHL0c0di7wvlQKGECgiBH08HbHbS1VMo=;
         h=From:To:Subject:In-Reply-To:From;
-        b=I1RQghyFjvK46Lx6N64xX+SL7Hc9HPIM+Q8q2SeE4hgpJdqR9bggOxUbxElV/zGlw
-         SNBjFiD11R+NpHhKzKaOjxPGLNjkvf1IaRNY11pdZTV1J60Rwk8zKslRs0Y7lXT1DL
-         DTwF5dJxeMDQUWjuR92sSypQa+cHO13UPE0hnQcQ=
+        b=nEz07T0L6sVp9WwP68vkbEGiNZknqViDgNZqlPORMV2IgnMvzIRhIvv0agv1RVirH
+         0cWhwz6VqM2Fg+9vjRSTmfbHfpOI7+i+hd3B1zgJ/RKxa30eivd3ejYaYDBCgMMZ9E
+         bTluskTuIDoLdNlV3KomquP1F9H0irEi6K8s2t5k=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aou@eecs.berkeley.edu,
-        benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de,
-        catalin.marinas@arm.com, cl@linux.com, dave.hansen@linux.intel.com,
-        davem@davemloft.net, david@redhat.com, gor@linux.ibm.com,
-        hca@linux.ibm.com, hpa@zytor.com, iamjoonsoo.kim@lge.com,
-        kirill.shutemov@linux.intel.com, len.brown@intel.com,
-        linux-mm@kvack.org, luto@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, paulus@samba.org, pavel@ucw.cz,
-        penberg@kernel.org, peterz@infradead.org,
-        rafael.j.wysocki@intel.com, rick.p.edgecombe@intel.com,
-        rientjes@google.com, rjw@rjwysocki.net, rppt@linux.ibm.com,
-        tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz,
-        will@kernel.org
-Subject:  [patch 121/200] arch, mm: restore dependency of
- __kernel_map_pages() on DEBUG_PAGEALLOC
-Message-ID: <20201215031030.aW6XHAh05%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
+        gerg@linux-m68k.org, glaubitz@physik.fu-berlin.de,
+        linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com,
+        mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
+        schmitzmic@gmail.com, tony.luck@intel.com,
+        torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
+Subject:  [patch 114/200] arm, arm64: move free_unused_memmap() to
+ generic mm
+Message-ID: <20201215030959.6tYL8GRfQ%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,318 +46,369 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
+Subject: arm, arm64: move free_unused_memmap() to generic mm
 
-The design of DEBUG_PAGEALLOC presumes that __kernel_map_pages() must
-never fail.  With this assumption is wouldn't be safe to allow general
-usage of this function.
+ARM and ARM64 free unused parts of the memory map just before the
+initialization of the page allocator. To allow holes in the memory map both
+architectures overload pfn_valid() and define HAVE_ARCH_PFN_VALID.
 
-Moreover, some architectures that implement __kernel_map_pages() have this
-function guarded by #ifdef DEBUG_PAGEALLOC and some refuse to map/unmap
-pages when page allocation debugging is disabled at runtime.
+Allowing holes in the memory map for FLATMEM may be useful for small
+machines, such as ARC and m68k and will enable those architectures to cease
+using DISCONTIGMEM and still support more than one memory bank.
 
-As all the users of __kernel_map_pages() were converted to use
-debug_pagealloc_map_pages() it is safe to make it available only when
-DEBUG_PAGEALLOC is set.
+Move the functions that free unused memory map to generic mm and enable
+them in case HAVE_ARCH_PFN_VALID=y.
 
-Link: https://lkml.kernel.org/r/20201109192128.960-4-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Michael Schmitz <schmitzmic@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                     |    3 +++
- arch/arm64/Kconfig               |    4 +---
- arch/arm64/mm/pageattr.c         |    8 ++++++--
- arch/powerpc/Kconfig             |    5 +----
- arch/riscv/Kconfig               |    4 +---
- arch/riscv/include/asm/pgtable.h |    2 --
- arch/riscv/mm/pageattr.c         |    2 ++
- arch/s390/Kconfig                |    4 +---
- arch/sparc/Kconfig               |    4 +---
- arch/x86/Kconfig                 |    4 +---
- arch/x86/mm/pat/set_memory.c     |    2 ++
- include/linux/mm.h               |   10 +++++++---
- 12 files changed, 26 insertions(+), 26 deletions(-)
+ arch/Kconfig         |    3 +
+ arch/arm/Kconfig     |    4 --
+ arch/arm/mm/init.c   |   78 ---------------------------------------
+ arch/arm64/Kconfig   |    4 --
+ arch/arm64/mm/init.c |   68 ----------------------------------
+ mm/memblock.c        |   80 +++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 85 insertions(+), 152 deletions(-)
 
---- a/arch/arm64/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
+--- a/arch/arm64/Kconfig~arm-arm64-move-free_unused_memmap-to-generic-mm
 +++ a/arch/arm64/Kconfig
-@@ -71,6 +71,7 @@ config ARM64
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS
- 	select ARCH_USE_SYM_ANNOTATIONS
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_MEMORY_FAILURE
- 	select ARCH_SUPPORTS_SHADOW_CALL_STACK if CC_HAVE_SHADOW_CALL_STACK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-@@ -1028,9 +1029,6 @@ config HOLES_IN_ZONE
+@@ -140,6 +140,7 @@ config ARM64
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
++	select HAVE_ARCH_PFN_VALID
+ 	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_STACKLEAK
+@@ -1043,9 +1044,6 @@ config ARCH_SELECT_MEMORY_MODEL
+ config ARCH_FLATMEM_ENABLE
+ 	def_bool !NUMA
  
- source "kernel/Kconfig.hz"
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-config HAVE_ARCH_PFN_VALID
 -	def_bool y
 -
- config ARCH_SPARSEMEM_ENABLE
+ config HW_PERF_EVENTS
  	def_bool y
- 	select SPARSEMEM_VMEMMAP_ENABLE
---- a/arch/arm64/mm/pageattr.c~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/arm64/mm/pageattr.c
-@@ -155,7 +155,7 @@ int set_direct_map_invalid_noflush(struc
- 		.clear_mask = __pgprot(PTE_VALID),
- 	};
- 
--	if (!rodata_full)
-+	if (!debug_pagealloc_enabled() && !rodata_full)
- 		return 0;
- 
- 	return apply_to_page_range(&init_mm,
-@@ -170,7 +170,7 @@ int set_direct_map_default_noflush(struc
- 		.clear_mask = __pgprot(PTE_RDONLY),
- 	};
- 
--	if (!rodata_full)
-+	if (!debug_pagealloc_enabled() && !rodata_full)
- 		return 0;
- 
- 	return apply_to_page_range(&init_mm,
-@@ -178,6 +178,7 @@ int set_direct_map_default_noflush(struc
- 				   PAGE_SIZE, change_page_range, &data);
+ 	depends on ARM_PMU
+--- a/arch/arm64/mm/init.c~arm-arm64-move-free_unused_memmap-to-generic-mm
++++ a/arch/arm64/mm/init.c
+@@ -430,71 +430,6 @@ void __init bootmem_init(void)
+ 	memblock_dump_all();
  }
  
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (!debug_pagealloc_enabled() && !rodata_full)
-@@ -186,6 +187,7 @@ void __kernel_map_pages(struct page *pag
- 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
- }
- 
-+#ifdef CONFIG_HIBERNATION
+-#ifndef CONFIG_SPARSEMEM_VMEMMAP
+-static inline void free_memmap(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	struct page *start_pg, *end_pg;
+-	unsigned long pg, pgend;
+-
+-	/*
+-	 * Convert start_pfn/end_pfn to a struct page pointer.
+-	 */
+-	start_pg = pfn_to_page(start_pfn - 1) + 1;
+-	end_pg = pfn_to_page(end_pfn - 1) + 1;
+-
+-	/*
+-	 * Convert to physical addresses, and round start upwards and end
+-	 * downwards.
+-	 */
+-	pg = (unsigned long)PAGE_ALIGN(__pa(start_pg));
+-	pgend = (unsigned long)__pa(end_pg) & PAGE_MASK;
+-
+-	/*
+-	 * If there are free pages between these, free the section of the
+-	 * memmap array.
+-	 */
+-	if (pg < pgend)
+-		memblock_free(pg, pgend - pg);
+-}
+-
+-/*
+- * The mem_map array can get very big. Free the unused area of the memory map.
+- */
+-static void __init free_unused_memmap(void)
+-{
+-	unsigned long start, end, prev_end = 0;
+-	int i;
+-
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
+-#ifdef CONFIG_SPARSEMEM
+-		/*
+-		 * Take care not to free memmap entries that don't exist due
+-		 * to SPARSEMEM sections which aren't present.
+-		 */
+-		start = min(start, ALIGN(prev_end, PAGES_PER_SECTION));
+-#endif
+-		/*
+-		 * If we had a previous bank, and there is a space between the
+-		 * current bank and the previous, free it.
+-		 */
+-		if (prev_end && prev_end < start)
+-			free_memmap(prev_end, start);
+-
+-		/*
+-		 * Align up here since the VM subsystem insists that the
+-		 * memmap entries are valid from the bank end aligned to
+-		 * MAX_ORDER_NR_PAGES.
+-		 */
+-		prev_end = ALIGN(end, MAX_ORDER_NR_PAGES);
+-	}
+-
+-#ifdef CONFIG_SPARSEMEM
+-	if (!IS_ALIGNED(prev_end, PAGES_PER_SECTION))
+-		free_memmap(prev_end, ALIGN(prev_end, PAGES_PER_SECTION));
+-#endif
+-}
+-#endif	/* !CONFIG_SPARSEMEM_VMEMMAP */
+-
  /*
-  * This function is used to determine if a linear map page has been marked as
-  * not-valid. Walk the page table and check the PTE_VALID bit. This is based
-@@ -232,3 +234,5 @@ bool kernel_page_present(struct page *pa
- 	ptep = pte_offset_kernel(pmdp, addr);
- 	return pte_valid(READ_ONCE(*ptep));
- }
-+#endif /* CONFIG_HIBERNATION */
-+#endif /* CONFIG_DEBUG_PAGEALLOC */
---- a/arch/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/Kconfig
-@@ -1047,6 +1047,9 @@ config ARCH_WANT_LD_ORPHAN_WARN
- config HAVE_ARCH_PFN_VALID
- 	bool
+  * mem_init() marks the free areas in the mem_map and tells us how much memory
+  * is free.  This is done after various parts of the system have claimed their
+@@ -510,9 +445,6 @@ void __init mem_init(void)
  
-+config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	set_max_mapnr(max_pfn - PHYS_PFN_OFFSET);
+ 
+-#ifndef CONFIG_SPARSEMEM_VMEMMAP
+-	free_unused_memmap();
+-#endif
+ 	/* this will put all unused low memory onto the freelists */
+ 	memblock_free_all();
+ 
+--- a/arch/arm/Kconfig~arm-arm64-move-free_unused_memmap-to-generic-mm
++++ a/arch/arm/Kconfig
+@@ -69,6 +69,7 @@ config ARM
+ 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL && !CPU_ENDIAN_BE32 && MMU
+ 	select HAVE_ARCH_KGDB if !CPU_ENDIAN_BE32 && MMU
+ 	select HAVE_ARCH_MMAP_RND_BITS if MMU
++	select HAVE_ARCH_PFN_VALID
+ 	select HAVE_ARCH_SECCOMP
+ 	select HAVE_ARCH_SECCOMP_FILTER if AEABI && !OABI_COMPAT
+ 	select HAVE_ARCH_THREAD_STRUCT_WHITELIST
+@@ -1489,9 +1490,6 @@ config ARCH_SPARSEMEM_ENABLE
+ 	bool
+ 	select SPARSEMEM_STATIC if SPARSEMEM
+ 
+-config HAVE_ARCH_PFN_VALID
+-	def_bool y
+-
+ config HIGHMEM
+ 	bool "High Memory Support"
+ 	depends on MMU
+--- a/arch/arm/mm/init.c~arm-arm64-move-free_unused_memmap-to-generic-mm
++++ a/arch/arm/mm/init.c
+@@ -267,83 +267,6 @@ static inline void poison_init_mem(void
+ 		*p++ = 0xe7fddef0;
+ }
+ 
+-static inline void __init
+-free_memmap(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	struct page *start_pg, *end_pg;
+-	phys_addr_t pg, pgend;
+-
+-	/*
+-	 * Convert start_pfn/end_pfn to a struct page pointer.
+-	 */
+-	start_pg = pfn_to_page(start_pfn - 1) + 1;
+-	end_pg = pfn_to_page(end_pfn - 1) + 1;
+-
+-	/*
+-	 * Convert to physical addresses, and
+-	 * round start upwards and end downwards.
+-	 */
+-	pg = PAGE_ALIGN(__pa(start_pg));
+-	pgend = __pa(end_pg) & PAGE_MASK;
+-
+-	/*
+-	 * If there are free pages between these,
+-	 * free the section of the memmap array.
+-	 */
+-	if (pg < pgend)
+-		memblock_free_early(pg, pgend - pg);
+-}
+-
+-/*
+- * The mem_map array can get very big.  Free the unused area of the memory map.
+- */
+-static void __init free_unused_memmap(void)
+-{
+-	unsigned long start, end, prev_end = 0;
+-	int i;
+-
+-	/*
+-	 * This relies on each bank being in address order.
+-	 * The banks are sorted previously in bootmem_init().
+-	 */
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
+-#ifdef CONFIG_SPARSEMEM
+-		/*
+-		 * Take care not to free memmap entries that don't exist
+-		 * due to SPARSEMEM sections which aren't present.
+-		 */
+-		start = min(start,
+-				 ALIGN(prev_end, PAGES_PER_SECTION));
+-#else
+-		/*
+-		 * Align down here since the VM subsystem insists that the
+-		 * memmap entries are valid from the bank start aligned to
+-		 * MAX_ORDER_NR_PAGES.
+-		 */
+-		start = round_down(start, MAX_ORDER_NR_PAGES);
+-#endif
+-		/*
+-		 * If we had a previous bank, and there is a space
+-		 * between the current bank and the previous, free it.
+-		 */
+-		if (prev_end && prev_end < start)
+-			free_memmap(prev_end, start);
+-
+-		/*
+-		 * Align up here since the VM subsystem insists that the
+-		 * memmap entries are valid from the bank end aligned to
+-		 * MAX_ORDER_NR_PAGES.
+-		 */
+-		prev_end = ALIGN(end, MAX_ORDER_NR_PAGES);
+-	}
+-
+-#ifdef CONFIG_SPARSEMEM
+-	if (!IS_ALIGNED(prev_end, PAGES_PER_SECTION))
+-		free_memmap(prev_end,
+-			    ALIGN(prev_end, PAGES_PER_SECTION));
+-#endif
+-}
+-
+ static void __init free_highpages(void)
+ {
+ #ifdef CONFIG_HIGHMEM
+@@ -385,7 +308,6 @@ void __init mem_init(void)
+ 	set_max_mapnr(pfn_to_page(max_pfn) - mem_map);
+ 
+ 	/* this will put all unused low memory onto the freelists */
+-	free_unused_memmap();
+ 	memblock_free_all();
+ 
+ #ifdef CONFIG_SA1111
+--- a/arch/Kconfig~arm-arm64-move-free_unused_memmap-to-generic-mm
++++ a/arch/Kconfig
+@@ -1044,6 +1044,9 @@ config ARCH_WANT_LD_ORPHAN_WARN
+ 	  by the linker, since the locations of such sections can change between linker
+ 	  versions.
+ 
++config HAVE_ARCH_PFN_VALID
 +	bool
 +
  source "kernel/gcov/Kconfig"
  
  source "scripts/gcc-plugins/Kconfig"
---- a/arch/powerpc/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/powerpc/Kconfig
-@@ -146,6 +146,7 @@ config PPC
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ARCH_OPTIONAL_KERNEL_RWX		if ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC32 || PPC_BOOK3S_64
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
- 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
-@@ -356,10 +357,6 @@ config PPC_OF_PLATFORM_PCI
- 	depends on PCI
- 	depends on PPC64 # not supported on 32 bits yet
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	depends on PPC32 || PPC_BOOK3S_64
--	def_bool y
--
- config ARCH_SUPPORTS_UPROBES
- 	def_bool y
- 
---- a/arch/riscv/include/asm/pgtable.h~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -461,8 +461,6 @@ static inline int ptep_clear_flush_young
- #define VMALLOC_START		0
- #define VMALLOC_END		TASK_SIZE
- 
--static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
--
- #endif /* !CONFIG_MMU */
- 
- #define kern_addr_valid(addr)   (1) /* FIXME */
---- a/arch/riscv/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/riscv/Kconfig
-@@ -14,6 +14,7 @@ config RISCV
- 	def_bool y
- 	select ARCH_CLOCKSOURCE_INIT
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
- 	select ARCH_HAS_BINFMT_FLAT
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
-@@ -153,9 +154,6 @@ config ARCH_SELECT_MEMORY_MODEL
- config ARCH_WANT_GENERAL_HUGETLB
- 	def_bool y
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config SYS_SUPPORTS_HUGETLBFS
- 	depends on MMU
- 	def_bool y
---- a/arch/riscv/mm/pageattr.c~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/riscv/mm/pageattr.c
-@@ -184,6 +184,7 @@ int set_direct_map_default_noflush(struc
- 	return ret;
+--- a/mm/memblock.c~arm-arm64-move-free_unused_memmap-to-generic-mm
++++ a/mm/memblock.c
+@@ -1926,6 +1926,85 @@ static int __init early_memblock(char *p
  }
+ early_param("memblock", early_memblock);
  
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (!debug_pagealloc_enabled())
-@@ -196,3 +197,4 @@ void __kernel_map_pages(struct page *pag
- 		__set_memory((unsigned long)page_address(page), numpages,
- 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
- }
-+#endif
---- a/arch/s390/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/s390/Kconfig
-@@ -35,9 +35,6 @@ config GENERIC_LOCKBREAK
- config PGSTE
- 	def_bool y if KVM
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config AUDIT_ARCH
- 	def_bool y
- 
-@@ -106,6 +103,7 @@ config S390
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF
---- a/arch/sparc/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/sparc/Kconfig
-@@ -88,6 +88,7 @@ config SPARC64
- 	select HAVE_C_RECORDMCOUNT
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select HAVE_NMI
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select ARCH_USE_QUEUED_RWLOCKS
-@@ -148,9 +149,6 @@ config GENERIC_ISA_DMA
- 	bool
- 	default y if SPARC32
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y if SPARC64
--
- config PGTABLE_LEVELS
- 	default 4 if 64BIT
- 	default 3
---- a/arch/x86/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/x86/Kconfig
-@@ -91,6 +91,7 @@ config X86
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_QUEUED_RWLOCKS
-@@ -331,9 +332,6 @@ config ZONE_DMA32
- config AUDIT_ARCH
- 	def_bool y if X86_64
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config KASAN_SHADOW_OFFSET
- 	hex
- 	depends on KASAN
---- a/arch/x86/mm/pat/set_memory.c~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -2194,6 +2194,7 @@ int set_direct_map_default_noflush(struc
- 	return __set_pages_p(page, 1);
- }
- 
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (PageHighMem(page))
-@@ -2239,6 +2240,7 @@ bool kernel_page_present(struct page *pa
- 	return (pte_val(*pte) & _PAGE_PRESENT);
- }
- #endif /* CONFIG_HIBERNATION */
-+#endif /* CONFIG_DEBUG_PAGEALLOC */
- 
- int __init kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
- 				   unsigned numpages, unsigned long page_flags)
---- a/include/linux/mm.h~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
-+++ a/include/linux/mm.h
-@@ -2931,7 +2931,11 @@ static inline bool debug_pagealloc_enabl
- 	return static_branch_unlikely(&_debug_pagealloc_enabled);
- }
- 
--#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
-+#ifdef CONFIG_DEBUG_PAGEALLOC
++static void __init free_memmap(unsigned long start_pfn, unsigned long end_pfn)
++{
++	struct page *start_pg, *end_pg;
++	phys_addr_t pg, pgend;
++
++	/*
++	 * Convert start_pfn/end_pfn to a struct page pointer.
++	 */
++	start_pg = pfn_to_page(start_pfn - 1) + 1;
++	end_pg = pfn_to_page(end_pfn - 1) + 1;
++
++	/*
++	 * Convert to physical addresses, and round start upwards and end
++	 * downwards.
++	 */
++	pg = PAGE_ALIGN(__pa(start_pg));
++	pgend = __pa(end_pg) & PAGE_MASK;
++
++	/*
++	 * If there are free pages between these, free the section of the
++	 * memmap array.
++	 */
++	if (pg < pgend)
++		memblock_free(pg, pgend - pg);
++}
++
 +/*
-+ * To support DEBUG_PAGEALLOC architecture must ensure that
-+ * __kernel_map_pages() never fails
++ * The mem_map array can get very big.  Free the unused area of the memory map.
 + */
- extern void __kernel_map_pages(struct page *page, int numpages, int enable);
++static void __init free_unused_memmap(void)
++{
++	unsigned long start, end, prev_end = 0;
++	int i;
++
++	if (!IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) ||
++	    IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
++		return;
++
++	/*
++	 * This relies on each bank being in address order.
++	 * The banks are sorted previously in bootmem_init().
++	 */
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
++#ifdef CONFIG_SPARSEMEM
++		/*
++		 * Take care not to free memmap entries that don't exist
++		 * due to SPARSEMEM sections which aren't present.
++		 */
++		start = min(start, ALIGN(prev_end, PAGES_PER_SECTION));
++#else
++		/*
++		 * Align down here since the VM subsystem insists that the
++		 * memmap entries are valid from the bank start aligned to
++		 * MAX_ORDER_NR_PAGES.
++		 */
++		start = round_down(start, MAX_ORDER_NR_PAGES);
++#endif
++
++		/*
++		 * If we had a previous bank, and there is a space
++		 * between the current bank and the previous, free it.
++		 */
++		if (prev_end && prev_end < start)
++			free_memmap(prev_end, start);
++
++		/*
++		 * Align up here since the VM subsystem insists that the
++		 * memmap entries are valid from the bank end aligned to
++		 * MAX_ORDER_NR_PAGES.
++		 */
++		prev_end = ALIGN(end, MAX_ORDER_NR_PAGES);
++	}
++
++#ifdef CONFIG_SPARSEMEM
++	if (!IS_ALIGNED(prev_end, PAGES_PER_SECTION))
++		free_memmap(prev_end, ALIGN(prev_end, PAGES_PER_SECTION));
++#endif
++}
++
+ static void __init __free_pages_memory(unsigned long start, unsigned long end)
+ {
+ 	int order;
+@@ -2012,6 +2091,7 @@ unsigned long __init memblock_free_all(v
+ {
+ 	unsigned long pages;
  
- static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
-@@ -2949,13 +2953,13 @@ static inline void debug_pagealloc_unmap
- #ifdef CONFIG_HIBERNATION
- extern bool kernel_page_present(struct page *page);
- #endif	/* CONFIG_HIBERNATION */
--#else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
-+#else	/* CONFIG_DEBUG_PAGEALLOC */
- static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
- static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
- #ifdef CONFIG_HIBERNATION
- static inline bool kernel_page_present(struct page *page) { return true; }
- #endif	/* CONFIG_HIBERNATION */
--#endif	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
-+#endif	/* CONFIG_DEBUG_PAGEALLOC */
++	free_unused_memmap();
+ 	reset_all_zones_managed_pages();
  
- #ifdef __HAVE_ARCH_GATE_AREA
- extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
+ 	pages = free_low_memory_core_early();
 _
