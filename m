@@ -7,34 +7,41 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A510BC2BB48
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE9C4C2BBCA
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 608FA224D4
+	by mail.kernel.org (Postfix) with ESMTP id A155F22512
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727614AbgLODOd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42082 "EHLO mail.kernel.org"
+        id S1725956AbgLODOi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727570AbgLODOE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:14:04 -0500
-Date:   Mon, 14 Dec 2020 19:13:23 -0800
+        id S1728092AbgLODOH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:14:07 -0500
+Date:   Mon, 14 Dec 2020 19:13:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002004;
-        bh=C8wUdiZt8+oc4sOw6lbo03WHf8sF1zlF678hzJL3YLk=;
+        s=korg; t=1608002031;
+        bh=qrmZlhImrAhAU+wjugYfzvyyeXQJLuD1k6iwTDibcX4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=IYLhXT1cly60mpzp5lwxM+fbXvW7MgsjSxM0Ces4L4T/pPzPkoKTl8RQwtxtaCjO3
-         grgdffTEMHIIYNOM7XGsdGnN+ZtZyTWn5WvsXuj5aMbIloeXZ9tFkDmUX2XcBwZMaU
-         v+1N7ZGatlZ/ye8nxMq/eMxCmJF2/xXhq9XKUCA0=
+        b=MRoCcgr8o5DLOjC+HWLZygkVTyP1oYTPqJRTD0Q9Mo/LpRN1D5NAhLgVLLExbUpM3
+         Z7UOf6VK2JPBs2+/KVs4lge7J9UPn40+I8QksI4CRE6KanB8T/ANzwAGj+4FXXO7PN
+         +Xme+bUMWiv2Rfi8/5xrjR94pJ4gazzGDVc/HwIc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com,
-        lecopzer.chen@mediatek.com, linux-mm@kvack.org,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        bigeasy@linutronix.de, calin@google.com, corbet@lwn.net,
+        dancol@dancol.org, dancol@google.com, ebiggers@kernel.org,
+        hannes@cmpxchg.org, jeffv@google.com, jglisse@redhat.com,
+        joel@joelfernandes.org, kaleshsingh@google.com,
+        keescook@chromium.org, linux-mm@kvack.org, lokeshgidra@google.com,
+        mcgrof@kernel.org, mchehab+huawei@kernel.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        nigupta@nvidia.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
+        shli@fb.com, stephen.smalley.work@gmail.com, surenb@google.com,
         torvalds@linux-foundation.org, vbabka@suse.cz,
-        yj.chiang@mediatek.com
-Subject:  [patch 172/200] mm/cma.c: remove redundant cma_mutex lock
-Message-ID: <20201215031323.-4QcJQxbF%akpm@linux-foundation.org>
+        viro@zeniv.linux.org.uk, yzaikin@google.com
+Subject:  [patch 179/200] userfaultfd: add UFFD_USER_MODE_ONLY
+Message-ID: <20201215031349.NXimL388W%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,60 +49,132 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Subject: mm/cma.c: remove redundant cma_mutex lock
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: add UFFD_USER_MODE_ONLY
 
-The cma_mutex which protects alloc_contig_range() was first appeared in
-commit 7ee793a62fa8c ("cma: Remove potential deadlock situation"), at that
-time, there is no guarantee the behavior of concurrency inside
-alloc_contig_range().
+Patch series "Control over userfaultfd kernel-fault handling", v6.
 
-After commit 2c7452a075d4db2dc ("mm/page_isolation.c: make
-start_isolate_page_range() fail if already isolated")
+This patch series is split from [1].  The other series enables SELinux
+support for userfaultfd file descriptors so that its creation and movement
+can be controlled.
 
-  > However, two subsystems (CMA and gigantic
-  > huge pages for example) could attempt operations on the same range.  If
-  > this happens, one thread may 'undo' the work another thread is doing.
-  > This can result in pageblocks being incorrectly left marked as
-  > MIGRATE_ISOLATE and therefore not available for page allocation.
+It has been demonstrated on various occasions that suspending kernel code
+execution for an arbitrary amount of time at any access to userspace
+memory (copy_from_user()/copy_to_user()/...) can be exploited to change
+the intended behavior of the kernel.  For instance, handling page faults
+in kernel-mode using userfaultfd has been exploited in [2, 3].  Likewise,
+FUSE, which is similar to userfaultfd in this respect, has been exploited
+in [4, 5] for similar outcome.
 
-The concurrency inside alloc_contig_range() was clarified.
+This small patch series adds a new flag to userfaultfd(2) that allows
+callers to give up the ability to handle kernel-mode faults with the
+resulting UFFD file object.  It then adds a 'user-mode only' option to the
+unprivileged_userfaultfd sysctl knob to require unprivileged callers to
+use this new flag.
 
-Now we can find that hugepage and virtio call alloc_contig_range() without
-any lock, thus cma_mutex is "redundant" in cma_alloc() now.
+The purpose of this new interface is to decrease the chance of an
+unprivileged userfaultfd user taking advantage of userfaultfd to enhance
+security vulnerabilities by lengthening the race window in kernel code.
 
-Link: https://lkml.kernel.org/r/20201020102241.3729-1-lecopzer.chen@mediatek.com
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: YJ Chiang <yj.chiang@mediatek.com>
+[1] https://lore.kernel.org/lkml/20200211225547.235083-1-dancol@google.com/
+[2] https://duasynt.com/blog/linux-kernel-heap-spray
+[3] https://duasynt.com/blog/cve-2016-6187-heap-off-by-one-exploit
+[4] https://googleprojectzero.blogspot.com/2016/06/exploiting-recursion-in-linux-kernel_20.html
+[5] https://bugs.chromium.org/p/project-zero/issues/detail?id=808
+
+
+This patch (of 2):
+
+userfaultfd handles page faults from both user and kernel code.  Add a new
+UFFD_USER_MODE_ONLY flag for userfaultfd(2) that makes the resulting
+userfaultfd object refuse to handle faults from kernel mode, treating
+these faults as if SIGBUS were always raised, causing the kernel code to
+fail with EFAULT.
+
+A future patch adds a knob allowing administrators to give some processes
+the ability to create userfaultfd file objects only if they pass
+UFFD_USER_MODE_ONLY, reducing the likelihood that these processes will
+exploit userfaultfd's ability to delay kernel page faults to open timing
+windows for future exploits.
+
+Link: https://lkml.kernel.org/r/20201120030411.2690816-1-lokeshgidra@google.com
+Link: https://lkml.kernel.org/r/20201120030411.2690816-2-lokeshgidra@google.com
+Signed-off-by: Daniel Colascione <dancol@google.com>
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: <calin@google.com>
+Cc: Daniel Colascione <dancol@dancol.org>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Nitin Gupta <nigupta@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/userfaultfd.c                 |   10 +++++++++-
+ include/uapi/linux/userfaultfd.h |    9 +++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cmac-remove-redundant-cma_mutex-lock
-+++ a/mm/cma.c
-@@ -38,7 +38,6 @@
+--- a/fs/userfaultfd.c~add-uffd_user_mode_only
++++ a/fs/userfaultfd.c
+@@ -405,6 +405,13 @@ vm_fault_t handle_userfault(struct vm_fa
  
- struct cma cma_areas[MAX_CMA_AREAS];
- unsigned cma_area_count;
--static DEFINE_MUTEX(cma_mutex);
+ 	if (ctx->features & UFFD_FEATURE_SIGBUS)
+ 		goto out;
++	if ((vmf->flags & FAULT_FLAG_USER) == 0 &&
++	    ctx->flags & UFFD_USER_MODE_ONLY) {
++		printk_once(KERN_WARNING "uffd: Set unprivileged_userfaultfd "
++			"sysctl knob to 1 if kernel faults must be handled "
++			"without obtaining CAP_SYS_PTRACE capability\n");
++		goto out;
++	}
  
- phys_addr_t cma_get_base(const struct cma *cma)
- {
-@@ -454,10 +453,9 @@ struct page *cma_alloc(struct cma *cma,
- 		mutex_unlock(&cma->lock);
+ 	/*
+ 	 * If it's already released don't get it. This avoids to loop
+@@ -1965,10 +1972,11 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
+ 	BUG_ON(!current->mm);
  
- 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
--		mutex_lock(&cma_mutex);
- 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
- 				     GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
--		mutex_unlock(&cma_mutex);
+ 	/* Check the UFFD_* constants for consistency.  */
++	BUILD_BUG_ON(UFFD_USER_MODE_ONLY & UFFD_SHARED_FCNTL_FLAGS);
+ 	BUILD_BUG_ON(UFFD_CLOEXEC != O_CLOEXEC);
+ 	BUILD_BUG_ON(UFFD_NONBLOCK != O_NONBLOCK);
+ 
+-	if (flags & ~UFFD_SHARED_FCNTL_FLAGS)
++	if (flags & ~(UFFD_SHARED_FCNTL_FLAGS | UFFD_USER_MODE_ONLY))
+ 		return -EINVAL;
+ 
+ 	ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
+--- a/include/uapi/linux/userfaultfd.h~add-uffd_user_mode_only
++++ a/include/uapi/linux/userfaultfd.h
+@@ -257,4 +257,13 @@ struct uffdio_writeprotect {
+ 	__u64 mode;
+ };
+ 
++/*
++ * Flags for the userfaultfd(2) system call itself.
++ */
 +
- 		if (ret == 0) {
- 			page = pfn_to_page(pfn);
- 			break;
++/*
++ * Create a userfaultfd that can handle page faults only in user mode.
++ */
++#define UFFD_USER_MODE_ONLY 1
++
+ #endif /* _LINUX_USERFAULTFD_H */
 _
