@@ -5,36 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34B21C2BB9A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78ED0C2BBCA
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C75A22515
+	by mail.kernel.org (Postfix) with ESMTP id 4B16D224DE
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727458AbgLODNl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:13:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36506 "EHLO mail.kernel.org"
+        id S1728051AbgLODNp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:13:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728051AbgLODNV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:13:21 -0500
-Date:   Mon, 14 Dec 2020 19:12:39 -0800
+        id S1728101AbgLODNZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:13:25 -0500
+Date:   Mon, 14 Dec 2020 19:12:15 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001960;
-        bh=vhHl8tIc83GrV7b4ghxVTJ5dV18UIaqEWRt8KanEEXc=;
+        s=korg; t=1608001935;
+        bh=kuFCS14SHNFqv70fqSszNsxLoZwwR5iNZZ7SXGOk7nc=;
         h=From:To:Subject:In-Reply-To:From;
-        b=P6yh8ECkh8tR39WiSFigXwvnn4/plFCdg+zJiY55Ezw2z3d1Q5MdygkIS+U2FgM8a
-         AVDuz+VN4tvVBkSXe+O0K2ndSqipQHtKOIbOIZLT+F+P/Q/UfKDK7T5VWZCBT55jG2
-         Yy5PLVhyArIitb/NPtVPJcDsBUx2y/HZlE9majrE=
+        b=Pcy+i7mGmeq5m63NMDKunUjbCi/0/gHsvLzbSJTWo0XvgyJhZlYXOR1HsyyfqJLSw
+         TTHvZ0a1o3xrU71ER+RVASy5wx74A446RWK3sDFClbtNixT0qAqdCUqyyntQU/iswW
+         X2oGEYosqixQsPRH+aaPUbwOm0buCOo3/yRIBB2g=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz,
-        yanfei.xu@windriver.com
-Subject:  [patch 159/200] mm/compaction: rename 'start_pfn' to
- 'iteration_start_pfn' in compact_zone()
-Message-ID: <20201215031239.YoS1twkKE%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
+        mgorman@suse.de, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 152/200] mm: don't wake kswapd prematurely when
+ watermark boosting is disabled
+Message-ID: <20201215031215.ZzmH0glWr%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,54 +41,86 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/compaction: rename 'start_pfn' to 'iteration_start_pfn' in compact_zone()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: don't wake kswapd prematurely when watermark boosting is disabled
 
-There are two 'start_pfn' declared in compact_zone() which have different
-meanings.  Rename the second one to 'iteration_start_pfn' to prevent
-confusion.
+On 2-node NUMA hosts we see bursts of kswapd reclaim and subsequent
+pressure spikes and stalls from cache refaults while there is plenty of
+free memory in the system.
 
-Also, remove an useless semicolon.
+Usually, kswapd is woken up when all eligible nodes in an allocation are
+full.  But the code related to watermark boosting can wake kswapd on one
+full node while the other one is mostly empty.  This may be justified to
+fight fragmentation, but is currently unconditionally done whether
+watermark boosting is occurring or not.
 
-Link: https://lkml.kernel.org/r/20201019115044.1571-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+In our case, many of our workloads' throughput scales with available
+memory, and pure utilization is a more tangible concern than trends around
+longer-term fragmentation.  As a result we generally disable watermark
+boosting.
+
+Wake kswapd only woken when watermark boosting is requested.
+
+Link: https://lkml.kernel.org/r/20201020175833.397286-1-hannes@cmpxchg.org
+Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone
-+++ a/mm/compaction.c
-@@ -2275,7 +2275,7 @@ compact_zone(struct compact_control *cc,
+--- a/mm/page_alloc.c~mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled
++++ a/mm/page_alloc.c
+@@ -2482,12 +2482,12 @@ static bool can_steal_fallback(unsigned
+ 	return false;
+ }
  
- 	while ((ret = compact_finished(cc)) == COMPACT_CONTINUE) {
- 		int err;
--		unsigned long start_pfn = cc->migrate_pfn;
-+		unsigned long iteration_start_pfn = cc->migrate_pfn;
+-static inline void boost_watermark(struct zone *zone)
++static inline bool boost_watermark(struct zone *zone)
+ {
+ 	unsigned long max_boost;
  
- 		/*
- 		 * Avoid multiple rescans which can happen if a page cannot be
-@@ -2287,7 +2287,7 @@ compact_zone(struct compact_control *cc,
- 		 */
- 		cc->rescan = false;
- 		if (pageblock_start_pfn(last_migrated_pfn) ==
--		    pageblock_start_pfn(start_pfn)) {
-+		    pageblock_start_pfn(iteration_start_pfn)) {
- 			cc->rescan = true;
- 		}
+ 	if (!watermark_boost_factor)
+-		return;
++		return false;
+ 	/*
+ 	 * Don't bother in zones that are unlikely to produce results.
+ 	 * On small machines, including kdump capture kernels running
+@@ -2495,7 +2495,7 @@ static inline void boost_watermark(struc
+ 	 * memory situation immediately.
+ 	 */
+ 	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
+-		return;
++		return false;
  
-@@ -2311,8 +2311,7 @@ compact_zone(struct compact_control *cc,
- 			goto check_drain;
- 		case ISOLATE_SUCCESS:
- 			update_cached = false;
--			last_migrated_pfn = start_pfn;
--			;
-+			last_migrated_pfn = iteration_start_pfn;
- 		}
+ 	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
+ 			watermark_boost_factor, 10000);
+@@ -2509,12 +2509,14 @@ static inline void boost_watermark(struc
+ 	 * boosted watermark resulting in a hang.
+ 	 */
+ 	if (!max_boost)
+-		return;
++		return false;
  
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+ 	max_boost = max(pageblock_nr_pages, max_boost);
+ 
+ 	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
+ 		max_boost);
++
++	return true;
+ }
+ 
+ /*
+@@ -2552,8 +2554,7 @@ static void steal_suitable_fallback(stru
+ 	 * likelihood of future fallbacks. Wake kswapd now as the node
+ 	 * may be balanced overall and kswapd will not wake naturally.
+ 	 */
+-	boost_watermark(zone);
+-	if (alloc_flags & ALLOC_KSWAPD)
++	if (boost_watermark(zone) && (alloc_flags & ALLOC_KSWAPD))
+ 		set_bit(ZONE_BOOSTED_WATERMARK, &zone->flags);
+ 
+ 	/* We are not allowed to try stealing from the whole block */
 _
