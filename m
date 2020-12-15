@@ -7,228 +7,97 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB77C2BB40
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF0A8C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:06:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7315E22473
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89972224D2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:06:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726667AbgLODFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:05:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33320 "EHLO mail.kernel.org"
+        id S1726950AbgLODFz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:05:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727231AbgLODFo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:05:44 -0500
-Date:   Mon, 14 Dec 2020 19:05:28 -0800
+        id S1726807AbgLODFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:05:24 -0500
+Date:   Mon, 14 Dec 2020 19:04:40 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001528;
-        bh=37ksqu/kERkhRC7V4e2Npb7FKNagmg9LRR20IZgEQ+g=;
+        s=korg; t=1608001481;
+        bh=Lcejxg07La87YGD7cY87cJaoDZUtYs9xhkdjBfn9mFs=;
         h=From:To:Subject:In-Reply-To:From;
-        b=yCh4lPqAoinqq95rt8/JxRWBSaH6p0LKv9Hyco1vGRRGKQ4aXfJo6huYH8j94kGjZ
-         dk7kqhY/OCyzaH78q3m5ibLZ3vPxQvNip/wASfrxd8wll5tgz1W/XUJcQ9seD5IDb+
-         VQsGP6zCR6NrYR9nVhwxQY9xEYZ9JoA3gxTy7/GM=
+        b=wd7kllceGrp4ykUrbibGhqNx5iIA7QMTaxFmszTu/gkzXJO0JNJhV6CW8zXkOjyfK
+         S8Df2Xp3SWugKGSIonAv3b0ncuVhWo4IyaDHM7/m1yksWO/qnEA8tn5N3L5z59LdK4
+         Jat0l8ghhg2QEYgAWv0ue0CaRWF2csPU2fX1iUIY=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, jglisse@redhat.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 039/200] selftests/vm: hmm-tests: remove the
- libhugetlbfs dependency
-Message-ID: <20201215030528.-tbSVaCVL%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        bharata@linux.ibm.com, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 024/200] mm/slub: let number of online CPUs
+ determine the slub page order
+Message-ID: <20201215030440.j0ZgYOoZY%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: hmm-tests: remove the libhugetlbfs dependency
+From: Bharata B Rao <bharata@linux.ibm.com>
+Subject: mm/slub: let number of online CPUs determine the slub page order
 
-HMM selftests are incredibly useful, but they are only effective if people
-actually build and run them.  All the other tests in selftests/vm can be
-built with very standard, always-available libraries: libpthread, librt.
-The hmm-tests.c program, on the other hand, requires something that is
-(much) less readily available: libhugetlbfs.  And so the build will
-typically fail for many developers.
+The page order of the slab that gets chosen for a given slab cache depends
+on the number of objects that can be fit in the slab while meeting other
+requirements.  We start with a value of minimum objects based on
+nr_cpu_ids that is driven by possible number of CPUs and hence could be
+higher than the actual number of CPUs present in the system.  This leads
+to calculate_order() chosing a page order that is on the higher side
+leading to increased slab memory consumption on systems that have bigger
+page sizes.
 
-A simple attempt to install libhugetlbfs will also run into complications
-on some common distros these days: Fedora and Arch Linux (yes, Arch AUR
-has it, but that's fragile, as always with AUR).  The library is not
-maintained actively enough at the moment, for distros to deal with it.  I
-had to build it from source, for Fedora, and that didn't go too smoothly
-either.
+Hence rely on the number of online CPUs when determining the mininum
+objects, thereby increasing the chances of chosing a lower conservative
+page order for the slab.
 
-It turns out that, out of 21 tests in hmm-tests.c, only 2 actually require
-functionality from libhugetlbfs.  Therefore, if libhugetlbfs is missing,
-simply ifdef those two tests out and allow the developer to at least have
-the other 19 tests, if they don't want to pause to work through the above
-issues.  Also issue a warning, so that it's clear that there is an
-imperfection in the build.
+Vlastimil:
 
-In order to do that, a tiny shell script (check_config.sh) runs a quick
-compile (not link, that's too prone to false failures with library paths),
-and basically, if the compiler doesn't find hugetlbfs.h in its standard
-locations, then the script concludes that libhugetlbfs is not available.
-The output is in two files, one for inclusion in hmm-test.c
-(local_config.h), and one for inclusion in the Makefile (local_config.mk).
+: Ideally, we would react to hotplug events and update existing caches 
+: accordingly. But for that, recalculation of order for existing caches 
+: would have to be made safe, while not affecting hot paths. We have 
+: removed the sysfs interface with 32a6f409b693 ("mm, slub: remove runtime 
+: allocation order changes") as it didn't seem easy and worth the trouble.
+: 
+: In case somebody wants to start with a large order right from the boot 
+: because they know they will hotplug lots of cpus later, they can use 
+: slub_min_objects= boot param to override this heuristic. So in case this 
+: change regresses somebody's performance, there's a way around it and 
+: thus the risk is low IMHO.
 
-Link: https://lkml.kernel.org/r/20201026064021.3545418-9-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20201118082759.1413056-1-bharata@linux.ibm.com
+Signed-off-by: Bharata B Rao <bharata@linux.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore      |    1=20
- tools/testing/selftests/vm/Makefile        |   24 +++++++++++++-
- tools/testing/selftests/vm/check_config.sh |   31 +++++++++++++++++++
- tools/testing/selftests/vm/hmm-tests.c     |   10 +++++-
- 4 files changed, 63 insertions(+), 3 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- /dev/null
-+++ a/tools/testing/selftests/vm/check_config.sh
-@@ -0,0 +1,31 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Probe for libraries and create header files to record the results. Both C
-+# header files and Makefile include fragments are created.
-+
-+OUTPUT_H_FILE=3Dlocal_config.h
-+OUTPUT_MKFILE=3Dlocal_config.mk
-+
-+# libhugetlbfs
-+tmpname=3D$(mktemp)
-+tmpfile_c=3D${tmpname}.c
-+tmpfile_o=3D${tmpname}.o
-+
-+echo "#include <sys/types.h>"        > $tmpfile_c
-+echo "#include <hugetlbfs.h>"       >> $tmpfile_c
-+echo "int func(void) { return 0; }" >> $tmpfile_c
-+
-+CC=3D${1:?"Usage: $0 <compiler> # example compiler: gcc"}
-+$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
-+
-+if [ -f $tmpfile_o ]; then
-+    echo "#define LOCAL_CONFIG_HAVE_LIBHUGETLBFS 1" > $OUTPUT_H_FILE
-+    echo "HMM_EXTRA_LIBS =3D -lhugetlbfs"             > $OUTPUT_MKFILE
-+else
-+    echo "// No libhugetlbfs support found"      > $OUTPUT_H_FILE
-+    echo "# No libhugetlbfs support found, so:"  > $OUTPUT_MKFILE
-+    echo "HMM_EXTRA_LIBS =3D "                    >> $OUTPUT_MKFILE
-+fi
-+
-+rm ${tmpname}.*
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-hmm-tests-remove-t=
-he-libhugetlbfs-dependency
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -20,3 +20,4 @@ va_128TBswitch
- map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
-+local_config.*
---- a/tools/testing/selftests/vm/hmm-tests.c~selftests-vm-hmm-tests-remove-=
-the-libhugetlbfs-dependency
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -21,12 +21,16 @@
- #include <strings.h>
- #include <time.h>
- #include <pthread.h>
--#include <hugetlbfs.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <sys/mman.h>
- #include <sys/ioctl.h>
-=20
-+#include "./local_config.h"
-+#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
-+#include <hugetlbfs.h>
-+#endif
-+
- /*
-  * This is a private UAPI to the kernel test module so it isn't exported
-  * in the usual include/uapi/... directory.
-@@ -662,6 +666,7 @@ TEST_F(hmm, anon_write_huge)
- 	hmm_buffer_free(buffer);
- }
-=20
-+#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
- /*
-  * Write huge TLBFS page.
-  */
-@@ -720,6 +725,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
- 	buffer->ptr =3D NULL;
- 	hmm_buffer_free(buffer);
- }
-+#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
-=20
- /*
-  * Read mmap'ed file memory.
-@@ -1336,6 +1342,7 @@ TEST_F(hmm2, snapshot)
- 	hmm_buffer_free(buffer);
- }
-=20
-+#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
- /*
-  * Test the hmm_range_fault() HMM_PFN_PMD flag for large pages that
-  * should be mapped by a large page table entry.
-@@ -1411,6 +1418,7 @@ TEST_F(hmm, compound)
- 	buffer->ptr =3D NULL;
- 	hmm_buffer_free(buffer);
- }
-+#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
-=20
- /*
-  * Test two devices reading the same memory (double mapped).
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-hmm-tests-remove-the=
--libhugetlbfs-dependency
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -1,5 +1,8 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for vm selftests
-+
-+include local_config.mk
-+
- uname_M :=3D $(shell uname -m 2>/dev/null || echo not)
- MACHINE ?=3D $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
-=20
-@@ -80,8 +83,6 @@ TEST_FILES :=3D test_vmalloc.sh
- KSFT_KHDR_INSTALL :=3D 1
- include ../lib.mk
-=20
--$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
--
- ifeq ($(ARCH),x86_64)
- BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
- BINARIES_64 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
-@@ -134,3 +135,22 @@ endif
- $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
-=20
- $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
-+
-+$(OUTPUT)/hmm-tests: local_config.h
-+
-+# HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
-+$(OUTPUT)/hmm-tests: LDLIBS +=3D $(HMM_EXTRA_LIBS)
-+
-+local_config.mk local_config.h: check_config.sh
-+	/bin/sh ./check_config.sh $(CC)
-+
-+EXTRA_CLEAN +=3D local_config.mk local_config.h
-+
-+ifeq ($(HMM_EXTRA_LIBS),)
-+all: warn_missing_hugelibs
-+
-+warn_missing_hugelibs:
-+	@echo ; \
-+	echo "Warning: missing libhugetlbfs support. Some HMM tests will be skipp=
-ed." ; \
-+	echo
-+endif
+--- a/mm/slub.c~mm-slub-let-number-of-online-cpus-determine-the-slub-page-order
++++ a/mm/slub.c
+@@ -3431,7 +3431,7 @@ static inline int calculate_order(unsign
+ 	 */
+ 	min_objects = slub_min_objects;
+ 	if (!min_objects)
+-		min_objects = 4 * (fls(nr_cpu_ids) + 1);
++		min_objects = 4 * (fls(num_online_cpus()) + 1);
+ 	max_objects = order_objects(slub_max_order, size);
+ 	min_objects = min(min_objects, max_objects);
+ 
 _
