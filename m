@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1478FC4743E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 405E6C49EBF
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E20D922D73
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2409E22CAE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726740AbgLOX7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726744AbgLOX7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:59:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32898 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729385AbgLOXZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729465AbgLOXZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:25:07 -0500
-Date:   Tue, 15 Dec 2020 15:22:49 -0800
+Date:   Tue, 15 Dec 2020 15:22:52 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074569;
-        bh=k5CQiqCBeMwwrnOP2CSOHgtBcd1EA/1cu4UnvN43ajo=;
+        s=korg; t=1608074572;
+        bh=u7m1kWk2UdvNtRGnJ4v1/fiupJjQN7v+eYr2QiSJhys=;
         h=From:To:Subject:From;
-        b=bCYS0d+Zg5tZBzOp4cOoCNTX48ikW+NfmkVp8AOWtkMhuHB51NmcDKaPcTa3RB14t
-         RLl503ButifMlVdu/jG9bfavksvOTcwFP5i+zw+wgwdcIHmCWJWyutLzxZQe3q3dBC
-         LaI1josHBUEiAhZNGYOSV0yh/7LVhnjq/5IppeCw=
+        b=pTDBq6MfSf2nj3xBxjvOgnqXmKBJv+lIfNKHR+BkI98x8TxoExCv9H90+PYDjTkSZ
+         4t2eq0DEnjLKga+ahoqp+BjU1C/Pez/TEFlojqy0pZvvSqh8nxS/JqejfXzf5jYn5O
+         A+I5bfwTu5P6rhVwCqBtV9Crf7joUSfd0yxgmh6M=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hymmsx.yu@gmail.com,
-        mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, david@redhat.com,
+        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, songmuchun@bytedance.com, vbabka@suse.cz,
+        willy@infradead.org
 Subject:  [merged]
- mm-remove-the-filename-in-the-top-of-file-comment-in-vmscanc.patch removed
- from -mm tree
-Message-ID: <20201215232249.RRl6G8r0y%akpm@linux-foundation.org>
+ mm-page_isolation-do-not-isolate-the-max-order-page.patch removed from -mm
+ tree
+Message-ID: <20201215232252.uSPTS__dj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,39 +44,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: remove the filename in the top of file comment
+     Subject: mm/page_isolation: do not isolate the max order page
 has been removed from the -mm tree.  Its filename was
-     mm-remove-the-filename-in-the-top-of-file-comment-in-vmscanc.patch
+     mm-page_isolation-do-not-isolate-the-max-order-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "logic.yu" <hymmsx.yu@gmail.com>
-Subject: mm/vmscan.c: remove the filename in the top of file comment
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/page_isolation: do not isolate the max order page
 
-No point in having the filename inside the file.
+A max order page has no buddy page and never merges to another order.  So
+isolating and then freeing it is pointless.
 
-Link: https://lkml.kernel.org/r/20201115141541.3878-1-hymmsx.yu@gmail.com
-Signed-off-by: logic.yu <hymmsx.yu@gmail.com>
+Link: https://lkml.kernel.org/r/20201202122114.75316-1-songmuchun@bytedance.com
+Fixes: 3c605096d315 ("mm/page_alloc: restrict max order of merging on isolated pageblock")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_isolation.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-remove-the-filename-in-the-top-of-file-comment-in-vmscanc
-+++ a/mm/vmscan.c
-@@ -1,7 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-- *  linux/mm/vmscan.c
-- *
-  *  Copyright (C) 1991, 1992, 1993, 1994  Linus Torvalds
-  *
-  *  Swap reorganised 29.12.95, Stephen Tweedie.
+--- a/mm/page_isolation.c~mm-page_isolation-do-not-isolate-the-max-order-page
++++ a/mm/page_isolation.c
+@@ -88,7 +88,7 @@ static void unset_migratetype_isolate(st
+ 	 */
+ 	if (PageBuddy(page)) {
+ 		order = buddy_order(page);
+-		if (order >= pageblock_order) {
++		if (order >= pageblock_order && order < MAX_ORDER - 1) {
+ 			pfn = page_to_pfn(page);
+ 			buddy_pfn = __find_buddy_pfn(pfn, order);
+ 			buddy = page + (buddy_pfn - pfn);
 _
 
-Patches currently in -mm which might be from hymmsx.yu@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
