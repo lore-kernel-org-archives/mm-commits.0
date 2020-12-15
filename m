@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15F8DC4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:30:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63209C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:30:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B029222475
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31C4F2246B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:30:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726364AbgLODIf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:08:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35928 "EHLO mail.kernel.org"
+        id S1726340AbgLODI3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:08:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726239AbgLODIP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:08:15 -0500
-Date:   Mon, 14 Dec 2020 19:07:25 -0800
+        id S1726310AbgLODIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:08:18 -0500
+Date:   Mon, 14 Dec 2020 19:07:35 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001647;
-        bh=/39IeCIS0zHP/omwd/GvsB1s2wVrFa8M1IX0I60BdeE=;
+        s=korg; t=1608001657;
+        bh=mgRRasolaYw/41v/+vVWUQXRy2eSjUl2768FMLL3tVI=;
         h=From:To:Subject:In-Reply-To:From;
-        b=1rVHCS7WCGVZBMwpMnkqFIT1l2g6JjmF5hq4zT7IfnSDwYm+HmK4Ag2zVSGgzmC3l
-         VJsKTpHGewTwt/Nn5/9r5HuBg9kn9TbuAn97sjG3fOiQXDaTvfNFcOoKAHf6BcU9BJ
-         xAOA2zeLGp+yoeq69LiYL3dKumrx+44/yckHDoDY=
+        b=0rJBtD4C1/7OsWk+qyAAmFlPp1IMSyIf0Cc9PUYsmvD09ybDhxd+za2V6j7Puixi7
+         au0va4aCS83kRBiJ/Q+SjkK2zfrzUQ6i5vFwR1mAohox/bWmNNhtxW2dOIWA5SI1y8
+         dtUXcEvGDU6dynLN7gmmztnQjoRhAia+STQhO0B8=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, almasrymina@google.com,
         aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
@@ -44,8 +44,9 @@ To:     akpm@linux-foundation.org, almasrymina@google.com,
         sjpark@amazon.de, steven.price@arm.com, surenb@google.com,
         tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org,
         ziy@nvidia.com
-Subject:  [patch 074/200] kselftests: vm: add mremap tests
-Message-ID: <20201215030725.0iV2jluE9%akpm@linux-foundation.org>
+Subject:  [patch 076/200] arm64: mremap speedup - enable
+ HAVE_MOVE_PUD
+Message-ID: <20201215030735.fiUldIRrJ%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,472 +55,104 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: kselftests: vm: add mremap tests
+Subject: arm64: mremap speedup - enable HAVE_MOVE_PUD
 
-Patch series "Speed up mremap on large regions", v4.
+HAVE_MOVE_PUD enables remapping pages at the PUD level if both the source
+and destination addresses are PUD-aligned.
 
-mremap time can be optimized by moving entries at the PMD/PUD level if the
-source and destination addresses are PMD/PUD-aligned and PMD/PUD-sized. 
-Enable moving at the PMD and PUD levels on arm64 and x86.  Other
-architectures where this type of move is supported and known to be safe
-can also opt-in to these optimizations by enabling HAVE_MOVE_PMD and
-HAVE_MOVE_PUD.
+With HAVE_MOVE_PUD enabled it can be inferred that there is approximately
+a 19x improvement in performance on arm64.  (See data below).
 
-Observed Performance Improvements for remapping a PUD-aligned 1GB-sized
-region on x86 and arm64:
+------- Test Results ---------
 
-    - HAVE_MOVE_PMD is already enabled on x86 : N/A
-    - Enabling HAVE_MOVE_PUD on x86   : ~13x speed up
+The following results were obtained using a 5.4 kernel, by remapping a
+PUD-aligned, 1GB sized region to a PUD-aligned destination.  The results
+from 10 iterations of the test are given below:
 
-    - Enabling HAVE_MOVE_PMD on arm64 : ~ 8x speed up
-    - Enabling HAVE_MOVE_PUD on arm64 : ~19x speed up
+Total mremap times for 1GB data on arm64. All times are in nanoseconds.
 
-          Altogether, HAVE_MOVE_PMD and HAVE_MOVE_PUD
-          give a total of ~150x speed up on arm64.
+Control          HAVE_MOVE_PUD
 
+1247761          74271
+1219896          46771
+1094792          59687
+1227760          48385
+1043698          76666
+1101771          50365
+1159896          52500
+1143594          75261
+1025833          61354
+1078125          48697
 
-This patch (of 4):
+1134312.6        59395.7    <-- Mean time in nanoseconds
 
-Test mremap on regions of various sizes and alignments and validate data
-after remapping.  Also provide total time for remapping the region which
-is useful for performance comparison of the mremap optimizations that move
-pages at the PMD/PUD levels if HAVE_MOVE_PMD and/or HAVE_MOVE_PUD are
-enabled.
+A 1GB mremap completion time drops from ~1.1 milliseconds to ~59
+microseconds on arm64.  (~19x speed up).
 
-Link: https://lkml.kernel.org/r/20201014005320.2233162-1-kaleshsingh@google.com
-Link: https://lkml.kernel.org/r/20201014005320.2233162-2-kaleshsingh@google.com
+Link: https://lkml.kernel.org/r/20201014005320.2233162-5-kaleshsingh@google.com
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Hassan Naveed <hnaveed@wavecomp.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brian Geffon <bgeffon@google.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Hassan Naveed <hnaveed@wavecomp.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
 Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore    |    1 
- tools/testing/selftests/vm/Makefile      |    1 
- tools/testing/selftests/vm/mremap_test.c |  344 +++++++++++++++++++++
- tools/testing/selftests/vm/run_vmtests   |   11 
- 4 files changed, 357 insertions(+)
+ arch/arm64/Kconfig               |    1 +
+ arch/arm64/include/asm/pgtable.h |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/tools/testing/selftests/vm/.gitignore~kselftests-vm-add-mremap-tests
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -8,6 +8,7 @@ thuge-gen
- compaction_test
- mlock2-tests
- mremap_dontunmap
-+mremap_test
- on-fault-limit
- transhuge-stress
- protection_keys
---- a/tools/testing/selftests/vm/Makefile~kselftests-vm-add-mremap-tests
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -37,6 +37,7 @@ TEST_GEN_FILES += map_populate
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
- TEST_GEN_FILES += mremap_dontunmap
-+TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
---- /dev/null
-+++ a/tools/testing/selftests/vm/mremap_test.c
-@@ -0,0 +1,344 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright 2020 Google LLC
-+ */
-+#define _GNU_SOURCE
-+
-+#include <errno.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <time.h>
-+
-+#include "../kselftest.h"
-+
-+#define EXPECT_SUCCESS 0
-+#define EXPECT_FAILURE 1
-+#define NON_OVERLAPPING 0
-+#define OVERLAPPING 1
-+#define NS_PER_SEC 1000000000ULL
-+#define VALIDATION_DEFAULT_THRESHOLD 4	/* 4MB */
-+#define VALIDATION_NO_THRESHOLD 0	/* Verify the entire region */
-+
-+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
-+
-+struct config {
-+	unsigned long long src_alignment;
-+	unsigned long long dest_alignment;
-+	unsigned long long region_size;
-+	int overlapping;
-+};
-+
-+struct test {
-+	const char *name;
-+	struct config config;
-+	int expect_failure;
-+};
-+
-+enum {
-+	_1KB = 1ULL << 10,	/* 1KB -> not page aligned */
-+	_4KB = 4ULL << 10,
-+	_8KB = 8ULL << 10,
-+	_1MB = 1ULL << 20,
-+	_2MB = 2ULL << 20,
-+	_4MB = 4ULL << 20,
-+	_1GB = 1ULL << 30,
-+	_2GB = 2ULL << 30,
-+	PTE = _4KB,
-+	PMD = _2MB,
-+	PUD = _1GB,
-+};
-+
-+#define MAKE_TEST(source_align, destination_align, size,	\
-+		  overlaps, should_fail, test_name)		\
-+{								\
-+	.name = test_name,					\
-+	.config = {						\
-+		.src_alignment = source_align,			\
-+		.dest_alignment = destination_align,		\
-+		.region_size = size,				\
-+		.overlapping = overlaps,			\
-+	},							\
-+	.expect_failure = should_fail				\
-+}
-+
-+/*
-+ * Returns the start address of the mapping on success, else returns
-+ * NULL on failure.
-+ */
-+static void *get_source_mapping(struct config c)
-+{
-+	unsigned long long addr = 0ULL;
-+	void *src_addr = NULL;
-+retry:
-+	addr += c.src_alignment;
-+	src_addr = mmap((void *) addr, c.region_size, PROT_READ | PROT_WRITE,
-+			MAP_FIXED | MAP_ANONYMOUS | MAP_SHARED, -1, 0);
-+	if (src_addr == MAP_FAILED) {
-+		if (errno == EPERM)
-+			goto retry;
-+		goto error;
-+	}
-+	/*
-+	 * Check that the address is aligned to the specified alignment.
-+	 * Addresses which have alignments that are multiples of that
-+	 * specified are not considered valid. For instance, 1GB address is
-+	 * 2MB-aligned, however it will not be considered valid for a
-+	 * requested alignment of 2MB. This is done to reduce coincidental
-+	 * alignment in the tests.
-+	 */
-+	if (((unsigned long long) src_addr & (c.src_alignment - 1)) ||
-+			!((unsigned long long) src_addr & c.src_alignment))
-+		goto retry;
-+
-+	if (!src_addr)
-+		goto error;
-+
-+	return src_addr;
-+error:
-+	ksft_print_msg("Failed to map source region: %s\n",
-+			strerror(errno));
-+	return NULL;
-+}
-+
-+/* Returns the time taken for the remap on success else returns -1. */
-+static long long remap_region(struct config c, unsigned int threshold_mb,
-+			      char pattern_seed)
-+{
-+	void *addr, *src_addr, *dest_addr;
-+	unsigned long long i;
-+	struct timespec t_start = {0, 0}, t_end = {0, 0};
-+	long long  start_ns, end_ns, align_mask, ret, offset;
-+	unsigned long long threshold;
-+
-+	if (threshold_mb == VALIDATION_NO_THRESHOLD)
-+		threshold = c.region_size;
-+	else
-+		threshold = MIN(threshold_mb * _1MB, c.region_size);
-+
-+	src_addr = get_source_mapping(c);
-+	if (!src_addr) {
-+		ret = -1;
-+		goto out;
-+	}
-+
-+	/* Set byte pattern */
-+	srand(pattern_seed);
-+	for (i = 0; i < threshold; i++)
-+		memset((char *) src_addr + i, (char) rand(), 1);
-+
-+	/* Mask to zero out lower bits of address for alignment */
-+	align_mask = ~(c.dest_alignment - 1);
-+	/* Offset of destination address from the end of the source region */
-+	offset = (c.overlapping) ? -c.dest_alignment : c.dest_alignment;
-+	addr = (void *) (((unsigned long long) src_addr + c.region_size
-+			  + offset) & align_mask);
-+
-+	/* See comment in get_source_mapping() */
-+	if (!((unsigned long long) addr & c.dest_alignment))
-+		addr = (void *) ((unsigned long long) addr | c.dest_alignment);
-+
-+	clock_gettime(CLOCK_MONOTONIC, &t_start);
-+	dest_addr = mremap(src_addr, c.region_size, c.region_size,
-+			MREMAP_MAYMOVE|MREMAP_FIXED, (char *) addr);
-+	clock_gettime(CLOCK_MONOTONIC, &t_end);
-+
-+	if (dest_addr == MAP_FAILED) {
-+		ksft_print_msg("mremap failed: %s\n", strerror(errno));
-+		ret = -1;
-+		goto clean_up_src;
-+	}
-+
-+	/* Verify byte pattern after remapping */
-+	srand(pattern_seed);
-+	for (i = 0; i < threshold; i++) {
-+		char c = (char) rand();
-+
-+		if (((char *) dest_addr)[i] != c) {
-+			ksft_print_msg("Data after remap doesn't match at offset %d\n",
-+				       i);
-+			ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
-+					((char *) dest_addr)[i] & 0xff);
-+			ret = -1;
-+			goto clean_up_dest;
-+		}
-+	}
-+
-+	start_ns = t_start.tv_sec * NS_PER_SEC + t_start.tv_nsec;
-+	end_ns = t_end.tv_sec * NS_PER_SEC + t_end.tv_nsec;
-+	ret = end_ns - start_ns;
-+
-+/*
-+ * Since the destination address is specified using MREMAP_FIXED, subsequent
-+ * mremap will unmap any previous mapping at the address range specified by
-+ * dest_addr and region_size. This significantly affects the remap time of
-+ * subsequent tests. So we clean up mappings after each test.
-+ */
-+clean_up_dest:
-+	munmap(dest_addr, c.region_size);
-+clean_up_src:
-+	munmap(src_addr, c.region_size);
-+out:
-+	return ret;
-+}
-+
-+static void run_mremap_test_case(struct test test_case, int *failures,
-+				 unsigned int threshold_mb,
-+				 unsigned int pattern_seed)
-+{
-+	long long remap_time = remap_region(test_case.config, threshold_mb,
-+					    pattern_seed);
-+
-+	if (remap_time < 0) {
-+		if (test_case.expect_failure)
-+			ksft_test_result_pass("%s\n\tExpected mremap failure\n",
-+					      test_case.name);
-+		else {
-+			ksft_test_result_fail("%s\n", test_case.name);
-+			*failures += 1;
-+		}
-+	} else {
-+		/*
-+		 * Comparing mremap time is only applicable if entire region
-+		 * was faulted in.
-+		 */
-+		if (threshold_mb == VALIDATION_NO_THRESHOLD ||
-+		    test_case.config.region_size <= threshold_mb * _1MB)
-+			ksft_test_result_pass("%s\n\tmremap time: %12lldns\n",
-+					      test_case.name, remap_time);
-+		else
-+			ksft_test_result_pass("%s\n", test_case.name);
-+	}
-+}
-+
-+static void usage(const char *cmd)
-+{
-+	fprintf(stderr,
-+		"Usage: %s [[-t <threshold_mb>] [-p <pattern_seed>]]\n"
-+		"-t\t only validate threshold_mb of the remapped region\n"
-+		"  \t if 0 is supplied no threshold is used; all tests\n"
-+		"  \t are run and remapped regions validated fully.\n"
-+		"  \t The default threshold used is 4MB.\n"
-+		"-p\t provide a seed to generate the random pattern for\n"
-+		"  \t validating the remapped region.\n", cmd);
-+}
-+
-+static int parse_args(int argc, char **argv, unsigned int *threshold_mb,
-+		      unsigned int *pattern_seed)
-+{
-+	const char *optstr = "t:p:";
-+	int opt;
-+
-+	while ((opt = getopt(argc, argv, optstr)) != -1) {
-+		switch (opt) {
-+		case 't':
-+			*threshold_mb = atoi(optarg);
-+			break;
-+		case 'p':
-+			*pattern_seed = atoi(optarg);
-+			break;
-+		default:
-+			usage(argv[0]);
-+			return -1;
-+		}
-+	}
-+
-+	if (optind < argc) {
-+		usage(argv[0]);
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int failures = 0;
-+	int i, run_perf_tests;
-+	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
-+	unsigned int pattern_seed;
-+	time_t t;
-+
-+	pattern_seed = (unsigned int) time(&t);
-+
-+	if (parse_args(argc, argv, &threshold_mb, &pattern_seed) < 0)
-+		exit(EXIT_FAILURE);
-+
-+	ksft_print_msg("Test configs:\n\tthreshold_mb=%u\n\tpattern_seed=%u\n\n",
-+		       threshold_mb, pattern_seed);
-+
-+	struct test test_cases[] = {
-+		/* Expected mremap failures */
-+		MAKE_TEST(_4KB, _4KB, _4KB, OVERLAPPING, EXPECT_FAILURE,
-+		  "mremap - Source and Destination Regions Overlapping"),
-+		MAKE_TEST(_4KB, _1KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
-+		  "mremap - Destination Address Misaligned (1KB-aligned)"),
-+		MAKE_TEST(_1KB, _4KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
-+		  "mremap - Source Address Misaligned (1KB-aligned)"),
-+
-+		/* Src addr PTE aligned */
-+		MAKE_TEST(PTE, PTE, _8KB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "8KB mremap - Source PTE-aligned, Destination PTE-aligned"),
-+
-+		/* Src addr 1MB aligned */
-+		MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned"),
-+		MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned"),
-+
-+		/* Src addr PMD aligned */
-+		MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "4MB mremap - Source PMD-aligned, Destination PTE-aligned"),
-+		MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned"),
-+		MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "4MB mremap - Source PMD-aligned, Destination PMD-aligned"),
-+
-+		/* Src addr PUD aligned */
-+		MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "2GB mremap - Source PUD-aligned, Destination PTE-aligned"),
-+		MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "2GB mremap - Source PUD-aligned, Destination 1MB-aligned"),
-+		MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "2GB mremap - Source PUD-aligned, Destination PMD-aligned"),
-+		MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "2GB mremap - Source PUD-aligned, Destination PUD-aligned"),
-+	};
-+
-+	struct test perf_test_cases[] = {
-+		/*
-+		 * mremap 1GB region - Page table level aligned time
-+		 * comparison.
-+		 */
-+		MAKE_TEST(PTE, PTE, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "1GB mremap - Source PTE-aligned, Destination PTE-aligned"),
-+		MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "1GB mremap - Source PMD-aligned, Destination PMD-aligned"),
-+		MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+		  "1GB mremap - Source PUD-aligned, Destination PUD-aligned"),
-+	};
-+
-+	run_perf_tests =  (threshold_mb == VALIDATION_NO_THRESHOLD) ||
-+				(threshold_mb * _1MB >= _1GB);
-+
-+	ksft_set_plan(ARRAY_SIZE(test_cases) + (run_perf_tests ?
-+		      ARRAY_SIZE(perf_test_cases) : 0));
-+
-+	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
-+		run_mremap_test_case(test_cases[i], &failures, threshold_mb,
-+				     pattern_seed);
-+
-+	if (run_perf_tests) {
-+		ksft_print_msg("\n%s\n",
-+		 "mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:");
-+		for (i = 0; i < ARRAY_SIZE(perf_test_cases); i++)
-+			run_mremap_test_case(perf_test_cases[i], &failures,
-+					     threshold_mb, pattern_seed);
-+	}
-+
-+	if (failures > 0)
-+		ksft_exit_fail();
-+	else
-+		ksft_exit_pass();
-+}
---- a/tools/testing/selftests/vm/run_vmtests~kselftests-vm-add-mremap-tests
-+++ a/tools/testing/selftests/vm/run_vmtests
-@@ -253,6 +253,17 @@ else
- 	echo "[PASS]"
- fi
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mremap-speedup-enable-have_move_pud
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -462,6 +462,7 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
+ #define pfn_pud(pfn,prot)	__pud(__phys_to_pud_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
  
-+echo "-------------------"
-+echo "running mremap_test"
-+echo "-------------------"
-+./mremap_test
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
-+
- echo "-----------------"
- echo "running thuge-gen"
- echo "-----------------"
+ #define set_pmd_at(mm, addr, pmdp, pmd)	set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd))
++#define set_pud_at(mm, addr, pudp, pud)	set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud))
+ 
+ #define __p4d_to_phys(p4d)	__pte_to_phys(p4d_pte(p4d))
+ #define __phys_to_p4d_val(phys)	__phys_to_pte_val(phys)
+--- a/arch/arm64/Kconfig~arm64-mremap-speedup-enable-have_move_pud
++++ a/arch/arm64/Kconfig
+@@ -125,6 +125,7 @@ config ARM64
+ 	select HANDLE_DOMAIN_IRQ
+ 	select HARDIRQS_SW_RESEND
+ 	select HAVE_MOVE_PMD
++	select HAVE_MOVE_PUD
+ 	select HAVE_PCI
+ 	select HAVE_ACPI_APEI if (ACPI && EFI)
+ 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
 _
