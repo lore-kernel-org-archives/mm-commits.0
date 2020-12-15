@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 039DFC4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC2B7C2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD4B6224B1
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9089722512
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727848AbgLODMZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:12:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36780 "EHLO mail.kernel.org"
+        id S1727851AbgLODM3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:12:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727657AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:15 -0500
-Date:   Mon, 14 Dec 2020 19:09:28 -0800
+        id S1727933AbgLODMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:18 -0500
+Date:   Mon, 14 Dec 2020 19:09:55 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001769;
-        bh=8tr3WEpnesS0vWwhNSOvE/GWMZu3PtFrtQnYh2A80hE=;
+        s=korg; t=1608001797;
+        bh=pLny3AuHZFs/WKPuc5Afq6GbcuJIPKdTuH1Z1HZnpAc=;
         h=From:To:Subject:In-Reply-To:From;
-        b=RTTHNlN+BIyHYjZE7/e+VoHNzktrNd7uCzg2D0crukbr4gmLRDLo5bAGbtIWPzh/n
-         i7S+/AUqmzlNxFrWv/RgsSdwXzWKLl6F1/e5rsBtcV7Qz1EmgEbBj2wIQ5u4RZ7Ksw
-         GO+UskvKRRbu/iOzHR8u2m6D53+p0DtFjRnrzpZI=
+        b=E2qpHhrn7bgYsvXWch09HN/PYq3OrWpUAxKYzEPEECVRR1ueSayfNISTN0uVV6tcO
+         TIFdDLzLVD6Rz9J0CjzjJjHrna3b7hgPWqvHxSI4rmQkMpCbsKhHWZvMKiUThC157M
+         vY74zsDOyDekYVcjuZ5YVpbAIhl4bm2wsmXVyEaA=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     adobriyan@gmail.com, akpm@linux-foundation.org,
         catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
@@ -35,9 +35,9 @@ To:     adobriyan@gmail.com, akpm@linux-foundation.org,
         mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
         schmitzmic@gmail.com, tony.luck@intel.com,
         torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
-Subject:  [patch 106/200] alpha: switch from DISCONTIGMEM to
- SPARSEMEM
-Message-ID: <20201215030928.gbkxQ3DC3%akpm@linux-foundation.org>
+Subject:  [patch 113/200] arm: remove
+ CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+Message-ID: <20201215030955.RzGlA2IWP%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,46 +46,25 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: alpha: switch from DISCONTIGMEM to SPARSEMEM
+Subject: arm: remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
 
-Patch series "arch, mm: deprecate DISCONTIGMEM", v2.
+ARM is the only architecture that defines CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+which in turn enables memmap_valid_within() function that is intended to
+verify existence  of struct page associated with a pfn when there are holes
+in the memory map.
 
-It's been a while since DISCONTIGMEM is generally considered deprecated,
-but it is still used by four architectures.  This set replaces
-DISCONTIGMEM with a different way to handle holes in the memory map and
-marks DISCONTIGMEM configuration as BROKEN in Kconfigs of these
-architectures with the intention to completely remove it in several
-releases.
+However, the ARCH_HAS_HOLES_MEMORYMODEL also enables HAVE_ARCH_PFN_VALID
+and arch-specific pfn_valid() implementation that also deals with the holes
+in the memory map.
 
-While for 64-bit alpha and ia64 the switch to SPARSEMEM is quite obvious
-and was a matter of moving some bits around, for smaller 32-bit arc and
-m68k SPARSEMEM is not necessarily the best thing to do.
+The only two users of memmap_valid_within() call this function after
+a call to pfn_valid() so the memmap_valid_within() check becomes redundant.
 
-On 32-bit machines SPARSEMEM would require large sections to make section
-index fit in the page flags, but larger sections mean that more memory is
-wasted for unused memory map.
+Remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL and memmap_valid_within() and rely
+entirely on ARM's implementation of pfn_valid() that is now enabled
+unconditionally.
 
-Besides, pfn_to_page() and page_to_pfn() become less efficient, at least
-on arc.
-
-So I've decided to generalize arm's approach for freeing of unused parts
-of the memory map with FLATMEM and enable it for both arc and m68k.  The
-details are in the description of patches 10 (arc) and 13 (m68k).
-
-
-This patch (of 13):
-
-Enable SPARSEMEM support on alpha and deprecate DISCONTIGMEM.
-
-The required changes are mostly around moving duplicated definitions of
-page access and address conversion macros to a common place and making sure
-they are available for all memory models.
-
-The DISCONTINGMEM support is marked as BROKEN an will be removed in a
-couple of releases.
-
-Link: https://lkml.kernel.org/r/20201101170454.9567-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20201101170454.9567-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-9-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -103,170 +82,226 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig                 |    8 ++++++++
- arch/alpha/include/asm/mmzone.h    |   14 ++------------
- arch/alpha/include/asm/page.h      |    7 ++++---
- arch/alpha/include/asm/pgtable.h   |   12 +++++-------
- arch/alpha/include/asm/sparsemem.h |   18 ++++++++++++++++++
- arch/alpha/kernel/setup.c          |    1 +
- 6 files changed, 38 insertions(+), 22 deletions(-)
+ Documentation/vm/memory-model.rst |    3 --
+ arch/arm/Kconfig                  |    8 +------
+ arch/arm/mach-bcm/Kconfig         |    1 
+ arch/arm/mach-davinci/Kconfig     |    1 
+ arch/arm/mach-exynos/Kconfig      |    1 
+ arch/arm/mach-highbank/Kconfig    |    1 
+ arch/arm/mach-omap2/Kconfig       |    1 
+ arch/arm/mach-s5pv210/Kconfig     |    1 
+ arch/arm/mach-tango/Kconfig       |    1 
+ fs/proc/kcore.c                   |    2 -
+ include/linux/mmzone.h            |   31 ----------------------------
+ mm/mmzone.c                       |   14 ------------
+ mm/vmstat.c                       |    4 ---
+ 13 files changed, 3 insertions(+), 66 deletions(-)
 
---- a/arch/alpha/include/asm/mmzone.h~alpha-switch-from-discontigmem-to-sparsemem
-+++ a/arch/alpha/include/asm/mmzone.h
-@@ -6,6 +6,8 @@
- #ifndef _ASM_MMZONE_H_
- #define _ASM_MMZONE_H_
+--- a/arch/arm/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/Kconfig
+@@ -25,7 +25,7 @@ config ARM
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_KEEP_MEMBLOCK if HAVE_ARCH_PFN_VALID || KEXEC
++	select ARCH_KEEP_MEMBLOCK
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_NO_SG_CHAIN if !ARM_HAS_SG_CHAIN
+ 	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
+@@ -520,7 +520,6 @@ config ARCH_S3C24XX
+ config ARCH_OMAP1
+ 	bool "TI OMAP1"
+ 	depends on MMU
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_OMAP
+ 	select CLKDEV_LOOKUP
+ 	select CLKSRC_MMIO
+@@ -1480,9 +1479,6 @@ config OABI_COMPAT
+ 	  UNPREDICTABLE (in fact it can be predicted that it won't work
+ 	  at all). If in doubt say N.
  
-+#ifdef CONFIG_DISCONTIGMEM
-+
- #include <asm/smp.h>
+-config ARCH_HAS_HOLES_MEMORYMODEL
+-	bool
+-
+ config ARCH_SELECT_MEMORY_MODEL
+ 	bool
  
- /*
-@@ -45,8 +47,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
- }
+@@ -1494,7 +1490,7 @@ config ARCH_SPARSEMEM_ENABLE
+ 	select SPARSEMEM_STATIC if SPARSEMEM
+ 
+ config HAVE_ARCH_PFN_VALID
+-	def_bool ARCH_HAS_HOLES_MEMORYMODEL || !SPARSEMEM
++	def_bool y
+ 
+ config HIGHMEM
+ 	bool "High Memory Support"
+--- a/arch/arm/mach-bcm/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-bcm/Kconfig
+@@ -211,7 +211,6 @@ config ARCH_BRCMSTB
+ 	select BCM7038_L1_IRQ
+ 	select BRCMSTB_L2_IRQ
+ 	select BCM7120_L2_IRQ
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ZONE_DMA if ARM_LPAE
+ 	select SOC_BRCMSTB
+ 	select SOC_BUS
+--- a/arch/arm/mach-davinci/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-davinci/Kconfig
+@@ -5,7 +5,6 @@ menuconfig ARCH_DAVINCI
+ 	depends on ARCH_MULTI_V5
+ 	select DAVINCI_TIMER
+ 	select ZONE_DMA
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select PM_GENERIC_DOMAINS if PM
+ 	select PM_GENERIC_DOMAINS_OF if PM && OF
+ 	select REGMAP_MMIO
+--- a/arch/arm/mach-exynos/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-exynos/Kconfig
+@@ -8,7 +8,6 @@
+ menuconfig ARCH_EXYNOS
+ 	bool "Samsung Exynos"
+ 	depends on ARCH_MULTI_V7
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_SUPPORTS_BIG_ENDIAN
+ 	select ARM_AMBA
+ 	select ARM_GIC
+--- a/arch/arm/mach-highbank/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-highbank/Kconfig
+@@ -2,7 +2,6 @@
+ config ARCH_HIGHBANK
+ 	bool "Calxeda ECX-1000/2000 (Highbank/Midway)"
+ 	depends on ARCH_MULTI_V7
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_SUPPORTS_BIG_ENDIAN
+ 	select ARM_AMBA
+ 	select ARM_ERRATA_764369 if SMP
+--- a/arch/arm/mach-omap2/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-omap2/Kconfig
+@@ -93,7 +93,6 @@ config SOC_DRA7XX
+ config ARCH_OMAP2PLUS
+ 	bool
+ 	select ARCH_HAS_BANDGAP
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_HAS_RESET_CONTROLLER
+ 	select ARCH_OMAP
+ 	select CLKSRC_MMIO
+--- a/arch/arm/mach-s5pv210/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-s5pv210/Kconfig
+@@ -8,7 +8,6 @@
+ config ARCH_S5PV210
+ 	bool "Samsung S5PV210/S5PC110"
+ 	depends on ARCH_MULTI_V7
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARM_VIC
+ 	select CLKSRC_SAMSUNG_PWM
+ 	select COMMON_CLK_SAMSUNG
+--- a/arch/arm/mach-tango/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-tango/Kconfig
+@@ -3,7 +3,6 @@ config ARCH_TANGO
+ 	bool "Sigma Designs Tango4 (SMP87xx)"
+ 	depends on ARCH_MULTI_V7
+ 	# Cortex-A9 MPCore r3p0, PL310 r3p2
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARM_ERRATA_754322
+ 	select ARM_ERRATA_764369 if SMP
+ 	select ARM_ERRATA_775420
+--- a/Documentation/vm/memory-model.rst~arm-remove-config_arch_has_holes_memorymodel
++++ a/Documentation/vm/memory-model.rst
+@@ -51,8 +51,7 @@ call :c:func:`free_area_init` function.
+ usable until the call to :c:func:`memblock_free_all` that hands all the
+ memory to the page allocator.
+ 
+-If an architecture enables `CONFIG_ARCH_HAS_HOLES_MEMORYMODEL` option,
+-it may free parts of the `mem_map` array that do not cover the
++An architecture may free parts of the `mem_map` array that do not cover the
+ actual physical pages. In such case, the architecture specific
+ :c:func:`pfn_valid` implementation should take the holes in the
+ `mem_map` into account.
+--- a/fs/proc/kcore.c~arm-remove-config_arch_has_holes_memorymodel
++++ a/fs/proc/kcore.c
+@@ -193,8 +193,6 @@ kclist_add_private(unsigned long pfn, un
+ 		return 1;
+ 
+ 	p = pfn_to_page(pfn);
+-	if (!memmap_valid_within(pfn, p, page_zone(p)))
+-		return 1;
+ 
+ 	ent = kmalloc(sizeof(*ent), GFP_KERNEL);
+ 	if (!ent)
+--- a/include/linux/mmzone.h~arm-remove-config_arch_has_holes_memorymodel
++++ a/include/linux/mmzone.h
+@@ -1440,37 +1440,6 @@ void sparse_init(void);
+ #define pfn_valid_within(pfn) (1)
  #endif
  
--#ifdef CONFIG_DISCONTIGMEM
+-#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+-/*
+- * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
+- * associated with it or not. This means that a struct page exists for this
+- * pfn. The caller cannot assume the page is fully initialized in general.
+- * Hotplugable pages might not have been onlined yet. pfn_to_online_page()
+- * will ensure the struct page is fully online and initialized. Special pages
+- * (e.g. ZONE_DEVICE) are never onlined and should be treated accordingly.
+- *
+- * In FLATMEM, it is expected that holes always have valid memmap as long as
+- * there is valid PFNs either side of the hole. In SPARSEMEM, it is assumed
+- * that a valid section has a memmap for the entire section.
+- *
+- * However, an ARM, and maybe other embedded architectures in the future
+- * free memmap backing holes to save memory on the assumption the memmap is
+- * never used. The page_zone linkages are then broken even though pfn_valid()
+- * returns true. A walker of the full memmap must then do this additional
+- * check to ensure the memmap they are looking at is sane by making sure
+- * the zone and PFN linkages are still valid. This is expensive, but walkers
+- * of the full memmap are extremely rare.
+- */
+-bool memmap_valid_within(unsigned long pfn,
+-					struct page *page, struct zone *zone);
+-#else
+-static inline bool memmap_valid_within(unsigned long pfn,
+-					struct page *page, struct zone *zone)
+-{
+-	return true;
+-}
+-#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
 -
- /*
-  * Following are macros that each numa implementation must define.
-  */
-@@ -68,11 +68,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
- /* XXX: FIXME -- nyc */
- #define kern_addr_valid(kaddr)	(0)
- 
--#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
--
--#define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> 32))
--#define pte_pfn(pte)		(pte_val(pte) >> 32)
--
- #define mk_pte(page, pgprot)						     \
- ({								 	     \
- 	pte_t pte;                                                           \
-@@ -95,16 +90,11 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
- 	__xx;                                                           \
- })
- 
--#define page_to_pa(page)						\
--	(page_to_pfn(page) << PAGE_SHIFT)
--
- #define pfn_to_nid(pfn)		pa_to_nid(((u64)(pfn) << PAGE_SHIFT))
- #define pfn_valid(pfn)							\
- 	(((pfn) - node_start_pfn(pfn_to_nid(pfn))) <			\
- 	 node_spanned_pages(pfn_to_nid(pfn)))					\
- 
--#define virt_addr_valid(kaddr)	pfn_valid((__pa(kaddr) >> PAGE_SHIFT))
--
- #endif /* CONFIG_DISCONTIGMEM */
- 
- #endif /* _ASM_MMZONE_H_ */
---- a/arch/alpha/include/asm/page.h~alpha-switch-from-discontigmem-to-sparsemem
-+++ a/arch/alpha/include/asm/page.h
-@@ -83,12 +83,13 @@ typedef struct page *pgtable_t;
- 
- #define __pa(x)			((unsigned long) (x) - PAGE_OFFSET)
- #define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
--#ifndef CONFIG_DISCONTIGMEM
-+
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
-+#define virt_addr_valid(kaddr)	pfn_valid((__pa(kaddr) >> PAGE_SHIFT))
- 
-+#ifdef CONFIG_FLATMEM
- #define pfn_valid(pfn)		((pfn) < max_mapnr)
--#define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
--#endif /* CONFIG_DISCONTIGMEM */
-+#endif /* CONFIG_FLATMEM */
- 
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
---- a/arch/alpha/include/asm/pgtable.h~alpha-switch-from-discontigmem-to-sparsemem
-+++ a/arch/alpha/include/asm/pgtable.h
-@@ -203,10 +203,10 @@ extern unsigned long __zero_page(void);
-  * Conversion functions:  convert a page and protection to a page entry,
-  * and a page entry and page directory to the page they refer to.
-  */
--#ifndef CONFIG_DISCONTIGMEM
--#define page_to_pa(page)	(((page) - mem_map) << PAGE_SHIFT)
--
-+#define page_to_pa(page)	(page_to_pfn(page) << PAGE_SHIFT)
- #define pte_pfn(pte)	(pte_val(pte) >> 32)
-+
-+#ifndef CONFIG_DISCONTIGMEM
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
- #define mk_pte(page, pgprot)						\
- ({									\
-@@ -236,10 +236,8 @@ pmd_page_vaddr(pmd_t pmd)
- 	return ((pmd_val(pmd) & _PFN_MASK) >> (32-PAGE_SHIFT)) + PAGE_OFFSET;
+ #endif /* !__GENERATING_BOUNDS.H */
+ #endif /* !__ASSEMBLY__ */
+ #endif /* _LINUX_MMZONE_H */
+--- a/mm/mmzone.c~arm-remove-config_arch_has_holes_memorymodel
++++ a/mm/mmzone.c
+@@ -72,20 +72,6 @@ struct zoneref *__next_zones_zonelist(st
+ 	return z;
  }
  
--#ifndef CONFIG_DISCONTIGMEM
--#define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) & _PFN_MASK) >> 32))
--#define pud_page(pud)	(mem_map + ((pud_val(pud) & _PFN_MASK) >> 32))
--#endif
-+#define pmd_page(pmd)	(pfn_to_page(pmd_val(pmd) >> 32))
-+#define pud_page(pud)	(pfn_to_page(pud_val(pud) >> 32))
+-#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+-bool memmap_valid_within(unsigned long pfn,
+-					struct page *page, struct zone *zone)
+-{
+-	if (page_to_pfn(page) != pfn)
+-		return false;
+-
+-	if (page_zone(page) != zone)
+-		return false;
+-
+-	return true;
+-}
+-#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
+-
+ void lruvec_init(struct lruvec *lruvec)
+ {
+ 	enum lru_list lru;
+--- a/mm/vmstat.c~arm-remove-config_arch_has_holes_memorymodel
++++ a/mm/vmstat.c
+@@ -1503,10 +1503,6 @@ static void pagetypeinfo_showblockcount_
+ 		if (!page)
+ 			continue;
  
- extern inline unsigned long pud_page_vaddr(pud_t pgd)
- { return PAGE_OFFSET + ((pud_val(pgd) & _PFN_MASK) >> (32-PAGE_SHIFT)); }
---- /dev/null
-+++ a/arch/alpha/include/asm/sparsemem.h
-@@ -0,0 +1,18 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ASM_ALPHA_SPARSEMEM_H
-+#define _ASM_ALPHA_SPARSEMEM_H
-+
-+#ifdef CONFIG_SPARSEMEM
-+
-+#define SECTION_SIZE_BITS	27
-+
-+/*
-+ * According to "Alpha Architecture Reference Manual" physical
-+ * addresses are at most 48 bits.
-+ * https://download.majix.org/dec/alpha_arch_ref.pdf
-+ */
-+#define MAX_PHYSMEM_BITS	48
-+
-+#endif /* CONFIG_SPARSEMEM */
-+
-+#endif /* _ASM_ALPHA_SPARSEMEM_H */
---- a/arch/alpha/Kconfig~alpha-switch-from-discontigmem-to-sparsemem
-+++ a/arch/alpha/Kconfig
-@@ -40,6 +40,7 @@ config ALPHA
- 	select CPU_NO_EFFICIENT_FFS if !ALPHA_EV67
- 	select MMU_GATHER_NO_RANGE
- 	select SET_FS
-+	select SPARSEMEM_EXTREME if SPARSEMEM
- 	help
- 	  The Alpha is a 64-bit general-purpose processor designed and
- 	  marketed by the Digital Equipment Corporation of blessed memory,
-@@ -551,12 +552,19 @@ config NR_CPUS
+-		/* Watch for unexpected holes punched in the memmap */
+-		if (!memmap_valid_within(pfn, page, zone))
+-			continue;
+-
+ 		if (page_zone(page) != zone)
+ 			continue;
  
- config ARCH_DISCONTIGMEM_ENABLE
- 	bool "Discontiguous Memory Support"
-+	depends on BROKEN
- 	help
- 	  Say Y to support efficient handling of discontiguous physical memory,
- 	  for architectures which are either NUMA (Non-Uniform Memory Access)
- 	  or have huge holes in the physical address space for other reasons.
- 	  See <file:Documentation/vm/numa.rst> for more.
- 
-+config ARCH_SPARSEMEM_ENABLE
-+	bool "Sparse Memory Support"
-+	help
-+	  Say Y to support efficient handling of discontiguous physical memory,
-+	  for systems that have huge holes in the physical address space.
-+
- config NUMA
- 	bool "NUMA Support (EXPERIMENTAL)"
- 	depends on DISCONTIGMEM && BROKEN
---- a/arch/alpha/kernel/setup.c~alpha-switch-from-discontigmem-to-sparsemem
-+++ a/arch/alpha/kernel/setup.c
-@@ -648,6 +648,7 @@ setup_arch(char **cmdline_p)
- 	/* Find our memory.  */
- 	setup_memory(kernel_end);
- 	memblock_set_bottom_up(true);
-+	sparse_init();
- 
- 	/* First guess at cpu cache sizes.  Do this before init_arch.  */
- 	determine_cpu_caches(cpu->type);
 _
