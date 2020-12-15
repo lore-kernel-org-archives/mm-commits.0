@@ -7,326 +7,209 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97A43C2BB40
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:06:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1218C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:06:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68D26224B1
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:06:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90B69224D4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:06:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727092AbgLODGG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:06:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33978 "EHLO mail.kernel.org"
+        id S1726516AbgLODGc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:06:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34444 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727090AbgLODGE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:06:04 -0500
-Date:   Mon, 14 Dec 2020 19:05:21 -0800
+        id S1727293AbgLODG3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:06:29 -0500
+Date:   Mon, 14 Dec 2020 19:05:48 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001522;
-        bh=ZXA2uJkbsiOkM9F7KWI6M8wBuLTEA2LLoTrMfRBGYDg=;
+        s=korg; t=1608001549;
+        bh=gpuEzNbkA2DT6n23ywYf1KMdulDV/qdHw0nyfMWxQu4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=gjoDiZ8YVpa6WKmFmZcxnmMl62DzoPAEJgOXpSOVrTR5zKv2zeq+L4oCjvyI/3MAm
-         GqiP+MZNEbDaa5MVrXpasP9Aizgw5YetHCh1ci5EhDGKqVrih3RZWl6dOJrIg8m0yF
-         5siYGnP1TTOV5pwCkqZes10CFpDyN8RpONE8tjLI=
+        b=RV8WpY17SYcZ3Dj8v6Goi0ZOurcIdrLtHsahFqy/IKW2Vu+XJNhGwa0MuMMT1AIvX
+         KAHuvZNoyubWyfSIASSV2dxsBxkV2Twsxyc8LMF9m+J9uOytFM/CGl3H0+f9UGQseb
+         G4cs9LYivduN9L0DF8JKOUbtiroyQozcsqaR/LXg=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, jglisse@redhat.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 037/200] selftests/vm: gup_test: introduce the
- dump_pages() sub-test
-Message-ID: <20201215030521.AeqTzgvU1%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        ira.weiny@intel.com, jgg@nvidia.com, jhubbard@nvidia.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, torvalds@linux-foundation.org
+Subject:  [patch 045/200] mm/gup: remove the vma allocation from
+ gup_longterm_locked()
+Message-ID: <20201215030548.Znjd6f9Ml%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: gup_test: introduce the dump_pages() sub-test
+From: Jason Gunthorpe <jgg@nvidia.com>
+Subject: mm/gup: remove the vma allocation from gup_longterm_locked()
 
-For quite a while, I was doing a quick hack to gup_test.c (previously,
-gup_benchmark.c) whenever I wanted to try out my changes to dump_page().
-This makes that hack unnecessary, and instead allows anyone to easily get
-the same coverage from a user space program.  That saves a lot of time
-because you don't have to change the kernel, in order to test different
-pages and options.
+Long ago there wasn't a FOLL_LONGTERM flag so this DAX check was done by
+post-processing the VMA list.
 
-The new sub-test takes advantage of the existing gup_test infrastructure,
-which already provides a simple user space program, some allocated user
-space pages, an ioctl call, pinning of those pages (via either
-get_user_pages or pin_user_pages) and a corresponding kernel-side test
-invocation.  There's not much more required, mainly just a couple of
-inputs from the user.
+These days it is trivial to just check each VMA to see if it is DAX before
+processing it inside __get_user_pages() and return failure if a DAX VMA is
+encountered with FOLL_LONGTERM.
 
-In fact, the new test re-uses the existing command line options in order
-to get various helpful combinations (THP or normal, _fast or slow gup, gup
-vs.  pup, and more).
+Removing the allocation of the VMA list is a significant speed up for many
+call sites.
 
-New command line options are: which pages to dump, and what type of
-"get/pin" to use.
+Add an IS_ENABLED to vma_is_fsdax so that code generation is unchanged
+when DAX is compiled out.
 
-In order to figure out which pages to dump, the logic is:
+Remove the dummy version of __gup_longterm_locked() as !CONFIG_CMA already
+makes memalloc_nocma_save(), check_and_migrate_cma_pages(), and
+memalloc_nocma_restore() into a NOP.
 
-* If the user doesn't specify anything, the page 0 (the first page in
-  the address range that the program sets up for testing) is dumped.
-
-* Or, the user can type up to 8 page indices anywhere on the command
-  line.  If you type more than 8, then it uses the first 8 and ignores the
-  remaining items.
-
-For example:
-
-    ./gup_test -ct -F 1 0 19 0x1000
-
-Meaning:
-    -c:          dump pages sub-test
-    -t:          use THP pages
-    -F 1:        use pin_user_pages() instead of get_user_pages()
-    0 19 0x1000: dump pages 0, 19, and 4096
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-7-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/0-v1-5551df3ed12e+b8-gup_dax_speedup_jgg@nvidia.com
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig                            |    6 ++
- mm/gup_test.c                         |   56 +++++++++++++++++++++++-
- mm/gup_test.h                         |   10 ++++
- tools/testing/selftests/vm/gup_test.c |   45 ++++++++++++++++++-
- 4 files changed, 113 insertions(+), 4 deletions(-)
+ include/linux/fs.h |    2 -
+ mm/gup.c           |   83 +++++++------------------------------------
+ 2 files changed, 16 insertions(+), 69 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
-+++ a/mm/gup_test.c
-@@ -7,7 +7,7 @@
- #include "gup_test.h"
-=20
- static void put_back_pages(unsigned int cmd, struct page **pages,
--			   unsigned long nr_pages)
-+			   unsigned long nr_pages, unsigned int gup_test_flags)
+--- a/include/linux/fs.h~mm-gup-remove-the-vma-allocation-from-gup_longterm_locked
++++ a/include/linux/fs.h
+@@ -3230,7 +3230,7 @@ static inline bool vma_is_fsdax(struct v
  {
- 	unsigned long i;
-=20
-@@ -23,6 +23,15 @@ static void put_back_pages(unsigned int
- 	case PIN_LONGTERM_BENCHMARK:
- 		unpin_user_pages(pages, nr_pages);
- 		break;
-+	case DUMP_USER_PAGES_TEST:
-+		if (gup_test_flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN) {
-+			unpin_user_pages(pages, nr_pages);
-+		} else {
-+			for (i =3D 0; i < nr_pages; i++)
-+				put_page(pages[i]);
+ 	struct inode *inode;
+ 
+-	if (!vma->vm_file)
++	if (!IS_ENABLED(CONFIG_FS_DAX) || !vma->vm_file)
+ 		return false;
+ 	if (!vma_is_dax(vma))
+ 		return false;
+--- a/mm/gup.c~mm-gup-remove-the-vma-allocation-from-gup_longterm_locked
++++ a/mm/gup.c
+@@ -923,6 +923,9 @@ static int check_vma_flags(struct vm_are
+ 	if (gup_flags & FOLL_ANON && !vma_is_anonymous(vma))
+ 		return -EFAULT;
+ 
++	if ((gup_flags & FOLL_LONGTERM) && vma_is_fsdax(vma))
++		return -EOPNOTSUPP;
 +
-+		}
-+		break;
- 	}
+ 	if (write) {
+ 		if (!(vm_flags & VM_WRITE)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+@@ -1060,10 +1063,14 @@ static long __get_user_pages(struct mm_s
+ 				goto next_page;
+ 			}
+ 
+-			if (!vma || check_vma_flags(vma, gup_flags)) {
++			if (!vma) {
+ 				ret = -EFAULT;
+ 				goto out;
+ 			}
++			ret = check_vma_flags(vma, gup_flags);
++			if (ret)
++				goto out;
++
+ 			if (is_vm_hugetlb_page(vma)) {
+ 				i = follow_hugetlb_page(mm, vma, pages, vmas,
+ 						&start, &nr_pages, i,
+@@ -1567,26 +1574,6 @@ struct page *get_dump_page(unsigned long
  }
-=20
-@@ -49,6 +58,37 @@ static void verify_dma_pinned(unsigned i
- 	}
- }
-=20
-+static void dump_pages_test(struct gup_test *gup, struct page **pages,
-+			    unsigned long nr_pages)
-+{
-+	unsigned int index_to_dump;
-+	unsigned int i;
-+
-+	/*
-+	 * Zero out any user-supplied page index that is out of range. Remember:
-+	 * .which_pages[] contains a 1-based set of page indices.
-+	 */
-+	for (i =3D 0; i < GUP_TEST_MAX_PAGES_TO_DUMP; i++) {
-+		if (gup->which_pages[i] > nr_pages) {
-+			pr_warn("ZEROING due to out of range: .which_pages[%u]: %u\n",
-+				i, gup->which_pages[i]);
-+			gup->which_pages[i] =3D 0;
-+		}
-+	}
-+
-+	for (i =3D 0; i < GUP_TEST_MAX_PAGES_TO_DUMP; i++) {
-+		index_to_dump =3D gup->which_pages[i];
-+
-+		if (index_to_dump) {
-+			index_to_dump--; // Decode from 1-based, to 0-based
-+			pr_info("---- page #%u, starting from user virt addr: 0x%llx\n",
-+				index_to_dump, gup->addr);
-+			dump_page(pages[index_to_dump],
-+				  "gup_test: dump_pages() test");
-+		}
-+	}
-+}
-+
- static int __gup_test_ioctl(unsigned int cmd,
- 		struct gup_test *gup)
+ #endif /* CONFIG_ELF_CORE */
+ 
+-#if defined(CONFIG_FS_DAX) || defined (CONFIG_CMA)
+-static bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
+-{
+-	long i;
+-	struct vm_area_struct *vma_prev = NULL;
+-
+-	for (i = 0; i < nr_pages; i++) {
+-		struct vm_area_struct *vma = vmas[i];
+-
+-		if (vma == vma_prev)
+-			continue;
+-
+-		vma_prev = vma;
+-
+-		if (vma_is_fsdax(vma))
+-			return true;
+-	}
+-	return false;
+-}
+-
+ #ifdef CONFIG_CMA
+ static long check_and_migrate_cma_pages(struct mm_struct *mm,
+ 					unsigned long start,
+@@ -1705,63 +1692,23 @@ static long __gup_longterm_locked(struct
+ 				  struct vm_area_struct **vmas,
+ 				  unsigned int gup_flags)
  {
-@@ -111,6 +151,14 @@ static int __gup_test_ioctl(unsigned int
- 					    gup->flags | FOLL_LONGTERM,
- 					    pages + i, NULL);
- 			break;
-+		case DUMP_USER_PAGES_TEST:
-+			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
-+				nr =3D pin_user_pages(addr, nr, gup->flags,
-+						    pages + i, NULL);
-+			else
-+				nr =3D get_user_pages(addr, nr, gup->flags,
-+						    pages + i, NULL);
-+			break;
- 		default:
- 			ret =3D -EINVAL;
- 			goto unlock;
-@@ -134,9 +182,12 @@ static int __gup_test_ioctl(unsigned int
- 	 */
- 	verify_dma_pinned(cmd, pages, nr_pages);
-=20
-+	if (cmd =3D=3D DUMP_USER_PAGES_TEST)
-+		dump_pages_test(gup, pages, nr_pages);
-+
- 	start_time =3D ktime_get();
-=20
--	put_back_pages(cmd, pages, nr_pages);
-+	put_back_pages(cmd, pages, nr_pages, gup->flags);
-=20
- 	end_time =3D ktime_get();
- 	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
-@@ -161,6 +212,7 @@ static long gup_test_ioctl(struct file *
- 	case PIN_LONGTERM_BENCHMARK:
- 	case GUP_BASIC_TEST:
- 	case PIN_BASIC_TEST:
-+	case DUMP_USER_PAGES_TEST:
- 		break;
- 	default:
- 		return -EINVAL;
---- a/mm/gup_test.h~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
-+++ a/mm/gup_test.h
-@@ -9,6 +9,11 @@
- #define PIN_LONGTERM_BENCHMARK	_IOWR('g', 3, struct gup_test)
- #define GUP_BASIC_TEST		_IOWR('g', 4, struct gup_test)
- #define PIN_BASIC_TEST		_IOWR('g', 5, struct gup_test)
-+#define DUMP_USER_PAGES_TEST	_IOWR('g', 6, struct gup_test)
-+
-+#define GUP_TEST_MAX_PAGES_TO_DUMP		8
-+
-+#define GUP_TEST_FLAG_DUMP_PAGES_USE_PIN	0x1
-=20
- struct gup_test {
- 	__u64 get_delta_usec;
-@@ -17,6 +22,11 @@ struct gup_test {
- 	__u64 size;
- 	__u32 nr_pages_per_call;
- 	__u32 flags;
-+	/*
-+	 * Each non-zero entry is the number of the page (1-based: first page is
-+	 * page 1, so that zero entries mean "do nothing") from the .addr base.
-+	 */
-+	__u32 which_pages[GUP_TEST_MAX_PAGES_TO_DUMP];
- };
-=20
- #endif	/* __GUP_TEST_H */
---- a/mm/Kconfig~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
-+++ a/mm/Kconfig
-@@ -832,6 +832,12 @@ config GUP_TEST
- 	  get_user_pages*() and pin_user_pages*(), as well as smoke tests of
- 	  the non-_fast variants.
-=20
-+	  There is also a sub-test that allows running dump_page() on any
-+	  of up to eight pages (selected by command line args) within the
-+	  range of user-space addresses. These pages are either pinned via
-+	  pin_user_pages*(), or pinned via get_user_pages*(), as specified
-+	  by other command line arguments.
-+
- 	  See tools/testing/selftests/vm/gup_test.c
-=20
- config GUP_GET_PTE_LOW_HIGH
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-introduce=
--the-dump_pages-sub-test
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -27,13 +27,15 @@ static char *cmd_to_str(unsigned long cm
- 		return "GUP_BASIC_TEST";
- 	case PIN_BASIC_TEST:
- 		return "PIN_BASIC_TEST";
-+	case DUMP_USER_PAGES_TEST:
-+		return "DUMP_USER_PAGES_TEST";
+-	struct vm_area_struct **vmas_tmp = vmas;
+ 	unsigned long flags = 0;
+-	long rc, i;
++	long rc;
+ 
+-	if (gup_flags & FOLL_LONGTERM) {
+-		if (!pages)
+-			return -EINVAL;
+-
+-		if (!vmas_tmp) {
+-			vmas_tmp = kcalloc(nr_pages,
+-					   sizeof(struct vm_area_struct *),
+-					   GFP_KERNEL);
+-			if (!vmas_tmp)
+-				return -ENOMEM;
+-		}
++	if (gup_flags & FOLL_LONGTERM)
+ 		flags = memalloc_nocma_save();
+-	}
+ 
+-	rc = __get_user_pages_locked(mm, start, nr_pages, pages,
+-				     vmas_tmp, NULL, gup_flags);
++	rc = __get_user_pages_locked(mm, start, nr_pages, pages, vmas, NULL,
++				     gup_flags);
+ 
+ 	if (gup_flags & FOLL_LONGTERM) {
+-		if (rc < 0)
+-			goto out;
+-
+-		if (check_dax_vmas(vmas_tmp, rc)) {
+-			if (gup_flags & FOLL_PIN)
+-				unpin_user_pages(pages, rc);
+-			else
+-				for (i = 0; i < rc; i++)
+-					put_page(pages[i]);
+-			rc = -EOPNOTSUPP;
+-			goto out;
+-		}
+-
+-		rc = check_and_migrate_cma_pages(mm, start, rc, pages,
+-						 vmas_tmp, gup_flags);
+-out:
++		if (rc > 0)
++			rc = check_and_migrate_cma_pages(mm, start, rc, pages,
++							 vmas, gup_flags);
+ 		memalloc_nocma_restore(flags);
  	}
- 	return "Unknown command";
+-
+-	if (vmas_tmp != vmas)
+-		kfree(vmas_tmp);
+ 	return rc;
  }
-=20
- int main(int argc, char **argv)
+-#else /* !CONFIG_FS_DAX && !CONFIG_CMA */
+-static __always_inline long __gup_longterm_locked(struct mm_struct *mm,
+-						  unsigned long start,
+-						  unsigned long nr_pages,
+-						  struct page **pages,
+-						  struct vm_area_struct **vmas,
+-						  unsigned int flags)
+-{
+-	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
+-				       NULL, flags);
+-}
+-#endif /* CONFIG_FS_DAX || CONFIG_CMA */
+ 
+ static bool is_valid_gup_flags(unsigned int gup_flags)
  {
--	struct gup_test gup;
-+	struct gup_test gup =3D { 0 };
- 	unsigned long size =3D 128 * MB;
- 	int i, fd, filed, opt, nr_pages =3D 1, thp =3D -1, repeats =3D 1, write =
-=3D 0;
- 	unsigned long cmd =3D GUP_FAST_BENCHMARK;
-@@ -41,7 +43,7 @@ int main(int argc, char **argv)
- 	char *file =3D "/dev/zero";
- 	char *p;
-=20
--	while ((opt =3D getopt(argc, argv, "m:r:n:f:abtTLUuwSH")) !=3D -1) {
-+	while ((opt =3D getopt(argc, argv, "m:r:n:F:f:abctTLUuwSH")) !=3D -1) {
- 		switch (opt) {
- 		case 'a':
- 			cmd =3D PIN_FAST_BENCHMARK;
-@@ -52,6 +54,21 @@ int main(int argc, char **argv)
- 		case 'L':
- 			cmd =3D PIN_LONGTERM_BENCHMARK;
- 			break;
-+		case 'c':
-+			cmd =3D DUMP_USER_PAGES_TEST;
-+			/*
-+			 * Dump page 0 (index 1). May be overridden later, by
-+			 * user's non-option arguments.
-+			 *
-+			 * .which_pages is zero-based, so that zero can mean "do
-+			 * nothing".
-+			 */
-+			gup.which_pages[0] =3D 1;
-+			break;
-+		case 'F':
-+			/* strtol, so you can pass flags in hex form */
-+			gup.flags =3D strtol(optarg, 0, 0);
-+			break;
- 		case 'm':
- 			size =3D atoi(optarg) * MB;
- 			break;
-@@ -91,6 +108,30 @@ int main(int argc, char **argv)
- 		}
- 	}
-=20
-+	if (optind < argc) {
-+		int extra_arg_count =3D 0;
-+		/*
-+		 * For example:
-+		 *
-+		 *   ./gup_test -c 0 1 0x1001
-+		 *
-+		 * ...to dump pages 0, 1, and 4097
-+		 */
-+
-+		while ((optind < argc) &&
-+		       (extra_arg_count < GUP_TEST_MAX_PAGES_TO_DUMP)) {
-+			/*
-+			 * Do the 1-based indexing here, so that the user can
-+			 * use normal 0-based indexing on the command line.
-+			 */
-+			long page_index =3D strtol(argv[optind], 0, 0) + 1;
-+
-+			gup.which_pages[extra_arg_count] =3D page_index;
-+			extra_arg_count++;
-+			optind++;
-+		}
-+	}
-+
- 	filed =3D open(file, O_RDWR|O_CREAT);
- 	if (filed < 0) {
- 		perror("open");
 _
