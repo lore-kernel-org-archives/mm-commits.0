@@ -7,33 +7,44 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD24EC2BBCF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFB6AC47434
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9854622D07
+	by mail.kernel.org (Postfix) with ESMTP id BAB9922D0A
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726402AbgLOX7T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726414AbgLOX7T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:59:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60878 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728060AbgLOXX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727986AbgLOXX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:23:28 -0500
-Date:   Tue, 15 Dec 2020 15:21:28 -0800
+Date:   Tue, 15 Dec 2020 15:21:21 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074489;
-        bh=sFYnQX6Iam1i0mvHbB3OBE/irRdC+9desht5NNa3imw=;
+        s=korg; t=1608074483;
+        bh=f750RjDwgErCLiDrOI+zOfk3YpVCPVS+0e1YEFJ7AQc=;
         h=From:To:Subject:From;
-        b=CzE1JjSkVXgR4SSGvLR2t5RlPWYxkmlJKb/CVgMVeNbwpGa+a2fZmCtixJZgxp4yt
-         vQ5sbuv+Yq1qum34wv0eUsDEkSHw7kYNw5Eq7V6bhx46wTHihpASvrF/8sD6lb8iYT
-         t2VsDYu4CKudHTJsR+zlXtRTW7U5kXWAbb9NijlM=
+        b=0c29sK6VD04BTSdAL+XT7Q4kRggHXzuKAEzGWR+Ko9oWZ8NwSxJYLxUuRwjf+Q3ko
+         F5qKcsRhdv+l6yFOdVwcTc3+w7YE6PFoKWnpwdrVi5p527VKRWHSkIMs86uQxQ3M7L
+         YBNpWBo0KMSRd7elVFQPv53S/5O4OSRMLyThIHSs=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, pankaj.gupta@cloud.ionos.com, vbabka@suse.cz
+To:     aou@eecs.berkeley.edu, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        cl@linux.com, dave.hansen@linux.intel.com, davem@davemloft.net,
+        david@redhat.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        hpa@zytor.com, iamjoonsoo.kim@lge.com,
+        kirill.shutemov@linux.intel.com, len.brown@intel.com,
+        luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com,
+        paulus@samba.org, pavel@ucw.cz, penberg@kernel.org,
+        peterz@infradead.org, rafael.j.wysocki@intel.com,
+        rick.p.edgecombe@intel.com, rientjes@google.com, rjw@rjwysocki.net,
+        rppt@linux.ibm.com, tglx@linutronix.de, vbabka@suse.cz,
+        will@kernel.org
 Subject:  [merged]
- mm-page_alloc-clean-up-pageset-high-and-batch-update.patch removed from -mm
- tree
-Message-ID: <20201215232128.28KWu24CA%akpm@linux-foundation.org>
+ arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc.patch
+ removed from -mm tree
+Message-ID: <20201215232121.M06PZ_WPA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,178 +53,342 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: clean up pageset high and batch update
+     Subject: arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-clean-up-pageset-high-and-batch-update.patch
+     arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: clean up pageset high and batch update
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
 
-Patch series "disable pcplists during memory offline", v3.
+The design of DEBUG_PAGEALLOC presumes that __kernel_map_pages() must
+never fail.  With this assumption is wouldn't be safe to allow general
+usage of this function.
 
-As per the discussions [1] [2] this is an attempt to implement David's
-suggestion that page isolation should disable pcplists to avoid races with
-page freeing in progress.  This is done without extra checks in fast
-paths, as explained in Patch 9.  The repeated draining done by [2] is then
-no longer needed.  Previous version (RFC) is at [3].
+Moreover, some architectures that implement __kernel_map_pages() have this
+function guarded by #ifdef DEBUG_PAGEALLOC and some refuse to map/unmap
+pages when page allocation debugging is disabled at runtime.
 
-The RFC tried to hide pcplists disabling/enabling into page isolation, but
-it wasn't completely possible, as memory offline does not unisolation. 
-Michal suggested an explicit API in [4] so that's the current
-implementation and it seems indeed nicer.
+As all the users of __kernel_map_pages() were converted to use
+debug_pagealloc_map_pages() it is safe to make it available only when
+DEBUG_PAGEALLOC is set.
 
-Once we accept that page isolation users need to do explicit actions
-around it depending on the needed guarantees, we can also IMHO accept that
-the current pcplist draining can be also done by the callers, which is
-more effective.  After all, there are only two users of page isolation. 
-So patch 6 does effectively the same thing as Pavel proposed in [5], and
-patch 7 implement stronger guarantees only for memory offline.  If CMA
-decides to opt-in to the stronger guarantee, it can be added later.
-
-Patches 1-5 are preparatory cleanups for pcplist disabling.
-
-Patchset was briefly tested in QEMU so that memory online/offline works,
-but I haven't done a stress test that would prove the race fixed by [2] is
-eliminated.
-
-Note that patch 7 could be avoided if we instead adjusted page freeing in
-shown in [6], but I believe the current implementation of disabling
-pcplists is not too much complex, so I would prefer this instead of adding
-new checks and longer irq-disabled section into page freeing hotpaths.
-
-[1] https://lore.kernel.org/linux-mm/20200901124615.137200-1-pasha.tatashin@soleen.com/
-[2] https://lore.kernel.org/linux-mm/20200903140032.380431-1-pasha.tatashin@soleen.com/
-[3] https://lore.kernel.org/linux-mm/20200907163628.26495-1-vbabka@suse.cz/
-[4] https://lore.kernel.org/linux-mm/20200909113647.GG7348@dhcp22.suse.cz/
-[5] https://lore.kernel.org/linux-mm/20200904151448.100489-3-pasha.tatashin@soleen.com/
-[6] https://lore.kernel.org/linux-mm/3d3b53db-aeaa-ff24-260b-36427fac9b1c@suse.cz/
-[7] https://lore.kernel.org/linux-mm/20200922143712.12048-1-vbabka@suse.cz/
-[8] https://lore.kernel.org/linux-mm/20201008114201.18824-1-vbabka@suse.cz/
-
-
-This patch (of 7):
-
-The updates to pcplists' high and batch values are handled by multiple
-functions that make the calculations hard to follow.  Consolidate
-everything to pageset_set_high_and_batch() and remove pageset_set_batch()
-and pageset_set_high() wrappers.
-
-The only special case using one of the removed wrappers was:
-build_all_zonelists_init()
-
-  setup_pageset()
-    pageset_set_batch()
-
-which was hardcoding batch as 0, so we can just open-code a call to
-pageset_update() with constant parameters instead.
-
-No functional change.
-
-Link: https://lkml.kernel.org/r/20201111092812.11329-1-vbabka@suse.cz
-Link: https://lkml.kernel.org/r/20201111092812.11329-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Link: https://lkml.kernel.org/r/20201109192128.960-4-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   49 ++++++++++++++++++----------------------------
- 1 file changed, 20 insertions(+), 29 deletions(-)
+ arch/Kconfig                     |    3 +++
+ arch/arm64/Kconfig               |    4 +---
+ arch/arm64/mm/pageattr.c         |    8 ++++++--
+ arch/powerpc/Kconfig             |    5 +----
+ arch/riscv/Kconfig               |    4 +---
+ arch/riscv/include/asm/pgtable.h |    2 --
+ arch/riscv/mm/pageattr.c         |    2 ++
+ arch/s390/Kconfig                |    4 +---
+ arch/sparc/Kconfig               |    4 +---
+ arch/x86/Kconfig                 |    4 +---
+ arch/x86/mm/pat/set_memory.c     |    2 ++
+ include/linux/mm.h               |   10 +++++++---
+ 12 files changed, 26 insertions(+), 26 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clean-up-pageset-high-and-batch-update
-+++ a/mm/page_alloc.c
-@@ -5919,7 +5919,7 @@ static void build_zonelists(pg_data_t *p
-  * not check if the processor is online before following the pageset pointer.
-  * Other parts of the kernel may not check if the zone is available.
-  */
--static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch);
-+static void setup_pageset(struct per_cpu_pageset *p);
- static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
- static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+--- a/arch/arm64/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/arm64/Kconfig
+@@ -71,6 +71,7 @@ config ARM64
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_USE_SYM_ANNOTATIONS
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_MEMORY_FAILURE
+ 	select ARCH_SUPPORTS_SHADOW_CALL_STACK if CC_HAVE_SHADOW_CALL_STACK
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+@@ -1029,9 +1030,6 @@ config HOLES_IN_ZONE
  
-@@ -5987,7 +5987,7 @@ build_all_zonelists_init(void)
- 	 * (a chicken-egg dilemma).
- 	 */
- 	for_each_possible_cpu(cpu)
--		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
-+		setup_pageset(&per_cpu(boot_pageset, cpu));
+ source "kernel/Kconfig.hz"
  
- 	mminit_verify_zonelist();
- 	cpuset_init_current_mems_allowed();
-@@ -6296,12 +6296,6 @@ static void pageset_update(struct per_cp
- 	pcp->batch = batch;
- }
- 
--/* a companion to pageset_set_high() */
--static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
--{
--	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
--}
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
 -
- static void pageset_init(struct per_cpu_pageset *p)
- {
- 	struct per_cpu_pages *pcp;
-@@ -6314,35 +6308,32 @@ static void pageset_init(struct per_cpu_
- 		INIT_LIST_HEAD(&pcp->lists[migratetype]);
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+ 	select SPARSEMEM_VMEMMAP_ENABLE
+--- a/arch/arm64/mm/pageattr.c~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/arm64/mm/pageattr.c
+@@ -155,7 +155,7 @@ int set_direct_map_invalid_noflush(struc
+ 		.clear_mask = __pgprot(PTE_VALID),
+ 	};
+ 
+-	if (!rodata_full)
++	if (!debug_pagealloc_enabled() && !rodata_full)
+ 		return 0;
+ 
+ 	return apply_to_page_range(&init_mm,
+@@ -170,7 +170,7 @@ int set_direct_map_default_noflush(struc
+ 		.clear_mask = __pgprot(PTE_RDONLY),
+ 	};
+ 
+-	if (!rodata_full)
++	if (!debug_pagealloc_enabled() && !rodata_full)
+ 		return 0;
+ 
+ 	return apply_to_page_range(&init_mm,
+@@ -178,6 +178,7 @@ int set_direct_map_default_noflush(struc
+ 				   PAGE_SIZE, change_page_range, &data);
  }
  
--static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
-+static void setup_pageset(struct per_cpu_pageset *p)
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
  {
- 	pageset_init(p);
--	pageset_set_batch(p, batch);
-+	pageset_update(&p->pcp, 0, 1);
+ 	if (!debug_pagealloc_enabled() && !rodata_full)
+@@ -186,6 +187,7 @@ void __kernel_map_pages(struct page *pag
+ 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
  }
  
++#ifdef CONFIG_HIBERNATION
  /*
-- * pageset_set_high() sets the high water mark for hot per_cpu_pagelist
-- * to the value high for the pageset p.
-+ * Calculate and set new high and batch values for given per-cpu pageset of a
-+ * zone, based on the zone's size and the percpu_pagelist_fraction sysctl.
-  */
--static void pageset_set_high(struct per_cpu_pageset *p,
--				unsigned long high)
--{
--	unsigned long batch = max(1UL, high / 4);
--	if ((high / 4) > (PAGE_SHIFT * 8))
--		batch = PAGE_SHIFT * 8;
--
--	pageset_update(&p->pcp, high, batch);
--}
--
- static void pageset_set_high_and_batch(struct zone *zone,
--				       struct per_cpu_pageset *pcp)
-+				       struct per_cpu_pageset *p)
- {
--	if (percpu_pagelist_fraction)
--		pageset_set_high(pcp,
--			(zone_managed_pages(zone) /
--				percpu_pagelist_fraction));
--	else
--		pageset_set_batch(pcp, zone_batchsize(zone));
-+	unsigned long new_high, new_batch;
+  * This function is used to determine if a linear map page has been marked as
+  * not-valid. Walk the page table and check the PTE_VALID bit. This is based
+@@ -232,3 +234,5 @@ bool kernel_page_present(struct page *pa
+ 	ptep = pte_offset_kernel(pmdp, addr);
+ 	return pte_valid(READ_ONCE(*ptep));
+ }
++#endif /* CONFIG_HIBERNATION */
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+--- a/arch/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/Kconfig
+@@ -1064,6 +1064,9 @@ config ARCH_WANT_LD_ORPHAN_WARN
+ config HAVE_ARCH_PFN_VALID
+ 	bool
+ 
++config ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	bool
 +
-+	if (percpu_pagelist_fraction) {
-+		new_high = zone_managed_pages(zone) / percpu_pagelist_fraction;
-+		new_batch = max(1UL, new_high / 4);
-+		if ((new_high / 4) > (PAGE_SHIFT * 8))
-+			new_batch = PAGE_SHIFT * 8;
-+	} else {
-+		new_batch = zone_batchsize(zone);
-+		new_high = 6 * new_batch;
-+		new_batch = max(1UL, 1 * new_batch);
-+	}
-+	pageset_update(&p->pcp, new_high, new_batch);
+ source "kernel/gcov/Kconfig"
+ 
+ source "scripts/gcc-plugins/Kconfig"
+--- a/arch/powerpc/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/powerpc/Kconfig
+@@ -146,6 +146,7 @@ config PPC
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ARCH_OPTIONAL_KERNEL_RWX		if ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC32 || PPC_BOOK3S_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
+ 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
+@@ -356,10 +357,6 @@ config PPC_OF_PLATFORM_PCI
+ 	depends on PCI
+ 	depends on PPC64 # not supported on 32 bits yet
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	depends on PPC32 || PPC_BOOK3S_64
+-	def_bool y
+-
+ config ARCH_SUPPORTS_UPROBES
+ 	def_bool y
+ 
+--- a/arch/riscv/include/asm/pgtable.h~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -461,8 +461,6 @@ static inline int ptep_clear_flush_young
+ #define VMALLOC_START		0
+ #define VMALLOC_END		TASK_SIZE
+ 
+-static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
+-
+ #endif /* !CONFIG_MMU */
+ 
+ #define kern_addr_valid(addr)   (1) /* FIXME */
+--- a/arch/riscv/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/riscv/Kconfig
+@@ -14,6 +14,7 @@ config RISCV
+ 	def_bool y
+ 	select ARCH_CLOCKSOURCE_INIT
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
+ 	select ARCH_HAS_BINFMT_FLAT
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
+@@ -153,9 +154,6 @@ config ARCH_SELECT_MEMORY_MODEL
+ config ARCH_WANT_GENERAL_HUGETLB
+ 	def_bool y
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config SYS_SUPPORTS_HUGETLBFS
+ 	depends on MMU
+ 	def_bool y
+--- a/arch/riscv/mm/pageattr.c~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/riscv/mm/pageattr.c
+@@ -184,6 +184,7 @@ int set_direct_map_default_noflush(struc
+ 	return ret;
  }
  
- static void __meminit zone_pageset_init(struct zone *zone, int cpu)
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (!debug_pagealloc_enabled())
+@@ -196,3 +197,4 @@ void __kernel_map_pages(struct page *pag
+ 		__set_memory((unsigned long)page_address(page), numpages,
+ 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
+ }
++#endif
+--- a/arch/s390/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/s390/Kconfig
+@@ -35,9 +35,6 @@ config GENERIC_LOCKBREAK
+ config PGSTE
+ 	def_bool y if KVM
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config AUDIT_ARCH
+ 	def_bool y
+ 
+@@ -105,6 +102,7 @@ config S390
+ 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
+ 	select ARCH_STACKWALK
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+--- a/arch/sparc/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/sparc/Kconfig
+@@ -88,6 +88,7 @@ config SPARC64
+ 	select HAVE_C_RECORDMCOUNT
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select HAVE_NMI
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select ARCH_USE_QUEUED_RWLOCKS
+@@ -149,9 +150,6 @@ config GENERIC_ISA_DMA
+ 	bool
+ 	default y if SPARC32
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y if SPARC64
+-
+ config PGTABLE_LEVELS
+ 	default 4 if 64BIT
+ 	default 3
+--- a/arch/x86/Kconfig~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/x86/Kconfig
+@@ -92,6 +92,7 @@ config X86
+ 	select ARCH_STACKWALK
+ 	select ARCH_SUPPORTS_ACPI
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
+ 	select ARCH_USE_BUILTIN_BSWAP
+@@ -334,9 +335,6 @@ config ZONE_DMA32
+ config AUDIT_ARCH
+ 	def_bool y if X86_64
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config KASAN_SHADOW_OFFSET
+ 	hex
+ 	depends on KASAN
+--- a/arch/x86/mm/pat/set_memory.c~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/arch/x86/mm/pat/set_memory.c
+@@ -2194,6 +2194,7 @@ int set_direct_map_default_noflush(struc
+ 	return __set_pages_p(page, 1);
+ }
+ 
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (PageHighMem(page))
+@@ -2239,6 +2240,7 @@ bool kernel_page_present(struct page *pa
+ 	return (pte_val(*pte) & _PAGE_PRESENT);
+ }
+ #endif /* CONFIG_HIBERNATION */
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+ int __init kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
+ 				   unsigned numpages, unsigned long page_flags)
+--- a/include/linux/mm.h~arch-mm-restore-dependency-of-__kernel_map_pages-on-debug_pagealloc
++++ a/include/linux/mm.h
+@@ -2938,7 +2938,11 @@ static inline bool debug_pagealloc_enabl
+ 	return static_branch_unlikely(&_debug_pagealloc_enabled);
+ }
+ 
+-#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
++#ifdef CONFIG_DEBUG_PAGEALLOC
++/*
++ * To support DEBUG_PAGEALLOC architecture must ensure that
++ * __kernel_map_pages() never fails
++ */
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
+@@ -2956,13 +2960,13 @@ static inline void debug_pagealloc_unmap
+ #ifdef CONFIG_HIBERNATION
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+-#else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++#else	/* CONFIG_DEBUG_PAGEALLOC */
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
+ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
+ #ifdef CONFIG_HIBERNATION
+ static inline bool kernel_page_present(struct page *page) { return true; }
+ #endif	/* CONFIG_HIBERNATION */
+-#endif	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++#endif	/* CONFIG_DEBUG_PAGEALLOC */
+ 
+ #ifdef __HAVE_ARCH_GATE_AREA
+ extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
+mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+secretmem-add-memcg-accounting.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
