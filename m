@@ -7,32 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FD0C3526C
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D48FC35270
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E5F322D2B
+	by mail.kernel.org (Postfix) with ESMTP id D905422D73
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725968AbgLOX65 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:58:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59146 "EHLO mail.kernel.org"
+        id S1725865AbgLOX6w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:58:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56704 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729332AbgLOXUJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:20:09 -0500
-Date:   Tue, 15 Dec 2020 15:19:27 -0800
+        id S1730553AbgLOXQb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:16:31 -0500
+Date:   Tue, 15 Dec 2020 15:15:37 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074367;
-        bh=3US5oTGlLuj/IT1Px5xdaOUHzHHjGCpiZf3mV1sWusU=;
+        s=korg; t=1608074138;
+        bh=bMHAYUjCucnj2u4BdLd7m6NbPNAJlVVT59GWxtRYnis=;
         h=From:To:Subject:From;
-        b=YiKRmyJtLEqdBWFLjAJdj19FIMKwRPLThxaHL3Aef1WgwIjpXRa6smLc+Zx8ftCJt
-         bYTVecJ9rl9gCv506i/qvop7+AwU5MdGFXuIFAewcHKnitI7fasLm/PZeryVSOqTOB
-         dnNKgoU9+4prRmUDwtE9sHX+joSvz05tHUg/i8io=
+        b=esgfwwEM0c1gV3ngQBF5mTAVHpFq9Nopc7dpDdWCq3PTj+meOQi0SmHn/dbbP2CNO
+         z9gp1CjQ23cSd3cYudtruUMYpVcmrC7ZhCItH1FB0aapJP69xEEOMpkuYIM52CytFQ
+         nbYvOz6BBbtpyTlKpeDSTEkkbrkNpVK9nCzUfxWY=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        vbabka@suse.cz, willy@infradead.org
-Subject:  [merged] mm-move-free_unref_page-to-mm-internalh.patch
+To:     a.p.zijlstra@chello.nl, axboe@kernel.dk, ben.dooks@codethink.co.uk,
+        bfields@redhat.com, cl@rock-chips.com, frederic@kernel.org,
+        mgorman@techsingularity.net, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mtosatti@redhat.com, pauld@redhat.com,
+        peterz@infradead.org, rdunlap@infradead.org,
+        robdclark@chromium.org, rostedt@goodmis.org,
+        stamatis.iliass@gmail.com, thara.gopinath@linaro.org,
+        valentin.schneider@arm.com, vincent.donnefort@arm.com
+Subject:  [merged] kthread-add-kthread_work-tracepoints.patch
  removed from -mm tree
-Message-ID: <20201215231927.wzSJvROwh%akpm@linux-foundation.org>
+Message-ID: <20201215231537.Yk7wQyayr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,73 +47,177 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move free_unref_page to mm/internal.h
+     Subject: kthread: add kthread_work tracepoints
 has been removed from the -mm tree.  Its filename was
-     mm-move-free_unref_page-to-mm-internalh.patch
+     kthread-add-kthread_work-tracepoints.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move free_unref_page to mm/internal.h
+From: Rob Clark <robdclark@chromium.org>
+Subject: kthread: add kthread_work tracepoints
 
-Code outside mm/ should not be calling free_unref_page().  Also move
-free_unref_page_list().
+While migrating some code from wq to kthread_worker, I found that I missed
+the execute_start/end tracepoints.  So add similar tracepoints for
+kthread_work.  And for completeness, queue_work tracepoint (although this
+one differs slightly from the matching workqueue tracepoint).
 
-Link: https://lkml.kernel.org/r/20201125034655.27687-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20201010180323.126634-1-robdclark@gmail.com
+Signed-off-by: Rob Clark <robdclark@chromium.org>
+Cc: Rob Clark <robdclark@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Phil Auld <pauld@redhat.com>
+Cc: Valentin Schneider <valentin.schneider@arm.com>
+Cc: Thara Gopinath <thara.gopinath@linaro.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vincent Donnefort <vincent.donnefort@arm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Ilias Stamatis <stamatis.iliass@gmail.com>
+Cc: Liang Chen <cl@rock-chips.com>
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "J. Bruce Fields" <bfields@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 --
- mm/internal.h       |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/trace/events/sched.h |   84 +++++++++++++++++++++++++++++++++
+ kernel/kthread.c             |    9 +++
+ 2 files changed, 93 insertions(+)
 
---- a/include/linux/gfp.h~mm-move-free_unref_page-to-mm-internalh
-+++ a/include/linux/gfp.h
-@@ -580,8 +580,6 @@ void * __meminit alloc_pages_exact_nid(i
+--- a/include/trace/events/sched.h~kthread-add-kthread_work-tracepoints
++++ a/include/trace/events/sched.h
+@@ -5,6 +5,7 @@
+ #if !defined(_TRACE_SCHED_H) || defined(TRACE_HEADER_MULTI_READ)
+ #define _TRACE_SCHED_H
  
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
--extern void free_unref_page(struct page *page);
--extern void free_unref_page_list(struct list_head *list);
++#include <linux/kthread.h>
+ #include <linux/sched/numa_balancing.h>
+ #include <linux/tracepoint.h>
+ #include <linux/binfmts.h>
+@@ -51,6 +52,89 @@ TRACE_EVENT(sched_kthread_stop_ret,
+ 	TP_printk("ret=%d", __entry->ret)
+ );
  
- struct page_frag_cache;
- extern void __page_frag_cache_drain(struct page *page, unsigned int count);
---- a/mm/internal.h~mm-move-free_unref_page-to-mm-internalh
-+++ a/mm/internal.h
-@@ -199,6 +199,9 @@ extern void post_alloc_hook(struct page
- 					gfp_t gfp_flags);
- extern int user_min_free_kbytes;
- 
-+extern void free_unref_page(struct page *page);
-+extern void free_unref_page_list(struct list_head *list);
++/**
++ * sched_kthread_work_queue_work - called when a work gets queued
++ * @worker:	pointer to the kthread_worker
++ * @work:	pointer to struct kthread_work
++ *
++ * This event occurs when a work is queued immediately or once a
++ * delayed work is actually queued (ie: once the delay has been
++ * reached).
++ */
++TRACE_EVENT(sched_kthread_work_queue_work,
 +
- extern void zone_pcp_update(struct zone *zone);
- extern void zone_pcp_reset(struct zone *zone);
++	TP_PROTO(struct kthread_worker *worker,
++		 struct kthread_work *work),
++
++	TP_ARGS(worker, work),
++
++	TP_STRUCT__entry(
++		__field( void *,	work	)
++		__field( void *,	function)
++		__field( void *,	worker)
++	),
++
++	TP_fast_assign(
++		__entry->work		= work;
++		__entry->function	= work->func;
++		__entry->worker		= worker;
++	),
++
++	TP_printk("work struct=%p function=%ps worker=%p",
++		  __entry->work, __entry->function, __entry->worker)
++);
++
++/**
++ * sched_kthread_work_execute_start - called immediately before the work callback
++ * @work:	pointer to struct kthread_work
++ *
++ * Allows to track kthread work execution.
++ */
++TRACE_EVENT(sched_kthread_work_execute_start,
++
++	TP_PROTO(struct kthread_work *work),
++
++	TP_ARGS(work),
++
++	TP_STRUCT__entry(
++		__field( void *,	work	)
++		__field( void *,	function)
++	),
++
++	TP_fast_assign(
++		__entry->work		= work;
++		__entry->function	= work->func;
++	),
++
++	TP_printk("work struct %p: function %ps", __entry->work, __entry->function)
++);
++
++/**
++ * sched_kthread_work_execute_end - called immediately after the work callback
++ * @work:	pointer to struct work_struct
++ * @function:   pointer to worker function
++ *
++ * Allows to track workqueue execution.
++ */
++TRACE_EVENT(sched_kthread_work_execute_end,
++
++	TP_PROTO(struct kthread_work *work, kthread_work_func_t function),
++
++	TP_ARGS(work, function),
++
++	TP_STRUCT__entry(
++		__field( void *,	work	)
++		__field( void *,	function)
++	),
++
++	TP_fast_assign(
++		__entry->work		= work;
++		__entry->function	= function;
++	),
++
++	TP_printk("work struct %p: function %ps", __entry->work, __entry->function)
++);
++
+ /*
+  * Tracepoint for waking up a task:
+  */
+--- a/kernel/kthread.c~kthread-add-kthread_work-tracepoints
++++ a/kernel/kthread.c
+@@ -704,8 +704,15 @@ repeat:
+ 	raw_spin_unlock_irq(&worker->lock);
  
+ 	if (work) {
++		kthread_work_func_t func = work->func;
+ 		__set_current_state(TASK_RUNNING);
++		trace_sched_kthread_work_execute_start(work);
+ 		work->func(work);
++		/*
++		 * Avoid dereferencing work after this point.  The trace
++		 * event only cares about the address.
++		 */
++		trace_sched_kthread_work_execute_end(work, func);
+ 	} else if (!freezing(current))
+ 		schedule();
+ 
+@@ -834,6 +841,8 @@ static void kthread_insert_work(struct k
+ {
+ 	kthread_insert_work_sanity_check(worker, work);
+ 
++	trace_sched_kthread_work_queue_work(worker, work);
++
+ 	list_add_tail(&work->node, pos);
+ 	work->worker = worker;
+ 	if (!worker->current_work && likely(worker->task))
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from robdclark@chromium.org are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
 
