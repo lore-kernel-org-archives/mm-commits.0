@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46684C2BBCA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 819E1C2BBD5
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:09:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1336E22CAE
+	by mail.kernel.org (Postfix) with ESMTP id 560F622CAE
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:09:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727058AbgLPAAS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34562 "EHLO mail.kernel.org"
+        id S1727050AbgLPAAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729487AbgLOX1Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727345AbgLOX1Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:27:16 -0500
-Date:   Tue, 15 Dec 2020 15:17:02 -0800
+Date:   Tue, 15 Dec 2020 15:18:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074222;
-        bh=QbCi31ZsPMtf04uO/2Q73iU9vGgCgEe9x0J5KzUs7bc=;
+        s=korg; t=1608074297;
+        bh=yC4NNgoDJwSt4135glqQOju9QjryADDs3sAHipt/fTc=;
         h=From:To:Subject:From;
-        b=1VIwcPXPA8yBm1mF+NkMiNYwaaH0kQmJG59ZisKHJn9DYo/kkSwWwvfAtUvsOgwfl
-         P4XK46Cs8N+diDB1o5yPapZQpA938a8RQ7xJRja01s1pFf5y1jJaEZ+BIAu9wqoroG
-         lH5GAnP1OlrnRDKyQoph7mdeE2mWbv6++7PwwmcM=
+        b=WaQzA9fwbjlmQLQe7vUhaKOiS3gg3uZpFrpQMFfZaPjW2GYvyyhvNmMdR85GIVHIg
+         bLELrHiMEQbCgErZb0ZZy9cjMRP9p8xYQfaJdLsmyLO6ofyx5P5XNKug9axbRlIhVC
+         dQVbRA2tNsq8n4BFYsZZUarb1t5B3weCCxRDqvP4=
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, kent.overstreet@gmail.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged]
- fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
+To:     aarcange@redhat.com, dan.j.williams@intel.com, hannes@cmpxchg.org,
+        hughd@google.com, jglisse@redhat.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz
+Subject:  [merged] mm-rmap-always-do-ttu_ignore_access.patch
  removed from -mm tree
-Message-ID: <20201215231702.hQnpHCbS1%akpm@linux-foundation.org>
+Message-ID: <20201215231816.RmJHX9zel%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,604 +42,213 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap/c: break generic_file_buffered_read up into multiple functions
+     Subject: mm/rmap: always do TTU_IGNORE_ACCESS
 has been removed from the -mm tree.  Its filename was
-     fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
+     mm-rmap-always-do-ttu_ignore_access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@gmail.com>
-Subject: mm/filemap/c: break generic_file_buffered_read up into multiple functions
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm/rmap: always do TTU_IGNORE_ACCESS
 
-Patch series "generic_file_buffered_read() improvements", v2.
+Since commit 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic
+v2"), the code to check the secondary MMU's page table access bit is
+broken for !(TTU_IGNORE_ACCESS) because the page is unmapped from the
+secondary MMU's page table before the check.  More specifically for those
+secondary MMUs which unmap the memory in
+mmu_notifier_invalidate_range_start() like kvm.
 
-generic_file_buffered_read() has turned into a real monstrosity to work
-with.  And it's a major performance improvement, for both small random and
-large sequential reads.  On my test box, 4k buffered random reads go from
-~150k to ~250k iops, and the improvements to big sequential reads are even
-bigger.
+However memory reclaim is the only user of !(TTU_IGNORE_ACCESS) or the
+absence of TTU_IGNORE_ACCESS and it explicitly performs the page table
+access check before trying to unmap the page.  So, at worst the reclaim
+will miss accesses in a very short window if we remove page table access
+check in unmapping code.
 
-This incorporates the fix for IOCB_WAITQ handling that Jens just posted as
-well, also factors out lock_page_for_iocb() to improve handling of the
-various iocb flags.
+There is an unintented consequence of !(TTU_IGNORE_ACCESS) for the memcg
+reclaim.  From memcg reclaim the page_referenced() only account the
+accesses from the processes which are in the same memcg of the target page
+but the unmapping code is considering accesses from all the processes, so,
+decreasing the effectiveness of memcg reclaim.
 
+The simplest solution is to always assume TTU_IGNORE_ACCESS in unmapping
+code.
 
-This patch (of 2):
-
-This is prep work for changing generic_file_buffered_read() to use
-find_get_pages_contig() to batch up all the pagecache lookups.
-
-This patch should be functionally identical to the existing code and
-changes as little as of the flow control as possible.  More refactoring
-could be done, this patch is intended to be relatively minimal.
-
-Link: https://lkml.kernel.org/r/20201025212949.602194-1-kent.overstreet@gmail.com
-Link: https://lkml.kernel.org/r/20201025212949.602194-2-kent.overstreet@gmail.com
-Signed-off-by: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lkml.kernel.org/r/20201104231928.1494083-1-shakeelb@google.com
+Fixes: 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic v2")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  483 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 261 insertions(+), 222 deletions(-)
+ include/linux/rmap.h |    1 -
+ mm/huge_memory.c     |    2 +-
+ mm/memory-failure.c  |    2 +-
+ mm/memory_hotplug.c  |    2 +-
+ mm/migrate.c         |    8 +++-----
+ mm/rmap.c            |    9 ---------
+ mm/vmscan.c          |   14 +++++---------
+ 7 files changed, 11 insertions(+), 27 deletions(-)
 
---- a/mm/filemap.c~fs-break-generic_file_buffered_read-up-into-multiple-functions
-+++ a/mm/filemap.c
-@@ -2166,6 +2166,234 @@ static void shrink_readahead_size_eio(st
- 	ra->ra_pages /= 4;
- }
+--- a/include/linux/rmap.h~mm-rmap-always-do-ttu_ignore_access
++++ a/include/linux/rmap.h
+@@ -91,7 +91,6 @@ enum ttu_flags {
  
-+static int lock_page_for_iocb(struct kiocb *iocb, struct page *page)
-+{
-+	if (iocb->ki_flags & IOCB_WAITQ)
-+		return lock_page_async(page, iocb->ki_waitq);
-+	else if (iocb->ki_flags & IOCB_NOWAIT)
-+		return trylock_page(page) ? 0 : -EAGAIN;
-+	else
-+		return lock_page_killable(page);
-+}
-+
-+static int generic_file_buffered_read_page_ok(struct kiocb *iocb,
-+			struct iov_iter *iter,
-+			struct page *page)
-+{
-+	struct address_space *mapping = iocb->ki_filp->f_mapping;
-+	struct inode *inode = mapping->host;
-+	struct file_ra_state *ra = &iocb->ki_filp->f_ra;
-+	unsigned int offset = iocb->ki_pos & ~PAGE_MASK;
-+	unsigned int bytes, copied;
-+	loff_t isize, end_offset;
-+
-+	BUG_ON(iocb->ki_pos >> PAGE_SHIFT != page->index);
-+
-+	/*
-+	 * i_size must be checked after we know the page is Uptodate.
-+	 *
-+	 * Checking i_size after the check allows us to calculate
-+	 * the correct value for "bytes", which means the zero-filled
-+	 * part of the page is not copied back to userspace (unless
-+	 * another truncate extends the file - this is desired though).
-+	 */
-+
-+	isize = i_size_read(inode);
-+	if (unlikely(iocb->ki_pos >= isize))
-+		return 1;
-+
-+	end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
-+
-+	bytes = min_t(loff_t, end_offset - iocb->ki_pos, PAGE_SIZE - offset);
-+
-+	/* If users can be writing to this page using arbitrary
-+	 * virtual addresses, take care about potential aliasing
-+	 * before reading the page on the kernel side.
-+	 */
-+	if (mapping_writably_mapped(mapping))
-+		flush_dcache_page(page);
-+
-+	/*
-+	 * Ok, we have the page, and it's up-to-date, so
-+	 * now we can copy it to user space...
-+	 */
-+
-+	copied = copy_page_to_iter(page, offset, bytes, iter);
-+
-+	iocb->ki_pos += copied;
-+
-+	/*
-+	 * When a sequential read accesses a page several times,
-+	 * only mark it as accessed the first time.
-+	 */
-+	if (iocb->ki_pos >> PAGE_SHIFT != ra->prev_pos >> PAGE_SHIFT)
-+		mark_page_accessed(page);
-+
-+	ra->prev_pos = iocb->ki_pos;
-+
-+	if (copied < bytes)
-+		return -EFAULT;
-+
-+	return !iov_iter_count(iter) || iocb->ki_pos == isize;
-+}
-+
-+static struct page *
-+generic_file_buffered_read_readpage(struct kiocb *iocb,
-+				    struct file *filp,
-+				    struct address_space *mapping,
-+				    struct page *page)
-+{
-+	struct file_ra_state *ra = &filp->f_ra;
-+	int error;
-+
-+	if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT)) {
-+		unlock_page(page);
-+		put_page(page);
-+		return ERR_PTR(-EAGAIN);
-+	}
-+
-+	/*
-+	 * A previous I/O error may have been due to temporary
-+	 * failures, eg. multipath errors.
-+	 * PG_error will be set again if readpage fails.
-+	 */
-+	ClearPageError(page);
-+	/* Start the actual read. The read will unlock the page. */
-+	error = mapping->a_ops->readpage(filp, page);
-+
-+	if (unlikely(error)) {
-+		put_page(page);
-+		return error != AOP_TRUNCATED_PAGE ? ERR_PTR(error) : NULL;
-+	}
-+
-+	if (!PageUptodate(page)) {
-+		error = lock_page_for_iocb(iocb, page);
-+		if (unlikely(error)) {
-+			put_page(page);
-+			return ERR_PTR(error);
-+		}
-+		if (!PageUptodate(page)) {
-+			if (page->mapping == NULL) {
-+				/*
-+				 * invalidate_mapping_pages got it
-+				 */
-+				unlock_page(page);
-+				put_page(page);
-+				return NULL;
-+			}
-+			unlock_page(page);
-+			shrink_readahead_size_eio(ra);
-+			put_page(page);
-+			return ERR_PTR(-EIO);
-+		}
-+		unlock_page(page);
-+	}
-+
-+	return page;
-+}
-+
-+static struct page *
-+generic_file_buffered_read_pagenotuptodate(struct kiocb *iocb,
-+					   struct file *filp,
-+					   struct iov_iter *iter,
-+					   struct page *page,
-+					   loff_t pos, loff_t count)
-+{
-+	struct address_space *mapping = filp->f_mapping;
-+	struct inode *inode = mapping->host;
-+	int error;
-+
-+	/*
-+	 * See comment in do_read_cache_page on why
-+	 * wait_on_page_locked is used to avoid unnecessarily
-+	 * serialisations and why it's safe.
-+	 */
-+	if (iocb->ki_flags & IOCB_WAITQ) {
-+		error = wait_on_page_locked_async(page,
-+						iocb->ki_waitq);
-+	} else {
-+		error = wait_on_page_locked_killable(page);
-+	}
-+	if (unlikely(error)) {
-+		put_page(page);
-+		return ERR_PTR(error);
-+	}
-+	if (PageUptodate(page))
-+		return page;
-+
-+	if (inode->i_blkbits == PAGE_SHIFT ||
-+			!mapping->a_ops->is_partially_uptodate)
-+		goto page_not_up_to_date;
-+	/* pipes can't handle partially uptodate pages */
-+	if (unlikely(iov_iter_is_pipe(iter)))
-+		goto page_not_up_to_date;
-+	if (!trylock_page(page))
-+		goto page_not_up_to_date;
-+	/* Did it get truncated before we got the lock? */
-+	if (!page->mapping)
-+		goto page_not_up_to_date_locked;
-+	if (!mapping->a_ops->is_partially_uptodate(page,
-+				pos & ~PAGE_MASK, count))
-+		goto page_not_up_to_date_locked;
-+	unlock_page(page);
-+	return page;
-+
-+page_not_up_to_date:
-+	/* Get exclusive access to the page ... */
-+	error = lock_page_for_iocb(iocb, page);
-+	if (unlikely(error)) {
-+		put_page(page);
-+		return ERR_PTR(error);
-+	}
-+
-+page_not_up_to_date_locked:
-+	/* Did it get truncated before we got the lock? */
-+	if (!page->mapping) {
-+		unlock_page(page);
-+		put_page(page);
-+		return NULL;
-+	}
-+
-+	/* Did somebody else fill it already? */
-+	if (PageUptodate(page)) {
-+		unlock_page(page);
-+		return page;
-+	}
-+
-+	return generic_file_buffered_read_readpage(iocb, filp, mapping, page);
-+}
-+
-+static struct page *
-+generic_file_buffered_read_no_cached_page(struct kiocb *iocb,
-+					  struct iov_iter *iter)
-+{
-+	struct file *filp = iocb->ki_filp;
-+	struct address_space *mapping = filp->f_mapping;
-+	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
-+	struct page *page;
-+	int error;
-+
-+	if (iocb->ki_flags & IOCB_NOIO)
-+		return ERR_PTR(-EAGAIN);
-+
-+	/*
-+	 * Ok, it wasn't cached, so we need to create a new
-+	 * page..
-+	 */
-+	page = page_cache_alloc(mapping);
-+	if (!page)
-+		return ERR_PTR(-ENOMEM);
-+
-+	error = add_to_page_cache_lru(page, mapping, index,
-+				      mapping_gfp_constraint(mapping, GFP_KERNEL));
-+	if (error) {
-+		put_page(page);
-+		return error != -EEXIST ? ERR_PTR(error) : NULL;
-+	}
-+
-+	return generic_file_buffered_read_readpage(iocb, filp, mapping, page);
-+}
-+
- /**
-  * generic_file_buffered_read - generic file read routine
-  * @iocb:	the iocb to read
-@@ -2189,23 +2417,15 @@ ssize_t generic_file_buffered_read(struc
- 	struct address_space *mapping = filp->f_mapping;
- 	struct inode *inode = mapping->host;
- 	struct file_ra_state *ra = &filp->f_ra;
--	loff_t *ppos = &iocb->ki_pos;
--	pgoff_t index;
-+	size_t orig_count = iov_iter_count(iter);
- 	pgoff_t last_index;
--	pgoff_t prev_index;
--	unsigned long offset;      /* offset into pagecache page */
--	unsigned int prev_offset;
- 	int error = 0;
+ 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
+ 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
+-	TTU_IGNORE_ACCESS	= 0x10,	/* don't age */
+ 	TTU_IGNORE_HWPOISON	= 0x20,	/* corrupted page is recoverable */
+ 	TTU_BATCH_FLUSH		= 0x40,	/* Batch TLB flushes where possible
+ 					 * and caller guarantees they will
+--- a/mm/huge_memory.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/huge_memory.c
+@@ -2321,7 +2321,7 @@ void vma_adjust_trans_huge(struct vm_are
  
--	if (unlikely(*ppos >= inode->i_sb->s_maxbytes))
-+	if (unlikely(iocb->ki_pos >= inode->i_sb->s_maxbytes))
- 		return 0;
- 	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
+ static void unmap_page(struct page *page)
+ {
+-	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
++	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK |
+ 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
+ 	bool unmap_success;
  
--	index = *ppos >> PAGE_SHIFT;
--	prev_index = ra->prev_pos >> PAGE_SHIFT;
--	prev_offset = ra->prev_pos & (PAGE_SIZE-1);
--	last_index = (*ppos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
--	offset = *ppos & ~PAGE_MASK;
-+	last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
- 
- 	/*
- 	 * If we've already successfully copied some data, then we
-@@ -2216,10 +2436,8 @@ ssize_t generic_file_buffered_read(struc
- 		iocb->ki_flags |= IOCB_NOWAIT;
- 
- 	for (;;) {
-+		pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
- 		struct page *page;
--		pgoff_t end_index;
--		loff_t isize;
--		unsigned long nr, ret;
- 
- 		cond_resched();
- find_page:
-@@ -2228,6 +2446,14 @@ find_page:
- 			goto out;
+--- a/mm/memory-failure.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/memory-failure.c
+@@ -989,7 +989,7 @@ static int get_hwpoison_page(struct page
+ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 				  int flags, struct page **hpagep)
+ {
+-	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
++	enum ttu_flags ttu = TTU_IGNORE_MLOCK;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success = true;
+--- a/mm/memory_hotplug.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/memory_hotplug.c
+@@ -1304,7 +1304,7 @@ do_migrate_range(unsigned long start_pfn
+ 			if (WARN_ON(PageLRU(page)))
+ 				isolate_lru_page(page);
+ 			if (page_mapped(page))
+-				try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS);
++				try_to_unmap(page, TTU_IGNORE_MLOCK);
+ 			continue;
  		}
  
-+		/*
-+		 * We can't return -EIOCBQUEUED once we've done some work, so
-+		 * ensure we don't block:
-+		 */
-+		if ((iocb->ki_flags & IOCB_WAITQ) &&
-+		    (written + orig_count - iov_iter_count(iter)))
-+			iocb->ki_flags |= IOCB_NOWAIT;
-+
- 		page = find_get_page(mapping, index);
- 		if (!page) {
- 			if (iocb->ki_flags & IOCB_NOIO)
-@@ -2236,8 +2462,15 @@ find_page:
- 					ra, filp,
- 					index, last_index - index);
- 			page = find_get_page(mapping, index);
--			if (unlikely(page == NULL))
--				goto no_cached_page;
-+			if (unlikely(page == NULL)) {
-+				page = generic_file_buffered_read_no_cached_page(iocb, iter);
-+				if (!page)
-+					goto find_page;
-+				if (IS_ERR(page)) {
-+					error = PTR_ERR(page);
-+					goto out;
-+				}
-+			}
- 		}
- 		if (PageReadahead(page)) {
- 			if (iocb->ki_flags & IOCB_NOIO) {
-@@ -2249,231 +2482,37 @@ find_page:
- 					index, last_index - index);
- 		}
- 		if (!PageUptodate(page)) {
--			/*
--			 * See comment in do_read_cache_page on why
--			 * wait_on_page_locked is used to avoid unnecessarily
--			 * serialisations and why it's safe.
--			 */
--			if (iocb->ki_flags & IOCB_WAITQ) {
--				if (written) {
--					put_page(page);
--					goto out;
--				}
--				error = wait_on_page_locked_async(page,
--								iocb->ki_waitq);
--			} else {
--				if (iocb->ki_flags & IOCB_NOWAIT) {
--					put_page(page);
--					goto would_block;
--				}
--				error = wait_on_page_locked_killable(page);
--			}
--			if (unlikely(error))
--				goto readpage_error;
--			if (PageUptodate(page))
--				goto page_ok;
--
--			if (inode->i_blkbits == PAGE_SHIFT ||
--					!mapping->a_ops->is_partially_uptodate)
--				goto page_not_up_to_date;
--			/* pipes can't handle partially uptodate pages */
--			if (unlikely(iov_iter_is_pipe(iter)))
--				goto page_not_up_to_date;
--			if (!trylock_page(page))
--				goto page_not_up_to_date;
--			/* Did it get truncated before we got the lock? */
--			if (!page->mapping)
--				goto page_not_up_to_date_locked;
--			if (!mapping->a_ops->is_partially_uptodate(page,
--							offset, iter->count))
--				goto page_not_up_to_date_locked;
--			unlock_page(page);
--		}
--page_ok:
--		/*
--		 * i_size must be checked after we know the page is Uptodate.
--		 *
--		 * Checking i_size after the check allows us to calculate
--		 * the correct value for "nr", which means the zero-filled
--		 * part of the page is not copied back to userspace (unless
--		 * another truncate extends the file - this is desired though).
--		 */
--
--		isize = i_size_read(inode);
--		end_index = (isize - 1) >> PAGE_SHIFT;
--		if (unlikely(!isize || index > end_index)) {
--			put_page(page);
--			goto out;
--		}
--
--		/* nr is the maximum number of bytes to copy from this page */
--		nr = PAGE_SIZE;
--		if (index == end_index) {
--			nr = ((isize - 1) & ~PAGE_MASK) + 1;
--			if (nr <= offset) {
-+			if (iocb->ki_flags & IOCB_NOWAIT) {
- 				put_page(page);
-+				error = -EAGAIN;
- 				goto out;
- 			}
--		}
--		nr = nr - offset;
--
--		/* If users can be writing to this page using arbitrary
--		 * virtual addresses, take care about potential aliasing
--		 * before reading the page on the kernel side.
--		 */
--		if (mapping_writably_mapped(mapping))
--			flush_dcache_page(page);
--
--		/*
--		 * When a sequential read accesses a page several times,
--		 * only mark it as accessed the first time.
--		 */
--		if (prev_index != index || offset != prev_offset)
--			mark_page_accessed(page);
--		prev_index = index;
--
--		/*
--		 * Ok, we have the page, and it's up-to-date, so
--		 * now we can copy it to user space...
--		 */
--
--		ret = copy_page_to_iter(page, offset, nr, iter);
--		offset += ret;
--		index += offset >> PAGE_SHIFT;
--		offset &= ~PAGE_MASK;
--		prev_offset = offset;
--
--		put_page(page);
--		written += ret;
--		if (!iov_iter_count(iter))
--			goto out;
--		if (ret < nr) {
--			error = -EFAULT;
--			goto out;
--		}
--		continue;
--
--page_not_up_to_date:
--		/* Get exclusive access to the page ... */
--		if (iocb->ki_flags & IOCB_WAITQ) {
--			if (written) {
--				put_page(page);
--				goto out;
--			}
--			error = lock_page_async(page, iocb->ki_waitq);
--		} else {
--			error = lock_page_killable(page);
--		}
--		if (unlikely(error))
--			goto readpage_error;
--
--page_not_up_to_date_locked:
--		/* Did it get truncated before we got the lock? */
--		if (!page->mapping) {
--			unlock_page(page);
--			put_page(page);
--			continue;
--		}
--
--		/* Did somebody else fill it already? */
--		if (PageUptodate(page)) {
--			unlock_page(page);
--			goto page_ok;
--		}
--
--readpage:
--		if (iocb->ki_flags & (IOCB_NOIO | IOCB_NOWAIT)) {
--			unlock_page(page);
--			put_page(page);
--			goto would_block;
--		}
--		/*
--		 * A previous I/O error may have been due to temporary
--		 * failures, eg. multipath errors.
--		 * PG_error will be set again if readpage fails.
--		 */
--		ClearPageError(page);
--		/* Start the actual read. The read will unlock the page. */
--		error = mapping->a_ops->readpage(filp, page);
--
--		if (unlikely(error)) {
--			if (error == AOP_TRUNCATED_PAGE) {
--				put_page(page);
--				error = 0;
-+			page = generic_file_buffered_read_pagenotuptodate(iocb,
-+					filp, iter, page, iocb->ki_pos, iter->count);
-+			if (!page)
- 				goto find_page;
-+			if (IS_ERR(page)) {
-+				error = PTR_ERR(page);
-+				goto out;
- 			}
--			goto readpage_error;
--		}
--
--		if (!PageUptodate(page)) {
--			if (iocb->ki_flags & IOCB_WAITQ) {
--				if (written) {
--					put_page(page);
--					goto out;
--				}
--				error = lock_page_async(page, iocb->ki_waitq);
--			} else {
--				error = lock_page_killable(page);
--			}
--
--			if (unlikely(error))
--				goto readpage_error;
--			if (!PageUptodate(page)) {
--				if (page->mapping == NULL) {
--					/*
--					 * invalidate_mapping_pages got it
--					 */
--					unlock_page(page);
--					put_page(page);
--					goto find_page;
--				}
--				unlock_page(page);
--				shrink_readahead_size_eio(ra);
--				error = -EIO;
--				goto readpage_error;
--			}
--			unlock_page(page);
- 		}
- 
--		goto page_ok;
--
--readpage_error:
--		/* UHHUH! A synchronous read error occurred. Report it */
-+		error = generic_file_buffered_read_page_ok(iocb, iter, page);
- 		put_page(page);
--		goto out;
- 
--no_cached_page:
--		/*
--		 * Ok, it wasn't cached, so we need to create a new
--		 * page..
--		 */
--		page = page_cache_alloc(mapping);
--		if (!page) {
--			error = -ENOMEM;
--			goto out;
--		}
--		error = add_to_page_cache_lru(page, mapping, index,
--				mapping_gfp_constraint(mapping, GFP_KERNEL));
- 		if (error) {
--			put_page(page);
--			if (error == -EEXIST) {
-+			if (error > 0)
- 				error = 0;
--				goto find_page;
--			}
- 			goto out;
- 		}
--		goto readpage;
+--- a/mm/migrate.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/migrate.c
+@@ -1122,8 +1122,7 @@ static int __unmap_and_move(struct page
+ 		/* Establish migration ptes */
+ 		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
+ 				page);
+-		try_to_unmap(page,
+-			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
++		try_to_unmap(page, TTU_MIGRATION|TTU_IGNORE_MLOCK);
+ 		page_was_mapped = 1;
  	}
  
- would_block:
- 	error = -EAGAIN;
- out:
--	ra->prev_pos = prev_index;
--	ra->prev_pos <<= PAGE_SHIFT;
--	ra->prev_pos |= prev_offset;
+@@ -1329,8 +1328,7 @@ static int unmap_and_move_huge_page(new_
+ 
+ 	if (page_mapped(hpage)) {
+ 		bool mapping_locked = false;
+-		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK|
+-					TTU_IGNORE_ACCESS;
++		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK;
+ 
+ 		if (!PageAnon(hpage)) {
+ 			/*
+@@ -2688,7 +2686,7 @@ static void migrate_vma_prepare(struct m
+  */
+ static void migrate_vma_unmap(struct migrate_vma *migrate)
+ {
+-	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
++	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK;
+ 	const unsigned long npages = migrate->npages;
+ 	const unsigned long start = migrate->start;
+ 	unsigned long addr, i, restore = 0;
+--- a/mm/rmap.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/rmap.c
+@@ -1533,15 +1533,6 @@ static bool try_to_unmap_one(struct page
+ 			goto discard;
+ 		}
+ 
+-		if (!(flags & TTU_IGNORE_ACCESS)) {
+-			if (ptep_clear_flush_young_notify(vma, address,
+-						pvmw.pte)) {
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
+-			}
+-		}
 -
--	*ppos = ((loff_t)index << PAGE_SHIFT) + offset;
- 	file_accessed(filp);
-+	written += orig_count - iov_iter_count(iter);
-+
- 	return written ? written : error;
- }
- EXPORT_SYMBOL_GPL(generic_file_buffered_read);
+ 		/* Nuke the page table entry. */
+ 		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
+ 		if (should_defer_flush(mm, flags)) {
+--- a/mm/vmscan.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/vmscan.c
+@@ -1072,7 +1072,6 @@ static void page_check_dirty_writeback(s
+ static unsigned int shrink_page_list(struct list_head *page_list,
+ 				     struct pglist_data *pgdat,
+ 				     struct scan_control *sc,
+-				     enum ttu_flags ttu_flags,
+ 				     struct reclaim_stat *stat,
+ 				     bool ignore_references)
+ {
+@@ -1297,7 +1296,7 @@ static unsigned int shrink_page_list(str
+ 		 * processes. Try to unmap it here.
+ 		 */
+ 		if (page_mapped(page)) {
+-			enum ttu_flags flags = ttu_flags | TTU_BATCH_FLUSH;
++			enum ttu_flags flags = TTU_BATCH_FLUSH;
+ 			bool was_swapbacked = PageSwapBacked(page);
+ 
+ 			if (unlikely(PageTransHuge(page)))
+@@ -1514,7 +1513,7 @@ unsigned int reclaim_clean_pages_from_li
+ 	}
+ 
+ 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+-			TTU_IGNORE_ACCESS, &stat, true);
++					&stat, true);
+ 	list_splice(&clean_pages, page_list);
+ 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
+ 			    -(long)nr_reclaimed);
+@@ -1958,8 +1957,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	if (nr_taken == 0)
+ 		return 0;
+ 
+-	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, 0,
+-				&stat, false);
++	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, &stat, false);
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 
+@@ -2131,8 +2129,7 @@ unsigned long reclaim_pages(struct list_
+ 
+ 		nr_reclaimed += shrink_page_list(&node_page_list,
+ 						NODE_DATA(nid),
+-						&sc, 0,
+-						&dummy_stat, false);
++						&sc, &dummy_stat, false);
+ 		while (!list_empty(&node_page_list)) {
+ 			page = lru_to_page(&node_page_list);
+ 			list_del(&page->lru);
+@@ -2145,8 +2142,7 @@ unsigned long reclaim_pages(struct list_
+ 	if (!list_empty(&node_page_list)) {
+ 		nr_reclaimed += shrink_page_list(&node_page_list,
+ 						NODE_DATA(nid),
+-						&sc, 0,
+-						&dummy_stat, false);
++						&sc, &dummy_stat, false);
+ 		while (!list_empty(&node_page_list)) {
+ 			page = lru_to_page(&node_page_list);
+ 			list_del(&page->lru);
 _
 
-Patches currently in -mm which might be from kent.overstreet@gmail.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
+mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
 
