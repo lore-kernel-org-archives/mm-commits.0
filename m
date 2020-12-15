@@ -7,42 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04988C2BBCA
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79193C2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBA07224D2
+	by mail.kernel.org (Postfix) with ESMTP id 540E2223E0
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725308AbgLODOy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42594 "EHLO mail.kernel.org"
+        id S1728136AbgLODP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:15:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727813AbgLODOh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:14:37 -0500
-Date:   Mon, 14 Dec 2020 19:13:54 -0800
+        id S1727470AbgLODMu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:50 -0500
+Date:   Mon, 14 Dec 2020 19:11:32 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002036;
-        bh=nkW2/q6Ai/VIeeigz2vg/kGiHU/H4sL1QSI7nxooTZU=;
+        s=korg; t=1608001893;
+        bh=C06etKsndvEsMopugbgO0z1/Z0SXXPpduZErB/5dfno=;
         h=From:To:Subject:In-Reply-To:From;
-        b=uFrZcTuYYZaNLEFClzvy9BonD1rEqNmPMxm0QsAuPeba1e2+Azbu7JNB6XjJ9EAkj
-         /h4R+3kaxhwgK/O4POZ0jN35tYMr8z++9eyXA8HeTBx561ESdJ+7ufaSC5vxXRkpau
-         8cD2mjqHSZ6zs2NlN8So/FE/P2IS3sHCH2A4KfXQ=
+        b=aNR+vnt+IRyVR9pJ9ytMFddb/E3+nfMzd45jbu8mjtU6q/Fiafh5MJTtQc8h3kbQD
+         9ja0losR/EhGZJmLcwn6JVAYrxPYT0aATyZD7zOr9AHxpSMQx4gdKCBSVOXOQppOiJ
+         fV/lri5kUFsDhzeEO4YwiAcnvt3qPOeQLkPHuHig=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        bigeasy@linutronix.de, calin@google.com, corbet@lwn.net,
-        dancol@dancol.org, dancol@google.com, ebiggers@kernel.org,
-        hannes@cmpxchg.org, jeffv@google.com, jglisse@redhat.com,
-        joel@joelfernandes.org, kaleshsingh@google.com,
-        keescook@chromium.org, linux-mm@kvack.org, lokeshgidra@google.com,
-        mcgrof@kernel.org, mchehab+huawei@kernel.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        nigupta@nvidia.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
-        shli@fb.com, stephen.smalley.work@gmail.com, surenb@google.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz,
-        viro@zeniv.linux.org.uk, yzaikin@google.com
-Subject:  [patch 180/200] userfaultfd: add user-mode only option to
- unprivileged_userfaultfd sysctl knob
-Message-ID: <20201215031354.gUsHJUpKo%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, torvalds@linux-foundation.org
+Subject:  [patch 139/200] mm,hwpoison: take free pages off the
+ buddy freelists
+Message-ID: <20201215031132.f024gDC4p%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,116 +41,190 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd: add user-mode only option to unprivileged_userfaultfd sysctl knob
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: take free pages off the buddy freelists
 
-With this change, when the knob is set to 0, it allows unprivileged users
-to call userfaultfd, like when it is set to 1, but with the restriction
-that page faults from only user-mode can be handled.  In this mode, an
-unprivileged user (without SYS_CAP_PTRACE capability) must pass
-UFFD_USER_MODE_ONLY to userfaultd or the API will fail with EPERM.
+The crux of the matter is that historically we left poisoned pages in the
+buddy system because we have some checks in place when allocating a page
+that are gatekeeper for poisoned pages.  Unfortunately, we do have other
+users (e.g: compaction [1]) that scan buddy freelists and try to get a
+page from there without checking whether the page is HWPoison.
 
-This enables administrators to reduce the likelihood that an attacker with
-access to userfaultfd can delay faulting kernel code to widen timing
-windows for other exploits.
+As I stated already, I think it is fundamentally wrong to keep HWPoison
+pages within the buddy systems, checks in place or not.
 
-The default value of this knob is changed to 0.  This is required for
-correct functioning of pipe mutex.  However, this will fail postcopy live
-migration, which will be unnoticeable to the VM guests.  To avoid this,
-set 'vm.userfault = 1' in /sys/sysctl.conf.
+Let us fix this the same way we did for soft_offline [2], taking the page
+off the buddy freelist so it is completely unreachable.
 
-The main reason this change is desirable as in the short term is that the
-Android userland will behave as with the sysctl set to zero.  So without
-this commit, any Linux binary using userfaultfd to manage its memory would
-behave differently if run within the Android userland.  For more details,
-refer to Andrea's reply [1].
+Note that this is fairly simple to trigger, as we only need to poison free
+buddy pages (madvise MADV_HWPOISON) and then run some sort of memory
+stress system.
 
-[1] https://lore.kernel.org/lkml/20200904033438.GI9411@redhat.com/
+Just for a matter of reference, I put a dump_page() in compaction_alloc()
+to trigger for HWPoison patches:
 
-Link: https://lkml.kernel.org/r/20201120030411.2690816-3-lokeshgidra@google.com
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: Daniel Colascione <dancol@dancol.org>
-Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Jeff Vander Stoep <jeffv@google.com>
-Cc: <calin@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Daniel Colascione <dancol@google.com>
+kernel: page:0000000012b2982b refcount:1 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x1d5db
+kernel: flags: 0xfffffc0800000(hwpoison)
+kernel: raw: 000fffffc0800000 ffffea00007573c8 ffffc90000857de0 0000000000000000
+kernel: raw: 0000000000000001 0000000000000000 00000001ffffffff 0000000000000000
+kernel: page dumped because: compaction_alloc
+
+kernel: CPU: 4 PID: 123 Comm: kcompactd0 Tainted: G            E     5.9.0-rc2-mm1-1-default+ #5
+kernel: Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.10.2-0-g5f4c7b1-prebuilt.qemu-project.org 04/01/2014
+kernel: Call Trace:
+kernel:  dump_stack+0x6d/0x8b
+kernel:  compaction_alloc+0xb2/0xc0
+kernel:  migrate_pages+0x2a6/0x12a0
+kernel:  ? isolate_freepages+0xc80/0xc80
+kernel:  ? __ClearPageMovable+0xb0/0xb0
+kernel:  compact_zone+0x5eb/0x11c0
+kernel:  ? finish_task_switch+0x74/0x300
+kernel:  ? lock_timer_base+0xa8/0x170
+kernel:  proactive_compact_node+0x89/0xf0
+kernel:  ? kcompactd+0x2d0/0x3a0
+kernel:  kcompactd+0x2d0/0x3a0
+kernel:  ? finish_wait+0x80/0x80
+kernel:  ? kcompactd_do_work+0x350/0x350
+kernel:  kthread+0x118/0x130
+kernel:  ? kthread_associate_blkcg+0xa0/0xa0
+kernel:  ret_from_fork+0x22/0x30
+
+After that, if e.g: a process faults in the page,  it will get killed
+unexpectedly.
+Fix it by containing the page immediatelly.
+
+Besides that, two more changes can be noticed:
+
+* MF_DELAYED no longer suits as we are fixing the issue by containing
+  the page immediately, so it does no longer rely on the allocation-time
+  checks to stop HWPoison to be handed over.
+  gain unless it is unpoisoned, so we fixed the situation.
+  Because of that, let us use MF_RECOVERED from now on.
+
+* The second block that handles PageBuddy pages is no longer needed:
+  We call shake_page and then check whether the page is Buddy
+  because shake_page calls drain_all_pages, which sends pcp-pages back to
+  the buddy freelists, so we could have a chance to handle free pages.
+  Currently, get_hwpoison_page already calls drain_all_pages, and we call
+  get_hwpoison_page right before coming here, so we should be on the safe
+  side.
+
+[1] https://lore.kernel.org/linux-mm/20190826104144.GA7849@linux/T/#u
+[2] https://patchwork.kernel.org/cover/11792607/
+
+[osalvador@suse.de: take the poisoned subpage off the buddy frelists]
+  Link: https://lkml.kernel.org/r/20201013144447.6706-4-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20201013144447.6706-3-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   15 ++++++++++-----
- fs/userfaultfd.c                        |   10 ++++++++--
- 2 files changed, 18 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |   46 +++++++++++++++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 16 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~add-user-mode-only-option-to-unprivileged_userfaultfd-sysctl-knob
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -873,12 +873,17 @@ file-backed pages is less than the high
- unprivileged_userfaultfd
- ========================
+--- a/mm/memory-failure.c~mmhwpoison-take-free-pages-off-the-buddy-freelists
++++ a/mm/memory-failure.c
+@@ -809,7 +809,7 @@ static int me_swapcache_clean(struct pag
+  */
+ static int me_huge_page(struct page *p, unsigned long pfn)
+ {
+-	int res = 0;
++	int res;
+ 	struct page *hpage = compound_head(p);
+ 	struct address_space *mapping;
  
--This flag controls whether unprivileged users can use the userfaultfd
--system calls.  Set this to 1 to allow unprivileged users to use the
--userfaultfd system calls, or set this to 0 to restrict userfaultfd to only
--privileged users (with SYS_CAP_PTRACE capability).
-+This flag controls the mode in which unprivileged users can use the
-+userfaultfd system calls. Set this to 0 to restrict unprivileged users
-+to handle page faults in user mode only. In this case, users without
-+SYS_CAP_PTRACE must pass UFFD_USER_MODE_ONLY in order for userfaultfd to
-+succeed. Prohibiting use of userfaultfd for handling faults from kernel
-+mode may make certain vulnerabilities more difficult to exploit.
+@@ -820,6 +820,7 @@ static int me_huge_page(struct page *p,
+ 	if (mapping) {
+ 		res = truncate_error_page(hpage, pfn, mapping);
+ 	} else {
++		res = MF_FAILED;
+ 		unlock_page(hpage);
+ 		/*
+ 		 * migration entry prevents later access on error anonymous
+@@ -828,8 +829,10 @@ static int me_huge_page(struct page *p,
+ 		 */
+ 		if (PageAnon(hpage))
+ 			put_page(hpage);
+-		dissolve_free_huge_page(p);
+-		res = MF_RECOVERED;
++		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
++			page_ref_inc(p);
++			res = MF_RECOVERED;
++		}
+ 		lock_page(hpage);
+ 	}
  
--The default value is 1.
-+Set this to 1 to allow unprivileged users to use the userfaultfd system
-+calls without any restrictions.
-+
-+The default value is 0.
+@@ -1196,9 +1199,13 @@ static int memory_failure_hugetlb(unsign
+ 			}
+ 		}
+ 		unlock_page(head);
+-		dissolve_free_huge_page(p);
+-		action_result(pfn, MF_MSG_FREE_HUGE, MF_DELAYED);
+-		return 0;
++		res = MF_FAILED;
++		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
++			page_ref_inc(p);
++			res = MF_RECOVERED;
++		}
++		action_result(pfn, MF_MSG_FREE_HUGE, res);
++		return res == MF_RECOVERED ? 0 : -EBUSY;
+ 	}
  
+ 	lock_page(head);
+@@ -1339,6 +1346,7 @@ int memory_failure(unsigned long pfn, in
+ 	struct dev_pagemap *pgmap;
+ 	int res;
+ 	unsigned long page_flags;
++	bool retry = true;
  
- user_reserve_kbytes
---- a/fs/userfaultfd.c~add-user-mode-only-option-to-unprivileged_userfaultfd-sysctl-knob
-+++ a/fs/userfaultfd.c
-@@ -28,7 +28,7 @@
- #include <linux/security.h>
- #include <linux/hugetlb.h>
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1356,6 +1364,7 @@ int memory_failure(unsigned long pfn, in
+ 		return -ENXIO;
+ 	}
  
--int sysctl_unprivileged_userfaultfd __read_mostly = 1;
-+int sysctl_unprivileged_userfaultfd __read_mostly;
++try_again:
+ 	if (PageHuge(p))
+ 		return memory_failure_hugetlb(pfn, flags);
+ 	if (TestSetPageHWPoison(p)) {
+@@ -1380,8 +1389,21 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
+ 		if (is_free_buddy_page(p)) {
+-			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+-			return 0;
++			if (take_page_off_buddy(p)) {
++				page_ref_inc(p);
++				res = MF_RECOVERED;
++			} else {
++				/* We lost the race, try again */
++				if (retry) {
++					ClearPageHWPoison(p);
++					num_poisoned_pages_dec();
++					retry = false;
++					goto try_again;
++				}
++				res = MF_FAILED;
++			}
++			action_result(pfn, MF_MSG_BUDDY, res);
++			return res == MF_RECOVERED ? 0 : -EBUSY;
+ 		} else {
+ 			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
+ 			return -EBUSY;
+@@ -1405,14 +1427,6 @@ int memory_failure(unsigned long pfn, in
+ 	 * walked by the page reclaim code, however that's not a big loss.
+ 	 */
+ 	shake_page(p, 0);
+-	/* shake_page could have turned it free. */
+-	if (!PageLRU(p) && is_free_buddy_page(p)) {
+-		if (flags & MF_COUNT_INCREASED)
+-			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+-		else
+-			action_result(pfn, MF_MSG_BUDDY_2ND, MF_DELAYED);
+-		return 0;
+-	}
  
- static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
- 
-@@ -1966,8 +1966,14 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
- 	struct userfaultfd_ctx *ctx;
- 	int fd;
- 
--	if (!sysctl_unprivileged_userfaultfd && !capable(CAP_SYS_PTRACE))
-+	if (!sysctl_unprivileged_userfaultfd &&
-+	    (flags & UFFD_USER_MODE_ONLY) == 0 &&
-+	    !capable(CAP_SYS_PTRACE)) {
-+		printk_once(KERN_WARNING "uffd: Set unprivileged_userfaultfd "
-+			"sysctl knob to 1 if kernel faults must be handled "
-+			"without obtaining CAP_SYS_PTRACE capability\n");
- 		return -EPERM;
-+	}
- 
- 	BUG_ON(!current->mm);
+ 	lock_page(p);
  
 _
