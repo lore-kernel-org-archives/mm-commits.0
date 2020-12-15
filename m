@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D62C2BB48
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0088C2BB9A
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13C59224B2
+	by mail.kernel.org (Postfix) with ESMTP id 5C86B224B2
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727561AbgLODOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41652 "EHLO mail.kernel.org"
+        id S1728093AbgLODOU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727725AbgLODNm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:13:42 -0500
-Date:   Mon, 14 Dec 2020 19:12:59 -0800
+        id S1728046AbgLODMl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:41 -0500
+Date:   Mon, 14 Dec 2020 19:11:19 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001980;
-        bh=a2/fza+QoE1VuIH7oUPRY7Ffw2yPzb/srsPPT8bMW/s=;
+        s=korg; t=1608001879;
+        bh=2V0aWHd+HpvbqUbigniTNnRjaO/TilulSY1cerdprDg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=lTIekurTdKWksDqjn3H8OeXFZCZQawE6ZSwusM/3XfbHn8apx5OtAx4pt2b5b9tn8
-         QrMriaJohby7fw06Rcylkh7xgzfLoPgPZzQnE4SAm6T7n8MxiULb263ILYxEHLccFq
-         +Fdtnl2gtEJ+UNDKtTrjWjrKGKd4MUw1tD4qKkcw=
+        b=EbNsu40OczZTiXu5332A1Wmyg5q5fADzYvLPf25cXmAfVNjoHA/9T4FCu84zHDHG7
+         CCAeVw3iyPWuz9FKJPR6Jz9GiR6k3iMtRL0tf+GzYtjKEvnmwrcVkpbbDnCP0j4bN1
+         +8kESd8qJtM4amGNBNQO/wyP2uDkadhSIWh6L0Eo=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jack@suse.cz, linux-mm@kvack.org,
-        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
-        naresh.kamboju@linaro.org, shy828301@gmail.com,
-        songliubraving@fb.com, torvalds@linux-foundation.org,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 165/200] mm: support THPs in zero_user_segments
-Message-ID: <20201215031259.TbwPkPJjP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linf@wangsu.com, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 135/200] init/main: fix broken buffer_init when
+ DEFERRED_STRUCT_PAGE_INIT set
+Message-ID: <20201215031119.60LGvc0BJ%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,130 +41,112 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: support THPs in zero_user_segments
+From: Lin Feng <linf@wangsu.com>
+Subject: init/main: fix broken buffer_init when DEFERRED_STRUCT_PAGE_INIT set
 
-We can only kmap() one subpage of a THP at a time, so loop over all
-relevant subpages, skipping ones which don't need to be zeroed.  This is
-too large to inline when THPs are enabled and we actually need highmem, so
-put it in highmem.c.
+In the booting phase if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set,
+we have following callchain:
 
-[willy@infradead.org: start1 was allowed to be less than start2]
-Link: https://lkml.kernel.org/r/20201124041507.28996-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+start_kernel
+...
+  mm_init
+    mem_init
+     memblock_free_all
+       reset_all_zones_managed_pages
+       free_low_memory_core_early
+...
+  buffer_init
+    nr_free_buffer_pages
+      zone->managed_pages
+...
+  rest_init
+    kernel_init
+      kernel_init_freeable
+        page_alloc_init_late
+          kthread_run(deferred_init_memmap, NODE_DATA(nid), "pgdatinit%d", nid);
+          wait_for_completion(&pgdat_init_all_done_comp);
+          ...
+          files_maxfiles_init
+
+It's clear that buffer_init depends on zone->managed_pages, but it's reset
+in reset_all_zones_managed_pages after that pages are readded into
+zone->managed_pages, but when buffer_init runs this process is half done
+and most of them will finally be added till deferred_init_memmap done.  In
+large memory couting of nr_free_buffer_pages drifts too much, also
+drifting from kernels to kernels on same hardware.
+
+Fix is simple, it delays buffer_init run till deferred_init_memmap all
+done.
+
+But as corrected by this patch, max_buffer_heads becomes very large, the
+value is roughly as many as 4 times of totalram_pages, formula:
+max_buffer_heads = nrpages * (10%) * (PAGE_SIZE / sizeof(struct
+buffer_head));
+
+Say in a 64GB memory box we have 16777216 pages, then max_buffer_heads
+turns out to be roughly 67,108,864.  In common cases, should a buffer_head
+be mapped to one page/block(4KB)?  So max_buffer_heads never exceeds
+totalram_pages.  IMO it's likely to make buffer_heads_over_limit bool
+value alwasy false, then make codes 'if (buffer_heads_over_limit)' test in
+vmscan unnecessary.
+
+So this patch will change the original behavior related to
+buffer_heads_over_limit in vmscan since we used a half done value of
+zone->managed_pages before, or should we use a smaller factor(<10%) in
+previous formula.
+
+akpm: I think this is OK - the max_buffer_heads code is only needed on
+highmem machines, to prevent ZONE_NORMAL from being consumed by large
+amounts of buffer_heads attached to highmem pagecache.  This problem will
+not occur on 64-bit machines, so this feature's non-functionality on such
+machines is a feature, not a bug.
+
+Link: https://lkml.kernel.org/r/20201123110500.103523-1-linf@wangsu.com
+Signed-off-by: Lin Feng <linf@wangsu.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |   19 ++++++++++---
- mm/highmem.c            |   52 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 4 deletions(-)
+ init/main.c     |    2 --
+ mm/page_alloc.c |    3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/highmem.h~mm-support-thps-in-zero_user_segments
-+++ a/include/linux/highmem.h
-@@ -284,13 +284,22 @@ static inline void clear_highpage(struct
- 	kunmap_atomic(kaddr);
- }
+--- a/init/main.c~init-main-fix-broken-buffer_init-when-deferred_struct_page_init-set
++++ a/init/main.c
+@@ -58,7 +58,6 @@
+ #include <linux/rmap.h>
+ #include <linux/mempolicy.h>
+ #include <linux/key.h>
+-#include <linux/buffer_head.h>
+ #include <linux/page_ext.h>
+ #include <linux/debug_locks.h>
+ #include <linux/debugobjects.h>
+@@ -1036,7 +1035,6 @@ asmlinkage __visible void __init __no_sa
+ 	fork_init();
+ 	proc_caches_init();
+ 	uts_ns_init();
+-	buffer_init();
+ 	key_init();
+ 	security_init();
+ 	dbg_late_init();
+--- a/mm/page_alloc.c~init-main-fix-broken-buffer_init-when-deferred_struct_page_init-set
++++ a/mm/page_alloc.c
+@@ -71,6 +71,7 @@
+ #include <linux/psi.h>
+ #include <linux/padata.h>
+ #include <linux/khugepaged.h>
++#include <linux/buffer_head.h>
  
-+/*
-+ * If we pass in a base or tail page, we can zero up to PAGE_SIZE.
-+ * If we pass in a head page, we can zero up to the size of the compound page.
-+ */
-+#if defined(CONFIG_HIGHMEM) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
-+		unsigned start2, unsigned end2);
-+#else /* !HIGHMEM || !TRANSPARENT_HUGEPAGE */
- static inline void zero_user_segments(struct page *page,
--	unsigned start1, unsigned end1,
--	unsigned start2, unsigned end2)
-+		unsigned start1, unsigned end1,
-+		unsigned start2, unsigned end2)
- {
- 	void *kaddr = kmap_atomic(page);
-+	unsigned int i;
+ #include <asm/sections.h>
+ #include <asm/tlbflush.h>
+@@ -2113,6 +2114,8 @@ void __init page_alloc_init_late(void)
+ 	files_maxfiles_init();
+ #endif
  
--	BUG_ON(end1 > PAGE_SIZE || end2 > PAGE_SIZE);
-+	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
++	buffer_init();
++
+ 	/* Discard memblock private memory */
+ 	memblock_discard();
  
- 	if (end1 > start1)
- 		memset(kaddr + start1, 0, end1 - start1);
-@@ -299,8 +308,10 @@ static inline void zero_user_segments(st
- 		memset(kaddr + start2, 0, end2 - start2);
- 
- 	kunmap_atomic(kaddr);
--	flush_dcache_page(page);
-+	for (i = 0; i < compound_nr(page); i++)
-+		flush_dcache_page(page + i);
- }
-+#endif /* !HIGHMEM || !TRANSPARENT_HUGEPAGE */
- 
- static inline void zero_user_segment(struct page *page,
- 	unsigned start, unsigned end)
---- a/mm/highmem.c~mm-support-thps-in-zero_user_segments
-+++ a/mm/highmem.c
-@@ -369,6 +369,58 @@ void kunmap_high(struct page *page)
- }
- 
- EXPORT_SYMBOL(kunmap_high);
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
-+		unsigned start2, unsigned end2)
-+{
-+	unsigned int i;
-+
-+	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
-+
-+	for (i = 0; i < compound_nr(page); i++) {
-+		void *kaddr = NULL;
-+
-+		if (start1 < PAGE_SIZE || start2 < PAGE_SIZE)
-+			kaddr = kmap_atomic(page + i);
-+
-+		if (start1 >= PAGE_SIZE) {
-+			start1 -= PAGE_SIZE;
-+			end1 -= PAGE_SIZE;
-+		} else {
-+			unsigned this_end = min_t(unsigned, end1, PAGE_SIZE);
-+
-+			if (end1 > start1)
-+				memset(kaddr + start1, 0, this_end - start1);
-+			end1 -= this_end;
-+			start1 = 0;
-+		}
-+
-+		if (start2 >= PAGE_SIZE) {
-+			start2 -= PAGE_SIZE;
-+			end2 -= PAGE_SIZE;
-+		} else {
-+			unsigned this_end = min_t(unsigned, end2, PAGE_SIZE);
-+
-+			if (end2 > start2)
-+				memset(kaddr + start2, 0, this_end - start2);
-+			end2 -= this_end;
-+			start2 = 0;
-+		}
-+
-+		if (kaddr) {
-+			kunmap_atomic(kaddr);
-+			flush_dcache_page(page + i);
-+		}
-+
-+		if (!end1 && !end2)
-+			break;
-+	}
-+
-+	BUG_ON((start1 | start2 | end1 | end2) != 0);
-+}
-+EXPORT_SYMBOL(zero_user_segments);
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif	/* CONFIG_HIGHMEM */
- 
- #if defined(HASHED_PAGE_VIRTUAL)
 _
