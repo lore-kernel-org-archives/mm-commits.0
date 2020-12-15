@@ -7,32 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF0D7C3526D
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF85C35270
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD8A722D05
+	by mail.kernel.org (Postfix) with ESMTP id EC73F22CAE
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727075AbgLPAAW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34628 "EHLO mail.kernel.org"
+        id S1727073AbgLPAAV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725764AbgLOX1k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:40 -0500
-Date:   Tue, 15 Dec 2020 15:17:59 -0800
+        id S1727075AbgLOX10 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:26 -0500
+Date:   Tue, 15 Dec 2020 15:18:05 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074279;
-        bh=FETBql0NtDm9TRqJ/bdA3lUmVARu05vwnkT9niGRXwo=;
+        s=korg; t=1608074286;
+        bh=dz9EUqOxNbIN3mucIHZsQZGrJrq3lJIrxAmeAl8cjR4=;
         h=From:To:Subject:From;
-        b=IDPRVH1vOdsPfUlrYKFYb9LU2jXCvKyjvkAkhT+nITZQv7jm+SOsWqP/ud2eE2mVw
-         BNCJqHp3H5Jvjhv18ySwRM/q3hGrd6Jb30w/MAn6c38ppipUpNiNq9nWhJp09boy82
-         MPWXnzuJBSA8BlV5D+JQxYS3A9pLQcs5m/8JsxrE=
+        b=KSIyjm8UZbVdbeZyQq3Hfv7wZIve9mPBloM8uJwNyJJScZipT8TO61HDsCRo15fhq
+         y4X0bP7aGWiNlkeOTd3B078PVrpROYG9zdi7z5ICfPlGq8zumPx+fTIBtg3ePsEaVC
+         ahgTzCdWiUacXG+q89Oapm1KnyCD8LpFA5VLpvFo=
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, hughd@google.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
-Subject:  [merged] tmpfs-fix-documentation-nits.patch removed from
- -mm tree
-Message-ID: <20201215231759.0nfuTm4LF%akpm@linux-foundation.org>
+To:     chris@chrisdown.name, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, laoar.shao@gmail.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com, songmuchun@bytedance.com,
+        vbabka@suse.cz, vdavydov.dev@gmail.com
+Subject:  [merged]
+ mm-memcontrol-remove-unused-mod_memcg_obj_state.patch removed from -mm tree
+Message-ID: <20201215231805.LS9K_GL7V%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,71 +44,110 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix Documentation nits
+     Subject: mm: memcontrol: remove unused mod_memcg_obj_state()
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-documentation-nits.patch
+     mm-memcontrol-remove-unused-mod_memcg_obj_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: tmpfs: fix Documentation nits
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: remove unused mod_memcg_obj_state()
 
-Fix a typo, punctuation, use uppercase for CPUs, and limit
-tmpfs to keeping only its files in virtual memory (phrasing).
+Since commit:
 
-Link: https://lkml.kernel.org/r/20201202010934.18566-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Hugh Dickins <hughd@google.com>
+  991e7673859e ("mm: memcontrol: account kernel stack per node")
+
+There is no user of the mod_memcg_obj_state().  This patch just remove it.
+Also rework type of the idx parameter of the mod_objcg_state() from int
+to enum node_stat_item.
+
+Link: https://lkml.kernel.org/r/20201013153504.92602-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Cc: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.rst |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    6 ------
+ mm/memcontrol.c            |   11 -----------
+ mm/slab.h                  |    4 ++--
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
---- a/Documentation/filesystems/tmpfs.rst~tmpfs-fix-documentation-nits
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -4,7 +4,7 @@
- Tmpfs
- =====
+--- a/include/linux/memcontrol.h~mm-memcontrol-remove-unused-mod_memcg_obj_state
++++ a/include/linux/memcontrol.h
+@@ -798,8 +798,6 @@ void __mod_lruvec_state(struct lruvec *l
+ 			int val);
+ void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
  
--Tmpfs is a file system which keeps all files in virtual memory.
-+Tmpfs is a file system which keeps all of its files in virtual memory.
+-void mod_memcg_obj_state(void *p, int idx, int val);
+-
+ static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
+ 					 int val)
+ {
+@@ -1255,10 +1253,6 @@ static inline void mod_lruvec_slab_state
+ 	mod_node_page_state(page_pgdat(page), idx, val);
+ }
  
+-static inline void mod_memcg_obj_state(void *p, int idx, int val)
+-{
+-}
+-
+ static inline
+ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+ 					    gfp_t gfp_mask,
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unused-mod_memcg_obj_state
++++ a/mm/memcontrol.c
+@@ -882,17 +882,6 @@ void __mod_lruvec_slab_state(void *p, en
+ 	rcu_read_unlock();
+ }
  
- Everything in tmpfs is temporary in the sense that no files will be
-@@ -35,7 +35,7 @@ tmpfs has the following uses:
-    memory.
+-void mod_memcg_obj_state(void *p, int idx, int val)
+-{
+-	struct mem_cgroup *memcg;
+-
+-	rcu_read_lock();
+-	memcg = mem_cgroup_from_obj(p);
+-	if (memcg)
+-		mod_memcg_state(memcg, idx, val);
+-	rcu_read_unlock();
+-}
+-
+ /**
+  * __count_memcg_events - account VM events in a cgroup
+  * @memcg: the memory cgroup
+--- a/mm/slab.h~mm-memcontrol-remove-unused-mod_memcg_obj_state
++++ a/mm/slab.h
+@@ -204,7 +204,7 @@ ssize_t slabinfo_write(struct file *file
+ void __kmem_cache_free_bulk(struct kmem_cache *, size_t, void **);
+ int __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
  
-    This mount does not depend on CONFIG_TMPFS. If CONFIG_TMPFS is not
--   set, the user visible part of tmpfs is not build. But the internal
-+   set, the user visible part of tmpfs is not built. But the internal
-    mechanisms are always present.
+-static inline int cache_vmstat_idx(struct kmem_cache *s)
++static inline enum node_stat_item cache_vmstat_idx(struct kmem_cache *s)
+ {
+ 	return (s->flags & SLAB_RECLAIM_ACCOUNT) ?
+ 		NR_SLAB_RECLAIMABLE_B : NR_SLAB_UNRECLAIMABLE_B;
+@@ -304,7 +304,7 @@ static inline bool memcg_slab_pre_alloc_
  
- 2) glibc 2.2 and above expects tmpfs to be mounted at /dev/shm for
-@@ -50,7 +50,7 @@ tmpfs has the following uses:
-    This mount is _not_ needed for SYSV shared memory. The internal
-    mount is used for that. (In the 2.3 kernel versions it was
-    necessary to mount the predecessor of tmpfs (shm fs) to use SYSV
--   shared memory)
-+   shared memory.)
- 
- 3) Some people (including me) find it very convenient to mount it
-    e.g. on /tmp and /var/tmp and have a big swap partition. And now
-@@ -83,7 +83,7 @@ If nr_blocks=0 (or size=0), blocks will
- if nr_inodes=0, inodes will not be limited.  It is generally unwise to
- mount with such options, since it allows any user with write access to
- use up all the memory on the machine; but enhances the scalability of
--that instance in a system with many cpus making intensive use of it.
-+that instance in a system with many CPUs making intensive use of it.
- 
- 
- tmpfs has a mount option to set the NUMA memory allocation policy for
+ static inline void mod_objcg_state(struct obj_cgroup *objcg,
+ 				   struct pglist_data *pgdat,
+-				   int idx, int nr)
++				   enum node_stat_item idx, int nr)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-procfs-delete-duplicated-words-other-fixes.patch
-bfs-dont-use-warning-string-when-its-just-info.patch
 
