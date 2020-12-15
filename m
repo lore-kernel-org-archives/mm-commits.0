@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9BF9C2BBCD
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEBC8C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C696C223C8
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FA83223C8
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728007AbgLODMg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:12:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36572 "EHLO mail.kernel.org"
+        id S1726227AbgLODQl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:16:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727933AbgLODMb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:31 -0500
-Date:   Mon, 14 Dec 2020 19:10:40 -0800
+        id S1727454AbgLODMl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:41 -0500
+Date:   Mon, 14 Dec 2020 19:10:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001841;
-        bh=har5Cuh2k/BmwF6Jv+J4x50I3ZciUGcgunwVjQ0g10U=;
+        s=korg; t=1608001860;
+        bh=TMczCVD+2JAhBewLJNat0oRtmqAB/EjmKhvAY0SeaRo=;
         h=From:To:Subject:In-Reply-To:From;
-        b=KJBKH66zbEajfEOj/rNv8gUzfkrOfv6oac78Ad9S3QyozzUtd9++5YgvVxmYBE1nZ
-         3YpeOQBXZ2VcM56Uzmxzx4C7lw57lQHgf7n27lhXf+/5HqYAjPSHpZdfAuZ8MnzjoL
-         vK2EZ8KpY89H0R5ohjYICDFamwKR1OyWDsUPoJIA=
+        b=r4NzGu1CcaPW4Fsn77p1CE/3J2/t9n3mjmJVHYmTypq+zjN4YWcmYE+oOV8qBwiOg
+         Au6BOxmojmgkMQxXRpO9/KootBChMaXjHGDWyb2QnB3uaTwTtjNwcx+uqvsMSTdZIP
+         sVxXzb0jqorQ1Yk9UhVREza575iq83z3aV91Ss2g=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        pankaj.gupta@cloud.ionos.com, torvalds@linux-foundation.org,
-        vbabka@suse.cz
-Subject:  [patch 123/200] mm, page_alloc: clean up pageset high and
- batch update
-Message-ID: <20201215031040.ewHUT-Nyj%akpm@linux-foundation.org>
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 129/200] mm, page_alloc: disable pcplists during
+ memory offline
+Message-ID: <20201215031059.0AU1xa_py%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,166 +42,284 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: clean up pageset high and batch update
+Subject: mm, page_alloc: disable pcplists during memory offline
 
-Patch series "disable pcplists during memory offline", v3.
+Memory offlining relies on page isolation to guarantee a forward progress
+because pages cannot be reused while they are isolated.  But the page
+isolation itself doesn't prevent from races while freed pages are stored
+on pcp lists and thus can be reused.  This can be worked around by
+repeated draining of pcplists, as done by commit 968318261221
+("mm/memory_hotplug: drain per-cpu pages again during memory offline").
 
-As per the discussions [1] [2] this is an attempt to implement David's
-suggestion that page isolation should disable pcplists to avoid races with
-page freeing in progress.  This is done without extra checks in fast
-paths, as explained in Patch 9.  The repeated draining done by [2] is then
-no longer needed.  Previous version (RFC) is at [3].
+David and Michal would prefer that this race was closed in a way that
+callers of page isolation who need stronger guarantees don't need to
+repeatedly drain.  David suggested disabling pcplists usage completely
+during page isolation, instead of repeatedly draining them.
 
-The RFC tried to hide pcplists disabling/enabling into page isolation, but
-it wasn't completely possible, as memory offline does not unisolation. 
-Michal suggested an explicit API in [4] so that's the current
-implementation and it seems indeed nicer.
+To achieve this without adding special cases in alloc/free fastpath, we
+can use the same approach as boot pagesets - when pcp->high is 0, any
+pcplist addition will be immediately flushed.
 
-Once we accept that page isolation users need to do explicit actions
-around it depending on the needed guarantees, we can also IMHO accept that
-the current pcplist draining can be also done by the callers, which is
-more effective.  After all, there are only two users of page isolation. 
-So patch 6 does effectively the same thing as Pavel proposed in [5], and
-patch 7 implement stronger guarantees only for memory offline.  If CMA
-decides to opt-in to the stronger guarantee, it can be added later.
+The race can thus be closed by setting pcp->high to 0 and draining
+pcplists once, before calling start_isolate_page_range().  The draining
+will serialize after processes that already disabled interrupts and read
+the old value of pcp->high in free_unref_page_commit(), and processes that
+have not yet disabled interrupts, will observe pcp->high == 0 when they
+are rescheduled, and skip pcplists.  This guarantees no stray pages on
+pcplists in zones where isolation happens.
 
-Patches 1-5 are preparatory cleanups for pcplist disabling.
+This patch thus adds zone_pcp_disable() and zone_pcp_enable() functions
+that page isolation users can call before start_isolate_page_range() and
+after unisolating (or offlining) the isolated pages.
 
-Patchset was briefly tested in QEMU so that memory online/offline works,
-but I haven't done a stress test that would prove the race fixed by [2] is
-eliminated.
+Also, drain_all_pages() is optimized to only execute on cpus where
+pcplists are not empty.  The check can however race with a free to pcplist
+that has not yet increased the pcp->count from 0 to 1.  Thus make the
+drain optionally skip the racy check and drain on all cpus, and use this
+option in zone_pcp_disable().
 
-Note that patch 7 could be avoided if we instead adjusted page freeing in
-shown in [6], but I believe the current implementation of disabling
-pcplists is not too much complex, so I would prefer this instead of adding
-new checks and longer irq-disabled section into page freeing hotpaths.
+As we have to avoid external updates to high and batch while pcplists are
+disabled, we take pcp_batch_high_lock in zone_pcp_disable() and release it
+in zone_pcp_enable().  This also synchronizes multiple users of
+zone_pcp_disable()/enable().
 
-[1] https://lore.kernel.org/linux-mm/20200901124615.137200-1-pasha.tatashin@soleen.com/
-[2] https://lore.kernel.org/linux-mm/20200903140032.380431-1-pasha.tatashin@soleen.com/
-[3] https://lore.kernel.org/linux-mm/20200907163628.26495-1-vbabka@suse.cz/
-[4] https://lore.kernel.org/linux-mm/20200909113647.GG7348@dhcp22.suse.cz/
-[5] https://lore.kernel.org/linux-mm/20200904151448.100489-3-pasha.tatashin@soleen.com/
-[6] https://lore.kernel.org/linux-mm/3d3b53db-aeaa-ff24-260b-36427fac9b1c@suse.cz/
-[7] https://lore.kernel.org/linux-mm/20200922143712.12048-1-vbabka@suse.cz/
-[8] https://lore.kernel.org/linux-mm/20201008114201.18824-1-vbabka@suse.cz/
+Currently the only user of this functionality is offline_pages().
 
-
-This patch (of 7):
-
-The updates to pcplists' high and batch values are handled by multiple
-functions that make the calculations hard to follow.  Consolidate
-everything to pageset_set_high_and_batch() and remove pageset_set_batch()
-and pageset_set_high() wrappers.
-
-The only special case using one of the removed wrappers was:
-build_all_zonelists_init()
-
-  setup_pageset()
-    pageset_set_batch()
-
-which was hardcoding batch as 0, so we can just open-code a call to
-pageset_update() with constant parameters instead.
-
-No functional change.
-
-Link: https://lkml.kernel.org/r/20201111092812.11329-1-vbabka@suse.cz
-Link: https://lkml.kernel.org/r/20201111092812.11329-2-vbabka@suse.cz
+[vbabka@suse.cz: add comment, per David]
+  Link: https://lkml.kernel.org/r/527480ef-ed72-e1c1-52a0-1c5b0113df45@suse.cz
+Link: https://lkml.kernel.org/r/20201111092812.11329-8-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   49 ++++++++++++++++++----------------------------
- 1 file changed, 20 insertions(+), 29 deletions(-)
+ mm/internal.h       |    2 +
+ mm/memory_hotplug.c |   28 ++++++----------
+ mm/page_alloc.c     |   73 +++++++++++++++++++++++++++++++++++-------
+ mm/page_isolation.c |    6 +--
+ 4 files changed, 78 insertions(+), 31 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clean-up-pageset-high-and-batch-update
-+++ a/mm/page_alloc.c
-@@ -5919,7 +5919,7 @@ static void build_zonelists(pg_data_t *p
-  * not check if the processor is online before following the pageset pointer.
-  * Other parts of the kernel may not check if the zone is available.
-  */
--static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch);
-+static void setup_pageset(struct per_cpu_pageset *p);
- static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
- static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+--- a/mm/internal.h~mm-page_alloc-disable-pcplists-during-memory-offline
++++ a/mm/internal.h
+@@ -204,6 +204,8 @@ extern void free_unref_page_list(struct
  
-@@ -5987,7 +5987,7 @@ build_all_zonelists_init(void)
- 	 * (a chicken-egg dilemma).
- 	 */
- 	for_each_possible_cpu(cpu)
--		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
-+		setup_pageset(&per_cpu(boot_pageset, cpu));
+ extern void zone_pcp_update(struct zone *zone);
+ extern void zone_pcp_reset(struct zone *zone);
++extern void zone_pcp_disable(struct zone *zone);
++extern void zone_pcp_enable(struct zone *zone);
  
- 	mminit_verify_zonelist();
- 	cpuset_init_current_mems_allowed();
-@@ -6296,12 +6296,6 @@ static void pageset_update(struct per_cp
- 	pcp->batch = batch;
- }
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
--/* a companion to pageset_set_high() */
--static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
--{
--	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
--}
+--- a/mm/memory_hotplug.c~mm-page_alloc-disable-pcplists-during-memory-offline
++++ a/mm/memory_hotplug.c
+@@ -1491,17 +1491,21 @@ int __ref offline_pages(unsigned long st
+ 	}
+ 	node = zone_to_nid(zone);
+ 
++	/*
++	 * Disable pcplists so that page isolation cannot race with freeing
++	 * in a way that pages from isolated pageblock are left on pcplists.
++	 */
++	zone_pcp_disable(zone);
++
+ 	/* set above range as isolated */
+ 	ret = start_isolate_page_range(start_pfn, end_pfn,
+ 				       MIGRATE_MOVABLE,
+ 				       MEMORY_OFFLINE | REPORT_FAILURE);
+ 	if (ret) {
+ 		reason = "failure to isolate range";
+-		goto failed_removal;
++		goto failed_removal_pcplists_disabled;
+ 	}
+ 
+-	drain_all_pages(zone);
 -
- static void pageset_init(struct per_cpu_pageset *p)
- {
- 	struct per_cpu_pages *pcp;
-@@ -6314,35 +6308,32 @@ static void pageset_init(struct per_cpu_
- 		INIT_LIST_HEAD(&pcp->lists[migratetype]);
- }
+ 	arg.start_pfn = start_pfn;
+ 	arg.nr_pages = nr_pages;
+ 	node_states_check_changes_offline(nr_pages, zone, &arg);
+@@ -1551,20 +1555,8 @@ int __ref offline_pages(unsigned long st
+ 			goto failed_removal_isolated;
+ 		}
  
--static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
-+static void setup_pageset(struct per_cpu_pageset *p)
- {
- 	pageset_init(p);
--	pageset_set_batch(p, batch);
-+	pageset_update(&p->pcp, 0, 1);
+-		/*
+-		 * per-cpu pages are drained after start_isolate_page_range, but
+-		 * if there are still pages that are not free, make sure that we
+-		 * drain again, because when we isolated range we might have
+-		 * raced with another thread that was adding pages to pcp list.
+-		 *
+-		 * Forward progress should be still guaranteed because
+-		 * pages on the pcp list can only belong to MOVABLE_ZONE
+-		 * because has_unmovable_pages explicitly checks for
+-		 * PageBuddy on freed pages on other zones.
+-		 */
+ 		ret = test_pages_isolated(start_pfn, end_pfn, MEMORY_OFFLINE);
+-		if (ret)
+-			drain_all_pages(zone);
++
+ 	} while (ret);
+ 
+ 	/* Mark all sections offline and remove free pages from the buddy. */
+@@ -1580,6 +1572,8 @@ int __ref offline_pages(unsigned long st
+ 	zone->nr_isolate_pageblock -= nr_pages / pageblock_nr_pages;
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 
++	zone_pcp_enable(zone);
++
+ 	/* removal success */
+ 	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
+ 	zone->present_pages -= nr_pages;
+@@ -1612,6 +1606,8 @@ int __ref offline_pages(unsigned long st
+ failed_removal_isolated:
+ 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
++failed_removal_pcplists_disabled:
++	zone_pcp_enable(zone);
+ failed_removal:
+ 	pr_debug("memory offlining [mem %#010llx-%#010llx] failed due to %s\n",
+ 		 (unsigned long long) start_pfn << PAGE_SHIFT,
+--- a/mm/page_alloc.c~mm-page_alloc-disable-pcplists-during-memory-offline
++++ a/mm/page_alloc.c
+@@ -3026,13 +3026,16 @@ static void drain_local_pages_wq(struct
  }
  
  /*
-- * pageset_set_high() sets the high water mark for hot per_cpu_pagelist
-- * to the value high for the pageset p.
-+ * Calculate and set new high and batch values for given per-cpu pageset of a
-+ * zone, based on the zone's size and the percpu_pagelist_fraction sysctl.
+- * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
+- *
+- * When zone parameter is non-NULL, spill just the single zone's pages.
++ * The implementation of drain_all_pages(), exposing an extra parameter to
++ * drain on all cpus.
+  *
+- * Note that this can be extremely slow as the draining happens in a workqueue.
++ * drain_all_pages() is optimized to only execute on cpus where pcplists are
++ * not empty. The check for non-emptiness can however race with a free to
++ * pcplist that has not yet increased the pcp->count from 0 to 1. Callers
++ * that need the guarantee that every CPU has drained can disable the
++ * optimizing racy check.
   */
--static void pageset_set_high(struct per_cpu_pageset *p,
--				unsigned long high)
--{
--	unsigned long batch = max(1UL, high / 4);
--	if ((high / 4) > (PAGE_SHIFT * 8))
--		batch = PAGE_SHIFT * 8;
--
--	pageset_update(&p->pcp, high, batch);
--}
--
- static void pageset_set_high_and_batch(struct zone *zone,
--				       struct per_cpu_pageset *pcp)
-+				       struct per_cpu_pageset *p)
+-void drain_all_pages(struct zone *zone)
++void __drain_all_pages(struct zone *zone, bool force_all_cpus)
  {
--	if (percpu_pagelist_fraction)
--		pageset_set_high(pcp,
--			(zone_managed_pages(zone) /
--				percpu_pagelist_fraction));
--	else
--		pageset_set_batch(pcp, zone_batchsize(zone));
-+	unsigned long new_high, new_batch;
-+
-+	if (percpu_pagelist_fraction) {
-+		new_high = zone_managed_pages(zone) / percpu_pagelist_fraction;
-+		new_batch = max(1UL, new_high / 4);
-+		if ((new_high / 4) > (PAGE_SHIFT * 8))
-+			new_batch = PAGE_SHIFT * 8;
-+	} else {
-+		new_batch = zone_batchsize(zone);
-+		new_high = 6 * new_batch;
-+		new_batch = max(1UL, 1 * new_batch);
-+	}
-+	pageset_update(&p->pcp, new_high, new_batch);
+ 	int cpu;
+ 
+@@ -3071,7 +3074,13 @@ void drain_all_pages(struct zone *zone)
+ 		struct zone *z;
+ 		bool has_pcps = false;
+ 
+-		if (zone) {
++		if (force_all_cpus) {
++			/*
++			 * The pcp.count check is racy, some callers need a
++			 * guarantee that no cpu is missed.
++			 */
++			has_pcps = true;
++		} else if (zone) {
+ 			pcp = per_cpu_ptr(zone->pageset, cpu);
+ 			if (pcp->pcp.count)
+ 				has_pcps = true;
+@@ -3104,6 +3113,18 @@ void drain_all_pages(struct zone *zone)
+ 	mutex_unlock(&pcpu_drain_mutex);
  }
  
- static void __meminit zone_pageset_init(struct zone *zone, int cpu)
++/*
++ * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
++ *
++ * When zone parameter is non-NULL, spill just the single zone's pages.
++ *
++ * Note that this can be extremely slow as the draining happens in a workqueue.
++ */
++void drain_all_pages(struct zone *zone)
++{
++	__drain_all_pages(zone, false);
++}
++
+ #ifdef CONFIG_HIBERNATION
+ 
+ /*
+@@ -6316,6 +6337,18 @@ static void pageset_init(struct per_cpu_
+ 	pcp->batch = BOOT_PAGESET_BATCH;
+ }
+ 
++void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high,
++		unsigned long batch)
++{
++	struct per_cpu_pageset *p;
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		p = per_cpu_ptr(zone->pageset, cpu);
++		pageset_update(&p->pcp, high, batch);
++	}
++}
++
+ /*
+  * Calculate and set new high and batch values for all per-cpu pagesets of a
+  * zone, based on the zone's size and the percpu_pagelist_fraction sysctl.
+@@ -6323,8 +6356,6 @@ static void pageset_init(struct per_cpu_
+ static void zone_set_pageset_high_and_batch(struct zone *zone)
+ {
+ 	unsigned long new_high, new_batch;
+-	struct per_cpu_pageset *p;
+-	int cpu;
+ 
+ 	if (percpu_pagelist_fraction) {
+ 		new_high = zone_managed_pages(zone) / percpu_pagelist_fraction;
+@@ -6344,10 +6375,7 @@ static void zone_set_pageset_high_and_ba
+ 	zone->pageset_high = new_high;
+ 	zone->pageset_batch = new_batch;
+ 
+-	for_each_possible_cpu(cpu) {
+-		p = per_cpu_ptr(zone->pageset, cpu);
+-		pageset_update(&p->pcp, new_high, new_batch);
+-	}
++	__zone_set_pageset_high_and_batch(zone, new_high, new_batch);
+ }
+ 
+ void __meminit setup_zone_pageset(struct zone *zone)
+@@ -8742,6 +8770,27 @@ void __meminit zone_pcp_update(struct zo
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ 
++/*
++ * Effectively disable pcplists for the zone by setting the high limit to 0
++ * and draining all cpus. A concurrent page freeing on another CPU that's about
++ * to put the page on pcplist will either finish before the drain and the page
++ * will be drained, or observe the new high limit and skip the pcplist.
++ *
++ * Must be paired with a call to zone_pcp_enable().
++ */
++void zone_pcp_disable(struct zone *zone)
++{
++	mutex_lock(&pcp_batch_high_lock);
++	__zone_set_pageset_high_and_batch(zone, 0, 1);
++	__drain_all_pages(zone, true);
++}
++
++void zone_pcp_enable(struct zone *zone)
++{
++	__zone_set_pageset_high_and_batch(zone, zone->pageset_high, zone->pageset_batch);
++	mutex_unlock(&pcp_batch_high_lock);
++}
++
+ void zone_pcp_reset(struct zone *zone)
+ {
+ 	unsigned long flags;
+--- a/mm/page_isolation.c~mm-page_alloc-disable-pcplists-during-memory-offline
++++ a/mm/page_isolation.c
+@@ -174,9 +174,9 @@ __first_valid_page(unsigned long pfn, un
+  * A call to drain_all_pages() after isolation can flush most of them. However
+  * in some cases pages might still end up on pcp lists and that would allow
+  * for their allocation even when they are in fact isolated already. Depending
+- * on how strong of a guarantee the caller needs, further drain_all_pages()
+- * might be needed (e.g. __offline_pages will need to call it after check for
+- * isolated range for a next retry).
++ * on how strong of a guarantee the caller needs, zone_pcp_disable/enable()
++ * might be used to flush and disable pcplist before isolation and enable after
++ * unisolation.
+  *
+  * Return: 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
 _
