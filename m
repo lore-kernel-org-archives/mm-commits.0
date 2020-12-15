@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97126C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E473C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67175224B2
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BE5D20721
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726571AbgLODM1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:12:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36678 "EHLO mail.kernel.org"
+        id S1727710AbgLODMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:12:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727932AbgLODMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:18 -0500
-Date:   Mon, 14 Dec 2020 19:09:51 -0800
+        id S1727910AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:15 -0500
+Date:   Mon, 14 Dec 2020 19:09:39 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001793;
-        bh=S5odxIyLrjuweyZ63+eQOrr1/g5wbASQHlAjaEWAX2g=;
+        s=korg; t=1608001781;
+        bh=VLk7sNPo1aLrKYJUSU7RD3oaxsJbne+m3OyiHhyDg1s=;
         h=From:To:Subject:In-Reply-To:From;
-        b=W2ct9UFM9MOi/tY+eY+vwwWHxkwaBgZHgn0hSe7cmBDBzDChXWGPmdfayBmaa8NHg
-         22x/8mQVsE8vfAZVcf+6ZtY3De28d9paZnU63kaJbGKInBEBlfdQ+NicGX2BeehAf7
-         LJzM3xvT00XpjUOjQlcHaPevYkgJiWxJdrvc139A=
+        b=rlk7j5b/9fGDmz7L3EcQTibn/nBNddM+4PciXHUwbfny7+oFao3KRphPwU/YEp1Hl
+         diQF7NM18fEaDskVDbRJXz/Fir6HQlhgW153IZSyWHvy8ztAgY7dOGmgKs0JCMiQi/
+         opyqMYVnQYl9gSh9DgWQshX4Dm7wGL6jrpBNe4D4=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     adobriyan@gmail.com, akpm@linux-foundation.org,
         catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
@@ -35,9 +35,9 @@ To:     adobriyan@gmail.com, akpm@linux-foundation.org,
         mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
         schmitzmic@gmail.com, tony.luck@intel.com,
         torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
-Subject:  [patch 112/200] ia64: make SPARSEMEM default and disable
- DISCONTIGMEM
-Message-ID: <20201215030951.N7nRi9IU0%akpm@linux-foundation.org>
+Subject:  [patch 109/200] ia64: discontig: paging_init(): remove
+ local max_pfn calculation
+Message-ID: <20201215030939.1bMGkmDdD%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,16 +46,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: make SPARSEMEM default and disable DISCONTIGMEM
+Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
 
-SPARSEMEM memory model suitable for systems with large holes in their
-phyiscal memory layout. With SPARSEMEM_VMEMMAP enabled it provides
-pfn_to_page() and page_to_pfn() as fast as FLATMEM.
+The maximal PFN in the system is calculated during find_memory() time and
+it is stored at max_low_pfn then.
 
-Make it the default memory model for IA-64 and disable DISCONTIGMEM which
-is considered obsolete for quite some time.
+Use this value in paging_init() and remove the redundant detection of
+max_pfn in that function.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-8-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -73,32 +72,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/mm/discontig.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/ia64/Kconfig~ia64-make-sparsemem-default-and-disable-discontigmem
-+++ a/arch/ia64/Kconfig
-@@ -288,6 +288,7 @@ config ARCH_SELECT_MEMORY_MODEL
+--- a/arch/ia64/mm/discontig.c~ia64-discontig-paging_init-remove-local-max_pfn-calculation
++++ a/arch/ia64/mm/discontig.c
+@@ -594,7 +594,6 @@ void __init paging_init(void)
+ {
+ 	unsigned long max_dma;
+ 	unsigned long pfn_offset = 0;
+-	unsigned long max_pfn = 0;
+ 	int node;
+ 	unsigned long max_zone_pfns[MAX_NR_ZONES];
  
- config ARCH_DISCONTIGMEM_ENABLE
- 	def_bool y
-+	depends on BROKEN
- 	help
- 	  Say Y to support efficient handling of discontiguous physical memory,
- 	  for architectures which are either NUMA (Non-Uniform Memory Access)
-@@ -299,12 +300,11 @@ config ARCH_FLATMEM_ENABLE
+@@ -616,13 +615,11 @@ void __init paging_init(void)
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+ 		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
+ #endif
+-		if (mem_data[node].max_pfn > max_pfn)
+-			max_pfn = mem_data[node].max_pfn;
+ 	}
  
- config ARCH_SPARSEMEM_ENABLE
- 	def_bool y
--	depends on ARCH_DISCONTIGMEM_ENABLE
- 	select SPARSEMEM_VMEMMAP_ENABLE
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+ 	max_zone_pfns[ZONE_DMA32] = max_dma;
+-	max_zone_pfns[ZONE_NORMAL] = max_pfn;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
+ 	free_area_init(max_zone_pfns);
  
--config ARCH_DISCONTIGMEM_DEFAULT
-+config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y
--	depends on ARCH_DISCONTIGMEM_ENABLE
-+	depends on ARCH_SPARSEMEM_ENABLE
- 
- config NUMA
- 	bool "NUMA support"
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
 _
