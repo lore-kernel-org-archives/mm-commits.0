@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98C84C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2C85C2BB48
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7141A224BD
+	by mail.kernel.org (Postfix) with ESMTP id 8F50122510
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725921AbgLODHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:07:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35460 "EHLO mail.kernel.org"
+        id S1725974AbgLODH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:07:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgLODHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:07:39 -0500
-Date:   Mon, 14 Dec 2020 19:06:52 -0800
+        id S1726101AbgLODHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:07:20 -0500
+Date:   Mon, 14 Dec 2020 19:06:39 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001613;
-        bh=Yu/X83QLMEhWiK+9F6MlidvOcNMrtl47Rw0IgFAqLXU=;
+        s=korg; t=1608001599;
+        bh=0CUzCyb7B0GjY5F853mI4P3tzyd0+Km/14LwYKxJTV4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=vcxIwrUoGqmWXzLQ0St6DwUsDWxfXaa8Rr/ACL6m1NqCn1NNeaPVBjfB3rdKM+P8x
-         Uej81WuCF4aMTlcqvDpDCueJ4+vxgK03vQAdK9k7C4uQ6Io7ABtt+evOhfk3A68pg5
-         qs8olV7gFBCMYgbCMj1HXiXtHB2hXcb9JeQ6H4Ck=
+        b=FmLzBZ3lUOZLS3X/tMcnAB5LcymhMP/ortt6vodYtqYBP/Yy+cmqfgtBJsL/zkmp0
+         C73285qD+nDA/3IUuz148KSKgpLXeE8A2BAtWjFsq5njOsYyD5oyWHI3wQXyMIn0C5
+         gA1ItDz/uRl1oHrSZPuPCjLlYdxSZO5pVOR6ZxQI=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, shakeelb@google.com, tj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 064/200] docs: cgroup-v1: reflect the deprecation
- of the non-hierarchical mode
-Message-ID: <20201215030652.NE0YeXiQf%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com,
+        jglisse@redhat.com, linux-mm@kvack.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 060/200] mm/rmap: always do TTU_IGNORE_ACCESS
+Message-ID: <20201215030639.BGx7KgGcH%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,125 +42,201 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: docs: cgroup-v1: reflect the deprecation of the non-hierarchical mode
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm/rmap: always do TTU_IGNORE_ACCESS
 
-Update cgroup v1 docs after the deprecation of the non-hierarchical mode
-of the memory controller.
+Since commit 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic
+v2"), the code to check the secondary MMU's page table access bit is
+broken for !(TTU_IGNORE_ACCESS) because the page is unmapped from the
+secondary MMU's page table before the check.  More specifically for those
+secondary MMUs which unmap the memory in
+mmu_notifier_invalidate_range_start() like kvm.
 
-Link: https://lkml.kernel.org/r/20201110220800.929549-3-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David Rientjes <rientjes@google.com>
+However memory reclaim is the only user of !(TTU_IGNORE_ACCESS) or the
+absence of TTU_IGNORE_ACCESS and it explicitly performs the page table
+access check before trying to unmap the page.  So, at worst the reclaim
+will miss accesses in a very short window if we remove page table access
+check in unmapping code.
+
+There is an unintented consequence of !(TTU_IGNORE_ACCESS) for the memcg
+reclaim.  From memcg reclaim the page_referenced() only account the
+accesses from the processes which are in the same memcg of the target page
+but the unmapping code is considering accesses from all the processes, so,
+decreasing the effectiveness of memcg reclaim.
+
+The simplest solution is to always assume TTU_IGNORE_ACCESS in unmapping
+code.
+
+Link: https://lkml.kernel.org/r/20201104231928.1494083-1-shakeelb@google.com
+Fixes: 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic v2")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memcg_test.rst |    8 --
- Documentation/admin-guide/cgroup-v1/memory.rst     |   42 +++--------
- 2 files changed, 17 insertions(+), 33 deletions(-)
+ include/linux/rmap.h |    1 -
+ mm/huge_memory.c     |    2 +-
+ mm/memory-failure.c  |    2 +-
+ mm/memory_hotplug.c  |    2 +-
+ mm/migrate.c         |    8 +++-----
+ mm/rmap.c            |    9 ---------
+ mm/vmscan.c          |   14 +++++---------
+ 7 files changed, 11 insertions(+), 27 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memcg_test.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
-+++ a/Documentation/admin-guide/cgroup-v1/memcg_test.rst
-@@ -219,13 +219,11 @@ Under below explanation, we assume CONFI
+--- a/include/linux/rmap.h~mm-rmap-always-do-ttu_ignore_access
++++ a/include/linux/rmap.h
+@@ -91,7 +91,6 @@ enum ttu_flags {
  
- 	This is an easy way to test page migration, too.
+ 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
+ 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
+-	TTU_IGNORE_ACCESS	= 0x10,	/* don't age */
+ 	TTU_IGNORE_HWPOISON	= 0x20,	/* corrupted page is recoverable */
+ 	TTU_BATCH_FLUSH		= 0x40,	/* Batch TLB flushes where possible
+ 					 * and caller guarantees they will
+--- a/mm/huge_memory.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/huge_memory.c
+@@ -2321,7 +2321,7 @@ void vma_adjust_trans_huge(struct vm_are
  
--9.5 mkdir/rmdir
-----------------
-+9.5 nested cgroups
-+------------------
+ static void unmap_page(struct page *page)
+ {
+-	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
++	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK |
+ 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
+ 	bool unmap_success;
  
--	When using hierarchy, mkdir/rmdir test should be done.
--	Use tests like the following::
-+	Use tests like the following for testing nested cgroups::
+--- a/mm/memory-failure.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/memory-failure.c
+@@ -989,7 +989,7 @@ static int get_hwpoison_page(struct page
+ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 				  int flags, struct page **hpagep)
+ {
+-	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
++	enum ttu_flags ttu = TTU_IGNORE_MLOCK;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success = true;
+--- a/mm/memory_hotplug.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/memory_hotplug.c
+@@ -1304,7 +1304,7 @@ do_migrate_range(unsigned long start_pfn
+ 			if (WARN_ON(PageLRU(page)))
+ 				isolate_lru_page(page);
+ 			if (page_mapped(page))
+-				try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS);
++				try_to_unmap(page, TTU_IGNORE_MLOCK);
+ 			continue;
+ 		}
  
--		echo 1 >/opt/cgroup/01/memory/use_hierarchy
- 		mkdir /opt/cgroup/01/child_a
- 		mkdir /opt/cgroup/01/child_b
+--- a/mm/migrate.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/migrate.c
+@@ -1122,8 +1122,7 @@ static int __unmap_and_move(struct page
+ 		/* Establish migration ptes */
+ 		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
+ 				page);
+-		try_to_unmap(page,
+-			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
++		try_to_unmap(page, TTU_MIGRATION|TTU_IGNORE_MLOCK);
+ 		page_was_mapped = 1;
+ 	}
  
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -77,6 +77,8 @@ Brief summary of control files.
-  memory.soft_limit_in_bytes	     set/show soft limit of memory usage
-  memory.stat			     show various statistics
-  memory.use_hierarchy		     set/show hierarchical account enabled
-+                                     This knob is deprecated and shouldn't be
-+                                     used.
-  memory.force_empty		     trigger forced page reclaim
-  memory.pressure_level		     set memory pressure notifications
-  memory.swappiness		     set/show swappiness parameter of vmscan
-@@ -495,16 +497,13 @@ cgroup might have some charge associated
- tasks have migrated away from it. (because we charge against pages, not
- against tasks.)
+@@ -1329,8 +1328,7 @@ static int unmap_and_move_huge_page(new_
  
--We move the stats to root (if use_hierarchy==0) or parent (if
--use_hierarchy==1), and no change on the charge except uncharging
-+We move the stats to parent, and no change on the charge except uncharging
- from the child.
+ 	if (page_mapped(hpage)) {
+ 		bool mapping_locked = false;
+-		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK|
+-					TTU_IGNORE_ACCESS;
++		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK;
  
- Charges recorded in swap information is not updated at removal of cgroup.
- Recorded information is discarded and a cgroup which uses swap (swapcache)
- will be charged as a new owner of it.
+ 		if (!PageAnon(hpage)) {
+ 			/*
+@@ -2688,7 +2686,7 @@ static void migrate_vma_prepare(struct m
+  */
+ static void migrate_vma_unmap(struct migrate_vma *migrate)
+ {
+-	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
++	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK;
+ 	const unsigned long npages = migrate->npages;
+ 	const unsigned long start = migrate->start;
+ 	unsigned long addr, i, restore = 0;
+--- a/mm/rmap.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/rmap.c
+@@ -1533,15 +1533,6 @@ static bool try_to_unmap_one(struct page
+ 			goto discard;
+ 		}
  
--About use_hierarchy, see Section 6.
+-		if (!(flags & TTU_IGNORE_ACCESS)) {
+-			if (ptep_clear_flush_young_notify(vma, address,
+-						pvmw.pte)) {
+-				ret = false;
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
+-			}
+-		}
 -
- 5. Misc. interfaces
- ===================
+ 		/* Nuke the page table entry. */
+ 		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
+ 		if (should_defer_flush(mm, flags)) {
+--- a/mm/vmscan.c~mm-rmap-always-do-ttu_ignore_access
++++ a/mm/vmscan.c
+@@ -1072,7 +1072,6 @@ static void page_check_dirty_writeback(s
+ static unsigned int shrink_page_list(struct list_head *page_list,
+ 				     struct pglist_data *pgdat,
+ 				     struct scan_control *sc,
+-				     enum ttu_flags ttu_flags,
+ 				     struct reclaim_stat *stat,
+ 				     bool ignore_references)
+ {
+@@ -1297,7 +1296,7 @@ static unsigned int shrink_page_list(str
+ 		 * processes. Try to unmap it here.
+ 		 */
+ 		if (page_mapped(page)) {
+-			enum ttu_flags flags = ttu_flags | TTU_BATCH_FLUSH;
++			enum ttu_flags flags = TTU_BATCH_FLUSH;
+ 			bool was_swapbacked = PageSwapBacked(page);
  
-@@ -527,8 +526,6 @@ About use_hierarchy, see Section 6.
-   write will still return success. In this case, it is expected that
-   memory.kmem.usage_in_bytes == memory.usage_in_bytes.
+ 			if (unlikely(PageTransHuge(page)))
+@@ -1514,7 +1513,7 @@ unsigned int reclaim_clean_pages_from_li
+ 	}
  
--  About use_hierarchy, see Section 6.
--
- 5.2 stat file
- -------------
+ 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+-			TTU_IGNORE_ACCESS, &stat, true);
++					&stat, true);
+ 	list_splice(&clean_pages, page_list);
+ 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
+ 			    -(long)nr_reclaimed);
+@@ -1958,8 +1957,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	if (nr_taken == 0)
+ 		return 0;
  
-@@ -675,32 +672,21 @@ hierarchy::
- 		      d   e
+-	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, 0,
+-				&stat, false);
++	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, &stat, false);
  
- In the diagram above, with hierarchical accounting enabled, all memory
--usage of e, is accounted to its ancestors up until the root (i.e, c and root),
--that has memory.use_hierarchy enabled. If one of the ancestors goes over its
--limit, the reclaim algorithm reclaims from the tasks in the ancestor and the
--children of the ancestor.
--
--6.1 Enabling hierarchical accounting and reclaim
--------------------------------------------------
-+usage of e, is accounted to its ancestors up until the root (i.e, c and root).
-+If one of the ancestors goes over its limit, the reclaim algorithm reclaims
-+from the tasks in the ancestor and the children of the ancestor.
-+
-+6.1 Hierarchical accounting and reclaim
-+---------------------------------------
-+
-+Hierarchical accounting is enabled by default. Disabling the hierarchical
-+accounting is deprecated. An attempt to do it will result in a failure
-+and a warning printed to dmesg.
+ 	spin_lock_irq(&pgdat->lru_lock);
  
--A memory cgroup by default disables the hierarchy feature. Support
--can be enabled by writing 1 to memory.use_hierarchy file of the root cgroup::
-+For compatibility reasons writing 1 to memory.use_hierarchy will always pass::
+@@ -2131,8 +2129,7 @@ unsigned long reclaim_pages(struct list_
  
- 	# echo 1 > memory.use_hierarchy
- 
--The feature can be disabled by::
--
--	# echo 0 > memory.use_hierarchy
--
--NOTE1:
--       Enabling/disabling will fail if either the cgroup already has other
--       cgroups created below it, or if the parent cgroup has use_hierarchy
--       enabled.
--
--NOTE2:
--       When panic_on_oom is set to "2", the whole system will panic in
--       case of an OOM event in any cgroup.
--
- 7. Soft limits
- ==============
- 
+ 		nr_reclaimed += shrink_page_list(&node_page_list,
+ 						NODE_DATA(nid),
+-						&sc, 0,
+-						&dummy_stat, false);
++						&sc, &dummy_stat, false);
+ 		while (!list_empty(&node_page_list)) {
+ 			page = lru_to_page(&node_page_list);
+ 			list_del(&page->lru);
+@@ -2145,8 +2142,7 @@ unsigned long reclaim_pages(struct list_
+ 	if (!list_empty(&node_page_list)) {
+ 		nr_reclaimed += shrink_page_list(&node_page_list,
+ 						NODE_DATA(nid),
+-						&sc, 0,
+-						&dummy_stat, false);
++						&sc, &dummy_stat, false);
+ 		while (!list_empty(&node_page_list)) {
+ 			page = lru_to_page(&node_page_list);
+ 			list_del(&page->lru);
 _
