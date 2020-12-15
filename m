@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED34C35270
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4FAFC47435
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 386FA22D0A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C69622D2B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgLOX7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
+        id S1726624AbgLOX7d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728261AbgLOXXc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:23:32 -0500
-Date:   Tue, 15 Dec 2020 15:21:55 -0800
+        id S1728227AbgLOXZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:06 -0500
+Date:   Tue, 15 Dec 2020 15:22:20 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074515;
-        bh=RSfdSNjSc3zseXUhSGfSGHrY4Guf9k+biIy63U3ZD4s=;
+        s=korg; t=1608074540;
+        bh=JgY9+9EKK31EP7qE4ww/u79bM9jbQJxaPRfPbY55CGc=;
         h=From:To:Subject:From;
-        b=BDZx/mN8jtioXOMCSimp4/bLMA2tBmhIK8aqUj4YPLNFRVW/1rJRldDIwIdkR5XbH
-         z4ytkAofU0XXFbCZpmJ1ca6XZxmNkbJi2vH97XapC1olC1kuaCLx0yec6hM7vpSANI
-         rSzPqtteuxcH8RmwxQIena3Y3xj9r2Qhm5E9l19o=
+        b=uVPR41XZ8Zs7DLRPXco6SrKCvgB2PCm/fzYXsai/RgCpQjR3YODn8FnikQEj2FNRu
+         GpZ/zsJ3IVuUNdnGTtfMDWYc1ABgby6DZR3PoB4PA9GJ6lvzY482armELXQzr2a52Q
+         hGi9hWHwq3oE98Lx1bWNm6IeDQT3Pn79YiJZqp/Q=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
-        william.kucharski@oracle.com, willy@infradead.org
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, qcai@redhat.com, vbabka@suse.cz
 Subject:  [merged]
- mm-page_alloc-add-__free_pages-documentation.patch removed from -mm tree
-Message-ID: <20201215232155.Yn25RUFpZ%akpm@linux-foundation.org>
+ mmhwpoison-remove-drain_all_pages-from-shake_page.patch removed from -mm
+ tree
+Message-ID: <20201215232220.KUc6aKSp1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,78 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: add __free_pages() documentation
+     Subject: mm,hwpoison: remove drain_all_pages from shake_page
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-__free_pages-documentation.patch
+     mmhwpoison-remove-drain_all_pages-from-shake_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page_alloc: add __free_pages() documentation
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: remove drain_all_pages from shake_page
 
-Provide some guidance towards when this might not be the right interface
-to use.
+get_hwpoison_page already drains pcplists, previously disabling them when
+trying to grab a refcount.  We do not need shake_page to take care of it
+anymore.
 
-Link: https://lkml.kernel.org/r/20201027025523.3235-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20201204102558.31607-4-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Qian Cai <qcai@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ mm/memory-failure.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-__free_pages-documentation
-+++ a/mm/page_alloc.c
-@@ -5043,6 +5043,26 @@ static inline void free_the_page(struct
- 		__free_pages_ok(page, order, FPI_NONE);
+--- a/mm/memory-failure.c~mmhwpoison-remove-drain_all_pages-from-shake_page
++++ a/mm/memory-failure.c
+@@ -263,8 +263,8 @@ static int kill_proc(struct to_kill *tk,
  }
  
-+/**
-+ * __free_pages - Free pages allocated with alloc_pages().
-+ * @page: The page pointer returned from alloc_pages().
-+ * @order: The order of the allocation.
-+ *
-+ * This function can free multi-page allocations that are not compound
-+ * pages.  It does not check that the @order passed in matches that of
-+ * the allocation, so it is easy to leak memory.  Freeing more memory
-+ * than was allocated will probably emit a warning.
-+ *
-+ * If the last reference to this page is speculative, it will be released
-+ * by put_page() which only frees the first page of a non-compound
-+ * allocation.  To prevent the remaining pages from being leaked, we free
-+ * the subsequent pages here.  If you want to use the page's reference
-+ * count to decide when to free the allocation, you should allocate a
-+ * compound page, and use put_page() instead of __free_pages().
-+ *
-+ * Context: May be called in interrupt context or while holding a normal
-+ * spinlock, but not in NMI context or while holding a raw spinlock.
-+ */
- void __free_pages(struct page *page, unsigned int order)
+ /*
+- * When a unknown page type is encountered drain as many buffers as possible
+- * in the hope to turn the page into a LRU or free page, which we can handle.
++ * Unknown page type encountered. Try to check whether it can turn PageLRU by
++ * lru_add_drain_all, or a free page by reclaiming slabs when possible.
+  */
+ void shake_page(struct page *p, int access)
  {
- 	if (put_page_testzero(page))
+@@ -273,9 +273,6 @@ void shake_page(struct page *p, int acce
+ 
+ 	if (!PageSlab(p)) {
+ 		lru_add_drain_all();
+-		if (PageLRU(p))
+-			return;
+-		drain_all_pages(page_zone(p));
+ 		if (PageLRU(p) || is_free_buddy_page(p))
+ 			return;
+ 	}
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
 
