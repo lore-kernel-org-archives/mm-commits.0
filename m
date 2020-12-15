@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0B6FC2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C76C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A64132251E
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8BE1224BD
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:12:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727999AbgLODMg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:12:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35702 "EHLO mail.kernel.org"
+        id S1727480AbgLODMp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:12:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727674AbgLODMX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:23 -0500
-Date:   Mon, 14 Dec 2020 19:10:15 -0800
+        id S1728030AbgLODMg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:12:36 -0500
+Date:   Mon, 14 Dec 2020 19:10:43 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001817;
-        bh=/ytR9iCCY4lh8anJUxGG1W/l2r9YMqnrsdhnByg3ytA=;
+        s=korg; t=1608001844;
+        bh=kWnKkhfgJst13Owl2aoKNSRIPjaxs546a8JcoE7a5U4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=pkyZOomJeAJTdBBNDqC6idfqqcxq5o24BB3VTPQPQnCY8+1iy/opMf8ETs7x9jsuL
-         zBndU1iwG7D7qUNj/q6UAuMitFAEcWsA4hUerIhosd54T8ImhA0xT+7M0ut3hGm0VE
-         SLVIWocTZSY/luGHv7LUrQL9RO1hbvktdLP1BWIY=
+        b=MbWqOtskBsZXx4kezG6TJSrEsZGkNk0NW6u1h/72fzCk68+9uK3Tdv8etnPlfBiC9
+         rtzYx3B4881RNb0cOpPnPiUqbTk2xNW8JchKLgge8/8kFMDmgnLCJs5oHudJO7tlO6
+         2VNyIoXZUVLW+DgC0qu97KdVbWPOUaUsoGIaPOts=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
-        gerg@linux-m68k.org, glaubitz@physik.fu-berlin.de,
-        linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
-        schmitzmic@gmail.com, tony.luck@intel.com,
-        torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
-Subject:  [patch 118/200] m68k: deprecate DISCONTIGMEM
-Message-ID: <20201215031015.E8wNR_bpm%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+        pankaj.gupta@cloud.ionos.com, torvalds@linux-foundation.org,
+        vbabka@suse.cz
+Subject:  [patch 124/200] mm, page_alloc: calculate pageset high
+ and batch once per zone
+Message-ID: <20201215031043.sPA4tjCQn%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,100 +42,120 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k: deprecate DISCONTIGMEM
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: calculate pageset high and batch once per zone
 
-DISCONTIGMEM was intended to provide more efficient support for systems
-with holes in their physical address space that FLATMEM did.
+We currently call pageset_set_high_and_batch() for each possible cpu,
+which repeats the same calculations of high and batch values.
 
-Yet, it's overhead in terms of the memory consumption seems to overweight
-the savings on the unused memory map.
+Instead call the function just once per zone, and make it apply the
+calculated values to all per-cpu pagesets of the zone.
 
-For a ARAnyM system with 16 MBytes of FastRAM configured, the memory usage
-reported after page allocator initialization is
+This also allows removing the zone_pageset_init() and __zone_pcp_update()
+wrappers.
 
-Memory: 23828K/30720K available (3206K kernel code, 535K rwdata, 936K rodata, 768K init, 193K bss, 6892K reserved, 0K cma-reserved)
+No functional change.
 
-and with DISCONTIGMEM disabled and with relatively large hole in the memory
-map it is:
-
-Memory: 23864K/30720K available (3197K kernel code, 516K rwdata, 936K rodata, 764K init, 179K bss, 6856K reserved, 0K cma-reserved)
-
-Moreover, since m68k already has custom pfn_valid() it is possible to
-define HAVE_ARCH_PFN_VALID to enable freeing of unused memory map. The
-minimal size of a hole that can be freed should not be less than
-MAX_ORDER_NR_PAGES so to achieve more substantial memory savings let m68k
-also define custom FORCE_MAX_ZONEORDER.
-
-With FORCE_MAX_ZONEORDER set to 9 memory usage becomes:
-
-Memory: 23880K/30720K available (3197K kernel code, 516K rwdata, 936K rodata, 764K init, 179K bss, 6840K reserved, 0K cma-reserved)
-
-Link: https://lkml.kernel.org/r/20201101170454.9567-14-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Michael Schmitz <schmitzmic@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20201111092812.11329-3-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig.cpu |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   42 ++++++++++++++++++------------------------
+ 1 file changed, 18 insertions(+), 24 deletions(-)
 
---- a/arch/m68k/Kconfig.cpu~m68k-deprecate-discontigmem
-+++ a/arch/m68k/Kconfig.cpu
-@@ -20,6 +20,7 @@ choice
+--- a/mm/page_alloc.c~mm-page_alloc-calculate-pageset-high-and-batch-once-per-zone
++++ a/mm/page_alloc.c
+@@ -6315,13 +6315,14 @@ static void setup_pageset(struct per_cpu
+ }
  
- config M68KCLASSIC
- 	bool "Classic M68K CPU family support"
-+	select HAVE_ARCH_PFN_VALID
+ /*
+- * Calculate and set new high and batch values for given per-cpu pageset of a
++ * Calculate and set new high and batch values for all per-cpu pagesets of a
+  * zone, based on the zone's size and the percpu_pagelist_fraction sysctl.
+  */
+-static void pageset_set_high_and_batch(struct zone *zone,
+-				       struct per_cpu_pageset *p)
++static void zone_set_pageset_high_and_batch(struct zone *zone)
+ {
+ 	unsigned long new_high, new_batch;
++	struct per_cpu_pageset *p;
++	int cpu;
  
- config COLDFIRE
- 	bool "Coldfire CPU family support"
-@@ -377,11 +378,34 @@ config SINGLE_MEMORY_CHUNK
- 	help
- 	  Ignore all but the first contiguous chunk of physical memory for VM
- 	  purposes.  This will save a few bytes kernel size and may speed up
--	  some operations.  Say N if not sure.
-+	  some operations.
-+	  When this option os set to N, you may want to lower "Maximum zone
-+	  order" to save memory that could be wasted for unused memory map.
-+	  Say N if not sure.
+ 	if (percpu_pagelist_fraction) {
+ 		new_high = zone_managed_pages(zone) / percpu_pagelist_fraction;
+@@ -6333,23 +6334,25 @@ static void pageset_set_high_and_batch(s
+ 		new_high = 6 * new_batch;
+ 		new_batch = max(1UL, 1 * new_batch);
+ 	}
+-	pageset_update(&p->pcp, new_high, new_batch);
+-}
+-
+-static void __meminit zone_pageset_init(struct zone *zone, int cpu)
+-{
+-	struct per_cpu_pageset *pcp = per_cpu_ptr(zone->pageset, cpu);
  
- config ARCH_DISCONTIGMEM_ENABLE
-+	depends on BROKEN
- 	def_bool MMU && !SINGLE_MEMORY_CHUNK
+-	pageset_init(pcp);
+-	pageset_set_high_and_batch(zone, pcp);
++	for_each_possible_cpu(cpu) {
++		p = per_cpu_ptr(zone->pageset, cpu);
++		pageset_update(&p->pcp, new_high, new_batch);
++	}
+ }
  
-+config FORCE_MAX_ZONEORDER
-+	int "Maximum zone order" if ADVANCED
-+	depends on !SINGLE_MEMORY_CHUNK
-+	default "11"
-+	help
-+	  The kernel memory allocator divides physically contiguous memory
-+	  blocks into "zones", where each zone is a power of two number of
-+	  pages.  This option selects the largest power of two that the kernel
-+	  keeps in the memory allocator.  If you need to allocate very large
-+	  blocks of physically contiguous memory, then you may need to
-+	  increase this value.
+ void __meminit setup_zone_pageset(struct zone *zone)
+ {
++	struct per_cpu_pageset *p;
+ 	int cpu;
 +
-+	  For systems that have holes in their physical address space this
-+	  value also defines the minimal size of the hole that allows
-+	  freeing unused memory map.
+ 	zone->pageset = alloc_percpu(struct per_cpu_pageset);
+-	for_each_possible_cpu(cpu)
+-		zone_pageset_init(zone, cpu);
++	for_each_possible_cpu(cpu) {
++		p = per_cpu_ptr(zone->pageset, cpu);
++		pageset_init(p);
++	}
 +
-+	  This config option is actually maximum order plus one. For example,
-+	  a value of 11 means that the largest free memory block is 2^10 pages.
-+
- config 060_WRITETHROUGH
- 	bool "Use write-through caching for 68060 supervisor accesses"
- 	depends on ADVANCED && M68060
++	zone_set_pageset_high_and_batch(zone);
+ }
+ 
+ /*
+@@ -8083,15 +8086,6 @@ int lowmem_reserve_ratio_sysctl_handler(
+ 	return 0;
+ }
+ 
+-static void __zone_pcp_update(struct zone *zone)
+-{
+-	unsigned int cpu;
+-
+-	for_each_possible_cpu(cpu)
+-		pageset_set_high_and_batch(zone,
+-				per_cpu_ptr(zone->pageset, cpu));
+-}
+-
+ /*
+  * percpu_pagelist_fraction - changes the pcp->high for each zone on each
+  * cpu.  It is the fraction of total pages in each zone that a hot per cpu
+@@ -8124,7 +8118,7 @@ int percpu_pagelist_fraction_sysctl_hand
+ 		goto out;
+ 
+ 	for_each_populated_zone(zone)
+-		__zone_pcp_update(zone);
++		zone_set_pageset_high_and_batch(zone);
+ out:
+ 	mutex_unlock(&pcp_batch_high_lock);
+ 	return ret;
+@@ -8731,7 +8725,7 @@ EXPORT_SYMBOL(free_contig_range);
+ void __meminit zone_pcp_update(struct zone *zone)
+ {
+ 	mutex_lock(&pcp_batch_high_lock);
+-	__zone_pcp_update(zone);
++	zone_set_pageset_high_and_batch(zone);
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ 
 _
