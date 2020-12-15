@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED678C2BB48
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6609C4361B
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 20:35:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C96AE22C7D
+	by mail.kernel.org (Postfix) with ESMTP id ABBA822510
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 20:35:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729358AbgLOUe1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 15:34:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36360 "EHLO mail.kernel.org"
+        id S1725890AbgLOUfD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 15:35:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37086 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729169AbgLOUeU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 15:34:20 -0500
-Date:   Tue, 15 Dec 2020 12:33:37 -0800
+        id S1725947AbgLOUey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 15:34:54 -0500
+Date:   Tue, 15 Dec 2020 12:34:11 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608064419;
-        bh=yVxFEvuUVn3jmENrHzY0uWR+ELpuL33DI8lqyXbACNI=;
+        s=korg; t=1608064453;
+        bh=0G01U/Boh0CSobjjtVUxYKR8XvOKNNRLFrDaW1rRS7g=;
         h=From:To:Subject:In-Reply-To:From;
-        b=To0UlzHeEHFxW90ysMyK0blDqvptIN0OpoQOaeeD+u7KyG/+UMA+6iv3AfNHvYAGM
-         dgMwd6hy9lIPKJ1yc2naEr5m3CWbpDz9NrZEUFU2FPAY7GpAyVw5h4DQEXoNMWS7J6
-         wQbrFVEi7DZwjb1yt9zp3ySvsJxgI7TLRbPs5HzM=
+        b=DkbemUi73ZEY9tyaM6w2pIF+aHv/3bO5UzM9Wa2B0q2tlem6fZYoVJyRSfAHvmJwX
+         q0gDy4UFf37QjTzcjAblhW4l/nQTV9UX/RxHcGO0RBcrRYfQdjsTVJNxhDuFRMk8A8
+         /7eJ8a5xzGSKrTdDy74EYS5Rl0HtmEEjWRkesg5c=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         alex.shi@linux.alibaba.com, alexander.duyck@gmail.com,
@@ -41,8 +41,9 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  [patch 05/19] mm/vmscan: remove unnecessary lruvec adding
-Message-ID: <20201215203337.vwzTlQ4OE%akpm@linux-foundation.org>
+Subject:  [patch 13/19] mm/mlock: remove
+ __munlock_isolate_lru_page()
+Message-ID: <20201215203411.t0XUy3NBv%akpm@linux-foundation.org>
 In-Reply-To: <20201215123253.954eca9a5ef4c0d52fd381fa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -54,31 +55,18 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove unnecessary lruvec adding
+Subject: mm/mlock: remove __munlock_isolate_lru_page()
 
-We don't have to add a freeable page into lru and then remove from it.=20
-This change saves a couple of actions and makes the moving more clear.
+__munlock_isolate_lru_page() only has one caller, remove it to clean up
+and simplify code.
 
-The SetPageLRU needs to be kept before put_page_testzero for list
-integrity, otherwise:
-
-  #0 move_pages_to_lru             #1 release_pages
-  if !put_page_testzero
-     			           if (put_page_testzero())
-     			              !PageLRU //skip lru_lock
-     SetPageLRU()
-     list_add(&page->lru,)
-                                         list_add(&page->lru,)
-
-[akpm@linux-foundation.org: coding style fixes]
-Link: https://lkml.kernel.org/r/1604566549-62481-6-git-send-email-alex.shi@=
-linux.alibaba.com
+Link: https://lkml.kernel.org/r/1604566549-62481-14-git-send-email-alex.shi=
+@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -87,15 +75,16 @@ Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
@@ -103,73 +92,55 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ mm/mlock.c |   31 +++++++++----------------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-unnecessary-lruvec-adding
-+++ a/mm/vmscan.c
-@@ -1851,26 +1851,30 @@ static unsigned noinline_for_stack move_
- 	while (!list_empty(list)) {
- 		page =3D lru_to_page(list);
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
-+		list_del(&page->lru);
- 		if (unlikely(!page_evictable(page))) {
--			list_del(&page->lru);
- 			spin_unlock_irq(&pgdat->lru_lock);
- 			putback_lru_page(page);
- 			spin_lock_irq(&pgdat->lru_lock);
- 			continue;
- 		}
--		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
+--- a/mm/mlock.c~mm-mlock-remove-__munlock_isolate_lru_page
++++ a/mm/mlock.c
+@@ -106,26 +106,6 @@ void mlock_vma_page(struct page *page)
+ }
 =20
-+		/*
-+		 * The SetPageLRU needs to be kept here for list integrity.
-+		 * Otherwise:
-+		 *   #0 move_pages_to_lru             #1 release_pages
-+		 *   if !put_page_testzero
-+		 *				      if (put_page_testzero())
-+		 *				        !PageLRU //skip lru_lock
-+		 *     SetPageLRU()
-+		 *     list_add(&page->lru,)
-+		 *                                        list_add(&page->lru,)
-+		 */
- 		SetPageLRU(page);
--		lru =3D page_lru(page);
-=20
--		nr_pages =3D thp_nr_pages(page);
--		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
--		list_move(&page->lru, &lruvec->lists[lru]);
+ /*
+- * Isolate a page from LRU with optional get_page() pin.
+- * Assumes lru_lock already held and page already pinned.
+- */
+-static bool __munlock_isolate_lru_page(struct page *page, bool getpage)
+-{
+-	if (PageLRU(page)) {
+-		struct lruvec *lruvec;
 -
--		if (put_page_testzero(page)) {
-+		if (unlikely(put_page_testzero(page))) {
- 			__ClearPageLRU(page);
- 			__ClearPageActive(page);
--			del_page_from_lru_list(page, lruvec, lru);
-=20
- 			if (unlikely(PageCompound(page))) {
- 				spin_unlock_irq(&pgdat->lru_lock);
-@@ -1878,11 +1882,19 @@ static unsigned noinline_for_stack move_
- 				spin_lock_irq(&pgdat->lru_lock);
- 			} else
- 				list_add(&page->lru, &pages_to_free);
--		} else {
--			nr_moved +=3D nr_pages;
--			if (PageActive(page))
--				workingset_age_nonresident(lruvec, nr_pages);
+-		lruvec =3D mem_cgroup_page_lruvec(page, page_pgdat(page));
+-		if (getpage)
+-			get_page(page);
+-		ClearPageLRU(page);
+-		del_page_from_lru_list(page, lruvec, page_lru(page));
+-		return true;
+-	}
+-
+-	return false;
+-}
+-
+-/*
+  * Finish munlock after successful page isolation
+  *
+  * Page must be locked. This is a wrapper for try_to_munlock()
+@@ -296,9 +276,16 @@ static void __munlock_pagevec(struct pag
+ 			 * We already have pin from follow_page_mask()
+ 			 * so we can spare the get_page() here.
+ 			 */
+-			if (__munlock_isolate_lru_page(page, false))
++			if (PageLRU(page)) {
++				struct lruvec *lruvec;
 +
-+			continue;
- 		}
-+
-+		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
-+		lru =3D page_lru(page);
-+		nr_pages =3D thp_nr_pages(page);
-+
-+		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
-+		list_add(&page->lru, &lruvec->lists[lru]);
-+		nr_moved +=3D nr_pages;
-+		if (PageActive(page))
-+			workingset_age_nonresident(lruvec, nr_pages);
- 	}
-=20
- 	/*
++				ClearPageLRU(page);
++				lruvec =3D mem_cgroup_page_lruvec(page,
++							page_pgdat(page));
++				del_page_from_lru_list(page, lruvec,
++							page_lru(page));
+ 				continue;
+-			else
++			} else
+ 				__munlock_isolation_failed(page);
+ 		} else {
+ 			delta_munlocked++;
 _
