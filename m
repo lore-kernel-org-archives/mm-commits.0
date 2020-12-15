@@ -5,35 +5,44 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4383C2BB40
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8C0CC2BB9A
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7433A223C8
+	by mail.kernel.org (Postfix) with ESMTP id 8A52A22473
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727206AbgLODEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:04:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60718 "EHLO mail.kernel.org"
+        id S1726174AbgLODFC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:05:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727205AbgLODEo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:04:44 -0500
-Date:   Mon, 14 Dec 2020 19:03:47 -0800
+        id S1726684AbgLODEu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:04:50 -0500
+Date:   Mon, 14 Dec 2020 19:04:03 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001427;
-        bh=BrOs31bzRzbga8iT77pebv9RMCkDkAX3J0D5AQxY54c=;
+        s=korg; t=1608001445;
+        bh=c8ZS0gu4VxyLzW15+q9357XHulHpssHCix8Omj6DUG4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=VTCJQBzAZvQwsKu9eWSmDIjmQwdy7K4FzUjTpERUfFmKSPmstlGS3PAScvYvzCqFN
-         D0W8eeGLDyLGyf6J7CFlZSL+sxqZAsyksBAzoLVM66CnimR4nT7r8v6ePh3RILZNDk
-         KJn5lK+ANZyF1WiLFPfpq/G3PI+zweq2fnIM4fnI=
+        b=ksIwkVu9YUgZSYPm7dhJbthCMico66ZniupQUTSYsGOAXXsvL/niYc+fBcoOn8UrN
+         stwPN4oyHl/OaEkdpcJVKfv/HZ67NxXecHMbz30hngUZ3zT2wOoM0sL7FrOFS2hw1C
+         1mWZoY81rOn26EcXCjdoPhie+ljYRSPS8JXWDjBM=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, sh_def@163.com, torvalds@linux-foundation.org
-Subject:  [patch 011/200] mm/slab_common.c: use list_for_each_entry
- in dump_unreclaimable_slab()
-Message-ID: <20201215030347.ipFWzEFOp%akpm@linux-foundation.org>
+To:     airlied@linux.ie, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, linux-mm@kvack.org,
+        maarten.lankhorst@linux.intel.com, mchehab@kernel.org,
+        mm-commits@vger.kernel.org, mripard@kernel.org, mst@redhat.com,
+        penberg@kernel.org, perex@perex.cz, rientjes@google.com,
+        rric@kernel.org, sumit.semwal@linaro.org, tiwai@suse.com,
+        tiwai@suse.de, tony.luck@intel.com, torvalds@linux-foundation.org,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  [patch 015/200] vhost: vringh: use krealloc_array()
+Message-ID: <20201215030403.tU5gtpD0j%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,45 +50,58 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hui Su <sh_def@163.com>
-Subject: mm/slab_common.c: use list_for_each_entry in dump_unreclaimable_slab()
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: vhost: vringh: use krealloc_array()
 
-dump_unreclaimable_slab() acquires the slab_mutex first, and it won't
-remove any slab_caches list entry when itering the slab_caches lists.
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-Thus we do not need list_for_each_entry_safe here, which is against
-removal of list entry.
-
-Link: https://lkml.kernel.org/r/20200926043440.GA180545@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
+Link: https://lkml.kernel.org/r/20201109110654.12547-5-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Knig <christian.koenig@amd.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Wang <jasowang@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/vhost/vringh.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/slab_common.c~mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab
-+++ a/mm/slab_common.c
-@@ -978,7 +978,7 @@ static int slab_show(struct seq_file *m,
+--- a/drivers/vhost/vringh.c~vhost-vringh-use-krealloc_array
++++ a/drivers/vhost/vringh.c
+@@ -198,7 +198,8 @@ static int resize_iovec(struct vringh_ki
  
- void dump_unreclaimable_slab(void)
- {
--	struct kmem_cache *s, *s2;
-+	struct kmem_cache *s;
- 	struct slabinfo sinfo;
- 
- 	/*
-@@ -996,7 +996,7 @@ void dump_unreclaimable_slab(void)
- 	pr_info("Unreclaimable slab info:\n");
- 	pr_info("Name                      Used          Total\n");
- 
--	list_for_each_entry_safe(s, s2, &slab_caches, list) {
-+	list_for_each_entry(s, &slab_caches, list) {
- 		if (s->flags & SLAB_RECLAIM_ACCOUNT)
- 			continue;
- 
+ 	flag = (iov->max_num & VRINGH_IOV_ALLOCATED);
+ 	if (flag)
+-		new = krealloc(iov->iov, new_num * sizeof(struct iovec), gfp);
++		new = krealloc_array(iov->iov, new_num,
++				     sizeof(struct iovec), gfp);
+ 	else {
+ 		new = kmalloc_array(new_num, sizeof(struct iovec), gfp);
+ 		if (new) {
 _
