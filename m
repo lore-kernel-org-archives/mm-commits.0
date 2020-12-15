@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68191C3526D
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77446C2BBCF
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4212722D75
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4920022CF7
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726867AbgLOX7s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34568 "EHLO mail.kernel.org"
+        id S1726811AbgLOX7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729716AbgLOX0G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:06 -0500
-Date:   Tue, 15 Dec 2020 15:23:25 -0800
+        id S1729688AbgLOXZn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:43 -0500
+Date:   Tue, 15 Dec 2020 15:18:28 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074606;
-        bh=V7lWidfYSi1irEPV4KpWz3MX9A58ExB13Av2JGUXkwE=;
+        s=korg; t=1608074308;
+        bh=qQytjrD6qPHcvs1K5Z7EZNmLTg1zd3egLVS2KwAlSwQ=;
         h=From:To:Subject:From;
-        b=qAuoeeD4go5NcI3VnSiPbtCeYbR7yp0sIJr/IBNLxVPE9pg5dq8z5Fwnrcnwi7PYc
-         ODRMMqMyYeIoGCkM+yURNDiYVVFFzcU+Ix5zH22Kvi6a8oYHlXG3jjepNqdniB7oUt
-         xSNybthzrdhuiLI/6jSz4wfolUFcqA3zF71zEh5g=
+        b=yC3J/l8F0ZEwyKxvdOIpALJZjSu/+5rKLIXRlWFdNOqrR+4K7XUxEA+9QEtM4kv80
+         FE1WAlfg4YnWD/ophnso7pP5boFSuC98DduulK7J+oXaCfze7sJZm+AaoYOoXRAX/l
+         +M7pbW++087cfWllMJtu58K900Qfj0pkw6PECpoM=
 From:   akpm@linux-foundation.org
-To:     jack@suse.cz, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shy828301@gmail.com,
-        songliubraving@fb.com, willy@infradead.org, ziy@nvidia.com
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, tj@kernel.org
 Subject:  [merged]
- mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch removed
- from -mm tree
-Message-ID: <20201215232325.Ay0FyQ3Bt%akpm@linux-foundation.org>
+ docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
+ removed from -mm tree
+Message-ID: <20201215231828.AepRQfRmg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,207 +43,141 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: simplify the logic for handling permanent failure
+     Subject: docs: cgroup-v1: reflect the deprecation of the non-hierarchical mode
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-simplify-the-logic-for-handling-permanent-failure.patch
+     docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: migrate: simplify the logic for handling permanent failure
+From: Roman Gushchin <guro@fb.com>
+Subject: docs: cgroup-v1: reflect the deprecation of the non-hierarchical mode
 
-When unmap_and_move{_huge_page}() returns !-EAGAIN and
-!MIGRATEPAGE_SUCCESS, the page would be put back to LRU or proper list if
-it is non-LRU movable page.  But, the callers always call
-putback_movable_pages() to put the failed pages back later on, so it seems
-not very efficient to put every single page back immediately, and the code
-looks convoluted.
+Update cgroup v1 docs after the deprecation of the non-hierarchical mode
+of the memory controller.
 
-Put the failed page on a separate list, then splice the list to migrate
-list when all pages are tried.  It is the caller's responsibility to call
-putback_movable_pages() to handle failures.  This also makes the code
-simpler and more readable.
-
-After the change the rules are:
-    * Success: non hugetlb page will be freed, hugetlb page will be put
-               back
-    * -EAGAIN: stay on the from list
-    * -ENOMEM: stay on the from list
-    * Other errno: put on ret_pages list then splice to from list
-
-The from list would be empty iff all pages are migrated successfully, it
-was not so before.  This has no impact to current existing callsites.
-
-Link: https://lkml.kernel.org/r/20201113205359.556831-3-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Song Liu <songliubraving@fb.com>
+Link: https://lkml.kernel.org/r/20201110220800.929549-3-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   68 +++++++++++++++++++++++++++----------------------
- 1 file changed, 38 insertions(+), 30 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memcg_test.rst |    8 --
+ Documentation/admin-guide/cgroup-v1/memory.rst     |   42 +++--------
+ 2 files changed, 17 insertions(+), 33 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-simplify-the-logic-for-handling-permanent-failure
-+++ a/mm/migrate.c
-@@ -1168,7 +1168,8 @@ static int unmap_and_move(new_page_t get
- 				   free_page_t put_new_page,
- 				   unsigned long private, struct page *page,
- 				   int force, enum migrate_mode mode,
--				   enum migrate_reason reason)
-+				   enum migrate_reason reason,
-+				   struct list_head *ret)
- {
- 	int rc = MIGRATEPAGE_SUCCESS;
- 	struct page *newpage = NULL;
-@@ -1205,7 +1206,14 @@ out:
- 		 * migrated will have kept its references and be restored.
- 		 */
- 		list_del(&page->lru);
-+	}
+--- a/Documentation/admin-guide/cgroup-v1/memcg_test.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
++++ a/Documentation/admin-guide/cgroup-v1/memcg_test.rst
+@@ -219,13 +219,11 @@ Under below explanation, we assume CONFI
  
-+	/*
-+	 * If migration is successful, releases reference grabbed during
-+	 * isolation. Otherwise, restore the page to right list unless
-+	 * we want to retry.
-+	 */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
- 		/*
- 		 * Compaction can migrate also non-LRU pages which are
- 		 * not accounted to NR_ISOLATED_*. They can be recognized
-@@ -1214,35 +1222,16 @@ out:
- 		if (likely(!__PageMovable(page)))
- 			mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON +
- 					page_is_file_lru(page), -thp_nr_pages(page));
--	}
+ 	This is an easy way to test page migration, too.
  
--	/*
--	 * If migration is successful, releases reference grabbed during
--	 * isolation. Otherwise, restore the page to right list unless
--	 * we want to retry.
--	 */
--	if (rc == MIGRATEPAGE_SUCCESS) {
- 		if (reason != MR_MEMORY_FAILURE)
- 			/*
- 			 * We release the page in page_handle_poison.
- 			 */
- 			put_page(page);
- 	} else {
--		if (rc != -EAGAIN) {
--			if (likely(!__PageMovable(page))) {
--				putback_lru_page(page);
--				goto put_new;
--			}
-+		if (rc != -EAGAIN)
-+			list_add_tail(&page->lru, ret);
+-9.5 mkdir/rmdir
+----------------
++9.5 nested cgroups
++------------------
  
--			lock_page(page);
--			if (PageMovable(page))
--				putback_movable_page(page);
--			else
--				__ClearPageIsolated(page);
--			unlock_page(page);
--			put_page(page);
--		}
--put_new:
- 		if (put_new_page)
- 			put_new_page(newpage, private);
- 		else
-@@ -1273,7 +1262,8 @@ put_new:
- static int unmap_and_move_huge_page(new_page_t get_new_page,
- 				free_page_t put_new_page, unsigned long private,
- 				struct page *hpage, int force,
--				enum migrate_mode mode, int reason)
-+				enum migrate_mode mode, int reason,
-+				struct list_head *ret)
- {
- 	int rc = -EAGAIN;
- 	int page_was_mapped = 0;
-@@ -1289,7 +1279,7 @@ static int unmap_and_move_huge_page(new_
- 	 * kicking migration.
- 	 */
- 	if (!hugepage_migration_supported(page_hstate(hpage))) {
--		putback_active_hugepage(hpage);
-+		list_move_tail(&hpage->lru, ret);
- 		return -ENOSYS;
- 	}
+-	When using hierarchy, mkdir/rmdir test should be done.
+-	Use tests like the following::
++	Use tests like the following for testing nested cgroups::
  
-@@ -1374,8 +1364,10 @@ put_anon:
- out_unlock:
- 	unlock_page(hpage);
- out:
--	if (rc != -EAGAIN)
-+	if (rc == MIGRATEPAGE_SUCCESS)
- 		putback_active_hugepage(hpage);
-+	else if (rc != -EAGAIN && rc != MIGRATEPAGE_SUCCESS)
-+		list_move_tail(&hpage->lru, ret);
+-		echo 1 >/opt/cgroup/01/memory/use_hierarchy
+ 		mkdir /opt/cgroup/01/child_a
+ 		mkdir /opt/cgroup/01/child_b
  
- 	/*
- 	 * If migration was not successful and there's a freeing callback, use
-@@ -1406,8 +1398,8 @@ out:
-  *
-  * The function returns after 10 attempts or if no pages are movable any more
-  * because the list has become empty or no retryable pages exist any more.
-- * The caller should call putback_movable_pages() to return pages to the LRU
-- * or free list only if ret != 0.
-+ * It is caller's responsibility to call putback_movable_pages() to return pages
-+ * to the LRU or free list only if ret != 0.
-  *
-  * Returns the number of pages that were not migrated, or an error code.
-  */
-@@ -1428,6 +1420,7 @@ int migrate_pages(struct list_head *from
- 	struct page *page2;
- 	int swapwrite = current->flags & PF_SWAPWRITE;
- 	int rc, nr_subpages;
-+	LIST_HEAD(ret_pages);
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -77,6 +77,8 @@ Brief summary of control files.
+  memory.soft_limit_in_bytes	     set/show soft limit of memory usage
+  memory.stat			     show various statistics
+  memory.use_hierarchy		     set/show hierarchical account enabled
++                                     This knob is deprecated and shouldn't be
++                                     used.
+  memory.force_empty		     trigger forced page reclaim
+  memory.pressure_level		     set memory pressure notifications
+  memory.swappiness		     set/show swappiness parameter of vmscan
+@@ -495,16 +497,13 @@ cgroup might have some charge associated
+ tasks have migrated away from it. (because we charge against pages, not
+ against tasks.)
  
- 	if (!swapwrite)
- 		current->flags |= PF_SWAPWRITE;
-@@ -1450,12 +1443,21 @@ retry:
- 			if (PageHuge(page))
- 				rc = unmap_and_move_huge_page(get_new_page,
- 						put_new_page, private, page,
--						pass > 2, mode, reason);
-+						pass > 2, mode, reason,
-+						&ret_pages);
- 			else
- 				rc = unmap_and_move(get_new_page, put_new_page,
- 						private, page, pass > 2, mode,
--						reason);
+-We move the stats to root (if use_hierarchy==0) or parent (if
+-use_hierarchy==1), and no change on the charge except uncharging
++We move the stats to parent, and no change on the charge except uncharging
+ from the child.
+ 
+ Charges recorded in swap information is not updated at removal of cgroup.
+ Recorded information is discarded and a cgroup which uses swap (swapcache)
+ will be charged as a new owner of it.
+ 
+-About use_hierarchy, see Section 6.
 -
-+						reason, &ret_pages);
-+			/*
-+			 * The rules are:
-+			 *	Success: non hugetlb page will be freed, hugetlb
-+			 *		 page will be put back
-+			 *	-EAGAIN: stay on the from list
-+			 *	-ENOMEM: stay on the from list
-+			 *	Other errno: put on ret_pages list then splice to
-+			 *		     from list
-+			 */
- 			switch(rc) {
- 			case -ENOMEM:
- 				/*
-@@ -1521,6 +1523,12 @@ retry:
- 	nr_thp_failed += thp_retry;
- 	rc = nr_failed;
- out:
-+	/*
-+	 * Put the permanent failure page back to migration list, they
-+	 * will be put back to the right list by the caller.
-+	 */
-+	list_splice(&ret_pages, from);
+ 5. Misc. interfaces
+ ===================
+ 
+@@ -527,8 +526,6 @@ About use_hierarchy, see Section 6.
+   write will still return success. In this case, it is expected that
+   memory.kmem.usage_in_bytes == memory.usage_in_bytes.
+ 
+-  About use_hierarchy, see Section 6.
+-
+ 5.2 stat file
+ -------------
+ 
+@@ -675,32 +672,21 @@ hierarchy::
+ 		      d   e
+ 
+ In the diagram above, with hierarchical accounting enabled, all memory
+-usage of e, is accounted to its ancestors up until the root (i.e, c and root),
+-that has memory.use_hierarchy enabled. If one of the ancestors goes over its
+-limit, the reclaim algorithm reclaims from the tasks in the ancestor and the
+-children of the ancestor.
+-
+-6.1 Enabling hierarchical accounting and reclaim
+-------------------------------------------------
++usage of e, is accounted to its ancestors up until the root (i.e, c and root).
++If one of the ancestors goes over its limit, the reclaim algorithm reclaims
++from the tasks in the ancestor and the children of the ancestor.
 +
- 	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
- 	count_vm_events(PGMIGRATE_FAIL, nr_failed);
- 	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
++6.1 Hierarchical accounting and reclaim
++---------------------------------------
++
++Hierarchical accounting is enabled by default. Disabling the hierarchical
++accounting is deprecated. An attempt to do it will result in a failure
++and a warning printed to dmesg.
+ 
+-A memory cgroup by default disables the hierarchy feature. Support
+-can be enabled by writing 1 to memory.use_hierarchy file of the root cgroup::
++For compatibility reasons writing 1 to memory.use_hierarchy will always pass::
+ 
+ 	# echo 1 > memory.use_hierarchy
+ 
+-The feature can be disabled by::
+-
+-	# echo 0 > memory.use_hierarchy
+-
+-NOTE1:
+-       Enabling/disabling will fail if either the cgroup already has other
+-       cgroups created below it, or if the parent cgroup has use_hierarchy
+-       enabled.
+-
+-NOTE2:
+-       When panic_on_oom is set to "2", the whole system will panic in
+-       case of an OOM event in any cgroup.
+-
+ 7. Soft limits
+ ==============
+ 
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from guro@fb.com are
 
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-slub-call-account_slab_page-after-slab-page-initialization.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-v2.patch
 
