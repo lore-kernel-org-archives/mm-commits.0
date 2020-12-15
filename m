@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6689C2BBD4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AEA9C47434
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 936D522D02
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2943022D2B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725966AbgLOX65 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:58:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59124 "EHLO mail.kernel.org"
+        id S1726117AbgLOX7D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59710 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729315AbgLOXUG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:20:06 -0500
-Date:   Tue, 15 Dec 2020 15:19:24 -0800
+        id S1727486AbgLOXWF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:05 -0500
+Date:   Tue, 15 Dec 2020 15:20:08 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074364;
-        bh=pnxneq3Ld1gco9mIwgWB3hadmWmDpcwKV5d50FvyIG4=;
+        s=korg; t=1608074408;
+        bh=vq2R3/+WVn5IwV5yMUgvpSu76qW5ydivRL1sTcsjJ5w=;
         h=From:To:Subject:From;
-        b=t1A+iHZ9FnAL8HuuabPCKK1dgW62ptvtkq3koEyrioxk0yegDj3Ini751tGoY/CA1
-         uz4V3h/06uqvlAzjNHWuHHYatE3EwGNBQJoo7G83oa2piSLlZOvHB++qUm5MJVvVxt
-         oEyS0xs1wpKm1HXvtMVpyYLJ4i/YoQawBL/f2B68=
+        b=Ax80ZyAjQi1zWqwmzoy/AsqX6tTN9tznuXk3q1hWyZyVDFuiFbU/eivyRT+1L+Etw
+         MmtPqaLPGpy5Ejr2TJ6/9QezBj7encK4ZvAA/++vn1gRZs1a8ahxD+zUbMLxU5iKj1
+         rTBpVNBVwQKmX4vKR7XtBLrB6iuWs7cNWog9xBYc=
 From:   akpm@linux-foundation.org
-To:     davem@davemloft.net, david@redhat.com, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, vbabka@suse.cz, willy@infradead.org
+To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org
 Subject:  [merged]
- sparc-fix-handling-of-page-table-constructor-failure.patch removed from -mm
- tree
-Message-ID: <20201215231924.Fz2JZ-FA7%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-vmalloc-add-align-parameter-explanation-for-pvm=5Fdete?=
+ =?US-ASCII?Q?rmine=5Fend=5Ffrom=5Freverse.patch?= removed from -mm tree
+Message-ID: <20201215232008.nucaIxZEb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,63 +44,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: fix handling of page table constructor failure
+     Subject: mm/vmalloc: add 'align' parameter explanation for pvm_determine_end_from_reverse
 has been removed from the -mm tree.  Its filename was
-     sparc-fix-handling-of-page-table-constructor-failure.patch
+     mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: sparc: fix handling of page table constructor failure
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/vmalloc: add 'align' parameter explanation for pvm_determine_end_from_reverse
 
-The page has just been allocated, so its refcount is 1.  free_unref_page()
-is for use on pages which have a zero refcount.  Use __free_page() like
-the other implementations of pte_alloc_one().
+Kernel-doc markup has a issue on pvm_determine_end_from_reverse:
+mm/vmalloc.c:3145: warning: Function parameter or member 'align' not
+described in 'pvm_determine_end_from_reverse'
+Add a explanation for it to remove the warning.
 
-Link: https://lkml.kernel.org/r/20201125034655.27687-1-willy@infradead.org
-Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Miller <davem@davemloft.net>
+Link: https://lkml.kernel.org/r/1605605088-30668-3-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/init_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/sparc/mm/init_64.c~sparc-fix-handling-of-page-table-constructor-failure
-+++ a/arch/sparc/mm/init_64.c
-@@ -2894,7 +2894,7 @@ pgtable_t pte_alloc_one(struct mm_struct
- 	if (!page)
- 		return NULL;
- 	if (!pgtable_pte_page_ctor(page)) {
--		free_unref_page(page);
-+		__free_page(page);
- 		return NULL;
- 	}
- 	return (pte_t *) page_address(page);
+--- a/mm/vmalloc.c~mm-vmalloc-add-align-parameter-explanation-for-pvm_determine_end_from_reverse
++++ a/mm/vmalloc.c
+@@ -3151,6 +3151,7 @@ pvm_find_va_enclose_addr(unsigned long a
+  * @va:
+  *   in - the VA we start the search(reverse order);
+  *   out - the VA with the highest aligned end address.
++ * @align: alignment for required highest address
+  *
+  * Returns: determined end address within vmap_area
+  */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
