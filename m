@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64F32C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CA5FC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22EF022509
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39CD82247F
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727240AbgLODOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42422 "EHLO mail.kernel.org"
+        id S1728095AbgLODOq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42344 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725308AbgLODO1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:14:27 -0500
-Date:   Mon, 14 Dec 2020 19:13:45 -0800
+        id S1727803AbgLODOY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:14:24 -0500
+Date:   Mon, 14 Dec 2020 19:13:41 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002026;
-        bh=8GqehEON8pc/gFEYuFMEgljXQOVC5qh3P9cfTkkNyRs=;
+        s=korg; t=1608002023;
+        bh=qGt8F2fqaDvZFHC17GJMmOy1PWyjSbcWQR4KVvWIuM4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=Rl2meE+Vn2VBkLnLT+EvIr5WmQG+9AD2NuqjL/zneHcQp1sJDMuL8Kn/eHdoar69j
-         F5fEkubB2gm5gfa8dxKRhWkwpCTcDVLr+ZUpszy/pH6sUHdWJM3Q3WweqcvilpGOJ6
-         /OwTE/AxLZfLoiznrm6XKQjiqbJjnmMJM7DImjt8=
+        b=wqGYwKbKeNQzN/6MtHDW6kfRds2kryBbH1bbzJNp/sZmWBQgZhkOWfI0Bw0oe7Btv
+         r5OTIm3vROVsQCyl6X8NjEdzcs5Rxb+RlproTIFCt9p7nmDQB2DQesKzKPuz4YIY0X
+         EmoSjd0wwVwVsmdwyzffpMwWdGu3QNTX+ODJNLps=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, david@redhat.com, glider@google.com,
         keescook@chromium.org, labbott@kernel.org, linux-mm@kvack.org,
         mateusznosek0@gmail.com, mhocko@kernel.org,
         mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
         rppt@linux.ibm.com, torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 178/200] mm, page_poison: remove
- CONFIG_PAGE_POISONING_ZERO
-Message-ID: <20201215031345.DFOlU2YZs%akpm@linux-foundation.org>
+Subject:  [patch 177/200] mm, page_poison: remove
+ CONFIG_PAGE_POISONING_NO_SANITY
+Message-ID: <20201215031341.0XN-lrX23%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,25 +44,21 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_ZERO
+Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_NO_SANITY
 
-CONFIG_PAGE_POISONING_ZERO uses the zero pattern instead of 0xAA.  It was
-introduced by commit 1414c7f4f7d7 ("mm/page_poisoning.c: allow for zero
-poisoning"), noting that using zeroes retains the benefit of sanitizing
-content of freed pages, with the benefit of not having to zero them again
-on alloc, and the downside of making some forms of corruption (stray
-writes of NULLs) harder to detect than with the 0xAA pattern.  Together
-with CONFIG_PAGE_POISONING_NO_SANITY it made possible to sanitize the
-contents on free without checking it back on alloc.
+CONFIG_PAGE_POISONING_NO_SANITY skips the check on page alloc whether the
+poison pattern was corrupted, suggesting a use-after-free.  The motivation
+to introduce it in commit 8823b1dbc05f ("mm/page_poison.c: enable
+PAGE_POISONING as a separate option") was to simply sanitize freed pages,
+optimally together with CONFIG_PAGE_POISONING_ZERO.
 
-These days we have the init_on_free() option to achieve sanitization with
-zeroes and to save clearing on alloc (and without checking on alloc). 
-Arguably if someone does choose to check the poison for corruption on
-alloc, the savings of not clearing the page are secondary, and it makes
-sense to always use the 0xAA poison pattern.  Thus, remove the
-CONFIG_PAGE_POISONING_ZERO option for being redundant.
+These days we have an init_on_free=1 boot option, which makes this use
+case of page poisoning redundant.  For sanitizing, writing zeroes is
+sufficient, there is pretty much no benefit from writing the 0xAA poison
+pattern to freed pages, without checking it back on alloc.  Thus, remove
+this option and suggest init_on_free instead in the main config's help.
 
-Link: https://lkml.kernel.org/r/20201113104033.22907-6-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20201113104033.22907-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
@@ -75,85 +71,59 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h       |    4 ----
- mm/Kconfig.debug             |   12 ------------
- mm/page_alloc.c              |    8 +-------
- tools/include/linux/poison.h |    6 +-----
- 4 files changed, 2 insertions(+), 28 deletions(-)
+ drivers/virtio/virtio_balloon.c |    4 +---
+ mm/Kconfig.debug                |   15 ++++-----------
+ mm/page_poison.c                |    3 ---
+ 3 files changed, 5 insertions(+), 17 deletions(-)
 
---- a/include/linux/poison.h~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/include/linux/poison.h
-@@ -27,11 +27,7 @@
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
- 
- /********** mm/page_poison.c **********/
--#ifdef CONFIG_PAGE_POISONING_ZERO
--#define PAGE_POISON 0x00
--#else
- #define PAGE_POISON 0xaa
--#endif
- 
- /********** mm/page_alloc.c ************/
- 
---- a/mm/Kconfig.debug~mm-page_poison-remove-config_page_poisoning_zero
+--- a/drivers/virtio/virtio_balloon.c~mm-page_poison-remove-config_page_poisoning_no_sanity
++++ a/drivers/virtio/virtio_balloon.c
+@@ -1114,9 +1114,7 @@ static int virtballoon_validate(struct v
+ 	 * page reporting as it could potentially change the contents
+ 	 * of our free pages.
+ 	 */
+-	if (!want_init_on_free() &&
+-	    (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY) ||
+-	     !page_poisoning_enabled_static()))
++	if (!want_init_on_free() && !page_poisoning_enabled_static())
+ 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_PAGE_POISON);
+ 	else if (!virtio_has_feature(vdev, VIRTIO_BALLOON_F_PAGE_POISON))
+ 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_REPORTING);
+--- a/mm/Kconfig.debug~mm-page_poison-remove-config_page_poisoning_no_sanity
 +++ a/mm/Kconfig.debug
-@@ -80,18 +80,6 @@ config PAGE_POISONING
+@@ -74,18 +74,11 @@ config PAGE_POISONING
+ 	  Note that "poison" here is not the same thing as the "HWPoison"
+ 	  for CONFIG_MEMORY_FAILURE. This is software poisoning only.
  
- 	  If unsure, say N
- 
--config PAGE_POISONING_ZERO
--	bool "Use zero for poisoning instead of debugging value"
+-	  If unsure, say N
+-
+-config PAGE_POISONING_NO_SANITY
 -	depends on PAGE_POISONING
+-	bool "Only poison, don't sanity check"
 -	help
--	   Instead of using the existing poison value, fill the pages with
--	   zeros. This makes it harder to detect when errors are occurring
--	   due to sanitization but the zeroing at free means that it is
--	   no longer necessary to write zeros when GFP_ZERO is used on
--	   allocation.
+-	   Skip the sanity checking on alloc, only fill the pages with
+-	   poison on free. This reduces some of the overhead of the
+-	   poisoning feature.
++	  If you are only interested in sanitization of freed pages without
++	  checking the poison pattern on alloc, you can boot the kernel with
++	  "init_on_free=1" instead of enabling this.
+ 
+-	   If you are only interested in sanitization, say Y. Otherwise
+-	   say N.
++	  If unsure, say N
+ 
+ config PAGE_POISONING_ZERO
+ 	bool "Use zero for poisoning instead of debugging value"
+--- a/mm/page_poison.c~mm-page_poison-remove-config_page_poisoning_no_sanity
++++ a/mm/page_poison.c
+@@ -51,9 +51,6 @@ static void check_poison_mem(unsigned ch
+ 	unsigned char *start;
+ 	unsigned char *end;
+ 
+-	if (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY))
+-		return;
 -
--	   If unsure, say N
--
- config DEBUG_PAGE_REF
- 	bool "Enable tracepoint to track down page reference manipulation"
- 	depends on DEBUG_KERNEL
---- a/mm/page_alloc.c~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/mm/page_alloc.c
-@@ -2228,12 +2228,6 @@ static inline int check_new_page(struct
- 	return 1;
- }
- 
--static inline bool free_pages_prezeroed(void)
--{
--	return (IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) &&
--		page_poisoning_enabled_static()) || want_init_on_free();
--}
--
- #ifdef CONFIG_DEBUG_VM
- /*
-  * With DEBUG_VM enabled, order-0 pages are checked for expected state when
-@@ -2296,7 +2290,7 @@ inline void post_alloc_hook(struct page
- 	kernel_unpoison_pages(page, 1 << order);
- 	set_page_owner(page, order, gfp_flags);
- 
--	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
-+	if (!want_init_on_free() && want_init_on_alloc(gfp_flags))
- 		kernel_init_free_pages(page, 1 << order);
- }
- 
---- a/tools/include/linux/poison.h~mm-page_poison-remove-config_page_poisoning_zero
-+++ a/tools/include/linux/poison.h
-@@ -35,12 +35,8 @@
-  */
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
- 
--/********** mm/debug-pagealloc.c **********/
--#ifdef CONFIG_PAGE_POISONING_ZERO
--#define PAGE_POISON 0x00
--#else
-+/********** mm/page_poison.c **********/
- #define PAGE_POISON 0xaa
--#endif
- 
- /********** mm/page_alloc.c ************/
- 
+ 	start = memchr_inv(mem, PAGE_POISON, bytes);
+ 	if (!start)
+ 		return;
 _
