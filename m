@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D48FC35270
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5805FC35273
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D905422D73
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D60B22D03
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725865AbgLOX6w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:58:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56704 "EHLO mail.kernel.org"
+        id S1726010AbgLOX7B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730553AbgLOXQb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:16:31 -0500
-Date:   Tue, 15 Dec 2020 15:15:37 -0800
+        id S1727422AbgLOXVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:21:00 -0500
+Date:   Tue, 15 Dec 2020 15:19:42 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074138;
-        bh=bMHAYUjCucnj2u4BdLd7m6NbPNAJlVVT59GWxtRYnis=;
+        s=korg; t=1608074383;
+        bh=fPaT1hYvMKqEe8exqwZtP7IDgbypTMv1uo1h5gAsgHY=;
         h=From:To:Subject:From;
-        b=esgfwwEM0c1gV3ngQBF5mTAVHpFq9Nopc7dpDdWCq3PTj+meOQi0SmHn/dbbP2CNO
-         z9gp1CjQ23cSd3cYudtruUMYpVcmrC7ZhCItH1FB0aapJP69xEEOMpkuYIM52CytFQ
-         nbYvOz6BBbtpyTlKpeDSTEkkbrkNpVK9nCzUfxWY=
+        b=df9DwH5U7QqmpZhj6z4rAL+HX4R/SIfHxhm4qkJz7i22oZLMK/E9x+ibaYMX2kTJP
+         IHNWARWgKJTf0ZzToI/mmGsLKE2ykHVJrSBCipP8/wSu4J+7FYSDLY4i5q1iqWZuaW
+         VRNu50g5yoEecOHNT0Q5sntEiDdCSlwuFr6MgUtg=
 From:   akpm@linux-foundation.org
-To:     a.p.zijlstra@chello.nl, axboe@kernel.dk, ben.dooks@codethink.co.uk,
-        bfields@redhat.com, cl@rock-chips.com, frederic@kernel.org,
-        mgorman@techsingularity.net, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mtosatti@redhat.com, pauld@redhat.com,
-        peterz@infradead.org, rdunlap@infradead.org,
-        robdclark@chromium.org, rostedt@goodmis.org,
-        stamatis.iliass@gmail.com, thara.gopinath@linaro.org,
-        valentin.schneider@arm.com, vincent.donnefort@arm.com
-Subject:  [merged] kthread-add-kthread_work-tracepoints.patch
- removed from -mm tree
-Message-ID: <20201215231537.Yk7wQyayr%akpm@linux-foundation.org>
+To:     bgeffon@google.com, catalin.marinas@arm.com,
+        dan.carpenter@oracle.com, dan.j.williams@intel.com,
+        dave.jiang@intel.com, dima@arista.com, hughd@google.com,
+        jgg@ziepe.ca, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
+        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
+        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com, tglx@linutronix.de,
+        tsbogend@alpha.franken.de, vbabka@suse.cz, viro@zeniv.linux.org.uk,
+        vishal.l.verma@intel.com, will@kernel.org
+Subject:  [merged]
+ mremap-check-if-its-possible-to-split-original-vma.patch removed from -mm
+ tree
+Message-ID: <20201215231942.8s7ANctDP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,177 +49,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: add kthread_work tracepoints
+     Subject: mremap: check if it's possible to split original vma
 has been removed from the -mm tree.  Its filename was
-     kthread-add-kthread_work-tracepoints.patch
+     mremap-check-if-its-possible-to-split-original-vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rob Clark <robdclark@chromium.org>
-Subject: kthread: add kthread_work tracepoints
+From: Dmitry Safonov <dima@arista.com>
+Subject: mremap: check if it's possible to split original vma
 
-While migrating some code from wq to kthread_worker, I found that I missed
-the execute_start/end tracepoints.  So add similar tracepoints for
-kthread_work.  And for completeness, queue_work tracepoint (although this
-one differs slightly from the matching workqueue tracepoint).
+If original VMA can't be split at the desired address, do_munmap() will
+fail and leave both new-copied VMA and old VMA.  De-facto it's
+MREMAP_DONTUNMAP behaviour, which is unexpected.
 
-Link: https://lkml.kernel.org/r/20201010180323.126634-1-robdclark@gmail.com
-Signed-off-by: Rob Clark <robdclark@chromium.org>
-Cc: Rob Clark <robdclark@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Currently, it may fail such way for hugetlbfs and dax device mappings.
+
+Minimize such unpleasant situations to OOM by checking .may_split() before
+attempting to create a VMA copy.
+
+Link: https://lkml.kernel.org/r/20201013013416.390574-6-dima@arista.com
+Signed-off-by: Dmitry Safonov <dima@arista.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Phil Auld <pauld@redhat.com>
-Cc: Valentin Schneider <valentin.schneider@arm.com>
-Cc: Thara Gopinath <thara.gopinath@linaro.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Vincent Donnefort <vincent.donnefort@arm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Ilias Stamatis <stamatis.iliass@gmail.com>
-Cc: Liang Chen <cl@rock-chips.com>
-Cc: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "J. Bruce Fields" <bfields@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/sched.h |   84 +++++++++++++++++++++++++++++++++
- kernel/kthread.c             |    9 +++
- 2 files changed, 93 insertions(+)
+ mm/mremap.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/include/trace/events/sched.h~kthread-add-kthread_work-tracepoints
-+++ a/include/trace/events/sched.h
-@@ -5,6 +5,7 @@
- #if !defined(_TRACE_SCHED_H) || defined(TRACE_HEADER_MULTI_READ)
- #define _TRACE_SCHED_H
+--- a/mm/mremap.c~mremap-check-if-its-possible-to-split-original-vma
++++ a/mm/mremap.c
+@@ -493,7 +493,7 @@ static unsigned long move_vma(struct vm_
+ 	unsigned long excess = 0;
+ 	unsigned long hiwater_vm;
+ 	int split = 0;
+-	int err;
++	int err = 0;
+ 	bool need_rmap_locks;
  
-+#include <linux/kthread.h>
- #include <linux/sched/numa_balancing.h>
- #include <linux/tracepoint.h>
- #include <linux/binfmts.h>
-@@ -51,6 +52,89 @@ TRACE_EVENT(sched_kthread_stop_ret,
- 	TP_printk("ret=%d", __entry->ret)
- );
+ 	/*
+@@ -503,6 +503,15 @@ static unsigned long move_vma(struct vm_
+ 	if (mm->map_count >= sysctl_max_map_count - 3)
+ 		return -ENOMEM;
  
-+/**
-+ * sched_kthread_work_queue_work - called when a work gets queued
-+ * @worker:	pointer to the kthread_worker
-+ * @work:	pointer to struct kthread_work
-+ *
-+ * This event occurs when a work is queued immediately or once a
-+ * delayed work is actually queued (ie: once the delay has been
-+ * reached).
-+ */
-+TRACE_EVENT(sched_kthread_work_queue_work,
++	if (vma->vm_ops && vma->vm_ops->may_split) {
++		if (vma->vm_start != old_addr)
++			err = vma->vm_ops->may_split(vma, old_addr);
++		if (!err && vma->vm_end != old_addr + old_len)
++			err = vma->vm_ops->may_split(vma, old_addr + old_len);
++		if (err)
++			return err;
++	}
 +
-+	TP_PROTO(struct kthread_worker *worker,
-+		 struct kthread_work *work),
-+
-+	TP_ARGS(worker, work),
-+
-+	TP_STRUCT__entry(
-+		__field( void *,	work	)
-+		__field( void *,	function)
-+		__field( void *,	worker)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->work		= work;
-+		__entry->function	= work->func;
-+		__entry->worker		= worker;
-+	),
-+
-+	TP_printk("work struct=%p function=%ps worker=%p",
-+		  __entry->work, __entry->function, __entry->worker)
-+);
-+
-+/**
-+ * sched_kthread_work_execute_start - called immediately before the work callback
-+ * @work:	pointer to struct kthread_work
-+ *
-+ * Allows to track kthread work execution.
-+ */
-+TRACE_EVENT(sched_kthread_work_execute_start,
-+
-+	TP_PROTO(struct kthread_work *work),
-+
-+	TP_ARGS(work),
-+
-+	TP_STRUCT__entry(
-+		__field( void *,	work	)
-+		__field( void *,	function)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->work		= work;
-+		__entry->function	= work->func;
-+	),
-+
-+	TP_printk("work struct %p: function %ps", __entry->work, __entry->function)
-+);
-+
-+/**
-+ * sched_kthread_work_execute_end - called immediately after the work callback
-+ * @work:	pointer to struct work_struct
-+ * @function:   pointer to worker function
-+ *
-+ * Allows to track workqueue execution.
-+ */
-+TRACE_EVENT(sched_kthread_work_execute_end,
-+
-+	TP_PROTO(struct kthread_work *work, kthread_work_func_t function),
-+
-+	TP_ARGS(work, function),
-+
-+	TP_STRUCT__entry(
-+		__field( void *,	work	)
-+		__field( void *,	function)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->work		= work;
-+		__entry->function	= function;
-+	),
-+
-+	TP_printk("work struct %p: function %ps", __entry->work, __entry->function)
-+);
-+
- /*
-  * Tracepoint for waking up a task:
-  */
---- a/kernel/kthread.c~kthread-add-kthread_work-tracepoints
-+++ a/kernel/kthread.c
-@@ -704,8 +704,15 @@ repeat:
- 	raw_spin_unlock_irq(&worker->lock);
- 
- 	if (work) {
-+		kthread_work_func_t func = work->func;
- 		__set_current_state(TASK_RUNNING);
-+		trace_sched_kthread_work_execute_start(work);
- 		work->func(work);
-+		/*
-+		 * Avoid dereferencing work after this point.  The trace
-+		 * event only cares about the address.
-+		 */
-+		trace_sched_kthread_work_execute_end(work, func);
- 	} else if (!freezing(current))
- 		schedule();
- 
-@@ -834,6 +841,8 @@ static void kthread_insert_work(struct k
- {
- 	kthread_insert_work_sanity_check(worker, work);
- 
-+	trace_sched_kthread_work_queue_work(worker, work);
-+
- 	list_add_tail(&work->node, pos);
- 	work->worker = worker;
- 	if (!worker->current_work && likely(worker->task))
+ 	/*
+ 	 * Advise KSM to break any KSM pages in the area to be moved:
+ 	 * it would be confusing if they were to turn up at the new
 _
 
-Patches currently in -mm which might be from robdclark@chromium.org are
+Patches currently in -mm which might be from dima@arista.com are
 
 
