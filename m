@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0088C2BB9A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80DC2C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C86B224B2
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B0A6223E4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728093AbgLODOU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36826 "EHLO mail.kernel.org"
+        id S1728046AbgLODOV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728046AbgLODMl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:41 -0500
-Date:   Mon, 14 Dec 2020 19:11:19 -0800
+        id S1727511AbgLODN6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:13:58 -0500
+Date:   Mon, 14 Dec 2020 19:13:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001879;
-        bh=2V0aWHd+HpvbqUbigniTNnRjaO/TilulSY1cerdprDg=;
+        s=korg; t=1608001997;
+        bh=XHBy2khPzATt2Ypi8AiunBAkJFiwUZIrUQjIP7Uzrx8=;
         h=From:To:Subject:In-Reply-To:From;
-        b=EbNsu40OczZTiXu5332A1Wmyg5q5fADzYvLPf25cXmAfVNjoHA/9T4FCu84zHDHG7
-         CCAeVw3iyPWuz9FKJPR6Jz9GiR6k3iMtRL0tf+GzYtjKEvnmwrcVkpbbDnCP0j4bN1
-         +8kESd8qJtM4amGNBNQO/wyP2uDkadhSIWh6L0Eo=
+        b=rwn+lo/ufSsdqRlShLAnfqlwKssY0r2Rb+Y/FUEyCt33dASAwTWnOIrYxjZmOGh15
+         lGLMztdZfH58pcdJz1nuyeSGdANDUsztshEjrMKUhHuzrfj7JYoj0a7JoDQ3y1isuO
+         0ui1TeF+lPsl68T7Q3zCUJFopjYv2INm0tW2w/PA=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linf@wangsu.com, linux-mm@kvack.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 135/200] init/main: fix broken buffer_init when
- DEFERRED_STRUCT_PAGE_INIT set
-Message-ID: <20201215031119.60LGvc0BJ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jack@suse.cz, linux-mm@kvack.org,
+        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com, songliubraving@fb.com,
+        torvalds@linux-foundation.org, willy@infradead.org, ziy@nvidia.com
+Subject:  [patch 170/200] mm: migrate: return -ENOSYS if THP
+ migration is unsupported
+Message-ID: <20201215031316.eaqxNcXtj%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,112 +42,128 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Lin Feng <linf@wangsu.com>
-Subject: init/main: fix broken buffer_init when DEFERRED_STRUCT_PAGE_INIT set
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: migrate: return -ENOSYS if THP migration is unsupported
 
-In the booting phase if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set,
-we have following callchain:
+In the current implementation unmap_and_move() would return -ENOMEM if THP
+migration is unsupported, then the THP will be split.  If split is failed
+just exit without trying to migrate other pages.  It doesn't make too much
+sense since there may be enough free memory to migrate other pages and
+there may be a lot base pages on the list.
 
-start_kernel
-...
-  mm_init
-    mem_init
-     memblock_free_all
-       reset_all_zones_managed_pages
-       free_low_memory_core_early
-...
-  buffer_init
-    nr_free_buffer_pages
-      zone->managed_pages
-...
-  rest_init
-    kernel_init
-      kernel_init_freeable
-        page_alloc_init_late
-          kthread_run(deferred_init_memmap, NODE_DATA(nid), "pgdatinit%d", nid);
-          wait_for_completion(&pgdat_init_all_done_comp);
-          ...
-          files_maxfiles_init
+Return -ENOSYS to make consistent with hugetlb.  And if THP split is
+failed just skip and try other pages on the list.
 
-It's clear that buffer_init depends on zone->managed_pages, but it's reset
-in reset_all_zones_managed_pages after that pages are readded into
-zone->managed_pages, but when buffer_init runs this process is half done
-and most of them will finally be added till deferred_init_memmap done.  In
-large memory couting of nr_free_buffer_pages drifts too much, also
-drifting from kernels to kernels on same hardware.
+Just skip the whole list and exit when free memory is really low.
 
-Fix is simple, it delays buffer_init run till deferred_init_memmap all
-done.
-
-But as corrected by this patch, max_buffer_heads becomes very large, the
-value is roughly as many as 4 times of totalram_pages, formula:
-max_buffer_heads = nrpages * (10%) * (PAGE_SIZE / sizeof(struct
-buffer_head));
-
-Say in a 64GB memory box we have 16777216 pages, then max_buffer_heads
-turns out to be roughly 67,108,864.  In common cases, should a buffer_head
-be mapped to one page/block(4KB)?  So max_buffer_heads never exceeds
-totalram_pages.  IMO it's likely to make buffer_heads_over_limit bool
-value alwasy false, then make codes 'if (buffer_heads_over_limit)' test in
-vmscan unnecessary.
-
-So this patch will change the original behavior related to
-buffer_heads_over_limit in vmscan since we used a half done value of
-zone->managed_pages before, or should we use a smaller factor(<10%) in
-previous formula.
-
-akpm: I think this is OK - the max_buffer_heads code is only needed on
-highmem machines, to prevent ZONE_NORMAL from being consumed by large
-amounts of buffer_heads attached to highmem pagecache.  This problem will
-not occur on 64-bit machines, so this feature's non-functionality on such
-machines is a feature, not a bug.
-
-Link: https://lkml.kernel.org/r/20201123110500.103523-1-linf@wangsu.com
-Signed-off-by: Lin Feng <linf@wangsu.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20201113205359.556831-6-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c     |    2 --
- mm/page_alloc.c |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/migrate.c |   62 ++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 46 insertions(+), 16 deletions(-)
 
---- a/init/main.c~init-main-fix-broken-buffer_init-when-deferred_struct_page_init-set
-+++ a/init/main.c
-@@ -58,7 +58,6 @@
- #include <linux/rmap.h>
- #include <linux/mempolicy.h>
- #include <linux/key.h>
--#include <linux/buffer_head.h>
- #include <linux/page_ext.h>
- #include <linux/debug_locks.h>
- #include <linux/debugobjects.h>
-@@ -1036,7 +1035,6 @@ asmlinkage __visible void __init __no_sa
- 	fork_init();
- 	proc_caches_init();
- 	uts_ns_init();
--	buffer_init();
- 	key_init();
- 	security_init();
- 	dbg_late_init();
---- a/mm/page_alloc.c~init-main-fix-broken-buffer_init-when-deferred_struct_page_init-set
-+++ a/mm/page_alloc.c
-@@ -71,6 +71,7 @@
- #include <linux/psi.h>
- #include <linux/padata.h>
- #include <linux/khugepaged.h>
-+#include <linux/buffer_head.h>
+--- a/mm/migrate.c~mm-migrate-return-enosys-if-thp-migration-is-unsupported
++++ a/mm/migrate.c
+@@ -1171,7 +1171,7 @@ static int unmap_and_move(new_page_t get
+ 	struct page *newpage = NULL;
  
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
-@@ -2113,6 +2114,8 @@ void __init page_alloc_init_late(void)
- 	files_maxfiles_init();
- #endif
+ 	if (!thp_migration_supported() && PageTransHuge(page))
+-		return -ENOMEM;
++		return -ENOSYS;
  
-+	buffer_init();
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
+@@ -1378,6 +1378,20 @@ out:
+ 	return rc;
+ }
+ 
++static inline int try_split_thp(struct page *page, struct page **page2,
++				struct list_head *from)
++{
++	int rc = 0;
 +
- 	/* Discard memblock private memory */
- 	memblock_discard();
- 
++	lock_page(page);
++	rc = split_huge_page_to_list(page, from);
++	unlock_page(page);
++	if (!rc)
++		list_safe_reset_next(page, *page2, lru);
++
++	return rc;
++}
++
+ /*
+  * migrate_pages - migrate the pages specified in a list, to the free pages
+  *		   supplied as the target for the page migration
+@@ -1455,24 +1469,40 @@ retry:
+ 			 *		     from list
+ 			 */
+ 			switch(rc) {
++			/*
++			 * THP migration might be unsupported or the
++			 * allocation could've failed so we should
++			 * retry on the same page with the THP split
++			 * to base pages.
++			 *
++			 * Head page is retried immediately and tail
++			 * pages are added to the tail of the list so
++			 * we encounter them after the rest of the list
++			 * is processed.
++			 */
++			case -ENOSYS:
++				/* THP migration is unsupported */
++				if (is_thp) {
++					if (!try_split_thp(page, &page2, from)) {
++						nr_thp_split++;
++						goto retry;
++					}
++
++					nr_thp_failed++;
++					nr_failed += nr_subpages;
++					break;
++				}
++
++				/* Hugetlb migration is unsupported */
++				nr_failed++;
++				break;
+ 			case -ENOMEM:
+ 				/*
+-				 * THP migration might be unsupported or the
+-				 * allocation could've failed so we should
+-				 * retry on the same page with the THP split
+-				 * to base pages.
+-				 *
+-				 * Head page is retried immediately and tail
+-				 * pages are added to the tail of the list so
+-				 * we encounter them after the rest of the list
+-				 * is processed.
++				 * When memory is low, don't bother to try to migrate
++				 * other pages, just exit.
+ 				 */
+ 				if (is_thp) {
+-					lock_page(page);
+-					rc = split_huge_page_to_list(page, from);
+-					unlock_page(page);
+-					if (!rc) {
+-						list_safe_reset_next(page, page2, lru);
++					if (!try_split_thp(page, &page2, from)) {
+ 						nr_thp_split++;
+ 						goto retry;
+ 					}
+@@ -1500,7 +1530,7 @@ retry:
+ 				break;
+ 			default:
+ 				/*
+-				 * Permanent failure (-EBUSY, -ENOSYS, etc.):
++				 * Permanent failure (-EBUSY, etc.):
+ 				 * unlike -EAGAIN case, the failed page is
+ 				 * removed from migration page list and not
+ 				 * retried in the next outer loop.
 _
