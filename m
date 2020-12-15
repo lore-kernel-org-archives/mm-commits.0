@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B67D9C2BBCF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEABC4743B
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8094422EBD
+	by mail.kernel.org (Postfix) with ESMTP id 4459222D07
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726290AbgLOX7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726277AbgLOX7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:59:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60886 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59808 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727884AbgLOXWb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:31 -0500
-Date:   Tue, 15 Dec 2020 15:20:15 -0800
+        id S1727879AbgLOXWa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:30 -0500
+Date:   Tue, 15 Dec 2020 15:20:47 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074416;
-        bh=n0MeDgzPebHUKQj4wMTmBn8LRL8jh7S7lrT1D2xRgdU=;
+        s=korg; t=1608074448;
+        bh=UmZFbAgezHVwRUYRa4P/dWtGUGrLyrDoEGGy9N16PHI=;
         h=From:To:Subject:From;
-        b=hNshtxIMfW0qj4I6b5FFWPcPTnIwUVyMqcQnApEKV1vBJr0iYs4MpdcXCWFR3eQDS
-         g3t3B/vZBn6seDykhhqbNKWgz7FpaBuG7Nywd2gt2+nkv84xkxmPbfxBBcRTpIif1+
-         +aePL5IAtTEQYRSeZOvvr2r5rS1uO5O0jkwB7OIQ=
+        b=XXD9DzVYVbAoZOisGjvrRjOy+ONUTidbfEbgCv0RSjP5B3h7gUS8+JLIsqrUul88t
+         T4NTgrJ4f8nJ3i/pRtKCTuhpFqZ7SwiECbgQQOh49fJiB6fq+Wuj3/g+Rxo+wKFPh1
+         zMqePj6TvsBteSTkeB3Jjo1vi6Y40X0PC60Zhihw=
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
+To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
+        geert@linux-m68k.org, gerg@linux-m68k.org,
+        glaubitz@physik.fu-berlin.de, linux@armlinux.org.uk,
+        mattst88@gmail.com, mm-commits@vger.kernel.org, mroos@linux.ee,
+        rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
+        vgupta@synopsys.com, will@kernel.org
 Subject:  [merged]
- docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch removed
- from -mm tree
-Message-ID: <20201215232015.GvPh4jrZ_%akpm@linux-foundation.org>
+ ia64-split-virtual-map-initialization-out-of-paging_init.patch removed from
+ -mm tree
+Message-ID: <20201215232047.iIO2BvNPz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,85 +46,168 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
+     Subject: ia64: split virtual map initialization out of paging_init()
 has been removed from the -mm tree.  Its filename was
-     docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
+     ia64-split-virtual-map-initialization-out-of-paging_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: ia64: split virtual map initialization out of paging_init()
 
-Commit 5647bc293ab1 ("mm: compaction: Move migration fail/success
-stats to migrate.c"), removed 3 items in /proc/vmstat. but the docs
-still has their explanation. let's remove them.
+For both FLATMEM and DISCONTIGMEM/SPARSEMEM the virtual map initialization
+is spread over paging_init() for no good reason.
 
-"compact_blocks_moved",
-"compact_pages_moved",
-"compact_pagemigrate_failed",
+Split out the bits related to virtual map initialization to a helper
+functions, one for FLATMEM and another for !FLATMEM configurations.
 
-Link: https://lkml.kernel.org/r/1605520282-51993-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20201101170454.9567-6-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Michael Schmitz <schmitzmic@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   15 ---------------
- 1 file changed, 15 deletions(-)
+ arch/ia64/mm/contig.c    |   34 ++++++++++++++++++++--------------
+ arch/ia64/mm/discontig.c |   37 ++++++++++++++++++++-----------------
+ 2 files changed, 40 insertions(+), 31 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~docs-vm-remove-unused-3-items-explanation-for-proc-vmstat
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -401,21 +401,6 @@ compact_fail
- 	is incremented if the system tries to compact memory
- 	but failed.
+--- a/arch/ia64/mm/contig.c~ia64-split-virtual-map-initialization-out-of-paging_init
++++ a/arch/ia64/mm/contig.c
+@@ -166,21 +166,8 @@ find_memory (void)
+ 	alloc_per_cpu_data();
+ }
  
--compact_pages_moved
--	is incremented each time a page is moved. If
--	this value is increasing rapidly, it implies that the system
--	is copying a lot of data to satisfy the huge page allocation.
--	It is possible that the cost of copying exceeds any savings
--	from reduced TLB misses.
+-/*
+- * Set up the page tables.
+- */
 -
--compact_pagemigrate_failed
--	is incremented when the underlying mechanism
--	for moving a page failed.
+-void __init
+-paging_init (void)
++static void __init virtual_map_init(void)
+ {
+-	unsigned long max_dma;
+-	unsigned long max_zone_pfns[MAX_NR_ZONES];
 -
--compact_blocks_moved
--	is incremented each time memory compaction examines
--	a huge page aligned range of pages.
+-	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+-	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+-	max_zone_pfns[ZONE_DMA32] = max_dma;
+-	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
 -
- It is possible to establish how long the stalls were using the function
- tracer to record how long was spent in __alloc_pages_nodemask and
- using the mm_page_alloc tracepoint to identify which allocations were
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+ 	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
+ 	if (max_gap < LARGE_GAP) {
+@@ -206,6 +193,25 @@ paging_init (void)
+ 		printk("Virtual mem_map starts at 0x%p\n", mem_map);
+ 	}
+ #endif /* !CONFIG_VIRTUAL_MEM_MAP */
++}
++
++/*
++ * Set up the page tables.
++ */
++
++void __init
++paging_init (void)
++{
++	unsigned long max_dma;
++	unsigned long max_zone_pfns[MAX_NR_ZONES];
++
++	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
++	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
++	max_zone_pfns[ZONE_DMA32] = max_dma;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
++
++	virtual_map_init();
++
+ 	free_area_init(max_zone_pfns);
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
+ }
+--- a/arch/ia64/mm/discontig.c~ia64-split-virtual-map-initialization-out-of-paging_init
++++ a/arch/ia64/mm/discontig.c
+@@ -584,6 +584,25 @@ void call_pernode_memory(unsigned long s
+ 	}
+ }
+ 
++static void __init virtual_map_init(void)
++{
++#ifdef CONFIG_VIRTUAL_MEM_MAP
++	int node;
++
++	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
++		sizeof(struct page));
++	vmem_map = (struct page *) VMALLOC_END;
++	efi_memmap_walk(create_mem_map_page_table, NULL);
++	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
++
++	for_each_online_node(node) {
++		unsigned long pfn_offset = mem_data[node].min_pfn;
++
++		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
++	}
++#endif
++}
++
+ /**
+  * paging_init - setup page tables
+  *
+@@ -593,29 +612,13 @@ void call_pernode_memory(unsigned long s
+ void __init paging_init(void)
+ {
+ 	unsigned long max_dma;
+-	unsigned long pfn_offset = 0;
+-	int node;
+ 	unsigned long max_zone_pfns[MAX_NR_ZONES];
+ 
+ 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+ 
+ 	sparse_init();
+ 
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
+-		sizeof(struct page));
+-	vmem_map = (struct page *) VMALLOC_END;
+-	efi_memmap_walk(create_mem_map_page_table, NULL);
+-	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
+-#endif
+-
+-	for_each_online_node(node) {
+-		pfn_offset = mem_data[node].min_pfn;
+-
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
+-#endif
+-	}
++	virtual_map_init();
+ 
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+ 	max_zone_pfns[ZONE_DMA32] = max_dma;
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
-mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
-mm-thp-simplify-lru_add_page_tail.patch
-mm-thp-narrow-lru-locking.patch
-mm-vmscan-remove-unnecessary-lruvec-adding.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
-mm-memcg-add-debug-checking-in-lock_page_memcg.patch
-mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
-mm-lru-move-lock-into-lru_note_cost.patch
-mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
-mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
-mm-mlock-remove-__munlock_isolate_lru_page.patch
-mm-lru-introduce-testclearpagelru.patch
-mm-compaction-do-page-isolation-first-in-compaction.patch
-mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
-mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
-fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
-gcov-fix-kernel-doc-markup-issue.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
+mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+secretmem-add-memcg-accounting.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
