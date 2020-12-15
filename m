@@ -7,102 +7,183 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC08C2BB9A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B7C1C2BBCD
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:34:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BCE5224B2
+	by mail.kernel.org (Postfix) with ESMTP id 632B322475
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:34:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726684AbgLODFD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:05:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60988 "EHLO mail.kernel.org"
+        id S1726435AbgLODeA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:34:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726942AbgLODE4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:04:56 -0500
-Date:   Mon, 14 Dec 2020 19:04:12 -0800
+        id S1726597AbgLODFu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:05:50 -0500
+Date:   Mon, 14 Dec 2020 19:05:08 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001454;
-        bh=4CWMa6prk7hxgq4b1iSZsnz/Lro/6pez14NFIpV+OxQ=;
+        s=korg; t=1608001509;
+        bh=etb88+SGP9BPEJCSJlJgky3geMGIOSq8fp4OtgbkTPU=;
         h=From:To:Subject:In-Reply-To:From;
-        b=xW5KebCmsKbcyActxxaFL6QVPQc75q+W0NA62c8ZVHkw0QS9mjlSIddbBsL8AaHvQ
-         0jlEZSLiQGnt4zrxMzQ1+vg8Np5Gd4pkQTKKMrHxSgxes3gshj6HBweOOHrsUG/PHh
-         JGBu/t2lgN3OKOyrn4cDUsooSlcS+VWwiLo2KGmo=
+        b=Vr34hStIelqlEHQVbI+nqs10nGCt5jADxgJvgRnzJh8CtNhpFMyLDmfvHvzMwdlNB
+         Vr2GE6uMyDxlELf+rjt9fX3z6OKO4KuB8+UqkNH5GIolp3/xNqCn/cXTWxceCrkJMC
+         hjkRZAv2xuIKkO9tNPBXPIWkDaFs+k/8KxQ1IrzQ=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     airlied@linux.ie, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com,
-        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
-        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
-        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
-        linus.walleij@linaro.org, linux-mm@kvack.org,
-        maarten.lankhorst@linux.intel.com, mchehab@kernel.org,
-        mm-commits@vger.kernel.org, mripard@kernel.org, mst@redhat.com,
-        penberg@kernel.org, perex@perex.cz, rientjes@google.com,
-        rric@kernel.org, sumit.semwal@linaro.org, tiwai@suse.com,
-        tiwai@suse.de, tony.luck@intel.com, torvalds@linux-foundation.org,
-        tzimmermann@suse.de, vbabka@suse.cz
-Subject:  [patch 017/200] edac: ghes: use krealloc_array()
-Message-ID: <20201215030412.Rc4sYqRtx%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net, jglisse@redhat.com,
+        jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 033/200] selftests/vm: use a common gup_test.h
+Message-ID: <20201215030508.49Unatatz%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: edac: ghes: use krealloc_array()
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: use a common gup_test.h
 
-Use the helper that checks for overflows internally instead of manually
-calculating the size of the new array.
+Avoid the need to copy-paste the gup_test ioctl commands and the struct
+gup_test definition, between the kernel and the user space application, by
+providing a new header file for these.  This allows easier and safer
+adding of new ioctl calls, as well as reducing the overall line count.
 
-Link: https://lkml.kernel.org/r/20201109110654.12547-7-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Acked-by: Borislav Petkov <bp@suse.de>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Knig <christian.koenig@amd.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Details: The header file has to be able to compile independently, because
+of the arguably unfortunate way that the Makefile is written: the Makefile
+tries to build all of its prerequisites, when really it should be only
+building the .c files, and leaving the other prerequisites (LOCAL_HDRS) as
+pure dependencies.
+
+That Makefile limitation is probably not worth fixing, but it explains why
+one of the includes had to be moved into the new header file.
+
+Also: simplify the ioctl struct (struct gup_test), by deleting the unused
+__expansion[10] field.  This sort of thing is what you might see in a
+stable ABI, but this low-level, kernel-developer-oriented selftests/vm
+system is very much not subject to ABI stability.  So "expansion" and
+"reserved" fields are unnecessary here.
+
+Link: https://lkml.kernel.org/r/20201026064021.3545418-3-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/ghes_edac.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/gup_test.c                         |   17 +----------------
+ mm/gup_test.h                         |   22 ++++++++++++++++++++++
+ tools/testing/selftests/vm/Makefile   |    2 ++
+ tools/testing/selftests/vm/gup_test.c |   22 +---------------------
+ 4 files changed, 26 insertions(+), 37 deletions(-)
 
---- a/drivers/edac/ghes_edac.c~edac-ghes-use-krealloc_array
-+++ a/drivers/edac/ghes_edac.c
-@@ -207,8 +207,8 @@ static void enumerate_dimms(const struct
- 	if (!hw->num_dimms || !(hw->num_dimms % 16)) {
- 		struct dimm_info *new;
- 
--		new = krealloc(hw->dimms, (hw->num_dimms + 16) * sizeof(struct dimm_info),
--			        GFP_KERNEL);
-+		new = krealloc_array(hw->dimms, hw->num_dimms + 16,
-+				     sizeof(struct dimm_info), GFP_KERNEL);
- 		if (!new) {
- 			WARN_ON_ONCE(1);
- 			return;
+--- a/mm/gup_test.c~selftests-vm-use-a-common-gup_testh
++++ a/mm/gup_test.c
+@@ -4,22 +4,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/ktime.h>
+ #include <linux/debugfs.h>
+-
+-#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
+-#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
+-#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
+-#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
+-#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
+-
+-struct gup_test {
+-	__u64 get_delta_usec;
+-	__u64 put_delta_usec;
+-	__u64 addr;
+-	__u64 size;
+-	__u32 nr_pages_per_call;
+-	__u32 flags;
+-	__u64 expansion[10];	/* For future use */
+-};
++#include "gup_test.h"
+=20
+ static void put_back_pages(unsigned int cmd, struct page **pages,
+ 			   unsigned long nr_pages)
+--- /dev/null
++++ a/mm/gup_test.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef __GUP_TEST_H
++#define __GUP_TEST_H
++
++#include <linux/types.h>
++
++#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
++#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
++#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
++#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
++#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
++
++struct gup_test {
++	__u64 get_delta_usec;
++	__u64 put_delta_usec;
++	__u64 addr;
++	__u64 size;
++	__u32 nr_pages_per_call;
++	__u32 flags;
++};
++
++#endif	/* __GUP_TEST_H */
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-use-a-common-gup_t=
+esth
++++ a/tools/testing/selftests/vm/gup_test.c
+@@ -2,39 +2,19 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+-
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+ #include <sys/prctl.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+-
+-#include <linux/types.h>
++#include "../../../../mm/gup_test.h"
+=20
+ #define MB (1UL << 20)
+ #define PAGE_SIZE sysconf(_SC_PAGESIZE)
+=20
+-#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
+-#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
+-
+-/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
+-#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
+-#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
+-#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
+-
+ /* Just the flags we need, copied from mm.h: */
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+=20
+-struct gup_test {
+-	__u64 get_delta_usec;
+-	__u64 put_delta_usec;
+-	__u64 addr;
+-	__u64 size;
+-	__u32 nr_pages_per_call;
+-	__u32 flags;
+-	__u64 expansion[10];	/* For future use */
+-};
+-
+ int main(int argc, char **argv)
+ {
+ 	struct gup_test gup;
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-use-a-common-gup_tes=
+th
++++ a/tools/testing/selftests/vm/Makefile
+@@ -134,3 +134,5 @@ endif
+ $(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
+=20
+ $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
++
++$(OUTPUT)/gup_test: ../../../../mm/gup_test.h
 _
