@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20ECEC352B3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A26FBC47434
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06CE522D02
+	by mail.kernel.org (Postfix) with ESMTP id 8A26822CAE
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726219AbgLPAAO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32846 "EHLO mail.kernel.org"
+        id S1727046AbgLPAAQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727300AbgLOX1P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:15 -0500
-Date:   Tue, 15 Dec 2020 15:16:59 -0800
+        id S1730091AbgLOX1Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:16 -0500
+Date:   Tue, 15 Dec 2020 15:17:12 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074219;
-        bh=d2XcKtWzcUcTgxaw+SmzKB9QEqyhje8vuftbkY9ujR8=;
+        s=korg; t=1608074232;
+        bh=RKr8UW+zsAXSeQlgZowi6JCJHHuqpdmop0QBU6308Yw=;
         h=From:To:Subject:From;
-        b=KO3rNgZFze2FndGq60pv75W1AhAPXHZDBOpNsqD845Mg/uApGikqr5Kgknds6VJow
-         6LXrcrN72Zdl9WKYegfqNQXuI7vkOuFxovz5heSpKchzmH4KA//1EbMRXWv2a+7eOM
-         c/Ri/DqD24JDAX0RJVUad+epzwTifU2gPRX1uui8=
+        b=N7JqMpSKToReXnOhUA1x8rQpCK98mtCdM5BMVnbTGdfKhOkO8qO/K5xWICYnneuvZ
+         gY/GGFi5wSCF7cOe2fK1uED1daF0vsPpSpJa9KAQpSMrsvK2LJqqkMTN3fYpPKW2j4
+         4vn7eUk2EV3LpSZANZWjW8mKfXoOFU4zdoKNf8uk=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, georgi.djakov@linaro.org, iamjoonsoo.kim@lge.com,
-        lmark@codeaurora.org, mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  [merged] mm-page_owner-record-timestamp-and-pid.patch
+To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+Subject:  [merged] selftests-vm-use-a-common-gup_testh.patch
  removed from -mm tree
-Message-ID: <20201215231659.ULzidsEAp%akpm@linux-foundation.org>
+Message-ID: <20201215231712.I1GXIIKfK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,139 +44,159 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: record timestamp and pid
+     Subject: selftests/vm: use a common gup_test.h
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-record-timestamp-and-pid.patch
+     selftests-vm-use-a-common-gup_testh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Liam Mark <lmark@codeaurora.org>
-Subject: mm/page_owner: record timestamp and pid
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: use a common gup_test.h
 
-Collect the time for each allocation recorded in page owner so that
-allocation "surges" can be measured.
+Avoid the need to copy-paste the gup_test ioctl commands and the struct
+gup_test definition, between the kernel and the user space application, by
+providing a new header file for these.  This allows easier and safer
+adding of new ioctl calls, as well as reducing the overall line count.
 
-Record the pid for each allocation recorded in page owner so that the
-source of allocation "surges" can be better identified.
+Details: The header file has to be able to compile independently, because
+of the arguably unfortunate way that the Makefile is written: the Makefile
+tries to build all of its prerequisites, when really it should be only
+building the .c files, and leaving the other prerequisites (LOCAL_HDRS) as
+pure dependencies.
 
-The above is very useful when doing memory analysis.  On a crash for
-example, we can get this information from kdump (or ramdump) and parse it
-to figure out memory allocation problems.
+That Makefile limitation is probably not worth fixing, but it explains why
+one of the includes had to be moved into the new header file.
 
-Please note that on x86_64 this increases the size of struct page_owner
-from 16 bytes to 32.
+Also: simplify the ioctl struct (struct gup_test), by deleting the unused
+__expansion[10] field.  This sort of thing is what you might see in a
+stable ABI, but this low-level, kernel-developer-oriented selftests/vm
+system is very much not subject to ABI stability.  So "expansion" and
+"reserved" fields are unnecessary here.
 
-Vlastimil: it's not a functionality intended for production, so unless
-somebody says they need to enable page_owner for debugging and this
-increase prevents them from fitting into available memory, let's not
-complicate things with making this optional.
-
-[lmark@codeaurora.org: v3]
-  Link: https://lkml.kernel.org/r/20201210160357.27779-1-georgi.djakov@linaro.org
-Link: https://lkml.kernel.org/r/20201209125153.10533-1-georgi.djakov@linaro.org
-Signed-off-by: Liam Mark <lmark@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20201026064021.3545418-3-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |   12 ++++++------
- mm/page_owner.c                 |   17 +++++++++++++----
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ mm/gup_test.c                         |   17 +----------------
+ mm/gup_test.h                         |   22 ++++++++++++++++++++++
+ tools/testing/selftests/vm/Makefile   |    2 ++
+ tools/testing/selftests/vm/gup_test.c |   22 +---------------------
+ 4 files changed, 26 insertions(+), 37 deletions(-)
 
---- a/Documentation/vm/page_owner.rst~mm-page_owner-record-timestamp-and-pid
-+++ a/Documentation/vm/page_owner.rst
-@@ -41,17 +41,17 @@ size change due to this facility.
- - Without page owner::
- 
-    text    data     bss     dec     hex filename
--   40662   1493     644   42799    a72f mm/page_alloc.o
-+   48392   2333     644   51369    c8a9 mm/page_alloc.o
- 
- - With page owner::
- 
-    text    data     bss     dec     hex filename
--   40892   1493     644   43029    a815 mm/page_alloc.o
--   1427      24       8    1459     5b3 mm/page_ext.o
--   2722      50       0    2772     ad4 mm/page_owner.o
-+   48800   2445     644   51889    cab1 mm/page_alloc.o
-+   6574     108      29    6711    1a37 mm/page_owner.o
-+   1025       8       8    1041     411 mm/page_ext.o
- 
--Although, roughly, 4 KB code is added in total, page_alloc.o increase by
--230 bytes and only half of it is in hotpath. Building the kernel with
-+Although, roughly, 8 KB code is added in total, page_alloc.o increase by
-+520 bytes and less than half of it is in hotpath. Building the kernel with
- page owner and turning it on if needed would be great option to debug
- kernel memory problem.
- 
---- a/mm/page_owner.c~mm-page_owner-record-timestamp-and-pid
-+++ a/mm/page_owner.c
-@@ -10,6 +10,7 @@
- #include <linux/migrate.h>
- #include <linux/stackdepot.h>
- #include <linux/seq_file.h>
-+#include <linux/sched/clock.h>
- 
- #include "internal.h"
- 
-@@ -25,6 +26,8 @@ struct page_owner {
- 	gfp_t gfp_mask;
- 	depot_stack_handle_t handle;
- 	depot_stack_handle_t free_handle;
-+	u64 ts_nsec;
-+	pid_t pid;
- };
- 
- static bool page_owner_enabled = false;
-@@ -172,6 +175,8 @@ static inline void __set_page_owner_hand
- 		page_owner->order = order;
- 		page_owner->gfp_mask = gfp_mask;
- 		page_owner->last_migrate_reason = -1;
-+		page_owner->pid = current->pid;
-+		page_owner->ts_nsec = local_clock();
- 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
- 
-@@ -236,6 +241,8 @@ void __copy_page_owner(struct page *oldp
- 	new_page_owner->last_migrate_reason =
- 		old_page_owner->last_migrate_reason;
- 	new_page_owner->handle = old_page_owner->handle;
-+	new_page_owner->pid = old_page_owner->pid;
-+	new_page_owner->ts_nsec = old_page_owner->ts_nsec;
- 
- 	/*
- 	 * We don't clear the bit on the oldpage as it's going to be freed
-@@ -349,9 +356,10 @@ print_page_owner(char __user *buf, size_
- 		return -ENOMEM;
- 
- 	ret = snprintf(kbuf, count,
--			"Page allocated via order %u, mask %#x(%pGg)\n",
-+			"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns\n",
- 			page_owner->order, page_owner->gfp_mask,
--			&page_owner->gfp_mask);
-+			&page_owner->gfp_mask, page_owner->pid,
-+			page_owner->ts_nsec);
- 
- 	if (ret >= count)
- 		goto err;
-@@ -427,8 +435,9 @@ void __dump_page_owner(struct page *page
- 	else
- 		pr_alert("page_owner tracks the page as freed\n");
- 
--	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg)\n",
--		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask);
-+	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, ts %llu\n",
-+		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
-+		 page_owner->pid, page_owner->ts_nsec);
- 
- 	handle = READ_ONCE(page_owner->handle);
- 	if (!handle) {
+--- a/mm/gup_test.c~selftests-vm-use-a-common-gup_testh
++++ a/mm/gup_test.c
+@@ -4,22 +4,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/ktime.h>
+ #include <linux/debugfs.h>
+-
+-#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
+-#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
+-#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
+-#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
+-#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
+-
+-struct gup_test {
+-	__u64 get_delta_usec;
+-	__u64 put_delta_usec;
+-	__u64 addr;
+-	__u64 size;
+-	__u32 nr_pages_per_call;
+-	__u32 flags;
+-	__u64 expansion[10];	/* For future use */
+-};
++#include "gup_test.h"
+=20
+ static void put_back_pages(unsigned int cmd, struct page **pages,
+ 			   unsigned long nr_pages)
+--- /dev/null
++++ a/mm/gup_test.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef __GUP_TEST_H
++#define __GUP_TEST_H
++
++#include <linux/types.h>
++
++#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
++#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
++#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
++#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
++#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
++
++struct gup_test {
++	__u64 get_delta_usec;
++	__u64 put_delta_usec;
++	__u64 addr;
++	__u64 size;
++	__u32 nr_pages_per_call;
++	__u32 flags;
++};
++
++#endif	/* __GUP_TEST_H */
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-use-a-common-gup_t=
+esth
++++ a/tools/testing/selftests/vm/gup_test.c
+@@ -2,39 +2,19 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+-
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+ #include <sys/prctl.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+-
+-#include <linux/types.h>
++#include "../../../../mm/gup_test.h"
+=20
+ #define MB (1UL << 20)
+ #define PAGE_SIZE sysconf(_SC_PAGESIZE)
+=20
+-#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
+-#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
+-
+-/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
+-#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
+-#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
+-#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
+-
+ /* Just the flags we need, copied from mm.h: */
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+=20
+-struct gup_test {
+-	__u64 get_delta_usec;
+-	__u64 put_delta_usec;
+-	__u64 addr;
+-	__u64 size;
+-	__u32 nr_pages_per_call;
+-	__u32 flags;
+-	__u64 expansion[10];	/* For future use */
+-};
+-
+ int main(int argc, char **argv)
+ {
+ 	struct gup_test gup;
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-use-a-common-gup_tes=
+th
++++ a/tools/testing/selftests/vm/Makefile
+@@ -134,3 +134,5 @@ endif
+ $(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
+=20
+ $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
++
++$(OUTPUT)/gup_test: ../../../../mm/gup_test.h
 _
 
-Patches currently in -mm which might be from lmark@codeaurora.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
