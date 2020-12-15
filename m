@@ -2,84 +2,115 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 044D8C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:33:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58C22C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:33:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C71F3223D6
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:33:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16899223D6
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:33:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726272AbgLODdn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:33:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33978 "EHLO mail.kernel.org"
+        id S1727215AbgLODGO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:06:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727082AbgLODGU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:06:20 -0500
-Date:   Mon, 14 Dec 2020 19:06:04 -0800
+        id S1726974AbgLODGG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:06:06 -0500
+Date:   Mon, 14 Dec 2020 19:05:24 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001565;
-        bh=7v+RgTZuyJW/bBR4UK8MH4Xg43pMdhA95ijDeiW7Rgg=;
+        s=korg; t=1608001525;
+        bh=qrGB3bNspwO41NcBJjb3ru2hjYggjVSKnkfcArM6msc=;
         h=From:To:Subject:In-Reply-To:From;
-        b=XfIYv4P+0nX4LOvyhbhLkqJwG3QRnag8wiBxSkOCwwoRB7vegP03ChK09ZdjaJu1P
-         D6sFfdIUnNrduSR81AMLjiFvAvjkQpfN9hZPtHBp2MyefxmxuHa/p2lMGEDTTxgRuj
-         L8Sui7+03f9XjGz1Y3F+Zyq8MuiNkIdYlBEX0M60=
+        b=IeVohDOHMMI5SOBmfaJFEgeo6Mjbc7Ldec+eKMQ2h+nkQFlQ/xalBlzSQGMg0FrNT
+         pgjyg2aFrfBXcYlGa8cVfAPVcpgDYdMVIJjy3jIrgFuU7PqfGqX80SxzzOJlfd7HGa
+         VT0Mh+WxltUMFABRJ9ZpTFWn+5awVdUFSeTYE6sM=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+To:     akpm@linux-foundation.org, corbet@lwn.net, jglisse@redhat.com,
+        jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 050/200] mm/swapfile.c: remove unnecessary out
- label in __swap_duplicate()
-Message-ID: <20201215030604.qIS1-P8T6%akpm@linux-foundation.org>
+Subject:  [patch 038/200] selftests/vm: run_vmtests.sh: update and
+ clean up gup_test invocation
+Message-ID: <20201215030524.M2pokA2QB%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile.c: remove unnecessary out label in __swap_duplicate()
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: run_vmtests.sh: update and clean up gup_test invocat=
+ion
 
-When the code went to the out label, it must have p == NULL.  So what out
-label really does is redundant if check and return err.  We should Remove
-this unnecessary out label because it does not handle resource free and so
-on.
+Run benchmarks on the _fast variants of gup and pup, as originally
+intended.
 
-Link: https://lkml.kernel.org/r/20201009130337.29698-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Run the new gup_test sub-test: dump pages.  In addition to exercising the
+dump_page() call, it also demonstrates the various options you can use to
+specify which pages to dump, and how.
+
+Link: https://lkml.kernel.org/r/20201026064021.3545418-8-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/run_vmtests |   28 ++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-remove-unnecessary-out-label-in-__swap_duplicate
-+++ a/mm/swapfile.c
-@@ -3445,11 +3445,11 @@ static int __swap_duplicate(swp_entry_t
- 	unsigned long offset;
- 	unsigned char count;
- 	unsigned char has_cache;
--	int err = -EINVAL;
-+	int err;
- 
- 	p = get_swap_device(entry);
- 	if (!p)
--		goto out;
-+		return -EINVAL;
- 
- 	offset = swp_offset(entry);
- 	ci = lock_cluster_or_swap_info(p, offset);
-@@ -3496,7 +3496,6 @@ static int __swap_duplicate(swp_entry_t
- 
- unlock_out:
- 	unlock_cluster_or_swap_info(p, ci);
--out:
- 	if (p)
- 		put_swap_device(p);
- 	return err;
+--- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-run_vmtestssh-upd=
+ate-and-clean-up-gup_test-invocation
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -123,10 +123,10 @@ else
+ 	echo "[PASS]"
+ fi
+=20
+-echo "--------------------------------------------"
+-echo "running 'gup_test -U' (normal/slow gup)"
+-echo "--------------------------------------------"
+-./gup_test -U
++echo "------------------------------------------------------"
++echo "running: gup_test -u # get_user_pages_fast() benchmark"
++echo "------------------------------------------------------"
++./gup_test -u
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=3D1
+@@ -134,10 +134,22 @@ else
+ 	echo "[PASS]"
+ fi
+=20
+-echo "------------------------------------------"
+-echo "running gup_test -b (pin_user_pages)"
+-echo "------------------------------------------"
+-./gup_test -b
++echo "------------------------------------------------------"
++echo "running: gup_test -a # pin_user_pages_fast() benchmark"
++echo "------------------------------------------------------"
++./gup_test -a
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=3D1
++else
++	echo "[PASS]"
++fi
++
++echo "------------------------------------------------------------"
++echo "# Dump pages 0, 19, and 4096, using pin_user_pages:"
++echo "running: gup_test -ct -F 0x1 0 19 0x1000 # dump_page() test"
++echo "------------------------------------------------------------"
++./gup_test -ct -F 0x1 0 19 0x1000
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=3D1
 _
