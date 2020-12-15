@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3BD0C47436
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED34C35270
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B747722D57
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 386FA22D0A
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726614AbgLOX7c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
+        id S1726488AbgLOX7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729075AbgLOXZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:06 -0500
-Date:   Tue, 15 Dec 2020 15:22:41 -0800
+        id S1728261AbgLOXXc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:23:32 -0500
+Date:   Tue, 15 Dec 2020 15:21:55 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074561;
-        bh=5WWpBsw5jGUrUPE+RN887T7Blx3tmvdaHm5Yyl3hAGs=;
+        s=korg; t=1608074515;
+        bh=RSfdSNjSc3zseXUhSGfSGHrY4Guf9k+biIy63U3ZD4s=;
         h=From:To:Subject:From;
-        b=w/mfMnNNc+ICOLRDpM8gkIY0Vkfx5LOZJBE0aRUCuQ2n36V3xQRqmO99zsWtQnESS
-         lBSEmdui6QiA1+5b31kqe/G+Mmly9H62xAv7oIL4rg4JKftn7rTahM4MYMUftqp1Cb
-         OA8TxGHhr4I+ZSP+ZVGBRuPxGiKJH+0V1+9Vk5+M=
+        b=BDZx/mN8jtioXOMCSimp4/bLMA2tBmhIK8aqUj4YPLNFRVW/1rJRldDIwIdkR5XbH
+         z4ytkAofU0XXFbCZpmJ1ca6XZxmNkbJi2vH97XapC1olC1kuaCLx0yec6hM7vpSANI
+         rSzPqtteuxcH8RmwxQIena3Y3xj9r2Qhm5E9l19o=
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, dan.carpenter@oracle.com, david@redhat.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        rientjes@google.com
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
+        william.kucharski@oracle.com, willy@infradead.org
 Subject:  [merged]
- hugetlb-fix-an-error-code-in-hugetlb_reserve_pages.patch removed from -mm
- tree
-Message-ID: <20201215232241.iHtYIIATq%akpm@linux-foundation.org>
+ mm-page_alloc-add-__free_pages-documentation.patch removed from -mm tree
+Message-ID: <20201215232155.Yn25RUFpZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,43 +41,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix an error code in hugetlb_reserve_pages()
+     Subject: mm/page_alloc: add __free_pages() documentation
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-an-error-code-in-hugetlb_reserve_pages.patch
+     mm-page_alloc-add-__free_pages-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: hugetlb: fix an error code in hugetlb_reserve_pages()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/page_alloc: add __free_pages() documentation
 
-Preserve the error code from region_add() instead of returning success.
+Provide some guidance towards when this might not be the right interface
+to use.
 
-Link: https://lkml.kernel.org/r/X9NGZWnZl5/Mt99R@mwanda
-Fixes: 0db9d74ed884 ("hugetlb: disable region_add file_region coalescing")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: https://lkml.kernel.org/r/20201027025523.3235-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-fix-an-error-code-in-hugetlb_reserve_pages
-+++ a/mm/hugetlb.c
-@@ -5113,6 +5113,7 @@ int hugetlb_reserve_pages(struct inode *
+--- a/mm/page_alloc.c~mm-page_alloc-add-__free_pages-documentation
++++ a/mm/page_alloc.c
+@@ -5043,6 +5043,26 @@ static inline void free_the_page(struct
+ 		__free_pages_ok(page, order, FPI_NONE);
+ }
  
- 		if (unlikely(add < 0)) {
- 			hugetlb_acct_memory(h, -gbl_reserve);
-+			ret = add;
- 			goto out_put_pages;
- 		} else if (unlikely(chg > add)) {
- 			/*
++/**
++ * __free_pages - Free pages allocated with alloc_pages().
++ * @page: The page pointer returned from alloc_pages().
++ * @order: The order of the allocation.
++ *
++ * This function can free multi-page allocations that are not compound
++ * pages.  It does not check that the @order passed in matches that of
++ * the allocation, so it is easy to leak memory.  Freeing more memory
++ * than was allocated will probably emit a warning.
++ *
++ * If the last reference to this page is speculative, it will be released
++ * by put_page() which only frees the first page of a non-compound
++ * allocation.  To prevent the remaining pages from being leaked, we free
++ * the subsequent pages here.  If you want to use the page's reference
++ * count to decide when to free the allocation, you should allocate a
++ * compound page, and use put_page() instead of __free_pages().
++ *
++ * Context: May be called in interrupt context or while holding a normal
++ * spinlock, but not in NMI context or while holding a raw spinlock.
++ */
+ void __free_pages(struct page *page, unsigned int order)
+ {
+ 	if (put_page_testzero(page))
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+mm-swap-optimise-get_shadow_from_swap_cache.patch
+mm-add-fgp_entry.patch
+mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+mm-filemap-add-helper-for-finding-pages.patch
+mm-filemap-add-helper-for-finding-pages-fix.patch
+mm-filemap-add-mapping_seek_hole_data.patch
+mm-filemap-add-mapping_seek_hole_data-fix.patch
+iomap-use-mapping_seek_hole_data.patch
+mm-add-and-use-find_lock_entries.patch
+mm-add-and-use-find_lock_entries-fix.patch
+mm-add-an-end-parameter-to-find_get_entries.patch
+mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+mm-pass-pvec-directly-to-find_get_entries.patch
+mm-remove-pagevec_lookup_entries.patch
 
