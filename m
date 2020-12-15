@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C78BEC352A6
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0000AC47438
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FC0E22CF7
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C86FE22D07
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726105AbgLOX7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59712 "EHLO mail.kernel.org"
+        id S1726214AbgLOX7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727042AbgLOXWE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:04 -0500
-Date:   Tue, 15 Dec 2020 15:20:05 -0800
+        id S1727788AbgLOXW2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:28 -0500
+Date:   Tue, 15 Dec 2020 15:20:35 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074406;
-        bh=lQYg/G6IjM++bmJq2xwJY8aov5LnNdLF6ED6ZfUAqfk=;
+        s=korg; t=1608074436;
+        bh=y91zBY4i48SJ38wjvILRk5T3ymlX70Ss/tzKHqTpm8c=;
         h=From:To:Subject:From;
-        b=qp0O3Zy0diit0awmGtHp4wcYZfhaQsWEQZW5HyMEUKA0/JE8HjvgYfpkt6T5a3kPf
-         kwwdesokpmNrr579T7JYXQLm5k4HXPJojXrxUAfrCJkvhyHzN3Lt3VdNDpgsmIRR8i
-         U5HWPfBS8tHsGZaAac8kEpZ7I6lUQof30b0rwi/E=
+        b=OmRAnrfuUCIgzPeZHCVXgWi5amJSKO/KOq4tnTxx7xys5N55kV7Hat92lQv8e5Gn/
+         IOHNmpe3Yp97fgxv3/eRajpjWEn038wkybzuGuNk5/Gg9WDu24DVwof6C6C+HkUNV3
+         bFgJyNoanvWu+1tAFdovsZB8mRd4LahtwT645J8I=
 From:   akpm@linux-foundation.org
-To:     hdanton@sina.com, huang.ying.caritas@gmail.com, mhocko@suse.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        urezki@gmail.com, willy@infradead.org
-Subject:  [merged] mm-vmalloc-rework-the-drain-logic.patch removed
- from -mm tree
-Message-ID: <20201215232005.v5x0VSBkG%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
+        geert@linux-m68k.org, gerg@linux-m68k.org,
+        glaubitz@physik.fu-berlin.de, linux@armlinux.org.uk,
+        mattst88@gmail.com, mm-commits@vger.kernel.org, mroos@linux.ee,
+        rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
+        vgupta@synopsys.com, will@kernel.org
+Subject:  [merged]
+ alpha-switch-from-discontigmem-to-sparsemem.patch removed from -mm tree
+Message-ID: <20201215232035.5UcIR7eNv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,311 +45,251 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: rework the drain logic
+     Subject: alpha: switch from DISCONTIGMEM to SPARSEMEM
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-rework-the-drain-logic.patch
+     alpha-switch-from-discontigmem-to-sparsemem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: rework the drain logic
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: alpha: switch from DISCONTIGMEM to SPARSEMEM
 
-A current "lazy drain" model suffers from at least two issues.
+Patch series "arch, mm: deprecate DISCONTIGMEM", v2.
 
-First one is related to the unsorted list of vmap areas, thus in order to
-identify the [min:max] range of areas to be drained, it requires a full
-list scan.  What is a time consuming if the list is too long.
+It's been a while since DISCONTIGMEM is generally considered deprecated,
+but it is still used by four architectures.  This set replaces
+DISCONTIGMEM with a different way to handle holes in the memory map and
+marks DISCONTIGMEM configuration as BROKEN in Kconfigs of these
+architectures with the intention to completely remove it in several
+releases.
 
-Second one and as a next step is about merging all fragments with a free
-space.  What is also a time consuming because it has to iterate over
-entire list which holds outstanding lazy areas.
+While for 64-bit alpha and ia64 the switch to SPARSEMEM is quite obvious
+and was a matter of moving some bits around, for smaller 32-bit arc and
+m68k SPARSEMEM is not necessarily the best thing to do.
 
-See below the "preemptirqsoff" tracer that illustrates a high latency.  It
-is ~24676us.  Our workloads like audio and video are effected by such long
-latency:
+On 32-bit machines SPARSEMEM would require large sections to make section
+index fit in the page flags, but larger sections mean that more memory is
+wasted for unused memory map.
 
-<snip>
-  tracer: preemptirqsoff
+Besides, pfn_to_page() and page_to_pfn() become less efficient, at least
+on arc.
 
-  preemptirqsoff latency trace v1.1.5 on 4.9.186-perf+
-  --------------------------------------------------------------------
-  latency: 24676 us, #4/4, CPU#1 | (M:preempt VP:0, KP:0, SP:0 HP:0 P:8)
-     -----------------
-     | task: crtc_commit:112-261 (uid:0 nice:0 policy:1 rt_prio:16)
-     -----------------
-   => started at: __purge_vmap_area_lazy
-   => ended at:   __purge_vmap_area_lazy
+So I've decided to generalize arm's approach for freeing of unused parts
+of the memory map with FLATMEM and enable it for both arc and m68k.  The
+details are in the description of patches 10 (arc) and 13 (m68k).
 
-                   _------=> CPU#
-                  / _-----=> irqs-off
-                 | / _----=> need-resched
-                 || / _---=> hardirq/softirq
-                 ||| / _--=> preempt-depth
-                 |||| /     delay
-   cmd     pid   ||||| time  |   caller
-      \   /      |||||  \    |   /
-crtc_com-261     1...1    1us*: _raw_spin_lock <-__purge_vmap_area_lazy
-[...]
-crtc_com-261     1...1 24675us : _raw_spin_unlock <-__purge_vmap_area_lazy
-crtc_com-261     1...1 24677us : trace_preempt_on <-__purge_vmap_area_lazy
-crtc_com-261     1...1 24683us : <stack trace>
- => free_vmap_area_noflush
- => remove_vm_area
- => __vunmap
- => vfree
- => drm_property_free_blob
- => drm_mode_object_unreference
- => drm_property_unreference_blob
- => __drm_atomic_helper_crtc_destroy_state
- => sde_crtc_destroy_state
- => drm_atomic_state_default_clear
- => drm_atomic_state_clear
- => drm_atomic_state_free
- => complete_commit
- => _msm_drm_commit_work_cb
- => kthread_worker_fn
- => kthread
- => ret_from_fork
-<snip>
 
-To address those two issues we can redesign a purging of the outstanding
-lazy areas.  Instead of queuing vmap areas to the list, we replace it by
-the separate rb-tree.  In hat case an area is located in the tree/list in
-ascending order.  It will give us below advantages:
+This patch (of 13):
 
-a) Outstanding vmap areas are merged creating bigger coalesced blocks,
-   thus it becomes less fragmented.
+Enable SPARSEMEM support on alpha and deprecate DISCONTIGMEM.
 
-b) It is possible to calculate a flush range [min:max] without scanning
-   all elements.  It is O(1) access time or complexity;
+The required changes are mostly around moving duplicated definitions of
+page access and address conversion macros to a common place and making sure
+they are available for all memory models.
 
-c) The final merge of areas with the rb-tree that represents a free
-   space is faster because of (a).  As a result the lock contention is
-   also reduced.
+The DISCONTINGMEM support is marked as BROKEN an will be removed in a
+couple of releases.
 
-Link: https://lkml.kernel.org/r/20201116220033.1837-2-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: huang ying <huang.ying.caritas@gmail.com>
+Link: https://lkml.kernel.org/r/20201101170454.9567-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Michael Schmitz <schmitzmic@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    8 +--
- mm/vmalloc.c            |   90 +++++++++++++++++++++-----------------
- 2 files changed, 53 insertions(+), 45 deletions(-)
+ arch/alpha/Kconfig                 |    8 ++++++++
+ arch/alpha/include/asm/mmzone.h    |   14 ++------------
+ arch/alpha/include/asm/page.h      |    7 ++++---
+ arch/alpha/include/asm/pgtable.h   |   12 +++++-------
+ arch/alpha/include/asm/sparsemem.h |   18 ++++++++++++++++++
+ arch/alpha/kernel/setup.c          |    1 +
+ 6 files changed, 38 insertions(+), 22 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-rework-the-drain-logic
-+++ a/include/linux/vmalloc.h
-@@ -72,16 +72,14 @@ struct vmap_area {
- 	struct list_head list;          /* address sorted list */
+--- a/arch/alpha/include/asm/mmzone.h~alpha-switch-from-discontigmem-to-sparsemem
++++ a/arch/alpha/include/asm/mmzone.h
+@@ -6,6 +6,8 @@
+ #ifndef _ASM_MMZONE_H_
+ #define _ASM_MMZONE_H_
  
- 	/*
--	 * The following three variables can be packed, because
--	 * a vmap_area object is always one of the three states:
-+	 * The following two variables can be packed, because
-+	 * a vmap_area object can be either:
- 	 *    1) in "free" tree (root is vmap_area_root)
--	 *    2) in "busy" tree (root is free_vmap_area_root)
--	 *    3) in purge list  (head is vmap_purge_list)
-+	 *    2) or "busy" tree (root is free_vmap_area_root)
- 	 */
- 	union {
- 		unsigned long subtree_max_size; /* in "free" tree */
- 		struct vm_struct *vm;           /* in "busy" tree */
--		struct llist_node purge_list;   /* in purge list */
- 	};
- };
- 
---- a/mm/vmalloc.c~mm-vmalloc-rework-the-drain-logic
-+++ a/mm/vmalloc.c
-@@ -413,10 +413,13 @@ static DEFINE_SPINLOCK(vmap_area_lock);
- static DEFINE_SPINLOCK(free_vmap_area_lock);
- /* Export for kexec only */
- LIST_HEAD(vmap_area_list);
--static LLIST_HEAD(vmap_purge_list);
- static struct rb_root vmap_area_root = RB_ROOT;
- static bool vmap_initialized __read_mostly;
- 
-+static struct rb_root purge_vmap_area_root = RB_ROOT;
-+static LIST_HEAD(purge_vmap_area_list);
-+static DEFINE_SPINLOCK(purge_vmap_area_lock);
++#ifdef CONFIG_DISCONTIGMEM
 +
+ #include <asm/smp.h>
+ 
  /*
-  * This kmem_cache is used for vmap_area objects. Instead of
-  * allocating from slab we reuse an object from this cache to
-@@ -820,10 +823,17 @@ insert:
- 	if (!merged)
- 		link_va(va, root, parent, link, head);
- 
--	/*
--	 * Last step is to check and update the tree.
--	 */
--	augment_tree_propagate_from(va);
-+	return va;
-+}
-+
-+static __always_inline struct vmap_area *
-+merge_or_add_vmap_area_augment(struct vmap_area *va,
-+	struct rb_root *root, struct list_head *head)
-+{
-+	va = merge_or_add_vmap_area(va, root, head);
-+	if (va)
-+		augment_tree_propagate_from(va);
-+
- 	return va;
+@@ -45,8 +47,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
  }
+ #endif
  
-@@ -1138,7 +1148,7 @@ static void free_vmap_area(struct vmap_a
- 	 * Insert/Merge it back to the free tree/list.
- 	 */
- 	spin_lock(&free_vmap_area_lock);
--	merge_or_add_vmap_area(va, &free_vmap_area_root, &free_vmap_area_list);
-+	merge_or_add_vmap_area_augment(va, &free_vmap_area_root, &free_vmap_area_list);
- 	spin_unlock(&free_vmap_area_lock);
- }
- 
-@@ -1326,32 +1336,32 @@ void set_iounmap_nonlazy(void)
- static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
- {
- 	unsigned long resched_threshold;
--	struct llist_node *valist;
--	struct vmap_area *va;
--	struct vmap_area *n_va;
-+	struct list_head local_pure_list;
-+	struct vmap_area *va, *n_va;
- 
- 	lockdep_assert_held(&vmap_purge_lock);
- 
--	valist = llist_del_all(&vmap_purge_list);
--	if (unlikely(valist == NULL))
-+	spin_lock(&purge_vmap_area_lock);
-+	purge_vmap_area_root = RB_ROOT;
-+	list_replace_init(&purge_vmap_area_list, &local_pure_list);
-+	spin_unlock(&purge_vmap_area_lock);
-+
-+	if (unlikely(list_empty(&local_pure_list)))
- 		return false;
- 
--	/*
--	 * TODO: to calculate a flush range without looping.
--	 * The list can be up to lazy_max_pages() elements.
--	 */
--	llist_for_each_entry(va, valist, purge_list) {
--		if (va->va_start < start)
--			start = va->va_start;
--		if (va->va_end > end)
--			end = va->va_end;
--	}
-+	start = min(start,
-+		list_first_entry(&local_pure_list,
-+			struct vmap_area, list)->va_start);
-+
-+	end = max(end,
-+		list_last_entry(&local_pure_list,
-+			struct vmap_area, list)->va_end);
- 
- 	flush_tlb_kernel_range(start, end);
- 	resched_threshold = lazy_max_pages() << 1;
- 
- 	spin_lock(&free_vmap_area_lock);
--	llist_for_each_entry_safe(va, n_va, valist, purge_list) {
-+	list_for_each_entry_safe(va, n_va, &local_pure_list, list) {
- 		unsigned long nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
- 		unsigned long orig_start = va->va_start;
- 		unsigned long orig_end = va->va_end;
-@@ -1361,8 +1371,8 @@ static bool __purge_vmap_area_lazy(unsig
- 		 * detached and there is no need to "unlink" it from
- 		 * anything.
- 		 */
--		va = merge_or_add_vmap_area(va, &free_vmap_area_root,
--					    &free_vmap_area_list);
-+		va = merge_or_add_vmap_area_augment(va, &free_vmap_area_root,
-+				&free_vmap_area_list);
- 
- 		if (!va)
- 			continue;
-@@ -1419,9 +1429,15 @@ static void free_vmap_area_noflush(struc
- 	nr_lazy = atomic_long_add_return((va->va_end - va->va_start) >>
- 				PAGE_SHIFT, &vmap_lazy_nr);
- 
--	/* After this point, we may free va at any time */
--	llist_add(&va->purge_list, &vmap_purge_list);
-+	/*
-+	 * Merge or place it to the purge tree/list.
-+	 */
-+	spin_lock(&purge_vmap_area_lock);
-+	merge_or_add_vmap_area(va,
-+		&purge_vmap_area_root, &purge_vmap_area_list);
-+	spin_unlock(&purge_vmap_area_lock);
- 
-+	/* After this point, we may free va at any time */
- 	if (unlikely(nr_lazy > lazy_max_pages()))
- 		try_purge_vmap_area_lazy();
- }
-@@ -3351,8 +3367,8 @@ recovery:
- 	while (area--) {
- 		orig_start = vas[area]->va_start;
- 		orig_end = vas[area]->va_end;
--		va = merge_or_add_vmap_area(vas[area], &free_vmap_area_root,
--					    &free_vmap_area_list);
-+		va = merge_or_add_vmap_area_augment(vas[area], &free_vmap_area_root,
-+				&free_vmap_area_list);
- 		if (va)
- 			kasan_release_vmalloc(orig_start, orig_end,
- 				va->va_start, va->va_end);
-@@ -3401,8 +3417,8 @@ err_free_shadow:
- 	for (area = 0; area < nr_vms; area++) {
- 		orig_start = vas[area]->va_start;
- 		orig_end = vas[area]->va_end;
--		va = merge_or_add_vmap_area(vas[area], &free_vmap_area_root,
--					    &free_vmap_area_list);
-+		va = merge_or_add_vmap_area_augment(vas[area], &free_vmap_area_root,
-+				&free_vmap_area_list);
- 		if (va)
- 			kasan_release_vmalloc(orig_start, orig_end,
- 				va->va_start, va->va_end);
-@@ -3482,18 +3498,15 @@ static void show_numa_info(struct seq_fi
- 
- static void show_purge_info(struct seq_file *m)
- {
--	struct llist_node *head;
- 	struct vmap_area *va;
- 
--	head = READ_ONCE(vmap_purge_list.first);
--	if (head == NULL)
--		return;
+-#ifdef CONFIG_DISCONTIGMEM
 -
--	llist_for_each_entry(va, head, purge_list) {
-+	spin_lock(&purge_vmap_area_lock);
-+	list_for_each_entry(va, &purge_vmap_area_list, list) {
- 		seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
- 			(void *)va->va_start, (void *)va->va_end,
- 			va->va_end - va->va_start);
- 	}
-+	spin_unlock(&purge_vmap_area_lock);
+ /*
+  * Following are macros that each numa implementation must define.
+  */
+@@ -68,11 +68,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
+ /* XXX: FIXME -- nyc */
+ #define kern_addr_valid(kaddr)	(0)
+ 
+-#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+-
+-#define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> 32))
+-#define pte_pfn(pte)		(pte_val(pte) >> 32)
+-
+ #define mk_pte(page, pgprot)						     \
+ ({								 	     \
+ 	pte_t pte;                                                           \
+@@ -95,16 +90,11 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
+ 	__xx;                                                           \
+ })
+ 
+-#define page_to_pa(page)						\
+-	(page_to_pfn(page) << PAGE_SHIFT)
+-
+ #define pfn_to_nid(pfn)		pa_to_nid(((u64)(pfn) << PAGE_SHIFT))
+ #define pfn_valid(pfn)							\
+ 	(((pfn) - node_start_pfn(pfn_to_nid(pfn))) <			\
+ 	 node_spanned_pages(pfn_to_nid(pfn)))					\
+ 
+-#define virt_addr_valid(kaddr)	pfn_valid((__pa(kaddr) >> PAGE_SHIFT))
+-
+ #endif /* CONFIG_DISCONTIGMEM */
+ 
+ #endif /* _ASM_MMZONE_H_ */
+--- a/arch/alpha/include/asm/page.h~alpha-switch-from-discontigmem-to-sparsemem
++++ a/arch/alpha/include/asm/page.h
+@@ -83,12 +83,13 @@ typedef struct page *pgtable_t;
+ 
+ #define __pa(x)			((unsigned long) (x) - PAGE_OFFSET)
+ #define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
+-#ifndef CONFIG_DISCONTIGMEM
++
+ #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
++#define virt_addr_valid(kaddr)	pfn_valid((__pa(kaddr) >> PAGE_SHIFT))
+ 
++#ifdef CONFIG_FLATMEM
+ #define pfn_valid(pfn)		((pfn) < max_mapnr)
+-#define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+-#endif /* CONFIG_DISCONTIGMEM */
++#endif /* CONFIG_FLATMEM */
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+--- a/arch/alpha/include/asm/pgtable.h~alpha-switch-from-discontigmem-to-sparsemem
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -203,10 +203,10 @@ extern unsigned long __zero_page(void);
+  * Conversion functions:  convert a page and protection to a page entry,
+  * and a page entry and page directory to the page they refer to.
+  */
+-#ifndef CONFIG_DISCONTIGMEM
+-#define page_to_pa(page)	(((page) - mem_map) << PAGE_SHIFT)
+-
++#define page_to_pa(page)	(page_to_pfn(page) << PAGE_SHIFT)
+ #define pte_pfn(pte)	(pte_val(pte) >> 32)
++
++#ifndef CONFIG_DISCONTIGMEM
+ #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
+ #define mk_pte(page, pgprot)						\
+ ({									\
+@@ -236,10 +236,8 @@ pmd_page_vaddr(pmd_t pmd)
+ 	return ((pmd_val(pmd) & _PFN_MASK) >> (32-PAGE_SHIFT)) + PAGE_OFFSET;
  }
  
- static int s_show(struct seq_file *m, void *p)
-@@ -3551,10 +3564,7 @@ static int s_show(struct seq_file *m, vo
- 	seq_putc(m, '\n');
+-#ifndef CONFIG_DISCONTIGMEM
+-#define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) & _PFN_MASK) >> 32))
+-#define pud_page(pud)	(mem_map + ((pud_val(pud) & _PFN_MASK) >> 32))
+-#endif
++#define pmd_page(pmd)	(pfn_to_page(pmd_val(pmd) >> 32))
++#define pud_page(pud)	(pfn_to_page(pud_val(pud) >> 32))
  
- 	/*
--	 * As a final step, dump "unpurged" areas. Note,
--	 * that entire "/proc/vmallocinfo" output will not
--	 * be address sorted, because the purge list is not
--	 * sorted.
-+	 * As a final step, dump "unpurged" areas.
- 	 */
- 	if (list_is_last(&va->list, &vmap_area_list))
- 		show_purge_info(m);
+ extern inline unsigned long pud_page_vaddr(pud_t pgd)
+ { return PAGE_OFFSET + ((pud_val(pgd) & _PFN_MASK) >> (32-PAGE_SHIFT)); }
+--- /dev/null
++++ a/arch/alpha/include/asm/sparsemem.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_ALPHA_SPARSEMEM_H
++#define _ASM_ALPHA_SPARSEMEM_H
++
++#ifdef CONFIG_SPARSEMEM
++
++#define SECTION_SIZE_BITS	27
++
++/*
++ * According to "Alpha Architecture Reference Manual" physical
++ * addresses are at most 48 bits.
++ * https://download.majix.org/dec/alpha_arch_ref.pdf
++ */
++#define MAX_PHYSMEM_BITS	48
++
++#endif /* CONFIG_SPARSEMEM */
++
++#endif /* _ASM_ALPHA_SPARSEMEM_H */
+--- a/arch/alpha/Kconfig~alpha-switch-from-discontigmem-to-sparsemem
++++ a/arch/alpha/Kconfig
+@@ -40,6 +40,7 @@ config ALPHA
+ 	select CPU_NO_EFFICIENT_FFS if !ALPHA_EV67
+ 	select MMU_GATHER_NO_RANGE
+ 	select SET_FS
++	select SPARSEMEM_EXTREME if SPARSEMEM
+ 	help
+ 	  The Alpha is a 64-bit general-purpose processor designed and
+ 	  marketed by the Digital Equipment Corporation of blessed memory,
+@@ -551,12 +552,19 @@ config NR_CPUS
+ 
+ config ARCH_DISCONTIGMEM_ENABLE
+ 	bool "Discontiguous Memory Support"
++	depends on BROKEN
+ 	help
+ 	  Say Y to support efficient handling of discontiguous physical memory,
+ 	  for architectures which are either NUMA (Non-Uniform Memory Access)
+ 	  or have huge holes in the physical address space for other reasons.
+ 	  See <file:Documentation/vm/numa.rst> for more.
+ 
++config ARCH_SPARSEMEM_ENABLE
++	bool "Sparse Memory Support"
++	help
++	  Say Y to support efficient handling of discontiguous physical memory,
++	  for systems that have huge holes in the physical address space.
++
+ config NUMA
+ 	bool "NUMA Support (EXPERIMENTAL)"
+ 	depends on DISCONTIGMEM && BROKEN
+--- a/arch/alpha/kernel/setup.c~alpha-switch-from-discontigmem-to-sparsemem
++++ a/arch/alpha/kernel/setup.c
+@@ -648,6 +648,7 @@ setup_arch(char **cmdline_p)
+ 	/* Find our memory.  */
+ 	setup_memory(kernel_end);
+ 	memblock_set_bottom_up(true);
++	sparse_init();
+ 
+ 	/* First guess at cpu cache sizes.  Do this before init_arch.  */
+ 	determine_cpu_caches(cpu->type);
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
+mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+secretmem-add-memcg-accounting.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
