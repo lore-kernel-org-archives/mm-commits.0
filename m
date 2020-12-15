@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37CA6C4743B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE479C49EBE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1735622D2B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AB4D322D08
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726642AbgLOX7d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59812 "EHLO mail.kernel.org"
+        id S1726773AbgLOX7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729126AbgLOXZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:06 -0500
-Date:   Tue, 15 Dec 2020 15:22:22 -0800
+        id S1729599AbgLOXZk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:40 -0500
+Date:   Tue, 15 Dec 2020 15:23:19 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074542;
-        bh=kPoAMC9AEnSNbVotjpvNPbxkamVLSbx00I1tvDrSQjY=;
+        s=korg; t=1608074599;
+        bh=WsKVsdtZMvNOy4GoT9Fcpy2Z74hT3br1DecZiHUp33Q=;
         h=From:To:Subject:From;
-        b=V7JkAO6A2XgoPZv56iA9EACh1c9JiNcnCUnLo2rwYo68SfZJmXHf0zsx2fnxnvK6z
-         rjLJu0r6MQsbCgr2VDAUXS/w6QYD94XlPi/ZFSSAZywWdfubwG35GF4nwJiZ8DsUIk
-         10cNJICkcJJmR5ej01Q+F6LNZbX3tAjxofY3ftJg=
+        b=KiVmKofsVO8oVBQMzuxCbQCNMeICXtQLhRXZrQFCWCXnsRNDCbOM6ZLNiK393Wd8W
+         zajRN3nqKb3EU+Ugaiz0vwkcm6p+8X1wmKEUcQy6rB1g/wj79yihT4xE/lD7Al7M+5
+         UOW9DDXWN7hZpBcBwSmdZnaE503yC12tzNgPWdfs=
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, vbabka@suse.cz
-Subject:  [merged]
- mmmemory_failure-always-pin-the-page-in-madvise_inject_error.patch removed
- from -mm tree
-Message-ID: <20201215232222.L3RWyc7SL%akpm@linux-foundation.org>
+To:     jack@suse.cz, mgorman@suse.de, mhocko@suse.com,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        shy828301@gmail.com, songliubraving@fb.com, willy@infradead.org,
+        ziy@nvidia.com
+Subject:  [merged] mm-support-thps-in-zero_user_segments.patch
+ removed from -mm tree
+Message-ID: <20201215232319._SwXpiCxJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,96 +43,158 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,memory_failure: always pin the page in madvise_inject_error
+     Subject: mm: support THPs in zero_user_segments
 has been removed from the -mm tree.  Its filename was
-     mmmemory_failure-always-pin-the-page-in-madvise_inject_error.patch
+     mm-support-thps-in-zero_user_segments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,memory_failure: always pin the page in madvise_inject_error
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: support THPs in zero_user_segments
 
-madvise_inject_error() uses get_user_pages_fast to translate the address
-we specified to a page.  After [1], we drop the extra reference count for
-memory_failure() path.  That commit says that memory_failure wanted to
-keep the pin in order to take the page out of circulation.
+We can only kmap() one subpage of a THP at a time, so loop over all
+relevant subpages, skipping ones which don't need to be zeroed.  This is
+too large to inline when THPs are enabled and we actually need highmem, so
+put it in highmem.c.
 
-The truth is that we need to keep the page pinned, otherwise the page
-might be re-used after the put_page() and we can end up messing with
-someone else's memory.
-
-E.g:
-
-CPU0
-process X					CPU1
- madvise_inject_error
-  get_user_pages
-   put_page
-					page gets reclaimed
-					process Y allocates the page
-  memory_failure
-   // We mess with process Y memory
-
-madvise() is meant to operate on a self address space, so messing with
-pages that do not belong to us seems the wrong thing to do.
-To avoid that, let us keep the page pinned for memory_failure as well.
-
-Pages for DAX mappings will release this extra refcount in
-memory_failure_dev_pagemap.
-
-[1] ("23e7b5c2e271: mm, madvise_inject_error:
-      Let memory_failure() optionally take a page reference")
-
-Link: https://lkml.kernel.org/r/20201207094818.8518-1-osalvador@suse.de
-Fixes: 23e7b5c2e271 ("mm, madvise_inject_error: Let memory_failure() optionally take a page reference")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>
+[willy@infradead.org: start1 was allowed to be less than start2]
+Link: https://lkml.kernel.org/r/20201124041507.28996-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c        |    9 +--------
- mm/memory-failure.c |    6 ++++++
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ include/linux/highmem.h |   19 ++++++++++---
+ mm/highmem.c            |   52 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+), 4 deletions(-)
 
---- a/mm/madvise.c~mmmemory_failure-always-pin-the-page-in-madvise_inject_error
-+++ a/mm/madvise.c
-@@ -907,14 +907,7 @@ static int madvise_inject_error(int beha
- 		} else {
- 			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
- 				 pfn, start);
--			/*
--			 * Drop the page reference taken by get_user_pages_fast(). In
--			 * the absence of MF_COUNT_INCREASED the memory_failure()
--			 * routine is responsible for pinning the page to prevent it
--			 * from being released back to the page allocator.
--			 */
--			put_page(page);
--			ret = memory_failure(pfn, 0);
-+			ret = memory_failure(pfn, MF_COUNT_INCREASED);
- 		}
+--- a/include/linux/highmem.h~mm-support-thps-in-zero_user_segments
++++ a/include/linux/highmem.h
+@@ -204,13 +204,22 @@ static inline void clear_highpage(struct
+ 	kunmap_atomic(kaddr);
+ }
  
- 		if (ret)
---- a/mm/memory-failure.c~mmmemory_failure-always-pin-the-page-in-madvise_inject_error
-+++ a/mm/memory-failure.c
-@@ -1302,6 +1302,12 @@ static int memory_failure_dev_pagemap(un
- 	loff_t start;
- 	dax_entry_t cookie;
++/*
++ * If we pass in a base or tail page, we can zero up to PAGE_SIZE.
++ * If we pass in a head page, we can zero up to the size of the compound page.
++ */
++#if defined(CONFIG_HIGHMEM) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
++void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
++		unsigned start2, unsigned end2);
++#else /* !HIGHMEM || !TRANSPARENT_HUGEPAGE */
+ static inline void zero_user_segments(struct page *page,
+-	unsigned start1, unsigned end1,
+-	unsigned start2, unsigned end2)
++		unsigned start1, unsigned end1,
++		unsigned start2, unsigned end2)
+ {
+ 	void *kaddr = kmap_atomic(page);
++	unsigned int i;
  
-+	if (flags & MF_COUNT_INCREASED)
-+		/*
-+		 * Drop the extra refcount in case we come from madvise().
-+		 */
-+		put_page(page);
+-	BUG_ON(end1 > PAGE_SIZE || end2 > PAGE_SIZE);
++	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
+ 
+ 	if (end1 > start1)
+ 		memset(kaddr + start1, 0, end1 - start1);
+@@ -219,8 +228,10 @@ static inline void zero_user_segments(st
+ 		memset(kaddr + start2, 0, end2 - start2);
+ 
+ 	kunmap_atomic(kaddr);
+-	flush_dcache_page(page);
++	for (i = 0; i < compound_nr(page); i++)
++		flush_dcache_page(page + i);
+ }
++#endif /* !HIGHMEM || !TRANSPARENT_HUGEPAGE */
+ 
+ static inline void zero_user_segment(struct page *page,
+ 	unsigned start, unsigned end)
+--- a/mm/highmem.c~mm-support-thps-in-zero_user_segments
++++ a/mm/highmem.c
+@@ -359,6 +359,58 @@ void kunmap_high(struct page *page)
+ 		wake_up(pkmap_map_wait);
+ }
+ EXPORT_SYMBOL(kunmap_high);
 +
- 	/*
- 	 * Prevent the inode from being freed while we are interrogating
- 	 * the address_space, typically this would be handled by
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
++		unsigned start2, unsigned end2)
++{
++	unsigned int i;
++
++	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
++
++	for (i = 0; i < compound_nr(page); i++) {
++		void *kaddr = NULL;
++
++		if (start1 < PAGE_SIZE || start2 < PAGE_SIZE)
++			kaddr = kmap_atomic(page + i);
++
++		if (start1 >= PAGE_SIZE) {
++			start1 -= PAGE_SIZE;
++			end1 -= PAGE_SIZE;
++		} else {
++			unsigned this_end = min_t(unsigned, end1, PAGE_SIZE);
++
++			if (end1 > start1)
++				memset(kaddr + start1, 0, this_end - start1);
++			end1 -= this_end;
++			start1 = 0;
++		}
++
++		if (start2 >= PAGE_SIZE) {
++			start2 -= PAGE_SIZE;
++			end2 -= PAGE_SIZE;
++		} else {
++			unsigned this_end = min_t(unsigned, end2, PAGE_SIZE);
++
++			if (end2 > start2)
++				memset(kaddr + start2, 0, this_end - start2);
++			end2 -= this_end;
++			start2 = 0;
++		}
++
++		if (kaddr) {
++			kunmap_atomic(kaddr);
++			flush_dcache_page(page + i);
++		}
++
++		if (!end1 && !end2)
++			break;
++	}
++
++	BUG_ON((start1 | start2 | end1 | end2) != 0);
++}
++EXPORT_SYMBOL(zero_user_segments);
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif /* CONFIG_HIGHMEM */
+ 
+ #ifdef CONFIG_KMAP_LOCAL
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+mm-swap-optimise-get_shadow_from_swap_cache.patch
+mm-add-fgp_entry.patch
+mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+mm-filemap-add-helper-for-finding-pages.patch
+mm-filemap-add-helper-for-finding-pages-fix.patch
+mm-filemap-add-mapping_seek_hole_data.patch
+mm-filemap-add-mapping_seek_hole_data-fix.patch
+iomap-use-mapping_seek_hole_data.patch
+mm-add-and-use-find_lock_entries.patch
+mm-add-and-use-find_lock_entries-fix.patch
+mm-add-an-end-parameter-to-find_get_entries.patch
+mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+mm-pass-pvec-directly-to-find_get_entries.patch
+mm-remove-pagevec_lookup_entries.patch
 
