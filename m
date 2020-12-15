@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28C08C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:14:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AED1BC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:15:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4262206E5
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:14:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 821A5206EC
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:15:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726348AbgLOCON (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 21:14:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40434 "EHLO mail.kernel.org"
+        id S1726508AbgLOCPI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 21:15:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40614 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725964AbgLOCOE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 21:14:04 -0500
-Date:   Mon, 14 Dec 2020 18:13:22 -0800
+        id S1726483AbgLOCOj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 21:14:39 -0500
+Date:   Mon, 14 Dec 2020 18:13:57 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607998403;
-        bh=DN/aoPVzgyTVT2ajnRjFuWm+ya44QALuYrMrv3OYx9g=;
+        s=korg; t=1607998438;
+        bh=p7uYnCt3falvBH4UZ/D4dNuUHAh9KhmxHJWTy6f+Gho=;
         h=From:To:Subject:From;
-        b=Z2LXBt9tS7SxjNlZ6rSsqVoTZ25oZy6XkXynHDBmHg2lcD1Gu9JPXae+tXkTrEvVs
-         DLUlnLIm7AJZ5+LKXgZBHKX4STk3Ie5qPKRn5zreFtMHXgwF6LSEQRx1Ia33Mq0eTH
-         xEPOVZA3CsdNG7DaskF5sdx29elfkXh5tIigi64I=
+        b=pkhKgsfxV3C00aHeDLx29trCuSPrvy8hFSu0ULUB4IV6NRIZNqAbalRY1GAVEn43/
+         WmAZcMMzSREFbG55bA8UO3XYndwHDR7on/BrATyTv+E88NgozWoL/SaXx4s0WOaAak
+         wuz5fx4EtHaC+yyp6hYcucewNwUOFB++5slLm3xw=
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, john.garry@huawei.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
-        rdunlap@infradead.org, song.bao.hua@hisilicon.com
+To:     akpm@linux-foundation.org, jgg@nvidia.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-gup_benchmark-gup_benchmark-depends-on-debug_fs-v2.patch removed from
- -mm tree
-Message-ID: <20201215021322.vc3QZUmvF%akpm@linux-foundation.org>
+ mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+ removed from -mm tree
+Message-ID: <20201215021357.ZSfUt84pZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,47 +42,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup_benchmark-gup_benchmark-depends-on-debug_fs-v2
+     Subject: mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-gup_benchmark-gup_benchmark-depends-on-debug_fs-v2.patch
+     mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-gup_benchmark-gup_benchmark-depends-on-debug_fs.patch
+This patch was dropped because it was folded into mm-prevent-gup_fast-from-racing-with-cow-during-fork.patch
 
 ------------------------------------------------------
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm-gup_benchmark-gup_benchmark-depends-on-debug_fs-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes
 
-add comment as a prompt to users as commented by John and Randy
+WARNING: Unknown commit id '70e806e4e645', maybe rebased or not pulled?
+#4: 
+Since commit 70e806e4e645 ("mm: Do early cow for pinned pages during
 
-Link: https://lkml.kernel.org/r/20201108083732.15336-1-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Suggested-by: John Garry <john.garry@huawei.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+WARNING: Unknown commit id 'f3c64eda3e50', maybe rebased or not pulled?
+#34: 
+problems (and was missing a barrrier), see commit f3c64eda3e50 ("mm: avoid
+
+WARNING: Unknown commit id 'f3c64eda3e50', maybe rebased or not pulled?
+#46: 
+Fixes: f3c64eda3e50 ("mm: avoid early COW write protect games during fork()")
+
+WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+#136: FILE: mm/gup.c:2687:
++	unsigned seq;
+
+WARNING: Block comments should align the * on each line
+#191: FILE: mm/memory.c:1180:
++		 * lockdep complaining about preemptibility.
++		*/
+
+total: 0 errors, 5 warnings, 109 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-prevent-gup_fast-from-racing-with-cow-during-fork.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-gup_benchmark-gup_benchmark-depends-on-debug_fs-v2
-+++ a/mm/Kconfig
-@@ -841,6 +841,9 @@ config GUP_TEST
- 
- 	  See tools/testing/selftests/vm/gup_test.c
- 
-+comment "GUP_TEST needs to have DEBUG_FS enabled"
-+	depends on !GUP_TEST && !DEBUG_FS
-+
- config GUP_GET_PTE_LOW_HIGH
- 	bool
- 
+--- a/mm/memory.c~mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes
++++ a/mm/memory.c
+@@ -1177,7 +1177,7 @@ copy_page_range(struct vm_area_struct *d
+ 		 *
+ 		 * Use the raw variant of the seqcount_t write API to avoid
+ 		 * lockdep complaining about preemptibility.
+-		*/
++		 */
+ 		mmap_assert_write_locked(src_mm);
+ 		raw_write_seqcount_begin(&src_mm->write_protect_seq);
+ 	}
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-gup_benchmark-mark-gup_benchmark_init-as-__init-function.patch
-mm-gup_benchmark-gup_benchmark-depends-on-debug_fs.patch
-mm-zswap-move-to-use-crypto_acomp-api-for-hardware-acceleration.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-memcontrol-account-pagetables-per-node-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+mm.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+epoll-wire-up-syscall-epoll_pwait2-fix.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
