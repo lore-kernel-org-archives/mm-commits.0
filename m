@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A26FBC47434
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA942C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A26822CAE
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9286022CF7
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727046AbgLPAAQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
+        id S1727062AbgLPAAT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730091AbgLOX1Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:16 -0500
-Date:   Tue, 15 Dec 2020 15:17:12 -0800
+        id S1726894AbgLOX1U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:20 -0500
+Date:   Tue, 15 Dec 2020 15:16:43 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074232;
-        bh=RKr8UW+zsAXSeQlgZowi6JCJHHuqpdmop0QBU6308Yw=;
+        s=korg; t=1608074203;
+        bh=X34yWWkGtQYc+OrswQhSlo8wMs6nYAQS1keHQezmsn0=;
         h=From:To:Subject:From;
-        b=N7JqMpSKToReXnOhUA1x8rQpCK98mtCdM5BMVnbTGdfKhOkO8qO/K5xWICYnneuvZ
-         gY/GGFi5wSCF7cOe2fK1uED1daF0vsPpSpJa9KAQpSMrsvK2LJqqkMTN3fYpPKW2j4
-         4vn7eUk2EV3LpSZANZWjW8mKfXoOFU4zdoKNf8uk=
+        b=rMcYc09XfjoDQe2gMcctGdOjwSSuYI65EF75v1sCx4bgcLYQq1oW6P5XqEt2QWlq6
+         bypZmMDpgoAY7oT0+UdaCAWuxhxVcqLZBCvCiGAvLQ1SXAOlAiZ5OhqawVVzzWHSm1
+         SUqZApQutyMlOMBD2skAyyHCZT3YB094817VvwVU=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
-Subject:  [merged] selftests-vm-use-a-common-gup_testh.patch
- removed from -mm tree
-Message-ID: <20201215231712.I1GXIIKfK%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz,
+        willy@infradead.org
+Subject:  [merged]
+ mm-slab-slub-clear-the-slab_cache-field-when-freeing-page.patch removed
+ from -mm tree
+Message-ID: <20201215231643.0Gvw3lHKl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,159 +43,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: use a common gup_test.h
+     Subject: mm, slab, slub: clear the slab_cache field when freeing page
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-use-a-common-gup_testh.patch
+     mm-slab-slub-clear-the-slab_cache-field-when-freeing-page.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: use a common gup_test.h
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab, slub: clear the slab_cache field when freeing page
 
-Avoid the need to copy-paste the gup_test ioctl commands and the struct
-gup_test definition, between the kernel and the user space application, by
-providing a new header file for these.  This allows easier and safer
-adding of new ioctl calls, as well as reducing the overall line count.
+The page allocator expects that page->mapping is NULL for a page being
+freed.  SLAB and SLUB use the slab_cache field which is in union with
+mapping, but before freeing the page, the field is referenced with the
+"mapping" name when set to NULL.
 
-Details: The header file has to be able to compile independently, because
-of the arguably unfortunate way that the Makefile is written: the Makefile
-tries to build all of its prerequisites, when really it should be only
-building the .c files, and leaving the other prerequisites (LOCAL_HDRS) as
-pure dependencies.
+It's IMHO more correct (albeit functionally the same) to use the
+slab_cache name as that's the field we use in SL*B, and document why we
+clear it in a comment (we don't clear fields such as s_mem or freelist, as
+page allocator doesn't care about those).  While using the 'mapping' name
+would automagically keep the code correct if the unions in struct page
+changed, such changes should be done consciously and needed changes
+evaluated - the comment should help with that.
 
-That Makefile limitation is probably not worth fixing, but it explains why
-one of the includes had to be moved into the new header file.
-
-Also: simplify the ioctl struct (struct gup_test), by deleting the unused
-__expansion[10] field.  This sort of thing is what you might see in a
-stable ABI, but this low-level, kernel-developer-oriented selftests/vm
-system is very much not subject to ABI stability.  So "expansion" and
-"reserved" fields are unnecessary here.
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-3-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20201210160020.21562-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c                         |   17 +----------------
- mm/gup_test.h                         |   22 ++++++++++++++++++++++
- tools/testing/selftests/vm/Makefile   |    2 ++
- tools/testing/selftests/vm/gup_test.c |   22 +---------------------
- 4 files changed, 26 insertions(+), 37 deletions(-)
+ mm/slab.c |    3 ++-
+ mm/slub.c |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-use-a-common-gup_testh
-+++ a/mm/gup_test.c
-@@ -4,22 +4,7 @@
- #include <linux/uaccess.h>
- #include <linux/ktime.h>
- #include <linux/debugfs.h>
+--- a/mm/slab.c~mm-slab-slub-clear-the-slab_cache-field-when-freeing-page
++++ a/mm/slab.c
+@@ -1399,7 +1399,8 @@ static void kmem_freepages(struct kmem_c
+ 	__ClearPageSlabPfmemalloc(page);
+ 	__ClearPageSlab(page);
+ 	page_mapcount_reset(page);
+-	page->mapping = NULL;
++	/* In union with page->mapping where page allocator expects NULL */
++	page->slab_cache = NULL;
+ 
+ 	if (current->reclaim_state)
+ 		current->reclaim_state->reclaimed_slab += 1 << order;
+--- a/mm/slub.c~mm-slab-slub-clear-the-slab_cache-field-when-freeing-page
++++ a/mm/slub.c
+@@ -1836,8 +1836,8 @@ static void __free_slab(struct kmem_cach
+ 
+ 	__ClearPageSlabPfmemalloc(page);
+ 	__ClearPageSlab(page);
 -
--#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
--
--struct gup_test {
--	__u64 get_delta_usec;
--	__u64 put_delta_usec;
--	__u64 addr;
--	__u64 size;
--	__u32 nr_pages_per_call;
--	__u32 flags;
--	__u64 expansion[10];	/* For future use */
--};
-+#include "gup_test.h"
-=20
- static void put_back_pages(unsigned int cmd, struct page **pages,
- 			   unsigned long nr_pages)
---- /dev/null
-+++ a/mm/gup_test.h
-@@ -0,0 +1,22 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef __GUP_TEST_H
-+#define __GUP_TEST_H
-+
-+#include <linux/types.h>
-+
-+#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
-+#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
-+#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
-+
-+struct gup_test {
-+	__u64 get_delta_usec;
-+	__u64 put_delta_usec;
-+	__u64 addr;
-+	__u64 size;
-+	__u32 nr_pages_per_call;
-+	__u32 flags;
-+};
-+
-+#endif	/* __GUP_TEST_H */
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-use-a-common-gup_t=
-esth
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -2,39 +2,19 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <unistd.h>
--
- #include <sys/ioctl.h>
- #include <sys/mman.h>
- #include <sys/prctl.h>
- #include <sys/stat.h>
- #include <sys/types.h>
--
--#include <linux/types.h>
-+#include "../../../../mm/gup_test.h"
-=20
- #define MB (1UL << 20)
- #define PAGE_SIZE sysconf(_SC_PAGESIZE)
-=20
--#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
--
--/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
--
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
-=20
--struct gup_test {
--	__u64 get_delta_usec;
--	__u64 put_delta_usec;
--	__u64 addr;
--	__u64 size;
--	__u32 nr_pages_per_call;
--	__u32 flags;
--	__u64 expansion[10];	/* For future use */
--};
--
- int main(int argc, char **argv)
- {
- 	struct gup_test gup;
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-use-a-common-gup_tes=
-th
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -134,3 +134,5 @@ endif
- $(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
-=20
- $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
-+
-+$(OUTPUT)/gup_test: ../../../../mm/gup_test.h
+-	page->mapping = NULL;
++	/* In union with page->mapping where page allocator expects NULL */
++	page->slab_cache = NULL;
+ 	if (current->reclaim_state)
+ 		current->reclaim_state->reclaimed_slab += pages;
+ 	unaccount_slab_page(page, order, s);
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
