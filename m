@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E17C352A6
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0EA4C49ECA
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 373F122DD6
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C964E22D0A
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726560AbgLOX73 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59810 "EHLO mail.kernel.org"
+        id S1726787AbgLOX7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727366AbgLOXZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:05 -0500
-Date:   Tue, 15 Dec 2020 15:22:13 -0800
+        id S1727849AbgLOXZk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:40 -0500
+Date:   Tue, 15 Dec 2020 15:23:12 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074533;
-        bh=o20Xrheze6rdz6kAXkQDteZfRiKIZnng9EJg2UxaQio=;
+        s=korg; t=1608074592;
+        bh=QFvhi54pZKTV8cCrh/Iog8+Rnrs0HBXJNNIsblryLBE=;
         h=From:To:Subject:From;
-        b=lttv1R3JcH+zV1d/yyV2mBUZhMURAHt+/4BLNn/fsmOea13fRYlUEx2vbktbliB1Z
-         1XeZcAsxlIc79BYiQBcorM+Tt9oh7PIyvY3ZrDAMdiBr5c8l5qK7OTPzc4wuyA/0E/
-         R6ds/bPwBwj1nuXma/a8oWUahExUifa9iBt3GeFE=
+        b=DbdTdHwoC/W1tYhEOoA4GR+BLnqgCFZADsaig2GQgd9zIHyziaTfqOg0O3/ZA8dZZ
+         FdVQE1ijJ2PBkwb5MJl4QMaVQtpEPgpRvhPorEvtV2QNcpbry75qbxGXvcFQQfjvk2
+         klusMISyWN0toH+jg4heCO/6LSJQ5J4dCivXyNgw=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de
+To:     mhocko@suse.com, mm-commits@vger.kernel.org, sh_def@163.com
 Subject:  [merged]
- mmhwpoison-take-free-pages-off-the-buddy-freelists.patch removed from -mm
- tree
-Message-ID: <20201215232213.EU26UoM87%akpm@linux-foundation.org>
+ mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch removed
+ from -mm tree
+Message-ID: <20201215232312.Jl8VTakYs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,201 +41,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: take free pages off the buddy freelists
+     Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
+     mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: take free pages off the buddy freelists
+From: Hui Su <sh_def@163.com>
+Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
 
-The crux of the matter is that historically we left poisoned pages in the
-buddy system because we have some checks in place when allocating a page
-that are gatekeeper for poisoned pages.  Unfortunately, we do have other
-users (e.g: compaction [1]) that scan buddy freelists and try to get a
-page from there without checking whether the page is HWPoison.
+Change the comment of is_dump_unreclaim_slabs(), it just check whether
+nr_unreclaimable slabs amount is greater than user memory, and explain why
+we dump unreclaim slabs.
 
-As I stated already, I think it is fundamentally wrong to keep HWPoison
-pages within the buddy systems, checks in place or not.
+Rename it to should_dump_unreclaim_slab() maybe better.
 
-Let us fix this the same way we did for soft_offline [2], taking the page
-off the buddy freelist so it is completely unreachable.
-
-Note that this is fairly simple to trigger, as we only need to poison free
-buddy pages (madvise MADV_HWPOISON) and then run some sort of memory
-stress system.
-
-Just for a matter of reference, I put a dump_page() in compaction_alloc()
-to trigger for HWPoison patches:
-
-kernel: page:0000000012b2982b refcount:1 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x1d5db
-kernel: flags: 0xfffffc0800000(hwpoison)
-kernel: raw: 000fffffc0800000 ffffea00007573c8 ffffc90000857de0 0000000000000000
-kernel: raw: 0000000000000001 0000000000000000 00000001ffffffff 0000000000000000
-kernel: page dumped because: compaction_alloc
-
-kernel: CPU: 4 PID: 123 Comm: kcompactd0 Tainted: G            E     5.9.0-rc2-mm1-1-default+ #5
-kernel: Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.10.2-0-g5f4c7b1-prebuilt.qemu-project.org 04/01/2014
-kernel: Call Trace:
-kernel:  dump_stack+0x6d/0x8b
-kernel:  compaction_alloc+0xb2/0xc0
-kernel:  migrate_pages+0x2a6/0x12a0
-kernel:  ? isolate_freepages+0xc80/0xc80
-kernel:  ? __ClearPageMovable+0xb0/0xb0
-kernel:  compact_zone+0x5eb/0x11c0
-kernel:  ? finish_task_switch+0x74/0x300
-kernel:  ? lock_timer_base+0xa8/0x170
-kernel:  proactive_compact_node+0x89/0xf0
-kernel:  ? kcompactd+0x2d0/0x3a0
-kernel:  kcompactd+0x2d0/0x3a0
-kernel:  ? finish_wait+0x80/0x80
-kernel:  ? kcompactd_do_work+0x350/0x350
-kernel:  kthread+0x118/0x130
-kernel:  ? kthread_associate_blkcg+0xa0/0xa0
-kernel:  ret_from_fork+0x22/0x30
-
-After that, if e.g: a process faults in the page,  it will get killed
-unexpectedly.
-Fix it by containing the page immediatelly.
-
-Besides that, two more changes can be noticed:
-
-* MF_DELAYED no longer suits as we are fixing the issue by containing
-  the page immediately, so it does no longer rely on the allocation-time
-  checks to stop HWPoison to be handed over.
-  gain unless it is unpoisoned, so we fixed the situation.
-  Because of that, let us use MF_RECOVERED from now on.
-
-* The second block that handles PageBuddy pages is no longer needed:
-  We call shake_page and then check whether the page is Buddy
-  because shake_page calls drain_all_pages, which sends pcp-pages back to
-  the buddy freelists, so we could have a chance to handle free pages.
-  Currently, get_hwpoison_page already calls drain_all_pages, and we call
-  get_hwpoison_page right before coming here, so we should be on the safe
-  side.
-
-[1] https://lore.kernel.org/linux-mm/20190826104144.GA7849@linux/T/#u
-[2] https://patchwork.kernel.org/cover/11792607/
-
-[osalvador@suse.de: take the poisoned subpage off the buddy frelists]
-  Link: https://lkml.kernel.org/r/20201013144447.6706-4-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20201013144447.6706-3-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20201030182704.GA53949@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   46 +++++++++++++++++++++++++++---------------
- 1 file changed, 30 insertions(+), 16 deletions(-)
+ mm/oom_kill.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-take-free-pages-off-the-buddy-freelists
-+++ a/mm/memory-failure.c
-@@ -809,7 +809,7 @@ static int me_swapcache_clean(struct pag
-  */
- static int me_huge_page(struct page *p, unsigned long pfn)
+--- a/mm/oom_kill.c~mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs
++++ a/mm/oom_kill.c
+@@ -170,11 +170,13 @@ static bool oom_unkillable_task(struct t
+ 	return false;
+ }
+ 
+-/*
+- * Print out unreclaimble slabs info when unreclaimable slabs amount is greater
+- * than all user memory (LRU pages)
+- */
+-static bool is_dump_unreclaim_slabs(void)
++/**
++ * Check whether unreclaimable slab amount is greater than
++ * all user memory(LRU pages).
++ * dump_unreclaimable_slab() could help in the case that
++ * oom due to too much unreclaimable slab used by kernel.
++*/
++static bool should_dump_unreclaim_slab(void)
  {
--	int res = 0;
-+	int res;
- 	struct page *hpage = compound_head(p);
- 	struct address_space *mapping;
+ 	unsigned long nr_lru;
  
-@@ -820,6 +820,7 @@ static int me_huge_page(struct page *p,
- 	if (mapping) {
- 		res = truncate_error_page(hpage, pfn, mapping);
- 	} else {
-+		res = MF_FAILED;
- 		unlock_page(hpage);
- 		/*
- 		 * migration entry prevents later access on error anonymous
-@@ -828,8 +829,10 @@ static int me_huge_page(struct page *p,
- 		 */
- 		if (PageAnon(hpage))
- 			put_page(hpage);
--		dissolve_free_huge_page(p);
--		res = MF_RECOVERED;
-+		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
-+			page_ref_inc(p);
-+			res = MF_RECOVERED;
-+		}
- 		lock_page(hpage);
+@@ -463,7 +465,7 @@ static void dump_header(struct oom_contr
+ 		mem_cgroup_print_oom_meminfo(oc->memcg);
+ 	else {
+ 		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
+-		if (is_dump_unreclaim_slabs())
++		if (should_dump_unreclaim_slab())
+ 			dump_unreclaimable_slab();
  	}
- 
-@@ -1196,9 +1199,13 @@ static int memory_failure_hugetlb(unsign
- 			}
- 		}
- 		unlock_page(head);
--		dissolve_free_huge_page(p);
--		action_result(pfn, MF_MSG_FREE_HUGE, MF_DELAYED);
--		return 0;
-+		res = MF_FAILED;
-+		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
-+			page_ref_inc(p);
-+			res = MF_RECOVERED;
-+		}
-+		action_result(pfn, MF_MSG_FREE_HUGE, res);
-+		return res == MF_RECOVERED ? 0 : -EBUSY;
- 	}
- 
- 	lock_page(head);
-@@ -1339,6 +1346,7 @@ int memory_failure(unsigned long pfn, in
- 	struct dev_pagemap *pgmap;
- 	int res;
- 	unsigned long page_flags;
-+	bool retry = true;
- 
- 	if (!sysctl_memory_failure_recovery)
- 		panic("Memory failure on page %lx", pfn);
-@@ -1356,6 +1364,7 @@ int memory_failure(unsigned long pfn, in
- 		return -ENXIO;
- 	}
- 
-+try_again:
- 	if (PageHuge(p))
- 		return memory_failure_hugetlb(pfn, flags);
- 	if (TestSetPageHWPoison(p)) {
-@@ -1380,8 +1389,21 @@ int memory_failure(unsigned long pfn, in
- 	 */
- 	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
- 		if (is_free_buddy_page(p)) {
--			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
--			return 0;
-+			if (take_page_off_buddy(p)) {
-+				page_ref_inc(p);
-+				res = MF_RECOVERED;
-+			} else {
-+				/* We lost the race, try again */
-+				if (retry) {
-+					ClearPageHWPoison(p);
-+					num_poisoned_pages_dec();
-+					retry = false;
-+					goto try_again;
-+				}
-+				res = MF_FAILED;
-+			}
-+			action_result(pfn, MF_MSG_BUDDY, res);
-+			return res == MF_RECOVERED ? 0 : -EBUSY;
- 		} else {
- 			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
- 			return -EBUSY;
-@@ -1405,14 +1427,6 @@ int memory_failure(unsigned long pfn, in
- 	 * walked by the page reclaim code, however that's not a big loss.
- 	 */
- 	shake_page(p, 0);
--	/* shake_page could have turned it free. */
--	if (!PageLRU(p) && is_free_buddy_page(p)) {
--		if (flags & MF_COUNT_INCREASED)
--			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
--		else
--			action_result(pfn, MF_MSG_BUDDY_2ND, MF_DELAYED);
--		return 0;
--	}
- 
- 	lock_page(p);
- 
+ 	if (sysctl_oom_dump_tasks)
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from sh_def@163.com are
 
+fs-proc-make-pde_get-return-nothing.patch
+acctc-use-elif-instead-of-end-and-elif.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
