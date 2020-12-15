@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7EA1C3526A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D06C47438
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6C8322CF7
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3A3D22D2B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726830AbgLOX7q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34566 "EHLO mail.kernel.org"
+        id S1725958AbgLOX77 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728509AbgLOX0F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:05 -0500
-Date:   Tue, 15 Dec 2020 15:23:16 -0800
+        id S1726876AbgLOX0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:26:40 -0500
+Date:   Tue, 15 Dec 2020 15:17:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074596;
-        bh=WBlhxbjdUYSH7VcJ/5BKNyP50swjcB7rnWrYNIPRRsI=;
+        s=korg; t=1608074236;
+        bh=A0zFjqof6IAp58i0O+uOHZaweYYd4dCtM8OQYW2ya9o=;
         h=From:To:Subject:From;
-        b=LkJlyKlZdmMCaHaj33wshCy4CAjdgvD7obO91H579G7GDtBloqFBGI9ZP+gVWxFT6
-         eDhtn/bGQH0c4WQrWJvONcK89X8hsAkiK2Zi6UgIZknjyVhAZVQ5aExd83tNHeK9Ck
-         BXBVsrkB8pShY2EpOCGctOcSAroHkVvhIuhAyaeY=
+        b=Jc9AUTQKmEbUb69uyiYRmVIXk08AMABQ9O0RCuU4XayiaOImegy4M4FjbvLGapQ+S
+         UdrOYaQzHEBacQy5jZKG73DuuQP02HwG7bsBFAscvKsW7KtkyqcvXSgRlafPTw7LLr
+         gZd/QGmN/f3AcYzVmnJ2d79kP5AYJ/r9YVj5BJOc=
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, hch@lst.de, jgg@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com
-Subject:  [merged] mm-optimize-migrate_vma_pages-mmu-notifier.patch
- removed from -mm tree
-Message-ID: <20201215232316.toMSGYugP%akpm@linux-foundation.org>
+To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+Subject:  [merged]
+ selftests-vm-minor-cleanup-makefile-and-gup_testc.patch removed from -mm
+ tree
+Message-ID: <20201215231716.xN8I8KnJ4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,67 +45,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate.c: optimize migrate_vma_pages() mmu notifier
+     Subject: selftests/vm: minor cleanup: Makefile and gup_test.c
 has been removed from the -mm tree.  Its filename was
-     mm-optimize-migrate_vma_pages-mmu-notifier.patch
+     selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate.c: optimize migrate_vma_pages() mmu notifier
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: minor cleanup: Makefile and gup_test.c
 
-When migrating a zero page or pte_none() anonymous page to device private
-memory, migrate_vma_setup() will initialize the src[] array with a NULL
-PFN.  This lets the device driver allocate device private memory and clear
-it instead of DMAing a page of zeros over the device bus.
+A few cleanups that don't deserve separate patches, but that also should
+not clutter up other functional changes:
 
-Since the source page didn't exist at the time, no struct page was locked
-nor a migration PTE inserted into the CPU page tables.  The actual PTE
-insertion happens in migrate_vma_pages() when it tries to insert the
-device private struct page PTE into the CPU page tables. 
-migrate_vma_pages() has to call the mmu notifiers again since another
-device could fault on the same page before the page table locks are
-acquired.
+1. Remove an unnecessary #include <prctl.h>
 
-Allow device drivers to optimize the invalidation similar to
-migrate_vma_setup() by calling mmu_notifier_range_init() which sets struct
-mmu_notifier_range event type to MMU_NOTIFY_MIGRATE and the
-migrate_pgmap_owner field.
+2. Restore the sorted order of TEST_GEN_FILES.
 
-Link: https://lkml.kernel.org/r/20201021191335.10916-1-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
+3. Add -lpthread to the common LDLIBS, as it is harmless and several
+   tests use it. This gets rid of one special rule already.
+
+Link: https://lkml.kernel.org/r/20201026064021.3545418-5-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ tools/testing/selftests/vm/Makefile   |   10 ++++------
+ tools/testing/selftests/vm/gup_test.c |    1 -
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/migrate.c~mm-optimize-migrate_vma_pages-mmu-notifier
-+++ a/mm/migrate.c
-@@ -3001,11 +3001,10 @@ void migrate_vma_pages(struct migrate_vm
- 			if (!notified) {
- 				notified = true;
- 
--				mmu_notifier_range_init(&range,
--							MMU_NOTIFY_CLEAR, 0,
--							NULL,
--							migrate->vma->vm_mm,
--							addr, migrate->end);
-+				mmu_notifier_range_init_migrate(&range, 0,
-+					migrate->vma, migrate->vma->vm_mm,
-+					addr, migrate->end,
-+					migrate->pgmap_owner);
- 				mmu_notifier_invalidate_range_start(&range);
- 			}
- 			migrate_vma_insert_page(migrate, addr, newpage,
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-minor-cleanup-make=
+file-and-gup_testc
++++ a/tools/testing/selftests/vm/gup_test.c
+@@ -4,7 +4,6 @@
+ #include <unistd.h>
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+-#include <sys/prctl.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include "../../../../mm/gup_test.h"
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-minor-cleanup-makefi=
+le-and-gup_testc
++++ a/tools/testing/selftests/vm/Makefile
+@@ -21,14 +21,15 @@ MACHINE ?=3D $(shell echo $(uname_M) | sed
+ MAKEFLAGS +=3D --no-builtin-rules
+=20
+ CFLAGS =3D -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
+-LDLIBS =3D -lrt
++LDLIBS =3D -lrt -lpthread
+ TEST_GEN_FILES =3D compaction_test
+ TEST_GEN_FILES +=3D gup_test
+ TEST_GEN_FILES +=3D hmm-tests
+ TEST_GEN_FILES +=3D hugepage-mmap
+ TEST_GEN_FILES +=3D hugepage-shm
+-TEST_GEN_FILES +=3D map_hugetlb
++TEST_GEN_FILES +=3D khugepaged
+ TEST_GEN_FILES +=3D map_fixed_noreplace
++TEST_GEN_FILES +=3D map_hugetlb
+ TEST_GEN_FILES +=3D map_populate
+ TEST_GEN_FILES +=3D mlock-random-test
+ TEST_GEN_FILES +=3D mlock2-tests
+@@ -37,7 +38,6 @@ TEST_GEN_FILES +=3D on-fault-limit
+ TEST_GEN_FILES +=3D thuge-gen
+ TEST_GEN_FILES +=3D transhuge-stress
+ TEST_GEN_FILES +=3D userfaultfd
+-TEST_GEN_FILES +=3D khugepaged
+=20
+ ifeq ($(ARCH),x86_64)
+ CAN_BUILD_I386 :=3D $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bi=
+t_program.c -m32)
+@@ -80,7 +80,7 @@ TEST_FILES :=3D test_vmalloc.sh
+ KSFT_KHDR_INSTALL :=3D 1
+ include ../lib.mk
+=20
+-$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs -lpthread
++$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
+=20
+ ifeq ($(ARCH),x86_64)
+ BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
+@@ -131,8 +131,6 @@ warn_32bit_failure:
+ endif
+ endif
+=20
+-$(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
+-
+ $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
+=20
+ $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
