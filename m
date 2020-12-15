@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2C85C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CACBDC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F50122510
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A40E8224D2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725974AbgLODH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:07:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35250 "EHLO mail.kernel.org"
+        id S1725806AbgLODHy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:07:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726101AbgLODHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:07:20 -0500
-Date:   Mon, 14 Dec 2020 19:06:39 -0800
+        id S1726321AbgLODHc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:07:32 -0500
+Date:   Mon, 14 Dec 2020 19:06:45 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001599;
-        bh=0CUzCyb7B0GjY5F853mI4P3tzyd0+Km/14LwYKxJTV4=;
+        s=korg; t=1608001606;
+        bh=N1qrfYji3AqTzr0PUYrcXGm16N7KdNYjttS6SFfWRl4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=FmLzBZ3lUOZLS3X/tMcnAB5LcymhMP/ortt6vodYtqYBP/Yy+cmqfgtBJsL/zkmp0
-         C73285qD+nDA/3IUuz148KSKgpLXeE8A2BAtWjFsq5njOsYyD5oyWHI3wQXyMIn0C5
-         gA1ItDz/uRl1oHrSZPuPCjLlYdxSZO5pVOR6ZxQI=
+        b=lurEK5W9qzcG//Mfo04TZ0SN4Xuzu9Axd8SfNwkL8//To0Ov/6dfxPhjvm2GqRtM3
+         vLNfk+QYcdo6Jsof0Y+RSoOOndU+AC/BdH/lthmzaIX8O3FsOCT9/92hRjAvKaWp50
+         rpX6O8D4CgLFQIeShpHihqZ/IBkT9NkqcxXpeqxc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com,
-        jglisse@redhat.com, linux-mm@kvack.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 060/200] mm/rmap: always do TTU_IGNORE_ACCESS
-Message-ID: <20201215030639.BGx7KgGcH%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
+        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com, torvalds@linux-foundation.org
+Subject:  [patch 062/200] mm: memcg: fix obsolete code comments
+Message-ID: <20201215030645.8_J1qVjuV%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,201 +40,65 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm/rmap: always do TTU_IGNORE_ACCESS
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: memcg: fix obsolete code comments
 
-Since commit 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic
-v2"), the code to check the secondary MMU's page table access bit is
-broken for !(TTU_IGNORE_ACCESS) because the page is unmapped from the
-secondary MMU's page table before the check.  More specifically for those
-secondary MMUs which unmap the memory in
-mmu_notifier_invalidate_range_start() like kvm.
+This patch fixes/removes some obsolete comments in the code related
+to the kernel memory accounting:
+- kmem_cache->memcg_params.memcg_caches has been removed
+  by commit 9855609bde03 ("mm: memcg/slab: use a single set of
+  kmem_caches for all accounted allocations")
+- memcg->kmemcg_id is not used as a gate for kmem accounting since
+  commit 0b8f73e10428 ("mm: memcontrol: clean up alloc, online,
+  offline, free functions")
 
-However memory reclaim is the only user of !(TTU_IGNORE_ACCESS) or the
-absence of TTU_IGNORE_ACCESS and it explicitly performs the page table
-access check before trying to unmap the page.  So, at worst the reclaim
-will miss accesses in a very short window if we remove page table access
-check in unmapping code.
-
-There is an unintented consequence of !(TTU_IGNORE_ACCESS) for the memcg
-reclaim.  From memcg reclaim the page_referenced() only account the
-accesses from the processes which are in the same memcg of the target page
-but the unmapping code is considering accesses from all the processes, so,
-decreasing the effectiveness of memcg reclaim.
-
-The simplest solution is to always assume TTU_IGNORE_ACCESS in unmapping
-code.
-
-Link: https://lkml.kernel.org/r/20201104231928.1494083-1-shakeelb@google.com
-Fixes: 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic v2")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20201110184615.311974-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 -
- mm/huge_memory.c     |    2 +-
- mm/memory-failure.c  |    2 +-
- mm/memory_hotplug.c  |    2 +-
- mm/migrate.c         |    8 +++-----
- mm/rmap.c            |    9 ---------
- mm/vmscan.c          |   14 +++++---------
- 7 files changed, 11 insertions(+), 27 deletions(-)
+ include/linux/memcontrol.h |    6 ++----
+ mm/memcontrol.c            |    6 ------
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-always-do-ttu_ignore_access
-+++ a/include/linux/rmap.h
-@@ -91,7 +91,6 @@ enum ttu_flags {
+--- a/include/linux/memcontrol.h~mm-memcg-fix-obsolete-code-comments
++++ a/include/linux/memcontrol.h
+@@ -296,7 +296,6 @@ struct mem_cgroup {
+ 	int			tcpmem_pressure;
  
- 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
- 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
--	TTU_IGNORE_ACCESS	= 0x10,	/* don't age */
- 	TTU_IGNORE_HWPOISON	= 0x20,	/* corrupted page is recoverable */
- 	TTU_BATCH_FLUSH		= 0x40,	/* Batch TLB flushes where possible
- 					 * and caller guarantees they will
---- a/mm/huge_memory.c~mm-rmap-always-do-ttu_ignore_access
-+++ a/mm/huge_memory.c
-@@ -2321,7 +2321,7 @@ void vma_adjust_trans_huge(struct vm_are
+ #ifdef CONFIG_MEMCG_KMEM
+-        /* Index in the kmem_cache->memcg_params.memcg_caches array */
+ 	int kmemcg_id;
+ 	enum memcg_kmem_state kmem_state;
+ 	struct obj_cgroup __rcu *objcg;
+@@ -1562,9 +1561,8 @@ static inline void memcg_kmem_uncharge(s
+ }
  
- static void unmap_page(struct page *page)
- {
--	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
-+	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK |
- 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
- 	bool unmap_success;
- 
---- a/mm/memory-failure.c~mm-rmap-always-do-ttu_ignore_access
-+++ a/mm/memory-failure.c
-@@ -989,7 +989,7 @@ static int get_hwpoison_page(struct page
- static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 				  int flags, struct page **hpagep)
- {
--	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
-+	enum ttu_flags ttu = TTU_IGNORE_MLOCK;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
- 	bool unmap_success = true;
---- a/mm/memory_hotplug.c~mm-rmap-always-do-ttu_ignore_access
-+++ a/mm/memory_hotplug.c
-@@ -1304,7 +1304,7 @@ do_migrate_range(unsigned long start_pfn
- 			if (WARN_ON(PageLRU(page)))
- 				isolate_lru_page(page);
- 			if (page_mapped(page))
--				try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS);
-+				try_to_unmap(page, TTU_IGNORE_MLOCK);
- 			continue;
- 		}
- 
---- a/mm/migrate.c~mm-rmap-always-do-ttu_ignore_access
-+++ a/mm/migrate.c
-@@ -1122,8 +1122,7 @@ static int __unmap_and_move(struct page
- 		/* Establish migration ptes */
- 		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
- 				page);
--		try_to_unmap(page,
--			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
-+		try_to_unmap(page, TTU_MIGRATION|TTU_IGNORE_MLOCK);
- 		page_was_mapped = 1;
- 	}
- 
-@@ -1329,8 +1328,7 @@ static int unmap_and_move_huge_page(new_
- 
- 	if (page_mapped(hpage)) {
- 		bool mapping_locked = false;
--		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK|
--					TTU_IGNORE_ACCESS;
-+		enum ttu_flags ttu = TTU_MIGRATION|TTU_IGNORE_MLOCK;
- 
- 		if (!PageAnon(hpage)) {
- 			/*
-@@ -2688,7 +2686,7 @@ static void migrate_vma_prepare(struct m
+ /*
+- * helper for accessing a memcg's index. It will be used as an index in the
+- * child cache array in kmem_cache, and also to derive its name. This function
+- * will return -1 when this is not a kmem-limited memcg.
++ * A helper for accessing memcg's kmem_id, used for getting
++ * corresponding LRU lists.
   */
- static void migrate_vma_unmap(struct migrate_vma *migrate)
+ static inline int memcg_cache_id(struct mem_cgroup *memcg)
  {
--	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
-+	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK;
- 	const unsigned long npages = migrate->npages;
- 	const unsigned long start = migrate->start;
- 	unsigned long addr, i, restore = 0;
---- a/mm/rmap.c~mm-rmap-always-do-ttu_ignore_access
-+++ a/mm/rmap.c
-@@ -1533,15 +1533,6 @@ static bool try_to_unmap_one(struct page
- 			goto discard;
- 		}
+--- a/mm/memcontrol.c~mm-memcg-fix-obsolete-code-comments
++++ a/mm/memcontrol.c
+@@ -3703,12 +3703,6 @@ static int memcg_online_kmem(struct mem_
  
--		if (!(flags & TTU_IGNORE_ACCESS)) {
--			if (ptep_clear_flush_young_notify(vma, address,
--						pvmw.pte)) {
--				ret = false;
--				page_vma_mapped_walk_done(&pvmw);
--				break;
--			}
--		}
--
- 		/* Nuke the page table entry. */
- 		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
- 		if (should_defer_flush(mm, flags)) {
---- a/mm/vmscan.c~mm-rmap-always-do-ttu_ignore_access
-+++ a/mm/vmscan.c
-@@ -1072,7 +1072,6 @@ static void page_check_dirty_writeback(s
- static unsigned int shrink_page_list(struct list_head *page_list,
- 				     struct pglist_data *pgdat,
- 				     struct scan_control *sc,
--				     enum ttu_flags ttu_flags,
- 				     struct reclaim_stat *stat,
- 				     bool ignore_references)
- {
-@@ -1297,7 +1296,7 @@ static unsigned int shrink_page_list(str
- 		 * processes. Try to unmap it here.
- 		 */
- 		if (page_mapped(page)) {
--			enum ttu_flags flags = ttu_flags | TTU_BATCH_FLUSH;
-+			enum ttu_flags flags = TTU_BATCH_FLUSH;
- 			bool was_swapbacked = PageSwapBacked(page);
+ 	static_branch_enable(&memcg_kmem_enabled_key);
  
- 			if (unlikely(PageTransHuge(page)))
-@@ -1514,7 +1513,7 @@ unsigned int reclaim_clean_pages_from_li
- 	}
+-	/*
+-	 * A memory cgroup is considered kmem-online as soon as it gets
+-	 * kmemcg_id. Setting the id after enabling static branching will
+-	 * guarantee no one starts accounting before all call sites are
+-	 * patched.
+-	 */
+ 	memcg->kmemcg_id = memcg_id;
+ 	memcg->kmem_state = KMEM_ONLINE;
  
- 	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
--			TTU_IGNORE_ACCESS, &stat, true);
-+					&stat, true);
- 	list_splice(&clean_pages, page_list);
- 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
- 			    -(long)nr_reclaimed);
-@@ -1958,8 +1957,7 @@ shrink_inactive_list(unsigned long nr_to
- 	if (nr_taken == 0)
- 		return 0;
- 
--	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, 0,
--				&stat, false);
-+	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, &stat, false);
- 
- 	spin_lock_irq(&pgdat->lru_lock);
- 
-@@ -2131,8 +2129,7 @@ unsigned long reclaim_pages(struct list_
- 
- 		nr_reclaimed += shrink_page_list(&node_page_list,
- 						NODE_DATA(nid),
--						&sc, 0,
--						&dummy_stat, false);
-+						&sc, &dummy_stat, false);
- 		while (!list_empty(&node_page_list)) {
- 			page = lru_to_page(&node_page_list);
- 			list_del(&page->lru);
-@@ -2145,8 +2142,7 @@ unsigned long reclaim_pages(struct list_
- 	if (!list_empty(&node_page_list)) {
- 		nr_reclaimed += shrink_page_list(&node_page_list,
- 						NODE_DATA(nid),
--						&sc, 0,
--						&dummy_stat, false);
-+						&sc, &dummy_stat, false);
- 		while (!list_empty(&node_page_list)) {
- 			page = lru_to_page(&node_page_list);
- 			list_del(&page->lru);
 _
