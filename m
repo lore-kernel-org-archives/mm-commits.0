@@ -2,31 +2,32 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A354C2BBCA
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D763C2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5438F224BD
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BCFF20709
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726354AbgLODQ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:16:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43434 "EHLO mail.kernel.org"
+        id S1725883AbgLODQL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:16:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43332 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728137AbgLODPb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:15:31 -0500
-Date:   Mon, 14 Dec 2020 19:14:50 -0800
+        id S1728132AbgLODPY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:15:24 -0500
+Date:   Mon, 14 Dec 2020 19:14:42 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002091;
-        bh=s8q3WCDDzmMAy37A+jENbIVauY6Av9lHihv2t0K1MEA=;
+        s=korg; t=1608002083;
+        bh=Me2fRPnLbZGWMleYqQ2roMNdjzNqLpbbXr3zAylxJcg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=EJTrFpteiTXdhSiSZ6/Dn0tzcUQHV8yhYRVA1jcIbdvXgr1H4ctMNOJSyQzlNwK2H
-         xFOP1ajADR0u/jClizOrzpXVpwpU6CLPJZEG4HfLi7kcR4MqLGdkCD2YB0WiHjP2uM
-         4iKUHoGlyGEtxIUWzwUI+wl5r+9yvsyxoBizL1Fk=
+        b=xjcAGYlybS4Z/EfGVj9TYnZP1JtiAR8P1JT7JdthjjUfkZsn0bV9iMNKvDimr86rs
+         cRE9OWTqma0Z/OEhgOfa9a4N4L53HsbuLCbffB1F5LfQVcQVkcWi6GErJPQPIaceWq
+         8VI5Bu40Lfl9W8hOvHqBEU42eXhu4W9yyc7OZyJQ=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com,
         gregkh@linuxfoundation.org, hughd@google.com,
@@ -34,9 +35,9 @@ To:     akpm@linux-foundation.org, cl@linux.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com,
         torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 196/200] mm:backing-dev: use sysfs_emit in macro
- defining functions
-Message-ID: <20201215031450.r2cpddEKh%akpm@linux-foundation.org>
+Subject:  [patch 194/200] mm: use sysfs_emit for struct kobject *
+ uses
+Message-ID: <20201215031442.pp8jFq-Tw%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,58 +46,392 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joe Perches <joe@perches.com>
-Subject: mm:backing-dev: use sysfs_emit in macro defining functions
+Subject: mm: use sysfs_emit for struct kobject * uses
 
-The cocci script used in commit bdacbb8d04f ("mm: Use sysfs_emit for
-struct kobject * uses") does not convert the name##_show macro because the
-macro uses concatenation via ##.
+Patch series "mm: Convert sysfs sprintf family to sysfs_emit", v2.
 
-Convert it by hand.
+Use the new sysfs_emit family and not the sprintf family.
 
-Link: https://lkml.kernel.org/r/45ec6cfc177d743f9c0ebaf35e43969dce43af42.1605376435.git.joe@perches.com
+
+This patch (of 5):
+
+Use the sysfs_emit function instead of the sprintf family.
+
+Done with cocci script as in commit 3c6bff3cf988
+("RDMA: Convert sysfs kobject * show functions to use sysfs_emit()")
+
+Link: https://lkml.kernel.org/r/cover.1605376435.git.joe@perches.com
+Link: https://lkml.kernel.org/r/9c249215bad6df616ba0410ad980042694970c1b.1605376435.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   28 ++++++++++++++++------------
+ mm/hugetlb.c     |   13 +++++++------
+ mm/khugepaged.c  |   22 +++++++++++-----------
+ mm/ksm.c         |   32 ++++++++++++++++----------------
+ mm/swap_state.c  |    3 ++-
+ 5 files changed, 52 insertions(+), 46 deletions(-)
 
---- a/mm/backing-dev.c~mm-backing-dev-use-sysfs_emit-in-macro-defining-functions
-+++ a/mm/backing-dev.c
-@@ -150,11 +150,11 @@ static ssize_t read_ahead_kb_store(struc
- 
- #define BDI_SHOW(name, expr)						\
- static ssize_t name##_show(struct device *dev,				\
--			   struct device_attribute *attr, char *page)	\
-+			   struct device_attribute *attr, char *buf)	\
- {									\
- 	struct backing_dev_info *bdi = dev_get_drvdata(dev);		\
- 									\
--	return snprintf(page, PAGE_SIZE-1, "%lld\n", (long long)expr);	\
-+	return sysfs_emit(buf, "%lld\n", (long long)expr);		\
- }									\
- static DEVICE_ATTR_RW(name);
- 
-@@ -200,11 +200,11 @@ BDI_SHOW(max_ratio, bdi->max_ratio)
- 
- static ssize_t stable_pages_required_show(struct device *dev,
- 					  struct device_attribute *attr,
--					  char *page)
-+					  char *buf)
+--- a/mm/huge_memory.c~mm-use-sysfs_emit-for-struct-kobject-uses
++++ a/mm/huge_memory.c
+@@ -164,11 +164,11 @@ static ssize_t enabled_show(struct kobje
+ 			    struct kobj_attribute *attr, char *buf)
  {
- 	dev_warn_once(dev,
- 		"the stable_pages_required attribute has been removed. Use the stable_writes queue attribute instead.\n");
--	return snprintf(page, PAGE_SIZE-1, "%d\n", 0);
-+	return sysfs_emit(buf, "%d\n", 0);
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags))
+-		return sprintf(buf, "[always] madvise never\n");
++		return sysfs_emit(buf, "[always] madvise never\n");
+ 	else if (test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags))
+-		return sprintf(buf, "always [madvise] never\n");
++		return sysfs_emit(buf, "always [madvise] never\n");
+ 	else
+-		return sprintf(buf, "always madvise [never]\n");
++		return sysfs_emit(buf, "always madvise [never]\n");
  }
- static DEVICE_ATTR_RO(stable_pages_required);
  
+ static ssize_t enabled_store(struct kobject *kobj,
+@@ -233,14 +233,18 @@ static ssize_t defrag_show(struct kobjec
+ 			   struct kobj_attribute *attr, char *buf)
+ {
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
+-		return sprintf(buf, "[always] defer defer+madvise madvise never\n");
++		return sysfs_emit(buf,
++				  "[always] defer defer+madvise madvise never\n");
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags))
+-		return sprintf(buf, "always [defer] defer+madvise madvise never\n");
++		return sysfs_emit(buf,
++				  "always [defer] defer+madvise madvise never\n");
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags))
+-		return sprintf(buf, "always defer [defer+madvise] madvise never\n");
++		return sysfs_emit(buf,
++				  "always defer [defer+madvise] madvise never\n");
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags))
+-		return sprintf(buf, "always defer defer+madvise [madvise] never\n");
+-	return sprintf(buf, "always defer defer+madvise madvise [never]\n");
++		return sysfs_emit(buf,
++				  "always defer defer+madvise [madvise] never\n");
++	return sysfs_emit(buf, "always defer defer+madvise madvise [never]\n");
+ }
+ 
+ static ssize_t defrag_store(struct kobject *kobj,
+@@ -281,10 +285,10 @@ static struct kobj_attribute defrag_attr
+ 	__ATTR(defrag, 0644, defrag_show, defrag_store);
+ 
+ static ssize_t use_zero_page_show(struct kobject *kobj,
+-		struct kobj_attribute *attr, char *buf)
++				  struct kobj_attribute *attr, char *buf)
+ {
+ 	return single_hugepage_flag_show(kobj, attr, buf,
+-				TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
++					 TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
+ }
+ static ssize_t use_zero_page_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+@@ -296,9 +300,9 @@ static struct kobj_attribute use_zero_pa
+ 	__ATTR(use_zero_page, 0644, use_zero_page_show, use_zero_page_store);
+ 
+ static ssize_t hpage_pmd_size_show(struct kobject *kobj,
+-		struct kobj_attribute *attr, char *buf)
++				   struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", HPAGE_PMD_SIZE);
++	return sysfs_emit(buf, "%lu\n", HPAGE_PMD_SIZE);
+ }
+ static struct kobj_attribute hpage_pmd_size_attr =
+ 	__ATTR_RO(hpage_pmd_size);
+--- a/mm/hugetlb.c~mm-use-sysfs_emit-for-struct-kobject-uses
++++ a/mm/hugetlb.c
+@@ -2760,7 +2760,7 @@ static ssize_t nr_hugepages_show_common(
+ 	else
+ 		nr_huge_pages = h->nr_huge_pages_node[nid];
+ 
+-	return sprintf(buf, "%lu\n", nr_huge_pages);
++	return sysfs_emit(buf, "%lu\n", nr_huge_pages);
+ }
+ 
+ static ssize_t __nr_hugepages_store_common(bool obey_mempolicy,
+@@ -2833,7 +2833,8 @@ HSTATE_ATTR(nr_hugepages);
+  * huge page alloc/free.
+  */
+ static ssize_t nr_hugepages_mempolicy_show(struct kobject *kobj,
+-				       struct kobj_attribute *attr, char *buf)
++					   struct kobj_attribute *attr,
++					   char *buf)
+ {
+ 	return nr_hugepages_show_common(kobj, attr, buf);
+ }
+@@ -2851,7 +2852,7 @@ static ssize_t nr_overcommit_hugepages_s
+ 					struct kobj_attribute *attr, char *buf)
+ {
+ 	struct hstate *h = kobj_to_hstate(kobj, NULL);
+-	return sprintf(buf, "%lu\n", h->nr_overcommit_huge_pages);
++	return sysfs_emit(buf, "%lu\n", h->nr_overcommit_huge_pages);
+ }
+ 
+ static ssize_t nr_overcommit_hugepages_store(struct kobject *kobj,
+@@ -2889,7 +2890,7 @@ static ssize_t free_hugepages_show(struc
+ 	else
+ 		free_huge_pages = h->free_huge_pages_node[nid];
+ 
+-	return sprintf(buf, "%lu\n", free_huge_pages);
++	return sysfs_emit(buf, "%lu\n", free_huge_pages);
+ }
+ HSTATE_ATTR_RO(free_hugepages);
+ 
+@@ -2897,7 +2898,7 @@ static ssize_t resv_hugepages_show(struc
+ 					struct kobj_attribute *attr, char *buf)
+ {
+ 	struct hstate *h = kobj_to_hstate(kobj, NULL);
+-	return sprintf(buf, "%lu\n", h->resv_huge_pages);
++	return sysfs_emit(buf, "%lu\n", h->resv_huge_pages);
+ }
+ HSTATE_ATTR_RO(resv_hugepages);
+ 
+@@ -2914,7 +2915,7 @@ static ssize_t surplus_hugepages_show(st
+ 	else
+ 		surplus_huge_pages = h->surplus_huge_pages_node[nid];
+ 
+-	return sprintf(buf, "%lu\n", surplus_huge_pages);
++	return sysfs_emit(buf, "%lu\n", surplus_huge_pages);
+ }
+ HSTATE_ATTR_RO(surplus_hugepages);
+ 
+--- a/mm/khugepaged.c~mm-use-sysfs_emit-for-struct-kobject-uses
++++ a/mm/khugepaged.c
+@@ -126,7 +126,7 @@ static ssize_t scan_sleep_millisecs_show
+ 					 struct kobj_attribute *attr,
+ 					 char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_scan_sleep_millisecs);
++	return sysfs_emit(buf, "%u\n", khugepaged_scan_sleep_millisecs);
+ }
+ 
+ static ssize_t scan_sleep_millisecs_store(struct kobject *kobj,
+@@ -154,7 +154,7 @@ static ssize_t alloc_sleep_millisecs_sho
+ 					  struct kobj_attribute *attr,
+ 					  char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_alloc_sleep_millisecs);
++	return sysfs_emit(buf, "%u\n", khugepaged_alloc_sleep_millisecs);
+ }
+ 
+ static ssize_t alloc_sleep_millisecs_store(struct kobject *kobj,
+@@ -182,7 +182,7 @@ static ssize_t pages_to_scan_show(struct
+ 				  struct kobj_attribute *attr,
+ 				  char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_pages_to_scan);
++	return sysfs_emit(buf, "%u\n", khugepaged_pages_to_scan);
+ }
+ static ssize_t pages_to_scan_store(struct kobject *kobj,
+ 				   struct kobj_attribute *attr,
+@@ -207,7 +207,7 @@ static ssize_t pages_collapsed_show(stru
+ 				    struct kobj_attribute *attr,
+ 				    char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_pages_collapsed);
++	return sysfs_emit(buf, "%u\n", khugepaged_pages_collapsed);
+ }
+ static struct kobj_attribute pages_collapsed_attr =
+ 	__ATTR_RO(pages_collapsed);
+@@ -216,7 +216,7 @@ static ssize_t full_scans_show(struct ko
+ 			       struct kobj_attribute *attr,
+ 			       char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_full_scans);
++	return sysfs_emit(buf, "%u\n", khugepaged_full_scans);
+ }
+ static struct kobj_attribute full_scans_attr =
+ 	__ATTR_RO(full_scans);
+@@ -225,7 +225,7 @@ static ssize_t khugepaged_defrag_show(st
+ 				      struct kobj_attribute *attr, char *buf)
+ {
+ 	return single_hugepage_flag_show(kobj, attr, buf,
+-				TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
++					 TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
+ }
+ static ssize_t khugepaged_defrag_store(struct kobject *kobj,
+ 				       struct kobj_attribute *attr,
+@@ -250,7 +250,7 @@ static ssize_t khugepaged_max_ptes_none_
+ 					     struct kobj_attribute *attr,
+ 					     char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_max_ptes_none);
++	return sysfs_emit(buf, "%u\n", khugepaged_max_ptes_none);
+ }
+ static ssize_t khugepaged_max_ptes_none_store(struct kobject *kobj,
+ 					      struct kobj_attribute *attr,
+@@ -275,7 +275,7 @@ static ssize_t khugepaged_max_ptes_swap_
+ 					     struct kobj_attribute *attr,
+ 					     char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_max_ptes_swap);
++	return sysfs_emit(buf, "%u\n", khugepaged_max_ptes_swap);
+ }
+ 
+ static ssize_t khugepaged_max_ptes_swap_store(struct kobject *kobj,
+@@ -299,10 +299,10 @@ static struct kobj_attribute khugepaged_
+ 	       khugepaged_max_ptes_swap_store);
+ 
+ static ssize_t khugepaged_max_ptes_shared_show(struct kobject *kobj,
+-					     struct kobj_attribute *attr,
+-					     char *buf)
++					       struct kobj_attribute *attr,
++					       char *buf)
+ {
+-	return sprintf(buf, "%u\n", khugepaged_max_ptes_shared);
++	return sysfs_emit(buf, "%u\n", khugepaged_max_ptes_shared);
+ }
+ 
+ static ssize_t khugepaged_max_ptes_shared_store(struct kobject *kobj,
+--- a/mm/ksm.c~mm-use-sysfs_emit-for-struct-kobject-uses
++++ a/mm/ksm.c
+@@ -2833,7 +2833,7 @@ static void wait_while_offlining(void)
+ static ssize_t sleep_millisecs_show(struct kobject *kobj,
+ 				    struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%u\n", ksm_thread_sleep_millisecs);
++	return sysfs_emit(buf, "%u\n", ksm_thread_sleep_millisecs);
+ }
+ 
+ static ssize_t sleep_millisecs_store(struct kobject *kobj,
+@@ -2857,7 +2857,7 @@ KSM_ATTR(sleep_millisecs);
+ static ssize_t pages_to_scan_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%u\n", ksm_thread_pages_to_scan);
++	return sysfs_emit(buf, "%u\n", ksm_thread_pages_to_scan);
+ }
+ 
+ static ssize_t pages_to_scan_store(struct kobject *kobj,
+@@ -2880,7 +2880,7 @@ KSM_ATTR(pages_to_scan);
+ static ssize_t run_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 			char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_run);
++	return sysfs_emit(buf, "%lu\n", ksm_run);
+ }
+ 
+ static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -2927,9 +2927,9 @@ KSM_ATTR(run);
+ 
+ #ifdef CONFIG_NUMA
+ static ssize_t merge_across_nodes_show(struct kobject *kobj,
+-				struct kobj_attribute *attr, char *buf)
++				       struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%u\n", ksm_merge_across_nodes);
++	return sysfs_emit(buf, "%u\n", ksm_merge_across_nodes);
+ }
+ 
+ static ssize_t merge_across_nodes_store(struct kobject *kobj,
+@@ -2984,9 +2984,9 @@ KSM_ATTR(merge_across_nodes);
+ #endif
+ 
+ static ssize_t use_zero_pages_show(struct kobject *kobj,
+-				struct kobj_attribute *attr, char *buf)
++				   struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%u\n", ksm_use_zero_pages);
++	return sysfs_emit(buf, "%u\n", ksm_use_zero_pages);
+ }
+ static ssize_t use_zero_pages_store(struct kobject *kobj,
+ 				   struct kobj_attribute *attr,
+@@ -3008,7 +3008,7 @@ KSM_ATTR(use_zero_pages);
+ static ssize_t max_page_sharing_show(struct kobject *kobj,
+ 				     struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%u\n", ksm_max_page_sharing);
++	return sysfs_emit(buf, "%u\n", ksm_max_page_sharing);
+ }
+ 
+ static ssize_t max_page_sharing_store(struct kobject *kobj,
+@@ -3049,21 +3049,21 @@ KSM_ATTR(max_page_sharing);
+ static ssize_t pages_shared_show(struct kobject *kobj,
+ 				 struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_pages_shared);
++	return sysfs_emit(buf, "%lu\n", ksm_pages_shared);
+ }
+ KSM_ATTR_RO(pages_shared);
+ 
+ static ssize_t pages_sharing_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_pages_sharing);
++	return sysfs_emit(buf, "%lu\n", ksm_pages_sharing);
+ }
+ KSM_ATTR_RO(pages_sharing);
+ 
+ static ssize_t pages_unshared_show(struct kobject *kobj,
+ 				   struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_pages_unshared);
++	return sysfs_emit(buf, "%lu\n", ksm_pages_unshared);
+ }
+ KSM_ATTR_RO(pages_unshared);
+ 
+@@ -3080,21 +3080,21 @@ static ssize_t pages_volatile_show(struc
+ 	 */
+ 	if (ksm_pages_volatile < 0)
+ 		ksm_pages_volatile = 0;
+-	return sprintf(buf, "%ld\n", ksm_pages_volatile);
++	return sysfs_emit(buf, "%ld\n", ksm_pages_volatile);
+ }
+ KSM_ATTR_RO(pages_volatile);
+ 
+ static ssize_t stable_node_dups_show(struct kobject *kobj,
+ 				     struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_stable_node_dups);
++	return sysfs_emit(buf, "%lu\n", ksm_stable_node_dups);
+ }
+ KSM_ATTR_RO(stable_node_dups);
+ 
+ static ssize_t stable_node_chains_show(struct kobject *kobj,
+ 				       struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_stable_node_chains);
++	return sysfs_emit(buf, "%lu\n", ksm_stable_node_chains);
+ }
+ KSM_ATTR_RO(stable_node_chains);
+ 
+@@ -3103,7 +3103,7 @@ stable_node_chains_prune_millisecs_show(
+ 					struct kobj_attribute *attr,
+ 					char *buf)
+ {
+-	return sprintf(buf, "%u\n", ksm_stable_node_chains_prune_millisecs);
++	return sysfs_emit(buf, "%u\n", ksm_stable_node_chains_prune_millisecs);
+ }
+ 
+ static ssize_t
+@@ -3127,7 +3127,7 @@ KSM_ATTR(stable_node_chains_prune_millis
+ static ssize_t full_scans_show(struct kobject *kobj,
+ 			       struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n", ksm_scan.seqnr);
++	return sysfs_emit(buf, "%lu\n", ksm_scan.seqnr);
+ }
+ KSM_ATTR_RO(full_scans);
+ 
+--- a/mm/swap_state.c~mm-use-sysfs_emit-for-struct-kobject-uses
++++ a/mm/swap_state.c
+@@ -902,7 +902,8 @@ struct page *swapin_readahead(swp_entry_
+ static ssize_t vma_ra_enabled_show(struct kobject *kobj,
+ 				     struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%s\n", enable_vma_readahead ? "true" : "false");
++	return sysfs_emit(buf, "%s\n",
++			  enable_vma_readahead ? "true" : "false");
+ }
+ static ssize_t vma_ra_enabled_store(struct kobject *kobj,
+ 				      struct kobj_attribute *attr,
 _
