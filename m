@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BB44C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C78C2BB48
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9DF2224B0
+	by mail.kernel.org (Postfix) with ESMTP id E9B4E224D2
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727667AbgLODNV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:13:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41156 "EHLO mail.kernel.org"
+        id S1727446AbgLODNb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:13:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727663AbgLODNG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:13:06 -0500
-Date:   Mon, 14 Dec 2020 19:11:15 -0800
+        id S1728085AbgLODNL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:13:11 -0500
+Date:   Mon, 14 Dec 2020 19:12:30 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001876;
-        bh=vA0BetdBKvkYosvsQSY6awh+TFC7nzzrnLXhAsdab+U=;
+        s=korg; t=1608001951;
+        bh=oIjNwS4M6KJex/Ecpanb9X9QhA75MdQIl+c7PCIq5uw=;
         h=From:To:Subject:In-Reply-To:From;
-        b=jSCsUp37JyGCB181Cn28rHxcAL9daQIGn3uytM/hNyKKAP3HKTlgWDu10eRShobWR
-         B3m+zPQSXULdDPYQttNJuEWmcp4l/DY+UsZLxaGA05npwGf7SZY4O5PVodckPhUPWg
-         8sxS+0CN4i1gvVKCpiTai6QCnY1LsDZq7RrOYpvc=
+        b=YflUfqvKsjVuYxAE5IuVqyCc9+IsD+sopEkBYbexpnclXyg9eyqGpG9dkvdtrfmL2
+         ShQ9/DTZLrFUT3vGQTTBNDzOlp1choHHyWuKMlpCaE6UFW+pthn+D1fef4OmmKrryc
+         xjPrBq6T8ESuVBAs0y0eGCSYSrgj94c8hHmnC/X0=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, glider@google.com,
-        keescook@chromium.org, linux-mm@kvack.org, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, osalvador@suse.de, rppt@linux.ibm.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 134/200] mm/page_alloc: clear all pages in
- post_alloc_hook() with init_on_alloc=1
-Message-ID: <20201215031115.iQ2xs78y1%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bigeasy@linutronix.de, efault@gmx.de,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        vitaly.wool@konsulko.com
+Subject:  [patch 156/200] z3fold: simplify freeing slots
+Message-ID: <20201215031230.CbUnaajXu%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,78 +41,180 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: clear all pages in post_alloc_hook() with init_on_alloc=1
+From: Vitaly Wool <vitaly.wool@konsulko.com>
+Subject: z3fold: simplify freeing slots
 
-commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
-init_on_free=1 boot options") resulted with init_on_alloc=1 in all pages
-leaving the buddy via alloc_pages() and friends to be
-initialized/cleared/zeroed on allocation.
+Patch series "z3fold: stability / rt fixes".
 
-However, the same logic is currently not applied to alloc_contig_pages():
-allocated pages leaving the buddy aren't cleared with init_on_alloc=1 and
-init_on_free=0.  Let's also properly clear pages on that allocation path.
+Address z3fold stability issues under stress load, primarily in the
+reclaim and free aspects.  Besides, it fixes the locking problems that
+were only seen in real-time kernel configuration.
 
-To achieve that, let's move clearing into post_alloc_hook().  This will
-not only affect alloc_contig_pages() allocations but also any pages used
-as migration target in compaction code via compaction_alloc().
 
-While this sounds sub-optimal, it's the very same handling as when
-allocating migration targets via alloc_migration_target() - pages will get
-properly cleared with init_on_free=1.  In case we ever want to optimize
-migration in that regard, we should tackle all such migration users - if
-we believe migration code can be fully trusted.
+This patch (of 3):
 
-With this change, we will see double clearing of pages in some cases.  One
-example are gigantic pages (either allocated via CMA, or allocated
-dynamically via alloc_contig_pages()) - which is the right thing to do
-(and to be optimized outside of the buddy in the callers) as discussed in:
-https://lkml.kernel.org/r/20201019182853.7467-1-gpiccoli@canonical.com
+There used to be two places in the code where slots could be freed, namely
+when freeing the last allocated handle from the slots and when releasing
+the z3fold header these slots aree linked to.  The logic to decide on
+whether to free certain slots was complicated and error prone in both
+functions and it led to failures in RT case.
 
-This change implies that with init_on_alloc=1
-- All CMA allocations will be cleared
-- Gigantic pages allocated via alloc_contig_pages() will be cleared
-- virtio-mem memory to be unplugged will be cleared. While this is
-  suboptimal, it's similar to memory balloon drivers handling, where
-  all pages to be inflated will get cleared as well.
-- Pages isolated for compaction will be cleared
+To fix that, make free_handle() the single point of freeing slots.
 
-Link: https://lkml.kernel.org/r/20201120180452.19071-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lkml.kernel.org/r/20201209145151.18994-1-vitaly.wool@konsulko.com
+Link: https://lkml.kernel.org/r/20201209145151.18994-2-vitaly.wool@konsulko.com
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Tested-by: Mike Galbraith <efault@gmx.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/z3fold.c |   55 +++++++++++---------------------------------------
+ 1 file changed, 13 insertions(+), 42 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clear-all-pages-in-post_alloc_hook-with-init_on_alloc=1
-+++ a/mm/page_alloc.c
-@@ -2284,6 +2284,9 @@ inline void post_alloc_hook(struct page
- 	kasan_alloc_pages(page, order);
- 	kernel_poison_pages(page, 1 << order, 1);
- 	set_page_owner(page, order, gfp_flags);
-+
-+	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
-+		kernel_init_free_pages(page, 1 << order);
+--- a/mm/z3fold.c~z3fold-simplify-freeing-slots
++++ a/mm/z3fold.c
+@@ -90,7 +90,7 @@ struct z3fold_buddy_slots {
+ 	 * be enough slots to hold all possible variants
+ 	 */
+ 	unsigned long slot[BUDDY_MASK + 1];
+-	unsigned long pool; /* back link + flags */
++	unsigned long pool; /* back link */
+ 	rwlock_t lock;
+ };
+ #define HANDLE_FLAG_MASK	(0x03)
+@@ -182,13 +182,6 @@ enum z3fold_page_flags {
+ };
+ 
+ /*
+- * handle flags, go under HANDLE_FLAG_MASK
+- */
+-enum z3fold_handle_flags {
+-	HANDLES_ORPHANED = 0,
+-};
+-
+-/*
+  * Forward declarations
+  */
+ static struct z3fold_header *__z3fold_alloc(struct z3fold_pool *, size_t, bool);
+@@ -303,10 +296,9 @@ static inline void put_z3fold_header(str
+ 		z3fold_page_unlock(zhdr);
  }
  
- static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
-@@ -2291,9 +2294,6 @@ static void prep_new_page(struct page *p
+-static inline void free_handle(unsigned long handle)
++static inline void free_handle(unsigned long handle, struct z3fold_header *zhdr)
  {
- 	post_alloc_hook(page, order, gfp_flags);
+ 	struct z3fold_buddy_slots *slots;
+-	struct z3fold_header *zhdr;
+ 	int i;
+ 	bool is_free;
  
--	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
--		kernel_init_free_pages(page, 1 << order);
+@@ -316,22 +308,13 @@ static inline void free_handle(unsigned
+ 	if (WARN_ON(*(unsigned long *)handle == 0))
+ 		return;
+ 
+-	zhdr = handle_to_z3fold_header(handle);
+ 	slots = handle_to_slots(handle);
+ 	write_lock(&slots->lock);
+ 	*(unsigned long *)handle = 0;
+-	if (zhdr->slots == slots) {
+-		write_unlock(&slots->lock);
+-		return; /* simple case, nothing else to do */
+-	}
++	if (zhdr->slots != slots)
++		zhdr->foreign_handles--;
+ 
+-	/* we are freeing a foreign handle if we are here */
+-	zhdr->foreign_handles--;
+ 	is_free = true;
+-	if (!test_bit(HANDLES_ORPHANED, &slots->pool)) {
+-		write_unlock(&slots->lock);
+-		return;
+-	}
+ 	for (i = 0; i <= BUDDY_MASK; i++) {
+ 		if (slots->slot[i]) {
+ 			is_free = false;
+@@ -343,6 +326,8 @@ static inline void free_handle(unsigned
+ 	if (is_free) {
+ 		struct z3fold_pool *pool = slots_to_pool(slots);
+ 
++		if (zhdr->slots == slots)
++			zhdr->slots = NULL;
+ 		kmem_cache_free(pool->c_handle, slots);
+ 	}
+ }
+@@ -525,8 +510,6 @@ static void __release_z3fold_page(struct
+ {
+ 	struct page *page = virt_to_page(zhdr);
+ 	struct z3fold_pool *pool = zhdr_to_pool(zhdr);
+-	bool is_free = true;
+-	int i;
+ 
+ 	WARN_ON(!list_empty(&zhdr->buddy));
+ 	set_bit(PAGE_STALE, &page->private);
+@@ -536,21 +519,6 @@ static void __release_z3fold_page(struct
+ 		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
+ 
+-	/* If there are no foreign handles, free the handles array */
+-	read_lock(&zhdr->slots->lock);
+-	for (i = 0; i <= BUDDY_MASK; i++) {
+-		if (zhdr->slots->slot[i]) {
+-			is_free = false;
+-			break;
+-		}
+-	}
+-	if (!is_free)
+-		set_bit(HANDLES_ORPHANED, &zhdr->slots->pool);
+-	read_unlock(&zhdr->slots->lock);
 -
- 	if (order && (gfp_flags & __GFP_COMP))
- 		prep_compound_page(page, order);
+-	if (is_free)
+-		kmem_cache_free(pool->c_handle, zhdr->slots);
+-
+ 	if (locked)
+ 		z3fold_page_unlock(zhdr);
  
+@@ -973,6 +941,9 @@ lookup:
+ 		}
+ 	}
+ 
++	if (zhdr && !zhdr->slots)
++		zhdr->slots = alloc_slots(pool,
++					can_sleep ? GFP_NOIO : GFP_ATOMIC);
+ 	return zhdr;
+ }
+ 
+@@ -1270,7 +1241,7 @@ static void z3fold_free(struct z3fold_po
+ 	}
+ 
+ 	if (!page_claimed)
+-		free_handle(handle);
++		free_handle(handle, zhdr);
+ 	if (kref_put(&zhdr->refcount, release_z3fold_page_locked_list)) {
+ 		atomic64_dec(&pool->pages_nr);
+ 		return;
+@@ -1429,19 +1400,19 @@ static int z3fold_reclaim_page(struct z3
+ 			ret = pool->ops->evict(pool, middle_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(middle_handle);
++			free_handle(middle_handle, zhdr);
+ 		}
+ 		if (first_handle) {
+ 			ret = pool->ops->evict(pool, first_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(first_handle);
++			free_handle(first_handle, zhdr);
+ 		}
+ 		if (last_handle) {
+ 			ret = pool->ops->evict(pool, last_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(last_handle);
++			free_handle(last_handle, zhdr);
+ 		}
+ next:
+ 		if (test_bit(PAGE_HEADLESS, &page->private)) {
 _
