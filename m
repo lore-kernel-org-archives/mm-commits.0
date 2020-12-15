@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B01E8C2D0E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5CC4C3526B
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8217422DCC
+	by mail.kernel.org (Postfix) with ESMTP id A523822CB8
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726225AbgLPAAn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34562 "EHLO mail.kernel.org"
+        id S1727382AbgLPAAq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726301AbgLOX3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:29:39 -0500
-Date:   Tue, 15 Dec 2020 15:19:14 -0800
+        id S1726629AbgLOXa2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:30:28 -0500
+Date:   Tue, 15 Dec 2020 15:18:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074354;
-        bh=z/rBS/nPwaGrhFIvO168Ce0PvvvWgwIC7JqM1fhzp/s=;
+        s=korg; t=1608074329;
+        bh=4hQ39LbRr8jV8KvRrObto6TyfXE9AH4TP2XsLW+rZ4Q=;
         h=From:To:Subject:From;
-        b=IQBHMqN5/dE+cRJLH6rlxuJjXIHLio8Q2TGKl+4J+QKYu3r2AxV2DWs0a40SBxZDz
-         xc/M3C9k+8tulC6Sfj2jfnfjjZHVnMJcuwoMrEpJCn7gI6SwULQ+F3ISYUEK030NDZ
-         yD6mRd6ICxjVMQ63+lDah7ItaWdcd79ATVq5FoWA=
+        b=wfo8TZoq8QX7Q3UfJui3LATI5/sCFJWcQ9usSIdWFyVYsib205d4yuBf7ZtaM0mQv
+         IztjMbk3qGpVBHhgBtvScPTMdi8Lrx+xy1qqa6J99XwLvk4Dk4A6tewewAUT5H2DQ8
+         P8yQekvkjIH1VMirSbvkkBI7UwL4y8S5O1hDKJjc=
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, mm-commits@vger.kernel.org, oleg@redhat.com,
-        rppt@linux.ibm.com
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com
 Subject:  [merged]
- mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch removed from
- -mm tree
-Message-ID: <20201215231914.1tZ5XdJDC%akpm@linux-foundation.org>
+ mm-move-lruvec-stats-update-functions-to-vmstath.patch removed from -mm
+ tree
+Message-ID: <20201215231849.Vgux1ozj6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,132 +42,336 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cleanup: remove unused tsk arg from __access_remote_vm
+     Subject: mm: move lruvec stats update functions to vmstat.h
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch
+     mm-move-lruvec-stats-update-functions-to-vmstath.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm: cleanup: remove unused tsk arg from __access_remote_vm
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: move lruvec stats update functions to vmstat.h
 
-Despite a comment that said that page fault accounting would be charged to
-whatever task_struct* was passed into __access_remote_vm(), the tsk
-argument was actually unused.
+Patch series "memcg: add pagetable comsumption to memory.stat", v2.
 
-Making page fault accounting actually use this task struct is quite a
-project, so there is no point in keeping the tsk argument.
+Many workloads consumes significant amount of memory in pagetables.  One
+specific use-case is the user space network driver which mmaps the
+application memory to provide zero copy transfer.  This driver can consume
+a large amount memory in page tables.  This patch series exposes the
+pagetable comsumption for each memory cgroup.
 
-Delete both the comment, and the argument.
 
-[rppt@linux.ibm.com: changelog addition]
-Link: https://lkml.kernel.org/r/20201026074137.4147787-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+This patch (of 2):
+
+This does not change any functionality and only move the functions which
+update the lruvec stats to vmstat.h from memcontrol.h.  The main reason
+for this patch is to be able to use these functions in the page table
+contructor function which is defined in mm.h and we can not include the
+memcontrol.h in that file.  Also this is a better place for this interface
+in general.  The lruvec abstraction, while invented for memcg, isn't
+specific to memcg at all.
+
+Link: https://lkml.kernel.org/r/20201130212541.2781790-2-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- kernel/ptrace.c    |    2 +-
- mm/memory.c        |   11 +++++------
- mm/nommu.c         |    8 ++++----
- 4 files changed, 12 insertions(+), 13 deletions(-)
+ include/linux/memcontrol.h |  111 -----------------------------------
+ include/linux/vmstat.h     |  104 ++++++++++++++++++++++++++++++++
+ mm/memcontrol.c            |   17 +++++
+ 3 files changed, 121 insertions(+), 111 deletions(-)
 
---- a/include/linux/mm.h~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
-+++ a/include/linux/mm.h
-@@ -1716,8 +1716,8 @@ extern int access_process_vm(struct task
- 		void *buf, int len, unsigned int gup_flags);
- extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
- 		void *buf, int len, unsigned int gup_flags);
--extern int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
--		unsigned long addr, void *buf, int len, unsigned int gup_flags);
-+extern int __access_remote_vm(struct mm_struct *mm, unsigned long addr,
-+			      void *buf, int len, unsigned int gup_flags);
+--- a/include/linux/memcontrol.h~mm-move-lruvec-stats-update-functions-to-vmstath
++++ a/include/linux/memcontrol.h
+@@ -786,8 +786,6 @@ static inline unsigned long lruvec_page_
  
- long get_user_pages_remote(struct mm_struct *mm,
- 			    unsigned long start, unsigned long nr_pages,
---- a/kernel/ptrace.c~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
-+++ a/kernel/ptrace.c
-@@ -57,7 +57,7 @@ int ptrace_access_vm(struct task_struct
- 		return 0;
- 	}
+ void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			      int val);
+-void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+-			int val);
+ void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val);
  
--	ret = __access_remote_vm(tsk, mm, addr, buf, len, gup_flags);
-+	ret = __access_remote_vm(mm, addr, buf, len, gup_flags);
- 	mmput(mm);
- 
- 	return ret;
---- a/mm/memory.c~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
-+++ a/mm/memory.c
-@@ -4885,11 +4885,10 @@ EXPORT_SYMBOL_GPL(generic_access_phys);
- #endif
- 
- /*
-- * Access another process' address space as given in mm.  If non-NULL, use the
-- * given task for page fault accounting.
-+ * Access another process' address space as given in mm.
-  */
--int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
--		unsigned long addr, void *buf, int len, unsigned int gup_flags)
-+int __access_remote_vm(struct mm_struct *mm, unsigned long addr, void *buf,
-+		       int len, unsigned int gup_flags)
- {
- 	struct vm_area_struct *vma;
- 	void *old_buf = buf;
-@@ -4966,7 +4965,7 @@ int __access_remote_vm(struct task_struc
- int access_remote_vm(struct mm_struct *mm, unsigned long addr,
- 		void *buf, int len, unsigned int gup_flags)
- {
--	return __access_remote_vm(NULL, mm, addr, buf, len, gup_flags);
-+	return __access_remote_vm(mm, addr, buf, len, gup_flags);
+ static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+@@ -810,43 +808,6 @@ static inline void mod_memcg_lruvec_stat
+ 	local_irq_restore(flags);
  }
  
- /*
-@@ -4984,7 +4983,7 @@ int access_process_vm(struct task_struct
- 	if (!mm)
- 		return 0;
- 
--	ret = __access_remote_vm(tsk, mm, addr, buf, len, gup_flags);
-+	ret = __access_remote_vm(mm, addr, buf, len, gup_flags);
- 
- 	mmput(mm);
- 
---- a/mm/nommu.c~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
-+++ a/mm/nommu.c
-@@ -1675,8 +1675,8 @@ void filemap_map_pages(struct vm_fault *
- }
- EXPORT_SYMBOL(filemap_map_pages);
- 
--int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
--		unsigned long addr, void *buf, int len, unsigned int gup_flags)
-+int __access_remote_vm(struct mm_struct *mm, unsigned long addr, void *buf,
-+		       int len, unsigned int gup_flags)
+-static inline void mod_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx, int val)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__mod_lruvec_state(lruvec, idx, val);
+-	local_irq_restore(flags);
+-}
+-
+-static inline void __mod_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx, int val)
+-{
+-	struct page *head = compound_head(page); /* rmap on tail pages */
+-	pg_data_t *pgdat = page_pgdat(page);
+-	struct lruvec *lruvec;
+-
+-	/* Untracked pages have no memcg, no lruvec. Update only the node */
+-	if (!head->mem_cgroup) {
+-		__mod_node_page_state(pgdat, idx, val);
+-		return;
+-	}
+-
+-	lruvec = mem_cgroup_lruvec(head->mem_cgroup, pgdat);
+-	__mod_lruvec_state(lruvec, idx, val);
+-}
+-
+-static inline void mod_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx, int val)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__mod_lruvec_page_state(page, idx, val);
+-	local_irq_restore(flags);
+-}
+-
+ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+ 						gfp_t gfp_mask,
+ 						unsigned long *total_scanned);
+@@ -1205,30 +1166,6 @@ static inline void __mod_memcg_lruvec_st
  {
- 	struct vm_area_struct *vma;
- 	int write = gup_flags & FOLL_WRITE;
-@@ -1722,7 +1722,7 @@ int __access_remote_vm(struct task_struc
- int access_remote_vm(struct mm_struct *mm, unsigned long addr,
- 		void *buf, int len, unsigned int gup_flags)
- {
--	return __access_remote_vm(NULL, mm, addr, buf, len, gup_flags);
-+	return __access_remote_vm(mm, addr, buf, len, gup_flags);
  }
  
- /*
-@@ -1741,7 +1741,7 @@ int access_process_vm(struct task_struct
- 	if (!mm)
- 		return 0;
+-static inline void __mod_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx, int val)
+-{
+-	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+-}
+-
+-static inline void mod_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx, int val)
+-{
+-	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+-}
+-
+-static inline void __mod_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx, int val)
+-{
+-	__mod_node_page_state(page_pgdat(page), idx, val);
+-}
+-
+-static inline void mod_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx, int val)
+-{
+-	mod_node_page_state(page_pgdat(page), idx, val);
+-}
+-
+ static inline void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					   int val)
+ {
+@@ -1308,30 +1245,6 @@ static inline void __dec_memcg_page_stat
+ 	__mod_memcg_page_state(page, idx, -1);
+ }
  
--	len = __access_remote_vm(tsk, mm, addr, buf, len, gup_flags);
-+	len = __access_remote_vm(mm, addr, buf, len, gup_flags);
+-static inline void __inc_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx)
+-{
+-	__mod_lruvec_state(lruvec, idx, 1);
+-}
+-
+-static inline void __dec_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx)
+-{
+-	__mod_lruvec_state(lruvec, idx, -1);
+-}
+-
+-static inline void __inc_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx)
+-{
+-	__mod_lruvec_page_state(page, idx, 1);
+-}
+-
+-static inline void __dec_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx)
+-{
+-	__mod_lruvec_page_state(page, idx, -1);
+-}
+-
+ static inline void __inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
+ {
+ 	__mod_lruvec_kmem_state(p, idx, 1);
+@@ -1370,30 +1283,6 @@ static inline void dec_memcg_page_state(
+ 	mod_memcg_page_state(page, idx, -1);
+ }
  
- 	mmput(mm);
- 	return len;
+-static inline void inc_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx)
+-{
+-	mod_lruvec_state(lruvec, idx, 1);
+-}
+-
+-static inline void dec_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx)
+-{
+-	mod_lruvec_state(lruvec, idx, -1);
+-}
+-
+-static inline void inc_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx)
+-{
+-	mod_lruvec_page_state(page, idx, 1);
+-}
+-
+-static inline void dec_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx)
+-{
+-	mod_lruvec_page_state(page, idx, -1);
+-}
+-
+ static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
+ {
+ 	struct mem_cgroup *memcg;
+--- a/include/linux/vmstat.h~mm-move-lruvec-stats-update-functions-to-vmstath
++++ a/include/linux/vmstat.h
+@@ -450,4 +450,108 @@ static inline const char *vm_event_name(
+ }
+ #endif /* CONFIG_VM_EVENT_COUNTERS || CONFIG_MEMCG */
+ 
++#ifdef CONFIG_MEMCG
++
++void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
++			int val);
++
++static inline void mod_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx, int val)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__mod_lruvec_state(lruvec, idx, val);
++	local_irq_restore(flags);
++}
++
++void __mod_lruvec_page_state(struct page *page,
++			     enum node_stat_item idx, int val);
++
++static inline void mod_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx, int val)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__mod_lruvec_page_state(page, idx, val);
++	local_irq_restore(flags);
++}
++
++#else
++
++static inline void __mod_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx, int val)
++{
++	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++}
++
++static inline void mod_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx, int val)
++{
++	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++}
++
++static inline void __mod_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx, int val)
++{
++	__mod_node_page_state(page_pgdat(page), idx, val);
++}
++
++static inline void mod_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx, int val)
++{
++	mod_node_page_state(page_pgdat(page), idx, val);
++}
++
++#endif /* CONFIG_MEMCG */
++
++static inline void __inc_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx)
++{
++	__mod_lruvec_state(lruvec, idx, 1);
++}
++
++static inline void __dec_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx)
++{
++	__mod_lruvec_state(lruvec, idx, -1);
++}
++
++static inline void __inc_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx)
++{
++	__mod_lruvec_page_state(page, idx, 1);
++}
++
++static inline void __dec_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx)
++{
++	__mod_lruvec_page_state(page, idx, -1);
++}
++
++static inline void inc_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx)
++{
++	mod_lruvec_state(lruvec, idx, 1);
++}
++
++static inline void dec_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx)
++{
++	mod_lruvec_state(lruvec, idx, -1);
++}
++
++static inline void inc_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx)
++{
++	mod_lruvec_page_state(page, idx, 1);
++}
++
++static inline void dec_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx)
++{
++	mod_lruvec_page_state(page, idx, -1);
++}
++
+ #endif /* _LINUX_VMSTAT_H */
+--- a/mm/memcontrol.c~mm-move-lruvec-stats-update-functions-to-vmstath
++++ a/mm/memcontrol.c
+@@ -853,6 +853,23 @@ void __mod_lruvec_state(struct lruvec *l
+ 		__mod_memcg_lruvec_state(lruvec, idx, val);
+ }
+ 
++void __mod_lruvec_page_state(struct page *page, enum node_stat_item idx,
++			     int val)
++{
++	struct page *head = compound_head(page); /* rmap on tail pages */
++	pg_data_t *pgdat = page_pgdat(page);
++	struct lruvec *lruvec;
++
++	/* Untracked pages have no memcg, no lruvec. Update only the node */
++	if (!head->mem_cgroup) {
++		__mod_node_page_state(pgdat, idx, val);
++		return;
++	}
++
++	lruvec = mem_cgroup_lruvec(head->mem_cgroup, pgdat);
++	__mod_lruvec_state(lruvec, idx, val);
++}
++
+ void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
+ {
+ 	pg_data_t *pgdat = page_pgdat(virt_to_page(p));
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
 
