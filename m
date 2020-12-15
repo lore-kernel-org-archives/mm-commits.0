@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6D96C2BBCA
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 20:35:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF0DC4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 20:35:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82FE522C7B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 20:35:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 204F2222BB
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 20:35:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726072AbgLOUfS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 15:35:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36354 "EHLO mail.kernel.org"
+        id S1727623AbgLOUf1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 15:35:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729069AbgLOUeT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 15:34:19 -0500
-Date:   Tue, 15 Dec 2020 12:33:24 -0800
+        id S1729325AbgLOUeY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 15:34:24 -0500
+Date:   Tue, 15 Dec 2020 12:34:07 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608064406;
-        bh=supK10J6PyZPRKp1A8xh0qJcUSeFlUi3DibL24SyoOc=;
+        s=korg; t=1608064449;
+        bh=x2mmbCdpPJf2IlvVW3PZy7aYbI/LxsQFYS4ckvi7cqo=;
         h=From:To:Subject:In-Reply-To:From;
-        b=GZ+rkgwfNpCanPzyq/JBZafL7zEvPGiVQQdcdJsVyM0jz6Dug1rht4H1ug0RRDwsK
-         tyk5xD3wHzkl6G3RLzEKHs9KZSa5wBejDYHwyVE7Uqshz+wGWGNI0UEfZigXXK5Bkx
-         IkHfy98wiB/GxsXmCOX07WBwNBLNJpu+L1whpxjE=
+        b=LqrzDGgWrcTV0MNUtv5qHnq1QC05+hR7q/PKbuYoiKkN+B9lt74BhO3Rd8hXtKP2M
+         J8cjupsbYRJxnYkCwevbjIcWp1xxKmyGOPxpt+GKpRlf+3ApTJoGKmzY493enooI+P
+         NgltWCSXxTreEi4JenxDjrWluyH2NO67GNxOmg7o=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         alex.shi@linux.alibaba.com, alexander.duyck@gmail.com,
@@ -41,9 +41,9 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  [patch 02/19] mm/thp: use head for head page in
- lru_add_page_tail()
-Message-ID: <20201215203324.vyhdW4WXY%akpm@linux-foundation.org>
+Subject:  [patch 12/19] mm/mlock: remove lru_lock on
+ TestClearPageMlocked
+Message-ID: <20201215203407.nGAUjeqv5%akpm@linux-foundation.org>
 In-Reply-To: <20201215123253.954eca9a5ef4c0d52fd381fa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -55,18 +55,29 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/thp: use head for head page in lru_add_page_tail()
+Subject: mm/mlock: remove lru_lock on TestClearPageMlocked
 
-Since the first parameter is only used by head page, it's better to make
-it explicit.
+In the func munlock_vma_page, comments mentained lru_lock needed for
+serialization with split_huge_pages.  But the page must be PageLocked as
+well as pages in split_huge_page series funcs.  Thus the PageLocked is
+enough to serialize both funcs.
 
-Link: https://lkml.kernel.org/r/1604566549-62481-3-git-send-email-alex.shi@=
-linux.alibaba.com
+Further more, Hugh Dickins pointed: before splitting in
+split_huge_page_to_list, the page was unmap_page() to remove pmd/ptes
+which protect the page from munlock.  Thus, no needs to guard
+__split_huge_page_tail for mlock clean, just keep the lru_lock there for
+isolation purpose.
+
+LKP found a preempt issue on __mod_zone_page_state which need change to
+mod_zone_page_state.  Thanks!
+
+Link: https://lkml.kernel.org/r/1604566549-62481-13-git-send-email-alex.shi=
+@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -77,6 +88,7 @@ Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -86,60 +98,60 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ mm/mlock.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-use-head-for-head-page-in-lru_add_page_tail
-+++ a/mm/huge_memory.c
-@@ -2359,33 +2359,32 @@ static void remap_page(struct page *page
- 	}
- }
-=20
--static void lru_add_page_tail(struct page *page, struct page *page_tail,
-+static void lru_add_page_tail(struct page *head, struct page *tail,
- 		struct lruvec *lruvec, struct list_head *list)
+--- a/mm/mlock.c~mm-mlock-remove-lru_lock-on-testclearpagemlocked
++++ a/mm/mlock.c
+@@ -187,40 +187,24 @@ static void __munlock_isolation_failed(s
+ unsigned int munlock_vma_page(struct page *page)
  {
--	VM_BUG_ON_PAGE(!PageHead(page), page);
--	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
--	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
-+	VM_BUG_ON_PAGE(!PageHead(head), head);
-+	VM_BUG_ON_PAGE(PageCompound(tail), head);
-+	VM_BUG_ON_PAGE(PageLRU(tail), head);
- 	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
+ 	int nr_pages;
+-	pg_data_t *pgdat =3D page_pgdat(page);
 =20
- 	if (!list)
--		SetPageLRU(page_tail);
-+		SetPageLRU(tail);
+ 	/* For try_to_munlock() and to serialize with page migration */
+ 	BUG_ON(!PageLocked(page));
+-
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
 =20
--	if (likely(PageLRU(page)))
--		list_add_tail(&page_tail->lru, &page->lru);
-+	if (likely(PageLRU(head)))
-+		list_add_tail(&tail->lru, &head->lru);
- 	else if (list) {
- 		/* page reclaim is reclaiming a huge page */
--		get_page(page_tail);
--		list_add_tail(&page_tail->lru, list);
-+		get_page(tail);
-+		list_add_tail(&tail->lru, list);
- 	} else {
- 		/*
- 		 * Head page has not yet been counted, as an hpage,
- 		 * so we must account for each subpage individually.
- 		 *
--		 * Put page_tail on the list at the correct position
-+		 * Put tail on the list at the correct position
- 		 * so they all end up in order.
- 		 */
--		add_page_to_lru_list_tail(page_tail, lruvec,
--					  page_lru(page_tail));
-+		add_page_to_lru_list_tail(tail, lruvec, page_lru(tail));
+-	/*
+-	 * Serialize with any parallel __split_huge_page_refcount() which
+-	 * might otherwise copy PageMlocked to part of the tail pages before
+-	 * we clear it in the head page. It also stabilizes thp_nr_pages().
+-	 */
+-	spin_lock_irq(&pgdat->lru_lock);
+-
+ 	if (!TestClearPageMlocked(page)) {
+ 		/* Potentially, PTE-mapped THP: do not skip the rest PTEs */
+-		nr_pages =3D 1;
+-		goto unlock_out;
++		return 0;
  	}
+=20
+ 	nr_pages =3D thp_nr_pages(page);
+-	__mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
++	mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+=20
+-	if (__munlock_isolate_lru_page(page, true)) {
+-		spin_unlock_irq(&pgdat->lru_lock);
++	if (!isolate_lru_page(page))
+ 		__munlock_isolated_page(page);
+-		goto out;
+-	}
+-	__munlock_isolation_failed(page);
+-
+-unlock_out:
+-	spin_unlock_irq(&pgdat->lru_lock);
++	else
++		__munlock_isolation_failed(page);
+=20
+-out:
+ 	return nr_pages - 1;
  }
 =20
 _
