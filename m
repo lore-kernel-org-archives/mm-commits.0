@@ -5,34 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B971C2BB9A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:04:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4383C2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 384B8224D4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:04:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7433A223C8
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726640AbgLODEV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:04:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60092 "EHLO mail.kernel.org"
+        id S1727206AbgLODEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:04:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726296AbgLODEM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:04:12 -0500
-Date:   Mon, 14 Dec 2020 19:03:31 -0800
+        id S1727205AbgLODEo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:04:44 -0500
+Date:   Mon, 14 Dec 2020 19:03:47 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001411;
-        bh=JYhWyyqVqjgd0yMU2RXhuM6QiJjOhcMMj8T1gXd0Xd4=;
+        s=korg; t=1608001427;
+        bh=BrOs31bzRzbga8iT77pebv9RMCkDkAX3J0D5AQxY54c=;
         h=From:To:Subject:In-Reply-To:From;
-        b=Qsz2ZdRKsUhz/+uSxD6UP73YXiJQX2sBqWmaLJ0N7hGsyVVsVRRpYJdY3KqWbgQAp
-         GpFm4ZN/6mZGGDyr2Pf2VYXeipGlxMhnjZNDKvDGJ24H+KSfzIPE+ci6l+vR6GErdD
-         gHkCkdyFMu6RwD021M4XyPrqQ5B32vF61Xg7i2Tc=
+        b=VTCJQBzAZvQwsKu9eWSmDIjmQwdy7K4FzUjTpERUfFmKSPmstlGS3PAScvYvzCqFN
+         D0W8eeGLDyLGyf6J7CFlZSL+sxqZAsyksBAzoLVM66CnimR4nT7r8v6ePh3RILZNDk
+         KJn5lK+ANZyF1WiLFPfpq/G3PI+zweq2fnIM4fnI=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        anton@tuxera.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 006/200] fs/ntfs: remove unused varibles
-Message-ID: <20201215030331.lz-Coke8-%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, sh_def@163.com, torvalds@linux-foundation.org
+Subject:  [patch 011/200] mm/slab_common.c: use list_for_each_entry
+ in dump_unreclaimable_slab()
+Message-ID: <20201215030347.ipFWzEFOp%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,63 +41,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: fs/ntfs: remove unused varibles
+From: Hui Su <sh_def@163.com>
+Subject: mm/slab_common.c: use list_for_each_entry in dump_unreclaimable_slab()
 
-We actually don't use these varibles, so remove them to avoid gcc warning:
-fs/ntfs/file.c:326:14: warning: variable `base_ni' set but not used
-[-Wunused-but-set-variable]
-fs/ntfs/logfile.c:481:21: warning: variable `log_page_mask' set but not
-used [-Wunused-but-set-variable]
+dump_unreclaimable_slab() acquires the slab_mutex first, and it won't
+remove any slab_caches list entry when itering the slab_caches lists.
 
-Link: https://lkml.kernel.org/r/1604821092-54631-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Anton Altaparmakov <anton@tuxera.com>
+Thus we do not need list_for_each_entry_safe here, which is against
+removal of list entry.
+
+Link: https://lkml.kernel.org/r/20200926043440.GA180545@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/file.c    |    5 +----
- fs/ntfs/logfile.c |    3 +--
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ mm/slab_common.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ntfs/file.c~fs-ntfs-remove-unused-varibles
-+++ a/fs/ntfs/file.c
-@@ -323,7 +323,7 @@ static ssize_t ntfs_prepare_file_for_wri
- 	unsigned long flags;
- 	struct file *file = iocb->ki_filp;
- 	struct inode *vi = file_inode(file);
--	ntfs_inode *base_ni, *ni = NTFS_I(vi);
-+	ntfs_inode *ni = NTFS_I(vi);
- 	ntfs_volume *vol = ni->vol;
+--- a/mm/slab_common.c~mmslab_common-use-list_for_each_entry-in-dump_unreclaimable_slab
++++ a/mm/slab_common.c
+@@ -978,7 +978,7 @@ static int slab_show(struct seq_file *m,
  
- 	ntfs_debug("Entering for i_ino 0x%lx, attribute type 0x%x, pos "
-@@ -365,9 +365,6 @@ static ssize_t ntfs_prepare_file_for_wri
- 		err = -EOPNOTSUPP;
- 		goto out;
- 	}
--	base_ni = ni;
--	if (NInoAttr(ni))
--		base_ni = ni->ext.base_ntfs_ino;
- 	err = file_remove_privs(file);
- 	if (unlikely(err))
- 		goto out;
---- a/fs/ntfs/logfile.c~fs-ntfs-remove-unused-varibles
-+++ a/fs/ntfs/logfile.c
-@@ -478,7 +478,7 @@ bool ntfs_check_logfile(struct inode *lo
- 	u8 *kaddr = NULL;
- 	RESTART_PAGE_HEADER *rstr1_ph = NULL;
- 	RESTART_PAGE_HEADER *rstr2_ph = NULL;
--	int log_page_size, log_page_mask, err;
-+	int log_page_size, err;
- 	bool logfile_is_empty = true;
- 	u8 log_page_bits;
+ void dump_unreclaimable_slab(void)
+ {
+-	struct kmem_cache *s, *s2;
++	struct kmem_cache *s;
+ 	struct slabinfo sinfo;
  
-@@ -501,7 +501,6 @@ bool ntfs_check_logfile(struct inode *lo
- 		log_page_size = DefaultLogPageSize;
- 	else
- 		log_page_size = PAGE_SIZE;
--	log_page_mask = log_page_size - 1;
  	/*
- 	 * Use ntfs_ffs() instead of ffs() to enable the compiler to
- 	 * optimize log_page_size and log_page_bits into constants.
+@@ -996,7 +996,7 @@ void dump_unreclaimable_slab(void)
+ 	pr_info("Unreclaimable slab info:\n");
+ 	pr_info("Name                      Used          Total\n");
+ 
+-	list_for_each_entry_safe(s, s2, &slab_caches, list) {
++	list_for_each_entry(s, &slab_caches, list) {
+ 		if (s->flags & SLAB_RECLAIM_ACCOUNT)
+ 			continue;
+ 
 _
