@@ -7,42 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 831C3C2BBD4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B549C3526B
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B5AC22CF8
+	by mail.kernel.org (Postfix) with ESMTP id 71C0422CAE
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727115AbgLPAAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727112AbgLPAAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 19:00:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34580 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727410AbgLOX1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727406AbgLOX1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:27:48 -0500
-Date:   Tue, 15 Dec 2020 15:16:07 -0800
+Date:   Tue, 15 Dec 2020 15:23:51 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074169;
-        bh=O8B1KNJ0eSY6OVi9v2eSsMMAetPRrgnccGNvjQW6JY0=;
+        s=korg; t=1608074632;
+        bh=E9iklCcge1mquXi1gZjklgsQM1UiaTQZWIR7jAbaARE=;
         h=From:To:Subject:From;
-        b=0Gmyk+tnfS097kxGyfSqhWC0TRoBdgpPKJxYxBXT3Ap75+hCqLiWgxrTbl78Hfzl0
-         2ppGsDtQV5BNH15pNW86R6Gp30tN3kIFF6dVf84KhCu9lxKVGwTzrjO08rhiNXKQKM
-         3KfwK8NK7LB0dRQBRJx80tUi3raw1a1MTyV1mwLI=
+        b=CS62wFL8lKSkSLU1vtlPIbUV2iv8NZleMdgV/xpBOIMBOSCN0eZuejogoI6IxFS9m
+         ksTKdP7b2y2QBgmT7qNEZykwKWlyjbR24vVnetKHM6BNU9yzpukSo1sRVME24xFMRw
+         aMtToWin1pyWssI+Uw1V/n9PItJOwI6LgpJjvjho=
 From:   akpm@linux-foundation.org
-To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
-        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
-        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
-        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
-        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
-        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
-        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
-        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
-        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
-        tzimmermann@suse.de, vbabka@suse.cz
+To:     david@redhat.com, glider@google.com, keescook@chromium.org,
+        labbott@kernel.org, mateusznosek0@gmail.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
+        rppt@linux.ibm.com, vbabka@suse.cz
 Subject:  [merged]
- mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch removed from -mm
- tree
-Message-ID: <20201215231607.Et_uWt3uc%akpm@linux-foundation.org>
+ mm-page_poison-remove-config_page_poisoning_no_sanity.patch removed from
+ -mm tree
+Message-ID: <20201215232351.m1moOaCr7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,90 +44,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slab: clarify krealloc()'s behavior with __GFP_ZERO
+     Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_NO_SANITY
 has been removed from the -mm tree.  Its filename was
-     mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
+     mm-page_poison-remove-config_page_poisoning_no_sanity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: mm: slab: clarify krealloc()'s behavior with __GFP_ZERO
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_NO_SANITY
 
-Patch series "slab: provide and use krealloc_array()", v3.
+CONFIG_PAGE_POISONING_NO_SANITY skips the check on page alloc whether the
+poison pattern was corrupted, suggesting a use-after-free.  The motivation
+to introduce it in commit 8823b1dbc05f ("mm/page_poison.c: enable
+PAGE_POISONING as a separate option") was to simply sanitize freed pages,
+optimally together with CONFIG_PAGE_POISONING_ZERO.
 
-Andy brought to my attention the fact that users allocating an array of
-equally sized elements should check if the size multiplication doesn't
-overflow.  This is why we have helpers like kmalloc_array().
+These days we have an init_on_free=1 boot option, which makes this use
+case of page poisoning redundant.  For sanitizing, writing zeroes is
+sufficient, there is pretty much no benefit from writing the 0xAA poison
+pattern to freed pages, without checking it back on alloc.  Thus, remove
+this option and suggest init_on_free instead in the main config's help.
 
-However we don't have krealloc_array() equivalent and there are many users
-who do their own multiplication when calling krealloc() for arrays.
-
-This series provides krealloc_array() and uses it in a couple places.
-
-A separate series will follow adding devm_krealloc_array() which is needed
-in the xilinx adc driver.
-
-
-This patch (of 9):
-
-__GFP_ZERO is ignored by krealloc() (unless we fall-back to kmalloc()
-path, in which case it's honored).  Point that out in the kerneldoc.
-
-Link: https://lkml.kernel.org/r/20201109110654.12547-1-brgl@bgdev.pl
-Link: https://lkml.kernel.org/r/20201109110654.12547-2-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: Christian Knig <christian.koenig@amd.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20201113104033.22907-5-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Laura Abbott <labbott@kernel.org>
+Cc: Mateusz Nosek <mateusznosek0@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/virtio/virtio_balloon.c |    4 +---
+ mm/Kconfig.debug                |   15 ++++-----------
+ mm/page_poison.c                |    3 ---
+ 3 files changed, 5 insertions(+), 17 deletions(-)
 
---- a/mm/slab_common.c~mm-slab-clarify-kreallocs-behavior-with-__gfp_zero
-+++ a/mm/slab_common.c
-@@ -1091,9 +1091,9 @@ static __always_inline void *__do_kreall
-  * @flags: the type of memory to allocate.
-  *
-  * The contents of the object pointed to are preserved up to the
-- * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-- * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
-- * %NULL pointer, the object pointed to is freed.
-+ * lesser of the new and old sizes (__GFP_ZERO flag is effectively ignored).
-+ * If @p is %NULL, krealloc() behaves exactly like kmalloc().  If @new_size
-+ * is 0 and @p is not a %NULL pointer, the object pointed to is freed.
-  *
-  * Return: pointer to the allocated memory or %NULL in case of error
-  */
+--- a/drivers/virtio/virtio_balloon.c~mm-page_poison-remove-config_page_poisoning_no_sanity
++++ a/drivers/virtio/virtio_balloon.c
+@@ -1114,9 +1114,7 @@ static int virtballoon_validate(struct v
+ 	 * page reporting as it could potentially change the contents
+ 	 * of our free pages.
+ 	 */
+-	if (!want_init_on_free() &&
+-	    (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY) ||
+-	     !page_poisoning_enabled_static()))
++	if (!want_init_on_free() && !page_poisoning_enabled_static())
+ 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_PAGE_POISON);
+ 	else if (!virtio_has_feature(vdev, VIRTIO_BALLOON_F_PAGE_POISON))
+ 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_REPORTING);
+--- a/mm/Kconfig.debug~mm-page_poison-remove-config_page_poisoning_no_sanity
++++ a/mm/Kconfig.debug
+@@ -74,18 +74,11 @@ config PAGE_POISONING
+ 	  Note that "poison" here is not the same thing as the "HWPoison"
+ 	  for CONFIG_MEMORY_FAILURE. This is software poisoning only.
+ 
+-	  If unsure, say N
+-
+-config PAGE_POISONING_NO_SANITY
+-	depends on PAGE_POISONING
+-	bool "Only poison, don't sanity check"
+-	help
+-	   Skip the sanity checking on alloc, only fill the pages with
+-	   poison on free. This reduces some of the overhead of the
+-	   poisoning feature.
++	  If you are only interested in sanitization of freed pages without
++	  checking the poison pattern on alloc, you can boot the kernel with
++	  "init_on_free=1" instead of enabling this.
+ 
+-	   If you are only interested in sanitization, say Y. Otherwise
+-	   say N.
++	  If unsure, say N
+ 
+ config PAGE_POISONING_ZERO
+ 	bool "Use zero for poisoning instead of debugging value"
+--- a/mm/page_poison.c~mm-page_poison-remove-config_page_poisoning_no_sanity
++++ a/mm/page_poison.c
+@@ -51,9 +51,6 @@ static void check_poison_mem(unsigned ch
+ 	unsigned char *start;
+ 	unsigned char *end;
+ 
+-	if (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY))
+-		return;
+-
+ 	start = memchr_inv(mem, PAGE_POISON, bytes);
+ 	if (!start)
+ 		return;
 _
 
-Patches currently in -mm which might be from bgolaszewski@baylibre.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
