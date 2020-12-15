@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C626EC2BB9A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C174FC2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FDE2224B1
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A015B224BE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726101AbgLODHo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:07:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35502 "EHLO mail.kernel.org"
+        id S1725812AbgLODHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:07:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726371AbgLODHg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:07:36 -0500
-Date:   Mon, 14 Dec 2020 19:06:55 -0800
+        id S1726416AbgLODHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:07:39 -0500
+Date:   Mon, 14 Dec 2020 19:06:58 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001616;
-        bh=2iXXHN94RMTYUB7JedNEBAXLqJE+Pdedcoutnio/adc=;
+        s=korg; t=1608001619;
+        bh=FpdvWQ14XbLJZFBX0PzgmuFtx8SnJaF2BXWMwE10v7s=;
         h=From:To:Subject:In-Reply-To:From;
-        b=hlIFimqIWBN6Q69w6fjWRzsa49bIlvLcJaOr7m+b+8dm4wyChslnhM8W4roWcZUaw
-         cIA1lMaRFU5ihbuRRewJkASpcVeyko8RLBwizacbQtH+ia9WRrgE9wIIHanwuiuhx4
-         boa3tG++rsiC0Mcn7QsHesv0SQXcMf45MnHecFgE=
+        b=QTQitkCFt6nYh9v8KrxqUrhI1uD7dx30zGa479KD/9bWjg/f2XKZQQi1wCw0kUSES
+         Xb92nBkCE3y+AgvDy+7bqDOIwGPYGGcXzo9a4UHBx85kSp4uQ+LioLWnHGAzciQIEz
+         KXOWfPXXe1WF7BBl2wk2wBAUZKNsE2/OkZ29Hktk=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, shakeelb@google.com, tj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 065/200] cgroup: remove obsoleted broken_hierarchy
- and warned_broken_hierarchy
-Message-ID: <20201215030655.EWRa9SRZK%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, pankaj.gupta@cloud.ionos.com,
+        sh_def@163.com, torvalds@linux-foundation.org
+Subject:  [patch 066/200] mm/page_counter: use page_counter_read in
+ page_counter_set_max
+Message-ID: <20201215030658.dSgSOYOYo%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,67 +41,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: cgroup: remove obsoleted broken_hierarchy and warned_broken_hierarchy
+From: Hui Su <sh_def@163.com>
+Subject: mm/page_counter: use page_counter_read in page_counter_set_max
 
-With the deprecation of the non-hierarchical mode of the memory controller
-there are no more examples of broken hierarchies left.
+Use page_counter_read() in page_counter_set_max().
 
-Let's remove the cgroup core code which was supposed to print warnings
-about creating of broken hierarchies.
-
-Link: https://lkml.kernel.org/r/20201110220800.929549-4-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20201113141048.GA178922@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup-defs.h |   15 ---------------
- kernel/cgroup/cgroup.c      |    7 -------
- 2 files changed, 22 deletions(-)
+ mm/page_counter.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/cgroup-defs.h~cgroup-remove-obsoleted-broken_hierarchy-and-warned_broken_hierarchy
-+++ a/include/linux/cgroup-defs.h
-@@ -668,21 +668,6 @@ struct cgroup_subsys {
- 	 */
- 	bool threaded:1;
+--- a/mm/page_counter.c~mm-page_counter-use-page_counter_read-in-page_counter_set_max
++++ a/mm/page_counter.c
+@@ -183,14 +183,14 @@ int page_counter_set_max(struct page_cou
+ 		 * the limit, so if it sees the old limit, we see the
+ 		 * modified counter and retry.
+ 		 */
+-		usage = atomic_long_read(&counter->usage);
++		usage = page_counter_read(counter);
  
--	/*
--	 * If %false, this subsystem is properly hierarchical -
--	 * configuration, resource accounting and restriction on a parent
--	 * cgroup cover those of its children.  If %true, hierarchy support
--	 * is broken in some ways - some subsystems ignore hierarchy
--	 * completely while others are only implemented half-way.
--	 *
--	 * It's now disallowed to create nested cgroups if the subsystem is
--	 * broken and cgroup core will emit a warning message on such
--	 * cases.  Eventually, all subsystems will be made properly
--	 * hierarchical and this will go away.
--	 */
--	bool broken_hierarchy:1;
--	bool warned_broken_hierarchy:1;
--
- 	/* the following two fields are initialized automtically during boot */
- 	int id;
- 	const char *name;
---- a/kernel/cgroup/cgroup.c~cgroup-remove-obsoleted-broken_hierarchy-and-warned_broken_hierarchy
-+++ a/kernel/cgroup/cgroup.c
-@@ -5149,13 +5149,6 @@ static struct cgroup_subsys_state *css_c
- 	if (err)
- 		goto err_list_del;
+ 		if (usage > nr_pages)
+ 			return -EBUSY;
  
--	if (ss->broken_hierarchy && !ss->warned_broken_hierarchy &&
--	    cgroup_parent(parent)) {
--		pr_warn("%s (%d) created nested cgroup for controller \"%s\" which has incomplete hierarchy support. Nested cgroups may change behavior in the future.\n",
--			current->comm, current->pid, ss->name);
--		ss->warned_broken_hierarchy = true;
--	}
--
- 	return css;
+ 		old = xchg(&counter->max, nr_pages);
  
- err_list_del:
+-		if (atomic_long_read(&counter->usage) <= usage)
++		if (page_counter_read(counter) <= usage)
+ 			return 0;
+ 
+ 		counter->max = old;
 _
