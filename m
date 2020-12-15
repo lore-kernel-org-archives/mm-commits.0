@@ -7,33 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC962C47437
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13211C4743B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C2F322DD6
+	by mail.kernel.org (Postfix) with ESMTP id D0FD622D0A
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726160AbgLOX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32898 "EHLO mail.kernel.org"
+        id S1726951AbgLOX75 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729861AbgLOX0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:08 -0500
-Date:   Tue, 15 Dec 2020 15:17:25 -0800
+        id S1725958AbgLOX0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:26:40 -0500
+Date:   Tue, 15 Dec 2020 15:16:27 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074245;
-        bh=K+NKcL6ygbgyE5vdAZDniSyCWoSYj9SLjE4VezBlk8M=;
+        s=korg; t=1608074189;
+        bh=rBMh7AwgEN4SCRZJnzXE+y+ZoefDhsEWBTFAEkatcJU=;
         h=From:To:Subject:From;
-        b=Q5ttndOqQKpFi8MILA+HZl39dBbyiz5R8hTQqiW4v83n3h0MLnFursMs/Xd4ZJqUC
-         Su+svfBV1ZGclsuKpzks5ON5qO1PsUGG8UhAgGeoizuIVnSAv3agGL8R4Oiip8/LpT
-         XKsOgdf1StsMKIf+eGxNU9fczzC7qy/rIYCvovk8=
+        b=eMbSSAcAPXmm5wG6DO41quN3uIi0vXYUNUwCzxEyqqyFmZlXQXMJU0+paqAK3w++0
+         iPQ4quWATt9sPERVBCmm7OBs3kLj91Vu/sTV4ZlrhdBF9xZAuVspfrsfw/o1sV5OQE
+         bo2izGZ/f6BFCAqd0ITaFyOLfcQpCKJjAdSwN/8E=
 From:   akpm@linux-foundation.org
-To:     jgg@nvidia.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, song.bao.hua@hisilicon.com
-Subject:  [merged]
- mm-gup_benchmark-mark-gup_benchmark_init-as-__init-function.patch removed
- from -mm tree
-Message-ID: <20201215231725.tneYNbZjz%akpm@linux-foundation.org>
+To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
+        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
+        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
+        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
+        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  [merged] edac-ghes-use-krealloc_array.patch removed from
+ -mm tree
+Message-ID: <20201215231627.1H0a47Y3f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,43 +50,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup_test.c: mark gup_test_init as __init function
+     Subject: edac: ghes: use krealloc_array()
 has been removed from the -mm tree.  Its filename was
-     mm-gup_benchmark-mark-gup_benchmark_init-as-__init-function.patch
+     edac-ghes-use-krealloc_array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm/gup_test.c: mark gup_test_init as __init function
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: edac: ghes: use krealloc_array()
 
-gup_test_init() is only called during initialization, mark it as __init to
-save some memory.
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-Link: https://lkml.kernel.org/r/20201103081016.16532-1-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Link: https://lkml.kernel.org/r/20201109110654.12547-7-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Acked-by: Borislav Petkov <bp@suse.de>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/ghes_edac.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup_test.c~mm-gup_benchmark-mark-gup_benchmark_init-as-__init-function
-+++ a/mm/gup_test.c
-@@ -236,7 +236,7 @@ static const struct file_operations gup_
- 	.unlocked_ioctl = gup_test_ioctl,
- };
+--- a/drivers/edac/ghes_edac.c~edac-ghes-use-krealloc_array
++++ a/drivers/edac/ghes_edac.c
+@@ -207,8 +207,8 @@ static void enumerate_dimms(const struct
+ 	if (!hw->num_dimms || !(hw->num_dimms % 16)) {
+ 		struct dimm_info *new;
  
--static int gup_test_init(void)
-+static int __init gup_test_init(void)
- {
- 	debugfs_create_file_unsafe("gup_test", 0600, NULL, NULL,
- 				   &gup_test_fops);
+-		new = krealloc(hw->dimms, (hw->num_dimms + 16) * sizeof(struct dimm_info),
+-			        GFP_KERNEL);
++		new = krealloc_array(hw->dimms, hw->num_dimms + 16,
++				     sizeof(struct dimm_info), GFP_KERNEL);
+ 		if (!new) {
+ 			WARN_ON_ONCE(1);
+ 			return;
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
 
