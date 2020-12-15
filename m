@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79BDDC3527E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7676BC35273
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 538A022D07
+	by mail.kernel.org (Postfix) with ESMTP id 3902622D05
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727284AbgLPAAf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34672 "EHLO mail.kernel.org"
+        id S1725922AbgLPAAi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730222AbgLOX2O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:28:14 -0500
-Date:   Tue, 15 Dec 2020 15:23:47 -0800
+        id S1730265AbgLOX2S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:28:18 -0500
+Date:   Tue, 15 Dec 2020 15:24:31 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074628;
-        bh=cChMVdPYGjzgXNBfInExdSvT2DAVzPbkXnzE2XPv3+s=;
+        s=korg; t=1608074671;
+        bh=umPm25mdXkZMduWjutDf2nNRR613bg2tpS29hVMS1gw=;
         h=From:To:Subject:From;
-        b=0sAO06gpe5v9Ed3iNEKjnuxpdG/cD1ROclgOa/X6xnOl0g49bFe+Jf8Bte7tza2t2
-         tOb6falnPjhXY9mfGF+N3lsnjoGuK0dmKHXJ22HwpHTma7Ddusyf3CTg2uRzO4carw
-         IjPO4eezIj+8ZQSgJtfzzt5weIrhDMA3qeD4wIUc=
+        b=kl2a+tP5kGZbRWc0Z5l4dMahIIolUoXfQOz5PP7om7HxJ7PczCbhhEx1lm4IiM2bs
+         1AdHWRCYTHAAprAmCspu0YV/tuzIX7J1yirHA8q3Et8NhjAbD/vs4vGslXkWmx36mX
+         b8dJ7tTjwoh52pPdSfMVNnZMuoLUCjtRBztPc3QI=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, glider@google.com, keescook@chromium.org,
-        labbott@kernel.org, mateusznosek0@gmail.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
-        rppt@linux.ibm.com, vbabka@suse.cz
-Subject:  [merged]
- mm-page_poison-use-static-key-more-efficiently.patch removed from -mm tree
-Message-ID: <20201215232347.4W6TXFPQ4%akpm@linux-foundation.org>
+To:     mchehab+huawei@kernel.org, mm-commits@vger.kernel.org,
+        willy@infradead.org
+Subject:  [merged] mm-fix-kernel-doc-markups.patch removed from -mm
+ tree
+Message-ID: <20201215232431.1Vv-lBRq6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,250 +41,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_poison: use static key more efficiently
+     Subject: mm: fix kernel-doc markups
 has been removed from the -mm tree.  Its filename was
-     mm-page_poison-use-static-key-more-efficiently.patch
+     mm-fix-kernel-doc-markups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_poison: use static key more efficiently
+From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Subject: mm: fix kernel-doc markups
 
-Commit 11c9c7edae06 ("mm/page_poison.c: replace bool variable with static
-key") changed page_poisoning_enabled() to a static key check.  However,
-the function is not inlined, so each check still involves a function call
-with overhead not eliminated when page poisoning is disabled.
+Kernel-doc markups should use this format:
+        identifier - description
 
-Analogically to how debug_pagealloc is handled, this patch converts
-page_poisoning_enabled() back to boolean check, and introduces
-page_poisoning_enabled_static() for fast paths.  Both functions are
-inlined.
+Fix some issues on mm files:
 
-The function kernel_poison_pages() is also called unconditionally and does
-the static key check inside.  Remove it from there and put it to callers. 
-Also split it to two functions kernel_poison_pages() and
-kernel_unpoison_pages() instead of the confusing bool parameter.
+1) The definition for get_user_pages_locked() doesn't follow it.  Also,
+   it expects a short descrpition at the header, followed by a long one,
+   after the parameters.  Fix it.
 
-Also optimize the check that enables page poisoning instead of
-debug_pagealloc for architectures without proper debug_pagealloc support. 
-Move the check to init_mem_debugging_and_hardening() to enable a single
-static key instead of having two static branches in
-page_poisoning_enabled_static().
+2) Kernel-doc requires that a kernel-doc markup to be immediately below
+   the function prototype, as otherwise it will rename it.  So, move
+   get_pfnblock_flags_mask() description to the right place.
 
-Link: https://lkml.kernel.org/r/20201113104033.22907-3-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@kernel.org>
-Cc: Mateusz Nosek <mateusznosek0@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+3) Make invalidate_mapping_pagevec() to also follow the expected
+   kernel-doc format.
+
+While here, fix a few minor English syntax issues, as suggested
+by Matthew:
+	will used -> will be used
+	similar with -> similar to
+
+Link: https://lkml.kernel.org/r/80e85dddc92d333bc2159ee8a2294921612e8745.1605521731.git.mchehab+huawei@kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Suggested-by: Mattew Wilcox <willy@infradead.org>	[English fixes]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |    2 -
- include/linux/mm.h              |   33 ++++++++++++++++--
- mm/page_alloc.c                 |   18 ++++++++--
- mm/page_poison.c                |   53 +++---------------------------
- 4 files changed, 52 insertions(+), 54 deletions(-)
+ mm/gup.c        |   24 +++++++++++++-----------
+ mm/page_alloc.c |   16 ++++++++--------
+ mm/truncate.c   |    6 +++---
+ 3 files changed, 24 insertions(+), 22 deletions(-)
 
---- a/drivers/virtio/virtio_balloon.c~mm-page_poison-use-static-key-more-efficiently
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -1116,7 +1116,7 @@ static int virtballoon_validate(struct v
- 	 */
- 	if (!want_init_on_free() &&
- 	    (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY) ||
--	     !page_poisoning_enabled()))
-+	     !page_poisoning_enabled_static()))
- 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_PAGE_POISON);
- 	else if (!virtio_has_feature(vdev, VIRTIO_BALLOON_F_PAGE_POISON))
- 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_REPORTING);
---- a/include/linux/mm.h~mm-page_poison-use-static-key-more-efficiently
-+++ a/include/linux/mm.h
-@@ -2874,12 +2874,37 @@ extern int apply_to_existing_page_range(
+--- a/mm/gup.c~mm-fix-kernel-doc-markups
++++ a/mm/gup.c
+@@ -1845,7 +1845,19 @@ long get_user_pages(unsigned long start,
+ EXPORT_SYMBOL(get_user_pages);
  
- extern void init_mem_debugging_and_hardening(void);
- #ifdef CONFIG_PAGE_POISONING
--extern bool page_poisoning_enabled(void);
--extern void kernel_poison_pages(struct page *page, int numpages, int enable);
-+extern void __kernel_poison_pages(struct page *page, int numpages);
-+extern void __kernel_unpoison_pages(struct page *page, int numpages);
-+extern bool _page_poisoning_enabled_early;
-+DECLARE_STATIC_KEY_FALSE(_page_poisoning_enabled);
-+static inline bool page_poisoning_enabled(void)
-+{
-+	return _page_poisoning_enabled_early;
-+}
-+/*
-+ * For use in fast paths after init_mem_debugging() has run, or when a
-+ * false negative result is not harmful when called too early.
-+ */
-+static inline bool page_poisoning_enabled_static(void)
-+{
-+	return static_branch_unlikely(&_page_poisoning_enabled);
-+}
-+static inline void kernel_poison_pages(struct page *page, int numpages)
-+{
-+	if (page_poisoning_enabled_static())
-+		__kernel_poison_pages(page, numpages);
-+}
-+static inline void kernel_unpoison_pages(struct page *page, int numpages)
-+{
-+	if (page_poisoning_enabled_static())
-+		__kernel_unpoison_pages(page, numpages);
-+}
- #else
- static inline bool page_poisoning_enabled(void) { return false; }
--static inline void kernel_poison_pages(struct page *page, int numpages,
--					int enable) { }
-+static inline bool page_poisoning_enabled_static(void) { return false; }
-+static inline void kernel_poison_pages(struct page *page, int numpages) { }
-+static inline void kernel_unpoison_pages(struct page *page, int numpages) { }
- #endif
- 
- DECLARE_STATIC_KEY_FALSE(init_on_alloc);
---- a/mm/page_alloc.c~mm-page_poison-use-static-key-more-efficiently
+ /**
+- * get_user_pages_locked() is suitable to replace the form:
++ * get_user_pages_locked() - variant of get_user_pages()
++ *
++ * @start:      starting user address
++ * @nr_pages:   number of pages from start to pin
++ * @gup_flags:  flags modifying lookup behaviour
++ * @pages:      array that receives pointers to the pages pinned.
++ *              Should be at least nr_pages long. Or NULL, if caller
++ *              only intends to ensure the pages are faulted in.
++ * @locked:     pointer to lock flag indicating whether lock is held and
++ *              subsequently whether VM_FAULT_RETRY functionality can be
++ *              utilised. Lock must initially be held.
++ *
++ * It is suitable to replace the form:
+  *
+  *      mmap_read_lock(mm);
+  *      do_something()
+@@ -1861,16 +1873,6 @@ EXPORT_SYMBOL(get_user_pages);
+  *      if (locked)
+  *          mmap_read_unlock(mm);
+  *
+- * @start:      starting user address
+- * @nr_pages:   number of pages from start to pin
+- * @gup_flags:  flags modifying lookup behaviour
+- * @pages:      array that receives pointers to the pages pinned.
+- *              Should be at least nr_pages long. Or NULL, if caller
+- *              only intends to ensure the pages are faulted in.
+- * @locked:     pointer to lock flag indicating whether lock is held and
+- *              subsequently whether VM_FAULT_RETRY functionality can be
+- *              utilised. Lock must initially be held.
+- *
+  * We can leverage the VM_FAULT_RETRY functionality in the page fault
+  * paths better by using either get_user_pages_locked() or
+  * get_user_pages_unlocked().
+--- a/mm/page_alloc.c~mm-fix-kernel-doc-markups
 +++ a/mm/page_alloc.c
-@@ -777,6 +777,17 @@ void init_mem_debugging_and_hardening(vo
- 			static_branch_enable(&init_on_free);
- 	}
- 
-+#ifdef CONFIG_PAGE_POISONING
-+	/*
-+	 * Page poisoning is debug page alloc for some arches. If
-+	 * either of those options are enabled, enable poisoning.
-+	 */
-+	if (page_poisoning_enabled() ||
-+	     (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
-+	      debug_pagealloc_enabled()))
-+		static_branch_enable(&_page_poisoning_enabled);
-+#endif
-+
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	if (!debug_pagealloc_enabled())
- 		return;
-@@ -1262,7 +1273,8 @@ static __always_inline bool free_pages_p
- 	if (want_init_on_free())
- 		kernel_init_free_pages(page, 1 << order);
- 
--	kernel_poison_pages(page, 1 << order, 0);
-+	kernel_poison_pages(page, 1 << order);
-+
- 	/*
- 	 * arch_free_page() can make the page's contents inaccessible.  s390
- 	 * does this.  So nothing which can access the page's contents should
-@@ -2219,7 +2231,7 @@ static inline int check_new_page(struct
- static inline bool free_pages_prezeroed(void)
- {
- 	return (IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) &&
--		page_poisoning_enabled()) || want_init_on_free();
-+		page_poisoning_enabled_static()) || want_init_on_free();
+@@ -470,14 +470,6 @@ static inline int pfn_to_bitidx(struct p
+ 	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
  }
- 
- #ifdef CONFIG_DEBUG_VM
-@@ -2281,7 +2293,7 @@ inline void post_alloc_hook(struct page
- 	arch_alloc_page(page, order);
- 	debug_pagealloc_map_pages(page, 1 << order);
- 	kasan_alloc_pages(page, order);
--	kernel_poison_pages(page, 1 << order, 1);
-+	kernel_unpoison_pages(page, 1 << order);
- 	set_page_owner(page, order, gfp_flags);
- 
- 	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
---- a/mm/page_poison.c~mm-page_poison-use-static-key-more-efficiently
-+++ a/mm/page_poison.c
-@@ -8,45 +8,17 @@
- #include <linux/ratelimit.h>
- #include <linux/kasan.h>
- 
--static DEFINE_STATIC_KEY_FALSE_RO(want_page_poisoning);
-+bool _page_poisoning_enabled_early;
-+EXPORT_SYMBOL(_page_poisoning_enabled_early);
-+DEFINE_STATIC_KEY_FALSE(_page_poisoning_enabled);
-+EXPORT_SYMBOL(_page_poisoning_enabled);
- 
- static int __init early_page_poison_param(char *buf)
- {
--	int ret;
--	bool tmp;
--
--	ret = strtobool(buf, &tmp);
--	if (ret)
--		return ret;
--
--	if (tmp)
--		static_branch_enable(&want_page_poisoning);
--	else
--		static_branch_disable(&want_page_poisoning);
--
--	return 0;
-+	return kstrtobool(buf, &_page_poisoning_enabled_early);
- }
- early_param("page_poison", early_page_poison_param);
  
 -/**
-- * page_poisoning_enabled - check if page poisoning is enabled
+- * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
+- * @page: The page within the block of interest
+- * @pfn: The target page frame number
+- * @mask: mask of bits that the caller is interested in
 - *
-- * Return true if page poisoning is enabled, or false if not.
+- * Return: pageblock_bits flags
 - */
--bool page_poisoning_enabled(void)
--{
--	/*
--	 * Assumes that debug_pagealloc_enabled is set before
--	 * memblock_free_all.
--	 * Page poisoning is debug page alloc for some arches. If
--	 * either of those options are enabled, enable poisoning.
--	 */
--	return (static_branch_unlikely(&want_page_poisoning) ||
--		(!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
--		debug_pagealloc_enabled()));
--}
--EXPORT_SYMBOL_GPL(page_poisoning_enabled);
--
- static void poison_page(struct page *page)
- {
- 	void *addr = kmap_atomic(page);
-@@ -58,7 +30,7 @@ static void poison_page(struct page *pag
- 	kunmap_atomic(addr);
+ static __always_inline
+ unsigned long __get_pfnblock_flags_mask(struct page *page,
+ 					unsigned long pfn,
+@@ -496,6 +488,14 @@ unsigned long __get_pfnblock_flags_mask(
+ 	return (word >> bitidx) & mask;
  }
  
--static void poison_pages(struct page *page, int n)
-+void __kernel_poison_pages(struct page *page, int n)
++/**
++ * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
++ * @page: The page within the block of interest
++ * @pfn: The target page frame number
++ * @mask: mask of bits that the caller is interested in
++ *
++ * Return: pageblock_bits flags
++ */
+ unsigned long get_pfnblock_flags_mask(struct page *page, unsigned long pfn,
+ 					unsigned long mask)
  {
- 	int i;
- 
-@@ -117,7 +89,7 @@ static void unpoison_page(struct page *p
- 	kunmap_atomic(addr);
- }
- 
--static void unpoison_pages(struct page *page, int n)
-+void __kernel_unpoison_pages(struct page *page, int n)
- {
- 	int i;
- 
-@@ -125,17 +97,6 @@ static void unpoison_pages(struct page *
- 		unpoison_page(page + i);
- }
- 
--void kernel_poison_pages(struct page *page, int numpages, int enable)
--{
--	if (!page_poisoning_enabled())
--		return;
--
--	if (enable)
--		unpoison_pages(page, numpages);
--	else
--		poison_pages(page, numpages);
--}
--
- #ifndef CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
+--- a/mm/truncate.c~mm-fix-kernel-doc-markups
++++ a/mm/truncate.c
+@@ -643,9 +643,9 @@ EXPORT_SYMBOL(invalidate_mapping_pages);
+  * @end: the offset 'to' which to invalidate (inclusive)
+  * @nr_pagevec: invalidate failed page number for caller
+  *
+- * This helper is similar with invalidate_mapping_pages, except that it accounts
+- * for pages that failed to invalidate on a pagevec and count them in
+- * @nr_pagevec, which will used by the caller.
++ * This helper is similar to invalidate_mapping_pages(), except that it accounts
++ * for pages that are likely on a pagevec and counts them in @nr_pagevec, which
++ * will be used by the caller.
+  */
+ void invalidate_mapping_pagevec(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from mchehab+huawei@kernel.org are
 
+resource-fix-kernel-doc-markups.patch
 
