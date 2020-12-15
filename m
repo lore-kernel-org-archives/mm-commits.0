@@ -7,35 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19210C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9C99C2BBCD
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB95422D2B
+	by mail.kernel.org (Postfix) with ESMTP id 9675D22D05
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730982AbgLOXQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1731021AbgLOXQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:16:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56698 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731043AbgLOXQe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:16:34 -0500
-Date:   Tue, 15 Dec 2020 15:15:59 -0800
+        id S1730982AbgLOXQb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:16:31 -0500
+Date:   Tue, 15 Dec 2020 15:15:41 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074160;
-        bh=gC/+/2JVzQQW6nbzuQi6DbH6jmqjyfTBmshaRS2Lel0=;
+        s=korg; t=1608074142;
+        bh=Tg5ASOXd7vhkX3/8jSXsCVUAK1QnUeQhyKsER7hWqKk=;
         h=From:To:Subject:From;
-        b=vBiniErjAZdhExVS7oUEOyJAUq70qHdYcj/RNGmn8IgJNQqz+SDi5rqLS8H8lb7vh
-         5u8p/t6mYDLsaUrmrZTc3vbWAjjPNdqOtV3a1df0qpwwuwjLqckeQNmW5zCxmNi+jy
-         HOQwC3q9sNKN1O5yO0R/ZB3xuqnRkt6xLt3mxSWs=
+        b=v2HC+rcI5/JuWJhhFCVZkQlQlUnRQ6QJV28g4iaecQjLto64cSNwsRBKt6ZPODRHH
+         GCCtmT4AJ7WT4tlIWfQt2JZLCH1o8JXq/jSQMg5eber59apn6mrIeDOtpgSLJieci6
+         F4ygfARRYhceqpsPtXUfLRDMlcN3741WDWHVtEf4=
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mfo@canonical.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com
+To:     mm-commits@vger.kernel.org, pmladek@suse.com,
+        Qiang.Zhang@windriver.com, tglx@linutronix.de, tj@kernel.org
 Subject:  [merged]
- ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch removed from -mm
- tree
-Message-ID: <20201215231559.igQLzVEXS%akpm@linux-foundation.org>
+ kthread_worker-document-cpu-hotplug-handling.patch removed from -mm tree
+Message-ID: <20201215231541.Q_Zob5Wlt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,86 +41,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: ratelimit the 'max lookup times reached' notice
+     Subject: kthread_worker: document CPU hotplug handling
 has been removed from the -mm tree.  Its filename was
-     ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch
+     kthread_worker-document-cpu-hotplug-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@canonical.com>
-Subject: ocfs2: ratelimit the 'max lookup times reached' notice
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread_worker: document CPU hotplug handling
 
-Running stress-ng on ocfs2 completely fills the kernel log with 'max
-lookup times reached, filesystem may have nested directories.'
+The kthread worker API is simple.  In short, it allows to create, use, and
+destroy workers.  kthread_create_worker_on_cpu() just allows to bind a
+newly created worker to a given CPU.
 
-Let's ratelimit this message as done with others in the code.
+It is up to the API user how to handle CPU hotplug.  They have to decide
+how to handle pending work items, prevent queuing new ones, and restore
+the functionality when the CPU goes off and on.  There are few catches:
 
-Test-case:
+   + The CPU affinity gets lost when it is scheduled on an offline CPU.
 
-  # mkfs.ocfs2 --mount local $DEV
-  # mount $DEV $MNT
-  # cd $MNT
+   + The worker might not exist when the CPU was off when the user
+     created the workers.
 
-  # dmesg -C
-  # stress-ng --dirdeep 1 --dirdeep-ops 1000
-  # dmesg | grep -c 'max lookup times reached'
+A good practice is to implement two CPU hotplug callbacks and
+destroy/create the worker when CPU goes down/up.
 
-Before:
+Mention this in the function description.
 
-  # dmesg -C
-  # stress-ng --dirdeep 1 --dirdeep-ops 1000
-  ...
-  stress-ng: info:  [11116] successful run completed in 3.03s
-
-  # dmesg | grep -c 'max lookup times reached'
-  967
-
-After:
-
-  # dmesg -C
-  # stress-ng --dirdeep 1 --dirdeep-ops 1000
-  ...
-  stress-ng: info:  [739] successful run completed in 0.96s
-
-  # dmesg | grep -c 'max lookup times reached'
-  10
-
-  # dmesg
-  [  259.086086] ocfs2_check_if_ancestor: 1990 callbacks suppressed
-  [  259.086092] (stress-ng-dirde,740,1):ocfs2_check_if_ancestor:1091 max lookup times reached, filesystem may have nested directories, src inode: 18007, dest inode: 17940.
-  ...
-
-Link: https://lkml.kernel.org/r/20201001224417.478263-1-mfo@canonical.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+[akpm@linux-foundation.org: grammar tweaks]
+Link: https://lore.kernel.org/r/20201028073031.4536-1-qiang.zhang@windriver.com
+Link: https://lkml.kernel.org/r/20201102101039.19227-1-pmladek@suse.com
+Reported-by: Zhang Qiang <Qiang.Zhang@windriver.com>
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kthread.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-ratelimit-the-max-lookup-times-reached-notice
-+++ a/fs/ocfs2/namei.c
-@@ -1088,8 +1088,8 @@ static int ocfs2_check_if_ancestor(struc
- 		child_inode_no = parent_inode_no;
- 
- 		if (++i >= MAX_LOOKUP_TIMES) {
--			mlog(ML_NOTICE, "max lookup times reached, filesystem "
--					"may have nested directories, "
-+			mlog_ratelimited(ML_NOTICE, "max lookup times reached, "
-+					"filesystem may have nested directories, "
- 					"src inode: %llu, dest inode: %llu.\n",
- 					(unsigned long long)src_inode_no,
- 					(unsigned long long)dest_inode_no);
+--- a/kernel/kthread.c~kthread_worker-document-cpu-hotplug-handling
++++ a/kernel/kthread.c
+@@ -793,7 +793,25 @@ EXPORT_SYMBOL(kthread_create_worker);
+  * A good practice is to add the cpu number also into the worker name.
+  * For example, use kthread_create_worker_on_cpu(cpu, "helper/%d", cpu).
+  *
+- * Returns a pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
++ * CPU hotplug:
++ * The kthread worker API is simple and generic. It just provides a way
++ * to create, use, and destroy workers.
++ *
++ * It is up to the API user how to handle CPU hotplug. They have to decide
++ * how to handle pending work items, prevent queuing new ones, and
++ * restore the functionality when the CPU goes off and on. There are a
++ * few catches:
++ *
++ *    - CPU affinity gets lost when it is scheduled on an offline CPU.
++ *
++ *    - The worker might not exist when the CPU was off when the user
++ *      created the workers.
++ *
++ * Good practice is to implement two CPU hotplug callbacks and to
++ * destroy/create the worker when the CPU goes down/up.
++ *
++ * Return:
++ * The pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
+  * when the needed structures could not get allocated, and ERR_PTR(-EINTR)
+  * when the worker was SIGKILLed.
+  */
 _
 
-Patches currently in -mm which might be from mfo@canonical.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
 
