@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D06C47438
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A376CC49EBB
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3A3D22D2B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7804F22CAE
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725958AbgLOX77 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34564 "EHLO mail.kernel.org"
+        id S1726955AbgLPAAA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726876AbgLOX0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:40 -0500
-Date:   Tue, 15 Dec 2020 15:17:16 -0800
+        id S1726361AbgLOX0l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:26:41 -0500
+Date:   Tue, 15 Dec 2020 15:17:19 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074236;
-        bh=A0zFjqof6IAp58i0O+uOHZaweYYd4dCtM8OQYW2ya9o=;
+        s=korg; t=1608074239;
+        bh=E9xw57Gdp/00PwZkxE+6zZT3m8gFS1+RdGwjkxiwByY=;
         h=From:To:Subject:From;
-        b=Jc9AUTQKmEbUb69uyiYRmVIXk08AMABQ9O0RCuU4XayiaOImegy4M4FjbvLGapQ+S
-         UdrOYaQzHEBacQy5jZKG73DuuQP02HwG7bsBFAscvKsW7KtkyqcvXSgRlafPTw7LLr
-         gZd/QGmN/f3AcYzVmnJ2d79kP5AYJ/r9YVj5BJOc=
+        b=1vsffxOdn9VIhUgQsqj2jmW+izuWo0IRlVKdjE4rsyM64u6e4sEeXsOYsjxgQh5RH
+         zV+3V2VSsiUL7x4aH08gWwzexYIj5OLZdIu2P0v9Tj8n09+R9Yam1vilsXt/Vn47/0
+         sbyChAP0N983QH9tCdFrl+ENGccq/x/7mPvdITcw=
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
         mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
 Subject:  [merged]
- selftests-vm-minor-cleanup-makefile-and-gup_testc.patch removed from -mm
- tree
-Message-ID: <20201215231716.xN8I8KnJ4%akpm@linux-foundation.org>
+ selftests-vm-run_vmtestssh-update-and-clean-up-gup_test-invocation.patch
+ removed from -mm tree
+Message-ID: <20201215231719.al3JNQkpx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -45,28 +45,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: minor cleanup: Makefile and gup_test.c
+     Subject: selftests/vm: run_vmtests.sh: update and clean up gup_test in=
+vocation
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-minor-cleanup-makefile-and-gup_testc.patch
+     selftests-vm-run_vmtestssh-update-and-clean-up-gup_test-invocation.pat=
+ch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: minor cleanup: Makefile and gup_test.c
+Subject: selftests/vm: run_vmtests.sh: update and clean up gup_test invocat=
+ion
 
-A few cleanups that don't deserve separate patches, but that also should
-not clutter up other functional changes:
+Run benchmarks on the _fast variants of gup and pup, as originally
+intended.
 
-1. Remove an unnecessary #include <prctl.h>
+Run the new gup_test sub-test: dump pages.  In addition to exercising the
+dump_page() call, it also demonstrates the various options you can use to
+specify which pages to dump, and how.
 
-2. Restore the sorted order of TEST_GEN_FILES.
-
-3. Add -lpthread to the common LDLIBS, as it is harmless and several
-   tests use it. This gets rid of one special rule already.
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-5-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20201026064021.3545418-8-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -75,69 +75,54 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile   |   10 ++++------
- tools/testing/selftests/vm/gup_test.c |    1 -
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ tools/testing/selftests/vm/run_vmtests |   28 ++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-minor-cleanup-make=
-file-and-gup_testc
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -4,7 +4,6 @@
- #include <unistd.h>
- #include <sys/ioctl.h>
- #include <sys/mman.h>
--#include <sys/prctl.h>
- #include <sys/stat.h>
- #include <sys/types.h>
- #include "../../../../mm/gup_test.h"
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-minor-cleanup-makefi=
-le-and-gup_testc
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -21,14 +21,15 @@ MACHINE ?=3D $(shell echo $(uname_M) | sed
- MAKEFLAGS +=3D --no-builtin-rules
+--- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-run_vmtestssh-upd=
+ate-and-clean-up-gup_test-invocation
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -123,10 +123,10 @@ else
+ 	echo "[PASS]"
+ fi
 =20
- CFLAGS =3D -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
--LDLIBS =3D -lrt
-+LDLIBS =3D -lrt -lpthread
- TEST_GEN_FILES =3D compaction_test
- TEST_GEN_FILES +=3D gup_test
- TEST_GEN_FILES +=3D hmm-tests
- TEST_GEN_FILES +=3D hugepage-mmap
- TEST_GEN_FILES +=3D hugepage-shm
--TEST_GEN_FILES +=3D map_hugetlb
-+TEST_GEN_FILES +=3D khugepaged
- TEST_GEN_FILES +=3D map_fixed_noreplace
-+TEST_GEN_FILES +=3D map_hugetlb
- TEST_GEN_FILES +=3D map_populate
- TEST_GEN_FILES +=3D mlock-random-test
- TEST_GEN_FILES +=3D mlock2-tests
-@@ -37,7 +38,6 @@ TEST_GEN_FILES +=3D on-fault-limit
- TEST_GEN_FILES +=3D thuge-gen
- TEST_GEN_FILES +=3D transhuge-stress
- TEST_GEN_FILES +=3D userfaultfd
--TEST_GEN_FILES +=3D khugepaged
+-echo "--------------------------------------------"
+-echo "running 'gup_test -U' (normal/slow gup)"
+-echo "--------------------------------------------"
+-./gup_test -U
++echo "------------------------------------------------------"
++echo "running: gup_test -u # get_user_pages_fast() benchmark"
++echo "------------------------------------------------------"
++./gup_test -u
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=3D1
+@@ -134,10 +134,22 @@ else
+ 	echo "[PASS]"
+ fi
 =20
- ifeq ($(ARCH),x86_64)
- CAN_BUILD_I386 :=3D $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bi=
-t_program.c -m32)
-@@ -80,7 +80,7 @@ TEST_FILES :=3D test_vmalloc.sh
- KSFT_KHDR_INSTALL :=3D 1
- include ../lib.mk
-=20
--$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs -lpthread
-+$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
-=20
- ifeq ($(ARCH),x86_64)
- BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
-@@ -131,8 +131,6 @@ warn_32bit_failure:
- endif
- endif
-=20
--$(OUTPUT)/userfaultfd: LDLIBS +=3D -lpthread
--
- $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
-=20
- $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
+-echo "------------------------------------------"
+-echo "running gup_test -b (pin_user_pages)"
+-echo "------------------------------------------"
+-./gup_test -b
++echo "------------------------------------------------------"
++echo "running: gup_test -a # pin_user_pages_fast() benchmark"
++echo "------------------------------------------------------"
++./gup_test -a
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=3D1
++else
++	echo "[PASS]"
++fi
++
++echo "------------------------------------------------------------"
++echo "# Dump pages 0, 19, and 4096, using pin_user_pages:"
++echo "running: gup_test -ct -F 0x1 0 19 0x1000 # dump_page() test"
++echo "------------------------------------------------------------"
++./gup_test -ct -F 0x1 0 19 0x1000
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=3D1
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
