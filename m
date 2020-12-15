@@ -7,36 +7,31 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BC5C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B28BEC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74BC420709
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82178223C8
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725820AbgLODQd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:16:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43492 "EHLO mail.kernel.org"
+        id S1725994AbgLODQe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:16:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43668 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728115AbgLODPl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:15:41 -0500
-Date:   Mon, 14 Dec 2020 19:14:53 -0800
+        id S1727584AbgLODPo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:15:44 -0500
+Date:   Mon, 14 Dec 2020 19:15:03 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002094;
-        bh=6ZVf4hObHZw76Z42pSqFmGKGOdB4VzqhbCDaHZwNSbw=;
+        s=korg; t=1608002104;
+        bh=3ettw/Jabd+YzXlBoUPUUrPfGJd1IfCcFkqvs8N/4fo=;
         h=From:To:Subject:In-Reply-To:From;
-        b=TLIYD30Dl2g1XOnWvEK1QdoYRcZE4blnob6L9m/wwjjqLCDV52oXwRdu0s1sXRFHl
-         l3KV0AsztK6J44PB3NTwGUEeveHJewdpjQASYHotBYLGQ+53tEc3vGCE8WLQbFLF5c
-         TRtoEBuHnWo1pPdEOJgHYkxJv7lo+brNhtO5zl/M=
+        b=UUOQoBNKFZuzHT2ya83UeiPBdnCc2+7SjG8Z0cYvckw/S13bxfDT1EPIzfHlCPvqc
+         DV8jB8Zjf2xQRJ4N8egEckIlnl/SzuQMufZ9HR7Vii8PHJK9jVomiH9aBI7NTw4coV
+         HzTc+yjvV/TgxC1CGRv/W7XoXQ7fsiGoE8PGkvDI=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com,
-        gregkh@linuxfoundation.org, hughd@google.com,
-        iamjoonsoo.kim@lge.com, joe@perches.com, linux-mm@kvack.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 197/200] mm: shmem: convert shmem_enabled_show to
- use sysfs_emit_at
-Message-ID: <20201215031453.bwBJarhc5%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 200/200] mm: cleanup kstrto*() usage
+Message-ID: <20201215031503.kxArEpIOW%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,71 +39,113 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Subject: mm: shmem: convert shmem_enabled_show to use sysfs_emit_at
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mm: cleanup kstrto*() usage
 
-Update the function to use sysfs_emit_at while neatening the uses of
-sprintf and overwriting the last space char with a newline to avoid
-possible output buffer overflow.
+Range checks can folded into proper conversion function.  kstrto*() exist
+for all arithmetic types.
 
-Miscellanea:
-
-o in shmem_enabled_show, the removal of the indirected use of fmt
-  allows __printf verification
-
-Link: https://lkml.kernel.org/r/b612a93825e5ea330cb68d2e8b516e9687a06cc6.1605376435.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Link: https://lkml.kernel.org/r/20201122123759.GC92364@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/khugepaged.c |   18 +++++++++---------
+ mm/ksm.c        |   18 +++++++++---------
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at
-+++ a/mm/shmem.c
-@@ -4020,7 +4020,7 @@ out2:
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
- static ssize_t shmem_enabled_show(struct kobject *kobj,
--		struct kobj_attribute *attr, char *buf)
-+				  struct kobj_attribute *attr, char *buf)
+--- a/mm/khugepaged.c~mm-cleanup-kstrto-usage
++++ a/mm/khugepaged.c
+@@ -133,11 +133,11 @@ static ssize_t scan_sleep_millisecs_stor
+ 					  struct kobj_attribute *attr,
+ 					  const char *buf, size_t count)
  {
- 	static const int values[] = {
- 		SHMEM_HUGE_ALWAYS,
-@@ -4030,16 +4030,19 @@ static ssize_t shmem_enabled_show(struct
- 		SHMEM_HUGE_DENY,
- 		SHMEM_HUGE_FORCE,
- 	};
--	int i, count;
-+	int len = 0;
-+	int i;
+-	unsigned long msecs;
++	unsigned int msecs;
+ 	int err;
  
--	for (i = 0, count = 0; i < ARRAY_SIZE(values); i++) {
--		const char *fmt = shmem_huge == values[i] ? "[%s] " : "%s ";
--
--		count += sprintf(buf + count, fmt,
--				shmem_format_huge(values[i]));
-+	for (i = 0; i < ARRAY_SIZE(values); i++) {
-+		len += sysfs_emit_at(buf, len,
-+				     shmem_huge == values[i] ? "%s[%s]" : "%s%s",
-+				     i ? " " : "",
-+				     shmem_format_huge(values[i]));
- 	}
--	buf[count - 1] = '\n';
--	return count;
-+
-+	len += sysfs_emit_at(buf, len, "\n");
-+
-+	return len;
- }
+-	err = kstrtoul(buf, 10, &msecs);
+-	if (err || msecs > UINT_MAX)
++	err = kstrtouint(buf, 10, &msecs);
++	if (err)
+ 		return -EINVAL;
  
- static ssize_t shmem_enabled_store(struct kobject *kobj,
+ 	khugepaged_scan_sleep_millisecs = msecs;
+@@ -161,11 +161,11 @@ static ssize_t alloc_sleep_millisecs_sto
+ 					   struct kobj_attribute *attr,
+ 					   const char *buf, size_t count)
+ {
+-	unsigned long msecs;
++	unsigned int msecs;
+ 	int err;
+ 
+-	err = kstrtoul(buf, 10, &msecs);
+-	if (err || msecs > UINT_MAX)
++	err = kstrtouint(buf, 10, &msecs);
++	if (err)
+ 		return -EINVAL;
+ 
+ 	khugepaged_alloc_sleep_millisecs = msecs;
+@@ -188,11 +188,11 @@ static ssize_t pages_to_scan_store(struc
+ 				   struct kobj_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
++	unsigned int pages;
+ 	int err;
+-	unsigned long pages;
+ 
+-	err = kstrtoul(buf, 10, &pages);
+-	if (err || !pages || pages > UINT_MAX)
++	err = kstrtouint(buf, 10, &pages);
++	if (err || !pages)
+ 		return -EINVAL;
+ 
+ 	khugepaged_pages_to_scan = pages;
+--- a/mm/ksm.c~mm-cleanup-kstrto-usage
++++ a/mm/ksm.c
+@@ -2840,11 +2840,11 @@ static ssize_t sleep_millisecs_store(str
+ 				     struct kobj_attribute *attr,
+ 				     const char *buf, size_t count)
+ {
+-	unsigned long msecs;
++	unsigned int msecs;
+ 	int err;
+ 
+-	err = kstrtoul(buf, 10, &msecs);
+-	if (err || msecs > UINT_MAX)
++	err = kstrtouint(buf, 10, &msecs);
++	if (err)
+ 		return -EINVAL;
+ 
+ 	ksm_thread_sleep_millisecs = msecs;
+@@ -2864,11 +2864,11 @@ static ssize_t pages_to_scan_store(struc
+ 				   struct kobj_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
++	unsigned int nr_pages;
+ 	int err;
+-	unsigned long nr_pages;
+ 
+-	err = kstrtoul(buf, 10, &nr_pages);
+-	if (err || nr_pages > UINT_MAX)
++	err = kstrtouint(buf, 10, &nr_pages);
++	if (err)
+ 		return -EINVAL;
+ 
+ 	ksm_thread_pages_to_scan = nr_pages;
+@@ -2886,11 +2886,11 @@ static ssize_t run_show(struct kobject *
+ static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 			 const char *buf, size_t count)
+ {
++	unsigned int flags;
+ 	int err;
+-	unsigned long flags;
+ 
+-	err = kstrtoul(buf, 10, &flags);
+-	if (err || flags > UINT_MAX)
++	err = kstrtouint(buf, 10, &flags);
++	if (err)
+ 		return -EINVAL;
+ 	if (flags > KSM_RUN_UNMERGE)
+ 		return -EINVAL;
 _
