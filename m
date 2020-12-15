@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE479C49EBE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B48C3527A
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB4D322D08
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 625EF22D07
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726773AbgLOX7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60886 "EHLO mail.kernel.org"
+        id S1726492AbgLOX7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729599AbgLOXZk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:40 -0500
-Date:   Tue, 15 Dec 2020 15:23:19 -0800
+        id S1728415AbgLOXXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:23:33 -0500
+Date:   Tue, 15 Dec 2020 15:22:06 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074599;
-        bh=WsKVsdtZMvNOy4GoT9Fcpy2Z74hT3br1DecZiHUp33Q=;
+        s=korg; t=1608074526;
+        bh=VSCQJVhpvMC1cIxxj1fXLWJPI6oxr0dbQGQoXAs8WHY=;
         h=From:To:Subject:From;
-        b=KiVmKofsVO8oVBQMzuxCbQCNMeICXtQLhRXZrQFCWCXnsRNDCbOM6ZLNiK393Wd8W
-         zajRN3nqKb3EU+Ugaiz0vwkcm6p+8X1wmKEUcQy6rB1g/wj79yihT4xE/lD7Al7M+5
-         UOW9DDXWN7hZpBcBwSmdZnaE503yC12tzNgPWdfs=
+        b=vuyHDCv1sMjBn1hSWcL14TEVyTROtSf/2vTq4NP94ITaZ/avxodUfXxRsv+l8zaKq
+         hW7PFdGvJyQ2YeOXzW1ujT2XsSa+Ir9jxb/9gWYptG+AopF0vG3+6a3+AeDSYikrTn
+         g5fvaA98hphIfP8LhVzogsBNZYklGcXX0NTekaJk=
 From:   akpm@linux-foundation.org
-To:     jack@suse.cz, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        shy828301@gmail.com, songliubraving@fb.com, willy@infradead.org,
-        ziy@nvidia.com
-Subject:  [merged] mm-support-thps-in-zero_user_segments.patch
- removed from -mm tree
-Message-ID: <20201215232319._SwXpiCxJ%akpm@linux-foundation.org>
+To:     bhe@redhat.com, guro@fb.com, lstoakes@gmail.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, vbabka@suse.cz
+Subject:  [merged]
+ mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch removed from -mm
+ tree
+Message-ID: <20201215232206.ADVWsplMV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,158 +42,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: support THPs in zero_user_segments
+     Subject: mm: page_alloc: refactor setup_per_zone_lowmem_reserve()
 has been removed from the -mm tree.  Its filename was
-     mm-support-thps-in-zero_user_segments.patch
+     mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: support THPs in zero_user_segments
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: page_alloc: refactor setup_per_zone_lowmem_reserve()
 
-We can only kmap() one subpage of a THP at a time, so loop over all
-relevant subpages, skipping ones which don't need to be zeroed.  This is
-too large to inline when THPs are enabled and we actually need highmem, so
-put it in highmem.c.
+setup_per_zone_lowmem_reserve() iterates through each zone setting
+zone->lowmem_reserve[j] = 0 (where j is the zone's index) then iterates
+backwards through all preceding zones, setting
+lower_zone->lowmem_reserve[j] = sum(managed pages of higher zones) /
+lowmem_reserve_ratio[idx] for each (where idx is the lower zone's index).
 
-[willy@infradead.org: start1 was allowed to be less than start2]
-Link: https://lkml.kernel.org/r/20201124041507.28996-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+If the lower zone has no managed pages or its ratio is 0 then all of its
+lowmem_reserve[] entries are effectively zeroed.
+
+As these arrays are only assigned here and all lowmem_reserve[] entries
+for index < this zone's index are implicitly assumed to be 0 (as these are
+specifically output in show_free_areas() and zoneinfo_show_print() for
+example) there is no need to additionally zero index == this zone's index
+too.  This patch avoids zeroing unnecessarily.
+
+Rather than iterating through zones and setting lowmem_reserve[j] for each
+lower zone this patch reverse the process and populates each zone's
+lowmem_reserve[] values in ascending order.
+
+This clarifies what is going on especially in the case of zero managed
+pages or ratio which is now explicitly shown to clear these values.
+
+Link: https://lkml.kernel.org/r/20201129162758.115907-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |   19 ++++++++++---
- mm/highmem.c            |   52 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   33 +++++++++++++--------------------
+ 1 file changed, 13 insertions(+), 20 deletions(-)
 
---- a/include/linux/highmem.h~mm-support-thps-in-zero_user_segments
-+++ a/include/linux/highmem.h
-@@ -204,13 +204,22 @@ static inline void clear_highpage(struct
- 	kunmap_atomic(kaddr);
- }
- 
-+/*
-+ * If we pass in a base or tail page, we can zero up to PAGE_SIZE.
-+ * If we pass in a head page, we can zero up to the size of the compound page.
-+ */
-+#if defined(CONFIG_HIGHMEM) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
-+		unsigned start2, unsigned end2);
-+#else /* !HIGHMEM || !TRANSPARENT_HUGEPAGE */
- static inline void zero_user_segments(struct page *page,
--	unsigned start1, unsigned end1,
--	unsigned start2, unsigned end2)
-+		unsigned start1, unsigned end1,
-+		unsigned start2, unsigned end2)
+--- a/mm/page_alloc.c~mm-page_alloc-refactor-setup_per_zone_lowmem_reserve
++++ a/mm/page_alloc.c
+@@ -7862,31 +7862,24 @@ static void calculate_totalreserve_pages
+ static void setup_per_zone_lowmem_reserve(void)
  {
- 	void *kaddr = kmap_atomic(page);
-+	unsigned int i;
+ 	struct pglist_data *pgdat;
+-	enum zone_type j, idx;
++	enum zone_type i, j;
  
--	BUG_ON(end1 > PAGE_SIZE || end2 > PAGE_SIZE);
-+	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
+ 	for_each_online_pgdat(pgdat) {
+-		for (j = 0; j < MAX_NR_ZONES; j++) {
+-			struct zone *zone = pgdat->node_zones + j;
+-			unsigned long managed_pages = zone_managed_pages(zone);
++		for (i = 0; i < MAX_NR_ZONES - 1; i++) {
++			struct zone *zone = &pgdat->node_zones[i];
++			int ratio = sysctl_lowmem_reserve_ratio[i];
++			bool clear = !ratio || !zone_managed_pages(zone);
++			unsigned long managed_pages = 0;
  
- 	if (end1 > start1)
- 		memset(kaddr + start1, 0, end1 - start1);
-@@ -219,8 +228,10 @@ static inline void zero_user_segments(st
- 		memset(kaddr + start2, 0, end2 - start2);
- 
- 	kunmap_atomic(kaddr);
--	flush_dcache_page(page);
-+	for (i = 0; i < compound_nr(page); i++)
-+		flush_dcache_page(page + i);
- }
-+#endif /* !HIGHMEM || !TRANSPARENT_HUGEPAGE */
- 
- static inline void zero_user_segment(struct page *page,
- 	unsigned start, unsigned end)
---- a/mm/highmem.c~mm-support-thps-in-zero_user_segments
-+++ a/mm/highmem.c
-@@ -359,6 +359,58 @@ void kunmap_high(struct page *page)
- 		wake_up(pkmap_map_wait);
- }
- EXPORT_SYMBOL(kunmap_high);
+-			zone->lowmem_reserve[j] = 0;
+-
+-			idx = j;
+-			while (idx) {
+-				struct zone *lower_zone;
+-
+-				idx--;
+-				lower_zone = pgdat->node_zones + idx;
+-
+-				if (!sysctl_lowmem_reserve_ratio[idx] ||
+-				    !zone_managed_pages(lower_zone)) {
+-					lower_zone->lowmem_reserve[j] = 0;
+-					continue;
++			for (j = i + 1; j < MAX_NR_ZONES; j++) {
++				if (clear) {
++					zone->lowmem_reserve[j] = 0;
+ 				} else {
+-					lower_zone->lowmem_reserve[j] =
+-						managed_pages / sysctl_lowmem_reserve_ratio[idx];
++					struct zone *upper_zone = &pgdat->node_zones[j];
 +
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
-+		unsigned start2, unsigned end2)
-+{
-+	unsigned int i;
-+
-+	BUG_ON(end1 > page_size(page) || end2 > page_size(page));
-+
-+	for (i = 0; i < compound_nr(page); i++) {
-+		void *kaddr = NULL;
-+
-+		if (start1 < PAGE_SIZE || start2 < PAGE_SIZE)
-+			kaddr = kmap_atomic(page + i);
-+
-+		if (start1 >= PAGE_SIZE) {
-+			start1 -= PAGE_SIZE;
-+			end1 -= PAGE_SIZE;
-+		} else {
-+			unsigned this_end = min_t(unsigned, end1, PAGE_SIZE);
-+
-+			if (end1 > start1)
-+				memset(kaddr + start1, 0, this_end - start1);
-+			end1 -= this_end;
-+			start1 = 0;
-+		}
-+
-+		if (start2 >= PAGE_SIZE) {
-+			start2 -= PAGE_SIZE;
-+			end2 -= PAGE_SIZE;
-+		} else {
-+			unsigned this_end = min_t(unsigned, end2, PAGE_SIZE);
-+
-+			if (end2 > start2)
-+				memset(kaddr + start2, 0, this_end - start2);
-+			end2 -= this_end;
-+			start2 = 0;
-+		}
-+
-+		if (kaddr) {
-+			kunmap_atomic(kaddr);
-+			flush_dcache_page(page + i);
-+		}
-+
-+		if (!end1 && !end2)
-+			break;
-+	}
-+
-+	BUG_ON((start1 | start2 | end1 | end2) != 0);
-+}
-+EXPORT_SYMBOL(zero_user_segments);
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif /* CONFIG_HIGHMEM */
- 
- #ifdef CONFIG_KMAP_LOCAL
++					managed_pages += zone_managed_pages(upper_zone);
++					zone->lowmem_reserve[j] = managed_pages / ratio;
+ 				}
+-				managed_pages += zone_managed_pages(lower_zone);
+ 			}
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
-mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
-mm-swap-optimise-get_shadow_from_swap_cache.patch
-mm-add-fgp_entry.patch
-mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
-mm-filemap-add-helper-for-finding-pages.patch
-mm-filemap-add-helper-for-finding-pages-fix.patch
-mm-filemap-add-mapping_seek_hole_data.patch
-mm-filemap-add-mapping_seek_hole_data-fix.patch
-iomap-use-mapping_seek_hole_data.patch
-mm-add-and-use-find_lock_entries.patch
-mm-add-and-use-find_lock_entries-fix.patch
-mm-add-an-end-parameter-to-find_get_entries.patch
-mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
-mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
-mm-pass-pvec-directly-to-find_get_entries.patch
-mm-remove-pagevec_lookup_entries.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix-fix.patch
 
