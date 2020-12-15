@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 876D0C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:19:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C987C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:20:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4326D22475
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:19:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2908622475
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:20:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727090AbgLODTb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:19:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36620 "EHLO mail.kernel.org"
+        id S1727325AbgLODUG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:20:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727605AbgLODLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:11:45 -0500
-Date:   Mon, 14 Dec 2020 19:09:09 -0800
+        id S1727886AbgLODLg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:11:36 -0500
+Date:   Mon, 14 Dec 2020 19:09:06 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001751;
-        bh=iFVfefYl6WXmZZrGWRpu19/az15QoJa3by/n7IVynUI=;
+        s=korg; t=1608001747;
+        bh=KCXGm6WQcmsGj0inb1EAGJACQ97EMHfErDk246CPB40=;
         h=From:To:Subject:In-Reply-To:From;
-        b=0PWK9uZA9J5rCjopRraPEp0BOcHJXGjkzii5OW0gNQCMQ/0kJCYvoP2y/xtz44FZr
-         R3D5c3hyYAJaJwddO35/qURmlLFcTZhd8fkc/dv8+y/3pc/Np9LYCaFE+4ePJWx5mF
-         xMgjwMpxyeZHxvVXu9b6K+xlyBFFG8CmA3qrFAyc=
+        b=KvfHveWOqNU4hwrMqmnsotF/hhjrz/kPYX2dfIgeDYvoKLJ4lo2i5SlSb+11IT1G9
+         aQHuN16zXqKrSnpbNJrMrenLJMPDq5gmQiXZuwPHIm59tdF7ZFsifUis3jjX0pZLos
+         ZCCZaaffMRSN90bMymzBdSqcE5JfnVSNeYVoMuUI=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com,
-        elver@google.com, glider@google.com, jiangshanlai@gmail.com,
-        linux-mm@kvack.org, matthias.bgg@gmail.com,
-        mm-commits@vger.kernel.org, tj@kernel.org,
-        torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
-Subject:  [patch 101/200] workqueue: kasan: record workqueue stack
-Message-ID: <20201215030909.JgNQqb-LN%akpm@linux-foundation.org>
+        aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vincenzo.frascino@arm.com
+Subject:  [patch 100/200] mm/vmalloc.c: fix kasan shadow poisoning
+ size
+Message-ID: <20201215030906.Qsu0vQnb_%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,68 +42,48 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: workqueue: kasan: record workqueue stack
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: mm/vmalloc.c: fix kasan shadow poisoning size
 
-Patch series "kasan: add workqueue stack for generic KASAN", v5.
+The size of vm area can be affected by the presence or not of the guard
+page.  In particular when VM_NO_GUARD is present, the actual accessible
+size has to be considered like the real size minus the guard page.
 
-Syzbot reports many UAF issues for workqueue, see [1].
-In some of these access/allocation happened in process_one_work(),
-we see the free stack is useless in KASAN report, it doesn't help
-programmers to solve UAF for workqueue issue.
+Currently kasan does not keep into account this information during the
+poison operation and in particular tries to poison the guard page as well.
 
-This patchset improves KASAN reports by making them to have workqueue
-queueing stack. It is useful for programmers to solve use-after-free
-or double-free memory issue.
+This approach, even if incorrect, does not cause an issue because the tags
+for the guard page are written in the shadow memory.  With the future
+introduction of the Tag-Based KASAN, being the guard page inaccessible by
+nature, the write tag operation on this page triggers a fault.
 
-Generic KASAN also records the last two workqueue stacks and prints
-them in KASAN report. It is only suitable for generic KASAN.
+Fix kasan shadow poisoning size invoking get_vm_area_size() instead of
+accessing directly the field in the data structure to detect the correct
+value.
 
-[1]https://groups.google.com/g/syzkaller-bugs/search?q=%22use-after-free%22+process_one_work
-[2]https://bugzilla.kernel.org/show_bug.cgi?id=198437
-
-
-This patch (of 4):
-
-When analyzing use-after-free or double-free issue, recording the
-enqueuing work stacks is helpful to preserve usage history which
-potentially gives a hint about the affected code.
-
-For workqueue it has turned out to be useful to record the enqueuing work
-call stacks.  Because user can see KASAN report to determine whether it is
-root cause.  They don't need to enable debugobjects, but they have a
-chance to find out the root cause.
-
-Link: https://lkml.kernel.org/r/20201203022148.29754-1-walter-zh.wu@mediatek.com
-Link: https://lkml.kernel.org/r/20201203022442.30006-1-walter-zh.wu@mediatek.com
-Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/20201027160213.32904-1-vincenzo.frascino@arm.com
+Fixes: d98c9e83b5e7c ("kasan: fix crashes on access to memory mapped by vm_map_ram()")
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
 Cc: Marco Elver <elver@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/workqueue.c~workqueue-kasan-record-workqueue-stack
-+++ a/kernel/workqueue.c
-@@ -1327,6 +1327,9 @@ static void insert_work(struct pool_work
- {
- 	struct worker_pool *pool = pwq->pool;
+--- a/mm/vmalloc.c~mm-vmalloc-fix-kasan-shadow-poisoning-size
++++ a/mm/vmalloc.c
+@@ -2272,7 +2272,7 @@ static void __vunmap(const void *addr, i
+ 	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
+ 	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
  
-+	/* record the work call stack in order to print it in KASAN reports */
-+	kasan_record_aux_stack(work);
-+
- 	/* we own @work, set data and link */
- 	set_work_pwq(work, pwq, extra_flags);
- 	list_add_tail(&work->entry, head);
+-	kasan_poison_vmalloc(area->addr, area->size);
++	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
+ 
+ 	vm_remove_mappings(area, deallocate_pages);
+ 
 _
