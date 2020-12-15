@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B48C3527A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3ED9C49EBB
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 625EF22D07
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5F2822D74
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726492AbgLOX7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
+        id S1726351AbgLOX7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728415AbgLOXXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:23:33 -0500
-Date:   Tue, 15 Dec 2020 15:22:06 -0800
+        id S1729506AbgLOXZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:07 -0500
+Date:   Tue, 15 Dec 2020 15:23:01 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074526;
-        bh=VSCQJVhpvMC1cIxxj1fXLWJPI6oxr0dbQGQoXAs8WHY=;
+        s=korg; t=1608074581;
+        bh=84m4OrgOaC33qTc70MxwGL4wOJnt/xFXbskqYtncFic=;
         h=From:To:Subject:From;
-        b=vuyHDCv1sMjBn1hSWcL14TEVyTROtSf/2vTq4NP94ITaZ/avxodUfXxRsv+l8zaKq
-         hW7PFdGvJyQ2YeOXzW1ujT2XsSa+Ir9jxb/9gWYptG+AopF0vG3+6a3+AeDSYikrTn
-         g5fvaA98hphIfP8LhVzogsBNZYklGcXX0NTekaJk=
+        b=tCTdj4KFgNO/Sh5atU//eKHX5/6aNRDg8vHgidyu64rixXVOXp4QFZBjCfB7W4Yr+
+         cto0T+8LDZ4naGoLewZ5WR21WOJ88a56dsP//QIUK4e1stfpOjiClsQpRSjnThDJ6G
+         dxwwq17Gureo11IhtkDk1wG7SP9bo+UbfQaBj5ZI=
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, guro@fb.com, lstoakes@gmail.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, vbabka@suse.cz
+To:     bigeasy@linutronix.de, mm-commits@vger.kernel.org,
+        vitaly.wool@konsulko.com
 Subject:  [merged]
- mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch removed from -mm
- tree
-Message-ID: <20201215232206.ADVWsplMV%akpm@linux-foundation.org>
+ z3fold-remove-preempt-disabled-sections-for-rt.patch removed from -mm tree
+Message-ID: <20201215232301.otMQJb_PC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,101 +41,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: refactor setup_per_zone_lowmem_reserve()
+     Subject: z3fold: remove preempt disabled sections for RT
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-refactor-setup_per_zone_lowmem_reserve.patch
+     z3fold-remove-preempt-disabled-sections-for-rt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: page_alloc: refactor setup_per_zone_lowmem_reserve()
+From: Vitaly Wool <vitaly.wool@konsulko.com>
+Subject: z3fold: remove preempt disabled sections for RT
 
-setup_per_zone_lowmem_reserve() iterates through each zone setting
-zone->lowmem_reserve[j] = 0 (where j is the zone's index) then iterates
-backwards through all preceding zones, setting
-lower_zone->lowmem_reserve[j] = sum(managed pages of higher zones) /
-lowmem_reserve_ratio[idx] for each (where idx is the lower zone's index).
+Replace get_cpu_ptr() with migrate_disable()+this_cpu_ptr() so RT can take
+spinlocks that become sleeping locks.
 
-If the lower zone has no managed pages or its ratio is 0 then all of its
-lowmem_reserve[] entries are effectively zeroed.
-
-As these arrays are only assigned here and all lowmem_reserve[] entries
-for index < this zone's index are implicitly assumed to be 0 (as these are
-specifically output in show_free_areas() and zoneinfo_show_print() for
-example) there is no need to additionally zero index == this zone's index
-too.  This patch avoids zeroing unnecessarily.
-
-Rather than iterating through zones and setting lowmem_reserve[j] for each
-lower zone this patch reverse the process and populates each zone's
-lowmem_reserve[] values in ascending order.
-
-This clarifies what is going on especially in the case of zero managed
-pages or ratio which is now explicitly shown to clear these values.
-
-Link: https://lkml.kernel.org/r/20201129162758.115907-1-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Roman Gushchin <guro@fb.com>
+Signed-off-by Mike Galbraith <efault@gmx.de>
+Link: https://lkml.kernel.org/r/20201209145151.18994-3-vitaly.wool@konsulko.com
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   33 +++++++++++++--------------------
- 1 file changed, 13 insertions(+), 20 deletions(-)
+ mm/z3fold.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-refactor-setup_per_zone_lowmem_reserve
-+++ a/mm/page_alloc.c
-@@ -7862,31 +7862,24 @@ static void calculate_totalreserve_pages
- static void setup_per_zone_lowmem_reserve(void)
+--- a/mm/z3fold.c~z3fold-remove-preempt-disabled-sections-for-rt
++++ a/mm/z3fold.c
+@@ -623,14 +623,16 @@ static inline void add_to_unbuddied(stru
  {
- 	struct pglist_data *pgdat;
--	enum zone_type j, idx;
-+	enum zone_type i, j;
- 
- 	for_each_online_pgdat(pgdat) {
--		for (j = 0; j < MAX_NR_ZONES; j++) {
--			struct zone *zone = pgdat->node_zones + j;
--			unsigned long managed_pages = zone_managed_pages(zone);
-+		for (i = 0; i < MAX_NR_ZONES - 1; i++) {
-+			struct zone *zone = &pgdat->node_zones[i];
-+			int ratio = sysctl_lowmem_reserve_ratio[i];
-+			bool clear = !ratio || !zone_managed_pages(zone);
-+			unsigned long managed_pages = 0;
- 
--			zone->lowmem_reserve[j] = 0;
+ 	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0 ||
+ 			zhdr->middle_chunks == 0) {
+-		struct list_head *unbuddied = get_cpu_ptr(pool->unbuddied);
 -
--			idx = j;
--			while (idx) {
--				struct zone *lower_zone;
--
--				idx--;
--				lower_zone = pgdat->node_zones + idx;
--
--				if (!sysctl_lowmem_reserve_ratio[idx] ||
--				    !zone_managed_pages(lower_zone)) {
--					lower_zone->lowmem_reserve[j] = 0;
--					continue;
-+			for (j = i + 1; j < MAX_NR_ZONES; j++) {
-+				if (clear) {
-+					zone->lowmem_reserve[j] = 0;
- 				} else {
--					lower_zone->lowmem_reserve[j] =
--						managed_pages / sysctl_lowmem_reserve_ratio[idx];
-+					struct zone *upper_zone = &pgdat->node_zones[j];
++		struct list_head *unbuddied;
+ 		int freechunks = num_free_chunks(zhdr);
 +
-+					managed_pages += zone_managed_pages(upper_zone);
-+					zone->lowmem_reserve[j] = managed_pages / ratio;
- 				}
--				managed_pages += zone_managed_pages(lower_zone);
- 			}
- 		}
++		migrate_disable();
++		unbuddied = this_cpu_ptr(pool->unbuddied);
+ 		spin_lock(&pool->lock);
+ 		list_add(&zhdr->buddy, &unbuddied[freechunks]);
+ 		spin_unlock(&pool->lock);
+ 		zhdr->cpu = smp_processor_id();
+-		put_cpu_ptr(pool->unbuddied);
++		migrate_enable();
  	}
+ }
+ 
+@@ -880,8 +882,9 @@ static inline struct z3fold_header *__z3
+ 	int chunks = size_to_chunks(size), i;
+ 
+ lookup:
++	migrate_disable();
+ 	/* First, try to find an unbuddied z3fold page. */
+-	unbuddied = get_cpu_ptr(pool->unbuddied);
++	unbuddied = this_cpu_ptr(pool->unbuddied);
+ 	for_each_unbuddied_list(i, chunks) {
+ 		struct list_head *l = &unbuddied[i];
+ 
+@@ -899,7 +902,7 @@ lookup:
+ 		    !z3fold_page_trylock(zhdr)) {
+ 			spin_unlock(&pool->lock);
+ 			zhdr = NULL;
+-			put_cpu_ptr(pool->unbuddied);
++			migrate_enable();
+ 			if (can_sleep)
+ 				cond_resched();
+ 			goto lookup;
+@@ -913,7 +916,7 @@ lookup:
+ 		    test_bit(PAGE_CLAIMED, &page->private)) {
+ 			z3fold_page_unlock(zhdr);
+ 			zhdr = NULL;
+-			put_cpu_ptr(pool->unbuddied);
++			migrate_enable();
+ 			if (can_sleep)
+ 				cond_resched();
+ 			goto lookup;
+@@ -928,7 +931,7 @@ lookup:
+ 		kref_get(&zhdr->refcount);
+ 		break;
+ 	}
+-	put_cpu_ptr(pool->unbuddied);
++	migrate_enable();
+ 
+ 	if (!zhdr) {
+ 		int cpu;
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from vitaly.wool@konsulko.com are
 
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix-fix.patch
 
