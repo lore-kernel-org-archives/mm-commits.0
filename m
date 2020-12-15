@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78744C47436
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A918AC47434
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 634E122DD6
+	by mail.kernel.org (Postfix) with ESMTP id 7B0B522EBD
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726929AbgLOX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725864AbgLOX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:59:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32846 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729874AbgLOX0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1729823AbgLOX0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:26:08 -0500
-Date:   Tue, 15 Dec 2020 15:17:21 -0800
+Date:   Tue, 15 Dec 2020 15:18:19 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074241;
-        bh=/ley1g4JuGCdy9rN/Pc38ppQwsSGUTjdhTJcZ0YoymE=;
+        s=korg; t=1608074299;
+        bh=aWj+w0DQvP4iVMhfTMEWWkyzN6ymCScTXeMFpM9M7Iw=;
         h=From:To:Subject:From;
-        b=T6xf2aS/P5OL+2RsoubcmZaH3bYb7A4mUlzjnDd+LXLnwr35hCtN2lDUoGakEhktE
-         1/puhLAfWf/3o1r3d6XwSIPVvs9fVJZBTSJcl5/npzUziekpiACZJ6XJ9ZOBOd6Hxz
-         ioNOW3dAnnOgkpxO/dl9qr1Jt/9rzOWV+00tf+eU=
+        b=nUM08d3OUB8B60tZFVceIGt4d+kSu8Z5XFQ0qDaSMjv4Ns8biJDn4asGu5tkduuCQ
+         XfttBAnsOIOgmffNGdudMwwP3oePKzl/zX7v+n411ArqKKAob7Rh02FamGVN25OZKO
+         kPJLu/JUbWABT7xp86H++EROZtDdEG4DMw037hl8=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        vdavydov.dev@gmail.com
 Subject:  [merged]
- selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch removed
- from -mm tree
-Message-ID: <20201215231721.-hPVVM8Q5%akpm@linux-foundation.org>
+ mm-memcg-update-page-struct-member-in-comments.patch removed from -mm tree
+Message-ID: <20201215231819.n6JzewVoq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,203 +42,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: hmm-tests: remove the libhugetlbfs dependency
+     Subject: mm/memcg: update page struct member in comments
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
+     mm-memcg-update-page-struct-member-in-comments.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: hmm-tests: remove the libhugetlbfs dependency
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: update page struct member in comments
 
-HMM selftests are incredibly useful, but they are only effective if people
-actually build and run them.  All the other tests in selftests/vm can be
-built with very standard, always-available libraries: libpthread, librt.
-The hmm-tests.c program, on the other hand, requires something that is
-(much) less readily available: libhugetlbfs.  And so the build will
-typically fail for many developers.
+The page->mem_cgroup member is replaced by memcg_data, and add a helper
+page_memcg() for it.  Need to update comments to avoid confusing.
 
-A simple attempt to install libhugetlbfs will also run into complications
-on some common distros these days: Fedora and Arch Linux (yes, Arch AUR
-has it, but that's fragile, as always with AUR).  The library is not
-maintained actively enough at the moment, for distros to deal with it.  I
-had to build it from source, for Fedora, and that didn't go too smoothly
-either.
-
-It turns out that, out of 21 tests in hmm-tests.c, only 2 actually require
-functionality from libhugetlbfs.  Therefore, if libhugetlbfs is missing,
-simply ifdef those two tests out and allow the developer to at least have
-the other 19 tests, if they don't want to pause to work through the above
-issues.  Also issue a warning, so that it's clear that there is an
-imperfection in the build.
-
-In order to do that, a tiny shell script (check_config.sh) runs a quick
-compile (not link, that's too prone to false failures with library paths),
-and basically, if the compiler doesn't find hugetlbfs.h in its standard
-locations, then the script concludes that libhugetlbfs is not available.
-The output is in two files, one for inclusion in hmm-test.c
-(local_config.h), and one for inclusion in the Makefile (local_config.mk).
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-9-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/1491c150-1cc0-6062-08ea-9c891548a3bc@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore      |    1=20
- tools/testing/selftests/vm/Makefile        |   24 +++++++++++++-
- tools/testing/selftests/vm/check_config.sh |   31 +++++++++++++++++++
- tools/testing/selftests/vm/hmm-tests.c     |   10 +++++-
- 4 files changed, 63 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- /dev/null
-+++ a/tools/testing/selftests/vm/check_config.sh
-@@ -0,0 +1,31 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Probe for libraries and create header files to record the results. Both C
-+# header files and Makefile include fragments are created.
-+
-+OUTPUT_H_FILE=3Dlocal_config.h
-+OUTPUT_MKFILE=3Dlocal_config.mk
-+
-+# libhugetlbfs
-+tmpname=3D$(mktemp)
-+tmpfile_c=3D${tmpname}.c
-+tmpfile_o=3D${tmpname}.o
-+
-+echo "#include <sys/types.h>"        > $tmpfile_c
-+echo "#include <hugetlbfs.h>"       >> $tmpfile_c
-+echo "int func(void) { return 0; }" >> $tmpfile_c
-+
-+CC=3D${1:?"Usage: $0 <compiler> # example compiler: gcc"}
-+$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
-+
-+if [ -f $tmpfile_o ]; then
-+    echo "#define LOCAL_CONFIG_HAVE_LIBHUGETLBFS 1" > $OUTPUT_H_FILE
-+    echo "HMM_EXTRA_LIBS =3D -lhugetlbfs"             > $OUTPUT_MKFILE
-+else
-+    echo "// No libhugetlbfs support found"      > $OUTPUT_H_FILE
-+    echo "# No libhugetlbfs support found, so:"  > $OUTPUT_MKFILE
-+    echo "HMM_EXTRA_LIBS =3D "                    >> $OUTPUT_MKFILE
-+fi
-+
-+rm ${tmpname}.*
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-hmm-tests-remove-t=
-he-libhugetlbfs-dependency
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -20,3 +20,4 @@ va_128TBswitch
- map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
-+local_config.*
---- a/tools/testing/selftests/vm/hmm-tests.c~selftests-vm-hmm-tests-remove-=
-the-libhugetlbfs-dependency
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -21,12 +21,16 @@
- #include <strings.h>
- #include <time.h>
- #include <pthread.h>
--#include <hugetlbfs.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <sys/mman.h>
- #include <sys/ioctl.h>
-=20
-+#include "./local_config.h"
-+#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
-+#include <hugetlbfs.h>
-+#endif
-+
- /*
-  * This is a private UAPI to the kernel test module so it isn't exported
-  * in the usual include/uapi/... directory.
-@@ -662,6 +666,7 @@ TEST_F(hmm, anon_write_huge)
- 	hmm_buffer_free(buffer);
- }
-=20
-+#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
- /*
-  * Write huge TLBFS page.
+--- a/mm/memcontrol.c~mm-memcg-update-page-struct-member-in-comments
++++ a/mm/memcontrol.c
+@@ -1324,7 +1324,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+  * @page: the page
+  * @pgdat: pgdat of the page
+  *
+- * This function relies on page->mem_cgroup being stable - see the
++ * This function relies on page's memcg being stable - see the
+  * access rules in commit_charge().
   */
-@@ -720,6 +725,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
- 	buffer->ptr =3D NULL;
- 	hmm_buffer_free(buffer);
- }
-+#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
-=20
- /*
-  * Read mmap'ed file memory.
-@@ -1336,6 +1342,7 @@ TEST_F(hmm2, snapshot)
- 	hmm_buffer_free(buffer);
- }
-=20
-+#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
- /*
-  * Test the hmm_range_fault() HMM_PFN_PMD flag for large pages that
-  * should be mapped by a large page table entry.
-@@ -1411,6 +1418,7 @@ TEST_F(hmm, compound)
- 	buffer->ptr =3D NULL;
- 	hmm_buffer_free(buffer);
- }
-+#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
-=20
- /*
-  * Test two devices reading the same memory (double mapped).
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-hmm-tests-remove-the=
--libhugetlbfs-dependency
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -1,5 +1,8 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for vm selftests
-+
-+include local_config.mk
-+
- uname_M :=3D $(shell uname -m 2>/dev/null || echo not)
- MACHINE ?=3D $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
-=20
-@@ -80,8 +83,6 @@ TEST_FILES :=3D test_vmalloc.sh
- KSFT_KHDR_INSTALL :=3D 1
- include ../lib.mk
-=20
--$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
--
- ifeq ($(ARCH),x86_64)
- BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
- BINARIES_64 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
-@@ -134,3 +135,22 @@ endif
- $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
-=20
- $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
-+
-+$(OUTPUT)/hmm-tests: local_config.h
-+
-+# HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
-+$(OUTPUT)/hmm-tests: LDLIBS +=3D $(HMM_EXTRA_LIBS)
-+
-+local_config.mk local_config.h: check_config.sh
-+	/bin/sh ./check_config.sh $(CC)
-+
-+EXTRA_CLEAN +=3D local_config.mk local_config.h
-+
-+ifeq ($(HMM_EXTRA_LIBS),)
-+all: warn_missing_hugelibs
-+
-+warn_missing_hugelibs:
-+	@echo ; \
-+	echo "Warning: missing libhugetlbfs support. Some HMM tests will be skipp=
-ed." ; \
-+	echo
-+endif
+ struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgdat)
+@@ -2879,7 +2879,7 @@ static void commit_charge(struct page *p
+ {
+ 	VM_BUG_ON_PAGE(page->mem_cgroup, page);
+ 	/*
+-	 * Any of the following ensures page->mem_cgroup stability:
++	 * Any of the following ensures page's memcg stability:
+ 	 *
+ 	 * - the page lock
+ 	 * - LRU isolation
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
