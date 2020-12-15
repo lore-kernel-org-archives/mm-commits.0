@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23BC6C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB1EC4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E383020721
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6329A22475
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726775AbgLODS0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:18:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36838 "EHLO mail.kernel.org"
+        id S1726866AbgLODSm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:18:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727928AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727914AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 14 Dec 2020 22:12:15 -0500
-Date:   Mon, 14 Dec 2020 19:09:47 -0800
+Date:   Mon, 14 Dec 2020 19:09:43 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001789;
-        bh=AaDzmsOJJIkKbGz6OJQbeFeKmHzUgt++uC8t3jPxtuM=;
+        s=korg; t=1608001785;
+        bh=fPcm+G1LkvU/DN9UINg86ifgX5QRI6bYGW7LrdWsEaY=;
         h=From:To:Subject:In-Reply-To:From;
-        b=T66qjWgzuGmJpIzKY+A4USvKWeHbz7sxnWehxPAwFLR2pZJmIGfmuqupxSbM9aS3r
-         VIqIG8RrQ+5WmGJk0aw2pMb8IVpY7Rdv3hZGWzWrJfgXzrdHbSLWNhnV4iKElyggF0
-         zwqNHkpMF5xRb9mptm2zjgl+5w8/oCaDd730cCzs=
+        b=KohLhFyIzZGWJnZrzro65l4Ig7XxdvSA0s8DBDFs7uCcHMr8f4AWyOZ8lbpy3+yAb
+         Bct1L9eUcWUgoqGiVlUyrD+bE9t/ONDqcKcMl83jjP1SiUE3wVeIYAO8F97QiY7Yfd
+         KI9D3BFdULk59aHarl5zrCwqow1PRVQ7C5rPNssA=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     adobriyan@gmail.com, akpm@linux-foundation.org,
         catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
@@ -35,9 +35,9 @@ To:     adobriyan@gmail.com, akpm@linux-foundation.org,
         mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
         schmitzmic@gmail.com, tony.luck@intel.com,
         torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
-Subject:  [patch 111/200] ia64: forbid using VIRTUAL_MEM_MAP with
- FLATMEM
-Message-ID: <20201215030947.iyM0XyzzO%akpm@linux-foundation.org>
+Subject:  [patch 110/200] ia64: split virtual map initialization
+ out of paging_init()
+Message-ID: <20201215030943.h29pJiFvA%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,18 +46,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: forbid using VIRTUAL_MEM_MAP with FLATMEM
+Subject: ia64: split virtual map initialization out of paging_init()
 
-Virtual memory map was intended to avoid wasting memory on the memory map
-on systems with large holes in the physical memory layout. Long ago it been
-superseded first by DISCONTIGMEM and then by SPARSEMEM. Moreover,
-SPARSEMEM_VMEMMAP provide the same functionality in much more portable way.
+For both FLATMEM and DISCONTIGMEM/SPARSEMEM the virtual map initialization
+is spread over paging_init() for no good reason.
 
-As the first step to removing the VIRTUAL_MEM_MAP forbid it's usage with
-FLATMEM and panic on systems with large holes in the physical memory
-layout that try to run FLATMEM kernels.
+Split out the bits related to virtual map initialization to a helper
+functions, one for FLATMEM and another for !FLATMEM configurations.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-7-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -75,140 +72,118 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig               |    2 -
- arch/ia64/include/asm/meminit.h |    2 -
- arch/ia64/mm/contig.c           |   52 +++++++++++++-----------------
- arch/ia64/mm/init.c             |   14 --------
- 4 files changed, 24 insertions(+), 46 deletions(-)
+ arch/ia64/mm/contig.c    |   34 ++++++++++++++++++++--------------
+ arch/ia64/mm/discontig.c |   37 ++++++++++++++++++++-----------------
+ 2 files changed, 40 insertions(+), 31 deletions(-)
 
---- a/arch/ia64/include/asm/meminit.h~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/include/asm/meminit.h
-@@ -59,10 +59,8 @@ extern int reserve_elfcorehdr(u64 *start
- extern int register_active_ranges(u64 start, u64 len, int nid);
- 
- #ifdef CONFIG_VIRTUAL_MEM_MAP
--# define LARGE_GAP	0x40000000 /* Use virtual mem map if hole is > than this */
-   extern unsigned long VMALLOC_END;
-   extern struct page *vmem_map;
--  extern int find_largest_hole(u64 start, u64 end, void *arg);
-   extern int create_mem_map_page_table(u64 start, u64 end, void *arg);
-   extern int vmemmap_find_next_valid_pfn(int, int);
- #else
---- a/arch/ia64/Kconfig~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/Kconfig
-@@ -329,7 +329,7 @@ config NODES_SHIFT
- # VIRTUAL_MEM_MAP has been retained for historical reasons.
- config VIRTUAL_MEM_MAP
- 	bool "Virtual mem map"
--	depends on !SPARSEMEM
-+	depends on !SPARSEMEM && !FLATMEM
- 	default y
- 	help
- 	  Say Y to compile the kernel with support for a virtual mem map.
---- a/arch/ia64/mm/contig.c~ia64-forbid-using-virtual_mem_map-with-flatmem
+--- a/arch/ia64/mm/contig.c~ia64-split-virtual-map-initialization-out-of-paging_init
 +++ a/arch/ia64/mm/contig.c
-@@ -19,15 +19,12 @@
- #include <linux/mm.h>
- #include <linux/nmi.h>
- #include <linux/swap.h>
-+#include <linux/sizes.h>
- 
- #include <asm/meminit.h>
- #include <asm/sections.h>
- #include <asm/mca.h>
- 
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--static unsigned long max_gap;
--#endif
--
- /* physical address where the bootmem map is located */
- unsigned long bootmap_start;
- 
-@@ -166,33 +163,30 @@ find_memory (void)
+@@ -166,21 +166,8 @@ find_memory (void)
  	alloc_per_cpu_data();
  }
  
--static void __init virtual_map_init(void)
-+static int __init find_largest_hole(u64 start, u64 end, void *arg)
+-/*
+- * Set up the page tables.
+- */
+-
+-void __init
+-paging_init (void)
++static void __init virtual_map_init(void)
  {
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
--	if (max_gap < LARGE_GAP) {
--		vmem_map = (struct page *) 0;
--	} else {
--		unsigned long map_size;
+-	unsigned long max_dma;
+-	unsigned long max_zone_pfns[MAX_NR_ZONES];
 -
--		/* allocate virtual_mem_map */
+-	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+-	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+-	max_zone_pfns[ZONE_DMA32] = max_dma;
+-	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
 -
--		map_size = PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
--			sizeof(struct page));
--		VMALLOC_END -= map_size;
--		vmem_map = (struct page *) VMALLOC_END;
--		efi_memmap_walk(create_mem_map_page_table, NULL);
-+	u64 *max_gap = arg;
- 
--		/*
--		 * alloc_node_mem_map makes an adjustment for mem_map
--		 * which isn't compatible with vmem_map.
--		 */
--		NODE_DATA(0)->node_mem_map = vmem_map +
--			find_min_pfn_with_active_regions();
-+	static u64 last_end = PAGE_OFFSET;
- 
--		printk("Virtual mem_map starts at 0x%p\n", mem_map);
--	}
--#endif /* !CONFIG_VIRTUAL_MEM_MAP */
-+	/* NOTE: this algorithm assumes efi memmap table is ordered */
-+
-+	if (*max_gap < (start - last_end))
-+		*max_gap = start - last_end;
-+	last_end = end;
-+	return 0;
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+ 	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
+ 	if (max_gap < LARGE_GAP) {
+@@ -206,6 +193,25 @@ paging_init (void)
+ 		printk("Virtual mem_map starts at 0x%p\n", mem_map);
+ 	}
+ #endif /* !CONFIG_VIRTUAL_MEM_MAP */
 +}
 +
-+static void __init verify_gap_absence(void)
-+{
-+	unsigned long max_gap;
++/*
++ * Set up the page tables.
++ */
 +
-+	/* Forbid FLATMEM if hole is > than 1G */
-+	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
-+	if (max_gap >= SZ_1G)
-+		panic("Cannot use FLATMEM with %ldMB hole\n"
-+		      "Please switch over to SPARSEMEM\n",
-+		      (max_gap >> 20));
- }
- 
- /*
-@@ -210,7 +204,7 @@ paging_init (void)
- 	max_zone_pfns[ZONE_DMA32] = max_dma;
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- 
--	virtual_map_init();
-+	verify_gap_absence();
- 
++void __init
++paging_init (void)
++{
++	unsigned long max_dma;
++	unsigned long max_zone_pfns[MAX_NR_ZONES];
++
++	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
++	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
++	max_zone_pfns[ZONE_DMA32] = max_dma;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
++
++	virtual_map_init();
++
  	free_area_init(max_zone_pfns);
  	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
---- a/arch/ia64/mm/init.c~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/mm/init.c
-@@ -574,20 +574,6 @@ ia64_pfn_valid (unsigned long pfn)
  }
- EXPORT_SYMBOL(ia64_pfn_valid);
+--- a/arch/ia64/mm/discontig.c~ia64-split-virtual-map-initialization-out-of-paging_init
++++ a/arch/ia64/mm/discontig.c
+@@ -584,6 +584,25 @@ void call_pernode_memory(unsigned long s
+ 	}
+ }
  
--int __init find_largest_hole(u64 start, u64 end, void *arg)
--{
--	u64 *max_gap = arg;
--
--	static u64 last_end = PAGE_OFFSET;
--
--	/* NOTE: this algorithm assumes efi memmap table is ordered */
--
--	if (*max_gap < (start - last_end))
--		*max_gap = start - last_end;
--	last_end = end;
--	return 0;
--}
--
- #endif /* CONFIG_VIRTUAL_MEM_MAP */
++static void __init virtual_map_init(void)
++{
++#ifdef CONFIG_VIRTUAL_MEM_MAP
++	int node;
++
++	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
++		sizeof(struct page));
++	vmem_map = (struct page *) VMALLOC_END;
++	efi_memmap_walk(create_mem_map_page_table, NULL);
++	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
++
++	for_each_online_node(node) {
++		unsigned long pfn_offset = mem_data[node].min_pfn;
++
++		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
++	}
++#endif
++}
++
+ /**
+  * paging_init - setup page tables
+  *
+@@ -593,29 +612,13 @@ void call_pernode_memory(unsigned long s
+ void __init paging_init(void)
+ {
+ 	unsigned long max_dma;
+-	unsigned long pfn_offset = 0;
+-	int node;
+ 	unsigned long max_zone_pfns[MAX_NR_ZONES];
  
- int __init register_active_ranges(u64 start, u64 len, int nid)
+ 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+ 
+ 	sparse_init();
+ 
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
+-		sizeof(struct page));
+-	vmem_map = (struct page *) VMALLOC_END;
+-	efi_memmap_walk(create_mem_map_page_table, NULL);
+-	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
+-#endif
+-
+-	for_each_online_node(node) {
+-		pfn_offset = mem_data[node].min_pfn;
+-
+-#ifdef CONFIG_VIRTUAL_MEM_MAP
+-		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
+-#endif
+-	}
++	virtual_map_init();
+ 
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+ 	max_zone_pfns[ZONE_DMA32] = max_dma;
 _
