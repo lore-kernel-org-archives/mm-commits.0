@@ -5,36 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D6F5C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:04:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4076FC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:04:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B94B22509
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:04:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03D7B223C8
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:04:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727037AbgLODEJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:04:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59936 "EHLO mail.kernel.org"
+        id S1725906AbgLODEK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:04:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726296AbgLODED (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:04:03 -0500
-Date:   Mon, 14 Dec 2020 19:03:21 -0800
+        id S1726919AbgLODEJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:04:09 -0500
+Date:   Mon, 14 Dec 2020 19:03:27 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001402;
-        bh=h/gq83FntddsvKPEtW0gVU43fse9nMK5OAiIRkw28rU=;
+        s=korg; t=1608001408;
+        bh=jJPG+A7ilcZMCAw2TU2tp2dNhFz5CptulM8mfDbkyxk=;
         h=From:To:Subject:In-Reply-To:From;
-        b=GFAkZTLIyuKGQjvklLuFl3PV+BtbeDtKOMbuozBaOLlZXF4offGagH8UTU8P66dyC
-         camZ4eiYO7a6iZ0w0K0EEPpsrtuwwbJ5vwWDRecF06stC0KVMa3k5Me2iQkO8XDZd6
-         QWQqp7UOeg2diKd+O/dFKsX0VVcpHej8AmyduxZg=
+        b=dg9zHVpxs8Znmt2fnrkP9GgpGIZVBxBar3aGfY9qPIbVHTRNMUhn0+Z5Hl7wUoxwD
+         c8TTzzH7eAwUKdAtLb+AdwrBfAYNMtTgcouA/t0ZXuOuqg40E1ewgcIVagxqiniSMM
+         +0wBN1alMhWkEZ7Ljo1LVTT9lOIfW3h6zVUiU01k=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, baruch@tkos.co.il, dalias@aerifal.cx,
-        dalias@libc.org, fweimer@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, peter@korsgaard.com,
-        petr.vorel@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 003/200] uapi: move constants from
- <linux/kernel.h> to <linux/const.h>
-Message-ID: <20201215030321.f6WkL8qN3%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, bigeasy@linutronix.de,
+        davem@davemloft.net, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 005/200] ide: remove BUG_ON(in_interrupt() ||
+ irqs_disabled()) from ide_unregister()
+Message-ID: <20201215030327.1xgifoCou%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,143 +41,49 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Petr Vorel <petr.vorel@gmail.com>
-Subject: uapi: move constants from <linux/kernel.h> to <linux/const.h>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: ide: remove BUG_ON(in_interrupt() || irqs_disabled()) from ide_unregister()
 
-and include <linux/const.h> in UAPI headers instead of <linux/kernel.h>.
+In the discussion about preempt count consistency across kernel
+configurations:
 
-The reason is to avoid indirect <linux/sysinfo.h> include when using
-some network headers: <linux/netlink.h> or others -> <linux/kernel.h>
--> <linux/sysinfo.h>.
+ https://lore.kernel.org/r/20200914204209.256266093@linutronix.de/
 
-This indirect include causes on MUSL redefinition of struct sysinfo when
-included both <sys/sysinfo.h> and some of UAPI headers:
+it was concluded that the usage of in_interrupt() and related context
+checks should be removed from non-core code.
 
-In file included from x86_64-buildroot-linux-musl/sysroot/usr/include/linux/kernel.h:5,
-                 from x86_64-buildroot-linux-musl/sysroot/usr/include/linux/netlink.h:5,
-                 from ../include/tst_netlink.h:14,
-                 from tst_crypto.c:13:
-x86_64-buildroot-linux-musl/sysroot/usr/include/linux/sysinfo.h:8:8: error: redefinition of `struct sysinfo'
- struct sysinfo {
-        ^~~~~~~
-In file included from ../include/tst_safe_macros.h:15,
-                 from ../include/tst_test.h:93,
-                 from tst_crypto.c:11:
-x86_64-buildroot-linux-musl/sysroot/usr/include/sys/sysinfo.h:10:8: note: originally defined here
 
-Link: https://lkml.kernel.org/r/20201015190013.8901-1-petr.vorel@gmail.com
-Signed-off-by: Petr Vorel <petr.vorel@gmail.com>
-Suggested-by: Rich Felker <dalias@aerifal.cx>
-Acked-by: Rich Felker <dalias@libc.org>
-Cc: Peter Korsgaard <peter@korsgaard.com>
-Cc: Baruch Siach <baruch@tkos.co.il>
-Cc: Florian Weimer <fweimer@redhat.com>
+Both BUG_ON()s in ide-probe.c were introduced in commit
+   4015c949fb465 ("[PATCH] update ide core")
+
+when ide_unregister() was extended with semaphore based locking.  Both
+checks won't complain about disabled preemption which is also wrong.
+
+The might_sleep() in today's mutex_lock() will complain about the
+missuses.
+
+Remove the BUG_ON() statements.
+
+Link: https://lkml.kernel.org/r/20201120092421.1023428-3-bigeasy@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Jens Axboe <axboe@kernel.dk>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/const.h              |    5 +++++
- include/uapi/linux/ethtool.h            |    2 +-
- include/uapi/linux/kernel.h             |    9 +--------
- include/uapi/linux/lightnvm.h           |    2 +-
- include/uapi/linux/mroute6.h            |    2 +-
- include/uapi/linux/netfilter/x_tables.h |    2 +-
- include/uapi/linux/netlink.h            |    2 +-
- include/uapi/linux/sysctl.h             |    2 +-
- 8 files changed, 12 insertions(+), 14 deletions(-)
+ drivers/ide/ide-probe.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/uapi/linux/const.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/const.h
-@@ -28,4 +28,9 @@
- #define _BITUL(x)	(_UL(1) << (x))
- #define _BITULL(x)	(_ULL(1) << (x))
+--- a/drivers/ide/ide-probe.c~ide-remove-bug_onin_interrupt-irqs_disabled-from-ide_unregister
++++ a/drivers/ide/ide-probe.c
+@@ -1592,9 +1592,6 @@ EXPORT_SYMBOL_GPL(ide_port_unregister_de
  
-+#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
-+#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
-+
-+#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-+
- #endif /* _UAPI_LINUX_CONST_H */
---- a/include/uapi/linux/ethtool.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/ethtool.h
-@@ -14,7 +14,7 @@
- #ifndef _UAPI_LINUX_ETHTOOL_H
- #define _UAPI_LINUX_ETHTOOL_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- #include <linux/if_ether.h>
- 
---- a/include/uapi/linux/kernel.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/kernel.h
-@@ -3,13 +3,6 @@
- #define _UAPI_LINUX_KERNEL_H
- 
- #include <linux/sysinfo.h>
+ static void ide_unregister(ide_hwif_t *hwif)
+ {
+-	BUG_ON(in_interrupt());
+-	BUG_ON(irqs_disabled());
 -
--/*
-- * 'kernel.h' contains some often-used function prototypes etc
-- */
--#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
--#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
--
--#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-+#include <linux/const.h>
+ 	mutex_lock(&ide_cfg_mtx);
  
- #endif /* _UAPI_LINUX_KERNEL_H */
---- a/include/uapi/linux/lightnvm.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/lightnvm.h
-@@ -21,7 +21,7 @@
- #define _UAPI_LINUX_LIGHTNVM_H
- 
- #ifdef __KERNEL__
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/ioctl.h>
- #else /* __KERNEL__ */
- #include <stdio.h>
---- a/include/uapi/linux/mroute6.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/mroute6.h
-@@ -2,7 +2,7 @@
- #ifndef _UAPI__LINUX_MROUTE6_H
- #define _UAPI__LINUX_MROUTE6_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- #include <linux/sockios.h>
- #include <linux/in6.h>		/* For struct sockaddr_in6. */
---- a/include/uapi/linux/netfilter/x_tables.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/netfilter/x_tables.h
-@@ -1,7 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
- #ifndef _UAPI_X_TABLES_H
- #define _UAPI_X_TABLES_H
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- 
- #define XT_FUNCTION_MAXNAMELEN 30
---- a/include/uapi/linux/netlink.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/netlink.h
-@@ -2,7 +2,7 @@
- #ifndef _UAPI__LINUX_NETLINK_H
- #define _UAPI__LINUX_NETLINK_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/socket.h> /* for __kernel_sa_family_t */
- #include <linux/types.h>
- 
---- a/include/uapi/linux/sysctl.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/sysctl.h
-@@ -23,7 +23,7 @@
- #ifndef _UAPI_LINUX_SYSCTL_H
- #define _UAPI_LINUX_SYSCTL_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- #include <linux/compiler.h>
- 
+ 	if (hwif->present) {
 _
