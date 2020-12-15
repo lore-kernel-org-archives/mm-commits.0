@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB88C3526C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF39C3526F
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0827F22D08
+	by mail.kernel.org (Postfix) with ESMTP id 328F322D08
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727004AbgLPAAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727010AbgLPAAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 19:00:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34568 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727774AbgLOX0n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730029AbgLOX0n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:26:43 -0500
-Date:   Tue, 15 Dec 2020 15:17:18 -0800
+Date:   Tue, 15 Dec 2020 15:17:39 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074238;
-        bh=XIehnTW3+8vuKKhb9slwCQqSj5++Hi7Xb+GtNWxviTQ=;
+        s=korg; t=1608074260;
+        bh=RVBo/qbVmJ1mup08Nnii9x6jYTc172cXtTDCL+nM6jU=;
         h=From:To:Subject:From;
-        b=am6QnP4G5xbvYDScsaQiK/zCUPevQ2Vyq5Iexi6iGNlTIeQk28P0pPFss4A12UKvD
-         B7TksdWCnW9HMp+yEiH2q0Ysoh5pINgJ2TQV3Gouq2Nj1jKDjOf+Sk/isOSF46s+6q
-         jB9xrDhneLBRDJ/W0UcnneHyZ4gtLCBdr8SarvGw=
+        b=JchRQU2+58ZeeqW4CzcBXyWEGbeLVatDH8Q9p54hWQ536yjgeJE7pU3FCtxFAWjKZ
+         3IvLfXEzoQtaddkiL7qiA477s4sn3IFk0k6veYOYYj947DuW77bfLVew7Diyv2+OKe
+         rVVXELG31AentM8B+owJCnrgqLlsvGR2bqQkaWB8=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+To:     corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com,
+        hch@infradead.org, ira.weiny@intel.com, jack@suse.cz,
+        jane.chu@oracle.com, jgg@nvidia.com, jhubbard@nvidia.com,
+        joao.m.martins@oracle.com, kirill.shutemov@linux.intel.com,
+        mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, shuah@kernel.org,
+        songmuchun@bytedance.com, vbabka@suse.cz, willy@infradead.org
 Subject:  [merged]
- selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch removed from
- -mm tree
-Message-ID: <20201215231718.SojzTCol3%akpm@linux-foundation.org>
+ mm-up-combine-put_compound_head-and-unpin_user_page.patch removed from -mm
+ tree
+Message-ID: <20201215231739.h3Z_7kmun%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,301 +47,192 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: gup_test: introduce the dump_pages() sub-test
+     Subject: mm/gup: combine put_compound_head() and unpin_user_page()
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-gup_test-introduce-the-dump_pages-sub-test.patch
+     mm-up-combine-put_compound_head-and-unpin_user_page.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: gup_test: introduce the dump_pages() sub-test
+From: Jason Gunthorpe <jgg@nvidia.com>
+Subject: mm/gup: combine put_compound_head() and unpin_user_page()
 
-For quite a while, I was doing a quick hack to gup_test.c (previously,
-gup_benchmark.c) whenever I wanted to try out my changes to dump_page().
-This makes that hack unnecessary, and instead allows anyone to easily get
-the same coverage from a user space program.  That saves a lot of time
-because you don't have to change the kernel, in order to test different
-pages and options.
+These functions accomplish the same thing but have different
+implementations.
 
-The new sub-test takes advantage of the existing gup_test infrastructure,
-which already provides a simple user space program, some allocated user
-space pages, an ioctl call, pinning of those pages (via either
-get_user_pages or pin_user_pages) and a corresponding kernel-side test
-invocation.  There's not much more required, mainly just a couple of
-inputs from the user.
+unpin_user_page() has a bug where it calls mod_node_page_state() after
+calling put_page() which creates a risk that the page could have been
+hot-uplugged from the system.
 
-In fact, the new test re-uses the existing command line options in order
-to get various helpful combinations (THP or normal, _fast or slow gup, gup
-vs.  pup, and more).
+Fix this by using put_compound_head() as the only implementation.
 
-New command line options are: which pages to dump, and what type of
-"get/pin" to use.
+__unpin_devmap_managed_user_page() and related can be deleted as well in
+favour of the simpler, but slower, version in put_compound_head() that has
+an extra atomic page_ref_sub, but always calls put_page() which internally
+contains the special devmap code.
 
-In order to figure out which pages to dump, the logic is:
+Move put_compound_head() to be directly after try_grab_compound_head() so
+people can find it in future.
 
-* If the user doesn't specify anything, the page 0 (the first page in
-  the address range that the program sets up for testing) is dumped.
-
-* Or, the user can type up to 8 page indices anywhere on the command
-  line.  If you type more than 8, then it uses the first 8 and ignores the
-  remaining items.
-
-For example:
-
-    ./gup_test -ct -F 1 0 19 0x1000
-
-Meaning:
-    -c:          dump pages sub-test
-    -t:          use THP pages
-    -F 1:        use pin_user_pages() instead of get_user_pages()
-    0 19 0x1000: dump pages 0, 19, and 4096
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-7-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/0-v1-6730d4ee0d32+40e6-gup_combine_put_jgg@nvidia.com
+Fixes: 1970dc6f5226 ("mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN) reporting")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+CC: Joao Martins <joao.m.martins@oracle.com>
+CC: Jonathan Corbet <corbet@lwn.net>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Chinner <david@fromorbit.com>
+CC: Christoph Hellwig <hch@infradead.org>
+CC: Jane Chu <jane.chu@oracle.com>
+CC: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+CC: Michal Hocko <mhocko@suse.com>
+CC: Mike Kravetz <mike.kravetz@oracle.com>
+CC: Shuah Khan <shuah@kernel.org>
+CC: Muchun Song <songmuchun@bytedance.com>
+CC: Vlastimil Babka <vbabka@suse.cz>
+CC: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig                            |    6 ++
- mm/gup_test.c                         |   56 +++++++++++++++++++++++-
- mm/gup_test.h                         |   10 ++++
- tools/testing/selftests/vm/gup_test.c |   45 ++++++++++++++++++-
- 4 files changed, 113 insertions(+), 4 deletions(-)
+ mm/gup.c |  102 +++++++++++------------------------------------------
+ 1 file changed, 23 insertions(+), 79 deletions(-)
 
---- a/mm/gup_test.c~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
-+++ a/mm/gup_test.c
-@@ -7,7 +7,7 @@
- #include "gup_test.h"
-=20
- static void put_back_pages(unsigned int cmd, struct page **pages,
--			   unsigned long nr_pages)
-+			   unsigned long nr_pages, unsigned int gup_test_flags)
- {
- 	unsigned long i;
-=20
-@@ -23,6 +23,15 @@ static void put_back_pages(unsigned int
- 	case PIN_LONGTERM_BENCHMARK:
- 		unpin_user_pages(pages, nr_pages);
- 		break;
-+	case DUMP_USER_PAGES_TEST:
-+		if (gup_test_flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN) {
-+			unpin_user_pages(pages, nr_pages);
-+		} else {
-+			for (i =3D 0; i < nr_pages; i++)
-+				put_page(pages[i]);
-+
-+		}
-+		break;
- 	}
+--- a/mm/gup.c~mm-up-combine-put_compound_head-and-unpin_user_page
++++ a/mm/gup.c
+@@ -123,6 +123,28 @@ static __maybe_unused struct page *try_g
+ 	return NULL;
  }
-=20
-@@ -49,6 +58,37 @@ static void verify_dma_pinned(unsigned i
- 	}
- }
-=20
-+static void dump_pages_test(struct gup_test *gup, struct page **pages,
-+			    unsigned long nr_pages)
+ 
++static void put_compound_head(struct page *page, int refs, unsigned int flags)
 +{
-+	unsigned int index_to_dump;
-+	unsigned int i;
++	if (flags & FOLL_PIN) {
++		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
++				    refs);
 +
++		if (hpage_pincount_available(page))
++			hpage_pincount_sub(page, refs);
++		else
++			refs *= GUP_PIN_COUNTING_BIAS;
++	}
++
++	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
 +	/*
-+	 * Zero out any user-supplied page index that is out of range. Remember:
-+	 * .which_pages[] contains a 1-based set of page indices.
++	 * Calling put_page() for each ref is unnecessarily slow. Only the last
++	 * ref needs a put_page().
 +	 */
-+	for (i =3D 0; i < GUP_TEST_MAX_PAGES_TO_DUMP; i++) {
-+		if (gup->which_pages[i] > nr_pages) {
-+			pr_warn("ZEROING due to out of range: .which_pages[%u]: %u\n",
-+				i, gup->which_pages[i]);
-+			gup->which_pages[i] =3D 0;
-+		}
-+	}
-+
-+	for (i =3D 0; i < GUP_TEST_MAX_PAGES_TO_DUMP; i++) {
-+		index_to_dump =3D gup->which_pages[i];
-+
-+		if (index_to_dump) {
-+			index_to_dump--; // Decode from 1-based, to 0-based
-+			pr_info("---- page #%u, starting from user virt addr: 0x%llx\n",
-+				index_to_dump, gup->addr);
-+			dump_page(pages[index_to_dump],
-+				  "gup_test: dump_pages() test");
-+		}
-+	}
++	if (refs > 1)
++		page_ref_sub(page, refs - 1);
++	put_page(page);
 +}
 +
- static int __gup_test_ioctl(unsigned int cmd,
- 		struct gup_test *gup)
- {
-@@ -111,6 +151,14 @@ static int __gup_test_ioctl(unsigned int
- 					    gup->flags | FOLL_LONGTERM,
- 					    pages + i, NULL);
- 			break;
-+		case DUMP_USER_PAGES_TEST:
-+			if (gup->flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
-+				nr =3D pin_user_pages(addr, nr, gup->flags,
-+						    pages + i, NULL);
-+			else
-+				nr =3D get_user_pages(addr, nr, gup->flags,
-+						    pages + i, NULL);
-+			break;
- 		default:
- 			ret =3D -EINVAL;
- 			goto unlock;
-@@ -134,9 +182,12 @@ static int __gup_test_ioctl(unsigned int
- 	 */
- 	verify_dma_pinned(cmd, pages, nr_pages);
-=20
-+	if (cmd =3D=3D DUMP_USER_PAGES_TEST)
-+		dump_pages_test(gup, pages, nr_pages);
-+
- 	start_time =3D ktime_get();
-=20
--	put_back_pages(cmd, pages, nr_pages);
-+	put_back_pages(cmd, pages, nr_pages, gup->flags);
-=20
- 	end_time =3D ktime_get();
- 	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
-@@ -161,6 +212,7 @@ static long gup_test_ioctl(struct file *
- 	case PIN_LONGTERM_BENCHMARK:
- 	case GUP_BASIC_TEST:
- 	case PIN_BASIC_TEST:
-+	case DUMP_USER_PAGES_TEST:
- 		break;
- 	default:
- 		return -EINVAL;
---- a/mm/gup_test.h~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
-+++ a/mm/gup_test.h
-@@ -9,6 +9,11 @@
- #define PIN_LONGTERM_BENCHMARK	_IOWR('g', 3, struct gup_test)
- #define GUP_BASIC_TEST		_IOWR('g', 4, struct gup_test)
- #define PIN_BASIC_TEST		_IOWR('g', 5, struct gup_test)
-+#define DUMP_USER_PAGES_TEST	_IOWR('g', 6, struct gup_test)
-+
-+#define GUP_TEST_MAX_PAGES_TO_DUMP		8
-+
-+#define GUP_TEST_FLAG_DUMP_PAGES_USE_PIN	0x1
-=20
- struct gup_test {
- 	__u64 get_delta_usec;
-@@ -17,6 +22,11 @@ struct gup_test {
- 	__u64 size;
- 	__u32 nr_pages_per_call;
- 	__u32 flags;
-+	/*
-+	 * Each non-zero entry is the number of the page (1-based: first page is
-+	 * page 1, so that zero entries mean "do nothing") from the .addr base.
-+	 */
-+	__u32 which_pages[GUP_TEST_MAX_PAGES_TO_DUMP];
- };
-=20
- #endif	/* __GUP_TEST_H */
---- a/mm/Kconfig~selftests-vm-gup_test-introduce-the-dump_pages-sub-test
-+++ a/mm/Kconfig
-@@ -832,6 +832,12 @@ config GUP_TEST
- 	  get_user_pages*() and pin_user_pages*(), as well as smoke tests of
- 	  the non-_fast variants.
-=20
-+	  There is also a sub-test that allows running dump_page() on any
-+	  of up to eight pages (selected by command line args) within the
-+	  range of user-space addresses. These pages are either pinned via
-+	  pin_user_pages*(), or pinned via get_user_pages*(), as specified
-+	  by other command line arguments.
-+
- 	  See tools/testing/selftests/vm/gup_test.c
-=20
- config GUP_GET_PTE_LOW_HIGH
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-gup_test-introduce=
--the-dump_pages-sub-test
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -27,13 +27,15 @@ static char *cmd_to_str(unsigned long cm
- 		return "GUP_BASIC_TEST";
- 	case PIN_BASIC_TEST:
- 		return "PIN_BASIC_TEST";
-+	case DUMP_USER_PAGES_TEST:
-+		return "DUMP_USER_PAGES_TEST";
- 	}
- 	return "Unknown command";
+ /**
+  * try_grab_page() - elevate a page's refcount by a flag-dependent amount
+  *
+@@ -177,41 +199,6 @@ bool __must_check try_grab_page(struct p
+ 	return true;
  }
-=20
- int main(int argc, char **argv)
+ 
+-#ifdef CONFIG_DEV_PAGEMAP_OPS
+-static bool __unpin_devmap_managed_user_page(struct page *page)
+-{
+-	int count, refs = 1;
+-
+-	if (!page_is_devmap_managed(page))
+-		return false;
+-
+-	if (hpage_pincount_available(page))
+-		hpage_pincount_sub(page, 1);
+-	else
+-		refs = GUP_PIN_COUNTING_BIAS;
+-
+-	count = page_ref_sub_return(page, refs);
+-
+-	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
+-	/*
+-	 * devmap page refcounts are 1-based, rather than 0-based: if
+-	 * refcount is 1, then the page is free and the refcount is
+-	 * stable because nobody holds a reference on the page.
+-	 */
+-	if (count == 1)
+-		free_devmap_managed_page(page);
+-	else if (!count)
+-		__put_page(page);
+-
+-	return true;
+-}
+-#else
+-static bool __unpin_devmap_managed_user_page(struct page *page)
+-{
+-	return false;
+-}
+-#endif /* CONFIG_DEV_PAGEMAP_OPS */
+-
+ /**
+  * unpin_user_page() - release a dma-pinned page
+  * @page:            pointer to page to be released
+@@ -223,28 +210,7 @@ static bool __unpin_devmap_managed_user_
+  */
+ void unpin_user_page(struct page *page)
  {
--	struct gup_test gup;
-+	struct gup_test gup =3D { 0 };
- 	unsigned long size =3D 128 * MB;
- 	int i, fd, filed, opt, nr_pages =3D 1, thp =3D -1, repeats =3D 1, write =
-=3D 0;
- 	unsigned long cmd =3D GUP_FAST_BENCHMARK;
-@@ -41,7 +43,7 @@ int main(int argc, char **argv)
- 	char *file =3D "/dev/zero";
- 	char *p;
-=20
--	while ((opt =3D getopt(argc, argv, "m:r:n:f:abtTLUuwSH")) !=3D -1) {
-+	while ((opt =3D getopt(argc, argv, "m:r:n:F:f:abctTLUuwSH")) !=3D -1) {
- 		switch (opt) {
- 		case 'a':
- 			cmd =3D PIN_FAST_BENCHMARK;
-@@ -52,6 +54,21 @@ int main(int argc, char **argv)
- 		case 'L':
- 			cmd =3D PIN_LONGTERM_BENCHMARK;
- 			break;
-+		case 'c':
-+			cmd =3D DUMP_USER_PAGES_TEST;
-+			/*
-+			 * Dump page 0 (index 1). May be overridden later, by
-+			 * user's non-option arguments.
-+			 *
-+			 * .which_pages is zero-based, so that zero can mean "do
-+			 * nothing".
-+			 */
-+			gup.which_pages[0] =3D 1;
-+			break;
-+		case 'F':
-+			/* strtol, so you can pass flags in hex form */
-+			gup.flags =3D strtol(optarg, 0, 0);
-+			break;
- 		case 'm':
- 			size =3D atoi(optarg) * MB;
- 			break;
-@@ -91,6 +108,30 @@ int main(int argc, char **argv)
- 		}
- 	}
-=20
-+	if (optind < argc) {
-+		int extra_arg_count =3D 0;
-+		/*
-+		 * For example:
-+		 *
-+		 *   ./gup_test -c 0 1 0x1001
-+		 *
-+		 * ...to dump pages 0, 1, and 4097
-+		 */
-+
-+		while ((optind < argc) &&
-+		       (extra_arg_count < GUP_TEST_MAX_PAGES_TO_DUMP)) {
-+			/*
-+			 * Do the 1-based indexing here, so that the user can
-+			 * use normal 0-based indexing on the command line.
-+			 */
-+			long page_index =3D strtol(argv[optind], 0, 0) + 1;
-+
-+			gup.which_pages[extra_arg_count] =3D page_index;
-+			extra_arg_count++;
-+			optind++;
-+		}
-+	}
-+
- 	filed =3D open(file, O_RDWR|O_CREAT);
- 	if (filed < 0) {
- 		perror("open");
+-	int refs = 1;
+-
+-	page = compound_head(page);
+-
+-	/*
+-	 * For devmap managed pages we need to catch refcount transition from
+-	 * GUP_PIN_COUNTING_BIAS to 1, when refcount reach one it means the
+-	 * page is free and we need to inform the device driver through
+-	 * callback. See include/linux/memremap.h and HMM for details.
+-	 */
+-	if (__unpin_devmap_managed_user_page(page))
+-		return;
+-
+-	if (hpage_pincount_available(page))
+-		hpage_pincount_sub(page, 1);
+-	else
+-		refs = GUP_PIN_COUNTING_BIAS;
+-
+-	if (page_ref_sub_and_test(page, refs))
+-		__put_page(page);
+-
+-	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
++	put_compound_head(compound_head(page), 1, FOLL_PIN);
+ }
+ EXPORT_SYMBOL(unpin_user_page);
+ 
+@@ -2010,28 +1976,6 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  */
+ #ifdef CONFIG_HAVE_FAST_GUP
+ 
+-static void put_compound_head(struct page *page, int refs, unsigned int flags)
+-{
+-	if (flags & FOLL_PIN) {
+-		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
+-				    refs);
+-
+-		if (hpage_pincount_available(page))
+-			hpage_pincount_sub(page, refs);
+-		else
+-			refs *= GUP_PIN_COUNTING_BIAS;
+-	}
+-
+-	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
+-	/*
+-	 * Calling put_page() for each ref is unnecessarily slow. Only the last
+-	 * ref needs a put_page().
+-	 */
+-	if (refs > 1)
+-		page_ref_sub(page, refs - 1);
+-	put_page(page);
+-}
+-
+ static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
+ 					    unsigned int flags,
+ 					    struct page **pages)
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from jgg@nvidia.com are
 
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
