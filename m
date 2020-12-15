@@ -7,262 +7,163 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98C41C2BB9A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78771C2BB40
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 779B6224B1
+	by mail.kernel.org (Postfix) with ESMTP id 52277224D4
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725876AbgLODFq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:05:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60680 "EHLO mail.kernel.org"
+        id S1727224AbgLODF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:05:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727255AbgLODFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:05:34 -0500
-Date:   Mon, 14 Dec 2020 19:05:17 -0800
+        id S1727220AbgLODFF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:05:05 -0500
+Date:   Mon, 14 Dec 2020 19:04:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001518;
-        bh=dUGLinfV5J+lMlxzVLxxitgibGazwGHmrWHZgEGYjww=;
+        s=korg; t=1608001490;
+        bh=jpJ2IxBdcRv5YSRw4N/68PixbFZCYKiTWOz78t7Hobg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=CIH+mEAVuHhKLbnM87j1RtvclYtA6en/e/kJYATzbRfOeHzujBKBTQvFM+01+oEOr
-         fJWBFQrzucqF/D2JCgXhp2vdjzdJYgTN5o71y9Kbxsa7VSDkb6YYVVXF+QDlWIU+qh
-         k+/rebdjMQDmKWQFIYmzTz2zv7uo6Uh8AlkU1sqA=
+        b=oWYyVWTO1Lk3mgo52vIAM60vBXa23blrKHbpxlpbRwjotcG8jnsvCLhDjqGfz5yEO
+         LRfqyc+lGq9KxTOiZHSZiY9Bc5tVMBFVa/l6GXNEP1lqKgAQDz6tbeRXyPD/OxX7lH
+         wPNKLsM0r1tccGuSbu98QfLf2SWB/1l4hOYBBf10=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, jglisse@redhat.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 036/200] selftests/vm: only some gup_test items
- are really benchmarks
-Message-ID: <20201215030517.QqOGoUI5_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net,
+        georgi.djakov@linaro.org, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, lmark@codeaurora.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        vbabka@suse.cz
+Subject:  [patch 027/200] mm/page_owner: record timestamp and pid
+Message-ID: <20201215030449.bnJPu0SKj%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: only some gup_test items are really benchmarks
+From: Liam Mark <lmark@codeaurora.org>
+Subject: mm/page_owner: record timestamp and pid
 
-Therefore, some minor cleanup and improvements are in order:
+Collect the time for each allocation recorded in page owner so that
+allocation "surges" can be measured.
 
-1. Rename the other items appropriately.
+Record the pid for each allocation recorded in page owner so that the
+source of allocation "surges" can be better identified.
 
-2. Stop reporting timing information on the non-benchmark items. It's
-   still being recorded and is available, but there's no point in
-   cluttering up the report with data that no one reasonably needs to
-   check.
+The above is very useful when doing memory analysis.  On a crash for
+example, we can get this information from kdump (or ramdump) and parse it
+to figure out memory allocation problems.
 
-3. Don't do iterations, for non-benchmark items.
+Please note that on x86_64 this increases the size of struct page_owner
+from 16 bytes to 32.
 
-4. Print out a shorter, more appropriate report for the non-benchmark
-   tests.
+Vlastimil: it's not a functionality intended for production, so unless
+somebody says they need to enable page_owner for debugging and this
+increase prevents them from fitting into available memory, let's not
+complicate things with making this optional.
 
-5. Add the command that was run, to the report. This really helps, as
-   there are quite a lot of options now.
-
-6. Use a larger integer type for cmd, now that it's being compared
-   Otherwise it doesn't work, because in this case cmd is about 3 billion,
-   which is the perfect size for problems with signed vs unsigned int.
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-6-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+[lmark@codeaurora.org: v3]
+  Link: https://lkml.kernel.org/r/20201210160357.27779-1-georgi.djakov@linaro.org
+Link: https://lkml.kernel.org/r/20201209125153.10533-1-georgi.djakov@linaro.org
+Signed-off-by: Liam Mark <lmark@codeaurora.org>
+Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |    2=20
- mm/gup_test.c                             |   14 ++---
- mm/gup_test.h                             |    8 +--
- tools/testing/selftests/vm/gup_test.c     |   47 ++++++++++++++++----
- 4 files changed, 51 insertions(+), 20 deletions(-)
+ Documentation/vm/page_owner.rst |   12 ++++++------
+ mm/page_owner.c                 |   17 +++++++++++++----
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~selftests-vm-only-some-gup_=
-test-items-are-really-benchmarks
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -226,7 +226,7 @@ This file::
- has the following new calls to exercise the new pin*() wrapper functions:
-=20
- * PIN_FAST_BENCHMARK (./gup_test -a)
--* PIN_BENCHMARK (./gup_test -b)
-+* PIN_BASIC_TEST (./gup_test -b)
-=20
- You can monitor how many total dma-pinned pages have been acquired and rel=
-eased
- since the system was booted, via two new /proc/vmstat entries: ::
---- a/mm/gup_test.c~selftests-vm-only-some-gup_test-items-are-really-benchm=
-arks
-+++ a/mm/gup_test.c
-@@ -13,13 +13,13 @@ static void put_back_pages(unsigned int
-=20
- 	switch (cmd) {
- 	case GUP_FAST_BENCHMARK:
--	case GUP_BENCHMARK:
-+	case GUP_BASIC_TEST:
- 		for (i =3D 0; i < nr_pages; i++)
- 			put_page(pages[i]);
- 		break;
-=20
- 	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
-+	case PIN_BASIC_TEST:
- 	case PIN_LONGTERM_BENCHMARK:
- 		unpin_user_pages(pages, nr_pages);
- 		break;
-@@ -34,7 +34,7 @@ static void verify_dma_pinned(unsigned i
-=20
- 	switch (cmd) {
- 	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
-+	case PIN_BASIC_TEST:
- 	case PIN_LONGTERM_BENCHMARK:
- 		for (i =3D 0; i < nr_pages; i++) {
- 			page =3D pages[i];
-@@ -94,7 +94,7 @@ static int __gup_test_ioctl(unsigned int
- 			nr =3D get_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
--		case GUP_BENCHMARK:
-+		case GUP_BASIC_TEST:
- 			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
-@@ -102,7 +102,7 @@ static int __gup_test_ioctl(unsigned int
- 			nr =3D pin_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
--		case PIN_BENCHMARK:
-+		case PIN_BASIC_TEST:
- 			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
-@@ -157,10 +157,10 @@ static long gup_test_ioctl(struct file *
-=20
- 	switch (cmd) {
- 	case GUP_FAST_BENCHMARK:
--	case GUP_BENCHMARK:
- 	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
- 	case PIN_LONGTERM_BENCHMARK:
-+	case GUP_BASIC_TEST:
-+	case PIN_BASIC_TEST:
- 		break;
- 	default:
- 		return -EINVAL;
---- a/mm/gup_test.h~selftests-vm-only-some-gup_test-items-are-really-benchm=
-arks
-+++ a/mm/gup_test.h
-@@ -5,10 +5,10 @@
- #include <linux/types.h>
-=20
- #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 2, struct gup_test)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 3, struct gup_test)
-+#define GUP_BASIC_TEST		_IOWR('g', 4, struct gup_test)
-+#define PIN_BASIC_TEST		_IOWR('g', 5, struct gup_test)
-=20
- struct gup_test {
- 	__u64 get_delta_usec;
---- a/tools/testing/selftests/vm/gup_test.c~selftests-vm-only-some-gup_test=
--items-are-really-benchmarks
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -14,12 +14,30 @@
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
-=20
-+static char *cmd_to_str(unsigned long cmd)
-+{
-+	switch (cmd) {
-+	case GUP_FAST_BENCHMARK:
-+		return "GUP_FAST_BENCHMARK";
-+	case PIN_FAST_BENCHMARK:
-+		return "PIN_FAST_BENCHMARK";
-+	case PIN_LONGTERM_BENCHMARK:
-+		return "PIN_LONGTERM_BENCHMARK";
-+	case GUP_BASIC_TEST:
-+		return "GUP_BASIC_TEST";
-+	case PIN_BASIC_TEST:
-+		return "PIN_BASIC_TEST";
-+	}
-+	return "Unknown command";
-+}
-+
- int main(int argc, char **argv)
- {
- 	struct gup_test gup;
- 	unsigned long size =3D 128 * MB;
- 	int i, fd, filed, opt, nr_pages =3D 1, thp =3D -1, repeats =3D 1, write =
-=3D 0;
--	int cmd =3D GUP_FAST_BENCHMARK, flags =3D MAP_PRIVATE;
-+	unsigned long cmd =3D GUP_FAST_BENCHMARK;
-+	int flags =3D MAP_PRIVATE;
- 	char *file =3D "/dev/zero";
- 	char *p;
-=20
-@@ -29,7 +47,7 @@ int main(int argc, char **argv)
- 			cmd =3D PIN_FAST_BENCHMARK;
- 			break;
- 		case 'b':
--			cmd =3D PIN_BENCHMARK;
-+			cmd =3D PIN_BASIC_TEST;
- 			break;
- 		case 'L':
- 			cmd =3D PIN_LONGTERM_BENCHMARK;
-@@ -50,7 +68,7 @@ int main(int argc, char **argv)
- 			thp =3D 0;
- 			break;
- 		case 'U':
--			cmd =3D GUP_BENCHMARK;
-+			cmd =3D GUP_BASIC_TEST;
- 			break;
- 		case 'u':
- 			cmd =3D GUP_FAST_BENCHMARK;
-@@ -104,18 +122,31 @@ int main(int argc, char **argv)
- 	for (; (unsigned long)p < gup.addr + size; p +=3D PAGE_SIZE)
- 		p[0] =3D 0;
-=20
--	for (i =3D 0; i < repeats; i++) {
-+	/* Only report timing information on the *_BENCHMARK commands: */
-+	if ((cmd =3D=3D PIN_FAST_BENCHMARK) || (cmd =3D=3D GUP_FAST_BENCHMARK) ||
-+	     (cmd =3D=3D PIN_LONGTERM_BENCHMARK)) {
-+		for (i =3D 0; i < repeats; i++) {
-+			gup.size =3D size;
-+			if (ioctl(fd, cmd, &gup))
-+				perror("ioctl"), exit(1);
-+
-+			printf("%s: Time: get:%lld put:%lld us",
-+			       cmd_to_str(cmd), gup.get_delta_usec,
-+			       gup.put_delta_usec);
-+			if (gup.size !=3D size)
-+				printf(", truncated (size: %lld)", gup.size);
-+			printf("\n");
-+		}
-+	} else {
- 		gup.size =3D size;
- 		if (ioctl(fd, cmd, &gup)) {
- 			perror("ioctl");
- 			exit(1);
- 		}
-=20
--		printf("Time: get:%lld put:%lld us", gup.get_delta_usec,
--			gup.put_delta_usec);
-+		printf("%s: done\n", cmd_to_str(cmd));
- 		if (gup.size !=3D size)
--			printf(", truncated (size: %lld)", gup.size);
--		printf("\n");
-+			printf("Truncated (size: %lld)\n", gup.size);
- 	}
-=20
- 	return 0;
+--- a/Documentation/vm/page_owner.rst~mm-page_owner-record-timestamp-and-pid
++++ a/Documentation/vm/page_owner.rst
+@@ -41,17 +41,17 @@ size change due to this facility.
+ - Without page owner::
+ 
+    text    data     bss     dec     hex filename
+-   40662   1493     644   42799    a72f mm/page_alloc.o
++   48392   2333     644   51369    c8a9 mm/page_alloc.o
+ 
+ - With page owner::
+ 
+    text    data     bss     dec     hex filename
+-   40892   1493     644   43029    a815 mm/page_alloc.o
+-   1427      24       8    1459     5b3 mm/page_ext.o
+-   2722      50       0    2772     ad4 mm/page_owner.o
++   48800   2445     644   51889    cab1 mm/page_alloc.o
++   6574     108      29    6711    1a37 mm/page_owner.o
++   1025       8       8    1041     411 mm/page_ext.o
+ 
+-Although, roughly, 4 KB code is added in total, page_alloc.o increase by
+-230 bytes and only half of it is in hotpath. Building the kernel with
++Although, roughly, 8 KB code is added in total, page_alloc.o increase by
++520 bytes and less than half of it is in hotpath. Building the kernel with
+ page owner and turning it on if needed would be great option to debug
+ kernel memory problem.
+ 
+--- a/mm/page_owner.c~mm-page_owner-record-timestamp-and-pid
++++ a/mm/page_owner.c
+@@ -10,6 +10,7 @@
+ #include <linux/migrate.h>
+ #include <linux/stackdepot.h>
+ #include <linux/seq_file.h>
++#include <linux/sched/clock.h>
+ 
+ #include "internal.h"
+ 
+@@ -25,6 +26,8 @@ struct page_owner {
+ 	gfp_t gfp_mask;
+ 	depot_stack_handle_t handle;
+ 	depot_stack_handle_t free_handle;
++	u64 ts_nsec;
++	pid_t pid;
+ };
+ 
+ static bool page_owner_enabled = false;
+@@ -172,6 +175,8 @@ static inline void __set_page_owner_hand
+ 		page_owner->order = order;
+ 		page_owner->gfp_mask = gfp_mask;
+ 		page_owner->last_migrate_reason = -1;
++		page_owner->pid = current->pid;
++		page_owner->ts_nsec = local_clock();
+ 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+ 
+@@ -236,6 +241,8 @@ void __copy_page_owner(struct page *oldp
+ 	new_page_owner->last_migrate_reason =
+ 		old_page_owner->last_migrate_reason;
+ 	new_page_owner->handle = old_page_owner->handle;
++	new_page_owner->pid = old_page_owner->pid;
++	new_page_owner->ts_nsec = old_page_owner->ts_nsec;
+ 
+ 	/*
+ 	 * We don't clear the bit on the oldpage as it's going to be freed
+@@ -349,9 +356,10 @@ print_page_owner(char __user *buf, size_
+ 		return -ENOMEM;
+ 
+ 	ret = snprintf(kbuf, count,
+-			"Page allocated via order %u, mask %#x(%pGg)\n",
++			"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns\n",
+ 			page_owner->order, page_owner->gfp_mask,
+-			&page_owner->gfp_mask);
++			&page_owner->gfp_mask, page_owner->pid,
++			page_owner->ts_nsec);
+ 
+ 	if (ret >= count)
+ 		goto err;
+@@ -427,8 +435,9 @@ void __dump_page_owner(struct page *page
+ 	else
+ 		pr_alert("page_owner tracks the page as freed\n");
+ 
+-	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg)\n",
+-		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask);
++	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, ts %llu\n",
++		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
++		 page_owner->pid, page_owner->ts_nsec);
+ 
+ 	handle = READ_ONCE(page_owner->handle);
+ 	if (!handle) {
 _
