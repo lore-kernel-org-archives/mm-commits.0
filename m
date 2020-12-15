@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEABC4743B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE099C4743E
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4459222D07
+	by mail.kernel.org (Postfix) with ESMTP id A29A222D02
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726277AbgLOX7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59808 "EHLO mail.kernel.org"
+        id S1726297AbgLOX7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59816 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727879AbgLOXWa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:30 -0500
-Date:   Tue, 15 Dec 2020 15:20:47 -0800
+        id S1727940AbgLOXWc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:32 -0500
+Date:   Tue, 15 Dec 2020 15:20:53 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074448;
-        bh=UmZFbAgezHVwRUYRa4P/dWtGUGrLyrDoEGGy9N16PHI=;
+        s=korg; t=1608074454;
+        bh=MVtWNfu+NSfCPMcLP00jPjmi3K6Kg3b32irY6opmBGc=;
         h=From:To:Subject:From;
-        b=XXD9DzVYVbAoZOisGjvrRjOy+ONUTidbfEbgCv0RSjP5B3h7gUS8+JLIsqrUul88t
-         T4NTgrJ4f8nJ3i/pRtKCTuhpFqZ7SwiECbgQQOh49fJiB6fq+Wuj3/g+Rxo+wKFPh1
-         zMqePj6TvsBteSTkeB3Jjo1vi6Y40X0PC60Zhihw=
+        b=lIj1Hq9v7Jb95jn0NOj9VXLS8pw6kY+xbcgPLWmwCGMhsRSZ6Db1+XbcSr7DVTVvS
+         xFUZdRhdA+2MAy0qrGe+zM1A68CO8FvQk/bklS2Dfnyr3FNsPcSDhldmpdQRWur7Jj
+         OyAgSYjTXchz2Amzlh1V4uTKZNHG7tXtywVhddFc=
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
         geert@linux-m68k.org, gerg@linux-m68k.org,
@@ -35,9 +35,9 @@ To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
         rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
         vgupta@synopsys.com, will@kernel.org
 Subject:  [merged]
- ia64-split-virtual-map-initialization-out-of-paging_init.patch removed from
- -mm tree
-Message-ID: <20201215232047.iIO2BvNPz%akpm@linux-foundation.org>
+ ia64-make-sparsemem-default-and-disable-discontigmem.patch removed from -mm
+ tree
+Message-ID: <20201215232053.Ybik2qMFk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,23 +46,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: split virtual map initialization out of paging_init()
+     Subject: ia64: make SPARSEMEM default and disable DISCONTIGMEM
 has been removed from the -mm tree.  Its filename was
-     ia64-split-virtual-map-initialization-out-of-paging_init.patch
+     ia64-make-sparsemem-default-and-disable-discontigmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: split virtual map initialization out of paging_init()
+Subject: ia64: make SPARSEMEM default and disable DISCONTIGMEM
 
-For both FLATMEM and DISCONTIGMEM/SPARSEMEM the virtual map initialization
-is spread over paging_init() for no good reason.
+SPARSEMEM memory model suitable for systems with large holes in their
+phyiscal memory layout. With SPARSEMEM_VMEMMAP enabled it provides
+pfn_to_page() and page_to_pfn() as fast as FLATMEM.
 
-Split out the bits related to virtual map initialization to a helper
-functions, one for FLATMEM and another for !FLATMEM configurations.
+Make it the default memory model for IA-64 and disable DISCONTIGMEM which
+is considered obsolete for quite some time.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201101170454.9567-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -80,120 +81,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/contig.c    |   34 ++++++++++++++++++++--------------
- arch/ia64/mm/discontig.c |   37 ++++++++++++++++++++-----------------
- 2 files changed, 40 insertions(+), 31 deletions(-)
+ arch/ia64/Kconfig |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/ia64/mm/contig.c~ia64-split-virtual-map-initialization-out-of-paging_init
-+++ a/arch/ia64/mm/contig.c
-@@ -166,21 +166,8 @@ find_memory (void)
- 	alloc_per_cpu_data();
- }
+--- a/arch/ia64/Kconfig~ia64-make-sparsemem-default-and-disable-discontigmem
++++ a/arch/ia64/Kconfig
+@@ -288,6 +288,7 @@ config ARCH_SELECT_MEMORY_MODEL
  
--/*
-- * Set up the page tables.
-- */
--
--void __init
--paging_init (void)
-+static void __init virtual_map_init(void)
- {
--	unsigned long max_dma;
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
--
--	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
--	max_zone_pfns[ZONE_DMA32] = max_dma;
--	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
--
- #ifdef CONFIG_VIRTUAL_MEM_MAP
- 	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
- 	if (max_gap < LARGE_GAP) {
-@@ -206,6 +193,25 @@ paging_init (void)
- 		printk("Virtual mem_map starts at 0x%p\n", mem_map);
- 	}
- #endif /* !CONFIG_VIRTUAL_MEM_MAP */
-+}
-+
-+/*
-+ * Set up the page tables.
-+ */
-+
-+void __init
-+paging_init (void)
-+{
-+	unsigned long max_dma;
-+	unsigned long max_zone_pfns[MAX_NR_ZONES];
-+
-+	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
-+	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
-+	max_zone_pfns[ZONE_DMA32] = max_dma;
-+	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
-+
-+	virtual_map_init();
-+
- 	free_area_init(max_zone_pfns);
- 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
- }
---- a/arch/ia64/mm/discontig.c~ia64-split-virtual-map-initialization-out-of-paging_init
-+++ a/arch/ia64/mm/discontig.c
-@@ -584,6 +584,25 @@ void call_pernode_memory(unsigned long s
- 	}
- }
+ config ARCH_DISCONTIGMEM_ENABLE
+ 	def_bool y
++	depends on BROKEN
+ 	help
+ 	  Say Y to support efficient handling of discontiguous physical memory,
+ 	  for architectures which are either NUMA (Non-Uniform Memory Access)
+@@ -299,12 +300,11 @@ config ARCH_FLATMEM_ENABLE
  
-+static void __init virtual_map_init(void)
-+{
-+#ifdef CONFIG_VIRTUAL_MEM_MAP
-+	int node;
-+
-+	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
-+		sizeof(struct page));
-+	vmem_map = (struct page *) VMALLOC_END;
-+	efi_memmap_walk(create_mem_map_page_table, NULL);
-+	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
-+
-+	for_each_online_node(node) {
-+		unsigned long pfn_offset = mem_data[node].min_pfn;
-+
-+		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
-+	}
-+#endif
-+}
-+
- /**
-  * paging_init - setup page tables
-  *
-@@ -593,29 +612,13 @@ void call_pernode_memory(unsigned long s
- void __init paging_init(void)
- {
- 	unsigned long max_dma;
--	unsigned long pfn_offset = 0;
--	int node;
- 	unsigned long max_zone_pfns[MAX_NR_ZONES];
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+-	depends on ARCH_DISCONTIGMEM_ENABLE
+ 	select SPARSEMEM_VMEMMAP_ENABLE
  
- 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+-config ARCH_DISCONTIGMEM_DEFAULT
++config ARCH_SPARSEMEM_DEFAULT
+ 	def_bool y
+-	depends on ARCH_DISCONTIGMEM_ENABLE
++	depends on ARCH_SPARSEMEM_ENABLE
  
- 	sparse_init();
- 
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
--		sizeof(struct page));
--	vmem_map = (struct page *) VMALLOC_END;
--	efi_memmap_walk(create_mem_map_page_table, NULL);
--	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
--#endif
--
--	for_each_online_node(node) {
--		pfn_offset = mem_data[node].min_pfn;
--
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
--#endif
--	}
-+	virtual_map_init();
- 
- 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
- 	max_zone_pfns[ZONE_DMA32] = max_dma;
+ config NUMA
+ 	bool "NUMA support"
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
