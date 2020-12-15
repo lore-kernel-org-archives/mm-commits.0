@@ -7,33 +7,31 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FB8C2BB48
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD6E6C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC51622CF7
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A87C622CF7
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727216AbgLPAAa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34570 "EHLO mail.kernel.org"
+        id S1727277AbgLPAAe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730191AbgLOX2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:28:12 -0500
-Date:   Tue, 15 Dec 2020 15:24:28 -0800
+        id S1727782AbgLOX2N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:28:13 -0500
+Date:   Tue, 15 Dec 2020 15:24:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074668;
-        bh=vmv62OmRi/CEeovFTBqJCG1LxyRqO1dfN00lyrLYiMM=;
+        s=korg; t=1608074690;
+        bh=5Y/VdPJrTY+ZhNMtxsUTGpkHOWCmTGCj8k/t3ys1tKs=;
         h=From:To:Subject:From;
-        b=mtRYDpdujt75c/PE1wgcDd239s1EExVz0jXfEEZGxrH4rX9rDZTtB+7wmMp8Mifpq
-         vJhtcatuvl6CSwLVtT20doPv5+SWoq6z6i3pa4Wvl/ptEfXrrqdj4eGeDy0zIJF9rL
-         5xvqq4URQn624icq8JryEcfON9jWbaqwug9XTiGQ=
+        b=xEIxXT4utk56vzukSwfo3N9t0SOeHoyqkZ64wYITj4NvgdVHJwFP/15iRq+XbkNib
+         6aMcO1mcK7oirnahDk1fzuyJ799ELzVnXugfqbrcPOR27yXi73mT+R+Otsc0jnweXn
+         2mYy7PXnA/UIGNw6r0upjOYJLHGn3QEj+20f0+RM=
 From:   akpm@linux-foundation.org
-To:     minchan@kernel.org, mm-commits@vger.kernel.org,
-        sergey.senozhatsky@gmail.com
-Subject:  [merged]
- zram-add-stat-to-gather-incompressible-pages-since-zram-set-up.patch
- removed from -mm tree
-Message-ID: <20201215232428.Bn_A-BErf%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
+Subject:  [merged] mm-cleanup-kstrto-usage.patch removed from -mm
+ tree
+Message-ID: <20201215232450.7o94yp0mE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,83 +40,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: add stat to gather incompressible pages since zram set up
+     Subject: mm: cleanup kstrto*() usage
 has been removed from the -mm tree.  Its filename was
-     zram-add-stat-to-gather-incompressible-pages-since-zram-set-up.patch
+     mm-cleanup-kstrto-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: add stat to gather incompressible pages since zram set up
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mm: cleanup kstrto*() usage
 
-Currently, zram supports the stat via /sys/block/zram/mm_stat to represent
-how many of incompressible pages are stored at the moment but it couldn't
-show how many times incompressible pages were wrote down since zram set
-up.  It's also good indication to see how zram is effective in the system.
+Range checks can folded into proper conversion function.  kstrto*() exist
+for all arithmetic types.
 
-Link: https://lkml.kernel.org/r/20201130201907.1284910-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: https://lkml.kernel.org/r/20201122123759.GC92364@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    1 +
- drivers/block/zram/zram_drv.c               |    6 ++++--
- drivers/block/zram/zram_drv.h               |    1 +
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   18 +++++++++---------
+ mm/ksm.c        |   18 +++++++++---------
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-add-stat-to-gather-incompressible-pages-since-zram-set-up
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -266,6 +266,7 @@ line of text and contains the following
-                   No memory is allocated for such pages.
-  pages_compacted  the number of pages freed during compaction
-  huge_pages	  the number of incompressible pages
-+ huge_pages_since the number of incompressible pages since zram set up
-  ================ =============================================================
+--- a/mm/khugepaged.c~mm-cleanup-kstrto-usage
++++ a/mm/khugepaged.c
+@@ -133,11 +133,11 @@ static ssize_t scan_sleep_millisecs_stor
+ 					  struct kobj_attribute *attr,
+ 					  const char *buf, size_t count)
+ {
+-	unsigned long msecs;
++	unsigned int msecs;
+ 	int err;
  
- File /sys/block/zram<id>/bd_stat
---- a/drivers/block/zram/zram_drv.c~zram-add-stat-to-gather-incompressible-pages-since-zram-set-up
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1084,7 +1084,7 @@ static ssize_t mm_stat_show(struct devic
- 	max_used = atomic_long_read(&zram->stats.max_used_pages);
+-	err = kstrtoul(buf, 10, &msecs);
+-	if (err || msecs > UINT_MAX)
++	err = kstrtouint(buf, 10, &msecs);
++	if (err)
+ 		return -EINVAL;
  
- 	ret = scnprintf(buf, PAGE_SIZE,
--			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu %8llu\n",
-+			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu %8llu %8llu\n",
- 			orig_size << PAGE_SHIFT,
- 			(u64)atomic64_read(&zram->stats.compr_data_size),
- 			mem_used << PAGE_SHIFT,
-@@ -1092,7 +1092,8 @@ static ssize_t mm_stat_show(struct devic
- 			max_used << PAGE_SHIFT,
- 			(u64)atomic64_read(&zram->stats.same_pages),
- 			pool_stats.pages_compacted,
--			(u64)atomic64_read(&zram->stats.huge_pages));
-+			(u64)atomic64_read(&zram->stats.huge_pages),
-+			(u64)atomic64_read(&zram->stats.huge_pages_since));
- 	up_read(&zram->init_lock);
+ 	khugepaged_scan_sleep_millisecs = msecs;
+@@ -161,11 +161,11 @@ static ssize_t alloc_sleep_millisecs_sto
+ 					   struct kobj_attribute *attr,
+ 					   const char *buf, size_t count)
+ {
+-	unsigned long msecs;
++	unsigned int msecs;
+ 	int err;
  
- 	return ret;
-@@ -1424,6 +1425,7 @@ out:
- 	if (comp_len == PAGE_SIZE) {
- 		zram_set_flag(zram, index, ZRAM_HUGE);
- 		atomic64_inc(&zram->stats.huge_pages);
-+		atomic64_inc(&zram->stats.huge_pages_since);
- 	}
+-	err = kstrtoul(buf, 10, &msecs);
+-	if (err || msecs > UINT_MAX)
++	err = kstrtouint(buf, 10, &msecs);
++	if (err)
+ 		return -EINVAL;
  
- 	if (flags) {
---- a/drivers/block/zram/zram_drv.h~zram-add-stat-to-gather-incompressible-pages-since-zram-set-up
-+++ a/drivers/block/zram/zram_drv.h
-@@ -78,6 +78,7 @@ struct zram_stats {
- 	atomic64_t notify_free;	/* no. of swap slot free notifications */
- 	atomic64_t same_pages;		/* no. of same element filled pages */
- 	atomic64_t huge_pages;		/* no. of huge pages */
-+	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
- 	atomic64_t writestall;		/* no. of write slow paths */
+ 	khugepaged_alloc_sleep_millisecs = msecs;
+@@ -188,11 +188,11 @@ static ssize_t pages_to_scan_store(struc
+ 				   struct kobj_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
++	unsigned int pages;
+ 	int err;
+-	unsigned long pages;
+ 
+-	err = kstrtoul(buf, 10, &pages);
+-	if (err || !pages || pages > UINT_MAX)
++	err = kstrtouint(buf, 10, &pages);
++	if (err || !pages)
+ 		return -EINVAL;
+ 
+ 	khugepaged_pages_to_scan = pages;
+--- a/mm/ksm.c~mm-cleanup-kstrto-usage
++++ a/mm/ksm.c
+@@ -2840,11 +2840,11 @@ static ssize_t sleep_millisecs_store(str
+ 				     struct kobj_attribute *attr,
+ 				     const char *buf, size_t count)
+ {
+-	unsigned long msecs;
++	unsigned int msecs;
+ 	int err;
+ 
+-	err = kstrtoul(buf, 10, &msecs);
+-	if (err || msecs > UINT_MAX)
++	err = kstrtouint(buf, 10, &msecs);
++	if (err)
+ 		return -EINVAL;
+ 
+ 	ksm_thread_sleep_millisecs = msecs;
+@@ -2864,11 +2864,11 @@ static ssize_t pages_to_scan_store(struc
+ 				   struct kobj_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
++	unsigned int nr_pages;
+ 	int err;
+-	unsigned long nr_pages;
+ 
+-	err = kstrtoul(buf, 10, &nr_pages);
+-	if (err || nr_pages > UINT_MAX)
++	err = kstrtouint(buf, 10, &nr_pages);
++	if (err)
+ 		return -EINVAL;
+ 
+ 	ksm_thread_pages_to_scan = nr_pages;
+@@ -2886,11 +2886,11 @@ static ssize_t run_show(struct kobject *
+ static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 			 const char *buf, size_t count)
+ {
++	unsigned int flags;
+ 	int err;
+-	unsigned long flags;
+ 
+-	err = kstrtoul(buf, 10, &flags);
+-	if (err || flags > UINT_MAX)
++	err = kstrtouint(buf, 10, &flags);
++	if (err)
+ 		return -EINVAL;
+ 	if (flags > KSM_RUN_UNMERGE)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+ramfs-support-o_tmpfile.patch
+proc-fix-lookup-in-proc-net-subdirectories-after-setns2.patch
+lib-cleanup-kstrto-usage.patch
 
