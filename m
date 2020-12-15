@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 921FDC4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C75A7C2BBCF
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:22:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 514CC22D04
+	by mail.kernel.org (Postfix) with ESMTP id 9F70022D04
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:22:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729932AbgLOWVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 17:21:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45216 "EHLO mail.kernel.org"
+        id S1729768AbgLOWVa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 17:21:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730003AbgLOWVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 17:21:36 -0500
-Date:   Tue, 15 Dec 2020 14:20:46 -0800
+        id S1729932AbgLOWVY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 17:21:24 -0500
+Date:   Tue, 15 Dec 2020 14:20:41 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608070848;
-        bh=5CUM/uATWapAyCB8TIQbp1W2SKHL3XAPrKb0rHFeVcE=;
+        s=korg; t=1608070843;
+        bh=YsmLonhKn5rdyprldCYnMKLk4XtNdulv/3zrJjVmsFY=;
         h=From:To:Subject:In-Reply-To:From;
-        b=md/NeTr6pXNpYSl69AU6ijz2TxbkKMEnwrlsDW516Qh2Q1dPyBmMsXuYry+lAoog1
-         rsUrYGLhHlQErKrKN41rDFFG96jeN+s2hGdUrk7nuI6M7iYJYUciJWHf+IVmL8wFs7
-         V+Vf78y17rfD2s49tCFz9LbDqRkUol/FkbvZjTXQ=
+        b=S7xjuSyTq2RI46fB/3ljatdTfeN6n8p6iF5+afRedU0E8l8+O9MHKn/qet1Hmel1X
+         PZM2dwnC6Y9Cs505fACO7GtyWG5ilypwLjgk74QZR6su2mH+OX3YClOUI4U1qMPSdJ
+         bAwoHfpQVwI52UpELbKG1FKTLjkatf+wyBsiBNZY=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         alex.shi@linux.alibaba.com, alexander.duyck@gmail.com,
@@ -41,9 +41,9 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  [patch 09/19] mm/swap.c: fold vm event PGROTATED into
- pagevec_move_tail_fn
-Message-ID: <20201215222046.bhG4Qf0I2%akpm@linux-foundation.org>
+Subject:  [patch 08/19] mm/memcg: add debug checking in
+ lock_page_memcg
+Message-ID: <20201215222041.RYErb5B-F%akpm@linux-foundation.org>
 In-Reply-To: <20201215123253.954eca9a5ef4c0d52fd381fa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -55,21 +55,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/swap.c: fold vm event PGROTATED into pagevec_move_tail_fn
+Subject: mm/memcg: add debug checking in lock_page_memcg
 
-Fold the PGROTATED event collection into pagevec_move_tail_fn call back
-func like other funcs does in pagevec_lru_move_fn.  Thus we could save
-func call pagevec_move_tail().  Now all usage of pagevec_lru_move_fn are
-same and no needs of its 3rd parameter.
+Add a debug checking in lock_page_memcg, then we could get alarm if
+anything wrong here.
 
-It's just simply the calling. No functional change.
-
-[lkp@intel.com: found a build issue in the original patch, thanks]
-Link: https://lkml.kernel.org/r/1604566549-62481-10-git-send-email-alex.shi=
-@linux.alibaba.com
+Link: https://lkml.kernel.org/r/1604566549-62481-9-git-send-email-alex.shi@=
+linux.alibaba.com
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -83,234 +81,34 @@ Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   65 ++++++++++++++++++----------------------------------
- 1 file changed, 23 insertions(+), 42 deletions(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/swap.c~mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn
-+++ a/mm/swap.c
-@@ -204,8 +204,7 @@ int get_kernel_page(unsigned long start,
- EXPORT_SYMBOL_GPL(get_kernel_page);
+--- a/mm/memcontrol.c~mm-memcg-add-debug-checking-in-lock_page_memcg
++++ a/mm/memcontrol.c
+@@ -2150,6 +2150,12 @@ again:
+ 	if (unlikely(!memcg))
+ 		return NULL;
 =20
- static void pagevec_lru_move_fn(struct pagevec *pvec,
--	void (*move_fn)(struct page *page, struct lruvec *lruvec, void *arg),
--	void *arg)
-+	void (*move_fn)(struct page *page, struct lruvec *lruvec))
- {
- 	int i;
- 	struct pglist_data *pgdat =3D NULL;
-@@ -224,7 +223,7 @@ static void pagevec_lru_move_fn(struct p
- 		}
++#ifdef CONFIG_PROVE_LOCKING
++	local_irq_save(flags);
++	might_lock(&memcg->move_lock);
++	local_irq_restore(flags);
++#endif
++
+ 	if (atomic_read(&memcg->moving_account) <=3D 0)
+ 		return memcg;
 =20
- 		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
--		(*move_fn)(page, lruvec, arg);
-+		(*move_fn)(page, lruvec);
- 	}
- 	if (pgdat)
- 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
-@@ -232,35 +231,22 @@ static void pagevec_lru_move_fn(struct p
- 	pagevec_reinit(pvec);
- }
-=20
--static void pagevec_move_tail_fn(struct page *page, struct lruvec *lruvec,
--				 void *arg)
-+static void pagevec_move_tail_fn(struct page *page, struct lruvec *lruvec)
- {
--	int *pgmoved =3D arg;
--
- 	if (PageLRU(page) && !PageUnevictable(page)) {
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
- 		ClearPageActive(page);
- 		add_page_to_lru_list_tail(page, lruvec, page_lru(page));
--		(*pgmoved) +=3D thp_nr_pages(page);
-+		__count_vm_events(PGROTATED, thp_nr_pages(page));
- 	}
- }
-=20
- /*
-- * pagevec_move_tail() must be called with IRQ disabled.
-- * Otherwise this may cause nasty races.
-- */
--static void pagevec_move_tail(struct pagevec *pvec)
--{
--	int pgmoved =3D 0;
--
--	pagevec_lru_move_fn(pvec, pagevec_move_tail_fn, &pgmoved);
--	__count_vm_events(PGROTATED, pgmoved);
--}
--
--/*
-  * Writeback is about to end against a page which has been marked for imme=
-diate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of=
- the
-  * inactive list.
-+ *
-+ * rotate_reclaimable_page() must disable IRQs, to prevent nasty races.
-  */
- void rotate_reclaimable_page(struct page *page)
- {
-@@ -273,7 +259,7 @@ void rotate_reclaimable_page(struct page
- 		local_lock_irqsave(&lru_rotate.lock, flags);
- 		pvec =3D this_cpu_ptr(&lru_rotate.pvec);
- 		if (!pagevec_add(pvec, page) || PageCompound(page))
--			pagevec_move_tail(pvec);
-+			pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
- 	}
- }
-@@ -315,8 +301,7 @@ void lru_note_cost_page(struct page *pag
- 		      page_is_file_lru(page), thp_nr_pages(page));
- }
-=20
--static void __activate_page(struct page *page, struct lruvec *lruvec,
--			    void *arg)
-+static void __activate_page(struct page *page, struct lruvec *lruvec)
- {
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
- 		int lru =3D page_lru_base_type(page);
-@@ -340,7 +325,7 @@ static void activate_page_drain(int cpu)
- 	struct pagevec *pvec =3D &per_cpu(lru_pvecs.activate_page, cpu);
-=20
- 	if (pagevec_count(pvec))
--		pagevec_lru_move_fn(pvec, __activate_page, NULL);
-+		pagevec_lru_move_fn(pvec, __activate_page);
- }
-=20
- static bool need_activate_page_drain(int cpu)
-@@ -358,7 +343,7 @@ static void activate_page(struct page *p
- 		pvec =3D this_cpu_ptr(&lru_pvecs.activate_page);
- 		get_page(page);
- 		if (!pagevec_add(pvec, page) || PageCompound(page))
--			pagevec_lru_move_fn(pvec, __activate_page, NULL);
-+			pagevec_lru_move_fn(pvec, __activate_page);
- 		local_unlock(&lru_pvecs.lock);
- 	}
- }
-@@ -374,7 +359,7 @@ static void activate_page(struct page *p
-=20
- 	page =3D compound_head(page);
- 	spin_lock_irq(&pgdat->lru_lock);
--	__activate_page(page, mem_cgroup_page_lruvec(page, pgdat), NULL);
-+	__activate_page(page, mem_cgroup_page_lruvec(page, pgdat));
- 	spin_unlock_irq(&pgdat->lru_lock);
- }
- #endif
-@@ -525,8 +510,7 @@ void lru_cache_add_inactive_or_unevictab
-  * be write it out by flusher threads as this is much more effective
-  * than the single-page writeout from reclaim.
-  */
--static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruve=
-c,
--			      void *arg)
-+static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruve=
-c)
- {
- 	int lru;
- 	bool active;
-@@ -573,8 +557,7 @@ static void lru_deactivate_file_fn(struc
- 	}
- }
-=20
--static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
--			    void *arg)
-+static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec)
- {
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
- 		int lru =3D page_lru_base_type(page);
-@@ -591,8 +574,7 @@ static void lru_deactivate_fn(struct pag
- 	}
- }
-=20
--static void lru_lazyfree_fn(struct page *page, struct lruvec *lruvec,
--			    void *arg)
-+static void lru_lazyfree_fn(struct page *page, struct lruvec *lruvec)
- {
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
- 	    !PageSwapCache(page) && !PageUnevictable(page)) {
-@@ -636,21 +618,21 @@ void lru_add_drain_cpu(int cpu)
-=20
- 		/* No harm done if a racing interrupt already did this */
- 		local_lock_irqsave(&lru_rotate.lock, flags);
--		pagevec_move_tail(pvec);
-+		pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
- 	}
-=20
- 	pvec =3D &per_cpu(lru_pvecs.lru_deactivate_file, cpu);
- 	if (pagevec_count(pvec))
--		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
-+		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn);
-=20
- 	pvec =3D &per_cpu(lru_pvecs.lru_deactivate, cpu);
- 	if (pagevec_count(pvec))
--		pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
-+		pagevec_lru_move_fn(pvec, lru_deactivate_fn);
-=20
- 	pvec =3D &per_cpu(lru_pvecs.lru_lazyfree, cpu);
- 	if (pagevec_count(pvec))
--		pagevec_lru_move_fn(pvec, lru_lazyfree_fn, NULL);
-+		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
-=20
- 	activate_page_drain(cpu);
- }
-@@ -679,7 +661,7 @@ void deactivate_file_page(struct page *p
- 		pvec =3D this_cpu_ptr(&lru_pvecs.lru_deactivate_file);
-=20
- 		if (!pagevec_add(pvec, page) || PageCompound(page))
--			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
-+			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn);
- 		local_unlock(&lru_pvecs.lock);
- 	}
- }
-@@ -701,7 +683,7 @@ void deactivate_page(struct page *page)
- 		pvec =3D this_cpu_ptr(&lru_pvecs.lru_deactivate);
- 		get_page(page);
- 		if (!pagevec_add(pvec, page) || PageCompound(page))
--			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
-+			pagevec_lru_move_fn(pvec, lru_deactivate_fn);
- 		local_unlock(&lru_pvecs.lock);
- 	}
- }
-@@ -723,7 +705,7 @@ void mark_page_lazyfree(struct page *pag
- 		pvec =3D this_cpu_ptr(&lru_pvecs.lru_lazyfree);
- 		get_page(page);
- 		if (!pagevec_add(pvec, page) || PageCompound(page))
--			pagevec_lru_move_fn(pvec, lru_lazyfree_fn, NULL);
-+			pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
- 		local_unlock(&lru_pvecs.lock);
- 	}
- }
-@@ -977,8 +959,7 @@ void __pagevec_release(struct pagevec *p
- }
- EXPORT_SYMBOL(__pagevec_release);
-=20
--static void __pagevec_lru_add_fn(struct page *page, struct lruvec *lruvec,
--				 void *arg)
-+static void __pagevec_lru_add_fn(struct page *page, struct lruvec *lruvec)
- {
- 	enum lru_list lru;
- 	int was_unevictable =3D TestClearPageUnevictable(page);
-@@ -1037,7 +1018,7 @@ static void __pagevec_lru_add_fn(struct
-  */
- void __pagevec_lru_add(struct pagevec *pvec)
- {
--	pagevec_lru_move_fn(pvec, __pagevec_lru_add_fn, NULL);
-+	pagevec_lru_move_fn(pvec, __pagevec_lru_add_fn);
- }
-=20
- /**
 _
