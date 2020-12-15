@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0D1BC3526C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF0D7C3526D
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F47222D07
+	by mail.kernel.org (Postfix) with ESMTP id CD8A722D05
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725764AbgLPAAW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727075AbgLPAAW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 19:00:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34626 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726852AbgLOX1l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:41 -0500
-Date:   Tue, 15 Dec 2020 15:17:06 -0800
+        id S1725764AbgLOX1k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:40 -0500
+Date:   Tue, 15 Dec 2020 15:17:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074226;
-        bh=EU85zJSNG4qBPxKK+v4cQT0PlOC6B+znkSU2p48+uyM=;
+        s=korg; t=1608074279;
+        bh=FETBql0NtDm9TRqJ/bdA3lUmVARu05vwnkT9niGRXwo=;
         h=From:To:Subject:From;
-        b=ROyIEuS1B6/UsmTJ1D1+4QqDaSBOtYN8eDSdSOfeILXOWCRIrGkMFi3bHgsAnFcbJ
-         xij/jbUba+OUWPDqnRTaFNPHs70O9FUN1irXBWuOihXWWB63RVcy/szkXM+dkojmik
-         uMovbejnGg9N5T8yUp/GJ8RKiwf+CMw3IQTmy2DY=
+        b=IDPRVH1vOdsPfUlrYKFYb9LU2jXCvKyjvkAkhT+nITZQv7jm+SOsWqP/ud2eE2mVw
+         BNCJqHp3H5Jvjhv18ySwRM/q3hGrd6Jb30w/MAn6c38ppipUpNiNq9nWhJp09boy82
+         MPWXnzuJBSA8BlV5D+JQxYS3A9pLQcs5m/8JsxrE=
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [merged]
- mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
- removed from -mm tree
-Message-ID: <20201215231706.ipIQ5ZW2q%akpm@linux-foundation.org>
+To:     chris@chrisdown.name, hughd@google.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org
+Subject:  [merged] tmpfs-fix-documentation-nits.patch removed from
+ -mm tree
+Message-ID: <20201215231759.0nfuTm4LF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,81 +41,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/truncate: add parameter explanation for invalidate_mapping_pagevec
+     Subject: tmpfs: fix Documentation nits
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec.patch
+     tmpfs-fix-documentation-nits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/truncate: add parameter explanation for invalidate_mapping_pagevec
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: tmpfs: fix Documentation nits
 
-To fix a kernel-doc markups issue:
-mm/truncate.c:646: warning: Function parameter or member 'mapping' not
-described in 'invalidate_mapping_pagevec'
-mm/truncate.c:646: warning: Function parameter or member 'start' not
-described in 'invalidate_mapping_pagevec'
-mm/truncate.c:646: warning: Function parameter or member 'end' not
-described in 'invalidate_mapping_pagevec'
-mm/truncate.c:646: warning: Function parameter or member 'nr_pagevec'
-not described in 'invalidate_mapping_pagevec'
+Fix a typo, punctuation, use uppercase for CPUs, and limit
+tmpfs to keeping only its files in virtual memory (phrasing).
 
-Link: https://lkml.kernel.org/r/1605605088-30668-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20201202010934.18566-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ Documentation/filesystems/tmpfs.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-add-parameter-explanation-for-invalidate_mapping_pagevec
-+++ a/mm/truncate.c
-@@ -637,9 +637,15 @@ unsigned long invalidate_mapping_pages(s
- EXPORT_SYMBOL(invalidate_mapping_pages);
+--- a/Documentation/filesystems/tmpfs.rst~tmpfs-fix-documentation-nits
++++ a/Documentation/filesystems/tmpfs.rst
+@@ -4,7 +4,7 @@
+ Tmpfs
+ =====
  
- /**
-- * This helper is similar with the above one, except that it accounts for pages
-- * that are likely on a pagevec and count them in @nr_pagevec, which will used by
-- * the caller.
-+ * invalidate_mapping_pagevec - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ * @nr_pagevec: invalidate failed page number for caller
-+ *
-+ * This helper is similar with invalidate_mapping_pages, except that it accounts
-+ * for pages that failed to invalidate on a pagevec and count them in
-+ * @nr_pagevec, which will used by the caller.
-  */
- void invalidate_mapping_pagevec(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
+-Tmpfs is a file system which keeps all files in virtual memory.
++Tmpfs is a file system which keeps all of its files in virtual memory.
+ 
+ 
+ Everything in tmpfs is temporary in the sense that no files will be
+@@ -35,7 +35,7 @@ tmpfs has the following uses:
+    memory.
+ 
+    This mount does not depend on CONFIG_TMPFS. If CONFIG_TMPFS is not
+-   set, the user visible part of tmpfs is not build. But the internal
++   set, the user visible part of tmpfs is not built. But the internal
+    mechanisms are always present.
+ 
+ 2) glibc 2.2 and above expects tmpfs to be mounted at /dev/shm for
+@@ -50,7 +50,7 @@ tmpfs has the following uses:
+    This mount is _not_ needed for SYSV shared memory. The internal
+    mount is used for that. (In the 2.3 kernel versions it was
+    necessary to mount the predecessor of tmpfs (shm fs) to use SYSV
+-   shared memory)
++   shared memory.)
+ 
+ 3) Some people (including me) find it very convenient to mount it
+    e.g. on /tmp and /var/tmp and have a big swap partition. And now
+@@ -83,7 +83,7 @@ If nr_blocks=0 (or size=0), blocks will
+ if nr_inodes=0, inodes will not be limited.  It is generally unwise to
+ mount with such options, since it allows any user with write access to
+ use up all the memory on the machine; but enhances the scalability of
+-that instance in a system with many cpus making intensive use of it.
++that instance in a system with many CPUs making intensive use of it.
+ 
+ 
+ tmpfs has a mount option to set the NUMA memory allocation policy for
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
-mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
-mm-thp-simplify-lru_add_page_tail.patch
-mm-thp-narrow-lru-locking.patch
-mm-vmscan-remove-unnecessary-lruvec-adding.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
-mm-memcg-add-debug-checking-in-lock_page_memcg.patch
-mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
-mm-lru-move-lock-into-lru_note_cost.patch
-mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
-mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
-mm-mlock-remove-__munlock_isolate_lru_page.patch
-mm-lru-introduce-testclearpagelru.patch
-mm-compaction-do-page-isolation-first-in-compaction.patch
-mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
-mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
-fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
-gcov-fix-kernel-doc-markup-issue.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
+procfs-delete-duplicated-words-other-fixes.patch
+bfs-dont-use-warning-string-when-its-just-info.patch
 
