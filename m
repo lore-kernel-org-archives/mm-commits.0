@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7DA7C2BB48
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBCCC2BBCA
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 692FC223C8
+	by mail.kernel.org (Postfix) with ESMTP id 8708222473
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727557AbgLODP4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:15:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42920 "EHLO mail.kernel.org"
+        id S1728100AbgLODNv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:13:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727736AbgLODO4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:14:56 -0500
-Date:   Mon, 14 Dec 2020 19:14:15 -0800
+        id S1727910AbgLODNm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:13:42 -0500
+Date:   Mon, 14 Dec 2020 19:12:52 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608002056;
-        bh=YJXLSVMPYnwn4044zXgDCUZDwdlEwNg4VJtphHsGZ6Y=;
+        s=korg; t=1608001973;
+        bh=TcD2ktfzqnXE3w/RRwh9EhW1251v9ogB1A6Gy7+htGU=;
         h=From:To:Subject:In-Reply-To:From;
-        b=01iAsAAIQh+6HWV5uaCvpGjnKkZURU4ZrROcjcRoS1/l6aNA6MTtYt5Rk+ayQ1RaV
-         CMJofMvS7D4nT0/T/XMv05n5efdw2Q09XVHkJgMBVj1tn1pUMNOu3TCCK1HW8oKqym
-         dNomZ/ndPWz66uNY4kQJgL7FHT/6dRmkrk7CyeM4=
+        b=pgt14duRx7x/XeNlJq2F4kPMXxp6XXNDunQIWsCAK15qdu8WmlvcCiMplQcMuB88c
+         EpQ0CJAo0JW7YmZKS/wpjKLG0P5p6FRN2MwwEXwJu3Xi5Fc0SGU+ukqjApnm+h7E1b
+         sKBTzHFHmQeJTmvrwAbH5jPWPh7DxaMxybhcKSOA=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, ddstreet@ieee.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        sjenning@redhat.com, torvalds@linux-foundation.org,
-        vitaly.wool@konsulko.com, yuehaibing@huawei.com
-Subject:  [patch 186/200] mm/zswap: fix passing zero to 'PTR_ERR'
- warning
-Message-ID: <20201215031415.Wm5L21KrC%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        lonuxli.64@gmail.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 163/200] mm/migrate.c: fix comment spelling
+Message-ID: <20201215031252.0w_23LAJj%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,38 +40,29 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: mm/zswap: fix passing zero to 'PTR_ERR' warning
+From: Long Li <lonuxli.64@gmail.com>
+Subject: mm/migrate.c: fix comment spelling
 
-Fix smatch warning:
+The word in the comment is misspelled, it should be "include".
 
-mm/zswap.c:425 zswap_cpu_comp_prepare() warn: passing zero to 'PTR_ERR'
-
-crypto_alloc_comp() never return NULL, use IS_ERR instead of
-IS_ERR_OR_NULL to fix this.
-
-Link: https://lkml.kernel.org/r/20201031055615.28080-1-yuehaibing@huawei.com
-Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20201024114144.GA20552@lilong
+Signed-off-by: Long Li <lonuxli.64@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
+ mm/migrate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-fix-passing-zero-to-ptr_err-warning
-+++ a/mm/zswap.c
-@@ -421,7 +421,7 @@ static int zswap_cpu_comp_prepare(unsign
- 		return 0;
- 
- 	tfm = crypto_alloc_comp(pool->tfm_name, 0, 0);
--	if (IS_ERR_OR_NULL(tfm)) {
-+	if (IS_ERR(tfm)) {
- 		pr_err("could not alloc crypto comp %s : %ld\n",
- 		       pool->tfm_name, PTR_ERR(tfm));
- 		return -ENOMEM;
+--- a/mm/migrate.c~mm-migrate-fix-comment-spelling
++++ a/mm/migrate.c
+@@ -1696,7 +1696,7 @@ static int move_pages_and_store_status(s
+ 		 * Positive err means the number of failed
+ 		 * pages to migrate.  Since we are going to
+ 		 * abort and return the number of non-migrated
+-		 * pages, so need to incude the rest of the
++		 * pages, so need to include the rest of the
+ 		 * nr_pages that have not been attempted as
+ 		 * well.
+ 		 */
 _
