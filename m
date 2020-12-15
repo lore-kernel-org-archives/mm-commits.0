@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF39C3526F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A225C3526E
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 328F322D08
+	by mail.kernel.org (Postfix) with ESMTP id 48FA822D49
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727010AbgLPAAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60868 "EHLO mail.kernel.org"
+        id S1727011AbgLPAAK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730029AbgLOX0n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:43 -0500
-Date:   Tue, 15 Dec 2020 15:17:39 -0800
+        id S1730052AbgLOX0o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:26:44 -0500
+Date:   Tue, 15 Dec 2020 15:18:10 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074260;
-        bh=RVBo/qbVmJ1mup08Nnii9x6jYTc172cXtTDCL+nM6jU=;
+        s=korg; t=1608074291;
+        bh=aqgYhvIv03ZgN39guNT3CMeClHO4fwoLSYOQ0mNmLsI=;
         h=From:To:Subject:From;
-        b=JchRQU2+58ZeeqW4CzcBXyWEGbeLVatDH8Q9p54hWQ536yjgeJE7pU3FCtxFAWjKZ
-         3IvLfXEzoQtaddkiL7qiA477s4sn3IFk0k6veYOYYj947DuW77bfLVew7Diyv2+OKe
-         rVVXELG31AentM8B+owJCnrgqLlsvGR2bqQkaWB8=
+        b=ZdDeSRZ1NQuibRr4FrTyMcje9H7uldsA0khW/erc1gQpgQjBZBIK4ILA26qZHHFgS
+         Prp3emAl43e5cqJ3Wvq0yr9QEVJ3Hc1tIfanCIRIYZv4qN+VgQb+/hI8iYdYY4Km00
+         Uc0V8gs+4VX5jGmwM1fNCN2rRlTvHIOeBx8DPdrc=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com,
-        hch@infradead.org, ira.weiny@intel.com, jack@suse.cz,
-        jane.chu@oracle.com, jgg@nvidia.com, jhubbard@nvidia.com,
-        joao.m.martins@oracle.com, kirill.shutemov@linux.intel.com,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, shuah@kernel.org,
-        songmuchun@bytedance.com, vbabka@suse.cz, willy@infradead.org
+To:     areber@redhat.com, chris@chrisdown.name,
+        christian.brauner@ubuntu.com, elver@google.com, esyr@redhat.com,
+        guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com,
+        keescook@chromium.org, laoar.shao@gmail.com, mhocko@kernel.org,
+        mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org,
+        shakeelb@google.com, songmuchun@bytedance.com, surenb@google.com,
+        tglx@linutronix.de, vdavydov.dev@gmail.com
 Subject:  [merged]
- mm-up-combine-put_compound_head-and-unpin_user_page.patch removed from -mm
- tree
-Message-ID: <20201215231739.h3Z_7kmun%akpm@linux-foundation.org>
+ mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch removed
+ from -mm tree
+Message-ID: <20201215231810.3--gD_Ubn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,192 +47,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: combine put_compound_head() and unpin_user_page()
+     Subject: mm: memcg/slab: fix return of child memcg objcg for root memcg
 has been removed from the -mm tree.  Its filename was
-     mm-up-combine-put_compound_head-and-unpin_user_page.patch
+     mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: combine put_compound_head() and unpin_user_page()
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcg/slab: fix return of child memcg objcg for root memcg
 
-These functions accomplish the same thing but have different
-implementations.
+Consider the following memcg hierarchy.
 
-unpin_user_page() has a bug where it calls mod_node_page_state() after
-calling put_page() which creates a risk that the page could have been
-hot-uplugged from the system.
+                    root
+                   /    \
+                  A      B
 
-Fix this by using put_compound_head() as the only implementation.
+If we failed to get the reference on objcg of memcg A, the
+get_obj_cgroup_from_current can return the wrong objcg for the root
+memcg.
 
-__unpin_devmap_managed_user_page() and related can be deleted as well in
-favour of the simpler, but slower, version in put_compound_head() that has
-an extra atomic page_ref_sub, but always calls put_page() which internally
-contains the special devmap code.
-
-Move put_compound_head() to be directly after try_grab_compound_head() so
-people can find it in future.
-
-Link: https://lkml.kernel.org/r/0-v1-6730d4ee0d32+40e6-gup_combine_put_jgg@nvidia.com
-Fixes: 1970dc6f5226 ("mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN) reporting")
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-CC: Joao Martins <joao.m.martins@oracle.com>
-CC: Jonathan Corbet <corbet@lwn.net>
-CC: Dan Williams <dan.j.williams@intel.com>
-CC: Dave Chinner <david@fromorbit.com>
-CC: Christoph Hellwig <hch@infradead.org>
-CC: Jane Chu <jane.chu@oracle.com>
-CC: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-CC: Michal Hocko <mhocko@suse.com>
-CC: Mike Kravetz <mike.kravetz@oracle.com>
-CC: Shuah Khan <shuah@kernel.org>
-CC: Muchun Song <songmuchun@bytedance.com>
-CC: Vlastimil Babka <vbabka@suse.cz>
-CC: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20201029164429.58703-1-songmuchun@bytedance.com
+Fixes: bf4f059954dc ("mm: memcg/slab: obj_cgroup API")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Eugene Syromiatnikov <esyr@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  102 +++++++++++------------------------------------------
- 1 file changed, 23 insertions(+), 79 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/gup.c~mm-up-combine-put_compound_head-and-unpin_user_page
-+++ a/mm/gup.c
-@@ -123,6 +123,28 @@ static __maybe_unused struct page *try_g
- 	return NULL;
- }
+--- a/mm/memcontrol.c~mm-memcg-slab-fix-return-child-memcg-objcg-for-root-memcg
++++ a/mm/memcontrol.c
+@@ -2975,6 +2975,7 @@ __always_inline struct obj_cgroup *get_o
+ 		objcg = rcu_dereference(memcg->objcg);
+ 		if (objcg && obj_cgroup_tryget(objcg))
+ 			break;
++		objcg = NULL;
+ 	}
+ 	rcu_read_unlock();
  
-+static void put_compound_head(struct page *page, int refs, unsigned int flags)
-+{
-+	if (flags & FOLL_PIN) {
-+		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
-+				    refs);
-+
-+		if (hpage_pincount_available(page))
-+			hpage_pincount_sub(page, refs);
-+		else
-+			refs *= GUP_PIN_COUNTING_BIAS;
-+	}
-+
-+	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
-+	/*
-+	 * Calling put_page() for each ref is unnecessarily slow. Only the last
-+	 * ref needs a put_page().
-+	 */
-+	if (refs > 1)
-+		page_ref_sub(page, refs - 1);
-+	put_page(page);
-+}
-+
- /**
-  * try_grab_page() - elevate a page's refcount by a flag-dependent amount
-  *
-@@ -177,41 +199,6 @@ bool __must_check try_grab_page(struct p
- 	return true;
- }
- 
--#ifdef CONFIG_DEV_PAGEMAP_OPS
--static bool __unpin_devmap_managed_user_page(struct page *page)
--{
--	int count, refs = 1;
--
--	if (!page_is_devmap_managed(page))
--		return false;
--
--	if (hpage_pincount_available(page))
--		hpage_pincount_sub(page, 1);
--	else
--		refs = GUP_PIN_COUNTING_BIAS;
--
--	count = page_ref_sub_return(page, refs);
--
--	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
--	/*
--	 * devmap page refcounts are 1-based, rather than 0-based: if
--	 * refcount is 1, then the page is free and the refcount is
--	 * stable because nobody holds a reference on the page.
--	 */
--	if (count == 1)
--		free_devmap_managed_page(page);
--	else if (!count)
--		__put_page(page);
--
--	return true;
--}
--#else
--static bool __unpin_devmap_managed_user_page(struct page *page)
--{
--	return false;
--}
--#endif /* CONFIG_DEV_PAGEMAP_OPS */
--
- /**
-  * unpin_user_page() - release a dma-pinned page
-  * @page:            pointer to page to be released
-@@ -223,28 +210,7 @@ static bool __unpin_devmap_managed_user_
-  */
- void unpin_user_page(struct page *page)
- {
--	int refs = 1;
--
--	page = compound_head(page);
--
--	/*
--	 * For devmap managed pages we need to catch refcount transition from
--	 * GUP_PIN_COUNTING_BIAS to 1, when refcount reach one it means the
--	 * page is free and we need to inform the device driver through
--	 * callback. See include/linux/memremap.h and HMM for details.
--	 */
--	if (__unpin_devmap_managed_user_page(page))
--		return;
--
--	if (hpage_pincount_available(page))
--		hpage_pincount_sub(page, 1);
--	else
--		refs = GUP_PIN_COUNTING_BIAS;
--
--	if (page_ref_sub_and_test(page, refs))
--		__put_page(page);
--
--	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
-+	put_compound_head(compound_head(page), 1, FOLL_PIN);
- }
- EXPORT_SYMBOL(unpin_user_page);
- 
-@@ -2010,28 +1976,6 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  */
- #ifdef CONFIG_HAVE_FAST_GUP
- 
--static void put_compound_head(struct page *page, int refs, unsigned int flags)
--{
--	if (flags & FOLL_PIN) {
--		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
--				    refs);
--
--		if (hpage_pincount_available(page))
--			hpage_pincount_sub(page, refs);
--		else
--			refs *= GUP_PIN_COUNTING_BIAS;
--	}
--
--	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
--	/*
--	 * Calling put_page() for each ref is unnecessarily slow. Only the last
--	 * ref needs a put_page().
--	 */
--	if (refs > 1)
--		page_ref_sub(page, refs - 1);
--	put_page(page);
--}
--
- static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
- 					    unsigned int flags,
- 					    struct page **pages)
 _
 
-Patches currently in -mm which might be from jgg@nvidia.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
