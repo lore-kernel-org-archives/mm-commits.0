@@ -7,32 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E58AC49EBD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDE89C49EC9
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AFD022D03
+	by mail.kernel.org (Postfix) with ESMTP id 93C5922D03
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726579AbgLOX7b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59818 "EHLO mail.kernel.org"
+        id S1726771AbgLOX7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727672AbgLOXZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:05 -0500
-Date:   Tue, 15 Dec 2020 15:22:16 -0800
+        id S1729597AbgLOXZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:39 -0500
+Date:   Tue, 15 Dec 2020 15:23:04 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074536;
-        bh=+IRitoQnVBLcs/kYSPIaabp7QIxxi3Xj0iS4fiDwTew=;
+        s=korg; t=1608074584;
+        bh=G7S0duJG1NfhM67ef1EWSz/o26GMIx3LOVGhuVo6COk=;
         h=From:To:Subject:From;
-        b=DKBRR3KAS5Sls7xcNjWw1VXWycs1r+KNq2kpDsrrF2s1bkXmuDT8g/ExC+IB8TIsw
-         R2sXORMxELHrOuZTszeoCPmtOIx7BRV2dozGCS/u5Gx2vngsQUBRlE99LStwT1h559
-         kUMpDJmAIHcaBLVdPNe+p50a1ayslyfUDnD5Q1lM=
+        b=hSY88ddkgNYJCYhmuIIKI0NGT4m87vXrxqJy1qLDsJRJVah7oECRHUtvIZ5p5z8RM
+         lpUQclyEwtRUNB/t57HzEU9GfPRsOObia1rilM2GtoBvFSNOsXIwVHnn5yhQ+NwNKG
+         6b1kqISUT6da806tVzUT6qcD3zjO2Od6OWpBP/pg=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, qcai@redhat.com, Vbabka@suse.cz
-Subject:  [merged] mmhwpoison-refactor-get_any_page.patch removed
- from -mm tree
-Message-ID: <20201215232216.n44wTy3Aw%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org,
+        pankaj.gupta.linux@gmail.com, vbabka@suse.cz,
+        yanfei.xu@windriver.com
+Subject:  [merged]
+ mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone.patch
+ removed from -mm tree
+Message-ID: <20201215232304.iOPH2F69W%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,190 +43,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: refactor get_any_page
+     Subject: mm/compaction: rename 'start_pfn' to 'iteration_start_pfn' in compact_zone()
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-refactor-get_any_page.patch
+     mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: refactor get_any_page
+From: Yanfei Xu <yanfei.xu@windriver.com>
+Subject: mm/compaction: rename 'start_pfn' to 'iteration_start_pfn' in compact_zone()
 
-Patch series "HWPoison: Refactor get page interface", v2.
+There are two 'start_pfn' declared in compact_zone() which have different
+meanings.  Rename the second one to 'iteration_start_pfn' to prevent
+confusion.
 
+Also, remove an useless semicolon.
 
-This patch (of 3):
-
-When we want to grab a refcount via get_any_page, we call __get_any_page
-that calls get_hwpoison_page to get the actual refcount.
-
-get_any_page() is only there because we have a sort of retry mechanism in
-case the page we met is unknown to us or if we raced with an allocation.
-
-Also __get_any_page() prints some messages about the page type in case the
-page was a free page or the page type was unknown, but if anything, we
-only need to print a message in case the pagetype was unknown, as that is
-reporting an error down the chain.
-
-Let us merge get_any_page() and __get_any_page(), and let the message be
-printed in soft_offline_page.  While we are it, we can also remove the
-'pfn' parameter as it is no longer used.
-
-Link: https://lkml.kernel.org/r/20201204102558.31607-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20201204102558.31607-2-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Vlastimil Babka <Vbabka@suse.cz>
-Cc: Qian Cai <qcai@redhat.com>
+Link: https://lkml.kernel.org/r/20201019115044.1571-1-yanfei.xu@windriver.com
+Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   99 +++++++++++++++++-------------------------
- 1 file changed, 42 insertions(+), 57 deletions(-)
+ mm/compaction.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-refactor-get_any_page
-+++ a/mm/memory-failure.c
-@@ -1707,70 +1707,51 @@ EXPORT_SYMBOL(unpoison_memory);
+--- a/mm/compaction.c~mm-compaction-rename-start_pfn-to-iteration_start_pfn-in-compact_zone
++++ a/mm/compaction.c
+@@ -2275,7 +2275,7 @@ compact_zone(struct compact_control *cc,
  
- /*
-  * Safely get reference count of an arbitrary page.
-- * Returns 0 for a free page, -EIO for a zero refcount page
-- * that is not free, and 1 for any other page type.
-- * For 1 the page is returned with increased page count, otherwise not.
-+ * Returns 0 for a free page, 1 for an in-use page, -EIO for a page-type we
-+ * cannot handle and -EBUSY if we raced with an allocation.
-+ * We only incremented refcount in case the page was already in-use and it is
-+ * a known type we can handle.
-  */
--static int __get_any_page(struct page *p, unsigned long pfn, int flags)
-+static int get_any_page(struct page *p, int flags)
- {
--	int ret;
-+	int ret = 0, pass = 0;
-+	bool count_increased = false;
+ 	while ((ret = compact_finished(cc)) == COMPACT_CONTINUE) {
+ 		int err;
+-		unsigned long start_pfn = cc->migrate_pfn;
++		unsigned long iteration_start_pfn = cc->migrate_pfn;
  
- 	if (flags & MF_COUNT_INCREASED)
--		return 1;
-+		count_increased = true;
- 
--	/*
--	 * When the target page is a free hugepage, just remove it
--	 * from free hugepage list.
--	 */
--	if (!get_hwpoison_page(p)) {
--		if (PageHuge(p)) {
--			pr_info("%s: %#lx free huge page\n", __func__, pfn);
--			ret = 0;
--		} else if (is_free_buddy_page(p)) {
--			pr_info("%s: %#lx free buddy page\n", __func__, pfn);
--			ret = 0;
--		} else if (page_count(p)) {
--			/* raced with allocation */
-+try_again:
-+	if (!count_increased && !get_hwpoison_page(p)) {
-+		if (page_count(p)) {
-+			/* We raced with an allocation, retry. */
-+			if (pass++ < 3)
-+				goto try_again;
- 			ret = -EBUSY;
--		} else {
--			pr_info("%s: %#lx: unknown zero refcount page type %lx\n",
--				__func__, pfn, p->flags);
-+		} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
-+			/* We raced with put_page, retry. */
-+			if (pass++ < 3)
-+				goto try_again;
- 			ret = -EIO;
+ 		/*
+ 		 * Avoid multiple rescans which can happen if a page cannot be
+@@ -2287,7 +2287,7 @@ compact_zone(struct compact_control *cc,
+ 		 */
+ 		cc->rescan = false;
+ 		if (pageblock_start_pfn(last_migrated_pfn) ==
+-		    pageblock_start_pfn(start_pfn)) {
++		    pageblock_start_pfn(iteration_start_pfn)) {
+ 			cc->rescan = true;
  		}
- 	} else {
--		/* Not a free page */
--		ret = 1;
--	}
--	return ret;
--}
--
--static int get_any_page(struct page *page, unsigned long pfn, int flags)
--{
--	int ret = __get_any_page(page, pfn, flags);
--
--	if (ret == -EBUSY)
--		ret = __get_any_page(page, pfn, flags);
--
--	if (ret == 1 && !PageHuge(page) &&
--	    !PageLRU(page) && !__PageMovable(page)) {
--		/*
--		 * Try to free it.
--		 */
--		put_page(page);
--		shake_page(page, 1);
--
--		/*
--		 * Did it turn free?
--		 */
--		ret = __get_any_page(page, pfn, 0);
--		if (ret == 1 && !PageLRU(page)) {
--			/* Drop page reference which is from __get_any_page() */
--			put_page(page);
--			pr_info("soft_offline: %#lx: unknown non LRU page type %lx (%pGp)\n",
--				pfn, page->flags, &page->flags);
--			return -EIO;
-+		if (PageHuge(p) || PageLRU(p) || __PageMovable(p)) {
-+			ret = 1;
-+		} else {
-+			/*
-+			 * A page we cannot handle. Check whether we can turn
-+			 * it into something we can handle.
-+			 */
-+			if (pass++ < 3) {
-+				put_page(p);
-+				shake_page(p, 1);
-+				count_increased = false;
-+				goto try_again;
-+			}
-+			put_page(p);
-+			ret = -EIO;
+ 
+@@ -2311,8 +2311,7 @@ compact_zone(struct compact_control *cc,
+ 			goto check_drain;
+ 		case ISOLATE_SUCCESS:
+ 			update_cached = false;
+-			last_migrated_pfn = start_pfn;
+-			;
++			last_migrated_pfn = iteration_start_pfn;
  		}
- 	}
-+
- 	return ret;
- }
  
-@@ -1939,7 +1920,7 @@ int soft_offline_page(unsigned long pfn,
- 		return -EIO;
- 
- 	if (PageHWPoison(page)) {
--		pr_info("soft offline: %#lx page already poisoned\n", pfn);
-+		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
- 		if (flags & MF_COUNT_INCREASED)
- 			put_page(page);
- 		return 0;
-@@ -1947,16 +1928,20 @@ int soft_offline_page(unsigned long pfn,
- 
- retry:
- 	get_online_mems();
--	ret = get_any_page(page, pfn, flags);
-+	ret = get_any_page(page, flags);
- 	put_online_mems();
- 
--	if (ret > 0)
-+	if (ret > 0) {
- 		ret = soft_offline_in_use_page(page);
--	else if (ret == 0)
-+	} else if (ret == 0) {
- 		if (soft_offline_free_page(page) && try_again) {
- 			try_again = false;
- 			goto retry;
- 		}
-+	} else if (ret == -EIO) {
-+		pr_info("%s: %#lx: unknown page type: %lx (%pGP)\n",
-+			 __func__, pfn, page->flags, &page->flags);
-+	}
- 
- 	return ret;
- }
+ 		err = migrate_pages(&cc->migratepages, compaction_alloc,
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from yanfei.xu@windriver.com are
 
 
