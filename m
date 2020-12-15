@@ -5,35 +5,43 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45E2CC2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED60C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:09:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14D51223E0
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C899D224D4
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726333AbgLODI1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:08:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35068 "EHLO mail.kernel.org"
+        id S1726554AbgLODI7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:08:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726340AbgLODHJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:07:09 -0500
-Date:   Mon, 14 Dec 2020 19:06:28 -0800
+        id S1726507AbgLODI5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:08:57 -0500
+Date:   Mon, 14 Dec 2020 19:08:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001589;
-        bh=c50P2vWrZigdp+HAdgWiPVK1ngFTtPvmpqMK8E4EV00=;
+        s=korg; t=1608001691;
+        bh=xfD9RI1Sd8SRvn/3wBv4IcpMVipVJa8zk3X9fBraC0U=;
         h=From:To:Subject:In-Reply-To:From;
-        b=idad9lmrlGqiZYRPyIwHVfQlmm9AvK/mwb+9I77OH5Mlm6hzZODtjDc+vSqR/HEpc
-         BT9y+ZXTMcI922qUsvkhO28Kgz1BgNlD1+WKe+iNVP+EDk8THf/+J/j+St0s2yYTyW
-         EcgCG8mMKrpk176i4SfBeRktu6EZ2G+qn97lUf/8=
+        b=jtvO3vJpgaIlPDq7FDGJF0rzkWA4KH3Ei+EoiCvordVm2Gg07FOXKavuFNvkVuCSj
+         IcRv297gM4rojVYHGRYpgFYjAj++GJXJDKTa3XvaYbMbTvOVcwawkYBWK8umykJykj
+         +ph0zvzkIJ2M3lhORjq02P68DKXr/x2lT57e6ILw=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hannes@cmpxchg.org,
-        linmiaohe@huawei.com, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 057/200] mm: memcontrol: eliminate redundant check
- in __mem_cgroup_insert_exceeded()
-Message-ID: <20201215030628.lkr_4fDa4%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bgeffon@google.com,
+        catalin.marinas@arm.com, dan.carpenter@oracle.com,
+        dan.j.williams@intel.com, dave.jiang@intel.com, dima@arista.com,
+        hughd@google.com, jgg@ziepe.ca, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
+        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com, tglx@linutronix.de,
+        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
+        vbabka@suse.cz, viro@zeniv.linux.org.uk, vishal.l.verma@intel.com,
+        will@kernel.org
+Subject:  [patch 085/200] mm/mremap: for MREMAP_DONTUNMAP check
+ security_vm_enough_memory_mm()
+Message-ID: <20201215030809.8eQUlctPK%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,41 +49,125 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memcontrol: eliminate redundant check in __mem_cgroup_insert_exceeded()
+From: Dmitry Safonov <dima@arista.com>
+Subject: mm/mremap: for MREMAP_DONTUNMAP check security_vm_enough_memory_mm()
 
-The mz->usage_in_excess >= mz_node->usage_in_excess check is exactly the
-else case of mz->usage_in_excess < mz_node->usage_in_excess.  So we could
-replace else if (mz->usage_in_excess >= mz_node->usage_in_excess) with
-else equally.  Also drop the comment which doesn't really explain much.
+Currently memory is accounted post-mremap() with MREMAP_DONTUNMAP, which
+may break overcommit policy.  So, check if there's enough memory before
+doing actual VMA copy.
 
-Link: https://lkml.kernel.org/r/20201012131607.10656-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Don't unset VM_ACCOUNT on MREMAP_DONTUNMAP.  By semantics, such mremap()
+is actually a memory allocation.  That also simplifies the error-path a
+little.
+
+Also, as it's memory allocation on success don't reset hiwater_vm value.
+
+Link: https://lkml.kernel.org/r/20201013013416.390574-3-dima@arista.com
+Fixes: commit e346b3813067 ("mm/mremap: add MREMAP_DONTUNMAP to mremap()")
+Signed-off-by: Dmitry Safonov <dima@arista.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/mremap.c |   36 +++++++++++++-----------------------
+ 1 file changed, 13 insertions(+), 23 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-eliminate-redundant-check-in-__mem_cgroup_insert_exceeded
-+++ a/mm/memcontrol.c
-@@ -623,14 +623,9 @@ static void __mem_cgroup_insert_exceeded
- 		if (mz->usage_in_excess < mz_node->usage_in_excess) {
- 			p = &(*p)->rb_left;
- 			rightmost = false;
+--- a/mm/mremap.c~mm-mremap-for-mremap_dontunmap-check-security_vm_enough_memory_mm
++++ a/mm/mremap.c
+@@ -515,11 +515,19 @@ static unsigned long move_vma(struct vm_
+ 	if (err)
+ 		return err;
+ 
++	if (unlikely(flags & MREMAP_DONTUNMAP && vm_flags & VM_ACCOUNT)) {
++		if (security_vm_enough_memory_mm(mm, new_len >> PAGE_SHIFT))
++			return -ENOMEM;
++	}
++
+ 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
+ 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
+ 			   &need_rmap_locks);
+-	if (!new_vma)
++	if (!new_vma) {
++		if (unlikely(flags & MREMAP_DONTUNMAP && vm_flags & VM_ACCOUNT))
++			vm_unacct_memory(new_len >> PAGE_SHIFT);
+ 		return -ENOMEM;
++	}
+ 
+ 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
+ 				     need_rmap_locks);
+@@ -548,7 +556,7 @@ static unsigned long move_vma(struct vm_
+ 	}
+ 
+ 	/* Conceal VM_ACCOUNT so old reservation is not undone */
+-	if (vm_flags & VM_ACCOUNT) {
++	if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP)) {
+ 		vma->vm_flags &= ~VM_ACCOUNT;
+ 		excess = vma->vm_end - vma->vm_start - old_len;
+ 		if (old_addr > vma->vm_start &&
+@@ -573,34 +581,16 @@ static unsigned long move_vma(struct vm_
+ 		untrack_pfn_moved(vma);
+ 
+ 	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
+-		if (vm_flags & VM_ACCOUNT) {
+-			/* Always put back VM_ACCOUNT since we won't unmap */
+-			vma->vm_flags |= VM_ACCOUNT;
+-
+-			vm_acct_memory(new_len >> PAGE_SHIFT);
 -		}
 -
 -		/*
--		 * We can't avoid mem cgroups that are over their soft
--		 * limit by the same amount
+-		 * VMAs can actually be merged back together in copy_vma
+-		 * calling merge_vma. This can happen with anonymous vmas
+-		 * which have not yet been faulted, so if we were to consider
+-		 * this VMA split we'll end up adding VM_ACCOUNT on the
+-		 * next VMA, which is completely unrelated if this VMA
+-		 * was re-merged.
 -		 */
--		else if (mz->usage_in_excess >= mz_node->usage_in_excess)
-+		} else {
- 			p = &(*p)->rb_right;
-+		}
+-		if (split && new_vma == vma)
+-			split = 0;
+-
+ 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
+ 		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
+ 
+ 		/* Because we won't unmap we don't need to touch locked_vm */
+-		goto out;
++		return new_addr;
  	}
  
- 	if (rightmost)
+ 	if (do_munmap(mm, old_addr, old_len, uf_unmap) < 0) {
+ 		/* OOM: unable to split vma, just get accounts right */
+-		if (vm_flags & VM_ACCOUNT)
++		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
+ 			vm_acct_memory(new_len >> PAGE_SHIFT);
+ 		excess = 0;
+ 	}
+@@ -609,7 +599,7 @@ static unsigned long move_vma(struct vm_
+ 		mm->locked_vm += new_len >> PAGE_SHIFT;
+ 		*locked = true;
+ 	}
+-out:
++
+ 	mm->hiwater_vm = hiwater_vm;
+ 
+ 	/* Restore VM_ACCOUNT if one or two pieces of vma left */
 _
