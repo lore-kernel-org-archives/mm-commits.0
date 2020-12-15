@@ -5,35 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C576C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 820C9C2BB9A
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01A87224D4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36A7422509
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728152AbgLODOA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36850 "EHLO mail.kernel.org"
+        id S1727612AbgLODO1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728095AbgLODNV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:13:21 -0500
-Date:   Mon, 14 Dec 2020 19:12:49 -0800
+        id S1728089AbgLODOB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:14:01 -0500
+Date:   Mon, 14 Dec 2020 19:13:20 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001970;
-        bh=0rW3v+8rHmp6sWNd9Az19b5Cuxhz1yKIMacjd//77Tc=;
+        s=korg; t=1608002000;
+        bh=C0iZiRqRZXTZQL8sdquGfnsNMNbMHFAuqRndCN9EvcY=;
         h=From:To:Subject:In-Reply-To:From;
-        b=qgj0RBn2jFgG+sdnu+Ci43jQrXNiomSkw+25Nx18r9yoAisBByntvc2a35ujJj7dK
-         o5j8gNT9jE/Ua69QCG9MhyvcqYIbRSjfKWg0FD28JsOJzndZpwSK3VyXPFKjdaD93E
-         ++ZjGC++Yv7JwoenMzvZpRVJ6tjy9FgYpSbxUWCk=
+        b=xTqsHuS8XspEw83pSGcYZJboUR3Re4t8rM8KNXYmdMfvT4kwbNSUoFFipjYWFl1Oq
+         9qgzcCGL3oezVTfbXlj1E0mU7cC8EqM+NnD/R6l5uCjGjYXAVzKax3GeJI6BD70Ddw
+         yIPTHWaTKFsPp1UeqQFNIR1ABKpBcW19axuJM/8Q=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, sh_def@163.com,
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, starzhangzsd@gmail.com,
         torvalds@linux-foundation.org
-Subject:  [patch 162/200] mm/oom_kill: change comment and rename
- is_dump_unreclaim_slabs()
-Message-ID: <20201215031249.xd7Y7EU-N%akpm@linux-foundation.org>
+Subject:  [patch 171/200] mm: migrate: remove unused parameter in
+ migrate_vma_insert_page()
+Message-ID: <20201215031320.W37puaMB3%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,52 +41,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hui Su <sh_def@163.com>
-Subject: mm/oom_kill: change comment and rename is_dump_unreclaim_slabs()
+From: Stephen Zhang <starzhangzsd@gmail.com>
+Subject: mm: migrate: remove unused parameter in migrate_vma_insert_page()
 
-Change the comment of is_dump_unreclaim_slabs(), it just check whether
-nr_unreclaimable slabs amount is greater than user memory, and explain why
-we dump unreclaim slabs.
+"dst" parameter to migrate_vma_insert_page() is not used anymore.
 
-Rename it to should_dump_unreclaim_slab() maybe better.
-
-Link: https://lkml.kernel.org/r/20201030182704.GA53949@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/CANubcdUwCAMuUyamG2dkWP=cqSR9MAS=tHLDc95kQkqU-rEnAg@mail.gmail.com
+Signed-off-by: Stephen Zhang <starzhangzsd@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/migrate.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-change-comment-and-rename-is_dump_unreclaim_slabs
-+++ a/mm/oom_kill.c
-@@ -170,11 +170,13 @@ static bool oom_unkillable_task(struct t
- 	return false;
- }
- 
--/*
-- * Print out unreclaimble slabs info when unreclaimable slabs amount is greater
-- * than all user memory (LRU pages)
-- */
--static bool is_dump_unreclaim_slabs(void)
-+/**
-+ * Check whether unreclaimable slab amount is greater than
-+ * all user memory(LRU pages).
-+ * dump_unreclaimable_slab() could help in the case that
-+ * oom due to too much unreclaimable slab used by kernel.
-+*/
-+static bool should_dump_unreclaim_slab(void)
+--- a/mm/migrate.c~mm-migrate-remove-unused-parameter-in-migrate_vma_insert_page
++++ a/mm/migrate.c
+@@ -2894,8 +2894,7 @@ EXPORT_SYMBOL(migrate_vma_setup);
+ static void migrate_vma_insert_page(struct migrate_vma *migrate,
+ 				    unsigned long addr,
+ 				    struct page *page,
+-				    unsigned long *src,
+-				    unsigned long *dst)
++				    unsigned long *src)
  {
- 	unsigned long nr_lru;
+ 	struct vm_area_struct *vma = migrate->vma;
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -3056,8 +3055,7 @@ void migrate_vma_pages(struct migrate_vm
+ 				mmu_notifier_invalidate_range_start(&range);
+ 			}
+ 			migrate_vma_insert_page(migrate, addr, newpage,
+-						&migrate->src[i],
+-						&migrate->dst[i]);
++						&migrate->src[i]);
+ 			continue;
+ 		}
  
-@@ -463,7 +465,7 @@ static void dump_header(struct oom_contr
- 		mem_cgroup_print_oom_meminfo(oc->memcg);
- 	else {
- 		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
--		if (is_dump_unreclaim_slabs())
-+		if (should_dump_unreclaim_slab())
- 			dump_unreclaimable_slab();
- 	}
- 	if (sysctl_oom_dump_tasks)
 _
