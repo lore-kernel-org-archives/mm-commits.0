@@ -7,33 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2690C2BB9A
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04988C2BBCA
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C6BE224D2
+	by mail.kernel.org (Postfix) with ESMTP id CBA07224D2
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:15:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727470AbgLODP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:15:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36468 "EHLO mail.kernel.org"
+        id S1725308AbgLODOy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727459AbgLODM4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:56 -0500
-Date:   Mon, 14 Dec 2020 19:11:28 -0800
+        id S1727813AbgLODOh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:14:37 -0500
+Date:   Mon, 14 Dec 2020 19:13:54 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001889;
-        bh=yR1rQfYtS35biGasnWNBZbNQg2Vk/2H3wRm01eBmOYw=;
+        s=korg; t=1608002036;
+        bh=nkW2/q6Ai/VIeeigz2vg/kGiHU/H4sL1QSI7nxooTZU=;
         h=From:To:Subject:In-Reply-To:From;
-        b=KWiLnDcpehvynv//OU5im+HUpDMzDQTNnaMvz3Y1yJ/iEIuUcgWkxUIrbNDQ7yxCY
-         Is3XF9F1wE9EpDZF2YmkcfZcLSxHiPlKdPXPrEW5M3qPGyuCKh2sL0bZCP7dohvpLq
-         TuRwYNMn876HYcgrl0X6tCFjSpXuQai0aWO8CgkQ=
+        b=uFrZcTuYYZaNLEFClzvy9BonD1rEqNmPMxm0QsAuPeba1e2+Azbu7JNB6XjJ9EAkj
+         /h4R+3kaxhwgK/O4POZ0jN35tYMr8z++9eyXA8HeTBx561ESdJ+7ufaSC5vxXRkpau
+         8cD2mjqHSZ6zs2NlN8So/FE/P2IS3sHCH2A4KfXQ=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, torvalds@linux-foundation.org
-Subject:  [patch 138/200] mm,hwpoison: drain pcplists before
- bailing out for non-buddy zero-refcount page
-Message-ID: <20201215031128.S-l3RVou2%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        bigeasy@linutronix.de, calin@google.com, corbet@lwn.net,
+        dancol@dancol.org, dancol@google.com, ebiggers@kernel.org,
+        hannes@cmpxchg.org, jeffv@google.com, jglisse@redhat.com,
+        joel@joelfernandes.org, kaleshsingh@google.com,
+        keescook@chromium.org, linux-mm@kvack.org, lokeshgidra@google.com,
+        mcgrof@kernel.org, mchehab+huawei@kernel.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        nigupta@nvidia.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
+        shli@fb.com, stephen.smalley.work@gmail.com, surenb@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        viro@zeniv.linux.org.uk, yzaikin@google.com
+Subject:  [patch 180/200] userfaultfd: add user-mode only option to
+ unprivileged_userfaultfd sysctl knob
+Message-ID: <20201215031354.gUsHJUpKo%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,84 +50,116 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: drain pcplists before bailing out for non-buddy zero-refcount page
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: add user-mode only option to unprivileged_userfaultfd sysctl knob
 
-Patch series "HWpoison: further fixes and cleanups", v5.
+With this change, when the knob is set to 0, it allows unprivileged users
+to call userfaultfd, like when it is set to 1, but with the restriction
+that page faults from only user-mode can be handled.  In this mode, an
+unprivileged user (without SYS_CAP_PTRACE capability) must pass
+UFFD_USER_MODE_ONLY to userfaultd or the API will fail with EPERM.
 
-This patchset includes some more fixes and a cleanup.
+This enables administrators to reduce the likelihood that an attacker with
+access to userfaultfd can delay faulting kernel code to widen timing
+windows for other exploits.
 
-Patch#2 and patch#3 are both fixes for taking a HWpoison page off a buddy
-freelist, since having them there has proved to be bad (see [1] and
-pathch#2's commit log).  Patch#3 does the same for hugetlb pages.
+The default value of this knob is changed to 0.  This is required for
+correct functioning of pipe mutex.  However, this will fail postcopy live
+migration, which will be unnoticeable to the VM guests.  To avoid this,
+set 'vm.userfault = 1' in /sys/sysctl.conf.
 
-[1] https://lkml.org/lkml/2020/9/22/565
+The main reason this change is desirable as in the short term is that the
+Android userland will behave as with the sysctl set to zero.  So without
+this commit, any Linux binary using userfaultfd to manage its memory would
+behave differently if run within the Android userland.  For more details,
+refer to Andrea's reply [1].
 
+[1] https://lore.kernel.org/lkml/20200904033438.GI9411@redhat.com/
 
-This patch (of 4):
-
-A page with 0-refcount and !PageBuddy could perfectly be a pcppage. 
-Currently, we bail out with an error if we encounter such a page, meaning
-that we do not handle pcppages neither from hard-offline nor from
-soft-offline path.
-
-Fix this by draining pcplists whenever we find this kind of page and retry
-the check again.  It might be that pcplists have been spilled into the
-buddy allocator and so we can handle it.
-
-Link: https://lkml.kernel.org/r/20201013144447.6706-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20201013144447.6706-2-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20201120030411.2690816-3-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Daniel Colascione <dancol@dancol.org>
+Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: <calin@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Nitin Gupta <nigupta@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Daniel Colascione <dancol@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |   15 ++++++++++-----
+ fs/userfaultfd.c                        |   10 ++++++++--
+ 2 files changed, 18 insertions(+), 7 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-drain-pcplists-before-bailing-out-for-non-buddy-zero-refcount-page
-+++ a/mm/memory-failure.c
-@@ -946,13 +946,13 @@ static int page_action(struct page_state
- }
+--- a/Documentation/admin-guide/sysctl/vm.rst~add-user-mode-only-option-to-unprivileged_userfaultfd-sysctl-knob
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -873,12 +873,17 @@ file-backed pages is less than the high
+ unprivileged_userfaultfd
+ ========================
  
- /**
-- * get_hwpoison_page() - Get refcount for memory error handling:
-+ * __get_hwpoison_page() - Get refcount for memory error handling:
-  * @page:	raw error page (hit by memory error)
-  *
-  * Return: return 0 if failed to grab the refcount, otherwise true (some
-  * non-zero value.)
-  */
--static int get_hwpoison_page(struct page *page)
-+static int __get_hwpoison_page(struct page *page)
- {
- 	struct page *head = compound_head(page);
+-This flag controls whether unprivileged users can use the userfaultfd
+-system calls.  Set this to 1 to allow unprivileged users to use the
+-userfaultfd system calls, or set this to 0 to restrict userfaultfd to only
+-privileged users (with SYS_CAP_PTRACE capability).
++This flag controls the mode in which unprivileged users can use the
++userfaultfd system calls. Set this to 0 to restrict unprivileged users
++to handle page faults in user mode only. In this case, users without
++SYS_CAP_PTRACE must pass UFFD_USER_MODE_ONLY in order for userfaultfd to
++succeed. Prohibiting use of userfaultfd for handling faults from kernel
++mode may make certain vulnerabilities more difficult to exploit.
  
-@@ -982,6 +982,26 @@ static int get_hwpoison_page(struct page
- 	return 0;
- }
- 
-+static int get_hwpoison_page(struct page *p)
-+{
-+	int ret;
-+	bool drained = false;
+-The default value is 1.
++Set this to 1 to allow unprivileged users to use the userfaultfd system
++calls without any restrictions.
 +
-+retry:
-+	ret = __get_hwpoison_page(p);
-+	if (!ret && !is_free_buddy_page(p) && !page_count(p) && !drained) {
-+		/*
-+		 * The page might be in a pcplist, so try to drain those
-+		 * and see if we are lucky.
-+		 */
-+		drain_all_pages(page_zone(p));
-+		drained = true;
-+		goto retry;
++The default value is 0.
+ 
+ 
+ user_reserve_kbytes
+--- a/fs/userfaultfd.c~add-user-mode-only-option-to-unprivileged_userfaultfd-sysctl-knob
++++ a/fs/userfaultfd.c
+@@ -28,7 +28,7 @@
+ #include <linux/security.h>
+ #include <linux/hugetlb.h>
+ 
+-int sysctl_unprivileged_userfaultfd __read_mostly = 1;
++int sysctl_unprivileged_userfaultfd __read_mostly;
+ 
+ static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
+ 
+@@ -1966,8 +1966,14 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
+ 	struct userfaultfd_ctx *ctx;
+ 	int fd;
+ 
+-	if (!sysctl_unprivileged_userfaultfd && !capable(CAP_SYS_PTRACE))
++	if (!sysctl_unprivileged_userfaultfd &&
++	    (flags & UFFD_USER_MODE_ONLY) == 0 &&
++	    !capable(CAP_SYS_PTRACE)) {
++		printk_once(KERN_WARNING "uffd: Set unprivileged_userfaultfd "
++			"sysctl knob to 1 if kernel faults must be handled "
++			"without obtaining CAP_SYS_PTRACE capability\n");
+ 		return -EPERM;
 +	}
-+
-+	return ret;
-+}
-+
- /*
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
+ 
+ 	BUG_ON(!current->mm);
+ 
 _
