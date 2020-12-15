@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B549C3526B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DE0DC3526A
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 71C0422CAE
+	by mail.kernel.org (Postfix) with ESMTP id 8A84B22D05
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727112AbgLPAAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
+        id S1727106AbgLPAAW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727406AbgLOX1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:48 -0500
-Date:   Tue, 15 Dec 2020 15:23:51 -0800
+        id S1727172AbgLOX1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:45 -0500
+Date:   Tue, 15 Dec 2020 15:16:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074632;
-        bh=E9iklCcge1mquXi1gZjklgsQM1UiaTQZWIR7jAbaARE=;
+        s=korg; t=1608074210;
+        bh=kgCbWoIylvzxdXDPVWby+gp9fTED/kMVcqczGh7SWg0=;
         h=From:To:Subject:From;
-        b=CS62wFL8lKSkSLU1vtlPIbUV2iv8NZleMdgV/xpBOIMBOSCN0eZuejogoI6IxFS9m
-         ksTKdP7b2y2QBgmT7qNEZykwKWlyjbR24vVnetKHM6BNU9yzpukSo1sRVME24xFMRw
-         aMtToWin1pyWssI+Uw1V/n9PItJOwI6LgpJjvjho=
+        b=sVXDemeayc2IcN5O/YEp0A/iIunMpfw7RxNRrjlBwBD07sNTteZbzQTb19ji9ZJnS
+         GxYPbQYWmiKwFZUZYq6+9nzjR4tLMRSTjriFMoQjBjERgZEKjun1ZqZy6H7QXkPeID
+         4oQW/xdSLS99+MXYHjjlRloEjneieyMdIGNUOfSk=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, glider@google.com, keescook@chromium.org,
-        labbott@kernel.org, mateusznosek0@gmail.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
-        rppt@linux.ibm.com, vbabka@suse.cz
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, liu.xiang6@zte.com.cn,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz, wuyun.wu@huawei.com
 Subject:  [merged]
- mm-page_poison-remove-config_page_poisoning_no_sanity.patch removed from
+ mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch removed from
  -mm tree
-Message-ID: <20201215232351.m1moOaCr7%akpm@linux-foundation.org>
+Message-ID: <20201215231649.t6uZm3q4L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,96 +43,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_NO_SANITY
+     Subject: mm, slub: use kmem_cache_debug_flags() in deactivate_slab()
 has been removed from the -mm tree.  Its filename was
-     mm-page_poison-remove-config_page_poisoning_no_sanity.patch
+     mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_poison: remove CONFIG_PAGE_POISONING_NO_SANITY
+Subject: mm, slub: use kmem_cache_debug_flags() in deactivate_slab()
 
-CONFIG_PAGE_POISONING_NO_SANITY skips the check on page alloc whether the
-poison pattern was corrupted, suggesting a use-after-free.  The motivation
-to introduce it in commit 8823b1dbc05f ("mm/page_poison.c: enable
-PAGE_POISONING as a separate option") was to simply sanitize freed pages,
-optimally together with CONFIG_PAGE_POISONING_ZERO.
+Commit 9cf7a1118365 ("mm/slub: make add_full() condition more explicit")
+replaced an unnecessarily generic kmem_cache_debug(s) check with an
+explicit check of SLAB_STORE_USER and #ifdef CONFIG_SLUB_DEBUG.
 
-These days we have an init_on_free=1 boot option, which makes this use
-case of page poisoning redundant.  For sanitizing, writing zeroes is
-sufficient, there is pretty much no benefit from writing the 0xAA poison
-pattern to freed pages, without checking it back on alloc.  Thus, remove
-this option and suggest init_on_free instead in the main config's help.
+We can achieve the same specific check with the recently added
+kmem_cache_debug_flags() which removes the #ifdef and restores the
+no-branch-overhead benefit of static key check when slub debugging is not
+enabled.
 
-Link: https://lkml.kernel.org/r/20201113104033.22907-5-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/3ef24214-38c7-1238-8296-88caf7f48ab6@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@kernel.org>
-Cc: Mateusz Nosek <mateusznosek0@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Abel Wu <wuyun.wu@huawei.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Liu Xiang <liu.xiang6@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |    4 +---
- mm/Kconfig.debug                |   15 ++++-----------
- mm/page_poison.c                |    3 ---
- 3 files changed, 5 insertions(+), 17 deletions(-)
+ mm/slub.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/drivers/virtio/virtio_balloon.c~mm-page_poison-remove-config_page_poisoning_no_sanity
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -1114,9 +1114,7 @@ static int virtballoon_validate(struct v
- 	 * page reporting as it could potentially change the contents
- 	 * of our free pages.
- 	 */
--	if (!want_init_on_free() &&
--	    (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY) ||
--	     !page_poisoning_enabled_static()))
-+	if (!want_init_on_free() && !page_poisoning_enabled_static())
- 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_PAGE_POISON);
- 	else if (!virtio_has_feature(vdev, VIRTIO_BALLOON_F_PAGE_POISON))
- 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_REPORTING);
---- a/mm/Kconfig.debug~mm-page_poison-remove-config_page_poisoning_no_sanity
-+++ a/mm/Kconfig.debug
-@@ -74,18 +74,11 @@ config PAGE_POISONING
- 	  Note that "poison" here is not the same thing as the "HWPoison"
- 	  for CONFIG_MEMORY_FAILURE. This is software poisoning only.
+--- a/mm/slub.c~mm-slub-use-kmem_cache_debug_flags-in-deactivate_slab
++++ a/mm/slub.c
+@@ -2245,8 +2245,7 @@ redo:
+ 		}
+ 	} else {
+ 		m = M_FULL;
+-#ifdef CONFIG_SLUB_DEBUG
+-		if ((s->flags & SLAB_STORE_USER) && !lock) {
++		if (kmem_cache_debug_flags(s, SLAB_STORE_USER) && !lock) {
+ 			lock = 1;
+ 			/*
+ 			 * This also ensures that the scanning of full
+@@ -2255,7 +2254,6 @@ redo:
+ 			 */
+ 			spin_lock(&n->list_lock);
+ 		}
+-#endif
+ 	}
  
--	  If unsure, say N
--
--config PAGE_POISONING_NO_SANITY
--	depends on PAGE_POISONING
--	bool "Only poison, don't sanity check"
--	help
--	   Skip the sanity checking on alloc, only fill the pages with
--	   poison on free. This reduces some of the overhead of the
--	   poisoning feature.
-+	  If you are only interested in sanitization of freed pages without
-+	  checking the poison pattern on alloc, you can boot the kernel with
-+	  "init_on_free=1" instead of enabling this.
- 
--	   If you are only interested in sanitization, say Y. Otherwise
--	   say N.
-+	  If unsure, say N
- 
- config PAGE_POISONING_ZERO
- 	bool "Use zero for poisoning instead of debugging value"
---- a/mm/page_poison.c~mm-page_poison-remove-config_page_poisoning_no_sanity
-+++ a/mm/page_poison.c
-@@ -51,9 +51,6 @@ static void check_poison_mem(unsigned ch
- 	unsigned char *start;
- 	unsigned char *end;
- 
--	if (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY))
--		return;
--
- 	start = memchr_inv(mem, PAGE_POISON, bytes);
- 	if (!start)
- 		return;
+ 	if (l != m) {
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
