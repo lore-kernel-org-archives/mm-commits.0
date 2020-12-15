@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E218C3526F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B145C2BBCF
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:09:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D47422D02
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 384C922D02
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:09:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727069AbgLPAAU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32826 "EHLO mail.kernel.org"
+        id S1726894AbgLPAAT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730094AbgLOX1V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730097AbgLOX1V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:27:21 -0500
-Date:   Tue, 15 Dec 2020 15:18:02 -0800
+Date:   Tue, 15 Dec 2020 15:18:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074282;
-        bh=M3u75+KASdxi84AGUs3VhFJ6OOrhDTHAs4/YB+A2bbs=;
+        s=korg; t=1608074326;
+        bh=nuglCzYdn0FNe0ZuHWGY7rXlDRDOoQk8UBAT0q4qfMI=;
         h=From:To:Subject:From;
-        b=YhqwufA7TzR9mBwPLAUPcSGQXo3pfswIHUS5zN4rXIbbrGkmKduHxYZTItzxaazyh
-         IzlsrfIwRMJQoBMvep0AowtS9vSSu8ilcpba+wAki3gDoK19+Al7nKsmF6v40WfTgK
-         D7ZCwQ/tCpn+Efrm556UA+81VNNrgveidiWMDKtg=
+        b=TmlbuNt1xSLvhPijDjY9ACOyjUrkKVZnBe2AOu0aMqmIUX0SahZA/6rKNTE5fhzEf
+         tZOnlxRqQuI/MJLgBZuHWdFmP7TtmdYV9RsqOcrt297wD0JGBxM45phvWQAXiT8xZw
+         zsCSm2QAMkUS+VRGDe2iO5iVsOqJP47zQ9WYnxsE=
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        riel@surriel.com, rientjes@google.com, shakeelb@google.com,
-        songliubraving@fb.com
-Subject:  [merged]
- mm-memcontrol-add-file_thp-shmem_thp-to-memorystat.patch removed from -mm
- tree
-Message-ID: <20201215231802.3y7WXc6Vc%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+Subject:  [merged] mm-memcg-remove-incorrect-comments.patch removed
+ from -mm tree
+Message-ID: <20201215231846.MgOLGJU_1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,139 +41,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: add file_thp, shmem_thp to memory.stat
+     Subject: mm/memcg: remove incorrect comment
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-add-file_thp-shmem_thp-to-memorystat.patch
+     mm-memcg-remove-incorrect-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: add file_thp, shmem_thp to memory.stat
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: remove incorrect comment
 
-As huge page usage in the page cache and for shmem files proliferates in
-our production environment, the performance monitoring team has asked for
-per-cgroup stats on those pages.
+Swapcache readahead pages are charged before being used, so it is unlikely
+that they will be migrated before charging.  Remove the incorrect comment.
 
-We already track and export anon_thp per cgroup.  We already track file
-THP and shmem THP per node, so making them per-cgroup is only a matter of
-switching from node to lruvec counters.  All callsites are in places where
-the pages are charged and locked, so page->memcg is stable.
-
-[hannes@cmpxchg.org: add documentation]
-  Link: https://lkml.kernel.org/r/20201026174029.GC548555@cmpxchg.org
-Link: https://lkml.kernel.org/r/20201022151844.489337-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Song Liu <songliubraving@fb.com>
+Link: https://lkml.kernel.org/r/1605864930-49405-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    8 ++++++++
- mm/filemap.c                            |    4 ++--
- mm/huge_memory.c                        |    4 ++--
- mm/khugepaged.c                         |    4 ++--
- mm/memcontrol.c                         |    6 +++++-
- mm/shmem.c                              |    2 +-
- 6 files changed, 20 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1300,6 +1300,14 @@ PAGE_SIZE multiple when read back.
- 		Amount of memory used in anonymous mappings backed by
- 		transparent hugepages
- 
-+	  file_thp
-+		Amount of cached filesystem data backed by transparent
-+		hugepages
-+
-+	  shmem_thp
-+		Amount of shm, tmpfs, shared anonymous mmap()s backed by
-+		transparent hugepages
-+
- 	  inactive_anon, active_anon, inactive_file, active_file, unevictable
- 		Amount of memory, swap-backed and filesystem-backed,
- 		on the internal memory management lists used by the
---- a/mm/filemap.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/filemap.c
-@@ -204,9 +204,9 @@ static void unaccount_page_cache_page(st
- 	if (PageSwapBacked(page)) {
- 		__mod_lruvec_page_state(page, NR_SHMEM, -nr);
- 		if (PageTransHuge(page))
--			__dec_node_page_state(page, NR_SHMEM_THPS);
-+			__dec_lruvec_page_state(page, NR_SHMEM_THPS);
- 	} else if (PageTransHuge(page)) {
--		__dec_node_page_state(page, NR_FILE_THPS);
-+		__dec_lruvec_page_state(page, NR_FILE_THPS);
- 		filemap_nr_thps_dec(mapping);
- 	}
- 
---- a/mm/huge_memory.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/huge_memory.c
-@@ -2710,9 +2710,9 @@ int split_huge_page_to_list(struct page
- 		spin_unlock(&ds_queue->split_queue_lock);
- 		if (mapping) {
- 			if (PageSwapBacked(head))
--				__dec_node_page_state(head, NR_SHMEM_THPS);
-+				__dec_lruvec_page_state(head, NR_SHMEM_THPS);
- 			else
--				__dec_node_page_state(head, NR_FILE_THPS);
-+				__dec_lruvec_page_state(head, NR_FILE_THPS);
- 		}
- 
- 		__split_huge_page(page, list, end, flags);
---- a/mm/khugepaged.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/khugepaged.c
-@@ -1845,9 +1845,9 @@ out_unlock:
- 	}
- 
- 	if (is_shmem)
--		__inc_node_page_state(new_page, NR_SHMEM_THPS);
-+		__inc_lruvec_page_state(new_page, NR_SHMEM_THPS);
- 	else {
--		__inc_node_page_state(new_page, NR_FILE_THPS);
-+		__inc_lruvec_page_state(new_page, NR_FILE_THPS);
- 		filemap_nr_thps_inc(mapping);
- 	}
- 
---- a/mm/memcontrol.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
+--- a/mm/memcontrol.c~mm-memcg-remove-incorrect-comments
 +++ a/mm/memcontrol.c
-@@ -1512,6 +1512,8 @@ static struct memory_stat memory_stats[]
- 	 * constant(e.g. powerpc).
- 	 */
- 	{ "anon_thp", 0, NR_ANON_THPS },
-+	{ "file_thp", 0, NR_FILE_THPS },
-+	{ "shmem_thp", 0, NR_SHMEM_THPS },
- #endif
- 	{ "inactive_anon", PAGE_SIZE, NR_INACTIVE_ANON },
- 	{ "active_anon", PAGE_SIZE, NR_ACTIVE_ANON },
-@@ -1542,7 +1544,9 @@ static int __init memory_stats_init(void
+@@ -6903,7 +6903,6 @@ void mem_cgroup_migrate(struct page *old
+ 	if (newpage->mem_cgroup)
+ 		return;
  
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memory_stats[i].idx == NR_ANON_THPS)
-+		if (memory_stats[i].idx == NR_ANON_THPS ||
-+		    memory_stats[i].idx == NR_FILE_THPS ||
-+		    memory_stats[i].idx == NR_SHMEM_THPS)
- 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
- #endif
- 		VM_BUG_ON(!memory_stats[i].ratio);
---- a/mm/shmem.c~mm-memcontrol-add-file_thp-shmem_thp-to-memorystat
-+++ a/mm/shmem.c
-@@ -713,7 +713,7 @@ next:
- 		}
- 		if (PageTransHuge(page)) {
- 			count_vm_event(THP_FILE_ALLOC);
--			__inc_node_page_state(page, NR_SHMEM_THPS);
-+			__inc_lruvec_page_state(page, NR_SHMEM_THPS);
- 		}
- 		mapping->nrpages += nr;
- 		__mod_lruvec_page_state(page, NR_FILE_PAGES, nr);
+-	/* Swapcache readahead pages can get replaced before being charged */
+ 	memcg = oldpage->mem_cgroup;
+ 	if (!memcg)
+ 		return;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
