@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CF3AC3526C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EA8FC2BBD5
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0846622D6F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B33A22D05
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726845AbgLOX7q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
+        id S1726814AbgLOX7p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728103AbgLOX0F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:05 -0500
-Date:   Tue, 15 Dec 2020 15:23:07 -0800
+        id S1729709AbgLOXZn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:43 -0500
+Date:   Tue, 15 Dec 2020 15:16:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074587;
-        bh=Bu0s/3Rh1x+4/HmRLRHvTPjzQS/1JyTZPirCXj1EJs8=;
+        s=korg; t=1608074207;
+        bh=sh2s42RARUSiMj8mnxG7BtKzWEVCz9sjNTqRIMQtsro=;
         h=From:To:Subject:From;
-        b=USV3bHUT52/9plYJzrbU/PAVKazw67TOyK0lBfKl/9+RaKCBC3D5IAKbM5COtOLXP
-         oegY6X2/OyOBaan+u721WAedbU4Rz6q2T2lvwvjqPQ92IGoHx+NrrzPRtLmWqNb2bK
-         vV85IOJ6ZMBjXlwjSCwZbao7WI92NsdQwWTVhZyw=
+        b=pEDucWWSd0QV9SU6YfT5Kf7EoP5JFLVq+H9Sbs4c5fH2UqqV+kmCMGdlikU0NEJ9r
+         BA3/J0LJ497aUjPa7CA9DlAQM2JXc5J2b4zgnvuPclmDJa2bw4XxlYSkdxrMrgXlKX
+         HvfBfid0hHCJrAVTpDdkO6VF7i8a4zA9vlDYtZV8=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        sh_def@163.com
-Subject:  [merged]
- mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+To:     alex.popov@linux.com, cl@linux.com, glider@google.com,
+        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com
+Subject:  [merged] mm-slab-perform-init_on_free-earlier.patch
  removed from -mm tree
-Message-ID: <20201215232307.F1ILy9WJH%akpm@linux-foundation.org>
+Message-ID: <20201215231646.pwlC0aEcF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,65 +42,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: move compaction_suitable's comment to right place
+     Subject: mm/slab: rerform init_on_free earlier
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-move-compaction_suitables-comment-to-right-place.patch
+     mm-slab-perform-init_on_free-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: mm/compaction: move compaction_suitable's comment to right place
+From: Alexander Popov <alex.popov@linux.com>
+Subject: mm/slab: rerform init_on_free earlier
 
-Since commit 837d026d560c ("mm/compaction: more trace to understand
-when/why compaction start/finish"), the comment place is not suitable.
+Currently in CONFIG_SLAB init_on_free happens too late, and heap objects
+go to the heap quarantine not being erased.
 
-So move compaction_suitable's comment to right place.
+Lets move init_on_free clearing before calling kasan_slab_free().  In that
+case heap quarantine will store erased objects, similarly to CONFIG_SLUB=y
+behavior.
 
-Link: https://lkml.kernel.org/r/20201116144121.GA385717@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20201210183729.1261524-1-alex.popov@linux.com
+Signed-off-by: Alexander Popov <alex.popov@linux.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/slab.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-move-compaction_suitables-comment-to-right-place
-+++ a/mm/compaction.c
-@@ -2070,13 +2070,6 @@ static enum compact_result compact_finis
- 	return ret;
- }
+--- a/mm/slab.c~mm-slab-perform-init_on_free-earlier
++++ a/mm/slab.c
+@@ -3417,6 +3417,9 @@ free_done:
+ static __always_inline void __cache_free(struct kmem_cache *cachep, void *objp,
+ 					 unsigned long caller)
+ {
++	if (unlikely(slab_want_init_on_free(cachep)))
++		memset(objp, 0, cachep->object_size);
++
+ 	/* Put the object into the quarantine, don't touch it for now. */
+ 	if (kasan_slab_free(cachep, objp, _RET_IP_))
+ 		return;
+@@ -3435,8 +3438,6 @@ void ___cache_free(struct kmem_cache *ca
+ 	struct array_cache *ac = cpu_cache_get(cachep);
  
--/*
-- * compaction_suitable: Is this suitable to run compaction on this zone now?
-- * Returns
-- *   COMPACT_SKIPPED  - If there are too few free pages for compaction
-- *   COMPACT_SUCCESS  - If the allocation would succeed without compaction
-- *   COMPACT_CONTINUE - If compaction should run now
-- */
- static enum compact_result __compaction_suitable(struct zone *zone, int order,
- 					unsigned int alloc_flags,
- 					int highest_zoneidx,
-@@ -2120,6 +2113,13 @@ static enum compact_result __compaction_
- 	return COMPACT_CONTINUE;
- }
- 
-+/*
-+ * compaction_suitable: Is this suitable to run compaction on this zone now?
-+ * Returns
-+ *   COMPACT_SKIPPED  - If there are too few free pages for compaction
-+ *   COMPACT_SUCCESS  - If the allocation would succeed without compaction
-+ *   COMPACT_CONTINUE - If compaction should run now
-+ */
- enum compact_result compaction_suitable(struct zone *zone, int order,
- 					unsigned int alloc_flags,
- 					int highest_zoneidx)
+ 	check_irq_off();
+-	if (unlikely(slab_want_init_on_free(cachep)))
+-		memset(objp, 0, cachep->object_size);
+ 	kmemleak_free_recursive(objp, cachep->flags);
+ 	objp = cache_free_debugcheck(cachep, objp, caller);
+ 	memcg_slab_free_hook(cachep, &objp, 1);
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from alex.popov@linux.com are
 
-fs-proc-make-pde_get-return-nothing.patch
-acctc-use-elif-instead-of-end-and-elif.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
