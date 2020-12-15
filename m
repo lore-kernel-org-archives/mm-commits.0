@@ -7,39 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 973F2C3526B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80FD0C3526C
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7054F22D6E
+	by mail.kernel.org (Postfix) with ESMTP id 4E5F322D2B
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725996AbgLOX67 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:58:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59720 "EHLO mail.kernel.org"
+        id S1725968AbgLOX65 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:58:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727123AbgLOXUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:20:49 -0500
-Date:   Tue, 15 Dec 2020 15:19:39 -0800
+        id S1729332AbgLOXUJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:20:09 -0500
+Date:   Tue, 15 Dec 2020 15:19:27 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074380;
-        bh=uPS/kn6UIff70SZhhJ2B++jcArxr+A4u7aCpzMpBmm0=;
+        s=korg; t=1608074367;
+        bh=3US5oTGlLuj/IT1Px5xdaOUHzHHjGCpiZf3mV1sWusU=;
         h=From:To:Subject:From;
-        b=UDmJhOU6ZU3kSmLOKEpzG4SDnnH32IefBYCgY6AGsNP8881sQ9S0lwJEpd8GiZntY
-         wCmJdN5ieNkGylcjdMZoHkq/XE0bs42ti69YGTfhtuTjwmx9bMxAVRANdFjwnr5M1z
-         kjbThD5ULSrAmHt3Nr2RmLacXyI66yHTcuqInFuY=
+        b=YiKRmyJtLEqdBWFLjAJdj19FIMKwRPLThxaHL3Aef1WgwIjpXRa6smLc+Zx8ftCJt
+         bYTVecJ9rl9gCv506i/qvop7+AwU5MdGFXuIFAewcHKnitI7fasLm/PZeryVSOqTOB
+         dnNKgoU9+4prRmUDwtE9sHX+joSvz05tHUg/i8io=
 From:   akpm@linux-foundation.org
-To:     bgeffon@google.com, catalin.marinas@arm.com,
-        dan.carpenter@oracle.com, dan.j.williams@intel.com,
-        dave.jiang@intel.com, dima@arista.com, hughd@google.com,
-        jgg@ziepe.ca, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
-        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, tglx@linutronix.de,
-        tsbogend@alpha.franken.de, vbabka@suse.cz, viro@zeniv.linux.org.uk,
-        vishal.l.verma@intel.com, will@kernel.org
-Subject:  [merged] vm_ops-rename-split-callback-to-may_split.patch
+To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  [merged] mm-move-free_unref_page-to-mm-internalh.patch
  removed from -mm tree
-Message-ID: <20201215231939.j3vp4kYYO%akpm@linux-foundation.org>
+Message-ID: <20201215231927.wzSJvROwh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,138 +41,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vm_ops: rename .split() callback to .may_split()
+     Subject: mm: move free_unref_page to mm/internal.h
 has been removed from the -mm tree.  Its filename was
-     vm_ops-rename-split-callback-to-may_split.patch
+     mm-move-free_unref_page-to-mm-internalh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Safonov <dima@arista.com>
-Subject: vm_ops: rename .split() callback to .may_split()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move free_unref_page to mm/internal.h
 
-Rename the callback to reflect that it's not called *on* or *after* split,
-but rather some time before the splitting to check if it's possible.
+Code outside mm/ should not be calling free_unref_page().  Also move
+free_unref_page_list().
 
-Link: https://lkml.kernel.org/r/20201013013416.390574-5-dima@arista.com
-Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20201125034655.27687-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |    4 ++--
- include/linux/mm.h   |    3 ++-
- ipc/shm.c            |    8 ++++----
- mm/hugetlb.c         |    2 +-
- mm/mmap.c            |    4 ++--
- 5 files changed, 11 insertions(+), 10 deletions(-)
+ include/linux/gfp.h |    2 --
+ mm/internal.h       |    3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/drivers/dax/device.c~vm_ops-rename-split-callback-to-may_split
-+++ a/drivers/dax/device.c
-@@ -256,7 +256,7 @@ static vm_fault_t dev_dax_fault(struct v
- 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
- }
+--- a/include/linux/gfp.h~mm-move-free_unref_page-to-mm-internalh
++++ a/include/linux/gfp.h
+@@ -580,8 +580,6 @@ void * __meminit alloc_pages_exact_nid(i
  
--static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
-+static int dev_dax_may_split(struct vm_area_struct *vma, unsigned long addr)
- {
- 	struct file *filp = vma->vm_file;
- 	struct dev_dax *dev_dax = filp->private_data;
-@@ -277,7 +277,7 @@ static unsigned long dev_dax_pagesize(st
- static const struct vm_operations_struct dax_vm_ops = {
- 	.fault = dev_dax_fault,
- 	.huge_fault = dev_dax_huge_fault,
--	.split = dev_dax_split,
-+	.may_split = dev_dax_may_split,
- 	.pagesize = dev_dax_pagesize,
- };
+ extern void __free_pages(struct page *page, unsigned int order);
+ extern void free_pages(unsigned long addr, unsigned int order);
+-extern void free_unref_page(struct page *page);
+-extern void free_unref_page_list(struct list_head *list);
  
---- a/include/linux/mm.h~vm_ops-rename-split-callback-to-may_split
-+++ a/include/linux/mm.h
-@@ -557,7 +557,8 @@ enum page_entry_size {
- struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
--	int (*split)(struct vm_area_struct * area, unsigned long addr);
-+	/* Called any time before splitting to check if it's allowed */
-+	int (*may_split)(struct vm_area_struct *area, unsigned long addr);
- 	int (*mremap)(struct vm_area_struct *area, unsigned long flags);
- 	/*
- 	 * Called by mprotect() to make driver-specific permission
---- a/ipc/shm.c~vm_ops-rename-split-callback-to-may_split
-+++ a/ipc/shm.c
-@@ -434,13 +434,13 @@ static vm_fault_t shm_fault(struct vm_fa
- 	return sfd->vm_ops->fault(vmf);
- }
+ struct page_frag_cache;
+ extern void __page_frag_cache_drain(struct page *page, unsigned int count);
+--- a/mm/internal.h~mm-move-free_unref_page-to-mm-internalh
++++ a/mm/internal.h
+@@ -199,6 +199,9 @@ extern void post_alloc_hook(struct page
+ 					gfp_t gfp_flags);
+ extern int user_min_free_kbytes;
  
--static int shm_split(struct vm_area_struct *vma, unsigned long addr)
-+static int shm_may_split(struct vm_area_struct *vma, unsigned long addr)
- {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
++extern void free_unref_page(struct page *page);
++extern void free_unref_page_list(struct list_head *list);
++
+ extern void zone_pcp_update(struct zone *zone);
+ extern void zone_pcp_reset(struct zone *zone);
  
--	if (sfd->vm_ops->split)
--		return sfd->vm_ops->split(vma, addr);
-+	if (sfd->vm_ops->may_split)
-+		return sfd->vm_ops->may_split(vma, addr);
- 
- 	return 0;
- }
-@@ -582,7 +582,7 @@ static const struct vm_operations_struct
- 	.open	= shm_open,	/* callback for a new vm-area open */
- 	.close	= shm_close,	/* callback for when the vm-area is released */
- 	.fault	= shm_fault,
--	.split	= shm_split,
-+	.may_split = shm_may_split,
- 	.pagesize = shm_pagesize,
- #if defined(CONFIG_NUMA)
- 	.set_policy = shm_set_policy,
---- a/mm/hugetlb.c~vm_ops-rename-split-callback-to-may_split
-+++ a/mm/hugetlb.c
-@@ -3673,7 +3673,7 @@ const struct vm_operations_struct hugetl
- 	.fault = hugetlb_vm_op_fault,
- 	.open = hugetlb_vm_op_open,
- 	.close = hugetlb_vm_op_close,
--	.split = hugetlb_vm_op_split,
-+	.may_split = hugetlb_vm_op_split,
- 	.pagesize = hugetlb_vm_op_pagesize,
- };
- 
---- a/mm/mmap.c~vm_ops-rename-split-callback-to-may_split
-+++ a/mm/mmap.c
-@@ -2731,8 +2731,8 @@ int __split_vma(struct mm_struct *mm, st
- 	struct vm_area_struct *new;
- 	int err;
- 
--	if (vma->vm_ops && vma->vm_ops->split) {
--		err = vma->vm_ops->split(vma, addr);
-+	if (vma->vm_ops && vma->vm_ops->may_split) {
-+		err = vma->vm_ops->may_split(vma, addr);
- 		if (err)
- 			return err;
- 	}
 _
 
-Patches currently in -mm which might be from dima@arista.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+mm-swap-optimise-get_shadow_from_swap_cache.patch
+mm-add-fgp_entry.patch
+mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+mm-filemap-add-helper-for-finding-pages.patch
+mm-filemap-add-helper-for-finding-pages-fix.patch
+mm-filemap-add-mapping_seek_hole_data.patch
+mm-filemap-add-mapping_seek_hole_data-fix.patch
+iomap-use-mapping_seek_hole_data.patch
+mm-add-and-use-find_lock_entries.patch
+mm-add-and-use-find_lock_entries-fix.patch
+mm-add-an-end-parameter-to-find_get_entries.patch
+mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+mm-pass-pvec-directly-to-find_get_entries.patch
+mm-remove-pagevec_lookup_entries.patch
 
