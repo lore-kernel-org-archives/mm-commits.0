@@ -7,32 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6181C2BB40
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BC5C4361B
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90628223E0
+	by mail.kernel.org (Postfix) with ESMTP id 74BC420709
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:16:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728027AbgLODMg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:12:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36124 "EHLO mail.kernel.org"
+        id S1725820AbgLODQd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:16:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727366AbgLODMf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:35 -0500
-Date:   Mon, 14 Dec 2020 19:10:50 -0800
+        id S1728115AbgLODPl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:15:41 -0500
+Date:   Mon, 14 Dec 2020 19:14:53 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001850;
-        bh=RoNQlnEM9uvViSW0ZBmHZMnhv15RIhpWOBrmm3NI+X4=;
+        s=korg; t=1608002094;
+        bh=6ZVf4hObHZw76Z42pSqFmGKGOdB4VzqhbCDaHZwNSbw=;
         h=From:To:Subject:In-Reply-To:From;
-        b=Ub8vwdQN8zWvx50EWzjGHNJkN7fVwEu/fK5JB0hkbo+y+aPNq3kG5Wb3Rwfa8GVeA
-         XZ5SENXk1H1EcEex/tlszRikmrt7jlvSEQrcru8LLd1ZMHBJeq0UCdIpDJZuheheqe
-         q6E9WxX4eLbkBcXx5mgmRfIyOekKeaFlDQ4+0dpU=
+        b=TLIYD30Dl2g1XOnWvEK1QdoYRcZE4blnob6L9m/wwjjqLCDV52oXwRdu0s1sXRFHl
+         l3KV0AsztK6J44PB3NTwGUEeveHJewdpjQASYHotBYLGQ+53tEc3vGCE8WLQbFLF5c
+         TRtoEBuHnWo1pPdEOJgHYkxJv7lo+brNhtO5zl/M=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 126/200] mm, page_alloc: simplify pageset_update()
-Message-ID: <20201215031050.rkdPr6y_m%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com,
+        gregkh@linuxfoundation.org, hughd@google.com,
+        iamjoonsoo.kim@lge.com, joe@perches.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 197/200] mm: shmem: convert shmem_enabled_show to
+ use sysfs_emit_at
+Message-ID: <20201215031453.bwBJarhc5%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,125 +44,71 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: simplify pageset_update()
+From: Joe Perches <joe@perches.com>
+Subject: mm: shmem: convert shmem_enabled_show to use sysfs_emit_at
 
-pageset_update() attempts to update pcplist's high and batch values in a
-way that readers don't observe batch > high.  It uses smp_wmb() to order
-the updates in a way to achieve this.  However, without proper pairing
-read barriers in readers this guarantee doesn't hold, and there are no
-such barriers in e.g.  free_unref_page_commit().
+Update the function to use sysfs_emit_at while neatening the uses of
+sprintf and overwriting the last space char with a newline to avoid
+possible output buffer overflow.
 
-Commit 88e8ac11d2ea ("mm, page_alloc: fix core hung in
-free_pcppages_bulk()") already showed this is problematic, and solved this
-by ultimately only trusing pcp->count of the current cpu with interrupts
-disabled.
+Miscellanea:
 
-The update dance with unpaired write barriers thus makes no sense. 
-Replace them with plain WRITE_ONCE to prevent store tearing, and document
-that the values can change asynchronously and should not be trusted for
-correctness.
+o in shmem_enabled_show, the removal of the indirected use of fmt
+  allows __printf verification
 
-All current readers appear to be OK after 88e8ac11d2ea.  Convert them to
-READ_ONCE to prevent unnecessary read tearing, but mainly to alert anybody
-making future changes to the code that special care is needed.
-
-Link: https://lkml.kernel.org/r/20201111092812.11329-5-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/b612a93825e5ea330cb68d2e8b516e9687a06cc6.1605376435.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   42 +++++++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 23 deletions(-)
+ mm/shmem.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-pageset_update
-+++ a/mm/page_alloc.c
-@@ -1344,7 +1344,7 @@ static void free_pcppages_bulk(struct zo
+--- a/mm/shmem.c~mm-shmem-convert-shmem_enabled_show-to-use-sysfs_emit_at
++++ a/mm/shmem.c
+@@ -4020,7 +4020,7 @@ out2:
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
+ static ssize_t shmem_enabled_show(struct kobject *kobj,
+-		struct kobj_attribute *attr, char *buf)
++				  struct kobj_attribute *attr, char *buf)
  {
- 	int migratetype = 0;
- 	int batch_free = 0;
--	int prefetch_nr = 0;
-+	int prefetch_nr = READ_ONCE(pcp->batch);
- 	bool isolated_pageblocks;
- 	struct page *page, *tmp;
- 	LIST_HEAD(head);
-@@ -1395,8 +1395,10 @@ static void free_pcppages_bulk(struct zo
- 			 * avoid excessive prefetching due to large count, only
- 			 * prefetch buddy for the first pcp->batch nr of pages.
- 			 */
--			if (prefetch_nr++ < pcp->batch)
-+			if (prefetch_nr) {
- 				prefetch_buddy(page);
-+				prefetch_nr--;
-+			}
- 		} while (--count && --batch_free && !list_empty(list));
+ 	static const int values[] = {
+ 		SHMEM_HUGE_ALWAYS,
+@@ -4030,16 +4030,19 @@ static ssize_t shmem_enabled_show(struct
+ 		SHMEM_HUGE_DENY,
+ 		SHMEM_HUGE_FORCE,
+ 	};
+-	int i, count;
++	int len = 0;
++	int i;
+ 
+-	for (i = 0, count = 0; i < ARRAY_SIZE(values); i++) {
+-		const char *fmt = shmem_huge == values[i] ? "[%s] " : "%s ";
+-
+-		count += sprintf(buf + count, fmt,
+-				shmem_format_huge(values[i]));
++	for (i = 0; i < ARRAY_SIZE(values); i++) {
++		len += sysfs_emit_at(buf, len,
++				     shmem_huge == values[i] ? "%s[%s]" : "%s%s",
++				     i ? " " : "",
++				     shmem_format_huge(values[i]));
  	}
- 
-@@ -3197,10 +3199,8 @@ static void free_unref_page_commit(struc
- 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
- 	list_add(&page->lru, &pcp->lists[migratetype]);
- 	pcp->count++;
--	if (pcp->count >= pcp->high) {
--		unsigned long batch = READ_ONCE(pcp->batch);
--		free_pcppages_bulk(zone, batch, pcp);
--	}
-+	if (pcp->count >= READ_ONCE(pcp->high))
-+		free_pcppages_bulk(zone, READ_ONCE(pcp->batch), pcp);
+-	buf[count - 1] = '\n';
+-	return count;
++
++	len += sysfs_emit_at(buf, len, "\n");
++
++	return len;
  }
  
- /*
-@@ -3385,7 +3385,7 @@ static struct page *__rmqueue_pcplist(st
- 	do {
- 		if (list_empty(list)) {
- 			pcp->count += rmqueue_bulk(zone, 0,
--					pcp->batch, list,
-+					READ_ONCE(pcp->batch), list,
- 					migratetype, alloc_flags);
- 			if (unlikely(list_empty(list)))
- 				return NULL;
-@@ -6270,13 +6270,16 @@ static int zone_batchsize(struct zone *z
- }
- 
- /*
-- * pcp->high and pcp->batch values are related and dependent on one another:
-- * ->batch must never be higher then ->high.
-- * The following function updates them in a safe manner without read side
-- * locking.
-- *
-- * Any new users of pcp->batch and pcp->high should ensure they can cope with
-- * those fields changing asynchronously (acording to the above rule).
-+ * pcp->high and pcp->batch values are related and generally batch is lower
-+ * than high. They are also related to pcp->count such that count is lower
-+ * than high, and as soon as it reaches high, the pcplist is flushed.
-+ *
-+ * However, guaranteeing these relations at all times would require e.g. write
-+ * barriers here but also careful usage of read barriers at the read side, and
-+ * thus be prone to error and bad for performance. Thus the update only prevents
-+ * store tearing. Any new users of pcp->batch and pcp->high should ensure they
-+ * can cope with those fields changing asynchronously, and fully trust only the
-+ * pcp->count field on the local CPU with interrupts disabled.
-  *
-  * mutex_is_locked(&pcp_batch_high_lock) required when calling this function
-  * outside of boot time (or some other assurance that no concurrent updaters
-@@ -6285,15 +6288,8 @@ static int zone_batchsize(struct zone *z
- static void pageset_update(struct per_cpu_pages *pcp, unsigned long high,
- 		unsigned long batch)
- {
--       /* start with a fail safe value for batch */
--	pcp->batch = 1;
--	smp_wmb();
--
--       /* Update high, then batch, in order */
--	pcp->high = high;
--	smp_wmb();
--
--	pcp->batch = batch;
-+	WRITE_ONCE(pcp->batch, batch);
-+	WRITE_ONCE(pcp->high, high);
- }
- 
- static void pageset_init(struct per_cpu_pageset *p)
+ static ssize_t shmem_enabled_store(struct kobject *kobj,
 _
