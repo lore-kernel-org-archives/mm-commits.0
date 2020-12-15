@@ -7,40 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3E53C3526D
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE156C49EBF
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C3B722D07
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF5A222CB2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726000AbgLOX7A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
+        id S1726363AbgLOX7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727159AbgLOXUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:20:49 -0500
-Date:   Tue, 15 Dec 2020 15:19:36 -0800
+        id S1728008AbgLOXWn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:43 -0500
+Date:   Tue, 15 Dec 2020 15:21:11 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074377;
-        bh=Y7yC8tCwdpqqDlzCKjnER0NYdktfAdkxSjE9X9aC4/4=;
+        s=korg; t=1608074472;
+        bh=Fgmjw3iDiUbvULo+5vy7C43uNHx0UWkcAV154C3kn0o=;
         h=From:To:Subject:From;
-        b=xPhMEF73Rwi1mdrXkgaEFk3I3OJnrQwFGIj4u/L+AchnB/15XV6+U5UGcf3XCTPM3
-         4GSwpdX5fQ7dyuABWMlhs39ddBLPQZjSH5SXnLMw8dLLFbR+0PMYHz538P+Krz/Z1j
-         NBaofXZD8h4VIp68OtZWro2CkSOEAvb2UNy4iyg4=
+        b=aquo3EA5V0XcK2JjtwspgSnqqrsnkSv9qW2CEFR/JPDF3aCAK20w0A29E4LpM9ats
+         PgtyO0EJzOCM4M0z/3PLh9NPnCbYwzgfqE2MQoRiNLvnyMd+mL7bocpEON3pOV5WIA
+         CF7Aju6ILZDWqaY4bKCNG3stkk2aoO23V/i2gEjQ=
 From:   akpm@linux-foundation.org
-To:     bgeffon@google.com, catalin.marinas@arm.com,
-        dan.carpenter@oracle.com, dan.j.williams@intel.com,
-        dave.jiang@intel.com, dima@arista.com, hughd@google.com,
-        jgg@ziepe.ca, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
-        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, tglx@linutronix.de,
-        tsbogend@alpha.franken.de, vbabka@suse.cz, viro@zeniv.linux.org.uk,
-        vishal.l.verma@intel.com, will@kernel.org
-Subject:  [merged]
- mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
- removed from -mm tree
-Message-ID: <20201215231936.80FdDzU13%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
+        geert@linux-m68k.org, gerg@linux-m68k.org,
+        glaubitz@physik.fu-berlin.de, linux@armlinux.org.uk,
+        mattst88@gmail.com, mm-commits@vger.kernel.org, mroos@linux.ee,
+        rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
+        vgupta@synopsys.com, will@kernel.org
+Subject:  [merged] m68k-deprecate-discontigmem.patch removed from
+ -mm tree
+Message-ID: <20201215232111.TSyKG_uFt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,128 +45,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap: don't allow MREMAP_DONTUNMAP on special_mappings and aio
+     Subject: m68k: deprecate DISCONTIGMEM
 has been removed from the -mm tree.  Its filename was
-     mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
+     m68k-deprecate-discontigmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Safonov <dima@arista.com>
-Subject: mremap: don't allow MREMAP_DONTUNMAP on special_mappings and aio
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: m68k: deprecate DISCONTIGMEM
 
-As kernel expect to see only one of such mappings, any further operations
-on the VMA-copy may be unexpected by the kernel.  Maybe it's being on the
-safe side, but there doesn't seem to be any expected use-case for this, so
-restrict it now.
+DISCONTIGMEM was intended to provide more efficient support for systems
+with holes in their physical address space that FLATMEM did.
 
-Link: https://lkml.kernel.org/r/20201013013416.390574-4-dima@arista.com
-Fixes: commit e346b3813067 ("mm/mremap: add MREMAP_DONTUNMAP to mremap()")
-Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
+Yet, it's overhead in terms of the memory consumption seems to overweight
+the savings on the unused memory map.
+
+For a ARAnyM system with 16 MBytes of FastRAM configured, the memory usage
+reported after page allocator initialization is
+
+Memory: 23828K/30720K available (3206K kernel code, 535K rwdata, 936K rodata, 768K init, 193K bss, 6892K reserved, 0K cma-reserved)
+
+and with DISCONTIGMEM disabled and with relatively large hole in the memory
+map it is:
+
+Memory: 23864K/30720K available (3197K kernel code, 516K rwdata, 936K rodata, 764K init, 179K bss, 6856K reserved, 0K cma-reserved)
+
+Moreover, since m68k already has custom pfn_valid() it is possible to
+define HAVE_ARCH_PFN_VALID to enable freeing of unused memory map. The
+minimal size of a hole that can be freed should not be less than
+MAX_ORDER_NR_PAGES so to achieve more substantial memory savings let m68k
+also define custom FORCE_MAX_ZONEORDER.
+
+With FORCE_MAX_ZONEORDER set to 9 memory usage becomes:
+
+Memory: 23880K/30720K available (3197K kernel code, 516K rwdata, 936K rodata, 764K init, 179K bss, 6840K reserved, 0K cma-reserved)
+
+Link: https://lkml.kernel.org/r/20201101170454.9567-14-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Michael Schmitz <schmitzmic@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/resctrl/pseudo_lock.c |    2 +-
- fs/aio.c                                  |    5 ++++-
- include/linux/mm.h                        |    2 +-
- mm/mmap.c                                 |    6 +++++-
- mm/mremap.c                               |    2 +-
- 5 files changed, 12 insertions(+), 5 deletions(-)
+ arch/m68k/Kconfig.cpu |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c
-@@ -1458,7 +1458,7 @@ static int pseudo_lock_dev_release(struc
- 	return 0;
- }
+--- a/arch/m68k/Kconfig.cpu~m68k-deprecate-discontigmem
++++ a/arch/m68k/Kconfig.cpu
+@@ -20,6 +20,7 @@ choice
  
--static int pseudo_lock_dev_mremap(struct vm_area_struct *area)
-+static int pseudo_lock_dev_mremap(struct vm_area_struct *area, unsigned long flags)
- {
- 	/* Not supported */
- 	return -EINVAL;
---- a/fs/aio.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/fs/aio.c
-@@ -323,13 +323,16 @@ static void aio_free_ring(struct kioctx
- 	}
- }
+ config M68KCLASSIC
+ 	bool "Classic M68K CPU family support"
++	select HAVE_ARCH_PFN_VALID
  
--static int aio_ring_mremap(struct vm_area_struct *vma)
-+static int aio_ring_mremap(struct vm_area_struct *vma, unsigned long flags)
- {
- 	struct file *file = vma->vm_file;
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct kioctx_table *table;
- 	int i, res = -EINVAL;
+ config COLDFIRE
+ 	bool "Coldfire CPU family support"
+@@ -377,11 +378,34 @@ config SINGLE_MEMORY_CHUNK
+ 	help
+ 	  Ignore all but the first contiguous chunk of physical memory for VM
+ 	  purposes.  This will save a few bytes kernel size and may speed up
+-	  some operations.  Say N if not sure.
++	  some operations.
++	  When this option os set to N, you may want to lower "Maximum zone
++	  order" to save memory that could be wasted for unused memory map.
++	  Say N if not sure.
  
-+	if (flags & MREMAP_DONTUNMAP)
-+		return -EINVAL;
+ config ARCH_DISCONTIGMEM_ENABLE
++	depends on BROKEN
+ 	def_bool MMU && !SINGLE_MEMORY_CHUNK
+ 
++config FORCE_MAX_ZONEORDER
++	int "Maximum zone order" if ADVANCED
++	depends on !SINGLE_MEMORY_CHUNK
++	default "11"
++	help
++	  The kernel memory allocator divides physically contiguous memory
++	  blocks into "zones", where each zone is a power of two number of
++	  pages.  This option selects the largest power of two that the kernel
++	  keeps in the memory allocator.  If you need to allocate very large
++	  blocks of physically contiguous memory, then you may need to
++	  increase this value.
 +
- 	spin_lock(&mm->ioctx_lock);
- 	rcu_read_lock();
- 	table = rcu_dereference(mm->ioctx_table);
---- a/include/linux/mm.h~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/include/linux/mm.h
-@@ -558,7 +558,7 @@ struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
- 	int (*split)(struct vm_area_struct * area, unsigned long addr);
--	int (*mremap)(struct vm_area_struct * area);
-+	int (*mremap)(struct vm_area_struct *area, unsigned long flags);
- 	/*
- 	 * Called by mprotect() to make driver-specific permission
- 	 * checks before mprotect() is finalised.   The VMA must not
---- a/mm/mmap.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/mm/mmap.c
-@@ -3405,10 +3405,14 @@ static const char *special_mapping_name(
- 	return ((struct vm_special_mapping *)vma->vm_private_data)->name;
- }
- 
--static int special_mapping_mremap(struct vm_area_struct *new_vma)
-+static int special_mapping_mremap(struct vm_area_struct *new_vma,
-+				  unsigned long flags)
- {
- 	struct vm_special_mapping *sm = new_vma->vm_private_data;
- 
-+	if (flags & MREMAP_DONTUNMAP)
-+		return -EINVAL;
++	  For systems that have holes in their physical address space this
++	  value also defines the minimal size of the hole that allows
++	  freeing unused memory map.
 +
- 	if (WARN_ON_ONCE(current->mm != new_vma->vm_mm))
- 		return -EFAULT;
- 
---- a/mm/mremap.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
-+++ a/mm/mremap.c
-@@ -534,7 +534,7 @@ static unsigned long move_vma(struct vm_
- 	if (moved_len < old_len) {
- 		err = -ENOMEM;
- 	} else if (vma->vm_ops && vma->vm_ops->mremap) {
--		err = vma->vm_ops->mremap(new_vma);
-+		err = vma->vm_ops->mremap(new_vma, flags);
- 	}
- 
- 	if (unlikely(err)) {
++	  This config option is actually maximum order plus one. For example,
++	  a value of 11 means that the largest free memory block is 2^10 pages.
++
+ config 060_WRITETHROUGH
+ 	bool "Use write-through caching for 68060 supervisor accesses"
+ 	depends on ADVANCED && M68060
 _
 
-Patches currently in -mm which might be from dima@arista.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
+mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+secretmem-add-memcg-accounting.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
