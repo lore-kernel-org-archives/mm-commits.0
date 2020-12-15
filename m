@@ -7,31 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA50C4361B
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 23:51:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B57C2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8370F2074B
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Dec 2020 23:51:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D37F2206D6
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:12:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727628AbgLNXvh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 18:51:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53676 "EHLO mail.kernel.org"
+        id S1726381AbgLOCMg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 21:12:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727377AbgLNXve (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 18:51:34 -0500
-Date:   Mon, 14 Dec 2020 15:50:53 -0800
+        id S1726313AbgLOCM1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 21:12:27 -0500
+Date:   Mon, 14 Dec 2020 18:11:45 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607989854;
-        bh=Y59LMpOhbi0Xfyp7ksgguJJMY+Jz5d+hSsnoNysQf08=;
+        s=korg; t=1607998306;
+        bh=5MzPm7rhlEqiB4FJFM1VD1gyvYU+CJkrfI/8FPDblTE=;
         h=From:To:Subject:From;
-        b=qd9cltDU2srPePkrSzbivQbijHZ64uTiulFlg02HBsS/E/TA8igjtyD82pYVLMkmX
-         mB5M0TEhRjsRaBOixbnJE5Ds99gimslmFpUh4N5pxE+ji4/CHSV4aQBqmZk/C/gcOA
-         QrG+l8afxtc1BeWqXiQJXMzet6vopKDBEyAPePeg=
+        b=vEIGb6xQGkvLdIcu6O1OS/FmKGkCZVrROEJIrrbTEtj+ptVkrBww7Jg0vB3dnrDpP
+         uAYWqD7irma5OT0vpJYhCGCuA7sfPvzKMLIzp5SwPLTYf/Vb643aALqq0KKmT7iHhx
+         MqlZn7hpeAHs1kMsTZ6TJFDY26DJR2tc1KTjsYVY=
 From:   akpm@linux-foundation.org
-To:     huangzhaoyang@gmail.com, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, zhaoyang.huang@unisoc.com
-Subject:  + mm-fix-a-race-on-nr_swap_pages.patch added to -mm tree
-Message-ID: <20201214235053.hw9A35aPt%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        pmladek@suse.com, Qiang.Zhang@windriver.com, tglx@linutronix.de,
+        tj@kernel.org
+Subject:  [folded-merged]
+ kthread_worker-document-cpu-hotplug-handling-fix.patch removed from -mm
+ tree
+Message-ID: <20201215021145.ZDQFDjQbJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,94 +43,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix a race on nr_swap_pages
-has been added to the -mm tree.  Its filename is
-     mm-fix-a-race-on-nr_swap_pages.patch
+     Subject: kthread_worker-document-cpu-hotplug-handling-fix
+has been removed from the -mm tree.  Its filename was
+     kthread_worker-document-cpu-hotplug-handling-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-a-race-on-nr_swap_pages.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-a-race-on-nr_swap_pages.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into kthread_worker-document-cpu-hotplug-handling.patch
 
 ------------------------------------------------------
-From: Zhaoyang Huang <huangzhaoyang@gmail.com>
-Subject: mm: fix a race on nr_swap_pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kthread_worker-document-cpu-hotplug-handling-fix
 
-The scenario on which "Free swap = -4kB" happens in my system, which is caused
-by several get_swap_pages racing with each other and show_swap_cache_info
-happens simutaniously. No need to add a lock on get_swap_page_of_type as we
-remove "Presub/PosAdd" here.
+grammar tweaks
 
-ProcessA			ProcessB			ProcessC
-ngoals = 1			ngoals = 1
-avail = nr_swap_pages(1)	avail = nr_swap_pages(1)
-nr_swap_pages(1) -= ngoals
-				nr_swap_pages(0) -= ngoals
-								nr_swap_pages = -1
-
-Link: https://lkml.kernel.org/r/1607050340-4535-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zhang Qiang <Qiang.Zhang@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/kthread.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-fix-a-race-on-nr_swap_pages
-+++ a/mm/swapfile.c
-@@ -1045,16 +1045,18 @@ int get_swap_pages(int n_goal, swp_entry
- 	/* Only single cluster request supported */
- 	WARN_ON_ONCE(n_goal > 1 && size == SWAPFILE_CLUSTER);
- 
-+	spin_lock(&swap_avail_lock);
-+
- 	avail_pgs = atomic_long_read(&nr_swap_pages) / size;
--	if (avail_pgs <= 0)
-+	if (avail_pgs <= 0) {
-+		spin_unlock(&swap_avail_lock);
- 		goto noswap;
-+	}
- 
- 	n_goal = min3((long)n_goal, (long)SWAP_BATCH, avail_pgs);
- 
- 	atomic_long_sub(n_goal * size, &nr_swap_pages);
- 
--	spin_lock(&swap_avail_lock);
--
- start_over:
- 	node = numa_node_id();
- 	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
-@@ -1128,14 +1130,13 @@ swp_entry_t get_swap_page_of_type(int ty
- 
- 	spin_lock(&si->lock);
- 	if (si->flags & SWP_WRITEOK) {
--		atomic_long_dec(&nr_swap_pages);
- 		/* This is called for allocating swap entry, not cache */
- 		offset = scan_swap_map(si, 1);
- 		if (offset) {
-+			atomic_long_dec(&nr_swap_pages);
- 			spin_unlock(&si->lock);
- 			return swp_entry(type, offset);
- 		}
--		atomic_long_inc(&nr_swap_pages);
- 	}
- 	spin_unlock(&si->lock);
- fail:
+--- a/kernel/kthread.c~kthread_worker-document-cpu-hotplug-handling-fix
++++ a/kernel/kthread.c
+@@ -795,11 +795,11 @@ EXPORT_SYMBOL(kthread_create_worker);
+  *
+  * CPU hotplug:
+  * The kthread worker API is simple and generic. It just provides a way
+- * how to create, use, and destroy workers.
++ * to create, use, and destroy workers.
+  *
+  * It is up to the API user how to handle CPU hotplug. They have to decide
+  * how to handle pending work items, prevent queuing new ones, and
+- * restore the functionality when the CPU goes off and on. There are
++ * restore the functionality when the CPU goes off and on. There are a
+  * few catches:
+  *
+  *    - CPU affinity gets lost when it is scheduled on an offline CPU.
+@@ -807,8 +807,8 @@ EXPORT_SYMBOL(kthread_create_worker);
+  *    - The worker might not exist when the CPU was off when the user
+  *      created the workers.
+  *
+- * A good practice is to implement two CPU hotplug callbacks and
+- * destroy/create the worker when CPU goes down/up.
++ * Good practice is to implement two CPU hotplug callbacks and to
++ * destroy/create the worker when the CPU goes down/up.
+  *
+  * Return:
+  * The pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
 _
 
-Patches currently in -mm which might be from huangzhaoyang@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-a-race-on-nr_swap_pages.patch
+kthread_worker-document-cpu-hotplug-handling.patch
+mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
+mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
+mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
+mm-memcontrol-account-pagetables-per-node-fix.patch
+mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
+mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
+mm.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
+ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+epoll-wire-up-syscall-epoll_pwait2-fix.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
