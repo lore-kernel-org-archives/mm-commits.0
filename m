@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C27DEC49EBE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF6EDC4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C3F222CAE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C27F222CAE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726362AbgLOX7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726374AbgLOX7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:59:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59712 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728002AbgLOXWk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:40 -0500
-Date:   Tue, 15 Dec 2020 15:21:08 -0800
+        id S1727917AbgLOXWy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:54 -0500
+Date:   Tue, 15 Dec 2020 15:20:44 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074469;
-        bh=oVH5QwoNp/Mo8BcYiYw3iVGdPOpuv9EJwISRaMHbRWo=;
+        s=korg; t=1608074445;
+        bh=N7xD0A0XUooKI2oCQ3XrtgpulwEVZ80UU06E6XMWso4=;
         h=From:To:Subject:From;
-        b=2qa+vTfuZMU7QflllzjjhB/OQVe2tzMneAVKmF8+9MnTUwQwiL12b2abkqX1yngEE
-         GAK4oXSsTNWjbaA9Cs1KUvQSUUsYjRHhIdgRCcPDPr+hiGe43pf4k7BDqMfXjeLPe2
-         rpxU43IxkYeoibo7fiB2AXfh91aoDNJF2IemQbe8=
+        b=qQyhMqBNu7qJKh2OthaoNtVbp+dR/73GdE0wNLHdn/7wFXfC+wFc+8mk59lA4s5Ed
+         4+h7EF608EXStLzZ2nxbKIomNlVdwbxbY1HserAC07uULzkrwQG7Kuuj/jzJoZnS1J
+         K+0y0dJRNkVTac3p9x+rDGCAIDg07w/tStyy2Nik=
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
         geert@linux-m68k.org, gerg@linux-m68k.org,
@@ -35,9 +35,9 @@ To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
         rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
         vgupta@synopsys.com, will@kernel.org
 Subject:  [merged]
- m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch removed
+ ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch removed
  from -mm tree
-Message-ID: <20201215232108.q32WW_hYn%akpm@linux-foundation.org>
+Message-ID: <20201215232044.-Y9H0urmt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,21 +46,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM
+     Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
 has been removed from the -mm tree.  Its filename was
-     m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem.patch
+     ia64-discontig-paging_init-remove-local-max_pfn-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k/mm: enable use of generic memory_model.h for !DISCONTIGMEM
+Subject: ia64: discontig: paging_init(): remove local max_pfn calculation
 
-The pg_data_map and pg_data_table arrays as well as page_to_pfn() and
-pfn_to_page() are required only for DISCONTIGMEM. Other memory models can
-use the generic definitions in asm-generic/memory_model.h.
+The maximal PFN in the system is calculated during find_memory() time and
+it is stored at max_low_pfn then.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-13-rppt@kernel.org
+Use this value in paging_init() and remove the redundant detection of
+max_pfn in that function.
+
+Link: https://lkml.kernel.org/r/20201101170454.9567-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -78,90 +80,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig.cpu               |    1 -
- arch/m68k/include/asm/page.h        |    2 ++
- arch/m68k/include/asm/page_mm.h     |    5 +++++
- arch/m68k/include/asm/virtconvert.h |    5 -----
- arch/m68k/mm/init.c                 |    6 +++---
- 5 files changed, 10 insertions(+), 9 deletions(-)
+ arch/ia64/mm/discontig.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/m68k/include/asm/page.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/include/asm/page.h
-@@ -62,8 +62,10 @@ extern unsigned long _ramend;
- #include <asm/page_no.h>
+--- a/arch/ia64/mm/discontig.c~ia64-discontig-paging_init-remove-local-max_pfn-calculation
++++ a/arch/ia64/mm/discontig.c
+@@ -594,7 +594,6 @@ void __init paging_init(void)
+ {
+ 	unsigned long max_dma;
+ 	unsigned long pfn_offset = 0;
+-	unsigned long max_pfn = 0;
+ 	int node;
+ 	unsigned long max_zone_pfns[MAX_NR_ZONES];
+ 
+@@ -616,13 +615,11 @@ void __init paging_init(void)
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+ 		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
  #endif
+-		if (mem_data[node].max_pfn > max_pfn)
+-			max_pfn = mem_data[node].max_pfn;
+ 	}
  
-+#ifdef CONFIG_DISCONTIGMEM
- #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
- #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
-+#endif
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+ 	max_zone_pfns[ZONE_DMA32] = max_dma;
+-	max_zone_pfns[ZONE_NORMAL] = max_pfn;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
+ 	free_area_init(max_zone_pfns);
  
- #include <asm-generic/getorder.h>
- 
---- a/arch/m68k/include/asm/page_mm.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -153,6 +153,7 @@ static inline __attribute_const__ int __
- 	pfn_to_virt(page_to_pfn(page));					\
- })
- 
-+#ifdef CONFIG_DISCONTIGMEM
- #define pfn_to_page(pfn) ({						\
- 	unsigned long __pfn = (pfn);					\
- 	struct pglist_data *pgdat;					\
-@@ -165,6 +166,10 @@ static inline __attribute_const__ int __
- 	pgdat = &pg_data_map[page_to_nid(__p)];				\
- 	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
- })
-+#else
-+#define ARCH_PFN_OFFSET (m68k_memory[0].addr)
-+#include <asm-generic/memory_model.h>
-+#endif
- 
- #define virt_addr_valid(kaddr)	((void *)(kaddr) >= (void *)PAGE_OFFSET && (void *)(kaddr) < high_memory)
- #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))
---- a/arch/m68k/include/asm/virtconvert.h~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/include/asm/virtconvert.h
-@@ -29,12 +29,7 @@ static inline void *phys_to_virt(unsigne
- }
- 
- /* Permanent address of a page. */
--#if defined(CONFIG_MMU) && !defined(CONFIG_DISCONTIGMEM)
--#define page_to_phys(page) \
--	__pa(PAGE_OFFSET + (((page) - pg_data_map[0].node_mem_map) << PAGE_SHIFT))
--#else
- #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
--#endif
- 
- /*
-  * IO bus memory addresses are 1:1 with the physical address,
---- a/arch/m68k/Kconfig.cpu~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/Kconfig.cpu
-@@ -374,7 +374,6 @@ config SINGLE_MEMORY_CHUNK
- 	bool "Use one physical chunk of memory only" if ADVANCED && !SUN3
- 	depends on MMU
- 	default y if SUN3 || MMU_COLDFIRE
--	select NEED_MULTIPLE_NODES
- 	help
- 	  Ignore all but the first contiguous chunk of physical memory for VM
- 	  purposes.  This will save a few bytes kernel size and may speed up
---- a/arch/m68k/mm/init.c~m68k-mm-enable-use-of-generic-memory_modelh-for-discontigmem
-+++ a/arch/m68k/mm/init.c
-@@ -42,12 +42,12 @@ EXPORT_SYMBOL(empty_zero_page);
- 
- #ifdef CONFIG_MMU
- 
--pg_data_t pg_data_map[MAX_NUMNODES];
--EXPORT_SYMBOL(pg_data_map);
--
- int m68k_virt_to_node_shift;
- 
- #ifdef CONFIG_DISCONTIGMEM
-+pg_data_t pg_data_map[MAX_NUMNODES];
-+EXPORT_SYMBOL(pg_data_map);
-+
- pg_data_t *pg_data_table[65];
- EXPORT_SYMBOL(pg_data_table);
- #endif
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
