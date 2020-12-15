@@ -7,36 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5816EC49EC8
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3E53C3526D
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3122122CAE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C3B722D07
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726369AbgLOX7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32846 "EHLO mail.kernel.org"
+        id S1726000AbgLOX7A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727855AbgLOXWy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:54 -0500
-Date:   Tue, 15 Dec 2020 15:20:38 -0800
+        id S1727159AbgLOXUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:20:49 -0500
+Date:   Tue, 15 Dec 2020 15:19:36 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074439;
-        bh=fsaFFDkciD8U4C0ereX4YR+81oq1xBBKMv9D+syk2rM=;
+        s=korg; t=1608074377;
+        bh=Y7yC8tCwdpqqDlzCKjnER0NYdktfAdkxSjE9X9aC4/4=;
         h=From:To:Subject:From;
-        b=psvG6jnKqipaB1U7CbLSGaNB3apS8OACfaYx89ER4dU1Rq0O8Xe9+Whqawh8KtYn7
-         lLzSgFZyHYZt8oW0fTqb9/JYgrOrC+rh/Typo7lV/gpGHjhEBTk4wq1rW6c9KRmWcm
-         RGkCbflBXOyWr0wDhc5QXKOUYkEU100ZXfvK91qY=
+        b=xPhMEF73Rwi1mdrXkgaEFk3I3OJnrQwFGIj4u/L+AchnB/15XV6+U5UGcf3XCTPM3
+         4GSwpdX5fQ7dyuABWMlhs39ddBLPQZjSH5SXnLMw8dLLFbR+0PMYHz538P+Krz/Z1j
+         NBaofXZD8h4VIp68OtZWro2CkSOEAvb2UNy4iyg4=
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
-        geert@linux-m68k.org, gerg@linux-m68k.org,
-        glaubitz@physik.fu-berlin.de, linux@armlinux.org.uk,
-        mattst88@gmail.com, mm-commits@vger.kernel.org, mroos@linux.ee,
-        rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
-        vgupta@synopsys.com, will@kernel.org
-Subject:  [merged] ia64-remove-custom-__early_pfn_to_nid.patch
+To:     bgeffon@google.com, catalin.marinas@arm.com,
+        dan.carpenter@oracle.com, dan.j.williams@intel.com,
+        dave.jiang@intel.com, dima@arista.com, hughd@google.com,
+        jgg@ziepe.ca, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
+        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
+        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com, tglx@linutronix.de,
+        tsbogend@alpha.franken.de, vbabka@suse.cz, viro@zeniv.linux.org.uk,
+        vishal.l.verma@intel.com, will@kernel.org
+Subject:  [merged]
+ mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
  removed from -mm tree
-Message-ID: <20201215232038.1nOK1zZPX%akpm@linux-foundation.org>
+Message-ID: <20201215231936.80FdDzU13%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,184 +49,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: remove custom __early_pfn_to_nid()
+     Subject: mremap: don't allow MREMAP_DONTUNMAP on special_mappings and aio
 has been removed from the -mm tree.  Its filename was
-     ia64-remove-custom-__early_pfn_to_nid.patch
+     mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: remove custom __early_pfn_to_nid()
+From: Dmitry Safonov <dima@arista.com>
+Subject: mremap: don't allow MREMAP_DONTUNMAP on special_mappings and aio
 
-The ia64 implementation of __early_pfn_to_nid() essentially relies on the
-same data as the generic implementation.
+As kernel expect to see only one of such mappings, any further operations
+on the VMA-copy may be unexpected by the kernel.  Maybe it's being on the
+safe side, but there doesn't seem to be any expected use-case for this, so
+restrict it now.
 
-The correspondence between memory ranges and nodes is set in memblock
-during early memory initialization in register_active_ranges() function.
-
-The initialization of sparsemem that requires early_pfn_to_nid() happens
-later and it can use the memblock information like the other architectures.
-
-Link: https://lkml.kernel.org/r/20201101170454.9567-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/20201013013416.390574-4-dima@arista.com
+Fixes: commit e346b3813067 ("mm/mremap: add MREMAP_DONTUNMAP to mremap()")
+Signed-off-by: Dmitry Safonov <dima@arista.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Michael Schmitz <schmitzmic@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig      |    3 ---
- arch/ia64/mm/numa.c    |   30 ------------------------------
- include/linux/mm.h     |    3 ---
- include/linux/mmzone.h |   11 -----------
- mm/page_alloc.c        |   16 ++++++++++++----
- 5 files changed, 12 insertions(+), 51 deletions(-)
+ arch/x86/kernel/cpu/resctrl/pseudo_lock.c |    2 +-
+ fs/aio.c                                  |    5 ++++-
+ include/linux/mm.h                        |    2 +-
+ mm/mmap.c                                 |    6 +++++-
+ mm/mremap.c                               |    2 +-
+ 5 files changed, 12 insertions(+), 5 deletions(-)
 
---- a/arch/ia64/Kconfig~ia64-remove-custom-__early_pfn_to_nid
-+++ a/arch/ia64/Kconfig
-@@ -342,9 +342,6 @@ config HOLES_IN_ZONE
- 	bool
- 	default y if VIRTUAL_MEM_MAP
- 
--config HAVE_ARCH_EARLY_PFN_TO_NID
--	def_bool NUMA && SPARSEMEM
--
- config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
---- a/arch/ia64/mm/numa.c~ia64-remove-custom-__early_pfn_to_nid
-+++ a/arch/ia64/mm/numa.c
-@@ -58,36 +58,6 @@ paddr_to_nid(unsigned long paddr)
- EXPORT_SYMBOL(paddr_to_nid);
- 
- #if defined(CONFIG_SPARSEMEM) && defined(CONFIG_NUMA)
--/*
-- * Because of holes evaluate on section limits.
-- * If the section of memory exists, then return the node where the section
-- * resides.  Otherwise return node 0 as the default.  This is used by
-- * SPARSEMEM to allocate the SPARSEMEM sectionmap on the NUMA node where
-- * the section resides.
-- */
--int __meminit __early_pfn_to_nid(unsigned long pfn,
--					struct mminit_pfnnid_cache *state)
--{
--	int i, section = pfn >> PFN_SECTION_SHIFT, ssec, esec;
--
--	if (section >= state->last_start && section < state->last_end)
--		return state->last_nid;
--
--	for (i = 0; i < num_node_memblks; i++) {
--		ssec = node_memblk[i].start_paddr >> PA_SECTION_SHIFT;
--		esec = (node_memblk[i].start_paddr + node_memblk[i].size +
--			((1L << PA_SECTION_SHIFT) - 1)) >> PA_SECTION_SHIFT;
--		if (section >= ssec && section < esec) {
--			state->last_start = ssec;
--			state->last_end = esec;
--			state->last_nid = node_memblk[i].nid;
--			return node_memblk[i].nid;
--		}
--	}
--
--	return -1;
--}
--
- void numa_clear_node(int cpu)
- {
- 	unmap_cpu_from_node(cpu, NUMA_NO_NODE);
---- a/include/linux/mm.h~ia64-remove-custom-__early_pfn_to_nid
-+++ a/include/linux/mm.h
-@@ -2434,9 +2434,6 @@ static inline int early_pfn_to_nid(unsig
- #else
- /* please see mm/page_alloc.c */
- extern int __meminit early_pfn_to_nid(unsigned long pfn);
--/* there is a per-arch backend function. */
--extern int __meminit __early_pfn_to_nid(unsigned long pfn,
--					struct mminit_pfnnid_cache *state);
- #endif
- 
- extern void set_dma_reserve(unsigned long new_dma_reserve);
---- a/include/linux/mmzone.h~ia64-remove-custom-__early_pfn_to_nid
-+++ a/include/linux/mmzone.h
-@@ -1429,17 +1429,6 @@ void sparse_init(void);
- #endif /* CONFIG_SPARSEMEM */
- 
- /*
-- * During memory init memblocks map pfns to nids. The search is expensive and
-- * this caches recent lookups. The implementation of __early_pfn_to_nid
-- * may treat start/end as pfns or sections.
-- */
--struct mminit_pfnnid_cache {
--	unsigned long last_start;
--	unsigned long last_end;
--	int last_nid;
--};
--
--/*
-  * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
-  * need to check pfn validity within that MAX_ORDER_NR_PAGES block.
-  * pfn_valid_within() should be used in this case; we optimise this away
---- a/mm/page_alloc.c~ia64-remove-custom-__early_pfn_to_nid
-+++ a/mm/page_alloc.c
-@@ -1559,14 +1559,23 @@ void __free_pages_core(struct page *page
- 
- #ifdef CONFIG_NEED_MULTIPLE_NODES
- 
--static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
-+/*
-+ * During memory init memblocks map pfns to nids. The search is expensive and
-+ * this caches recent lookups. The implementation of __early_pfn_to_nid
-+ * treats start/end as pfns.
-+ */
-+struct mminit_pfnnid_cache {
-+	unsigned long last_start;
-+	unsigned long last_end;
-+	int last_nid;
-+};
- 
--#ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
-+static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
- 
- /*
-  * Required by SPARSEMEM. Given a PFN, return what node the PFN is on.
-  */
--int __meminit __early_pfn_to_nid(unsigned long pfn,
-+static int __meminit __early_pfn_to_nid(unsigned long pfn,
- 					struct mminit_pfnnid_cache *state)
- {
- 	unsigned long start_pfn, end_pfn;
-@@ -1584,7 +1593,6 @@ int __meminit __early_pfn_to_nid(unsigne
- 
- 	return nid;
+--- a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
++++ a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c
+@@ -1458,7 +1458,7 @@ static int pseudo_lock_dev_release(struc
+ 	return 0;
  }
--#endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
  
- int __meminit early_pfn_to_nid(unsigned long pfn)
+-static int pseudo_lock_dev_mremap(struct vm_area_struct *area)
++static int pseudo_lock_dev_mremap(struct vm_area_struct *area, unsigned long flags)
  {
+ 	/* Not supported */
+ 	return -EINVAL;
+--- a/fs/aio.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
++++ a/fs/aio.c
+@@ -323,13 +323,16 @@ static void aio_free_ring(struct kioctx
+ 	}
+ }
+ 
+-static int aio_ring_mremap(struct vm_area_struct *vma)
++static int aio_ring_mremap(struct vm_area_struct *vma, unsigned long flags)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct kioctx_table *table;
+ 	int i, res = -EINVAL;
+ 
++	if (flags & MREMAP_DONTUNMAP)
++		return -EINVAL;
++
+ 	spin_lock(&mm->ioctx_lock);
+ 	rcu_read_lock();
+ 	table = rcu_dereference(mm->ioctx_table);
+--- a/include/linux/mm.h~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
++++ a/include/linux/mm.h
+@@ -558,7 +558,7 @@ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*split)(struct vm_area_struct * area, unsigned long addr);
+-	int (*mremap)(struct vm_area_struct * area);
++	int (*mremap)(struct vm_area_struct *area, unsigned long flags);
+ 	/*
+ 	 * Called by mprotect() to make driver-specific permission
+ 	 * checks before mprotect() is finalised.   The VMA must not
+--- a/mm/mmap.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
++++ a/mm/mmap.c
+@@ -3405,10 +3405,14 @@ static const char *special_mapping_name(
+ 	return ((struct vm_special_mapping *)vma->vm_private_data)->name;
+ }
+ 
+-static int special_mapping_mremap(struct vm_area_struct *new_vma)
++static int special_mapping_mremap(struct vm_area_struct *new_vma,
++				  unsigned long flags)
+ {
+ 	struct vm_special_mapping *sm = new_vma->vm_private_data;
+ 
++	if (flags & MREMAP_DONTUNMAP)
++		return -EINVAL;
++
+ 	if (WARN_ON_ONCE(current->mm != new_vma->vm_mm))
+ 		return -EFAULT;
+ 
+--- a/mm/mremap.c~mremap-dont-allow-mremap_dontunmap-on-special_mappings-and-aio
++++ a/mm/mremap.c
+@@ -534,7 +534,7 @@ static unsigned long move_vma(struct vm_
+ 	if (moved_len < old_len) {
+ 		err = -ENOMEM;
+ 	} else if (vma->vm_ops && vma->vm_ops->mremap) {
+-		err = vma->vm_ops->mremap(new_vma);
++		err = vma->vm_ops->mremap(new_vma, flags);
+ 	}
+ 
+ 	if (unlikely(err)) {
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from dima@arista.com are
 
-mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
-mm-add-definition-of-pmd_page_order.patch
-mmap-make-mlock_future_check-global.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
-secretmem-add-memcg-accounting.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
