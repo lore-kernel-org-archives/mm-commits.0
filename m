@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED60C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30ECDC2BB48
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:09:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C899D224D4
+	by mail.kernel.org (Postfix) with ESMTP id EB95522B51
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726554AbgLODI7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:08:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36780 "EHLO mail.kernel.org"
+        id S1726739AbgLODJN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:09:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726507AbgLODI5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:08:57 -0500
-Date:   Mon, 14 Dec 2020 19:08:09 -0800
+        id S1726299AbgLODJK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:09:10 -0500
+Date:   Mon, 14 Dec 2020 19:08:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001691;
-        bh=xfD9RI1Sd8SRvn/3wBv4IcpMVipVJa8zk3X9fBraC0U=;
+        s=korg; t=1608001699;
+        bh=Bh2BujTZjt1h2NA+p0bHiGGzFzRcnCYmzov9OZWjyAM=;
         h=From:To:Subject:In-Reply-To:From;
-        b=jtvO3vJpgaIlPDq7FDGJF0rzkWA4KH3Ei+EoiCvordVm2Gg07FOXKavuFNvkVuCSj
-         IcRv297gM4rojVYHGRYpgFYjAj++GJXJDKTa3XvaYbMbTvOVcwawkYBWK8umykJykj
-         +ph0zvzkIJ2M3lhORjq02P68DKXr/x2lT57e6ILw=
+        b=aNnbZ/jZimcRPwiJ1YEws1vB/YV0WbLe19bhaUkHt/DMmxIHLIOMP5aE/i3MGNUnN
+         RHx81jsxyrOX3kRlqRuKV1zhbpddLDdq3GOk8Cgg+miXdinjKdGqvlpUxDA0eCBI/R
+         //1gTjhRsnoP5u+e/cDZDHCq39uLiyPyRMXzqF3Y=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bgeffon@google.com,
         catalin.marinas@arm.com, dan.carpenter@oracle.com,
@@ -39,9 +39,9 @@ To:     akpm@linux-foundation.org, bgeffon@google.com,
         torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
         vbabka@suse.cz, viro@zeniv.linux.org.uk, vishal.l.verma@intel.com,
         will@kernel.org
-Subject:  [patch 085/200] mm/mremap: for MREMAP_DONTUNMAP check
- security_vm_enough_memory_mm()
-Message-ID: <20201215030809.8eQUlctPK%akpm@linux-foundation.org>
+Subject:  [patch 087/200] vm_ops: rename .split() callback to
+ .may_split()
+Message-ID: <20201215030817.6PryQmza_%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,20 +50,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: mm/mremap: for MREMAP_DONTUNMAP check security_vm_enough_memory_mm()
+Subject: vm_ops: rename .split() callback to .may_split()
 
-Currently memory is accounted post-mremap() with MREMAP_DONTUNMAP, which
-may break overcommit policy.  So, check if there's enough memory before
-doing actual VMA copy.
+Rename the callback to reflect that it's not called *on* or *after* split,
+but rather some time before the splitting to check if it's possible.
 
-Don't unset VM_ACCOUNT on MREMAP_DONTUNMAP.  By semantics, such mremap()
-is actually a memory allocation.  That also simplifies the error-path a
-little.
-
-Also, as it's memory allocation on success don't reset hiwater_vm value.
-
-Link: https://lkml.kernel.org/r/20201013013416.390574-3-dima@arista.com
-Fixes: commit e346b3813067 ("mm/mremap: add MREMAP_DONTUNMAP to mremap()")
+Link: https://lkml.kernel.org/r/20201013013416.390574-5-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -89,85 +81,95 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   36 +++++++++++++-----------------------
- 1 file changed, 13 insertions(+), 23 deletions(-)
+ drivers/dax/device.c |    4 ++--
+ include/linux/mm.h   |    3 ++-
+ ipc/shm.c            |    8 ++++----
+ mm/hugetlb.c         |    2 +-
+ mm/mmap.c            |    4 ++--
+ 5 files changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-for-mremap_dontunmap-check-security_vm_enough_memory_mm
-+++ a/mm/mremap.c
-@@ -515,11 +515,19 @@ static unsigned long move_vma(struct vm_
- 	if (err)
- 		return err;
+--- a/drivers/dax/device.c~vm_ops-rename-split-callback-to-may_split
++++ a/drivers/dax/device.c
+@@ -256,7 +256,7 @@ static vm_fault_t dev_dax_fault(struct v
+ 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
+ }
  
-+	if (unlikely(flags & MREMAP_DONTUNMAP && vm_flags & VM_ACCOUNT)) {
-+		if (security_vm_enough_memory_mm(mm, new_len >> PAGE_SHIFT))
-+			return -ENOMEM;
-+	}
-+
- 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
- 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
- 			   &need_rmap_locks);
--	if (!new_vma)
-+	if (!new_vma) {
-+		if (unlikely(flags & MREMAP_DONTUNMAP && vm_flags & VM_ACCOUNT))
-+			vm_unacct_memory(new_len >> PAGE_SHIFT);
- 		return -ENOMEM;
-+	}
+-static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
++static int dev_dax_may_split(struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	struct file *filp = vma->vm_file;
+ 	struct dev_dax *dev_dax = filp->private_data;
+@@ -277,7 +277,7 @@ static unsigned long dev_dax_pagesize(st
+ static const struct vm_operations_struct dax_vm_ops = {
+ 	.fault = dev_dax_fault,
+ 	.huge_fault = dev_dax_huge_fault,
+-	.split = dev_dax_split,
++	.may_split = dev_dax_may_split,
+ 	.pagesize = dev_dax_pagesize,
+ };
  
- 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
- 				     need_rmap_locks);
-@@ -548,7 +556,7 @@ static unsigned long move_vma(struct vm_
+--- a/include/linux/mm.h~vm_ops-rename-split-callback-to-may_split
++++ a/include/linux/mm.h
+@@ -557,7 +557,8 @@ enum page_entry_size {
+ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
+ 	void (*close)(struct vm_area_struct * area);
+-	int (*split)(struct vm_area_struct * area, unsigned long addr);
++	/* Called any time before splitting to check if it's allowed */
++	int (*may_split)(struct vm_area_struct *area, unsigned long addr);
+ 	int (*mremap)(struct vm_area_struct *area, unsigned long flags);
+ 	vm_fault_t (*fault)(struct vm_fault *vmf);
+ 	vm_fault_t (*huge_fault)(struct vm_fault *vmf,
+--- a/ipc/shm.c~vm_ops-rename-split-callback-to-may_split
++++ a/ipc/shm.c
+@@ -434,13 +434,13 @@ static vm_fault_t shm_fault(struct vm_fa
+ 	return sfd->vm_ops->fault(vmf);
+ }
+ 
+-static int shm_split(struct vm_area_struct *vma, unsigned long addr)
++static int shm_may_split(struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct shm_file_data *sfd = shm_file_data(file);
+ 
+-	if (sfd->vm_ops->split)
+-		return sfd->vm_ops->split(vma, addr);
++	if (sfd->vm_ops->may_split)
++		return sfd->vm_ops->may_split(vma, addr);
+ 
+ 	return 0;
+ }
+@@ -582,7 +582,7 @@ static const struct vm_operations_struct
+ 	.open	= shm_open,	/* callback for a new vm-area open */
+ 	.close	= shm_close,	/* callback for when the vm-area is released */
+ 	.fault	= shm_fault,
+-	.split	= shm_split,
++	.may_split = shm_may_split,
+ 	.pagesize = shm_pagesize,
+ #if defined(CONFIG_NUMA)
+ 	.set_policy = shm_set_policy,
+--- a/mm/hugetlb.c~vm_ops-rename-split-callback-to-may_split
++++ a/mm/hugetlb.c
+@@ -3673,7 +3673,7 @@ const struct vm_operations_struct hugetl
+ 	.fault = hugetlb_vm_op_fault,
+ 	.open = hugetlb_vm_op_open,
+ 	.close = hugetlb_vm_op_close,
+-	.split = hugetlb_vm_op_split,
++	.may_split = hugetlb_vm_op_split,
+ 	.pagesize = hugetlb_vm_op_pagesize,
+ };
+ 
+--- a/mm/mmap.c~vm_ops-rename-split-callback-to-may_split
++++ a/mm/mmap.c
+@@ -2731,8 +2731,8 @@ int __split_vma(struct mm_struct *mm, st
+ 	struct vm_area_struct *new;
+ 	int err;
+ 
+-	if (vma->vm_ops && vma->vm_ops->split) {
+-		err = vma->vm_ops->split(vma, addr);
++	if (vma->vm_ops && vma->vm_ops->may_split) {
++		err = vma->vm_ops->may_split(vma, addr);
+ 		if (err)
+ 			return err;
  	}
- 
- 	/* Conceal VM_ACCOUNT so old reservation is not undone */
--	if (vm_flags & VM_ACCOUNT) {
-+	if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP)) {
- 		vma->vm_flags &= ~VM_ACCOUNT;
- 		excess = vma->vm_end - vma->vm_start - old_len;
- 		if (old_addr > vma->vm_start &&
-@@ -573,34 +581,16 @@ static unsigned long move_vma(struct vm_
- 		untrack_pfn_moved(vma);
- 
- 	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
--		if (vm_flags & VM_ACCOUNT) {
--			/* Always put back VM_ACCOUNT since we won't unmap */
--			vma->vm_flags |= VM_ACCOUNT;
--
--			vm_acct_memory(new_len >> PAGE_SHIFT);
--		}
--
--		/*
--		 * VMAs can actually be merged back together in copy_vma
--		 * calling merge_vma. This can happen with anonymous vmas
--		 * which have not yet been faulted, so if we were to consider
--		 * this VMA split we'll end up adding VM_ACCOUNT on the
--		 * next VMA, which is completely unrelated if this VMA
--		 * was re-merged.
--		 */
--		if (split && new_vma == vma)
--			split = 0;
--
- 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
- 		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
- 
- 		/* Because we won't unmap we don't need to touch locked_vm */
--		goto out;
-+		return new_addr;
- 	}
- 
- 	if (do_munmap(mm, old_addr, old_len, uf_unmap) < 0) {
- 		/* OOM: unable to split vma, just get accounts right */
--		if (vm_flags & VM_ACCOUNT)
-+		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
- 			vm_acct_memory(new_len >> PAGE_SHIFT);
- 		excess = 0;
- 	}
-@@ -609,7 +599,7 @@ static unsigned long move_vma(struct vm_
- 		mm->locked_vm += new_len >> PAGE_SHIFT;
- 		*locked = true;
- 	}
--out:
-+
- 	mm->hiwater_vm = hiwater_vm;
- 
- 	/* Restore VM_ACCOUNT if one or two pieces of vma left */
 _
