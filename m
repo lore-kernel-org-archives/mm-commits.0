@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 405E6C49EBF
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E17C352A6
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2409E22CAE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 373F122DD6
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726744AbgLOX7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
+        id S1726560AbgLOX73 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729465AbgLOXZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:07 -0500
-Date:   Tue, 15 Dec 2020 15:22:52 -0800
+        id S1727366AbgLOXZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:05 -0500
+Date:   Tue, 15 Dec 2020 15:22:13 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074572;
-        bh=u7m1kWk2UdvNtRGnJ4v1/fiupJjQN7v+eYr2QiSJhys=;
+        s=korg; t=1608074533;
+        bh=o20Xrheze6rdz6kAXkQDteZfRiKIZnng9EJg2UxaQio=;
         h=From:To:Subject:From;
-        b=pTDBq6MfSf2nj3xBxjvOgnqXmKBJv+lIfNKHR+BkI98x8TxoExCv9H90+PYDjTkSZ
-         4t2eq0DEnjLKga+ahoqp+BjU1C/Pez/TEFlojqy0pZvvSqh8nxS/JqejfXzf5jYn5O
-         A+I5bfwTu5P6rhVwCqBtV9Crf7joUSfd0yxgmh6M=
+        b=lttv1R3JcH+zV1d/yyV2mBUZhMURAHt+/4BLNn/fsmOea13fRYlUEx2vbktbliB1Z
+         1XeZcAsxlIc79BYiQBcorM+Tt9oh7PIyvY3ZrDAMdiBr5c8l5qK7OTPzc4wuyA/0E/
+         R6ds/bPwBwj1nuXma/a8oWUahExUifa9iBt3GeFE=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, david@redhat.com,
-        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, songmuchun@bytedance.com, vbabka@suse.cz,
-        willy@infradead.org
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de
 Subject:  [merged]
- mm-page_isolation-do-not-isolate-the-max-order-page.patch removed from -mm
+ mmhwpoison-take-free-pages-off-the-buddy-freelists.patch removed from -mm
  tree
-Message-ID: <20201215232252.uSPTS__dj%akpm@linux-foundation.org>
+Message-ID: <20201215232213.EU26UoM87%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,47 +42,201 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_isolation: do not isolate the max order page
+     Subject: mm,hwpoison: take free pages off the buddy freelists
 has been removed from the -mm tree.  Its filename was
-     mm-page_isolation-do-not-isolate-the-max-order-page.patch
+     mmhwpoison-take-free-pages-off-the-buddy-freelists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_isolation: do not isolate the max order page
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: take free pages off the buddy freelists
 
-A max order page has no buddy page and never merges to another order.  So
-isolating and then freeing it is pointless.
+The crux of the matter is that historically we left poisoned pages in the
+buddy system because we have some checks in place when allocating a page
+that are gatekeeper for poisoned pages.  Unfortunately, we do have other
+users (e.g: compaction [1]) that scan buddy freelists and try to get a
+page from there without checking whether the page is HWPoison.
 
-Link: https://lkml.kernel.org/r/20201202122114.75316-1-songmuchun@bytedance.com
-Fixes: 3c605096d315 ("mm/page_alloc: restrict max order of merging on isolated pageblock")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+As I stated already, I think it is fundamentally wrong to keep HWPoison
+pages within the buddy systems, checks in place or not.
+
+Let us fix this the same way we did for soft_offline [2], taking the page
+off the buddy freelist so it is completely unreachable.
+
+Note that this is fairly simple to trigger, as we only need to poison free
+buddy pages (madvise MADV_HWPOISON) and then run some sort of memory
+stress system.
+
+Just for a matter of reference, I put a dump_page() in compaction_alloc()
+to trigger for HWPoison patches:
+
+kernel: page:0000000012b2982b refcount:1 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x1d5db
+kernel: flags: 0xfffffc0800000(hwpoison)
+kernel: raw: 000fffffc0800000 ffffea00007573c8 ffffc90000857de0 0000000000000000
+kernel: raw: 0000000000000001 0000000000000000 00000001ffffffff 0000000000000000
+kernel: page dumped because: compaction_alloc
+
+kernel: CPU: 4 PID: 123 Comm: kcompactd0 Tainted: G            E     5.9.0-rc2-mm1-1-default+ #5
+kernel: Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.10.2-0-g5f4c7b1-prebuilt.qemu-project.org 04/01/2014
+kernel: Call Trace:
+kernel:  dump_stack+0x6d/0x8b
+kernel:  compaction_alloc+0xb2/0xc0
+kernel:  migrate_pages+0x2a6/0x12a0
+kernel:  ? isolate_freepages+0xc80/0xc80
+kernel:  ? __ClearPageMovable+0xb0/0xb0
+kernel:  compact_zone+0x5eb/0x11c0
+kernel:  ? finish_task_switch+0x74/0x300
+kernel:  ? lock_timer_base+0xa8/0x170
+kernel:  proactive_compact_node+0x89/0xf0
+kernel:  ? kcompactd+0x2d0/0x3a0
+kernel:  kcompactd+0x2d0/0x3a0
+kernel:  ? finish_wait+0x80/0x80
+kernel:  ? kcompactd_do_work+0x350/0x350
+kernel:  kthread+0x118/0x130
+kernel:  ? kthread_associate_blkcg+0xa0/0xa0
+kernel:  ret_from_fork+0x22/0x30
+
+After that, if e.g: a process faults in the page,  it will get killed
+unexpectedly.
+Fix it by containing the page immediatelly.
+
+Besides that, two more changes can be noticed:
+
+* MF_DELAYED no longer suits as we are fixing the issue by containing
+  the page immediately, so it does no longer rely on the allocation-time
+  checks to stop HWPoison to be handed over.
+  gain unless it is unpoisoned, so we fixed the situation.
+  Because of that, let us use MF_RECOVERED from now on.
+
+* The second block that handles PageBuddy pages is no longer needed:
+  We call shake_page and then check whether the page is Buddy
+  because shake_page calls drain_all_pages, which sends pcp-pages back to
+  the buddy freelists, so we could have a chance to handle free pages.
+  Currently, get_hwpoison_page already calls drain_all_pages, and we call
+  get_hwpoison_page right before coming here, so we should be on the safe
+  side.
+
+[1] https://lore.kernel.org/linux-mm/20190826104144.GA7849@linux/T/#u
+[2] https://patchwork.kernel.org/cover/11792607/
+
+[osalvador@suse.de: take the poisoned subpage off the buddy frelists]
+  Link: https://lkml.kernel.org/r/20201013144447.6706-4-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20201013144447.6706-3-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   46 +++++++++++++++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 16 deletions(-)
 
---- a/mm/page_isolation.c~mm-page_isolation-do-not-isolate-the-max-order-page
-+++ a/mm/page_isolation.c
-@@ -88,7 +88,7 @@ static void unset_migratetype_isolate(st
+--- a/mm/memory-failure.c~mmhwpoison-take-free-pages-off-the-buddy-freelists
++++ a/mm/memory-failure.c
+@@ -809,7 +809,7 @@ static int me_swapcache_clean(struct pag
+  */
+ static int me_huge_page(struct page *p, unsigned long pfn)
+ {
+-	int res = 0;
++	int res;
+ 	struct page *hpage = compound_head(p);
+ 	struct address_space *mapping;
+ 
+@@ -820,6 +820,7 @@ static int me_huge_page(struct page *p,
+ 	if (mapping) {
+ 		res = truncate_error_page(hpage, pfn, mapping);
+ 	} else {
++		res = MF_FAILED;
+ 		unlock_page(hpage);
+ 		/*
+ 		 * migration entry prevents later access on error anonymous
+@@ -828,8 +829,10 @@ static int me_huge_page(struct page *p,
+ 		 */
+ 		if (PageAnon(hpage))
+ 			put_page(hpage);
+-		dissolve_free_huge_page(p);
+-		res = MF_RECOVERED;
++		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
++			page_ref_inc(p);
++			res = MF_RECOVERED;
++		}
+ 		lock_page(hpage);
+ 	}
+ 
+@@ -1196,9 +1199,13 @@ static int memory_failure_hugetlb(unsign
+ 			}
+ 		}
+ 		unlock_page(head);
+-		dissolve_free_huge_page(p);
+-		action_result(pfn, MF_MSG_FREE_HUGE, MF_DELAYED);
+-		return 0;
++		res = MF_FAILED;
++		if (!dissolve_free_huge_page(p) && take_page_off_buddy(p)) {
++			page_ref_inc(p);
++			res = MF_RECOVERED;
++		}
++		action_result(pfn, MF_MSG_FREE_HUGE, res);
++		return res == MF_RECOVERED ? 0 : -EBUSY;
+ 	}
+ 
+ 	lock_page(head);
+@@ -1339,6 +1346,7 @@ int memory_failure(unsigned long pfn, in
+ 	struct dev_pagemap *pgmap;
+ 	int res;
+ 	unsigned long page_flags;
++	bool retry = true;
+ 
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1356,6 +1364,7 @@ int memory_failure(unsigned long pfn, in
+ 		return -ENXIO;
+ 	}
+ 
++try_again:
+ 	if (PageHuge(p))
+ 		return memory_failure_hugetlb(pfn, flags);
+ 	if (TestSetPageHWPoison(p)) {
+@@ -1380,8 +1389,21 @@ int memory_failure(unsigned long pfn, in
  	 */
- 	if (PageBuddy(page)) {
- 		order = buddy_order(page);
--		if (order >= pageblock_order) {
-+		if (order >= pageblock_order && order < MAX_ORDER - 1) {
- 			pfn = page_to_pfn(page);
- 			buddy_pfn = __find_buddy_pfn(pfn, order);
- 			buddy = page + (buddy_pfn - pfn);
+ 	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
+ 		if (is_free_buddy_page(p)) {
+-			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+-			return 0;
++			if (take_page_off_buddy(p)) {
++				page_ref_inc(p);
++				res = MF_RECOVERED;
++			} else {
++				/* We lost the race, try again */
++				if (retry) {
++					ClearPageHWPoison(p);
++					num_poisoned_pages_dec();
++					retry = false;
++					goto try_again;
++				}
++				res = MF_FAILED;
++			}
++			action_result(pfn, MF_MSG_BUDDY, res);
++			return res == MF_RECOVERED ? 0 : -EBUSY;
+ 		} else {
+ 			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
+ 			return -EBUSY;
+@@ -1405,14 +1427,6 @@ int memory_failure(unsigned long pfn, in
+ 	 * walked by the page reclaim code, however that's not a big loss.
+ 	 */
+ 	shake_page(p, 0);
+-	/* shake_page could have turned it free. */
+-	if (!PageLRU(p) && is_free_buddy_page(p)) {
+-		if (flags & MF_COUNT_INCREASED)
+-			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+-		else
+-			action_result(pfn, MF_MSG_BUDDY_2ND, MF_DELAYED);
+-		return 0;
+-	}
+ 
+ 	lock_page(p);
+ 
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
