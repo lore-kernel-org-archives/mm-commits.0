@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7214CC47434
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E58AC49EBD
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D18122D02
+	by mail.kernel.org (Postfix) with ESMTP id 0AFD022D03
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726751AbgLOX7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32826 "EHLO mail.kernel.org"
+        id S1726579AbgLOX7b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729408AbgLOXZI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:08 -0500
-Date:   Tue, 15 Dec 2020 15:22:44 -0800
+        id S1727672AbgLOXZF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:05 -0500
+Date:   Tue, 15 Dec 2020 15:22:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074564;
-        bh=UNrtg26RuHMZR+exwb4HsIetvGgSETWlzQF5Hh1rFdM=;
+        s=korg; t=1608074536;
+        bh=+IRitoQnVBLcs/kYSPIaabp7QIxxi3Xj0iS4fiDwTew=;
         h=From:To:Subject:From;
-        b=AnlITcrh3dPW+2hSkwY2JrwywBcml33czgzZz/ohr9OINh9RQkVP1A5kK8ZKxXYRb
-         X/dEEW/g8pwUWYSbQyiZdRfQnakgZzzI0pH0OnX0O+BmLoowG0ytm472OiRsQjPEH9
-         dfB3u8XZU9+9gVcjcDqGITJauTb0g/unbmhLC8jU=
+        b=DKBRR3KAS5Sls7xcNjWw1VXWycs1r+KNq2kpDsrrF2s1bkXmuDT8g/ExC+IB8TIsw
+         R2sXORMxELHrOuZTszeoCPmtOIx7BRV2dozGCS/u5Gx2vngsQUBRlE99LStwT1h559
+         kUMpDJmAIHcaBLVdPNe+p50a1ayslyfUDnD5Q1lM=
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mgorman@suse.de, mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled.patch
- removed from -mm tree
-Message-ID: <20201215232244.PxQ7ujfp3%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, qcai@redhat.com, Vbabka@suse.cz
+Subject:  [merged] mmhwpoison-refactor-get_any_page.patch removed
+ from -mm tree
+Message-ID: <20201215232216.n44wTy3Aw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,97 +41,190 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't wake kswapd prematurely when watermark boosting is disabled
+     Subject: mm,hwpoison: refactor get_any_page
 has been removed from the -mm tree.  Its filename was
-     mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled.patch
+     mmhwpoison-refactor-get_any_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: don't wake kswapd prematurely when watermark boosting is disabled
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: refactor get_any_page
 
-On 2-node NUMA hosts we see bursts of kswapd reclaim and subsequent
-pressure spikes and stalls from cache refaults while there is plenty of
-free memory in the system.
+Patch series "HWPoison: Refactor get page interface", v2.
 
-Usually, kswapd is woken up when all eligible nodes in an allocation are
-full.  But the code related to watermark boosting can wake kswapd on one
-full node while the other one is mostly empty.  This may be justified to
-fight fragmentation, but is currently unconditionally done whether
-watermark boosting is occurring or not.
 
-In our case, many of our workloads' throughput scales with available
-memory, and pure utilization is a more tangible concern than trends around
-longer-term fragmentation.  As a result we generally disable watermark
-boosting.
+This patch (of 3):
 
-Wake kswapd only woken when watermark boosting is requested.
+When we want to grab a refcount via get_any_page, we call __get_any_page
+that calls get_hwpoison_page to get the actual refcount.
 
-Link: https://lkml.kernel.org/r/20201020175833.397286-1-hannes@cmpxchg.org
-Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
+get_any_page() is only there because we have a sort of retry mechanism in
+case the page we met is unknown to us or if we raced with an allocation.
+
+Also __get_any_page() prints some messages about the page type in case the
+page was a free page or the page type was unknown, but if anything, we
+only need to print a message in case the pagetype was unknown, as that is
+reporting an error down the chain.
+
+Let us merge get_any_page() and __get_any_page(), and let the message be
+printed in soft_offline_page.  While we are it, we can also remove the
+'pfn' parameter as it is no longer used.
+
+Link: https://lkml.kernel.org/r/20201204102558.31607-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20201204102558.31607-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Vlastimil Babka <Vbabka@suse.cz>
+Cc: Qian Cai <qcai@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/memory-failure.c |   99 +++++++++++++++++-------------------------
+ 1 file changed, 42 insertions(+), 57 deletions(-)
 
---- a/mm/page_alloc.c~mm-dont-wake-kswapd-prematurely-when-watermark-boosting-is-disabled
-+++ a/mm/page_alloc.c
-@@ -2482,12 +2482,12 @@ static bool can_steal_fallback(unsigned
- 	return false;
- }
- 
--static inline void boost_watermark(struct zone *zone)
-+static inline bool boost_watermark(struct zone *zone)
- {
- 	unsigned long max_boost;
- 
- 	if (!watermark_boost_factor)
--		return;
-+		return false;
- 	/*
- 	 * Don't bother in zones that are unlikely to produce results.
- 	 * On small machines, including kdump capture kernels running
-@@ -2495,7 +2495,7 @@ static inline void boost_watermark(struc
- 	 * memory situation immediately.
- 	 */
- 	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
--		return;
-+		return false;
- 
- 	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
- 			watermark_boost_factor, 10000);
-@@ -2509,12 +2509,14 @@ static inline void boost_watermark(struc
- 	 * boosted watermark resulting in a hang.
- 	 */
- 	if (!max_boost)
--		return;
-+		return false;
- 
- 	max_boost = max(pageblock_nr_pages, max_boost);
- 
- 	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
- 		max_boost);
-+
-+	return true;
- }
+--- a/mm/memory-failure.c~mmhwpoison-refactor-get_any_page
++++ a/mm/memory-failure.c
+@@ -1707,70 +1707,51 @@ EXPORT_SYMBOL(unpoison_memory);
  
  /*
-@@ -2552,8 +2554,7 @@ static void steal_suitable_fallback(stru
- 	 * likelihood of future fallbacks. Wake kswapd now as the node
- 	 * may be balanced overall and kswapd will not wake naturally.
- 	 */
--	boost_watermark(zone);
--	if (alloc_flags & ALLOC_KSWAPD)
-+	if (boost_watermark(zone) && (alloc_flags & ALLOC_KSWAPD))
- 		set_bit(ZONE_BOOSTED_WATERMARK, &zone->flags);
+  * Safely get reference count of an arbitrary page.
+- * Returns 0 for a free page, -EIO for a zero refcount page
+- * that is not free, and 1 for any other page type.
+- * For 1 the page is returned with increased page count, otherwise not.
++ * Returns 0 for a free page, 1 for an in-use page, -EIO for a page-type we
++ * cannot handle and -EBUSY if we raced with an allocation.
++ * We only incremented refcount in case the page was already in-use and it is
++ * a known type we can handle.
+  */
+-static int __get_any_page(struct page *p, unsigned long pfn, int flags)
++static int get_any_page(struct page *p, int flags)
+ {
+-	int ret;
++	int ret = 0, pass = 0;
++	bool count_increased = false;
  
- 	/* We are not allowed to try stealing from the whole block */
+ 	if (flags & MF_COUNT_INCREASED)
+-		return 1;
++		count_increased = true;
+ 
+-	/*
+-	 * When the target page is a free hugepage, just remove it
+-	 * from free hugepage list.
+-	 */
+-	if (!get_hwpoison_page(p)) {
+-		if (PageHuge(p)) {
+-			pr_info("%s: %#lx free huge page\n", __func__, pfn);
+-			ret = 0;
+-		} else if (is_free_buddy_page(p)) {
+-			pr_info("%s: %#lx free buddy page\n", __func__, pfn);
+-			ret = 0;
+-		} else if (page_count(p)) {
+-			/* raced with allocation */
++try_again:
++	if (!count_increased && !get_hwpoison_page(p)) {
++		if (page_count(p)) {
++			/* We raced with an allocation, retry. */
++			if (pass++ < 3)
++				goto try_again;
+ 			ret = -EBUSY;
+-		} else {
+-			pr_info("%s: %#lx: unknown zero refcount page type %lx\n",
+-				__func__, pfn, p->flags);
++		} else if (!PageHuge(p) && !is_free_buddy_page(p)) {
++			/* We raced with put_page, retry. */
++			if (pass++ < 3)
++				goto try_again;
+ 			ret = -EIO;
+ 		}
+ 	} else {
+-		/* Not a free page */
+-		ret = 1;
+-	}
+-	return ret;
+-}
+-
+-static int get_any_page(struct page *page, unsigned long pfn, int flags)
+-{
+-	int ret = __get_any_page(page, pfn, flags);
+-
+-	if (ret == -EBUSY)
+-		ret = __get_any_page(page, pfn, flags);
+-
+-	if (ret == 1 && !PageHuge(page) &&
+-	    !PageLRU(page) && !__PageMovable(page)) {
+-		/*
+-		 * Try to free it.
+-		 */
+-		put_page(page);
+-		shake_page(page, 1);
+-
+-		/*
+-		 * Did it turn free?
+-		 */
+-		ret = __get_any_page(page, pfn, 0);
+-		if (ret == 1 && !PageLRU(page)) {
+-			/* Drop page reference which is from __get_any_page() */
+-			put_page(page);
+-			pr_info("soft_offline: %#lx: unknown non LRU page type %lx (%pGp)\n",
+-				pfn, page->flags, &page->flags);
+-			return -EIO;
++		if (PageHuge(p) || PageLRU(p) || __PageMovable(p)) {
++			ret = 1;
++		} else {
++			/*
++			 * A page we cannot handle. Check whether we can turn
++			 * it into something we can handle.
++			 */
++			if (pass++ < 3) {
++				put_page(p);
++				shake_page(p, 1);
++				count_increased = false;
++				goto try_again;
++			}
++			put_page(p);
++			ret = -EIO;
+ 		}
+ 	}
++
+ 	return ret;
+ }
+ 
+@@ -1939,7 +1920,7 @@ int soft_offline_page(unsigned long pfn,
+ 		return -EIO;
+ 
+ 	if (PageHWPoison(page)) {
+-		pr_info("soft offline: %#lx page already poisoned\n", pfn);
++		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
+ 		if (flags & MF_COUNT_INCREASED)
+ 			put_page(page);
+ 		return 0;
+@@ -1947,16 +1928,20 @@ int soft_offline_page(unsigned long pfn,
+ 
+ retry:
+ 	get_online_mems();
+-	ret = get_any_page(page, pfn, flags);
++	ret = get_any_page(page, flags);
+ 	put_online_mems();
+ 
+-	if (ret > 0)
++	if (ret > 0) {
+ 		ret = soft_offline_in_use_page(page);
+-	else if (ret == 0)
++	} else if (ret == 0) {
+ 		if (soft_offline_free_page(page) && try_again) {
+ 			try_again = false;
+ 			goto retry;
+ 		}
++	} else if (ret == -EIO) {
++		pr_info("%s: %#lx: unknown page type: %lx (%pGP)\n",
++			 __func__, pfn, page->flags, &page->flags);
++	}
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
