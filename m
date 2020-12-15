@@ -7,36 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A589C4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F6D3C35270
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B74222D02
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F09E22D08
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727026AbgLPAAO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32844 "EHLO mail.kernel.org"
+        id S1725840AbgLPAAL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726533AbgLOX1P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:15 -0500
-Date:   Tue, 15 Dec 2020 15:17:14 -0800
+        id S1726230AbgLOX1O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:14 -0500
+Date:   Tue, 15 Dec 2020 15:17:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074234;
-        bh=i1ZszFZSTbe2yY/1x+1iH5779iS+yQ6ZktZQroezhtE=;
+        s=korg; t=1608074229;
+        bh=J3bQVAg5+vdGINxEtlxgXqJ4lc1EzrHUBj51VE+e4IM=;
         h=From:To:Subject:From;
-        b=VGGi85sjBS3U89vNUnTt4OfOpNimpieADGC989IbpZtjrj+2KFvHgQHofvAqt5aD5
-         D0T48Bvp7ckeBXY2gCBzuA9FbyCmi4fNDJvYNcaSHJJP17Y3mX99DHJwZKhWryyB4C
-         DUC5o+Bqse7B+wlYNXr9mXW9FyNRAhrkS89ykwBQ=
+        b=N1oLQbn0zY/5P9XexlDZN5fLTDaetoNBlb20SHBplxxAnY+hWDJGM0Qwo9ryWBJiR
+         gNk0SGcQ9fq4/L2Jl1M+POypqG/CebPt2/n9tJTC4NFdbFEHDKierO2tiDDMQm3jri
+         UPGyHxPxR9DK/h1MHQtBUFrGXeZij6bJ05SUXi2c=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
-Subject:  [merged]
- selftests-vm-rename-run_vmtests-run_vmtestssh.patch removed from -mm tree
-Message-ID: <20201215231714.EpJdlGhIX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, carver4lio@163.com,
+        liu.hailong6@zte.com.cn, mm-commits@vger.kernel.org
+Subject:  [merged] mm-remove-the-unuseful-else-after-a-return.patch
+ removed from -mm tree
+Message-ID: <20201215231709.ciUy2g6yu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,50 +41,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: rename run_vmtests --> run_vmtests.sh
+     Subject: mm/filemap.c: remove else after a return
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-rename-run_vmtests-run_vmtestssh.patch
+     mm-remove-the-unuseful-else-after-a-return.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm: rename run_vmtests --> run_vmtests.sh
+From: Hailong Liu <carver4lio@163.com>
+Subject: mm/filemap.c: remove else after a return
 
-Rename to *.sh, in order to match the conventions of all of the other
-items in selftest/vm.
+The `else' is not useful after a `return' in __lock_page_or_retry().
 
-The only reason not to use a .sh suffix a shell script like this, might be
-to make it look more like a normal program, but that's not an issue here.
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-4-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
+[akpm@linux-foundation.org: coding style fixes]
+Link: https://lkml.kernel.org/r/20201202154720.115162-1-carver4lio@163.com
+Signed-off-by: Hailong Liu<liu.hailong6@zte.com.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-rename-run_vmtests-r=
-un_vmtestssh
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -73,7 +73,7 @@ TEST_GEN_FILES +=3D virtual_address_range
- TEST_GEN_FILES +=3D write_to_hugetlbfs
- endif
-=20
--TEST_PROGS :=3D run_vmtests
-+TEST_PROGS :=3D run_vmtests.sh
-=20
- TEST_FILES :=3D test_vmalloc.sh
-=20
+--- a/mm/filemap.c~mm-remove-the-unuseful-else-after-a-return
++++ a/mm/filemap.c
+@@ -1583,19 +1583,20 @@ int __lock_page_or_retry(struct page *pa
+ 		else
+ 			wait_on_page_locked(page);
+ 		return 0;
+-	} else {
+-		if (flags & FAULT_FLAG_KILLABLE) {
+-			int ret;
++	}
++	if (flags & FAULT_FLAG_KILLABLE) {
++		int ret;
+ 
+-			ret = __lock_page_killable(page);
+-			if (ret) {
+-				mmap_read_unlock(mm);
+-				return 0;
+-			}
+-		} else
+-			__lock_page(page);
+-		return 1;
++		ret = __lock_page_killable(page);
++		if (ret) {
++			mmap_read_unlock(mm);
++			return 0;
++		}
++	} else {
++		__lock_page(page);
+ 	}
++	return 1;
++
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from carver4lio@163.com are
 
-secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
