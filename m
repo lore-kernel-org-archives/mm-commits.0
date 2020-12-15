@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB1EC4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 876D0C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:19:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6329A22475
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4326D22475
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:19:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726866AbgLODSm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:18:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35928 "EHLO mail.kernel.org"
+        id S1727090AbgLODTb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:19:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36620 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727914AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:12:15 -0500
-Date:   Mon, 14 Dec 2020 19:09:43 -0800
+        id S1727605AbgLODLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:11:45 -0500
+Date:   Mon, 14 Dec 2020 19:09:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001785;
-        bh=fPcm+G1LkvU/DN9UINg86ifgX5QRI6bYGW7LrdWsEaY=;
+        s=korg; t=1608001751;
+        bh=iFVfefYl6WXmZZrGWRpu19/az15QoJa3by/n7IVynUI=;
         h=From:To:Subject:In-Reply-To:From;
-        b=KohLhFyIzZGWJnZrzro65l4Ig7XxdvSA0s8DBDFs7uCcHMr8f4AWyOZ8lbpy3+yAb
-         Bct1L9eUcWUgoqGiVlUyrD+bE9t/ONDqcKcMl83jjP1SiUE3wVeIYAO8F97QiY7Yfd
-         KI9D3BFdULk59aHarl5zrCwqow1PRVQ7C5rPNssA=
+        b=0PWK9uZA9J5rCjopRraPEp0BOcHJXGjkzii5OW0gNQCMQ/0kJCYvoP2y/xtz44FZr
+         R3D5c3hyYAJaJwddO35/qURmlLFcTZhd8fkc/dv8+y/3pc/Np9LYCaFE+4ePJWx5mF
+         xMgjwMpxyeZHxvVXu9b6K+xlyBFFG8CmA3qrFAyc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org,
-        gerg@linux-m68k.org, glaubitz@physik.fu-berlin.de,
-        linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, mroos@linux.ee, rppt@linux.ibm.com,
-        schmitzmic@gmail.com, tony.luck@intel.com,
-        torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
-Subject:  [patch 110/200] ia64: split virtual map initialization
- out of paging_init()
-Message-ID: <20201215030943.h29pJiFvA%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com,
+        elver@google.com, glider@google.com, jiangshanlai@gmail.com,
+        linux-mm@kvack.org, matthias.bgg@gmail.com,
+        mm-commits@vger.kernel.org, tj@kernel.org,
+        torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
+Subject:  [patch 101/200] workqueue: kasan: record workqueue stack
+Message-ID: <20201215030909.JgNQqb-LN%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,145 +43,68 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: split virtual map initialization out of paging_init()
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: workqueue: kasan: record workqueue stack
 
-For both FLATMEM and DISCONTIGMEM/SPARSEMEM the virtual map initialization
-is spread over paging_init() for no good reason.
+Patch series "kasan: add workqueue stack for generic KASAN", v5.
 
-Split out the bits related to virtual map initialization to a helper
-functions, one for FLATMEM and another for !FLATMEM configurations.
+Syzbot reports many UAF issues for workqueue, see [1].
+In some of these access/allocation happened in process_one_work(),
+we see the free stack is useless in KASAN report, it doesn't help
+programmers to solve UAF for workqueue issue.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-6-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+This patchset improves KASAN reports by making them to have workqueue
+queueing stack. It is useful for programmers to solve use-after-free
+or double-free memory issue.
+
+Generic KASAN also records the last two workqueue stacks and prints
+them in KASAN report. It is only suitable for generic KASAN.
+
+[1]https://groups.google.com/g/syzkaller-bugs/search?q=%22use-after-free%22+process_one_work
+[2]https://bugzilla.kernel.org/show_bug.cgi?id=198437
+
+
+This patch (of 4):
+
+When analyzing use-after-free or double-free issue, recording the
+enqueuing work stacks is helpful to preserve usage history which
+potentially gives a hint about the affected code.
+
+For workqueue it has turned out to be useful to record the enqueuing work
+call stacks.  Because user can see KASAN report to determine whether it is
+root cause.  They don't need to enable debugobjects, but they have a
+chance to find out the root cause.
+
+Link: https://lkml.kernel.org/r/20201203022148.29754-1-walter-zh.wu@mediatek.com
+Link: https://lkml.kernel.org/r/20201203022442.30006-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Marco Elver <elver@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Michael Schmitz <schmitzmic@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/contig.c    |   34 ++++++++++++++++++++--------------
- arch/ia64/mm/discontig.c |   37 ++++++++++++++++++++-----------------
- 2 files changed, 40 insertions(+), 31 deletions(-)
+ kernel/workqueue.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/ia64/mm/contig.c~ia64-split-virtual-map-initialization-out-of-paging_init
-+++ a/arch/ia64/mm/contig.c
-@@ -166,21 +166,8 @@ find_memory (void)
- 	alloc_per_cpu_data();
- }
- 
--/*
-- * Set up the page tables.
-- */
--
--void __init
--paging_init (void)
-+static void __init virtual_map_init(void)
+--- a/kernel/workqueue.c~workqueue-kasan-record-workqueue-stack
++++ a/kernel/workqueue.c
+@@ -1327,6 +1327,9 @@ static void insert_work(struct pool_work
  {
--	unsigned long max_dma;
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
--
--	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
--	max_zone_pfns[ZONE_DMA32] = max_dma;
--	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
--
- #ifdef CONFIG_VIRTUAL_MEM_MAP
- 	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
- 	if (max_gap < LARGE_GAP) {
-@@ -206,6 +193,25 @@ paging_init (void)
- 		printk("Virtual mem_map starts at 0x%p\n", mem_map);
- 	}
- #endif /* !CONFIG_VIRTUAL_MEM_MAP */
-+}
-+
-+/*
-+ * Set up the page tables.
-+ */
-+
-+void __init
-+paging_init (void)
-+{
-+	unsigned long max_dma;
-+	unsigned long max_zone_pfns[MAX_NR_ZONES];
-+
-+	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
-+	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
-+	max_zone_pfns[ZONE_DMA32] = max_dma;
-+	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
-+
-+	virtual_map_init();
-+
- 	free_area_init(max_zone_pfns);
- 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
- }
---- a/arch/ia64/mm/discontig.c~ia64-split-virtual-map-initialization-out-of-paging_init
-+++ a/arch/ia64/mm/discontig.c
-@@ -584,6 +584,25 @@ void call_pernode_memory(unsigned long s
- 	}
- }
+ 	struct worker_pool *pool = pwq->pool;
  
-+static void __init virtual_map_init(void)
-+{
-+#ifdef CONFIG_VIRTUAL_MEM_MAP
-+	int node;
++	/* record the work call stack in order to print it in KASAN reports */
++	kasan_record_aux_stack(work);
 +
-+	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
-+		sizeof(struct page));
-+	vmem_map = (struct page *) VMALLOC_END;
-+	efi_memmap_walk(create_mem_map_page_table, NULL);
-+	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
-+
-+	for_each_online_node(node) {
-+		unsigned long pfn_offset = mem_data[node].min_pfn;
-+
-+		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
-+	}
-+#endif
-+}
-+
- /**
-  * paging_init - setup page tables
-  *
-@@ -593,29 +612,13 @@ void call_pernode_memory(unsigned long s
- void __init paging_init(void)
- {
- 	unsigned long max_dma;
--	unsigned long pfn_offset = 0;
--	int node;
- 	unsigned long max_zone_pfns[MAX_NR_ZONES];
- 
- 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
- 
- 	sparse_init();
- 
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--	VMALLOC_END -= PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
--		sizeof(struct page));
--	vmem_map = (struct page *) VMALLOC_END;
--	efi_memmap_walk(create_mem_map_page_table, NULL);
--	printk("Virtual mem_map starts at 0x%p\n", vmem_map);
--#endif
--
--	for_each_online_node(node) {
--		pfn_offset = mem_data[node].min_pfn;
--
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--		NODE_DATA(node)->node_mem_map = vmem_map + pfn_offset;
--#endif
--	}
-+	virtual_map_init();
- 
- 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
- 	max_zone_pfns[ZONE_DMA32] = max_dma;
+ 	/* we own @work, set data and link */
+ 	set_work_pwq(work, pwq, extra_flags);
+ 	list_add_tail(&work->entry, head);
 _
