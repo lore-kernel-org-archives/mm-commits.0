@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 132E0C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2889AC2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C226E224D4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07B00224B2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:18:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726753AbgLODS2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:18:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36482 "EHLO mail.kernel.org"
+        id S1726847AbgLODSa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:18:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727699AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727666AbgLODMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 14 Dec 2020 22:12:15 -0500
-Date:   Mon, 14 Dec 2020 19:09:21 -0800
+Date:   Mon, 14 Dec 2020 19:09:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001762;
-        bh=+cnU01wpNcdZaSKB5BOp0RFt4kfrmI4wSp5hHh4aN8A=;
+        s=korg; t=1608001758;
+        bh=gG78B3HITWaZnx956nhyA99yuTK3wMmaA3Cqr2AQcRI=;
         h=From:To:Subject:In-Reply-To:From;
-        b=AW86rxBhxWXb7L+EpoFflGpR9bUml2nq1IRMghrHQhycRIxdizp+e4S62CAxbm6ss
-         Uvu9N4PE9jAfEo8xLjE2QML0VQs3+VdJQT8Ei/cFzn9gzqg91zYL4Ms9A+5UwBOdxT
-         4khaSGNuqBQz2zBVDsiWt8ykxKg6/SDRHMHStCtI=
+        b=TPfXTYcnuNyrtJZ9EWK4CN7v8u+x1p9c0DfS0SSM6CUJbjVNCa1bMzHuwwsGNHUXX
+         O3REgplrgMZqwoIK8K8NF/HvRXXGWCm9AThTl98V/tw9YbklXYEvPOYiqjeHgixNKp
+         Q+VsfN4yMgIa7L0y/8BF3ThbVXsOVGI0zKzW1KXw=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com,
@@ -34,9 +34,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         linux-mm@kvack.org, matthias.bgg@gmail.com,
         mm-commits@vger.kernel.org, tj@kernel.org,
         torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
-Subject:  [patch 104/200] kasan: update documentation for generic
- kasan
-Message-ID: <20201215030921.0oB6skPrH%akpm@linux-foundation.org>
+Subject:  [patch 103/200] lib/test_kasan.c: add workqueue test case
+Message-ID: <20201215030917.62L-aoc01%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,41 +44,92 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: kasan: update documentation for generic kasan
+Subject: lib/test_kasan.c: add workqueue test case
 
-Generic KASAN also supports to record the last two workqueue stacks and
-print them in KASAN report.  So that need to update documentation.
+Adds a test to verify workqueue stack recording and print it in
+KASAN report.
 
-Link: https://lkml.kernel.org/r/20201203023037.30792-1-walter-zh.wu@mediatek.com
+The KASAN report was as follows(cleaned up slightly):
+
+ BUG: KASAN: use-after-free in kasan_workqueue_uaf
+
+ Freed by task 54:
+  kasan_save_stack+0x24/0x50
+  kasan_set_track+0x24/0x38
+  kasan_set_free_info+0x20/0x40
+  __kasan_slab_free+0x10c/0x170
+  kasan_slab_free+0x10/0x18
+  kfree+0x98/0x270
+  kasan_workqueue_work+0xc/0x18
+
+ Last potentially related work creation:
+  kasan_save_stack+0x24/0x50
+  kasan_record_wq_stack+0xa8/0xb8
+  insert_work+0x48/0x288
+  __queue_work+0x3e8/0xc40
+  queue_work_on+0xf4/0x118
+  kasan_workqueue_uaf+0xfc/0x190
+
+Link: https://lkml.kernel.org/r/20201203022748.30681-1-walter-zh.wu@mediatek.com
 Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/test_kasan_module.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation-for-generic-kasan
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -190,8 +190,9 @@ function calls GCC directly inserts the
- This option significantly enlarges kernel but it gives x1.1-x2 performance
- boost over outline instrumented kernel.
+--- a/lib/test_kasan_module.c~lib-test_kasanc-add-workqueue-test-case
++++ a/lib/test_kasan_module.c
+@@ -91,6 +91,34 @@ static noinline void __init kasan_rcu_ua
+ 	call_rcu(&global_rcu_ptr->rcu, kasan_rcu_reclaim);
+ }
  
--Generic KASAN prints up to 2 call_rcu() call stacks in reports, the last one
--and the second to last.
-+Generic KASAN also reports the last 2 call stacks to creation of work that
-+potentially has access to an object. Call stacks for the following are shown:
-+call_rcu() and workqueue queuing.
++static noinline void __init kasan_workqueue_work(struct work_struct *work)
++{
++	kfree(work);
++}
++
++static noinline void __init kasan_workqueue_uaf(void)
++{
++	struct workqueue_struct *workqueue;
++	struct work_struct *work;
++
++	workqueue = create_workqueue("kasan_wq_test");
++	if (!workqueue) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++	work = kmalloc(sizeof(struct work_struct), GFP_KERNEL);
++	if (!work) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	INIT_WORK(work, kasan_workqueue_work);
++	queue_work(workqueue, work);
++	destroy_workqueue(workqueue);
++
++	pr_info("use-after-free on workqueue\n");
++	((volatile struct work_struct *)work)->data;
++}
  
- Software tag-based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
+ static int __init test_kasan_module_init(void)
+ {
+@@ -102,6 +130,7 @@ static int __init test_kasan_module_init
+ 
+ 	copy_user_test();
+ 	kasan_rcu_uaf();
++	kasan_workqueue_uaf();
+ 
+ 	kasan_restore_multi_shot(multishot);
+ 	return -EAGAIN;
 _
