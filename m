@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55FEDC4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81694C2BBCA
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23C0422CB8
+	by mail.kernel.org (Postfix) with ESMTP id 49BF122D02
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726389AbgLOX7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
+        id S1726395AbgLOX7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728017AbgLOXW4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:56 -0500
-Date:   Tue, 15 Dec 2020 15:20:50 -0800
+        id S1728020AbgLOXW6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:58 -0500
+Date:   Tue, 15 Dec 2020 15:20:56 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074451;
-        bh=6hvJkd5dsiMNpkMP0+wdCYUe5fPldSsrQbsnlEGccFA=;
+        s=korg; t=1608074457;
+        bh=ucyiMaNRFgDZKMxPs71jRsyYwiGGzQdc5leJsWRtYoA=;
         h=From:To:Subject:From;
-        b=kXUH5d6SExAVQOtOnqtJn+1ygwf+cUULLqpt3Uho0+6SDh3bLqNb8UPSM42Kvr2Sk
-         F3DaMNxTdVIT3P6gkd0UMavsULTi8f9IGP+RV+aGyTWpyM/zIdZW2Iscey4KOFwMgc
-         6a86IGvIsmmFJ0kmcRavVHsYcOILWadNFpz6Awz8=
+        b=yyJnCZvJ4qgcuZSI1+v+4CNx80EvLLvo1+8MV6sAXiNJxAtMkOIKse2wAwFRrpUhN
+         ucdDGJMh7imX0IWxJ4yDHUqeSkUhJMZ8WRtGrBFaYwSe/ZYkDPVbe2mbWaRt+Wk46F
+         //sUi2X32grie5fDlVtM2ZJKyu4luaDsw2e2ZBH8=
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
         geert@linux-m68k.org, gerg@linux-m68k.org,
@@ -35,8 +35,8 @@ To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
         rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
         vgupta@synopsys.com, will@kernel.org
 Subject:  [merged]
- ia64-forbid-using-virtual_mem_map-with-flatmem.patch removed from -mm tree
-Message-ID: <20201215232050.S1gK05AKS%akpm@linux-foundation.org>
+ arm-remove-config_arch_has_holes_memorymodel.patch removed from -mm tree
+Message-ID: <20201215232056.j8xYCEe7R%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,26 +45,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: forbid using VIRTUAL_MEM_MAP with FLATMEM
+     Subject: arm: remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
 has been removed from the -mm tree.  Its filename was
-     ia64-forbid-using-virtual_mem_map-with-flatmem.patch
+     arm-remove-config_arch_has_holes_memorymodel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ia64: forbid using VIRTUAL_MEM_MAP with FLATMEM
+Subject: arm: remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
 
-Virtual memory map was intended to avoid wasting memory on the memory map
-on systems with large holes in the physical memory layout. Long ago it been
-superseded first by DISCONTIGMEM and then by SPARSEMEM. Moreover,
-SPARSEMEM_VMEMMAP provide the same functionality in much more portable way.
+ARM is the only architecture that defines CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+which in turn enables memmap_valid_within() function that is intended to
+verify existence  of struct page associated with a pfn when there are holes
+in the memory map.
 
-As the first step to removing the VIRTUAL_MEM_MAP forbid it's usage with
-FLATMEM and panic on systems with large holes in the physical memory
-layout that try to run FLATMEM kernels.
+However, the ARCH_HAS_HOLES_MEMORYMODEL also enables HAVE_ARCH_PFN_VALID
+and arch-specific pfn_valid() implementation that also deals with the holes
+in the memory map.
 
-Link: https://lkml.kernel.org/r/20201101170454.9567-7-rppt@kernel.org
+The only two users of memmap_valid_within() call this function after
+a call to pfn_valid() so the memmap_valid_within() check becomes redundant.
+
+Remove CONFIG_ARCH_HAS_HOLES_MEMORYMODEL and memmap_valid_within() and rely
+entirely on ARM's implementation of pfn_valid() that is now enabled
+unconditionally.
+
+Link: https://lkml.kernel.org/r/20201101170454.9567-9-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -82,142 +89,228 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig               |    2 -
- arch/ia64/include/asm/meminit.h |    2 -
- arch/ia64/mm/contig.c           |   52 +++++++++++++-----------------
- arch/ia64/mm/init.c             |   14 --------
- 4 files changed, 24 insertions(+), 46 deletions(-)
+ Documentation/vm/memory-model.rst |    3 --
+ arch/arm/Kconfig                  |    8 +------
+ arch/arm/mach-bcm/Kconfig         |    1 
+ arch/arm/mach-davinci/Kconfig     |    1 
+ arch/arm/mach-exynos/Kconfig      |    1 
+ arch/arm/mach-highbank/Kconfig    |    1 
+ arch/arm/mach-omap2/Kconfig       |    1 
+ arch/arm/mach-s5pv210/Kconfig     |    1 
+ arch/arm/mach-tango/Kconfig       |    1 
+ fs/proc/kcore.c                   |    2 -
+ include/linux/mmzone.h            |   31 ----------------------------
+ mm/mmzone.c                       |   14 ------------
+ mm/vmstat.c                       |    4 ---
+ 13 files changed, 3 insertions(+), 66 deletions(-)
 
---- a/arch/ia64/include/asm/meminit.h~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/include/asm/meminit.h
-@@ -59,10 +59,8 @@ extern int reserve_elfcorehdr(u64 *start
- extern int register_active_ranges(u64 start, u64 len, int nid);
+--- a/arch/arm/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/Kconfig
+@@ -25,7 +25,7 @@ config ARM
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_KEEP_MEMBLOCK if HAVE_ARCH_PFN_VALID || KEXEC
++	select ARCH_KEEP_MEMBLOCK
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_NO_SG_CHAIN if !ARM_HAS_SG_CHAIN
+ 	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
+@@ -520,7 +520,6 @@ config ARCH_S3C24XX
+ config ARCH_OMAP1
+ 	bool "TI OMAP1"
+ 	depends on MMU
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_OMAP
+ 	select CLKDEV_LOOKUP
+ 	select CLKSRC_MMIO
+@@ -1480,9 +1479,6 @@ config OABI_COMPAT
+ 	  UNPREDICTABLE (in fact it can be predicted that it won't work
+ 	  at all). If in doubt say N.
  
- #ifdef CONFIG_VIRTUAL_MEM_MAP
--# define LARGE_GAP	0x40000000 /* Use virtual mem map if hole is > than this */
-   extern unsigned long VMALLOC_END;
-   extern struct page *vmem_map;
--  extern int find_largest_hole(u64 start, u64 end, void *arg);
-   extern int create_mem_map_page_table(u64 start, u64 end, void *arg);
-   extern int vmemmap_find_next_valid_pfn(int, int);
- #else
---- a/arch/ia64/Kconfig~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/Kconfig
-@@ -329,7 +329,7 @@ config NODES_SHIFT
- # VIRTUAL_MEM_MAP has been retained for historical reasons.
- config VIRTUAL_MEM_MAP
- 	bool "Virtual mem map"
--	depends on !SPARSEMEM
-+	depends on !SPARSEMEM && !FLATMEM
- 	default y
- 	help
- 	  Say Y to compile the kernel with support for a virtual mem map.
---- a/arch/ia64/mm/contig.c~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/mm/contig.c
-@@ -19,15 +19,12 @@
- #include <linux/mm.h>
- #include <linux/nmi.h>
- #include <linux/swap.h>
-+#include <linux/sizes.h>
- 
- #include <asm/meminit.h>
- #include <asm/sections.h>
- #include <asm/mca.h>
- 
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--static unsigned long max_gap;
--#endif
+-config ARCH_HAS_HOLES_MEMORYMODEL
+-	bool
 -
- /* physical address where the bootmem map is located */
- unsigned long bootmap_start;
+ config ARCH_SELECT_MEMORY_MODEL
+ 	bool
  
-@@ -166,33 +163,30 @@ find_memory (void)
- 	alloc_per_cpu_data();
- }
+@@ -1494,7 +1490,7 @@ config ARCH_SPARSEMEM_ENABLE
+ 	select SPARSEMEM_STATIC if SPARSEMEM
  
--static void __init virtual_map_init(void)
-+static int __init find_largest_hole(u64 start, u64 end, void *arg)
- {
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
--	if (max_gap < LARGE_GAP) {
--		vmem_map = (struct page *) 0;
--	} else {
--		unsigned long map_size;
--
--		/* allocate virtual_mem_map */
--
--		map_size = PAGE_ALIGN(ALIGN(max_low_pfn, MAX_ORDER_NR_PAGES) *
--			sizeof(struct page));
--		VMALLOC_END -= map_size;
--		vmem_map = (struct page *) VMALLOC_END;
--		efi_memmap_walk(create_mem_map_page_table, NULL);
-+	u64 *max_gap = arg;
+ config HAVE_ARCH_PFN_VALID
+-	def_bool ARCH_HAS_HOLES_MEMORYMODEL || !SPARSEMEM
++	def_bool y
  
--		/*
--		 * alloc_node_mem_map makes an adjustment for mem_map
--		 * which isn't compatible with vmem_map.
--		 */
--		NODE_DATA(0)->node_mem_map = vmem_map +
--			find_min_pfn_with_active_regions();
-+	static u64 last_end = PAGE_OFFSET;
+ config HIGHMEM
+ 	bool "High Memory Support"
+--- a/arch/arm/mach-bcm/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-bcm/Kconfig
+@@ -211,7 +211,6 @@ config ARCH_BRCMSTB
+ 	select BCM7038_L1_IRQ
+ 	select BRCMSTB_L2_IRQ
+ 	select BCM7120_L2_IRQ
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ZONE_DMA if ARM_LPAE
+ 	select SOC_BRCMSTB
+ 	select SOC_BUS
+--- a/arch/arm/mach-davinci/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-davinci/Kconfig
+@@ -5,7 +5,6 @@ menuconfig ARCH_DAVINCI
+ 	depends on ARCH_MULTI_V5
+ 	select DAVINCI_TIMER
+ 	select ZONE_DMA
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select PM_GENERIC_DOMAINS if PM
+ 	select PM_GENERIC_DOMAINS_OF if PM && OF
+ 	select REGMAP_MMIO
+--- a/arch/arm/mach-exynos/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-exynos/Kconfig
+@@ -8,7 +8,6 @@
+ menuconfig ARCH_EXYNOS
+ 	bool "Samsung Exynos"
+ 	depends on ARCH_MULTI_V7
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_SUPPORTS_BIG_ENDIAN
+ 	select ARM_AMBA
+ 	select ARM_GIC
+--- a/arch/arm/mach-highbank/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-highbank/Kconfig
+@@ -2,7 +2,6 @@
+ config ARCH_HIGHBANK
+ 	bool "Calxeda ECX-1000/2000 (Highbank/Midway)"
+ 	depends on ARCH_MULTI_V7
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_SUPPORTS_BIG_ENDIAN
+ 	select ARM_AMBA
+ 	select ARM_ERRATA_764369 if SMP
+--- a/arch/arm/mach-omap2/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-omap2/Kconfig
+@@ -93,7 +93,6 @@ config SOC_DRA7XX
+ config ARCH_OMAP2PLUS
+ 	bool
+ 	select ARCH_HAS_BANDGAP
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARCH_HAS_RESET_CONTROLLER
+ 	select ARCH_OMAP
+ 	select CLKSRC_MMIO
+--- a/arch/arm/mach-s5pv210/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-s5pv210/Kconfig
+@@ -8,7 +8,6 @@
+ config ARCH_S5PV210
+ 	bool "Samsung S5PV210/S5PC110"
+ 	depends on ARCH_MULTI_V7
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARM_VIC
+ 	select CLKSRC_SAMSUNG_PWM
+ 	select COMMON_CLK_SAMSUNG
+--- a/arch/arm/mach-tango/Kconfig~arm-remove-config_arch_has_holes_memorymodel
++++ a/arch/arm/mach-tango/Kconfig
+@@ -3,7 +3,6 @@ config ARCH_TANGO
+ 	bool "Sigma Designs Tango4 (SMP87xx)"
+ 	depends on ARCH_MULTI_V7
+ 	# Cortex-A9 MPCore r3p0, PL310 r3p2
+-	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	select ARM_ERRATA_754322
+ 	select ARM_ERRATA_764369 if SMP
+ 	select ARM_ERRATA_775420
+--- a/Documentation/vm/memory-model.rst~arm-remove-config_arch_has_holes_memorymodel
++++ a/Documentation/vm/memory-model.rst
+@@ -51,8 +51,7 @@ call :c:func:`free_area_init` function.
+ usable until the call to :c:func:`memblock_free_all` that hands all the
+ memory to the page allocator.
  
--		printk("Virtual mem_map starts at 0x%p\n", mem_map);
--	}
--#endif /* !CONFIG_VIRTUAL_MEM_MAP */
-+	/* NOTE: this algorithm assumes efi memmap table is ordered */
-+
-+	if (*max_gap < (start - last_end))
-+		*max_gap = start - last_end;
-+	last_end = end;
-+	return 0;
-+}
-+
-+static void __init verify_gap_absence(void)
-+{
-+	unsigned long max_gap;
-+
-+	/* Forbid FLATMEM if hole is > than 1G */
-+	efi_memmap_walk(find_largest_hole, (u64 *)&max_gap);
-+	if (max_gap >= SZ_1G)
-+		panic("Cannot use FLATMEM with %ldMB hole\n"
-+		      "Please switch over to SPARSEMEM\n",
-+		      (max_gap >> 20));
- }
+-If an architecture enables `CONFIG_ARCH_HAS_HOLES_MEMORYMODEL` option,
+-it may free parts of the `mem_map` array that do not cover the
++An architecture may free parts of the `mem_map` array that do not cover the
+ actual physical pages. In such case, the architecture specific
+ :c:func:`pfn_valid` implementation should take the holes in the
+ `mem_map` into account.
+--- a/fs/proc/kcore.c~arm-remove-config_arch_has_holes_memorymodel
++++ a/fs/proc/kcore.c
+@@ -193,8 +193,6 @@ kclist_add_private(unsigned long pfn, un
+ 		return 1;
  
- /*
-@@ -210,7 +204,7 @@ paging_init (void)
- 	max_zone_pfns[ZONE_DMA32] = max_dma;
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
+ 	p = pfn_to_page(pfn);
+-	if (!memmap_valid_within(pfn, p, page_zone(p)))
+-		return 1;
  
--	virtual_map_init();
-+	verify_gap_absence();
+ 	ent = kmalloc(sizeof(*ent), GFP_KERNEL);
+ 	if (!ent)
+--- a/include/linux/mmzone.h~arm-remove-config_arch_has_holes_memorymodel
++++ a/include/linux/mmzone.h
+@@ -1440,37 +1440,6 @@ void sparse_init(void);
+ #define pfn_valid_within(pfn) (1)
+ #endif
  
- 	free_area_init(max_zone_pfns);
- 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
---- a/arch/ia64/mm/init.c~ia64-forbid-using-virtual_mem_map-with-flatmem
-+++ a/arch/ia64/mm/init.c
-@@ -574,20 +574,6 @@ ia64_pfn_valid (unsigned long pfn)
- }
- EXPORT_SYMBOL(ia64_pfn_valid);
- 
--int __init find_largest_hole(u64 start, u64 end, void *arg)
+-#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+-/*
+- * pfn_valid() is meant to be able to tell if a given PFN has valid memmap
+- * associated with it or not. This means that a struct page exists for this
+- * pfn. The caller cannot assume the page is fully initialized in general.
+- * Hotplugable pages might not have been onlined yet. pfn_to_online_page()
+- * will ensure the struct page is fully online and initialized. Special pages
+- * (e.g. ZONE_DEVICE) are never onlined and should be treated accordingly.
+- *
+- * In FLATMEM, it is expected that holes always have valid memmap as long as
+- * there is valid PFNs either side of the hole. In SPARSEMEM, it is assumed
+- * that a valid section has a memmap for the entire section.
+- *
+- * However, an ARM, and maybe other embedded architectures in the future
+- * free memmap backing holes to save memory on the assumption the memmap is
+- * never used. The page_zone linkages are then broken even though pfn_valid()
+- * returns true. A walker of the full memmap must then do this additional
+- * check to ensure the memmap they are looking at is sane by making sure
+- * the zone and PFN linkages are still valid. This is expensive, but walkers
+- * of the full memmap are extremely rare.
+- */
+-bool memmap_valid_within(unsigned long pfn,
+-					struct page *page, struct zone *zone);
+-#else
+-static inline bool memmap_valid_within(unsigned long pfn,
+-					struct page *page, struct zone *zone)
 -{
--	u64 *max_gap = arg;
--
--	static u64 last_end = PAGE_OFFSET;
--
--	/* NOTE: this algorithm assumes efi memmap table is ordered */
--
--	if (*max_gap < (start - last_end))
--		*max_gap = start - last_end;
--	last_end = end;
--	return 0;
+-	return true;
 -}
+-#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
 -
- #endif /* CONFIG_VIRTUAL_MEM_MAP */
+ #endif /* !__GENERATING_BOUNDS.H */
+ #endif /* !__ASSEMBLY__ */
+ #endif /* _LINUX_MMZONE_H */
+--- a/mm/mmzone.c~arm-remove-config_arch_has_holes_memorymodel
++++ a/mm/mmzone.c
+@@ -72,20 +72,6 @@ struct zoneref *__next_zones_zonelist(st
+ 	return z;
+ }
  
- int __init register_active_ranges(u64 start, u64 len, int nid)
+-#ifdef CONFIG_ARCH_HAS_HOLES_MEMORYMODEL
+-bool memmap_valid_within(unsigned long pfn,
+-					struct page *page, struct zone *zone)
+-{
+-	if (page_to_pfn(page) != pfn)
+-		return false;
+-
+-	if (page_zone(page) != zone)
+-		return false;
+-
+-	return true;
+-}
+-#endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
+-
+ void lruvec_init(struct lruvec *lruvec)
+ {
+ 	enum lru_list lru;
+--- a/mm/vmstat.c~arm-remove-config_arch_has_holes_memorymodel
++++ a/mm/vmstat.c
+@@ -1503,10 +1503,6 @@ static void pagetypeinfo_showblockcount_
+ 		if (!page)
+ 			continue;
+ 
+-		/* Watch for unexpected holes punched in the memmap */
+-		if (!memmap_valid_within(pfn, page, zone))
+-			continue;
+-
+ 		if (page_zone(page) != zone)
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
