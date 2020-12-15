@@ -7,38 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D68EBC35296
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96D6BC47436
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3BAA22D07
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E0FC22D05
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727264AbgLPAAd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34566 "EHLO mail.kernel.org"
+        id S1725802AbgLPAA2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730019AbgLOX2N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:28:13 -0500
-Date:   Tue, 15 Dec 2020 15:24:36 -0800
+        id S1727787AbgLOX1y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:54 -0500
+Date:   Tue, 15 Dec 2020 15:16:35 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074676;
-        bh=6vcotkoK66YMKBZG7hDAXQBWCCxcGYtkdARKbx/FwTQ=;
+        s=korg; t=1608074197;
+        bh=Pdln14Xjga1sKx5NvrwFcDoC95hlhtxYYkobcxwTifM=;
         h=From:To:Subject:From;
-        b=kFE/kmmmLo1suGyOrjWYiiPMAK2WDZgZw1x9Z+fGaDlxcsWVcivoWyHzM/Q986Tg6
-         oriXIyhGbTaxF7s3l21Qe5yqc+2QVogBxsB9FZ986ohLv958hDGWyGs9LD0fa69Ada
-         3h80GwYZPr/DMHd/P42x8madrUNq+eDiMAsEe5Ag=
+        b=yHhhoSbweLOM0q70gO6o5vLbxhaHAGmeSsnWnWtfi3IqVRDPZnfi5qP+9eoftr0rn
+         9FJFd+t4wF2xQsqDMvrL9quPUioKZThygnMKfdR931nEMk6aJcyOR/8AHZ0GOVRUuL
+         ExzTi/WNJ+Fh9kJ8P4eSL5P1qgT5hbai3JG1Unhc=
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, gregkh@linuxfoundation.org, hughd@google.com,
-        iamjoonsoo.kim@lge.com, joe@perches.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, willy@infradead.org
-Subject:  [merged]
- =?US-ASCII?Q?mm-huge=5Fmemory-convert-remaining-use-of-sprintf-to-sy?=
- =?US-ASCII?Q?sfs=5Femit-and-neatening.patch?= removed from -mm tree
-Message-ID: <20201215232436.aoFJ5d65r%akpm@linux-foundation.org>
+To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
+        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
+        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
+        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
+        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  [merged] hwtracing-intel-use-krealloc_array.patch removed
+ from -mm tree
+Message-ID: <20201215231635.qQnpoZCAm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,128 +50,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: huge_memory: convert remaining use of sprintf to sysfs_emit and neatening
+     Subject: hwtracing: intel: use krealloc_array()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-convert-remaining-use-of-sprintf-to-sysfs_emit-and-neatening.patch
+     hwtracing-intel-use-krealloc_array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm: huge_memory: convert remaining use of sprintf to sysfs_emit and neatening
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: hwtracing: intel: use krealloc_array()
 
-Convert the only use of sprintf with struct kobject * that the cocci
-script could not convert.
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-Miscellanea:
-
-o Neaten the uses of a constant string with sysfs_emit to use a const
-  char * to reduce overall object size
-
-Link: https://lkml.kernel.org/r/7df6be66bbd68e1a0bca9d35aca1341dbf94d2a7.1605376435.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20201109110654.12547-9-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Knig <christian.koenig@amd.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Wang <jasowang@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   52 ++++++++++++++++++++++++++-------------------
- 1 file changed, 31 insertions(+), 21 deletions(-)
+ drivers/hwtracing/intel_th/msu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-convert-remaining-use-of-sprintf-to-sysfs_emit-and-neatening
-+++ a/mm/huge_memory.c
-@@ -163,12 +163,17 @@ static struct shrinker huge_zero_page_sh
- static ssize_t enabled_show(struct kobject *kobj,
- 			    struct kobj_attribute *attr, char *buf)
- {
-+	const char *output;
-+
- 	if (test_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags))
--		return sysfs_emit(buf, "[always] madvise never\n");
--	else if (test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags))
--		return sysfs_emit(buf, "always [madvise] never\n");
-+		output = "[always] madvise never";
-+	else if (test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
-+			  &transparent_hugepage_flags))
-+		output = "always [madvise] never";
- 	else
--		return sysfs_emit(buf, "always madvise [never]\n");
-+		output = "always madvise [never]";
-+
-+	return sysfs_emit(buf, "%s\n", output);
- }
+--- a/drivers/hwtracing/intel_th/msu.c~hwtracing-intel-use-krealloc_array
++++ a/drivers/hwtracing/intel_th/msu.c
+@@ -2002,7 +2002,7 @@ nr_pages_store(struct device *dev, struc
+ 		}
  
- static ssize_t enabled_store(struct kobject *kobj,
-@@ -200,11 +205,11 @@ static struct kobj_attribute enabled_att
- 	__ATTR(enabled, 0644, enabled_show, enabled_store);
- 
- ssize_t single_hugepage_flag_show(struct kobject *kobj,
--				struct kobj_attribute *attr, char *buf,
--				enum transparent_hugepage_flag flag)
-+				  struct kobj_attribute *attr, char *buf,
-+				  enum transparent_hugepage_flag flag)
- {
--	return sprintf(buf, "%d\n",
--		       !!test_bit(flag, &transparent_hugepage_flags));
-+	return sysfs_emit(buf, "%d\n",
-+			  !!test_bit(flag, &transparent_hugepage_flags));
- }
- 
- ssize_t single_hugepage_flag_store(struct kobject *kobj,
-@@ -232,19 +237,24 @@ ssize_t single_hugepage_flag_store(struc
- static ssize_t defrag_show(struct kobject *kobj,
- 			   struct kobj_attribute *attr, char *buf)
- {
--	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
--		return sysfs_emit(buf,
--				  "[always] defer defer+madvise madvise never\n");
--	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags))
--		return sysfs_emit(buf,
--				  "always [defer] defer+madvise madvise never\n");
--	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags))
--		return sysfs_emit(buf,
--				  "always defer [defer+madvise] madvise never\n");
--	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags))
--		return sysfs_emit(buf,
--				  "always defer defer+madvise [madvise] never\n");
--	return sysfs_emit(buf, "always defer defer+madvise madvise [never]\n");
-+	const char *output;
-+
-+	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
-+		     &transparent_hugepage_flags))
-+		output = "[always] defer defer+madvise madvise never";
-+	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
-+			  &transparent_hugepage_flags))
-+		output = "always [defer] defer+madvise madvise never";
-+	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG,
-+			  &transparent_hugepage_flags))
-+		output = "always defer [defer+madvise] madvise never";
-+	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
-+			  &transparent_hugepage_flags))
-+		output = "always defer defer+madvise [madvise] never";
-+	else
-+		output = "always defer defer+madvise madvise [never]";
-+
-+	return sysfs_emit(buf, "%s\n", output);
- }
- 
- static ssize_t defrag_store(struct kobject *kobj,
+ 		nr_wins++;
+-		rewin = krealloc(win, sizeof(*win) * nr_wins, GFP_KERNEL);
++		rewin = krealloc_array(win, nr_wins, sizeof(*win), GFP_KERNEL);
+ 		if (!rewin) {
+ 			kfree(win);
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
-checkpatch-prefer-static-const-declarations.patch
-checkpatch-allow-fix-removal-of-unnecessary-break-statements.patch
-checkpatch-update-__attribute__sectionname-quote-removal.patch
-checkpatch-update-__attribute__sectionname-quote-removal-v2.patch
-checkpatch-add-__alias-and-__weak-to-suggested-__attribute__-conversions.patch
-checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning.patch
-checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning-fix.patch
-treewide-remove-stringification-from-__alias-macro-definition.patch
 
