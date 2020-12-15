@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1CDCC3526B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3846C3527E
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B239B22D6F
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A59CE22D07
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726466AbgLOX7X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60886 "EHLO mail.kernel.org"
+        id S1726523AbgLOX7Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727976AbgLOXXa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:23:30 -0500
-Date:   Tue, 15 Dec 2020 15:21:40 -0800
+        id S1728367AbgLOXXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:23:33 -0500
+Date:   Tue, 15 Dec 2020 15:22:00 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074500;
-        bh=/w63bzkd67fN1j+J9OJOul4IM0zT2jOBPR34FDJptM8=;
+        s=korg; t=1608074521;
+        bh=rv0tJ/X4qlAVL04QEtEQcQSaSVhxU4EOdyvz1+3clCg=;
         h=From:To:Subject:From;
-        b=lPeExy9IIDN4EFNcpfqT3WMGd2VcjuNAGwNgW24js7LSRilE876SFBDzHIfCV0Wtb
-         yBVgV61oIaR5Qel84jLwpDr5f2W75OtOBX1XF47kRGUCHYoc8VQODhJ5JeWp5mW/Lg
-         xCGrfyXlWWWUfXGK2i45IC1le8OWuYtpkY3j18vs=
+        b=ZSXHaIJYtzaoiWwJ1OkYQXJ9TZ+iXNmCXjqr9zV70Tm6nI66QD7tmoOyUZSPGKQKm
+         HgGEgu4y2OXLUQaBHk49hAMbkW7TW+gTTr5DmoqKmiYsjeKU6T2+dkKmsAhesRUxkh
+         0/pFoYyoptFHRzknyzDkCi1M7sr/RLTRmxMGuqwY=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, vbabka@suse.cz
+To:     david@redhat.com, glider@google.com, keescook@chromium.org,
+        mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de,
+        rppt@linux.ibm.com, vbabka@suse.cz
 Subject:  [merged]
- mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch removed
- from -mm tree
-Message-ID: <20201215232140.omI_i6bDK%akpm@linux-foundation.org>
+ mm-page_alloc-clear-all-pages-in-post_alloc_hook-with-init_on_alloc=1.patch
+ removed from -mm tree
+Message-ID: <20201215232200.l39DbnE3I%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,102 +44,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: cache pageset high and batch in struct zone
+     Subject: mm/page_alloc: clear all pages in post_alloc_hook() with init_on_alloc=1
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone.patch
+     mm-page_alloc-clear-all-pages-in-post_alloc_hook-with-init_on_alloc=1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: cache pageset high and batch in struct zone
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/page_alloc: clear all pages in post_alloc_hook() with init_on_alloc=1
 
-All per-cpu pagesets for a zone use the same high and batch values, that
-are duplicated there just for performance (locality) reasons.  This patch
-adds the same variables also to struct zone as a shared copy.
+commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
+init_on_free=1 boot options") resulted with init_on_alloc=1 in all pages
+leaving the buddy via alloc_pages() and friends to be
+initialized/cleared/zeroed on allocation.
 
-This will be useful later for making possible to disable pcplists
-temporarily by setting high value to 0, while remembering the values for
-restoring them later.  But we can also immediately benefit from not
-updating pagesets of all possible cpus in case the newly recalculated
-values (after sysctl change or memory online/offline) are actually
-unchanged from the previous ones.
+However, the same logic is currently not applied to alloc_contig_pages():
+allocated pages leaving the buddy aren't cleared with init_on_alloc=1 and
+init_on_free=0.  Let's also properly clear pages on that allocation path.
 
-Link: https://lkml.kernel.org/r/20201111092812.11329-6-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+To achieve that, let's move clearing into post_alloc_hook().  This will
+not only affect alloc_contig_pages() allocations but also any pages used
+as migration target in compaction code via compaction_alloc().
+
+While this sounds sub-optimal, it's the very same handling as when
+allocating migration targets via alloc_migration_target() - pages will get
+properly cleared with init_on_free=1.  In case we ever want to optimize
+migration in that regard, we should tackle all such migration users - if
+we believe migration code can be fully trusted.
+
+With this change, we will see double clearing of pages in some cases.  One
+example are gigantic pages (either allocated via CMA, or allocated
+dynamically via alloc_contig_pages()) - which is the right thing to do
+(and to be optimized outside of the buddy in the callers) as discussed in:
+https://lkml.kernel.org/r/20201019182853.7467-1-gpiccoli@canonical.com
+
+This change implies that with init_on_alloc=1
+- All CMA allocations will be cleared
+- Gigantic pages allocated via alloc_contig_pages() will be cleared
+- virtio-mem memory to be unplugged will be cleared. While this is
+  suboptimal, it's similar to memory balloon drivers handling, where
+  all pages to be inflated will get cleared as well.
+- Pages isolated for compaction will be cleared
+
+Link: https://lkml.kernel.org/r/20201120180452.19071-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++++++
- mm/page_alloc.c        |   16 ++++++++++++++--
- 2 files changed, 20 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone
-+++ a/include/linux/mmzone.h
-@@ -470,6 +470,12 @@ struct zone {
- #endif
- 	struct pglist_data	*zone_pgdat;
- 	struct per_cpu_pageset __percpu *pageset;
-+	/*
-+	 * the high and batch values are copied to individual pagesets for
-+	 * faster access
-+	 */
-+	int pageset_high;
-+	int pageset_batch;
- 
- #ifndef CONFIG_SPARSEMEM
- 	/*
---- a/mm/page_alloc.c~mm-page_alloc-cache-pageset-high-and-batch-in-struct-zone
+--- a/mm/page_alloc.c~mm-page_alloc-clear-all-pages-in-post_alloc_hook-with-init_on_alloc=1
 +++ a/mm/page_alloc.c
-@@ -5920,6 +5920,9 @@ static void build_zonelists(pg_data_t *p
-  * Other parts of the kernel may not check if the zone is available.
-  */
- static void pageset_init(struct per_cpu_pageset *p);
-+/* These effectively disable the pcplists in the boot pageset completely */
-+#define BOOT_PAGESET_HIGH	0
-+#define BOOT_PAGESET_BATCH	1
- static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
- static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
- 
-@@ -6309,8 +6312,8 @@ static void pageset_init(struct per_cpu_
- 	 * need to be as careful as pageset_update() as nobody can access the
- 	 * pageset yet.
- 	 */
--	pcp->high = 0;
--	pcp->batch = 1;
-+	pcp->high = BOOT_PAGESET_HIGH;
-+	pcp->batch = BOOT_PAGESET_BATCH;
+@@ -2284,6 +2284,9 @@ inline void post_alloc_hook(struct page
+ 	kasan_alloc_pages(page, order);
+ 	kernel_poison_pages(page, 1 << order, 1);
+ 	set_page_owner(page, order, gfp_flags);
++
++	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
++		kernel_init_free_pages(page, 1 << order);
  }
  
- /*
-@@ -6334,6 +6337,13 @@ static void zone_set_pageset_high_and_ba
- 		new_batch = max(1UL, 1 * new_batch);
- 	}
+ static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
+@@ -2291,9 +2294,6 @@ static void prep_new_page(struct page *p
+ {
+ 	post_alloc_hook(page, order, gfp_flags);
  
-+	if (zone->pageset_high == new_high &&
-+	    zone->pageset_batch == new_batch)
-+		return;
-+
-+	zone->pageset_high = new_high;
-+	zone->pageset_batch = new_batch;
-+
- 	for_each_possible_cpu(cpu) {
- 		p = per_cpu_ptr(zone->pageset, cpu);
- 		pageset_update(&p->pcp, new_high, new_batch);
-@@ -6394,6 +6404,8 @@ static __meminit void zone_pcp_init(stru
- 	 * offset of a (static) per cpu variable into the per cpu area.
- 	 */
- 	zone->pageset = &boot_pageset;
-+	zone->pageset_high = BOOT_PAGESET_HIGH;
-+	zone->pageset_batch = BOOT_PAGESET_BATCH;
+-	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
+-		kernel_init_free_pages(page, 1 << order);
+-
+ 	if (order && (gfp_flags & __GFP_COMP))
+ 		prep_compound_page(page, order);
  
- 	if (populated_zone(zone))
- 		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from david@redhat.com are
 
 
