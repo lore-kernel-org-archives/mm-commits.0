@@ -2,41 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F2A5C4743D
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F018C35296
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65BD322D57
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4521422D2B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgLOX7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60888 "EHLO mail.kernel.org"
+        id S1726075AbgLOX7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727892AbgLOXWb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:31 -0500
-Date:   Tue, 15 Dec 2020 15:20:21 -0800
+        id S1727349AbgLOXVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:21:00 -0500
+Date:   Tue, 15 Dec 2020 15:19:51 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074422;
-        bh=H/WsDv6Hr0m1p3mQyWI/vcJTE2nDaHvCBjRkgt+V0cY=;
+        s=korg; t=1608074393;
+        bh=DKb8ypw8l5PzCQptWt8K8P2q3ExGMIcfGzlUbD57fZo=;
         h=From:To:Subject:From;
-        b=JGsyFnSdeqM+ZzxFQdMFIXN9+Ns8QYszxxqlE6pyjH/obxylxEHd/VMtW5OeSvJtt
-         4T41CqE4A+7yRpyQu94e8koTLZcXjCkwY5Xh/w7Gmczloh51I71muclUg+h9/O9UCo
-         hGQO27c4F0Z3RjvqSEa0MEYXpf+WJDwaVCnslWO0=
+        b=uyzMfpwv9tymnxOf4XuMucV37PUSNb/d1bAUEpWwlO6+a7CCdmvzl5skfqtb3g/IT
+         6ZWXQrlF38vx8dSscT1b1Fa+b5zFv6BGSPzgYmLNEWXObtJ/VZJU7eD0YaseicinaR
+         1uOtdunETn/a+DQyHe3XAdvM2goXjSCWEx7aa3Iw=
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com, corbet@lwn.net,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        jiangshanlai@gmail.com, matthias.bgg@gmail.com,
-        mm-commits@vger.kernel.org, tj@kernel.org,
-        walter-zh.wu@mediatek.com
-Subject:  [merged] workqueue-kasan-record-workqueue-stack.patch
- removed from -mm tree
-Message-ID: <20201215232021.dKD1c_6ci%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, cai@lca.pw, christian.koenig@amd.com,
+        cl@linux.com, daniel.vetter@ffwll.ch, daniel.vetter@intel.com,
+        david@fromorbit.com, iamjoonsoo.kim@lge.com, jgg@mellanox.com,
+        jgg@nvidia.com, longman@redhat.com,
+        maarten.lankhorst@linux.intel.com, mathieu.desnoyers@efficios.com,
+        mingo@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        paulmck@kernel.org, penberg@kernel.org, peterz@infradead.org,
+        rdunlap@infradead.org, rientjes@google.com, tglx@linutronix.de,
+        thomas_os@shipmail.org, vbabka@suse.cz, walken@google.com,
+        will@kernel.org, willy@infradead.org
+Subject:  [merged] mm-extract-might_alloc-debug-check.patch removed
+ from -mm tree
+Message-ID: <20201215231951.PQweHYcEc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,79 +52,144 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: workqueue: kasan: record workqueue stack
+     Subject: mm: extract might_alloc() debug check
 has been removed from the -mm tree.  Its filename was
-     workqueue-kasan-record-workqueue-stack.patch
+     mm-extract-might_alloc-debug-check.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: workqueue: kasan: record workqueue stack
+=46rom: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: mm: extract might_alloc() debug check
 
-Patch series "kasan: add workqueue stack for generic KASAN", v5.
+Extracted from slab.h, which seems to have the most complete version
+including the correct might_sleep() check.  Roll it out to slob.c.
 
-Syzbot reports many UAF issues for workqueue, see [1].
-In some of these access/allocation happened in process_one_work(),
-we see the free stack is useless in KASAN report, it doesn't help
-programmers to solve UAF for workqueue issue.
+Motivated by a discussion with Paul about possibly changing call_rcu
+behaviour to allocate memory, but only roughly every 500th call.
 
-This patchset improves KASAN reports by making them to have workqueue
-queueing stack. It is useful for programmers to solve use-after-free
-or double-free memory issue.
+There are a lot fewer places in the kernel that care about whether
+allocating memory is allowed or not (due to deadlocks with reclaim code)
+than places that care whether sleeping is allowed.  But debugging these
+also tends to be a lot harder, so nice descriptive checks could come in
+handy.  I might have some use eventually for annotations in drivers/gpu.
 
-Generic KASAN also records the last two workqueue stacks and prints
-them in KASAN report. It is only suitable for generic KASAN.
+Note that unlike fs_reclaim_acquire/release gfpflags_allow_blocking does
+not consult the PF_MEMALLOC flags.  But there is no flag equivalent for
+GFP_NOWAIT, hence this check can't go wrong due to
+memalloc_no*_save/restore contexts.  Willy is working on a patch series
+which might change this:
 
-[1]https://groups.google.com/g/syzkaller-bugs/search?q=%22use-after-free%22+process_one_work
-[2]https://bugzilla.kernel.org/show_bug.cgi?id=198437
+https://lore.kernel.org/linux-mm/20200625113122.7540-7-willy@infradead.org/
 
+I think best would be if that updates gfpflags_allow_blocking(), since
+there's a ton of callers all over the place for that already.
 
-This patch (of 4):
-
-When analyzing use-after-free or double-free issue, recording the
-enqueuing work stacks is helpful to preserve usage history which
-potentially gives a hint about the affected code.
-
-For workqueue it has turned out to be useful to record the enqueuing work
-call stacks.  Because user can see KASAN report to determine whether it is
-root cause.  They don't need to enable debugobjects, but they have a
-chance to find out the root cause.
-
-Link: https://lkml.kernel.org/r/20201203022148.29754-1-walter-zh.wu@mediatek.com
-Link: https://lkml.kernel.org/r/20201203022442.30006-1-walter-zh.wu@mediatek.com
-Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Suggested-by: Marco Elver <elver@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20201125162532.1299794-3-daniel.vetter@ffwl=
+l.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc. Randy Dunlap <rdunlap@infradead.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Thomas Hellstr=C3=B6m (Intel) <thomas_os@shipmail.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/sched/mm.h |   16 ++++++++++++++++
+ mm/slab.h                |    5 +----
+ mm/slob.c                |    6 ++----
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
---- a/kernel/workqueue.c~workqueue-kasan-record-workqueue-stack
-+++ a/kernel/workqueue.c
-@@ -1327,6 +1327,9 @@ static void insert_work(struct pool_work
- {
- 	struct worker_pool *pool = pwq->pool;
- 
-+	/* record the work call stack in order to print it in KASAN reports */
-+	kasan_record_aux_stack(work);
+--- a/include/linux/sched/mm.h~mm-extract-might_alloc-debug-check
++++ a/include/linux/sched/mm.h
+@@ -181,6 +181,22 @@ static inline void fs_reclaim_release(gf
+ #endif
+=20
+ /**
++ * might_alloc - Mark possible allocation sites
++ * @gfp_mask: gfp_t flags that would be used to allocate
++ *
++ * Similar to might_sleep() and other annotations, this can be used in fun=
+ctions
++ * that might allocate, but often don't. Compiles to nothing without
++ * CONFIG_LOCKDEP. Includes a conditional might_sleep() if @gfp allows blo=
+cking.
++ */
++static inline void might_alloc(gfp_t gfp_mask)
++{
++	fs_reclaim_acquire(gfp_mask);
++	fs_reclaim_release(gfp_mask);
 +
- 	/* we own @work, set data and link */
- 	set_work_pwq(work, pwq, extra_flags);
- 	list_add_tail(&work->entry, head);
++	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
++}
++
++/**
+  * memalloc_noio_save - Marks implicit GFP_NOIO allocation scope.
+  *
+  * This functions marks the beginning of the GFP_NOIO allocation scope.
+--- a/mm/slab.h~mm-extract-might_alloc-debug-check
++++ a/mm/slab.h
+@@ -510,10 +510,7 @@ static inline struct kmem_cache *slab_pr
+ {
+ 	flags &=3D gfp_allowed_mask;
+=20
+-	fs_reclaim_acquire(flags);
+-	fs_reclaim_release(flags);
+-
+-	might_sleep_if(gfpflags_allow_blocking(flags));
++	might_alloc(flags);
+=20
+ 	if (should_failslab(s, flags))
+ 		return NULL;
+--- a/mm/slob.c~mm-extract-might_alloc-debug-check
++++ a/mm/slob.c
+@@ -474,8 +474,7 @@ __do_kmalloc_node(size_t size, gfp_t gfp
+=20
+ 	gfp &=3D gfp_allowed_mask;
+=20
+-	fs_reclaim_acquire(gfp);
+-	fs_reclaim_release(gfp);
++	might_alloc(gfp);
+=20
+ 	if (size < PAGE_SIZE - minalign) {
+ 		int align =3D minalign;
+@@ -597,8 +596,7 @@ static void *slob_alloc_node(struct kmem
+=20
+ 	flags &=3D gfp_allowed_mask;
+=20
+-	fs_reclaim_acquire(flags);
+-	fs_reclaim_release(flags);
++	might_alloc(flags);
+=20
+ 	if (c->size < PAGE_SIZE) {
+ 		b =3D slob_alloc(c->size, flags, c->align, node, 0);
 _
 
-Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
 
