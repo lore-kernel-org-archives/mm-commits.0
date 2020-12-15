@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80DC2C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D55C2BBCA
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B0A6223E4
+	by mail.kernel.org (Postfix) with ESMTP id 645C2224DE
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:14:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728046AbgLODOV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:14:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41986 "EHLO mail.kernel.org"
+        id S1727725AbgLODOO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:14:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727511AbgLODN6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:13:58 -0500
-Date:   Mon, 14 Dec 2020 19:13:16 -0800
+        id S1728101AbgLODNv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:13:51 -0500
+Date:   Mon, 14 Dec 2020 19:13:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001997;
-        bh=XHBy2khPzATt2Ypi8AiunBAkJFiwUZIrUQjIP7Uzrx8=;
+        s=korg; t=1608001990;
+        bh=IocbHlrzaXqFI8qxb2oGmAPhNI7Lou7lJu7FyWNIzxE=;
         h=From:To:Subject:In-Reply-To:From;
-        b=rwn+lo/ufSsdqRlShLAnfqlwKssY0r2Rb+Y/FUEyCt33dASAwTWnOIrYxjZmOGh15
-         lGLMztdZfH58pcdJz1nuyeSGdANDUsztshEjrMKUhHuzrfj7JYoj0a7JoDQ3y1isuO
-         0ui1TeF+lPsl68T7Q3zCUJFopjYv2INm0tW2w/PA=
+        b=NaPLgFycwCxfu9DpIiGgvjzB3EQMHGBkRxR8zCvO9g2HLmv6pvDV//uiwhsjqmJRS
+         7IirfNG45IOaSyuvHaMOEP4oXRzCdnOqBygEFKHdYj/f4YfAGJhUs9opUOQDBImw+6
+         iucfFVfCIRGr42BJF+DE9IkDTd6Vl69a+vPqtxxo=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, jack@suse.cz, linux-mm@kvack.org,
         mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
         shy828301@gmail.com, songliubraving@fb.com,
         torvalds@linux-foundation.org, willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 170/200] mm: migrate: return -ENOSYS if THP
- migration is unsupported
-Message-ID: <20201215031316.eaqxNcXtj%akpm@linux-foundation.org>
+Subject:  [patch 168/200] mm: migrate: skip shared exec THP for
+ NUMA balancing
+Message-ID: <20201215031309.WyQIMlBfN%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,23 +43,24 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: migrate: return -ENOSYS if THP migration is unsupported
+Subject: mm: migrate: skip shared exec THP for NUMA balancing
 
-In the current implementation unmap_and_move() would return -ENOMEM if THP
-migration is unsupported, then the THP will be split.  If split is failed
-just exit without trying to migrate other pages.  It doesn't make too much
-sense since there may be enough free memory to migrate other pages and
-there may be a lot base pages on the list.
+The NUMA balancing skip shared exec base page.  Since
+CONFIG_READ_ONLY_THP_FOR_FS was introduced, there are probably shared exec
+THP, so skip such THPs for NUMA balancing as well.
 
-Return -ENOSYS to make consistent with hugetlb.  And if THP split is
-failed just skip and try other pages on the list.
+And Willy's regular filesystem THP support patches could create shared
+exec THP wven without that config.
 
-Just skip the whole list and exit when free memory is really low.
+In addition, the page_is_file_lru() is used to tell if the page is file
+cache or not, but it filters out shmem page.  It sounds like a typical
+usecase by putting executables in shmem to achieve performance gain via
+using shmem-THP, so it sounds worth skipping migration for such case too.
 
-Link: https://lkml.kernel.org/r/20201113205359.556831-6-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20201113205359.556831-4-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Song Liu <songliubraving@fb.com>
@@ -67,103 +68,55 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   62 ++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 46 insertions(+), 16 deletions(-)
+ mm/migrate.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-return-enosys-if-thp-migration-is-unsupported
+--- a/mm/migrate.c~mm-migrate-skip-shared-exec-thp-for-numa-balancing
 +++ a/mm/migrate.c
-@@ -1171,7 +1171,7 @@ static int unmap_and_move(new_page_t get
- 	struct page *newpage = NULL;
- 
- 	if (!thp_migration_supported() && PageTransHuge(page))
--		return -ENOMEM;
-+		return -ENOSYS;
- 
- 	if (page_count(page) == 1) {
- 		/* page was freed from under us. So we are done. */
-@@ -1378,6 +1378,20 @@ out:
- 	return rc;
+@@ -2071,6 +2071,17 @@ bool pmd_trans_migrating(pmd_t pmd)
+ 	return PageLocked(page);
  }
  
-+static inline int try_split_thp(struct page *page, struct page **page2,
-+				struct list_head *from)
++static inline bool is_shared_exec_page(struct vm_area_struct *vma,
++				       struct page *page)
 +{
-+	int rc = 0;
++	if (page_mapcount(page) != 1 &&
++	    (page_is_file_lru(page) || vma_is_shmem(vma)) &&
++	    (vma->vm_flags & VM_EXEC))
++		return true;
 +
-+	lock_page(page);
-+	rc = split_huge_page_to_list(page, from);
-+	unlock_page(page);
-+	if (!rc)
-+		list_safe_reset_next(page, *page2, lru);
-+
-+	return rc;
++	return false;
 +}
 +
  /*
-  * migrate_pages - migrate the pages specified in a list, to the free pages
-  *		   supplied as the target for the page migration
-@@ -1455,24 +1469,40 @@ retry:
- 			 *		     from list
- 			 */
- 			switch(rc) {
-+			/*
-+			 * THP migration might be unsupported or the
-+			 * allocation could've failed so we should
-+			 * retry on the same page with the THP split
-+			 * to base pages.
-+			 *
-+			 * Head page is retried immediately and tail
-+			 * pages are added to the tail of the list so
-+			 * we encounter them after the rest of the list
-+			 * is processed.
-+			 */
-+			case -ENOSYS:
-+				/* THP migration is unsupported */
-+				if (is_thp) {
-+					if (!try_split_thp(page, &page2, from)) {
-+						nr_thp_split++;
-+						goto retry;
-+					}
+  * Attempt to migrate a misplaced page to the specified destination
+  * node. Caller is expected to have an elevated reference count on
+@@ -2088,8 +2099,7 @@ int migrate_misplaced_page(struct page *
+ 	 * Don't migrate file pages that are mapped in multiple processes
+ 	 * with execute permissions as they are probably shared libraries.
+ 	 */
+-	if (page_mapcount(page) != 1 && page_is_file_lru(page) &&
+-	    (vma->vm_flags & VM_EXEC))
++	if (is_shared_exec_page(vma, page))
+ 		goto out;
+ 
+ 	/*
+@@ -2144,6 +2154,9 @@ int migrate_misplaced_transhuge_page(str
+ 	int page_lru = page_is_file_lru(page);
+ 	unsigned long start = address & HPAGE_PMD_MASK;
+ 
++	if (is_shared_exec_page(vma, page))
++		goto out;
 +
-+					nr_thp_failed++;
-+					nr_failed += nr_subpages;
-+					break;
-+				}
-+
-+				/* Hugetlb migration is unsupported */
-+				nr_failed++;
-+				break;
- 			case -ENOMEM:
- 				/*
--				 * THP migration might be unsupported or the
--				 * allocation could've failed so we should
--				 * retry on the same page with the THP split
--				 * to base pages.
--				 *
--				 * Head page is retried immediately and tail
--				 * pages are added to the tail of the list so
--				 * we encounter them after the rest of the list
--				 * is processed.
-+				 * When memory is low, don't bother to try to migrate
-+				 * other pages, just exit.
- 				 */
- 				if (is_thp) {
--					lock_page(page);
--					rc = split_huge_page_to_list(page, from);
--					unlock_page(page);
--					if (!rc) {
--						list_safe_reset_next(page, page2, lru);
-+					if (!try_split_thp(page, &page2, from)) {
- 						nr_thp_split++;
- 						goto retry;
- 					}
-@@ -1500,7 +1530,7 @@ retry:
- 				break;
- 			default:
- 				/*
--				 * Permanent failure (-EBUSY, -ENOSYS, etc.):
-+				 * Permanent failure (-EBUSY, etc.):
- 				 * unlike -EAGAIN case, the failed page is
- 				 * removed from migration page list and not
- 				 * retried in the next outer loop.
+ 	new_page = alloc_pages_node(node,
+ 		(GFP_TRANSHUGE_LIGHT | __GFP_THISNODE),
+ 		HPAGE_PMD_ORDER);
+@@ -2255,6 +2268,7 @@ out_fail:
+ 
+ out_unlock:
+ 	unlock_page(page);
++out:
+ 	put_page(page);
+ 	return 0;
+ }
 _
