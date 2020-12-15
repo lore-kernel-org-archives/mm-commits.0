@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86081C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D8E5C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 520BD22D0B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E455D22D06
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727384AbgLOWVO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 17:21:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44854 "EHLO mail.kernel.org"
+        id S1729697AbgLOWVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 17:21:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728387AbgLOWVL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 17:21:11 -0500
-Date:   Tue, 15 Dec 2020 14:20:29 -0800
+        id S1729792AbgLOWVd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 17:21:33 -0500
+Date:   Tue, 15 Dec 2020 14:20:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608070830;
-        bh=yVxFEvuUVn3jmENrHzY0uWR+ELpuL33DI8lqyXbACNI=;
+        s=korg; t=1608070852;
+        bh=gxvTtWnSad0FaLs7/+b3NpyvCIteFLuV4/DnD865n8E=;
         h=From:To:Subject:In-Reply-To:From;
-        b=XjOnFjm8+p2j6VOU1qJ6GrWhqu/LB36bxRxSbdene1EaecS11Xj1utHM14g/pCjd0
-         /A+K81UMEvO/VQWvrqTjsR8Wq/fjadwq9+PDeuqVSJLeT2X/ZFDRW/UDuoSJLjN8Lz
-         8ezoORUZrY8XbYxlAB33EZ5beBiJrx9IIZVdhMtM=
+        b=pt/JJLnsEDpsw+81ZXGeyAinLLWtYDvO4ZwjS4rE6lR+tOsqDp3NDDWnnhx1oDc2L
+         Zq5lB9Ioj0Hzk6IsWsTc4jrQVMI9KAOanaOBDhKPhbR3wowgWa50in2OUUKjLm3pR+
+         +RxD3LxYuLv+PQkDht2ugWNST1SSj9eKsuBX32KM=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         alex.shi@linux.alibaba.com, alexander.duyck@gmail.com,
@@ -41,8 +41,8 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  [patch 05/19] mm/vmscan: remove unnecessary lruvec adding
-Message-ID: <20201215222029.OaXVyHWeX%akpm@linux-foundation.org>
+Subject:  [patch 10/19] mm/lru: move lock into lru_note_cost
+Message-ID: <20201215222050.WZsb-8EB6%akpm@linux-foundation.org>
 In-Reply-To: <20201215123253.954eca9a5ef4c0d52fd381fa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -54,31 +54,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove unnecessary lruvec adding
+Subject: mm/lru: move lock into lru_note_cost
 
-We don't have to add a freeable page into lru and then remove from it.=20
-This change saves a couple of actions and makes the moving more clear.
+We have to move lru_lock into lru_note_cost, since it cycle up on memcg
+tree, for future per lruvec lru_lock replace.  It's a bit ugly and may
+cost a bit more locking, but benefit from multiple memcg locking could
+cover the lost.
 
-The SetPageLRU needs to be kept before put_page_testzero for list
-integrity, otherwise:
-
-  #0 move_pages_to_lru             #1 release_pages
-  if !put_page_testzero
-     			           if (put_page_testzero())
-     			              !PageLRU //skip lru_lock
-     SetPageLRU()
-     list_add(&page->lru,)
-                                         list_add(&page->lru,)
-
-[akpm@linux-foundation.org: coding style fixes]
-Link: https://lkml.kernel.org/r/1604566549-62481-6-git-send-email-alex.shi@=
-linux.alibaba.com
+Link: https://lkml.kernel.org/r/1604566549-62481-11-git-send-email-alex.shi=
+@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -90,86 +78,80 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ mm/swap.c       |    3 +++
+ mm/vmscan.c     |    4 +---
+ mm/workingset.c |    2 --
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-unnecessary-lruvec-adding
+--- a/mm/swap.c~mm-lru-move-lock-into-lru_note_cost
++++ a/mm/swap.c
+@@ -268,7 +268,9 @@ void lru_note_cost(struct lruvec *lruvec
+ {
+ 	do {
+ 		unsigned long lrusize;
++		struct pglist_data *pgdat =3D lruvec_pgdat(lruvec);
+=20
++		spin_lock_irq(&pgdat->lru_lock);
+ 		/* Record cost event */
+ 		if (file)
+ 			lruvec->file_cost +=3D nr_pages;
+@@ -292,6 +294,7 @@ void lru_note_cost(struct lruvec *lruvec
+ 			lruvec->file_cost /=3D 2;
+ 			lruvec->anon_cost /=3D 2;
+ 		}
++		spin_unlock_irq(&pgdat->lru_lock);
+ 	} while ((lruvec =3D parent_lruvec(lruvec)));
+ }
+=20
+--- a/mm/vmscan.c~mm-lru-move-lock-into-lru_note_cost
 +++ a/mm/vmscan.c
-@@ -1851,26 +1851,30 @@ static unsigned noinline_for_stack move_
- 	while (!list_empty(list)) {
- 		page =3D lru_to_page(list);
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
-+		list_del(&page->lru);
- 		if (unlikely(!page_evictable(page))) {
--			list_del(&page->lru);
- 			spin_unlock_irq(&pgdat->lru_lock);
- 			putback_lru_page(page);
- 			spin_lock_irq(&pgdat->lru_lock);
- 			continue;
- 		}
--		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
+@@ -1971,19 +1971,17 @@ shrink_inactive_list(unsigned long nr_to
+ 	nr_reclaimed =3D shrink_page_list(&page_list, pgdat, sc, &stat, false);
 =20
-+		/*
-+		 * The SetPageLRU needs to be kept here for list integrity.
-+		 * Otherwise:
-+		 *   #0 move_pages_to_lru             #1 release_pages
-+		 *   if !put_page_testzero
-+		 *				      if (put_page_testzero())
-+		 *				        !PageLRU //skip lru_lock
-+		 *     SetPageLRU()
-+		 *     list_add(&page->lru,)
-+		 *                                        list_add(&page->lru,)
-+		 */
- 		SetPageLRU(page);
--		lru =3D page_lru(page);
-=20
--		nr_pages =3D thp_nr_pages(page);
--		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
--		list_move(&page->lru, &lruvec->lists[lru]);
+ 	spin_lock_irq(&pgdat->lru_lock);
 -
--		if (put_page_testzero(page)) {
-+		if (unlikely(put_page_testzero(page))) {
- 			__ClearPageLRU(page);
- 			__ClearPageActive(page);
--			del_page_from_lru_list(page, lruvec, lru);
+ 	move_pages_to_lru(lruvec, &page_list);
 =20
- 			if (unlikely(PageCompound(page))) {
- 				spin_unlock_irq(&pgdat->lru_lock);
-@@ -1878,11 +1882,19 @@ static unsigned noinline_for_stack move_
- 				spin_lock_irq(&pgdat->lru_lock);
- 			} else
- 				list_add(&page->lru, &pages_to_free);
--		} else {
--			nr_moved +=3D nr_pages;
--			if (PageActive(page))
--				workingset_age_nonresident(lruvec, nr_pages);
-+
-+			continue;
- 		}
-+
-+		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
-+		lru =3D page_lru(page);
-+		nr_pages =3D thp_nr_pages(page);
-+
-+		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
-+		list_add(&page->lru, &lruvec->lists[lru]);
-+		nr_moved +=3D nr_pages;
-+		if (PageActive(page))
-+			workingset_age_nonresident(lruvec, nr_pages);
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+-	lru_note_cost(lruvec, file, stat.nr_pageout);
+ 	item =3D current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
+ 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
+-
+ 	spin_unlock_irq(&pgdat->lru_lock);
+=20
++	lru_note_cost(lruvec, file, stat.nr_pageout);
+ 	mem_cgroup_uncharge_list(&page_list);
+ 	free_unref_page_list(&page_list);
+=20
+--- a/mm/workingset.c~mm-lru-move-lock-into-lru_note_cost
++++ a/mm/workingset.c
+@@ -381,9 +381,7 @@ void workingset_refault(struct page *pag
+ 	if (workingset) {
+ 		SetPageWorkingset(page);
+ 		/* XXX: Move to lru_cache_add() when it supports new vs putback */
+-		spin_lock_irq(&page_pgdat(page)->lru_lock);
+ 		lru_note_cost_page(page);
+-		spin_unlock_irq(&page_pgdat(page)->lru_lock);
+ 		inc_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file);
  	}
-=20
- 	/*
+ out:
 _
