@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B57C2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:12:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6E0C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:13:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D37F2206D6
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:12:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 245242065C
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 02:13:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726381AbgLOCMg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 21:12:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39948 "EHLO mail.kernel.org"
+        id S1726313AbgLOCNM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 21:13:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726313AbgLOCM1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 21:12:27 -0500
-Date:   Mon, 14 Dec 2020 18:11:45 -0800
+        id S1726291AbgLOCNF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 21:13:05 -0500
+Date:   Mon, 14 Dec 2020 18:12:24 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1607998306;
-        bh=5MzPm7rhlEqiB4FJFM1VD1gyvYU+CJkrfI/8FPDblTE=;
+        s=korg; t=1607998344;
+        bh=B1ercEv6VnRV592JZyzw90hl2DiFzCpV/7zDDMCIDnM=;
         h=From:To:Subject:From;
-        b=vEIGb6xQGkvLdIcu6O1OS/FmKGkCZVrROEJIrrbTEtj+ptVkrBww7Jg0vB3dnrDpP
-         uAYWqD7irma5OT0vpJYhCGCuA7sfPvzKMLIzp5SwPLTYf/Vb643aALqq0KKmT7iHhx
-         MqlZn7hpeAHs1kMsTZ6TJFDY26DJR2tc1KTjsYVY=
+        b=WjfGUmRaG0ZFkll0iFws4kAqXjgJH/iCUVj+QHkcJMgY+kGVAMseRoCSIgDfLWY6f
+         Sd0kvrWfC5k4GCz7HCoyxtWT9hFI56zP4dA7UQCM5HtGLI+RZxZiC1T1lm3o2Cff5D
+         B/7DJE2+eXLQTPT7ppHLifIlxYomxq2Sy/6jfyGs=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        pmladek@suse.com, Qiang.Zhang@windriver.com, tglx@linutronix.de,
-        tj@kernel.org
+To:     corbet@lwn.net, georgi.djakov@linaro.org, lmark@codeaurora.org,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  [folded-merged]
- kthread_worker-document-cpu-hotplug-handling-fix.patch removed from -mm
- tree
-Message-ID: <20201215021145.ZDQFDjQbJ%akpm@linux-foundation.org>
+ mm-page_owner-record-timestamp-and-pid-v3.patch removed from -mm tree
+Message-ID: <20201215021224.d01ILvql6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,79 +41,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread_worker-document-cpu-hotplug-handling-fix
+     Subject: mm-page_owner-record-timestamp-and-pid-v3
 has been removed from the -mm tree.  Its filename was
-     kthread_worker-document-cpu-hotplug-handling-fix.patch
+     mm-page_owner-record-timestamp-and-pid-v3.patch
 
-This patch was dropped because it was folded into kthread_worker-document-cpu-hotplug-handling.patch
+This patch was dropped because it was folded into mm-page_owner-record-timestamp-and-pid.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kthread_worker-document-cpu-hotplug-handling-fix
+From: Liam Mark <lmark@codeaurora.org>
+Subject: mm-page_owner-record-timestamp-and-pid-v3
 
-grammar tweaks
+- Fix the warnings in the documentation (reported in linux-next) and make
+  Sphinx happy:
+  Documentation/vm/page_owner.rst:44: WARNING: Literal block ends without a blank line; unexpected unindent.
+  Documentation/vm/page_owner.rst:49: WARNING: Literal block ends without a blank line; unexpected unindent.
 
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zhang Qiang <Qiang.Zhang@windriver.com>
+Link: https://lkml.kernel.org/r/20201210160357.27779-1-georgi.djakov@linaro.org
+Signed-off-by: Liam Mark <lmark@codeaurora.org>
+Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/vm/page_owner.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/kthread.c~kthread_worker-document-cpu-hotplug-handling-fix
-+++ a/kernel/kthread.c
-@@ -795,11 +795,11 @@ EXPORT_SYMBOL(kthread_create_worker);
-  *
-  * CPU hotplug:
-  * The kthread worker API is simple and generic. It just provides a way
-- * how to create, use, and destroy workers.
-+ * to create, use, and destroy workers.
-  *
-  * It is up to the API user how to handle CPU hotplug. They have to decide
-  * how to handle pending work items, prevent queuing new ones, and
-- * restore the functionality when the CPU goes off and on. There are
-+ * restore the functionality when the CPU goes off and on. There are a
-  * few catches:
-  *
-  *    - CPU affinity gets lost when it is scheduled on an offline CPU.
-@@ -807,8 +807,8 @@ EXPORT_SYMBOL(kthread_create_worker);
-  *    - The worker might not exist when the CPU was off when the user
-  *      created the workers.
-  *
-- * A good practice is to implement two CPU hotplug callbacks and
-- * destroy/create the worker when CPU goes down/up.
-+ * Good practice is to implement two CPU hotplug callbacks and to
-+ * destroy/create the worker when the CPU goes down/up.
-  *
-  * Return:
-  * The pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
+--- a/Documentation/vm/page_owner.rst~mm-page_owner-record-timestamp-and-pid-v3
++++ a/Documentation/vm/page_owner.rst
+@@ -41,12 +41,12 @@ size change due to this facility.
+ - Without page owner::
+ 
+    text    data     bss     dec     hex filename
+-  48392    2333     644   51369    c8a9 mm/page_alloc.o
++   48392   2333     644   51369    c8a9 mm/page_alloc.o
+ 
+ - With page owner::
+ 
+    text    data     bss     dec     hex filename
+-  48800    2445     644   51889    cab1 mm/page_alloc.o
++   48800   2445     644   51889    cab1 mm/page_alloc.o
+    6574     108      29    6711    1a37 mm/page_owner.o
+    1025       8       8    1041     411 mm/page_ext.o
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lmark@codeaurora.org are
 
-kthread_worker-document-cpu-hotplug-handling.patch
-mm-remove-the-unuseful-else-after-a-return-checkpatch-fixes.patch
-mm-prevent-gup_fast-from-racing-with-cow-during-fork-checkpatch-fixes.patch
-mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0-fix.patch
-mm-memcontrol-account-pagetables-per-node-fix.patch
-mm-vmallocc-__vmalloc_area_node-avoid-32-bit-overflow.patch
-mm-cma-improve-pr_debug-log-in-cma_release-fix.patch
-mm.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix.patch
-ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
-lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
-checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
-resource-fix-kernel-doc-markups-checkpatch-fixes.patch
-lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
-linux-next-rejects.patch
-kmap-stupid-hacks-to-make-it-compile.patch
-epoll-wire-up-syscall-epoll_pwait2-fix.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-page_owner-record-timestamp-and-pid.patch
 
