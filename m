@@ -2,119 +2,167 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0572C2BBCD
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:09:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D343AC2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:10:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5B4222B4B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:09:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A40B2255F
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:10:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726776AbgLODJV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:09:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36780 "EHLO mail.kernel.org"
+        id S1727425AbgLODKT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:10:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726760AbgLODJP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:09:15 -0500
-Date:   Mon, 14 Dec 2020 19:08:21 -0800
+        id S1727113AbgLODKM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:10:12 -0500
+Date:   Mon, 14 Dec 2020 19:08:38 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001703;
-        bh=6yeI54W6MW4NXm5Qm1URDF4jYYjXuDrkBSRoDB90qCo=;
+        s=korg; t=1608001720;
+        bh=zDajIUIj0ZtUTI3DK8MkA0fs/Bb9OzsR9gkVjb6hKwE=;
         h=From:To:Subject:In-Reply-To:From;
-        b=HWXi/1iz412fWsr9aZW5wLy1rYN6nlGUuSQnd7yWUCnEhTAYSoznIWL3iRvLqEeIm
-         NukYqrTN3enieXMvx7RlVbKYU2eqqdBbnNAYIxzIpN9iOykLsXf+uIE7XME9C+imFk
-         m7IWWcMlokI8+uU1lhCATynzwpPkv6o2DtendmCE=
+        b=TpTWU8nGBzTu8QWKwirIFyCDaR/57Tqb7zSuanP0LpPONGU8hWEoaX8UG6d5E6vr9
+         IvG9zC/X0Fk5j+c7uKNW+qGMNJF6VcA501DlcuOUr6kudP6VPGVSAfMNaMXmVyinoR
+         d6Jnm0Cv6aT0zdUaAfH0BZTnvVFuR99oMrJ5Fg8A=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bgeffon@google.com,
-        catalin.marinas@arm.com, dan.carpenter@oracle.com,
-        dan.j.williams@intel.com, dave.jiang@intel.com, dima@arista.com,
-        hughd@google.com, jgg@ziepe.ca, jhubbard@nvidia.com,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        linux@armlinux.org.uk, luto@kernel.org, mike.kravetz@oracle.com,
-        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, tglx@linutronix.de,
-        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
-        vbabka@suse.cz, viro@zeniv.linux.org.uk, vishal.l.verma@intel.com,
-        will@kernel.org
-Subject:  [patch 088/200] mremap: check if it's possible to split
- original vma
-Message-ID: <20201215030821.oEVfuwJC4%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bigeasy@linutronix.de, cai@lca.pw,
+        christian.koenig@amd.com, cl@linux.com, daniel.vetter@ffwll.ch,
+        daniel.vetter@intel.com, david@fromorbit.com,
+        iamjoonsoo.kim@lge.com, jgg@mellanox.com, jgg@nvidia.com,
+        linux-mm@kvack.org, longman@redhat.com,
+        maarten.lankhorst@linux.intel.com, mathieu.desnoyers@efficios.com,
+        mingo@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        paulmck@kernel.org, penberg@kernel.org, peterz@infradead.org,
+        rdunlap@infradead.org, rientjes@google.com, tglx@linutronix.de,
+        thomas_os@shipmail.org, torvalds@linux-foundation.org,
+        vbabka@suse.cz, walken@google.com, will@kernel.org,
+        willy@infradead.org
+Subject:  [patch 092/200] locking/selftests: add testcases for
+ fs_reclaim
+Message-ID: <20201215030838.ihuhrydKd%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dmitry Safonov <dima@arista.com>
-Subject: mremap: check if it's possible to split original vma
+=46rom: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: locking/selftests: add testcases for fs_reclaim
 
-If original VMA can't be split at the desired address, do_munmap() will
-fail and leave both new-copied VMA and old VMA.  De-facto it's
-MREMAP_DONTUNMAP behaviour, which is unexpected.
+Since I butchered this I figured better to make sure we have testcases for
+this now.  Since we only have a locking context for __GFP_FS that's the
+only thing we're testing right now.
 
-Currently, it may fail such way for hugetlbfs and dax device mappings.
-
-Minimize such unpleasant situations to OOM by checking .may_split() before
-attempting to create a VMA copy.
-
-Link: https://lkml.kernel.org/r/20201013013416.390574-6-dima@arista.com
-Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20201125162532.1299794-4-daniel.vetter@ffwl=
+l.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Thomas Hellstr=C3=B6m (Intel) <thomas_os@shipmail.org>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ lib/locking-selftest.c |   47 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
---- a/mm/mremap.c~mremap-check-if-its-possible-to-split-original-vma
-+++ a/mm/mremap.c
-@@ -493,7 +493,7 @@ static unsigned long move_vma(struct vm_
- 	unsigned long excess = 0;
- 	unsigned long hiwater_vm;
- 	int split = 0;
--	int err;
-+	int err = 0;
- 	bool need_rmap_locks;
- 
- 	/*
-@@ -503,6 +503,15 @@ static unsigned long move_vma(struct vm_
- 	if (mm->map_count >= sysctl_max_map_count - 3)
- 		return -ENOMEM;
- 
-+	if (vma->vm_ops && vma->vm_ops->may_split) {
-+		if (vma->vm_start != old_addr)
-+			err = vma->vm_ops->may_split(vma, old_addr);
-+		if (!err && vma->vm_end != old_addr + old_len)
-+			err = vma->vm_ops->may_split(vma, old_addr + old_len);
-+		if (err)
-+			return err;
-+	}
+--- a/lib/locking-selftest.c~locking-selftests-add-testcases-for-fs_reclaim
++++ a/lib/locking-selftest.c
+@@ -15,6 +15,7 @@
+ #include <linux/mutex.h>
+ #include <linux/ww_mutex.h>
+ #include <linux/sched.h>
++#include <linux/sched/mm.h>
+ #include <linux/delay.h>
+ #include <linux/lockdep.h>
+ #include <linux/spinlock.h>
+@@ -2357,6 +2358,50 @@ static void queued_read_lock_tests(void)
+ 	pr_cont("\n");
+ }
+=20
++static void fs_reclaim_correct_nesting(void)
++{
++	fs_reclaim_acquire(GFP_KERNEL);
++	might_alloc(GFP_NOFS);
++	fs_reclaim_release(GFP_KERNEL);
++}
 +
++static void fs_reclaim_wrong_nesting(void)
++{
++	fs_reclaim_acquire(GFP_KERNEL);
++	might_alloc(GFP_KERNEL);
++	fs_reclaim_release(GFP_KERNEL);
++}
++
++static void fs_reclaim_protected_nesting(void)
++{
++	unsigned int flags;
++
++	fs_reclaim_acquire(GFP_KERNEL);
++	flags =3D memalloc_nofs_save();
++	might_alloc(GFP_KERNEL);
++	memalloc_nofs_restore(flags);
++	fs_reclaim_release(GFP_KERNEL);
++}
++
++static void fs_reclaim_tests(void)
++{
++	printk("  --------------------\n");
++	printk("  | fs_reclaim tests |\n");
++	printk("  --------------------\n");
++
++	print_testname("correct nesting");
++	dotest(fs_reclaim_correct_nesting, SUCCESS, 0);
++	pr_cont("\n");
++
++	print_testname("wrong nesting");
++	dotest(fs_reclaim_wrong_nesting, FAILURE, 0);
++	pr_cont("\n");
++
++	print_testname("protected nesting");
++	dotest(fs_reclaim_protected_nesting, SUCCESS, 0);
++	pr_cont("\n");
++}
++
+ void locking_selftest(void)
+ {
  	/*
- 	 * Advise KSM to break any KSM pages in the area to be moved:
- 	 * it would be confusing if they were to turn up at the new
+@@ -2478,6 +2523,8 @@ void locking_selftest(void)
+ 	if (IS_ENABLED(CONFIG_QUEUED_RWLOCKS))
+ 		queued_read_lock_tests();
+=20
++	fs_reclaim_tests();
++
+ 	if (unexpected_testcase_failures) {
+ 		printk("----------------------------------------------------------------=
+-\n");
+ 		debug_locks =3D 0;
 _
