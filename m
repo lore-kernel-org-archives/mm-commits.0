@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C757C4743F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78744C47436
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F37922D6E
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 634E122DD6
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726638AbgLOX77 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34562 "EHLO mail.kernel.org"
+        id S1726929AbgLOX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727368AbgLOX0l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:41 -0500
-Date:   Tue, 15 Dec 2020 15:17:11 -0800
+        id S1729874AbgLOX0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:26:08 -0500
+Date:   Tue, 15 Dec 2020 15:17:21 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074231;
-        bh=hDfhl6ZJwX8Cv+WcSnRSZ7QkCdXH01yMsVfxlKEFCrQ=;
+        s=korg; t=1608074241;
+        bh=/ley1g4JuGCdy9rN/Pc38ppQwsSGUTjdhTJcZ0YoymE=;
         h=From:To:Subject:From;
-        b=Myr5yQtpSFVLyvs3vHWvhUUUtw6r7f3WYXqk7PknWfhxWQNfNBu3Nk0jZqOQcIpeo
-         SWakdt8OMZG4xPdmP05hoWUNrI5EdPBA9Ap7fgLOvG4JYC9Q/KvTfl0SnKUTssOhfe
-         EAgwweYAReNfZvvpVqm/qZwxtRNkLtDURf3Qp3gg=
+        b=T6xf2aS/P5OL+2RsoubcmZaH3bYb7A4mUlzjnDd+LXLnwr35hCtN2lDUoGakEhktE
+         1/puhLAfWf/3o1r3d6XwSIPVvs9fVJZBTSJcl5/npzUziekpiACZJ6XJ9ZOBOd6Hxz
+         ioNOW3dAnnOgkpxO/dl9qr1Jt/9rzOWV+00tf+eU=
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, jglisse@redhat.com, jhubbard@nvidia.com,
         mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
-Subject:  [merged] mm-gup_benchmark-rename-to-mm-gup_test.patch
- removed from -mm tree
-Message-ID: <20201215231711.fhkvzvxKw%akpm@linux-foundation.org>
+Subject:  [merged]
+ selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch removed
+ from -mm tree
+Message-ID: <20201215231721.-hPVVM8Q5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -44,964 +45,200 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup_benchmark: rename to mm/gup_test
+     Subject: selftests/vm: hmm-tests: remove the libhugetlbfs dependency
 has been removed from the -mm tree.  Its filename was
-     mm-gup_benchmark-rename-to-mm-gup_test.patch
+     selftests-vm-hmm-tests-remove-the-libhugetlbfs-dependency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup_benchmark: rename to mm/gup_test
+Subject: selftests/vm: hmm-tests: remove the libhugetlbfs dependency
 
-Patch series "selftests/vm: gup_test, hmm-tests, assorted improvements", v3.
+HMM selftests are incredibly useful, but they are only effective if people
+actually build and run them.  All the other tests in selftests/vm can be
+built with very standard, always-available libraries: libpthread, librt.
+The hmm-tests.c program, on the other hand, requires something that is
+(much) less readily available: libhugetlbfs.  And so the build will
+typically fail for many developers.
 
-Summary: This series provides two main things, and a number of smaller
-supporting goodies.  The two main points are:
+A simple attempt to install libhugetlbfs will also run into complications
+on some common distros these days: Fedora and Arch Linux (yes, Arch AUR
+has it, but that's fragile, as always with AUR).  The library is not
+maintained actively enough at the moment, for distros to deal with it.  I
+had to build it from source, for Fedora, and that didn't go too smoothly
+either.
 
-1) Add a new sub-test to gup_test, which in turn is a renamed version
-   of gup_benchmark.  This sub-test allows nicer testing of dump_pages(),
-   at least on user-space pages.
+It turns out that, out of 21 tests in hmm-tests.c, only 2 actually require
+functionality from libhugetlbfs.  Therefore, if libhugetlbfs is missing,
+simply ifdef those two tests out and allow the developer to at least have
+the other 19 tests, if they don't want to pause to work through the above
+issues.  Also issue a warning, so that it's clear that there is an
+imperfection in the build.
 
-   For quite a while, I was doing a quick hack to gup_test.c whenever I
-   wanted to try out changes to dump_page().  Then Matthew Wilcox asked me
-   what I meant when I said "I used my dump_page() unit test", and I
-   realized that it might be nice to check in a polished up version of
-   that.
+In order to do that, a tiny shell script (check_config.sh) runs a quick
+compile (not link, that's too prone to false failures with library paths),
+and basically, if the compiler doesn't find hugetlbfs.h in its standard
+locations, then the script concludes that libhugetlbfs is not available.
+The output is in two files, one for inclusion in hmm-test.c
+(local_config.h), and one for inclusion in the Makefile (local_config.mk).
 
-   Details about how it works and how to use it are in the commit
-   description for patch #6 ("selftests/vm: gup_test: introduce the
-   dump_pages() sub-test").
-
-2) Fixes a limitation of hmm-tests: these tests are incredibly useful,
-   but only if people actually build and run them.  And it turns out that
-   libhugetlbfs is a little too effective at throwing a wrench in the
-   works, there.  So I've added a little configuration check that removes
-   just two of the 21 hmm-tests, if libhugetlbfs is not available.
-
-   Further details in the commit description of patch #8
-   ("selftests/vm: hmm-tests: remove the libhugetlbfs dependency").
-
-Other smaller things that this series does:
-
-a) Remove code duplication by creating gup_test.h.
-
-b) Clear up the sub-test organization, and their invocation within
-   run_vmtests.sh.
-
-c) Other minor assorted improvements.
-
-[1] v2 is here:
-https://lore.kernel.org/linux-doc/20200929212747.251804-1-jhubbard@nvidia.c=
-om/
-
-[2] https://lore.kernel.org/r/CAHk-=3Dwgh-TMPHLY3jueHX7Y2fWh3D+nMBqVS__AZm6=
--oorquWA@mail.gmail.com
-
-
-This patch (of 9):
-
-Rename nearly every "gup_benchmark" reference and file name to "gup_test".
-The one exception is for the actual gup benchmark test itself.
-
-The current code already does a *little* bit more than benchmarking, and
-definitely covers more than get_user_pages_fast().  More importantly,
-however, subsequent patches are about to add some functionality that is
-non-benchmark related.
-
-Closely related changes:
-
-* Kconfig: in addition to renaming the options from GUP_BENCHMARK to
-  GUP_TEST, update the help text to reflect that it's no longer a
-  benchmark-only test.
-
-Link: https://lkml.kernel.org/r/20201026064021.3545418-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20201026064021.3545418-2-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20201026064021.3545418-9-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst  |    6=20
- arch/s390/configs/debug_defconfig          |    2=20
- arch/s390/configs/defconfig                |    2=20
- mm/Kconfig                                 |   15 -
- mm/Makefile                                |    2=20
- mm/gup_benchmark.c                         |  210 -------------------
- mm/gup_test.c                              |  210 +++++++++++++++++++
- tools/testing/selftests/vm/.gitignore      |    2=20
- tools/testing/selftests/vm/Makefile        |    2=20
- tools/testing/selftests/vm/config          |    2=20
- tools/testing/selftests/vm/gup_benchmark.c |  143 ------------
- tools/testing/selftests/vm/gup_test.c      |  143 ++++++++++++
- tools/testing/selftests/vm/run_vmtests     |    8=20
- 13 files changed, 376 insertions(+), 371 deletions(-)
+ tools/testing/selftests/vm/.gitignore      |    1=20
+ tools/testing/selftests/vm/Makefile        |   24 +++++++++++++-
+ tools/testing/selftests/vm/check_config.sh |   31 +++++++++++++++++++
+ tools/testing/selftests/vm/hmm-tests.c     |   10 +++++-
+ 4 files changed, 63 insertions(+), 3 deletions(-)
 
---- a/arch/s390/configs/debug_defconfig~mm-gup_benchmark-rename-to-mm-gup_t=
-est
-+++ a/arch/s390/configs/debug_defconfig
-@@ -102,7 +102,7 @@ CONFIG_ZSMALLOC_STAT=3Dy
- CONFIG_DEFERRED_STRUCT_PAGE_INIT=3Dy
- CONFIG_IDLE_PAGE_TRACKING=3Dy
- CONFIG_PERCPU_STATS=3Dy
--CONFIG_GUP_BENCHMARK=3Dy
-+CONFIG_GUP_TEST=3Dy
- CONFIG_NET=3Dy
- CONFIG_PACKET=3Dy
- CONFIG_PACKET_DIAG=3Dm
---- a/arch/s390/configs/defconfig~mm-gup_benchmark-rename-to-mm-gup_test
-+++ a/arch/s390/configs/defconfig
-@@ -95,7 +95,7 @@ CONFIG_ZSMALLOC_STAT=3Dy
- CONFIG_DEFERRED_STRUCT_PAGE_INIT=3Dy
- CONFIG_IDLE_PAGE_TRACKING=3Dy
- CONFIG_PERCPU_STATS=3Dy
--CONFIG_GUP_BENCHMARK=3Dy
-+CONFIG_GUP_TEST=3Dy
- CONFIG_NET=3Dy
- CONFIG_PACKET=3Dy
- CONFIG_PACKET_DIAG=3Dm
---- a/Documentation/core-api/pin_user_pages.rst~mm-gup_benchmark-rename-to-=
-mm-gup_test
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -221,12 +221,12 @@ Unit testing
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
- This file::
-=20
-- tools/testing/selftests/vm/gup_benchmark.c
-+ tools/testing/selftests/vm/gup_test.c
-=20
- has the following new calls to exercise the new pin*() wrapper functions:
-=20
--* PIN_FAST_BENCHMARK (./gup_benchmark -a)
--* PIN_BENCHMARK (./gup_benchmark -b)
-+* PIN_FAST_BENCHMARK (./gup_test -a)
-+* PIN_BENCHMARK (./gup_test -b)
-=20
- You can monitor how many total dma-pinned pages have been acquired and rel=
-eased
- since the system was booted, via two new /proc/vmstat entries: ::
---- a/mm/gup_benchmark.c
-+++ /dev/null
-@@ -1,210 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/mm.h>
--#include <linux/slab.h>
--#include <linux/uaccess.h>
--#include <linux/ktime.h>
--#include <linux/debugfs.h>
--
--#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_benchmark)
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_benchmark)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_benchmark)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
--
--struct gup_benchmark {
--	__u64 get_delta_usec;
--	__u64 put_delta_usec;
--	__u64 addr;
--	__u64 size;
--	__u32 nr_pages_per_call;
--	__u32 flags;
--	__u64 expansion[10];	/* For future use */
--};
--
--static void put_back_pages(unsigned int cmd, struct page **pages,
--			   unsigned long nr_pages)
--{
--	unsigned long i;
--
--	switch (cmd) {
--	case GUP_FAST_BENCHMARK:
--	case GUP_BENCHMARK:
--		for (i =3D 0; i < nr_pages; i++)
--			put_page(pages[i]);
--		break;
--
--	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
--	case PIN_LONGTERM_BENCHMARK:
--		unpin_user_pages(pages, nr_pages);
--		break;
--	}
--}
--
--static void verify_dma_pinned(unsigned int cmd, struct page **pages,
--			      unsigned long nr_pages)
--{
--	unsigned long i;
--	struct page *page;
--
--	switch (cmd) {
--	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
--	case PIN_LONGTERM_BENCHMARK:
--		for (i =3D 0; i < nr_pages; i++) {
--			page =3D pages[i];
--			if (WARN(!page_maybe_dma_pinned(page),
--				 "pages[%lu] is NOT dma-pinned\n", i)) {
--
--				dump_page(page, "gup_benchmark failure");
--				break;
--			}
--		}
--		break;
--	}
--}
--
--static int __gup_benchmark_ioctl(unsigned int cmd,
--		struct gup_benchmark *gup)
--{
--	ktime_t start_time, end_time;
--	unsigned long i, nr_pages, addr, next;
--	int nr;
--	struct page **pages;
--	int ret =3D 0;
--	bool needs_mmap_lock =3D
--		cmd !=3D GUP_FAST_BENCHMARK && cmd !=3D PIN_FAST_BENCHMARK;
--
--	if (gup->size > ULONG_MAX)
--		return -EINVAL;
--
--	nr_pages =3D gup->size / PAGE_SIZE;
--	pages =3D kvcalloc(nr_pages, sizeof(void *), GFP_KERNEL);
--	if (!pages)
--		return -ENOMEM;
--
--	if (needs_mmap_lock && mmap_read_lock_killable(current->mm)) {
--		ret =3D -EINTR;
--		goto free_pages;
--	}
--
--	i =3D 0;
--	nr =3D gup->nr_pages_per_call;
--	start_time =3D ktime_get();
--	for (addr =3D gup->addr; addr < gup->addr + gup->size; addr =3D next) {
--		if (nr !=3D gup->nr_pages_per_call)
--			break;
--
--		next =3D addr + nr * PAGE_SIZE;
--		if (next > gup->addr + gup->size) {
--			next =3D gup->addr + gup->size;
--			nr =3D (next - addr) / PAGE_SIZE;
--		}
--
--		/* Filter out most gup flags: only allow a tiny subset here: */
--		gup->flags &=3D FOLL_WRITE;
--
--		switch (cmd) {
--		case GUP_FAST_BENCHMARK:
--			nr =3D get_user_pages_fast(addr, nr, gup->flags,
--						 pages + i);
--			break;
--		case GUP_BENCHMARK:
--			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
--					    NULL);
--			break;
--		case PIN_FAST_BENCHMARK:
--			nr =3D pin_user_pages_fast(addr, nr, gup->flags,
--						 pages + i);
--			break;
--		case PIN_BENCHMARK:
--			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
--					    NULL);
--			break;
--		case PIN_LONGTERM_BENCHMARK:
--			nr =3D pin_user_pages(addr, nr,
--					    gup->flags | FOLL_LONGTERM,
--					    pages + i, NULL);
--			break;
--		default:
--			ret =3D -EINVAL;
--			goto unlock;
--		}
--
--		if (nr <=3D 0)
--			break;
--		i +=3D nr;
--	}
--	end_time =3D ktime_get();
--
--	/* Shifting the meaning of nr_pages: now it is actual number pinned: */
--	nr_pages =3D i;
--
--	gup->get_delta_usec =3D ktime_us_delta(end_time, start_time);
--	gup->size =3D addr - gup->addr;
--
--	/*
--	 * Take an un-benchmark-timed moment to verify DMA pinned
--	 * state: print a warning if any non-dma-pinned pages are found:
--	 */
--	verify_dma_pinned(cmd, pages, nr_pages);
--
--	start_time =3D ktime_get();
--
--	put_back_pages(cmd, pages, nr_pages);
--
--	end_time =3D ktime_get();
--	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
--
--unlock:
--	if (needs_mmap_lock)
--		mmap_read_unlock(current->mm);
--free_pages:
--	kvfree(pages);
--	return ret;
--}
--
--static long gup_benchmark_ioctl(struct file *filep, unsigned int cmd,
--		unsigned long arg)
--{
--	struct gup_benchmark gup;
--	int ret;
--
--	switch (cmd) {
--	case GUP_FAST_BENCHMARK:
--	case GUP_BENCHMARK:
--	case PIN_FAST_BENCHMARK:
--	case PIN_BENCHMARK:
--	case PIN_LONGTERM_BENCHMARK:
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	if (copy_from_user(&gup, (void __user *)arg, sizeof(gup)))
--		return -EFAULT;
--
--	ret =3D __gup_benchmark_ioctl(cmd, &gup);
--	if (ret)
--		return ret;
--
--	if (copy_to_user((void __user *)arg, &gup, sizeof(gup)))
--		return -EFAULT;
--
--	return 0;
--}
--
--static const struct file_operations gup_benchmark_fops =3D {
--	.open =3D nonseekable_open,
--	.unlocked_ioctl =3D gup_benchmark_ioctl,
--};
--
--static int gup_benchmark_init(void)
--{
--	debugfs_create_file_unsafe("gup_benchmark", 0600, NULL, NULL,
--				   &gup_benchmark_fops);
--
--	return 0;
--}
--
--late_initcall(gup_benchmark_init);
 --- /dev/null
-+++ a/mm/gup_test.c
-@@ -0,0 +1,210 @@
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+#include <linux/ktime.h>
-+#include <linux/debugfs.h>
++++ a/tools/testing/selftests/vm/check_config.sh
+@@ -0,0 +1,31 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-2.0
++#
++# Probe for libraries and create header files to record the results. Both C
++# header files and Makefile include fragments are created.
 +
-+#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
-+#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
-+#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
++OUTPUT_H_FILE=3Dlocal_config.h
++OUTPUT_MKFILE=3Dlocal_config.mk
 +
-+struct gup_test {
-+	__u64 get_delta_usec;
-+	__u64 put_delta_usec;
-+	__u64 addr;
-+	__u64 size;
-+	__u32 nr_pages_per_call;
-+	__u32 flags;
-+	__u64 expansion[10];	/* For future use */
-+};
++# libhugetlbfs
++tmpname=3D$(mktemp)
++tmpfile_c=3D${tmpname}.c
++tmpfile_o=3D${tmpname}.o
 +
-+static void put_back_pages(unsigned int cmd, struct page **pages,
-+			   unsigned long nr_pages)
-+{
-+	unsigned long i;
++echo "#include <sys/types.h>"        > $tmpfile_c
++echo "#include <hugetlbfs.h>"       >> $tmpfile_c
++echo "int func(void) { return 0; }" >> $tmpfile_c
 +
-+	switch (cmd) {
-+	case GUP_FAST_BENCHMARK:
-+	case GUP_BENCHMARK:
-+		for (i =3D 0; i < nr_pages; i++)
-+			put_page(pages[i]);
-+		break;
++CC=3D${1:?"Usage: $0 <compiler> # example compiler: gcc"}
++$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
 +
-+	case PIN_FAST_BENCHMARK:
-+	case PIN_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
-+		unpin_user_pages(pages, nr_pages);
-+		break;
-+	}
-+}
++if [ -f $tmpfile_o ]; then
++    echo "#define LOCAL_CONFIG_HAVE_LIBHUGETLBFS 1" > $OUTPUT_H_FILE
++    echo "HMM_EXTRA_LIBS =3D -lhugetlbfs"             > $OUTPUT_MKFILE
++else
++    echo "// No libhugetlbfs support found"      > $OUTPUT_H_FILE
++    echo "# No libhugetlbfs support found, so:"  > $OUTPUT_MKFILE
++    echo "HMM_EXTRA_LIBS =3D "                    >> $OUTPUT_MKFILE
++fi
 +
-+static void verify_dma_pinned(unsigned int cmd, struct page **pages,
-+			      unsigned long nr_pages)
-+{
-+	unsigned long i;
-+	struct page *page;
-+
-+	switch (cmd) {
-+	case PIN_FAST_BENCHMARK:
-+	case PIN_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
-+		for (i =3D 0; i < nr_pages; i++) {
-+			page =3D pages[i];
-+			if (WARN(!page_maybe_dma_pinned(page),
-+				 "pages[%lu] is NOT dma-pinned\n", i)) {
-+
-+				dump_page(page, "gup_test failure");
-+				break;
-+			}
-+		}
-+		break;
-+	}
-+}
-+
-+static int __gup_test_ioctl(unsigned int cmd,
-+		struct gup_test *gup)
-+{
-+	ktime_t start_time, end_time;
-+	unsigned long i, nr_pages, addr, next;
-+	int nr;
-+	struct page **pages;
-+	int ret =3D 0;
-+	bool needs_mmap_lock =3D
-+		cmd !=3D GUP_FAST_BENCHMARK && cmd !=3D PIN_FAST_BENCHMARK;
-+
-+	if (gup->size > ULONG_MAX)
-+		return -EINVAL;
-+
-+	nr_pages =3D gup->size / PAGE_SIZE;
-+	pages =3D kvcalloc(nr_pages, sizeof(void *), GFP_KERNEL);
-+	if (!pages)
-+		return -ENOMEM;
-+
-+	if (needs_mmap_lock && mmap_read_lock_killable(current->mm)) {
-+		ret =3D -EINTR;
-+		goto free_pages;
-+	}
-+
-+	i =3D 0;
-+	nr =3D gup->nr_pages_per_call;
-+	start_time =3D ktime_get();
-+	for (addr =3D gup->addr; addr < gup->addr + gup->size; addr =3D next) {
-+		if (nr !=3D gup->nr_pages_per_call)
-+			break;
-+
-+		next =3D addr + nr * PAGE_SIZE;
-+		if (next > gup->addr + gup->size) {
-+			next =3D gup->addr + gup->size;
-+			nr =3D (next - addr) / PAGE_SIZE;
-+		}
-+
-+		/* Filter out most gup flags: only allow a tiny subset here: */
-+		gup->flags &=3D FOLL_WRITE;
-+
-+		switch (cmd) {
-+		case GUP_FAST_BENCHMARK:
-+			nr =3D get_user_pages_fast(addr, nr, gup->flags,
-+						 pages + i);
-+			break;
-+		case GUP_BENCHMARK:
-+			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
-+					    NULL);
-+			break;
-+		case PIN_FAST_BENCHMARK:
-+			nr =3D pin_user_pages_fast(addr, nr, gup->flags,
-+						 pages + i);
-+			break;
-+		case PIN_BENCHMARK:
-+			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
-+					    NULL);
-+			break;
-+		case PIN_LONGTERM_BENCHMARK:
-+			nr =3D pin_user_pages(addr, nr,
-+					    gup->flags | FOLL_LONGTERM,
-+					    pages + i, NULL);
-+			break;
-+		default:
-+			ret =3D -EINVAL;
-+			goto unlock;
-+		}
-+
-+		if (nr <=3D 0)
-+			break;
-+		i +=3D nr;
-+	}
-+	end_time =3D ktime_get();
-+
-+	/* Shifting the meaning of nr_pages: now it is actual number pinned: */
-+	nr_pages =3D i;
-+
-+	gup->get_delta_usec =3D ktime_us_delta(end_time, start_time);
-+	gup->size =3D addr - gup->addr;
-+
-+	/*
-+	 * Take an un-benchmark-timed moment to verify DMA pinned
-+	 * state: print a warning if any non-dma-pinned pages are found:
-+	 */
-+	verify_dma_pinned(cmd, pages, nr_pages);
-+
-+	start_time =3D ktime_get();
-+
-+	put_back_pages(cmd, pages, nr_pages);
-+
-+	end_time =3D ktime_get();
-+	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
-+
-+unlock:
-+	if (needs_mmap_lock)
-+		mmap_read_unlock(current->mm);
-+free_pages:
-+	kvfree(pages);
-+	return ret;
-+}
-+
-+static long gup_test_ioctl(struct file *filep, unsigned int cmd,
-+		unsigned long arg)
-+{
-+	struct gup_test gup;
-+	int ret;
-+
-+	switch (cmd) {
-+	case GUP_FAST_BENCHMARK:
-+	case GUP_BENCHMARK:
-+	case PIN_FAST_BENCHMARK:
-+	case PIN_BENCHMARK:
-+	case PIN_LONGTERM_BENCHMARK:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (copy_from_user(&gup, (void __user *)arg, sizeof(gup)))
-+		return -EFAULT;
-+
-+	ret =3D __gup_test_ioctl(cmd, &gup);
-+	if (ret)
-+		return ret;
-+
-+	if (copy_to_user((void __user *)arg, &gup, sizeof(gup)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static const struct file_operations gup_test_fops =3D {
-+	.open =3D nonseekable_open,
-+	.unlocked_ioctl =3D gup_test_ioctl,
-+};
-+
-+static int gup_test_init(void)
-+{
-+	debugfs_create_file_unsafe("gup_test", 0600, NULL, NULL,
-+				   &gup_test_fops);
-+
-+	return 0;
-+}
-+
-+late_initcall(gup_test_init);
---- a/mm/Kconfig~mm-gup_benchmark-rename-to-mm-gup_test
-+++ a/mm/Kconfig
-@@ -821,13 +821,18 @@ config PERCPU_STATS
- 	  information includes global and per chunk statistics, which can
- 	  be used to help understand percpu memory usage.
-=20
--config GUP_BENCHMARK
--	bool "Enable infrastructure for get_user_pages() and related calls benchm=
-arking"
-+config GUP_TEST
-+	bool "Enable infrastructure for get_user_pages()-related unit tests"
- 	help
--	  Provides /sys/kernel/debug/gup_benchmark that helps with testing
--	  performance of get_user_pages() and related calls.
-+	  Provides /sys/kernel/debug/gup_test, which in turn provides a way
-+	  to make ioctl calls that can launch kernel-based unit tests for
-+	  the get_user_pages*() and pin_user_pages*() family of API calls.
-=20
--	  See tools/testing/selftests/vm/gup_benchmark.c
-+	  These tests include benchmark testing of the _fast variants of
-+	  get_user_pages*() and pin_user_pages*(), as well as smoke tests of
-+	  the non-_fast variants.
-+
-+	  See tools/testing/selftests/vm/gup_test.c
-=20
- config GUP_GET_PTE_LOW_HIGH
- 	bool
---- a/mm/Makefile~mm-gup_benchmark-rename-to-mm-gup_test
-+++ a/mm/Makefile
-@@ -90,7 +90,7 @@ obj-$(CONFIG_PAGE_COUNTER) +=3D page_count
- obj-$(CONFIG_MEMCG) +=3D memcontrol.o vmpressure.o
- obj-$(CONFIG_MEMCG_SWAP) +=3D swap_cgroup.o
- obj-$(CONFIG_CGROUP_HUGETLB) +=3D hugetlb_cgroup.o
--obj-$(CONFIG_GUP_BENCHMARK) +=3D gup_benchmark.o
-+obj-$(CONFIG_GUP_TEST) +=3D gup_test.o
- obj-$(CONFIG_MEMORY_FAILURE) +=3D memory-failure.o
- obj-$(CONFIG_HWPOISON_INJECT) +=3D hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) +=3D kmemleak.o
---- a/tools/testing/selftests/vm/config~mm-gup_benchmark-rename-to-mm-gup_t=
-est
-+++ a/tools/testing/selftests/vm/config
-@@ -3,4 +3,4 @@ CONFIG_USERFAULTFD=3Dy
- CONFIG_TEST_VMALLOC=3Dm
- CONFIG_DEVICE_PRIVATE=3Dy
- CONFIG_TEST_HMM=3Dm
--CONFIG_GUP_BENCHMARK=3Dy
-+CONFIG_GUP_TEST=3Dy
---- a/tools/testing/selftests/vm/.gitignore~mm-gup_benchmark-rename-to-mm-g=
-up_test
++rm ${tmpname}.*
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-hmm-tests-remove-t=
+he-libhugetlbfs-dependency
 +++ a/tools/testing/selftests/vm/.gitignore
-@@ -15,7 +15,7 @@ userfaultfd
- mlock-intersect-test
- mlock-random-test
- virtual_address_range
--gup_benchmark
-+gup_test
- va_128TBswitch
+@@ -20,3 +20,4 @@ va_128TBswitch
  map_fixed_noreplace
  write_to_hugetlbfs
---- a/tools/testing/selftests/vm/gup_benchmark.c
-+++ /dev/null
-@@ -1,143 +0,0 @@
--#include <fcntl.h>
--#include <stdio.h>
--#include <stdlib.h>
--#include <unistd.h>
--
--#include <sys/ioctl.h>
--#include <sys/mman.h>
--#include <sys/prctl.h>
--#include <sys/stat.h>
--#include <sys/types.h>
--
--#include <linux/types.h>
--
--#define MB (1UL << 20)
--#define PAGE_SIZE sysconf(_SC_PAGESIZE)
--
--#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
--#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_benchmark)
--
--/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
--#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_benchmark)
--#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_benchmark)
--#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_benchmark)
--
--/* Just the flags we need, copied from mm.h: */
--#define FOLL_WRITE	0x01	/* check pte is writable */
--
--struct gup_benchmark {
--	__u64 get_delta_usec;
--	__u64 put_delta_usec;
--	__u64 addr;
--	__u64 size;
--	__u32 nr_pages_per_call;
--	__u32 flags;
--	__u64 expansion[10];	/* For future use */
--};
--
--int main(int argc, char **argv)
--{
--	struct gup_benchmark gup;
--	unsigned long size =3D 128 * MB;
--	int i, fd, filed, opt, nr_pages =3D 1, thp =3D -1, repeats =3D 1, write =
-=3D 0;
--	int cmd =3D GUP_FAST_BENCHMARK, flags =3D MAP_PRIVATE;
--	char *file =3D "/dev/zero";
--	char *p;
--
--	while ((opt =3D getopt(argc, argv, "m:r:n:f:abtTLUuwSH")) !=3D -1) {
--		switch (opt) {
--		case 'a':
--			cmd =3D PIN_FAST_BENCHMARK;
--			break;
--		case 'b':
--			cmd =3D PIN_BENCHMARK;
--			break;
--		case 'L':
--			cmd =3D PIN_LONGTERM_BENCHMARK;
--			break;
--		case 'm':
--			size =3D atoi(optarg) * MB;
--			break;
--		case 'r':
--			repeats =3D atoi(optarg);
--			break;
--		case 'n':
--			nr_pages =3D atoi(optarg);
--			break;
--		case 't':
--			thp =3D 1;
--			break;
--		case 'T':
--			thp =3D 0;
--			break;
--		case 'U':
--			cmd =3D GUP_BENCHMARK;
--			break;
--		case 'u':
--			cmd =3D GUP_FAST_BENCHMARK;
--			break;
--		case 'w':
--			write =3D 1;
--			break;
--		case 'f':
--			file =3D optarg;
--			break;
--		case 'S':
--			flags &=3D ~MAP_PRIVATE;
--			flags |=3D MAP_SHARED;
--			break;
--		case 'H':
--			flags |=3D (MAP_HUGETLB | MAP_ANONYMOUS);
--			break;
--		default:
--			return -1;
--		}
--	}
--
--	filed =3D open(file, O_RDWR|O_CREAT);
--	if (filed < 0) {
--		perror("open");
--		exit(filed);
--	}
--
--	gup.nr_pages_per_call =3D nr_pages;
--	if (write)
--		gup.flags |=3D FOLL_WRITE;
--
--	fd =3D open("/sys/kernel/debug/gup_benchmark", O_RDWR);
--	if (fd =3D=3D -1) {
--		perror("open");
--		exit(1);
--	}
--
--	p =3D mmap(NULL, size, PROT_READ | PROT_WRITE, flags, filed, 0);
--	if (p =3D=3D MAP_FAILED) {
--		perror("mmap");
--		exit(1);
--	}
--	gup.addr =3D (unsigned long)p;
--
--	if (thp =3D=3D 1)
--		madvise(p, size, MADV_HUGEPAGE);
--	else if (thp =3D=3D 0)
--		madvise(p, size, MADV_NOHUGEPAGE);
--
--	for (; (unsigned long)p < gup.addr + size; p +=3D PAGE_SIZE)
--		p[0] =3D 0;
--
--	for (i =3D 0; i < repeats; i++) {
--		gup.size =3D size;
--		if (ioctl(fd, cmd, &gup)) {
--			perror("ioctl");
--			exit(1);
--		}
--
--		printf("Time: get:%lld put:%lld us", gup.get_delta_usec,
--			gup.put_delta_usec);
--		if (gup.size !=3D size)
--			printf(", truncated (size: %lld)", gup.size);
--		printf("\n");
--	}
--
--	return 0;
--}
---- /dev/null
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -0,0 +1,143 @@
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
+ hmm-tests
++local_config.*
+--- a/tools/testing/selftests/vm/hmm-tests.c~selftests-vm-hmm-tests-remove-=
+the-libhugetlbfs-dependency
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -21,12 +21,16 @@
+ #include <strings.h>
+ #include <time.h>
+ #include <pthread.h>
+-#include <hugetlbfs.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/mman.h>
+ #include <sys/ioctl.h>
+=20
++#include "./local_config.h"
++#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
++#include <hugetlbfs.h>
++#endif
 +
-+#include <sys/ioctl.h>
-+#include <sys/mman.h>
-+#include <sys/prctl.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+
-+#include <linux/types.h>
-+
-+#define MB (1UL << 20)
-+#define PAGE_SIZE sysconf(_SC_PAGESIZE)
-+
-+#define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_test)
-+#define GUP_BENCHMARK		_IOWR('g', 2, struct gup_test)
-+
-+/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
-+#define PIN_FAST_BENCHMARK	_IOWR('g', 3, struct gup_test)
-+#define PIN_BENCHMARK		_IOWR('g', 4, struct gup_test)
-+#define PIN_LONGTERM_BENCHMARK	_IOWR('g', 5, struct gup_test)
-+
-+/* Just the flags we need, copied from mm.h: */
-+#define FOLL_WRITE	0x01	/* check pte is writable */
-+
-+struct gup_test {
-+	__u64 get_delta_usec;
-+	__u64 put_delta_usec;
-+	__u64 addr;
-+	__u64 size;
-+	__u32 nr_pages_per_call;
-+	__u32 flags;
-+	__u64 expansion[10];	/* For future use */
-+};
-+
-+int main(int argc, char **argv)
-+{
-+	struct gup_test gup;
-+	unsigned long size =3D 128 * MB;
-+	int i, fd, filed, opt, nr_pages =3D 1, thp =3D -1, repeats =3D 1, write =
-=3D 0;
-+	int cmd =3D GUP_FAST_BENCHMARK, flags =3D MAP_PRIVATE;
-+	char *file =3D "/dev/zero";
-+	char *p;
-+
-+	while ((opt =3D getopt(argc, argv, "m:r:n:f:abtTLUuwSH")) !=3D -1) {
-+		switch (opt) {
-+		case 'a':
-+			cmd =3D PIN_FAST_BENCHMARK;
-+			break;
-+		case 'b':
-+			cmd =3D PIN_BENCHMARK;
-+			break;
-+		case 'L':
-+			cmd =3D PIN_LONGTERM_BENCHMARK;
-+			break;
-+		case 'm':
-+			size =3D atoi(optarg) * MB;
-+			break;
-+		case 'r':
-+			repeats =3D atoi(optarg);
-+			break;
-+		case 'n':
-+			nr_pages =3D atoi(optarg);
-+			break;
-+		case 't':
-+			thp =3D 1;
-+			break;
-+		case 'T':
-+			thp =3D 0;
-+			break;
-+		case 'U':
-+			cmd =3D GUP_BENCHMARK;
-+			break;
-+		case 'u':
-+			cmd =3D GUP_FAST_BENCHMARK;
-+			break;
-+		case 'w':
-+			write =3D 1;
-+			break;
-+		case 'f':
-+			file =3D optarg;
-+			break;
-+		case 'S':
-+			flags &=3D ~MAP_PRIVATE;
-+			flags |=3D MAP_SHARED;
-+			break;
-+		case 'H':
-+			flags |=3D (MAP_HUGETLB | MAP_ANONYMOUS);
-+			break;
-+		default:
-+			return -1;
-+		}
-+	}
-+
-+	filed =3D open(file, O_RDWR|O_CREAT);
-+	if (filed < 0) {
-+		perror("open");
-+		exit(filed);
-+	}
-+
-+	gup.nr_pages_per_call =3D nr_pages;
-+	if (write)
-+		gup.flags |=3D FOLL_WRITE;
-+
-+	fd =3D open("/sys/kernel/debug/gup_test", O_RDWR);
-+	if (fd =3D=3D -1) {
-+		perror("open");
-+		exit(1);
-+	}
-+
-+	p =3D mmap(NULL, size, PROT_READ | PROT_WRITE, flags, filed, 0);
-+	if (p =3D=3D MAP_FAILED) {
-+		perror("mmap");
-+		exit(1);
-+	}
-+	gup.addr =3D (unsigned long)p;
-+
-+	if (thp =3D=3D 1)
-+		madvise(p, size, MADV_HUGEPAGE);
-+	else if (thp =3D=3D 0)
-+		madvise(p, size, MADV_NOHUGEPAGE);
-+
-+	for (; (unsigned long)p < gup.addr + size; p +=3D PAGE_SIZE)
-+		p[0] =3D 0;
-+
-+	for (i =3D 0; i < repeats; i++) {
-+		gup.size =3D size;
-+		if (ioctl(fd, cmd, &gup)) {
-+			perror("ioctl");
-+			exit(1);
-+		}
-+
-+		printf("Time: get:%lld put:%lld us", gup.get_delta_usec,
-+			gup.put_delta_usec);
-+		if (gup.size !=3D size)
-+			printf(", truncated (size: %lld)", gup.size);
-+		printf("\n");
-+	}
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/vm/Makefile~mm-gup_benchmark-rename-to-mm-gup=
-_test
+ /*
+  * This is a private UAPI to the kernel test module so it isn't exported
+  * in the usual include/uapi/... directory.
+@@ -662,6 +666,7 @@ TEST_F(hmm, anon_write_huge)
+ 	hmm_buffer_free(buffer);
+ }
+=20
++#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
+ /*
+  * Write huge TLBFS page.
+  */
+@@ -720,6 +725,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
+ 	buffer->ptr =3D NULL;
+ 	hmm_buffer_free(buffer);
+ }
++#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
+=20
+ /*
+  * Read mmap'ed file memory.
+@@ -1336,6 +1342,7 @@ TEST_F(hmm2, snapshot)
+ 	hmm_buffer_free(buffer);
+ }
+=20
++#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
+ /*
+  * Test the hmm_range_fault() HMM_PFN_PMD flag for large pages that
+  * should be mapped by a large page table entry.
+@@ -1411,6 +1418,7 @@ TEST_F(hmm, compound)
+ 	buffer->ptr =3D NULL;
+ 	hmm_buffer_free(buffer);
+ }
++#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
+=20
+ /*
+  * Test two devices reading the same memory (double mapped).
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-hmm-tests-remove-the=
+-libhugetlbfs-dependency
 +++ a/tools/testing/selftests/vm/Makefile
-@@ -23,7 +23,7 @@ MAKEFLAGS +=3D --no-builtin-rules
- CFLAGS =3D -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
- LDLIBS =3D -lrt
- TEST_GEN_FILES =3D compaction_test
--TEST_GEN_FILES +=3D gup_benchmark
-+TEST_GEN_FILES +=3D gup_test
- TEST_GEN_FILES +=3D hmm-tests
- TEST_GEN_FILES +=3D hugepage-mmap
- TEST_GEN_FILES +=3D hugepage-shm
---- a/tools/testing/selftests/vm/run_vmtests~mm-gup_benchmark-rename-to-mm-=
-gup_test
-+++ a/tools/testing/selftests/vm/run_vmtests
-@@ -124,9 +124,9 @@ else
- fi
+@@ -1,5 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for vm selftests
++
++include local_config.mk
++
+ uname_M :=3D $(shell uname -m 2>/dev/null || echo not)
+ MACHINE ?=3D $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
 =20
- echo "--------------------------------------------"
--echo "running 'gup_benchmark -U' (normal/slow gup)"
-+echo "running 'gup_test -U' (normal/slow gup)"
- echo "--------------------------------------------"
--./gup_benchmark -U
-+./gup_test -U
- if [ $? -ne 0 ]; then
- 	echo "[FAIL]"
- 	exitcode=3D1
-@@ -135,9 +135,9 @@ else
- fi
+@@ -80,8 +83,6 @@ TEST_FILES :=3D test_vmalloc.sh
+ KSFT_KHDR_INSTALL :=3D 1
+ include ../lib.mk
 =20
- echo "------------------------------------------"
--echo "running gup_benchmark -b (pin_user_pages)"
-+echo "running gup_test -b (pin_user_pages)"
- echo "------------------------------------------"
--./gup_benchmark -b
-+./gup_test -b
- if [ $? -ne 0 ]; then
- 	echo "[FAIL]"
- 	exitcode=3D1
+-$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
+-
+ ifeq ($(ARCH),x86_64)
+ BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
+ BINARIES_64 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
+@@ -134,3 +135,22 @@ endif
+ $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
+=20
+ $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
++
++$(OUTPUT)/hmm-tests: local_config.h
++
++# HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
++$(OUTPUT)/hmm-tests: LDLIBS +=3D $(HMM_EXTRA_LIBS)
++
++local_config.mk local_config.h: check_config.sh
++	/bin/sh ./check_config.sh $(CC)
++
++EXTRA_CLEAN +=3D local_config.mk local_config.h
++
++ifeq ($(HMM_EXTRA_LIBS),)
++all: warn_missing_hugelibs
++
++warn_missing_hugelibs:
++	@echo ; \
++	echo "Warning: missing libhugetlbfs support. Some HMM tests will be skipp=
+ed." ; \
++	echo
++endif
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
