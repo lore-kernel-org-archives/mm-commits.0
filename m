@@ -7,32 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6D92C2BBCD
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:21:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC970C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:21:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91B5723718
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:21:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 693DF23750
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:21:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731137AbgLOXQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:16:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56694 "EHLO mail.kernel.org"
+        id S1731063AbgLOXQ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:16:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56704 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731032AbgLOXQd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:16:33 -0500
-Date:   Tue, 15 Dec 2020 15:16:02 -0800
+        id S1731037AbgLOXQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:16:49 -0500
+Date:   Tue, 15 Dec 2020 15:16:19 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074162;
-        bh=hfQkqP3D+Q+QAY6+ajDpDeCRI3badybU0fL+PPQzZII=;
+        s=korg; t=1608074181;
+        bh=GPmr4sXxjTbCQolMBLFzb2XKkIpUq//9qcZKO8ac4QM=;
         h=From:To:Subject:From;
-        b=hYtmOwFolj86VZLVpJr1FU0+zqLmbj8N99tKylm2J+FVS9zTkvsdTfcfj2+iZ8dMZ
-         9xtPiKUOlXiCUWPbpQAD5vMyMwlKzb0OsyQr7+/Xt3ijPE45SRIEAMVjSD1nMzRVlb
-         Yzo4/cJJIacQjPxlJnbDepQmHMeRwoH7p5zkcOfE=
+        b=EHoiP7mSk5EPtnqqJlVsDKnHGRHEmVVUC+Ynrsr4vOgUBqzqrU07CREw/RUmk6sWG
+         EsEl5evdfNAxGwnt6NTgAo/kAbe/xBkp+9QHGciqpLex+KDNTgtCPr9hP72OIEJQlm
+         ULgmnxI+/5jeEky2FNR7iHwD9DgWdD9SNAos1Av8=
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
-Subject:  [merged] arch-fix-spelling-mistakes-in-kconfig.patch
- removed from -mm tree
-Message-ID: <20201215231602.ntWr_hNeG%akpm@linux-foundation.org>
+To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
+        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
+        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
+        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
+        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  [merged] vhost-vringh-use-krealloc_array.patch removed
+ from -mm tree
+Message-ID: <20201215231619.PFxlA2c1p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,67 +50,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/Kconfig: fix spelling mistakes
+     Subject: vhost: vringh: use krealloc_array()
 has been removed from the -mm tree.  Its filename was
-     arch-fix-spelling-mistakes-in-kconfig.patch
+     vhost-vringh-use-krealloc_array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: arch/Kconfig: fix spelling mistakes
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: vhost: vringh: use krealloc_array()
 
-There are a few spelling mistakes in the Kconfig comments and help text. 
-Fix these.
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-Link: https://lkml.kernel.org/r/20201207155004.171962-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20201109110654.12547-5-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/vhost/vringh.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/Kconfig~arch-fix-spelling-mistakes-in-kconfig
-+++ a/arch/Kconfig
-@@ -261,7 +261,7 @@ config ARCH_HAS_SET_DIRECT_MAP
+--- a/drivers/vhost/vringh.c~vhost-vringh-use-krealloc_array
++++ a/drivers/vhost/vringh.c
+@@ -198,7 +198,8 @@ static int resize_iovec(struct vringh_ki
  
- #
- # Select if the architecture provides the arch_dma_set_uncached symbol to
--# either provide an uncached segement alias for a DMA allocation, or
-+# either provide an uncached segment alias for a DMA allocation, or
- # to remap the page tables in place.
- #
- config ARCH_HAS_DMA_SET_UNCACHED
-@@ -314,14 +314,14 @@ config ARCH_32BIT_OFF_T
- config HAVE_ASM_MODVERSIONS
- 	bool
- 	help
--	  This symbol should be selected by an architecure if it provides
-+	  This symbol should be selected by an architecture if it provides
- 	  <asm/asm-prototypes.h> to support the module versioning for symbols
- 	  exported from assembly code.
- 
- config HAVE_REGS_AND_STACK_ACCESS_API
- 	bool
- 	help
--	  This symbol should be selected by an architecure if it supports
-+	  This symbol should be selected by an architecture if it supports
- 	  the API needed to access registers and stack entries from pt_regs,
- 	  declared in asm/ptrace.h
- 	  For example the kprobes-based event tracer needs this API.
-@@ -336,7 +336,7 @@ config HAVE_RSEQ
- config HAVE_FUNCTION_ARG_ACCESS_API
- 	bool
- 	help
--	  This symbol should be selected by an architecure if it supports
-+	  This symbol should be selected by an architecture if it supports
- 	  the API needed to access function arguments from pt_regs,
- 	  declared in asm/ptrace.h
- 
+ 	flag = (iov->max_num & VRINGH_IOV_ALLOCATED);
+ 	if (flag)
+-		new = krealloc(iov->iov, new_num * sizeof(struct iovec), gfp);
++		new = krealloc_array(iov->iov, new_num,
++				     sizeof(struct iovec), gfp);
+ 	else {
+ 		new = kmalloc_array(new_num, sizeof(struct iovec), gfp);
+ 		if (new) {
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
 
