@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43B29C47434
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B646C2D0E4
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 10BA82076C
+	by mail.kernel.org (Postfix) with ESMTP id 443C822CAE
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727145AbgLPAA1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34564 "EHLO mail.kernel.org"
+        id S1727122AbgLPAAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727445AbgLOX1t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1728043AbgLOX1t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:27:49 -0500
-Date:   Tue, 15 Dec 2020 15:23:49 -0800
+Date:   Tue, 15 Dec 2020 15:24:03 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074630;
-        bh=f3VAR3WuCcRt/1V41q0j2JTwE9d0HAHwemJ5DvYIPNc=;
+        s=korg; t=1608074644;
+        bh=E/sO+2N9t+h8JgXnHu3Qg/xPbvWX5aqk3bjrCFgCCSI=;
         h=From:To:Subject:From;
-        b=SNex68Fg7/YtAOCVLhL7XBbOMSqe6BDeqPkTkhcBsDGmotnB5W3SM6H1EdkenixZ3
-         YwwnoFcmULRjS/ObBWm8N5w5baZ99EHCmkLA67PhzDFMC6f5sSIlKCpJnVzXnQmNIV
-         4Xlm0whkuPXG0DKKkNX1F5fcLylxS2N067l1PInk=
+        b=Acfy7COCyYLJvTB3jtcqqYAT2bPjaLDQU5xw2c5FuWjU5C5xZqDsDk1ORkW8kW/Da
+         2j//aMCJ18YdwzGGKe/w+EN7tRmfYu9p/RB3nu5nv//60y24xRuConIH89zdcjFTtZ
+         5Uacz83lG9/BD/792/dU9B5kyq8esHBbVUFgw9IM=
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, glider@google.com, keescook@chromium.org,
-        labbott@kernel.org, mateusznosek0@gmail.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
-        rppt@linux.ibm.com, vbabka@suse.cz
+To:     aarcange@redhat.com, axelrasmussen@google.com, dgilbert@redhat.com,
+        gthelen@google.com, joe@perches.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, rppt@linux.vnet.ibm.com, shuah@kernel.org
 Subject:  [merged]
- kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
- removed from -mm tree
-Message-ID: <20201215232349.xsIllA_NY%akpm@linux-foundation.org>
+ userfaultfd-selftests-make-__su64-format-specifiers-portable.patch removed
+ from -mm tree
+Message-ID: <20201215232403.SAK-xvNY4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,129 +43,216 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/power: allow hibernation with page_poison sanity checking
+     Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
 has been removed from the -mm tree.  Its filename was
-     kernel-power-allow-hibernation-with-page_poison-sanity-checking.patch
+     userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: kernel/power: allow hibernation with page_poison sanity checking
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
 
-Page poisoning used to be incompatible with hibernation, as the state of
-poisoned pages was lost after resume, thus enabling CONFIG_HIBERNATION
-forces CONFIG_PAGE_POISONING_NO_SANITY.  For the same reason, the
-poisoning with zeroes variant CONFIG_PAGE_POISONING_ZERO used to disable
-hibernation.  The latter restriction was removed by commit 1ad1410f632d
-("PM / Hibernate: allow hibernation with PAGE_POISONING_ZERO") and
-similarly for init_on_free by commit 18451f9f9e58 ("PM: hibernate: fix
-crashes with init_on_free=1") by making sure free pages are cleared after
-resume.
+On certain platforms (powerpcle is the one on which I ran into this),
+"%Ld" and "%Lu" are unsuitable for printing __s64 and __u64, respectively,
+resulting in build warnings.  Cast to {u,}int64_t, and use the PRI{d,u}64
+macros defined in inttypes.h to print them.  This ought to be portable to
+all platforms.
 
-We can use the same mechanism to instead poison free pages with
-PAGE_POISON after resume.  This covers both zero and 0xAA patterns.  Thus
-we can remove the Kconfig restriction that disables page poison sanity
-checking when hibernation is enabled.
+Splitting this off into a separate macro lets us remove some lines, and
+get rid of some (I would argue) stylistically odd cases where we joined
+printf() and exit() into a single statement with a ,.
 
-Link: https://lkml.kernel.org/r/20201113104033.22907-4-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[hibernation]
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@kernel.org>
-Cc: Mateusz Nosek <mateusznosek0@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Finally, this also fixes a "missing braces around initializer" warning
+when we initialize prms in wp_range().
+
+[axelrasmussen@google.com: v2]
+  Link: https://lkml.kernel.org/r/20201203180244.1811601-1-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20201202211542.1121189-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Alan Gilbert <dgilbert@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    1 +
- kernel/power/hibernate.c |    2 +-
- kernel/power/power.h     |    2 +-
- kernel/power/snapshot.c  |   14 +++++++++++---
- mm/Kconfig.debug         |    1 -
- 5 files changed, 14 insertions(+), 6 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   81 +++++++++------------
+ 1 file changed, 35 insertions(+), 46 deletions(-)
 
---- a/include/linux/mm.h~kernel-power-allow-hibernation-with-page_poison-sanity-checking
-+++ a/include/linux/mm.h
-@@ -2903,6 +2903,7 @@ static inline void kernel_unpoison_pages
- #else
- static inline bool page_poisoning_enabled(void) { return false; }
- static inline bool page_poisoning_enabled_static(void) { return false; }
-+static inline void __kernel_poison_pages(struct page *page, int nunmpages) { }
- static inline void kernel_poison_pages(struct page *page, int numpages) { }
- static inline void kernel_unpoison_pages(struct page *page, int numpages) { }
- #endif
---- a/kernel/power/hibernate.c~kernel-power-allow-hibernation-with-page_poison-sanity-checking
-+++ a/kernel/power/hibernate.c
-@@ -326,7 +326,7 @@ static int create_image(int platform_mod
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-make-__su64-format-specifiers-portable
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -55,6 +55,8 @@
+ #include <setjmp.h>
+ #include <stdbool.h>
+ #include <assert.h>
++#include <inttypes.h>
++#include <stdint.h>
  
- 	if (!in_suspend) {
- 		events_check_enabled = false;
--		clear_free_pages();
-+		clear_or_poison_free_pages();
- 	}
+ #include "../kselftest.h"
  
- 	platform_leave(platform_mode);
---- a/kernel/power/power.h~kernel-power-allow-hibernation-with-page_poison-sanity-checking
-+++ a/kernel/power/power.h
-@@ -106,7 +106,7 @@ extern int create_basic_memory_bitmaps(v
- extern void free_basic_memory_bitmaps(void);
- extern int hibernate_preallocate_memory(void);
- 
--extern void clear_free_pages(void);
-+extern void clear_or_poison_free_pages(void);
- 
- /**
-  *	Auxiliary structure used for reading the snapshot image data and
---- a/kernel/power/snapshot.c~kernel-power-allow-hibernation-with-page_poison-sanity-checking
-+++ a/kernel/power/snapshot.c
-@@ -1178,7 +1178,15 @@ void free_basic_memory_bitmaps(void)
- 	pr_debug("Basic memory bitmaps freed\n");
+@@ -135,6 +137,13 @@ static void usage(void)
+ 	exit(1);
  }
  
--void clear_free_pages(void)
-+static void clear_or_poison_free_page(struct page *page)
-+{
-+	if (page_poisoning_enabled_static())
-+		__kernel_poison_pages(page, 1);
-+	else if (want_init_on_free())
-+		clear_highpage(page);
-+}
++#define uffd_error(code, fmt, ...)                                             \
++	do {                                                                   \
++		fprintf(stderr, fmt, ##__VA_ARGS__);                           \
++		fprintf(stderr, ": %" PRId64 "\n", (int64_t)(code));           \
++		exit(1);                                                       \
++	} while (0)
 +
-+void clear_or_poison_free_pages(void)
+ static void uffd_stats_reset(struct uffd_stats *uffd_stats,
+ 			     unsigned long n_cpus)
  {
- 	struct memory_bitmap *bm = free_pages_map;
- 	unsigned long pfn;
-@@ -1186,12 +1194,12 @@ void clear_free_pages(void)
- 	if (WARN_ON(!(free_pages_map)))
- 		return;
+@@ -338,7 +347,7 @@ static int my_bcmp(char *str1, char *str
  
--	if (IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) || want_init_on_free()) {
-+	if (page_poisoning_enabled() || want_init_on_free()) {
- 		memory_bm_position_reset(bm);
- 		pfn = memory_bm_next_pfn(bm);
- 		while (pfn != BM_END_OF_MAP) {
- 			if (pfn_valid(pfn))
--				clear_highpage(pfn_to_page(pfn));
-+				clear_or_poison_free_page(pfn_to_page(pfn));
+ static void wp_range(int ufd, __u64 start, __u64 len, bool wp)
+ {
+-	struct uffdio_writeprotect prms = { 0 };
++	struct uffdio_writeprotect prms;
  
- 			pfn = memory_bm_next_pfn(bm);
+ 	/* Write protection page faults */
+ 	prms.range.start = start;
+@@ -347,7 +356,8 @@ static void wp_range(int ufd, __u64 star
+ 	prms.mode = wp ? UFFDIO_WRITEPROTECT_MODE_WP : 0;
+ 
+ 	if (ioctl(ufd, UFFDIO_WRITEPROTECT, &prms)) {
+-		fprintf(stderr, "clear WP failed for address 0x%Lx\n", start);
++		fprintf(stderr, "clear WP failed for address 0x%" PRIx64 "\n",
++			(uint64_t)start);
+ 		exit(1);
+ 	}
+ }
+@@ -481,14 +491,11 @@ static void retry_copy_page(int ufd, str
+ 	if (ioctl(ufd, UFFDIO_COPY, uffdio_copy)) {
+ 		/* real retval in ufdio_copy.copy */
+ 		if (uffdio_copy->copy != -EEXIST) {
+-			fprintf(stderr, "UFFDIO_COPY retry error %Ld\n",
+-				uffdio_copy->copy);
+-			exit(1);
++			uffd_error(uffdio_copy->copy,
++				   "UFFDIO_COPY retry error");
  		}
---- a/mm/Kconfig.debug~kernel-power-allow-hibernation-with-page_poison-sanity-checking
-+++ a/mm/Kconfig.debug
-@@ -64,7 +64,6 @@ config PAGE_OWNER
+-	} else {
+-		fprintf(stderr,	"UFFDIO_COPY retry unexpected %Ld\n",
+-			uffdio_copy->copy); exit(1);
+-	}
++	} else
++		uffd_error(uffdio_copy->copy, "UFFDIO_COPY retry unexpected");
+ }
  
- config PAGE_POISONING
- 	bool "Poison pages after freeing"
--	select PAGE_POISONING_NO_SANITY if HIBERNATION
- 	help
- 	  Fill the pages with poison patterns after free_pages() and verify
- 	  the patterns before alloc_pages. The filling of the memory helps
+ static int __copy_page(int ufd, unsigned long offset, bool retry)
+@@ -509,14 +516,10 @@ static int __copy_page(int ufd, unsigned
+ 	uffdio_copy.copy = 0;
+ 	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
+ 		/* real retval in ufdio_copy.copy */
+-		if (uffdio_copy.copy != -EEXIST) {
+-			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
+-				uffdio_copy.copy);
+-			exit(1);
+-		}
++		if (uffdio_copy.copy != -EEXIST)
++			uffd_error(uffdio_copy.copy, "UFFDIO_COPY error");
+ 	} else if (uffdio_copy.copy != page_size) {
+-		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
+-			uffdio_copy.copy); exit(1);
++		uffd_error(uffdio_copy.copy, "UFFDIO_COPY unexpected copy");
+ 	} else {
+ 		if (test_uffdio_copy_eexist && retry) {
+ 			test_uffdio_copy_eexist = false;
+@@ -795,7 +798,8 @@ static int userfaultfd_open(int features
+ 		return 1;
+ 	}
+ 	if (uffdio_api.api != UFFD_API) {
+-		fprintf(stderr, "UFFDIO_API error %Lu\n", uffdio_api.api);
++		fprintf(stderr, "UFFDIO_API error: %" PRIu64 "\n",
++			(uint64_t)uffdio_api.api);
+ 		return 1;
+ 	}
+ 
+@@ -957,13 +961,12 @@ static void retry_uffdio_zeropage(int uf
+ 				     offset);
+ 	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
+ 		if (uffdio_zeropage->zeropage != -EEXIST) {
+-			fprintf(stderr, "UFFDIO_ZEROPAGE retry error %Ld\n",
+-				uffdio_zeropage->zeropage);
+-			exit(1);
++			uffd_error(uffdio_zeropage->zeropage,
++				   "UFFDIO_ZEROPAGE retry error");
+ 		}
+ 	} else {
+-		fprintf(stderr, "UFFDIO_ZEROPAGE retry unexpected %Ld\n",
+-			uffdio_zeropage->zeropage); exit(1);
++		uffd_error(uffdio_zeropage->zeropage,
++			   "UFFDIO_ZEROPAGE retry unexpected");
+ 	}
+ }
+ 
+@@ -972,6 +975,7 @@ static int __uffdio_zeropage(int ufd, un
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+ 	unsigned long has_zeropage;
++	__s64 res;
+ 
+ 	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
+ 
+@@ -983,29 +987,17 @@ static int __uffdio_zeropage(int ufd, un
+ 	uffdio_zeropage.range.len = page_size;
+ 	uffdio_zeropage.mode = 0;
+ 	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
++	res = uffdio_zeropage.zeropage;
+ 	if (ret) {
+ 		/* real retval in ufdio_zeropage.zeropage */
+ 		if (has_zeropage) {
+-			if (uffdio_zeropage.zeropage == -EEXIST) {
+-				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n");
+-				exit(1);
+-			} else {
+-				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
+-					uffdio_zeropage.zeropage);
+-				exit(1);
+-			}
+-		} else {
+-			if (uffdio_zeropage.zeropage != -EINVAL) {
+-				fprintf(stderr,
+-					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
+-					uffdio_zeropage.zeropage);
+-				exit(1);
+-			}
+-		}
++			uffd_error(res, "UFFDIO_ZEROPAGE %s",
++				   res == -EEXIST ? "-EEXIST" : "error");
++		} else if (res != -EINVAL)
++			uffd_error(res, "UFFDIO_ZEROPAGE not -EINVAL");
+ 	} else if (has_zeropage) {
+-		if (uffdio_zeropage.zeropage != page_size) {
+-			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
+-				uffdio_zeropage.zeropage); exit(1);
++		if (res != page_size) {
++			uffd_error(res, "UFFDIO_ZEROPAGE unexpected");
+ 		} else {
+ 			if (test_uffdio_zeropage_eexist && retry) {
+ 				test_uffdio_zeropage_eexist = false;
+@@ -1014,11 +1006,8 @@ static int __uffdio_zeropage(int ufd, un
+ 			}
+ 			return 1;
+ 		}
+-	} else {
+-		fprintf(stderr,
+-			"UFFDIO_ZEROPAGE succeeded %Ld\n",
+-			uffdio_zeropage.zeropage); exit(1);
+-	}
++	} else
++		uffd_error(res, "UFFDIO_ZEROPAGE succeeded");
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
 
