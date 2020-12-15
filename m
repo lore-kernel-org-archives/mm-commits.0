@@ -7,104 +7,152 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79D09C2BB48
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EF0BC4361B
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E890224DE
+	by mail.kernel.org (Postfix) with ESMTP id 167A020709
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727223AbgLODFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726986AbgLODFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 14 Dec 2020 22:05:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33316 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33368 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726720AbgLODFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:05:24 -0500
-Date:   Mon, 14 Dec 2020 19:04:25 -0800
+        id S1727230AbgLODF1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:05:27 -0500
+Date:   Mon, 14 Dec 2020 19:04:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001467;
-        bh=S0dvEhvKNFIPOyx+4aAgVRflhvPv75DVW9XU8r6JMqk=;
+        s=korg; t=1608001487;
+        bh=9/KqSwdzkfcUHkStUu1UHXpR6NWCr6++8nUX5YFL9aw=;
         h=From:To:Subject:In-Reply-To:From;
-        b=mYCeNQp90NMyCI0TSPw/o+8K2C18AL1VWSTFxW/5xH0GGcRpXSudc8DHPau09zPL1
-         qMCUakqgAn0/qyuAIRpjE3FrTFXphtLqhLmz41gzdBtwPEaT1gFcuSIzQs6mvFdjyv
-         DA3pkusQDc7FR5DseGZyhcMQfFETUtZmpa806hck=
+        b=iNyo+DfhmBAqc/or7tHoQ9XMrVrKbIlyB2p04gWyVxDSQEbqLYS+Uil0QFGIh4qr7
+         Vb2ApjbZRjBGamI5c/tDucrXh1aqfVUqWFLgw6BKJEefypA0z1C184idErmWPN+FCn
+         47WYMMaPGfEf3Tc5Mui7KdEH2/fb/RZlMyEbn1zg=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     airlied@linux.ie, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com,
-        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
-        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
-        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
-        linus.walleij@linaro.org, linux-mm@kvack.org,
-        maarten.lankhorst@linux.intel.com, mchehab@kernel.org,
-        mm-commits@vger.kernel.org, mripard@kernel.org, mst@redhat.com,
-        penberg@kernel.org, perex@perex.cz, rientjes@google.com,
-        rric@kernel.org, sumit.semwal@linaro.org, tiwai@suse.com,
-        tiwai@suse.de, tony.luck@intel.com, torvalds@linux-foundation.org,
-        tzimmermann@suse.de, vbabka@suse.cz
-Subject:  [patch 020/200] dma-buf: use krealloc_array()
-Message-ID: <20201215030425.glaMg3ez3%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        zhenhuah@codeaurora.org
+Subject:  [patch 026/200] mm: fix page_owner initializing issue for
+ arm32
+Message-ID: <20201215030446.-BoX8ii9r%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: dma-buf: use krealloc_array()
+From: Zhenhua Huang <zhenhuah@codeaurora.org>
+Subject: mm: fix page_owner initializing issue for arm32
 
-Use the helper that checks for overflows internally instead of manually
-calculating the size of the new array.
+Page owner of pages used by page owner itself used is missing on arm32
+targets.  The reason is dummy_handle and failure_handle is not initialized
+correctly.  Buddy allocator is used to initialize these two handles. 
+However, buddy allocator is not ready when page owner calls it.  This
+change fixed that by initializing page owner after buddy initialization.
 
-Link: https://lkml.kernel.org/r/20201109110654.12547-10-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Acked-by: Christian K=C3=B6nig <christian.koenig@amd.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Wang <jasowang@redhat.com>
+The working flow before and after this change are:
+original logic:
+1. allocated memory for page_ext(using memblock).
+2. invoke the init callback of page_ext_ops like
+page_owner(using buddy allocator).
+3. initialize buddy.
+
+after this change:
+1. allocated memory for page_ext(using memblock).
+2. initialize buddy.
+3. invoke the init callback of page_ext_ops like
+page_owner(using buddy allocator).
+
+with the change, failure/dummy_handle can get its correct value and page
+owner output for example has the one for page owner itself:
+
+Page allocated via order 2, mask 0x6202c0(GFP_USER|__GFP_NOWARN), pid 1006, ts
+67278156558 ns
+PFN 543776 type Unmovable Block 531 type Unmovable Flags 0x0()
+ init_page_owner+0x28/0x2f8
+ invoke_init_callbacks_flatmem+0x24/0x34
+ start_kernel+0x33c/0x5d8
+   (null)
+
+Link: https://lkml.kernel.org/r/1603104925-5888-1-git-send-email-zhenhuah@codeaurora.org
+Signed-off-by: Zhenhua Huang <zhenhuah@codeaurora.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma-buf/sync_file.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/page_ext.h |    8 ++++++++
+ init/main.c              |    2 ++
+ mm/page_ext.c            |   10 ++++++++--
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
---- a/drivers/dma-buf/sync_file.c~dma-buf-use-krealloc_array
-+++ a/drivers/dma-buf/sync_file.c
-@@ -270,8 +270,7 @@ static struct sync_file *sync_file_merge
- 		fences[i++] =3D dma_fence_get(a_fences[0]);
-=20
- 	if (num_fences > i) {
--		nfences =3D krealloc(fences, i * sizeof(*fences),
--				  GFP_KERNEL);
-+		nfences =3D krealloc_array(fences, i, sizeof(*fences), GFP_KERNEL);
- 		if (!nfences)
- 			goto err;
-=20
+--- a/include/linux/page_ext.h~mm-fix-page_owner-initializing-issue-for-arm32
++++ a/include/linux/page_ext.h
+@@ -44,8 +44,12 @@ static inline void page_ext_init_flatmem
+ {
+ }
+ extern void page_ext_init(void);
++static inline void page_ext_init_flatmem_late(void)
++{
++}
+ #else
+ extern void page_ext_init_flatmem(void);
++extern void page_ext_init_flatmem_late(void);
+ static inline void page_ext_init(void)
+ {
+ }
+@@ -76,6 +80,10 @@ static inline void page_ext_init(void)
+ {
+ }
+ 
++static inline void page_ext_init_flatmem_late(void)
++{
++}
++
+ static inline void page_ext_init_flatmem(void)
+ {
+ }
+--- a/init/main.c~mm-fix-page_owner-initializing-issue-for-arm32
++++ a/init/main.c
+@@ -828,6 +828,8 @@ static void __init mm_init(void)
+ 	init_debug_pagealloc();
+ 	report_meminit();
+ 	mem_init();
++	/* page_owner must be initialized after buddy is ready */
++	page_ext_init_flatmem_late();
+ 	kmem_cache_init();
+ 	kmemleak_init();
+ 	pgtable_init();
+--- a/mm/page_ext.c~mm-fix-page_owner-initializing-issue-for-arm32
++++ a/mm/page_ext.c
+@@ -99,12 +99,19 @@ static void __init invoke_init_callbacks
+ 	}
+ }
+ 
++#ifndef CONFIG_SPARSEMEM
++void __init page_ext_init_flatmem_late(void)
++{
++	invoke_init_callbacks();
++}
++#endif
++
+ static inline struct page_ext *get_entry(void *base, unsigned long index)
+ {
+ 	return base + page_ext_size * index;
+ }
+ 
+-#if !defined(CONFIG_SPARSEMEM)
++#ifndef CONFIG_SPARSEMEM
+ 
+ 
+ void __meminit pgdat_page_ext_init(struct pglist_data *pgdat)
+@@ -177,7 +184,6 @@ void __init page_ext_init_flatmem(void)
+ 			goto fail;
+ 	}
+ 	pr_info("allocated %ld bytes of page_ext\n", total_usage);
+-	invoke_init_callbacks();
+ 	return;
+ 
+ fail:
 _
