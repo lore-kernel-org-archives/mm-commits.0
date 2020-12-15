@@ -5,44 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98880C2BB40
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E97C3C2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 70265224B2
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7C7C224B2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727108AbgLODFP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:05:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60678 "EHLO mail.kernel.org"
+        id S1727225AbgLODFS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:05:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727223AbgLODE7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727222AbgLODE7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 14 Dec 2020 22:04:59 -0500
-Date:   Mon, 14 Dec 2020 19:04:21 -0800
+Date:   Mon, 14 Dec 2020 19:04:33 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001463;
-        bh=DK/oMNI9eI/PlkkemlFEFdYvR5NlIxJWRxUDW93S+NQ=;
+        s=korg; t=1608001474;
+        bh=/0AnFo81g2YMF23Dt7SuxK0cynF6I0CYLEW2UzOwQ6E=;
         h=From:To:Subject:In-Reply-To:From;
-        b=YQI5bdF+Jc2Y5gWVFpI2Z7OWWMrMrKDU47v7uv2M/ZWju/R6LblirefDg+QdCgeWD
-         SQCec76Cg80rHhC+4tfKyoz4mTbGVcLWXpzLYOqWDTntDlW9xPb54biGa4/aROHu3Y
-         ffZNP62rU0YDSSAvWhrSdba0UUvC4FTQfMRfuAbw=
+        b=cTePI7RVpNIJrT/av9O99TyzAi35mTFLtHBJQlGShLJvlf/SH6TIXw/nHJGVqXMPw
+         KF1tfWKmb5ZI1jZyTE5rvTJx4J78+yLUlwjKCRPiL/lBR4Df6CbhpXvoFSZVHYGuOU
+         823KBxt2thNp+TxX0v6XnZ3CyoaGlCt4LB2SfhgA=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     airlied@linux.ie, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com,
-        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
-        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
-        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
-        linus.walleij@linaro.org, linux-mm@kvack.org,
-        maarten.lankhorst@linux.intel.com, mchehab@kernel.org,
-        mm-commits@vger.kernel.org, mripard@kernel.org, mst@redhat.com,
-        penberg@kernel.org, perex@perex.cz, rientjes@google.com,
-        rric@kernel.org, sumit.semwal@linaro.org, tiwai@suse.com,
-        tiwai@suse.de, tony.luck@intel.com, torvalds@linux-foundation.org,
-        tzimmermann@suse.de, vbabka@suse.cz
-Subject:  [patch 019/200] hwtracing: intel: use krealloc_array()
-Message-ID: <20201215030421.U9wToxbeW%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.popov@linux.com, cl@linux.com,
+        glider@google.com, iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, torvalds@linux-foundation.org
+Subject:  [patch 022/200] mm/slab: rerform init_on_free earlier
+Message-ID: <20201215030433.7QkafHjX1%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,57 +41,48 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: hwtracing: intel: use krealloc_array()
+From: Alexander Popov <alex.popov@linux.com>
+Subject: mm/slab: rerform init_on_free earlier
 
-Use the helper that checks for overflows internally instead of manually
-calculating the size of the new array.
+Currently in CONFIG_SLAB init_on_free happens too late, and heap objects
+go to the heap quarantine not being erased.
 
-Link: https://lkml.kernel.org/r/20201109110654.12547-9-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christian Knig <christian.koenig@amd.com>
+Lets move init_on_free clearing before calling kasan_slab_free().  In that
+case heap quarantine will store erased objects, similarly to CONFIG_SLUB=y
+behavior.
+
+Link: https://lkml.kernel.org/r/20201210183729.1261524-1-alex.popov@linux.com
+Signed-off-by: Alexander Popov <alex.popov@linux.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwtracing/intel_th/msu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/drivers/hwtracing/intel_th/msu.c~hwtracing-intel-use-krealloc_array
-+++ a/drivers/hwtracing/intel_th/msu.c
-@@ -2002,7 +2002,7 @@ nr_pages_store(struct device *dev, struc
- 		}
+--- a/mm/slab.c~mm-slab-perform-init_on_free-earlier
++++ a/mm/slab.c
+@@ -3417,6 +3417,9 @@ free_done:
+ static __always_inline void __cache_free(struct kmem_cache *cachep, void *objp,
+ 					 unsigned long caller)
+ {
++	if (unlikely(slab_want_init_on_free(cachep)))
++		memset(objp, 0, cachep->object_size);
++
+ 	/* Put the object into the quarantine, don't touch it for now. */
+ 	if (kasan_slab_free(cachep, objp, _RET_IP_))
+ 		return;
+@@ -3435,8 +3438,6 @@ void ___cache_free(struct kmem_cache *ca
+ 	struct array_cache *ac = cpu_cache_get(cachep);
  
- 		nr_wins++;
--		rewin = krealloc(win, sizeof(*win) * nr_wins, GFP_KERNEL);
-+		rewin = krealloc_array(win, nr_wins, sizeof(*win), GFP_KERNEL);
- 		if (!rewin) {
- 			kfree(win);
- 			return -ENOMEM;
+ 	check_irq_off();
+-	if (unlikely(slab_want_init_on_free(cachep)))
+-		memset(objp, 0, cachep->object_size);
+ 	kmemleak_free_recursive(objp, cachep->flags);
+ 	objp = cache_free_debugcheck(cachep, objp, caller);
+ 	memcg_slab_free_hook(cachep, &objp, 1);
 _
