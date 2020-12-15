@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB5FCC2BB48
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12F8CC2BBCA
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C52F222D73
+	by mail.kernel.org (Postfix) with ESMTP id DED8522D75
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 22:21:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729805AbgLOWVW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 17:21:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44796 "EHLO mail.kernel.org"
+        id S1728387AbgLOWVP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 17:21:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729932AbgLOWVR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 17:21:17 -0500
-Date:   Tue, 15 Dec 2020 14:20:55 -0800
+        id S1729805AbgLOWVN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 17:21:13 -0500
+Date:   Tue, 15 Dec 2020 14:20:24 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608070856;
-        bh=j/mg/P1x2UmA5zgSLCrFTLSVkF4qHliuS8Vdn/oXcPk=;
+        s=korg; t=1608070826;
+        bh=igu9+jhjsJ6nopit9khbzJNO1kBtIiPPb8A34akUTv4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=h3do/lpTutxmEXFAd9F3RKPqggxTAvRXO4ACG5lg6jcw63R7bumOdUgXM7JRBN6Sa
-         7A8IB98oHKGUGdGBxekYsM0xj9Luj5SH+TVnIW61DGroQLXkg2zQ2W6Kj3RAxlFSB4
-         cb4Fl14XT2eI7NLCW5a7KqSg4XcjUS2B6wjxWD0A=
+        b=fYK7897ikit7YrunpoGNWcfXNNTBl2EAPV0O+DIXhW/ozFeaTxCjg4McFpY52kXGQ
+         rO/AS5DpUlqu45Kzpaj0aXAseY+7YGDFKjummPTIfLYyAsf6VtVIohH+65Fwob6Dcn
+         rM6gn8YoOzEr2P6dqT3pIO2hipr6Pf4hiqyGO4c8=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aarcange@redhat.com, akpm@linux-foundation.org,
         alex.shi@linux.alibaba.com, alexander.duyck@gmail.com,
@@ -41,9 +41,8 @@ To:     aarcange@redhat.com, akpm@linux-foundation.org,
         tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  [patch 11/19] mm/vmscan: remove lruvec reget in
- move_pages_to_lru
-Message-ID: <20201215222055.aVI-OVl68%akpm@linux-foundation.org>
+Subject:  [patch 04/19] mm/thp: narrow lru locking
+Message-ID: <20201215222024.XDeNGvndP%akpm@linux-foundation.org>
 In-Reply-To: <20201215123253.954eca9a5ef4c0d52fd381fa@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -55,34 +54,50 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove lruvec reget in move_pages_to_lru
+Subject: mm/thp: narrow lru locking
 
-Isolated page shouldn't be recharged by memcg since the memcg migration
-isn't possible at the time.  All pages were isolated from the same lruvec
-(and isolation inhibits memcg migration).  So remove unnecessary
-regetting.
+lru_lock and page cache xa_lock have no obvious reason to be taken one way
+round or the other: until now, lru_lock has been taken before page cache
+xa_lock, when splitting a THP; but nothing else takes them together.=20
+Reverse that ordering: let's narrow the lru locking - but leave
+local_irq_disable to block interrupts throughout, like before.
 
-Thanks to Alexander Duyck for pointing this out.
+Hugh Dickins point: split_huge_page_to_list() was already silly, to be
+using the _irqsave variant: it's just been taking sleeping locks, so would
+already be broken if entered with interrupts enabled.  So we can save
+passing flags argument down to __split_huge_page().
 
-Link: https://lkml.kernel.org/r/1604566549-62481-12-git-send-email-alex.shi=
-@linux.alibaba.com
+Why change the lock ordering here?  That was hard to decide.  One reason:
+when this series reaches per-memcg lru locking, it relies on the THP's
+memcg to be stable when taking the lru_lock: that is now done after the
+THP's refcount has been frozen, which ensures page memcg cannot change.
+
+Another reason: previously, lock_page_memcg()'s move_lock was presumed to
+nest inside lru_lock; but now lru_lock must nest inside (page cache lock
+inside) move_lock, so it becomes possible to use lock_page_memcg() to
+stabilize page memcg before taking its lru_lock.  That is not the
+mechanism used in this series, but it is an option we want to keep open.
+
+[hughd@google.com: rewrite commit log]
+Link: https://lkml.kernel.org/r/1604566549-62481-5-git-send-email-alex.shi@=
+linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: "Chen, Rong A" <rong.a.chen@intel.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -96,23 +111,101 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru
-+++ a/mm/vmscan.c
-@@ -1886,7 +1886,12 @@ static unsigned noinline_for_stack move_
- 			continue;
+--- a/mm/huge_memory.c~mm-thp-narrow-lru-locking
++++ a/mm/huge_memory.c
+@@ -2446,7 +2446,7 @@ static void __split_huge_page_tail(struc
+ }
+=20
+ static void __split_huge_page(struct page *page, struct list_head *list,
+-		pgoff_t end, unsigned long flags)
++		pgoff_t end)
+ {
+ 	struct page *head =3D compound_head(page);
+ 	pg_data_t *pgdat =3D page_pgdat(head);
+@@ -2456,8 +2456,6 @@ static void __split_huge_page(struct pag
+ 	unsigned int nr =3D thp_nr_pages(head);
+ 	int i;
+=20
+-	lruvec =3D mem_cgroup_page_lruvec(head, pgdat);
+-
+ 	/* complete memcg works before add pages to LRU */
+ 	mem_cgroup_split_huge_fixup(head);
+=20
+@@ -2469,6 +2467,11 @@ static void __split_huge_page(struct pag
+ 		xa_lock(&swap_cache->i_pages);
+ 	}
+=20
++	/* prevent PageLRU to go away from under us, and freeze lru stats */
++	spin_lock(&pgdat->lru_lock);
++
++	lruvec =3D mem_cgroup_page_lruvec(head, pgdat);
++
+ 	for (i =3D nr - 1; i >=3D 1; i--) {
+ 		__split_huge_page_tail(head, i, lruvec, list);
+ 		/* Some pages can be beyond i_size: drop them from page cache */
+@@ -2488,6 +2491,8 @@ static void __split_huge_page(struct pag
+ 	}
+=20
+ 	ClearPageCompound(head);
++	spin_unlock(&pgdat->lru_lock);
++	/* Caller disabled irqs, so they are still disabled here */
+=20
+ 	split_page_owner(head, nr);
+=20
+@@ -2505,8 +2510,7 @@ static void __split_huge_page(struct pag
+ 		page_ref_add(head, 2);
+ 		xa_unlock(&head->mapping->i_pages);
+ 	}
+-
+-	spin_unlock_irqrestore(&pgdat->lru_lock, flags);
++	local_irq_enable();
+=20
+ 	remap_page(head, nr);
+=20
+@@ -2652,12 +2656,10 @@ bool can_split_huge_page(struct page *pa
+ int split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+ 	struct page *head =3D compound_head(page);
+-	struct pglist_data *pgdata =3D NODE_DATA(page_to_nid(head));
+ 	struct deferred_split *ds_queue =3D get_deferred_split_queue(head);
+ 	struct anon_vma *anon_vma =3D NULL;
+ 	struct address_space *mapping =3D NULL;
+ 	int count, mapcount, extra_pins, ret;
+-	unsigned long flags;
+ 	pgoff_t end;
+=20
+ 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
+@@ -2718,9 +2720,8 @@ int split_huge_page_to_list(struct page
+ 	unmap_page(head);
+ 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
+=20
+-	/* prevent PageLRU to go away from under us, and freeze lru stats */
+-	spin_lock_irqsave(&pgdata->lru_lock, flags);
+-
++	/* block interrupt reentry in xa_lock and spinlock */
++	local_irq_disable();
+ 	if (mapping) {
+ 		XA_STATE(xas, &mapping->i_pages, page_index(head));
+=20
+@@ -2750,7 +2751,7 @@ int split_huge_page_to_list(struct page
+ 				__dec_lruvec_page_state(head, NR_FILE_THPS);
  		}
 =20
--		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
-+		/*
-+		 * All pages were isolated from the same lruvec (and isolation
-+		 * inhibits memcg migration).
-+		 */
-+		VM_BUG_ON_PAGE(mem_cgroup_page_lruvec(page, page_pgdat(page))
-+							!=3D lruvec, page);
- 		lru =3D page_lru(page);
- 		nr_pages =3D thp_nr_pages(page);
-=20
+-		__split_huge_page(page, list, end, flags);
++		__split_huge_page(page, list, end);
+ 		ret =3D 0;
+ 	} else {
+ 		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
+@@ -2764,7 +2765,7 @@ int split_huge_page_to_list(struct page
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ fail:		if (mapping)
+ 			xa_unlock(&mapping->i_pages);
+-		spin_unlock_irqrestore(&pgdata->lru_lock, flags);
++		local_irq_enable();
+ 		remap_page(head, thp_nr_pages(head));
+ 		ret =3D -EBUSY;
+ 	}
 _
