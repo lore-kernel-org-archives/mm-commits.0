@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AE71C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BB44C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4785D224F4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9DF2224B0
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727430AbgLODN0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:13:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36482 "EHLO mail.kernel.org"
+        id S1727667AbgLODNV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:13:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728089AbgLODNL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:13:11 -0500
-Date:   Mon, 14 Dec 2020 19:12:46 -0800
+        id S1727663AbgLODNG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:13:06 -0500
+Date:   Mon, 14 Dec 2020 19:11:15 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001967;
-        bh=ekaX+Hi8JaFvMZz94M9IWHNlqTcfFkRyLezPVVr8y8s=;
+        s=korg; t=1608001876;
+        bh=vA0BetdBKvkYosvsQSY6awh+TFC7nzzrnLXhAsdab+U=;
         h=From:To:Subject:In-Reply-To:From;
-        b=cDfKS+7SkFoSybiwX0kb0IMmNrjCi3++p5/RTVkWZzi6mjpQRggzrV1jndYJn0xcR
-         ypuC4BmjJsDtgcv4e4+MtCR8y5Gq1ZmGT7ghu6j/Ab6mmLMnIn6+hRn2xSFXlfns23
-         FfDi+JMC0ZNAVtEUyJtieeszStDc20djwZWMv5Wg=
+        b=jSCsUp37JyGCB181Cn28rHxcAL9daQIGn3uytM/hNyKKAP3HKTlgWDu10eRShobWR
+         B3m+zPQSXULdDPYQttNJuEWmcp4l/DY+UsZLxaGA05npwGf7SZY4O5PVodckPhUPWg
+         8sxS+0CN4i1gvVKCpiTai6QCnY1LsDZq7RrOYpvc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com, iamjoonsoo.kim@lge.com,
-        linux-mm@kvack.org, mateusznosek0@gmail.com,
-        mm-commits@vger.kernel.org, nigupta@nvidia.com, sh_def@163.com,
+To:     akpm@linux-foundation.org, david@redhat.com, glider@google.com,
+        keescook@chromium.org, linux-mm@kvack.org, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, osalvador@suse.de, rppt@linux.ibm.com,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 161/200] mm/compaction: make defer_compaction and
- compaction_deferred static
-Message-ID: <20201215031246.i0OwwU3Tv%akpm@linux-foundation.org>
+Subject:  [patch 134/200] mm/page_alloc: clear all pages in
+ post_alloc_hook() with init_on_alloc=1
+Message-ID: <20201215031115.iQ2xs78y1%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,95 +43,78 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hui Su <sh_def@163.com>
-Subject: mm/compaction: make defer_compaction and compaction_deferred static
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/page_alloc: clear all pages in post_alloc_hook() with init_on_alloc=1
 
-defer_compaction() and compaction_deferred() and compaction_restarting()
-in mm/compaction.c won't be used in other files, so make them static, and
-remove the declaration in the header file.
+commit 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and
+init_on_free=1 boot options") resulted with init_on_alloc=1 in all pages
+leaving the buddy via alloc_pages() and friends to be
+initialized/cleared/zeroed on allocation.
 
-Take the chance to fix a typo.
+However, the same logic is currently not applied to alloc_contig_pages():
+allocated pages leaving the buddy aren't cleared with init_on_alloc=1 and
+init_on_free=0.  Let's also properly clear pages on that allocation path.
 
-Link: https://lkml.kernel.org/r/20201123170801.GA9625@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
+To achieve that, let's move clearing into post_alloc_hook().  This will
+not only affect alloc_contig_pages() allocations but also any pages used
+as migration target in compaction code via compaction_alloc().
+
+While this sounds sub-optimal, it's the very same handling as when
+allocating migration targets via alloc_migration_target() - pages will get
+properly cleared with init_on_free=1.  In case we ever want to optimize
+migration in that regard, we should tackle all such migration users - if
+we believe migration code can be fully trusted.
+
+With this change, we will see double clearing of pages in some cases.  One
+example are gigantic pages (either allocated via CMA, or allocated
+dynamically via alloc_contig_pages()) - which is the right thing to do
+(and to be optimized outside of the buddy in the callers) as discussed in:
+https://lkml.kernel.org/r/20201019182853.7467-1-gpiccoli@canonical.com
+
+This change implies that with init_on_alloc=1
+- All CMA allocations will be cleared
+- Gigantic pages allocated via alloc_contig_pages() will be cleared
+- virtio-mem memory to be unplugged will be cleared. While this is
+  suboptimal, it's similar to memory balloon drivers handling, where
+  all pages to be inflated will get cleared as well.
+- Pages isolated for compaction will be cleared
+
+Link: https://lkml.kernel.org/r/20201120180452.19071-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Mateusz Nosek <mateusznosek0@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   12 ------------
- mm/compaction.c            |    8 ++++----
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/compaction.h~mm-compaction-make-defer_compaction-and-compaction_deferred-static
-+++ a/include/linux/compaction.h
-@@ -98,11 +98,8 @@ extern void reset_isolation_suitable(pg_
- extern enum compact_result compaction_suitable(struct zone *zone, int order,
- 		unsigned int alloc_flags, int highest_zoneidx);
- 
--extern void defer_compaction(struct zone *zone, int order);
--extern bool compaction_deferred(struct zone *zone, int order);
- extern void compaction_defer_reset(struct zone *zone, int order,
- 				bool alloc_success);
--extern bool compaction_restarting(struct zone *zone, int order);
- 
- /* Compaction has made some progress and retrying makes sense */
- static inline bool compaction_made_progress(enum compact_result result)
-@@ -194,15 +191,6 @@ static inline enum compact_result compac
- 	return COMPACT_SKIPPED;
+--- a/mm/page_alloc.c~mm-page_alloc-clear-all-pages-in-post_alloc_hook-with-init_on_alloc=1
++++ a/mm/page_alloc.c
+@@ -2284,6 +2284,9 @@ inline void post_alloc_hook(struct page
+ 	kasan_alloc_pages(page, order);
+ 	kernel_poison_pages(page, 1 << order, 1);
+ 	set_page_owner(page, order, gfp_flags);
++
++	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
++		kernel_init_free_pages(page, 1 << order);
  }
  
--static inline void defer_compaction(struct zone *zone, int order)
--{
--}
+ static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
+@@ -2291,9 +2294,6 @@ static void prep_new_page(struct page *p
+ {
+ 	post_alloc_hook(page, order, gfp_flags);
+ 
+-	if (!free_pages_prezeroed() && want_init_on_alloc(gfp_flags))
+-		kernel_init_free_pages(page, 1 << order);
 -
--static inline bool compaction_deferred(struct zone *zone, int order)
--{
--	return true;
--}
--
- static inline bool compaction_made_progress(enum compact_result result)
- {
- 	return false;
---- a/mm/compaction.c~mm-compaction-make-defer_compaction-and-compaction_deferred-static
-+++ a/mm/compaction.c
-@@ -157,7 +157,7 @@ EXPORT_SYMBOL(__ClearPageMovable);
-  * allocation success. 1 << compact_defer_shift, compactions are skipped up
-  * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
-  */
--void defer_compaction(struct zone *zone, int order)
-+static void defer_compaction(struct zone *zone, int order)
- {
- 	zone->compact_considered = 0;
- 	zone->compact_defer_shift++;
-@@ -172,7 +172,7 @@ void defer_compaction(struct zone *zone,
- }
+ 	if (order && (gfp_flags & __GFP_COMP))
+ 		prep_compound_page(page, order);
  
- /* Returns true if compaction should be skipped this time */
--bool compaction_deferred(struct zone *zone, int order)
-+static bool compaction_deferred(struct zone *zone, int order)
- {
- 	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
- 
-@@ -209,7 +209,7 @@ void compaction_defer_reset(struct zone
- }
- 
- /* Returns true if restarting compaction after many failures */
--bool compaction_restarting(struct zone *zone, int order)
-+static bool compaction_restarting(struct zone *zone, int order)
- {
- 	if (order < zone->compact_order_failed)
- 		return false;
-@@ -237,7 +237,7 @@ static void reset_cached_positions(struc
- }
- 
- /*
-- * Compound pages of >= pageblock_order should consistenly be skipped until
-+ * Compound pages of >= pageblock_order should consistently be skipped until
-  * released. It is always pointless to compact pages of such order (if they are
-  * migratable), and the pageblocks they occupy cannot contain any free pages.
-  */
 _
