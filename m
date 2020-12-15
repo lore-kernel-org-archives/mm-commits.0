@@ -5,37 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 788BDC4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:20:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B71DDC4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:21:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28ED2224BD
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:20:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B99A20721
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:21:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727369AbgLODUW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:20:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36030 "EHLO mail.kernel.org"
+        id S1727387AbgLODVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:21:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36482 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727723AbgLODLY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:11:24 -0500
-Date:   Mon, 14 Dec 2020 19:09:02 -0800
+        id S1726203AbgLODLP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:11:15 -0500
+Date:   Mon, 14 Dec 2020 19:08:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001743;
-        bh=K7Y4Fdl4u07UjNvujag/pQbqMUcakgkGi5MxXNqcYHs=;
+        s=korg; t=1608001740;
+        bh=9uiPdRLVZJkkDatTBi0orKDJ2WyYqfzle2A9x9h+fQ4=;
         h=From:To:Subject:In-Reply-To:From;
-        b=KZpTwUsybzMao6Ic/oHTN8GMegQut2WOVvjUlNFiEbMxrOimYqCmfxpaPDL5twxD1
-         lbXHTHARvlcEhsbTiFFOVuemle9gytqaFg8tVsTWz+Ux9aF7FiEa4aWR7QHVlN4wzj
-         Nm5HF4zojUfYXGGuvwgmN28oaBig3gqA9ICL4D4k=
+        b=QAoFMctC6khPgDvL4iTtjWIV1w1GeA5/gOR+nTMnpWCVOUQODBjyoLnj4YQpNjQeH
+         1GW5tKotbwWQl1syh9HlFCaQn+wSgVRkWs384RqqA2glvpiDdner8Bbt0no4/DEQiI
+         lZ6xsMyPPtBgYmH4icGxaCeUPefAD7FnuSE4LS2w=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        corbet@lwn.net, kirill.shutemov@linux.intel.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org,
-        yang.shi@linux.alibaba.com, ziy@nvidia.com
-Subject:  [patch 099/200] docs/vm: remove unused 3 items
- explanation for /proc/vmstat
-Message-ID: <20201215030902.nOlCCkLtw%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        longman@redhat.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, urezki@gmail.com,
+        willy@infradead.org
+Subject:  [patch 098/200] mm/vmalloc: Fix unlock order in s_stop()
+Message-ID: <20201215030859.OyhgKMLgu%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,52 +41,47 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
+From: Waiman Long <longman@redhat.com>
+Subject: mm/vmalloc: Fix unlock order in s_stop()
 
-Commit 5647bc293ab1 ("mm: compaction: Move migration fail/success
-stats to migrate.c"), removed 3 items in /proc/vmstat. but the docs
-still has their explanation. let's remove them.
+When multiple locks are acquired, they should be released in reverse
+order. For s_start() and s_stop() in mm/vmalloc.c, that is not the
+case.
 
-"compact_blocks_moved",
-"compact_pages_moved",
-"compact_pagemigrate_failed",
+  s_start: mutex_lock(&vmap_purge_lock); spin_lock(&vmap_area_lock);
+  s_stop : mutex_unlock(&vmap_purge_lock); spin_unlock(&vmap_area_lock);
 
-Link: https://lkml.kernel.org/r/1605520282-51993-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
+This unlock sequence, though allowed, is not optimal. If a waiter is
+present, mutex_unlock() will need to go through the slowpath of waking
+up the waiter with preemption disabled. Fix that by releasing the
+spinlock first before the mutex.
+
+Link: https://lkml.kernel.org/r/20201213180843.16938-1-longman@redhat.com
+Fixes: e36176be1c39 ("mm/vmalloc: rework vmap_area_lock")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   15 ---------------
- 1 file changed, 15 deletions(-)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~docs-vm-remove-unused-3-items-explanation-for-proc-vmstat
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -401,21 +401,6 @@ compact_fail
- 	is incremented if the system tries to compact memory
- 	but failed.
+--- a/mm/vmalloc.c~mm-vmalloc-fix-unlock-order-in-s_stop
++++ a/mm/vmalloc.c
+@@ -3465,11 +3465,11 @@ static void *s_next(struct seq_file *m,
+ }
  
--compact_pages_moved
--	is incremented each time a page is moved. If
--	this value is increasing rapidly, it implies that the system
--	is copying a lot of data to satisfy the huge page allocation.
--	It is possible that the cost of copying exceeds any savings
--	from reduced TLB misses.
--
--compact_pagemigrate_failed
--	is incremented when the underlying mechanism
--	for moving a page failed.
--
--compact_blocks_moved
--	is incremented each time memory compaction examines
--	a huge page aligned range of pages.
--
- It is possible to establish how long the stalls were using the function
- tracer to record how long was spent in __alloc_pages_nodemask and
- using the mm_page_alloc tracepoint to identify which allocations were
+ static void s_stop(struct seq_file *m, void *p)
+-	__releases(&vmap_purge_lock)
+ 	__releases(&vmap_area_lock)
++	__releases(&vmap_purge_lock)
+ {
+-	mutex_unlock(&vmap_purge_lock);
+ 	spin_unlock(&vmap_area_lock);
++	mutex_unlock(&vmap_purge_lock);
+ }
+ 
+ static void show_numa_info(struct seq_file *m, struct vm_struct *v)
 _
