@@ -7,34 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B646C2D0E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 831C3C2BBD4
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 443C822CAE
+	by mail.kernel.org (Postfix) with ESMTP id 5B5AC22CF8
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727122AbgLPAAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727115AbgLPAAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 19:00:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34562 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728043AbgLOX1t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:27:49 -0500
-Date:   Tue, 15 Dec 2020 15:24:03 -0800
+        id S1727410AbgLOX1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:27:48 -0500
+Date:   Tue, 15 Dec 2020 15:16:07 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074644;
-        bh=E/sO+2N9t+h8JgXnHu3Qg/xPbvWX5aqk3bjrCFgCCSI=;
+        s=korg; t=1608074169;
+        bh=O8B1KNJ0eSY6OVi9v2eSsMMAetPRrgnccGNvjQW6JY0=;
         h=From:To:Subject:From;
-        b=Acfy7COCyYLJvTB3jtcqqYAT2bPjaLDQU5xw2c5FuWjU5C5xZqDsDk1ORkW8kW/Da
-         2j//aMCJ18YdwzGGKe/w+EN7tRmfYu9p/RB3nu5nv//60y24xRuConIH89zdcjFTtZ
-         5Uacz83lG9/BD/792/dU9B5kyq8esHBbVUFgw9IM=
+        b=0Gmyk+tnfS097kxGyfSqhWC0TRoBdgpPKJxYxBXT3Ap75+hCqLiWgxrTbl78Hfzl0
+         2ppGsDtQV5BNH15pNW86R6Gp30tN3kIFF6dVf84KhCu9lxKVGwTzrjO08rhiNXKQKM
+         3KfwK8NK7LB0dRQBRJx80tUi3raw1a1MTyV1mwLI=
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, axelrasmussen@google.com, dgilbert@redhat.com,
-        gthelen@google.com, joe@perches.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, rppt@linux.vnet.ibm.com, shuah@kernel.org
+To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
+        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
+        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
+        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
+        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
+        tzimmermann@suse.de, vbabka@suse.cz
 Subject:  [merged]
- userfaultfd-selftests-make-__su64-format-specifiers-portable.patch removed
- from -mm tree
-Message-ID: <20201215232403.SAK-xvNY4%akpm@linux-foundation.org>
+ mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch removed from -mm
+ tree
+Message-ID: <20201215231607.Et_uWt3uc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,216 +51,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
+     Subject: mm: slab: clarify krealloc()'s behavior with __GFP_ZERO
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-make-__su64-format-specifiers-portable.patch
+     mm-slab-clarify-kreallocs-behavior-with-__gfp_zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd: selftests: make __{s,u}64 format specifiers portable
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: mm: slab: clarify krealloc()'s behavior with __GFP_ZERO
 
-On certain platforms (powerpcle is the one on which I ran into this),
-"%Ld" and "%Lu" are unsuitable for printing __s64 and __u64, respectively,
-resulting in build warnings.  Cast to {u,}int64_t, and use the PRI{d,u}64
-macros defined in inttypes.h to print them.  This ought to be portable to
-all platforms.
+Patch series "slab: provide and use krealloc_array()", v3.
 
-Splitting this off into a separate macro lets us remove some lines, and
-get rid of some (I would argue) stylistically odd cases where we joined
-printf() and exit() into a single statement with a ,.
+Andy brought to my attention the fact that users allocating an array of
+equally sized elements should check if the size multiplication doesn't
+overflow.  This is why we have helpers like kmalloc_array().
 
-Finally, this also fixes a "missing braces around initializer" warning
-when we initialize prms in wp_range().
+However we don't have krealloc_array() equivalent and there are many users
+who do their own multiplication when calling krealloc() for arrays.
 
-[axelrasmussen@google.com: v2]
-  Link: https://lkml.kernel.org/r/20201203180244.1811601-1-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20201202211542.1121189-1-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Alan Gilbert <dgilbert@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
+This series provides krealloc_array() and uses it in a couple places.
+
+A separate series will follow adding devm_krealloc_array() which is needed
+in the xilinx adc driver.
+
+
+This patch (of 9):
+
+__GFP_ZERO is ignored by krealloc() (unless we fall-back to kmalloc()
+path, in which case it's honored).  Point that out in the kerneldoc.
+
+Link: https://lkml.kernel.org/r/20201109110654.12547-1-brgl@bgdev.pl
+Link: https://lkml.kernel.org/r/20201109110654.12547-2-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   81 +++++++++------------
- 1 file changed, 35 insertions(+), 46 deletions(-)
+ mm/slab_common.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-make-__su64-format-specifiers-portable
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -55,6 +55,8 @@
- #include <setjmp.h>
- #include <stdbool.h>
- #include <assert.h>
-+#include <inttypes.h>
-+#include <stdint.h>
- 
- #include "../kselftest.h"
- 
-@@ -135,6 +137,13 @@ static void usage(void)
- 	exit(1);
- }
- 
-+#define uffd_error(code, fmt, ...)                                             \
-+	do {                                                                   \
-+		fprintf(stderr, fmt, ##__VA_ARGS__);                           \
-+		fprintf(stderr, ": %" PRId64 "\n", (int64_t)(code));           \
-+		exit(1);                                                       \
-+	} while (0)
-+
- static void uffd_stats_reset(struct uffd_stats *uffd_stats,
- 			     unsigned long n_cpus)
- {
-@@ -338,7 +347,7 @@ static int my_bcmp(char *str1, char *str
- 
- static void wp_range(int ufd, __u64 start, __u64 len, bool wp)
- {
--	struct uffdio_writeprotect prms = { 0 };
-+	struct uffdio_writeprotect prms;
- 
- 	/* Write protection page faults */
- 	prms.range.start = start;
-@@ -347,7 +356,8 @@ static void wp_range(int ufd, __u64 star
- 	prms.mode = wp ? UFFDIO_WRITEPROTECT_MODE_WP : 0;
- 
- 	if (ioctl(ufd, UFFDIO_WRITEPROTECT, &prms)) {
--		fprintf(stderr, "clear WP failed for address 0x%Lx\n", start);
-+		fprintf(stderr, "clear WP failed for address 0x%" PRIx64 "\n",
-+			(uint64_t)start);
- 		exit(1);
- 	}
- }
-@@ -481,14 +491,11 @@ static void retry_copy_page(int ufd, str
- 	if (ioctl(ufd, UFFDIO_COPY, uffdio_copy)) {
- 		/* real retval in ufdio_copy.copy */
- 		if (uffdio_copy->copy != -EEXIST) {
--			fprintf(stderr, "UFFDIO_COPY retry error %Ld\n",
--				uffdio_copy->copy);
--			exit(1);
-+			uffd_error(uffdio_copy->copy,
-+				   "UFFDIO_COPY retry error");
- 		}
--	} else {
--		fprintf(stderr,	"UFFDIO_COPY retry unexpected %Ld\n",
--			uffdio_copy->copy); exit(1);
--	}
-+	} else
-+		uffd_error(uffdio_copy->copy, "UFFDIO_COPY retry unexpected");
- }
- 
- static int __copy_page(int ufd, unsigned long offset, bool retry)
-@@ -509,14 +516,10 @@ static int __copy_page(int ufd, unsigned
- 	uffdio_copy.copy = 0;
- 	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
- 		/* real retval in ufdio_copy.copy */
--		if (uffdio_copy.copy != -EEXIST) {
--			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
--				uffdio_copy.copy);
--			exit(1);
--		}
-+		if (uffdio_copy.copy != -EEXIST)
-+			uffd_error(uffdio_copy.copy, "UFFDIO_COPY error");
- 	} else if (uffdio_copy.copy != page_size) {
--		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
--			uffdio_copy.copy); exit(1);
-+		uffd_error(uffdio_copy.copy, "UFFDIO_COPY unexpected copy");
- 	} else {
- 		if (test_uffdio_copy_eexist && retry) {
- 			test_uffdio_copy_eexist = false;
-@@ -795,7 +798,8 @@ static int userfaultfd_open(int features
- 		return 1;
- 	}
- 	if (uffdio_api.api != UFFD_API) {
--		fprintf(stderr, "UFFDIO_API error %Lu\n", uffdio_api.api);
-+		fprintf(stderr, "UFFDIO_API error: %" PRIu64 "\n",
-+			(uint64_t)uffdio_api.api);
- 		return 1;
- 	}
- 
-@@ -957,13 +961,12 @@ static void retry_uffdio_zeropage(int uf
- 				     offset);
- 	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
- 		if (uffdio_zeropage->zeropage != -EEXIST) {
--			fprintf(stderr, "UFFDIO_ZEROPAGE retry error %Ld\n",
--				uffdio_zeropage->zeropage);
--			exit(1);
-+			uffd_error(uffdio_zeropage->zeropage,
-+				   "UFFDIO_ZEROPAGE retry error");
- 		}
- 	} else {
--		fprintf(stderr, "UFFDIO_ZEROPAGE retry unexpected %Ld\n",
--			uffdio_zeropage->zeropage); exit(1);
-+		uffd_error(uffdio_zeropage->zeropage,
-+			   "UFFDIO_ZEROPAGE retry unexpected");
- 	}
- }
- 
-@@ -972,6 +975,7 @@ static int __uffdio_zeropage(int ufd, un
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
- 	unsigned long has_zeropage;
-+	__s64 res;
- 
- 	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
- 
-@@ -983,29 +987,17 @@ static int __uffdio_zeropage(int ufd, un
- 	uffdio_zeropage.range.len = page_size;
- 	uffdio_zeropage.mode = 0;
- 	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
-+	res = uffdio_zeropage.zeropage;
- 	if (ret) {
- 		/* real retval in ufdio_zeropage.zeropage */
- 		if (has_zeropage) {
--			if (uffdio_zeropage.zeropage == -EEXIST) {
--				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n");
--				exit(1);
--			} else {
--				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
--					uffdio_zeropage.zeropage);
--				exit(1);
--			}
--		} else {
--			if (uffdio_zeropage.zeropage != -EINVAL) {
--				fprintf(stderr,
--					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
--					uffdio_zeropage.zeropage);
--				exit(1);
--			}
--		}
-+			uffd_error(res, "UFFDIO_ZEROPAGE %s",
-+				   res == -EEXIST ? "-EEXIST" : "error");
-+		} else if (res != -EINVAL)
-+			uffd_error(res, "UFFDIO_ZEROPAGE not -EINVAL");
- 	} else if (has_zeropage) {
--		if (uffdio_zeropage.zeropage != page_size) {
--			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
--				uffdio_zeropage.zeropage); exit(1);
-+		if (res != page_size) {
-+			uffd_error(res, "UFFDIO_ZEROPAGE unexpected");
- 		} else {
- 			if (test_uffdio_zeropage_eexist && retry) {
- 				test_uffdio_zeropage_eexist = false;
-@@ -1014,11 +1006,8 @@ static int __uffdio_zeropage(int ufd, un
- 			}
- 			return 1;
- 		}
--	} else {
--		fprintf(stderr,
--			"UFFDIO_ZEROPAGE succeeded %Ld\n",
--			uffdio_zeropage.zeropage); exit(1);
--	}
-+	} else
-+		uffd_error(res, "UFFDIO_ZEROPAGE succeeded");
- 
- 	return 0;
- }
+--- a/mm/slab_common.c~mm-slab-clarify-kreallocs-behavior-with-__gfp_zero
++++ a/mm/slab_common.c
+@@ -1091,9 +1091,9 @@ static __always_inline void *__do_kreall
+  * @flags: the type of memory to allocate.
+  *
+  * The contents of the object pointed to are preserved up to the
+- * lesser of the new and old sizes.  If @p is %NULL, krealloc()
+- * behaves exactly like kmalloc().  If @new_size is 0 and @p is not a
+- * %NULL pointer, the object pointed to is freed.
++ * lesser of the new and old sizes (__GFP_ZERO flag is effectively ignored).
++ * If @p is %NULL, krealloc() behaves exactly like kmalloc().  If @new_size
++ * is 0 and @p is not a %NULL pointer, the object pointed to is freed.
+  *
+  * Return: pointer to the allocated memory or %NULL in case of error
+  */
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
 
