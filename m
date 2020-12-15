@@ -7,35 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E64E6C4361B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:34:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52206C2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:35:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE0CE223D6
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:34:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E7C7224B2
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:35:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726204AbgLODet (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:34:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60678 "EHLO mail.kernel.org"
+        id S1726996AbgLODfB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:35:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727189AbgLODEm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:04:42 -0500
-Date:   Mon, 14 Dec 2020 19:03:40 -0800
+        id S1727209AbgLODEu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:04:50 -0500
+Date:   Mon, 14 Dec 2020 19:03:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001421;
-        bh=Hq65GspLcFsB2k/VEDglsJo0250lCJzCN2UxgWtq1mk=;
+        s=korg; t=1608001441;
+        bh=JW4Imt+K+37fiY/SyJIMfmpxhT/hULA93j9jMDC8RW0=;
         h=From:To:Subject:In-Reply-To:From;
-        b=XRkdHBqKIEvv/gCco2435pcBPy24yXjgmOV+Q2XpMoaGvy1sm4fCthnV4sg3gmu2h
-         8cIF8rJOXYZ3SadQKwBdL+dmNqt+0kPk/1/ILNV/DrWOBX3FT0JB5BqD7/UKJJEpHA
-         6VHkOJ4bHTre7g4nLCBAs5Zs8+U21qkow2NDndhY=
+        b=ajKqWdL7dJEQ+JgIG9d2WlbzTS9U2mNwopLUhRYKUV7M/nWQt/gt/XQ/cecQbcFtQ
+         H4kG415LX8z1G/tpB9oKDQFiY84QxbiulGoOYSD6B3HBmtH6c0gqmZ0g1lYeSYrH8c
+         SDSkMYc0xQvHUKwSrF7CTLuB6TJCE0GLmSUgmaq8=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com,
-        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com,
-        mfo@canonical.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 009/200] ocfs2: ratelimit the 'max lookup times
- reached' notice
-Message-ID: <20201215030340.5D-np4V61%akpm@linux-foundation.org>
+To:     airlied@linux.ie, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com,
+        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
+        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
+        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
+        linus.walleij@linaro.org, linux-mm@kvack.org,
+        maarten.lankhorst@linux.intel.com, mchehab@kernel.org,
+        mm-commits@vger.kernel.org, mripard@kernel.org, mst@redhat.com,
+        penberg@kernel.org, perex@perex.cz, rientjes@google.com,
+        rric@kernel.org, sumit.semwal@linaro.org, tiwai@suse.com,
+        tiwai@suse.de, tony.luck@intel.com, torvalds@linux-foundation.org,
+        tzimmermann@suse.de, vbabka@suse.cz
+Subject:  [patch 014/200] ALSA: pcm: use krealloc_array()
+Message-ID: <20201215030359.9w88ckWqU%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,75 +50,59 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mauricio Faria de Oliveira <mfo@canonical.com>
-Subject: ocfs2: ratelimit the 'max lookup times reached' notice
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: ALSA: pcm: use krealloc_array()
 
-Running stress-ng on ocfs2 completely fills the kernel log with 'max
-lookup times reached, filesystem may have nested directories.'
+Use the helper that checks for overflows internally instead of manually
+calculating the size of the new array.
 
-Let's ratelimit this message as done with others in the code.
-
-Test-case:
-
-  # mkfs.ocfs2 --mount local $DEV
-  # mount $DEV $MNT
-  # cd $MNT
-
-  # dmesg -C
-  # stress-ng --dirdeep 1 --dirdeep-ops 1000
-  # dmesg | grep -c 'max lookup times reached'
-
-Before:
-
-  # dmesg -C
-  # stress-ng --dirdeep 1 --dirdeep-ops 1000
-  ...
-  stress-ng: info:  [11116] successful run completed in 3.03s
-
-  # dmesg | grep -c 'max lookup times reached'
-  967
-
-After:
-
-  # dmesg -C
-  # stress-ng --dirdeep 1 --dirdeep-ops 1000
-  ...
-  stress-ng: info:  [739] successful run completed in 0.96s
-
-  # dmesg | grep -c 'max lookup times reached'
-  10
-
-  # dmesg
-  [  259.086086] ocfs2_check_if_ancestor: 1990 callbacks suppressed
-  [  259.086092] (stress-ng-dirde,740,1):ocfs2_check_if_ancestor:1091 max lookup times reached, filesystem may have nested directories, src inode: 18007, dest inode: 17940.
-  ...
-
-Link: https://lkml.kernel.org/r/20201001224417.478263-1-mfo@canonical.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20201109110654.12547-4-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Reviewed-by: Takashi Iwai <tiwai@suse.de>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Robert Richter <rric@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    4 ++--
+ sound/core/pcm_lib.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-ratelimit-the-max-lookup-times-reached-notice
-+++ a/fs/ocfs2/namei.c
-@@ -1088,8 +1088,8 @@ static int ocfs2_check_if_ancestor(struc
- 		child_inode_no = parent_inode_no;
- 
- 		if (++i >= MAX_LOOKUP_TIMES) {
--			mlog(ML_NOTICE, "max lookup times reached, filesystem "
--					"may have nested directories, "
-+			mlog_ratelimited(ML_NOTICE, "max lookup times reached, "
-+					"filesystem may have nested directories, "
- 					"src inode: %llu, dest inode: %llu.\n",
- 					(unsigned long long)src_inode_no,
- 					(unsigned long long)dest_inode_no);
+--- a/sound/core/pcm_lib.c~alsa-pcm-use-krealloc_array
++++ a/sound/core/pcm_lib.c
+@@ -1129,8 +1129,8 @@ int snd_pcm_hw_rule_add(struct snd_pcm_r
+ 	if (constrs->rules_num >= constrs->rules_all) {
+ 		struct snd_pcm_hw_rule *new;
+ 		unsigned int new_rules = constrs->rules_all + 16;
+-		new = krealloc(constrs->rules, new_rules * sizeof(*c),
+-			       GFP_KERNEL);
++		new = krealloc_array(constrs->rules, new_rules,
++				     sizeof(*c), GFP_KERNEL);
+ 		if (!new) {
+ 			va_end(args);
+ 			return -ENOMEM;
 _
