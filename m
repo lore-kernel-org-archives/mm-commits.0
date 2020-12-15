@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D739EC2BBD4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE2CDC3526B
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFDEE22D49
+	by mail.kernel.org (Postfix) with ESMTP id C5C6522D08
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726997AbgLPAAI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32826 "EHLO mail.kernel.org"
+        id S1726998AbgLPAAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729917AbgLOX0m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727443AbgLOX0m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:26:42 -0500
-Date:   Tue, 15 Dec 2020 15:16:55 -0800
+Date:   Tue, 15 Dec 2020 15:17:48 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074215;
-        bh=1U0JjFb8glJQVFLVV4l+uj+v5o+JqkQmNMNFN+p3c4Q=;
+        s=korg; t=1608074268;
+        bh=Ei9tu1dpL0YeI0t0bhYZB4q6gOkRwDwEVYRWTTDh8pg=;
         h=From:To:Subject:From;
-        b=cS3Q47m5Xk7iG+UynvBpXNKgo0qx7nWGviOFNYFWUoauTIvJpy0X8tX1TaL31aXig
-         re9XynOxpjlx5ML6AWQvrh4bJXAY5nKn9H2NbINHdCbFMpx8idKVCO3ecEOClJ95sk
-         98+awE44v8cKpVyfS6ggvJEfPnSfHTEnXcanH+30=
+        b=wN+y82Kuuw6S42XBkKSp+vTxsEW+jL5MqKXYgJPNe5o2dxZ7RK+Q1zz6NB0HThlwQ
+         VQDy9vXa7QIWsa1J3dSbdfjMVm2C3SUCD8R85OFnuDv39drelNyq+YYAVgxGyb6YwD
+         C2ug5OLBA7fdKogwlunLiqHd3Eh8EqjFnvfmF/+g=
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [merged] device-dax-kmem-use-struct_size.patch removed
- from -mm tree
-Message-ID: <20201215231655.RMSBuP6Zw%akpm@linux-foundation.org>
+To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ =?US-ASCII?Q?mm-swap=5Fstate-skip-meaningless-swap-cache-readahead-when-r?=
+ =?US-ASCII?Q?a=5Finfowin-=3D=3D-0.patch?= removed from -mm tree
+Message-ID: <20201215231748.Y1Z855zVw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,43 +43,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax/kmem: use struct_size()
+     Subject: mm/swap_state: skip meaningless swap cache readahead when ra_info.win == 0
 has been removed from the -mm tree.  Its filename was
-     device-dax-kmem-use-struct_size.patch
+     mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax/kmem: use struct_size()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swap_state: skip meaningless swap cache readahead when ra_info.win == 0
 
-Linus notes the kernel has had a nice helper for the 'size of struct with
-variable array member at the end' operation for a couple years now, use
-it.
+swap_ra_info() may leave ra_info untouched in non_swap_entry() case as
+page table lock is not held.  In this case, we have ra_info.nr_pte == 0
+and it is meaningless to continue with swap cache readahead.  Skip such
+ops by init ra_info.win = 1.
 
-Link: http://lore.kernel.org/r/CAHk-=wgNTLbvAD8mNTvh+GQyapNWeX20PXhU_+frqEvVq4298w@mail.gmail.com
-Link: https://lkml.kernel.org/r/160288261564.3242821.6055291930923876456.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+[akpm@linux-foundation.org: clean up struct init]
+Link: https://lkml.kernel.org/r/20201009133059.58407-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/drivers/dax/kmem.c~device-dax-kmem-use-struct_size
-+++ a/drivers/dax/kmem.c
-@@ -61,7 +61,7 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
+--- a/mm/swap_state.c~mm-swap_state-skip-meaningless-swap-cache-readahead-when-ra_infowin-==-0
++++ a/mm/swap_state.c
+@@ -839,7 +839,9 @@ static struct page *swap_vma_readahead(s
+ 	swp_entry_t entry;
+ 	unsigned int i;
+ 	bool page_allocated;
+-	struct vma_swap_readahead ra_info = {0,};
++	struct vma_swap_readahead ra_info = {
++		.win = 1,
++	};
  
--	data = kzalloc(sizeof(*data) + sizeof(struct resource *) * dev_dax->nr_range, GFP_KERNEL);
-+	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
+ 	swap_ra_info(vmf, &ra_info);
+ 	if (ra_info.win == 1)
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
