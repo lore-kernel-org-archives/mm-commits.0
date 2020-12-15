@@ -7,45 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69DF9C2BBCF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B01E8C2D0E4
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B50D22DCC
+	by mail.kernel.org (Postfix) with ESMTP id 8217422DCC
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725942AbgLPAAl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 19:00:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
+        id S1726225AbgLPAAn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 19:00:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726206AbgLOX3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726301AbgLOX3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 18:29:39 -0500
-Date:   Tue, 15 Dec 2020 15:19:09 -0800
+Date:   Tue, 15 Dec 2020 15:19:14 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074351;
-        bh=ZSFPlAedE1qpeJfwQY2KoYiz8TQ1bpzCO/Fdi1WCal4=;
+        s=korg; t=1608074354;
+        bh=z/rBS/nPwaGrhFIvO168Ce0PvvvWgwIC7JqM1fhzp/s=;
         h=From:To:Subject:From;
-        b=eRiNw3Bv4mO/r811pqGsFNqgBiQJsxqC3v3IQ+QKgb3ECqY5mYrKJIBlaOFa84PNo
-         XJ0R2HdyQObwLMyMGVUdFTo2QR2b8pSr0Uh+M+rREzPIaFHN5DaMOfYj79ToMoNjEt
-         49w++n2PHd1imelgSdqxotSPDxv+wWfxKB9jM/o0=
+        b=IQBHMqN5/dE+cRJLH6rlxuJjXIHLio8Q2TGKl+4J+QKYu3r2AxV2DWs0a40SBxZDz
+         xc/M3C9k+8tulC6Sfj2jfnfjjZHVnMJcuwoMrEpJCn7gI6SwULQ+F3ISYUEK030NDZ
+         yD6mRd6ICxjVMQ63+lDah7ItaWdcd79ATVq5FoWA=
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, aneesh.kumar@linux.ibm.com,
-        anshuman.khandual@arm.com, arnd@arndb.de, bgeffon@google.com,
-        bp@alien8.de, catalin.marinas@arm.com,
-        christian.brauner@ubuntu.com, dave.hansen@intel.com,
-        frederic@kernel.org, gshan@redhat.com, hnaveed@wavecomp.com,
-        hpa@zytor.com, jhubbard@nvidia.com, justin.he@arm.com,
-        kaleshsingh@google.com, keescook@chromium.org,
-        kirill.shutemov@linux.intel.com, krzk@kernel.org,
-        linuxram@us.ibm.com, lokeshgidra@google.com, mark.rutland@arm.com,
-        masahiroy@kernel.org, mhiramat@kernel.org, minchan@google.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        rcampbell@nvidia.com, rppt@kernel.org, samitolvanen@google.com,
-        sandipan@linux.ibm.com, shuah@kernel.org, sjpark@amazon.de,
-        steven.price@arm.com, surenb@google.com, tglx@linutronix.de,
-        will@kernel.org, ziy@nvidia.com
-Subject:  [merged] x86-mremap-speedup-enable-have_move_pud.patch
- removed from -mm tree
-Message-ID: <20201215231909.P19IFqXlf%akpm@linux-foundation.org>
+To:     jhubbard@nvidia.com, mm-commits@vger.kernel.org, oleg@redhat.com,
+        rppt@linux.ibm.com
+Subject:  [merged]
+ mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch removed from
+ -mm tree
+Message-ID: <20201215231914.1tZ5XdJDC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,105 +42,132 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mremap speedup - Enable HAVE_MOVE_PUD
+     Subject: mm: cleanup: remove unused tsk arg from __access_remote_vm
 has been removed from the -mm tree.  Its filename was
-     x86-mremap-speedup-enable-have_move_pud.patch
+     mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: x86: mremap speedup - Enable HAVE_MOVE_PUD
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm: cleanup: remove unused tsk arg from __access_remote_vm
 
-HAVE_MOVE_PUD enables remapping pages at the PUD level if both the
-source and destination addresses are PUD-aligned.
+Despite a comment that said that page fault accounting would be charged to
+whatever task_struct* was passed into __access_remote_vm(), the tsk
+argument was actually unused.
 
-With HAVE_MOVE_PUD enabled it can be inferred that there is approximately
-a 13x improvement in performance on x86. (See data below).
+Making page fault accounting actually use this task struct is quite a
+project, so there is no point in keeping the tsk argument.
 
-------- Test Results ---------
+Delete both the comment, and the argument.
 
-The following results were obtained using a 5.4 kernel, by remapping
-a PUD-aligned, 1GB sized region to a PUD-aligned destination.
-The results from 10 iterations of the test are given below:
-
-Total mremap times for 1GB data on x86. All times are in nanoseconds.
-
-Control        HAVE_MOVE_PUD
-
-180394         15089
-235728         14056
-238931         25741
-187330         13838
-241742         14187
-177925         14778
-182758         14728
-160872         14418
-205813         15107
-245722         13998
-
-205721.5       15594    <-- Mean time in nanoseconds
-
-A 1GB mremap completion time drops from ~205 microseconds
-to ~15 microseconds on x86. (~13x speed up).
-
-Link: https://lkml.kernel.org/r/20201014005320.2233162-6-kaleshsingh@google.com
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Hassan Naveed <hnaveed@wavecomp.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+[rppt@linux.ibm.com: changelog addition]
+Link: https://lkml.kernel.org/r/20201026074137.4147787-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h |    4 ++--
+ kernel/ptrace.c    |    2 +-
+ mm/memory.c        |   11 +++++------
+ mm/nommu.c         |    8 ++++----
+ 4 files changed, 12 insertions(+), 13 deletions(-)
 
---- a/arch/x86/Kconfig~x86-mremap-speedup-enable-have_move_pud
-+++ a/arch/x86/Kconfig
-@@ -199,6 +199,7 @@ config X86
- 	select HAVE_MIXED_BREAKPOINTS_REGS
- 	select HAVE_MOD_ARCH_SPECIFIC
- 	select HAVE_MOVE_PMD
-+	select HAVE_MOVE_PUD
- 	select HAVE_NMI
- 	select HAVE_OPROFILE
- 	select HAVE_OPTPROBES
+--- a/include/linux/mm.h~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
++++ a/include/linux/mm.h
+@@ -1716,8 +1716,8 @@ extern int access_process_vm(struct task
+ 		void *buf, int len, unsigned int gup_flags);
+ extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
+ 		void *buf, int len, unsigned int gup_flags);
+-extern int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+-		unsigned long addr, void *buf, int len, unsigned int gup_flags);
++extern int __access_remote_vm(struct mm_struct *mm, unsigned long addr,
++			      void *buf, int len, unsigned int gup_flags);
+ 
+ long get_user_pages_remote(struct mm_struct *mm,
+ 			    unsigned long start, unsigned long nr_pages,
+--- a/kernel/ptrace.c~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
++++ a/kernel/ptrace.c
+@@ -57,7 +57,7 @@ int ptrace_access_vm(struct task_struct
+ 		return 0;
+ 	}
+ 
+-	ret = __access_remote_vm(tsk, mm, addr, buf, len, gup_flags);
++	ret = __access_remote_vm(mm, addr, buf, len, gup_flags);
+ 	mmput(mm);
+ 
+ 	return ret;
+--- a/mm/memory.c~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
++++ a/mm/memory.c
+@@ -4885,11 +4885,10 @@ EXPORT_SYMBOL_GPL(generic_access_phys);
+ #endif
+ 
+ /*
+- * Access another process' address space as given in mm.  If non-NULL, use the
+- * given task for page fault accounting.
++ * Access another process' address space as given in mm.
+  */
+-int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+-		unsigned long addr, void *buf, int len, unsigned int gup_flags)
++int __access_remote_vm(struct mm_struct *mm, unsigned long addr, void *buf,
++		       int len, unsigned int gup_flags)
+ {
+ 	struct vm_area_struct *vma;
+ 	void *old_buf = buf;
+@@ -4966,7 +4965,7 @@ int __access_remote_vm(struct task_struc
+ int access_remote_vm(struct mm_struct *mm, unsigned long addr,
+ 		void *buf, int len, unsigned int gup_flags)
+ {
+-	return __access_remote_vm(NULL, mm, addr, buf, len, gup_flags);
++	return __access_remote_vm(mm, addr, buf, len, gup_flags);
+ }
+ 
+ /*
+@@ -4984,7 +4983,7 @@ int access_process_vm(struct task_struct
+ 	if (!mm)
+ 		return 0;
+ 
+-	ret = __access_remote_vm(tsk, mm, addr, buf, len, gup_flags);
++	ret = __access_remote_vm(mm, addr, buf, len, gup_flags);
+ 
+ 	mmput(mm);
+ 
+--- a/mm/nommu.c~mm-cleanup-remove-unused-tsk-arg-from-__access_remote_vm
++++ a/mm/nommu.c
+@@ -1675,8 +1675,8 @@ void filemap_map_pages(struct vm_fault *
+ }
+ EXPORT_SYMBOL(filemap_map_pages);
+ 
+-int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+-		unsigned long addr, void *buf, int len, unsigned int gup_flags)
++int __access_remote_vm(struct mm_struct *mm, unsigned long addr, void *buf,
++		       int len, unsigned int gup_flags)
+ {
+ 	struct vm_area_struct *vma;
+ 	int write = gup_flags & FOLL_WRITE;
+@@ -1722,7 +1722,7 @@ int __access_remote_vm(struct task_struc
+ int access_remote_vm(struct mm_struct *mm, unsigned long addr,
+ 		void *buf, int len, unsigned int gup_flags)
+ {
+-	return __access_remote_vm(NULL, mm, addr, buf, len, gup_flags);
++	return __access_remote_vm(mm, addr, buf, len, gup_flags);
+ }
+ 
+ /*
+@@ -1741,7 +1741,7 @@ int access_process_vm(struct task_struct
+ 	if (!mm)
+ 		return 0;
+ 
+-	len = __access_remote_vm(tsk, mm, addr, buf, len, gup_flags);
++	len = __access_remote_vm(mm, addr, buf, len, gup_flags);
+ 
+ 	mmput(mm);
+ 	return len;
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+secretmem-test-add-basic-selftest-for-memfd_secret2-fix.patch
 
