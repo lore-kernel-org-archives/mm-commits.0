@@ -4,39 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE156C49EBF
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 896A6C47435
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF5A222CB2
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47EE422EBD
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726363AbgLOX7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
+        id S1726130AbgLOX7F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728008AbgLOXWn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:22:43 -0500
-Date:   Tue, 15 Dec 2020 15:21:11 -0800
+        id S1727771AbgLOXWG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:06 -0500
+Date:   Tue, 15 Dec 2020 15:20:18 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074472;
-        bh=Fgmjw3iDiUbvULo+5vy7C43uNHx0UWkcAV154C3kn0o=;
+        s=korg; t=1608074418;
+        bh=7nWpO0MxQjFIfzHvHrqVal7I6UtHU08hYn1UKf6+nfg=;
         h=From:To:Subject:From;
-        b=aquo3EA5V0XcK2JjtwspgSnqqrsnkSv9qW2CEFR/JPDF3aCAK20w0A29E4LpM9ats
-         PgtyO0EJzOCM4M0z/3PLh9NPnCbYwzgfqE2MQoRiNLvnyMd+mL7bocpEON3pOV5WIA
-         CF7Aju6ILZDWqaY4bKCNG3stkk2aoO23V/i2gEjQ=
+        b=1dwQf0pOYAhY3fYxbMBrf94h64TQfCjmSlPClmFcU0diD8XW9zo2jCG8BWOl/uoAl
+         yT+6waCt5IlVyfltu6EX7YDx8auUrxPbk88w7m2xWEXaMpdQZKpVcXCtXGbt1BuzXg
+         bh7YGWxEe0qH2VOHL88vpToQz0ufVg4W0HADFyhA=
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, catalin.marinas@arm.com, corbet@lwn.net,
-        geert@linux-m68k.org, gerg@linux-m68k.org,
-        glaubitz@physik.fu-berlin.de, linux@armlinux.org.uk,
-        mattst88@gmail.com, mm-commits@vger.kernel.org, mroos@linux.ee,
-        rppt@linux.ibm.com, schmitzmic@gmail.com, tony.luck@intel.com,
-        vgupta@synopsys.com, will@kernel.org
-Subject:  [merged] m68k-deprecate-discontigmem.patch removed from
- -mm tree
-Message-ID: <20201215232111.TSyKG_uFt%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
+        elver@google.com, glider@google.com, mm-commits@vger.kernel.org,
+        vincenzo.frascino@arm.com
+Subject:  [merged] mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
+ removed from -mm tree
+Message-ID: <20201215232018.TfhN5CxQw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,123 +42,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: deprecate DISCONTIGMEM
+     Subject: mm/vmalloc.c: fix kasan shadow poisoning size
 has been removed from the -mm tree.  Its filename was
-     m68k-deprecate-discontigmem.patch
+     mm-vmalloc-fix-kasan-shadow-poisoning-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k: deprecate DISCONTIGMEM
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: mm/vmalloc.c: fix kasan shadow poisoning size
 
-DISCONTIGMEM was intended to provide more efficient support for systems
-with holes in their physical address space that FLATMEM did.
+The size of vm area can be affected by the presence or not of the guard
+page.  In particular when VM_NO_GUARD is present, the actual accessible
+size has to be considered like the real size minus the guard page.
 
-Yet, it's overhead in terms of the memory consumption seems to overweight
-the savings on the unused memory map.
+Currently kasan does not keep into account this information during the
+poison operation and in particular tries to poison the guard page as well.
 
-For a ARAnyM system with 16 MBytes of FastRAM configured, the memory usage
-reported after page allocator initialization is
+This approach, even if incorrect, does not cause an issue because the tags
+for the guard page are written in the shadow memory.  With the future
+introduction of the Tag-Based KASAN, being the guard page inaccessible by
+nature, the write tag operation on this page triggers a fault.
 
-Memory: 23828K/30720K available (3206K kernel code, 535K rwdata, 936K rodata, 768K init, 193K bss, 6892K reserved, 0K cma-reserved)
+Fix kasan shadow poisoning size invoking get_vm_area_size() instead of
+accessing directly the field in the data structure to detect the correct
+value.
 
-and with DISCONTIGMEM disabled and with relatively large hole in the memory
-map it is:
-
-Memory: 23864K/30720K available (3197K kernel code, 516K rwdata, 936K rodata, 764K init, 179K bss, 6856K reserved, 0K cma-reserved)
-
-Moreover, since m68k already has custom pfn_valid() it is possible to
-define HAVE_ARCH_PFN_VALID to enable freeing of unused memory map. The
-minimal size of a hole that can be freed should not be less than
-MAX_ORDER_NR_PAGES so to achieve more substantial memory savings let m68k
-also define custom FORCE_MAX_ZONEORDER.
-
-With FORCE_MAX_ZONEORDER set to 9 memory usage becomes:
-
-Memory: 23880K/30720K available (3197K kernel code, 516K rwdata, 936K rodata, 764K init, 179K bss, 6840K reserved, 0K cma-reserved)
-
-Link: https://lkml.kernel.org/r/20201101170454.9567-14-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Michael Schmitz <schmitzmic@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20201027160213.32904-1-vincenzo.frascino@arm.com
+Fixes: d98c9e83b5e7c ("kasan: fix crashes on access to memory mapped by vm_map_ram()")
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig.cpu |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/m68k/Kconfig.cpu~m68k-deprecate-discontigmem
-+++ a/arch/m68k/Kconfig.cpu
-@@ -20,6 +20,7 @@ choice
+--- a/mm/vmalloc.c~mm-vmalloc-fix-kasan-shadow-poisoning-size
++++ a/mm/vmalloc.c
+@@ -2272,7 +2272,7 @@ static void __vunmap(const void *addr, i
+ 	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
+ 	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
  
- config M68KCLASSIC
- 	bool "Classic M68K CPU family support"
-+	select HAVE_ARCH_PFN_VALID
+-	kasan_poison_vmalloc(area->addr, area->size);
++	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
  
- config COLDFIRE
- 	bool "Coldfire CPU family support"
-@@ -377,11 +378,34 @@ config SINGLE_MEMORY_CHUNK
- 	help
- 	  Ignore all but the first contiguous chunk of physical memory for VM
- 	  purposes.  This will save a few bytes kernel size and may speed up
--	  some operations.  Say N if not sure.
-+	  some operations.
-+	  When this option os set to N, you may want to lower "Maximum zone
-+	  order" to save memory that could be wasted for unused memory map.
-+	  Say N if not sure.
+ 	vm_remove_mappings(area, deallocate_pages);
  
- config ARCH_DISCONTIGMEM_ENABLE
-+	depends on BROKEN
- 	def_bool MMU && !SINGLE_MEMORY_CHUNK
- 
-+config FORCE_MAX_ZONEORDER
-+	int "Maximum zone order" if ADVANCED
-+	depends on !SINGLE_MEMORY_CHUNK
-+	default "11"
-+	help
-+	  The kernel memory allocator divides physically contiguous memory
-+	  blocks into "zones", where each zone is a power of two number of
-+	  pages.  This option selects the largest power of two that the kernel
-+	  keeps in the memory allocator.  If you need to allocate very large
-+	  blocks of physically contiguous memory, then you may need to
-+	  increase this value.
-+
-+	  For systems that have holes in their physical address space this
-+	  value also defines the minimal size of the hole that allows
-+	  freeing unused memory map.
-+
-+	  This config option is actually maximum order plus one. For example,
-+	  a value of 11 means that the largest free memory block is 2^10 pages.
-+
- config 060_WRITETHROUGH
- 	bool "Use write-through caching for 68060 supervisor accesses"
- 	depends on ADVANCED && M68060
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
-mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
-mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
-mm-add-definition-of-pmd_page_order.patch
-mmap-make-mlock_future_check-global.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
-set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
-secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
-secretmem-add-memcg-accounting.patch
-pm-hibernate-disable-when-there-are-active-secretmem-users.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
-secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+arm64-enable-armv85-a-asm-arch-option.patch
+arm64-mte-add-in-kernel-mte-helpers.patch
+arm64-mte-reset-the-page-tag-in-page-flags.patch
+arm64-mte-add-in-kernel-tag-fault-handler.patch
+arm64-kasan-allow-enabling-in-kernel-mte.patch
+arm64-mte-convert-gcr_user-into-an-exclude-mask.patch
+arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit.patch
+kasan-mm-untag-page-address-in-free_reserved_area.patch
+kselftest-arm64-check-gcr_el1-after-context-switch.patch
 
