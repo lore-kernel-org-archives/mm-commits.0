@@ -7,163 +7,228 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78771C2BB40
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB77C2BB40
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52277224D4
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7315E22473
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:05:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727224AbgLODF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Dec 2020 22:05:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60818 "EHLO mail.kernel.org"
+        id S1726667AbgLODFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Dec 2020 22:05:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727220AbgLODFF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:05:05 -0500
-Date:   Mon, 14 Dec 2020 19:04:49 -0800
+        id S1727231AbgLODFo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:05:44 -0500
+Date:   Mon, 14 Dec 2020 19:05:28 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001490;
-        bh=jpJ2IxBdcRv5YSRw4N/68PixbFZCYKiTWOz78t7Hobg=;
+        s=korg; t=1608001528;
+        bh=37ksqu/kERkhRC7V4e2Npb7FKNagmg9LRR20IZgEQ+g=;
         h=From:To:Subject:In-Reply-To:From;
-        b=oWYyVWTO1Lk3mgo52vIAM60vBXa23blrKHbpxlpbRwjotcG8jnsvCLhDjqGfz5yEO
-         LRfqyc+lGq9KxTOiZHSZiY9Bc5tVMBFVa/l6GXNEP1lqKgAQDz6tbeRXyPD/OxX7lH
-         wPNKLsM0r1tccGuSbu98QfLf2SWB/1l4hOYBBf10=
+        b=yCh4lPqAoinqq95rt8/JxRWBSaH6p0LKv9Hyco1vGRRGKQ4aXfJo6huYH8j94kGjZ
+         dk7kqhY/OCyzaH78q3m5ibLZ3vPxQvNip/wASfrxd8wll5tgz1W/XUJcQ9seD5IDb+
+         VQsGP6zCR6NrYR9nVhwxQY9xEYZ9JoA3gxTy7/GM=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net,
-        georgi.djakov@linaro.org, iamjoonsoo.kim@lge.com,
-        linux-mm@kvack.org, lmark@codeaurora.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vbabka@suse.cz
-Subject:  [patch 027/200] mm/page_owner: record timestamp and pid
-Message-ID: <20201215030449.bnJPu0SKj%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net, jglisse@redhat.com,
+        jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 039/200] selftests/vm: hmm-tests: remove the
+ libhugetlbfs dependency
+Message-ID: <20201215030528.-tbSVaCVL%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Liam Mark <lmark@codeaurora.org>
-Subject: mm/page_owner: record timestamp and pid
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: hmm-tests: remove the libhugetlbfs dependency
 
-Collect the time for each allocation recorded in page owner so that
-allocation "surges" can be measured.
+HMM selftests are incredibly useful, but they are only effective if people
+actually build and run them.  All the other tests in selftests/vm can be
+built with very standard, always-available libraries: libpthread, librt.
+The hmm-tests.c program, on the other hand, requires something that is
+(much) less readily available: libhugetlbfs.  And so the build will
+typically fail for many developers.
 
-Record the pid for each allocation recorded in page owner so that the
-source of allocation "surges" can be better identified.
+A simple attempt to install libhugetlbfs will also run into complications
+on some common distros these days: Fedora and Arch Linux (yes, Arch AUR
+has it, but that's fragile, as always with AUR).  The library is not
+maintained actively enough at the moment, for distros to deal with it.  I
+had to build it from source, for Fedora, and that didn't go too smoothly
+either.
 
-The above is very useful when doing memory analysis.  On a crash for
-example, we can get this information from kdump (or ramdump) and parse it
-to figure out memory allocation problems.
+It turns out that, out of 21 tests in hmm-tests.c, only 2 actually require
+functionality from libhugetlbfs.  Therefore, if libhugetlbfs is missing,
+simply ifdef those two tests out and allow the developer to at least have
+the other 19 tests, if they don't want to pause to work through the above
+issues.  Also issue a warning, so that it's clear that there is an
+imperfection in the build.
 
-Please note that on x86_64 this increases the size of struct page_owner
-from 16 bytes to 32.
+In order to do that, a tiny shell script (check_config.sh) runs a quick
+compile (not link, that's too prone to false failures with library paths),
+and basically, if the compiler doesn't find hugetlbfs.h in its standard
+locations, then the script concludes that libhugetlbfs is not available.
+The output is in two files, one for inclusion in hmm-test.c
+(local_config.h), and one for inclusion in the Makefile (local_config.mk).
 
-Vlastimil: it's not a functionality intended for production, so unless
-somebody says they need to enable page_owner for debugging and this
-increase prevents them from fitting into available memory, let's not
-complicate things with making this optional.
-
-[lmark@codeaurora.org: v3]
-  Link: https://lkml.kernel.org/r/20201210160357.27779-1-georgi.djakov@linaro.org
-Link: https://lkml.kernel.org/r/20201209125153.10533-1-georgi.djakov@linaro.org
-Signed-off-by: Liam Mark <lmark@codeaurora.org>
-Signed-off-by: Georgi Djakov <georgi.djakov@linaro.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20201026064021.3545418-9-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |   12 ++++++------
- mm/page_owner.c                 |   17 +++++++++++++----
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ tools/testing/selftests/vm/.gitignore      |    1=20
+ tools/testing/selftests/vm/Makefile        |   24 +++++++++++++-
+ tools/testing/selftests/vm/check_config.sh |   31 +++++++++++++++++++
+ tools/testing/selftests/vm/hmm-tests.c     |   10 +++++-
+ 4 files changed, 63 insertions(+), 3 deletions(-)
 
---- a/Documentation/vm/page_owner.rst~mm-page_owner-record-timestamp-and-pid
-+++ a/Documentation/vm/page_owner.rst
-@@ -41,17 +41,17 @@ size change due to this facility.
- - Without page owner::
- 
-    text    data     bss     dec     hex filename
--   40662   1493     644   42799    a72f mm/page_alloc.o
-+   48392   2333     644   51369    c8a9 mm/page_alloc.o
- 
- - With page owner::
- 
-    text    data     bss     dec     hex filename
--   40892   1493     644   43029    a815 mm/page_alloc.o
--   1427      24       8    1459     5b3 mm/page_ext.o
--   2722      50       0    2772     ad4 mm/page_owner.o
-+   48800   2445     644   51889    cab1 mm/page_alloc.o
-+   6574     108      29    6711    1a37 mm/page_owner.o
-+   1025       8       8    1041     411 mm/page_ext.o
- 
--Although, roughly, 4 KB code is added in total, page_alloc.o increase by
--230 bytes and only half of it is in hotpath. Building the kernel with
-+Although, roughly, 8 KB code is added in total, page_alloc.o increase by
-+520 bytes and less than half of it is in hotpath. Building the kernel with
- page owner and turning it on if needed would be great option to debug
- kernel memory problem.
- 
---- a/mm/page_owner.c~mm-page_owner-record-timestamp-and-pid
-+++ a/mm/page_owner.c
-@@ -10,6 +10,7 @@
- #include <linux/migrate.h>
- #include <linux/stackdepot.h>
- #include <linux/seq_file.h>
-+#include <linux/sched/clock.h>
- 
- #include "internal.h"
- 
-@@ -25,6 +26,8 @@ struct page_owner {
- 	gfp_t gfp_mask;
- 	depot_stack_handle_t handle;
- 	depot_stack_handle_t free_handle;
-+	u64 ts_nsec;
-+	pid_t pid;
- };
- 
- static bool page_owner_enabled = false;
-@@ -172,6 +175,8 @@ static inline void __set_page_owner_hand
- 		page_owner->order = order;
- 		page_owner->gfp_mask = gfp_mask;
- 		page_owner->last_migrate_reason = -1;
-+		page_owner->pid = current->pid;
-+		page_owner->ts_nsec = local_clock();
- 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
- 
-@@ -236,6 +241,8 @@ void __copy_page_owner(struct page *oldp
- 	new_page_owner->last_migrate_reason =
- 		old_page_owner->last_migrate_reason;
- 	new_page_owner->handle = old_page_owner->handle;
-+	new_page_owner->pid = old_page_owner->pid;
-+	new_page_owner->ts_nsec = old_page_owner->ts_nsec;
- 
- 	/*
- 	 * We don't clear the bit on the oldpage as it's going to be freed
-@@ -349,9 +356,10 @@ print_page_owner(char __user *buf, size_
- 		return -ENOMEM;
- 
- 	ret = snprintf(kbuf, count,
--			"Page allocated via order %u, mask %#x(%pGg)\n",
-+			"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns\n",
- 			page_owner->order, page_owner->gfp_mask,
--			&page_owner->gfp_mask);
-+			&page_owner->gfp_mask, page_owner->pid,
-+			page_owner->ts_nsec);
- 
- 	if (ret >= count)
- 		goto err;
-@@ -427,8 +435,9 @@ void __dump_page_owner(struct page *page
- 	else
- 		pr_alert("page_owner tracks the page as freed\n");
- 
--	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg)\n",
--		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask);
-+	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, ts %llu\n",
-+		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
-+		 page_owner->pid, page_owner->ts_nsec);
- 
- 	handle = READ_ONCE(page_owner->handle);
- 	if (!handle) {
+--- /dev/null
++++ a/tools/testing/selftests/vm/check_config.sh
+@@ -0,0 +1,31 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-2.0
++#
++# Probe for libraries and create header files to record the results. Both C
++# header files and Makefile include fragments are created.
++
++OUTPUT_H_FILE=3Dlocal_config.h
++OUTPUT_MKFILE=3Dlocal_config.mk
++
++# libhugetlbfs
++tmpname=3D$(mktemp)
++tmpfile_c=3D${tmpname}.c
++tmpfile_o=3D${tmpname}.o
++
++echo "#include <sys/types.h>"        > $tmpfile_c
++echo "#include <hugetlbfs.h>"       >> $tmpfile_c
++echo "int func(void) { return 0; }" >> $tmpfile_c
++
++CC=3D${1:?"Usage: $0 <compiler> # example compiler: gcc"}
++$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
++
++if [ -f $tmpfile_o ]; then
++    echo "#define LOCAL_CONFIG_HAVE_LIBHUGETLBFS 1" > $OUTPUT_H_FILE
++    echo "HMM_EXTRA_LIBS =3D -lhugetlbfs"             > $OUTPUT_MKFILE
++else
++    echo "// No libhugetlbfs support found"      > $OUTPUT_H_FILE
++    echo "# No libhugetlbfs support found, so:"  > $OUTPUT_MKFILE
++    echo "HMM_EXTRA_LIBS =3D "                    >> $OUTPUT_MKFILE
++fi
++
++rm ${tmpname}.*
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-hmm-tests-remove-t=
+he-libhugetlbfs-dependency
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -20,3 +20,4 @@ va_128TBswitch
+ map_fixed_noreplace
+ write_to_hugetlbfs
+ hmm-tests
++local_config.*
+--- a/tools/testing/selftests/vm/hmm-tests.c~selftests-vm-hmm-tests-remove-=
+the-libhugetlbfs-dependency
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -21,12 +21,16 @@
+ #include <strings.h>
+ #include <time.h>
+ #include <pthread.h>
+-#include <hugetlbfs.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/mman.h>
+ #include <sys/ioctl.h>
+=20
++#include "./local_config.h"
++#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
++#include <hugetlbfs.h>
++#endif
++
+ /*
+  * This is a private UAPI to the kernel test module so it isn't exported
+  * in the usual include/uapi/... directory.
+@@ -662,6 +666,7 @@ TEST_F(hmm, anon_write_huge)
+ 	hmm_buffer_free(buffer);
+ }
+=20
++#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
+ /*
+  * Write huge TLBFS page.
+  */
+@@ -720,6 +725,7 @@ TEST_F(hmm, anon_write_hugetlbfs)
+ 	buffer->ptr =3D NULL;
+ 	hmm_buffer_free(buffer);
+ }
++#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
+=20
+ /*
+  * Read mmap'ed file memory.
+@@ -1336,6 +1342,7 @@ TEST_F(hmm2, snapshot)
+ 	hmm_buffer_free(buffer);
+ }
+=20
++#ifdef LOCAL_CONFIG_HAVE_LIBHUGETLBFS
+ /*
+  * Test the hmm_range_fault() HMM_PFN_PMD flag for large pages that
+  * should be mapped by a large page table entry.
+@@ -1411,6 +1418,7 @@ TEST_F(hmm, compound)
+ 	buffer->ptr =3D NULL;
+ 	hmm_buffer_free(buffer);
+ }
++#endif /* LOCAL_CONFIG_HAVE_LIBHUGETLBFS */
+=20
+ /*
+  * Test two devices reading the same memory (double mapped).
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-hmm-tests-remove-the=
+-libhugetlbfs-dependency
++++ a/tools/testing/selftests/vm/Makefile
+@@ -1,5 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for vm selftests
++
++include local_config.mk
++
+ uname_M :=3D $(shell uname -m 2>/dev/null || echo not)
+ MACHINE ?=3D $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
+=20
+@@ -80,8 +83,6 @@ TEST_FILES :=3D test_vmalloc.sh
+ KSFT_KHDR_INSTALL :=3D 1
+ include ../lib.mk
+=20
+-$(OUTPUT)/hmm-tests: LDLIBS +=3D -lhugetlbfs
+-
+ ifeq ($(ARCH),x86_64)
+ BINARIES_32 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
+ BINARIES_64 :=3D $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
+@@ -134,3 +135,22 @@ endif
+ $(OUTPUT)/mlock-random-test: LDLIBS +=3D -lcap
+=20
+ $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
++
++$(OUTPUT)/hmm-tests: local_config.h
++
++# HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
++$(OUTPUT)/hmm-tests: LDLIBS +=3D $(HMM_EXTRA_LIBS)
++
++local_config.mk local_config.h: check_config.sh
++	/bin/sh ./check_config.sh $(CC)
++
++EXTRA_CLEAN +=3D local_config.mk local_config.h
++
++ifeq ($(HMM_EXTRA_LIBS),)
++all: warn_missing_hugelibs
++
++warn_missing_hugelibs:
++	@echo ; \
++	echo "Warning: missing libhugetlbfs support. Some HMM tests will be skipp=
+ed." ; \
++	echo
++endif
 _
