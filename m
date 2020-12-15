@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1826BC2BBCA
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19210C2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFAC022D2B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB95422D2B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:16:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731055AbgLOXQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1730982AbgLOXQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 18:16:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56708 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56698 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730422AbgLOXQb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:16:31 -0500
-Date:   Tue, 15 Dec 2020 15:15:44 -0800
+        id S1731043AbgLOXQe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:16:34 -0500
+Date:   Tue, 15 Dec 2020 15:15:59 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074145;
-        bh=FABl8xivaehN+lUbLb1XfOubWq7RI0psw4cXTa+Bef8=;
+        s=korg; t=1608074160;
+        bh=gC/+/2JVzQQW6nbzuQi6DbH6jmqjyfTBmshaRS2Lel0=;
         h=From:To:Subject:From;
-        b=jfaccvMnnHoSS21xaXiMCbqBw7Oe2ie6OtdR75yRF5q+BH/DAfpq+cQD6XMveOT6y
-         s0BEp9bfIKVx5jWkCfHp4Q9eJqDlfnhm+ARwPdeaKX5p+lkOwCDVd7anpF/xW45dZG
-         juT+Eu92eiNeRTmG5T/HkAFJe3o9ST/xP01hYSU0=
+        b=vBiniErjAZdhExVS7oUEOyJAUq70qHdYcj/RNGmn8IgJNQqz+SDi5rqLS8H8lb7vh
+         5u8p/t6mYDLsaUrmrZTc3vbWAjjPNdqOtV3a1df0qpwwuwjLqckeQNmW5zCxmNi+jy
+         HOQwC3q9sNKN1O5yO0R/ZB3xuqnRkt6xLt3mxSWs=
 From:   akpm@linux-foundation.org
-To:     baruch@tkos.co.il, dalias@aerifal.cx, dalias@libc.org,
-        fweimer@redhat.com, mm-commits@vger.kernel.org,
-        peter@korsgaard.com, petr.vorel@gmail.com
+To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        mark@fasheh.com, mfo@canonical.com, mm-commits@vger.kernel.org,
+        piaojun@huawei.com
 Subject:  [merged]
- uapi-move-constants-from-linux-kernelh-to-linux-consth.patch removed from
- -mm tree
-Message-ID: <20201215231544.ftXPAP8EC%akpm@linux-foundation.org>
+ ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch removed from -mm
+ tree
+Message-ID: <20201215231559.igQLzVEXS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,154 +44,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uapi: move constants from <linux/kernel.h> to <linux/const.h>
+     Subject: ocfs2: ratelimit the 'max lookup times reached' notice
 has been removed from the -mm tree.  Its filename was
-     uapi-move-constants-from-linux-kernelh-to-linux-consth.patch
+     ocfs2-ratelimit-the-max-lookup-times-reached-notice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Vorel <petr.vorel@gmail.com>
-Subject: uapi: move constants from <linux/kernel.h> to <linux/const.h>
+From: Mauricio Faria de Oliveira <mfo@canonical.com>
+Subject: ocfs2: ratelimit the 'max lookup times reached' notice
 
-and include <linux/const.h> in UAPI headers instead of <linux/kernel.h>.
+Running stress-ng on ocfs2 completely fills the kernel log with 'max
+lookup times reached, filesystem may have nested directories.'
 
-The reason is to avoid indirect <linux/sysinfo.h> include when using
-some network headers: <linux/netlink.h> or others -> <linux/kernel.h>
--> <linux/sysinfo.h>.
+Let's ratelimit this message as done with others in the code.
 
-This indirect include causes on MUSL redefinition of struct sysinfo when
-included both <sys/sysinfo.h> and some of UAPI headers:
+Test-case:
 
-In file included from x86_64-buildroot-linux-musl/sysroot/usr/include/linux/kernel.h:5,
-                 from x86_64-buildroot-linux-musl/sysroot/usr/include/linux/netlink.h:5,
-                 from ../include/tst_netlink.h:14,
-                 from tst_crypto.c:13:
-x86_64-buildroot-linux-musl/sysroot/usr/include/linux/sysinfo.h:8:8: error: redefinition of `struct sysinfo'
- struct sysinfo {
-        ^~~~~~~
-In file included from ../include/tst_safe_macros.h:15,
-                 from ../include/tst_test.h:93,
-                 from tst_crypto.c:11:
-x86_64-buildroot-linux-musl/sysroot/usr/include/sys/sysinfo.h:10:8: note: originally defined here
+  # mkfs.ocfs2 --mount local $DEV
+  # mount $DEV $MNT
+  # cd $MNT
 
-Link: https://lkml.kernel.org/r/20201015190013.8901-1-petr.vorel@gmail.com
-Signed-off-by: Petr Vorel <petr.vorel@gmail.com>
-Suggested-by: Rich Felker <dalias@aerifal.cx>
-Acked-by: Rich Felker <dalias@libc.org>
-Cc: Peter Korsgaard <peter@korsgaard.com>
-Cc: Baruch Siach <baruch@tkos.co.il>
-Cc: Florian Weimer <fweimer@redhat.com>
+  # dmesg -C
+  # stress-ng --dirdeep 1 --dirdeep-ops 1000
+  # dmesg | grep -c 'max lookup times reached'
+
+Before:
+
+  # dmesg -C
+  # stress-ng --dirdeep 1 --dirdeep-ops 1000
+  ...
+  stress-ng: info:  [11116] successful run completed in 3.03s
+
+  # dmesg | grep -c 'max lookup times reached'
+  967
+
+After:
+
+  # dmesg -C
+  # stress-ng --dirdeep 1 --dirdeep-ops 1000
+  ...
+  stress-ng: info:  [739] successful run completed in 0.96s
+
+  # dmesg | grep -c 'max lookup times reached'
+  10
+
+  # dmesg
+  [  259.086086] ocfs2_check_if_ancestor: 1990 callbacks suppressed
+  [  259.086092] (stress-ng-dirde,740,1):ocfs2_check_if_ancestor:1091 max lookup times reached, filesystem may have nested directories, src inode: 18007, dest inode: 17940.
+  ...
+
+Link: https://lkml.kernel.org/r/20201001224417.478263-1-mfo@canonical.com
+Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/const.h              |    5 +++++
- include/uapi/linux/ethtool.h            |    2 +-
- include/uapi/linux/kernel.h             |    9 +--------
- include/uapi/linux/lightnvm.h           |    2 +-
- include/uapi/linux/mroute6.h            |    2 +-
- include/uapi/linux/netfilter/x_tables.h |    2 +-
- include/uapi/linux/netlink.h            |    2 +-
- include/uapi/linux/sysctl.h             |    2 +-
- 8 files changed, 12 insertions(+), 14 deletions(-)
+ fs/ocfs2/namei.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/uapi/linux/const.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/const.h
-@@ -28,4 +28,9 @@
- #define _BITUL(x)	(_UL(1) << (x))
- #define _BITULL(x)	(_ULL(1) << (x))
+--- a/fs/ocfs2/namei.c~ocfs2-ratelimit-the-max-lookup-times-reached-notice
++++ a/fs/ocfs2/namei.c
+@@ -1088,8 +1088,8 @@ static int ocfs2_check_if_ancestor(struc
+ 		child_inode_no = parent_inode_no;
  
-+#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
-+#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
-+
-+#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-+
- #endif /* _UAPI_LINUX_CONST_H */
---- a/include/uapi/linux/ethtool.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/ethtool.h
-@@ -14,7 +14,7 @@
- #ifndef _UAPI_LINUX_ETHTOOL_H
- #define _UAPI_LINUX_ETHTOOL_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- #include <linux/if_ether.h>
- 
---- a/include/uapi/linux/kernel.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/kernel.h
-@@ -3,13 +3,6 @@
- #define _UAPI_LINUX_KERNEL_H
- 
- #include <linux/sysinfo.h>
--
--/*
-- * 'kernel.h' contains some often-used function prototypes etc
-- */
--#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
--#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
--
--#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-+#include <linux/const.h>
- 
- #endif /* _UAPI_LINUX_KERNEL_H */
---- a/include/uapi/linux/lightnvm.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/lightnvm.h
-@@ -21,7 +21,7 @@
- #define _UAPI_LINUX_LIGHTNVM_H
- 
- #ifdef __KERNEL__
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/ioctl.h>
- #else /* __KERNEL__ */
- #include <stdio.h>
---- a/include/uapi/linux/mroute6.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/mroute6.h
-@@ -2,7 +2,7 @@
- #ifndef _UAPI__LINUX_MROUTE6_H
- #define _UAPI__LINUX_MROUTE6_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- #include <linux/sockios.h>
- #include <linux/in6.h>		/* For struct sockaddr_in6. */
---- a/include/uapi/linux/netfilter/x_tables.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/netfilter/x_tables.h
-@@ -1,7 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
- #ifndef _UAPI_X_TABLES_H
- #define _UAPI_X_TABLES_H
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- 
- #define XT_FUNCTION_MAXNAMELEN 30
---- a/include/uapi/linux/netlink.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/netlink.h
-@@ -2,7 +2,7 @@
- #ifndef _UAPI__LINUX_NETLINK_H
- #define _UAPI__LINUX_NETLINK_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/socket.h> /* for __kernel_sa_family_t */
- #include <linux/types.h>
- 
---- a/include/uapi/linux/sysctl.h~uapi-move-constants-from-linux-kernelh-to-linux-consth
-+++ a/include/uapi/linux/sysctl.h
-@@ -23,7 +23,7 @@
- #ifndef _UAPI_LINUX_SYSCTL_H
- #define _UAPI_LINUX_SYSCTL_H
- 
--#include <linux/kernel.h>
-+#include <linux/const.h>
- #include <linux/types.h>
- #include <linux/compiler.h>
- 
+ 		if (++i >= MAX_LOOKUP_TIMES) {
+-			mlog(ML_NOTICE, "max lookup times reached, filesystem "
+-					"may have nested directories, "
++			mlog_ratelimited(ML_NOTICE, "max lookup times reached, "
++					"filesystem may have nested directories, "
+ 					"src inode: %llu, dest inode: %llu.\n",
+ 					(unsigned long long)src_inode_no,
+ 					(unsigned long long)dest_inode_no);
 _
 
-Patches currently in -mm which might be from petr.vorel@gmail.com are
+Patches currently in -mm which might be from mfo@canonical.com are
 
 
