@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D3BFC47437
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95A30C49EC8
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50C6C22D74
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 795AB22D08
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726697AbgLOX7e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59816 "EHLO mail.kernel.org"
+        id S1726768AbgLOX7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729224AbgLOXZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:25:06 -0500
-Date:   Tue, 15 Dec 2020 15:22:33 -0800
+        id S1729322AbgLOXZI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:08 -0500
+Date:   Tue, 15 Dec 2020 15:22:55 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074553;
-        bh=YQduArP4MISI96PC4TRlfuod1nahH9VoM2GkacMaS/U=;
+        s=korg; t=1608074575;
+        bh=J2shlmZsdXPbGb2RljlaslCWqrIua0dSAqtezLUNEwM=;
         h=From:To:Subject:From;
-        b=OyivzGQHkrV3AqGUOJPr4kzKKq3pOPZgKVsVhXsy7uVsofilhejBZijZKHqZm49p5
-         xNjvUA2ACoCm70dR4UI0kOSLpoNQmM8pQLt0vR8IZs0bKtsTsa6BgEwgAjf3XzCTKC
-         HuLK4uPBxXD9gVQrGt/ruJHk7ax200Fs9EjZgHDA=
+        b=cPQBiJjq5HPhESY+rvdm4xh4fJlWxArQs+3czHGkxaZxmxFw3h997LOkbmU5SnL7W
+         HqDAirjEwBDuO13kwvfdeho0RHXCKFY1WQLQJogDmZyQuGGROZEf8oLutDUy1TNKCP
+         tmxcpGES+lDQNqbT2dSi6lF3zd5V/3f9xfNmglio=
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [merged]
- khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
- removed from -mm tree
-Message-ID: <20201215232233.iUzpf7vFT%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, efault@gmx.de, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, vitaly.wool@konsulko.com
+Subject:  [merged] z3fold-simplify-freeing-slots.patch removed from
+ -mm tree
+Message-ID: <20201215232255.0cBe5KVGv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,107 +41,191 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: add parameter explanations for kernel-doc markup
+     Subject: z3fold: simplify freeing slots
 has been removed from the -mm tree.  Its filename was
-     khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup.patch
+     z3fold-simplify-freeing-slots.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: khugepaged: add parameter explanations for kernel-doc markup
+From: Vitaly Wool <vitaly.wool@konsulko.com>
+Subject: z3fold: simplify freeing slots
 
-Add missed parameter explanation for some kernel-doc warnings:
-mm/khugepaged.c:102: warning: Function parameter or member
-'nr_pte_mapped_thp' not described in 'mm_slot'
-mm/khugepaged.c:102: warning: Function parameter or member
-'pte_mapped_thp' not described in 'mm_slot'
-mm/khugepaged.c:1424: warning: Function parameter or member 'mm' not
-described in 'collapse_pte_mapped_thp'
-mm/khugepaged.c:1424: warning: Function parameter or member 'addr' not
-described in 'collapse_pte_mapped_thp'
-mm/khugepaged.c:1626: warning: Function parameter or member 'mm' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'file' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'start' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'hpage' not
-described in 'collapse_file'
-mm/khugepaged.c:1626: warning: Function parameter or member 'node' not
-described in 'collapse_file'
+Patch series "z3fold: stability / rt fixes".
 
-Link: https://lkml.kernel.org/r/1605597325-25284-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Address z3fold stability issues under stress load, primarily in the
+reclaim and free aspects.  Besides, it fixes the locking problems that
+were only seen in real-time kernel configuration.
+
+
+This patch (of 3):
+
+There used to be two places in the code where slots could be freed, namely
+when freeing the last allocated handle from the slots and when releasing
+the z3fold header these slots aree linked to.  The logic to decide on
+whether to free certain slots was complicated and error prone in both
+functions and it led to failures in RT case.
+
+To fix that, make free_handle() the single point of freeing slots.
+
+Link: https://lkml.kernel.org/r/20201209145151.18994-1-vitaly.wool@konsulko.com
+Link: https://lkml.kernel.org/r/20201209145151.18994-2-vitaly.wool@konsulko.com
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Tested-by: Mike Galbraith <efault@gmx.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ mm/z3fold.c |   55 +++++++++++---------------------------------------
+ 1 file changed, 13 insertions(+), 42 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-add-couples-parameter-explanation-for-kernel-doc-markup
-+++ a/mm/khugepaged.c
-@@ -90,6 +90,8 @@ static struct kmem_cache *mm_slot_cache
-  * @hash: hash collision list
-  * @mm_node: khugepaged scan list headed in khugepaged_scan.mm_head
-  * @mm: the mm that this information is valid for
-+ * @nr_pte_mapped_thp: number of pte mapped THP
-+ * @pte_mapped_thp: address array corresponding pte mapped THP
+--- a/mm/z3fold.c~z3fold-simplify-freeing-slots
++++ a/mm/z3fold.c
+@@ -90,7 +90,7 @@ struct z3fold_buddy_slots {
+ 	 * be enough slots to hold all possible variants
+ 	 */
+ 	unsigned long slot[BUDDY_MASK + 1];
+-	unsigned long pool; /* back link + flags */
++	unsigned long pool; /* back link */
+ 	rwlock_t lock;
+ };
+ #define HANDLE_FLAG_MASK	(0x03)
+@@ -182,13 +182,6 @@ enum z3fold_page_flags {
+ };
+ 
+ /*
+- * handle flags, go under HANDLE_FLAG_MASK
+- */
+-enum z3fold_handle_flags {
+-	HANDLES_ORPHANED = 0,
+-};
+-
+-/*
+  * Forward declarations
   */
- struct mm_slot {
- 	struct hlist_node hash;
-@@ -1414,7 +1416,11 @@ static int khugepaged_add_pte_mapped_thp
+ static struct z3fold_header *__z3fold_alloc(struct z3fold_pool *, size_t, bool);
+@@ -303,10 +296,9 @@ static inline void put_z3fold_header(str
+ 		z3fold_page_unlock(zhdr);
  }
  
- /**
-- * Try to collapse a pte-mapped THP for mm at address haddr.
-+ * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
-+ * address haddr.
-+ *
-+ * @mm: process address space where collapse happens
-+ * @addr: THP collapse address
-  *
-  * This function checks whether all the PTEs in the PMD are pointing to the
-  * right THP. If so, retract the page table so the THP can refault in with
-@@ -1605,6 +1611,12 @@ static void retract_page_tables(struct a
- /**
-  * collapse_file - collapse filemap/tmpfs/shmem pages into huge one.
-  *
-+ * @mm: process address space where collapse happens
-+ * @file: file that collapse on
-+ * @start: collapse start address
-+ * @hpage: new allocated huge page for collapse
-+ * @node: appointed node the new huge page allocate from
-+ *
-  * Basic scheme is simple, details are more complex:
-  *  - allocate and lock a new huge page;
-  *  - scan page cache replacing old pages with the new one
+-static inline void free_handle(unsigned long handle)
++static inline void free_handle(unsigned long handle, struct z3fold_header *zhdr)
+ {
+ 	struct z3fold_buddy_slots *slots;
+-	struct z3fold_header *zhdr;
+ 	int i;
+ 	bool is_free;
+ 
+@@ -316,22 +308,13 @@ static inline void free_handle(unsigned
+ 	if (WARN_ON(*(unsigned long *)handle == 0))
+ 		return;
+ 
+-	zhdr = handle_to_z3fold_header(handle);
+ 	slots = handle_to_slots(handle);
+ 	write_lock(&slots->lock);
+ 	*(unsigned long *)handle = 0;
+-	if (zhdr->slots == slots) {
+-		write_unlock(&slots->lock);
+-		return; /* simple case, nothing else to do */
+-	}
++	if (zhdr->slots != slots)
++		zhdr->foreign_handles--;
+ 
+-	/* we are freeing a foreign handle if we are here */
+-	zhdr->foreign_handles--;
+ 	is_free = true;
+-	if (!test_bit(HANDLES_ORPHANED, &slots->pool)) {
+-		write_unlock(&slots->lock);
+-		return;
+-	}
+ 	for (i = 0; i <= BUDDY_MASK; i++) {
+ 		if (slots->slot[i]) {
+ 			is_free = false;
+@@ -343,6 +326,8 @@ static inline void free_handle(unsigned
+ 	if (is_free) {
+ 		struct z3fold_pool *pool = slots_to_pool(slots);
+ 
++		if (zhdr->slots == slots)
++			zhdr->slots = NULL;
+ 		kmem_cache_free(pool->c_handle, slots);
+ 	}
+ }
+@@ -525,8 +510,6 @@ static void __release_z3fold_page(struct
+ {
+ 	struct page *page = virt_to_page(zhdr);
+ 	struct z3fold_pool *pool = zhdr_to_pool(zhdr);
+-	bool is_free = true;
+-	int i;
+ 
+ 	WARN_ON(!list_empty(&zhdr->buddy));
+ 	set_bit(PAGE_STALE, &page->private);
+@@ -536,21 +519,6 @@ static void __release_z3fold_page(struct
+ 		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
+ 
+-	/* If there are no foreign handles, free the handles array */
+-	read_lock(&zhdr->slots->lock);
+-	for (i = 0; i <= BUDDY_MASK; i++) {
+-		if (zhdr->slots->slot[i]) {
+-			is_free = false;
+-			break;
+-		}
+-	}
+-	if (!is_free)
+-		set_bit(HANDLES_ORPHANED, &zhdr->slots->pool);
+-	read_unlock(&zhdr->slots->lock);
+-
+-	if (is_free)
+-		kmem_cache_free(pool->c_handle, zhdr->slots);
+-
+ 	if (locked)
+ 		z3fold_page_unlock(zhdr);
+ 
+@@ -973,6 +941,9 @@ lookup:
+ 		}
+ 	}
+ 
++	if (zhdr && !zhdr->slots)
++		zhdr->slots = alloc_slots(pool,
++					can_sleep ? GFP_NOIO : GFP_ATOMIC);
+ 	return zhdr;
+ }
+ 
+@@ -1270,7 +1241,7 @@ static void z3fold_free(struct z3fold_po
+ 	}
+ 
+ 	if (!page_claimed)
+-		free_handle(handle);
++		free_handle(handle, zhdr);
+ 	if (kref_put(&zhdr->refcount, release_z3fold_page_locked_list)) {
+ 		atomic64_dec(&pool->pages_nr);
+ 		return;
+@@ -1429,19 +1400,19 @@ static int z3fold_reclaim_page(struct z3
+ 			ret = pool->ops->evict(pool, middle_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(middle_handle);
++			free_handle(middle_handle, zhdr);
+ 		}
+ 		if (first_handle) {
+ 			ret = pool->ops->evict(pool, first_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(first_handle);
++			free_handle(first_handle, zhdr);
+ 		}
+ 		if (last_handle) {
+ 			ret = pool->ops->evict(pool, last_handle);
+ 			if (ret)
+ 				goto next;
+-			free_handle(last_handle);
++			free_handle(last_handle, zhdr);
+ 		}
+ next:
+ 		if (test_bit(PAGE_HEADLESS, &page->private)) {
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from vitaly.wool@konsulko.com are
 
-mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
-mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
-mm-thp-simplify-lru_add_page_tail.patch
-mm-thp-narrow-lru-locking.patch
-mm-vmscan-remove-unnecessary-lruvec-adding.patch
-mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
-mm-memcg-add-debug-checking-in-lock_page_memcg.patch
-mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
-mm-lru-move-lock-into-lru_note_cost.patch
-mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
-mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
-mm-mlock-remove-__munlock_isolate_lru_page.patch
-mm-lru-introduce-testclearpagelru.patch
-mm-compaction-do-page-isolation-first-in-compaction.patch
-mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
-mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
-mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
-fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
-gcov-fix-kernel-doc-markup-issue.patch
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
-mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
