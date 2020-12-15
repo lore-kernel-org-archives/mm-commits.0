@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B414FC2BB40
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA632C2BB48
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6625322473
+	by mail.kernel.org (Postfix) with ESMTP id B073E223E4
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726149AbgLODHp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726371AbgLODHp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 14 Dec 2020 22:07:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35250 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726380AbgLODHi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 14 Dec 2020 22:07:38 -0500
-Date:   Mon, 14 Dec 2020 19:07:21 -0800
+        id S1726427AbgLODHm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 14 Dec 2020 22:07:42 -0500
+Date:   Mon, 14 Dec 2020 19:07:01 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001642;
-        bh=ZmTu6F9g9m50+q6fO5uy9AEIXIVh3H+jUaoywHDzpk4=;
+        s=korg; t=1608001622;
+        bh=wxVQ2UH9eixlyaUjvqZXoBu5EOjef72HoyPwMKPUTqI=;
         h=From:To:Subject:In-Reply-To:From;
-        b=GCaK5LLk53mo29ieHUbhPa22znHiEcrEvwHFJOCx8i++Vi/bmCM/OiV1+xLsQtu0z
-         40n4p6CzQh7Cl9NN0rmwQag8gDqU8wZxnVMb3Ohk7mWKK6oceQQgevEJHByuhnpRJw
-         4+aVoihuvY7saBZayrp2bQZPU745/nAqLXR/VX+I=
+        b=N0pj2kyuGa50fU3DOv5oyxL5mjn6lv2jBgXe+uPCDbf6wWfhybuqxqvrPm+bkI9I/
+         kTeVs47jT6J1uHSFxI5PAZ/t9wRHey8PeDfpXN+EUF5YBvDM/SgUuxvCJRptlb0Ijd
+         /oVK/Z2TWElI2F+DBM8Gud/ZjYQDwCdkvkpKGwIc=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, boris.ostrovsky@oracle.com,
-        dan.j.williams@intel.com, jgross@suse.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, sstabellini@kernel.org,
+To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
+        linux-mm@kvack.org, lukas.bulwahn@gmail.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
         torvalds@linux-foundation.org
-Subject:  [patch 073/200] xen/unpopulated-alloc: consolidate pgmap
- manipulation
-Message-ID: <20201215030721.mb4trkGgL%akpm@linux-foundation.org>
+Subject:  [patch 067/200] mm: memcg: remove obsolete
+ memcg_has_children()
+Message-ID: <20201215030701.qGriOT4tw%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,61 +42,52 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: xen/unpopulated-alloc: consolidate pgmap manipulation
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: mm: memcg: remove obsolete memcg_has_children()
 
-Cleanup fill_list() to keep all the pgmap manipulations in a single
-location of the function.  Update the exit unwind path accordingly.
+Commit 2ef1bf118c40 ("mm: memcg: deprecate the non-hierarchical mode")
+removed the only use of memcg_has_children() in
+mem_cgroup_hierarchy_write() as part of the feature deprecation.
 
-Link: http://lore.kernel.org/r/6186fa28-d123-12db-6171-a75cb6e615a5@oracle.com
-Link: https://lkml.kernel.org/r/160272253442.3136502.16683842453317773487.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
+Hence, since then, make CC=clang W=1 warns:
+
+  mm/memcontrol.c:3421:20:
+    warning: unused function 'memcg_has_children' [-Wunused-function]
+
+Simply remove this obsolete unused function.
+
+Link: https://lkml.kernel.org/r/20201116055043.20886-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/unpopulated-alloc.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
---- a/drivers/xen/unpopulated-alloc.c~xen-unpopulated-alloc-consolidate-pgmap-manipulation
-+++ a/drivers/xen/unpopulated-alloc.c
-@@ -27,11 +27,6 @@ static int fill_list(unsigned int nr_pag
- 	if (!res)
- 		return -ENOMEM;
- 
--	pgmap = kzalloc(sizeof(*pgmap), GFP_KERNEL);
--	if (!pgmap)
--		goto err_pgmap;
--
--	pgmap->type = MEMORY_DEVICE_GENERIC;
- 	res->name = "Xen scratch";
- 	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
- 
-@@ -43,6 +38,11 @@ static int fill_list(unsigned int nr_pag
- 		goto err_resource;
- 	}
- 
-+	pgmap = kzalloc(sizeof(*pgmap), GFP_KERNEL);
-+	if (!pgmap)
-+		goto err_pgmap;
-+
-+	pgmap->type = MEMORY_DEVICE_GENERIC;
- 	pgmap->range = (struct range) {
- 		.start = res->start,
- 		.end = res->end,
-@@ -92,10 +92,10 @@ static int fill_list(unsigned int nr_pag
- 	return 0;
- 
- err_memremap:
--	release_resource(res);
--err_resource:
- 	kfree(pgmap);
- err_pgmap:
-+	release_resource(res);
-+err_resource:
- 	kfree(res);
- 	return ret;
+--- a/mm/memcontrol.c~mm-memcg-remove-obsolete-memcg_has_children
++++ a/mm/memcontrol.c
+@@ -3454,19 +3454,6 @@ unsigned long mem_cgroup_soft_limit_recl
  }
+ 
+ /*
+- * Test whether @memcg has children, dead or alive.
+- */
+-static inline bool memcg_has_children(struct mem_cgroup *memcg)
+-{
+-	bool ret;
+-
+-	rcu_read_lock();
+-	ret = css_next_child(NULL, &memcg->css);
+-	rcu_read_unlock();
+-	return ret;
+-}
+-
+-/*
+  * Reclaims as many pages from the given memcg as possible.
+  *
+  * Caller is responsible for holding css reference for memcg.
 _
