@@ -7,41 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13211C4743B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D1EDC2BB48
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0FD622D0A
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 00:00:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F20522CF7
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726951AbgLOX75 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
+        id S1726805AbgLOX7m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725958AbgLOX0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:26:40 -0500
-Date:   Tue, 15 Dec 2020 15:16:27 -0800
+        id S1729641AbgLOXZl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:25:41 -0500
+Date:   Tue, 15 Dec 2020 15:18:40 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074189;
-        bh=rBMh7AwgEN4SCRZJnzXE+y+ZoefDhsEWBTFAEkatcJU=;
+        s=korg; t=1608074320;
+        bh=jN4zfsUpviDJ9E3L67i0aq5S+L2bhIF2IV3CJ1rw7Gs=;
         h=From:To:Subject:From;
-        b=eMbSSAcAPXmm5wG6DO41quN3uIi0vXYUNUwCzxEyqqyFmZlXQXMJU0+paqAK3w++0
-         iPQ4quWATt9sPERVBCmm7OBs3kLj91Vu/sTV4ZlrhdBF9xZAuVspfrsfw/o1sV5OQE
-         bo2izGZ/f6BFCAqd0ITaFyOLfcQpCKJjAdSwN/8E=
+        b=EvbUMh4owoPihmfauSjUQq4OvmzE9Y9tSimDQb3m8UTxQ1SHoWJHJGTkp2VeVmSp7
+         G36DH0Nl0cFzEyfPgCIyVshWZJpJKwzLcilrwn2l6H/LilwQYqQO2mCRv8kdSXoTzw
+         hcKHqc0XMTk71Qb2krZQxZ6v+7OZFQbRwSag+zHU=
 From:   akpm@linux-foundation.org
-To:     airlied@linux.ie, alexander.shishkin@linux.intel.com,
-        andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com,
-        bp@alien8.de, bp@suse.de, christian.koenig@amd.com, cl@linux.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, gustavo@padovan.org,
-        iamjoonsoo.kim@lge.com, james.morse@arm.com, jasowang@redhat.com,
-        linus.walleij@linaro.org, maarten.lankhorst@linux.intel.com,
-        mchehab@kernel.org, mm-commits@vger.kernel.org, mripard@kernel.org,
-        mst@redhat.com, penberg@kernel.org, perex@perex.cz,
-        rientjes@google.com, rric@kernel.org, sumit.semwal@linaro.org,
-        tiwai@suse.com, tiwai@suse.de, tony.luck@intel.com,
-        tzimmermann@suse.de, vbabka@suse.cz
-Subject:  [merged] edac-ghes-use-krealloc_array.patch removed from
- -mm tree
-Message-ID: <20201215231627.1H0a47Y3f%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com, songmuchun@bytedance.com
+Subject:  [merged]
+ mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch removed
+ from -mm tree
+Message-ID: <20201215231840.gTIz0w0zZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,70 +42,152 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: edac: ghes: use krealloc_array()
+     Subject: mm: memcg/slab: rename *_lruvec_slab_state to *_lruvec_kmem_state
 has been removed from the -mm tree.  Its filename was
-     edac-ghes-use-krealloc_array.patch
+     mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: edac: ghes: use krealloc_array()
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcg/slab: rename *_lruvec_slab_state to *_lruvec_kmem_state
 
-Use the helper that checks for overflows internally instead of manually
-calculating the size of the new array.
+The *_lruvec_slab_state is also suitable for pages allocated from buddy,
+not just for the slab objects.  But the function name seems to tell us
+that only slab object is applicable.  So we can rename the keyword of slab
+to kmem.
 
-Link: https://lkml.kernel.org/r/20201109110654.12547-7-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Acked-by: Borislav Petkov <bp@suse.de>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Knig <christian.koenig@amd.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20201117085249.24319-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/ghes_edac.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   18 +++++++++---------
+ kernel/fork.c              |    2 +-
+ mm/memcontrol.c            |    2 +-
+ mm/workingset.c            |    8 ++++----
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/drivers/edac/ghes_edac.c~edac-ghes-use-krealloc_array
-+++ a/drivers/edac/ghes_edac.c
-@@ -207,8 +207,8 @@ static void enumerate_dimms(const struct
- 	if (!hw->num_dimms || !(hw->num_dimms % 16)) {
- 		struct dimm_info *new;
+--- a/include/linux/memcontrol.h~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/include/linux/memcontrol.h
+@@ -788,15 +788,15 @@ void __mod_memcg_lruvec_state(struct lru
+ 			      int val);
+ void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			int val);
+-void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
++void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val);
  
--		new = krealloc(hw->dimms, (hw->num_dimms + 16) * sizeof(struct dimm_info),
--			        GFP_KERNEL);
-+		new = krealloc_array(hw->dimms, hw->num_dimms + 16,
-+				     sizeof(struct dimm_info), GFP_KERNEL);
- 		if (!new) {
- 			WARN_ON_ONCE(1);
- 			return;
+-static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					 int val)
+ {
+ 	unsigned long flags;
+ 
+ 	local_irq_save(flags);
+-	__mod_lruvec_slab_state(p, idx, val);
++	__mod_lruvec_kmem_state(p, idx, val);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -1229,7 +1229,7 @@ static inline void mod_lruvec_page_state
+ 	mod_node_page_state(page_pgdat(page), idx, val);
+ }
+ 
+-static inline void __mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++static inline void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					   int val)
+ {
+ 	struct page *page = virt_to_head_page(p);
+@@ -1237,7 +1237,7 @@ static inline void __mod_lruvec_slab_sta
+ 	__mod_node_page_state(page_pgdat(page), idx, val);
+ }
+ 
+-static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++static inline void mod_lruvec_kmem_state(void *p, enum node_stat_item idx,
+ 					 int val)
+ {
+ 	struct page *page = virt_to_head_page(p);
+@@ -1332,14 +1332,14 @@ static inline void __dec_lruvec_page_sta
+ 	__mod_lruvec_page_state(page, idx, -1);
+ }
+ 
+-static inline void __inc_lruvec_slab_state(void *p, enum node_stat_item idx)
++static inline void __inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
+ {
+-	__mod_lruvec_slab_state(p, idx, 1);
++	__mod_lruvec_kmem_state(p, idx, 1);
+ }
+ 
+-static inline void __dec_lruvec_slab_state(void *p, enum node_stat_item idx)
++static inline void __dec_lruvec_kmem_state(void *p, enum node_stat_item idx)
+ {
+-	__mod_lruvec_slab_state(p, idx, -1);
++	__mod_lruvec_kmem_state(p, idx, -1);
+ }
+ 
+ /* idx can be of type enum memcg_stat_item or node_stat_item */
+--- a/kernel/fork.c~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/kernel/fork.c
+@@ -385,7 +385,7 @@ static void account_kernel_stack(struct
+ 		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
+ 				      account * (THREAD_SIZE / 1024));
+ 	else
+-		mod_lruvec_slab_state(stack, NR_KERNEL_STACK_KB,
++		mod_lruvec_kmem_state(stack, NR_KERNEL_STACK_KB,
+ 				      account * (THREAD_SIZE / 1024));
+ }
+ 
+--- a/mm/memcontrol.c~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/mm/memcontrol.c
+@@ -853,7 +853,7 @@ void __mod_lruvec_state(struct lruvec *l
+ 		__mod_memcg_lruvec_state(lruvec, idx, val);
+ }
+ 
+-void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val)
++void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
+ {
+ 	pg_data_t *pgdat = page_pgdat(virt_to_page(p));
+ 	struct mem_cgroup *memcg;
+--- a/mm/workingset.c~mm-memcg-slab-rename-_lruvec_slab_state-to-_lruvec_kmem_state
++++ a/mm/workingset.c
+@@ -445,12 +445,12 @@ void workingset_update_node(struct xa_no
+ 	if (node->count && node->count == node->nr_values) {
+ 		if (list_empty(&node->private_list)) {
+ 			list_lru_add(&shadow_nodes, &node->private_list);
+-			__inc_lruvec_slab_state(node, WORKINGSET_NODES);
++			__inc_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 		}
+ 	} else {
+ 		if (!list_empty(&node->private_list)) {
+ 			list_lru_del(&shadow_nodes, &node->private_list);
+-			__dec_lruvec_slab_state(node, WORKINGSET_NODES);
++			__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 		}
+ 	}
+ }
+@@ -544,7 +544,7 @@ static enum lru_status shadow_lru_isolat
+ 	}
+ 
+ 	list_lru_isolate(lru, item);
+-	__dec_lruvec_slab_state(node, WORKINGSET_NODES);
++	__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 
+ 	spin_unlock(lru_lock);
+ 
+@@ -559,7 +559,7 @@ static enum lru_status shadow_lru_isolat
+ 		goto out_invalid;
+ 	mapping->nrexceptional -= node->nr_values;
+ 	xa_delete_node(node, workingset_update_node);
+-	__inc_lruvec_slab_state(node, WORKINGSET_NODERECLAIM);
++	__inc_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM);
+ 
+ out_invalid:
+ 	xa_unlock_irq(&mapping->i_pages);
 _
 
-Patches currently in -mm which might be from bgolaszewski@baylibre.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
