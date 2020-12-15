@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C174FC2BB40
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98C84C4361B
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A015B224BE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:07:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7141A224BD
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 03:08:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725812AbgLODHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725921AbgLODHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 14 Dec 2020 22:07:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35562 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726416AbgLODHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726406AbgLODHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 14 Dec 2020 22:07:39 -0500
-Date:   Mon, 14 Dec 2020 19:06:58 -0800
+Date:   Mon, 14 Dec 2020 19:06:52 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608001619;
-        bh=FpdvWQ14XbLJZFBX0PzgmuFtx8SnJaF2BXWMwE10v7s=;
+        s=korg; t=1608001613;
+        bh=Yu/X83QLMEhWiK+9F6MlidvOcNMrtl47Rw0IgFAqLXU=;
         h=From:To:Subject:In-Reply-To:From;
-        b=QTQitkCFt6nYh9v8KrxqUrhI1uD7dx30zGa479KD/9bWjg/f2XKZQQi1wCw0kUSES
-         Xb92nBkCE3y+AgvDy+7bqDOIwGPYGGcXzo9a4UHBx85kSp4uQ+LioLWnHGAzciQIEz
-         KXOWfPXXe1WF7BBl2wk2wBAUZKNsE2/OkZ29Hktk=
+        b=vcxIwrUoGqmWXzLQ0St6DwUsDWxfXaa8Rr/ACL6m1NqCn1NNeaPVBjfB3rdKM+P8x
+         Uej81WuCF4aMTlcqvDpDCueJ4+vxgK03vQAdK9k7C4uQ6Io7ABtt+evOhfk3A68pg5
+         qs8olV7gFBCMYgbCMj1HXiXtHB2hXcb9JeQ6H4Ck=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, pankaj.gupta@cloud.ionos.com,
-        sh_def@163.com, torvalds@linux-foundation.org
-Subject:  [patch 066/200] mm/page_counter: use page_counter_read in
- page_counter_set_max
-Message-ID: <20201215030658.dSgSOYOYo%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
+        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        rientjes@google.com, shakeelb@google.com, tj@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 064/200] docs: cgroup-v1: reflect the deprecation
+ of the non-hierarchical mode
+Message-ID: <20201215030652.NE0YeXiQf%akpm@linux-foundation.org>
 In-Reply-To: <20201214190237.a17b70ae14f129e2dca3d204@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,37 +42,125 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hui Su <sh_def@163.com>
-Subject: mm/page_counter: use page_counter_read in page_counter_set_max
+From: Roman Gushchin <guro@fb.com>
+Subject: docs: cgroup-v1: reflect the deprecation of the non-hierarchical mode
 
-Use page_counter_read() in page_counter_set_max().
+Update cgroup v1 docs after the deprecation of the non-hierarchical mode
+of the memory controller.
 
-Link: https://lkml.kernel.org/r/20201113141048.GA178922@rlk
-Signed-off-by: Hui Su <sh_def@163.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Link: https://lkml.kernel.org/r/20201110220800.929549-3-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_counter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memcg_test.rst |    8 --
+ Documentation/admin-guide/cgroup-v1/memory.rst     |   42 +++--------
+ 2 files changed, 17 insertions(+), 33 deletions(-)
 
---- a/mm/page_counter.c~mm-page_counter-use-page_counter_read-in-page_counter_set_max
-+++ a/mm/page_counter.c
-@@ -183,14 +183,14 @@ int page_counter_set_max(struct page_cou
- 		 * the limit, so if it sees the old limit, we see the
- 		 * modified counter and retry.
- 		 */
--		usage = atomic_long_read(&counter->usage);
-+		usage = page_counter_read(counter);
+--- a/Documentation/admin-guide/cgroup-v1/memcg_test.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
++++ a/Documentation/admin-guide/cgroup-v1/memcg_test.rst
+@@ -219,13 +219,11 @@ Under below explanation, we assume CONFI
  
- 		if (usage > nr_pages)
- 			return -EBUSY;
+ 	This is an easy way to test page migration, too.
  
- 		old = xchg(&counter->max, nr_pages);
+-9.5 mkdir/rmdir
+----------------
++9.5 nested cgroups
++------------------
  
--		if (atomic_long_read(&counter->usage) <= usage)
-+		if (page_counter_read(counter) <= usage)
- 			return 0;
+-	When using hierarchy, mkdir/rmdir test should be done.
+-	Use tests like the following::
++	Use tests like the following for testing nested cgroups::
  
- 		counter->max = old;
+-		echo 1 >/opt/cgroup/01/memory/use_hierarchy
+ 		mkdir /opt/cgroup/01/child_a
+ 		mkdir /opt/cgroup/01/child_b
+ 
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~docs-cgroup-v1-reflect-the-deprecation-of-the-non-hierarchical-mode
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -77,6 +77,8 @@ Brief summary of control files.
+  memory.soft_limit_in_bytes	     set/show soft limit of memory usage
+  memory.stat			     show various statistics
+  memory.use_hierarchy		     set/show hierarchical account enabled
++                                     This knob is deprecated and shouldn't be
++                                     used.
+  memory.force_empty		     trigger forced page reclaim
+  memory.pressure_level		     set memory pressure notifications
+  memory.swappiness		     set/show swappiness parameter of vmscan
+@@ -495,16 +497,13 @@ cgroup might have some charge associated
+ tasks have migrated away from it. (because we charge against pages, not
+ against tasks.)
+ 
+-We move the stats to root (if use_hierarchy==0) or parent (if
+-use_hierarchy==1), and no change on the charge except uncharging
++We move the stats to parent, and no change on the charge except uncharging
+ from the child.
+ 
+ Charges recorded in swap information is not updated at removal of cgroup.
+ Recorded information is discarded and a cgroup which uses swap (swapcache)
+ will be charged as a new owner of it.
+ 
+-About use_hierarchy, see Section 6.
+-
+ 5. Misc. interfaces
+ ===================
+ 
+@@ -527,8 +526,6 @@ About use_hierarchy, see Section 6.
+   write will still return success. In this case, it is expected that
+   memory.kmem.usage_in_bytes == memory.usage_in_bytes.
+ 
+-  About use_hierarchy, see Section 6.
+-
+ 5.2 stat file
+ -------------
+ 
+@@ -675,32 +672,21 @@ hierarchy::
+ 		      d   e
+ 
+ In the diagram above, with hierarchical accounting enabled, all memory
+-usage of e, is accounted to its ancestors up until the root (i.e, c and root),
+-that has memory.use_hierarchy enabled. If one of the ancestors goes over its
+-limit, the reclaim algorithm reclaims from the tasks in the ancestor and the
+-children of the ancestor.
+-
+-6.1 Enabling hierarchical accounting and reclaim
+-------------------------------------------------
++usage of e, is accounted to its ancestors up until the root (i.e, c and root).
++If one of the ancestors goes over its limit, the reclaim algorithm reclaims
++from the tasks in the ancestor and the children of the ancestor.
++
++6.1 Hierarchical accounting and reclaim
++---------------------------------------
++
++Hierarchical accounting is enabled by default. Disabling the hierarchical
++accounting is deprecated. An attempt to do it will result in a failure
++and a warning printed to dmesg.
+ 
+-A memory cgroup by default disables the hierarchy feature. Support
+-can be enabled by writing 1 to memory.use_hierarchy file of the root cgroup::
++For compatibility reasons writing 1 to memory.use_hierarchy will always pass::
+ 
+ 	# echo 1 > memory.use_hierarchy
+ 
+-The feature can be disabled by::
+-
+-	# echo 0 > memory.use_hierarchy
+-
+-NOTE1:
+-       Enabling/disabling will fail if either the cgroup already has other
+-       cgroups created below it, or if the parent cgroup has use_hierarchy
+-       enabled.
+-
+-NOTE2:
+-       When panic_on_oom is set to "2", the whole system will panic in
+-       case of an OOM event in any cgroup.
+-
+ 7. Soft limits
+ ==============
+ 
 _
