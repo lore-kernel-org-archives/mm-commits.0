@@ -2,49 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F018C35296
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B67D9C2BBCF
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4521422D2B
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8094422EBD
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Dec 2020 23:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726075AbgLOX7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 18:59:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59812 "EHLO mail.kernel.org"
+        id S1726290AbgLOX7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 18:59:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727349AbgLOXVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 18:21:00 -0500
-Date:   Tue, 15 Dec 2020 15:19:51 -0800
+        id S1727884AbgLOXWb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 18:22:31 -0500
+Date:   Tue, 15 Dec 2020 15:20:15 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608074393;
-        bh=DKb8ypw8l5PzCQptWt8K8P2q3ExGMIcfGzlUbD57fZo=;
+        s=korg; t=1608074416;
+        bh=n0MeDgzPebHUKQj4wMTmBn8LRL8jh7S7lrT1D2xRgdU=;
         h=From:To:Subject:From;
-        b=uyzMfpwv9tymnxOf4XuMucV37PUSNb/d1bAUEpWwlO6+a7CCdmvzl5skfqtb3g/IT
-         6ZWXQrlF38vx8dSscT1b1Fa+b5zFv6BGSPzgYmLNEWXObtJ/VZJU7eD0YaseicinaR
-         1uOtdunETn/a+DQyHe3XAdvM2goXjSCWEx7aa3Iw=
+        b=hNshtxIMfW0qj4I6b5FFWPcPTnIwUVyMqcQnApEKV1vBJr0iYs4MpdcXCWFR3eQDS
+         g3t3B/vZBn6seDykhhqbNKWgz7FpaBuG7Nywd2gt2+nkv84xkxmPbfxBBcRTpIif1+
+         +aePL5IAtTEQYRSeZOvvr2r5rS1uO5O0jkwB7OIQ=
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, cai@lca.pw, christian.koenig@amd.com,
-        cl@linux.com, daniel.vetter@ffwll.ch, daniel.vetter@intel.com,
-        david@fromorbit.com, iamjoonsoo.kim@lge.com, jgg@mellanox.com,
-        jgg@nvidia.com, longman@redhat.com,
-        maarten.lankhorst@linux.intel.com, mathieu.desnoyers@efficios.com,
-        mingo@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        paulmck@kernel.org, penberg@kernel.org, peterz@infradead.org,
-        rdunlap@infradead.org, rientjes@google.com, tglx@linutronix.de,
-        thomas_os@shipmail.org, vbabka@suse.cz, walken@google.com,
-        will@kernel.org, willy@infradead.org
-Subject:  [merged] mm-extract-might_alloc-debug-check.patch removed
+To:     alex.shi@linux.alibaba.com, corbet@lwn.net,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        rientjes@google.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
+Subject:  [merged]
+ docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch removed
  from -mm tree
-Message-ID: <20201215231951.PQweHYcEc%akpm@linux-foundation.org>
+Message-ID: <20201215232015.GvPh4jrZ_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,144 +43,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: extract might_alloc() debug check
+     Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
 has been removed from the -mm tree.  Its filename was
-     mm-extract-might_alloc-debug-check.patch
+     docs-vm-remove-unused-3-items-explanation-for-proc-vmstat.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: mm: extract might_alloc() debug check
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: docs/vm: remove unused 3 items explanation for /proc/vmstat
 
-Extracted from slab.h, which seems to have the most complete version
-including the correct might_sleep() check.  Roll it out to slob.c.
+Commit 5647bc293ab1 ("mm: compaction: Move migration fail/success
+stats to migrate.c"), removed 3 items in /proc/vmstat. but the docs
+still has their explanation. let's remove them.
 
-Motivated by a discussion with Paul about possibly changing call_rcu
-behaviour to allocate memory, but only roughly every 500th call.
+"compact_blocks_moved",
+"compact_pages_moved",
+"compact_pagemigrate_failed",
 
-There are a lot fewer places in the kernel that care about whether
-allocating memory is allowed or not (due to deadlocks with reclaim code)
-than places that care whether sleeping is allowed.  But debugging these
-also tends to be a lot harder, so nice descriptive checks could come in
-handy.  I might have some use eventually for annotations in drivers/gpu.
-
-Note that unlike fs_reclaim_acquire/release gfpflags_allow_blocking does
-not consult the PF_MEMALLOC flags.  But there is no flag equivalent for
-GFP_NOWAIT, hence this check can't go wrong due to
-memalloc_no*_save/restore contexts.  Willy is working on a patch series
-which might change this:
-
-https://lore.kernel.org/linux-mm/20200625113122.7540-7-willy@infradead.org/
-
-I think best would be if that updates gfpflags_allow_blocking(), since
-there's a ton of callers all over the place for that already.
-
-Link: https://lkml.kernel.org/r/20201125162532.1299794-3-daniel.vetter@ffwl=
-l.ch
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc. Randy Dunlap <rdunlap@infradead.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Link: https://lkml.kernel.org/r/1605520282-51993-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Thomas Hellstr=C3=B6m (Intel) <thomas_os@shipmail.org>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |   16 ++++++++++++++++
- mm/slab.h                |    5 +----
- mm/slob.c                |    6 ++----
- 3 files changed, 19 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
---- a/include/linux/sched/mm.h~mm-extract-might_alloc-debug-check
-+++ a/include/linux/sched/mm.h
-@@ -181,6 +181,22 @@ static inline void fs_reclaim_release(gf
- #endif
-=20
- /**
-+ * might_alloc - Mark possible allocation sites
-+ * @gfp_mask: gfp_t flags that would be used to allocate
-+ *
-+ * Similar to might_sleep() and other annotations, this can be used in fun=
-ctions
-+ * that might allocate, but often don't. Compiles to nothing without
-+ * CONFIG_LOCKDEP. Includes a conditional might_sleep() if @gfp allows blo=
-cking.
-+ */
-+static inline void might_alloc(gfp_t gfp_mask)
-+{
-+	fs_reclaim_acquire(gfp_mask);
-+	fs_reclaim_release(gfp_mask);
-+
-+	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
-+}
-+
-+/**
-  * memalloc_noio_save - Marks implicit GFP_NOIO allocation scope.
-  *
-  * This functions marks the beginning of the GFP_NOIO allocation scope.
---- a/mm/slab.h~mm-extract-might_alloc-debug-check
-+++ a/mm/slab.h
-@@ -510,10 +510,7 @@ static inline struct kmem_cache *slab_pr
- {
- 	flags &=3D gfp_allowed_mask;
-=20
--	fs_reclaim_acquire(flags);
--	fs_reclaim_release(flags);
+--- a/Documentation/admin-guide/mm/transhuge.rst~docs-vm-remove-unused-3-items-explanation-for-proc-vmstat
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -401,21 +401,6 @@ compact_fail
+ 	is incremented if the system tries to compact memory
+ 	but failed.
+ 
+-compact_pages_moved
+-	is incremented each time a page is moved. If
+-	this value is increasing rapidly, it implies that the system
+-	is copying a lot of data to satisfy the huge page allocation.
+-	It is possible that the cost of copying exceeds any savings
+-	from reduced TLB misses.
 -
--	might_sleep_if(gfpflags_allow_blocking(flags));
-+	might_alloc(flags);
-=20
- 	if (should_failslab(s, flags))
- 		return NULL;
---- a/mm/slob.c~mm-extract-might_alloc-debug-check
-+++ a/mm/slob.c
-@@ -474,8 +474,7 @@ __do_kmalloc_node(size_t size, gfp_t gfp
-=20
- 	gfp &=3D gfp_allowed_mask;
-=20
--	fs_reclaim_acquire(gfp);
--	fs_reclaim_release(gfp);
-+	might_alloc(gfp);
-=20
- 	if (size < PAGE_SIZE - minalign) {
- 		int align =3D minalign;
-@@ -597,8 +596,7 @@ static void *slob_alloc_node(struct kmem
-=20
- 	flags &=3D gfp_allowed_mask;
-=20
--	fs_reclaim_acquire(flags);
--	fs_reclaim_release(flags);
-+	might_alloc(flags);
-=20
- 	if (c->size < PAGE_SIZE) {
- 		b =3D slob_alloc(c->size, flags, c->align, node, 0);
+-compact_pagemigrate_failed
+-	is incremented when the underlying mechanism
+-	for moving a page failed.
+-
+-compact_blocks_moved
+-	is incremented each time memory compaction examines
+-	a huge page aligned range of pages.
+-
+ It is possible to establish how long the stalls were using the function
+ tracer to record how long was spent in __alloc_pages_nodemask and
+ using the mm_page_alloc tracepoint to identify which allocations were
 _
 
-Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-use-head-for-head-page-in-lru_add_page_tail.patch
+mm-thp-simplify-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
+mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+mm-swapc-fold-vm-event-pgrotated-into-pagevec_move_tail_fn.patch
+mm-lru-move-lock-into-lru_note_cost.patch
+mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
+mm-mlock-remove-__munlock_isolate_lru_page.patch
+mm-lru-introduce-testclearpagelru.patch
+mm-compaction-do-page-isolation-first-in-compaction.patch
+mm-swapc-serialize-memcg-changes-in-pagevec_lru_move_fn.patch
+mm-lru-replace-pgdat-lru_lock-with-lruvec-lock.patch
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
