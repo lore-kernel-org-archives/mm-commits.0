@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49F42C4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5372C0018C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1997823407
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DE4523407
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727063AbgLPRMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:12:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33246 "EHLO mail.kernel.org"
+        id S1727032AbgLPRML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:12:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727061AbgLPRMH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:12:07 -0500
-Date:   Wed, 16 Dec 2020 09:11:26 -0800
+        id S1726826AbgLPRML (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:12:11 -0500
+Date:   Wed, 16 Dec 2020 09:11:29 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138687;
-        bh=RDcDw5s2X1kCamW6Mc2Ct+59C+sc946KzxvPmjdBsTE=;
+        s=korg; t=1608138690;
+        bh=lud9TtCXW3qXyn7zshzGF72oHLe1GefSIpkWDU55cNw=;
         h=From:To:Subject:From;
-        b=KR3C/0mui71cTaUP3IvlPptHAHhRpXfR2HYFbHnSd1UPymubsbA2S9krz6JOL8NkV
-         z0OeCGnh05hAN/If/7F7Q1ohDedJCbyR0dSOC1XpEa0x6QzQ5OauuYNQDw+XKPakDt
-         JYOPCFgqnxeCkVIYXfAlLOJL9NzoUSU3aUGpCj9Y=
+        b=IrKFxwHIxHO++lTmNwvyjUWzN4xUz3BiM6QebgRT4iYaWkFg0ZDEGP0/GfgXTaxQj
+         EFZLx0rFY27DJMtJQJ5QwRdkxpbeLRtSeADzq9oyHzN10rHEX5a/ZVhSdrqwOPDZTL
+         X0mnrQLnmoq/euSQqJ4gj5tHB7iEhBVhytHZhZ/Y=
 From:   akpm@linux-foundation.org
 To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
         dvyukov@google.com, elver@google.com, georgepope@android.com,
@@ -34,11 +34,11 @@ To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
         masahiroy@kernel.org, michal.lkml@markovi.net,
         mm-commits@vger.kernel.org, natechancellor@gmail.com,
         ndesaulniers@google.com, oberpar@linux.ibm.com,
-        rdunlap@infradead.org, sfr@canb.auug.org.au,
-        torvalds@linux-foundation.org
-Subject:  [merged] ubsan-enable-for-allconfig-builds.patch removed
- from -mm tree
-Message-ID: <20201216171126.e2ctRZkSG%akpm@linux-foundation.org>
+        rdunlap@infradead.org, torvalds@linux-foundation.org
+Subject:  [merged]
+ ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch removed from
+ -mm tree
+Message-ID: <20201216171129.01277QDgt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,26 +47,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: enable for all*config builds
+     Subject: ubsan: remove UBSAN_MISC in favor of individual options
 has been removed from the -mm tree.  Its filename was
-     ubsan-enable-for-allconfig-builds.patch
+     ubsan-remove-ubsan_misc-in-favor-of-individual-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: enable for all*config builds
+Subject: ubsan: remove UBSAN_MISC in favor of individual options
 
-With UBSAN_OBJECT_SIZE disabled for GCC, only UBSAN_ALIGNMENT remained a
-noisy UBSAN option.  Disable it for COMPILE_TEST so the rest of UBSAN can
-be used for full all*config builds or other large combinations.
+Make each UBSAN option individually selectable and remove UBSAN_MISC which
+no longer has any purpose.  Add help text for each Kconfig, and include a
+reference to the Clang sanitizer documentation.  Disable unsigned overflow
+by default (not available with GCC and makes x86 unbootable with Clang). 
+Disable unreachable when objtool is in use (redundant and confuses things:
+instrumentation appears at unreachable locations).
 
-[sfr@canb.auug.org.au: add .data..Lubsan_data*/.data..Lubsan_type* sections explicitly]
-  Link: https://lkml.kernel.org/r/20201208230157.42c42789@canb.auug.org.au
-Link: https://lore.kernel.org/lkml/CAHk-=wgXW=YLxGN0QVpp-1w5GDd2pf1W-FqY15poKzoVfik2qA@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20201203004437.389959-6-keescook@chromium.org
+Link: https://lkml.kernel.org/r/20201203004437.389959-7-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -84,42 +83,141 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vmlinux.lds.S |    4 ++++
- lib/Kconfig.ubsan                 |    3 +--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ Documentation/dev-tools/ubsan.rst |    1 
+ lib/Kconfig.ubsan                 |   82 +++++++++++++++++++---------
+ 2 files changed, 57 insertions(+), 26 deletions(-)
 
---- a/arch/powerpc/kernel/vmlinux.lds.S~ubsan-enable-for-allconfig-builds
-+++ a/arch/powerpc/kernel/vmlinux.lds.S
-@@ -313,6 +313,10 @@ SECTIONS
- #else
- 	.data : AT(ADDR(.data) - LOAD_OFFSET) {
- 		DATA_DATA
-+#ifdef CONFIG_UBSAN
-+		*(.data..Lubsan_data*)
-+		*(.data..Lubsan_type*)
-+#endif
- 		*(.data.rel*)
- 		*(.toc1)
- 		*(.branch_lt)
---- a/lib/Kconfig.ubsan~ubsan-enable-for-allconfig-builds
+--- a/Documentation/dev-tools/ubsan.rst~ubsan-remove-ubsan_misc-in-favor-of-individual-options
++++ a/Documentation/dev-tools/ubsan.rst
+@@ -86,3 +86,4 @@ References
+ 
+ .. _1: https://gcc.gnu.org/onlinedocs/gcc-4.9.0/gcc/Debugging-Options.html
+ .. _2: https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html
++.. _3: https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+--- a/lib/Kconfig.ubsan~ubsan-remove-ubsan_misc-in-favor-of-individual-options
 +++ a/lib/Kconfig.ubsan
-@@ -130,7 +130,6 @@ config UBSAN_ENUM
+@@ -84,48 +84,88 @@ config UBSAN_LOCAL_BOUNDS
+ 	  where an added offset (which may not be known statically) is
+ 	  out-of-bounds.
+ 
+-config UBSAN_MISC
+-	bool "Enable all other Undefined Behavior sanity checks"
+-	default UBSAN
+-	help
+-	  This option enables all sanity checks that don't have their
+-	  own Kconfig options. Disable this if you only want to have
+-	  individually selected checks.
+-
+ config UBSAN_SHIFT
+-	def_bool UBSAN_MISC
++	bool "Perform checking for bit-shift overflows"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=shift)
++	help
++	  This option enables -fsanitize=shift which checks for bit-shift
++	  operations that overflow to the left or go switch to negative
++	  for signed types.
+ 
+ config UBSAN_DIV_ZERO
+-	def_bool UBSAN_MISC
++	bool "Perform checking for integer divide-by-zero"
+ 	depends on $(cc-option,-fsanitize=integer-divide-by-zero)
++	help
++	  This option enables -fsanitize=integer-divide-by-zero which checks
++	  for integer division by zero. This is effectively redundant with the
++	  kernel's existing exception handling, though it can provide greater
++	  debugging information under CONFIG_UBSAN_REPORT_FULL.
+ 
+ config UBSAN_UNREACHABLE
+-	def_bool UBSAN_MISC
++	bool "Perform checking for unreachable code"
++	# objtool already handles unreachable checking and gets angry about
++	# seeing UBSan instrumentation located in unreachable places.
++	depends on !STACK_VALIDATION
+ 	depends on $(cc-option,-fsanitize=unreachable)
++	help
++	  This option enables -fsanitize=unreachable which checks for control
++	  flow reaching an expected-to-be-unreachable position.
+ 
+ config UBSAN_SIGNED_OVERFLOW
+-	def_bool UBSAN_MISC
++	bool "Perform checking for signed arithmetic overflow"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=signed-integer-overflow)
++	help
++	  This option enables -fsanitize=signed-integer-overflow which checks
++	  for overflow of any arithmetic operations with signed integers.
+ 
+ config UBSAN_UNSIGNED_OVERFLOW
+-	def_bool UBSAN_MISC
++	bool "Perform checking for unsigned arithmetic overflow"
+ 	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
++	help
++	  This option enables -fsanitize=unsigned-integer-overflow which checks
++	  for overflow of any arithmetic operations with unsigned integers. This
++	  currently causes x86 to fail to boot.
+ 
+ config UBSAN_OBJECT_SIZE
+-	def_bool UBSAN_MISC
++	bool "Perform checking for accesses beyond the end of objects"
++	default UBSAN
+ 	# gcc hugely expands stack usage with -fsanitize=object-size
+ 	# https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
+ 	depends on !CC_IS_GCC
+ 	depends on $(cc-option,-fsanitize=object-size)
++	help
++	  This option enables -fsanitize=object-size which checks for accesses
++	  beyond the end of objects where the optimizer can determine both the
++	  object being operated on and its size, usually seen with bad downcasts,
++	  or access to struct members from NULL pointers.
+ 
+ config UBSAN_BOOL
+-	def_bool UBSAN_MISC
++	bool "Perform checking for non-boolean values used as boolean"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=bool)
++	help
++	  This option enables -fsanitize=bool which checks for boolean values being
++	  loaded that are neither 0 nor 1.
+ 
+ config UBSAN_ENUM
+-	def_bool UBSAN_MISC
++	bool "Perform checking for out of bounds enum values"
++	default UBSAN
+ 	depends on $(cc-option,-fsanitize=enum)
++	help
++	  This option enables -fsanitize=enum which checks for values being loaded
++	  into an enum that are outside the range of given values for the given enum.
++
++config UBSAN_ALIGNMENT
++	bool "Perform checking for misaligned pointer usage"
++	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
++	depends on !UBSAN_TRAP && !COMPILE_TEST
++	depends on $(cc-option,-fsanitize=alignment)
++	help
++	  This option enables the check of unaligned memory accesses.
++	  Enabling this option on architectures that support unaligned
++	  accesses may produce a lot of false positives.
+ 
  config UBSAN_SANITIZE_ALL
  	bool "Enable instrumentation for the entire kernel"
- 	depends on ARCH_HAS_UBSAN_SANITIZE_ALL
--	depends on !COMPILE_TEST
- 	default y
- 	help
- 	  This option activates instrumentation for the entire kernel.
-@@ -142,7 +141,7 @@ config UBSAN_SANITIZE_ALL
- config UBSAN_ALIGNMENT
- 	bool "Enable checks for pointers alignment"
- 	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
--	depends on !UBSAN_TRAP
-+	depends on !UBSAN_TRAP && !COMPILE_TEST
- 	depends on $(cc-option,-fsanitize=alignment)
- 	help
- 	  This option enables the check of unaligned memory accesses.
+@@ -138,16 +178,6 @@ config UBSAN_SANITIZE_ALL
+ 	  Enabling this option will get kernel image size increased
+ 	  significantly.
+ 
+-config UBSAN_ALIGNMENT
+-	bool "Enable checks for pointers alignment"
+-	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
+-	depends on !UBSAN_TRAP && !COMPILE_TEST
+-	depends on $(cc-option,-fsanitize=alignment)
+-	help
+-	  This option enables the check of unaligned memory accesses.
+-	  Enabling this option on architectures that support unaligned
+-	  accesses may produce a lot of false positives.
+-
+ config TEST_UBSAN
+ 	tristate "Module for testing for undefined behavior detection"
+ 	depends on m
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
