@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 761D9C3526A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA93C3526C
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 406772333F
+	by mail.kernel.org (Postfix) with ESMTP id 6024E2333E
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725829AbgLPEnv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:43:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49154 "EHLO mail.kernel.org"
+        id S1725813AbgLPEnw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:43:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725813AbgLPEnv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1725822AbgLPEnv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 23:43:51 -0500
-Date:   Tue, 15 Dec 2020 20:43:30 -0800
+Date:   Tue, 15 Dec 2020 20:43:34 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093811;
-        bh=dYzhad7ZJ0fx36GnLLU5lopaUG3x56KBRcnwrH6tbnM=;
+        s=korg; t=1608093815;
+        bh=s/MyHrUz1yNW1FNW50xTYSPx1viWxVtT0XUfS4sZQms=;
         h=From:To:Subject:In-Reply-To:From;
-        b=Wjs2KkmImc3G/HtgmUC5+F32HUG+rGqDUXZkKA44FLdmx/r+SM2t2afmCa5CcwSOV
-         A3SzNfb/En6mEbGRm/b98DqLVHvDlhIMR4EAXg3ddq0KHii5WgsRMe/3aLCMpdgjFY
-         0eL/I67DjP0VH+5v6MewkVYrN24rYbwLp8eHv5bA=
+        b=Zk8svHOe7ufku9jtppZ9ml4kZA7eHLVo7rtvYqkUVRfUq+6vsO8zmYruK28Xjr0lB
+         s2wOy57L7CCsp7GuPW80/YDgp5x3EJ2RA1xiTPFP83ByYKR1L55IupmIIkWAgYlYl6
+         uGumfqgPaA+8PT3O22zWwoLW1bYA787pQWKXctew=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         brendanhiggins@google.com, broonie@kernel.org, davidgow@google.com,
         linux-mm@kvack.org, matti.vaittinen@fi.rohmeurope.com,
         mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
         torvalds@linux-foundation.org, vitor@massaru.org
-Subject:  [patch 22/95] lib/cmdline: allow NULL to be an output for
- get_option()
-Message-ID: <20201216044330.xDkb95Dmk%akpm@linux-foundation.org>
+Subject:  [patch 23/95] lib/cmdline_kunit: add a new test suite for
+ cmdline API
+Message-ID: <20201216044334.3AYIYpewi%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,61 +44,161 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline: allow NULL to be an output for get_option()
+Subject: lib/cmdline_kunit: add a new test suite for cmdline API
 
-In the future we would like to use get_option() to only validate the
-string and parse it separately.  To achieve this, allow NULL to be an
-output for get_option().
+Test get_option() for a starter which is provided by cmdline.c.
 
-Link: https://lkml.kernel.org/r/20201112180732.75589-5-andriy.shevchenko@linux.intel.com
+[akpm@linux-foundation.org: fix warning by constifying cmdline_test_values]
+[andriy.shevchenko@linux.intel.com: type of expected returned values should be int]
+  Link: https://lkml.kernel.org/r/20201116104244.15472-1-andriy.shevchenko@linux.intel.com
+[andriy.shevchenko@linux.intel.com: provide meaningful MODULE_LICENSE()]
+  Link: https://lkml.kernel.org/r/20201116104257.15527-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20201112180732.75589-6-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Vitor Massaru Iha <vitor@massaru.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ lib/Kconfig.debug   |   11 ++++
+ lib/Makefile        |    1 
+ lib/cmdline_kunit.c |  100 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 112 insertions(+)
 
---- a/lib/cmdline.c~lib-cmdline-allow-null-to-be-an-output-for-get_option
-+++ a/lib/cmdline.c
-@@ -35,11 +35,14 @@ static int get_range(char **str, int *pi
- /**
-  *	get_option - Parse integer from an option string
-  *	@str: option string
-- *	@pint: (output) integer value parsed from @str
-+ *	@pint: (optional output) integer value parsed from @str
-  *
-  *	Read an int from an option string; if available accept a subsequent
-  *	comma as well.
-  *
-+ *	When @pint is NULL the function can be used as a validator of
-+ *	the current option in the string.
-+ *
-  *	Return values:
-  *	0 - no int in string
-  *	1 - int found, no subsequent comma
-@@ -53,13 +56,16 @@ static int get_range(char **str, int *pi
- int get_option(char **str, int *pint)
- {
- 	char *cur = *str;
-+	int value;
+--- /dev/null
++++ a/lib/cmdline_kunit.c
+@@ -0,0 +1,100 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Test cases for API provided by cmdline.c
++ */
++
++#include <kunit/test.h>
++#include <linux/kernel.h>
++#include <linux/random.h>
++#include <linux/string.h>
++
++static const char *cmdline_test_strings[] = {
++	"\"\"", ""  , "=" , "\"-", ","    , "-,"   , ",-"   , "-" ,
++	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
++};
++
++static const int cmdline_test_values[] = {
++	1, 1, 1, 1, 2, 3, 2, 3,
++	1, 3, 2, 1, 1, 1, 3, 1,
++};
++
++static void cmdline_do_one_test(struct kunit *test, const char *in, int rc, int offset)
++{
++	const char *fmt = "Pattern: %s";
++	const char *out = in;
++	int dummy;
++	int ret;
++
++	ret = get_option((char **)&out, &dummy);
++
++	KUNIT_EXPECT_EQ_MSG(test, ret, rc, fmt, in);
++	KUNIT_EXPECT_PTR_EQ_MSG(test, out, in + offset, fmt, in);
++}
++
++static void cmdline_test_noint(struct kunit *test)
++{
++	unsigned int i = 0;
++
++	do {
++		const char *str = cmdline_test_strings[i];
++		int rc = 0;
++		int offset;
++
++		/* Only first and leading '-' will advance the pointer */
++		offset = !!(*str == '-');
++		cmdline_do_one_test(test, str, rc, offset);
++	} while (++i < ARRAY_SIZE(cmdline_test_strings));
++}
++
++static void cmdline_test_lead_int(struct kunit *test)
++{
++	unsigned int i = 0;
++	char in[32];
++
++	do {
++		const char *str = cmdline_test_strings[i];
++		int rc = cmdline_test_values[i];
++		int offset;
++
++		sprintf(in, "%u%s", get_random_int() % 256, str);
++		/* Only first '-' after the number will advance the pointer */
++		offset = strlen(in) - strlen(str) + !!(rc == 2);
++		cmdline_do_one_test(test, in, rc, offset);
++	} while (++i < ARRAY_SIZE(cmdline_test_strings));
++}
++
++static void cmdline_test_tail_int(struct kunit *test)
++{
++	unsigned int i = 0;
++	char in[32];
++
++	do {
++		const char *str = cmdline_test_strings[i];
++		/* When "" or "-" the result will be valid integer */
++		int rc = strcmp(str, "") ? (strcmp(str, "-") ? 0 : 1) : 1;
++		int offset;
++
++		sprintf(in, "%s%u", str, get_random_int() % 256);
++		/*
++		 * Only first and leading '-' not followed by integer
++		 * will advance the pointer.
++		 */
++		offset = rc ? strlen(in) : !!(*str == '-');
++		cmdline_do_one_test(test, in, rc, offset);
++	} while (++i < ARRAY_SIZE(cmdline_test_strings));
++}
++
++static struct kunit_case cmdline_test_cases[] = {
++	KUNIT_CASE(cmdline_test_noint),
++	KUNIT_CASE(cmdline_test_lead_int),
++	KUNIT_CASE(cmdline_test_tail_int),
++	{}
++};
++
++static struct kunit_suite cmdline_test_suite = {
++	.name = "cmdline",
++	.test_cases = cmdline_test_cases,
++};
++kunit_test_suite(cmdline_test_suite);
++
++MODULE_LICENSE("GPL");
+--- a/lib/Kconfig.debug~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api
++++ a/lib/Kconfig.debug
+@@ -2311,6 +2311,17 @@ config LINEAR_RANGES_TEST
  
- 	if (!cur || !(*cur))
- 		return 0;
- 	if (*cur == '-')
--		*pint = -simple_strtoull(++cur, str, 0);
-+		value = -simple_strtoull(++cur, str, 0);
- 	else
--		*pint = simple_strtoull(cur, str, 0);
-+		value = simple_strtoull(cur, str, 0);
-+	if (pint)
-+		*pint = value;
- 	if (cur == *str)
- 		return 0;
- 	if (**str == ',') {
+ 	  If unsure, say N.
+ 
++config CMDLINE_KUNIT_TEST
++	tristate "KUnit test for cmdline API"
++	depends on KUNIT
++	help
++	  This builds the cmdline API unit test.
++	  Tests the logic of API provided by cmdline.c.
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
++
++	  If unsure, say N.
++
+ config BITS_TEST
+ 	tristate "KUnit test for bits.h"
+ 	depends on KUNIT
+--- a/lib/Makefile~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api
++++ a/lib/Makefile
+@@ -351,5 +351,6 @@ obj-$(CONFIG_PLDMFW) += pldmfw/
+ # KUnit tests
+ obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
+ obj-$(CONFIG_BITS_TEST) += bits_kunit.o
++obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
+ obj-$(CONFIG_LINEAR_RANGES_TEST) += linear_ranges_kunit.o
+ obj-$(CONFIG_LIST_KUNIT_TEST) += list_kunit.o
 _
