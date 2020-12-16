@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA45C0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07759C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61BCF233FB
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA165233FE
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727045AbgLPRKa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60282 "EHLO mail.kernel.org"
+        id S1727047AbgLPRKc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727032AbgLPRKa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:30 -0500
-Date:   Wed, 16 Dec 2020 09:10:14 -0800
+        id S1727032AbgLPRKc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:32 -0500
+Date:   Wed, 16 Dec 2020 09:10:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138614;
-        bh=QssbLzCmcheXrjyLM+F8mpS6F22M8IddyI2yA5rzcZc=;
+        s=korg; t=1608138616;
+        bh=ACQExjRk5rMVu6gLCm/cGpV7c9kknYFGTN+aZ6qKPeE=;
         h=From:To:Subject:From;
-        b=oD2Uka9w6+TEz2rsoTMwlacUh2Ncjsbuo09CSwiZXLN7s0CnerWlCwmcieSGBusCz
-         +JWb+y6osIgJHZKc4Fb4IJCVRLQxXvPNyynQdNpIxXJD3wl3R5aXvJlg66kuKZpnhN
-         1m7H4dJmfUTN9Bplgru68ixURyznR3WbBlWEzt1M=
+        b=jmQECqB3s2pzY+XeQrgw6k7mZg+dH5MOaGEKM9ZN9IZNowQL8WWgyyDR9KEitsQUj
+         6d1sD8grwQTl15R/IL+Gw0V67ywAf0hh4zUxcWctNcvhWiWh9hognaVfPRtNykmLnG
+         oNMVKke3SQlWPfcCblcbhXLkHL5tb+OYRcPvf09M=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged] checkpatch-fix-unescaped-left-brace.patch
- removed from -mm tree
-Message-ID: <20201216171014.vfUEoYZ_U%akpm@linux-foundation.org>
+To:     joe@perches.com, mm-commits@vger.kernel.org, yashsri421@gmail.com
+Subject:  [merged]
+ checkpatch-add-fix-option-for-assignment_continuations.patch removed from
+ -mm tree
+Message-ID: <20201216171016.b2DE7Slgw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,45 +41,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix unescaped left brace
+     Subject: checkpatch: add fix option for ASSIGNMENT_CONTINUATIONS
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-unescaped-left-brace.patch
+     checkpatch-add-fix-option-for-assignment_continuations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: fix unescaped left brace
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: add fix option for ASSIGNMENT_CONTINUATIONS
 
-There is an unescaped left brace in a regex in OPEN_BRACE check.  This
-throws a runtime error when checkpatch is run with --fix flag and the
-OPEN_BRACE check is executed.
+Currently, checkpatch warns us if an assignment operator is placed at the
+start of a line and not at the end of previous line.
 
-Fix it by escaping the left brace.
+E.g., running checkpatch on commit 8195b1396ec8 ("hv_netvsc: fix
+deadlock on hotplug") reports:
 
-Link: https://lkml.kernel.org/r/20201115202928.81955-1-dwaipayanray1@gmail.com
-Fixes: 8d1824780f2f ("checkpatch: add --fix option for a couple OPEN_BRACE misuses")
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
+CHECK: Assignment operator '=' should be on the previous line
++	struct netvsc_device *nvdev
++		= container_of(w, struct netvsc_device, subchan_work);
+
+Provide a simple fix by appending assignment operator to the previous
+line and removing from the current line, if both the lines are additions
+(ie start with '+')
+
+Link: https://lkml.kernel.org/r/20201121120407.22942-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-fix-unescaped-left-brace
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-assignment_continuations
 +++ a/scripts/checkpatch.pl
-@@ -4505,7 +4505,7 @@ sub process {
- 			    $fix) {
- 				fix_delete_line($fixlinenr, $rawline);
- 				my $fixed_line = $rawline;
--				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*){(.*)$/;
-+				$fixed_line =~ /(^..*$Type\s*$Ident\(.*\)\s*)\{(.*)$/;
- 				my $line1 = $1;
- 				my $line2 = $2;
- 				fix_insert_line($fixlinenr, ltrim($line1));
+@@ -3533,8 +3533,14 @@ sub process {
+ 
+ # check for assignments on the start of a line
+ 		if ($sline =~ /^\+\s+($Assignment)[^=]/) {
+-			CHK("ASSIGNMENT_CONTINUATIONS",
+-			    "Assignment operator '$1' should be on the previous line\n" . $hereprev);
++			my $operator = $1;
++			if (CHK("ASSIGNMENT_CONTINUATIONS",
++				"Assignment operator '$1' should be on the previous line\n" . $hereprev) &&
++			    $fix && $prevrawline =~ /^\+/) {
++				# add assignment operator to the previous line, remove from current line
++				$fixed[$fixlinenr - 1] .= " $operator";
++				$fixed[$fixlinenr] =~ s/\Q$operator\E\s*//;
++			}
+ 		}
+ 
+ # check for && or || at the start of a line
 _
 
-Patches currently in -mm which might be from dwaipayanray1@gmail.com are
+Patches currently in -mm which might be from yashsri421@gmail.com are
 
 
