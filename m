@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8412BC0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD64C2BBCD
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:44:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DF032313C
+	by mail.kernel.org (Postfix) with ESMTP id D06862313C
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725846AbgLPEoG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725864AbgLPEoG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 23:44:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49136 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725852AbgLPEoF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:44:05 -0500
-Date:   Tue, 15 Dec 2020 20:43:47 -0800
+        id S1725856AbgLPEoG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:44:06 -0500
+Date:   Tue, 15 Dec 2020 20:43:44 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093828;
-        bh=gWHeGoytslxJBovJT42uukycqBuUq43oV4OeVUPQ2DQ=;
+        s=korg; t=1608093825;
+        bh=BFQ9UEec3XyMXqYTgebYXHyq1nwZqpXrB6SJ4bFhnCo=;
         h=From:To:Subject:In-Reply-To:From;
-        b=e5DZNJ9koiVGKW7mr2amcgVicpBNGDHiV8K6oOn6uBfiMx8hilTeMntQOQgPwPfYd
-         hDFmR/h8ThL4ob1lbwfubb75SDlsM+/CuV8IR+2VlwrLoBKN3+sXSK3t170Xr7KgRJ
-         VsqIZUKb4niU4lYmElJdCAqWi297mh1/6Q5PdYCg=
+        b=gIF+dw7hGXRul6Jhg+Ky1YZFb4D3KHea8Nr/2b+Dj1CFZ2NuUzH9LFXPnJSCFuHUW
+         W6/mKox+NFNILVxZ7Rtu9RB4HDmrNAWKiN2qdfQrwXlfZRkvvyg3gOKWRQ4j4/rCX9
+         SeEtH1rM+YHmEg0mD3LTZUGJNjHboJsmw2qcqc6k=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, danielmicay@gmail.com, dja@axtens.net,
         keescook@chromium.org, laniel_francis@privacyrequired.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 27/95] lkdtm: tests for FORTIFY_SOURCE
-Message-ID: <20201216044347.5tsgCvSKH%akpm@linux-foundation.org>
+Subject:  [patch 26/95] lib: string.h: detect intra-object overflow
+ in fortified string functions
+Message-ID: <20201216044344.Ht0m_MRFn%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,107 +43,229 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Daniel Axtens <dja@axtens.net>
-Subject: lkdtm: tests for FORTIFY_SOURCE
+Subject: lib: string.h: detect intra-object overflow in fortified string functions
 
-Add code to test both:
+Patch series "Fortify strscpy()", v7.
 
- - runtime detection of the overrun of a structure. This covers the
-   __builtin_object_size(x, 0) case. This test is called FORTIFY_OBJECT.
 
- - runtime detection of the overrun of a char array within a structure.
-   This covers the __builtin_object_size(x, 1) case which can be used
-   for some string functions. This test is called FORTIFY_SUBOBJECT.
+This patch implements a fortified version of strscpy() enabled by setting
+CONFIG_FORTIFY_SOURCE=y.  The new version ensures the following before
+calling vanilla strscpy():
 
-Link: https://lkml.kernel.org/r/20201122162451.27551-3-laniel_francis@privacyrequired.com
+1. There is no read overflow because either size is smaller than src
+   length or we shrink size to src length by calling fortified strnlen().
+
+2. There is no write overflow because we either failed during
+   compilation or at runtime by checking that size is smaller than dest
+   size.  Note that, if src and dst size cannot be got, the patch defaults
+   to call vanilla strscpy().
+
+The patches adds the following:
+
+1. Implement the fortified version of strscpy().
+
+2. Add a new LKDTM test to ensures the fortified version still returns
+   the same value as the vanilla one while panic'ing when there is a write
+   overflow.
+
+3. Correct some typos in LKDTM related file.
+
+I based my modifications on top of two patches from Daniel Axtens which
+modify calls to __builtin_object_size, in fortified string functions, to
+ensure the true size of char * are returned and not the surrounding
+structure size.
+
+About performance, I measured the slow down of fortified strscpy(), using
+the vanilla one as baseline.  The hardware I used is an Intel i3 2130 CPU
+clocked at 3.4 GHz.  I ran "Linux 5.10.0-rc4+ SMP PREEMPT" inside qemu
+3.10 with 4 CPU cores.  The following code, called through LKDTM, was used
+as a benchmark:
+
+#define TIMES 10000
+	char *src;
+	char dst[7];
+	int i;
+	ktime_t begin;
+
+	src = kstrdup("foobar", GFP_KERNEL);
+
+	if (src == NULL)
+		return;
+
+	begin = ktime_get();
+	for (i = 0; i < TIMES; i++)
+		strscpy(dst, src, strlen(src));
+	pr_info("%d fortified strscpy() tooks %lld", TIMES, ktime_get() - begin);
+
+	begin = ktime_get();
+	for (i = 0; i < TIMES; i++)
+		__real_strscpy(dst, src, strlen(src));
+	pr_info("%d vanilla strscpy() tooks %lld", TIMES, ktime_get() - begin);
+
+	kfree(src);
+
+I called the above code 30 times to compute stats for each version (in ns,
+round to int):
+
+| version   | mean    | std    | median  | 95th    |
+| --------- | ------- | ------ | ------- | ------- |
+| fortified | 245_069 | 54_657 | 216_230 | 331_122 |
+| vanilla   | 172_501 | 70_281 | 143_539 | 219_553 |
+
+On average, fortified strscpy() is approximately 1.42 times slower than
+vanilla strscpy().  For the 95th percentile, the fortified version is
+about 1.50 times slower.
+
+So, clearly the stats are not in favor of fortified strscpy().  But, the
+fortified version loops the string twice (one in strnlen() and another in
+vanilla strscpy()) while the vanilla one only loops once.  This can
+explain why fortified strscpy() is slower than the vanilla one.
+
+
+This patch (of 5):
+
+When the fortify feature was first introduced in commit 6974f0c4555e
+("include/linux/string.h: add the option of fortified string.h
+functions"), Daniel Micay observed:
+
+  * It should be possible to optionally use __builtin_object_size(x, 1) for
+    some functions (C strings) to detect intra-object overflows (like
+    glibc's _FORTIFY_SOURCE=2), but for now this takes the conservative
+    approach to avoid likely compatibility issues.
+
+This is a case that often cannot be caught by KASAN. Consider:
+
+struct foo {
+    char a[10];
+    char b[10];
+}
+
+void test() {
+    char *msg;
+    struct foo foo;
+
+    msg = kmalloc(16, GFP_KERNEL);
+    strcpy(msg, "Hello world!!");
+    // this copy overwrites foo.b
+    strcpy(foo.a, msg);
+}
+
+The questionable copy overflows foo.a and writes to foo.b as well.  It
+cannot be detected by KASAN.  Currently it is also not detected by
+fortify, because strcpy considers __builtin_object_size(x, 0), which
+considers the size of the surrounding object (here, struct foo).  However,
+if we switch the string functions over to use __builtin_object_size(x, 1),
+the compiler will measure the size of the closest surrounding subobject
+(here, foo.a), rather than the size of the surrounding object as a whole. 
+See https://gcc.gnu.org/onlinedocs/gcc/Object-Size-Checking.html for more
+info.
+
+Only do this for string functions: we cannot use it on things like memcpy,
+memmove, memcmp and memchr_inv due to code like this which purposefully
+operates on multiple structure members: (arch/x86/kernel/traps.c)
+
+	/*
+	 * regs->sp points to the failing IRET frame on the
+	 * ESPFIX64 stack.  Copy it to the entry stack.  This fills
+	 * in gpregs->ss through gpregs->ip.
+	 *
+	 */
+	memmove(&gpregs->ip, (void *)regs->sp, 5*8);
+
+This change passes an allyesconfig on powerpc and x86, and an x86 kernel
+built with it survives running with syz-stress from syzkaller, so it seems
+safe so far.
+
+Link: https://lkml.kernel.org/r/20201122162451.27551-1-laniel_francis@privacyrequired.com
+Link: https://lkml.kernel.org/r/20201122162451.27551-2-laniel_francis@privacyrequired.com
 Signed-off-by: Daniel Axtens <dja@axtens.net>
 Signed-off-by: Francis Laniel <laniel_francis@privacyrequired.com>
-Suggested-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lkdtm/bugs.c  |   50 +++++++++++++++++++++++++++++++++++
- drivers/misc/lkdtm/core.c  |    2 +
- drivers/misc/lkdtm/lkdtm.h |    2 +
- 3 files changed, 54 insertions(+)
+ include/linux/string.h |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
---- a/drivers/misc/lkdtm/bugs.c~lkdtm-tests-for-fortify_source
-+++ a/drivers/misc/lkdtm/bugs.c
-@@ -482,3 +482,53 @@ noinline void lkdtm_CORRUPT_PAC(void)
- 	pr_err("XFAIL: this test is arm64-only\n");
- #endif
- }
-+
-+void lkdtm_FORTIFY_OBJECT(void)
-+{
-+	struct target {
-+		char a[10];
-+	} target[2] = {};
-+	int result;
-+
-+	/*
-+	 * Using volatile prevents the compiler from determining the value of
-+	 * 'size' at compile time. Without that, we would get a compile error
-+	 * rather than a runtime error.
-+	 */
-+	volatile int size = 11;
-+
-+	pr_info("trying to read past the end of a struct\n");
-+
-+	result = memcmp(&target[0], &target[1], size);
-+
-+	/* Print result to prevent the code from being eliminated */
-+	pr_err("FAIL: fortify did not catch an object overread!\n"
-+	       "\"%d\" was the memcmp result.\n", result);
-+}
-+
-+void lkdtm_FORTIFY_SUBOBJECT(void)
-+{
-+	struct target {
-+		char a[10];
-+		char b[10];
-+	} target;
-+	char *src;
-+
-+	src = kmalloc(20, GFP_KERNEL);
-+	strscpy(src, "over ten bytes", 20);
-+
-+	pr_info("trying to strcpy past the end of a member of a struct\n");
-+
-+	/*
-+	 * strncpy(target.a, src, 20); will hit a compile error because the
-+	 * compiler knows at build time that target.a < 20 bytes. Use strcpy()
-+	 * to force a runtime error.
-+	 */
-+	strcpy(target.a, src);
-+
-+	/* Use target.a to prevent the code from being eliminated */
-+	pr_err("FAIL: fortify did not catch an sub-object overrun!\n"
-+	       "\"%s\" was copied.\n", target.a);
-+
-+	kfree(src);
-+}
---- a/drivers/misc/lkdtm/core.c~lkdtm-tests-for-fortify_source
-+++ a/drivers/misc/lkdtm/core.c
-@@ -117,6 +117,8 @@ static const struct crashtype crashtypes
- 	CRASHTYPE(UNSET_SMEP),
- 	CRASHTYPE(CORRUPT_PAC),
- 	CRASHTYPE(UNALIGNED_LOAD_STORE_WRITE),
-+	CRASHTYPE(FORTIFY_OBJECT),
-+	CRASHTYPE(FORTIFY_SUBOBJECT),
- 	CRASHTYPE(OVERWRITE_ALLOCATION),
- 	CRASHTYPE(WRITE_AFTER_FREE),
- 	CRASHTYPE(READ_AFTER_FREE),
---- a/drivers/misc/lkdtm/lkdtm.h~lkdtm-tests-for-fortify_source
-+++ a/drivers/misc/lkdtm/lkdtm.h
-@@ -32,6 +32,8 @@ void lkdtm_STACK_GUARD_PAGE_TRAILING(voi
- void lkdtm_UNSET_SMEP(void);
- void lkdtm_DOUBLE_FAULT(void);
- void lkdtm_CORRUPT_PAC(void);
-+void lkdtm_FORTIFY_OBJECT(void);
-+void lkdtm_FORTIFY_SUBOBJECT(void);
+--- a/include/linux/string.h~stringh-detect-intra-object-overflow-in-fortified-string-functions
++++ a/include/linux/string.h
+@@ -292,7 +292,7 @@ extern char *__underlying_strncpy(char *
  
- /* lkdtm_heap.c */
- void __init lkdtm_heap_init(void);
+ __FORTIFY_INLINE char *strncpy(char *p, const char *q, __kernel_size_t size)
+ {
+-	size_t p_size = __builtin_object_size(p, 0);
++	size_t p_size = __builtin_object_size(p, 1);
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+@@ -302,7 +302,7 @@ __FORTIFY_INLINE char *strncpy(char *p,
+ 
+ __FORTIFY_INLINE char *strcat(char *p, const char *q)
+ {
+-	size_t p_size = __builtin_object_size(p, 0);
++	size_t p_size = __builtin_object_size(p, 1);
+ 	if (p_size == (size_t)-1)
+ 		return __underlying_strcat(p, q);
+ 	if (strlcat(p, q, p_size) >= p_size)
+@@ -313,7 +313,7 @@ __FORTIFY_INLINE char *strcat(char *p, c
+ __FORTIFY_INLINE __kernel_size_t strlen(const char *p)
+ {
+ 	__kernel_size_t ret;
+-	size_t p_size = __builtin_object_size(p, 0);
++	size_t p_size = __builtin_object_size(p, 1);
+ 
+ 	/* Work around gcc excess stack consumption issue */
+ 	if (p_size == (size_t)-1 ||
+@@ -328,7 +328,7 @@ __FORTIFY_INLINE __kernel_size_t strlen(
+ extern __kernel_size_t __real_strnlen(const char *, __kernel_size_t) __RENAME(strnlen);
+ __FORTIFY_INLINE __kernel_size_t strnlen(const char *p, __kernel_size_t maxlen)
+ {
+-	size_t p_size = __builtin_object_size(p, 0);
++	size_t p_size = __builtin_object_size(p, 1);
+ 	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
+ 	if (p_size <= ret && maxlen != ret)
+ 		fortify_panic(__func__);
+@@ -340,8 +340,8 @@ extern size_t __real_strlcpy(char *, con
+ __FORTIFY_INLINE size_t strlcpy(char *p, const char *q, size_t size)
+ {
+ 	size_t ret;
+-	size_t p_size = __builtin_object_size(p, 0);
+-	size_t q_size = __builtin_object_size(q, 0);
++	size_t p_size = __builtin_object_size(p, 1);
++	size_t q_size = __builtin_object_size(q, 1);
+ 	if (p_size == (size_t)-1 && q_size == (size_t)-1)
+ 		return __real_strlcpy(p, q, size);
+ 	ret = strlen(q);
+@@ -361,8 +361,8 @@ __FORTIFY_INLINE size_t strlcpy(char *p,
+ __FORTIFY_INLINE char *strncat(char *p, const char *q, __kernel_size_t count)
+ {
+ 	size_t p_len, copy_len;
+-	size_t p_size = __builtin_object_size(p, 0);
+-	size_t q_size = __builtin_object_size(q, 0);
++	size_t p_size = __builtin_object_size(p, 1);
++	size_t q_size = __builtin_object_size(q, 1);
+ 	if (p_size == (size_t)-1 && q_size == (size_t)-1)
+ 		return __underlying_strncat(p, q, count);
+ 	p_len = strlen(p);
+@@ -475,11 +475,16 @@ __FORTIFY_INLINE void *kmemdup(const voi
+ /* defined after fortified strlen and memcpy to reuse them */
+ __FORTIFY_INLINE char *strcpy(char *p, const char *q)
+ {
+-	size_t p_size = __builtin_object_size(p, 0);
+-	size_t q_size = __builtin_object_size(q, 0);
++	size_t p_size = __builtin_object_size(p, 1);
++	size_t q_size = __builtin_object_size(q, 1);
++	size_t size;
+ 	if (p_size == (size_t)-1 && q_size == (size_t)-1)
+ 		return __underlying_strcpy(p, q);
+-	memcpy(p, q, strlen(q) + 1);
++	size = strlen(q) + 1;
++	/* test here to use the more stringent object size */
++	if (p_size < size)
++		fortify_panic(__func__);
++	memcpy(p, q, size);
+ 	return p;
+ }
+ 
 _
