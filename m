@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D198C2BBD5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 208EFC2D0E4
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2287E2313C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 013FA23130
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725824AbgLPEnv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725821AbgLPEnv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 23:43:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49146 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725829AbgLPEnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1725824AbgLPEnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 23:43:50 -0500
-Date:   Tue, 15 Dec 2020 20:43:13 -0800
+Date:   Tue, 15 Dec 2020 20:43:10 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093794;
-        bh=Y7w6aGAqb2tNHLD8eWDBPBDwn5CftXbaJjGXC0fSgg4=;
+        s=korg; t=1608093791;
+        bh=TnZsxq0KAa4jYAT7ayzn3hf/RKj3UrTjqPKDcdlX9mg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=b8BovrCa1oUh3xD9/h73p9GKjaAqFKAx4GEMcFed0LOQt/Ir7jENMVgqWSUPpehxP
-         AhJOKKYPFi87YSnxj/mx1+mdTtd5TVGV0VpQYn0VgfKJ+ot/xX/kOKN7a8J995IlqX
-         7wPYIKVEHbwreIobR98ZOpQtLM9cgxEpkugjYUJs=
+        b=lPSrN50wnkHevj+8tu/ise9PtEkoZDG8wEYkV3iQmexZfVscUtZcc892+Sfmcw0MM
+         vyGYW4RFOQZ9lTrcu1a9oOjbppgjxQKb+GN9Fd7ifeOKvIu4xFsgn7IAm5GZuroPfV
+         z7Rb02jvR/TBULWwCYgglyIcNdEhbe7VmIe/Hj54=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
-        khlebnikov@yandex-team.ru, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        tglx@linutronix.de, torvalds@linux-foundation.org
-Subject:  [patch 17/95] lib/test_lockup.c: minimum fix to get it
- compiled on PREEMPT_RT
-Message-ID: <20201216044313.-SpiO0P-3%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, gustavoars@kernel.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 16/95] lib/stackdepot.c: use array_size() helper
+ in jhash2()
+Message-ID: <20201216044310.NV2piqXhz%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,67 +41,33 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: lib/test_lockup.c: minimum fix to get it compiled on PREEMPT_RT
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: lib/stackdepot.c: use array_size() helper in jhash2()
 
-On PREEMPT_RT the locks are quite different so they can't be tested as it
-is done below.  The alternative is to test for the waitlock within
-rtmutex.
+Use array_size() helper instead of the open-coded version in jhash2(). 
+These sorts of multiplication factors need to be wrapped in array_size().
 
-This is the bare minimun to get it compiled.  Problems which exist on
-PREEMP_RT:
+Also, use the preferred form for passing the size of an object type.
 
-- none of the locks (spinlock_t, rwlock_t, mutex_t, rw_semaphore) may be
-  acquired with disabled preemption or interrupts.
-  If I read the code correct the it is possible to acquire a mutex_t with
-  disabled interrupts.
-  I don't know how to obtain a lock pointer. Technically they are not
-  exported to userland.
-
-- memory can not be allocated with disabled preemption or interrupts
-  even with GFP_ATOMIC.
-
-Link: https://lkml.kernel.org/r/20201028181041.xyeothhkouc3p4md@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/cb8a682e4bba4dbddd2bd8aca7f8c02fea89639b.1601565471.git.gustavoars@kernel.org
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_lockup.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ lib/stackdepot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_lockup.c~lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt
-+++ a/lib/test_lockup.c
-@@ -480,6 +480,21 @@ static int __init test_lockup_init(void)
- 		return -EINVAL;
+--- a/lib/stackdepot.c~lib-stackdepotc-use-array_size-helper-in-jhash2
++++ a/lib/stackdepot.c
+@@ -154,8 +154,8 @@ static struct stack_record *stack_table[
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+ {
+ 	return jhash2((u32 *)entries,
+-			       size * sizeof(unsigned long) / sizeof(u32),
+-			       STACK_HASH_SEED);
++		      array_size(size,  sizeof(*entries)) / sizeof(u32),
++		      STACK_HASH_SEED);
+ }
  
- #ifdef CONFIG_DEBUG_SPINLOCK
-+#ifdef CONFIG_PREEMPT_RT
-+	if (test_magic(lock_spinlock_ptr,
-+		       offsetof(spinlock_t, lock.wait_lock.magic),
-+		       SPINLOCK_MAGIC) ||
-+	    test_magic(lock_rwlock_ptr,
-+		       offsetof(rwlock_t, rtmutex.wait_lock.magic),
-+		       SPINLOCK_MAGIC) ||
-+	    test_magic(lock_mutex_ptr,
-+		       offsetof(struct mutex, lock.wait_lock.magic),
-+		       SPINLOCK_MAGIC) ||
-+	    test_magic(lock_rwsem_ptr,
-+		       offsetof(struct rw_semaphore, rtmutex.wait_lock.magic),
-+		       SPINLOCK_MAGIC))
-+		return -EINVAL;
-+#else
- 	if (test_magic(lock_spinlock_ptr,
- 		       offsetof(spinlock_t, rlock.magic),
- 		       SPINLOCK_MAGIC) ||
-@@ -494,6 +509,7 @@ static int __init test_lockup_init(void)
- 		       SPINLOCK_MAGIC))
- 		return -EINVAL;
- #endif
-+#endif
- 
- 	if ((wait_state != TASK_RUNNING ||
- 	     (call_cond_resched && !reacquire_locks) ||
+ /* Use our own, non-instrumented version of memcmp().
 _
