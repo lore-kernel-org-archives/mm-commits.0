@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F5A0C4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:44:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E83BC4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 259C72312D
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:44:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60B2C23133
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725931AbgLPEo6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:44:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50366 "EHLO mail.kernel.org"
+        id S1725932AbgLPEpC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:45:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725776AbgLPEo6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:44:58 -0500
-Date:   Tue, 15 Dec 2020 20:44:17 -0800
+        id S1725926AbgLPEpB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:45:01 -0500
+Date:   Tue, 15 Dec 2020 20:44:20 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093858;
-        bh=LMlRxdvcwxTv/+vkbMYwBrOMOQUzcoLXDtIrYmwa96k=;
+        s=korg; t=1608093861;
+        bh=aTnjWzn9HpMi7CJwSC1uvfak8TBw0/9HundWwpV5QlU=;
         h=From:To:Subject:In-Reply-To:From;
-        b=iN5K/wDMhP2xXUFZYmbzAuDxRo40KV/xi32Dfq04bWyYl026G2Q8pxjOKq3XK+mk4
-         44DaZzNY3aE/btNdNmWKt1N3d6CThzl8GUcQTIzf/+X39h0EuhAq81YRg4XnUtKZL8
-         Cn6ziOQOh6sOiJCNV0belh5WlZEm4B3tuQSml54A=
+        b=UYD/cQ4WzEzA0oGCN2oIo87pWZ4ItGOsNdDH11K66g8ouHfWdU/Q3Ex3yeb6G8T+J
+         efwjqwERZYrEKAkvv1iZi21QzlBZbhDJrL89srzwdmddfe2iayG0mWlavuJEXE6wjr
+         8JlDIoL86HvmgXIK6f4uXAb1Inh1eE6eD3+a5PK4=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bgolaszewski@baylibre.com,
-        linux-mm@kvack.org, michal.simek@xilinx.com,
-        mm-commits@vger.kernel.org, syednwaris@gmail.com,
-        torvalds@linux-foundation.org, vilhelm.gray@gmail.com
-Subject:  [patch 36/95] gpio: xilinx: utilize generic
- bitmap_get_value and _set_value
-Message-ID: <20201216044417.jxrGP_B8A%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dwaipayanray1@gmail.com,
+        joe@perches.com, linux-mm@kvack.org, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        yashsri421@gmail.com
+Subject:  [patch 37/95] checkpatch: add new exception to repeated
+ word check
+Message-ID: <20201216044420.q5HFasAZl%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,111 +42,80 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Syed Nayyar Waris <syednwaris@gmail.com>
-Subject: gpio: xilinx: utilize generic bitmap_get_value and _set_value
+From: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Subject: checkpatch: add new exception to repeated word check
 
-Reimplement the xgpio_set_multiple() function in
-drivers/gpio/gpio-xilinx.c to use the new generic functions:
-bitmap_get_value() and bitmap_set_value().  The code is now simpler to
-read and understand.  Moreover, instead of looping for each bit in
-xgpio_set_multiple() function, now we can check each channel at a time and
-save cycles.
+Recently, commit 4f6ad8aa1eac ("checkpatch: move repeated word test")
+moved the repeated word test to check for more file types. But after
+this, if checkpatch.pl is run on MAINTAINERS, it generates several
+new warnings of the type:
 
-Link: https://lkml.kernel.org/r/15a044d3ba23f00c31fd09437bdd3e5924bb91cd.1603055402.git.syednwaris@gmail.com
-Signed-off-by: Syed Nayyar Waris <syednwaris@gmail.com>
-Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Michal Simek <michal.simek@xilinx.com>
+WARNING: Possible repeated word: 'git'
+
+For example:
+WARNING: Possible repeated word: 'git'
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rw/uml.git
+
+So, the pattern "git git://..." is a false positive in this case.
+
+There are several other combinations which may produce a wrong
+warning message, such as "@size size", ":Begin begin", etc.
+
+Extend repeated word check to compare the characters before and
+after the word matches.
+
+If there is a non whitespace character before the first word or a
+non whitespace character excluding punctuation characters after
+the second word, then the check is skipped and the warning is avoided.
+
+Also add case insensitive word matching to the repeated word check.
+
+Link: https://lore.kernel.org/linux-kernel-mentees/81b6a0bb2c7b9256361573f7a13201ebcd4876f1.camel@perches.com/
+Link: https://lkml.kernel.org/r/20201017162732.152351-1-dwaipayanray1@gmail.com
+Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Suggested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Aditya Srivastava <yashsri421@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpio-xilinx.c |   61 +++++++++++++++++------------------
- 1 file changed, 30 insertions(+), 31 deletions(-)
+ scripts/checkpatch.pl |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
---- a/drivers/gpio/gpio-xilinx.c~gpio-xilinx-utilize-generic-bitmap_get_value-and-_set_value
-+++ a/drivers/gpio/gpio-xilinx.c
-@@ -138,37 +138,37 @@ static void xgpio_set_multiple(struct gp
- {
- 	unsigned long flags;
- 	struct xgpio_instance *chip = gpiochip_get_data(gc);
--	int index = xgpio_index(chip, 0);
--	int offset, i;
-+	u32 *const state = chip->gpio_state;
-+	unsigned int *const width = chip->gpio_width;
+--- a/scripts/checkpatch.pl~checkpatch-add-new-exception-to-repeated-word-check
++++ a/scripts/checkpatch.pl
+@@ -3050,19 +3050,30 @@ sub process {
  
--	spin_lock_irqsave(&chip->gpio_lock[index], flags);
+ # check for repeated words separated by a single space
+ 		if ($rawline =~ /^\+/ || $in_commit_log) {
++			pos($rawline) = 1 if (!$in_commit_log);
+ 			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
+ 
+ 				my $first = $1;
+ 				my $second = $2;
 -
--	/* Write to GPIO signals */
--	for (i = 0; i < gc->ngpio; i++) {
--		if (*mask == 0)
--			break;
--		/* Once finished with an index write it out to the register */
--		if (index !=  xgpio_index(chip, i)) {
--			xgpio_writereg(chip->regs + XGPIO_DATA_OFFSET +
--				       index * XGPIO_CHANNEL_OFFSET,
--				       chip->gpio_state[index]);
--			spin_unlock_irqrestore(&chip->gpio_lock[index], flags);
--			index =  xgpio_index(chip, i);
--			spin_lock_irqsave(&chip->gpio_lock[index], flags);
--		}
--		if (__test_and_clear_bit(i, mask)) {
--			offset =  xgpio_offset(chip, i);
--			if (test_bit(i, bits))
--				chip->gpio_state[index] |= BIT(offset);
--			else
--				chip->gpio_state[index] &= ~BIT(offset);
--		}
--	}
-+	DECLARE_BITMAP(old, 64);
-+	DECLARE_BITMAP(new, 64);
-+	DECLARE_BITMAP(changed, 64);
++				my $start_pos = $-[1];
++				my $end_pos = $+[2];
+ 				if ($first =~ /(?:struct|union|enum)/) {
+ 					pos($rawline) += length($first) + length($second) + 1;
+ 					next;
+ 				}
+ 
+-				next if ($first ne $second);
++				next if (lc($first) ne lc($second));
+ 				next if ($first eq 'long');
+ 
++				# check for character before and after the word matches
++				my $start_char = '';
++				my $end_char = '';
++				$start_char = substr($rawline, $start_pos - 1, 1) if ($start_pos > ($in_commit_log ? 0 : 1));
++				$end_char = substr($rawline, $end_pos, 1) if ($end_pos < length($rawline));
 +
-+	spin_lock_irqsave(&chip->gpio_lock[0], flags);
-+	spin_lock(&chip->gpio_lock[1]);
++				next if ($start_char =~ /^\S$/);
++				next if (index(" \t.,;?!", $end_char) == -1);
 +
-+	bitmap_set_value(old, state[0], 0, width[0]);
-+	bitmap_set_value(old, state[1], width[0], width[1]);
-+	bitmap_replace(new, old, bits, mask, gc->ngpio);
-+
-+	bitmap_set_value(old, state[0], 0, 32);
-+	bitmap_set_value(old, state[1], 32, 32);
-+	state[0] = bitmap_get_value(new, 0, width[0]);
-+	state[1] = bitmap_get_value(new, width[0], width[1]);
-+	bitmap_set_value(new, state[0], 0, 32);
-+	bitmap_set_value(new, state[1], 32, 32);
-+	bitmap_xor(changed, old, new, 64);
-+
-+	if (((u32 *)changed)[0])
-+		xgpio_writereg(chip->regs + XGPIO_DATA_OFFSET,
-+				state[0]);
-+	if (((u32 *)changed)[1])
-+		xgpio_writereg(chip->regs + XGPIO_DATA_OFFSET +
-+				XGPIO_CHANNEL_OFFSET, state[1]);
- 
--	xgpio_writereg(chip->regs + XGPIO_DATA_OFFSET +
--		       index * XGPIO_CHANNEL_OFFSET, chip->gpio_state[index]);
--
--	spin_unlock_irqrestore(&chip->gpio_lock[index], flags);
-+	spin_unlock(&chip->gpio_lock[1]);
-+	spin_unlock_irqrestore(&chip->gpio_lock[0], flags);
- }
- 
- /**
-@@ -292,6 +292,7 @@ static int xgpio_probe(struct platform_d
- 		chip->gpio_width[0] = 32;
- 
- 	spin_lock_init(&chip->gpio_lock[0]);
-+	spin_lock_init(&chip->gpio_lock[1]);
- 
- 	if (of_property_read_u32(np, "xlnx,is-dual", &is_dual))
- 		is_dual = 0;
-@@ -313,8 +314,6 @@ static int xgpio_probe(struct platform_d
- 		if (of_property_read_u32(np, "xlnx,gpio2-width",
- 					 &chip->gpio_width[1]))
- 			chip->gpio_width[1] = 32;
--
--		spin_lock_init(&chip->gpio_lock[1]);
- 	}
- 
- 	chip->gc.base = -1;
+ 				if (WARN("REPEATED_WORD",
+ 					 "Possible repeated word: '$first'\n" . $herecurr) &&
+ 				    $fix) {
 _
