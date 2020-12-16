@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8D20C0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1481FC4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E5132342C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6F952342C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726851AbgLPRLT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:11:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60930 "EHLO mail.kernel.org"
+        id S1726852AbgLPRLW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:11:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726798AbgLPRLS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:11:18 -0500
-Date:   Wed, 16 Dec 2020 09:10:37 -0800
+        id S1726798AbgLPRLW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:11:22 -0500
+Date:   Wed, 16 Dec 2020 09:10:41 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138637;
-        bh=V4BFqvt3uqdrUgUc2FxsaytCz3kCrG8W8laStooKUoo=;
+        s=korg; t=1608138641;
+        bh=3q9u8MoJoyvXH5BCApxo/hSpu7y0OHtUnuxWcTPv/XI=;
         h=From:To:Subject:From;
-        b=vINqDa1I3XS1Ti3/wWKDRUINb9NiXTuXjVA4oumkGjXlFzwKFbAZqoOQaVysy5OWE
-         sI5HotZmpG/P/p8X4tl2iCZSsZCffWGIGPPJmM7J9f3ElfMIEvVe+2uEPDXvL7n6/J
-         3pN7yCMdnnzORab6Y8hvuW+lgS+WsRSA9BjrJHQ8=
+        b=Djqd18DNmGEbo520hTUM6t1AiLfw/TryqnPaA9VENNbSxWBa+Y9uB9c7CsxcWWhWo
+         BuqUJuWK46dEW9dWSi6AswV1W0yKCeGfXShq1wnrc8SgSzCjxG3np9F/pvnyAvGs2+
+         5P+MgfRi0FL0hna0D/aLOoFcQU0aB0tN6416yN3c=
 From:   akpm@linux-foundation.org
-To:     alex.bou9@gmail.com, bigeasy@linutronix.de,
-        mm-commits@vger.kernel.org, mporter@kernel.crashing.org
-Subject:  [merged]
- rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch removed from -mm
- tree
-Message-ID: <20201216171037.25Q1N5N0R%akpm@linux-foundation.org>
+To:     alex.shi@linux.alibaba.com, mm-commits@vger.kernel.org,
+        oberpar@linux.ibm.com
+Subject:  [merged] gcov-fix-kernel-doc-markup-issue.patch removed
+ from -mm tree
+Message-ID: <20201216171041.9jo5WjoSy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,159 +41,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
+     Subject: gcov: fix kernel-doc markup issue
 has been removed from the -mm tree.  Its filename was
-     rapidio-remove-unused-rio_get_asm-and-rio_get_device.patch
+     gcov-fix-kernel-doc-markup-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: gcov: fix kernel-doc markup issue
 
-The functions rio_get_asm() and rio_get_device() are globally exported
-but have almost no users in tree. The only user is rio_init_mports()
-which invokes it via rio_init().
+Fix the following kernel-doc issue in gcov:
+kernel/gcov/gcc_4_7.c:238: warning: Function parameter or member 'dst'
+not described in 'gcov_info_add'
+kernel/gcov/gcc_4_7.c:238: warning: Function parameter or member 'src'
+not described in 'gcov_info_add'
+kernel/gcov/gcc_4_7.c:238: warning: Excess function parameter 'dest'
+description in 'gcov_info_add'
+kernel/gcov/gcc_4_7.c:238: warning: Excess function parameter 'source'
+description in 'gcov_info_add'
 
-rio_init() iterates over every registered device and invokes
-rio_fixup_device().  It looks like a fixup function which should perform a
-"change" to the device but does nothing.  It has been like this since its
-introduction in commit 394b701ce4fbf ("[PATCH] RapidIO support: core
-base") which was merged into v2.6.15-rc1.
-
-Remove rio_init() because the performed fixup function
-(rio_fixup_device()) does nothing.  Remove rio_get_asm() and
-rio_get_device() which have no callers now.
-
-Link: https://lkml.kernel.org/r/20201116170004.420143-1-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Link: https://lkml.kernel.org/r/1605252352-63983-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c   |   81 --------------------------------------
- include/linux/rio_drv.h |    3 -
- 2 files changed, 84 deletions(-)
+ kernel/gcov/gcc_4_7.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/rapidio/rio.c~rapidio-remove-unused-rio_get_asm-and-rio_get_device
-+++ a/drivers/rapidio/rio.c
-@@ -1413,71 +1413,6 @@ rio_mport_get_feature(struct rio_mport *
- EXPORT_SYMBOL_GPL(rio_mport_get_feature);
+--- a/kernel/gcov/gcc_4_7.c~gcov-fix-kernel-doc-markup-issue
++++ a/kernel/gcov/gcc_4_7.c
+@@ -227,10 +227,10 @@ int gcov_info_is_compatible(struct gcov_
  
  /**
-- * rio_get_asm - Begin or continue searching for a RIO device by vid/did/asm_vid/asm_did
-- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
-- * @did: RIO did to match or %RIO_ANY_ID to match all dids
-- * @asm_vid: RIO asm_vid to match or %RIO_ANY_ID to match all asm_vids
-- * @asm_did: RIO asm_did to match or %RIO_ANY_ID to match all asm_dids
-- * @from: Previous RIO device found in search, or %NULL for new search
-- *
-- * Iterates through the list of known RIO devices. If a RIO device is
-- * found with a matching @vid, @did, @asm_vid, @asm_did, the reference
-- * count to the device is incrememted and a pointer to its device
-- * structure is returned. Otherwise, %NULL is returned. A new search
-- * is initiated by passing %NULL to the @from argument. Otherwise, if
-- * @from is not %NULL, searches continue from next device on the global
-- * list. The reference count for @from is always decremented if it is
-- * not %NULL.
-- */
--struct rio_dev *rio_get_asm(u16 vid, u16 did,
--			    u16 asm_vid, u16 asm_did, struct rio_dev *from)
--{
--	struct list_head *n;
--	struct rio_dev *rdev;
--
--	WARN_ON(in_interrupt());
--	spin_lock(&rio_global_list_lock);
--	n = from ? from->global_list.next : rio_devices.next;
--
--	while (n && (n != &rio_devices)) {
--		rdev = rio_dev_g(n);
--		if ((vid == RIO_ANY_ID || rdev->vid == vid) &&
--		    (did == RIO_ANY_ID || rdev->did == did) &&
--		    (asm_vid == RIO_ANY_ID || rdev->asm_vid == asm_vid) &&
--		    (asm_did == RIO_ANY_ID || rdev->asm_did == asm_did))
--			goto exit;
--		n = n->next;
--	}
--	rdev = NULL;
--      exit:
--	rio_dev_put(from);
--	rdev = rio_dev_get(rdev);
--	spin_unlock(&rio_global_list_lock);
--	return rdev;
--}
--EXPORT_SYMBOL_GPL(rio_get_asm);
--
--/**
-- * rio_get_device - Begin or continue searching for a RIO device by vid/did
-- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
-- * @did: RIO did to match or %RIO_ANY_ID to match all dids
-- * @from: Previous RIO device found in search, or %NULL for new search
-- *
-- * Iterates through the list of known RIO devices. If a RIO device is
-- * found with a matching @vid and @did, the reference count to the
-- * device is incrememted and a pointer to its device structure is returned.
-- * Otherwise, %NULL is returned. A new search is initiated by passing %NULL
-- * to the @from argument. Otherwise, if @from is not %NULL, searches
-- * continue from next device on the global list. The reference count for
-- * @from is always decremented if it is not %NULL.
-- */
--struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from)
--{
--	return rio_get_asm(vid, did, RIO_ANY_ID, RIO_ANY_ID, from);
--}
--EXPORT_SYMBOL_GPL(rio_get_device);
--
--/**
-  * rio_std_route_add_entry - Add switch route table entry using standard
-  *   registers defined in RIO specification rev.1.3
-  * @mport: Master port to issue transaction
-@@ -2106,20 +2041,6 @@ found:
- 	return rc;
- }
- 
--static void rio_fixup_device(struct rio_dev *dev)
--{
--}
--
--static int rio_init(void)
--{
--	struct rio_dev *dev = NULL;
--
--	while ((dev = rio_get_device(RIO_ANY_ID, RIO_ANY_ID, dev)) != NULL) {
--		rio_fixup_device(dev);
--	}
--	return 0;
--}
--
- static struct workqueue_struct *rio_wq;
- 
- struct rio_disc_work {
-@@ -2206,8 +2127,6 @@ int rio_init_mports(void)
- 	kfree(work);
- 
- no_disc:
--	rio_init();
--
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(rio_init_mports);
---- a/include/linux/rio_drv.h~rapidio-remove-unused-rio_get_asm-and-rio_get_device
-+++ a/include/linux/rio_drv.h
-@@ -444,9 +444,6 @@ static inline void rio_set_drvdata(struc
- /* Misc driver helpers */
- extern u16 rio_local_get_device_id(struct rio_mport *port);
- extern void rio_local_set_device_id(struct rio_mport *port, u16 did);
--extern struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from);
--extern struct rio_dev *rio_get_asm(u16 vid, u16 did, u16 asm_vid, u16 asm_did,
--				   struct rio_dev *from);
- extern int rio_init_mports(void);
- 
- #endif				/* LINUX_RIO_DRV_H */
+  * gcov_info_add - add up profiling data
+- * @dest: profiling data set to which data is added
+- * @source: profiling data set which is added
++ * @dst: profiling data set to which data is added
++ * @src: profiling data set which is added
+  *
+- * Adds profiling counts of @source to @dest.
++ * Adds profiling counts of @src to @dst.
+  */
+ void gcov_info_add(struct gcov_info *dst, struct gcov_info *src)
+ {
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
