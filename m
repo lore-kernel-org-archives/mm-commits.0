@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B9CCC2BBCF
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3D05C2BBCA
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D241A2342C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C2A4233FB
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727068AbgLPRMY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:12:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33246 "EHLO mail.kernel.org"
+        id S1727067AbgLPRMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:12:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33436 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726826AbgLPRMY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:12:24 -0500
-Date:   Wed, 16 Dec 2020 09:12:08 -0800
+        id S1726826AbgLPRMX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:12:23 -0500
+Date:   Wed, 16 Dec 2020 09:11:41 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138728;
-        bh=oQkAZjBPceXUafkIY/V7dpdOu7TzhWIvjyVSZsRjt4g=;
+        s=korg; t=1608138702;
+        bh=c3NUgyJoiJq2Rf5RwAbNHMUQ3HnaA2F9llcyDv5RNRw=;
         h=From:To:Subject:From;
-        b=kcNBiplj0H8IL/kpx4fY4jdZ3sUL9WfCYg/qo1i1UDvGBfU55D35WJeH5Z8YEdSK+
-         YZOfZTjUJ+NG89XwojW2FzExBK3A2W74TLEEylojpQXgFWIuQGQLWaukuQ8aCzFQ3o
-         nrgNst38v/hPGCTJHUamIIKo1p5+T6th6VzJkgYM=
+        b=L6dKz32WFD99duia1+raSNygo9ugJvX/VJKBhcU4IZ9Ovlj3iblauuqVKPL/sZ7zL
+         A/P5jcIzn6i8fcKxeZBg+Kjg+zehExHeGSPbHxS1QFKNPCHhtgd4npwBoGAoMIUiLP
+         ZnD2LPLXp/AIu50jSWsRakvLNf/zF8VdpJWQk2dw=
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, daniel@ffwll.ch, hch@lst.de,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        willy@infradead.org
-Subject:  [merged] mm-simplify-follow_ptepmd.patch removed from -mm
+To:     arnd@arndb.de, fabf@skynet.be, gregkh@linuxfoundation.org,
+        keescook@chromium.org, linux@roeck-us.net, mcroce@microsoft.com,
+        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
+        pmladek@suse.com, robinmholt@gmail.com, rppt@kernel.org
+Subject:  [merged]
+ reboot-refactor-and-comment-the-cpu-selection-code.patch removed from -mm
  tree
-Message-ID: <20201216171208.N8wAADS9p%akpm@linux-foundation.org>
+Message-ID: <20201216171141.60jiopRUo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,158 +44,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: simplify follow_pte{,pmd}
+     Subject: reboot: refactor and comment the cpu selection code
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-follow_ptepmd.patch
+     reboot-refactor-and-comment-the-cpu-selection-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: simplify follow_pte{,pmd}
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: reboot: refactor and comment the cpu selection code
 
-Merge __follow_pte_pmd, follow_pte_pmd and follow_pte into a single
-follow_pte function and just pass two additional NULL arguments for the
-two previous follow_pte callers.
+Small improvements to the code, without changing the way it works:
+- use a local variable, to avoid a small time lapse where reboot_cpu
+  can have an invalid value
+- comment the code which is not easy to understand at a glance
+- merge two identical code blocks into one
+- replace pointer arithmetics with equivalent array syntax
 
-[sfr@canb.auug.org.au: merge fix for "s390/pci: remove races against pte updates"]
-  Link: https://lkml.kernel.org/r/20201111221254.7f6a3658@canb.auug.org.au
-Link: https://lkml.kernel.org/r/20201029101432.47011-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+Link: https://lkml.kernel.org/r/20201103214025.116799-4-mcroce@linux.microsoft.com
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Robin Holt <robinmholt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/pci/pci_mmio.c |    4 ++--
- fs/dax.c                 |    9 ++++-----
- include/linux/mm.h       |    6 +++---
- mm/memory.c              |   35 +++++------------------------------
- 4 files changed, 14 insertions(+), 40 deletions(-)
+ kernel/reboot.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
---- a/arch/s390/pci/pci_mmio.c~mm-simplify-follow_ptepmd
-+++ a/arch/s390/pci/pci_mmio.c
-@@ -170,7 +170,7 @@ SYSCALL_DEFINE3(s390_pci_mmio_write, uns
- 	if (!(vma->vm_flags & VM_WRITE))
- 		goto out_unlock_mmap;
+--- a/kernel/reboot.c~reboot-refactor-and-comment-the-cpu-selection-code
++++ a/kernel/reboot.c
+@@ -553,20 +553,24 @@ static int __init reboot_setup(char *str
+ 			break;
  
--	ret = follow_pte_pmd(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
-+	ret = follow_pte(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
- 	if (ret)
- 		goto out_unlock_mmap;
+ 		case 's':
+-			if (isdigit(*(str+1)))
+-				reboot_cpu = simple_strtoul(str+1, NULL, 0);
+-			else if (str[1] == 'm' && str[2] == 'p' &&
+-							isdigit(*(str+3)))
+-				reboot_cpu = simple_strtoul(str+3, NULL, 0);
+-			else
++			/*
++			 * reboot_cpu is s[mp]#### with #### being the processor
++			 * to be used for rebooting. Skip 's' or 'smp' prefix.
++			 */
++			str += str[1] == 'm' && str[2] == 'p' ? 3 : 1;
++
++			if (isdigit(str[0])) {
++				int cpu = simple_strtoul(str, NULL, 0);
++
++				if (cpu >= num_possible_cpus()) {
++					pr_err("Ignoring the CPU number in reboot= option. "
++					"CPU %d exceeds possible cpu number %d\n",
++					cpu, num_possible_cpus());
++					break;
++				}
++				reboot_cpu = cpu;
++			} else
+ 				*mode = REBOOT_SOFT;
+-			if (reboot_cpu >= num_possible_cpus()) {
+-				pr_err("Ignoring the CPU number in reboot= option. "
+-				       "CPU %d exceeds possible cpu number %d\n",
+-				       reboot_cpu, num_possible_cpus());
+-				reboot_cpu = 0;
+-				break;
+-			}
+ 			break;
  
-@@ -311,7 +311,7 @@ SYSCALL_DEFINE3(s390_pci_mmio_read, unsi
- 	if (!(vma->vm_flags & VM_WRITE))
- 		goto out_unlock_mmap;
- 
--	ret = follow_pte_pmd(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
-+	ret = follow_pte(vma->vm_mm, mmio_addr, NULL, &ptep, NULL, &ptl);
- 	if (ret)
- 		goto out_unlock_mmap;
- 
---- a/fs/dax.c~mm-simplify-follow_ptepmd
-+++ a/fs/dax.c
-@@ -810,12 +810,11 @@ static void dax_entry_mkclean(struct add
- 		address = pgoff_address(index, vma);
- 
- 		/*
--		 * Note because we provide range to follow_pte_pmd it will
--		 * call mmu_notifier_invalidate_range_start() on our behalf
--		 * before taking any lock.
-+		 * Note because we provide range to follow_pte it will call
-+		 * mmu_notifier_invalidate_range_start() on our behalf before
-+		 * taking any lock.
- 		 */
--		if (follow_pte_pmd(vma->vm_mm, address, &range,
--				   &ptep, &pmdp, &ptl))
-+		if (follow_pte(vma->vm_mm, address, &range, &ptep, &pmdp, &ptl))
- 			continue;
- 
- 		/*
---- a/include/linux/mm.h~mm-simplify-follow_ptepmd
-+++ a/include/linux/mm.h
-@@ -1641,9 +1641,9 @@ void free_pgd_range(struct mmu_gather *t
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int
- copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
--int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
--		   struct mmu_notifier_range *range,
--		   pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
-+int follow_pte(struct mm_struct *mm, unsigned long address,
-+		struct mmu_notifier_range *range, pte_t **ptepp, pmd_t **pmdpp,
-+		spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
---- a/mm/memory.c~mm-simplify-follow_ptepmd
-+++ a/mm/memory.c
-@@ -4707,9 +4707,9 @@ int __pmd_alloc(struct mm_struct *mm, pu
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
--			    struct mmu_notifier_range *range,
--			    pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-+int follow_pte(struct mm_struct *mm, unsigned long address,
-+	       struct mmu_notifier_range *range, pte_t **ptepp, pmd_t **pmdpp,
-+	       spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -4774,31 +4774,6 @@ out:
- 	return -EINVAL;
- }
- 
--static inline int follow_pte(struct mm_struct *mm, unsigned long address,
--			     pte_t **ptepp, spinlock_t **ptlp)
--{
--	int res;
--
--	/* (void) is needed to make gcc happy */
--	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte_pmd(mm, address, NULL,
--						    ptepp, NULL, ptlp)));
--	return res;
--}
--
--int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
--		   struct mmu_notifier_range *range,
--		   pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
--{
--	int res;
--
--	/* (void) is needed to make gcc happy */
--	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte_pmd(mm, address, range,
--						    ptepp, pmdpp, ptlp)));
--	return res;
--}
--
- /**
-  * follow_pfn - look up PFN at a user virtual address
-  * @vma: memory mapping
-@@ -4819,7 +4794,7 @@ int follow_pfn(struct vm_area_struct *vm
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
- 		return ret;
- 
--	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
-+	ret = follow_pte(vma->vm_mm, address, NULL, &ptep, NULL, &ptl);
- 	if (ret)
- 		return ret;
- 	*pfn = pte_pfn(*ptep);
-@@ -4840,7 +4815,7 @@ int follow_phys(struct vm_area_struct *v
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
- 		goto out;
- 
--	if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+	if (follow_pte(vma->vm_mm, address, NULL, &ptep, NULL, &ptl))
- 		goto out;
- 	pte = *ptep;
- 
+ 		case 'g':
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
 
