@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A995CC2BBCD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9CCC2BBCF
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6EBFC23339
+	by mail.kernel.org (Postfix) with ESMTP id 5528E2333E
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725953AbgLPEp5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:45:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51252 "EHLO mail.kernel.org"
+        id S1725944AbgLPEpv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:45:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50676 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgLPEp4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:45:56 -0500
-Date:   Tue, 15 Dec 2020 20:45:15 -0800
+        id S1725907AbgLPEpv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:45:51 -0500
+Date:   Tue, 15 Dec 2020 20:45:34 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093916;
-        bh=qm+nIw9Z3U1EyY3rHCR/I9n4NJwYrOm+GggX4Plg0fI=;
+        s=korg; t=1608093935;
+        bh=8mTuHIQWNAq5Mkd67XAIhvulxgovM5pgJL7PX2gEQAs=;
         h=From:To:Subject:In-Reply-To:From;
-        b=Xt9IXxKQyRCcgMP/y5KiUtOjfuyQCd50GiVpssDJfY4niEooR78y3k7tr3MVKUsRb
-         n+zsPvFpxcqsePL6oM2F/Mgk8K8cNG5vK5T5fu0690KNbmg2JnFAo0OQ67PYISRnVC
-         zqZVLsTpBgFzJ3lPm/vt+6RAlt8Q4XL1ZLIr7MMM=
+        b=DNB+gc5+/NiGPLklJPp/GQ4vRdeXKfdfawZnq/6kY6zVO/MjWW4woZD/F3PRPCwFN
+         DgOmZTa7E58/WjkxelNFwnBNbLrtezCL77rlFpGAFjJkWuw2fDeGjwzfgZ+CIuu1b2
+         VBLeYSqd1S1FE8iqm8rzV8YdZQn+H5PO+Z3yU008=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dwaipayanray1@gmail.com,
-        joe@perches.com, linux-mm@kvack.org, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 54/95] checkpatch: add warning for unnecessary use
- of %h[xudi] and %hh[xudi]
-Message-ID: <20201216044515.ufcsvRhUI%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.bou9@gmail.com,
+        bigeasy@linutronix.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, mporter@kernel.crashing.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 60/95] rapidio: remove unused rio_get_asm() and
+ rio_get_device()
+Message-ID: <20201216044534.z5DwbO0OY%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,68 +42,148 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: add warning for unnecessary use of %h[xudi] and %hh[xudi]
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: rapidio: remove unused rio_get_asm() and rio_get_device()
 
-Modifiers %h and %hh should never be used.
+The functions rio_get_asm() and rio_get_device() are globally exported
+but have almost no users in tree. The only user is rio_init_mports()
+which invokes it via rio_init().
 
-Commit cbacb5ab0aa0 ("docs: printk-formats: Stop encouraging use
-of unnecessary %h[xudi] and %hh[xudi]") specifies that:
+rio_init() iterates over every registered device and invokes
+rio_fixup_device().  It looks like a fixup function which should perform a
+"change" to the device but does nothing.  It has been like this since its
+introduction in commit 394b701ce4fbf ("[PATCH] RapidIO support: core
+base") which was merged into v2.6.15-rc1.
 
-"Standard integer promotion is already done and %hx and %hhx is useless
-so do not encourage the use of %hh[xudi] or %h[xudi]."
+Remove rio_init() because the performed fixup function
+(rio_fixup_device()) does nothing.  Remove rio_get_asm() and
+rio_get_device() which have no callers now.
 
-"The "h" and "hh" things should never be used. The only reason for them
-being used if you have an "int", but you want to print it out as a
-"char" (and honestly, that is a really bad reason, you'd be better off
-just using a proper cast to make the code more obvious)."
-
-Add a new check to emit a warning on finding an unneeded use of %h or
-%hh modifier.
-
-Also add a fix option to the check.
-
-Link: https://lore.kernel.org/lkml/4910042649a4f3ab22fac93191b8c1fa0a2e17c3.camel@perches.com/
-Link: https://lkml.kernel.org/r/20201128200046.78739-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Suggested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20201116170004.420143-1-bigeasy@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/rapidio/rio.c   |   81 --------------------------------------
+ include/linux/rio_drv.h |    3 -
+ 2 files changed, 84 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-unnecessary-use-of-%h-and-%hh
-+++ a/scripts/checkpatch.pl
-@@ -6102,6 +6102,28 @@ sub process {
- 			     "Avoid logging continuation uses where feasible\n" . $herecurr);
- 		}
+--- a/drivers/rapidio/rio.c~rapidio-remove-unused-rio_get_asm-and-rio_get_device
++++ a/drivers/rapidio/rio.c
+@@ -1413,71 +1413,6 @@ rio_mport_get_feature(struct rio_mport *
+ EXPORT_SYMBOL_GPL(rio_mport_get_feature);
  
-+# check for unnecessary use of %h[xudi] and %hh[xudi] in logging functions
-+		if (defined $stat &&
-+		    $line =~ /\b$logFunctions\s*\(/ &&
-+		    index($stat, '"') >= 0) {
-+			my $lc = $stat =~ tr@\n@@;
-+			$lc = $lc + $linenr;
-+			my $stat_real = get_stat_real($linenr, $lc);
-+			pos($stat_real) = index($stat_real, '"');
-+			while ($stat_real =~ /[^\"%]*(%[\#\d\.\*\-]*(h+)[idux])/g) {
-+				my $pspec = $1;
-+				my $h = $2;
-+				my $lineoff = substr($stat_real, 0, $-[1]) =~ tr@\n@@;
-+				if (WARN("UNNECESSARY_MODIFIER",
-+					 "Integer promotion: Using '$h' in '$pspec' is unnecessary\n" . "$here\n$stat_real\n") &&
-+				    $fix && $fixed[$fixlinenr + $lineoff] =~ /^\+/) {
-+					my $nspec = $pspec;
-+					$nspec =~ s/h//g;
-+					$fixed[$fixlinenr + $lineoff] =~ s/\Q$pspec\E/$nspec/;
-+				}
-+			}
-+		}
-+
- # check for mask then right shift without a parentheses
- 		if ($perl_version_ok &&
- 		    $line =~ /$LvalOrFunc\s*\&\s*($LvalOrFunc)\s*>>/ &&
+ /**
+- * rio_get_asm - Begin or continue searching for a RIO device by vid/did/asm_vid/asm_did
+- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
+- * @did: RIO did to match or %RIO_ANY_ID to match all dids
+- * @asm_vid: RIO asm_vid to match or %RIO_ANY_ID to match all asm_vids
+- * @asm_did: RIO asm_did to match or %RIO_ANY_ID to match all asm_dids
+- * @from: Previous RIO device found in search, or %NULL for new search
+- *
+- * Iterates through the list of known RIO devices. If a RIO device is
+- * found with a matching @vid, @did, @asm_vid, @asm_did, the reference
+- * count to the device is incrememted and a pointer to its device
+- * structure is returned. Otherwise, %NULL is returned. A new search
+- * is initiated by passing %NULL to the @from argument. Otherwise, if
+- * @from is not %NULL, searches continue from next device on the global
+- * list. The reference count for @from is always decremented if it is
+- * not %NULL.
+- */
+-struct rio_dev *rio_get_asm(u16 vid, u16 did,
+-			    u16 asm_vid, u16 asm_did, struct rio_dev *from)
+-{
+-	struct list_head *n;
+-	struct rio_dev *rdev;
+-
+-	WARN_ON(in_interrupt());
+-	spin_lock(&rio_global_list_lock);
+-	n = from ? from->global_list.next : rio_devices.next;
+-
+-	while (n && (n != &rio_devices)) {
+-		rdev = rio_dev_g(n);
+-		if ((vid == RIO_ANY_ID || rdev->vid == vid) &&
+-		    (did == RIO_ANY_ID || rdev->did == did) &&
+-		    (asm_vid == RIO_ANY_ID || rdev->asm_vid == asm_vid) &&
+-		    (asm_did == RIO_ANY_ID || rdev->asm_did == asm_did))
+-			goto exit;
+-		n = n->next;
+-	}
+-	rdev = NULL;
+-      exit:
+-	rio_dev_put(from);
+-	rdev = rio_dev_get(rdev);
+-	spin_unlock(&rio_global_list_lock);
+-	return rdev;
+-}
+-EXPORT_SYMBOL_GPL(rio_get_asm);
+-
+-/**
+- * rio_get_device - Begin or continue searching for a RIO device by vid/did
+- * @vid: RIO vid to match or %RIO_ANY_ID to match all vids
+- * @did: RIO did to match or %RIO_ANY_ID to match all dids
+- * @from: Previous RIO device found in search, or %NULL for new search
+- *
+- * Iterates through the list of known RIO devices. If a RIO device is
+- * found with a matching @vid and @did, the reference count to the
+- * device is incrememted and a pointer to its device structure is returned.
+- * Otherwise, %NULL is returned. A new search is initiated by passing %NULL
+- * to the @from argument. Otherwise, if @from is not %NULL, searches
+- * continue from next device on the global list. The reference count for
+- * @from is always decremented if it is not %NULL.
+- */
+-struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from)
+-{
+-	return rio_get_asm(vid, did, RIO_ANY_ID, RIO_ANY_ID, from);
+-}
+-EXPORT_SYMBOL_GPL(rio_get_device);
+-
+-/**
+  * rio_std_route_add_entry - Add switch route table entry using standard
+  *   registers defined in RIO specification rev.1.3
+  * @mport: Master port to issue transaction
+@@ -2106,20 +2041,6 @@ found:
+ 	return rc;
+ }
+ 
+-static void rio_fixup_device(struct rio_dev *dev)
+-{
+-}
+-
+-static int rio_init(void)
+-{
+-	struct rio_dev *dev = NULL;
+-
+-	while ((dev = rio_get_device(RIO_ANY_ID, RIO_ANY_ID, dev)) != NULL) {
+-		rio_fixup_device(dev);
+-	}
+-	return 0;
+-}
+-
+ static struct workqueue_struct *rio_wq;
+ 
+ struct rio_disc_work {
+@@ -2206,8 +2127,6 @@ int rio_init_mports(void)
+ 	kfree(work);
+ 
+ no_disc:
+-	rio_init();
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(rio_init_mports);
+--- a/include/linux/rio_drv.h~rapidio-remove-unused-rio_get_asm-and-rio_get_device
++++ a/include/linux/rio_drv.h
+@@ -444,9 +444,6 @@ static inline void rio_set_drvdata(struc
+ /* Misc driver helpers */
+ extern u16 rio_local_get_device_id(struct rio_mport *port);
+ extern void rio_local_set_device_id(struct rio_mport *port, u16 did);
+-extern struct rio_dev *rio_get_device(u16 vid, u16 did, struct rio_dev *from);
+-extern struct rio_dev *rio_get_asm(u16 vid, u16 did, u16 asm_vid, u16 asm_did,
+-				   struct rio_dev *from);
+ extern int rio_init_mports(void);
+ 
+ #endif				/* LINUX_RIO_DRV_H */
 _
