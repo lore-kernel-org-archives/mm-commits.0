@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3FFFC2BBCA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F047C2BBD4
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D5472333E
+	by mail.kernel.org (Postfix) with ESMTP id D29642333E
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:43:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725843AbgLPEnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725845AbgLPEnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 23:43:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49136 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725820AbgLPEnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1725821AbgLPEnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 23:43:50 -0500
-Date:   Tue, 15 Dec 2020 20:42:55 -0800
+Date:   Tue, 15 Dec 2020 20:42:52 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093775;
-        bh=JJ5Sg2ZI07dCtq7Yvrcnj0FXYAYYX7UngAd43G6UgMc=;
+        s=korg; t=1608093772;
+        bh=6JQLcZRqCR37HvPi0NieyqS4RWqTSy2UfTkjQr/094g=;
         h=From:To:Subject:In-Reply-To:From;
-        b=IYKc8g+50te+cNQTPa8qTmojp8gybDjf/AwmaE38sdFXj0gFFlWceHU79JpFeimZq
-         ObDtvnka0yBoymuaPH/fGAEOzSjZCwQ41swzxnkLE7Lqgy6SWDs7KJcXv7PXVGrtyV
-         buleSCbztHrB/0b4Te+L8CkCvG7RanilY3T2YlN0=
+        b=QED53sVhTCXW/2NZT7ldGXyntYFzoO6Shorvn3D7/kzYIPnc1vhqhvePkxyqo6vlI
+         +J+0peHJI1N7NOpHifhi5Mvir7T4HV1U1/fHuTrIIR7FTGU9jzLzlrPPJACgoucz41
+         w0w8MtMySrAC+6WUxzF+J91WLMUuJViwaMagGLls=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        linux-mm@kvack.org, linux@rasmusvillemoes.dk,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        yury.norov@gmail.com
-Subject:  [patch 11/95] include/linux/bitmap.h: convert
- bitmap_empty() / bitmap_full() to return boolean
-Message-ID: <20201216044255._1-vHYtj0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, sh_def@163.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 10/95] kernel/acct.c: use #elif instead of #end
+ and #elif
+Message-ID: <20201216044252.6K2eg-ICv%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,39 +41,41 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/bitmap.h: convert bitmap_empty() / bitmap_full() to return boolean
+From: Hui Su <sh_def@163.com>
+Subject: kernel/acct.c: use #elif instead of #end and #elif
 
-There is no need to return int type out of boolean expression.
+Cleanup: use #elif instead of #end and #elif.
 
-Link: https://lkml.kernel.org/r/20201027180936.20806-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: https://lkml.kernel.org/r/20201015150736.GA91603@rlk
+Signed-off-by: Hui Su <sh_def@163.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/acct.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/include/linux/bitmap.h~bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean
-+++ a/include/linux/bitmap.h
-@@ -379,7 +379,7 @@ static inline int bitmap_subset(const un
- 		return __bitmap_subset(src1, src2, nbits);
+--- a/kernel/acct.c~acctc-use-elif-instead-of-end-and-elif
++++ a/kernel/acct.c
+@@ -381,9 +381,7 @@ static comp2_t encode_comp2_t(u64 value)
+ 		return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
+ 	}
  }
+-#endif
+-
+-#if ACCT_VERSION == 3
++#elif ACCT_VERSION == 3
+ /*
+  * encode an u64 into a 32 bit IEEE float
+  */
+@@ -500,8 +498,7 @@ static void do_acct_process(struct bsd_a
+ 	/* backward-compatible 16 bit fields */
+ 	ac.ac_uid16 = ac.ac_uid;
+ 	ac.ac_gid16 = ac.ac_gid;
+-#endif
+-#if ACCT_VERSION == 3
++#elif ACCT_VERSION == 3
+ 	{
+ 		struct pid_namespace *ns = acct->ns;
  
--static inline int bitmap_empty(const unsigned long *src, unsigned nbits)
-+static inline bool bitmap_empty(const unsigned long *src, unsigned nbits)
- {
- 	if (small_const_nbits(nbits))
- 		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
-@@ -387,7 +387,7 @@ static inline int bitmap_empty(const uns
- 	return find_first_bit(src, nbits) == nbits;
- }
- 
--static inline int bitmap_full(const unsigned long *src, unsigned int nbits)
-+static inline bool bitmap_full(const unsigned long *src, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
- 		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
 _
