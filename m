@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25313C0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 948C2C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 047C723403
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C91D23433
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726706AbgLPRKZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60420 "EHLO mail.kernel.org"
+        id S1727046AbgLPRK2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727032AbgLPRKZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:25 -0500
-Date:   Wed, 16 Dec 2020 09:09:44 -0800
+        id S1727045AbgLPRK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:28 -0500
+Date:   Wed, 16 Dec 2020 09:10:12 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138584;
-        bh=2pbjntCva1tP4emYOPA+cvTBAK+vYm4iTxpVjF0KLHk=;
+        s=korg; t=1608138612;
+        bh=ZU8Ass8oay39mL7irUBahk62Uqd32MxF8isEpDgjeuI=;
         h=From:To:Subject:From;
-        b=MZzm5IuZ+wW1XEZ1mtcZx3fMOmNvkT/dCj0kZIKJhUZIdU6vPPhCxZxqrCuTU2CR7
-         3YEmyjM9ZTAj+sU+q0v5eJMJ7sRpnjmrnABmD1MqeUR4cx8Dxsp8DiflTNsXyK3w2H
-         WdeqlfdGsl4uwlKpdtFWBYk4y6CAPkamyGbN5YBY=
+        b=V3NZ5KS1R6jK3u/H/TQwjNyL44hvlxkLZUdJ3ZEwtnlMrVPy2bfqkUdUrZqZzseC8
+         brYUNAK18NnES7yvYhmZksEFZgpC0Z90uhRIm7W6aKyvFiF9NAXidyapvDQHaMc2mk
+         P5s5gz0bdQ7ud+l9kgevoFGvNedSrZ9DirgNkB9w=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com, lukas.bulwahn@gmail.com,
+To:     joe@perches.com, lukas.bulwahn@gmail.com,
         mm-commits@vger.kernel.org, yashsri421@gmail.com
 Subject:  [merged]
- checkpatch-fix-false-positives-in-repeated_word-warning.patch removed from
- -mm tree
-Message-ID: <20201216170944.p7Qu_NlQs%akpm@linux-foundation.org>
+ checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
+ removed from -mm tree
+Message-ID: <20201216171012.e3F8qoMUA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,103 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix false positives in REPEATED_WORD warning
+     Subject: checkpatch: avoid COMMIT_LOG_LONG_LINE warning for signature tags
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-false-positives-in-repeated_word-warning.patch
+     checkpatch-avoid-commit_log_long_line-warning-for-signature-tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Aditya Srivastava <yashsri421@gmail.com>
-Subject: checkpatch: fix false positives in REPEATED_WORD warning
+Subject: checkpatch: avoid COMMIT_LOG_LONG_LINE warning for signature tags
 
-Presence of hexadecimal address or symbol results in false warning
-message by checkpatch.pl.
+Currently checkpatch warns us for long lines in commits even for signature
+tag lines.
 
-For example, running checkpatch on commit b8ad540dd4e4 ("mptcp: fix
-memory leak in mptcp_subflow_create_socket()") results in warning:
+Generally these lines exceed the 75-character limit because of:
+1) long names and long email address
+2) some comments on scoped review and acknowledgement, i.e., for a
+dedicated pointer on what was reported by the identity in 'Reported-by'
+3) some additional comments on CC: stable@vger.org tags
 
-WARNING:REPEATED_WORD: Possible repeated word: 'ff'
-    00 00 00 00 00 00 00 00 00 2f 30 0a 81 88 ff ff  ........./0.....
+Exclude signature tag lines from this class of warning.
 
-Similarly, the presence of list command output in commit results in
-an unnecessary warning.
+There were 1896 COMMIT_LOG_LONG_LINE warnings in v5.6..v5.8 before this
+patch application and 1879 afterwards.
 
-For example, running checkpatch on commit 899e5ffbf246 ("perf record:
-Introduce --switch-output-event") gives:
+A quick manual check found all the dropped warnings related to signature
+tags.
 
-WARNING:REPEATED_WORD: Possible repeated word: 'root'
-  dr-xr-x---. 12 root root    4096 Apr 27 17:46 ..
-
-Here, it reports 'ff' and 'root' to be repeated, but it is in fact part
-of some address or code, where it has to be repeated.
-
-In these cases, the intent of the warning to find stylistic issues in
-commit messages is not met and the warning is just completely wrong in
-this case.
-
-To avoid these warnings, add an additional regex check for the
-directory permission pattern and avoid checking the line for this
-class of warning. Similarly, to avoid hex pattern, check if the word
-consists of hex symbols and skip this warning if it is not among the
-common english words formed using hex letters.
-
-A quick evaluation on v5.6..v5.8 showed that this fix reduces
-REPEATED_WORD warnings by the frequency of 1890.
-
-A quick manual check found all cases are related to hex output or
-list command outputs in commit messages.
-
-Link: https://lkml.kernel.org/r/20201024102253.13614-1-yashsri421@gmail.com
+Link: https://lkml.kernel.org/r/20201116083754.10629-1-yashsri421@gmail.com
 Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-fix-false-positives-in-repeated_word-warning
+--- a/scripts/checkpatch.pl~checkpatch-avoid-commit_log_long_line-warning-for-signature-tags
 +++ a/scripts/checkpatch.pl
-@@ -853,6 +853,13 @@ our $declaration_macros = qr{(?x:
- 	(?:SKCIPHER_REQUEST|SHASH_DESC|AHASH_REQUEST)_ON_STACK\s*\(
- )};
- 
-+our %allow_repeated_words = (
-+	add => '',
-+	added => '',
-+	bad => '',
-+	be => '',
-+);
-+
- sub deparenthesize {
- 	my ($string) = @_;
- 	return "" if (!defined($string));
-@@ -3049,7 +3056,9 @@ sub process {
- 		}
- 
- # check for repeated words separated by a single space
--		if ($rawline =~ /^\+/ || $in_commit_log) {
-+# avoid false positive from list command eg, '-rw-r--r-- 1 root root'
-+		if (($rawline =~ /^\+/ || $in_commit_log) &&
-+		    $rawline !~ /[bcCdDlMnpPs\?-][rwxsStT-]{9}/) {
- 			pos($rawline) = 1 if (!$in_commit_log);
- 			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
- 
-@@ -3074,6 +3083,11 @@ sub process {
- 				next if ($start_char =~ /^\S$/);
- 				next if (index(" \t.,;?!", $end_char) == -1);
- 
-+                                # avoid repeating hex occurrences like 'ff ff fe 09 ...'
-+                                if ($first =~ /\b[0-9a-f]{2,}\b/i) {
-+                                        next if (!exists($allow_repeated_words{lc($first)}));
-+                                }
-+
- 				if (WARN("REPEATED_WORD",
- 					 "Possible repeated word: '$first'\n" . $herecurr) &&
- 				    $fix) {
+@@ -2952,8 +2952,8 @@ sub process {
+ 					# file delta changes
+ 		      $line =~ /^\s*(?:[\w\.\-]+\/)++[\w\.\-]+:/ ||
+ 					# filename then :
+-		      $line =~ /^\s*(?:Fixes:|Link:)/i ||
+-					# A Fixes: or Link: line
++		      $line =~ /^\s*(?:Fixes:|Link:|$signature_tags)/i ||
++					# A Fixes: or Link: line or signature tag line
+ 		      $commit_log_possible_stack_dump)) {
+ 			WARN("COMMIT_LOG_LONG_LINE",
+ 			     "Possible unwrapped commit description (prefer a maximum 75 chars per line)\n" . $herecurr);
 _
 
 Patches currently in -mm which might be from yashsri421@gmail.com are
