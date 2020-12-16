@@ -5,34 +5,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8E00C2BBCD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F98C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88B2223339
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4D122333E
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725948AbgLPEpl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:45:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50472 "EHLO mail.kernel.org"
+        id S1725951AbgLPEpo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:45:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725944AbgLPEpk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:45:40 -0500
-Date:   Tue, 15 Dec 2020 20:45:24 -0800
+        id S1725944AbgLPEpo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:45:44 -0500
+Date:   Tue, 15 Dec 2020 20:45:27 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093925;
-        bh=Es/wrTINbDbFSwXL6qYwYmt8q1LtAh0Y6ZLXi8FWakY=;
+        s=korg; t=1608093928;
+        bh=TtAWWZ4aoETQN3KTpdaSOzq8/Gdgyx0aQMwfxLjHmWw=;
         h=From:To:Subject:In-Reply-To:From;
-        b=NwErUFn7vFGQcUr/UebBtPJE9NY6cBDXam2ap8r6pGnX8hojx0ROvnf55pqe3BhG7
-         lO4d8I0RnmKdll1Rem6hgNSVOc2givDGQVxwHIVlduIca2blJa3Ft1lJxLY2ycjI2F
-         +dEnjFFDf8CckV1C13yWN/oga5LllEA3K2vENaDs=
+        b=JmzrH/qk+whj7Iaqjbc1ryYmI78BxVW+tUEiyneH7ubFhqWbaojrY9H3Z5PbiijGc
+         ZP0ewfRxQPrfXkCXgI28WgoiSf2tvPOR6fhVWraBmTtlwx+SVj8kLIGwJoZuqEJDsO
+         ygEaTyiBhMEf/Qt+1gZklvcsi20Yj45MeG/a8hnM=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
+        konishi.ryusuke@gmail.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 57/95] checkpatch: add printk_once and
- printk_ratelimit to prefer pr_<level> warning
-Message-ID: <20201216044524.oQR3pUNXd%akpm@linux-foundation.org>
+Subject:  [patch 58/95] fs/nilfs2: remove some unused macros to
+ tame gcc
+Message-ID: <20201216044527.2A3lAeM_h%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,52 +41,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add printk_once and printk_ratelimit to prefer pr_<level> warning
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: fs/nilfs2: remove some unused macros to tame gcc
 
-Add the _once and _ratelimited variants to the test for
-printk(KERN_<LEVEL> that should prefer pr_<level>.
+There some macros are unused and cause gcc warning. Remove them.
 
-Miscellanea:
+fs/nilfs2/segment.c:137:0: warning: macro "nilfs_cnt32_gt" is not used
+[-Wunused-macros]
+fs/nilfs2/segment.c:144:0: warning: macro "nilfs_cnt32_le" is not used
+[-Wunused-macros]
+fs/nilfs2/segment.c:143:0: warning: macro "nilfs_cnt32_lt" is not used
+[-Wunused-macros]
 
-o Add comment description for the conversions
-
-[joe@perches.com: fixlet]
-  Link: https://lkml.kernel.org/r/32260871d4718ba7f48a8e9e07452bb76de300db.camel@perches.comLink: https://lkml.kernel.org/r/993b72b2ef91a57c5e725b52971ce3fd31375061.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/1607552733-24292-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ fs/nilfs2/segment.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-printk_once-and-printk_ratelimit-to-prefer-pr_level-warning
-+++ a/scripts/checkpatch.pl
-@@ -4543,16 +4543,23 @@ sub process {
- 			     "printk() should include KERN_<LEVEL> facility level\n" . $herecurr);
- 		}
+--- a/fs/nilfs2/segment.c~fs-nilfs2-remove-some-unused-macros-to-tame-gcc
++++ a/fs/nilfs2/segment.c
+@@ -134,14 +134,9 @@ static void nilfs_segctor_do_flush(struc
+ static void nilfs_segctor_do_immediate_flush(struct nilfs_sc_info *);
+ static void nilfs_dispose_list(struct the_nilfs *, struct list_head *, int);
  
--		if ($line =~ /\bprintk\s*\(\s*KERN_([A-Z]+)/) {
--			my $orig = $1;
-+# prefer variants of (subsystem|netdev|dev|pr)_<level> to printk(KERN_<LEVEL>
-+		if ($line =~ /\b(printk(_once|_ratelimited)?)\s*\(\s*KERN_([A-Z]+)/) {
-+			my $printk = $1;
-+			my $modifier = $2;
-+			my $orig = $3;
-+			$modifier = "" if (!defined($modifier));
- 			my $level = lc($orig);
- 			$level = "warn" if ($level eq "warning");
- 			my $level2 = $level;
- 			$level2 = "dbg" if ($level eq "debug");
-+			$level .= $modifier;
-+			$level2 .= $modifier;
- 			WARN("PREFER_PR_LEVEL",
--			     "Prefer [subsystem eg: netdev]_$level2([subsystem]dev, ... then dev_$level2(dev, ... then pr_$level(...  to printk(KERN_$orig ...\n" . $herecurr);
-+			     "Prefer [subsystem eg: netdev]_$level2([subsystem]dev, ... then dev_$level2(dev, ... then pr_$level(...  to $printk(KERN_$orig ...\n" . $herecurr);
- 		}
+-#define nilfs_cnt32_gt(a, b)   \
+-	(typecheck(__u32, a) && typecheck(__u32, b) && \
+-	 ((__s32)(b) - (__s32)(a) < 0))
+ #define nilfs_cnt32_ge(a, b)   \
+ 	(typecheck(__u32, a) && typecheck(__u32, b) && \
+ 	 ((__s32)(a) - (__s32)(b) >= 0))
+-#define nilfs_cnt32_lt(a, b)  nilfs_cnt32_gt(b, a)
+-#define nilfs_cnt32_le(a, b)  nilfs_cnt32_ge(b, a)
  
-+# prefer dev_<level> to dev_printk(KERN_<LEVEL>
- 		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
- 			my $orig = $1;
- 			my $level = lc($orig);
+ static int nilfs_prepare_segment_lock(struct super_block *sb,
+ 				      struct nilfs_transaction_info *ti)
 _
