@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7FE7C2BBCA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAF3CC2BBCD
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 79246233FE
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7D9A233FB
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727065AbgLPRMS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:12:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33160 "EHLO mail.kernel.org"
+        id S1726840AbgLPRMT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:12:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726826AbgLPRMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:12:18 -0500
-Date:   Wed, 16 Dec 2020 09:12:02 -0800
+        id S1726826AbgLPRMT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:12:19 -0500
+Date:   Wed, 16 Dec 2020 09:11:38 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138722;
-        bh=hCabqgc/3YN1h4xnIrUEyl4bjH6yHP2MaBKJS+Vg+pQ=;
+        s=korg; t=1608138698;
+        bh=YJMRlsp+z9EoZlNZs3dOOvLzXTIUNUS9QoE1XWaJIYM=;
         h=From:To:Subject:From;
-        b=bHKA9uzgO2WzLw5NXzEGEUjDYoTKJYXnS5KeAcD1+UM+3BlsK9ATb55RoVQYhTqkR
-         xue24Jv77966M7royjPlhLga31Yn74Cq0B4fthHexF9Fue2MW8VRk3Hl6ZzszB5drA
-         CBkLd5/plnYWkEhC4UM3VARrV8aMofcIkbyjhN5s=
+        b=XxnCE6tLogEdKRIxiUszqo/5cIqtVzpqePl4+Rk0O9oVO+czPXre5E42VKES/dzgz
+         iwmaIHbsdfxRUjsjCjNZH8oM1DMgpfDUBTmQB7PkjP1D1b0gFJ/tJb39si91fq1d/f
+         RMptuzvPO2qBNq/CjeYUZBQBT+gD7eVU6RoD7rDI=
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, jmorris@namei.org,
-        john.johansen@canonical.com, mm-commits@vger.kernel.org,
-        serge@hallyn.com
+To:     akpm@linux-foundation.org, keescook@chromium.org,
+        mm-commits@vger.kernel.org, zou_wei@huawei.com
 Subject:  [merged]
- apparmor-remove-duplicate-macro-list_entry_is_head.patch removed from -mm
+ lib-ubsanc-mark-type_check_kinds-with-static-keyword.patch removed from -mm
  tree
-Message-ID: <20201216171202.ww3IihB9W%akpm@linux-foundation.org>
+Message-ID: <20201216171138.RxDd1DoAO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,47 +42,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: apparmor: remove duplicate macro list_entry_is_head()
+     Subject: lib/ubsan.c: mark type_check_kinds with static keyword
 has been removed from the -mm tree.  Its filename was
-     apparmor-remove-duplicate-macro-list_entry_is_head.patch
+     lib-ubsanc-mark-type_check_kinds-with-static-keyword.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: apparmor: remove duplicate macro list_entry_is_head()
+From: Zou Wei <zou_wei@huawei.com>
+Subject: lib/ubsan.c: mark type_check_kinds with static keyword
 
-Strangely I hadn't had noticed the existence of the list_entry_is_head()
-in apparmor code when added the same one in the list.h.  Luckily it's
-fully identical and didn't break builds.  In any case we don't need a
-duplicate anymore, thus remove it from apparmor code.
+Fix the following sparse warning:
 
-Link: https://lkml.kernel.org/r/20201208100639.88182-1-andriy.shevchenko@linux.intel.com
-Fixes: e130816164e244 ("include/linux/list.h: add a macro to test if entry is pointing to the head")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: John Johansen <john.johansen@canonical.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E . Hallyn " <serge@hallyn.com>
+lib/ubsan.c:20:12: warning: symbol 'type_check_kinds' was not declared. Should it be static?
+
+[akpm@linux-foundation.org: make it `static const char * const' while we're in there]
+Link: https://lkml.kernel.org/r/1607602638-79584-1-git-send-email-zou_wei@huawei.com
+Signed-off-by: Zou Wei <zou_wei@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/apparmor/apparmorfs.c |    3 ---
- 1 file changed, 3 deletions(-)
+ lib/ubsan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/security/apparmor/apparmorfs.c~apparmor-remove-duplicate-macro-list_entry_is_head
-+++ a/security/apparmor/apparmorfs.c
-@@ -2046,9 +2046,6 @@ fail2:
- 	return error;
- }
+--- a/lib/ubsan.c~lib-ubsanc-mark-type_check_kinds-with-static-keyword
++++ a/lib/ubsan.c
+@@ -17,7 +17,7 @@
  
--
--#define list_entry_is_head(pos, head, member) (&pos->member == (head))
--
- /**
-  * __next_ns - find the next namespace to list
-  * @root: root namespace to stop search at (NOT NULL)
+ #include "ubsan.h"
+ 
+-const char *type_check_kinds[] = {
++static const char * const type_check_kinds[] = {
+ 	"load of",
+ 	"store to",
+ 	"reference binding to",
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from zou_wei@huawei.com are
 
 
