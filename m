@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F598C2BB48
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 078DAC2BBCF
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFFF323105
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA7F82310F
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725820AbgLPBlG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 20:41:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60446 "EHLO mail.kernel.org"
+        id S1725824AbgLPBlH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 20:41:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725815AbgLPBlG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1725808AbgLPBlG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 20:41:06 -0500
-Date:   Tue, 15 Dec 2020 17:40:09 -0800
+Date:   Tue, 15 Dec 2020 17:39:57 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608082810;
-        bh=JoYj4Dn6nT9y9gGxrPtN3YN6fQ8749JyXk6kz2FGVHc=;
+        s=korg; t=1608082798;
+        bh=08JgkVqx+baBtABB+q92kC7ygOb2oge1HZgiXYeEFmY=;
         h=From:To:Subject:From;
-        b=qUBmNi5xxoY+Sc40zaJ2tu5yFGcGlhJZB1dC/ZBCXroDXccJf9Lr1hURoFtcMkXxO
-         Qw9UiYRec0h6q50nUNtYw33xUOxlTjAOlNEJDokcXgLB9YgM30f2cCORiiOeVeMm5I
-         cSdoJ8bhrpF27A2rgQvVbgbvC05M9pYId52GxhYc=
+        b=RHRQo5ju9lwxC2UMfjYuZfxcWu1nU7K+z9KNtFlNixidUoe7Y6uOyiIDyc2kA2pBF
+         FV3yfrLrwhheud7U39R6PFh5TKWFXsnet0zqpl2z3nP07xuJxSMxjAhzO/GNtsHaFy
+         QfRlxJa40bIsS2ACD7gGFHqNhLLzHCTcDFPsPpJE=
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -41,9 +41,8 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
 Subject:  [merged]
- mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch removed from -mm
- tree
-Message-ID: <20201216014009.6-AjHXAWV%akpm@linux-foundation.org>
+ mm-memcg-add-debug-checking-in-lock_page_memcg.patch removed from -mm tree
+Message-ID: <20201216013957.JLGSYpjrF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -55,31 +54,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: remove lruvec reget in move_pages_to_lru
+     Subject: mm/memcg: add debug checking in lock_page_memcg
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru.patch
+     mm-memcg-add-debug-checking-in-lock_page_memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove lruvec reget in move_pages_to_lru
+Subject: mm/memcg: add debug checking in lock_page_memcg
 
-Isolated page shouldn't be recharged by memcg since the memcg migration
-isn't possible at the time.  All pages were isolated from the same lruvec
-(and isolation inhibits memcg migration).  So remove unnecessary
-regetting.
+Add a debug checking in lock_page_memcg, then we could get alarm if
+anything wrong here.
 
-Thanks to Alexander Duyck for pointing this out.
-
-Link: https://lkml.kernel.org/r/1604566549-62481-12-git-send-email-alex.shi=
-@linux.alibaba.com
+Link: https://lkml.kernel.org/r/1604566549-62481-9-git-send-email-alex.shi@=
+linux.alibaba.com
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -90,6 +86,7 @@ Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -98,31 +95,29 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-remove-lruvec-reget-in-move_pages_to_lru
-+++ a/mm/vmscan.c
-@@ -1886,7 +1886,12 @@ static unsigned noinline_for_stack move_
- 			continue;
- 		}
+--- a/mm/memcontrol.c~mm-memcg-add-debug-checking-in-lock_page_memcg
++++ a/mm/memcontrol.c
+@@ -2150,6 +2150,12 @@ again:
+ 	if (unlikely(!memcg))
+ 		return NULL;
 =20
--		lruvec =3D mem_cgroup_page_lruvec(page, pgdat);
-+		/*
-+		 * All pages were isolated from the same lruvec (and isolation
-+		 * inhibits memcg migration).
-+		 */
-+		VM_BUG_ON_PAGE(mem_cgroup_page_lruvec(page, page_pgdat(page))
-+							!=3D lruvec, page);
- 		lru =3D page_lru(page);
- 		nr_pages =3D thp_nr_pages(page);
++#ifdef CONFIG_PROVE_LOCKING
++	local_irq_save(flags);
++	might_lock(&memcg->move_lock);
++	local_irq_restore(flags);
++#endif
++
+ 	if (atomic_read(&memcg->moving_account) <=3D 0)
+ 		return memcg;
 =20
 _
 
