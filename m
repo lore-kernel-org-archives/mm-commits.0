@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77430C2BBCD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DE04C2BBCA
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3527A230FA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19BCF233F7
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727037AbgLPRKQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727036AbgLPRKQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 16 Dec 2020 12:10:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60314 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727036AbgLPRKP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:15 -0500
-Date:   Wed, 16 Dec 2020 09:09:12 -0800
+        id S1727032AbgLPRKQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:16 -0500
+Date:   Wed, 16 Dec 2020 09:10:00 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138552;
-        bh=tSDOPP9uymazLYcPqovbLdBNyXY66uQpysz4oz96EEc=;
+        s=korg; t=1608138600;
+        bh=mY8e90oI0uHJo1QvHwdF68mv/ccwh4bwvIBlMhIeHbw=;
         h=From:To:Subject:From;
-        b=TtrFfI7JSsWDz0tixQRi35HXG8rua/cdfgp6ZyF77MmAah/06Qa5UvrObKovcxKnY
-         iIBRRtxRdnsDd/osYUTAR/feIkQ92XpPcPBiI8Zz5o8HClvOVmlPk4w/gt93gWPGwS
-         ulSU4OFVPj9R77wheNXy1w5iGEvjU0d3yVVpIxks=
+        b=1GaYT7asCfdEvF5w8clFvi/QvtV+kWYaOatG4rbStCJu6f4k+uM9/oNVuvCd/3RyW
+         K8S5L5yU73Bi5z35MAnPzrI5AsrOyx/aAjaRX3L8meK+gezFxnpo8qyAuX7MsSCM1H
+         +wOGMvKty8tDcVZRfv3N6O7+XV3Fg9GP8k0x/F9k=
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, brendanhiggins@google.com,
-        broonie@kernel.org, davidgow@google.com,
-        matti.vaittinen@fi.rohmeurope.com, mm-commits@vger.kernel.org,
-        skhan@linuxfoundation.org, vitor@massaru.org
+To:     dwaipayanray1@gmail.com, joe@perches.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch removed from
+ checkpatch-update-__attribute__sectionname-quote-removal.patch removed from
  -mm tree
-Message-ID: <20201216170912.9JW6JzXoA%akpm@linux-foundation.org>
+Message-ID: <20201216171000.HNonD1br-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,173 +42,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline_kunit: add a new test suite for cmdline API
+     Subject: checkpatch: update __attribute__((section("name"))) quote removal
 has been removed from the -mm tree.  Its filename was
-     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
+     checkpatch-update-__attribute__sectionname-quote-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline_kunit: add a new test suite for cmdline API
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: update __attribute__((section("name"))) quote removal
 
-Test get_option() for a starter which is provided by cmdline.c.
+commit 33def8498fdd ("treewide: Convert macro and uses of
+__section(foo) to __section("foo")") removed the stringification of the
+section name and now requires quotes around the named section.
 
-[akpm@linux-foundation.org: fix warning by constifying cmdline_test_values]
-[andriy.shevchenko@linux.intel.com: type of expected returned values should be int]
-  Link: https://lkml.kernel.org/r/20201116104244.15472-1-andriy.shevchenko@linux.intel.com
-[andriy.shevchenko@linux.intel.com: provide meaningful MODULE_LICENSE()]
-  Link: https://lkml.kernel.org/r/20201116104257.15527-1-andriy.shevchenko@linux.intel.com
-Link: https://lkml.kernel.org/r/20201112180732.75589-6-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Vitor Massaru Iha <vitor@massaru.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
+Update checkpatch to not remove any quotes when suggesting conversion
+of __attribute__((section("name"))) to __section("name")
+
+Miscellanea:
+
+o Add section to the hash with __section replacement
+o Remove separate test for __attribute__((section
+o Remove the limitation on converting attributes containing only
+  known, possible conversions.  Any unknown attribute types are now
+  left as-is and known types are converted and moved before
+  __attribute__ and removed from within the __attribute__((list...)).
+
+[joe@perches.com: eliminate the separate test below the possible conversions loop]
+  Link: https://lkml.kernel.org/r/58e9d55e933dc8fdc6af489f2ad797fa8eb13e44.camel@perches.com
+Link: https://lkml.kernel.org/r/c04dd1c810e8d6a68e6a632e3191ae91651c8edf.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug   |   11 ++++
- lib/Makefile        |    1 
- lib/cmdline_kunit.c |  100 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 112 insertions(+)
+ scripts/checkpatch.pl |   47 ++++++++++++----------------------------
+ 1 file changed, 15 insertions(+), 32 deletions(-)
 
---- /dev/null
-+++ a/lib/cmdline_kunit.c
-@@ -0,0 +1,100 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Test cases for API provided by cmdline.c
-+ */
-+
-+#include <kunit/test.h>
-+#include <linux/kernel.h>
-+#include <linux/random.h>
-+#include <linux/string.h>
-+
-+static const char *cmdline_test_strings[] = {
-+	"\"\"", ""  , "=" , "\"-", ","    , "-,"   , ",-"   , "-" ,
-+	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
-+};
-+
-+static const int cmdline_test_values[] = {
-+	1, 1, 1, 1, 2, 3, 2, 3,
-+	1, 3, 2, 1, 1, 1, 3, 1,
-+};
-+
-+static void cmdline_do_one_test(struct kunit *test, const char *in, int rc, int offset)
-+{
-+	const char *fmt = "Pattern: %s";
-+	const char *out = in;
-+	int dummy;
-+	int ret;
-+
-+	ret = get_option((char **)&out, &dummy);
-+
-+	KUNIT_EXPECT_EQ_MSG(test, ret, rc, fmt, in);
-+	KUNIT_EXPECT_PTR_EQ_MSG(test, out, in + offset, fmt, in);
-+}
-+
-+static void cmdline_test_noint(struct kunit *test)
-+{
-+	unsigned int i = 0;
-+
-+	do {
-+		const char *str = cmdline_test_strings[i];
-+		int rc = 0;
-+		int offset;
-+
-+		/* Only first and leading '-' will advance the pointer */
-+		offset = !!(*str == '-');
-+		cmdline_do_one_test(test, str, rc, offset);
-+	} while (++i < ARRAY_SIZE(cmdline_test_strings));
-+}
-+
-+static void cmdline_test_lead_int(struct kunit *test)
-+{
-+	unsigned int i = 0;
-+	char in[32];
-+
-+	do {
-+		const char *str = cmdline_test_strings[i];
-+		int rc = cmdline_test_values[i];
-+		int offset;
-+
-+		sprintf(in, "%u%s", get_random_int() % 256, str);
-+		/* Only first '-' after the number will advance the pointer */
-+		offset = strlen(in) - strlen(str) + !!(rc == 2);
-+		cmdline_do_one_test(test, in, rc, offset);
-+	} while (++i < ARRAY_SIZE(cmdline_test_strings));
-+}
-+
-+static void cmdline_test_tail_int(struct kunit *test)
-+{
-+	unsigned int i = 0;
-+	char in[32];
-+
-+	do {
-+		const char *str = cmdline_test_strings[i];
-+		/* When "" or "-" the result will be valid integer */
-+		int rc = strcmp(str, "") ? (strcmp(str, "-") ? 0 : 1) : 1;
-+		int offset;
-+
-+		sprintf(in, "%s%u", str, get_random_int() % 256);
-+		/*
-+		 * Only first and leading '-' not followed by integer
-+		 * will advance the pointer.
-+		 */
-+		offset = rc ? strlen(in) : !!(*str == '-');
-+		cmdline_do_one_test(test, in, rc, offset);
-+	} while (++i < ARRAY_SIZE(cmdline_test_strings));
-+}
-+
-+static struct kunit_case cmdline_test_cases[] = {
-+	KUNIT_CASE(cmdline_test_noint),
-+	KUNIT_CASE(cmdline_test_lead_int),
-+	KUNIT_CASE(cmdline_test_tail_int),
-+	{}
-+};
-+
-+static struct kunit_suite cmdline_test_suite = {
-+	.name = "cmdline",
-+	.test_cases = cmdline_test_cases,
-+};
-+kunit_test_suite(cmdline_test_suite);
-+
-+MODULE_LICENSE("GPL");
---- a/lib/Kconfig.debug~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api
-+++ a/lib/Kconfig.debug
-@@ -2311,6 +2311,17 @@ config LINEAR_RANGES_TEST
+--- a/scripts/checkpatch.pl~checkpatch-update-__attribute__sectionname-quote-removal
++++ a/scripts/checkpatch.pl
+@@ -6216,50 +6216,33 @@ sub process {
+ 				"noreturn"			=> "__noreturn",
+ 				"packed"			=> "__packed",
+ 				"pure"				=> "__pure",
++				"section"			=> "__section",
+ 				"used"				=> "__used"
+ 			);
  
- 	  If unsure, say N.
+-			my @conv_array = ();
+-			my $conv_possible = 1;
+-
+ 			while ($attr =~ /\s*(\w+)\s*(${balanced_parens})?/g) {
+-				my $curr_attr = $1;
++				my $orig_attr = $1;
+ 				my $params = '';
+ 				$params = $2 if defined($2);
++				my $curr_attr = $orig_attr;
+ 				$curr_attr =~ s/^[\s_]+|[\s_]+$//g;
+-
+ 				if (exists($attr_list{$curr_attr})) {
++					my $new = $attr_list{$curr_attr};
+ 					if ($curr_attr eq "format" && $params) {
+ 						$params =~ /^\s*\(\s*(\w+)\s*,\s*(.*)/;
+-						push(@conv_array, "__$1\($2");
++						$new = "__$1\($2";
+ 					} else {
+-						my $new = $attr_list{$curr_attr};
+-						push(@conv_array, "$new$params");
++						$new = "$new$params";
++					}
++					if (WARN("PREFER_DEFINED_ATTRIBUTE_MACRO",
++						 "Prefer $new over __attribute__(($orig_attr$params))\n" . $herecurr) &&
++					    $fix) {
++						my $remove = "\Q$orig_attr\E" . '\s*' . "\Q$params\E" . '(?:\s*,\s*)?';
++						$fixed[$fixlinenr] =~ s/$remove//;
++						$fixed[$fixlinenr] =~ s/\b__attribute__/$new __attribute__/;
++						$fixed[$fixlinenr] =~ s/\}\Q$new\E/} $new/;
++						$fixed[$fixlinenr] =~ s/ __attribute__\s*\(\s*\(\s*\)\s*\)//;
+ 					}
+-				} else {
+-					$conv_possible = 0;
+-					last;
+-				}
+-			}
+-
+-			if (scalar @conv_array > 0 && $conv_possible == 1) {
+-				my $replace = join(' ', @conv_array);
+-				if (WARN("PREFER_DEFINED_ATTRIBUTE_MACRO",
+-				         "$replace is preferred over __attribute__(($attr))\n" . $herecurr) &&
+-					$fix) {
+-					$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*\Q$attr\E\s*\)\s*\)/$replace/;
+-					$fixed[$fixlinenr] =~ s/\}\Q$replace\E/} $replace/;
+-				}
+-			}
+-
+-			# Check for __attribute__ section, prefer __section
+-			if ($attr =~ /^_*section_*\s*\(\s*("[^"]*")/) {
+-				my $old = substr($attr, $-[1], $+[1] - $-[1]);
+-				my $new = substr($old, 1, -1);
+-				if (WARN("PREFER_DEFINED_ATTRIBUTE_MACRO",
+-				         "__section($new) is preferred over __attribute__((section($old)))\n" . $herecurr) &&
+-					$fix) {
+-					$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*_*section_*\s*\(\s*\Q$old\E\s*\)\s*\)\s*\)/__section($new)/;
+ 				}
+ 			}
  
-+config CMDLINE_KUNIT_TEST
-+	tristate "KUnit test for cmdline API"
-+	depends on KUNIT
-+	help
-+	  This builds the cmdline API unit test.
-+	  Tests the logic of API provided by cmdline.c.
-+	  For more information on KUnit and unit tests in general please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config BITS_TEST
- 	tristate "KUnit test for bits.h"
- 	depends on KUNIT
---- a/lib/Makefile~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api
-+++ a/lib/Makefile
-@@ -351,5 +351,6 @@ obj-$(CONFIG_PLDMFW) += pldmfw/
- # KUnit tests
- obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
- obj-$(CONFIG_BITS_TEST) += bits_kunit.o
-+obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
- obj-$(CONFIG_LINEAR_RANGES_TEST) += linear_ranges_kunit.o
- obj-$(CONFIG_LIST_KUNIT_TEST) += list_kunit.o
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 
