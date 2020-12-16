@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A522DC3526B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A94C2D0E4
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81CB223428
+	by mail.kernel.org (Postfix) with ESMTP id 66E4123406
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726899AbgLPRLF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:11:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60762 "EHLO mail.kernel.org"
+        id S1726808AbgLPRLD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:11:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726839AbgLPRLF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:11:05 -0500
-Date:   Wed, 16 Dec 2020 09:10:24 -0800
+        id S1726899AbgLPRLC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:11:02 -0500
+Date:   Wed, 16 Dec 2020 09:10:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138624;
-        bh=1blFqyKEzUXPgJpzq1mrunD+i7yyLNHNotc2hA5BsRk=;
+        s=korg; t=1608138646;
+        bh=lN6zYzZCVwilVSxnguaAOfncS8uFjdQOrbfkjEbD8R4=;
         h=From:To:Subject:From;
-        b=aGaowGRRUGQCu5TqSAWpjbr5hgMHic5xeYjw6kMoOVT6XY8fo0HR7qYFjfC7JaqKI
-         tAkZM+qWKWDptfLGf+vnx22mQNlJ83F9VMtmn7N+9W1G1c0UL7pYKso+Q43EIsvbmN
-         krzP7gC/mEHz08dYA90DSc/mV2WK/yNhssa18Xnc=
+        b=hUP/veE2GCNyhDESgeF/680Bd1YHIi52jiJRGMVj1ax34OfzVWFMXOGrHdb8iy6Su
+         KKCN4fa/g/VlsqmFc4H9RTciYv7ZZoCLSAsl7ExOXOqe423/4LkhCODU+m+E9NWfun
+         NAOiR0jOM26370quAxVPle3kFiKARXa3EHydB9eo=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com, lukas.bulwahn@gmail.com,
+To:     axboe@kernel.dk, hch@infradead.org, hch@lst.de,
+        jani.nikula@intel.com, kvalo@codeaurora.org,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- checkpatch-add-warning-for-unnecessary-use-of-%h-and-%hh.patch removed from
- -mm tree
-Message-ID: <20201216171024.en0piRj07%akpm@linux-foundation.org>
+ relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch removed
+ from -mm tree
+Message-ID: <20201216171046.1TCmw1Jwr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,79 +43,165 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add warning for unnecessary use of %h[xudi] and %hh[xudi]
+     Subject: relay: remove unused buf_mapped and buf_unmapped callbacks
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-warning-for-unnecessary-use-of-%h-and-%hh.patch
+     relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: add warning for unnecessary use of %h[xudi] and %hh[xudi]
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: relay: remove unused buf_mapped and buf_unmapped callbacks
 
-Modifiers %h and %hh should never be used.
+Patch series "relay: cleanup and const callbacks", v2.
 
-Commit cbacb5ab0aa0 ("docs: printk-formats: Stop encouraging use
-of unnecessary %h[xudi] and %hh[xudi]") specifies that:
+None of the relay users require the use of mutable structs for callbacks,
+however the relay code does.  Instead of assigning default callbacks when
+there is none, add callback wrappers to conditionally call the client
+callbacks if available, and fall back to default behaviour (typically
+no-op) otherwise.
 
-"Standard integer promotion is already done and %hx and %hhx is useless
-so do not encourage the use of %hh[xudi] or %h[xudi]."
+This lets all relay users make their struct rchan_callbacks const data.
 
-"The "h" and "hh" things should never be used. The only reason for them
-being used if you have an "int", but you want to print it out as a
-"char" (and honestly, that is a really bad reason, you'd be better off
-just using a proper cast to make the code more obvious)."
+This series starts with a number of cleanups first based on Christoph's
+feedback.
 
-Add a new check to emit a warning on finding an unneeded use of %h or
-%hh modifier.
 
-Also add a fix option to the check.
+This patch (of 9):
 
-Link: https://lore.kernel.org/lkml/4910042649a4f3ab22fac93191b8c1fa0a2e17c3.camel@perches.com/
-Link: https://lkml.kernel.org/r/20201128200046.78739-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Suggested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
+No relay client uses the buf_mapped or buf_unmapped callbacks.  Remove
+them.  This makes relay's vm_operations_struct close callback a dummy,
+remove it as well.
+
+Link: https://lkml.kernel.org/r/cover.1606153547.git.jani.nikula@intel.com
+Link: https://lkml.kernel.org/r/c69fff6e0cd485563604240bbfcc028434983bec.1606153547.git.jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ include/linux/relay.h |   19 -------------------
+ kernel/relay.c        |   34 ----------------------------------
+ 2 files changed, 53 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-unnecessary-use-of-%h-and-%hh
-+++ a/scripts/checkpatch.pl
-@@ -6102,6 +6102,28 @@ sub process {
- 			     "Avoid logging continuation uses where feasible\n" . $herecurr);
- 		}
+--- a/include/linux/relay.h~relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks
++++ a/include/linux/relay.h
+@@ -102,25 +102,6 @@ struct rchan_callbacks
+ 			     size_t prev_padding);
  
-+# check for unnecessary use of %h[xudi] and %hh[xudi] in logging functions
-+		if (defined $stat &&
-+		    $line =~ /\b$logFunctions\s*\(/ &&
-+		    index($stat, '"') >= 0) {
-+			my $lc = $stat =~ tr@\n@@;
-+			$lc = $lc + $linenr;
-+			my $stat_real = get_stat_real($linenr, $lc);
-+			pos($stat_real) = index($stat_real, '"');
-+			while ($stat_real =~ /[^\"%]*(%[\#\d\.\*\-]*(h+)[idux])/g) {
-+				my $pspec = $1;
-+				my $h = $2;
-+				my $lineoff = substr($stat_real, 0, $-[1]) =~ tr@\n@@;
-+				if (WARN("UNNECESSARY_MODIFIER",
-+					 "Integer promotion: Using '$h' in '$pspec' is unnecessary\n" . "$here\n$stat_real\n") &&
-+				    $fix && $fixed[$fixlinenr + $lineoff] =~ /^\+/) {
-+					my $nspec = $pspec;
-+					$nspec =~ s/h//g;
-+					$fixed[$fixlinenr + $lineoff] =~ s/\Q$pspec\E/$nspec/;
-+				}
-+			}
-+		}
-+
- # check for mask then right shift without a parentheses
- 		if ($perl_version_ok &&
- 		    $line =~ /$LvalOrFunc\s*\&\s*($LvalOrFunc)\s*>>/ &&
+ 	/*
+-	 * buf_mapped - relay buffer mmap notification
+-	 * @buf: the channel buffer
+-	 * @filp: relay file pointer
+-	 *
+-	 * Called when a relay file is successfully mmapped
+-	 */
+-        void (*buf_mapped)(struct rchan_buf *buf,
+-			   struct file *filp);
+-
+-	/*
+-	 * buf_unmapped - relay buffer unmap notification
+-	 * @buf: the channel buffer
+-	 * @filp: relay file pointer
+-	 *
+-	 * Called when a relay file is successfully unmapped
+-	 */
+-        void (*buf_unmapped)(struct rchan_buf *buf,
+-			     struct file *filp);
+-	/*
+ 	 * create_buf_file - create file to represent a relay channel buffer
+ 	 * @filename: the name of the file to create
+ 	 * @parent: the parent of the file to create
+--- a/kernel/relay.c~relay-remove-unused-buf_mapped-and-buf_unmapped-callbacks
++++ a/kernel/relay.c
+@@ -28,15 +28,6 @@ static DEFINE_MUTEX(relay_channels_mutex
+ static LIST_HEAD(relay_channels);
+ 
+ /*
+- * close() vm_op implementation for relay file mapping.
+- */
+-static void relay_file_mmap_close(struct vm_area_struct *vma)
+-{
+-	struct rchan_buf *buf = vma->vm_private_data;
+-	buf->chan->cb->buf_unmapped(buf, vma->vm_file);
+-}
+-
+-/*
+  * fault() vm_op implementation for relay file mapping.
+  */
+ static vm_fault_t relay_buf_fault(struct vm_fault *vmf)
+@@ -62,7 +53,6 @@ static vm_fault_t relay_buf_fault(struct
+  */
+ static const struct vm_operations_struct relay_file_mmap_ops = {
+ 	.fault = relay_buf_fault,
+-	.close = relay_file_mmap_close,
+ };
+ 
+ /*
+@@ -96,7 +86,6 @@ static void relay_free_page_array(struct
+ static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
+ {
+ 	unsigned long length = vma->vm_end - vma->vm_start;
+-	struct file *filp = vma->vm_file;
+ 
+ 	if (!buf)
+ 		return -EBADF;
+@@ -107,7 +96,6 @@ static int relay_mmap_buf(struct rchan_b
+ 	vma->vm_ops = &relay_file_mmap_ops;
+ 	vma->vm_flags |= VM_DONTEXPAND;
+ 	vma->vm_private_data = buf;
+-	buf->chan->cb->buf_mapped(buf, filp);
+ 
+ 	return 0;
+ }
+@@ -284,22 +272,6 @@ static int subbuf_start_default_callback
+ }
+ 
+ /*
+- * buf_mapped() default callback.  Does nothing.
+- */
+-static void buf_mapped_default_callback(struct rchan_buf *buf,
+-					struct file *filp)
+-{
+-}
+-
+-/*
+- * buf_unmapped() default callback.  Does nothing.
+- */
+-static void buf_unmapped_default_callback(struct rchan_buf *buf,
+-					  struct file *filp)
+-{
+-}
+-
+-/*
+  * create_buf_file_create() default callback.  Does nothing.
+  */
+ static struct dentry *create_buf_file_default_callback(const char *filename,
+@@ -322,8 +294,6 @@ static int remove_buf_file_default_callb
+ /* relay channel default callbacks */
+ static struct rchan_callbacks default_channel_callbacks = {
+ 	.subbuf_start = subbuf_start_default_callback,
+-	.buf_mapped = buf_mapped_default_callback,
+-	.buf_unmapped = buf_unmapped_default_callback,
+ 	.create_buf_file = create_buf_file_default_callback,
+ 	.remove_buf_file = remove_buf_file_default_callback,
+ };
+@@ -509,10 +479,6 @@ static void setup_callbacks(struct rchan
+ 
+ 	if (!cb->subbuf_start)
+ 		cb->subbuf_start = subbuf_start_default_callback;
+-	if (!cb->buf_mapped)
+-		cb->buf_mapped = buf_mapped_default_callback;
+-	if (!cb->buf_unmapped)
+-		cb->buf_unmapped = buf_unmapped_default_callback;
+ 	if (!cb->create_buf_file)
+ 		cb->create_buf_file = create_buf_file_default_callback;
+ 	if (!cb->remove_buf_file)
 _
 
-Patches currently in -mm which might be from dwaipayanray1@gmail.com are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
 
