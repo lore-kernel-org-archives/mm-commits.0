@@ -4,118 +4,111 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D72AC4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 07:02:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E499BC4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 07:27:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1472023370
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 07:02:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8995D23339
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 07:27:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725911AbgLPHCf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 02:02:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55930 "EHLO
+        id S1725987AbgLPH1Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 02:27:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725769AbgLPHCf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2020 02:02:35 -0500
-Received: from mail-lf1-x133.google.com (mail-lf1-x133.google.com [IPv6:2a00:1450:4864:20::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9BEDC0613D6
-        for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2020 23:01:54 -0800 (PST)
-Received: by mail-lf1-x133.google.com with SMTP id a12so45725541lfl.6
-        for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2020 23:01:54 -0800 (PST)
+        with ESMTP id S1725914AbgLPH1Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2020 02:27:16 -0500
+Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75DF0C061793
+        for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2020 23:26:35 -0800 (PST)
+Received: by mail-lf1-x130.google.com with SMTP id u18so45843775lfd.9
+        for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2020 23:26:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=Efy7xGOEJeAUIqpTtciaKkWLNptuk1Ubb2q7twIrRWo=;
-        b=h4yQH6nCVLgQ6IDhqEP8gBB8ErFS6BuhVvABoo6Pi2Z+G6PyuJPmpVA59VZ89War7k
-         PuoYuqD8djL5J5e/GV7ctm/modYCRbowDCy0YPss4RfpuFVafiC1FKwffRMyHl3ke9/J
-         p/eJGwBRUVuTpgA47vGilj/5NZYTJUsDeePi0=
+        bh=Dq56PI1RpyZpC/WnCE3DqZtwapEa6Hc/yZMjBY7XqHo=;
+        b=TyY0++k7un8kdA2Uaf8jGaA5HOodlctoLp8riSlKqeipfZAVmL/gTYnPLUzS/g+5QD
+         AeEUv4+WeTLI8dIkL3oFscOYaiW9HG15mDGLSpYf7kOHktxaKHyDxFOggGXTJcaTULkZ
+         8eaOg526ElK6yGhHPjVLHXaE6TMq2w0Q0kx/4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Efy7xGOEJeAUIqpTtciaKkWLNptuk1Ubb2q7twIrRWo=;
-        b=ckR/sgJQe+bzXsBhQV2P493J/yMkxkxpF7zZAZ14EWRgu4GWkR7kRidpMOsJotL4sn
-         2uaKAmn+N/5aa/nt8WyI/Im7Iy8xBWnQm40Sl02l/hB1sJAgBIHV0NLSsOdD5kmKGJgu
-         Hv6lnmQjE26Lfe7vxg/PTjWuN69wr43Pj1dsKvTrc0sAWabYrrxCCjlvJZsyDHtAqyOT
-         XnpuGug7I2xOLJKpUT+7PyKJ49Xpdt4y9/vDzMKPWM+Et9oBCgNFjjbxQnGbLXTRaPj2
-         13ZrysARt3vYEQ9BmcEjQt3Lpo0a0LV5cUBGxbdi+jLAupfH70RF9qgMAo4wVQBZnyuS
-         Fe6w==
-X-Gm-Message-State: AOAM530xHQLKALRzgFTcaBcs03y0YBQpczWEJ9vis1QQUXiAQx2ylwVJ
-        JnGp5k/dX16pFesqKAnWL4rwq9SXT2fljw==
-X-Google-Smtp-Source: ABdhPJxm3G6hUC/MTi/Geu6OBjWFRuQvvcNqLgldv93C9nZo8maJDW8bACDSWjeU12UV38sd/tT8Mg==
-X-Received: by 2002:a19:c018:: with SMTP id q24mr8164525lff.631.1608102113106;
-        Tue, 15 Dec 2020 23:01:53 -0800 (PST)
-Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com. [209.85.167.47])
-        by smtp.gmail.com with ESMTPSA id w10sm114762lfe.107.2020.12.15.23.01.51
+        bh=Dq56PI1RpyZpC/WnCE3DqZtwapEa6Hc/yZMjBY7XqHo=;
+        b=TfQaAURlxx3wzgebHO+YXD027CqSvdN1mdD4f8lICxtXhrBGH9yuBGC5e+8SRpxE6o
+         OXgVaRw/Mlv4JmhQ2mTLLv8+nllE5DGMJ5PHh3HXyaJoPJKtjXnZ+iLjZPRRq5gR+yM+
+         1YCP6QXRqayAWd8eRzHUlUmQeeX78dehjnyk0eDf31f89mWeqbeSnpslwylRXIvqLv2h
+         wKmMYy4Aq3eKZuIjC+alIdYQkycnEos06jRg49UM4vCqmH0uZbGWaJ5SkcbIsaCk+ovg
+         vAtZsYtZtUxByfXWAiG4VODDB1nWdNPP0IVoKOke0Zihh3fi8D1X+ib6+w7IrPmBysLa
+         vu4g==
+X-Gm-Message-State: AOAM530Y23GrW1ZVZXfhdvoHItd0rs/etk0rQDebr8sb3sDpFUgYtU1E
+        ZflI8SGTaPPrmU/BUV27c0mBRfFOz0JD2g==
+X-Google-Smtp-Source: ABdhPJwvtM/1xsjd1tPXlCwfLtse0GWWiglWY7+Xjo5zD0EDrfdh43/4o8ZOAofkTAApnI0ezrN4aQ==
+X-Received: by 2002:ac2:4217:: with SMTP id y23mr12734750lfh.569.1608103593642;
+        Tue, 15 Dec 2020 23:26:33 -0800 (PST)
+Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com. [209.85.167.46])
+        by smtp.gmail.com with ESMTPSA id x8sm122314lfn.226.2020.12.15.23.26.32
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 15 Dec 2020 23:01:52 -0800 (PST)
-Received: by mail-lf1-f47.google.com with SMTP id o17so42782586lfg.4
-        for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2020 23:01:51 -0800 (PST)
-X-Received: by 2002:a2e:6f17:: with SMTP id k23mr14132450ljc.411.1608102111454;
- Tue, 15 Dec 2020 23:01:51 -0800 (PST)
+        Tue, 15 Dec 2020 23:26:32 -0800 (PST)
+Received: by mail-lf1-f46.google.com with SMTP id o17so42913126lfg.4
+        for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2020 23:26:32 -0800 (PST)
+X-Received: by 2002:a19:8557:: with SMTP id h84mr11735594lfd.201.1608103591993;
+ Tue, 15 Dec 2020 23:26:31 -0800 (PST)
 MIME-Version: 1.0
-References: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
- <20201216044316.LYocMD9yH%akpm@linux-foundation.org> <CAHk-=wgkA+jbWhDTdOTYAjhYZgBt1jZmxtAMrQUFHmaZGMOV+Q@mail.gmail.com>
- <CABVgOSk3bwm_E_dhS=G7qsBHd4oXHZkpYeNOx=CtLQUapy0GTQ@mail.gmail.com>
-In-Reply-To: <CABVgOSk3bwm_E_dhS=G7qsBHd4oXHZkpYeNOx=CtLQUapy0GTQ@mail.gmail.com>
+References: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org> <20201216044350.TKAL6BULW%akpm@linux-foundation.org>
+In-Reply-To: <20201216044350.TKAL6BULW%akpm@linux-foundation.org>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Tue, 15 Dec 2020 23:01:35 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wi5mVOpsb23DHmE9NNLjudj1uCpHBTUQUF0UouraMf7ng@mail.gmail.com>
-Message-ID: <CAHk-=wi5mVOpsb23DHmE9NNLjudj1uCpHBTUQUF0UouraMf7ng@mail.gmail.com>
-Subject: Re: [patch 18/95] lib/list_kunit: follow new file name convention for
- KUnit tests
-To:     David Gow <davidgow@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Shuah Khan <skhan@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Brendan Higgins <brendanhiggins@google.com>,
-        Mark Brown <broonie@kernel.org>, Linux-MM <linux-mm@kvack.org>,
-        "Vaittinen, Matti" <matti.vaittinen@fi.rohmeurope.com>,
-        mm-commits@vger.kernel.org, Vitor Massaru Iha <vitor@massaru.org>
+Date:   Tue, 15 Dec 2020 23:26:16 -0800
+X-Gmail-Original-Message-ID: <CAHk-=whBf-mRuYDR0pv4DCggMg5ayqk6=EbK6MSiHrsP1hawYA@mail.gmail.com>
+Message-ID: <CAHk-=whBf-mRuYDR0pv4DCggMg5ayqk6=EbK6MSiHrsP1hawYA@mail.gmail.com>
+Subject: Re: [patch 28/95] string.h: add FORTIFY coverage for strscpy()
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Daniel Micay <danielmicay@gmail.com>,
+        Daniel Axtens <dja@axtens.net>,
+        Kees Cook <keescook@chromium.org>,
+        laniel_francis@privacyrequired.com, Linux-MM <linux-mm@kvack.org>,
+        mm-commits@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Dec 15, 2020 at 10:53 PM David Gow <davidgow@google.com> wrote:
+On Tue, Dec 15, 2020 at 8:43 PM Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> I know the original patchset did have an issue (with one of the other
-> patches) that Andrew fixed while merging, so maybe it snuck through
-> while that was happening.
+> From: Francis Laniel <laniel_francis@privacyrequired.com>
+> Subject: string.h: add FORTIFY coverage for strscpy()
+>
+> The fortified version of strscpy ensures the following [..]
 
-Yeah, I suspect it happened when Andrew was shuffling things around.
+So I've taken this, because it follows the pattern of what we already
+have, but I have to say that the "fortify" stuff is now about half of
+string.h.
 
-And it's probably partly due to the fact that the patches themselves
-are _really_ hard to actually read, because all the real changes are
-hidden by the huge patches to remove and add files.
+I think it should probably be split out into its own header file, and
+then string.h could just do
 
-When you have 1600 lines of patch, it's really easy to get "patch
-blind" and miss the small patch fragments that change the Makefile or
-Kconfig file etc.
+  #if !defined(__NO_FORTIFY) && defined(__OPTIMIZE__) &&
+defined(CONFIG_FORTIFY_SOURCE)
+     #include <linux/fortify-string.h>
+  #endif
 
-Back in the days when we worked almost exclusively with patches (ie
-before BK and git), we had very high barriers for renaming files
-partly for this exact reason.  Renames as patches are just _so_ hard
-to read. It's almost completely impossible to see if it's a pure
-rename of if something else also changed, when you have one big hunk
-that completely removes one file, and another big hunk that completely
-adds a new one.
+or similar.
 
-Of course, patch conflicts when there are changes to the files also
-then make renames a huge pain in that situation.
+That won't help my merge window build times (I build with
+allmodconfig, so I'll have CONFIG_FORTIFY_SOURCE=y and so my poor
+compiler will end up always going off and seeing all that every time
+somebody glances at string.h), but I think it would be a cleanup
+regardless.
 
-With git, we've been *much* more open to file renames, because git
-itself handles at least the usual simple cases of merge conflicts
-automatically for us, and follows renames etc. And the git diff
-extension to actually show renames as renames in a diff make it a
-*lot* easier to see what a rename patch actually does.
+And people who _don't_ build with FORTIFY_SOURCE wouldn't have to read
+and parse that big chunk every time <linux/string.h> gets included.
 
-But as long as renames are treated as patches, I'm going to go back to
-the old rules that were "we never rename a file unless there is some
-absolutely massive critical reason to do so".
+(And yes, just reading the source file and tokenizing it - even if
+it's all inside an #ifdef that turns off all the other phases - is
+actually quite noticeable overhead in a C compiler. Surprisingly so)
 
-                Linus
+           Linus
