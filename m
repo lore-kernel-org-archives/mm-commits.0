@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAF65C0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0B75C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 790C6233FD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6870A23406
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727057AbgLPRKm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59902 "EHLO mail.kernel.org"
+        id S1727058AbgLPRKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726918AbgLPRKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:42 -0500
-Date:   Wed, 16 Dec 2020 09:10:26 -0800
+        id S1726918AbgLPRKn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:43 -0500
+Date:   Wed, 16 Dec 2020 09:10:02 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138626;
-        bh=fe2fm0vIWefD2detzNACDunh+t00XTXARZcW5akLdMg=;
+        s=korg; t=1608138602;
+        bh=dWAaIDUX4IxnKalsEe2oiuxyjHUXopaMdLXVBx/kaj0=;
         h=From:To:Subject:From;
-        b=L0pRvXRNSyJX6tDRxSOCnjsUPo1kMlNVqPa07dM2hKa3H2TgZ2RRNTgSox93WCr3q
-         Y0XYq/OJNzVOtvHkD3gnqo19OGo+sm5eWsryJOz4MqhFCOuavjBkT1JNZqTMQ1UmxG
-         HPp6HGJkXpHvrTelHspxENuJGS2rsWbxcKwzYGsc=
+        b=rHBZYedk3g8JkpNlQupG2X2HaIlghnqWzA52+IzmsvqrdzbmUCKR0oYHH0c2wyWj0
+         H4ZefxJzOqfYRXK10D5yZiNH9c21vV5uE0Znk2d2ddhZuJfsHkpyfOf0e6vKc8Bssv
+         7tuGR7DdaD64O3B1wiYXhR9K9LQ6x3rZrHxO1J0g=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com,
-        mm-commits@vger.kernel.org, yepeilin.cs@gmail.com
+To:     joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, yashsri421@gmail.com
 Subject:  [merged]
- checkpatch-add-warning-for-lines-starting-with-a-in-commit-log.patch
- removed from -mm tree
-Message-ID: <20201216171026.qb3iX2fNT%akpm@linux-foundation.org>
+ checkpatch-add-fix-option-for-gerrit_change_id.patch removed from -mm tree
+Message-ID: <20201216171002.zzu2U8OTH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,54 +41,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add warning for lines starting with a '#' in commit log
+     Subject: checkpatch: add fix option for GERRIT_CHANGE_ID
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-warning-for-lines-starting-with-a-in-commit-log.patch
+     checkpatch-add-fix-option-for-gerrit_change_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: add warning for lines starting with a '#' in commit log
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: add fix option for GERRIT_CHANGE_ID
 
-Commit log lines starting with '#' are dropped by git as comments.
-Add a check to emit a warning for these lines.
+Currently, whenever a Gerrit Change-Id is present in a commit,
+checkpatch.pl warns to remove the Change-Id before submitting the patch.
 
-Also add a --fix option to insert a space before the leading '#' in
-such lines.
+E.g., running checkpatch on commit adc311a5bbf6 ("iwlwifi: bump FW
+API to 53 for 22000 series") reports this error:
 
-Link: https://lkml.kernel.org/r/20201202205740.127986-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Suggested-by: Peilin Ye <yepeilin.cs@gmail.com>
-Tested-by: Peilin Ye <yepeilin.cs@gmail.com>
+ERROR: Remove Gerrit Change-Id's before submitting upstream
+Change-Id: I5725e46394f3f53c3069723fd513cc53c7df383d
+
+Provide a simple fix option by simply deleting the indicated line.
+
+Link: https://lkml.kernel.org/r/20201030114447.24199-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ scripts/checkpatch.pl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-lines-starting-with-a-in-commit-log
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-gerrit_change_id
 +++ a/scripts/checkpatch.pl
-@@ -3033,6 +3033,15 @@ sub process {
- 			$commit_log_possible_stack_dump = 0;
+@@ -2852,8 +2852,11 @@ sub process {
+ 
+ # Check for Gerrit Change-Ids not in any patch context
+ 		if ($realfile eq '' && !$has_patch_separator && $line =~ /^\s*change-id:/i) {
+-			ERROR("GERRIT_CHANGE_ID",
+-			      "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr);
++			if (ERROR("GERRIT_CHANGE_ID",
++			          "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr) &&
++			    $fix) {
++                                fix_delete_line($fixlinenr, $rawline);
++                        }
  		}
  
-+# Check for lines starting with a #
-+		if ($in_commit_log && $line =~ /^#/) {
-+			if (WARN("COMMIT_COMMENT_SYMBOL",
-+				 "Commit log lines starting with '#' are dropped by git as comments\n" . $herecurr) &&
-+			    $fix) {
-+				$fixed[$fixlinenr] =~ s/^/ /;
-+			}
-+		}
-+
- # Check for git id commit length and improperly formed commit descriptions
- 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
- 		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink|base-commit):/i &&
+ # Check if the commit log is in a possible stack dump
 _
 
-Patches currently in -mm which might be from dwaipayanray1@gmail.com are
+Patches currently in -mm which might be from yashsri421@gmail.com are
 
 
