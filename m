@@ -2,37 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F85CC2BBCD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD4D6C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4EEA923432
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B105B2342C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727027AbgLPRJ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:09:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60008 "EHLO mail.kernel.org"
+        id S1727025AbgLPRJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:09:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727025AbgLPRJz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:09:55 -0500
-Date:   Wed, 16 Dec 2020 09:09:27 -0800
+        id S1727022AbgLPRJ7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:09:59 -0500
+Date:   Wed, 16 Dec 2020 09:09:38 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138567;
-        bh=UQDYPl8wj/yBIANpTK4HzMK4OWkLblCbNYY3f4Eg+ws=;
+        s=korg; t=1608138579;
+        bh=OW1eWjTVW+izhifVlzgXX8ZrJj3tMkw0prt33hQDXeE=;
         h=From:To:Subject:From;
-        b=0jwWqnNrNUwxyP5BEeWJ7JOJS1+yH5wGSVaN9UbuLxcjwHogDvhmkLvueoC0WMk6G
-         dUSepN+buKQ5kW01kFIZdFNYJqTrpxEnXJuIjtZZG0Qexzu1dCJhkc8QjlqmHBYEzB
-         Q7dmOCoKHNCfr7MB5wRFVp2T9vMFUG8isuerIn8M=
+        b=VGIBfH3W0I8hjzguvmu9/fw04khB5d0RKVunNXgcJQ9y6FV4+TYkt7hsoY1YGPV6x
+         9wfJNnYcn2bs+wzY7/UY00vJRgGKVX0eLn97erucmpYA332PD3iH50NMtSRD7FKx6j
+         6ga4vf2xBOfiPc/ZvBbHcHpRBflGo/oGPYLybixc=
 From:   akpm@linux-foundation.org
-To:     danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org,
-        laniel_francis@privacyrequired.com, mm-commits@vger.kernel.org
-Subject:  [merged] stringh-add-fortify-coverage-for-strscpy.patch
- removed from -mm tree
-Message-ID: <20201216170927.qk4XWF8ii%akpm@linux-foundation.org>
+To:     bluce.liguifu@huawei.com, guoxuenan@huawei.com,
+        hsiangkao@redhat.com, miaoxie@huawei.com,
+        mm-commits@vger.kernel.org, terrelln@fb.com,
+        yann.collet.73@gmail.com, yuchao0@huawei.com
+Subject:  [merged]
+ lib-lz4-explicitly-support-in-place-decompression.patch removed from -mm
+ tree
+Message-ID: <20201216170938.jVLibBuRP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,104 +44,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: string.h: add FORTIFY coverage for strscpy()
+     Subject: lib/lz4: explicitly support in-place decompression
 has been removed from the -mm tree.  Its filename was
-     stringh-add-fortify-coverage-for-strscpy.patch
+     lib-lz4-explicitly-support-in-place-decompression.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Francis Laniel <laniel_francis@privacyrequired.com>
-Subject: string.h: add FORTIFY coverage for strscpy()
+From: Gao Xiang <hsiangkao@redhat.com>
+Subject: lib/lz4: explicitly support in-place decompression
 
-The fortified version of strscpy ensures the following before vanilla strscpy
-is called:
+LZ4 final literal copy could be overlapped when doing
+in-place decompression, so it's unsafe to just use memcpy()
+on an optimized memcpy approach but memmove() instead.
 
-1. There is no read overflow because we either size is smaller than
-   src length or we shrink size to src length by calling fortified
-   strnlen.
+Upstream LZ4 has updated this years ago [1] (and the impact
+is non-sensible [2] plus only a few bytes remain), this commit
+just synchronizes LZ4 upstream code to the kernel side as well.
 
-2. There is no write overflow because we either failed during
-   compilation or at runtime by checking that size is smaller than dest
-   size.
+It can be observed as EROFS in-place decompression failure
+on specific files when X86_FEATURE_ERMS is unsupported,
+memcpy() optimization of commit 59daa706fbec ("x86, mem:
+Optimize memcpy by avoiding memory false dependece") will
+be enabled then.
 
-Link: https://lkml.kernel.org/r/20201122162451.27551-4-laniel_francis@privacyrequired.com
-Signed-off-by: Francis Laniel <laniel_francis@privacyrequired.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Daniel Micay <danielmicay@gmail.com>
+Currently most modern x86-CPUs support ERMS, these CPUs just
+use "rep movsb" approach so no problem at all. However, it can
+still be verified with forcely disabling ERMS feature...
+
+arch/x86/lib/memcpy_64.S:
+        ALTERNATIVE_2 "jmp memcpy_orig", "", X86_FEATURE_REP_GOOD, \
+-                     "jmp memcpy_erms", X86_FEATURE_ERMS
++                     "jmp memcpy_orig", X86_FEATURE_ERMS
+
+We didn't observe any strange on arm64/arm/x86 platform before
+since most memcpy() would behave in an increasing address order
+("copy upwards" [3]) and it's the correct order of in-place
+decompression but it really needs an update to memmove() for sure
+considering it's an undefined behavior according to the standard
+and some unique optimization already exists in the kernel.
+
+[1] https://github.com/lz4/lz4/commit/33cb8518ac385835cc17be9a770b27b40cd0e15b
+[2] https://github.com/lz4/lz4/pull/717#issuecomment-497818921
+[3] https://sourceware.org/bugzilla/show_bug.cgi?id=12518
+Link: https://lkml.kernel.org/r/20201122030749.2698994-1-hsiangkao@redhat.com
+Signed-off-by: Gao Xiang <hsiangkao@redhat.com>
+Reviewed-by: Nick Terrell <terrelln@fb.com>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Li Guifu <bluce.liguifu@huawei.com>
+Cc: Guo Xuenan <guoxuenan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |   48 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ lib/lz4/lz4_decompress.c |    6 +++++-
+ lib/lz4/lz4defs.h        |    1 +
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/string.h~stringh-add-fortify-coverage-for-strscpy
-+++ a/include/linux/string.h
-@@ -6,6 +6,7 @@
- #include <linux/compiler.h>	/* for inline */
- #include <linux/types.h>	/* for size_t */
- #include <linux/stddef.h>	/* for NULL */
-+#include <linux/errno.h>	/* for E2BIG */
- #include <stdarg.h>
- #include <uapi/linux/string.h>
+--- a/lib/lz4/lz4_decompress.c~lib-lz4-explicitly-support-in-place-decompression
++++ a/lib/lz4/lz4_decompress.c
+@@ -263,7 +263,11 @@ static FORCE_INLINE int LZ4_decompress_g
+ 				}
+ 			}
  
-@@ -357,6 +358,53 @@ __FORTIFY_INLINE size_t strlcpy(char *p,
- 	return ret;
- }
+-			LZ4_memcpy(op, ip, length);
++			/*
++			 * supports overlapping memory regions; only matters
++			 * for in-place decompression scenarios
++			 */
++			LZ4_memmove(op, ip, length);
+ 			ip += length;
+ 			op += length;
  
-+/* defined after fortified strnlen to reuse it */
-+extern ssize_t __real_strscpy(char *, const char *, size_t) __RENAME(strscpy);
-+__FORTIFY_INLINE ssize_t strscpy(char *p, const char *q, size_t size)
-+{
-+	size_t len;
-+	/* Use string size rather than possible enclosing struct size. */
-+	size_t p_size = __builtin_object_size(p, 1);
-+	size_t q_size = __builtin_object_size(q, 1);
-+
-+	/* If we cannot get size of p and q default to call strscpy. */
-+	if (p_size == (size_t) -1 && q_size == (size_t) -1)
-+		return __real_strscpy(p, q, size);
-+
-+	/*
-+	 * If size can be known at compile time and is greater than
-+	 * p_size, generate a compile time write overflow error.
-+	 */
-+	if (__builtin_constant_p(size) && size > p_size)
-+		__write_overflow();
-+
-+	/*
-+	 * This call protects from read overflow, because len will default to q
-+	 * length if it smaller than size.
-+	 */
-+	len = strnlen(q, size);
-+	/*
-+	 * If len equals size, we will copy only size bytes which leads to
-+	 * -E2BIG being returned.
-+	 * Otherwise we will copy len + 1 because of the final '\O'.
-+	 */
-+	len = len == size ? size : len + 1;
-+
-+	/*
-+	 * Generate a runtime write overflow error if len is greater than
-+	 * p_size.
-+	 */
-+	if (len > p_size)
-+		fortify_panic(__func__);
-+
-+	/*
-+	 * We can now safely call vanilla strscpy because we are protected from:
-+	 * 1. Read overflow thanks to call to strnlen().
-+	 * 2. Write overflow thanks to above ifs.
-+	 */
-+	return __real_strscpy(p, q, len);
-+}
-+
- /* defined after fortified strlen and strnlen to reuse them */
- __FORTIFY_INLINE char *strncat(char *p, const char *q, __kernel_size_t count)
+--- a/lib/lz4/lz4defs.h~lib-lz4-explicitly-support-in-place-decompression
++++ a/lib/lz4/lz4defs.h
+@@ -146,6 +146,7 @@ static FORCE_INLINE void LZ4_writeLE16(v
+  * environments. This is needed when decompressing the Linux Kernel, for example.
+  */
+ #define LZ4_memcpy(dst, src, size) __builtin_memcpy(dst, src, size)
++#define LZ4_memmove(dst, src, size) __builtin_memmove(dst, src, size)
+ 
+ static FORCE_INLINE void LZ4_copy8(void *dst, const void *src)
  {
 _
 
-Patches currently in -mm which might be from laniel_francis@privacyrequired.com are
+Patches currently in -mm which might be from hsiangkao@redhat.com are
 
 
