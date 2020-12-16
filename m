@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 078DAC2BBCF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88F44C2BBCD
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA7F82310F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61FB223103
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:41:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725824AbgLPBlH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725808AbgLPBlH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 20:41:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60366 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725808AbgLPBlG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 20:41:06 -0500
-Date:   Tue, 15 Dec 2020 17:39:57 -0800
+        id S1725817AbgLPBlH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 20:41:07 -0500
+Date:   Tue, 15 Dec 2020 17:40:12 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608082798;
-        bh=08JgkVqx+baBtABB+q92kC7ygOb2oge1HZgiXYeEFmY=;
+        s=korg; t=1608082813;
+        bh=zQz8euXE9JauQoA5ylhCBiFSVVaX7zvaf45UyK1ODLY=;
         h=From:To:Subject:From;
-        b=RHRQo5ju9lwxC2UMfjYuZfxcWu1nU7K+z9KNtFlNixidUoe7Y6uOyiIDyc2kA2pBF
-         FV3yfrLrwhheud7U39R6PFh5TKWFXsnet0zqpl2z3nP07xuJxSMxjAhzO/GNtsHaFy
-         QfRlxJa40bIsS2ACD7gGFHqNhLLzHCTcDFPsPpJE=
+        b=KIUK061y53NhlauQUtLSByduP6xsXrY/ttnhGIrBdYifq+2pZws8xclA1YQnPluo0
+         XdX/IcGeijJlyqJJZ3i+Gzl1jJNiMPEu+R7kObpHcvIikfhZqsABXMqw5uUcSGgDjh
+         B5MNQxxrjnlDMy+g9/TuqDWNp2pw8iucu4O3z2X0=
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -41,8 +41,9 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
 Subject:  [merged]
- mm-memcg-add-debug-checking-in-lock_page_memcg.patch removed from -mm tree
-Message-ID: <20201216013957.JLGSYpjrF%akpm@linux-foundation.org>
+ mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch removed from -mm
+ tree
+Message-ID: <20201216014012.aAY_0wFEf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -54,28 +55,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: add debug checking in lock_page_memcg
+     Subject: mm/mlock: remove lru_lock on TestClearPageMlocked
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-add-debug-checking-in-lock_page_memcg.patch
+     mm-mlock-remove-lru_lock-on-testclearpagemlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/memcg: add debug checking in lock_page_memcg
+Subject: mm/mlock: remove lru_lock on TestClearPageMlocked
 
-Add a debug checking in lock_page_memcg, then we could get alarm if
-anything wrong here.
+In the func munlock_vma_page, comments mentained lru_lock needed for
+serialization with split_huge_pages.  But the page must be PageLocked as
+well as pages in split_huge_page series funcs.  Thus the PageLocked is
+enough to serialize both funcs.
 
-Link: https://lkml.kernel.org/r/1604566549-62481-9-git-send-email-alex.shi@=
-linux.alibaba.com
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Further more, Hugh Dickins pointed: before splitting in
+split_huge_page_to_list, the page was unmap_page() to remove pmd/ptes
+which protect the page from munlock.  Thus, no needs to guard
+__split_huge_page_tail for mlock clean, just keep the lru_lock there for
+isolation purpose.
+
+LKP found a preempt issue on __mod_zone_page_state which need change to
+mod_zone_page_state.  Thanks!
+
+Link: https://lkml.kernel.org/r/1604566549-62481-13-git-send-email-alex.shi=
+@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -84,40 +95,73 @@ Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/mlock.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-add-debug-checking-in-lock_page_memcg
-+++ a/mm/memcontrol.c
-@@ -2150,6 +2150,12 @@ again:
- 	if (unlikely(!memcg))
- 		return NULL;
+--- a/mm/mlock.c~mm-mlock-remove-lru_lock-on-testclearpagemlocked
++++ a/mm/mlock.c
+@@ -187,40 +187,24 @@ static void __munlock_isolation_failed(s
+ unsigned int munlock_vma_page(struct page *page)
+ {
+ 	int nr_pages;
+-	pg_data_t *pgdat =3D page_pgdat(page);
 =20
-+#ifdef CONFIG_PROVE_LOCKING
-+	local_irq_save(flags);
-+	might_lock(&memcg->move_lock);
-+	local_irq_restore(flags);
-+#endif
-+
- 	if (atomic_read(&memcg->moving_account) <=3D 0)
- 		return memcg;
+ 	/* For try_to_munlock() and to serialize with page migration */
+ 	BUG_ON(!PageLocked(page));
+-
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+=20
+-	/*
+-	 * Serialize with any parallel __split_huge_page_refcount() which
+-	 * might otherwise copy PageMlocked to part of the tail pages before
+-	 * we clear it in the head page. It also stabilizes thp_nr_pages().
+-	 */
+-	spin_lock_irq(&pgdat->lru_lock);
+-
+ 	if (!TestClearPageMlocked(page)) {
+ 		/* Potentially, PTE-mapped THP: do not skip the rest PTEs */
+-		nr_pages =3D 1;
+-		goto unlock_out;
++		return 0;
+ 	}
+=20
+ 	nr_pages =3D thp_nr_pages(page);
+-	__mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
++	mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+=20
+-	if (__munlock_isolate_lru_page(page, true)) {
+-		spin_unlock_irq(&pgdat->lru_lock);
++	if (!isolate_lru_page(page))
+ 		__munlock_isolated_page(page);
+-		goto out;
+-	}
+-	__munlock_isolation_failed(page);
+-
+-unlock_out:
+-	spin_unlock_irq(&pgdat->lru_lock);
++	else
++		__munlock_isolation_failed(page);
+=20
+-out:
+ 	return nr_pages - 1;
+ }
 =20
 _
 
