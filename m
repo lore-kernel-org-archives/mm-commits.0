@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA85BC4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF53C0018C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A1B123407
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED7BE233F6
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727030AbgLPRKL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60006 "EHLO mail.kernel.org"
+        id S1727034AbgLPRKM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60276 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727022AbgLPRKL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:11 -0500
-Date:   Wed, 16 Dec 2020 09:09:55 -0800
+        id S1727022AbgLPRKM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:12 -0500
+Date:   Wed, 16 Dec 2020 09:08:54 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138595;
-        bh=0RHAKf96F74FeqTtqAX1uZado/k/6PvlRSt9ts45Soo=;
+        s=korg; t=1608138534;
+        bh=COFI/KOYeoHccxmfhRtVjrghGyCcWr6fq1EQNvuNimQ=;
         h=From:To:Subject:From;
-        b=xiYQv1Ed8q8CAk+KUPw2FDnx2BaavE8tkw93BLIV19rQ7cRWbm9tC21rU6n5MhRBF
-         kEOKPxypOj+u0zD5es1c8uFn7Fn/+jnHtzOMFbxohbDzAYBll4NM61o6cMJ83r9JbR
-         izNyltC2KwcEA3tpoacAdvxwvfufg84xhNbpYvuI=
+        b=10VidLqFPLeyxY+Lq5MuZ2kQ7z8tjNX4StNM3hz4vAD9aLQqnoT+n9TBKRBzMZGgD
+         Ei6oc+Gk2wAKBSZ8QbEhtRvn+Nty5M108QyOAkd1gnIuwYQODqmNp39sEWMeo32tCc
+         vDVSY92cA3USCxOjNQCmi6NwMrWJD0JG+IlEYRBY=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com,
-        mm-commits@vger.kernel.org
+To:     bigeasy@linutronix.de, khlebnikov@yandex-team.ru,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        tglx@linutronix.de
 Subject:  [merged]
- checkpatch-extend-attributes-check-to-handle-more-patterns.patch removed
+ lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch removed
  from -mm tree
-Message-ID: <20201216170955.Hp54rVt7z%akpm@linux-foundation.org>
+Message-ID: <20201216170854.R_tndVsGS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,192 +43,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: extend attributes check to handle more patterns
+     Subject: lib/test_lockup.c: minimum fix to get it compiled on PREEMPT_RT
 has been removed from the -mm tree.  Its filename was
-     checkpatch-extend-attributes-check-to-handle-more-patterns.patch
+     lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: extend attributes check to handle more patterns
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: lib/test_lockup.c: minimum fix to get it compiled on PREEMPT_RT
 
-It is generally preferred that the macros from
-include/linux/compiler_attributes.h are used, unless there is a reason not
-to.
+On PREEMPT_RT the locks are quite different so they can't be tested as it
+is done below.  The alternative is to test for the waitlock within
+rtmutex.
 
-checkpatch currently checks __attribute__ for each of packed, aligned,
-section, printf, scanf, and weak.  Other declarations in
-compiler_attributes.h are not handled.
+This is the bare minimun to get it compiled.  Problems which exist on
+PREEMP_RT:
 
-Add a generic test to check the presence of such attributes.  Some
-attributes require more specific handling and are kept separate.
+- none of the locks (spinlock_t, rwlock_t, mutex_t, rw_semaphore) may be
+  acquired with disabled preemption or interrupts.
+  If I read the code correct the it is possible to acquire a mutex_t with
+  disabled interrupts.
+  I don't know how to obtain a lock pointer. Technically they are not
+  exported to userland.
 
-Also add fixes to the generic attributes check to substitute the correct
-conversions.
+- memory can not be allocated with disabled preemption or interrupts
+  even with GFP_ATOMIC.
 
-New attributes which are now handled are:
-
-__always_inline__
-__assume_aligned__(a, ## __VA_ARGS__)
-__cold__
-__const__
-__copy__(symbol)
-__designated_init__
-__externally_visible__
-__gnu_inline__
-__malloc__
-__mode__(x)
-__no_caller_saved_registers__
-__noclone__
-__noinline__
-__nonstring__
-__noreturn__
-__pure__
-__unused__
-__used__
-
-Declarations which contain multiple attributes like
-__attribute__((__packed__, __cold__)) are also handled except when proper
-conversions for one or more attributes of the list cannot be determined.
-
-Link: https://lore.kernel.org/linux-kernel-mentees/3ec15b41754b01666d94b76ce51b9832c2dd577a.camel@perches.com/
-Link: https://lkml.kernel.org/r/20201025193103.23223-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20201028181041.xyeothhkouc3p4md@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  109 ++++++++++++++++++++++++++--------------
- 1 file changed, 71 insertions(+), 38 deletions(-)
+ lib/test_lockup.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-extend-attributes-check-to-handle-more-patterns
-+++ a/scripts/checkpatch.pl
-@@ -6187,50 +6187,83 @@ sub process {
- 			}
- 		}
+--- a/lib/test_lockup.c~lib-test_lockup-minimum-fix-to-get-it-compiled-on-preempt_rt
++++ a/lib/test_lockup.c
+@@ -480,6 +480,21 @@ static int __init test_lockup_init(void)
+ 		return -EINVAL;
  
--# Check for __attribute__ packed, prefer __packed
-+# Check for compiler attributes
- 		if ($realfile !~ m@\binclude/uapi/@ &&
--		    $line =~ /\b__attribute__\s*\(\s*\(.*\bpacked\b/) {
--			WARN("PREFER_PACKED",
--			     "__packed is preferred over __attribute__((packed))\n" . $herecurr);
--		}
--
--# Check for __attribute__ aligned, prefer __aligned
--		if ($realfile !~ m@\binclude/uapi/@ &&
--		    $line =~ /\b__attribute__\s*\(\s*\(.*aligned/) {
--			WARN("PREFER_ALIGNED",
--			     "__aligned(size) is preferred over __attribute__((aligned(size)))\n" . $herecurr);
--		}
--
--# Check for __attribute__ section, prefer __section
--		if ($realfile !~ m@\binclude/uapi/@ &&
--		    $line =~ /\b__attribute__\s*\(\s*\(.*_*section_*\s*\(\s*("[^"]*")/) {
--			my $old = substr($rawline, $-[1], $+[1] - $-[1]);
--			my $new = substr($old, 1, -1);
--			if (WARN("PREFER_SECTION",
--				 "__section($new) is preferred over __attribute__((section($old)))\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*_*section_*\s*\(\s*\Q$old\E\s*\)\s*\)\s*\)/__section($new)/;
-+		    $rawline =~ /\b__attribute__\s*\(\s*($balanced_parens)\s*\)/) {
-+			my $attr = $1;
-+			$attr =~ s/\s*\(\s*(.*)\)\s*/$1/;
-+
-+			my %attr_list = (
-+				"aligned"			=> "__aligned",
-+				"always_inline"			=> "__always_inline",
-+				"assume_aligned"		=> "__assume_aligned",
-+				"cold"				=> "__cold",
-+				"const"				=> "__attribute_const__",
-+				"copy"				=> "__copy",
-+				"designated_init"		=> "__designated_init",
-+				"externally_visible"		=> "__visible",
-+				"format"			=> "printf|scanf",
-+				"gnu_inline"			=> "__gnu_inline",
-+				"malloc"			=> "__malloc",
-+				"mode"				=> "__mode",
-+				"no_caller_saved_registers"	=> "__no_caller_saved_registers",
-+				"noclone"			=> "__noclone",
-+				"noinline"			=> "noinline",
-+				"nonstring"			=> "__nonstring",
-+				"noreturn"			=> "__noreturn",
-+				"packed"			=> "__packed",
-+				"pure"				=> "__pure",
-+				"used"				=> "__used"
-+			);
-+
-+			my @conv_array = ();
-+			my $conv_possible = 1;
-+
-+			while ($attr =~ /\s*(\w+)\s*(${balanced_parens})?/g) {
-+				my $curr_attr = $1;
-+				my $params = '';
-+				$params = $2 if defined($2);
-+				$curr_attr =~ s/^[\s_]+|[\s_]+$//g;
-+
-+				if (exists($attr_list{$curr_attr})) {
-+					if ($curr_attr eq "format" && $params) {
-+						$params =~ /^\s*\(\s*(\w+)\s*,\s*(.*)/;
-+						push(@conv_array, "__$1\($2");
-+					} else {
-+						my $new = $attr_list{$curr_attr};
-+						push(@conv_array, "$new$params");
-+					}
-+				} else {
-+					$conv_possible = 0;
-+					last;
-+				}
- 			}
--		}
+ #ifdef CONFIG_DEBUG_SPINLOCK
++#ifdef CONFIG_PREEMPT_RT
++	if (test_magic(lock_spinlock_ptr,
++		       offsetof(spinlock_t, lock.wait_lock.magic),
++		       SPINLOCK_MAGIC) ||
++	    test_magic(lock_rwlock_ptr,
++		       offsetof(rwlock_t, rtmutex.wait_lock.magic),
++		       SPINLOCK_MAGIC) ||
++	    test_magic(lock_mutex_ptr,
++		       offsetof(struct mutex, lock.wait_lock.magic),
++		       SPINLOCK_MAGIC) ||
++	    test_magic(lock_rwsem_ptr,
++		       offsetof(struct rw_semaphore, rtmutex.wait_lock.magic),
++		       SPINLOCK_MAGIC))
++		return -EINVAL;
++#else
+ 	if (test_magic(lock_spinlock_ptr,
+ 		       offsetof(spinlock_t, rlock.magic),
+ 		       SPINLOCK_MAGIC) ||
+@@ -494,6 +509,7 @@ static int __init test_lockup_init(void)
+ 		       SPINLOCK_MAGIC))
+ 		return -EINVAL;
+ #endif
++#endif
  
--# Check for __attribute__ format(printf, prefer __printf
--		if ($realfile !~ m@\binclude/uapi/@ &&
--		    $line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf/) {
--			if (WARN("PREFER_PRINTF",
--				 "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf\s*,\s*(.*)\)\s*\)\s*\)/"__printf(" . trim($1) . ")"/ex;
-+			if (scalar @conv_array > 0 && $conv_possible == 1) {
-+				my $replace = join(' ', @conv_array);
-+				if (WARN("PREFER_DEFINED_ATTRIBUTE_MACRO",
-+				         "$replace is preferred over __attribute__(($attr))\n" . $herecurr) &&
-+					$fix) {
-+					$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*\Q$attr\E\s*\)\s*\)/$replace/;
-+					$fixed[$fixlinenr] =~ s/\}\Q$replace\E/} $replace/;
-+				}
-+			}
- 
-+			# Check for __attribute__ section, prefer __section
-+			if ($attr =~ /^_*section_*\s*\(\s*("[^"]*")/) {
-+				my $old = substr($attr, $-[1], $+[1] - $-[1]);
-+				my $new = substr($old, 1, -1);
-+				if (WARN("PREFER_DEFINED_ATTRIBUTE_MACRO",
-+				         "__section($new) is preferred over __attribute__((section($old)))\n" . $herecurr) &&
-+					$fix) {
-+					$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*_*section_*\s*\(\s*\Q$old\E\s*\)\s*\)\s*\)/__section($new)/;
-+				}
- 			}
--		}
- 
--# Check for __attribute__ format(scanf, prefer __scanf
--		if ($realfile !~ m@\binclude/uapi/@ &&
--		    $line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\b/) {
--			if (WARN("PREFER_SCANF",
--				 "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\s*,\s*(.*)\)\s*\)\s*\)/"__scanf(" . trim($1) . ")"/ex;
-+			# Check for __attribute__ unused, prefer __always_unused or __maybe_unused
-+			if ($attr =~ /^_*unused/) {
-+				WARN("PREFER_DEFINED_ATTRIBUTE_MACRO",
-+				     "__always_unused or __maybe_unused is preferred over __attribute__((__unused__))\n" . $herecurr);
- 			}
- 		}
- 
+ 	if ((wait_state != TASK_RUNNING ||
+ 	     (call_cond_resched && !reacquire_locks) ||
 _
 
-Patches currently in -mm which might be from dwaipayanray1@gmail.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 
