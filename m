@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B792C2BBCD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3712CC2BBCF
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFBEE23357
+	by mail.kernel.org (Postfix) with ESMTP id 06C812333E
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725963AbgLPEqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:46:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50676 "EHLO mail.kernel.org"
+        id S1725902AbgLPEqN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:46:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725903AbgLPEqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:46:06 -0500
-Date:   Tue, 15 Dec 2020 20:45:50 -0800
+        id S1725889AbgLPEqN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:46:13 -0500
+Date:   Tue, 15 Dec 2020 20:45:57 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093951;
-        bh=msmMUv/yUz0YuWdelBs+LXtBN1wS3D8HrufuQmAz6nE=;
+        s=korg; t=1608093958;
+        bh=elp/29XmT1o3PzZ6PhlmQJaO7Z5I/i5AhPxO4ED6DSc=;
         h=From:To:Subject:In-Reply-To:From;
-        b=Bc/f6w3zFx7ZFp+Tpl6+nl/GqobCrmdoT/e2zIwIPli6QAk+BWlR7WSwzLU+b/QQV
-         JNg8tlsDNTmlm7mrmYF0gDPbKr7/MKf5bgavJImxOU2gDcmW10B7i2Rs4MJfV0/5kg
-         El+ZseBKGHcQYj7o9d5t1OmASkP88NiPkkfB7wAM=
+        b=sH6iSgDI6yCgGc/eXk1G5sAnFXmsg2mKLEjA5VZfSKStFXydH0hbUJHa4RDk8bFw6
+         2kE/eJub5w4P4WOekaJLhCjMseG6eW1wZpSKSo6IwusNqNJbvGx6j4+JzrkQWhBxqI
+         Y7cNSkV8svdxILl4Lky2w2ZQowA8bdH88w8aNxAI=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@infradead.org,
-        hch@lst.de, jani.nikula@intel.com, kvalo@codeaurora.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 65/95] relay: require non-NULL callbacks in
- relay_open()
-Message-ID: <20201216044550.588a_ys7z%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de,
+        jani.nikula@intel.com, kvalo@codeaurora.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 67/95] relay: allow the use of const callback
+ structs
+Message-ID: <20201216044557.znvcel6nw%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,59 +42,130 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Jani Nikula <jani.nikula@intel.com>
-Subject: relay: require non-NULL callbacks in relay_open()
+Subject: relay: allow the use of const callback structs
 
-There are no clients passing NULL callbacks, which makes sense as it
-wouldn't even create a file.  Require non-NULL callbacks, and throw away
-the handling for NULL callbacks.
+None of the relay users require the use of mutable structs for callbacks,
+however the relay code does.  Instead of assigning the default callback
+for subbuf_start, add a wrapper to conditionally call the client callback
+if available, and fall back to default behaviour otherwise.
 
-Link: https://lkml.kernel.org/r/e40642f3b027d2bb6bc851ddb60e0a61ea51f5f8.1606153547.git.jani.nikula@intel.com
+This lets all relay users make their struct rchan_callbacks const data.
+
+[jani.nikula@intel.com: cleanups, per Christoph]
+  Link: https://lkml.kernel.org/r/20201124115412.32402-1-jani.nikula@intel.com
+Link: https://lkml.kernel.org/r/cc3ff292e4eb4fdc56bee3d690c7b8e39209cd37.1606153547.git.jani.nikula@intel.com
 Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ include/linux/relay.h |    4 ++--
+ kernel/relay.c        |   37 ++++++++++---------------------------
+ 2 files changed, 12 insertions(+), 29 deletions(-)
 
---- a/kernel/relay.c~relay-require-non-null-callbacks-in-relay_open
+--- a/include/linux/relay.h~relay-allow-the-use-of-const-callback-structs
++++ a/include/linux/relay.h
+@@ -62,7 +62,7 @@ struct rchan
+ 	size_t subbuf_size;		/* sub-buffer size */
+ 	size_t n_subbufs;		/* number of sub-buffers per buffer */
+ 	size_t alloc_size;		/* total buffer size allocated */
+-	struct rchan_callbacks *cb;	/* client callbacks */
++	const struct rchan_callbacks *cb; /* client callbacks */
+ 	struct kref kref;		/* channel refcount */
+ 	void *private_data;		/* for user-defined data */
+ 	size_t last_toobig;		/* tried to log event > subbuf size */
+@@ -157,7 +157,7 @@ struct rchan *relay_open(const char *bas
+ 			 struct dentry *parent,
+ 			 size_t subbuf_size,
+ 			 size_t n_subbufs,
+-			 struct rchan_callbacks *cb,
++			 const struct rchan_callbacks *cb,
+ 			 void *private_data);
+ extern int relay_late_setup_files(struct rchan *chan,
+ 				  const char *base_filename,
+--- a/kernel/relay.c~relay-allow-the-use-of-const-callback-structs
 +++ a/kernel/relay.c
-@@ -291,13 +291,6 @@ static int remove_buf_file_default_callb
- 	return -EINVAL;
+@@ -252,23 +252,14 @@ EXPORT_SYMBOL_GPL(relay_buf_full);
+  * High-level relay kernel API and associated functions.
+  */
+ 
+-/*
+- * rchan_callback implementations defining default channel behavior.  Used
+- * in place of corresponding NULL values in client callback struct.
+- */
+-
+-/*
+- * subbuf_start() default callback.  Does nothing.
+- */
+-static int subbuf_start_default_callback (struct rchan_buf *buf,
+-					  void *subbuf,
+-					  void *prev_subbuf,
+-					  size_t prev_padding)
++static int relay_subbuf_start(struct rchan_buf *buf, void *subbuf,
++			      void *prev_subbuf, size_t prev_padding)
+ {
+-	if (relay_buf_full(buf))
+-		return 0;
++	if (!buf->chan->cb->subbuf_start)
++		return !relay_buf_full(buf);
+ 
+-	return 1;
++	return buf->chan->cb->subbuf_start(buf, subbuf,
++					   prev_subbuf, prev_padding);
  }
  
--/* relay channel default callbacks */
--static struct rchan_callbacks default_channel_callbacks = {
--	.subbuf_start = subbuf_start_default_callback,
--	.create_buf_file = create_buf_file_default_callback,
--	.remove_buf_file = remove_buf_file_default_callback,
--};
--
  /**
-  *	wakeup_readers - wake up readers waiting on a channel
-  *	@work: contains the channel buffer
-@@ -472,11 +465,6 @@ static void relay_close_buf(struct rchan
- static void setup_callbacks(struct rchan *chan,
- 				   struct rchan_callbacks *cb)
- {
--	if (!cb) {
--		chan->cb = &default_channel_callbacks;
--		return;
--	}
--
- 	if (!cb->subbuf_start)
- 		cb->subbuf_start = subbuf_start_default_callback;
- 	if (!cb->create_buf_file)
-@@ -542,6 +530,8 @@ struct rchan *relay_open(const char *bas
- 		return NULL;
- 	if (subbuf_size > UINT_MAX / n_subbufs)
- 		return NULL;
-+	if (!cb)
-+		return NULL;
+@@ -314,7 +305,7 @@ static void __relay_reset(struct rchan_b
+ 	for (i = 0; i < buf->chan->n_subbufs; i++)
+ 		buf->padding[i] = 0;
  
- 	chan = kzalloc(sizeof(struct rchan), GFP_KERNEL);
- 	if (!chan)
+-	buf->chan->cb->subbuf_start(buf, buf->data, NULL, 0);
++	relay_subbuf_start(buf, buf->data, NULL, 0);
+ }
+ 
+ /**
+@@ -442,14 +433,6 @@ static void relay_close_buf(struct rchan
+ 	kref_put(&buf->kref, relay_remove_buf);
+ }
+ 
+-static void setup_callbacks(struct rchan *chan,
+-				   struct rchan_callbacks *cb)
+-{
+-	if (!cb->subbuf_start)
+-		cb->subbuf_start = subbuf_start_default_callback;
+-	chan->cb = cb;
+-}
+-
+ int relay_prepare_cpu(unsigned int cpu)
+ {
+ 	struct rchan *chan;
+@@ -495,7 +478,7 @@ struct rchan *relay_open(const char *bas
+ 			 struct dentry *parent,
+ 			 size_t subbuf_size,
+ 			 size_t n_subbufs,
+-			 struct rchan_callbacks *cb,
++			 const struct rchan_callbacks *cb,
+ 			 void *private_data)
+ {
+ 	unsigned int i;
+@@ -529,7 +512,7 @@ struct rchan *relay_open(const char *bas
+ 		chan->has_base_filename = 1;
+ 		strlcpy(chan->base_filename, base_filename, NAME_MAX);
+ 	}
+-	setup_callbacks(chan, cb);
++	chan->cb = cb;
+ 	kref_init(&chan->kref);
+ 
+ 	mutex_lock(&relay_channels_mutex);
+@@ -712,7 +695,7 @@ size_t relay_switch_subbuf(struct rchan_
+ 	new_subbuf = buf->subbufs_produced % buf->chan->n_subbufs;
+ 	new = buf->start + new_subbuf * buf->chan->subbuf_size;
+ 	buf->offset = 0;
+-	if (!buf->chan->cb->subbuf_start(buf, new, old, buf->prev_padding)) {
++	if (!relay_subbuf_start(buf, new, old, buf->prev_padding)) {
+ 		buf->offset = buf->chan->subbuf_size + 1;
+ 		return 0;
+ 	}
 _
