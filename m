@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EDB1C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7880C2BBCA
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D9F223437
+	by mail.kernel.org (Postfix) with ESMTP id 875AB233FB
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726918AbgLPRLd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:11:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32824 "EHLO mail.kernel.org"
+        id S1726798AbgLPRLe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:11:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726798AbgLPRLd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:11:33 -0500
-Date:   Wed, 16 Dec 2020 09:10:52 -0800
+        id S1726855AbgLPRLe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:11:34 -0500
+Date:   Wed, 16 Dec 2020 09:11:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138652;
-        bh=E3iVKeM9gRNaWc4bgk/gydJx+lrr78nMCTEO5p9Q2dY=;
+        s=korg; t=1608138678;
+        bh=nVntGav9uwdOs4SwKk/BxO62Km/e+PcGk78rh/+M1ik=;
         h=From:To:Subject:From;
-        b=Q/7+2JDPXitWLhfT2RvlpmcJydVpTsIZV8gg2sHZF4KwvjR1iKhYoH9J9EVhfa3C0
-         cUEQOpDIvTr0A3LTZHa0QWRG6vqkf1+hL+YO1RKwpjNA5eYlM3Vl9vZpV+eejrn5kR
-         +6egY3/faSiTTZTc9naoAtKH58fR6dUpbqb4LRI0=
+        b=rWpj54zvyVF3iTKgFawK3Zwoz6ssx1zDheeKk7vN00J4XIwfN+SmFdd5yrG3pboOo
+         i3eUDJ1SuswozavXtlGuD4GOmiAooI/gB0mT/Jmy5XGUezcns5suGRH0SFt5O0TNWh
+         fkUmPa8DAbwtmKy9151b4IBFr8c4F03PAI/fSDFA=
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, hch@infradead.org, hch@lst.de,
-        jani.nikula@intel.com, kvalo@codeaurora.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
+To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
+        dvyukov@google.com, elver@google.com, georgepope@android.com,
+        herbert@gondor.apana.org.au, keescook@chromium.org,
+        masahiroy@kernel.org, michal.lkml@markovi.net,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ndesaulniers@google.com, oberpar@linux.ibm.com,
+        rdunlap@infradead.org, torvalds@linux-foundation.org
+Subject:  [merged] ubsan-move-cc-option-tests-into-kconfig.patch
  removed from -mm tree
-Message-ID: <20201216171052.uGwBUytan%akpm@linux-foundation.org>
+Message-ID: <20201216171117.NDrqd1SbK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,115 +46,199 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: make create_buf_file and remove_buf_file callbacks mandatory
+     Subject: ubsan: move cc-option tests into Kconfig
 has been removed from the -mm tree.  Its filename was
-     relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
+     ubsan-move-cc-option-tests-into-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: relay: make create_buf_file and remove_buf_file callbacks mandatory
+From: Kees Cook <keescook@chromium.org>
+Subject: ubsan: move cc-option tests into Kconfig
 
-All clients provide create_buf_file and remove_buf_file callbacks, and
-they're required for relay to make sense.  There is no point in them being
-optional.
+Instead of doing if/endif blocks with cc-option calls in the UBSAN
+Makefile, move all the tests into Kconfig and use the Makefile to collect
+the results.
 
-Also document whether each callback is mandatory/optional.
-
-Link: https://lkml.kernel.org/r/88003c1527386b93036e286e7917f1e33aec84ac.1606153547.git.jani.nikula@intel.com
-Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kalle Valo <kvalo@codeaurora.org>
+Link: https://lkml.kernel.org/r/20201203004437.389959-3-keescook@chromium.org
+Link: https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: George Popescu <georgepope@android.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Marco Elver <elver@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/relay.h |    6 ++++++
- kernel/relay.c        |   26 +-------------------------
- 2 files changed, 7 insertions(+), 25 deletions(-)
+ lib/Kconfig.ubsan      |   61 +++++++++++++++++++++++++++++++++++++--
+ scripts/Makefile.ubsan |   45 +++++++++-------------------
+ 2 files changed, 73 insertions(+), 33 deletions(-)
 
---- a/include/linux/relay.h~relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory
-+++ a/include/linux/relay.h
-@@ -89,6 +89,8 @@ struct rchan_callbacks
- 	 * The client should return 1 to continue logging, 0 to stop
- 	 * logging.
- 	 *
-+	 * This callback is optional.
-+	 *
- 	 * NOTE: subbuf_start will also be invoked when the buffer is
- 	 *       created, so that the first sub-buffer can be initialized
- 	 *       if necessary.  In this case, prev_subbuf will be NULL.
-@@ -122,6 +124,8 @@ struct rchan_callbacks
- 	 * cause relay_open() to create a single global buffer rather
- 	 * than the default set of per-cpu buffers.
- 	 *
-+	 * This callback is mandatory.
-+	 *
- 	 * See Documentation/filesystems/relay.rst for more info.
- 	 */
- 	struct dentry *(*create_buf_file)(const char *filename,
-@@ -139,6 +143,8 @@ struct rchan_callbacks
- 	 * channel buffer.
- 	 *
- 	 * The callback should return 0 if successful, negative if not.
-+	 *
-+	 * This callback is mandatory.
- 	 */
- 	int (*remove_buf_file)(struct dentry *dentry);
- };
---- a/kernel/relay.c~relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory
-+++ a/kernel/relay.c
-@@ -271,26 +271,6 @@ static int subbuf_start_default_callback
- 	return 1;
- }
+--- a/lib/Kconfig.ubsan~ubsan-move-cc-option-tests-into-kconfig
++++ a/lib/Kconfig.ubsan
+@@ -36,10 +36,17 @@ config UBSAN_KCOV_BROKEN
+ 	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
+ 	  in newer releases.
  
--/*
-- * create_buf_file_create() default callback.  Does nothing.
-- */
--static struct dentry *create_buf_file_default_callback(const char *filename,
--						       struct dentry *parent,
--						       umode_t mode,
--						       struct rchan_buf *buf,
--						       int *is_global)
--{
--	return NULL;
--}
++config CC_HAS_UBSAN_BOUNDS
++	def_bool $(cc-option,-fsanitize=bounds)
++
++config CC_HAS_UBSAN_ARRAY_BOUNDS
++	def_bool $(cc-option,-fsanitize=array-bounds)
++
+ config UBSAN_BOUNDS
+ 	bool "Perform array index bounds checking"
+ 	default UBSAN
+ 	depends on !UBSAN_KCOV_BROKEN
++	depends on CC_HAS_UBSAN_ARRAY_BOUNDS || CC_HAS_UBSAN_BOUNDS
+ 	help
+ 	  This option enables detection of directly indexed out of bounds
+ 	  array accesses, where the array size is known at compile time.
+@@ -47,15 +54,30 @@ config UBSAN_BOUNDS
+ 	  to the {str,mem}*cpy() family of functions (that is addressed
+ 	  by CONFIG_FORTIFY_SOURCE).
+ 
++config UBSAN_ONLY_BOUNDS
++	def_bool CC_HAS_UBSAN_BOUNDS && !CC_HAS_UBSAN_ARRAY_BOUNDS
++	depends on UBSAN_BOUNDS
++	help
++	  This is a weird case: Clang's -fsanitize=bounds includes
++	  -fsanitize=local-bounds, but it's trapping-only, so for
++	  Clang, we must use -fsanitize=array-bounds when we want
++	  traditional array bounds checking enabled. For GCC, we
++	  want -fsanitize=bounds.
++
++config UBSAN_ARRAY_BOUNDS
++	def_bool CC_HAS_UBSAN_ARRAY_BOUNDS
++	depends on UBSAN_BOUNDS
++
+ config UBSAN_LOCAL_BOUNDS
+ 	bool "Perform array local bounds checking"
+ 	depends on UBSAN_TRAP
+-	depends on CC_IS_CLANG
+ 	depends on !UBSAN_KCOV_BROKEN
++	depends on $(cc-option,-fsanitize=local-bounds)
+ 	help
+ 	  This option enables -fsanitize=local-bounds which traps when an
+-	  exception/error is detected. Therefore, it should be enabled only
+-	  if trapping is expected.
++	  exception/error is detected. Therefore, it may only be enabled
++	  with CONFIG_UBSAN_TRAP.
++
+ 	  Enabling this option detects errors due to accesses through a
+ 	  pointer that is derived from an object of a statically-known size,
+ 	  where an added offset (which may not be known statically) is
+@@ -69,6 +91,38 @@ config UBSAN_MISC
+ 	  own Kconfig options. Disable this if you only want to have
+ 	  individually selected checks.
+ 
++config UBSAN_SHIFT
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=shift)
++
++config UBSAN_DIV_ZERO
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=integer-divide-by-zero)
++
++config UBSAN_UNREACHABLE
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=unreachable)
++
++config UBSAN_SIGNED_OVERFLOW
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=signed-integer-overflow)
++
++config UBSAN_UNSIGNED_OVERFLOW
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
++
++config UBSAN_OBJECT_SIZE
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=object-size)
++
++config UBSAN_BOOL
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=bool)
++
++config UBSAN_ENUM
++	def_bool UBSAN_MISC
++	depends on $(cc-option,-fsanitize=enum)
++
+ config UBSAN_SANITIZE_ALL
+ 	bool "Enable instrumentation for the entire kernel"
+ 	depends on ARCH_HAS_UBSAN_SANITIZE_ALL
+@@ -85,6 +139,7 @@ config UBSAN_ALIGNMENT
+ 	bool "Enable checks for pointers alignment"
+ 	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	depends on !UBSAN_TRAP
++	depends on $(cc-option,-fsanitize=alignment)
+ 	help
+ 	  This option enables the check of unaligned memory accesses.
+ 	  Enabling this option on architectures that support unaligned
+--- a/scripts/Makefile.ubsan~ubsan-move-cc-option-tests-into-kconfig
++++ a/scripts/Makefile.ubsan
+@@ -1,33 +1,18 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+-export CFLAGS_UBSAN :=
++# Enable available and selected UBSAN features.
++ubsan-cflags-$(CONFIG_UBSAN_ALIGNMENT)		+= -fsanitize=alignment
++ubsan-cflags-$(CONFIG_UBSAN_ONLY_BOUNDS)	+= -fsanitize=bounds
++ubsan-cflags-$(CONFIG_UBSAN_ARRAY_BOUNDS)	+= -fsanitize=array-bounds
++ubsan-cflags-$(CONFIG_UBSAN_LOCAL_BOUNDS)	+= -fsanitize=local-bounds
++ubsan-cflags-$(CONFIG_UBSAN_SHIFT)		+= -fsanitize=shift
++ubsan-cflags-$(CONFIG_UBSAN_DIV_ZERO)		+= -fsanitize=integer-divide-by-zero
++ubsan-cflags-$(CONFIG_UBSAN_UNREACHABLE)	+= -fsanitize=unreachable
++ubsan-cflags-$(CONFIG_UBSAN_SIGNED_OVERFLOW)	+= -fsanitize=signed-integer-overflow
++ubsan-cflags-$(CONFIG_UBSAN_UNSIGNED_OVERFLOW)	+= -fsanitize=unsigned-integer-overflow
++ubsan-cflags-$(CONFIG_UBSAN_OBJECT_SIZE)	+= -fsanitize=object-size
++ubsan-cflags-$(CONFIG_UBSAN_BOOL)		+= -fsanitize=bool
++ubsan-cflags-$(CONFIG_UBSAN_ENUM)		+= -fsanitize=enum
++ubsan-cflags-$(CONFIG_UBSAN_TRAP)		+= -fsanitize-undefined-trap-on-error
+ 
+-ifdef CONFIG_UBSAN_ALIGNMENT
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=alignment)
+-endif
 -
--/*
-- * remove_buf_file() default callback.  Does nothing.
-- */
--static int remove_buf_file_default_callback(struct dentry *dentry)
--{
--	return -EINVAL;
--}
+-ifdef CONFIG_UBSAN_BOUNDS
+-      ifdef CONFIG_CC_IS_CLANG
+-            CFLAGS_UBSAN += -fsanitize=array-bounds
+-      else
+-            CFLAGS_UBSAN += $(call cc-option, -fsanitize=bounds)
+-      endif
+-endif
 -
- /**
-  *	wakeup_readers - wake up readers waiting on a channel
-  *	@work: contains the channel buffer
-@@ -467,10 +447,6 @@ static void setup_callbacks(struct rchan
- {
- 	if (!cb->subbuf_start)
- 		cb->subbuf_start = subbuf_start_default_callback;
--	if (!cb->create_buf_file)
--		cb->create_buf_file = create_buf_file_default_callback;
--	if (!cb->remove_buf_file)
--		cb->remove_buf_file = remove_buf_file_default_callback;
- 	chan->cb = cb;
- }
- 
-@@ -530,7 +506,7 @@ struct rchan *relay_open(const char *bas
- 		return NULL;
- 	if (subbuf_size > UINT_MAX / n_subbufs)
- 		return NULL;
--	if (!cb)
-+	if (!cb || !cb->create_buf_file || !cb->remove_buf_file)
- 		return NULL;
- 
- 	chan = kzalloc(sizeof(struct rchan), GFP_KERNEL);
+-ifdef CONFIG_UBSAN_LOCAL_BOUNDS
+-      CFLAGS_UBSAN += -fsanitize=local-bounds
+-endif
+-
+-ifdef CONFIG_UBSAN_MISC
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=shift)
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=integer-divide-by-zero)
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=unreachable)
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=signed-integer-overflow)
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=object-size)
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=bool)
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize=enum)
+-endif
+-
+-ifdef CONFIG_UBSAN_TRAP
+-      CFLAGS_UBSAN += $(call cc-option, -fsanitize-undefined-trap-on-error)
+-endif
++export CFLAGS_UBSAN := $(ubsan-cflags-y)
 _
 
-Patches currently in -mm which might be from jani.nikula@intel.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
