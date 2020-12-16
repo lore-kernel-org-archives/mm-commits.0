@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB0B7C0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF440C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A85F3233FD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 845CF233FD
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:09:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726155AbgLPRJc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:09:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59886 "EHLO mail.kernel.org"
+        id S1726989AbgLPRJe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:09:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726706AbgLPRJc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:09:32 -0500
-Date:   Wed, 16 Dec 2020 09:08:24 -0800
+        id S1726706AbgLPRJe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:09:34 -0500
+Date:   Wed, 16 Dec 2020 09:08:30 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138505;
-        bh=+cDY0ir+Gy3H/3Eq/xGg+ediby3AuIzvvtumKiXczn8=;
+        s=korg; t=1608138511;
+        bh=rHy/Qld//gx5BD+y5ZNw0MGpKadT+jqbWoI9mN67MOE=;
         h=From:To:Subject:From;
-        b=bXu4jJVtbgDqu4FGH4AWf1sy56yLNdcg+pLi3Sa8xteP2U85K7o6lGvHfUxAp59oO
-         x+GSfUcGFLjacgGmNanTGLePZHeuB42UlFsGm1cU1sX/1XLZM7cTwM+brkFRCzMm0v
-         npCTzxGO6p2KZEZdh0rflwc0E7if2/LacKVicuOY=
+        b=pnSCn53zyewdLyNYqo7mlG1F/0uO/gYLsiMfQgjhGRdJ2ruV14a/vTWwxJs28l07Y
+         fwRIPItDlTSEAFaJg4a74CBWelqf/MzlIP6sZfVuNd0jRIAQgI9kzkEu7saifaWRcI
+         gyrNBH/bZV4/p/ZAVUp4qRYKhXD/NUxsM+Bk+hJA=
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org,
-        tommi.t.rantala@nokia.com, viro@zeniv.linux.org.uk
+To:     arnd@arndb.de, christophe.leroy@csgroup.eu, joel@jms.id.au,
+        mm-commits@vger.kernel.org, segher@kernel.crashing.org,
+        yamada.masahiro@socionext.com
 Subject:  [merged]
- proc-fix-lookup-in-proc-net-subdirectories-after-setns2.patch removed from
- -mm tree
-Message-ID: <20201216170824.TMLLOqs0n%akpm@linux-foundation.org>
+ =?US-ASCII?Q?asm-generic-force-inlining-of-get=5Forder-to-work-around-g?=
+ =?US-ASCII?Q?cc10-poor-decision.patch?= removed from -mm tree
+Message-ID: <20201216170830.DNajkffZm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,173 +45,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix lookup in /proc/net subdirectories after setns(2)
+     Subject: asm-generic: force inlining of get_order() to work around gcc10 poor decision
 has been removed from the -mm tree.  Its filename was
-     proc-fix-lookup-in-proc-net-subdirectories-after-setns2.patch
+     asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: fix lookup in /proc/net subdirectories after setns(2)
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: asm-generic: force inlining of get_order() to work around gcc10 poor decision
 
-	commit 1fde6f21d90f8ba5da3cb9c54ca991ed72696c43
-	proc: fix /proc/net/* after setns(2)
+When building mpc885_ads_defconfig with gcc 10.1,
+the function get_order() appears 50 times in vmlinux:
 
-only forced revalidation of regular files under /proc/net/
+[linux]# ppc-linux-objdump -x vmlinux | grep get_order | wc -l
+50
 
-However, /proc/net/ is unusual in the sense of /proc/net/foo handlers
-take netns pointer from parent directory which is old netns.
+[linux]# size vmlinux
+   text	   data	    bss	    dec	    hex	filename
+3842620	 675624	 135160	4653404	 47015c	vmlinux
 
-Steps to reproduce:
+In the old days, marking a function 'static inline' was forcing
+GCC to inline, but since commit ac7c3e4ff401 ("compiler: enable
+CONFIG_OPTIMIZE_INLINING forcibly") GCC may decide to not inline
+a function.
 
-	(void)open("/proc/net/sctp/snmp", O_RDONLY);
-	unshare(CLONE_NEWNET);
+It looks like GCC 10 is taking poor decisions on this.
 
-	int fd = open("/proc/net/sctp/snmp", O_RDONLY);
-	read(fd, &c, 1);
+get_order() compiles into the following tiny function,
+occupying 20 bytes of text.
 
-Read will read wrong data from original netns.
+0000007c <get_order>:
+  7c:   38 63 ff ff     addi    r3,r3,-1
+  80:   54 63 a3 3e     rlwinm  r3,r3,20,12,31
+  84:   7c 63 00 34     cntlzw  r3,r3
+  88:   20 63 00 20     subfic  r3,r3,32
+  8c:   4e 80 00 20     blr
 
-Patch forces lookup on every directory under /proc/net .
+By forcing get_order() to be __always_inline, the size of text is
+reduced by 1940 bytes, that is almost twice the space occupied by
+50 times get_order()
 
-Link: https://lkml.kernel.org/r/20201205160916.GA109739@localhost.localdomain
-Fixes: 1da4d377f943 ("proc: revalidate misc dentries")
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reported-by: "Rantala, Tommi T. (Nokia - FI/Espoo)" <tommi.t.rantala@nokia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+[linux-powerpc]# size vmlinux
+   text	   data	    bss	    dec	    hex	filename
+3840680	 675588	 135176	4651444	 46f9b4	vmlinux
+
+Link: https://lkml.kernel.org/r/96c6172d619c51acc5c1c4884b80785c59af4102.1602949927.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Joel Stanley <joel@jms.id.au>
+Cc: Segher Boessenkool <segher@kernel.crashing.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c       |   24 ++++++++++++++++++++++--
- fs/proc/internal.h      |    7 +++++++
- fs/proc/proc_net.c      |   16 ----------------
- include/linux/proc_fs.h |    8 +++++++-
- 4 files changed, 36 insertions(+), 19 deletions(-)
+ include/asm-generic/getorder.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/generic.c~proc-fix-lookup-in-proc-net-subdirectories-after-setns2
-+++ a/fs/proc/generic.c
-@@ -349,6 +349,16 @@ static const struct file_operations proc
- 	.iterate_shared		= proc_readdir,
- };
- 
-+static int proc_net_d_revalidate(struct dentry *dentry, unsigned int flags)
-+{
-+	return 0;
-+}
-+
-+const struct dentry_operations proc_net_dentry_ops = {
-+	.d_revalidate	= proc_net_d_revalidate,
-+	.d_delete	= always_delete_dentry,
-+};
-+
- /*
-  * proc directories can do almost nothing..
+--- a/include/asm-generic/getorder.h~asm-generic-force-inlining-of-get_order-to-work-around-gcc10-poor-decision
++++ a/include/asm-generic/getorder.h
+@@ -26,7 +26,7 @@
+  *
+  * The result is undefined if the size is 0.
   */
-@@ -471,8 +481,8 @@ struct proc_dir_entry *proc_symlink(cons
- }
- EXPORT_SYMBOL(proc_symlink);
- 
--struct proc_dir_entry *proc_mkdir_data(const char *name, umode_t mode,
--		struct proc_dir_entry *parent, void *data)
-+struct proc_dir_entry *_proc_mkdir(const char *name, umode_t mode,
-+		struct proc_dir_entry *parent, void *data, bool force_lookup)
+-static inline __attribute_const__ int get_order(unsigned long size)
++static __always_inline __attribute_const__ int get_order(unsigned long size)
  {
- 	struct proc_dir_entry *ent;
- 
-@@ -484,10 +494,20 @@ struct proc_dir_entry *proc_mkdir_data(c
- 		ent->data = data;
- 		ent->proc_dir_ops = &proc_dir_operations;
- 		ent->proc_iops = &proc_dir_inode_operations;
-+		if (force_lookup) {
-+			pde_force_lookup(ent);
-+		}
- 		ent = proc_register(parent, ent);
- 	}
- 	return ent;
- }
-+EXPORT_SYMBOL_GPL(_proc_mkdir);
-+
-+struct proc_dir_entry *proc_mkdir_data(const char *name, umode_t mode,
-+		struct proc_dir_entry *parent, void *data)
-+{
-+	return _proc_mkdir(name, mode, parent, data, false);
-+}
- EXPORT_SYMBOL_GPL(proc_mkdir_data);
- 
- struct proc_dir_entry *proc_mkdir_mode(const char *name, umode_t mode,
---- a/fs/proc/internal.h~proc-fix-lookup-in-proc-net-subdirectories-after-setns2
-+++ a/fs/proc/internal.h
-@@ -310,3 +310,10 @@ extern unsigned long task_statm(struct m
- 				unsigned long *, unsigned long *,
- 				unsigned long *, unsigned long *);
- extern void task_mem(struct seq_file *, struct mm_struct *);
-+
-+extern const struct dentry_operations proc_net_dentry_ops;
-+static inline void pde_force_lookup(struct proc_dir_entry *pde)
-+{
-+	/* /proc/net/ entries can be changed under us by setns(CLONE_NEWNET) */
-+	pde->proc_dops = &proc_net_dentry_ops;
-+}
---- a/fs/proc/proc_net.c~proc-fix-lookup-in-proc-net-subdirectories-after-setns2
-+++ a/fs/proc/proc_net.c
-@@ -39,22 +39,6 @@ static struct net *get_proc_net(const st
- 	return maybe_get_net(PDE_NET(PDE(inode)));
- }
- 
--static int proc_net_d_revalidate(struct dentry *dentry, unsigned int flags)
--{
--	return 0;
--}
--
--static const struct dentry_operations proc_net_dentry_ops = {
--	.d_revalidate	= proc_net_d_revalidate,
--	.d_delete	= always_delete_dentry,
--};
--
--static void pde_force_lookup(struct proc_dir_entry *pde)
--{
--	/* /proc/net/ entries can be changed under us by setns(CLONE_NEWNET) */
--	pde->proc_dops = &proc_net_dentry_ops;
--}
--
- static int seq_open_net(struct inode *inode, struct file *file)
- {
- 	unsigned int state_size = PDE(inode)->state_size;
---- a/include/linux/proc_fs.h~proc-fix-lookup-in-proc-net-subdirectories-after-setns2
-+++ a/include/linux/proc_fs.h
-@@ -80,6 +80,7 @@ extern void proc_flush_pid(struct pid *)
- 
- extern struct proc_dir_entry *proc_symlink(const char *,
- 		struct proc_dir_entry *, const char *);
-+struct proc_dir_entry *_proc_mkdir(const char *, umode_t, struct proc_dir_entry *, void *, bool);
- extern struct proc_dir_entry *proc_mkdir(const char *, struct proc_dir_entry *);
- extern struct proc_dir_entry *proc_mkdir_data(const char *, umode_t,
- 					      struct proc_dir_entry *, void *);
-@@ -162,6 +163,11 @@ static inline struct proc_dir_entry *pro
- static inline struct proc_dir_entry *proc_mkdir(const char *name,
- 	struct proc_dir_entry *parent) {return NULL;}
- static inline struct proc_dir_entry *proc_create_mount_point(const char *name) { return NULL; }
-+static inline struct proc_dir_entry *_proc_mkdir(const char *name, umode_t mode,
-+		struct proc_dir_entry *parent, void *data, bool force_lookup)
-+{
-+	return NULL;
-+}
- static inline struct proc_dir_entry *proc_mkdir_data(const char *name,
- 	umode_t mode, struct proc_dir_entry *parent, void *data) { return NULL; }
- static inline struct proc_dir_entry *proc_mkdir_mode(const char *name,
-@@ -199,7 +205,7 @@ struct net;
- static inline struct proc_dir_entry *proc_net_mkdir(
- 	struct net *net, const char *name, struct proc_dir_entry *parent)
- {
--	return proc_mkdir_data(name, 0, parent, net);
-+	return _proc_mkdir(name, 0, parent, net, true);
- }
- 
- struct ns_common;
+ 	if (__builtin_constant_p(size)) {
+ 		if (!size)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
-ramfs-support-o_tmpfile.patch
 
