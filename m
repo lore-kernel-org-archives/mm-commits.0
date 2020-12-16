@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F0DC2BBCD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48668C2BBCF
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:08:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC0DA2343E
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:08:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FFB12343B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726721AbgLPRIv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:08:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59546 "EHLO mail.kernel.org"
+        id S1726983AbgLPRIx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:08:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726155AbgLPRIv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:08:51 -0500
-Date:   Wed, 16 Dec 2020 09:08:09 -0800
+        id S1726155AbgLPRIx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:08:53 -0500
+Date:   Wed, 16 Dec 2020 09:08:12 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138490;
-        bh=Rs4nrrvdvHOAk25qheFbM+hPpNk+FO9UiE9he+yqDuM=;
+        s=korg; t=1608138492;
+        bh=wO0937hp3Sd3AkeDt2/AM2Y3AxYLtPgjjS58XMIZUmQ=;
         h=From:To:Subject:From;
-        b=LpMRGbzjVSmrUiCJWp2bd4u+GH3ShYyyQ1d9O1AvH2Nah2Ht/dZDRsldnW9mlbyDk
-         rTpU/IlailqjW6PScaSRhLXJEJS8YqT0AcMb5OkyI5dnmZcm+TurMGFmq9GQFKtiyO
-         3DpKIekVk2gPt3bZdy/tmH1EXt1+fIN4Ljl1PrOk=
+        b=pPDyi8iwFyBd9gCJbDtZOVQ9F73QB3UrJHotIc0fnFjGV1DA+rGLONG5jl9/DulJJ
+         3vlp3gTKIxRc/u7GyK+kBtmS2J4g+xWYbyQS674wt1HzoxtzhQ7IauBVenoPcrPEse
+         zJNaqPe6rXsDYzomlDhyHdkvDFokm1uHt3DWg6Yc=
 From:   akpm@linux-foundation.org
-To:     huangzhaoyang@gmail.com, mm-commits@vger.kernel.org,
-        vbabka@suse.cz, zhaoyang.huang@unisoc.com
-Subject:  [merged] mm-fix-a-race-on-nr_swap_pages.patch removed
- from -mm tree
-Message-ID: <20201216170809.zi1mkSlH-%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cheloha@linux.ibm.com, david@redhat.com,
+        ldufour@linux.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        nathanl@linux.ibm.com
+Subject:  [merged]
+ mm-memory_hotplug-quieting-offline-operation.patch removed from -mm tree
+Message-ID: <20201216170812.hun7loPZP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,79 +42,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix a race on nr_swap_pages
+     Subject: mm/memory_hotplug: quieting offline operation
 has been removed from the -mm tree.  Its filename was
-     mm-fix-a-race-on-nr_swap_pages.patch
+     mm-memory_hotplug-quieting-offline-operation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhaoyang Huang <huangzhaoyang@gmail.com>
-Subject: mm: fix a race on nr_swap_pages
+From: Laurent Dufour <ldufour@linux.ibm.com>
+Subject: mm/memory_hotplug: quieting offline operation
 
-The scenario on which "Free swap = -4kB" happens in my system, which is caused
-by several get_swap_pages racing with each other and show_swap_cache_info
-happens simutaniously. No need to add a lock on get_swap_page_of_type as we
-remove "Presub/PosAdd" here.
+On PowerPC, when dymically removing memory from a system we can see in the
+console a lot of messages like this:
 
-ProcessA			ProcessB			ProcessC
-ngoals = 1			ngoals = 1
-avail = nr_swap_pages(1)	avail = nr_swap_pages(1)
-nr_swap_pages(1) -= ngoals
-				nr_swap_pages(0) -= ngoals
-								nr_swap_pages = -1
+[  186.575389] Offlined Pages 4096
 
-Link: https://lkml.kernel.org/r/1607050340-4535-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+This message is displayed on each LMB (256MB) removed, which means that we
+removing 1TB of memory, this message is displayed 4096 times.
+
+Moving it to DEBUG to not flood the console.
+
+Link: https://lkml.kernel.org/r/20201211150157.91399-1-ldufour@linux.ibm.com
+Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-fix-a-race-on-nr_swap_pages
-+++ a/mm/swapfile.c
-@@ -1045,16 +1045,18 @@ int get_swap_pages(int n_goal, swp_entry
- 	/* Only single cluster request supported */
- 	WARN_ON_ONCE(n_goal > 1 && size == SWAPFILE_CLUSTER);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-quieting-offline-operation
++++ a/mm/memory_hotplug.c
+@@ -1561,7 +1561,7 @@ int __ref offline_pages(unsigned long st
  
-+	spin_lock(&swap_avail_lock);
-+
- 	avail_pgs = atomic_long_read(&nr_swap_pages) / size;
--	if (avail_pgs <= 0)
-+	if (avail_pgs <= 0) {
-+		spin_unlock(&swap_avail_lock);
- 		goto noswap;
-+	}
+ 	/* Mark all sections offline and remove free pages from the buddy. */
+ 	__offline_isolated_pages(start_pfn, end_pfn);
+-	pr_info("Offlined Pages %ld\n", nr_pages);
++	pr_debug("Offlined Pages %ld\n", nr_pages);
  
- 	n_goal = min3((long)n_goal, (long)SWAP_BATCH, avail_pgs);
- 
- 	atomic_long_sub(n_goal * size, &nr_swap_pages);
- 
--	spin_lock(&swap_avail_lock);
--
- start_over:
- 	node = numa_node_id();
- 	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
-@@ -1128,14 +1130,13 @@ swp_entry_t get_swap_page_of_type(int ty
- 
- 	spin_lock(&si->lock);
- 	if (si->flags & SWP_WRITEOK) {
--		atomic_long_dec(&nr_swap_pages);
- 		/* This is called for allocating swap entry, not cache */
- 		offset = scan_swap_map(si, 1);
- 		if (offset) {
-+			atomic_long_dec(&nr_swap_pages);
- 			spin_unlock(&si->lock);
- 			return swp_entry(type, offset);
- 		}
--		atomic_long_inc(&nr_swap_pages);
- 	}
- 	spin_unlock(&si->lock);
- fail:
+ 	/*
+ 	 * The memory sections are marked offline, and the pageblock flags
 _
 
-Patches currently in -mm which might be from huangzhaoyang@gmail.com are
+Patches currently in -mm which might be from ldufour@linux.ibm.com are
 
 
