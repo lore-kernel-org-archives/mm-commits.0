@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5545C0018C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAF65C0018C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 852A6233EB
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 790C6233FD
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727056AbgLPRKj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60540 "EHLO mail.kernel.org"
+        id S1727057AbgLPRKm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726918AbgLPRKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:39 -0500
-Date:   Wed, 16 Dec 2020 09:09:58 -0800
+        id S1726918AbgLPRKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:42 -0500
+Date:   Wed, 16 Dec 2020 09:10:26 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138598;
-        bh=Sa/mfAV1+SZLrKdpGX/EEezHuOh3Fd/Yj0zGypWFqj0=;
+        s=korg; t=1608138626;
+        bh=fe2fm0vIWefD2detzNACDunh+t00XTXARZcW5akLdMg=;
         h=From:To:Subject:From;
-        b=CSdpIHrxTgtzo4BGklPs29ivwHXSFD19No6BAl0r+dC3x/8N71uNKUrhmx5yJ/ABp
-         Cf3D4tN4yz7Ly3kbLuwxv+pG4CGHHjUxuJYPhB+M+KOjwOuF0Q28o0Hsk30Ywh1jaS
-         Q9hwDgUTFHssOHIgr0L91nZRgI690j9fz9huESJ0=
+        b=L0pRvXRNSyJX6tDRxSOCnjsUPo1kMlNVqPa07dM2hKa3H2TgZ2RRNTgSox93WCr3q
+         Y0XYq/OJNzVOtvHkD3gnqo19OGo+sm5eWsryJOz4MqhFCOuavjBkT1JNZqTMQ1UmxG
+         HPp6HGJkXpHvrTelHspxENuJGS2rsWbxcKwzYGsc=
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org, trix@redhat.com
+To:     dwaipayanray1@gmail.com, joe@perches.com,
+        mm-commits@vger.kernel.org, yepeilin.cs@gmail.com
 Subject:  [merged]
- checkpatch-add-a-fixer-for-missing-newline-at-eof.patch removed from -mm
- tree
-Message-ID: <20201216170958.S5YcOpHof%akpm@linux-foundation.org>
+ checkpatch-add-warning-for-lines-starting-with-a-in-commit-log.patch
+ removed from -mm tree
+Message-ID: <20201216171026.qb3iX2fNT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,45 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add a fixer for missing newline at eof
+     Subject: checkpatch: add warning for lines starting with a '#' in commit log
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-a-fixer-for-missing-newline-at-eof.patch
+     checkpatch-add-warning-for-lines-starting-with-a-in-commit-log.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tom Rix <trix@redhat.com>
-Subject: checkpatch: add a fixer for missing newline at eof
+From: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Subject: checkpatch: add warning for lines starting with a '#' in commit log
 
-Remove the trailing error message from the fixed lines.
+Commit log lines starting with '#' are dropped by git as comments.
+Add a check to emit a warning for these lines.
 
-Link: https://lkml.kernel.org/r/20201017142546.28988-1-trix@redhat.com
-Signed-off-by: Tom Rix <trix@redhat.com>
+Also add a --fix option to insert a space before the leading '#' in
+such lines.
+
+Link: https://lkml.kernel.org/r/20201202205740.127986-1-dwaipayanray1@gmail.com
+Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Suggested-by: Peilin Ye <yepeilin.cs@gmail.com>
+Tested-by: Peilin Ye <yepeilin.cs@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-add-a-fixer-for-missing-newline-at-eof
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-for-lines-starting-with-a-in-commit-log
 +++ a/scripts/checkpatch.pl
-@@ -3418,8 +3418,11 @@ sub process {
- 
- # check for adding lines without a newline.
- 		if ($line =~ /^\+/ && defined $lines[$linenr] && $lines[$linenr] =~ /^\\ No newline at end of file/) {
--			WARN("MISSING_EOF_NEWLINE",
--			     "adding a line without newline at end of file\n" . $herecurr);
-+			if (WARN("MISSING_EOF_NEWLINE",
-+			         "adding a line without newline at end of file\n" . $herecurr) &&
-+			    $fix) {
-+				fix_delete_line($fixlinenr+1, "No newline at end of file");
-+			}
+@@ -3033,6 +3033,15 @@ sub process {
+ 			$commit_log_possible_stack_dump = 0;
  		}
  
- # check we are in a valid source file C or perl if not then ignore this hunk
++# Check for lines starting with a #
++		if ($in_commit_log && $line =~ /^#/) {
++			if (WARN("COMMIT_COMMENT_SYMBOL",
++				 "Commit log lines starting with '#' are dropped by git as comments\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$fixlinenr] =~ s/^/ /;
++			}
++		}
++
+ # Check for git id commit length and improperly formed commit descriptions
+ 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
+ 		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink|base-commit):/i &&
 _
 
-Patches currently in -mm which might be from trix@redhat.com are
+Patches currently in -mm which might be from dwaipayanray1@gmail.com are
 
 
