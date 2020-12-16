@@ -7,37 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C8D3C0018C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E748C2BBCD
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B737A2342C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15A7A23428
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727060AbgLPRKp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60602 "EHLO mail.kernel.org"
+        id S1726988AbgLPRKs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726918AbgLPRKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:45 -0500
-Date:   Wed, 16 Dec 2020 09:10:04 -0800
+        id S1726918AbgLPRKs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:48 -0500
+Date:   Wed, 16 Dec 2020 09:10:32 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138604;
-        bh=6GedcVa0SEPNkHgJP+/ZnzsSPWkzmWL1je3ZWCGWA7k=;
+        s=korg; t=1608138632;
+        bh=R/SRUYaw8RCKu4Y1WZ7BA12fa59t+XCp0MFV6LtKDfo=;
         h=From:To:Subject:From;
-        b=ONsG8DByO6vreUsTn3JrP9mQkO8dbzLFxNDToAtFELvW1fjD1JMdPCjhHerWXoY+G
-         Hw0QbdZ2tlgnfewH/c6IMG5eXhPFsPNu2kwDo4Jl8MslqdJCuCQphUeTWoElHw0nrL
-         Shmc1GiYe6iFFEF19uZDG6t+aE0konHPSwuHwt1U=
+        b=NaFvOxtgrDUgH9oBOmy5UyxkNagWpuhnnoKAjvLwuQGyIaH42KmvTJlg2U9b5ajkX
+         uVcSAsOE37TH+Nbl2hYWG1orqvZMkX6FRYsE/lk4boy55IczLGA9dceBY3r2zZh8Lc
+         9nAvMZbXUQMSkmYJGzzG8kSOHOwXZquFI+X7+F5o=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com,
+To:     alex.shi@linux.alibaba.com, konishi.ryusuke@gmail.com,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?checkpatch-add-=5F=5Falias-and-=5F=5Fweak-to-suggested?=
- =?US-ASCII?Q?-=5F=5Fattribute=5F=5F-conversions.patch?= removed from -mm
- tree
-Message-ID: <20201216171004.dn_yxP-I-%akpm@linux-foundation.org>
+ fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch removed from -mm tree
+Message-ID: <20201216171032.E8xAMiy7g%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,50 +41,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add __alias and __weak to suggested __attribute__ conversions
+     Subject: fs/nilfs2: remove some unused macros to tame gcc
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-__alias-and-__weak-to-suggested-__attribute__-conversions.patch
+     fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add __alias and __weak to suggested __attribute__ conversions
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: fs/nilfs2: remove some unused macros to tame gcc
 
-Add __alias and __weak to the suggested __attribute__((<foo>))
-conversions.
+There some macros are unused and cause gcc warning. Remove them.
 
-Link: https://lkml.kernel.org/r/7b74137743c58ce0633ec4d575b94e2210e4dbe7.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+fs/nilfs2/segment.c:137:0: warning: macro "nilfs_cnt32_gt" is not used
+[-Wunused-macros]
+fs/nilfs2/segment.c:144:0: warning: macro "nilfs_cnt32_le" is not used
+[-Wunused-macros]
+fs/nilfs2/segment.c:143:0: warning: macro "nilfs_cnt32_lt" is not used
+[-Wunused-macros]
+
+Link: https://lkml.kernel.org/r/1607552733-24292-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/nilfs2/segment.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-__alias-and-__weak-to-suggested-__attribute__-conversions
-+++ a/scripts/checkpatch.pl
-@@ -6200,6 +6200,7 @@ sub process {
- 			$attr =~ s/\s*\(\s*(.*)\)\s*/$1/;
+--- a/fs/nilfs2/segment.c~fs-nilfs2-remove-some-unused-macros-to-tame-gcc
++++ a/fs/nilfs2/segment.c
+@@ -134,14 +134,9 @@ static void nilfs_segctor_do_flush(struc
+ static void nilfs_segctor_do_immediate_flush(struct nilfs_sc_info *);
+ static void nilfs_dispose_list(struct the_nilfs *, struct list_head *, int);
  
- 			my %attr_list = (
-+				"alias"				=> "__alias",
- 				"aligned"			=> "__aligned",
- 				"always_inline"			=> "__always_inline",
- 				"assume_aligned"		=> "__assume_aligned",
-@@ -6220,7 +6221,8 @@ sub process {
- 				"packed"			=> "__packed",
- 				"pure"				=> "__pure",
- 				"section"			=> "__section",
--				"used"				=> "__used"
-+				"used"				=> "__used",
-+				"weak"				=> "__weak"
- 			);
+-#define nilfs_cnt32_gt(a, b)   \
+-	(typecheck(__u32, a) && typecheck(__u32, b) && \
+-	 ((__s32)(b) - (__s32)(a) < 0))
+ #define nilfs_cnt32_ge(a, b)   \
+ 	(typecheck(__u32, a) && typecheck(__u32, b) && \
+ 	 ((__s32)(a) - (__s32)(b) >= 0))
+-#define nilfs_cnt32_lt(a, b)  nilfs_cnt32_gt(b, a)
+-#define nilfs_cnt32_le(a, b)  nilfs_cnt32_ge(b, a)
  
- 			while ($attr =~ /\s*(\w+)\s*(${balanced_parens})?/g) {
+ static int nilfs_prepare_segment_lock(struct super_block *sb,
+ 				      struct nilfs_transaction_info *ti)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
