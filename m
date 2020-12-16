@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71CBDC4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1682CC2BBCA
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A14223339
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB91E23339
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725974AbgLPErJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:47:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52254 "EHLO mail.kernel.org"
+        id S1725975AbgLPErN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:47:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725889AbgLPErJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:47:09 -0500
-Date:   Tue, 15 Dec 2020 20:46:28 -0800
+        id S1725889AbgLPErN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:47:13 -0500
+Date:   Tue, 15 Dec 2020 20:46:31 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093989;
-        bh=YwrmKa55pUjVOqVV/eSJX4MnmwW875Yj+ZNR6M+Y+ss=;
+        s=korg; t=1608093993;
+        bh=bimJKaiJtZ9KU4SlYMJVVyXU+ajd/+kZaYplVFLyV78=;
         h=From:To:Subject:In-Reply-To:From;
-        b=jmYGamBjIzNNdCcx/RMbWQm65pRlK52d5tMEHF0aapG5g3/b+X/CuT8kHuhomsRdC
-         vRbkPxhRtUc/6dG7yvFvsS5g4xQmmb5/5NvWoXjXLT2SiZqAccJFpJdQ+SjzuF0A8v
-         kRYehGuJutFOTo3QwHkvTFtHMWA09D2womdsY7Qk=
+        b=ICAuD6QBPXlTN8pBgDanhy2//uJklIxxv4/d78tDXly5AT9Zb08ZyANOOkuqKOtng
+         zBh8sRQKdLPdvKIUp6KmcY03jCZbtosxNoGo5lI2QWOME3XCCVEcmUZIozMvUlL3c1
+         GQsIwiivnFT5aZfnRcfs4LacSw+mNJBRRyFSDNrU=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, ardb@kernel.org, arnd@arndb.de,
         aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
@@ -36,9 +36,8 @@ To:     akpm@linux-foundation.org, ardb@kernel.org, arnd@arndb.de,
         natechancellor@gmail.com, ndesaulniers@google.com,
         oberpar@linux.ibm.com, rdunlap@infradead.org,
         torvalds@linux-foundation.org
-Subject:  [patch 76/95] ubsan: disable object-size sanitizer under
- GCC
-Message-ID: <20201216044628.M8eziqBtu%akpm@linux-foundation.org>
+Subject:  [patch 77/95] ubsan: disable UBSAN_TRAP for all*config
+Message-ID: <20201216044631.3fA0q8Vya%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,22 +46,22 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: disable object-size sanitizer under GCC
+Subject: ubsan: disable UBSAN_TRAP for all*config
 
-GCC's -fsanitize=object-size (as part of CONFIG_UBSAN_MISC) greatly
-increases stack utilization.  Do not allow this under GCC.
+Doing all*config builds attempts to build as much as possible. UBSAN_TRAP
+effectively short-circuits lib/usban.c, so it should be disabled for
+COMPILE_TEST so that the lib/ubsan.c code gets built.
 
-Link: https://lkml.kernel.org/r/20201203004437.389959-4-keescook@chromium.org
-Link: https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20201203004437.389959-5-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: George Popescu <georgepope@android.com>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Marco Elver <elver@google.com>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Michal Marek <michal.lkml@markovi.net>
@@ -72,19 +71,17 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/Kconfig.ubsan |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/Kconfig.ubsan~ubsan-disable-object-size-sanitizer-under-gcc
+--- a/lib/Kconfig.ubsan~ubsan-disable-ubsan_trap-for-allconfig
 +++ a/lib/Kconfig.ubsan
-@@ -113,6 +113,9 @@ config UBSAN_UNSIGNED_OVERFLOW
+@@ -14,6 +14,7 @@ if UBSAN
  
- config UBSAN_OBJECT_SIZE
- 	def_bool UBSAN_MISC
-+	# gcc hugely expands stack usage with -fsanitize=object-size
-+	# https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
-+	depends on !CC_IS_GCC
- 	depends on $(cc-option,-fsanitize=object-size)
- 
- config UBSAN_BOOL
+ config UBSAN_TRAP
+ 	bool "On Sanitizer warnings, abort the running kernel code"
++	depends on !COMPILE_TEST
+ 	depends on $(cc-option, -fsanitize-undefined-trap-on-error)
+ 	help
+ 	  Building kernels with Sanitizer features enabled tends to grow
 _
