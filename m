@@ -7,32 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1E62C4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1662AC4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3E0B2342C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C36F023432
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726812AbgLPRLL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:11:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59886 "EHLO mail.kernel.org"
+        id S1726846AbgLPRLR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:11:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726798AbgLPRLL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:11:11 -0500
-Date:   Wed, 16 Dec 2020 09:10:55 -0800
+        id S1726798AbgLPRLP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:11:15 -0500
+Date:   Wed, 16 Dec 2020 09:10:34 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138655;
-        bh=sNroD754V26zan9c+vG8cFRiZtKhDNtlwhcvcxMCvrY=;
+        s=korg; t=1608138634;
+        bh=FPWFAbH6Z54SaoJaLaisTXAJV9MmNj3vwoMlo2YMJJs=;
         h=From:To:Subject:From;
-        b=ZxsGVeu90CGEV341IvoovN0bePu+oTwLRqxv0lKBXRDZLwU1n76mjzrd/saejBEwW
-         WmNOaTWjXgjslUEplVXkMQHmdfT/2vuoQIr3RZKf0Kc+M1wXyVND2e2E6KDNmsA4mn
-         kDjcWmQr/KDYVcaFjvpYNwAjxxlBfZz2P+7FifM4=
+        b=INSh8/b+3heUkUvlO9JCxATF8SQ+rGcS3tpZC/6gLaKrIbImCxv5vs9aPpjsCIRlq
+         Y+apMP7Ubf5t+UTy/eXfNoHH7YoCthD4BYhQWm31EaTnb1fL76xoHpicUDS/PbbS/k
+         7So2IT6XfwavTaR222OjTQZ5YxS9Je7T03zpTv6s=
 From:   akpm@linux-foundation.org
-To:     axboe@kernel.dk, hch@lst.de, jani.nikula@intel.com,
-        kvalo@codeaurora.org, mm-commits@vger.kernel.org
+To:     bhe@redhat.com, christian.brauner@ubuntu.com, dyoung@redhat.com,
+        ebiederm@xmission.com, egorenar@linux.ibm.com,
+        keescook@chromium.org, ktkhai@virtuozzo.com, lijiang@redhat.com,
+        mm-commits@vger.kernel.org, vgoyal@redhat.com
 Subject:  [merged]
- relay-allow-the-use-of-const-callback-structs.patch removed from -mm tree
-Message-ID: <20201216171055.Ge5xtBBmC%akpm@linux-foundation.org>
+ kdump-append-uts_namespacename-offset-to-vmcoreinfo.patch removed from -mm
+ tree
+Message-ID: <20201216171034.r5vXrhMGj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,142 +44,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: allow the use of const callback structs
+     Subject: kdump: append uts_namespace.name offset to VMCOREINFO
 has been removed from the -mm tree.  Its filename was
-     relay-allow-the-use-of-const-callback-structs.patch
+     kdump-append-uts_namespacename-offset-to-vmcoreinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: relay: allow the use of const callback structs
+From: Alexander Egorenkov <egorenar@linux.ibm.com>
+Subject: kdump: append uts_namespace.name offset to VMCOREINFO
 
-None of the relay users require the use of mutable structs for callbacks,
-however the relay code does.  Instead of assigning the default callback
-for subbuf_start, add a wrapper to conditionally call the client callback
-if available, and fall back to default behaviour otherwise.
+The offset of the field 'init_uts_ns.name' has changed since commit
+9a56493f6942 ("uts: Use generic ns_common::count").
 
-This lets all relay users make their struct rchan_callbacks const data.
+Make the offset of the field 'uts_namespace.name' available in VMCOREINFO
+because tools like 'crash-utility' and 'makedumpfile' must be able to read
+it from crash dumps.
 
-[jani.nikula@intel.com: cleanups, per Christoph]
-  Link: https://lkml.kernel.org/r/20201124115412.32402-1-jani.nikula@intel.com
-Link: https://lkml.kernel.org/r/cc3ff292e4eb4fdc56bee3d690c7b8e39209cd37.1606153547.git.jani.nikula@intel.com
-Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kalle Valo <kvalo@codeaurora.org>
+Link: https://lore.kernel.org/r/159644978167.604812.1773586504374412107.stgit@localhost.localdomain
+Link: https://lkml.kernel.org/r/20200930102328.396488-1-egorenar@linux.ibm.com
+Signed-off-by: Alexander Egorenkov <egorenar@linux.ibm.com>
+Acked-by: lijiang <lijiang@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/relay.h |    4 ++--
- kernel/relay.c        |   37 ++++++++++---------------------------
- 2 files changed, 12 insertions(+), 29 deletions(-)
+ Documentation/admin-guide/kdump/vmcoreinfo.rst |    6 ++++++
+ kernel/crash_core.c                            |    1 +
+ 2 files changed, 7 insertions(+)
 
---- a/include/linux/relay.h~relay-allow-the-use-of-const-callback-structs
-+++ a/include/linux/relay.h
-@@ -62,7 +62,7 @@ struct rchan
- 	size_t subbuf_size;		/* sub-buffer size */
- 	size_t n_subbufs;		/* number of sub-buffers per buffer */
- 	size_t alloc_size;		/* total buffer size allocated */
--	struct rchan_callbacks *cb;	/* client callbacks */
-+	const struct rchan_callbacks *cb; /* client callbacks */
- 	struct kref kref;		/* channel refcount */
- 	void *private_data;		/* for user-defined data */
- 	size_t last_toobig;		/* tried to log event > subbuf size */
-@@ -157,7 +157,7 @@ struct rchan *relay_open(const char *bas
- 			 struct dentry *parent,
- 			 size_t subbuf_size,
- 			 size_t n_subbufs,
--			 struct rchan_callbacks *cb,
-+			 const struct rchan_callbacks *cb,
- 			 void *private_data);
- extern int relay_late_setup_files(struct rchan *chan,
- 				  const char *base_filename,
---- a/kernel/relay.c~relay-allow-the-use-of-const-callback-structs
-+++ a/kernel/relay.c
-@@ -252,23 +252,14 @@ EXPORT_SYMBOL_GPL(relay_buf_full);
-  * High-level relay kernel API and associated functions.
-  */
+--- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~kdump-append-uts_namespacename-offset-to-vmcoreinfo
++++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
+@@ -39,6 +39,12 @@ call.
+ User-space tools can get the kernel name, host name, kernel release
+ number, kernel version, architecture name and OS type from it.
  
--/*
-- * rchan_callback implementations defining default channel behavior.  Used
-- * in place of corresponding NULL values in client callback struct.
-- */
--
--/*
-- * subbuf_start() default callback.  Does nothing.
-- */
--static int subbuf_start_default_callback (struct rchan_buf *buf,
--					  void *subbuf,
--					  void *prev_subbuf,
--					  size_t prev_padding)
-+static int relay_subbuf_start(struct rchan_buf *buf, void *subbuf,
-+			      void *prev_subbuf, size_t prev_padding)
- {
--	if (relay_buf_full(buf))
--		return 0;
-+	if (!buf->chan->cb->subbuf_start)
-+		return !relay_buf_full(buf);
++(uts_namespace, name)
++---------------------
++
++Offset of the name's member. Crash Utility and Makedumpfile get
++the start address of the init_uts_ns.name from this.
++
+ node_online_map
+ ---------------
  
--	return 1;
-+	return buf->chan->cb->subbuf_start(buf, subbuf,
-+					   prev_subbuf, prev_padding);
- }
+--- a/kernel/crash_core.c~kdump-append-uts_namespacename-offset-to-vmcoreinfo
++++ a/kernel/crash_core.c
+@@ -447,6 +447,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
  
- /**
-@@ -314,7 +305,7 @@ static void __relay_reset(struct rchan_b
- 	for (i = 0; i < buf->chan->n_subbufs; i++)
- 		buf->padding[i] = 0;
- 
--	buf->chan->cb->subbuf_start(buf, buf->data, NULL, 0);
-+	relay_subbuf_start(buf, buf->data, NULL, 0);
- }
- 
- /**
-@@ -442,14 +433,6 @@ static void relay_close_buf(struct rchan
- 	kref_put(&buf->kref, relay_remove_buf);
- }
- 
--static void setup_callbacks(struct rchan *chan,
--				   struct rchan_callbacks *cb)
--{
--	if (!cb->subbuf_start)
--		cb->subbuf_start = subbuf_start_default_callback;
--	chan->cb = cb;
--}
--
- int relay_prepare_cpu(unsigned int cpu)
- {
- 	struct rchan *chan;
-@@ -495,7 +478,7 @@ struct rchan *relay_open(const char *bas
- 			 struct dentry *parent,
- 			 size_t subbuf_size,
- 			 size_t n_subbufs,
--			 struct rchan_callbacks *cb,
-+			 const struct rchan_callbacks *cb,
- 			 void *private_data)
- {
- 	unsigned int i;
-@@ -529,7 +512,7 @@ struct rchan *relay_open(const char *bas
- 		chan->has_base_filename = 1;
- 		strlcpy(chan->base_filename, base_filename, NAME_MAX);
- 	}
--	setup_callbacks(chan, cb);
-+	chan->cb = cb;
- 	kref_init(&chan->kref);
- 
- 	mutex_lock(&relay_channels_mutex);
-@@ -712,7 +695,7 @@ size_t relay_switch_subbuf(struct rchan_
- 	new_subbuf = buf->subbufs_produced % buf->chan->n_subbufs;
- 	new = buf->start + new_subbuf * buf->chan->subbuf_size;
- 	buf->offset = 0;
--	if (!buf->chan->cb->subbuf_start(buf, new, old, buf->prev_padding)) {
-+	if (!relay_subbuf_start(buf, new, old, buf->prev_padding)) {
- 		buf->offset = buf->chan->subbuf_size + 1;
- 		return 0;
- 	}
+ 	VMCOREINFO_SYMBOL(init_uts_ns);
++	VMCOREINFO_OFFSET(uts_namespace, name);
+ 	VMCOREINFO_SYMBOL(node_online_map);
+ #ifdef CONFIG_MMU
+ 	VMCOREINFO_SYMBOL_ARRAY(swapper_pg_dir);
 _
 
-Patches currently in -mm which might be from jani.nikula@intel.com are
+Patches currently in -mm which might be from egorenar@linux.ibm.com are
 
 
