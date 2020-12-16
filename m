@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEACBC2BBCA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71CBDC4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E1BA23159
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A14223339
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:47:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725972AbgLPErH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:47:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52194 "EHLO mail.kernel.org"
+        id S1725974AbgLPErJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:47:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725889AbgLPErG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:47:06 -0500
-Date:   Tue, 15 Dec 2020 20:46:24 -0800
+        id S1725889AbgLPErJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:47:09 -0500
+Date:   Tue, 15 Dec 2020 20:46:28 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093985;
-        bh=0HCv4Z6fjSGNsTFYUhYBPMksxfMLBZk3z40vckBpnHA=;
+        s=korg; t=1608093989;
+        bh=YwrmKa55pUjVOqVV/eSJX4MnmwW875Yj+ZNR6M+Y+ss=;
         h=From:To:Subject:In-Reply-To:From;
-        b=iDHlom1Xt5WdukwsE6mFBSsOzcwt6D4vrhgFjUNvDap2kKrxkEUwjMhyHCeBp4w27
-         +7Iy4voY2fHV89KUpA4Hl38i9j00ZsMQ3pOX1c7prcSrz3ywkUchMTnabWmiLm1sP0
-         tvtrDiXPIC63oHbk6prVwWbiTZC/RDzE8FijJWpA=
+        b=jmYGamBjIzNNdCcx/RMbWQm65pRlK52d5tMEHF0aapG5g3/b+X/CuT8kHuhomsRdC
+         vRbkPxhRtUc/6dG7yvFvsS5g4xQmmb5/5NvWoXjXLT2SiZqAccJFpJdQ+SjzuF0A8v
+         kRYehGuJutFOTo3QwHkvTFtHMWA09D2womdsY7Qk=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, ardb@kernel.org, arnd@arndb.de,
         aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
@@ -36,8 +36,9 @@ To:     akpm@linux-foundation.org, ardb@kernel.org, arnd@arndb.de,
         natechancellor@gmail.com, ndesaulniers@google.com,
         oberpar@linux.ibm.com, rdunlap@infradead.org,
         torvalds@linux-foundation.org
-Subject:  [patch 75/95] ubsan: move cc-option tests into Kconfig
-Message-ID: <20201216044624.Q8RPsCPth%akpm@linux-foundation.org>
+Subject:  [patch 76/95] ubsan: disable object-size sanitizer under
+ GCC
+Message-ID: <20201216044628.M8eziqBtu%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,18 +47,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: move cc-option tests into Kconfig
+Subject: ubsan: disable object-size sanitizer under GCC
 
-Instead of doing if/endif blocks with cc-option calls in the UBSAN
-Makefile, move all the tests into Kconfig and use the Makefile to collect
-the results.
+GCC's -fsanitize=object-size (as part of CONFIG_UBSAN_MISC) greatly
+increases stack utilization.  Do not allow this under GCC.
 
-Link: https://lkml.kernel.org/r/20201203004437.389959-3-keescook@chromium.org
+Link: https://lkml.kernel.org/r/20201203004437.389959-4-keescook@chromium.org
 Link: https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Tested-by: Nathan Chancellor <natechancellor@gmail.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -73,160 +72,19 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan      |   61 +++++++++++++++++++++++++++++++++++++--
- scripts/Makefile.ubsan |   45 +++++++++-------------------
- 2 files changed, 73 insertions(+), 33 deletions(-)
+ lib/Kconfig.ubsan |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/Kconfig.ubsan~ubsan-move-cc-option-tests-into-kconfig
+--- a/lib/Kconfig.ubsan~ubsan-disable-object-size-sanitizer-under-gcc
 +++ a/lib/Kconfig.ubsan
-@@ -36,10 +36,17 @@ config UBSAN_KCOV_BROKEN
- 	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
- 	  in newer releases.
+@@ -113,6 +113,9 @@ config UBSAN_UNSIGNED_OVERFLOW
  
-+config CC_HAS_UBSAN_BOUNDS
-+	def_bool $(cc-option,-fsanitize=bounds)
-+
-+config CC_HAS_UBSAN_ARRAY_BOUNDS
-+	def_bool $(cc-option,-fsanitize=array-bounds)
-+
- config UBSAN_BOUNDS
- 	bool "Perform array index bounds checking"
- 	default UBSAN
- 	depends on !UBSAN_KCOV_BROKEN
-+	depends on CC_HAS_UBSAN_ARRAY_BOUNDS || CC_HAS_UBSAN_BOUNDS
- 	help
- 	  This option enables detection of directly indexed out of bounds
- 	  array accesses, where the array size is known at compile time.
-@@ -47,15 +54,30 @@ config UBSAN_BOUNDS
- 	  to the {str,mem}*cpy() family of functions (that is addressed
- 	  by CONFIG_FORTIFY_SOURCE).
+ config UBSAN_OBJECT_SIZE
+ 	def_bool UBSAN_MISC
++	# gcc hugely expands stack usage with -fsanitize=object-size
++	# https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
++	depends on !CC_IS_GCC
+ 	depends on $(cc-option,-fsanitize=object-size)
  
-+config UBSAN_ONLY_BOUNDS
-+	def_bool CC_HAS_UBSAN_BOUNDS && !CC_HAS_UBSAN_ARRAY_BOUNDS
-+	depends on UBSAN_BOUNDS
-+	help
-+	  This is a weird case: Clang's -fsanitize=bounds includes
-+	  -fsanitize=local-bounds, but it's trapping-only, so for
-+	  Clang, we must use -fsanitize=array-bounds when we want
-+	  traditional array bounds checking enabled. For GCC, we
-+	  want -fsanitize=bounds.
-+
-+config UBSAN_ARRAY_BOUNDS
-+	def_bool CC_HAS_UBSAN_ARRAY_BOUNDS
-+	depends on UBSAN_BOUNDS
-+
- config UBSAN_LOCAL_BOUNDS
- 	bool "Perform array local bounds checking"
- 	depends on UBSAN_TRAP
--	depends on CC_IS_CLANG
- 	depends on !UBSAN_KCOV_BROKEN
-+	depends on $(cc-option,-fsanitize=local-bounds)
- 	help
- 	  This option enables -fsanitize=local-bounds which traps when an
--	  exception/error is detected. Therefore, it should be enabled only
--	  if trapping is expected.
-+	  exception/error is detected. Therefore, it may only be enabled
-+	  with CONFIG_UBSAN_TRAP.
-+
- 	  Enabling this option detects errors due to accesses through a
- 	  pointer that is derived from an object of a statically-known size,
- 	  where an added offset (which may not be known statically) is
-@@ -69,6 +91,38 @@ config UBSAN_MISC
- 	  own Kconfig options. Disable this if you only want to have
- 	  individually selected checks.
- 
-+config UBSAN_SHIFT
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=shift)
-+
-+config UBSAN_DIV_ZERO
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=integer-divide-by-zero)
-+
-+config UBSAN_UNREACHABLE
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=unreachable)
-+
-+config UBSAN_SIGNED_OVERFLOW
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=signed-integer-overflow)
-+
-+config UBSAN_UNSIGNED_OVERFLOW
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
-+
-+config UBSAN_OBJECT_SIZE
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=object-size)
-+
-+config UBSAN_BOOL
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=bool)
-+
-+config UBSAN_ENUM
-+	def_bool UBSAN_MISC
-+	depends on $(cc-option,-fsanitize=enum)
-+
- config UBSAN_SANITIZE_ALL
- 	bool "Enable instrumentation for the entire kernel"
- 	depends on ARCH_HAS_UBSAN_SANITIZE_ALL
-@@ -85,6 +139,7 @@ config UBSAN_ALIGNMENT
- 	bool "Enable checks for pointers alignment"
- 	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	depends on !UBSAN_TRAP
-+	depends on $(cc-option,-fsanitize=alignment)
- 	help
- 	  This option enables the check of unaligned memory accesses.
- 	  Enabling this option on architectures that support unaligned
---- a/scripts/Makefile.ubsan~ubsan-move-cc-option-tests-into-kconfig
-+++ a/scripts/Makefile.ubsan
-@@ -1,33 +1,18 @@
- # SPDX-License-Identifier: GPL-2.0
- 
--export CFLAGS_UBSAN :=
-+# Enable available and selected UBSAN features.
-+ubsan-cflags-$(CONFIG_UBSAN_ALIGNMENT)		+= -fsanitize=alignment
-+ubsan-cflags-$(CONFIG_UBSAN_ONLY_BOUNDS)	+= -fsanitize=bounds
-+ubsan-cflags-$(CONFIG_UBSAN_ARRAY_BOUNDS)	+= -fsanitize=array-bounds
-+ubsan-cflags-$(CONFIG_UBSAN_LOCAL_BOUNDS)	+= -fsanitize=local-bounds
-+ubsan-cflags-$(CONFIG_UBSAN_SHIFT)		+= -fsanitize=shift
-+ubsan-cflags-$(CONFIG_UBSAN_DIV_ZERO)		+= -fsanitize=integer-divide-by-zero
-+ubsan-cflags-$(CONFIG_UBSAN_UNREACHABLE)	+= -fsanitize=unreachable
-+ubsan-cflags-$(CONFIG_UBSAN_SIGNED_OVERFLOW)	+= -fsanitize=signed-integer-overflow
-+ubsan-cflags-$(CONFIG_UBSAN_UNSIGNED_OVERFLOW)	+= -fsanitize=unsigned-integer-overflow
-+ubsan-cflags-$(CONFIG_UBSAN_OBJECT_SIZE)	+= -fsanitize=object-size
-+ubsan-cflags-$(CONFIG_UBSAN_BOOL)		+= -fsanitize=bool
-+ubsan-cflags-$(CONFIG_UBSAN_ENUM)		+= -fsanitize=enum
-+ubsan-cflags-$(CONFIG_UBSAN_TRAP)		+= -fsanitize-undefined-trap-on-error
- 
--ifdef CONFIG_UBSAN_ALIGNMENT
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=alignment)
--endif
--
--ifdef CONFIG_UBSAN_BOUNDS
--      ifdef CONFIG_CC_IS_CLANG
--            CFLAGS_UBSAN += -fsanitize=array-bounds
--      else
--            CFLAGS_UBSAN += $(call cc-option, -fsanitize=bounds)
--      endif
--endif
--
--ifdef CONFIG_UBSAN_LOCAL_BOUNDS
--      CFLAGS_UBSAN += -fsanitize=local-bounds
--endif
--
--ifdef CONFIG_UBSAN_MISC
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=shift)
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=integer-divide-by-zero)
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=unreachable)
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=signed-integer-overflow)
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=object-size)
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=bool)
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize=enum)
--endif
--
--ifdef CONFIG_UBSAN_TRAP
--      CFLAGS_UBSAN += $(call cc-option, -fsanitize-undefined-trap-on-error)
--endif
-+export CFLAGS_UBSAN := $(ubsan-cflags-y)
+ config UBSAN_BOOL
 _
