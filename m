@@ -2,39 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16254C4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D219C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF530233FB
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0893E233F7
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727069AbgLPRM0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:12:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33474 "EHLO mail.kernel.org"
+        id S1727070AbgLPRMe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:12:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726826AbgLPRM0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:12:26 -0500
-Date:   Wed, 16 Dec 2020 09:11:44 -0800
+        id S1726826AbgLPRMe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:12:34 -0500
+Date:   Wed, 16 Dec 2020 09:11:53 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138705;
-        bh=BNB0hEXKhwGN+ZfOODFPxvaNP6Okp+GgNtZZCBBS4xc=;
+        s=korg; t=1608138713;
+        bh=UbmTZCjwS/keKPx/Jq7CJ9jKSklQPkFOGdpd8YJTOIA=;
         h=From:To:Subject:From;
-        b=DxI5Sw+M0yFA3HhazW68sAzY8qJFvjW9YTGqBDbgf0bCsd8BoteKGiL7E1GsZfdhk
-         HcMACsmK4FfgMtxm6ebc49MYsQ+F89RzdFwpQekh8l8psfoTfXd42kmX5Qje/LlEHJ
-         DY4xKfGDSPgpiFQ6fBdzMjnBRFZxNfcQALY8yX7A=
+        b=LTiqqo3DxQO8xBjya+psOseUIkjaUk127B/NqsosWYdYFwaHskFrsh07eJo4tM4fF
+         qTdC+xrS9zjYK1p3t8tfabVgkWnW9Rv7FZgK8P9EDHHJ1VJG5GzMlQrLmGIll6LCZa
+         GRlD6f5tjKnTOyFHRq9Hojtld85VE/OOazY2vgeU=
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, keescook@chromium.org, linux@roeck-us.net,
-        mcroce@microsoft.com, mm-commits@vger.kernel.org,
-        natechancellor@gmail.com, pasha.tatashin@soleen.com,
-        pmladek@suse.com, rppt@kernel.org, tyhicks@linux.microsoft.com
+To:     mcroce@microsoft.com, mm-commits@vger.kernel.org, pmladek@suse.com
 Subject:  [merged]
- reboot-allow-to-specify-reboot-mode-via-sysfs.patch removed from -mm tree
-Message-ID: <20201216171144.clpWGgUnv%akpm@linux-foundation.org>
+ reboot-hide-from-sysfs-not-applicable-settings.patch removed from -mm tree
+Message-ID: <20201216171153.-Cl-RmxQ4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,273 +40,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reboot: allow to specify reboot mode via sysfs
+     Subject: reboot: hide from sysfs not applicable settings
 has been removed from the -mm tree.  Its filename was
-     reboot-allow-to-specify-reboot-mode-via-sysfs.patch
+     reboot-hide-from-sysfs-not-applicable-settings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matteo Croce <mcroce@microsoft.com>
-Subject: reboot: allow to specify reboot mode via sysfs
+Subject: reboot: hide from sysfs not applicable settings
 
-The kernel cmdline reboot= option offers some sort of control on how the
-reboot is issued.
+Not all the reboot settings from both the kernel command line or sysfs
+interface are available to all platforms.
 
-We don't always know in advance what type of reboot to perform.
+Filter out reboot_type and reboot_force which are x86 only, and also
+remove reboot_cpu on kernels without SMP support.
 
-Sometimes a warm reboot is preferred to persist certain memory regions
-across the reboot.  Others a cold one is needed to apply a future
-system update that makes a memory memory model change, like changing
-the base page size or resizing a persistent memory region.
+This saves some space, and avoid confusing the user with settings which
+will have no effect.
 
-Or simply we want to enable reboot_force because we noticed that
-something bad happened.
-
-Add handles in sysfs to allow setting these reboot options, so they can
-be changed when the system is booted, other than at boot time.
-
-The handlers are under <sysfs>/kernel/reboot, can be read to get the
-current configuration and written to alter it.
-
-	# cd /sys/kernel/reboot/
-
-	# grep . *
-	cpu:0
-	force:0
-	mode:cold
-	type:acpi
-
-	# echo 2 >cpu
-	# echo yes >force
-	# echo soft >mode
-	# echo bios >type
-
-	# grep . *
-	cpu:2
-	force:1
-	mode:soft
-	type:bios
-
-Before setting anything, check for CAP_SYS_BOOT capability, so it's
-possible to allow an unpriviledged process to change these settings simply
-by relaxing the handles permissions, without opening them to the world.
-
-[natechancellor@gmail.com: fix variable assignments in type_store]
-  Link: https://lkml.kernel.org/r/20201112035023.974748-1-natechancellor@gmail.com
-  Link: https://github.com/ClangBuiltLinux/linux/issues/1197
-Link: https://lkml.kernel.org/r/20201110202746.9690-1-mcroce@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20201130173717.198952-3-mcroce@linux.microsoft.com
 Signed-off-by: Matteo Croce <mcroce@microsoft.com>
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-reboot |   32 ++
- kernel/reboot.c                               |  206 ++++++++++++++++
- 2 files changed, 238 insertions(+)
+ kernel/reboot.c |   54 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 31 insertions(+), 23 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-reboot
-@@ -0,0 +1,32 @@
-+What:		/sys/kernel/reboot
-+Date:		November 2020
-+KernelVersion:	5.11
-+Contact:	Matteo Croce <mcroce@microsoft.com>
-+Description:	Interface to set the kernel reboot behavior, similarly to
-+		what can be done via the reboot= cmdline option.
-+		(see Documentation/admin-guide/kernel-parameters.txt)
-+
-+What:		/sys/kernel/reboot/mode
-+Date:		November 2020
-+KernelVersion:	5.11
-+Contact:	Matteo Croce <mcroce@microsoft.com>
-+Description:	Reboot mode. Valid values are: cold warm hard soft gpio
-+
-+What:		/sys/kernel/reboot/type
-+Date:		November 2020
-+KernelVersion:	5.11
-+Contact:	Matteo Croce <mcroce@microsoft.com>
-+Description:	Reboot type. Valid values are: bios acpi kbd triple efi pci
-+
-+What:		/sys/kernel/reboot/cpu
-+Date:		November 2020
-+KernelVersion:	5.11
-+Contact:	Matteo Croce <mcroce@microsoft.com>
-+Description:	CPU number to use to reboot.
-+
-+What:		/sys/kernel/reboot/force
-+Date:		November 2020
-+KernelVersion:	5.11
-+Contact:	Matteo Croce <mcroce@microsoft.com>
-+Description:	Don't wait for any other CPUs on reboot and
-+		avoid anything that could hang.
---- a/kernel/reboot.c~reboot-allow-to-specify-reboot-mode-via-sysfs
+--- a/kernel/reboot.c~reboot-hide-from-sysfs-not-applicable-settings
 +++ a/kernel/reboot.c
-@@ -600,3 +600,209 @@ static int __init reboot_setup(char *str
- 	return 1;
+@@ -668,6 +668,29 @@ static ssize_t mode_store(struct kobject
  }
- __setup("reboot=", reboot_setup);
-+
-+#ifdef CONFIG_SYSFS
-+
-+#define REBOOT_COLD_STR		"cold"
-+#define REBOOT_WARM_STR		"warm"
-+#define REBOOT_HARD_STR		"hard"
-+#define REBOOT_SOFT_STR		"soft"
-+#define REBOOT_GPIO_STR		"gpio"
-+#define REBOOT_UNDEFINED_STR	"undefined"
-+
-+#define BOOT_TRIPLE_STR		"triple"
-+#define BOOT_KBD_STR		"kbd"
-+#define BOOT_BIOS_STR		"bios"
-+#define BOOT_ACPI_STR		"acpi"
-+#define BOOT_EFI_STR		"efi"
-+#define BOOT_CF9_FORCE_STR	"cf9_force"
-+#define BOOT_CF9_SAFE_STR	"cf9_safe"
-+
-+static ssize_t mode_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-+{
-+	const char *val;
-+
-+	switch (reboot_mode) {
-+	case REBOOT_COLD:
-+		val = REBOOT_COLD_STR;
-+		break;
-+	case REBOOT_WARM:
-+		val = REBOOT_WARM_STR;
-+		break;
-+	case REBOOT_HARD:
-+		val = REBOOT_HARD_STR;
-+		break;
-+	case REBOOT_SOFT:
-+		val = REBOOT_SOFT_STR;
-+		break;
-+	case REBOOT_GPIO:
-+		val = REBOOT_GPIO_STR;
-+		break;
-+	default:
-+		val = REBOOT_UNDEFINED_STR;
-+	}
-+
-+	return sprintf(buf, "%s\n", val);
-+}
-+static ssize_t mode_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	if (!capable(CAP_SYS_BOOT))
-+		return -EPERM;
-+
-+	if (!strncmp(buf, REBOOT_COLD_STR, strlen(REBOOT_COLD_STR)))
-+		reboot_mode = REBOOT_COLD;
-+	else if (!strncmp(buf, REBOOT_WARM_STR, strlen(REBOOT_WARM_STR)))
-+		reboot_mode = REBOOT_WARM;
-+	else if (!strncmp(buf, REBOOT_HARD_STR, strlen(REBOOT_HARD_STR)))
-+		reboot_mode = REBOOT_HARD;
-+	else if (!strncmp(buf, REBOOT_SOFT_STR, strlen(REBOOT_SOFT_STR)))
-+		reboot_mode = REBOOT_SOFT;
-+	else if (!strncmp(buf, REBOOT_GPIO_STR, strlen(REBOOT_GPIO_STR)))
-+		reboot_mode = REBOOT_GPIO;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+static struct kobj_attribute reboot_mode_attr = __ATTR_RW(mode);
-+
-+static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-+{
-+	const char *val;
-+
-+	switch (reboot_type) {
-+	case BOOT_TRIPLE:
-+		val = BOOT_TRIPLE_STR;
-+		break;
-+	case BOOT_KBD:
-+		val = BOOT_KBD_STR;
-+		break;
-+	case BOOT_BIOS:
-+		val = BOOT_BIOS_STR;
-+		break;
-+	case BOOT_ACPI:
-+		val = BOOT_ACPI_STR;
-+		break;
-+	case BOOT_EFI:
-+		val = BOOT_EFI_STR;
-+		break;
-+	case BOOT_CF9_FORCE:
-+		val = BOOT_CF9_FORCE_STR;
-+		break;
-+	case BOOT_CF9_SAFE:
-+		val = BOOT_CF9_SAFE_STR;
-+		break;
-+	default:
-+		val = REBOOT_UNDEFINED_STR;
-+	}
-+
-+	return sprintf(buf, "%s\n", val);
-+}
-+static ssize_t type_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	if (!capable(CAP_SYS_BOOT))
-+		return -EPERM;
-+
-+	if (!strncmp(buf, BOOT_TRIPLE_STR, strlen(BOOT_TRIPLE_STR)))
-+		reboot_type = BOOT_TRIPLE;
-+	else if (!strncmp(buf, BOOT_KBD_STR, strlen(BOOT_KBD_STR)))
-+		reboot_type = BOOT_KBD;
-+	else if (!strncmp(buf, BOOT_BIOS_STR, strlen(BOOT_BIOS_STR)))
-+		reboot_type = BOOT_BIOS;
-+	else if (!strncmp(buf, BOOT_ACPI_STR, strlen(BOOT_ACPI_STR)))
-+		reboot_type = BOOT_ACPI;
-+	else if (!strncmp(buf, BOOT_EFI_STR, strlen(BOOT_EFI_STR)))
-+		reboot_type = BOOT_EFI;
-+	else if (!strncmp(buf, BOOT_CF9_FORCE_STR, strlen(BOOT_CF9_FORCE_STR)))
-+		reboot_type = BOOT_CF9_FORCE;
-+	else if (!strncmp(buf, BOOT_CF9_SAFE_STR, strlen(BOOT_CF9_SAFE_STR)))
-+		reboot_type = BOOT_CF9_SAFE;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+static struct kobj_attribute reboot_type_attr = __ATTR_RW(type);
-+
-+static ssize_t cpu_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", reboot_cpu);
-+}
-+static ssize_t cpu_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	unsigned int cpunum;
-+	int rc;
-+
-+	if (!capable(CAP_SYS_BOOT))
-+		return -EPERM;
-+
-+	rc = kstrtouint(buf, 0, &cpunum);
-+
-+	if (rc)
-+		return rc;
-+
-+	if (cpunum >= num_possible_cpus())
-+		return -ERANGE;
-+
-+	reboot_cpu = cpunum;
-+
-+	return count;
-+}
-+static struct kobj_attribute reboot_cpu_attr = __ATTR_RW(cpu);
-+
+ static struct kobj_attribute reboot_mode_attr = __ATTR_RW(mode);
+ 
++#ifdef CONFIG_X86
 +static ssize_t force_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 +{
 +	return sprintf(buf, "%d\n", reboot_force);
@@ -325,44 +90,67 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (kstrtobool(buf, &res))
 +		return -EINVAL;
 +
++	reboot_default = 0;
 +	reboot_force = res;
 +
 +	return count;
 +}
 +static struct kobj_attribute reboot_force_attr = __ATTR_RW(force);
 +
-+static struct attribute *reboot_attrs[] = {
-+	&reboot_mode_attr.attr,
-+	&reboot_type_attr.attr,
-+	&reboot_cpu_attr.attr,
-+	&reboot_force_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group reboot_attr_group = {
-+	.attrs = reboot_attrs,
-+};
-+
-+static int __init reboot_ksysfs_init(void)
-+{
-+	struct kobject *reboot_kobj;
-+	int ret;
-+
-+	reboot_kobj = kobject_create_and_add("reboot", kernel_kobj);
-+	if (!reboot_kobj)
-+		return -ENOMEM;
-+
-+	ret = sysfs_create_group(reboot_kobj, &reboot_attr_group);
-+	if (ret) {
-+		kobject_put(reboot_kobj);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+late_initcall(reboot_ksysfs_init);
-+
+ static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+ {
+ 	const char *val;
+@@ -723,7 +746,9 @@ static ssize_t type_store(struct kobject
+ 	return count;
+ }
+ static struct kobj_attribute reboot_type_attr = __ATTR_RW(type);
 +#endif
+ 
++#ifdef CONFIG_SMP
+ static ssize_t cpu_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+ {
+ 	return sprintf(buf, "%d\n", reboot_cpu);
+@@ -751,34 +776,17 @@ static ssize_t cpu_store(struct kobject
+ 	return count;
+ }
+ static struct kobj_attribute reboot_cpu_attr = __ATTR_RW(cpu);
+-
+-static ssize_t force_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%d\n", reboot_force);
+-}
+-static ssize_t force_store(struct kobject *kobj, struct kobj_attribute *attr,
+-			  const char *buf, size_t count)
+-{
+-	bool res;
+-
+-	if (!capable(CAP_SYS_BOOT))
+-		return -EPERM;
+-
+-	if (kstrtobool(buf, &res))
+-		return -EINVAL;
+-
+-	reboot_default = 0;
+-	reboot_force = res;
+-
+-	return count;
+-}
+-static struct kobj_attribute reboot_force_attr = __ATTR_RW(force);
++#endif
+ 
+ static struct attribute *reboot_attrs[] = {
+ 	&reboot_mode_attr.attr,
++#ifdef CONFIG_X86
++	&reboot_force_attr.attr,
+ 	&reboot_type_attr.attr,
++#endif
++#ifdef CONFIG_SMP
+ 	&reboot_cpu_attr.attr,
+-	&reboot_force_attr.attr,
++#endif
+ 	NULL,
+ };
+ 
 _
 
 Patches currently in -mm which might be from mcroce@microsoft.com are
