@@ -7,37 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA6BC4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05745C2BBCA
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B7D6233EB
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF74B233EB
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:12:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727013AbgLPRMF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:12:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33200 "EHLO mail.kernel.org"
+        id S1727062AbgLPRMG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:12:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726826AbgLPRMF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:12:05 -0500
-Date:   Wed, 16 Dec 2020 09:11:23 -0800
+        id S1727061AbgLPRMG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:12:06 -0500
+Date:   Wed, 16 Dec 2020 09:11:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138684;
-        bh=QeMvSB3spiktN4Ig/EP5kUEmyCXAhuQrDvWKxvGoFeI=;
+        s=korg; t=1608138710;
+        bh=Xu7G1vnKcnzs1h+0OgVB2QlavjZR1udSiiB3LD5alLU=;
         h=From:To:Subject:From;
-        b=w+UhEs4CpyNPkSX8zyAPWA5fPfS2zlorx4el3onX8v4+F8bciTLQo8Igy4GYB3Q8o
-         hM55rE5hlI0f76xYAv1y5vwbHgqRjynbHPTNtCSPPTLH3tcqhByuQFS+8ZfS4/i9UH
-         uoB/5QPb16j6Plur42F5/UoKRWReddXLoGQeiIuM=
+        b=AiWZXDCijD1X+A5/Dp/h/ao03Dvh9B0XGUVuoOLL48l4A5RjYsllwYaSOpOdgFZT6
+         8zq89aoVJUYsukuF/ht0PCRX2n4AtiTXk6D6+2OC+mWurspXLhPSL5XVE1a+Ul+xL2
+         v1640tIQRx/+SrGpiJtt32/hEEAXJReU36GruW7U=
 From:   akpm@linux-foundation.org
-To:     ardb@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com,
-        dvyukov@google.com, elver@google.com, georgepope@android.com,
-        herbert@gondor.apana.org.au, keescook@chromium.org,
-        masahiroy@kernel.org, michal.lkml@markovi.net,
-        mm-commits@vger.kernel.org, natechancellor@gmail.com,
-        ndesaulniers@google.com, oberpar@linux.ibm.com,
-        rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [merged] ubsan-disable-ubsan_trap-for-allconfig.patch
- removed from -mm tree
-Message-ID: <20201216171123.TnJofjMrn%akpm@linux-foundation.org>
+To:     mcroce@microsoft.com, mm-commits@vger.kernel.org, pmladek@suse.com
+Subject:  [merged]
+ reboot-allow-to-override-reboot-type-if-quirks-are-found.patch removed from
+ -mm tree
+Message-ID: <20201216171150.c-DtWf0uG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,54 +41,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: disable UBSAN_TRAP for all*config
+     Subject: reboot: allow to override reboot type if quirks are found
 has been removed from the -mm tree.  Its filename was
-     ubsan-disable-ubsan_trap-for-allconfig.patch
+     reboot-allow-to-override-reboot-type-if-quirks-are-found.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: disable UBSAN_TRAP for all*config
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: reboot: allow to override reboot type if quirks are found
 
-Doing all*config builds attempts to build as much as possible. UBSAN_TRAP
-effectively short-circuits lib/usban.c, so it should be disabled for
-COMPILE_TEST so that the lib/ubsan.c code gets built.
+Patch series "reboot: sysfs improvements".
 
-Link: https://lkml.kernel.org/r/20201203004437.389959-5-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: George Popescu <georgepope@android.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Some improvements to the sysfs reboot interface: hide not working settings
+and support machines with known reboot quirks.
+
+
+This patch (of 2):
+
+On some machines a quirk can force a specific reboot type.  Quirks are
+found during a DMI scan, the list of machines which need special reboot
+handling is defined in reboot_dmi_table.
+
+The kernel command line reboot= option overrides this via a global
+variable `reboot_default`, so that the reboot type requested in the
+command line is really performed.
+
+This was not true when setting the reboot type via the new sysfs
+interface.  Fix this by setting reboot_default upon the first change, like
+reboot_setup() does for the command line.
+
+Link: https://lkml.kernel.org/r/20201130173717.198952-1-mcroce@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20201130173717.198952-2-mcroce@linux.microsoft.com
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/reboot.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/lib/Kconfig.ubsan~ubsan-disable-ubsan_trap-for-allconfig
-+++ a/lib/Kconfig.ubsan
-@@ -14,6 +14,7 @@ if UBSAN
+--- a/kernel/reboot.c~reboot-allow-to-override-reboot-type-if-quirks-are-found
++++ a/kernel/reboot.c
+@@ -662,6 +662,8 @@ static ssize_t mode_store(struct kobject
+ 	else
+ 		return -EINVAL;
  
- config UBSAN_TRAP
- 	bool "On Sanitizer warnings, abort the running kernel code"
-+	depends on !COMPILE_TEST
- 	depends on $(cc-option, -fsanitize-undefined-trap-on-error)
- 	help
- 	  Building kernels with Sanitizer features enabled tends to grow
++	reboot_default = 0;
++
+ 	return count;
+ }
+ static struct kobj_attribute reboot_mode_attr = __ATTR_RW(mode);
+@@ -716,6 +718,8 @@ static ssize_t type_store(struct kobject
+ 	else
+ 		return -EINVAL;
+ 
++	reboot_default = 0;
++
+ 	return count;
+ }
+ static struct kobj_attribute reboot_type_attr = __ATTR_RW(type);
+@@ -741,6 +745,7 @@ static ssize_t cpu_store(struct kobject
+ 	if (cpunum >= num_possible_cpus())
+ 		return -ERANGE;
+ 
++	reboot_default = 0;
+ 	reboot_cpu = cpunum;
+ 
+ 	return count;
+@@ -762,6 +767,7 @@ static ssize_t force_store(struct kobjec
+ 	if (kstrtobool(buf, &res))
+ 		return -EINVAL;
+ 
++	reboot_default = 0;
+ 	reboot_force = res;
+ 
+ 	return count;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
 
