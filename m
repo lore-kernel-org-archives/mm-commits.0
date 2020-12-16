@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FD90C2BBCD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C75E4C2BBD4
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46D8223123
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89F402311E
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725780AbgLPBkU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 20:40:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59576 "EHLO mail.kernel.org"
+        id S1725550AbgLPBkZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 20:40:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725550AbgLPBkT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 20:40:19 -0500
-Date:   Tue, 15 Dec 2020 17:39:31 -0800
+        id S1725783AbgLPBkZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 20:40:25 -0500
+Date:   Tue, 15 Dec 2020 17:39:42 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608082772;
-        bh=V/AvE9C4VtNCr+c41VHSBg+IMHmi01TR1l4s01hrx/I=;
+        s=korg; t=1608082783;
+        bh=Qf82tyiBbd20ri/8JorI2TsZl5XdV8CxGRLQ2jpLG9A=;
         h=From:To:Subject:From;
-        b=zs1/wy8Ikv86//ougr9KTwybBl3sJBHwEGVnTcxvCbOhP4Wy22lcjFaJ+WcAY0w4C
-         0w9sEW4UTwAVLjSsy1/0HMrzBA36+OwWej8zn/fvQhWJOVVjiviYu8UWszPf46ZUcw
-         M6UOc8nKmHBAziFGlKKYskQ//SSLmSF/jCy7RPpU=
+        b=ZZ/158PXK7QOVTjHlQEY3sB9jaTycHWavYgcLgetMKD8dsVi8wCi3awGSmNuVzn3f
+         Gm6sYgLvK6hVxlMuiNBMUlK7Uj+rAfQT3lR2EMUJxhKb8zgjgkC3HvWPujAq2oAcCe
+         iFRWBWsACSxDLp5ZYvk/7pfmHrswwQNsCpHhxfkg=
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -40,10 +40,9 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
-Subject:  [merged]
- mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch removed from -mm
+Subject:  [merged] mm-thp-narrow-lru-locking.patch removed from -mm
  tree
-Message-ID: <20201216013931.8zYLNipqa%akpm@linux-foundation.org>
+Message-ID: <20201216013942.exlSAyP_L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -55,204 +54,169 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: move lru_add_page_tail() to huge_memory.c
+     Subject: mm/thp: narrow lru locking
 has been removed from the -mm tree.  Its filename was
-     mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+     mm-thp-narrow-lru-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/thp: move lru_add_page_tail() to huge_memory.c
+Subject: mm/thp: narrow lru locking
 
-Patch series "per memcg lru lock", v21.
+lru_lock and page cache xa_lock have no obvious reason to be taken one way
+round or the other: until now, lru_lock has been taken before page cache
+xa_lock, when splitting a THP; but nothing else takes them together.=20
+Reverse that ordering: let's narrow the lru locking - but leave
+local_irq_disable to block interrupts throughout, like before.
 
-This patchset includes 3 parts:
+Hugh Dickins point: split_huge_page_to_list() was already silly, to be
+using the _irqsave variant: it's just been taking sleeping locks, so would
+already be broken if entered with interrupts enabled.  So we can save
+passing flags argument down to __split_huge_page().
 
-1, some code cleanup and minimum optimization as a preparation.=20
-2, use TestCleanPageLRU as page isolation's precondition.
-3, replace per node lru_lock with per memcg per node lru_lock.
+Why change the lock ordering here?  That was hard to decide.  One reason:
+when this series reaches per-memcg lru locking, it relies on the THP's
+memcg to be stable when taking the lru_lock: that is now done after the
+THP's refcount has been frozen, which ensures page memcg cannot change.
 
-Current lru_lock is one for each of node, pgdat->lru_lock, that guard for
-lru lists, but now we had moved the lru lists into memcg for long time.=20
-Still using per node lru_lock is clearly unscalable, pages on each of
-memcgs have to compete each others for a whole lru_lock.  This patchset
-try to use per lruvec/memcg lru_lock to repleace per node lru lock to
-guard lru lists, make it scalable for memcgs and get performance gain.
+Another reason: previously, lock_page_memcg()'s move_lock was presumed to
+nest inside lru_lock; but now lru_lock must nest inside (page cache lock
+inside) move_lock, so it becomes possible to use lock_page_memcg() to
+stabilize page memcg before taking its lru_lock.  That is not the
+mechanism used in this series, but it is an option we want to keep open.
 
-Currently lru_lock still guards both lru list and page's lru bit, that's
-ok.  but if we want to use specific lruvec lock on the page, we need to
-pin down the page's lruvec/memcg during locking.  Just taking lruvec lock
-first may be undermined by the page's memcg charge/migration.  To fix this
-problem, we could take out the page's lru bit clear and use it as pin down
-action to block the memcg changes.  That's the reason for new atomic func
-TestClearPageLRU.  So now isolating a page need both actions:
-TestClearPageLRU and hold the lru_lock.
-
-The typical usage of this is isolate_migratepages_block() in compaction.c
-we have to take lru bit before lru lock, that serialized the page
-isolation in memcg page charge/migration which will change page's lruvec
-and new lru_lock in it.
-
-The above solution suggested by Johannes Weiner, and based on his new
-memcg charge path, then have this patchset.  (Hugh Dickins tested and
-contributed much code from compaction fix to general code polish, thanks a
-lot!).
-
-Daniel Jordan's testing show 62% improvement on modified readtwice case on
-his 2P * 10 core * 2 HT broadwell box on v18, which has no much different
-with this v20.=20
-https://lore.kernel.org/lkml/20200915165807.kpp7uhiw7l3loofu@ca-dmjordan1.u=
-s.oracle.com/
-
-Thanks to Hugh Dickins and Konstantin Khlebnikov, they both brought this
-idea 8 years ago, and others who gave comments as well: Daniel Jordan, Mel
-Gorman, Shakeel Butt, Matthew Wilcox, Alexander Duyck etc.
-
-Thanks for Testing support from Intel 0day and Rong Chen, Fengguang Wu,
-and Yun Wang.  Hugh Dickins also shared his kbuild-swap case.
-
-
-This patch (of 19):
-
-lru_add_page_tail() is only used in huge_memory.c, defining it in other
-file with a CONFIG_TRANSPARENT_HUGEPAGE macro restrict just looks weird.
-
-Let's move it THP. And make it static as Hugh Dickins suggested.
-
-Link: https://lkml.kernel.org/r/1604566549-62481-1-git-send-email-alex.shi@=
-linux.alibaba.com
-Link: https://lkml.kernel.org/r/1604566549-62481-2-git-send-email-alex.shi@=
+[hughd@google.com: rewrite commit log]
+Link: https://lkml.kernel.org/r/1604566549-62481-5-git-send-email-alex.shi@=
 linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>
-Cc: "Chen, Rong A" <rong.a.chen@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: "Chen, Rong A" <rong.a.chen@intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 --
- mm/huge_memory.c     |   30 ++++++++++++++++++++++++++++++
- mm/swap.c            |   33 ---------------------------------
- 3 files changed, 30 insertions(+), 35 deletions(-)
+ mm/huge_memory.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
---- a/include/linux/swap.h~mm-thp-move-lru_add_page_tail-func-to-huge_memor=
-yc
-+++ a/include/linux/swap.h
-@@ -338,8 +338,6 @@ extern void lru_note_cost(struct lruvec
- 			  unsigned int nr_pages);
- extern void lru_note_cost_page(struct page *);
- extern void lru_cache_add(struct page *);
--extern void lru_add_page_tail(struct page *page, struct page *page_tail,
--			 struct lruvec *lruvec, struct list_head *head);
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
- extern void lru_add_drain_cpu(int cpu);
---- a/mm/huge_memory.c~mm-thp-move-lru_add_page_tail-func-to-huge_memoryc
+--- a/mm/huge_memory.c~mm-thp-narrow-lru-locking
 +++ a/mm/huge_memory.c
-@@ -2359,6 +2359,36 @@ static void remap_page(struct page *page
+@@ -2446,7 +2446,7 @@ static void __split_huge_page_tail(struc
+ }
+=20
+ static void __split_huge_page(struct page *page, struct list_head *list,
+-		pgoff_t end, unsigned long flags)
++		pgoff_t end)
+ {
+ 	struct page *head =3D compound_head(page);
+ 	pg_data_t *pgdat =3D page_pgdat(head);
+@@ -2456,8 +2456,6 @@ static void __split_huge_page(struct pag
+ 	unsigned int nr =3D thp_nr_pages(head);
+ 	int i;
+=20
+-	lruvec =3D mem_cgroup_page_lruvec(head, pgdat);
+-
+ 	/* complete memcg works before add pages to LRU */
+ 	mem_cgroup_split_huge_fixup(head);
+=20
+@@ -2469,6 +2467,11 @@ static void __split_huge_page(struct pag
+ 		xa_lock(&swap_cache->i_pages);
  	}
- }
 =20
-+static void lru_add_page_tail(struct page *page, struct page *page_tail,
-+		struct lruvec *lruvec, struct list_head *list)
-+{
-+	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
-+	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
-+	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
++	/* prevent PageLRU to go away from under us, and freeze lru stats */
++	spin_lock(&pgdat->lru_lock);
 +
-+	if (!list)
-+		SetPageLRU(page_tail);
++	lruvec =3D mem_cgroup_page_lruvec(head, pgdat);
 +
-+	if (likely(PageLRU(page)))
-+		list_add_tail(&page_tail->lru, &page->lru);
-+	else if (list) {
-+		/* page reclaim is reclaiming a huge page */
-+		get_page(page_tail);
-+		list_add_tail(&page_tail->lru, list);
-+	} else {
-+		/*
-+		 * Head page has not yet been counted, as an hpage,
-+		 * so we must account for each subpage individually.
-+		 *
-+		 * Put page_tail on the list at the correct position
-+		 * so they all end up in order.
-+		 */
-+		add_page_to_lru_list_tail(page_tail, lruvec,
-+					  page_lru(page_tail));
-+	}
-+}
-+
- static void __split_huge_page_tail(struct page *head, int tail,
- 		struct lruvec *lruvec, struct list_head *list)
- {
---- a/mm/swap.c~mm-thp-move-lru_add_page_tail-func-to-huge_memoryc
-+++ a/mm/swap.c
-@@ -977,39 +977,6 @@ void __pagevec_release(struct pagevec *p
- }
- EXPORT_SYMBOL(__pagevec_release);
+ 	for (i =3D nr - 1; i >=3D 1; i--) {
+ 		__split_huge_page_tail(head, i, lruvec, list);
+ 		/* Some pages can be beyond i_size: drop them from page cache */
+@@ -2488,6 +2491,8 @@ static void __split_huge_page(struct pag
+ 	}
 =20
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--/* used by __split_huge_page_refcount() */
--void lru_add_page_tail(struct page *page, struct page *page_tail,
--		       struct lruvec *lruvec, struct list_head *list)
--{
--	VM_BUG_ON_PAGE(!PageHead(page), page);
--	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
--	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
--	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
+ 	ClearPageCompound(head);
++	spin_unlock(&pgdat->lru_lock);
++	/* Caller disabled irqs, so they are still disabled here */
+=20
+ 	split_page_owner(head, nr);
+=20
+@@ -2505,8 +2510,7 @@ static void __split_huge_page(struct pag
+ 		page_ref_add(head, 2);
+ 		xa_unlock(&head->mapping->i_pages);
+ 	}
 -
--	if (!list)
--		SetPageLRU(page_tail);
--
--	if (likely(PageLRU(page)))
--		list_add_tail(&page_tail->lru, &page->lru);
--	else if (list) {
--		/* page reclaim is reclaiming a huge page */
--		get_page(page_tail);
--		list_add_tail(&page_tail->lru, list);
--	} else {
--		/*
--		 * Head page has not yet been counted, as an hpage,
--		 * so we must account for each subpage individually.
--		 *
--		 * Put page_tail on the list at the correct position
--		 * so they all end up in order.
--		 */
--		add_page_to_lru_list_tail(page_tail, lruvec,
--					  page_lru(page_tail));
--	}
--}
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
--
- static void __pagevec_lru_add_fn(struct page *page, struct lruvec *lruvec,
- 				 void *arg)
+-	spin_unlock_irqrestore(&pgdat->lru_lock, flags);
++	local_irq_enable();
+=20
+ 	remap_page(head, nr);
+=20
+@@ -2652,12 +2656,10 @@ bool can_split_huge_page(struct page *pa
+ int split_huge_page_to_list(struct page *page, struct list_head *list)
  {
+ 	struct page *head =3D compound_head(page);
+-	struct pglist_data *pgdata =3D NODE_DATA(page_to_nid(head));
+ 	struct deferred_split *ds_queue =3D get_deferred_split_queue(head);
+ 	struct anon_vma *anon_vma =3D NULL;
+ 	struct address_space *mapping =3D NULL;
+ 	int count, mapcount, extra_pins, ret;
+-	unsigned long flags;
+ 	pgoff_t end;
+=20
+ 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
+@@ -2718,9 +2720,8 @@ int split_huge_page_to_list(struct page
+ 	unmap_page(head);
+ 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
+=20
+-	/* prevent PageLRU to go away from under us, and freeze lru stats */
+-	spin_lock_irqsave(&pgdata->lru_lock, flags);
+-
++	/* block interrupt reentry in xa_lock and spinlock */
++	local_irq_disable();
+ 	if (mapping) {
+ 		XA_STATE(xas, &mapping->i_pages, page_index(head));
+=20
+@@ -2750,7 +2751,7 @@ int split_huge_page_to_list(struct page
+ 				__dec_lruvec_page_state(head, NR_FILE_THPS);
+ 		}
+=20
+-		__split_huge_page(page, list, end, flags);
++		__split_huge_page(page, list, end);
+ 		ret =3D 0;
+ 	} else {
+ 		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
+@@ -2764,7 +2765,7 @@ int split_huge_page_to_list(struct page
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ fail:		if (mapping)
+ 			xa_unlock(&mapping->i_pages);
+-		spin_unlock_irqrestore(&pgdata->lru_lock, flags);
++		local_irq_enable();
+ 		remap_page(head, thp_nr_pages(head));
+ 		ret =3D -EBUSY;
+ 	}
 _
 
 Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
