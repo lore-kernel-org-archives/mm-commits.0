@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05642C4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:10:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C122C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:12:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1F4622D02
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:10:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1956F23118
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:12:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725710AbgLPEKY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:10:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41440 "EHLO mail.kernel.org"
+        id S1725550AbgLPELz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:11:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725274AbgLPEKY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:10:24 -0500
-Date:   Tue, 15 Dec 2020 20:09:43 -0800
+        id S1725274AbgLPELz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:11:55 -0500
+Date:   Tue, 15 Dec 2020 20:11:13 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608091783;
-        bh=wVpER/3y4qqLLPzHCAVEyAUKWfIwehNpTgSMJ25Mkq8=;
+        s=korg; t=1608091874;
+        bh=LFuc2RYOwFn0DUlkeRAjXWHO9viflBBTRNLeEkt/ixI=;
         h=From:To:Subject:From;
-        b=wi6mUI+ngJj/FSjmI7avQophEKU845s5CE/l182FSJc6A54K+gPGdYx0su8r4scwT
-         +6AdMHChWrv4Yinv/CmA6peZPQNJM1b05nqg6QOAPLlw5px6Sf7rGGeHvt1rklRCWH
-         UKccTdmoc9x00H6B9vVIPtLRkVUr+nAH/Dy25/fw=
+        b=TKQv2Ri/19ksD0BGNrNCCewz4am7wnKSyeOCixo+4oizcdE9usG1VwNY/3XiuoYjE
+         HWHyfQcDOR+3PotzKMFbMxWfYzTQwNXiGz14uFBw7yd1JuGz6jN9KLAkLqS13xF7Nr
+         wgiSAhKJ6ZzGhIP4ScJnA30RncJbyfFuOtkTsnIA=
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch removed
+ ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch removed
  from -mm tree
-Message-ID: <20201216040943.NY-lv4PIP%akpm@linux-foundation.org>
+Message-ID: <20201216041113.rbP7NfuxP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,49 +41,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline_kunit: type of expected returned values should be int
+     Subject: ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
+     ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
+This patch was dropped because it was folded into ilog2-improve-ilog2-for-constant-arguments.patch
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline_kunit: type of expected returned values should be int
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes
 
-Type of expected returned values should be int.
+WARNING: space prohibited between function name and open parenthesis '('
+#39: FILE: include/linux/log2.h:160:
++	 63 - __builtin_clzll (n)) :	\
 
-Link: https://lkml.kernel.org/r/20201116104244.15472-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+total: 0 errors, 1 warnings, 9 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/ilog2-improve-ilog2-for-constant-arguments.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline_kunit.c |    2 +-
+ include/linux/log2.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/cmdline_kunit.c~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2
-+++ a/lib/cmdline_kunit.c
-@@ -13,7 +13,7 @@ static const char *cmdline_test_strings[
- 	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
- };
- 
--static const char cmdline_test_values[] = {
-+static const int cmdline_test_values[] = {
- 	1, 1, 1, 1, 2, 3, 2, 3,
- 	1, 3, 2, 1, 1, 1, 3, 1,
- };
+--- a/include/linux/log2.h~ilog2-improve-ilog2-for-constant-arguments-checkpatch-fixes
++++ a/include/linux/log2.h
+@@ -157,7 +157,7 @@ unsigned long __rounddown_pow_of_two(uns
+ ( \
+ 	__builtin_constant_p(n) ?	\
+ 	((n) < 2 ? 0 :			\
+-	 63 - __builtin_clzll (n)) :	\
++	 63 - __builtin_clzll(n)) :	\
+ 	(sizeof(n) <= 4) ?		\
+ 	__ilog2_u32(n) :		\
+ 	__ilog2_u64(n)			\
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernelh-split-out-mathematical-helpers.patch
-bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
-lib-list_kunit-follow-new-file-name-convention-for-kunit-tests.patch
-lib-linear_ranges_kunit-follow-new-file-name-convention-for-kunit-tests.patch
-lib-bits_kunit-follow-new-file-name-convention-for-kunit-tests.patch
-lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
-lib-cmdline-allow-null-to-be-an-output-for-get_option.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
-apparmor-remove-duplicate-macro-list_entry_is_head.patch
+ilog2-improve-ilog2-for-constant-arguments.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases-checkpatch-fixes.patch
+checkpatch-fix-typo_spelling-check-for-words-with-apostrophe-fix.patch
+resource-fix-kernel-doc-markups-checkpatch-fixes.patch
+lib-ubsanc-mark-type_check_kinds-with-static-keyword-fix.patch
+mm.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+epoll-wire-up-syscall-epoll_pwait2-fix.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
