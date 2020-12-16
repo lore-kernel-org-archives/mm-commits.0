@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E841C2BBCA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E49C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19820233FE
+	by mail.kernel.org (Postfix) with ESMTP id D6B6B233FE
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:10:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726824AbgLPRKY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:10:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60398 "EHLO mail.kernel.org"
+        id S1727044AbgLPRKZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:10:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726706AbgLPRKY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:10:24 -0500
-Date:   Wed, 16 Dec 2020 09:09:41 -0800
+        id S1726706AbgLPRKZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:10:25 -0500
+Date:   Wed, 16 Dec 2020 09:10:09 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138582;
-        bh=TDz96Ur6yv3uGYnLL3iZDFu5mkcXdfnUcaHB2icZFzI=;
+        s=korg; t=1608138609;
+        bh=ebwMrgL3N6d8Kccya8/FnH/H5whFxAov79/jXPvb5GU=;
         h=From:To:Subject:From;
-        b=L4JtX2hWQTZibh1il9KBHWL1f8eRJIqufUapei2PAmLb+SaVfnCjbPm5FliYMoQS7
-         SPs0aFPz5meItmT8OOY36QD5PS+mVDom3CwJoiCb7OYebsDBWRSP4/dtoHTo6WgrTz
-         f/BzOlyqPLY6FzUQr9ANNr98XUzWwDutZjsoZoW4=
+        b=QwV8CQfMzspG4+r2vW2jFD7xydfXYYNag9NHkrGGd1OfYRkrb6U1LDLf9ItMLkLz/
+         7PHBJz0KmBE0cgS2gVxiZ7Vs0J8VjOw8tNxJdvKD90V/dnZfRJnL/hTabBShYm2h1t
+         ZnuptB8uecClnDWoxE0/QZrjSb0038Dwn4XpZmpI=
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, joe@perches.com, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, yashsri421@gmail.com
+To:     dwaipayanray1@gmail.com, joe@perches.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- checkpatch-add-new-exception-to-repeated-word-check.patch removed from -mm
- tree
-Message-ID: <20201216170941.VvmAPqgol%akpm@linux-foundation.org>
+ checkpatch-fix-spelling-errors-and-remove-repeated-word.patch removed from
+ -mm tree
+Message-ID: <20201216171009.lm1N6px6w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,89 +42,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add new exception to repeated word check
+     Subject: checkpatch: fix spelling errors and remove repeated word
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-new-exception-to-repeated-word-check.patch
+     checkpatch-fix-spelling-errors-and-remove-repeated-word.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: add new exception to repeated word check
+Subject: checkpatch: fix spelling errors and remove repeated word
 
-Recently, commit 4f6ad8aa1eac ("checkpatch: move repeated word test")
-moved the repeated word test to check for more file types. But after
-this, if checkpatch.pl is run on MAINTAINERS, it generates several
-new warnings of the type:
+Delete repeated word in scripts/checkpatch.pl:
+"are are" -> "are"
 
-WARNING: Possible repeated word: 'git'
+Fix typos:
+"commments" -> "comments"
+"falsly" -> "falsely"
 
-For example:
-WARNING: Possible repeated word: 'git'
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rw/uml.git
-
-So, the pattern "git git://..." is a false positive in this case.
-
-There are several other combinations which may produce a wrong
-warning message, such as "@size size", ":Begin begin", etc.
-
-Extend repeated word check to compare the characters before and
-after the word matches.
-
-If there is a non whitespace character before the first word or a
-non whitespace character excluding punctuation characters after
-the second word, then the check is skipped and the warning is avoided.
-
-Also add case insensitive word matching to the repeated word check.
-
-Link: https://lore.kernel.org/linux-kernel-mentees/81b6a0bb2c7b9256361573f7a13201ebcd4876f1.camel@perches.com/
-Link: https://lkml.kernel.org/r/20201017162732.152351-1-dwaipayanray1@gmail.com
+Link: https://lkml.kernel.org/r/20201113152316.62975-1-dwaipayanray1@gmail.com
 Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Suggested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
-Cc: Aditya Srivastava <yashsri421@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-new-exception-to-repeated-word-check
+--- a/scripts/checkpatch.pl~checkpatch-fix-spelling-errors-and-remove-repeated-word
 +++ a/scripts/checkpatch.pl
-@@ -3050,19 +3050,30 @@ sub process {
+@@ -2841,7 +2841,7 @@ sub process {
  
- # check for repeated words separated by a single space
- 		if ($rawline =~ /^\+/ || $in_commit_log) {
-+			pos($rawline) = 1 if (!$in_commit_log);
- 			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
  
- 				my $first = $1;
- 				my $second = $2;
--
-+				my $start_pos = $-[1];
-+				my $end_pos = $+[2];
- 				if ($first =~ /(?:struct|union|enum)/) {
- 					pos($rawline) += length($first) + length($second) + 1;
- 					next;
- 				}
+ 				# stable@vger.kernel.org or stable@kernel.org shouldn't
+-				# have an email name. In addition commments should strictly
++				# have an email name. In addition comments should strictly
+ 				# begin with a #
+ 				if ($email =~ /^.*stable\@(?:vger\.)?kernel\.org/i) {
+ 					if (($comment ne "" && $comment !~ /^#.+/) ||
+@@ -5000,7 +5000,7 @@ sub process {
+ ## 		    $line !~ /^.\s*$Type\s+$Ident(?:\s*=[^,{]*)?\s*,\s*$Type\s*$Ident.*/) {
+ ##
+ ## 			# Remove any bracketed sections to ensure we do not
+-## 			# falsly report the parameters of functions.
++## 			# falsely report the parameters of functions.
+ ## 			my $ln = $line;
+ ## 			while ($ln =~ s/\([^\(\)]*\)//g) {
+ ## 			}
+@@ -7109,7 +7109,7 @@ sub process {
+ 		exit(0);
+ 	}
  
--				next if ($first ne $second);
-+				next if (lc($first) ne lc($second));
- 				next if ($first eq 'long');
- 
-+				# check for character before and after the word matches
-+				my $start_char = '';
-+				my $end_char = '';
-+				$start_char = substr($rawline, $start_pos - 1, 1) if ($start_pos > ($in_commit_log ? 0 : 1));
-+				$end_char = substr($rawline, $end_pos, 1) if ($end_pos < length($rawline));
-+
-+				next if ($start_char =~ /^\S$/);
-+				next if (index(" \t.,;?!", $end_char) == -1);
-+
- 				if (WARN("REPEATED_WORD",
- 					 "Possible repeated word: '$first'\n" . $herecurr) &&
- 				    $fix) {
+-	# This is not a patch, and we are are in 'no-patch' mode so
++	# This is not a patch, and we are in 'no-patch' mode so
+ 	# just keep quiet.
+ 	if (!$chk_patch && !$is_patch) {
+ 		exit(0);
 _
 
 Patches currently in -mm which might be from dwaipayanray1@gmail.com are
