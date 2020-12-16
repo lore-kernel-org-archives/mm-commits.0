@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CC78C2BBCD
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D012C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2000023331
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37A202313F
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725936AbgLPEpM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:45:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49140 "EHLO mail.kernel.org"
+        id S1725934AbgLPEpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:45:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725934AbgLPEpM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:45:12 -0500
-Date:   Tue, 15 Dec 2020 20:44:56 -0800
+        id S1725876AbgLPEpO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:45:14 -0500
+Date:   Tue, 15 Dec 2020 20:44:33 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093897;
-        bh=fMni8/P/aatpC+qS0L37vTJm3XqxhFvjIo8jBDmSWAw=;
+        s=korg; t=1608093874;
+        bh=/gxezh6NM1NwxoAGsy91PYSYl0FkSI3yBwotYuFmZ1k=;
         h=From:To:Subject:In-Reply-To:From;
-        b=uswgoNuLIxyjGkmTrxVqpm1/AGiNebezoykXnjz6dmZCM4agtIuSI3vzWkNARQJ91
-         uC5ZvlTJ3XOILbxmMHSL5lZrL1ztDfp1o59SoA8sdKz9AAaYinrUGMFTVy/IF5J/sD
-         zi3X7dBT2Ap5KfhfMlz+em/4LDHoY82dQMFbu9VY=
+        b=RF7UAKvZf0YuHvof8rbSNeK0+cz0+eRy8jxkdv3v5vRtLtuDvgoY4T0+n2tTyYtKs
+         AtVLpGYoxx8f+1rq821hC8yjxkztbmubiR7QpmX7yTooOHx8yFvXH8piAQUOODgYkR
+         ruT4irGB1RvlXEoEh77+eFa9JZskM59ukim3dwUs=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dwaipayanray1@gmail.com,
-        joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 48/95] checkpatch: fix spelling errors and remove
- repeated word
-Message-ID: <20201216044456.AcprlOOeP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, julia.lawall@inria.fr,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, trix@redhat.com
+Subject:  [patch 41/95] checkpatch: allow --fix removal of
+ unnecessary break statements
+Message-ID: <20201216044433.zYvlm9_yH%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,52 +41,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: fix spelling errors and remove repeated word
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow --fix removal of unnecessary break statements
 
-Delete repeated word in scripts/checkpatch.pl:
-"are are" -> "are"
+switch/case use of break after a return, goto or break is unnecessary.
 
-Fix typos:
-"commments" -> "comments"
-"falsly" -> "falsely"
+There is an existing warning for the return and goto uses, so add
+break and a --fix option too.
 
-Link: https://lkml.kernel.org/r/20201113152316.62975-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/d9ea654104d55f590fb97d252d64a66b23c1a096.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-fix-spelling-errors-and-remove-repeated-word
+--- a/scripts/checkpatch.pl~checkpatch-allow-fix-removal-of-unnecessary-break-statements
 +++ a/scripts/checkpatch.pl
-@@ -2841,7 +2841,7 @@ sub process {
+@@ -3699,12 +3699,16 @@ sub process {
+ 		}
  
+ # check indentation of a line with a break;
+-# if the previous line is a goto or return and is indented the same # of tabs
++# if the previous line is a goto, return or break
++# and is indented the same # of tabs
+ 		if ($sline =~ /^\+([\t]+)break\s*;\s*$/) {
+ 			my $tabs = $1;
+-			if ($prevline =~ /^\+$tabs(?:goto|return)\b/) {
+-				WARN("UNNECESSARY_BREAK",
+-				     "break is not useful after a goto or return\n" . $hereprev);
++			if ($prevline =~ /^\+$tabs(goto|return|break)\b/) {
++				if (WARN("UNNECESSARY_BREAK",
++					 "break is not useful after a $1\n" . $hereprev) &&
++				    $fix) {
++					fix_delete_line($fixlinenr, $rawline);
++				}
+ 			}
+ 		}
  
- 				# stable@vger.kernel.org or stable@kernel.org shouldn't
--				# have an email name. In addition commments should strictly
-+				# have an email name. In addition comments should strictly
- 				# begin with a #
- 				if ($email =~ /^.*stable\@(?:vger\.)?kernel\.org/i) {
- 					if (($comment ne "" && $comment !~ /^#.+/) ||
-@@ -5000,7 +5000,7 @@ sub process {
- ## 		    $line !~ /^.\s*$Type\s+$Ident(?:\s*=[^,{]*)?\s*,\s*$Type\s*$Ident.*/) {
- ##
- ## 			# Remove any bracketed sections to ensure we do not
--## 			# falsly report the parameters of functions.
-+## 			# falsely report the parameters of functions.
- ## 			my $ln = $line;
- ## 			while ($ln =~ s/\([^\(\)]*\)//g) {
- ## 			}
-@@ -7109,7 +7109,7 @@ sub process {
- 		exit(0);
- 	}
- 
--	# This is not a patch, and we are are in 'no-patch' mode so
-+	# This is not a patch, and we are in 'no-patch' mode so
- 	# just keep quiet.
- 	if (!$chk_patch && !$is_patch) {
- 		exit(0);
 _
