@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40D57C2BB48
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AEF6C4361B
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1678123120
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E399A23103
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 01:40:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725811AbgLPBk5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1725812AbgLPBk5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 15 Dec 2020 20:40:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60268 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60266 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725783AbgLPBk5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1725811AbgLPBk5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 15 Dec 2020 20:40:57 -0500
-Date:   Tue, 15 Dec 2020 17:39:53 -0800
+Date:   Tue, 15 Dec 2020 17:39:49 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608082794;
-        bh=MtfFxe7dAdqa5+SOhghV6t6K4aWMUebhBj8BNBKNPkc=;
+        s=korg; t=1608082790;
+        bh=UdM+vVDN+pUK/wcingGBFDd7VSkq8SIPDDIlAijnl8k=;
         h=From:To:Subject:From;
-        b=ji+07tzmXjssbNwNke8sIS+N7lJDjpydsI8t18hS1PWcWA+4Y3Q7o4j1w2hcSyXeF
-         JxqSZ3yLk7vU5vkkk1hyJCyFkZI/xH5m0np/GwNW2iAi0fmvoORwK4NQGpd6KLw8RI
-         wV2nx0fjPJ9yojrkQHbZ5IZzsXt1M/JoNl3sOt2c=
+        b=C+L+3PXUvAOouMifQl4Q7Ar2eOiuXMUuUYHfB4PRm4e2SlHMtsIawXfD50aznOkZg
+         IBA1DSH5/CyiNM8BbVbGGaJazhIk+9nFxywnzDXqaBGmZ2zNWLeghUZ9SgSEyJJcrt
+         +CXgJcBc5QGn6BF6saHmTLZeyEIK/a+ubrghhXo0=
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         alexander.duyck@gmail.com, aryabinin@virtuozzo.com,
@@ -41,8 +41,9 @@ To:     aarcange@redhat.com, alex.shi@linux.alibaba.com,
         vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
         yang.shi@linux.alibaba.com, ying.huang@intel.com
 Subject:  [merged]
- mm-page_idle_get_page-does-not-need-lru_lock.patch removed from -mm tree
-Message-ID: <20201216013953.LpfHWRIfW%akpm@linux-foundation.org>
+ mm-rmap-stop-store-reordering-issue-on-page-mapping.patch removed from -mm
+ tree
+Message-ID: <20201216013949.ZKeFz_qcp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -54,49 +55,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_idle_get_page() does not need lru_lock
+     Subject: mm/rmap: stop store reordering issue on page->mapping
 has been removed from the -mm tree.  Its filename was
-     mm-page_idle_get_page-does-not-need-lru_lock.patch
+     mm-rmap-stop-store-reordering-issue-on-page-mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
-=46rom: Hugh Dickins <hughd@google.com>
-Subject: mm: page_idle_get_page() does not need lru_lock
+=46rom: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/rmap: stop store reordering issue on page->mapping
 
-It is necessary for page_idle_get_page() to recheck PageLRU() after
-get_page_unless_zero(), but holding lru_lock around that serves no useful
-purpose, and adds to lru_lock contention: delete it.
+Hugh Dickins and Minchan Kim observed a long time issue which discussed
+here, but actully the mentioned fix missed.=20
+https://lore.kernel.org/lkml/20150504031722.GA2768@blaptop/ The store
+reordering may cause problem in the scenario:
 
-See https://lore.kernel.org/lkml/20150504031722.GA2768@blaptop for the
-discussion that led to lru_lock there; but __page_set_anon_rmap() now uses
-WRITE_ONCE(), and I see no other risk in page_idle_clear_pte_refs() using
-rmap_walk() (beyond the risk of racing PageAnon->PageKsm, mostly but not
-entirely prevented by page_count() check in ksm.c's write_protect_page():
-that risk being shared with page_referenced() and not helped by lru_lock).
+	CPU 0						CPU1
+   do_anonymous_page
+	page_add_new_anon_rmap()
+	  page->mapping =3D anon_vma + PAGE_MAPPING_ANON
+	lru_cache_add_inactive_or_unevictable()
+	  spin_lock(lruvec->lock)
+	  SetPageLRU()
+	  spin_unlock(lruvec->lock)
+						/* idletacking judged it as LRU
+						 * page so pass the page in
+						 * page_idle_clear_pte_refs
+						 */
+						page_idle_clear_pte_refs
+						  rmap_walk
+						    if PageAnon(page)
 
-Link: https://lkml.kernel.org/r/1604566549-62481-8-git-send-email-alex.shi@=
+Johannes give detailed examples how the store reordering could cause a
+trouble: "The concern is the SetPageLRU may get reorder before
+'page->mapping' setting, That would make CPU 1 will observe at
+page->mapping after observing PageLRU set on the page.
+
+1. anon_vma + PAGE_MAPPING_ANON
+
+   That's the in-order scenario and is fine.
+
+2. NULL
+
+   That's possible if the page->mapping store gets reordered to occur
+   after SetPageLRU. That's fine too because we check for it.
+
+3. anon_vma without the PAGE_MAPPING_ANON bit
+
+   That would be a problem and could lead to all kinds of undesirable
+   behavior including crashes and data corruption.
+
+   Is it possible? AFAICT the compiler is allowed to tear the store to
+   page->mapping and I don't see anything that would prevent it.
+
+That said, I also don't see how the reader testing PageLRU under the
+lru_lock would prevent that in the first place.  AFAICT we need that
+WRITE_ONCE() around the page->mapping assignment."
+
+[alex.shi@linux.alibaba.com: updated for comments change from Johannes]
+  Link: https://lkml.kernel.org/r/e66ef2e5-c74c-6498-e8b3-56c37b9d2d15@linu=
+x.alibaba.com
+Link: https://lkml.kernel.org/r/1604566549-62481-7-git-send-email-alex.shi@=
 linux.alibaba.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: "Chen, Rong A" <rong.a.chen@intel.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -104,38 +142,41 @@ Cc: Mika Penttil=C3=A4 <mika.penttila@nextfour.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/rmap.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/page_idle.c~mm-page_idle_get_page-does-not-need-lru_lock
-+++ a/mm/page_idle.c
-@@ -32,19 +32,15 @@
- static struct page *page_idle_get_page(unsigned long pfn)
- {
- 	struct page *page =3D pfn_to_online_page(pfn);
--	pg_data_t *pgdat;
+--- a/mm/rmap.c~mm-rmap-stop-store-reordering-issue-on-page-mapping
++++ a/mm/rmap.c
+@@ -1054,8 +1054,14 @@ static void __page_set_anon_rmap(struct
+ 	if (!exclusive)
+ 		anon_vma =3D anon_vma->root;
 =20
- 	if (!page || !PageLRU(page) ||
- 	    !get_page_unless_zero(page))
- 		return NULL;
-=20
--	pgdat =3D page_pgdat(page);
--	spin_lock_irq(&pgdat->lru_lock);
- 	if (unlikely(!PageLRU(page))) {
- 		put_page(page);
- 		page =3D NULL;
- 	}
--	spin_unlock_irq(&pgdat->lru_lock);
- 	return page;
++	/*
++	 * page_idle does a lockless/optimistic rmap scan on page->mapping.
++	 * Make sure the compiler doesn't split the stores of anon_vma and
++	 * the PAGE_MAPPING_ANON type identifier, otherwise the rmap code
++	 * could mistake the mapping for a struct address_space and crash.
++	 */
+ 	anon_vma =3D (void *) anon_vma + PAGE_MAPPING_ANON;
+-	page->mapping =3D (struct address_space *) anon_vma;
++	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
+ 	page->index =3D linear_page_index(vma, address);
  }
 =20
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
+mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+fs-nilfs2-remove-some-unused-macros-to-tame-gcc.patch
+gcov-fix-kernel-doc-markup-issue.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
