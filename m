@@ -7,32 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99C38C2BBCA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EDB1C4361B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A3B72342C
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D9F223437
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbgLPRL2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:11:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59886 "EHLO mail.kernel.org"
+        id S1726918AbgLPRLd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:11:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726798AbgLPRL2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:11:28 -0500
-Date:   Wed, 16 Dec 2020 09:11:12 -0800
+        id S1726798AbgLPRLd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:11:33 -0500
+Date:   Wed, 16 Dec 2020 09:10:52 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138672;
-        bh=tECv0nc17IZAZLcTfCCPRKhMKtgqe/twYbO2YPH8Ac8=;
+        s=korg; t=1608138652;
+        bh=E3iVKeM9gRNaWc4bgk/gydJx+lrr78nMCTEO5p9Q2dY=;
         h=From:To:Subject:From;
-        b=X3kOZ5wwmO4VftOEkA5i+kvhkTgnKHKHIRymGp4Mn7vVekneIMo21WzhfP5bvUdHi
-         qBhrj6dqciROl9Yh7yJZEWHbq9flLwNDVkVIDXEkJC+TfQmmQQYtgP/ekNzNacaWWJ
-         EkOAbd2T5uaV+JVKUYf+PL326RVeWGhyW6dbG4kw=
+        b=Q/7+2JDPXitWLhfT2RvlpmcJydVpTsIZV8gg2sHZF4KwvjR1iKhYoH9J9EVhfa3C0
+         cUEQOpDIvTr0A3LTZHa0QWRG6vqkf1+hL+YO1RKwpjNA5eYlM3Vl9vZpV+eejrn5kR
+         +6egY3/faSiTTZTc9naoAtKH58fR6dUpbqb4LRI0=
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, mchehab+huawei@kernel.org,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged] resource-fix-kernel-doc-markups.patch removed
- from -mm tree
-Message-ID: <20201216171112.I5zWfPH5J%akpm@linux-foundation.org>
+To:     axboe@kernel.dk, hch@infradead.org, hch@lst.de,
+        jani.nikula@intel.com, kvalo@codeaurora.org,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
+ removed from -mm tree
+Message-ID: <20201216171052.uGwBUytan%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,97 +43,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/resource.c: fix kernel-doc markups
+     Subject: relay: make create_buf_file and remove_buf_file callbacks mandatory
 has been removed from the -mm tree.  Its filename was
-     resource-fix-kernel-doc-markups.patch
+     relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: kernel/resource.c: fix kernel-doc markups
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: relay: make create_buf_file and remove_buf_file callbacks mandatory
 
-Kernel-doc markups should use this format:
-        identifier - description
+All clients provide create_buf_file and remove_buf_file callbacks, and
+they're required for relay to make sense.  There is no point in them being
+optional.
 
-While here, fix a kernel-doc tag that was using, instead,
-a normal comment block.
+Also document whether each callback is mandatory/optional.
 
-[akpm@linux-foundation.org: coding style fixes]
-Link: https://lkml.kernel.org/r/c5e38e1070f8dbe2f9607a10b44afe2875bd966c.1605521731.git.mchehab+huawei@kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: "Jonathan Corbet" <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/88003c1527386b93036e286e7917f1e33aec84ac.1606153547.git.jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ include/linux/relay.h |    6 ++++++
+ kernel/relay.c        |   26 +-------------------------
+ 2 files changed, 7 insertions(+), 25 deletions(-)
 
---- a/kernel/resource.c~resource-fix-kernel-doc-markups
-+++ a/kernel/resource.c
-@@ -320,9 +320,8 @@ int release_resource(struct resource *ol
- EXPORT_SYMBOL(release_resource);
- 
- /**
-- * Finds the lowest iomem resource that covers part of [@start..@end].  The
-- * caller must specify @start, @end, @flags, and @desc (which may be
-- * IORES_DESC_NONE).
-+ * find_next_iomem_res - Finds the lowest iomem resource that covers part of
-+ *			 [@start..@end].
-  *
-  * If a resource is found, returns 0 and @*res is overwritten with the part
-  * of the resource that's within [@start..@end]; if none is found, returns
-@@ -337,6 +336,9 @@ EXPORT_SYMBOL(release_resource);
-  * @desc:	descriptor the resource must have
-  * @first_lvl:	walk only the first level children, if set
-  * @res:	return ptr, if resource found
-+ *
-+ * The caller must specify @start, @end, @flags, and @desc
-+ * (which may be IORES_DESC_NONE).
-  */
- static int find_next_iomem_res(resource_size_t start, resource_size_t end,
- 			       unsigned long flags, unsigned long desc,
-@@ -416,11 +418,9 @@ static int __walk_iomem_res_desc(resourc
- }
- 
- /**
-- * Walks through iomem resources and calls func() with matching resource
-- * ranges. This walks through whole tree and not just first level children.
-- * All the memory ranges which overlap start,end and also match flags and
-- * desc are valid candidates.
-- *
-+ * walk_iomem_res_desc - Walks through iomem resources and calls func()
-+ *			 with matching resource ranges.
-+ * *
-  * @desc: I/O resource descriptor. Use IORES_DESC_NONE to skip @desc check.
-  * @flags: I/O resource flags
-  * @start: start addr
-@@ -428,6 +428,10 @@ static int __walk_iomem_res_desc(resourc
-  * @arg: function argument for the callback @func
-  * @func: callback function that is called for each qualifying resource area
-  *
-+ * This walks through whole tree and not just first level children.
-+ * All the memory ranges which overlap start,end and also match flags and
-+ * desc are valid candidates.
-+ *
-  * NOTE: For a new descriptor search, define a new IORES_DESC in
-  * <linux/ioport.h> and set it in 'desc' of a target resource entry.
-  */
-@@ -1372,9 +1376,9 @@ static bool system_ram_resources_mergeab
- 	       !r1->child && !r2->child;
+--- a/include/linux/relay.h~relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory
++++ a/include/linux/relay.h
+@@ -89,6 +89,8 @@ struct rchan_callbacks
+ 	 * The client should return 1 to continue logging, 0 to stop
+ 	 * logging.
+ 	 *
++	 * This callback is optional.
++	 *
+ 	 * NOTE: subbuf_start will also be invoked when the buffer is
+ 	 *       created, so that the first sub-buffer can be initialized
+ 	 *       if necessary.  In this case, prev_subbuf will be NULL.
+@@ -122,6 +124,8 @@ struct rchan_callbacks
+ 	 * cause relay_open() to create a single global buffer rather
+ 	 * than the default set of per-cpu buffers.
+ 	 *
++	 * This callback is mandatory.
++	 *
+ 	 * See Documentation/filesystems/relay.rst for more info.
+ 	 */
+ 	struct dentry *(*create_buf_file)(const char *filename,
+@@ -139,6 +143,8 @@ struct rchan_callbacks
+ 	 * channel buffer.
+ 	 *
+ 	 * The callback should return 0 if successful, negative if not.
++	 *
++	 * This callback is mandatory.
+ 	 */
+ 	int (*remove_buf_file)(struct dentry *dentry);
+ };
+--- a/kernel/relay.c~relay-make-create_buf_file-and-remove_buf_file-callbacks-mandatory
++++ a/kernel/relay.c
+@@ -271,26 +271,6 @@ static int subbuf_start_default_callback
+ 	return 1;
  }
  
 -/*
-+/**
-  * merge_system_ram_resource - mark the System RAM resource mergeable and try to
-- * merge it with adjacent, mergeable resources
-+ *	merge it with adjacent, mergeable resources
-  * @res: resource descriptor
-  *
-  * This interface is intended for memory hotplug, whereby lots of contiguous
+- * create_buf_file_create() default callback.  Does nothing.
+- */
+-static struct dentry *create_buf_file_default_callback(const char *filename,
+-						       struct dentry *parent,
+-						       umode_t mode,
+-						       struct rchan_buf *buf,
+-						       int *is_global)
+-{
+-	return NULL;
+-}
+-
+-/*
+- * remove_buf_file() default callback.  Does nothing.
+- */
+-static int remove_buf_file_default_callback(struct dentry *dentry)
+-{
+-	return -EINVAL;
+-}
+-
+ /**
+  *	wakeup_readers - wake up readers waiting on a channel
+  *	@work: contains the channel buffer
+@@ -467,10 +447,6 @@ static void setup_callbacks(struct rchan
+ {
+ 	if (!cb->subbuf_start)
+ 		cb->subbuf_start = subbuf_start_default_callback;
+-	if (!cb->create_buf_file)
+-		cb->create_buf_file = create_buf_file_default_callback;
+-	if (!cb->remove_buf_file)
+-		cb->remove_buf_file = remove_buf_file_default_callback;
+ 	chan->cb = cb;
+ }
+ 
+@@ -530,7 +506,7 @@ struct rchan *relay_open(const char *bas
+ 		return NULL;
+ 	if (subbuf_size > UINT_MAX / n_subbufs)
+ 		return NULL;
+-	if (!cb)
++	if (!cb || !cb->create_buf_file || !cb->remove_buf_file)
+ 		return NULL;
+ 
+ 	chan = kzalloc(sizeof(struct rchan), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from mchehab+huawei@kernel.org are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
 
