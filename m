@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4501C2BBCA
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B792C2BBCD
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98ADA2333E
+	by mail.kernel.org (Postfix) with ESMTP id CFBEE23357
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:46:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725960AbgLPEqD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:46:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51340 "EHLO mail.kernel.org"
+        id S1725963AbgLPEqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:46:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50676 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725903AbgLPEqC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:46:02 -0500
-Date:   Tue, 15 Dec 2020 20:45:21 -0800
+        id S1725903AbgLPEqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:46:06 -0500
+Date:   Tue, 15 Dec 2020 20:45:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093922;
-        bh=E28KMpjtlEEkUhibzvEum5NQ2noQ33V4xBsx/lRCnNM=;
+        s=korg; t=1608093951;
+        bh=msmMUv/yUz0YuWdelBs+LXtBN1wS3D8HrufuQmAz6nE=;
         h=From:To:Subject:In-Reply-To:From;
-        b=pTIP0BkTDCUimrmP9M26uSfUrxm4Kw06NshqARJ/oLSFwWkkbvMNvUqJ6xSVpDGrv
-         KiAxhBXKAEc52JyMDvzHQvTJZVcK16KdUQp3sUSdEXka2Ya3DIzIzUdYX/sIBjKiXc
-         r7H2XdEEAJueSoLre0qEh0dvbTnpuj0kvkq8gYIs=
+        b=Bc/f6w3zFx7ZFp+Tpl6+nl/GqobCrmdoT/e2zIwIPli6QAk+BWlR7WSwzLU+b/QQV
+         JNg8tlsDNTmlm7mrmYF0gDPbKr7/MKf5bgavJImxOU2gDcmW10B7i2Rs4MJfV0/5kg
+         El+ZseBKGHcQYj7o9d5t1OmASkP88NiPkkfB7wAM=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dwaipayanray1@gmail.com,
-        joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, yepeilin.cs@gmail.com
-Subject:  [patch 56/95] checkpatch: fix TYPO_SPELLING check for
- words with apostrophe
-Message-ID: <20201216044521.yfiPsRHif%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@infradead.org,
+        hch@lst.de, jani.nikula@intel.com, kvalo@codeaurora.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 65/95] relay: require non-NULL callbacks in
+ relay_open()
+Message-ID: <20201216044550.588a_ys7z%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,58 +42,60 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: fix TYPO_SPELLING check for words with apostrophe
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: relay: require non-NULL callbacks in relay_open()
 
-checkpatch reports a false TYPO_SPELLING warning for some words containing
-an apostrophe when run with --codespell option.
+There are no clients passing NULL callbacks, which makes sense as it
+wouldn't even create a file.  Require non-NULL callbacks, and throw away
+the handling for NULL callbacks.
 
-A false positive is "doesn't".  Occurrence of the word causes checkpatch
-to emit the following warning:
-
-"WARNING: 'doesn'' may be misspelled - perhaps 'doesn't'?"
-
-Modify the regex pattern to be more in line with the codespell default
-word matching regex.  This fixes the word capture and avoids the false
-warning.
-
-In addition, highlight the misspelled word location by adding a caret
-below the word.
-
-[akpm@linux-foundation.org: make matched misspelling more obvious, per Joe]
-  Link: https://lkml.kernel.org/r/09c24ef1aa2f1c4fe909d76f5426f08780b9d81c.camel@perches.com
-Link: https://lkml.kernel.org/r/20201201190729.169733-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Reported-by: Peilin Ye <yepeilin.cs@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/e40642f3b027d2bb6bc851ddb60e0a61ea51f5f8.1606153547.git.jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/relay.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-fix-typo_spelling-check-for-words-with-apostrophe
-+++ a/scripts/checkpatch.pl
-@@ -3182,15 +3182,18 @@ sub process {
- # Check for various typo / spelling mistakes
- 		if (defined($misspellings) &&
- 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
--			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:\b|$|[^a-z@])/gi) {
-+			while ($rawline =~ /(?:^|[^\w\-'`])($misspellings)(?:[^\w\-'`]|$)/gi) {
- 				my $typo = $1;
-+				my $blank = copy_spacing($rawline);
-+				my $ptr = substr($blank, 0, $-[1]) . "^" x length($typo);
-+				my $hereptr = "$hereline$ptr\n";
- 				my $typo_fix = $spelling_fix{lc($typo)};
- 				$typo_fix = ucfirst($typo_fix) if ($typo =~ /^[A-Z]/);
- 				$typo_fix = uc($typo_fix) if ($typo =~ /^[A-Z]+$/);
- 				my $msg_level = \&WARN;
- 				$msg_level = \&CHK if ($file);
- 				if (&{$msg_level}("TYPO_SPELLING",
--						  "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $herecurr) &&
-+						  "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $hereptr) &&
- 				    $fix) {
- 					$fixed[$fixlinenr] =~ s/(^|[^A-Za-z@])($typo)($|[^A-Za-z@])/$1$typo_fix$3/;
- 				}
+--- a/kernel/relay.c~relay-require-non-null-callbacks-in-relay_open
++++ a/kernel/relay.c
+@@ -291,13 +291,6 @@ static int remove_buf_file_default_callb
+ 	return -EINVAL;
+ }
+ 
+-/* relay channel default callbacks */
+-static struct rchan_callbacks default_channel_callbacks = {
+-	.subbuf_start = subbuf_start_default_callback,
+-	.create_buf_file = create_buf_file_default_callback,
+-	.remove_buf_file = remove_buf_file_default_callback,
+-};
+-
+ /**
+  *	wakeup_readers - wake up readers waiting on a channel
+  *	@work: contains the channel buffer
+@@ -472,11 +465,6 @@ static void relay_close_buf(struct rchan
+ static void setup_callbacks(struct rchan *chan,
+ 				   struct rchan_callbacks *cb)
+ {
+-	if (!cb) {
+-		chan->cb = &default_channel_callbacks;
+-		return;
+-	}
+-
+ 	if (!cb->subbuf_start)
+ 		cb->subbuf_start = subbuf_start_default_callback;
+ 	if (!cb->create_buf_file)
+@@ -542,6 +530,8 @@ struct rchan *relay_open(const char *bas
+ 		return NULL;
+ 	if (subbuf_size > UINT_MAX / n_subbufs)
+ 		return NULL;
++	if (!cb)
++		return NULL;
+ 
+ 	chan = kzalloc(sizeof(struct rchan), GFP_KERNEL);
+ 	if (!chan)
 _
