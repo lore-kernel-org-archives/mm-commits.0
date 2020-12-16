@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E83BC4361B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C120DC0018C
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60B2C23133
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92DB723133
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 04:45:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725932AbgLPEpC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Dec 2020 23:45:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50402 "EHLO mail.kernel.org"
+        id S1725933AbgLPEpD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Dec 2020 23:45:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725926AbgLPEpB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 15 Dec 2020 23:45:01 -0500
-Date:   Tue, 15 Dec 2020 20:44:20 -0800
+        id S1725926AbgLPEpD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 15 Dec 2020 23:45:03 -0500
+Date:   Tue, 15 Dec 2020 20:44:47 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608093861;
-        bh=aTnjWzn9HpMi7CJwSC1uvfak8TBw0/9HundWwpV5QlU=;
+        s=korg; t=1608093887;
+        bh=JAnv2w2/QqWSqzDf2E8raK46pGFW+SE2MyJBRVuKHiA=;
         h=From:To:Subject:In-Reply-To:From;
-        b=UYD/cQ4WzEzA0oGCN2oIo87pWZ4ItGOsNdDH11K66g8ouHfWdU/Q3Ex3yeb6G8T+J
-         efwjqwERZYrEKAkvv1iZi21QzlBZbhDJrL89srzwdmddfe2iayG0mWlavuJEXE6wjr
-         8JlDIoL86HvmgXIK6f4uXAb1Inh1eE6eD3+a5PK4=
+        b=zdOCMAEUeyAyjH5MTqzb3B65060CriuPLMI7H7oMymZVxnCGb6O+nrEYJbSvPyZXO
+         V/c6TadGulYhPrmH1cHpnqlpSog8xMjC7oDke3vIWb13CTw+0GDrtTK7agXSSVTbxR
+         SWwn3krexMId+8LJfgo440MN60Gvffy0d9ZloiyY=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dwaipayanray1@gmail.com,
-        joe@perches.com, linux-mm@kvack.org, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        yashsri421@gmail.com
-Subject:  [patch 37/95] checkpatch: add new exception to repeated
- word check
-Message-ID: <20201216044420.q5HFasAZl%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org,
+        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, yashsri421@gmail.com
+Subject:  [patch 45/95] checkpatch: add fix option for
+ GERRIT_CHANGE_ID
+Message-ID: <20201216044447.EcKBEYEV3%akpm@linux-foundation.org>
 In-Reply-To: <20201215204156.f05ec694b907845bcfab5c44@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,80 +41,44 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Subject: checkpatch: add new exception to repeated word check
+From: Aditya Srivastava <yashsri421@gmail.com>
+Subject: checkpatch: add fix option for GERRIT_CHANGE_ID
 
-Recently, commit 4f6ad8aa1eac ("checkpatch: move repeated word test")
-moved the repeated word test to check for more file types. But after
-this, if checkpatch.pl is run on MAINTAINERS, it generates several
-new warnings of the type:
+Currently, whenever a Gerrit Change-Id is present in a commit,
+checkpatch.pl warns to remove the Change-Id before submitting the patch.
 
-WARNING: Possible repeated word: 'git'
+E.g., running checkpatch on commit adc311a5bbf6 ("iwlwifi: bump FW
+API to 53 for 22000 series") reports this error:
 
-For example:
-WARNING: Possible repeated word: 'git'
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rw/uml.git
+ERROR: Remove Gerrit Change-Id's before submitting upstream
+Change-Id: I5725e46394f3f53c3069723fd513cc53c7df383d
 
-So, the pattern "git git://..." is a false positive in this case.
+Provide a simple fix option by simply deleting the indicated line.
 
-There are several other combinations which may produce a wrong
-warning message, such as "@size size", ":Begin begin", etc.
-
-Extend repeated word check to compare the characters before and
-after the word matches.
-
-If there is a non whitespace character before the first word or a
-non whitespace character excluding punctuation characters after
-the second word, then the check is skipped and the warning is avoided.
-
-Also add case insensitive word matching to the repeated word check.
-
-Link: https://lore.kernel.org/linux-kernel-mentees/81b6a0bb2c7b9256361573f7a13201ebcd4876f1.camel@perches.com/
-Link: https://lkml.kernel.org/r/20201017162732.152351-1-dwaipayanray1@gmail.com
-Signed-off-by: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Suggested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Link: https://lkml.kernel.org/r/20201030114447.24199-1-yashsri421@gmail.com
+Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
-Cc: Aditya Srivastava <yashsri421@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-new-exception-to-repeated-word-check
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-gerrit_change_id
 +++ a/scripts/checkpatch.pl
-@@ -3050,19 +3050,30 @@ sub process {
+@@ -2852,8 +2852,11 @@ sub process {
  
- # check for repeated words separated by a single space
- 		if ($rawline =~ /^\+/ || $in_commit_log) {
-+			pos($rawline) = 1 if (!$in_commit_log);
- 			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
+ # Check for Gerrit Change-Ids not in any patch context
+ 		if ($realfile eq '' && !$has_patch_separator && $line =~ /^\s*change-id:/i) {
+-			ERROR("GERRIT_CHANGE_ID",
+-			      "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr);
++			if (ERROR("GERRIT_CHANGE_ID",
++			          "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr) &&
++			    $fix) {
++                                fix_delete_line($fixlinenr, $rawline);
++                        }
+ 		}
  
- 				my $first = $1;
- 				my $second = $2;
--
-+				my $start_pos = $-[1];
-+				my $end_pos = $+[2];
- 				if ($first =~ /(?:struct|union|enum)/) {
- 					pos($rawline) += length($first) + length($second) + 1;
- 					next;
- 				}
- 
--				next if ($first ne $second);
-+				next if (lc($first) ne lc($second));
- 				next if ($first eq 'long');
- 
-+				# check for character before and after the word matches
-+				my $start_char = '';
-+				my $end_char = '';
-+				$start_char = substr($rawline, $start_pos - 1, 1) if ($start_pos > ($in_commit_log ? 0 : 1));
-+				$end_char = substr($rawline, $end_pos, 1) if ($end_pos < length($rawline));
-+
-+				next if ($start_char =~ /^\S$/);
-+				next if (index(" \t.,;?!", $end_char) == -1);
-+
- 				if (WARN("REPEATED_WORD",
- 					 "Possible repeated word: '$first'\n" . $herecurr) &&
- 				    $fix) {
+ # Check if the commit log is in a possible stack dump
 _
