@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48668C2BBCF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65B83C2BBD4
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:08:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FFB12343B
+	by mail.kernel.org (Postfix) with ESMTP id 39DC92343E
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Dec 2020 17:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726983AbgLPRIx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Dec 2020 12:08:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59566 "EHLO mail.kernel.org"
+        id S1726964AbgLPRI4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Dec 2020 12:08:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726155AbgLPRIx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 16 Dec 2020 12:08:53 -0500
-Date:   Wed, 16 Dec 2020 09:08:12 -0800
+        id S1726155AbgLPRI4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 16 Dec 2020 12:08:56 -0500
+Date:   Wed, 16 Dec 2020 09:08:15 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608138492;
-        bh=wO0937hp3Sd3AkeDt2/AM2Y3AxYLtPgjjS58XMIZUmQ=;
+        s=korg; t=1608138495;
+        bh=L0ipoFy7ro8QcQs+fJ3J7I/Awwip8YIIFZ1RIGxYspo=;
         h=From:To:Subject:From;
-        b=pPDyi8iwFyBd9gCJbDtZOVQ9F73QB3UrJHotIc0fnFjGV1DA+rGLONG5jl9/DulJJ
-         3vlp3gTKIxRc/u7GyK+kBtmS2J4g+xWYbyQS674wt1HzoxtzhQ7IauBVenoPcrPEse
-         zJNaqPe6rXsDYzomlDhyHdkvDFokm1uHt3DWg6Yc=
+        b=1t7Il2gYbYtbjlObUvNpCw/g7fL+l8ZHxZ1g3+9EudMhKhTWbUPj8aIffwXs1Mq52
+         e/SG40irOA5GgI5ZnlHgn3TJm3GhcNHO03aXLIdDzirYeMF0Hl+H5bf3vCBmrVdbcz
+         or3qrjxpwMdG56ojvLcgRbneLU7zaAvkz090HDug=
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, cheloha@linux.ibm.com, david@redhat.com,
-        ldufour@linux.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        nathanl@linux.ibm.com
-Subject:  [merged]
- mm-memory_hotplug-quieting-offline-operation.patch removed from -mm tree
-Message-ID: <20201216170812.hun7loPZP%akpm@linux-foundation.org>
+To:     belyshev@depni.sinp.msu.ru, bigeasy@linutronix.de,
+        ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        mm-commits@vger.kernel.org, rth@twiddle.net, tglx@linutronix.de
+Subject:  [merged] alpha-replace-bogus-in_interrupt.patch removed
+ from -mm tree
+Message-ID: <20201216170815.ii4RyJHCm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,52 +42,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: quieting offline operation
+     Subject: alpha: replace bogus in_interrupt()
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-quieting-offline-operation.patch
+     alpha-replace-bogus-in_interrupt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laurent Dufour <ldufour@linux.ibm.com>
-Subject: mm/memory_hotplug: quieting offline operation
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: alpha: replace bogus in_interrupt()
 
-On PowerPC, when dymically removing memory from a system we can see in the
-console a lot of messages like this:
+in_interrupt() is true for a variety of things including bottom half
+disabled regions.  Deducing hard interrupt context from it is dubious at
+best.
 
-[  186.575389] Offlined Pages 4096
+Use in_irq() which is true if called in hard interrupt context.  Otherwise
+calling irq_exit() would do more harm than good.
 
-This message is displayed on each LMB (256MB) removed, which means that we
-removing 1TB of memory, this message is displayed 4096 times.
-
-Moving it to DEBUG to not flood the console.
-
-Link: https://lkml.kernel.org/r/20201211150157.91399-1-ldufour@linux.ibm.com
-Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Nathan Lynch <nathanl@linux.ibm.com>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20201113135832.2202833-1-bigeasy@linutronix.de
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Tested-by: Serge Belyshev <belyshev@depni.sinp.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
+ arch/alpha/kernel/process.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-quieting-offline-operation
-+++ a/mm/memory_hotplug.c
-@@ -1561,7 +1561,7 @@ int __ref offline_pages(unsigned long st
- 
- 	/* Mark all sections offline and remove free pages from the buddy. */
- 	__offline_isolated_pages(start_pfn, end_pfn);
--	pr_info("Offlined Pages %ld\n", nr_pages);
-+	pr_debug("Offlined Pages %ld\n", nr_pages);
- 
- 	/*
- 	 * The memory sections are marked offline, and the pageblock flags
+--- a/arch/alpha/kernel/process.c~alpha-replace-bogus-in_interrupt
++++ a/arch/alpha/kernel/process.c
+@@ -134,7 +134,7 @@ common_shutdown_1(void *generic_ptr)
+ #ifdef CONFIG_DUMMY_CONSOLE
+ 		/* If we've gotten here after SysRq-b, leave interrupt
+ 		   context before taking over the console. */
+-		if (in_interrupt())
++		if (in_irq())
+ 			irq_exit();
+ 		/* This has the effect of resetting the VGA video origin.  */
+ 		console_lock();
 _
 
-Patches currently in -mm which might be from ldufour@linux.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 
