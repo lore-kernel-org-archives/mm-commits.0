@@ -7,35 +7,32 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C258EC4361B
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17B8DC2BBCF
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9619B239EB
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2A9823A51
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730054AbgLQXDu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Dec 2020 18:03:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51808 "EHLO mail.kernel.org"
+        id S1727142AbgLQXDz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Dec 2020 18:03:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727141AbgLQXDu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 17 Dec 2020 18:03:50 -0500
-Date:   Thu, 17 Dec 2020 15:02:38 -0800
+        id S1730140AbgLQXDz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 17 Dec 2020 18:03:55 -0500
+Date:   Thu, 17 Dec 2020 15:02:42 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608246159;
-        bh=xVqz+9N1AlX+BPqD+hseKQCK/OXLYabsTOkYEw9BgEg=;
+        s=korg; t=1608246162;
+        bh=XpT2M5mYIV4CAhDWk1a2sbFHCLjR1CrHqk8qEB2PFgA=;
         h=From:To:Subject:From;
-        b=eg9Bhaw/JPjgxrWgZScExYIP67vhjiMYs3bkXo3z2wIvocC8o6bd7p2G9EQ/ElF+N
-         fu41QYIrU6A0u3sCUrqJYavp2jtybXtztGO8PzB93zuKE5T8QBWJftC+qVoi2jtzJY
-         7380BwnmCjP37opjhb9Ac433FU9EzRRVseOmqvKk=
+        b=TfmtfKzHr+0/plbrKkFoePskSdhTLj6S9ByabpJ1yOsalwMC/RksTi33UTLpnANVa
+         2aD8ncvGZEb1PRxtXlKb8x1RHRVf3psIMx9oYm7no+LvfLSWVNwKubrIi05gnbYwVO
+         N2/brQa4uOgceHE3YzJ1oQ+foRm2xbAs/QKlh3D8=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vitor@massaru.org,
-        skhan@linuxfoundation.org, matti.vaittinen@fi.rohmeurope.com,
-        davidgow@google.com, broonie@kernel.org, brendanhiggins@google.com,
-        andriy.shevchenko@linux.intel.com
+To:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com
 Subject:  [to-be-updated]
- lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch removed from -mm
- tree
-Message-ID: <20201217230238.WCMT6%akpm@linux-foundation.org>
+ lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch removed
+ from -mm tree
+Message-ID: <20201217230242.MMbhQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,171 +41,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline_kunit: add a new test suite for cmdline API
+     Subject: lib/cmdline_kunit: type of expected returned values should be int
 has been removed from the -mm tree.  Its filename was
-     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
+     lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline_kunit: add a new test suite for cmdline API
+Subject: lib/cmdline_kunit: type of expected returned values should be int
 
-Test get_option() for a starter which is provided by cmdline.c.
+Type of expected returned values should be int.
 
-Link: https://lkml.kernel.org/r/20201112180732.75589-6-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20201116104244.15472-1-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Vitor Massaru Iha <vitor@massaru.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug   |   11 ++++
- lib/Makefile        |    1 
- lib/cmdline_kunit.c |   98 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 110 insertions(+)
+ lib/cmdline_kunit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- /dev/null
+--- a/lib/cmdline_kunit.c~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2
 +++ a/lib/cmdline_kunit.c
-@@ -0,0 +1,98 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Test cases for API provided by cmdline.c
-+ */
-+
-+#include <kunit/test.h>
-+#include <linux/kernel.h>
-+#include <linux/random.h>
-+#include <linux/string.h>
-+
-+static const char *cmdline_test_strings[] = {
-+	"\"\"", ""  , "=" , "\"-", ","    , "-,"   , ",-"   , "-" ,
-+	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
-+};
-+
-+static const char *cmdline_test_values[] = {
-+	1, 1, 1, 1, 2, 3, 2, 3,
-+	1, 3, 2, 1, 1, 1, 3, 1,
-+};
-+
-+static void cmdline_do_one_test(struct kunit *test, char *in, int rc, int offset)
-+{
-+	const char *fmt = "Pattern: %s";
-+	char *out = in;
-+	int dummy;
-+	int ret;
-+
-+	ret = get_option(&out, &dummy);
-+
-+	KUNIT_EXPECT_EQ_MSG(test, ret, rc, fmt, in);
-+	KUNIT_EXPECT_PTR_EQ_MSG(test, out, in + offset, fmt, in);
-+}
-+
-+static void cmdline_test_noint(struct kunit *test)
-+{
-+	unsigned int i = 0;
-+
-+	do {
-+		const char *str = cmdline_test_strings[i];
-+		int rc = 0;
-+		int offset;
-+
-+		/* Only first and leading '-' will advance the pointer */
-+		offset = !!(*str == '-');
-+		cmdline_do_one_test(test, str, rc, offset);
-+	} while (++i < ARRAY_SIZE(cmdline_test_strings));
-+}
-+
-+static void cmdline_test_lead_int(struct kunit *test)
-+{
-+	unsigned int i = 0;
-+	char in[32];
-+
-+	do {
-+		const char *str = cmdline_test_strings[i];
-+		int rc = cmdline_test_values[i];
-+		int offset;
-+
-+		sprintf(in, "%u%s", get_random_int() % 256, str);
-+		/* Only first '-' after the number will advance the pointer */
-+		offset = strlen(in) - strlen(str) + !!(rc == 2);
-+		cmdline_do_one_test(test, in, rc, offset);
-+	} while (++i < ARRAY_SIZE(cmdline_test_strings));
-+}
-+
-+static void cmdline_test_tail_int(struct kunit *test)
-+{
-+	unsigned int i = 0;
-+	char in[32];
-+
-+	do {
-+		const char *str = cmdline_test_strings[i];
-+		/* When "" or "-" the result will be valid integer */
-+		int rc = strcmp(str, "") ? (strcmp(str, "-") ? 0 : 1) : 1;
-+		int offset;
-+
-+		sprintf(in, "%s%u", str, get_random_int() % 256);
-+		/*
-+		 * Only first and leading '-' not followed by integer
-+		 * will advance the pointer.
-+		 */
-+		offset = rc ? strlen(in) : !!(*str == '-');
-+		cmdline_do_one_test(test, in, rc, offset);
-+	} while (++i < ARRAY_SIZE(cmdline_test_strings));
-+}
-+
-+static struct kunit_case cmdline_test_cases[] = {
-+	KUNIT_CASE(cmdline_test_noint),
-+	KUNIT_CASE(cmdline_test_lead_int),
-+	KUNIT_CASE(cmdline_test_tail_int),
-+	{}
-+};
-+
-+static struct kunit_suite cmdline_test_suite = {
-+	.name = "cmdline",
-+	.test_cases = cmdline_test_cases,
-+};
-+kunit_test_suite(cmdline_test_suite);
---- a/lib/Kconfig.debug~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api
-+++ a/lib/Kconfig.debug
-@@ -2276,6 +2276,17 @@ config LINEAR_RANGES_TEST
+@@ -13,7 +13,7 @@ static const char *cmdline_test_strings[
+ 	"+,"  , "--", ",,", "''" , "\"\",", "\",\"", "-\"\"", "\"",
+ };
  
- 	  If unsure, say N.
- 
-+config CMDLINE_KUNIT_TEST
-+	tristate "KUnit test for cmdline API"
-+	depends on KUNIT
-+	help
-+	  This builds the cmdline API unit test.
-+	  Tests the logic of API provided by cmdline.c.
-+	  For more information on KUnit and unit tests in general please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config BITS_TEST
- 	tristate "KUnit test for bits.h"
- 	depends on KUNIT
---- a/lib/Makefile~lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api
-+++ a/lib/Makefile
-@@ -351,5 +351,6 @@ obj-$(CONFIG_PLDMFW) += pldmfw/
- # KUnit tests
- obj-$(CONFIG_BITFIELD_KUNIT) += bitfield_kunit.o
- obj-$(CONFIG_BITS_TEST) += bits_kunit.o
-+obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
- obj-$(CONFIG_LINEAR_RANGES_TEST) += linear_ranges_kunit.o
- obj-$(CONFIG_LIST_KUNIT_TEST) += list_kunit.o
+-static const char cmdline_test_values[] = {
++static const int cmdline_test_values[] = {
+ 	1, 1, 1, 1, 2, 3, 2, 3,
+ 	1, 3, 2, 1, 1, 1, 3, 1,
+ };
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 kernelh-split-out-mathematical-helpers.patch
 bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
-lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
 lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
 apparmor-remove-duplicate-macro-list_entry_is_head.patch
 
