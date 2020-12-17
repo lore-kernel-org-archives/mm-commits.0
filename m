@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEBEC2BBCD
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1999C2BBD4
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E62F23A54
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C842D23A51
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Dec 2020 23:03:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729405AbgLQXDP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Dec 2020 18:03:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51654 "EHLO mail.kernel.org"
+        id S1727136AbgLQXDR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Dec 2020 18:03:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730147AbgLQXDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 17 Dec 2020 18:03:15 -0500
-Date:   Thu, 17 Dec 2020 15:02:34 -0800
+        id S1727141AbgLQXDR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 17 Dec 2020 18:03:17 -0500
+Date:   Thu, 17 Dec 2020 15:02:36 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608246155;
-        bh=ZSDOWXxM2rOALacyWZqPLatWrDP+Q0Jt8jmW50KXlBI=;
+        s=korg; t=1608246156;
+        bh=QvHEiX09z/Vr8waxfFOKK10sT9uHJ3u2yaEzjqkZ48U=;
         h=From:To:Subject:From;
-        b=ziaIxaLI29WT7/gduEGMom+gPu9HmTj02+tQLSKPR/njPLgBJmoKdi7jDD0SCBlEL
-         ED2fiHiq6OPIOnEUrrJC1vz/Hv1nEp3nYXIpv1xDBE5ApTcW1lWlZcEZsC7x4iwURa
-         Jko/SNeLsMZ/J431SHqmuhgi6LqqKydFe6v38mrU=
+        b=TzZqdJeNj55ad9RPuzEzN4SAtTNJRvRDLDdoQjeXzTsimU7w64ZoV4oICa7FuqiQc
+         mm9CdM4hd8/61RowIXGFaxb8V423Mtl7qpOcbjLLFib8SNH2BnAVtEZA703cpPtMVz
+         D0hVO+DTPshKKNrOVcoF4jZsnB6UhpBuWO++hZeU=
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vitor@massaru.org,
         skhan@linuxfoundation.org, matti.vaittinen@fi.rohmeurope.com,
         davidgow@google.com, broonie@kernel.org, brendanhiggins@google.com,
         andriy.shevchenko@linux.intel.com
 Subject:  [to-be-updated]
- lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch removed
- from -mm tree
-Message-ID: <20201217230234.6lLgm%akpm@linux-foundation.org>
+ lib-cmdline-allow-null-to-be-an-output-for-get_option.patch removed from -mm
+ tree
+Message-ID: <20201217230236.0A7rp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,26 +44,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline: fix get_option() for strings starting with hyphen
+     Subject: lib/cmdline: allow NULL to be an output for get_option()
 has been removed from the -mm tree.  Its filename was
-     lib-cmdline-fix-get_option-for-strings-starting-with-hyphen.patch
+     lib-cmdline-allow-null-to-be-an-output-for-get_option.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/cmdline: fix get_option() for strings starting with hyphen
+Subject: lib/cmdline: allow NULL to be an output for get_option()
 
-When string doesn't have an integer and starts from hyphen get_option()
-may return interesting results.  Fix it to return 0.
+In the future we would like to use get_option() to only validate the
+string and parse it separately.  To achieve this, allow NULL to be an
+output for get_option().
 
-The simple_strtoull() is used due to absence of simple_strtoul() in a boot
-code on some architectures.
-
-Note, the Fixes tag below is rather for anthropological curiosity.
-
-Link: https://lkml.kernel.org/r/20201112180732.75589-4-andriy.shevchenko@linux.intel.com
-Fixes: f68565831e72 ("Import 2.4.0-test2pre3")
+Link: https://lkml.kernel.org/r/20201112180732.75589-5-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: David Gow <davidgow@google.com>
@@ -74,30 +69,43 @@ Cc: Vitor Massaru Iha <vitor@massaru.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ lib/cmdline.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/lib/cmdline.c~lib-cmdline-fix-get_option-for-strings-starting-with-hyphen
+--- a/lib/cmdline.c~lib-cmdline-allow-null-to-be-an-output-for-get_option
 +++ a/lib/cmdline.c
-@@ -45,6 +45,9 @@ static int get_range(char **str, int *pi
-  *	1 - int found, no subsequent comma
-  *	2 - int found including a subsequent comma
-  *	3 - hyphen found to denote a range
+@@ -35,11 +35,14 @@ static int get_range(char **str, int *pi
+ /**
+  *	get_option - Parse integer from an option string
+  *	@str: option string
+- *	@pint: (output) integer value parsed from @str
++ *	@pint: (optional output) integer value parsed from @str
+  *
+  *	Read an int from an option string; if available accept a subsequent
+  *	comma as well.
+  *
++ *	When @pint is NULL the function can be used as a validator of
++ *	the current option in the string.
 + *
-+ *	Leading hyphen without integer is no integer case, but we consume it
-+ *	for the sake of simplification.
-  */
- 
+  *	Return values:
+  *	0 - no int in string
+  *	1 - int found, no subsequent comma
+@@ -53,13 +56,16 @@ static int get_range(char **str, int *pi
  int get_option(char **str, int *pint)
-@@ -53,7 +56,10 @@ int get_option(char **str, int *pint)
+ {
+ 	char *cur = *str;
++	int value;
  
  	if (!cur || !(*cur))
  		return 0;
--	*pint = simple_strtol(cur, str, 0);
-+	if (*cur == '-')
-+		*pint = -simple_strtoull(++cur, str, 0);
-+	else
-+		*pint = simple_strtoull(cur, str, 0);
+ 	if (*cur == '-')
+-		*pint = -simple_strtoull(++cur, str, 0);
++		value = -simple_strtoull(++cur, str, 0);
+ 	else
+-		*pint = simple_strtoull(cur, str, 0);
++		value = simple_strtoull(cur, str, 0);
++	if (pint)
++		*pint = value;
  	if (cur == *str)
  		return 0;
  	if (**str == ',') {
@@ -107,7 +115,6 @@ Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com a
 
 kernelh-split-out-mathematical-helpers.patch
 bitmap-convert-bitmap_empty-bitmap_full-to-return-boolean.patch
-lib-cmdline-allow-null-to-be-an-output-for-get_option.patch
 lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api.patch
 lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-2.patch
 lib-cmdline_kunit-add-a-new-test-suite-for-cmdline-api-fix-3.patch
