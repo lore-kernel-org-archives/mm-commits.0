@@ -7,31 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DDA5C4361B
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 18:47:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A451C4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 18:49:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DAA1023B08
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 18:47:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F05CF23B6B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 18:49:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726494AbgLRSqv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 13:46:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58766 "EHLO mail.kernel.org"
+        id S1726050AbgLRStq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 13:49:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726510AbgLRSqu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 13:46:50 -0500
-Date:   Fri, 18 Dec 2020 10:46:09 -0800
+        id S1725854AbgLRStq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 13:49:46 -0500
+Date:   Fri, 18 Dec 2020 10:49:02 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608317169;
-        bh=gt6rZMgX7XJJOcXgQxnRG+BYSLrMy8lEH4GteV9T2Ws=;
+        s=korg; t=1608317345;
+        bh=n1ALUsLuthK3THRzpu05wC1KtQ4LCQT0qoaiWX8fr4s=;
         h=From:To:Subject:From;
-        b=g5yAlGXDq4IreN6nwzCsIiE1hovpNRTDXr36bQYQLh2WTMgxt13TPEJkNrTUDJHFh
-         Gtdopgjux+8woGyblifMhOiPSYGTcU1c5x/fyEgydzIlbu1QFJhC6sxn4TVTS8g04b
-         tQyG9RTaL0UcPyhmiUkS3MDHWNPIzyqi4mjDrDKI=
+        b=krsyRS56snK+/WKuk1WgvTkaK0hTrJ0GCt0GsSSDgwT9LFfsqNF+71nOfs1biqb/R
+         /HwI6gEZ3YVFDLMWzha+JVl12IXzZmndLhL+rMcb6gJXVsgVkdf8ZjrnFVAUmrtBZF
+         Oucdr09HH1d4kqJ0wuqDH3w70k59GCP573SwsOzg=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, lkp@intel.com, glider@google.com,
-        elver@google.com
-Subject:  + kfence-add-test-suite-fix.patch added to -mm tree
-Message-ID: <20201218184609.6_iMR%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, zaslonko@linux.ibm.com,
+        stable@vger.kernel.org, hca@linux.ibm.com, gor@linux.ibm.com,
+        borntraeger@de.ibm.com, iii@linux.ibm.com
+Subject:  + lib-zlib-fix-inflating-zlib-streams-on-s390.patch added
+ to -mm tree
+Message-ID: <20201218184902.eN8WB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: fix typo in test
+     Subject: lib/zlib: fix inflating zlib streams on s390
 has been added to the -mm tree.  Its filename is
-     kfence-add-test-suite-fix.patch
+     lib-zlib-fix-inflating-zlib-streams-on-s390.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-add-test-suite-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-zlib-fix-inflating-zlib-streams-on-s390.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-add-test-suite-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-zlib-fix-inflating-zlib-streams-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,43 +63,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: fix typo in test
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: lib/zlib: fix inflating zlib streams on s390
 
-Fix a typo/accidental copy-paste that resulted in the obviously
-incorrect 'GFP_KERNEL * 2' expression.
+Decompressing zlib streams on s390 fails with "incorrect data check"
+error.
 
-Link: https://lkml.kernel.org/r/X9lHQExmHGvETxY4@elver.google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Alexander Potapenko <glider@google.com>
+Userspace zlib checks inflate_state.flags in order to byteswap checksums
+only for zlib streams, and s390 hardware inflate code, which was ported
+from there, tries to match this behavior.  At the same time, kernel zlib
+does not use inflate_state.flags, so it contains essentially random
+values.  For many use cases either zlib stream is zeroed out or checksum
+is not used, so this problem is masked, but at least SquashFS is still
+affected.
+
+Fix by always passing a checksum to and from the hardware as is, which
+matches zlib_inflate()'s expectations.
+
+Link: https://lkml.kernel.org/r/20201215155551.894884-1-iii@linux.ibm.com
+Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Acked-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: <stable@vger.kernel.org>	[5.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/kfence_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/zlib_dfltcc/dfltcc_inflate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/kfence_test.c~kfence-add-test-suite-fix
-+++ a/mm/kfence/kfence_test.c
-@@ -665,7 +665,7 @@ static void test_krealloc(struct kunit *
- 	for (; i < size * 3; i++) /* Fill to extra bytes. */
- 		buf[i] = i + 1;
+--- a/lib/zlib_dfltcc/dfltcc_inflate.c~lib-zlib-fix-inflating-zlib-streams-on-s390
++++ a/lib/zlib_dfltcc/dfltcc_inflate.c
+@@ -125,7 +125,7 @@ dfltcc_inflate_action dfltcc_inflate(
+     param->ho = (state->write - state->whave) & ((1 << HB_BITS) - 1);
+     if (param->hl)
+         param->nt = 0; /* Honor history for the first block */
+-    param->cv = state->flags ? REVERSE(state->check) : state->check;
++    param->cv = state->check;
  
--	buf = krealloc(buf, size * 2, GFP_KERNEL * 2); /* Shrink. */
-+	buf = krealloc(buf, size * 2, GFP_KERNEL); /* Shrink. */
- 	KUNIT_EXPECT_GE(test, ksize(buf), size * 2);
- 	for (i = 0; i < size * 2; i++)
- 		KUNIT_EXPECT_EQ(test, buf[i], (char)(i + 1));
+     /* Inflate */
+     do {
+@@ -138,7 +138,7 @@ dfltcc_inflate_action dfltcc_inflate(
+     state->bits = param->sbb;
+     state->whave = param->hl;
+     state->write = (param->ho + param->hl) & ((1 << HB_BITS) - 1);
+-    state->check = state->flags ? REVERSE(param->cv) : param->cv;
++    state->check = param->cv;
+     if (cc == DFLTCC_CC_OP2_CORRUPT && param->oesc != 0) {
+         /* Report an error if stream is corrupted */
+         state->mode = BAD;
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
-mm-add-kernel-electric-fence-infrastructure-fix.patch
-mm-add-kernel-electric-fence-infrastructure-fix-2.patch
-arm64-kfence-enable-kfence-for-arm64.patch
-kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch
-kfence-documentation-add-kfence-documentation.patch
-kfence-add-test-suite.patch
-kfence-add-test-suite-fix.patch
-maintainers-add-entry-for-kfence.patch
+lib-zlib-fix-inflating-zlib-streams-on-s390.patch
 
