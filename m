@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1ACC3526C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BE6C3526E
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89BFB23BAD
+	by mail.kernel.org (Postfix) with ESMTP id A9CEC23BA9
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726279AbgLRWDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36044 "EHLO mail.kernel.org"
+        id S1726305AbgLRWDI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726289AbgLRWDG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:06 -0500
-Date:   Fri, 18 Dec 2020 14:02:36 -0800
+        id S1726297AbgLRWDI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:08 -0500
+Date:   Fri, 18 Dec 2020 14:02:20 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328957;
-        bh=3sfx/e9BVfHzKtPV+SD6U8fRuN5aQYIP2gdZrh3nRQ0=;
+        s=korg; t=1608328941;
+        bh=Tbjr1ls2W/E9ex/nUEg5tpPEJIGUedvscg041utElv8=;
         h=From:To:Subject:In-Reply-To:From;
-        b=woi1rQ4ZFStBSbxQtyhBqHJK8dBd/bxKfpILLxRhy3/jTEI8TbrE839h7gsevEGso
-         C5NlnXV8jckw4o+oKEnDtWS1MTOH5gUgwl7FfHs3m2Xn80SQUo29u2xKNmeAlNcTWo
-         J3DBZladxwORADjTa4DWJg6bZaGl3MTfBbc7XVTw=
+        b=aSy4tZvNQqeyuBLmmVMP8NXdLn/B4VfGVqh3toLx6XuYkujJwW7rwGZfrJdbaEbtn
+         qUo3B+QjOtRTvPTqUw3p11591U346RBd/eN30iIMJp36fEeSMh7sl8WIw8Z0jTZiKF
+         oLMaSrob8BTKou8qsVff0rAgyAd0VjvrXuLcz81g=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -34,9 +34,11 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         eugenis@google.com, glider@google.com, gor@linux.ibm.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 22/78] kasan: define KASAN_MEMORY_PER_SHADOW_PAGE
-Message-ID: <20201218220236.6c_3UIn-G%akpm@linux-foundation.org>
+        valdis.kletnieks@vt.edu, vincenzo.frascino@arm.com,
+        will.deacon@arm.com
+Subject:  [patch 17/78] kasan: shadow declarations only for
+ software modes
+Message-ID: <20201218220220.F14pMRefZ%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,15 +47,20 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: define KASAN_MEMORY_PER_SHADOW_PAGE
+Subject: kasan: shadow declarations only for software modes
 
-Define KASAN_MEMORY_PER_SHADOW_PAGE as (KASAN_GRANULE_SIZE << PAGE_SHIFT),
-which is the same as (KASAN_GRANULE_SIZE * PAGE_SIZE) for software modes
-that use shadow memory, and use it across KASAN code to simplify it.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Link: https://lkml.kernel.org/r/8329391cfe14b5cffd3decf3b5c535b6ce21eef6.1606161801.git.andreyknvl@google.com
+Group shadow-related KASAN function declarations and only define them for
+the two existing software modes.
+
+No functional changes for software modes.
+
+Link: https://lkml.kernel.org/r/e88d94eff94db883a65dca52e1736d80d28dd9bc.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
@@ -65,89 +72,112 @@ Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
+[valdis.kletnieks@vt.edu: fix build issue with asmlinkage]
+  Link: https://lkml.kernel.org/r/35126.1606402815@turing-police
+  Link: https://lore.kernel.org/linux-arm-kernel/24105.1606397102@turing-police/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/init.c   |   10 ++++------
- mm/kasan/kasan.h  |    2 ++
- mm/kasan/shadow.c |   16 +++++++---------
- 3 files changed, 13 insertions(+), 15 deletions(-)
+ include/linux/kasan.h |   48 ++++++++++++++++++++++++++--------------
+ 1 file changed, 32 insertions(+), 16 deletions(-)
 
---- a/mm/kasan/init.c~kasan-define-kasan_memory_per_shadow_page
-+++ a/mm/kasan/init.c
-@@ -441,9 +441,8 @@ void kasan_remove_zero_shadow(void *star
- 	addr = (unsigned long)kasan_mem_to_shadow(start);
- 	end = addr + (size >> KASAN_SHADOW_SCALE_SHIFT);
+--- a/include/linux/kasan.h~kasan-shadow-declarations-only-for-software-modes
++++ a/include/linux/kasan.h
+@@ -11,7 +11,7 @@ struct task_struct;
  
--	if (WARN_ON((unsigned long)start %
--			(KASAN_GRANULE_SIZE * PAGE_SIZE)) ||
--	    WARN_ON(size % (KASAN_GRANULE_SIZE * PAGE_SIZE)))
-+	if (WARN_ON((unsigned long)start % KASAN_MEMORY_PER_SHADOW_PAGE) ||
-+	    WARN_ON(size % KASAN_MEMORY_PER_SHADOW_PAGE))
- 		return;
+ #ifdef CONFIG_KASAN
  
- 	for (; addr < end; addr = next) {
-@@ -476,9 +475,8 @@ int kasan_add_zero_shadow(void *start, u
- 	shadow_start = kasan_mem_to_shadow(start);
- 	shadow_end = shadow_start + (size >> KASAN_SHADOW_SCALE_SHIFT);
+-#include <linux/pgtable.h>
++#include <linux/linkage.h>
+ #include <asm/kasan.h>
  
--	if (WARN_ON((unsigned long)start %
--			(KASAN_GRANULE_SIZE * PAGE_SIZE)) ||
--	    WARN_ON(size % (KASAN_GRANULE_SIZE * PAGE_SIZE)))
-+	if (WARN_ON((unsigned long)start % KASAN_MEMORY_PER_SHADOW_PAGE) ||
-+	    WARN_ON(size % KASAN_MEMORY_PER_SHADOW_PAGE))
- 		return -EINVAL;
+ /* kasan_data struct is used in KUnit tests for KASAN expected failures */
+@@ -20,6 +20,20 @@ struct kunit_kasan_expectation {
+ 	bool report_found;
+ };
  
- 	ret = kasan_populate_early_shadow(shadow_start, shadow_end);
---- a/mm/kasan/kasan.h~kasan-define-kasan_memory_per_shadow_page
-+++ a/mm/kasan/kasan.h
-@@ -8,6 +8,8 @@
- #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
- #define KASAN_GRANULE_MASK	(KASAN_GRANULE_SIZE - 1)
- 
-+#define KASAN_MEMORY_PER_SHADOW_PAGE	(KASAN_GRANULE_SIZE << PAGE_SHIFT)
++#endif
 +
- #define KASAN_TAG_KERNEL	0xFF /* native kernel pointers tag */
- #define KASAN_TAG_INVALID	0xFE /* inaccessible memory tag */
- #define KASAN_TAG_MAX		0xFD /* maximum value for random tags */
---- a/mm/kasan/shadow.c~kasan-define-kasan_memory_per_shadow_page
-+++ a/mm/kasan/shadow.c
-@@ -174,7 +174,7 @@ static int __meminit kasan_mem_notifier(
- 	shadow_end = shadow_start + shadow_size;
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
++
++#include <linux/pgtable.h>
++
++/* Software KASAN implementations use shadow memory. */
++
++#ifdef CONFIG_KASAN_SW_TAGS
++#define KASAN_SHADOW_INIT 0xFF
++#else
++#define KASAN_SHADOW_INIT 0
++#endif
++
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+ extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
+ extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+@@ -35,6 +49,23 @@ static inline void *kasan_mem_to_shadow(
+ 		+ KASAN_SHADOW_OFFSET;
+ }
  
- 	if (WARN_ON(mem_data->nr_pages % KASAN_GRANULE_SIZE) ||
--		WARN_ON(start_kaddr % (KASAN_GRANULE_SIZE << PAGE_SHIFT)))
-+		WARN_ON(start_kaddr % KASAN_MEMORY_PER_SHADOW_PAGE))
- 		return NOTIFY_BAD;
++int kasan_add_zero_shadow(void *start, unsigned long size);
++void kasan_remove_zero_shadow(void *start, unsigned long size);
++
++#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++static inline int kasan_add_zero_shadow(void *start, unsigned long size)
++{
++	return 0;
++}
++static inline void kasan_remove_zero_shadow(void *start,
++					unsigned long size)
++{}
++
++#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++#ifdef CONFIG_KASAN
++
+ /* Enable reporting bugs after kasan_disable_current() */
+ extern void kasan_enable_current(void);
  
- 	switch (action) {
-@@ -445,22 +445,20 @@ void kasan_release_vmalloc(unsigned long
- 	unsigned long region_start, region_end;
- 	unsigned long size;
+@@ -75,9 +106,6 @@ struct kasan_cache {
+ 	int free_meta_offset;
+ };
  
--	region_start = ALIGN(start, PAGE_SIZE * KASAN_GRANULE_SIZE);
--	region_end = ALIGN_DOWN(end, PAGE_SIZE * KASAN_GRANULE_SIZE);
-+	region_start = ALIGN(start, KASAN_MEMORY_PER_SHADOW_PAGE);
-+	region_end = ALIGN_DOWN(end, KASAN_MEMORY_PER_SHADOW_PAGE);
+-int kasan_add_zero_shadow(void *start, unsigned long size);
+-void kasan_remove_zero_shadow(void *start, unsigned long size);
+-
+ size_t __ksize(const void *);
+ static inline void kasan_unpoison_slab(const void *ptr)
+ {
+@@ -143,14 +171,6 @@ static inline bool kasan_slab_free(struc
+ 	return false;
+ }
  
--	free_region_start = ALIGN(free_region_start,
--				  PAGE_SIZE * KASAN_GRANULE_SIZE);
-+	free_region_start = ALIGN(free_region_start, KASAN_MEMORY_PER_SHADOW_PAGE);
+-static inline int kasan_add_zero_shadow(void *start, unsigned long size)
+-{
+-	return 0;
+-}
+-static inline void kasan_remove_zero_shadow(void *start,
+-					unsigned long size)
+-{}
+-
+ static inline void kasan_unpoison_slab(const void *ptr) { }
+ static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
  
- 	if (start != region_start &&
- 	    free_region_start < region_start)
--		region_start -= PAGE_SIZE * KASAN_GRANULE_SIZE;
-+		region_start -= KASAN_MEMORY_PER_SHADOW_PAGE;
+@@ -158,8 +178,6 @@ static inline size_t kasan_metadata_size
  
--	free_region_end = ALIGN_DOWN(free_region_end,
--				     PAGE_SIZE * KASAN_GRANULE_SIZE);
-+	free_region_end = ALIGN_DOWN(free_region_end, KASAN_MEMORY_PER_SHADOW_PAGE);
+ #ifdef CONFIG_KASAN_GENERIC
  
- 	if (end != region_end &&
- 	    free_region_end > region_end)
--		region_end += PAGE_SIZE * KASAN_GRANULE_SIZE;
-+		region_end += KASAN_MEMORY_PER_SHADOW_PAGE;
+-#define KASAN_SHADOW_INIT 0
+-
+ void kasan_cache_shrink(struct kmem_cache *cache);
+ void kasan_cache_shutdown(struct kmem_cache *cache);
+ void kasan_record_aux_stack(void *ptr);
+@@ -174,8 +192,6 @@ static inline void kasan_record_aux_stac
  
- 	shadow_start = kasan_mem_to_shadow((void *)region_start);
- 	shadow_end = kasan_mem_to_shadow((void *)region_end);
+ #ifdef CONFIG_KASAN_SW_TAGS
+ 
+-#define KASAN_SHADOW_INIT 0xFF
+-
+ void kasan_init_tags(void);
+ 
+ void *kasan_reset_tag(const void *addr);
 _
