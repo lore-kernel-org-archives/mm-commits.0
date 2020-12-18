@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6F6C2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:09:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83BA3C4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:09:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78C5723B08
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:09:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A261239FE
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:09:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730071AbgLRUI5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 15:08:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44516 "EHLO mail.kernel.org"
+        id S1730796AbgLRUJk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 15:09:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728215AbgLRUI4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 15:08:56 -0500
-Date:   Fri, 18 Dec 2020 12:08:15 -0800
+        id S1730555AbgLRUJk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 15:09:40 -0500
+Date:   Fri, 18 Dec 2020 12:08:58 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608322096;
-        bh=k8Fglps2nN1jTzqMJ2MIcFwaTo2qHCb/KbX4se1a0UM=;
+        s=korg; t=1608322139;
+        bh=hNp1HiGomn1D+m775Du8BcJJb9to1g2bcDfDEdmmtwY=;
         h=From:To:Subject:From;
-        b=h+jJGg3XpueIu8Kzwzsacfx40AG0Uy8DRYE6w6Gy3bHs/lJliJYhb4eTawOH5lm5e
-         D92afy7hB74mINcmLy6M/EN3MPlUti+ulCqVxedDfp5AM4+UAvjAbNQnLMjL8puS36
-         jxGGmEY0bZZEGBDNmnv9E5tyoxq/H7pZJDeePPw0=
+        b=nsxwKFnuJIlsnO6eg2A+cwbAvLui/CofZ/wQuNpguEA8djwgxPCGN44gbasbAJel8
+         zZVCo1+T/3fjY73kNDK/32Zq/04cqU4MnA+R0CLEzIwZ0waSeukG+xGFIX5x8DaH88
+         W8qFONbWzgzBbkALCpxmnzaT95lK0M+xKhYFj1SA=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        glider@google.com, aryabinin@virtuozzo.com, andreyknvl@google.com,
-        catalin.marinas@arm.com
+To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
+        vincenzo.frascino@arm.com, kevin.brodsky@arm.com,
+        keescook@chromium.org, glider@google.com, eugenis@google.com,
+        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
+        Branislav.Rankov@arm.com, aryabinin@virtuozzo.com,
+        andreyknvl@google.com
 Subject:  [folded-merged]
- arm64-mte-add-in-kernel-tag-fault-handler-fix.patch removed from -mm tree
-Message-ID: <20201218200815.lgw1x%akpm@linux-foundation.org>
+ kasan-add-and-integrate-kasan-boot-parameters-fix.patch removed from -mm tree
+Message-ID: <20201218200858.kEUQy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,51 +45,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: ensure CONFIG_ARM64_PAN is enabled with MTE
+     Subject: kasan: don't use read-only static keys
 has been removed from the -mm tree.  Its filename was
-     arm64-mte-add-in-kernel-tag-fault-handler-fix.patch
+     kasan-add-and-integrate-kasan-boot-parameters-fix.patch
 
-This patch was dropped because it was folded into arm64-mte-add-in-kernel-tag-fault-handler.patch
+This patch was dropped because it was folded into kasan-add-and-integrate-kasan-boot-parameters.patch
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: arm64: mte: ensure CONFIG_ARM64_PAN is enabled with MTE
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: don't use read-only static keys
 
-The uaccess routines like get/put_user() rely on the user TCF0 mode
-setting for tag checking.  However, if CONFIG_ARM64_PAN is disabled, these
-routines would use the standard LDR/STR instructions and therefore the
-kernel TCF mode.  In 5.10, the kernel TCF==0, so no tag checking, but this
-will change with the in-kernel MTE support.
+__ro_after_init static keys are incompatible with usage in loadable kernel
+modules and cause crashes.  Don't use those, use normal static keys.
 
-Make ARM64_MTE depend on ARM64_PAN.
-
-Link: https://lkml.kernel.org/r/20201203102628.GB2224@gaia
-Fixes: 89b94df9dfb1 ("arm64: mte: Kconfig entry")
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: https://lkml.kernel.org/r/f2ded589eba1597f7360a972226083de9afd86e2.1607537948.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/kasan/hw_tags.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-mte-add-in-kernel-tag-fault-handler-fix
-+++ a/arch/arm64/Kconfig
-@@ -1650,6 +1650,8 @@ config ARM64_MTE
- 	default y
- 	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
- 	depends on AS_HAS_ARMV8_5
-+	# Required for tag checking in the uaccess routines
-+	depends on ARM64_PAN
- 	select ARCH_USES_HIGH_VMA_FLAGS
- 	help
- 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
+--- a/mm/kasan/hw_tags.c~kasan-add-and-integrate-kasan-boot-parameters-fix
++++ a/mm/kasan/hw_tags.c
+@@ -43,11 +43,11 @@ static enum kasan_arg_stacktrace kasan_a
+ static enum kasan_arg_fault kasan_arg_fault __ro_after_init;
+ 
+ /* Whether KASAN is enabled at all. */
+-DEFINE_STATIC_KEY_FALSE_RO(kasan_flag_enabled);
++DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
+ EXPORT_SYMBOL(kasan_flag_enabled);
+ 
+ /* Whether to collect alloc/free stack traces. */
+-DEFINE_STATIC_KEY_FALSE_RO(kasan_flag_stacktrace);
++DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
+ 
+ /* Whether panic or disable tag checking on fault. */
+ bool kasan_flag_panic __ro_after_init;
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-arm64-mte-add-in-kernel-tag-fault-handler.patch
+kasan-drop-unnecessary-gpl-text-from-comment-headers.patch
+kasan-kasan_vmalloc-depends-on-kasan_generic.patch
+kasan-group-vmalloc-code.patch
+kasan-shadow-declarations-only-for-software-modes.patch
+kasan-rename-unpoison_shadow-to-unpoison_range.patch
+kasan-rename-kasan_shadow_-to-kasan_granule_.patch
+kasan-only-build-initc-for-software-modes.patch
+kasan-split-out-shadowc-from-commonc.patch
+kasan-define-kasan_memory_per_shadow_page.patch
+kasan-rename-report-and-tags-files.patch
+kasan-dont-duplicate-config-dependencies.patch
+kasan-hide-invalid-free-check-implementation.patch
+kasan-decode-stack-frame-only-with-kasan_stack_enable.patch
+kasan-arm64-only-init-shadow-for-software-modes.patch
+kasan-arm64-only-use-kasan_depth-for-software-modes.patch
+kasan-arm64-move-initialization-message.patch
+kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
+kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
+kasan-rename-shadow-layout-macros-to-meta.patch
+kasan-separate-metadata_fetch_row-for-each-mode.patch
+kasan-introduce-config_kasan_hw_tags.patch
+arm64-kasan-align-allocations-for-hw_tags.patch
+arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
+kasan-define-kasan_granule_size-for-hw_tags.patch
+kasan-x86-s390-update-undef-config_kasan.patch
+kasan-arm64-expand-config_kasan-checks.patch
+kasan-arm64-implement-hw_tags-runtime.patch
+kasan-arm64-print-report-from-tag-fault-handler.patch
+kasan-mm-reset-tags-when-accessing-metadata.patch
+kasan-arm64-enable-config_kasan_hw_tags.patch
+kasan-add-documentation-for-hardware-tag-based-mode.patch
+kasan-simplify-quarantine_put-call-site.patch
+kasan-rename-get_alloc-free_info.patch
+kasan-introduce-set_alloc_info.patch
+kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+kasan-allow-vmap_stack-for-hw_tags-mode.patch
+kasan-remove-__kasan_unpoison_stack.patch
+kasan-inline-kasan_reset_tag-for-tag-based-modes.patch
+kasan-inline-random_tag-for-hw_tags.patch
+kasan-open-code-kasan_unpoison_slab.patch
+kasan-inline-unpoison_range-and-check_invalid_free.patch
+kasan-add-and-integrate-kasan-boot-parameters.patch
+kasan-mm-check-kasan_enabled-in-annotations.patch
+kasan-mm-rename-kasan_poison_kfree.patch
+kasan-dont-round_up-too-much.patch
+kasan-simplify-assign_tag-and-set_tag-calls.patch
+kasan-clarify-comment-in-__kasan_kfree_large.patch
+kasan-sanitize-objects-when-metadata-doesnt-fit.patch
+kasan-mm-allow-cache-merging-with-no-metadata.patch
+kasan-update-documentation.patch
 
