@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAD22C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F37C2C3526B
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACD4B23B8C
+	by mail.kernel.org (Postfix) with ESMTP id C6A2E23BA7
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726117AbgLRWDX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36046 "EHLO mail.kernel.org"
+        id S1726335AbgLRWDa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36190 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726315AbgLRWDX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:23 -0500
-Date:   Fri, 18 Dec 2020 14:03:06 -0800
+        id S1726334AbgLRWD3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:29 -0500
+Date:   Fri, 18 Dec 2020 14:03:13 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328987;
-        bh=CntEdFeEhpEy8nANGl/CKXpvCpvnknYL6NlgBt4vUtk=;
+        s=korg; t=1608328994;
+        bh=WkJP5ueegwzdiDDMvDzqZf2U3rSH1/aHsOmLVGy5lhQ=;
         h=From:To:Subject:In-Reply-To:From;
-        b=w3gZY4TdqDyVzUo2t4j7vdKwlRKqv6bZ+nioM10K82eHicI3+Wbg0HlYczJUtcntK
-         idTyQnod3WFcn+eQ3gqXKqjNQoiuCe3pVJDUgmWPpNnHGVaVppddnZgC/jH3q09key
-         MEIc0EwYlbn4+0YSlwBBa3CBNqQv398dEHeyJBj8=
+        b=tqxOx1ITslRFc3SaxyO/q6vTjEtsh6k/udRbi4vlGzTjwK4KGqOvDN0loChNJjq9l
+         qU4L/WLtIbJEseiDd7RvkLEcJkz+zBT6dAyEOIHf28Bi0T9qplYkRlyPtu+G2VhfYZ
+         c9gmGbEFBRm1ESigqEwx5gUsxOKUmey5jZuDqPT0=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,9 +35,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 31/78] kasan: rename addr_has_shadow to
- addr_has_metadata
-Message-ID: <20201218220306.DFMEgkikH%akpm@linux-foundation.org>
+Subject:  [patch 33/78] kasan: rename SHADOW layout macros to META
+Message-ID: <20201218220313.vJuJ2g_R2%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,17 +45,17 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename addr_has_shadow to addr_has_metadata
+Subject: kasan: rename SHADOW layout macros to META
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
 
-Hardware tag-based KASAN won't be using shadow memory, but will reuse this
-function.  Rename "shadow" to implementation-neutral "metadata".
+Hardware tag-based KASAN won't be using shadow memory, but will reuse
+these macros.  Rename "SHADOW" to implementation-neutral "META".
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/370466fba590a4596b55ffd38adfd990f8886db4.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f96244ec59dc17db35173ec352c5592b14aefaf8.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -73,56 +72,86 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h          |    2 +-
- mm/kasan/report.c         |    6 +++---
- mm/kasan/report_generic.c |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/kasan/report.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/kasan.h
-@@ -147,7 +147,7 @@ static inline const void *kasan_shadow_t
- 		<< KASAN_SHADOW_SCALE_SHIFT);
- }
- 
--static inline bool addr_has_shadow(const void *addr)
-+static inline bool addr_has_metadata(const void *addr)
- {
- 	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
- }
---- a/mm/kasan/report.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
+--- a/mm/kasan/report.c~kasan-rename-shadow-layout-macros-to-meta
 +++ a/mm/kasan/report.c
-@@ -361,7 +361,7 @@ static void __kasan_report(unsigned long
- 	untagged_addr = reset_tag(tagged_addr);
+@@ -33,11 +33,11 @@
+ #include "kasan.h"
+ #include "../slab.h"
  
- 	info.access_addr = tagged_addr;
--	if (addr_has_shadow(untagged_addr))
-+	if (addr_has_metadata(untagged_addr))
- 		info.first_bad_addr = find_first_bad_addr(tagged_addr, size);
- 	else
- 		info.first_bad_addr = untagged_addr;
-@@ -372,11 +372,11 @@ static void __kasan_report(unsigned long
- 	start_report(&flags);
+-/* Shadow layout customization. */
+-#define SHADOW_BYTES_PER_BLOCK 1
+-#define SHADOW_BLOCKS_PER_ROW 16
+-#define SHADOW_BYTES_PER_ROW (SHADOW_BLOCKS_PER_ROW * SHADOW_BYTES_PER_BLOCK)
+-#define SHADOW_ROWS_AROUND_ADDR 2
++/* Metadata layout customization. */
++#define META_BYTES_PER_BLOCK 1
++#define META_BLOCKS_PER_ROW 16
++#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
++#define META_ROWS_AROUND_ADDR 2
  
- 	print_error_description(&info);
--	if (addr_has_shadow(untagged_addr))
-+	if (addr_has_metadata(untagged_addr))
- 		print_tags(get_tag(tagged_addr), info.first_bad_addr);
- 	pr_err("\n");
+ static unsigned long kasan_flags;
  
--	if (addr_has_shadow(untagged_addr)) {
-+	if (addr_has_metadata(untagged_addr)) {
- 		print_address_description(untagged_addr, get_tag(tagged_addr));
- 		pr_err("\n");
- 		print_shadow_for_address(info.first_bad_addr);
---- a/mm/kasan/report_generic.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/report_generic.c
-@@ -118,7 +118,7 @@ const char *get_bug_type(struct kasan_ac
- 	if (info->access_addr + info->access_size < info->access_addr)
- 		return "out-of-bounds";
+@@ -240,7 +240,7 @@ static void print_address_description(vo
  
--	if (addr_has_shadow(info->access_addr))
-+	if (addr_has_metadata(info->access_addr))
- 		return get_shadow_bug_type(info);
- 	return get_wild_bug_type(info);
+ static bool row_is_guilty(const void *row, const void *guilty)
+ {
+-	return (row <= guilty) && (guilty < row + SHADOW_BYTES_PER_ROW);
++	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
  }
+ 
+ static int shadow_pointer_offset(const void *row, const void *shadow)
+@@ -249,7 +249,7 @@ static int shadow_pointer_offset(const v
+ 	 *    3 + (BITS_PER_LONG/8)*2 chars.
+ 	 */
+ 	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
+-		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
++		(shadow - row) / META_BYTES_PER_BLOCK + 1;
+ }
+ 
+ static void print_memory_metadata(const void *addr)
+@@ -259,15 +259,15 @@ static void print_memory_metadata(const
+ 	const void *shadow_row;
+ 
+ 	shadow_row = (void *)round_down((unsigned long)shadow,
+-					SHADOW_BYTES_PER_ROW)
+-		- SHADOW_ROWS_AROUND_ADDR * SHADOW_BYTES_PER_ROW;
++					META_BYTES_PER_ROW)
++		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
+ 
+ 	pr_err("Memory state around the buggy address:\n");
+ 
+-	for (i = -SHADOW_ROWS_AROUND_ADDR; i <= SHADOW_ROWS_AROUND_ADDR; i++) {
++	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
+ 		const void *kaddr = kasan_shadow_to_mem(shadow_row);
+ 		char buffer[4 + (BITS_PER_LONG/8)*2];
+-		char shadow_buf[SHADOW_BYTES_PER_ROW];
++		char shadow_buf[META_BYTES_PER_ROW];
+ 
+ 		snprintf(buffer, sizeof(buffer),
+ 			(i == 0) ? ">%px: " : " %px: ", kaddr);
+@@ -276,17 +276,17 @@ static void print_memory_metadata(const
+ 		 * function, because generic functions may try to
+ 		 * access kasan mapping for the passed address.
+ 		 */
+-		memcpy(shadow_buf, shadow_row, SHADOW_BYTES_PER_ROW);
++		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
+ 		print_hex_dump(KERN_ERR, buffer,
+-			DUMP_PREFIX_NONE, SHADOW_BYTES_PER_ROW, 1,
+-			shadow_buf, SHADOW_BYTES_PER_ROW, 0);
++			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
++			shadow_buf, META_BYTES_PER_ROW, 0);
+ 
+ 		if (row_is_guilty(shadow_row, shadow))
+ 			pr_err("%*c\n",
+ 				shadow_pointer_offset(shadow_row, shadow),
+ 				'^');
+ 
+-		shadow_row += SHADOW_BYTES_PER_ROW;
++		shadow_row += META_BYTES_PER_ROW;
+ 	}
+ }
+ 
 _
