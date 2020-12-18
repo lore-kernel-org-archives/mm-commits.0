@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BE6C3526E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99F49C2D0E4
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9CEC23BA9
+	by mail.kernel.org (Postfix) with ESMTP id 62DF023BA9
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726305AbgLRWDI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36376 "EHLO mail.kernel.org"
+        id S1726292AbgLRWDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36046 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726297AbgLRWDI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:08 -0500
-Date:   Fri, 18 Dec 2020 14:02:20 -0800
+        id S1726279AbgLRWDF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:05 -0500
+Date:   Fri, 18 Dec 2020 14:02:30 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328941;
-        bh=Tbjr1ls2W/E9ex/nUEg5tpPEJIGUedvscg041utElv8=;
+        s=korg; t=1608328951;
+        bh=FFOGr2o/XL8jMtH5M70PWuYqpSKtfQGlvgjA8O4gOJs=;
         h=From:To:Subject:In-Reply-To:From;
-        b=aSy4tZvNQqeyuBLmmVMP8NXdLn/B4VfGVqh3toLx6XuYkujJwW7rwGZfrJdbaEbtn
-         qUo3B+QjOtRTvPTqUw3p11591U346RBd/eN30iIMJp36fEeSMh7sl8WIw8Z0jTZiKF
-         oLMaSrob8BTKou8qsVff0rAgyAd0VjvrXuLcz81g=
+        b=ifkdUmhIG0pJQGtXvUwvSJGO3JSgYKFWFCaHQAZrmJhx+R+cpxEfAwdQDy9Fyin1E
+         Wv4sGM/kDnF262ld7eVbBDK86sm3kRXFGuVD120+7mUlIRiZJfAjKj+TcStJqAzLSR
+         ++dbIScXDsGGdqDBrT8zlxeQUTYYXfQXXcelMQ8Q=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -34,11 +34,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         eugenis@google.com, glider@google.com, gor@linux.ibm.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        valdis.kletnieks@vt.edu, vincenzo.frascino@arm.com,
-        will.deacon@arm.com
-Subject:  [patch 17/78] kasan: shadow declarations only for
- software modes
-Message-ID: <20201218220220.F14pMRefZ%akpm@linux-foundation.org>
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [patch 20/78] kasan: only build init.c for software modes
+Message-ID: <20201218220230.nc-wsPDCP%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,20 +45,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: shadow declarations only for software modes
+Subject: kasan: only build init.c for software modes
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
 
-Group shadow-related KASAN function declarations and only define them for
-the two existing software modes.
+The new mode won't be using shadow memory, so only build init.c that
+contains shadow initialization code for software modes.
 
 No functional changes for software modes.
 
-Link: https://lkml.kernel.org/r/e88d94eff94db883a65dca52e1736d80d28dd9bc.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/bae0a6a35b7a9b1a443803c1a55e6e3fecc311c9.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
@@ -72,112 +69,33 @@ Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
-[valdis.kletnieks@vt.edu: fix build issue with asmlinkage]
-  Link: https://lkml.kernel.org/r/35126.1606402815@turing-police
-  Link: https://lore.kernel.org/linux-arm-kernel/24105.1606397102@turing-police/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   48 ++++++++++++++++++++++++++--------------
- 1 file changed, 32 insertions(+), 16 deletions(-)
+ mm/kasan/Makefile |    6 +++---
+ mm/kasan/init.c   |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/kasan.h~kasan-shadow-declarations-only-for-software-modes
-+++ a/include/linux/kasan.h
-@@ -11,7 +11,7 @@ struct task_struct;
+--- a/mm/kasan/init.c~kasan-only-build-initc-for-software-modes
++++ a/mm/kasan/init.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * This file contains some kasan initialization code.
++ * This file contains KASAN shadow initialization code.
+  *
+  * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+--- a/mm/kasan/Makefile~kasan-only-build-initc-for-software-modes
++++ a/mm/kasan/Makefile
+@@ -29,6 +29,6 @@ CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNT
+ CFLAGS_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_tags_report.o := $(CC_FLAGS_KASAN_RUNTIME)
  
- #ifdef CONFIG_KASAN
- 
--#include <linux/pgtable.h>
-+#include <linux/linkage.h>
- #include <asm/kasan.h>
- 
- /* kasan_data struct is used in KUnit tests for KASAN expected failures */
-@@ -20,6 +20,20 @@ struct kunit_kasan_expectation {
- 	bool report_found;
- };
- 
-+#endif
-+
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
-+
-+#include <linux/pgtable.h>
-+
-+/* Software KASAN implementations use shadow memory. */
-+
-+#ifdef CONFIG_KASAN_SW_TAGS
-+#define KASAN_SHADOW_INIT 0xFF
-+#else
-+#define KASAN_SHADOW_INIT 0
-+#endif
-+
- extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
- extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
- extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
-@@ -35,6 +49,23 @@ static inline void *kasan_mem_to_shadow(
- 		+ KASAN_SHADOW_OFFSET;
- }
- 
-+int kasan_add_zero_shadow(void *start, unsigned long size);
-+void kasan_remove_zero_shadow(void *start, unsigned long size);
-+
-+#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
-+
-+static inline int kasan_add_zero_shadow(void *start, unsigned long size)
-+{
-+	return 0;
-+}
-+static inline void kasan_remove_zero_shadow(void *start,
-+					unsigned long size)
-+{}
-+
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
-+
-+#ifdef CONFIG_KASAN
-+
- /* Enable reporting bugs after kasan_disable_current() */
- extern void kasan_enable_current(void);
- 
-@@ -75,9 +106,6 @@ struct kasan_cache {
- 	int free_meta_offset;
- };
- 
--int kasan_add_zero_shadow(void *start, unsigned long size);
--void kasan_remove_zero_shadow(void *start, unsigned long size);
--
- size_t __ksize(const void *);
- static inline void kasan_unpoison_slab(const void *ptr)
- {
-@@ -143,14 +171,6 @@ static inline bool kasan_slab_free(struc
- 	return false;
- }
- 
--static inline int kasan_add_zero_shadow(void *start, unsigned long size)
--{
--	return 0;
--}
--static inline void kasan_remove_zero_shadow(void *start,
--					unsigned long size)
--{}
--
- static inline void kasan_unpoison_slab(const void *ptr) { }
- static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
- 
-@@ -158,8 +178,6 @@ static inline size_t kasan_metadata_size
- 
- #ifdef CONFIG_KASAN_GENERIC
- 
--#define KASAN_SHADOW_INIT 0
--
- void kasan_cache_shrink(struct kmem_cache *cache);
- void kasan_cache_shutdown(struct kmem_cache *cache);
- void kasan_record_aux_stack(void *ptr);
-@@ -174,8 +192,6 @@ static inline void kasan_record_aux_stac
- 
- #ifdef CONFIG_KASAN_SW_TAGS
- 
--#define KASAN_SHADOW_INIT 0xFF
--
- void kasan_init_tags(void);
- 
- void *kasan_reset_tag(const void *addr);
+-obj-$(CONFIG_KASAN) := common.o init.o report.o
+-obj-$(CONFIG_KASAN_GENERIC) += generic.o generic_report.o quarantine.o
+-obj-$(CONFIG_KASAN_SW_TAGS) += tags.o tags_report.o
++obj-$(CONFIG_KASAN) := common.o report.o
++obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o generic_report.o quarantine.o
++obj-$(CONFIG_KASAN_SW_TAGS) += init.o tags.o tags_report.o
 _
