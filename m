@@ -2,155 +2,112 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4A3FC2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:06:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4687DC4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:19:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9986B23B5D
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:06:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0619323B7E
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:19:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726149AbgLRWG0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:06:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39984 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725939AbgLRWG0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:06:26 -0500
-Date:   Fri, 18 Dec 2020 14:05:44 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329145;
-        bh=T+Uzd1okeJMYlcO+itJriRw0Z8tWJ79iJqUckl6xXpw=;
-        h=From:To:Subject:In-Reply-To:From;
-        b=wPBfIHeeyq9isjXwPTiWeeiLWJF9PqqMafRKxqnMHA/u1it2isIQQYCHUOEHXUucC
-         yYLk4QFM5n06MhGmzfjqR2Xh5gyzFTz3uOgsKq6JtpFpTWW/Ti7POBWSBrAq0K1elJ
-         fUK/6vwye2qpm46OicJB351ZYBJ3Km5bCM0daDZ0=
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk, willemb@google.com, willy@infradead.org
-Subject:  [patch 78/78] selftests/filesystems: expand epoll with
- epoll_pwait2
-Message-ID: <20201218220544.-qfLR98pC%akpm@linux-foundation.org>
-In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S1725843AbgLRWSz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:18:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47360 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725813AbgLRWSz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2020 17:18:55 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 124B2C0617A7
+        for <mm-commits@vger.kernel.org>; Fri, 18 Dec 2020 14:18:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
+        Reply-To:Cc:Content-ID:Content-Description;
+        bh=pc6txyVvOlrwNWi3sTdmcTTPq0af6atkBqUO7tGbAbI=; b=IMNQDtx8i5A3tfvsJG6/d/CoOW
+        92oHH4C5HtPBDJNFJRagR7k02yyXTVI8ZZ+/Uu3w9HrXyP7rsvCypdlGuwTbf9l/P5NyxG3DuJb37
+        9phde+5iwa3vjesFuMfIEfkudaX5sTZ1hqLxGRE+wv9h2XUHE6ad3DwbkraUCfRSPBf4jEPYsLCu3
+        RIZ3RAIuvgOPcQYZdpypukp+bAm3Iq7I5z9t0/pnYKLMbrpj2eiXIQbMvqje6IBTz6b7f2qnB91vA
+        I5hJYI9eqv08ccLVhC3BOXcT12KPZme+iyXi4QITTLSCLHwY+luIahhp9gOxGJul1I1L6ZHZKhKEc
+        kYMlvq5w==;
+Received: from [2601:1c0:6280:3f0::64ea]
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kqO4g-00071O-IR; Fri, 18 Dec 2020 22:18:11 +0000
+Subject: Re: [patch 01/12] zlib: export S390 symbols for zlib modules
+To:     Zaslonko Mikhail <zaslonko@linux.ibm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        iii@linux.ibm.com, linux-mm@kvack.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+References: <20201206061438.EIlu-Bvu8%akpm@linux-foundation.org>
+ <13e195ba-413a-ebba-ea90-c3a15ad514ea@linux.ibm.com>
+ <45544373-754c-ad37-e020-f4864b963852@infradead.org>
+ <1d4cccc2-5e71-d09b-9b1b-03f30427af56@linux.ibm.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <dcbebf98-1313-f95d-b2dc-6c2a134439d2@infradead.org>
+Date:   Fri, 18 Dec 2020 14:18:05 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
+MIME-Version: 1.0
+In-Reply-To: <1d4cccc2-5e71-d09b-9b1b-03f30427af56@linux.ibm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Willem de Bruijn <willemb@google.com>
-Subject: selftests/filesystems: expand epoll with epoll_pwait2
+On 12/8/20 12:19 AM, Zaslonko Mikhail wrote:
+> 
+> 
+> On 08.12.2020 01:45, Randy Dunlap wrote:
+>> On 12/7/20 1:03 AM, Zaslonko Mikhail wrote:
+>>> Hello,
+>>>
+>>> should we probably put these to lib/zlib_dfltcc/dfltcc_syms.c along with the other EXPORT_SYMBOL statements?
+>>
+>> Hi,
+>> I didn't know about that file. :)
+>>
+>> That change makes sense. At least that's how some modules used
+>> to do it. Not so much nowadays, but this one might as well
+>> consistent within itself.
+>>
+>> Do you want to fix it or should I?
+> 
+> Please, go ahead.
+> 
+> Thanks.
 
-Code coverage for the epoll_pwait2 syscall.
+Hi,
 
-epoll62: Repeat basic test epoll1, but exercising the new syscall.
-epoll63: Pass a timespec and exercise the timeout wakeup path.
+How do you feel about eliminating the dfltcc_syms.c file and
+putting the EXPORT_SYMBOL()s in the source file(s) where they
+occur?  as expressed in coding-style.rst:
 
-Link: https://lkml.kernel.org/r/20201121144401.3727659-5-willemdebruijn.kernel@gmail.com
-Signed-off-by: Willem de Bruijn <willemb@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+In source files, separate functions with one blank line.  If the function is
+exported, the **EXPORT** macro for it should follow immediately after the
+closing function brace line.
 
- tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   72 ++++++++++
- 1 file changed, 72 insertions(+)
+(also move the MODULE_LICENSE() to a different source file.)
 
---- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~selftests-filesystems-expand-epoll-with-epoll_pwait2
-+++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
-@@ -1,6 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- #define _GNU_SOURCE
-+#include <asm/unistd.h>
-+#include <linux/time_types.h>
- #include <poll.h>
- #include <unistd.h>
- #include <assert.h>
-@@ -21,6 +23,19 @@ struct epoll_mtcontext
- 	pthread_t waiter;
- };
- 
-+#ifndef __NR_epoll_pwait2
-+#define __NR_epoll_pwait2 -1
-+#endif
-+
-+static inline int sys_epoll_pwait2(int fd, struct epoll_event *events,
-+				   int maxevents,
-+				   const struct __kernel_timespec *timeout,
-+				   const sigset_t *sigset, size_t sigsetsize)
-+{
-+	return syscall(__NR_epoll_pwait2, fd, events, maxevents, timeout,
-+		       sigset, sigsetsize);
-+}
-+
- static void signal_handler(int signum)
- {
- }
-@@ -3377,4 +3392,61 @@ TEST(epoll61)
- 	close(ctx.evfd);
- }
- 
-+/* Equivalent to basic test epoll1, but exercising epoll_pwait2. */
-+TEST(epoll62)
-+{
-+	int efd;
-+	int sfd[2];
-+	struct epoll_event e;
-+
-+	ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sfd), 0);
-+
-+	efd = epoll_create(1);
-+	ASSERT_GE(efd, 0);
-+
-+	e.events = EPOLLIN;
-+	ASSERT_EQ(epoll_ctl(efd, EPOLL_CTL_ADD, sfd[0], &e), 0);
-+
-+	ASSERT_EQ(write(sfd[1], "w", 1), 1);
-+
-+	EXPECT_EQ(sys_epoll_pwait2(efd, &e, 1, NULL, NULL, 0), 1);
-+	EXPECT_EQ(sys_epoll_pwait2(efd, &e, 1, NULL, NULL, 0), 1);
-+
-+	close(efd);
-+	close(sfd[0]);
-+	close(sfd[1]);
-+}
-+
-+/* Epoll_pwait2 basic timeout test. */
-+TEST(epoll63)
-+{
-+	const int cfg_delay_ms = 10;
-+	unsigned long long tdiff;
-+	struct __kernel_timespec ts;
-+	int efd;
-+	int sfd[2];
-+	struct epoll_event e;
-+
-+	ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sfd), 0);
-+
-+	efd = epoll_create(1);
-+	ASSERT_GE(efd, 0);
-+
-+	e.events = EPOLLIN;
-+	ASSERT_EQ(epoll_ctl(efd, EPOLL_CTL_ADD, sfd[0], &e), 0);
-+
-+	ts.tv_sec = 0;
-+	ts.tv_nsec = cfg_delay_ms * 1000 * 1000;
-+
-+	tdiff = msecs();
-+	EXPECT_EQ(sys_epoll_pwait2(efd, &e, 1, &ts, NULL, 0), 0);
-+	tdiff = msecs() - tdiff;
-+
-+	EXPECT_GE(tdiff, cfg_delay_ms);
-+
-+	close(efd);
-+	close(sfd[0]);
-+	close(sfd[1]);
-+}
-+
- TEST_HARNESS_MAIN
-_
+>>
+>> Thanks.
+>>
+>>> Reviewed-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+>>>
+>>> On 06.12.2020 07:14, Andrew Morton wrote:
+>>>> From: Randy Dunlap <rdunlap@infradead.org>
+>>>> Subject: zlib: export S390 symbols for zlib modules
+>>>>
+>>>> Fix build errors when ZLIB_INFLATE=m and ZLIB_DEFLATE=m and ZLIB_DFLTCC=y
+>>>> by exporting the 2 needed symbols in dfltcc_inflate.c.
+
+
+thanks.
+-- 
+~Randy
+
