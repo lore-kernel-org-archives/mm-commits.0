@@ -5,36 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A728EC35270
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DCE9C4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5983923BDB
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2068223BA9
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726254AbgLRWC6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:02:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36186 "EHLO mail.kernel.org"
+        id S1726288AbgLRWDD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726239AbgLRWC6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:02:58 -0500
-Date:   Fri, 18 Dec 2020 14:02:00 -0800
+        id S1726252AbgLRWDD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:03 -0500
+Date:   Fri, 18 Dec 2020 14:02:13 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328921;
-        bh=fAnk2UmSqMrq+GnQnRGNlskacHwWWjkcjsuD/OdyKZs=;
+        s=korg; t=1608328934;
+        bh=iEJgPSTIOZrOrqUbae8/LF4D4oibSp4dMwOwMLPsWWM=;
         h=From:To:Subject:In-Reply-To:From;
-        b=vIrez+v0hCXNfWsSnXQwoDHbtMoFROZH4hleKEWRHsGNJ0qUQkSOKWOTU8yRVAjeZ
-         AvoTu7v/jlZe9RZSXFsujMONRzWRXDJ2M/NPUi0QrWUlWNSkmhFHcNoO8v1w61BiNI
-         b9Gjbgar4HJc3F9MSoe4OHkbpT2Kd6cMvrlsSD28=
+        b=0+4MQ3e2UZGsD4o5p+EcZLAcyANhtqfl1dstOm9XYNMKMPfuszlY7YQzRGQLBCwVJ
+         2pj1h+17WZbcNV8FacCCuH+UKlgZWORAe1y8PFGIvw2b7MP9gGU9viADKfH975maD9
+         p5yHm2J8odJcJsT5u0nTWYNdWLmkABOgXRkQ6U34=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, edumazet@google.com,
-        guantaol@google.com, khazhy@google.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, soheil@google.com,
-        torvalds@linux-foundation.org, willemb@google.com
-Subject:  [patch 11/78] epoll: pull all code between fetch_events
- and send_event into the loop
-Message-ID: <20201218220200.vfpDV7gWz%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
+        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
+        eugenis@google.com, glider@google.com, gor@linux.ibm.com,
+        kevin.brodsky@arm.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [patch 15/78] kasan: KASAN_VMALLOC depends on
+ KASAN_GENERIC
+Message-ID: <20201218220213.fFmTw-LzM%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,82 +45,41 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Soheil Hassas Yeganeh <soheil@google.com>
-Subject: epoll: pull all code between fetch_events and send_event into the loop
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: KASAN_VMALLOC depends on KASAN_GENERIC
 
-This is a no-op change which simplifies the follow up patches.
+Currently only generic KASAN mode supports vmalloc, reflect that in the
+config.
 
-Link: https://lkml.kernel.org/r/20201106231635.3528496-7-soheil.kdev@gmail.com
-Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Willem de Bruijn <willemb@google.com>
-Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
-Cc: Guantao Liu <guantaol@google.com>
+Link: https://lkml.kernel.org/r/0c493d3a065ad95b04313d00244e884a7e2498ff.1606161801.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   41 +++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ lib/Kconfig.kasan |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/eventpoll.c~epoll-pull-all-code-between-fetch_events-and-send_event-into-the-loop
-+++ a/fs/eventpoll.c
-@@ -1774,14 +1774,14 @@ static int ep_poll(struct eventpoll *ep,
- 	}
+--- a/lib/Kconfig.kasan~kasan-kasan_vmalloc-depends-on-kasan_generic
++++ a/lib/Kconfig.kasan
+@@ -146,7 +146,7 @@ config KASAN_SW_TAGS_IDENTIFY
  
- fetch_events:
--	eavail = ep_events_available(ep);
--	if (!eavail)
--		eavail = ep_busy_loop(ep, timed_out);
-+	do {
-+		eavail = ep_events_available(ep);
-+		if (!eavail)
-+			eavail = ep_busy_loop(ep, timed_out);
- 
--	if (eavail)
--		goto send_events;
-+		if (eavail)
-+			goto send_events;
- 
--	do {
- 		if (signal_pending(current))
- 			return -EINTR;
- 
-@@ -1830,21 +1830,22 @@ fetch_events:
- 		 * carefully under lock, below.
- 		 */
- 		eavail = 1;
--	} while (0);
- 
--	if (!list_empty_careful(&wait.entry)) {
--		write_lock_irq(&ep->lock);
--		/*
--		 * If the thread timed out and is not on the wait queue, it
--		 * means that the thread was woken up after its timeout expired
--		 * before it could reacquire the lock. Thus, when wait.entry is
--		 * empty, it needs to harvest events.
--		 */
--		if (timed_out)
--			eavail = list_empty(&wait.entry);
--		__remove_wait_queue(&ep->wq, &wait);
--		write_unlock_irq(&ep->lock);
--	}
-+		if (!list_empty_careful(&wait.entry)) {
-+			write_lock_irq(&ep->lock);
-+			/*
-+			 * If the thread timed out and is not on the wait queue,
-+			 * it means that the thread was woken up after its
-+			 * timeout expired before it could reacquire the lock.
-+			 * Thus, when wait.entry is empty, it needs to harvest
-+			 * events.
-+			 */
-+			if (timed_out)
-+				eavail = list_empty(&wait.entry);
-+			__remove_wait_queue(&ep->wq, &wait);
-+			write_unlock_irq(&ep->lock);
-+		}
-+	} while (0);
- 
- send_events:
- 	/*
+ config KASAN_VMALLOC
+ 	bool "Back mappings in vmalloc space with real shadow memory"
+-	depends on HAVE_ARCH_KASAN_VMALLOC
++	depends on KASAN_GENERIC && HAVE_ARCH_KASAN_VMALLOC
+ 	help
+ 	  By default, the shadow region for vmalloc space is the read-only
+ 	  zero page. This means that KASAN cannot detect errors involving
 _
