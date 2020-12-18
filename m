@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C2C7C4361B
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B21C8C4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 293B323B88
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B06223B9B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726482AbgLRWFb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:05:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39166 "EHLO mail.kernel.org"
+        id S1726321AbgLRWFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:05:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39242 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbgLRWFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:05:31 -0500
-Date:   Fri, 18 Dec 2020 14:04:49 -0800
+        id S1726483AbgLRWFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:05:34 -0500
+Date:   Fri, 18 Dec 2020 14:04:53 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329090;
-        bh=fDxMtLRiE1u+3tBgyEKdRzjZEs7YzQkCtht17+8a05U=;
+        s=korg; t=1608329094;
+        bh=uwEfFpsDitRQNrxaDV+NeBYhlLTFGRyRjUl+0c90tqg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=HUVIbVH4pI4QVv3KNwXFOvjvBow1Ucu+QLrOUoYyXVABx6aRY6nMnbZCGCJlz54i4
-         igJz4msifx6uW9AC8h5k1Hz28fLKhwZSqqYXmKGzSvShyYJXKnoCCxoLoVkakds8Wg
-         WI7qBUnzNl10XCPr8BnLzbuI2KK3rAv0Kkg9/Qa0=
+        b=agAxwA3cBzwTQBHQbxn7DbSXigSZcvLYTnwQbM2I2tugg37OoUUpkEsdETD/uMUOU
+         onmiVOJ8IQD8dJk3OAgcyXj61kj4p5nX3JUl9Oj0S6Bz5O5HlTOK8A4xVl1HtZvqLP
+         PEjqdaIpEychkQ4tcZATwGVW1Fo3doJa9fANWTh4=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,8 +35,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 62/78] kasan: inline random_tag for HW_TAGS
-Message-ID: <20201218220449.Ziq-X8NkT%akpm@linux-foundation.org>
+Subject:  [patch 63/78] kasan: open-code kasan_unpoison_slab
+Message-ID: <20201218220453.Dsv2ErHqO%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,22 +45,23 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: inline random_tag for HW_TAGS
+Subject: kasan: open-code kasan_unpoison_slab
 
-Using random_tag() currently results in a function call. Move its
-definition to mm/kasan/kasan.h and turn it into a static inline function
-for hardware tag-based mode to avoid uneeded function calls.
+There's the external annotation kasan_unpoison_slab() that is currently
+defined as static inline and uses kasan_unpoison_range(). Open-code this
+function in mempool.c. Otherwise with an upcoming change this function
+will result in an unnecessary function call.
 
-Link: https://lkml.kernel.org/r/be438471690e351e1d792e6bb432e8c03ccb15d3.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Iac5b2faf9a912900e16cca6834d621f5d4abf427
+Link: https://lkml.kernel.org/r/131a6694a978a9a8b150187e539eecc8bcbf759b.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ia7c8b659f79209935cbaab3913bf7f082cc43a0e
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -68,76 +69,41 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |    5 -----
- mm/kasan/kasan.h   |   31 ++++++++++++++-----------------
- 2 files changed, 14 insertions(+), 22 deletions(-)
+ include/linux/kasan.h |    6 ------
+ mm/mempool.c          |    2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-inline-random_tag-for-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -51,11 +51,6 @@ void unpoison_range(const void *address,
- 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+--- a/include/linux/kasan.h~kasan-open-code-kasan_unpoison_slab
++++ a/include/linux/kasan.h
+@@ -107,11 +107,6 @@ struct kasan_cache {
+ 	int free_meta_offset;
+ };
+ 
+-size_t __ksize(const void *);
+-static inline void kasan_unpoison_slab(const void *ptr)
+-{
+-	kasan_unpoison_range(ptr, __ksize(ptr));
+-}
+ size_t kasan_metadata_size(struct kmem_cache *cache);
+ 
+ bool kasan_save_enable_multi_shot(void);
+@@ -167,7 +162,6 @@ static inline bool kasan_slab_free(struc
+ 	return false;
  }
  
--u8 random_tag(void)
--{
--	return hw_get_random_tag();
--}
--
- bool check_invalid_free(void *addr)
+-static inline void kasan_unpoison_slab(const void *ptr) { }
+ static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
+ 
+ #endif /* CONFIG_KASAN */
+--- a/mm/mempool.c~kasan-open-code-kasan_unpoison_slab
++++ a/mm/mempool.c
+@@ -112,7 +112,7 @@ static __always_inline void kasan_poison
+ static void kasan_unpoison_element(mempool_t *pool, void *element)
  {
- 	u8 ptr_tag = get_tag(addr);
---- a/mm/kasan/kasan.h~kasan-inline-random_tag-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -190,6 +190,12 @@ static inline bool addr_has_metadata(con
- 
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+void print_tags(u8 addr_tag, const void *addr);
-+#else
-+static inline void print_tags(u8 addr_tag, const void *addr) { }
-+#endif
-+
- bool check_invalid_free(void *addr);
- 
- void *find_first_bad_addr(void *addr, size_t size);
-@@ -225,23 +231,6 @@ static inline void quarantine_reduce(voi
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
- 
--#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
--
--void print_tags(u8 addr_tag, const void *addr);
--
--u8 random_tag(void);
--
--#else
--
--static inline void print_tags(u8 addr_tag, const void *addr) { }
--
--static inline u8 random_tag(void)
--{
--	return 0;
--}
--
--#endif
--
- #ifndef arch_kasan_set_tag
- static inline const void *arch_kasan_set_tag(const void *addr, u8 tag)
- {
-@@ -281,6 +270,14 @@ static inline const void *arch_kasan_set
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
-+#ifdef CONFIG_KASAN_SW_TAGS
-+u8 random_tag(void);
-+#elif defined(CONFIG_KASAN_HW_TAGS)
-+static inline u8 random_tag(void) { return hw_get_random_tag(); }
-+#else
-+static inline u8 random_tag(void) { return 0; }
-+#endif
-+
- /*
-  * Exported functions for interfaces called from assembly or from generated
-  * code. Declarations here to avoid warning about missing declarations.
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_unpoison_slab(element);
++		kasan_unpoison_range(element, __ksize(element));
+ 	else if (pool->alloc == mempool_alloc_pages)
+ 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
+ }
 _
