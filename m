@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 827AAC2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 718EDC2D0E4
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41C6723B87
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EFE823B98
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726468AbgLRWFL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:05:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38808 "EHLO mail.kernel.org"
+        id S1726474AbgLRWFO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:05:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38866 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726459AbgLRWFL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:05:11 -0500
-Date:   Fri, 18 Dec 2020 14:04:29 -0800
+        id S1726459AbgLRWFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:05:14 -0500
+Date:   Fri, 18 Dec 2020 14:04:32 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329070;
-        bh=ZIKFG3s2HbABl1ycLayTzh7a5MiOp7SIfFIxwSMWR18=;
+        s=korg; t=1608329073;
+        bh=t0cd2hZ+0IGmC6YZOXAl7iIEiMiy2IvhFrjitqSK3sE=;
         h=From:To:Subject:In-Reply-To:From;
-        b=BxrpZtktucvkthhZ7D5wWUg+OgG+vmRBsryn7cn2hzlnz4C1F70qT36d2bWaDIT69
-         l83YNTPJqg3YBh1Hi5U9XtdMQ8IVfQfAhJKhJ77v1ceF9TdY4TAnhqsNuC0m7QhNci
-         oAeAE5j3B/ZY/HJ1iYF9c9os7G3NCHdw4/K/pgHs=
+        b=JD2nX6kf2s7J+qvRqRVc3K/A4yGGM1m/+FHdiIeXL5hQ1YV3hLIXxa3goCnz63117
+         k5QWLx6fcQMJIBIfWoljggdOgMKC95ZxCNhx/WrynG4JPfV2l4GtBKXrV0cakyJJ/C
+         BdOpPHEWOBh1iNNrkJ36+4mcizFJdI4sUfLboNcA=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,8 +35,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 56/78] kasan: rename get_alloc/free_info
-Message-ID: <20201218220429.Frcjp4aKF%akpm@linux-foundation.org>
+Subject:  [patch 57/78] kasan: introduce set_alloc_info
+Message-ID: <20201218220432.y4LBUB0SU%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,16 +45,15 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename get_alloc/free_info
+Subject: kasan: introduce set_alloc_info
 
-Rename get_alloc_info() and get_free_info() to kasan_get_alloc_meta() and
-kasan_get_free_meta() to better reflect what those do and avoid confusion
-with kasan_set_free_info().
+Add set_alloc_info() helper and move kasan_set_track() into it. This will
+simplify the code for one of the upcoming changes.
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/27b7c036b754af15a2839e945f6d8bfce32b4c2f.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ib6e4ba61c8b12112b403d3479a9799ac8fff8de1
+Link: https://lkml.kernel.org/r/b2393e8f1e311a70fc3aaa2196461b6acdee7d21.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I0316193cbb4ecc9b87b7c2eee0dd79f8ec908c1a
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -70,225 +69,30 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c         |   16 ++++++++--------
- mm/kasan/generic.c        |   12 ++++++------
- mm/kasan/hw_tags.c        |    4 ++--
- mm/kasan/kasan.h          |    8 ++++----
- mm/kasan/quarantine.c     |    4 ++--
- mm/kasan/report.c         |   12 ++++++------
- mm/kasan/report_sw_tags.c |    2 +-
- mm/kasan/sw_tags.c        |    4 ++--
- 8 files changed, 31 insertions(+), 31 deletions(-)
+ mm/kasan/common.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/common.c~kasan-rename-get_alloc-free_info
+--- a/mm/kasan/common.c~kasan-introduce-set_alloc_info
 +++ a/mm/kasan/common.c
-@@ -180,14 +180,14 @@ size_t kasan_metadata_size(struct kmem_c
- 		sizeof(struct kasan_free_meta) : 0);
+@@ -323,6 +323,11 @@ bool kasan_slab_free(struct kmem_cache *
+ 	return __kasan_slab_free(cache, object, ip, true);
  }
  
--struct kasan_alloc_meta *get_alloc_info(struct kmem_cache *cache,
--					const void *object)
-+struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
-+					      const void *object)
++static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
++{
++	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
++}
++
+ static void *__kasan_kmalloc(struct kmem_cache *cache, const void *object,
+ 				size_t size, gfp_t flags, bool keep_tag)
  {
- 	return (void *)reset_tag(object) + cache->kasan_info.alloc_meta_offset;
- }
- 
--struct kasan_free_meta *get_free_info(struct kmem_cache *cache,
--				      const void *object)
-+struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
-+					    const void *object)
- {
- 	BUILD_BUG_ON(sizeof(struct kasan_free_meta) > 32);
- 	return (void *)reset_tag(object) + cache->kasan_info.free_meta_offset;
-@@ -264,13 +264,13 @@ static u8 assign_tag(struct kmem_cache *
- void * __must_check kasan_init_slab_obj(struct kmem_cache *cache,
- 						const void *object)
- {
--	struct kasan_alloc_meta *alloc_info;
-+	struct kasan_alloc_meta *alloc_meta;
- 
- 	if (!(cache->flags & SLAB_KASAN))
- 		return (void *)object;
- 
--	alloc_info = get_alloc_info(cache, object);
--	__memset(alloc_info, 0, sizeof(*alloc_info));
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	__memset(alloc_meta, 0, sizeof(*alloc_meta));
- 
- 	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
- 		object = set_tag(object, assign_tag(cache, object, true, false));
-@@ -350,7 +350,7 @@ static void *__kasan_kmalloc(struct kmem
+@@ -350,7 +355,7 @@ static void *__kasan_kmalloc(struct kmem
  		     KASAN_KMALLOC_REDZONE);
  
  	if (cache->flags & SLAB_KASAN)
--		kasan_set_track(&get_alloc_info(cache, object)->alloc_track, flags);
-+		kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
+-		kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
++		set_alloc_info(cache, (void *)object, flags);
  
  	return set_tag(object, tag);
  }
---- a/mm/kasan/generic.c~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/generic.c
-@@ -328,7 +328,7 @@ void kasan_record_aux_stack(void *addr)
- {
- 	struct page *page = kasan_addr_to_page(addr);
- 	struct kmem_cache *cache;
--	struct kasan_alloc_meta *alloc_info;
-+	struct kasan_alloc_meta *alloc_meta;
- 	void *object;
- 
- 	if (!(page && PageSlab(page)))
-@@ -336,10 +336,10 @@ void kasan_record_aux_stack(void *addr)
- 
- 	cache = page->slab_cache;
- 	object = nearest_obj(cache, page, addr);
--	alloc_info = get_alloc_info(cache, object);
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
- 
--	alloc_info->aux_stack[1] = alloc_info->aux_stack[0];
--	alloc_info->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
-+	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
-+	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
- }
- 
- void kasan_set_free_info(struct kmem_cache *cache,
-@@ -347,7 +347,7 @@ void kasan_set_free_info(struct kmem_cac
- {
- 	struct kasan_free_meta *free_meta;
- 
--	free_meta = get_free_info(cache, object);
-+	free_meta = kasan_get_free_meta(cache, object);
- 	kasan_set_track(&free_meta->free_track, GFP_NOWAIT);
- 
- 	/*
-@@ -361,5 +361,5 @@ struct kasan_track *kasan_get_free_track
- {
- 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_KMALLOC_FREETRACK)
- 		return NULL;
--	return &get_free_info(cache, object)->free_track;
-+	return &kasan_get_free_meta(cache, object)->free_track;
- }
---- a/mm/kasan/hw_tags.c~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/hw_tags.c
-@@ -75,7 +75,7 @@ void kasan_set_free_info(struct kmem_cac
- {
- 	struct kasan_alloc_meta *alloc_meta;
- 
--	alloc_meta = get_alloc_info(cache, object);
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
- 	kasan_set_track(&alloc_meta->free_track[0], GFP_NOWAIT);
- }
- 
-@@ -84,6 +84,6 @@ struct kasan_track *kasan_get_free_track
- {
- 	struct kasan_alloc_meta *alloc_meta;
- 
--	alloc_meta = get_alloc_info(cache, object);
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
- 	return &alloc_meta->free_track[0];
- }
---- a/mm/kasan/kasan.h~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/kasan.h
-@@ -149,10 +149,10 @@ struct kasan_free_meta {
- #endif
- };
- 
--struct kasan_alloc_meta *get_alloc_info(struct kmem_cache *cache,
--					const void *object);
--struct kasan_free_meta *get_free_info(struct kmem_cache *cache,
--					const void *object);
-+struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
-+						const void *object);
-+struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
-+						const void *object);
- 
- void poison_range(const void *address, size_t size, u8 value);
- void unpoison_range(const void *address, size_t size);
---- a/mm/kasan/quarantine.c~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/quarantine.c
-@@ -168,7 +168,7 @@ void quarantine_put(struct kmem_cache *c
- 	unsigned long flags;
- 	struct qlist_head *q;
- 	struct qlist_head temp = QLIST_INIT;
--	struct kasan_free_meta *info = get_free_info(cache, object);
-+	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
- 
- 	/*
- 	 * Note: irq must be disabled until after we move the batch to the
-@@ -185,7 +185,7 @@ void quarantine_put(struct kmem_cache *c
- 		local_irq_restore(flags);
- 		return;
- 	}
--	qlist_put(q, &info->quarantine_link, cache->size);
-+	qlist_put(q, &meta->quarantine_link, cache->size);
- 	if (unlikely(q->bytes > QUARANTINE_PERCPU_SIZE)) {
- 		qlist_move_all(q, &temp);
- 
---- a/mm/kasan/report.c~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/report.c
-@@ -164,12 +164,12 @@ static void describe_object_addr(struct
- static void describe_object(struct kmem_cache *cache, void *object,
- 				const void *addr, u8 tag)
- {
--	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
-+	struct kasan_alloc_meta *alloc_meta = kasan_get_alloc_meta(cache, object);
- 
- 	if (cache->flags & SLAB_KASAN) {
- 		struct kasan_track *free_track;
- 
--		print_track(&alloc_info->alloc_track, "Allocated");
-+		print_track(&alloc_meta->alloc_track, "Allocated");
- 		pr_err("\n");
- 		free_track = kasan_get_free_track(cache, object, tag);
- 		if (free_track) {
-@@ -178,14 +178,14 @@ static void describe_object(struct kmem_
- 		}
- 
- #ifdef CONFIG_KASAN_GENERIC
--		if (alloc_info->aux_stack[0]) {
-+		if (alloc_meta->aux_stack[0]) {
- 			pr_err("Last potentially related work creation:\n");
--			print_stack(alloc_info->aux_stack[0]);
-+			print_stack(alloc_meta->aux_stack[0]);
- 			pr_err("\n");
- 		}
--		if (alloc_info->aux_stack[1]) {
-+		if (alloc_meta->aux_stack[1]) {
- 			pr_err("Second to last potentially related work creation:\n");
--			print_stack(alloc_info->aux_stack[1]);
-+			print_stack(alloc_meta->aux_stack[1]);
- 			pr_err("\n");
- 		}
- #endif
---- a/mm/kasan/report_sw_tags.c~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/report_sw_tags.c
-@@ -46,7 +46,7 @@ const char *get_bug_type(struct kasan_ac
- 	if (page && PageSlab(page)) {
- 		cache = page->slab_cache;
- 		object = nearest_obj(cache, page, (void *)addr);
--		alloc_meta = get_alloc_info(cache, object);
-+		alloc_meta = kasan_get_alloc_meta(cache, object);
- 
- 		for (i = 0; i < KASAN_NR_FREE_STACKS; i++)
- 			if (alloc_meta->free_pointer_tag[i] == tag)
---- a/mm/kasan/sw_tags.c~kasan-rename-get_alloc-free_info
-+++ a/mm/kasan/sw_tags.c
-@@ -174,7 +174,7 @@ void kasan_set_free_info(struct kmem_cac
- 	struct kasan_alloc_meta *alloc_meta;
- 	u8 idx = 0;
- 
--	alloc_meta = get_alloc_info(cache, object);
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
- 
- #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
- 	idx = alloc_meta->free_track_idx;
-@@ -191,7 +191,7 @@ struct kasan_track *kasan_get_free_track
- 	struct kasan_alloc_meta *alloc_meta;
- 	int i = 0;
- 
--	alloc_meta = get_alloc_info(cache, object);
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
- 
- #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
- 	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
 _
