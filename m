@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9020C352A2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1B8C3526F
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B70F823B9B
+	by mail.kernel.org (Postfix) with ESMTP id 2B1C423B8C
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726333AbgLRWDU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36270 "EHLO mail.kernel.org"
+        id S1726289AbgLRWDJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726315AbgLRWDT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:19 -0500
-Date:   Fri, 18 Dec 2020 14:03:03 -0800
+        id S1726309AbgLRWDJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:09 -0500
+Date:   Fri, 18 Dec 2020 14:02:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328984;
-        bh=IV8/Ek5M+HJU0AOVakQNsPSidNEzQjIvcDfJcOLMfh4=;
+        s=korg; t=1608328967;
+        bh=l3lg1QHfWNiKhxkb3gVgUjhwfevdtIV2NAFdxq0ggH0=;
         h=From:To:Subject:In-Reply-To:From;
-        b=zx7RkBaDgiHSlPxw0wsS6E5lP2b4Dlus0oD51znakw3NsvtiIXDpO+MDAb9ye7+pQ
-         TUmM3WSF/tOBNb+suCyeQIeXq1y81GxZbZOjOX3u9WIXmvNL6TyzKd38Vj9lLSRi3R
-         7BxfUH5aCvktaRkhvF2WzjZdciqBKea4luB5st5M=
+        b=gqKfATHpJqd4Zv/DV63pWO7Ts5yIuR9ABFkhF0mMKzhQqGFfmxBegmD1lYCRPx5Ja
+         Y03mTjlNQe/k5dJiviu22rJREcwEA2M9zX4QEWTcN//2bqSmnWYFsmFc3FpyFp6Prx
+         fbjLAxJYWQfoMHdZ5CloCtmcTXlSccz1q0HMR1wo=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,9 +35,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 30/78] kasan, arm64: rename kasan_init_tags and
- mark as __init
-Message-ID: <20201218220303.pv_SIRaL7%akpm@linux-foundation.org>
+Subject:  [patch 25/78] kasan: hide invalid free check
+ implementation
+Message-ID: <20201218220246.mupH-NTEA%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,85 +46,123 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: rename kasan_init_tags and mark as __init
+Subject: kasan: hide invalid free check implementation
 
-Rename kasan_init_tags() to kasan_init_sw_tags() as the upcoming hardware
-tag-based KASAN mode will have its own initialization routine.  Also
-similarly to kasan_init() mark kasan_init_tags() as __init.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Link: https://lkml.kernel.org/r/71e52af72a09f4b50c8042f16101c60e50649fbb.1606161801.git.andreyknvl@google.com
+For software KASAN modes the check is based on the value in the shadow
+memory.  Hardware tag-based KASAN won't be using shadow, so hide the
+implementation of the check in check_invalid_free().
+
+Also simplify the code for software tag-based mode.
+
+No functional changes for software modes.
+
+Link: https://lkml.kernel.org/r/d01534a4b977f97d87515dc590e6348e1406de81.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/setup.c  |    2 +-
- arch/arm64/mm/kasan_init.c |    2 +-
- include/linux/kasan.h      |    4 ++--
- mm/kasan/sw_tags.c         |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ mm/kasan/common.c  |   19 +------------------
+ mm/kasan/generic.c |    7 +++++++
+ mm/kasan/kasan.h   |    2 ++
+ mm/kasan/sw_tags.c |    9 +++++++++
+ 4 files changed, 19 insertions(+), 18 deletions(-)
 
---- a/arch/arm64/kernel/setup.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/arch/arm64/kernel/setup.c
-@@ -358,7 +358,7 @@ void __init __no_sanitize_address setup_
- 	smp_build_mpidr_hash();
- 
- 	/* Init percpu seeds for random tags after cpus are set up. */
--	kasan_init_tags();
-+	kasan_init_sw_tags();
- 
- #ifdef CONFIG_ARM64_SW_TTBR0_PAN
- 	/*
---- a/arch/arm64/mm/kasan_init.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -283,7 +283,7 @@ void __init kasan_init(void)
- 	kasan_init_shadow();
- 	kasan_init_depth();
- #if defined(CONFIG_KASAN_GENERIC)
--	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_tags(). */
-+	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_sw_tags(). */
- 	pr_info("KernelAddressSanitizer initialized\n");
- #endif
+--- a/mm/kasan/common.c~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/common.c
+@@ -277,25 +277,9 @@ void * __must_check kasan_init_slab_obj(
+ 	return (void *)object;
  }
---- a/include/linux/kasan.h~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/include/linux/kasan.h
-@@ -192,7 +192,7 @@ static inline void kasan_record_aux_stac
  
- #ifdef CONFIG_KASAN_SW_TAGS
- 
--void kasan_init_tags(void);
-+void __init kasan_init_sw_tags(void);
- 
- void *kasan_reset_tag(const void *addr);
- 
-@@ -201,7 +201,7 @@ bool kasan_report(unsigned long addr, si
- 
- #else /* CONFIG_KASAN_SW_TAGS */
- 
--static inline void kasan_init_tags(void) { }
-+static inline void kasan_init_sw_tags(void) { }
- 
- static inline void *kasan_reset_tag(const void *addr)
+-static inline bool shadow_invalid(u8 tag, s8 shadow_byte)
+-{
+-	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+-		return shadow_byte < 0 ||
+-			shadow_byte >= KASAN_GRANULE_SIZE;
+-
+-	/* else CONFIG_KASAN_SW_TAGS: */
+-	if ((u8)shadow_byte == KASAN_TAG_INVALID)
+-		return true;
+-	if ((tag != KASAN_TAG_KERNEL) && (tag != (u8)shadow_byte))
+-		return true;
+-
+-	return false;
+-}
+-
+ static bool __kasan_slab_free(struct kmem_cache *cache, void *object,
+ 			      unsigned long ip, bool quarantine)
  {
---- a/mm/kasan/sw_tags.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
+-	s8 shadow_byte;
+ 	u8 tag;
+ 	void *tagged_object;
+ 	unsigned long rounded_up_size;
+@@ -314,8 +298,7 @@ static bool __kasan_slab_free(struct kme
+ 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
+ 		return false;
+ 
+-	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
+-	if (shadow_invalid(tag, shadow_byte)) {
++	if (check_invalid_free(tagged_object)) {
+ 		kasan_report_invalid_free(tagged_object, ip);
+ 		return true;
+ 	}
+--- a/mm/kasan/generic.c~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/generic.c
+@@ -187,6 +187,13 @@ bool check_memory_region(unsigned long a
+ 	return check_memory_region_inline(addr, size, write, ret_ip);
+ }
+ 
++bool check_invalid_free(void *addr)
++{
++	s8 shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(addr));
++
++	return shadow_byte < 0 || shadow_byte >= KASAN_GRANULE_SIZE;
++}
++
+ void kasan_cache_shrink(struct kmem_cache *cache)
+ {
+ 	quarantine_remove_cache(cache);
+--- a/mm/kasan/kasan.h~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/kasan.h
+@@ -166,6 +166,8 @@ void unpoison_range(const void *address,
+ bool check_memory_region(unsigned long addr, size_t size, bool write,
+ 				unsigned long ret_ip);
+ 
++bool check_invalid_free(void *addr);
++
+ void *find_first_bad_addr(void *addr, size_t size);
+ const char *get_bug_type(struct kasan_access_info *info);
+ 
+--- a/mm/kasan/sw_tags.c~kasan-hide-invalid-free-check-implementation
 +++ a/mm/kasan/sw_tags.c
-@@ -35,7 +35,7 @@
+@@ -121,6 +121,15 @@ bool check_memory_region(unsigned long a
+ 	return true;
+ }
  
- static DEFINE_PER_CPU(u32, prng_state);
- 
--void kasan_init_tags(void)
-+void __init kasan_init_sw_tags(void)
- {
- 	int cpu;
- 
++bool check_invalid_free(void *addr)
++{
++	u8 tag = get_tag(addr);
++	u8 shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(reset_tag(addr)));
++
++	return (shadow_byte == KASAN_TAG_INVALID) ||
++		(tag != KASAN_TAG_KERNEL && tag != shadow_byte);
++}
++
+ #define DEFINE_HWASAN_LOAD_STORE(size)					\
+ 	void __hwasan_load##size##_noabort(unsigned long addr)		\
+ 	{								\
 _
