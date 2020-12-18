@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFBCC4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45DC8C2D0E4
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:06:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDEB22343F
+	by mail.kernel.org (Postfix) with ESMTP id 09BA42388E
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727307AbgLRUGg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 15:06:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43998 "EHLO mail.kernel.org"
+        id S1728293AbgLRUGj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 15:06:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726018AbgLRUGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 15:06:36 -0500
-Date:   Fri, 18 Dec 2020 12:05:54 -0800
+        id S1726018AbgLRUGj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 15:06:39 -0500
+Date:   Fri, 18 Dec 2020 12:05:58 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608321955;
-        bh=lo37o1+aEqbFBdKF+BwXvAjJnkBqf42zHE1KJnJO5HA=;
+        s=korg; t=1608321959;
+        bh=2Uew3lYLwfxQwgA0gZu0jhXf5/xzWOwEq121o0MwZB8=;
         h=From:To:Subject:From;
-        b=rMKi+/9ai3XrO+US3i89+X55rjau8Kk7bBDNB0br/fic9cffMAFvxhhCnTYYU9M0L
-         TT3g3IxV/0pzAHLH9WfYEeVnhNJdt1UxQqwi5RjIGTEthYOVyeseeO6sSyO3bQ44n8
-         O/Tf+D9B24/rFiN4Kp7RJNukCgbb+4G4ahAh56vA=
+        b=REmCtyNaIR0u+i2piHzV2BwBGGQCloRhZKboHJg+dgdxVHXQxwlAANw4FCrdRuwFq
+         /ebF+HYhGECGtSFmHnqNpKagQj2zkJHaIfBmi3B8WIV+HJP3Oslz0afRbnq7Tlfa1p
+         VudgPVjAPNm2MDPJWwkdphLdSd4LBBHcJwuFTCdg=
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, sh_def@163.com, shakeelb@google.com,
-        richard.weiyang@gmail.com, mhocko@suse.com, laoar.shao@gmail.com,
-        hannes@cmpxchg.org, guro@fb.com, alexander.h.duyck@linux.intel.com,
-        alex.shi@linux.alibaba.com
+        sfr@canb.auug.org.au, richard.weiyang@gmail.com, mhocko@suse.com,
+        laoar.shao@gmail.com, hannes@cmpxchg.org, guro@fb.com,
+        alex.shi@linux.alibaba.com, alexander.h.duyck@linux.intel.com,
+        lstoakes@gmail.com
 Subject:  [folded-merged]
- mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch removed from -mm tree
-Message-ID: <20201218200554.jYxUg%akpm@linux-foundation.org>
+ mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix-fix.patch removed from -mm
+ tree
+Message-ID: <20201218200558.6RuZ6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,25 +45,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: add missed warning in mem_cgroup_lruvec
+     Subject: mm/memcg: warn on missing memcg on mem_cgroup_page_lruvec()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
+     mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix-fix.patch
 
 This patch was dropped because it was folded into mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/memcg: add missed warning in mem_cgroup_lruvec
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/memcg: warn on missing memcg on mem_cgroup_page_lruvec()
 
-commit "(mm/memcontrol:rewrite mem_cgroup_page_lruvec())" on mm tree use
-mem_cgroup_lruvec to rewrite mem_cgroup_page_lruvec, but it missed a
-DEBUG_VM warning as following, since we always charge a page before
-return from allocation. Add back this warning is helpful:
+Move memcg check to mem_cgroup_page_lruvec() as there are callers which
+may invoke this with !memcg in mem_cgroup_lruvec(), whereas they should
+not in mem_cgroup_page_lruvec().
 
-	VM_WARN_ON_ONCE(!memcg);
+We expect that we have always charged a page to the memcg before
+mem_cgroup_page_lruvec() is invoked, so add a warning to assert that this
+is the case.
 
-Link: https://lkml.kernel.org/r/94f17bb7-ec61-5b72-3555-fabeb5a4d73b@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20201125112202.387009-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reported-by: syzbot+ce635500093181f39c1c@syzkaller.appspotmail.com
+Acked-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Roman Gushchin <guro@fb.com>
@@ -73,25 +79,35 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/memcontrol.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix
+--- a/include/linux/memcontrol.h~mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix-fix
 +++ a/include/linux/memcontrol.h
-@@ -613,6 +613,8 @@ static inline struct lruvec *mem_cgroup_
+@@ -613,8 +613,6 @@ static inline struct lruvec *mem_cgroup_
  	struct mem_cgroup_per_node *mz;
  	struct lruvec *lruvec;
  
-+	VM_WARN_ON_ONCE(!memcg);
-+
+-	VM_WARN_ON_ONCE(!memcg);
+-
  	if (mem_cgroup_disabled()) {
  		lruvec = &pgdat->__lruvec;
  		goto out;
+@@ -646,7 +644,10 @@ out:
+ static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page,
+ 						struct pglist_data *pgdat)
+ {
+-	return mem_cgroup_lruvec(page_memcg(page), pgdat);
++	struct mem_cgroup *memcg = page_memcg(page);
++
++	VM_WARN_ON_ONCE_PAGE(!memcg, page);
++	return mem_cgroup_lruvec(memcg, pgdat);
+ }
+ 
+ static inline bool lruvec_holds_page_lru_lock(struct page *page,
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
-mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
 mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
