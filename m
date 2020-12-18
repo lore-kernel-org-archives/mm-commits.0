@@ -5,28 +5,28 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A996EC3526F
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD5D0C3526B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:04:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87A5B23BA7
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8167023B9B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:04:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726364AbgLRWD7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37340 "EHLO mail.kernel.org"
+        id S1726389AbgLRWEC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:04:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36190 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726362AbgLRWD6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:58 -0500
-Date:   Fri, 18 Dec 2020 14:03:16 -0800
+        id S1726362AbgLRWEC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:04:02 -0500
+Date:   Fri, 18 Dec 2020 14:03:46 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328997;
-        bh=SZTQn9fjqbA0ifLQitsdafMEg0vq3YSpL7vQ+CatsAs=;
+        s=korg; t=1608329026;
+        bh=rXPig3Y2BiXNEZi+1w0PI3jdh8Ii07tQ40TtSpXIZlQ=;
         h=From:To:Subject:In-Reply-To:From;
-        b=OlnsXsXcZvGqWhce3jvpPvQGfltC0/lsn6j15H/jDflYrJK62yi8YfKIVj045+RZj
-         6sLPxcwvfQ9Ulaotl2grM5qoi5bZ08T/2+qOnpJSaHm+4dV9s4BOD4Ciy7N3u9mmRJ
-         K2MrZ5Pwem3Xc2hYRZVt2jt13gOSYYsp4OdtEhP8=
+        b=wNCQAJwejZM/SAPn+/uDmP5lDFUh5Q+aeIDFD3F9NQB0xCmYpZ2F+lhMFdFlUrd7Q
+         ZIMyf03KrKFB3MgWLfR1dPnAoyNeouvOJ4mUvEMmgv0XHXdEbojr/xU7fr0EZzh6ib
+         qJN5E8vCR8GU6NNCmvRbhAlsoUp1EklORh9vPs6o=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,9 +35,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 34/78] kasan: separate metadata_fetch_row for each
- mode
-Message-ID: <20201218220316.GpDRmn3sx%akpm@linux-foundation.org>
+Subject:  [patch 43/78] kasan, mm: untag page address in
+ free_reserved_area
+Message-ID: <20201218220346.OSOCAeHhM%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,23 +45,20 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: separate metadata_fetch_row for each mode
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: kasan, mm: untag page address in free_reserved_area
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
+free_reserved_area() memsets the pages belonging to a given memory area. 
+As that memory hasn't been allocated via page_alloc, the KASAN tags that
+those pages have are 0x00.  As the result the memset might result in a tag
+mismatch.
 
-Rework print_memory_metadata() to make it agnostic with regard to the way
-metadata is stored.  Allow providing a separate metadata_fetch_row()
-implementation for each KASAN mode.  Hardware tag-based KASAN will provide
-its own implementation that doesn't use shadow memory.
+Untag the address to avoid spurious faults.
 
-No functional changes for software modes.
-
-Link: https://lkml.kernel.org/r/5fb1ec0152bb1f521505017800387ec3e36ffe18.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/ebef6425f4468d063e2f09c1b62ccbb2236b71d3.1606161801.git.andreyknvl@google.com
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -70,165 +67,27 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h          |    8 +++++
- mm/kasan/report.c         |   56 +++++++++++++++++-------------------
- mm/kasan/report_generic.c |    5 +++
- mm/kasan/report_sw_tags.c |    5 +++
- 4 files changed, 45 insertions(+), 29 deletions(-)
+ mm/page_alloc.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/kasan/kasan.h~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/kasan.h
-@@ -58,6 +58,13 @@
- #define KASAN_ABI_VERSION 1
- #endif
- 
-+/* Metadata layout customization. */
-+#define META_BYTES_PER_BLOCK 1
-+#define META_BLOCKS_PER_ROW 16
-+#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
-+#define META_MEM_BYTES_PER_ROW (META_BYTES_PER_ROW * KASAN_GRANULE_SIZE)
-+#define META_ROWS_AROUND_ADDR 2
-+
- struct kasan_access_info {
- 	const void *access_addr;
- 	const void *first_bad_addr;
-@@ -170,6 +177,7 @@ bool check_invalid_free(void *addr);
- 
- void *find_first_bad_addr(void *addr, size_t size);
- const char *get_bug_type(struct kasan_access_info *info);
-+void metadata_fetch_row(char *buffer, void *row);
- 
- #if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
- void print_address_stack_frame(const void *addr);
---- a/mm/kasan/report.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report.c
-@@ -33,12 +33,6 @@
- #include "kasan.h"
- #include "../slab.h"
- 
--/* Metadata layout customization. */
--#define META_BYTES_PER_BLOCK 1
--#define META_BLOCKS_PER_ROW 16
--#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
--#define META_ROWS_AROUND_ADDR 2
--
- static unsigned long kasan_flags;
- 
- #define KASAN_BIT_REPORTED	0
-@@ -238,55 +232,59 @@ static void print_address_description(vo
- 	print_address_stack_frame(addr);
- }
- 
--static bool row_is_guilty(const void *row, const void *guilty)
-+static bool meta_row_is_guilty(const void *row, const void *addr)
- {
--	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
-+	return (row <= addr) && (addr < row + META_MEM_BYTES_PER_ROW);
- }
- 
--static int shadow_pointer_offset(const void *row, const void *shadow)
-+static int meta_pointer_offset(const void *row, const void *addr)
- {
--	/* The length of ">ff00ff00ff00ff00: " is
--	 *    3 + (BITS_PER_LONG/8)*2 chars.
-+	/*
-+	 * Memory state around the buggy address:
-+	 *  ff00ff00ff00ff00: 00 00 00 05 fe fe fe fe fe fe fe fe fe fe fe fe
-+	 *  ...
-+	 *
-+	 * The length of ">ff00ff00ff00ff00: " is
-+	 *    3 + (BITS_PER_LONG / 8) * 2 chars.
-+	 * The length of each granule metadata is 2 bytes
-+	 *    plus 1 byte for space.
- 	 */
--	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
--		(shadow - row) / META_BYTES_PER_BLOCK + 1;
-+	return 3 + (BITS_PER_LONG / 8) * 2 +
-+		(addr - row) / KASAN_GRANULE_SIZE * 3 + 1;
- }
- 
- static void print_memory_metadata(const void *addr)
- {
- 	int i;
--	const void *shadow = kasan_mem_to_shadow(addr);
--	const void *shadow_row;
-+	void *row;
- 
--	shadow_row = (void *)round_down((unsigned long)shadow,
--					META_BYTES_PER_ROW)
--		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
-+	row = (void *)round_down((unsigned long)addr, META_MEM_BYTES_PER_ROW)
-+			- META_ROWS_AROUND_ADDR * META_MEM_BYTES_PER_ROW;
- 
- 	pr_err("Memory state around the buggy address:\n");
- 
- 	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
--		const void *kaddr = kasan_shadow_to_mem(shadow_row);
--		char buffer[4 + (BITS_PER_LONG/8)*2];
--		char shadow_buf[META_BYTES_PER_ROW];
-+		char buffer[4 + (BITS_PER_LONG / 8) * 2];
-+		char metadata[META_BYTES_PER_ROW];
- 
- 		snprintf(buffer, sizeof(buffer),
--			(i == 0) ? ">%px: " : " %px: ", kaddr);
-+				(i == 0) ? ">%px: " : " %px: ", row);
-+
- 		/*
- 		 * We should not pass a shadow pointer to generic
- 		 * function, because generic functions may try to
- 		 * access kasan mapping for the passed address.
+--- a/mm/page_alloc.c~kasan-mm-untag-page-address-in-free_reserved_area
++++ a/mm/page_alloc.c
+@@ -7671,6 +7671,11 @@ unsigned long free_reserved_area(void *s
+ 		 * alias for the memset().
  		 */
--		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
-+		metadata_fetch_row(&metadata[0], row);
-+
- 		print_hex_dump(KERN_ERR, buffer,
- 			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
--			shadow_buf, META_BYTES_PER_ROW, 0);
-+			metadata, META_BYTES_PER_ROW, 0);
+ 		direct_map_addr = page_address(page);
++		/*
++		 * Perform a kasan-unchecked memset() since this memory
++		 * has not been initialized.
++		 */
++		direct_map_addr = kasan_reset_tag(direct_map_addr);
+ 		if ((unsigned int)poison <= 0xFF)
+ 			memset(direct_map_addr, poison, PAGE_SIZE);
  
--		if (row_is_guilty(shadow_row, shadow))
--			pr_err("%*c\n",
--				shadow_pointer_offset(shadow_row, shadow),
--				'^');
-+		if (meta_row_is_guilty(row, addr))
-+			pr_err("%*c\n", meta_pointer_offset(row, addr), '^');
- 
--		shadow_row += META_BYTES_PER_ROW;
-+		row += META_MEM_BYTES_PER_ROW;
- 	}
- }
- 
---- a/mm/kasan/report_generic.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report_generic.c
-@@ -123,6 +123,11 @@ const char *get_bug_type(struct kasan_ac
- 	return get_wild_bug_type(info);
- }
- 
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
-+}
-+
- #if CONFIG_KASAN_STACK
- static bool __must_check tokenize_frame_descr(const char **frame_descr,
- 					      char *token, size_t max_tok_len,
---- a/mm/kasan/report_sw_tags.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report_sw_tags.c
-@@ -80,6 +80,11 @@ void *find_first_bad_addr(void *addr, si
- 	return p;
- }
- 
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
-+}
-+
- void print_tags(u8 addr_tag, const void *addr)
- {
- 	u8 *shadow = (u8 *)kasan_mem_to_shadow(addr);
 _
