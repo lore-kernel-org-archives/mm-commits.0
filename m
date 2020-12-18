@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95302C35270
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28FECC2D0E4
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74DC723BA7
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFD9F23BA9
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726341AbgLRWDh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36270 "EHLO mail.kernel.org"
+        id S1725855AbgLRWDb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726336AbgLRWDg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:36 -0500
-Date:   Fri, 18 Dec 2020 14:03:20 -0800
+        id S1726334AbgLRWDb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:31 -0500
+Date:   Fri, 18 Dec 2020 14:02:26 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329001;
-        bh=aZ20VFyvvs6LomSn07Oc4uZtBKQwry8f4qJ1pOVDoBk=;
+        s=korg; t=1608328947;
+        bh=NfBmqfB1pNKkD1p9gAgulCyTNRF42GVopbp9die7ir8=;
         h=From:To:Subject:In-Reply-To:From;
-        b=WaMdTGpb5GBV2ImxWFRd8yfUg7D6+1VwrvG42LVMqbZzgkKUcqa3Y9MDBB9ZGAq+V
-         +ab+pFol+txVSeUztpPwkxGU8Nrq//GeglmrHgmsbVy9LO8RE25iZWccUlAmUb1rt/
-         jodXYSOpI93UC1PDhAhF3Ns/m90NXWib4iagV99Q=
+        b=1XAYGIWN4pyo3hOpQbtjqfL1t2vLYWLiozvtHivjU1gopmW+RTydYHnqJlIe19JKl
+         9n7W8C0XtZaM9HL9vUePZHYOjRoYyiW3X74Hxzg6vM3q8lBKW8cfh4XOhQyMzeMb1o
+         HyxomUc6wmI+dJfbj66Lri9h90lLXHz/p8PB+ikA=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,8 +35,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 35/78] kasan: introduce CONFIG_KASAN_HW_TAGS
-Message-ID: <20201218220320.AJqL9i43U%akpm@linux-foundation.org>
+Subject:  [patch 19/78] kasan: rename KASAN_SHADOW_* to
+ KASAN_GRANULE_*
+Message-ID: <20201218220226.WO2R6adY2%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,16 +46,26 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce CONFIG_KASAN_HW_TAGS
+Subject: kasan: rename KASAN_SHADOW_* to KASAN_GRANULE_*
 
-This patch adds a configuration option for a new KASAN mode called
-hardware tag-based KASAN.  This mode uses the memory tagging approach like
-the software tag-based mode, but relies on arm64 Memory Tagging Extension
-feature for tag management and access checking.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Link: https://lkml.kernel.org/r/44906a209d3a44f9c6f5a21841e90988e365601e.1606161801.git.andreyknvl@google.com
+The new mode won't be using shadow memory, but will still use the concept
+of memory granules.  Each memory granule maps to a single metadata entry:
+8 bytes per one shadow byte for generic mode, 16 bytes per one shadow byte
+for software tag-based mode, and 16 bytes per one allocation tag for
+hardware tag-based mode.
+
+Rename KASAN_SHADOW_SCALE_SIZE to KASAN_GRANULE_SIZE, and
+KASAN_SHADOW_MASK to KASAN_GRANULE_MASK.
+
+Also use MASK when used as a mask, otherwise use SIZE.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/939b5754e47f528a6e6a6f28ffc5815d8d128033.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -70,141 +81,359 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |   61 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 44 insertions(+), 17 deletions(-)
+ Documentation/dev-tools/kasan.rst |    2 -
+ lib/test_kasan.c                  |    2 -
+ lib/test_kasan_module.c           |    2 -
+ mm/kasan/common.c                 |   39 ++++++++++++++--------------
+ mm/kasan/generic.c                |   14 +++++-----
+ mm/kasan/generic_report.c         |    8 ++---
+ mm/kasan/init.c                   |    8 ++---
+ mm/kasan/kasan.h                  |    4 +-
+ mm/kasan/report.c                 |   10 +++----
+ mm/kasan/tags_report.c            |    2 -
+ 10 files changed, 46 insertions(+), 45 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-introduce-config_kasan_hw_tags
-+++ a/lib/Kconfig.kasan
-@@ -6,7 +6,10 @@ config HAVE_ARCH_KASAN
- config HAVE_ARCH_KASAN_SW_TAGS
- 	bool
+--- a/Documentation/dev-tools/kasan.rst~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/Documentation/dev-tools/kasan.rst
+@@ -265,7 +265,7 @@ Most mappings in vmalloc space are small
+ page of shadow space. Allocating a full shadow page per mapping would
+ therefore be wasteful. Furthermore, to ensure that different mappings
+ use different shadow pages, mappings would have to be aligned to
+-``KASAN_SHADOW_SCALE_SIZE * PAGE_SIZE``.
++``KASAN_GRANULE_SIZE * PAGE_SIZE``.
  
--config	HAVE_ARCH_KASAN_VMALLOC
-+config HAVE_ARCH_KASAN_HW_TAGS
-+	bool
-+
-+config HAVE_ARCH_KASAN_VMALLOC
- 	bool
+ Instead, we share backing space across multiple mappings. We allocate
+ a backing page when a mapping in vmalloc space uses a particular page
+--- a/lib/test_kasan.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/lib/test_kasan.c
+@@ -25,7 +25,7 @@
  
- config CC_HAS_KASAN_GENERIC
-@@ -15,16 +18,19 @@ config CC_HAS_KASAN_GENERIC
- config CC_HAS_KASAN_SW_TAGS
- 	def_bool $(cc-option, -fsanitize=kernel-hwaddress)
+ #include "../mm/kasan/kasan.h"
  
-+# This option is only required for software KASAN modes.
-+# Old GCC versions don't have proper support for no_sanitize_address.
-+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89124 for details.
- config CC_HAS_WORKING_NOSANITIZE_ADDRESS
- 	def_bool !CC_IS_GCC || GCC_VERSION >= 80300
+-#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_SHADOW_SCALE_SIZE)
++#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
  
- menuconfig KASAN
- 	bool "KASAN: runtime memory debugger"
--	depends on (HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
--		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
-+	depends on (((HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
-+		     (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)) && \
-+		    CC_HAS_WORKING_NOSANITIZE_ADDRESS) || \
-+		   HAVE_ARCH_KASAN_HW_TAGS
- 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
--	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
--	select CONSTRUCTORS
- 	select STACKDEPOT
- 	help
- 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
-@@ -37,18 +43,24 @@ choice
- 	prompt "KASAN mode"
- 	default KASAN_GENERIC
- 	help
--	  KASAN has two modes: generic KASAN (similar to userspace ASan,
--	  x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC) and
--	  software tag-based KASAN (a version based on software memory
--	  tagging, arm64 only, similar to userspace HWASan, enabled with
--	  CONFIG_KASAN_SW_TAGS).
-+	  KASAN has three modes:
-+	  1. generic KASAN (similar to userspace ASan,
-+	     x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC),
-+	  2. software tag-based KASAN (arm64 only, based on software
-+	     memory tagging (similar to userspace HWASan), enabled with
-+	     CONFIG_KASAN_SW_TAGS), and
-+	  3. hardware tag-based KASAN (arm64 only, based on hardware
-+	     memory tagging, enabled with CONFIG_KASAN_HW_TAGS).
-+
-+	  All KASAN modes are strictly debugging features.
+ /*
+  * We assign some test results to these globals to make sure the tests
+--- a/lib/test_kasan_module.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/lib/test_kasan_module.c
+@@ -15,7 +15,7 @@
  
--	  Both generic and tag-based KASAN are strictly debugging features.
-+	  For better error reports enable CONFIG_STACKTRACE.
+ #include "../mm/kasan/kasan.h"
  
- config KASAN_GENERIC
- 	bool "Generic mode"
- 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
- 	select SLUB_DEBUG if SLUB
-+	select CONSTRUCTORS
- 	help
- 	  Enables generic KASAN mode.
+-#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_SHADOW_SCALE_SIZE)
++#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
  
-@@ -61,8 +73,6 @@ config KASAN_GENERIC
- 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
- 	  The performance slowdown is ~x3.
+ static noinline void __init copy_user_test(void)
+ {
+--- a/mm/kasan/common.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/common.c
+@@ -106,7 +106,7 @@ void *memcpy(void *dest, const void *src
  
--	  For better error detection enable CONFIG_STACKTRACE.
--
- 	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
+ /*
+  * Poisons the shadow memory for 'size' bytes starting from 'addr'.
+- * Memory addresses should be aligned to KASAN_SHADOW_SCALE_SIZE.
++ * Memory addresses should be aligned to KASAN_GRANULE_SIZE.
+  */
+ void poison_range(const void *address, size_t size, u8 value)
+ {
+@@ -138,13 +138,13 @@ void unpoison_range(const void *address,
  
-@@ -70,11 +80,15 @@ config KASAN_SW_TAGS
- 	bool "Software tag-based mode"
- 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
- 	select SLUB_DEBUG if SLUB
-+	select CONSTRUCTORS
- 	help
- 	  Enables software tag-based KASAN mode.
+ 	poison_range(address, size, tag);
  
--	  This mode requires Top Byte Ignore support by the CPU and therefore
--	  is only supported for arm64. This mode requires Clang.
-+	  This mode require software memory tagging support in the form of
-+	  HWASan-like compiler instrumentation.
-+
-+	  Currently this mode is only implemented for arm64 CPUs and relies on
-+	  Top Byte Ignore. This mode requires Clang.
+-	if (size & KASAN_SHADOW_MASK) {
++	if (size & KASAN_GRANULE_MASK) {
+ 		u8 *shadow = (u8 *)kasan_mem_to_shadow(address + size);
  
- 	  This mode consumes about 1/16th of available memory at kernel start
- 	  and introduces an overhead of ~20% for the rest of the allocations.
-@@ -82,15 +96,27 @@ config KASAN_SW_TAGS
- 	  casting and comparison, as it embeds tags into the top byte of each
- 	  pointer.
+ 		if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
+ 			*shadow = tag;
+ 		else
+-			*shadow = size & KASAN_SHADOW_MASK;
++			*shadow = size & KASAN_GRANULE_MASK;
+ 	}
+ }
  
--	  For better error detection enable CONFIG_STACKTRACE.
--
- 	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
+@@ -301,7 +301,7 @@ void kasan_unpoison_object_data(struct k
+ void kasan_poison_object_data(struct kmem_cache *cache, void *object)
+ {
+ 	poison_range(object,
+-			round_up(cache->object_size, KASAN_SHADOW_SCALE_SIZE),
++			round_up(cache->object_size, KASAN_GRANULE_SIZE),
+ 			KASAN_KMALLOC_REDZONE);
+ }
  
-+config KASAN_HW_TAGS
-+	bool "Hardware tag-based mode"
-+	depends on HAVE_ARCH_KASAN_HW_TAGS
-+	depends on SLUB
-+	help
-+	  Enables hardware tag-based KASAN mode.
-+
-+	  This mode requires hardware memory tagging support, and can be used
-+	  by any architecture that provides it.
-+
-+	  Currently this mode is only implemented for arm64 CPUs starting from
-+	  ARMv8.5 and relies on Memory Tagging Extension and Top Byte Ignore.
-+
- endchoice
+@@ -373,7 +373,7 @@ static inline bool shadow_invalid(u8 tag
+ {
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+ 		return shadow_byte < 0 ||
+-			shadow_byte >= KASAN_SHADOW_SCALE_SIZE;
++			shadow_byte >= KASAN_GRANULE_SIZE;
  
- choice
- 	prompt "Instrumentation type"
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	default KASAN_OUTLINE
+ 	/* else CONFIG_KASAN_SW_TAGS: */
+ 	if ((u8)shadow_byte == KASAN_TAG_INVALID)
+@@ -412,7 +412,7 @@ static bool __kasan_slab_free(struct kme
+ 		return true;
+ 	}
  
- config KASAN_OUTLINE
-@@ -114,6 +140,7 @@ endchoice
+-	rounded_up_size = round_up(cache->object_size, KASAN_SHADOW_SCALE_SIZE);
++	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
+ 	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
  
- config KASAN_STACK_ENABLE
- 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	help
- 	  The LLVM stack address sanitizer has a know problem that
- 	  causes excessive stack usage in a lot of functions, see
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine) ||
+@@ -445,9 +445,9 @@ static void *__kasan_kmalloc(struct kmem
+ 		return NULL;
+ 
+ 	redzone_start = round_up((unsigned long)(object + size),
+-				KASAN_SHADOW_SCALE_SIZE);
++				KASAN_GRANULE_SIZE);
+ 	redzone_end = round_up((unsigned long)object + cache->object_size,
+-				KASAN_SHADOW_SCALE_SIZE);
++				KASAN_GRANULE_SIZE);
+ 
+ 	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
+ 		tag = assign_tag(cache, object, false, keep_tag);
+@@ -491,7 +491,7 @@ void * __must_check kasan_kmalloc_large(
+ 
+ 	page = virt_to_page(ptr);
+ 	redzone_start = round_up((unsigned long)(ptr + size),
+-				KASAN_SHADOW_SCALE_SIZE);
++				KASAN_GRANULE_SIZE);
+ 	redzone_end = (unsigned long)ptr + page_size(page);
+ 
+ 	unpoison_range(ptr, size);
+@@ -589,8 +589,8 @@ static int __meminit kasan_mem_notifier(
+ 	shadow_size = nr_shadow_pages << PAGE_SHIFT;
+ 	shadow_end = shadow_start + shadow_size;
+ 
+-	if (WARN_ON(mem_data->nr_pages % KASAN_SHADOW_SCALE_SIZE) ||
+-		WARN_ON(start_kaddr % (KASAN_SHADOW_SCALE_SIZE << PAGE_SHIFT)))
++	if (WARN_ON(mem_data->nr_pages % KASAN_GRANULE_SIZE) ||
++		WARN_ON(start_kaddr % (KASAN_GRANULE_SIZE << PAGE_SHIFT)))
+ 		return NOTIFY_BAD;
+ 
+ 	switch (action) {
+@@ -748,7 +748,7 @@ void kasan_poison_vmalloc(const void *st
+ 	if (!is_vmalloc_or_module_addr(start))
+ 		return;
+ 
+-	size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
++	size = round_up(size, KASAN_GRANULE_SIZE);
+ 	poison_range(start, size, KASAN_VMALLOC_INVALID);
+ }
+ 
+@@ -861,22 +861,22 @@ void kasan_release_vmalloc(unsigned long
+ 	unsigned long region_start, region_end;
+ 	unsigned long size;
+ 
+-	region_start = ALIGN(start, PAGE_SIZE * KASAN_SHADOW_SCALE_SIZE);
+-	region_end = ALIGN_DOWN(end, PAGE_SIZE * KASAN_SHADOW_SCALE_SIZE);
++	region_start = ALIGN(start, PAGE_SIZE * KASAN_GRANULE_SIZE);
++	region_end = ALIGN_DOWN(end, PAGE_SIZE * KASAN_GRANULE_SIZE);
+ 
+ 	free_region_start = ALIGN(free_region_start,
+-				  PAGE_SIZE * KASAN_SHADOW_SCALE_SIZE);
++				  PAGE_SIZE * KASAN_GRANULE_SIZE);
+ 
+ 	if (start != region_start &&
+ 	    free_region_start < region_start)
+-		region_start -= PAGE_SIZE * KASAN_SHADOW_SCALE_SIZE;
++		region_start -= PAGE_SIZE * KASAN_GRANULE_SIZE;
+ 
+ 	free_region_end = ALIGN_DOWN(free_region_end,
+-				     PAGE_SIZE * KASAN_SHADOW_SCALE_SIZE);
++				     PAGE_SIZE * KASAN_GRANULE_SIZE);
+ 
+ 	if (end != region_end &&
+ 	    free_region_end > region_end)
+-		region_end += PAGE_SIZE * KASAN_SHADOW_SCALE_SIZE;
++		region_end += PAGE_SIZE * KASAN_GRANULE_SIZE;
+ 
+ 	shadow_start = kasan_mem_to_shadow((void *)region_start);
+ 	shadow_end = kasan_mem_to_shadow((void *)region_end);
+@@ -902,7 +902,8 @@ int kasan_module_alloc(void *addr, size_
+ 	unsigned long shadow_start;
+ 
+ 	shadow_start = (unsigned long)kasan_mem_to_shadow(addr);
+-	scaled_size = (size + KASAN_SHADOW_MASK) >> KASAN_SHADOW_SCALE_SHIFT;
++	scaled_size = (size + KASAN_GRANULE_SIZE - 1) >>
++				KASAN_SHADOW_SCALE_SHIFT;
+ 	shadow_size = round_up(scaled_size, PAGE_SIZE);
+ 
+ 	if (WARN_ON(!PAGE_ALIGNED(shadow_start)))
+--- a/mm/kasan/generic.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/generic.c
+@@ -46,7 +46,7 @@ static __always_inline bool memory_is_po
+ 	s8 shadow_value = *(s8 *)kasan_mem_to_shadow((void *)addr);
+ 
+ 	if (unlikely(shadow_value)) {
+-		s8 last_accessible_byte = addr & KASAN_SHADOW_MASK;
++		s8 last_accessible_byte = addr & KASAN_GRANULE_MASK;
+ 		return unlikely(last_accessible_byte >= shadow_value);
+ 	}
+ 
+@@ -62,7 +62,7 @@ static __always_inline bool memory_is_po
+ 	 * Access crosses 8(shadow size)-byte boundary. Such access maps
+ 	 * into 2 shadow bytes, so we need to check them both.
+ 	 */
+-	if (unlikely(((addr + size - 1) & KASAN_SHADOW_MASK) < size - 1))
++	if (unlikely(((addr + size - 1) & KASAN_GRANULE_MASK) < size - 1))
+ 		return *shadow_addr || memory_is_poisoned_1(addr + size - 1);
+ 
+ 	return memory_is_poisoned_1(addr + size - 1);
+@@ -73,7 +73,7 @@ static __always_inline bool memory_is_po
+ 	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow((void *)addr);
+ 
+ 	/* Unaligned 16-bytes access maps into 3 shadow bytes. */
+-	if (unlikely(!IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
++	if (unlikely(!IS_ALIGNED(addr, KASAN_GRANULE_SIZE)))
+ 		return *shadow_addr || memory_is_poisoned_1(addr + 15);
+ 
+ 	return *shadow_addr;
+@@ -134,7 +134,7 @@ static __always_inline bool memory_is_po
+ 		s8 *last_shadow = (s8 *)kasan_mem_to_shadow((void *)last_byte);
+ 
+ 		if (unlikely(ret != (unsigned long)last_shadow ||
+-			((long)(last_byte & KASAN_SHADOW_MASK) >= *last_shadow)))
++			((long)(last_byte & KASAN_GRANULE_MASK) >= *last_shadow)))
+ 			return true;
+ 	}
+ 	return false;
+@@ -200,7 +200,7 @@ void kasan_cache_shutdown(struct kmem_ca
+ 
+ static void register_global(struct kasan_global *global)
+ {
+-	size_t aligned_size = round_up(global->size, KASAN_SHADOW_SCALE_SIZE);
++	size_t aligned_size = round_up(global->size, KASAN_GRANULE_SIZE);
+ 
+ 	unpoison_range(global->beg, global->size);
+ 
+@@ -274,10 +274,10 @@ EXPORT_SYMBOL(__asan_handle_no_return);
+ /* Emitted by compiler to poison alloca()ed objects. */
+ void __asan_alloca_poison(unsigned long addr, size_t size)
+ {
+-	size_t rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
++	size_t rounded_up_size = round_up(size, KASAN_GRANULE_SIZE);
+ 	size_t padding_size = round_up(size, KASAN_ALLOCA_REDZONE_SIZE) -
+ 			rounded_up_size;
+-	size_t rounded_down_size = round_down(size, KASAN_SHADOW_SCALE_SIZE);
++	size_t rounded_down_size = round_down(size, KASAN_GRANULE_SIZE);
+ 
+ 	const void *left_redzone = (const void *)(addr -
+ 			KASAN_ALLOCA_REDZONE_SIZE);
+--- a/mm/kasan/generic_report.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/generic_report.c
+@@ -34,7 +34,7 @@ void *find_first_bad_addr(void *addr, si
+ 	void *p = addr;
+ 
+ 	while (p < addr + size && !(*(u8 *)kasan_mem_to_shadow(p)))
+-		p += KASAN_SHADOW_SCALE_SIZE;
++		p += KASAN_GRANULE_SIZE;
+ 	return p;
+ }
+ 
+@@ -46,14 +46,14 @@ static const char *get_shadow_bug_type(s
+ 	shadow_addr = (u8 *)kasan_mem_to_shadow(info->first_bad_addr);
+ 
+ 	/*
+-	 * If shadow byte value is in [0, KASAN_SHADOW_SCALE_SIZE) we can look
++	 * If shadow byte value is in [0, KASAN_GRANULE_SIZE) we can look
+ 	 * at the next shadow byte to determine the type of the bad access.
+ 	 */
+-	if (*shadow_addr > 0 && *shadow_addr <= KASAN_SHADOW_SCALE_SIZE - 1)
++	if (*shadow_addr > 0 && *shadow_addr <= KASAN_GRANULE_SIZE - 1)
+ 		shadow_addr++;
+ 
+ 	switch (*shadow_addr) {
+-	case 0 ... KASAN_SHADOW_SCALE_SIZE - 1:
++	case 0 ... KASAN_GRANULE_SIZE - 1:
+ 		/*
+ 		 * In theory it's still possible to see these shadow values
+ 		 * due to a data race in the kernel code.
+--- a/mm/kasan/init.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/init.c
+@@ -442,8 +442,8 @@ void kasan_remove_zero_shadow(void *star
+ 	end = addr + (size >> KASAN_SHADOW_SCALE_SHIFT);
+ 
+ 	if (WARN_ON((unsigned long)start %
+-			(KASAN_SHADOW_SCALE_SIZE * PAGE_SIZE)) ||
+-	    WARN_ON(size % (KASAN_SHADOW_SCALE_SIZE * PAGE_SIZE)))
++			(KASAN_GRANULE_SIZE * PAGE_SIZE)) ||
++	    WARN_ON(size % (KASAN_GRANULE_SIZE * PAGE_SIZE)))
+ 		return;
+ 
+ 	for (; addr < end; addr = next) {
+@@ -477,8 +477,8 @@ int kasan_add_zero_shadow(void *start, u
+ 	shadow_end = shadow_start + (size >> KASAN_SHADOW_SCALE_SHIFT);
+ 
+ 	if (WARN_ON((unsigned long)start %
+-			(KASAN_SHADOW_SCALE_SIZE * PAGE_SIZE)) ||
+-	    WARN_ON(size % (KASAN_SHADOW_SCALE_SIZE * PAGE_SIZE)))
++			(KASAN_GRANULE_SIZE * PAGE_SIZE)) ||
++	    WARN_ON(size % (KASAN_GRANULE_SIZE * PAGE_SIZE)))
+ 		return -EINVAL;
+ 
+ 	ret = kasan_populate_early_shadow(shadow_start, shadow_end);
+--- a/mm/kasan/kasan.h~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/kasan.h
+@@ -5,8 +5,8 @@
+ #include <linux/kasan.h>
+ #include <linux/stackdepot.h>
+ 
+-#define KASAN_SHADOW_SCALE_SIZE (1UL << KASAN_SHADOW_SCALE_SHIFT)
+-#define KASAN_SHADOW_MASK       (KASAN_SHADOW_SCALE_SIZE - 1)
++#define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
++#define KASAN_GRANULE_MASK	(KASAN_GRANULE_SIZE - 1)
+ 
+ #define KASAN_TAG_KERNEL	0xFF /* native kernel pointers tag */
+ #define KASAN_TAG_INVALID	0xFE /* inaccessible memory tag */
+--- a/mm/kasan/report.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/report.c
+@@ -314,24 +314,24 @@ static bool __must_check get_address_sta
+ 		return false;
+ 
+ 	aligned_addr = round_down((unsigned long)addr, sizeof(long));
+-	mem_ptr = round_down(aligned_addr, KASAN_SHADOW_SCALE_SIZE);
++	mem_ptr = round_down(aligned_addr, KASAN_GRANULE_SIZE);
+ 	shadow_ptr = kasan_mem_to_shadow((void *)aligned_addr);
+ 	shadow_bottom = kasan_mem_to_shadow(end_of_stack(current));
+ 
+ 	while (shadow_ptr >= shadow_bottom && *shadow_ptr != KASAN_STACK_LEFT) {
+ 		shadow_ptr--;
+-		mem_ptr -= KASAN_SHADOW_SCALE_SIZE;
++		mem_ptr -= KASAN_GRANULE_SIZE;
+ 	}
+ 
+ 	while (shadow_ptr >= shadow_bottom && *shadow_ptr == KASAN_STACK_LEFT) {
+ 		shadow_ptr--;
+-		mem_ptr -= KASAN_SHADOW_SCALE_SIZE;
++		mem_ptr -= KASAN_GRANULE_SIZE;
+ 	}
+ 
+ 	if (shadow_ptr < shadow_bottom)
+ 		return false;
+ 
+-	frame = (const unsigned long *)(mem_ptr + KASAN_SHADOW_SCALE_SIZE);
++	frame = (const unsigned long *)(mem_ptr + KASAN_GRANULE_SIZE);
+ 	if (frame[0] != KASAN_CURRENT_STACK_FRAME_MAGIC) {
+ 		pr_err("KASAN internal error: frame info validation failed; invalid marker: %lu\n",
+ 		       frame[0]);
+@@ -599,6 +599,6 @@ void kasan_non_canonical_hook(unsigned l
+ 	else
+ 		bug_type = "maybe wild-memory-access";
+ 	pr_alert("KASAN: %s in range [0x%016lx-0x%016lx]\n", bug_type,
+-		 orig_addr, orig_addr + KASAN_SHADOW_MASK);
++		 orig_addr, orig_addr + KASAN_GRANULE_SIZE - 1);
+ }
+ #endif
+--- a/mm/kasan/tags_report.c~kasan-rename-kasan_shadow_-to-kasan_granule_
++++ a/mm/kasan/tags_report.c
+@@ -76,7 +76,7 @@ void *find_first_bad_addr(void *addr, si
+ 	void *end = p + size;
+ 
+ 	while (p < end && tag == *(u8 *)kasan_mem_to_shadow(p))
+-		p += KASAN_SHADOW_SCALE_SIZE;
++		p += KASAN_GRANULE_SIZE;
+ 	return p;
+ }
+ 
 _
