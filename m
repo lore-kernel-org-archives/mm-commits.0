@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C69F5C3526B
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9510FC4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F10623B5D
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A8A823BA7
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726497AbgLRWFr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726494AbgLRWFr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 18 Dec 2020 17:05:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39110 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726494AbgLRWFq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726483AbgLRWFq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 18 Dec 2020 17:05:46 -0500
-Date:   Fri, 18 Dec 2020 14:05:28 -0800
+Date:   Fri, 18 Dec 2020 14:05:03 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329129;
-        bh=8DcJNR4WmHnL0Hv0fKmZFOYV6gb4BwyMrwvUViDgsMg=;
+        s=korg; t=1608329104;
+        bh=HeMNj/mDEtimD9mVrilCzSQB2upiy3W+vAHdTEgIQRQ=;
         h=From:To:Subject:In-Reply-To:From;
-        b=BEpwRlOUax5N9jns6SFi8qxB0bZYKAAxZck4YI6iOMXgHJ1P5CGO9OFaIPfe1WdEp
-         QMJQCYrd1/ncfA9k1f7lHS+U3HQXXHf8v+XF7WiaHNkQ2bhsB8WjqpCaJpokQO5qUp
-         llD/pOi9j9x53c0upBUrc5ULvbArRuBXTRVdLbsA=
+        b=q46iUlAzqxFb3EIr0U2adVm0cG9UN6rXIX3qcvT1+3conTrk/aptvBMXPJSoU88MG
+         0hUzaMmo/y7gI296dk9rX/QvXQhyN4t0jQf4VulsB6vKBF+EJ46J0/LSTxiMuyj/JJ
+         U+qqOSYWSWOQGX8VkZhfwLxxdbX6S55Voc0t/Unw=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -34,9 +34,10 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         eugenis@google.com, glider@google.com, gor@linux.ibm.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 73/78] kasan: update documentation
-Message-ID: <20201218220528.rMPAjuQZl%akpm@linux-foundation.org>
+        Vincenzo.Frascino@arm.com, will.deacon@arm.com
+Subject:  [patch 66/78] kasan, mm: check kasan_enabled in
+ annotations
+Message-ID: <20201218220503.bg9ovjDIo%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,18 +46,20 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update documentation
+Subject: kasan, mm: check kasan_enabled in annotations
 
-This change updates KASAN documentation to reflect the addition of boot
-parameters and also reworks and clarifies some of the existing sections,
-in particular: defines what a memory granule is, mentions quarantine,
-makes Kunit section more readable.
+Declare the kasan_enabled static key in include/linux/kasan.h and in
+include/linux/mm.h and check it in all kasan annotations. This allows to
+avoid any slowdown caused by function calls when kasan_enabled is
+disabled.
 
-Link: https://lkml.kernel.org/r/748daf013e17d925b0fe00c1c3b5dce726dd2430.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ib1f83e91be273264b25f42b04448ac96b858849f
+Link: https://lkml.kernel.org/r/9f90e3c0aa840dbb4833367c2335193299f69023.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I2589451d3c96c97abbcbf714baabe6161c6f153e
+Co-developed-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
+Signed-off-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -69,288 +72,515 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |  188 +++++++++++++++++-----------
- 1 file changed, 117 insertions(+), 71 deletions(-)
+ include/linux/kasan.h |  217 ++++++++++++++++++++++++++++++----------
+ include/linux/mm.h    |   22 ++--
+ mm/kasan/common.c     |   56 +++++-----
+ 3 files changed, 212 insertions(+), 83 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -4,8 +4,9 @@ The Kernel Address Sanitizer (KASAN)
- Overview
- --------
+--- a/include/linux/kasan.h~kasan-mm-check-kasan_enabled-in-annotations
++++ a/include/linux/kasan.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_KASAN_H
+ #define _LINUX_KASAN_H
  
--KernelAddressSANitizer (KASAN) is a dynamic memory error detector designed to
--find out-of-bound and use-after-free bugs. KASAN has three modes:
-+KernelAddressSANitizer (KASAN) is a dynamic memory safety error detector
-+designed to find out-of-bound and use-after-free bugs. KASAN has three modes:
-+
- 1. generic KASAN (similar to userspace ASan),
- 2. software tag-based KASAN (similar to userspace HWASan),
- 3. hardware tag-based KASAN (based on hardware memory tagging).
-@@ -39,23 +40,13 @@ CONFIG_KASAN_INLINE. Outline and inline
- The former produces smaller binary while the latter is 1.1 - 2 times faster.
++#include <linux/static_key.h>
+ #include <linux/types.h>
  
- Both software KASAN modes work with both SLUB and SLAB memory allocators,
--hardware tag-based KASAN currently only support SLUB.
--For better bug detection and nicer reporting, enable CONFIG_STACKTRACE.
-+while the hardware tag-based KASAN currently only support SLUB.
-+
-+For better error reports that include stack traces, enable CONFIG_STACKTRACE.
+ struct kmem_cache;
+@@ -75,54 +76,176 @@ static inline void kasan_disable_current
  
- To augment reports with last allocation and freeing stack of the physical page,
- it is recommended to enable also CONFIG_PAGE_OWNER and boot with page_owner=on.
+ #ifdef CONFIG_KASAN
  
--To disable instrumentation for specific files or directories, add a line
--similar to the following to the respective kernel Makefile:
+-void kasan_unpoison_range(const void *address, size_t size);
 -
--- For a single file (e.g. main.o)::
+-void kasan_alloc_pages(struct page *page, unsigned int order);
+-void kasan_free_pages(struct page *page, unsigned int order);
 -
--    KASAN_SANITIZE_main.o := n
+-void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
+-			slab_flags_t *flags);
 -
--- For all files in one directory::
+-void kasan_poison_slab(struct page *page);
+-void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
+-void kasan_poison_object_data(struct kmem_cache *cache, void *object);
+-void * __must_check kasan_init_slab_obj(struct kmem_cache *cache,
+-					const void *object);
 -
--    KASAN_SANITIZE := n
+-void * __must_check kasan_kmalloc_large(const void *ptr, size_t size,
+-						gfp_t flags);
+-void kasan_kfree_large(void *ptr, unsigned long ip);
+-void kasan_poison_kfree(void *ptr, unsigned long ip);
+-void * __must_check kasan_kmalloc(struct kmem_cache *s, const void *object,
+-					size_t size, gfp_t flags);
+-void * __must_check kasan_krealloc(const void *object, size_t new_size,
+-					gfp_t flags);
 -
- Error reports
- ~~~~~~~~~~~~~
- 
-@@ -140,22 +131,75 @@ freed (in case of a use-after-free bug r
- the accessed slab object and information about the accessed memory page.
- 
- In the last section the report shows memory state around the accessed address.
--Reading this part requires some understanding of how KASAN works.
+-void * __must_check kasan_slab_alloc(struct kmem_cache *s, void *object,
+-					gfp_t flags);
+-bool kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
 -
--The state of each 8 aligned bytes of memory is encoded in one shadow byte.
--Those 8 bytes can be accessible, partially accessible, freed or be a redzone.
--We use the following encoding for each shadow byte: 0 means that all 8 bytes
--of the corresponding memory region are accessible; number N (1 <= N <= 7) means
--that the first N bytes are accessible, and other (8 - N) bytes are not;
--any negative value indicates that the entire 8-byte word is inaccessible.
--We use different negative values to distinguish between different kinds of
--inaccessible memory like redzones or freed memory (see mm/kasan/kasan.h).
-+Internally KASAN tracks memory state separately for each memory granule, which
-+is either 8 or 16 aligned bytes depending on KASAN mode. Each number in the
-+memory state section of the report shows the state of one of the memory
-+granules that surround the accessed address.
+ struct kasan_cache {
+ 	int alloc_meta_offset;
+ 	int free_meta_offset;
+ };
+ 
+-size_t kasan_metadata_size(struct kmem_cache *cache);
++#ifdef CONFIG_KASAN_HW_TAGS
++DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
++static __always_inline bool kasan_enabled(void)
++{
++	return static_branch_likely(&kasan_flag_enabled);
++}
++#else
++static inline bool kasan_enabled(void)
++{
++	return true;
++}
++#endif
 +
-+For generic KASAN the size of each memory granule is 8. The state of each
-+granule is encoded in one shadow byte. Those 8 bytes can be accessible,
-+partially accessible, freed or be a part of a redzone. KASAN uses the following
-+encoding for each shadow byte: 0 means that all 8 bytes of the corresponding
-+memory region are accessible; number N (1 <= N <= 7) means that the first N
-+bytes are accessible, and other (8 - N) bytes are not; any negative value
-+indicates that the entire 8-byte word is inaccessible. KASAN uses different
-+negative values to distinguish between different kinds of inaccessible memory
-+like redzones or freed memory (see mm/kasan/kasan.h).
- 
- In the report above the arrows point to the shadow byte 03, which means that
- the accessed address is partially accessible.
- 
- For tag-based KASAN this last report section shows the memory tags around the
--accessed address (see Implementation details section).
-+accessed address (see `Implementation details`_ section).
++void __kasan_unpoison_range(const void *addr, size_t size);
++static __always_inline void kasan_unpoison_range(const void *addr, size_t size)
++{
++	if (kasan_enabled())
++		__kasan_unpoison_range(addr, size);
++}
 +
-+Boot parameters
-+~~~~~~~~~~~~~~~
++void __kasan_alloc_pages(struct page *page, unsigned int order);
++static __always_inline void kasan_alloc_pages(struct page *page,
++						unsigned int order)
++{
++	if (kasan_enabled())
++		__kasan_alloc_pages(page, order);
++}
 +
-+Hardware tag-based KASAN mode (see the section about different mode below) is
-+intended for use in production as a security mitigation. Therefore it supports
-+boot parameters that allow to disable KASAN competely or otherwise control
-+particular KASAN features.
++void __kasan_free_pages(struct page *page, unsigned int order);
++static __always_inline void kasan_free_pages(struct page *page,
++						unsigned int order)
++{
++	if (kasan_enabled())
++		__kasan_free_pages(page, order);
++}
 +
-+The things that can be controlled are:
++void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
++				slab_flags_t *flags);
++static __always_inline void kasan_cache_create(struct kmem_cache *cache,
++				unsigned int *size, slab_flags_t *flags)
++{
++	if (kasan_enabled())
++		__kasan_cache_create(cache, size, flags);
++}
 +
-+1. Whether KASAN is enabled at all.
-+2. Whether KASAN collects and saves alloc/free stacks.
-+3. Whether KASAN panics on a detected bug or not.
++size_t __kasan_metadata_size(struct kmem_cache *cache);
++static __always_inline size_t kasan_metadata_size(struct kmem_cache *cache)
++{
++	if (kasan_enabled())
++		return __kasan_metadata_size(cache);
++	return 0;
++}
 +
-+The ``kasan.mode`` boot parameter allows to choose one of three main modes:
++void __kasan_poison_slab(struct page *page);
++static __always_inline void kasan_poison_slab(struct page *page)
++{
++	if (kasan_enabled())
++		__kasan_poison_slab(page);
++}
 +
-+- ``kasan.mode=off`` - KASAN is disabled, no tag checks are performed
-+- ``kasan.mode=prod`` - only essential production features are enabled
-+- ``kasan.mode=full`` - all KASAN features are enabled
++void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
++static __always_inline void kasan_unpoison_object_data(struct kmem_cache *cache,
++							void *object)
++{
++	if (kasan_enabled())
++		__kasan_unpoison_object_data(cache, object);
++}
 +
-+The chosen mode provides default control values for the features mentioned
-+above. However it's also possible to override the default values by providing:
++void __kasan_poison_object_data(struct kmem_cache *cache, void *object);
++static __always_inline void kasan_poison_object_data(struct kmem_cache *cache,
++							void *object)
++{
++	if (kasan_enabled())
++		__kasan_poison_object_data(cache, object);
++}
 +
-+- ``kasan.stacktrace=off`` or ``=on`` - enable alloc/free stack collection
-+					(default: ``on`` for ``mode=full``,
-+					 otherwise ``off``)
-+- ``kasan.fault=report`` or ``=panic`` - only print KASAN report or also panic
-+					 (default: ``report``)
++void * __must_check __kasan_init_slab_obj(struct kmem_cache *cache,
++					  const void *object);
++static __always_inline void * __must_check kasan_init_slab_obj(
++				struct kmem_cache *cache, const void *object)
++{
++	if (kasan_enabled())
++		return __kasan_init_slab_obj(cache, object);
++	return (void *)object;
++}
 +
-+If ``kasan.mode`` parameter is not provided, it defaults to ``full`` when
-+``CONFIG_DEBUG_KERNEL`` is enabled, and to ``prod`` otherwise.
++bool __kasan_slab_free(struct kmem_cache *s, void *object, unsigned long ip);
++static __always_inline bool kasan_slab_free(struct kmem_cache *s, void *object,
++						unsigned long ip)
++{
++	if (kasan_enabled())
++		return __kasan_slab_free(s, object, ip);
++	return false;
++}
 +
-+For developers
-+~~~~~~~~~~~~~~
++void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
++				       void *object, gfp_t flags);
++static __always_inline void * __must_check kasan_slab_alloc(
++				struct kmem_cache *s, void *object, gfp_t flags)
++{
++	if (kasan_enabled())
++		return __kasan_slab_alloc(s, object, flags);
++	return object;
++}
 +
-+Software KASAN modes use compiler instrumentation to insert validity checks.
-+Such instrumentation might be incompatible with some part of the kernel, and
-+therefore needs to be disabled. To disable instrumentation for specific files
-+or directories, add a line similar to the following to the respective kernel
-+Makefile:
++void * __must_check __kasan_kmalloc(struct kmem_cache *s, const void *object,
++				    size_t size, gfp_t flags);
++static __always_inline void * __must_check kasan_kmalloc(struct kmem_cache *s,
++				const void *object, size_t size, gfp_t flags)
++{
++	if (kasan_enabled())
++		return __kasan_kmalloc(s, object, size, flags);
++	return (void *)object;
++}
 +
-+- For a single file (e.g. main.o)::
++void * __must_check __kasan_kmalloc_large(const void *ptr,
++					  size_t size, gfp_t flags);
++static __always_inline void * __must_check kasan_kmalloc_large(const void *ptr,
++						      size_t size, gfp_t flags)
++{
++	if (kasan_enabled())
++		return __kasan_kmalloc_large(ptr, size, flags);
++	return (void *)ptr;
++}
 +
-+    KASAN_SANITIZE_main.o := n
++void * __must_check __kasan_krealloc(const void *object,
++				     size_t new_size, gfp_t flags);
++static __always_inline void * __must_check kasan_krealloc(const void *object,
++						 size_t new_size, gfp_t flags)
++{
++	if (kasan_enabled())
++		return __kasan_krealloc(object, new_size, flags);
++	return (void *)object;
++}
 +
-+- For all files in one directory::
++void __kasan_poison_kfree(void *ptr, unsigned long ip);
++static __always_inline void kasan_poison_kfree(void *ptr, unsigned long ip)
++{
++	if (kasan_enabled())
++		__kasan_poison_kfree(ptr, ip);
++}
 +
-+    KASAN_SANITIZE := n
++void __kasan_kfree_large(void *ptr, unsigned long ip);
++static __always_inline void kasan_kfree_large(void *ptr, unsigned long ip)
++{
++	if (kasan_enabled())
++		__kasan_kfree_large(ptr, ip);
++}
  
+ bool kasan_save_enable_multi_shot(void);
+ void kasan_restore_multi_shot(bool enabled);
  
- Implementation details
-@@ -164,10 +208,10 @@ Implementation details
- Generic KASAN
- ~~~~~~~~~~~~~
+ #else /* CONFIG_KASAN */
  
--From a high level, our approach to memory error detection is similar to that
--of kmemcheck: use shadow memory to record whether each byte of memory is safe
--to access, and use compile-time instrumentation to insert checks of shadow
--memory on each memory access.
-+From a high level perspective, KASAN's approach to memory error detection is
-+similar to that of kmemcheck: use shadow memory to record whether each byte of
-+memory is safe to access, and use compile-time instrumentation to insert checks
-+of shadow memory on each memory access.
- 
- Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (e.g. 16TB
- to cover 128TB on x86_64) and uses direct mapping with a scale and offset to
-@@ -198,6 +242,9 @@ Generic KASAN also reports the last 2 ca
- potentially has access to an object. Call stacks for the following are shown:
- call_rcu() and workqueue queuing.
- 
-+Generic KASAN is the only mode that delays the reuse of freed object via
-+quarantine (see mm/kasan/quarantine.c for implementation).
-+
- Software tag-based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
- 
-@@ -305,15 +352,15 @@ therefore be wasteful. Furthermore, to e
- use different shadow pages, mappings would have to be aligned to
- ``KASAN_GRANULE_SIZE * PAGE_SIZE``.
- 
--Instead, we share backing space across multiple mappings. We allocate
-+Instead, KASAN shares backing space across multiple mappings. It allocates
- a backing page when a mapping in vmalloc space uses a particular page
- of the shadow region. This page can be shared by other vmalloc
- mappings later on.
- 
--We hook in to the vmap infrastructure to lazily clean up unused shadow
-+KASAN hooks into the vmap infrastructure to lazily clean up unused shadow
- memory.
- 
--To avoid the difficulties around swapping mappings around, we expect
-+To avoid the difficulties around swapping mappings around, KASAN expects
- that the part of the shadow region that covers the vmalloc space will
- not be covered by the early shadow page, but will be left
- unmapped. This will require changes in arch-specific code.
-@@ -324,24 +371,31 @@ architectures that do not have a fixed m
- CONFIG_KASAN_KUNIT_TEST & CONFIG_TEST_KASAN_MODULE
- --------------------------------------------------
- 
--``CONFIG_KASAN_KUNIT_TEST`` utilizes the KUnit Test Framework for testing.
--This means each test focuses on a small unit of functionality and
--there are a few ways these tests can be run.
-+KASAN tests consist on two parts:
-+
-+1. Tests that are integrated with the KUnit Test Framework. Enabled with
-+``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
-+automatically in a few different ways, see the instructions below.
-+
-+2. Tests that are currently incompatible with KUnit. Enabled with
-+``CONFIG_TEST_KASAN_MODULE`` and can only be run as a module. These tests can
-+only be verified manually, by loading the kernel module and inspecting the
-+kernel log for KASAN reports.
- 
--Each test will print the KASAN report if an error is detected and then
--print the number of the test and the status of the test:
-+Each KUnit-compatible KASAN test prints a KASAN report if an error is detected.
-+Then the test prints its number and status.
- 
--pass::
-+When a test passes::
- 
-         ok 28 - kmalloc_double_kzfree
- 
--or, if kmalloc failed::
-+When a test fails due to a failed ``kmalloc``::
- 
-         # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
-         Expected ptr is not null, but is
-         not ok 4 - kmalloc_large_oob_right
- 
--or, if a KASAN report was expected, but not found::
-+When a test fails due to a missing KASAN report::
- 
-         # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:629
-         Expected kasan_data->report_expected == kasan_data->report_found, but
-@@ -349,46 +403,38 @@ or, if a KASAN report was expected, but
-         kasan_data->report_found == 0
-         not ok 28 - kmalloc_double_kzfree
- 
--All test statuses are tracked as they run and an overall status will
--be printed at the end::
-+At the end the cumulative status of all KASAN tests is printed. On success::
- 
-         ok 1 - kasan
- 
--or::
-+Or, if one of the tests failed::
- 
-         not ok 1 - kasan
- 
--(1) Loadable Module
--~~~~~~~~~~~~~~~~~~~~
-+
-+There are a few ways to run KUnit-compatible KASAN tests.
-+
-+1. Loadable module
-+~~~~~~~~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
--a loadable module and run on any architecture that supports KASAN
--using something like insmod or modprobe. The module is called ``test_kasan``.
-+a loadable module and run on any architecture that supports KASAN by loading
-+the module with insmod or modprobe. The module is called ``test_kasan``.
- 
--(2) Built-In
--~~~~~~~~~~~~~
-+2. Built-In
-+~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
--on any architecture that supports KASAN. These and any other KUnit
--tests enabled will run and print the results at boot as a late-init
--call.
++static inline bool kasan_enabled(void)
++{
++	return false;
++}
+ static inline void kasan_unpoison_range(const void *address, size_t size) {}
 -
--(3) Using kunit_tool
--~~~~~~~~~~~~~~~~~~~~~
+ static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
+ static inline void kasan_free_pages(struct page *page, unsigned int order) {}
 -
--With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, we can also
--use kunit_tool to see the results of these along with other KUnit
--tests in a more readable way. This will not print the KASAN reports
--of tests that passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_ for more up-to-date
--information on kunit_tool.
-+on any architecure that supports KASAN. These and any other KUnit tests enabled
-+will run and print the results at boot as a late-init call.
+ static inline void kasan_cache_create(struct kmem_cache *cache,
+ 				      unsigned int *size,
+ 				      slab_flags_t *flags) {}
+-
++static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
+ static inline void kasan_poison_slab(struct page *page) {}
+ static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
+ 					void *object) {}
+@@ -133,36 +256,32 @@ static inline void *kasan_init_slab_obj(
+ {
+ 	return (void *)object;
+ }
+-
+-static inline void *kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags)
++static inline bool kasan_slab_free(struct kmem_cache *s, void *object,
++				   unsigned long ip)
+ {
+-	return ptr;
++	return false;
++}
++static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
++				   gfp_t flags)
++{
++	return object;
+ }
+-static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
+-static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
+ static inline void *kasan_kmalloc(struct kmem_cache *s, const void *object,
+ 				size_t size, gfp_t flags)
+ {
+ 	return (void *)object;
+ }
++static inline void *kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags)
++{
++	return (void *)ptr;
++}
+ static inline void *kasan_krealloc(const void *object, size_t new_size,
+ 				 gfp_t flags)
+ {
+ 	return (void *)object;
+ }
+-
+-static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+-				   gfp_t flags)
+-{
+-	return object;
+-}
+-static inline bool kasan_slab_free(struct kmem_cache *s, void *object,
+-				   unsigned long ip)
+-{
+-	return false;
+-}
+-
+-static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
++static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
++static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
  
--.. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
-+3. Using kunit_tool
-+~~~~~~~~~~~~~~~~~~~
+ #endif /* CONFIG_KASAN */
  
--``CONFIG_TEST_KASAN_MODULE`` is a set of KASAN tests that could not be
--converted to KUnit. These tests can be run only as a module with
--``CONFIG_TEST_KASAN_MODULE`` built as a loadable module and
--``CONFIG_KASAN`` built-in. The type of error expected and the
--function being run is printed before the expression expected to give
--an error. Then the error is printed, if found, and that test
--should be interpreted to pass only if the error was the one expected
--by the test.
-+With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
-+possible use ``kunit_tool`` to see the results of these and other KUnit tests
-+in a more readable way. This will not print the KASAN reports of the tests that
-+passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
-+for more up-to-date information on ``kunit_tool``.
+--- a/include/linux/mm.h~kasan-mm-check-kasan_enabled-in-annotations
++++ a/include/linux/mm.h
+@@ -31,6 +31,7 @@
+ #include <linux/sizes.h>
+ #include <linux/sched.h>
+ #include <linux/pgtable.h>
++#include <linux/kasan.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -1422,22 +1423,30 @@ static inline bool cpupid_match_pid(stru
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
 +
-+.. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
+ static inline u8 page_kasan_tag(const struct page *page)
+ {
+-	return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
++	if (kasan_enabled())
++		return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
++	return 0xff;
+ }
+ 
+ static inline void page_kasan_tag_set(struct page *page, u8 tag)
+ {
+-	page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
+-	page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
++	if (kasan_enabled()) {
++		page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
++		page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
++	}
+ }
+ 
+ static inline void page_kasan_tag_reset(struct page *page)
+ {
+-	page_kasan_tag_set(page, 0xff);
++	if (kasan_enabled())
++		page_kasan_tag_set(page, 0xff);
+ }
+-#else
++
++#else /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
++
+ static inline u8 page_kasan_tag(const struct page *page)
+ {
+ 	return 0xff;
+@@ -1445,7 +1454,8 @@ static inline u8 page_kasan_tag(const st
+ 
+ static inline void page_kasan_tag_set(struct page *page, u8 tag) { }
+ static inline void page_kasan_tag_reset(struct page *page) { }
+-#endif
++
++#endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
+ 
+ static inline struct zone *page_zone(const struct page *page)
+ {
+--- a/mm/kasan/common.c~kasan-mm-check-kasan_enabled-in-annotations
++++ a/mm/kasan/common.c
+@@ -58,7 +58,7 @@ void kasan_disable_current(void)
+ }
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 
+-void kasan_unpoison_range(const void *address, size_t size)
++void __kasan_unpoison_range(const void *address, size_t size)
+ {
+ 	unpoison_range(address, size);
+ }
+@@ -86,7 +86,7 @@ asmlinkage void kasan_unpoison_task_stac
+ }
+ #endif /* CONFIG_KASAN_STACK */
+ 
+-void kasan_alloc_pages(struct page *page, unsigned int order)
++void __kasan_alloc_pages(struct page *page, unsigned int order)
+ {
+ 	u8 tag;
+ 	unsigned long i;
+@@ -100,7 +100,7 @@ void kasan_alloc_pages(struct page *page
+ 	unpoison_range(page_address(page), PAGE_SIZE << order);
+ }
+ 
+-void kasan_free_pages(struct page *page, unsigned int order)
++void __kasan_free_pages(struct page *page, unsigned int order)
+ {
+ 	if (likely(!PageHighMem(page)))
+ 		poison_range(page_address(page),
+@@ -127,8 +127,8 @@ static inline unsigned int optimal_redzo
+ 		object_size <= (1 << 16) - 1024 ? 1024 : 2048;
+ }
+ 
+-void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
+-			slab_flags_t *flags)
++void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
++			  slab_flags_t *flags)
+ {
+ 	unsigned int orig_size = *size;
+ 	unsigned int redzone_size;
+@@ -173,7 +173,7 @@ void kasan_cache_create(struct kmem_cach
+ 	*flags |= SLAB_KASAN;
+ }
+ 
+-size_t kasan_metadata_size(struct kmem_cache *cache)
++size_t __kasan_metadata_size(struct kmem_cache *cache)
+ {
+ 	if (!kasan_stack_collection_enabled())
+ 		return 0;
+@@ -196,7 +196,7 @@ struct kasan_free_meta *kasan_get_free_m
+ 	return kasan_reset_tag(object) + cache->kasan_info.free_meta_offset;
+ }
+ 
+-void kasan_poison_slab(struct page *page)
++void __kasan_poison_slab(struct page *page)
+ {
+ 	unsigned long i;
+ 
+@@ -206,12 +206,12 @@ void kasan_poison_slab(struct page *page
+ 		     KASAN_KMALLOC_REDZONE);
+ }
+ 
+-void kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
++void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
+ {
+ 	unpoison_range(object, cache->object_size);
+ }
+ 
+-void kasan_poison_object_data(struct kmem_cache *cache, void *object)
++void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
+ {
+ 	poison_range(object,
+ 			round_up(cache->object_size, KASAN_GRANULE_SIZE),
+@@ -264,7 +264,7 @@ static u8 assign_tag(struct kmem_cache *
+ #endif
+ }
+ 
+-void * __must_check kasan_init_slab_obj(struct kmem_cache *cache,
++void * __must_check __kasan_init_slab_obj(struct kmem_cache *cache,
+ 						const void *object)
+ {
+ 	struct kasan_alloc_meta *alloc_meta;
+@@ -283,7 +283,7 @@ void * __must_check kasan_init_slab_obj(
+ 	return (void *)object;
+ }
+ 
+-static bool __kasan_slab_free(struct kmem_cache *cache, void *object,
++static bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
+ 			      unsigned long ip, bool quarantine)
+ {
+ 	u8 tag;
+@@ -326,9 +326,9 @@ static bool __kasan_slab_free(struct kme
+ 	return IS_ENABLED(CONFIG_KASAN_GENERIC);
+ }
+ 
+-bool kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
++bool __kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
+ {
+-	return __kasan_slab_free(cache, object, ip, true);
++	return ____kasan_slab_free(cache, object, ip, true);
+ }
+ 
+ static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+@@ -336,7 +336,7 @@ static void set_alloc_info(struct kmem_c
+ 	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
+ }
+ 
+-static void *__kasan_kmalloc(struct kmem_cache *cache, const void *object,
++static void *____kasan_kmalloc(struct kmem_cache *cache, const void *object,
+ 				size_t size, gfp_t flags, bool keep_tag)
+ {
+ 	unsigned long redzone_start;
+@@ -368,20 +368,20 @@ static void *__kasan_kmalloc(struct kmem
+ 	return set_tag(object, tag);
+ }
+ 
+-void * __must_check kasan_slab_alloc(struct kmem_cache *cache, void *object,
+-					gfp_t flags)
++void * __must_check __kasan_slab_alloc(struct kmem_cache *cache,
++					void *object, gfp_t flags)
+ {
+-	return __kasan_kmalloc(cache, object, cache->object_size, flags, false);
++	return ____kasan_kmalloc(cache, object, cache->object_size, flags, false);
+ }
+ 
+-void * __must_check kasan_kmalloc(struct kmem_cache *cache, const void *object,
+-				size_t size, gfp_t flags)
++void * __must_check __kasan_kmalloc(struct kmem_cache *cache, const void *object,
++					size_t size, gfp_t flags)
+ {
+-	return __kasan_kmalloc(cache, object, size, flags, true);
++	return ____kasan_kmalloc(cache, object, size, flags, true);
+ }
+-EXPORT_SYMBOL(kasan_kmalloc);
++EXPORT_SYMBOL(__kasan_kmalloc);
+ 
+-void * __must_check kasan_kmalloc_large(const void *ptr, size_t size,
++void * __must_check __kasan_kmalloc_large(const void *ptr, size_t size,
+ 						gfp_t flags)
+ {
+ 	struct page *page;
+@@ -406,7 +406,7 @@ void * __must_check kasan_kmalloc_large(
+ 	return (void *)ptr;
+ }
+ 
+-void * __must_check kasan_krealloc(const void *object, size_t size, gfp_t flags)
++void * __must_check __kasan_krealloc(const void *object, size_t size, gfp_t flags)
+ {
+ 	struct page *page;
+ 
+@@ -416,13 +416,13 @@ void * __must_check kasan_krealloc(const
+ 	page = virt_to_head_page(object);
+ 
+ 	if (unlikely(!PageSlab(page)))
+-		return kasan_kmalloc_large(object, size, flags);
++		return __kasan_kmalloc_large(object, size, flags);
+ 	else
+-		return __kasan_kmalloc(page->slab_cache, object, size,
++		return ____kasan_kmalloc(page->slab_cache, object, size,
+ 						flags, true);
+ }
+ 
+-void kasan_poison_kfree(void *ptr, unsigned long ip)
++void __kasan_poison_kfree(void *ptr, unsigned long ip)
+ {
+ 	struct page *page;
+ 
+@@ -435,11 +435,11 @@ void kasan_poison_kfree(void *ptr, unsig
+ 		}
+ 		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
+ 	} else {
+-		__kasan_slab_free(page->slab_cache, ptr, ip, false);
++		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+ 	}
+ }
+ 
+-void kasan_kfree_large(void *ptr, unsigned long ip)
++void __kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+ 		kasan_report_invalid_free(ptr, ip);
 _
