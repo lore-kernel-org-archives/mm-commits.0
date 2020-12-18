@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E705CC2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 19:40:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFBCC4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:06:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADBF823B8A
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 19:40:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDEB22343F
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 20:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733214AbgLRTkD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 14:40:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38952 "EHLO mail.kernel.org"
+        id S1727307AbgLRUGg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 15:06:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726589AbgLRTkC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 14:40:02 -0500
-Date:   Fri, 18 Dec 2020 11:39:21 -0800
+        id S1726018AbgLRUGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 15:06:36 -0500
+Date:   Fri, 18 Dec 2020 12:05:54 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608320362;
-        bh=1EC5O6cMBUtln6vfplhf3raQksT8CFKls9i3WFU7BXg=;
+        s=korg; t=1608321955;
+        bh=lo37o1+aEqbFBdKF+BwXvAjJnkBqf42zHE1KJnJO5HA=;
         h=From:To:Subject:From;
-        b=dc1pGgzSfLPHRqVqiHy1I+f/9sC6YBHv3DmdBdIy5M1VjekiPojCaiGrpX1pSXuXK
-         NKUmYhiADnMR0iK9KDY+Kf9EQq/BH/9fl6Ud15FnvWeGD0badcxJY77rAc+0uO3+1z
-         8wMWpJpHVm1v5HILffFwy+l2bP8EPb0O0kwPgtpM=
+        b=rMKi+/9ai3XrO+US3i89+X55rjau8Kk7bBDNB0br/fic9cffMAFvxhhCnTYYU9M0L
+         TT3g3IxV/0pzAHLH9WfYEeVnhNJdt1UxQqwi5RjIGTEthYOVyeseeO6sSyO3bQ44n8
+         O/Tf+D9B24/rFiN4Kp7RJNukCgbb+4G4ahAh56vA=
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com, mhocko@kernel.org, hughd@google.com,
-        dave@stgolabs.net, aneesh.kumar@linux.vnet.ibm.com,
-        mike.kravetz@oracle.com
-Subject:  + mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch
- added to -mm tree
-Message-ID: <20201218193921.AbdXS%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sh_def@163.com, shakeelb@google.com,
+        richard.weiyang@gmail.com, mhocko@suse.com, laoar.shao@gmail.com,
+        hannes@cmpxchg.org, guro@fb.com, alexander.h.duyck@linux.intel.com,
+        alex.shi@linux.alibaba.com
+Subject:  [folded-merged]
+ mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch removed from -mm tree
+Message-ID: <20201218200554.jYxUg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,108 +43,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix deadlock in hugetlb_cow error path
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch
+     Subject: mm/memcg: add missed warning in mem_cgroup_lruvec
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: fix deadlock in hugetlb_cow error path
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/memcg: add missed warning in mem_cgroup_lruvec
 
-syzbot reported the deadlock here [1].  The issue is in hugetlb cow error
-handling when there are not enough huge pages for the faulting task which
-took the original reservation.  It is possible that other (child) tasks
-could have consumed pages associated with the reservation.  In this case,
-we want the task which took the original reservation to succeed.  So, we
-unmap any associated pages in children so that they can be used by the
-faulting task that owns the reservation.
+commit "(mm/memcontrol:rewrite mem_cgroup_page_lruvec())" on mm tree use
+mem_cgroup_lruvec to rewrite mem_cgroup_page_lruvec, but it missed a
+DEBUG_VM warning as following, since we always charge a page before
+return from allocation. Add back this warning is helpful:
 
-The unmapping code needs to hold i_mmap_rwsem in write mode.  However, due
-to commit c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing
-synchronization") we are already holding i_mmap_rwsem in read mode when
-hugetlb_cow is called.  Technically, i_mmap_rwsem does not need to be held
-in read mode for COW mappings as they can not share pmd's.  Modifying the
-fault code to not take i_mmap_rwsem in read mode for COW (and other
-non-sharable) mappings is too involved for a stable fix.  Instead, we
-simply drop the hugetlb_fault_mutex and i_mmap_rwsem before unmapping. 
-This is OK as it is technically not needed.  They are reacquired after
-unmapping as expected by calling code.  Since this is done in an uncommon
-error path, the overhead of dropping and reacquiring mutexes is
-acceptable.
+	VM_WARN_ON_ONCE(!memcg);
 
-While making changes, remove redundant BUG_ON after unmap_ref_private.
-
-[1] https://lkml.kernel.org/r/000000000000b73ccc05b5cf8558@google.com
-
-Link: https://lkml.kernel.org/r/4c5781b8-3b00-761e-c0c7-c5edebb6ec1a@oracle.com
-Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: syzbot+5eee4145df3c15e96625@syzkaller.appspotmail.com
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/94f17bb7-ec61-5b72-3555-fabeb5a4d73b@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Hui Su <sh_def@163.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path
-+++ a/mm/hugetlb.c
-@@ -4105,10 +4105,30 @@ retry_avoidcopy:
- 		 * may get SIGKILLed if it later faults.
- 		 */
- 		if (outside_reserve) {
-+			struct address_space *mapping = vma->vm_file->f_mapping;
-+			pgoff_t idx;
-+			u32 hash;
+--- a/include/linux/memcontrol.h~mm-memcontrol-rewrite-mem_cgroup_page_lruvec-fix
++++ a/include/linux/memcontrol.h
+@@ -613,6 +613,8 @@ static inline struct lruvec *mem_cgroup_
+ 	struct mem_cgroup_per_node *mz;
+ 	struct lruvec *lruvec;
+ 
++	VM_WARN_ON_ONCE(!memcg);
 +
- 			put_page(old_page);
- 			BUG_ON(huge_pte_none(pte));
-+			/*
-+			 * Drop hugetlb_fault_mutex and i_mmap_rwsem before
-+			 * unmapping.  unmapping needs to hold i_mmap_rwsem
-+			 * in write mode.  Dropping i_mmap_rwsem in read mode
-+			 * here is OK as COW mappings do not interact with
-+			 * PMD sharing.
-+			 *
-+			 * Reacquire both after unmap operation.
-+			 */
-+			idx = vma_hugecache_offset(h, vma, haddr);
-+			hash = hugetlb_fault_mutex_hash(mapping, idx);
-+			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+			i_mmap_unlock_read(mapping);
-+
- 			unmap_ref_private(mm, vma, old_page, haddr);
--			BUG_ON(huge_pte_none(pte));
-+
-+			i_mmap_lock_read(mapping);
-+			mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 			spin_lock(ptl);
- 			ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
- 			if (likely(ptep &&
+ 	if (mem_cgroup_disabled()) {
+ 		lruvec = &pgdat->__lruvec;
+ 		goto out;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch
+mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+mm-memcg-warning-on-memcg-after-readahead-page-charged.patch
+mm-memcontrol-rewrite-mem_cgroup_page_lruvec.patch
 
