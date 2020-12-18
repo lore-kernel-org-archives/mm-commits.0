@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF635C4361B
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 238AAC2D0E4
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADF1E23B8C
+	by mail.kernel.org (Postfix) with ESMTP id E02D923B87
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726343AbgLRWDk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36046 "EHLO mail.kernel.org"
+        id S1725898AbgLRWDt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726336AbgLRWDj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:39 -0500
-Date:   Fri, 18 Dec 2020 14:03:23 -0800
+        id S1726347AbgLRWDt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:49 -0500
+Date:   Fri, 18 Dec 2020 14:03:33 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329004;
-        bh=o4LWwQlSOpED0V2os9lzQIgkMFv6BxZ2jMv9cz3gbxo=;
+        s=korg; t=1608329013;
+        bh=qpMIML1/gII246ISYK6mXLCd8OVwFtW20z8VkUZtJjY=;
         h=From:To:Subject:In-Reply-To:From;
-        b=ONAP4qDQ4KV0R61G4/3hd8m557uK7oHCno3obmvtsO69EaVdKu19tz0H1KWsrgeKu
-         8lzEHMrIDv84Ex7RTiSeU944uDTGfL7d02LvmA5yV7YmWQ/q3+TsaEYpbXigdxa+jo
-         n8c1z1hOrIgRL88edBrZu0OPgdxcshMlXOipD0Cs=
+        b=nzIH8Bzw6W1TZE6QLZ7KALeB1jqEZw/SDei2dyRlbz3YbwpFL5DAN1GCQ7sogHr1H
+         eXbFMN1j2JwdmraxdgXkJ32mPi32PYwdMDH/L5Z+qMNarBMYAn5wMc5scDrJzLzjQB
+         Z4GVGelKM/uHqT2rDDe9ljMTOEAyKXQ4wCaH40/o=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,8 +35,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 36/78] arm64: enable armv8.5-a asm-arch option
-Message-ID: <20201218220323.FBOTcmeWO%akpm@linux-foundation.org>
+Subject:  [patch 39/78] arm64: mte: add in-kernel tag fault handler
+Message-ID: <20201218220333.9v99rO2V0%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,20 +45,28 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: enable armv8.5-a asm-arch option
+Subject: arm64: mte: add in-kernel tag fault handler
 
-Hardware tag-based KASAN relies on Memory Tagging Extension (MTE) which is
-an armv8.5-a architecture extension.
+Add the implementation of the in-kernel fault handler.
 
-Enable the correct asm option when the compiler supports it in order to
-allow the usage of ALTERNATIVE()s with MTE instructions.
+When a tag fault happens on a kernel address:
+* MTE is disabled on the current CPU,
+* the execution continues.
 
-Link: https://lkml.kernel.org/r/d03d1157124ea3532eaeb77507988733f5734986.1606161801.git.andreyknvl@google.com
+When a tag fault happens on a user address:
+* the kernel executes do_bad_area() and panics.
+
+The tag fault handler for kernel addresses is currently empty and will be
+filled in by a future commit.
+
+Link: https://lkml.kernel.org/r/ad31529b073e22840b7a2246172c2b67747ed7c4.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -67,45 +75,134 @@ Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
+[catalin.marinas@arm.com: ensure CONFIG_ARM64_PAN is enabled with MTE]
+  Link: https://lkml.kernel.org/r/20201203102628.GB2224@gaia
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig  |    4 ++++
- arch/arm64/Makefile |    5 +++++
- 2 files changed, 9 insertions(+)
+ arch/arm64/Kconfig               |    2 +
+ arch/arm64/include/asm/uaccess.h |   23 ++++++++++++++
+ arch/arm64/mm/fault.c            |   45 +++++++++++++++++++++++++++++
+ 3 files changed, 70 insertions(+)
 
---- a/arch/arm64/Kconfig~arm64-enable-armv85-a-asm-arch-option
-+++ a/arch/arm64/Kconfig
-@@ -1571,6 +1571,9 @@ endmenu
+--- a/arch/arm64/include/asm/uaccess.h~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -159,8 +159,28 @@ static inline void __uaccess_enable_hw_p
+ 			CONFIG_ARM64_PAN));
+ }
  
- menu "ARMv8.5 architectural features"
- 
-+config AS_HAS_ARMV8_5
-+	def_bool $(cc-option,-Wa$(comma)-march=armv8.5-a)
++/*
++ * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
++ * affects EL0 and TCF affects EL1 irrespective of which TTBR is
++ * used.
++ * The kernel accesses TTBR0 usually with LDTR/STTR instructions
++ * when UAO is available, so these would act as EL0 accesses using
++ * TCF0.
++ * However futex.h code uses exclusives which would be executed as
++ * EL1, this can potentially cause a tag check fault even if the
++ * user disables TCF0.
++ *
++ * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
++ * and reset it in uaccess_disable().
++ *
++ * The Tag check override (TCO) bit disables temporarily the tag checking
++ * preventing the issue.
++ */
+ static inline void uaccess_disable_privileged(void)
+ {
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
 +
- config ARM64_BTI
- 	bool "Branch Target Identification support"
- 	default y
-@@ -1645,6 +1648,7 @@ config ARM64_MTE
- 	bool "Memory Tagging Extension support"
+ 	if (uaccess_ttbr0_disable())
+ 		return;
+ 
+@@ -169,6 +189,9 @@ static inline void uaccess_disable_privi
+ 
+ static inline void uaccess_enable_privileged(void)
+ {
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
++
+ 	if (uaccess_ttbr0_enable())
+ 		return;
+ 
+--- a/arch/arm64/Kconfig~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/Kconfig
+@@ -1649,6 +1649,8 @@ config ARM64_MTE
  	default y
  	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
-+	depends on AS_HAS_ARMV8_5
+ 	depends on AS_HAS_ARMV8_5
++	# Required for tag checking in the uaccess routines
++	depends on ARM64_PAN
  	select ARCH_USES_HIGH_VMA_FLAGS
  	help
  	  Memory Tagging (part of the ARMv8.5 Extensions) provides
---- a/arch/arm64/Makefile~arm64-enable-armv85-a-asm-arch-option
-+++ a/arch/arm64/Makefile
-@@ -96,6 +96,11 @@ ifeq ($(CONFIG_AS_HAS_ARMV8_4), y)
- asm-arch := armv8.4-a
- endif
+--- a/arch/arm64/mm/fault.c~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/mm/fault.c
+@@ -33,6 +33,7 @@
+ #include <asm/debug-monitors.h>
+ #include <asm/esr.h>
+ #include <asm/kprobes.h>
++#include <asm/mte.h>
+ #include <asm/processor.h>
+ #include <asm/sysreg.h>
+ #include <asm/system_misc.h>
+@@ -296,6 +297,44 @@ static void die_kernel_fault(const char
+ 	do_exit(SIGKILL);
+ }
  
-+ifeq ($(CONFIG_AS_HAS_ARMV8_5), y)
-+# make sure to pass the newest target architecture to -march.
-+asm-arch := armv8.5-a
-+endif
++static void report_tag_fault(unsigned long addr, unsigned int esr,
++			     struct pt_regs *regs)
++{
++}
 +
- ifdef asm-arch
- KBUILD_CFLAGS	+= -Wa,-march=$(asm-arch) \
- 		   -DARM64_ASM_ARCH='"$(asm-arch)"'
++static void do_tag_recovery(unsigned long addr, unsigned int esr,
++			   struct pt_regs *regs)
++{
++	static bool reported;
++
++	if (!READ_ONCE(reported)) {
++		report_tag_fault(addr, esr, regs);
++		WRITE_ONCE(reported, true);
++	}
++
++	/*
++	 * Disable MTE Tag Checking on the local CPU for the current EL.
++	 * It will be done lazily on the other CPUs when they will hit a
++	 * tag fault.
++	 */
++	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_NONE);
++	isb();
++}
++
++static bool is_el1_mte_sync_tag_check_fault(unsigned int esr)
++{
++	unsigned int ec = ESR_ELx_EC(esr);
++	unsigned int fsc = esr & ESR_ELx_FSC;
++
++	if (ec != ESR_ELx_EC_DABT_CUR)
++		return false;
++
++	if (fsc == ESR_ELx_FSC_MTE)
++		return true;
++
++	return false;
++}
++
+ static void __do_kernel_fault(unsigned long addr, unsigned int esr,
+ 			      struct pt_regs *regs)
+ {
+@@ -312,6 +351,12 @@ static void __do_kernel_fault(unsigned l
+ 	    "Ignoring spurious kernel translation fault at virtual address %016lx\n", addr))
+ 		return;
+ 
++	if (is_el1_mte_sync_tag_check_fault(esr)) {
++		do_tag_recovery(addr, esr, regs);
++
++		return;
++	}
++
+ 	if (is_el1_permission_fault(addr, esr, regs)) {
+ 		if (esr & ESR_ELx_WNR)
+ 			msg = "write to read-only memory";
 _
