@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F37C2C3526B
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1BEC3526C
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6A2E23BA7
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 414F323BA7
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbgLRWDa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36190 "EHLO mail.kernel.org"
+        id S1726337AbgLRWDe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726334AbgLRWD3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:29 -0500
-Date:   Fri, 18 Dec 2020 14:03:13 -0800
+        id S1726334AbgLRWDe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:34 -0500
+Date:   Fri, 18 Dec 2020 14:02:43 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608328994;
-        bh=WkJP5ueegwzdiDDMvDzqZf2U3rSH1/aHsOmLVGy5lhQ=;
+        s=korg; t=1608328964;
+        bh=BnKABBFXehNVsAf/DxE7GIkSrsUgxtLfAbUVA2DgJtY=;
         h=From:To:Subject:In-Reply-To:From;
-        b=tqxOx1ITslRFc3SaxyO/q6vTjEtsh6k/udRbi4vlGzTjwK4KGqOvDN0loChNJjq9l
-         qU4L/WLtIbJEseiDd7RvkLEcJkz+zBT6dAyEOIHf28Bi0T9qplYkRlyPtu+G2VhfYZ
-         c9gmGbEFBRm1ESigqEwx5gUsxOKUmey5jZuDqPT0=
+        b=2U3axS9pxfj+kaaip2gNYLf5ylIQobHnS3mhelRPT3JcDoQ4KHgbtnrLITZLGVqPl
+         TplsxqxwjO7HNZGZFU/f9NS1uL496n5LgV5JsqlKDRI8qbeCfJBYjdkWuO1emZBd4J
+         rbPsRHmr2SQ9d+qAb3TeILBS4TnyoMDlFjUqOzOw=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,8 +35,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 33/78] kasan: rename SHADOW layout macros to META
-Message-ID: <20201218220313.vJuJ2g_R2%akpm@linux-foundation.org>
+Subject:  [patch 24/78] kasan: don't duplicate config dependencies
+Message-ID: <20201218220243.1tkrm8XiL%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,17 +45,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename SHADOW layout macros to META
+Subject: kasan: don't duplicate config dependencies
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
+Both KASAN_GENERIC and KASAN_SW_TAGS have common dependencies, move those
+to KASAN.
 
-Hardware tag-based KASAN won't be using shadow memory, but will reuse
-these macros.  Rename "SHADOW" to implementation-neutral "META".
-
-No functional changes.
-
-Link: https://lkml.kernel.org/r/f96244ec59dc17db35173ec352c5592b14aefaf8.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/c1cc0d562608a318c607afe22db5ec2a7af72e47.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -72,86 +67,40 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ lib/Kconfig.kasan |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/report.c~kasan-rename-shadow-layout-macros-to-meta
-+++ a/mm/kasan/report.c
-@@ -33,11 +33,11 @@
- #include "kasan.h"
- #include "../slab.h"
+--- a/lib/Kconfig.kasan~kasan-dont-duplicate-config-dependencies
++++ a/lib/Kconfig.kasan
+@@ -24,6 +24,8 @@ menuconfig KASAN
+ 		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
+ 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
++	select CONSTRUCTORS
++	select STACKDEPOT
+ 	help
+ 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
+ 	  designed to find out-of-bounds accesses and use-after-free bugs.
+@@ -46,10 +48,7 @@ choice
+ config KASAN_GENERIC
+ 	bool "Generic mode"
+ 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
+-	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	select SLUB_DEBUG if SLUB
+-	select CONSTRUCTORS
+-	select STACKDEPOT
+ 	help
+ 	  Enables generic KASAN mode.
  
--/* Shadow layout customization. */
--#define SHADOW_BYTES_PER_BLOCK 1
--#define SHADOW_BLOCKS_PER_ROW 16
--#define SHADOW_BYTES_PER_ROW (SHADOW_BLOCKS_PER_ROW * SHADOW_BYTES_PER_BLOCK)
--#define SHADOW_ROWS_AROUND_ADDR 2
-+/* Metadata layout customization. */
-+#define META_BYTES_PER_BLOCK 1
-+#define META_BLOCKS_PER_ROW 16
-+#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
-+#define META_ROWS_AROUND_ADDR 2
- 
- static unsigned long kasan_flags;
- 
-@@ -240,7 +240,7 @@ static void print_address_description(vo
- 
- static bool row_is_guilty(const void *row, const void *guilty)
- {
--	return (row <= guilty) && (guilty < row + SHADOW_BYTES_PER_ROW);
-+	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
- }
- 
- static int shadow_pointer_offset(const void *row, const void *shadow)
-@@ -249,7 +249,7 @@ static int shadow_pointer_offset(const v
- 	 *    3 + (BITS_PER_LONG/8)*2 chars.
- 	 */
- 	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
--		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
-+		(shadow - row) / META_BYTES_PER_BLOCK + 1;
- }
- 
- static void print_memory_metadata(const void *addr)
-@@ -259,15 +259,15 @@ static void print_memory_metadata(const
- 	const void *shadow_row;
- 
- 	shadow_row = (void *)round_down((unsigned long)shadow,
--					SHADOW_BYTES_PER_ROW)
--		- SHADOW_ROWS_AROUND_ADDR * SHADOW_BYTES_PER_ROW;
-+					META_BYTES_PER_ROW)
-+		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
- 
- 	pr_err("Memory state around the buggy address:\n");
- 
--	for (i = -SHADOW_ROWS_AROUND_ADDR; i <= SHADOW_ROWS_AROUND_ADDR; i++) {
-+	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
- 		const void *kaddr = kasan_shadow_to_mem(shadow_row);
- 		char buffer[4 + (BITS_PER_LONG/8)*2];
--		char shadow_buf[SHADOW_BYTES_PER_ROW];
-+		char shadow_buf[META_BYTES_PER_ROW];
- 
- 		snprintf(buffer, sizeof(buffer),
- 			(i == 0) ? ">%px: " : " %px: ", kaddr);
-@@ -276,17 +276,17 @@ static void print_memory_metadata(const
- 		 * function, because generic functions may try to
- 		 * access kasan mapping for the passed address.
- 		 */
--		memcpy(shadow_buf, shadow_row, SHADOW_BYTES_PER_ROW);
-+		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
- 		print_hex_dump(KERN_ERR, buffer,
--			DUMP_PREFIX_NONE, SHADOW_BYTES_PER_ROW, 1,
--			shadow_buf, SHADOW_BYTES_PER_ROW, 0);
-+			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
-+			shadow_buf, META_BYTES_PER_ROW, 0);
- 
- 		if (row_is_guilty(shadow_row, shadow))
- 			pr_err("%*c\n",
- 				shadow_pointer_offset(shadow_row, shadow),
- 				'^');
- 
--		shadow_row += SHADOW_BYTES_PER_ROW;
-+		shadow_row += META_BYTES_PER_ROW;
- 	}
- }
+@@ -70,10 +69,7 @@ config KASAN_GENERIC
+ config KASAN_SW_TAGS
+ 	bool "Software tag-based mode"
+ 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
+-	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	select SLUB_DEBUG if SLUB
+-	select CONSTRUCTORS
+-	select STACKDEPOT
+ 	help
+ 	  Enables software tag-based KASAN mode.
  
 _
