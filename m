@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76491C2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AC8BC4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:04:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 436FF23BAB
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:04:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D3CD23B98
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:04:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726430AbgLRWEW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:04:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36832 "EHLO mail.kernel.org"
+        id S1726426AbgLRWEZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:04:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726407AbgLRWEW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:04:22 -0500
-Date:   Fri, 18 Dec 2020 14:04:05 -0800
+        id S1726407AbgLRWEY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:04:24 -0500
+Date:   Fri, 18 Dec 2020 14:03:43 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329046;
-        bh=TosaJ+INYQPH4GRmvvdGf3IYkx1tUP+mduePYB+lGww=;
+        s=korg; t=1608329023;
+        bh=K55WA5i+MZqHFYpmOdSCc9fuL4mhAA32VNirWDBvmWY=;
         h=From:To:Subject:In-Reply-To:From;
-        b=2q3PhA2eWQ9ijoEQBaRJ2LNggoZbdKnP/0i38aj3cwI2ncTJtrXSA6QZAFAvuOOJf
-         jQd0AlhIuoz+JKmKwOYKDN6jZy12QwQv1HTxauXYhD1Q7zy/c3E0cL0SU5j9NfbUTz
-         jPjyOTNuVg7qb81DuUpInYxstogCKYOBx94PPpcg=
+        b=HGM1J2Y6bCPYpNIpXnJRT3ooQz6MeRtgHqGDghovrB5M+4qdYsW+isndbXSyjiLwO
+         c/DiedEgl3bdF3XnESVJEQhsJ2CpEAPPbp38bml4Roq3KMe/ccWMQVgQHboD874z0H
+         PIsAm9ZDaPdJKSwCcunn9LCPQ8BqYxpn7coDBRJk=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,8 +35,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 49/78] kasan, arm64: implement HW_TAGS runtime
-Message-ID: <20201218220405.TDzOdRjiz%akpm@linux-foundation.org>
+Subject:  [patch 42/78] arm64: mte: switch GCR_EL1 in kernel entry
+ and exit
+Message-ID: <20201218220343.7OU5VdVs1%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,20 +45,26 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: implement HW_TAGS runtime
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: mte: switch GCR_EL1 in kernel entry and exit
 
-Provide implementation of KASAN functions required for the hardware
-tag-based mode.  Those include core functions for memory and pointer
-tagging (tags_hw.c) and bug reporting (report_tags_hw.c).  Also adapt
-common KASAN code to support the new mode.
+When MTE is present, the GCR_EL1 register contains the tags mask that
+allows to exclude tags from the random generation via the IRG instruction.
 
-Link: https://lkml.kernel.org/r/cfd0fbede579a6b66755c98c88c108e54f9c56bf.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+With the introduction of the new Tag-Based KASAN API that provides a
+mechanism to reserve tags for special reasons, the MTE implementation has
+to make sure that the GCR_EL1 setting for the kernel does not affect the
+userspace processes and viceversa.
+
+Save and restore the kernel/user mask in GCR_EL1 in kernel entry and exit.
+
+Link: https://lkml.kernel.org/r/578b03294708cc7258fad0dc9c2a2e809e5a8214.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -69,434 +76,197 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/memory.h   |    4 -
- arch/arm64/kernel/cpufeature.c    |    3 
- arch/arm64/kernel/smp.c           |    2 
- include/linux/kasan.h             |   24 +++++--
- include/linux/mm.h                |    2 
- include/linux/page-flags-layout.h |    2 
- mm/kasan/Makefile                 |    5 +
- mm/kasan/common.c                 |   15 ++--
- mm/kasan/hw_tags.c                |   89 ++++++++++++++++++++++++++++
- mm/kasan/kasan.h                  |   19 ++++-
- mm/kasan/report_hw_tags.c         |   42 +++++++++++++
- mm/kasan/report_sw_tags.c         |    2 
- mm/kasan/shadow.c                 |    2 
- mm/kasan/sw_tags.c                |    2 
- 14 files changed, 187 insertions(+), 26 deletions(-)
+ arch/arm64/include/asm/mte-def.h   |    1 
+ arch/arm64/include/asm/mte-kasan.h |    5 +++
+ arch/arm64/include/asm/mte.h       |    2 +
+ arch/arm64/kernel/asm-offsets.c    |    3 +
+ arch/arm64/kernel/entry.S          |   41 +++++++++++++++++++++++++++
+ arch/arm64/kernel/mte.c            |   31 ++++++++++++++++++--
+ 6 files changed, 79 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~kasan-arm64-implement-hw_tags-runtime
-+++ a/arch/arm64/include/asm/memory.h
-@@ -214,7 +214,7 @@ static inline unsigned long kaslr_offset
- 	(__force __typeof__(addr))__addr;				\
- })
+--- a/arch/arm64/include/asm/mte-def.h~arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit
++++ a/arch/arm64/include/asm/mte-def.h
+@@ -10,6 +10,5 @@
+ #define MTE_TAG_SHIFT		56
+ #define MTE_TAG_SIZE		4
+ #define MTE_TAG_MASK		GENMASK((MTE_TAG_SHIFT + (MTE_TAG_SIZE - 1)), MTE_TAG_SHIFT)
+-#define MTE_TAG_MAX		(MTE_TAG_MASK >> MTE_TAG_SHIFT)
  
--#ifdef CONFIG_KASAN_SW_TAGS
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- #define __tag_shifted(tag)	((u64)(tag) << 56)
- #define __tag_reset(addr)	__untagged_addr(addr)
- #define __tag_get(addr)		(__u8)((u64)(addr) >> 56)
-@@ -222,7 +222,7 @@ static inline unsigned long kaslr_offset
- #define __tag_shifted(tag)	0UL
- #define __tag_reset(addr)	(addr)
- #define __tag_get(addr)		0
--#endif /* CONFIG_KASAN_SW_TAGS */
-+#endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
+ #endif /* __ASM_MTE_DEF_H  */
+--- a/arch/arm64/include/asm/mte.h~arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit
++++ a/arch/arm64/include/asm/mte.h
+@@ -18,6 +18,8 @@
  
- static inline const void *__tag_set(const void *addr, u8 tag)
- {
---- a/arch/arm64/kernel/cpufeature.c~kasan-arm64-implement-hw_tags-runtime
-+++ a/arch/arm64/kernel/cpufeature.c
-@@ -70,6 +70,7 @@
- #include <linux/types.h>
- #include <linux/mm.h>
- #include <linux/cpu.h>
-+#include <linux/kasan.h>
- #include <asm/cpu.h>
- #include <asm/cpufeature.h>
- #include <asm/cpu_ops.h>
-@@ -1709,6 +1710,8 @@ static void cpu_enable_mte(struct arm64_
- 		cleared_zero_page = true;
- 		mte_clear_page_tags(lm_alias(empty_zero_page));
- 	}
+ #include <asm/pgtable-types.h>
+ 
++extern u64 gcr_kernel_excl;
 +
-+	kasan_init_hw_tags_cpu();
+ void mte_clear_page_tags(void *addr);
+ unsigned long mte_copy_tags_from_user(void *to, const void __user *from,
+ 				      unsigned long n);
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -30,6 +30,7 @@ u8 mte_get_random_tag(void);
+ void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
+ 
+ void mte_enable_kernel(void);
++void mte_init_tags(u64 max_tag);
+ 
+ #else /* CONFIG_ARM64_MTE */
+ 
+@@ -55,6 +56,10 @@ static inline void mte_enable_kernel(voi
+ {
  }
+ 
++static inline void mte_init_tags(u64 max_tag)
++{
++}
++
  #endif /* CONFIG_ARM64_MTE */
  
---- a/arch/arm64/kernel/smp.c~kasan-arm64-implement-hw_tags-runtime
-+++ a/arch/arm64/kernel/smp.c
-@@ -462,6 +462,8 @@ void __init smp_prepare_boot_cpu(void)
- 	/* Conditionally switch to GIC PMR for interrupt masking */
- 	if (system_uses_irq_prio_masking())
- 		init_gic_priority_masking();
-+
-+	kasan_init_hw_tags();
- }
- 
- static u64 __init of_get_cpu_mpidr(struct device_node *dn)
---- a/include/linux/kasan.h~kasan-arm64-implement-hw_tags-runtime
-+++ a/include/linux/kasan.h
-@@ -190,25 +190,35 @@ static inline void kasan_record_aux_stac
- 
- #endif /* CONFIG_KASAN_GENERIC */
- 
--#ifdef CONFIG_KASAN_SW_TAGS
--
--void __init kasan_init_sw_tags(void);
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- 
- void *kasan_reset_tag(const void *addr);
- 
- bool kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
- 
--#else /* CONFIG_KASAN_SW_TAGS */
--
--static inline void kasan_init_sw_tags(void) { }
-+#else /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
- 
- static inline void *kasan_reset_tag(const void *addr)
- {
- 	return (void *)addr;
- }
- 
--#endif /* CONFIG_KASAN_SW_TAGS */
-+#endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS*/
-+
-+#ifdef CONFIG_KASAN_SW_TAGS
-+void __init kasan_init_sw_tags(void);
-+#else
-+static inline void kasan_init_sw_tags(void) { }
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/asm-offsets.c~arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit
++++ a/arch/arm64/kernel/asm-offsets.c
+@@ -47,6 +47,9 @@ int main(void)
+   DEFINE(THREAD_KEYS_USER,	offsetof(struct task_struct, thread.keys_user));
+   DEFINE(THREAD_KEYS_KERNEL,	offsetof(struct task_struct, thread.keys_kernel));
+ #endif
++#ifdef CONFIG_ARM64_MTE
++  DEFINE(THREAD_GCR_EL1_USER,	offsetof(struct task_struct, thread.gcr_user_excl));
 +#endif
+   BLANK();
+   DEFINE(S_X0,			offsetof(struct pt_regs, regs[0]));
+   DEFINE(S_X2,			offsetof(struct pt_regs, regs[2]));
+--- a/arch/arm64/kernel/entry.S~arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit
++++ a/arch/arm64/kernel/entry.S
+@@ -173,6 +173,43 @@ alternative_else_nop_endif
+ #endif
+ 	.endm
+ 
++	.macro mte_set_gcr, tmp, tmp2
++#ifdef CONFIG_ARM64_MTE
++	/*
++	 * Calculate and set the exclude mask preserving
++	 * the RRND (bit[16]) setting.
++	 */
++	mrs_s	\tmp2, SYS_GCR_EL1
++	bfi	\tmp2, \tmp, #0, #16
++	msr_s	SYS_GCR_EL1, \tmp2
++	isb
++#endif
++	.endm
 +
++	.macro mte_set_kernel_gcr, tmp, tmp2
 +#ifdef CONFIG_KASAN_HW_TAGS
-+void kasan_init_hw_tags_cpu(void);
-+void __init kasan_init_hw_tags(void);
-+#else
-+static inline void kasan_init_hw_tags_cpu(void) { }
-+static inline void kasan_init_hw_tags(void) { }
++alternative_if_not ARM64_MTE
++	b	1f
++alternative_else_nop_endif
++	ldr_l	\tmp, gcr_kernel_excl
++
++	mte_set_gcr \tmp, \tmp2
++1:
 +#endif
++	.endm
++
++	.macro mte_set_user_gcr, tsk, tmp, tmp2
++#ifdef CONFIG_ARM64_MTE
++alternative_if_not ARM64_MTE
++	b	1f
++alternative_else_nop_endif
++	ldr	\tmp, [\tsk, #THREAD_GCR_EL1_USER]
++
++	mte_set_gcr \tmp, \tmp2
++1:
++#endif
++	.endm
++
+ 	.macro	kernel_entry, el, regsize = 64
+ 	.if	\regsize == 32
+ 	mov	w0, w0				// zero upper 32 bits of x0
+@@ -212,6 +249,8 @@ alternative_else_nop_endif
  
- #ifdef CONFIG_KASAN_VMALLOC
+ 	ptrauth_keys_install_kernel tsk, x20, x22, x23
  
---- a/include/linux/mm.h~kasan-arm64-implement-hw_tags-runtime
-+++ a/include/linux/mm.h
-@@ -1421,7 +1421,7 @@ static inline bool cpupid_match_pid(stru
- }
- #endif /* CONFIG_NUMA_BALANCING */
++	mte_set_kernel_gcr x22, x23
++
+ 	scs_load tsk, x20
+ 	.else
+ 	add	x21, sp, #S_FRAME_SIZE
+@@ -315,6 +354,8 @@ alternative_else_nop_endif
+ 	/* No kernel C function calls after this as user keys are set. */
+ 	ptrauth_keys_install_user tsk, x0, x1, x2
  
--#ifdef CONFIG_KASAN_SW_TAGS
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- static inline u8 page_kasan_tag(const struct page *page)
++	mte_set_user_gcr tsk, x0, x1
++
+ 	apply_ssbd 0, x0, x1
+ 	.endif
+ 
+--- a/arch/arm64/kernel/mte.c~arm64-mte-switch-gcr_el1-in-kernel-entry-and-exit
++++ a/arch/arm64/kernel/mte.c
+@@ -23,6 +23,8 @@
+ #include <asm/ptrace.h>
+ #include <asm/sysreg.h>
+ 
++u64 gcr_kernel_excl __ro_after_init;
++
+ static void mte_sync_page_tags(struct page *page, pte_t *ptep, bool check_swap)
  {
- 	return (page->flags >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
---- a/include/linux/page-flags-layout.h~kasan-arm64-implement-hw_tags-runtime
-+++ a/include/linux/page-flags-layout.h
-@@ -77,7 +77,7 @@
- #define LAST_CPUPID_SHIFT 0
- #endif
+ 	pte_t old_pte = READ_ONCE(*ptep);
+@@ -129,6 +131,26 @@ void *mte_set_mem_tag_range(void *addr,
+ 	return ptr;
+ }
  
--#ifdef CONFIG_KASAN_SW_TAGS
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- #define KASAN_TAG_WIDTH 8
- #else
- #define KASAN_TAG_WIDTH 0
---- a/mm/kasan/common.c~kasan-arm64-implement-hw_tags-runtime
-+++ a/mm/kasan/common.c
-@@ -118,7 +118,7 @@ void kasan_free_pages(struct page *page,
-  */
- static inline unsigned int optimal_redzone(unsigned int object_size)
++void mte_init_tags(u64 max_tag)
++{
++	static bool gcr_kernel_excl_initialized;
++
++	if (!gcr_kernel_excl_initialized) {
++		/*
++		 * The format of the tags in KASAN is 0xFF and in MTE is 0xF.
++		 * This conversion extracts an MTE tag from a KASAN tag.
++		 */
++		u64 incl = GENMASK(FIELD_GET(MTE_TAG_MASK >> MTE_TAG_SHIFT,
++					     max_tag), 0);
++
++		gcr_kernel_excl = ~incl & SYS_GCR_EL1_EXCL_MASK;
++		gcr_kernel_excl_initialized = true;
++	}
++
++	/* Enable the kernel exclude mask for random tags generation. */
++	write_sysreg_s(SYS_GCR_EL1_RRND | gcr_kernel_excl, SYS_GCR_EL1);
++}
++
+ void mte_enable_kernel(void)
  {
--	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC))
- 		return 0;
- 
- 	return
-@@ -183,14 +183,14 @@ size_t kasan_metadata_size(struct kmem_c
- struct kasan_alloc_meta *get_alloc_info(struct kmem_cache *cache,
- 					const void *object)
+ 	/* Enable MTE Sync Mode for EL1. */
+@@ -171,7 +193,11 @@ static void update_gcr_el1_excl(u64 excl
+ static void set_gcr_el1_excl(u64 excl)
  {
--	return (void *)object + cache->kasan_info.alloc_meta_offset;
-+	return (void *)reset_tag(object) + cache->kasan_info.alloc_meta_offset;
+ 	current->thread.gcr_user_excl = excl;
+-	update_gcr_el1_excl(excl);
++
++	/*
++	 * SYS_GCR_EL1 will be set to current->thread.gcr_user_excl value
++	 * by mte_set_user_gcr() in kernel_exit,
++	 */
  }
  
- struct kasan_free_meta *get_free_info(struct kmem_cache *cache,
- 				      const void *object)
- {
- 	BUILD_BUG_ON(sizeof(struct kasan_free_meta) > 32);
--	return (void *)object + cache->kasan_info.free_meta_offset;
-+	return (void *)reset_tag(object) + cache->kasan_info.free_meta_offset;
+ void flush_mte_state(void)
+@@ -197,7 +223,6 @@ void mte_thread_switch(struct task_struc
+ 	/* avoid expensive SCTLR_EL1 accesses if no change */
+ 	if (current->thread.sctlr_tcf0 != next->thread.sctlr_tcf0)
+ 		update_sctlr_el1_tcf0(next->thread.sctlr_tcf0);
+-	update_gcr_el1_excl(next->thread.gcr_user_excl);
  }
  
- void kasan_poison_slab(struct page *page)
-@@ -272,9 +272,8 @@ void * __must_check kasan_init_slab_obj(
- 	alloc_info = get_alloc_info(cache, object);
- 	__memset(alloc_info, 0, sizeof(*alloc_info));
+ void mte_suspend_exit(void)
+@@ -205,7 +230,7 @@ void mte_suspend_exit(void)
+ 	if (!system_supports_mte())
+ 		return;
  
--	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
--		object = set_tag(object,
--				assign_tag(cache, object, true, false));
-+	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
-+		object = set_tag(object, assign_tag(cache, object, true, false));
- 
- 	return (void *)object;
- }
-@@ -342,10 +341,10 @@ static void *__kasan_kmalloc(struct kmem
- 	redzone_end = round_up((unsigned long)object + cache->object_size,
- 				KASAN_GRANULE_SIZE);
- 
--	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
-+	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
- 		tag = assign_tag(cache, object, false, keep_tag);
- 
--	/* Tag is ignored in set_tag without CONFIG_KASAN_SW_TAGS */
-+	/* Tag is ignored in set_tag without CONFIG_KASAN_SW/HW_TAGS */
- 	unpoison_range(set_tag(object, tag), size);
- 	poison_range((void *)redzone_start, redzone_end - redzone_start,
- 		     KASAN_KMALLOC_REDZONE);
---- /dev/null
-+++ a/mm/kasan/hw_tags.c
-@@ -0,0 +1,89 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * This file contains core hardware tag-based KASAN code.
-+ *
-+ * Copyright (c) 2020 Google, Inc.
-+ * Author: Andrey Konovalov <andreyknvl@google.com>
-+ */
-+
-+#define pr_fmt(fmt) "kasan: " fmt
-+
-+#include <linux/kasan.h>
-+#include <linux/kernel.h>
-+#include <linux/kfence.h>
-+#include <linux/memory.h>
-+#include <linux/mm.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+
-+#include "kasan.h"
-+
-+/* kasan_init_hw_tags_cpu() is called for each CPU. */
-+void kasan_init_hw_tags_cpu(void)
-+{
-+	hw_init_tags(KASAN_TAG_MAX);
-+	hw_enable_tagging();
-+}
-+
-+/* kasan_init_hw_tags() is called once on boot CPU. */
-+void __init kasan_init_hw_tags(void)
-+{
-+	pr_info("KernelAddressSanitizer initialized\n");
-+}
-+
-+void *kasan_reset_tag(const void *addr)
-+{
-+	return reset_tag(addr);
-+}
-+
-+void poison_range(const void *address, size_t size, u8 value)
-+{
-+	/* Skip KFENCE memory if called explicitly outside of sl*b. */
-+	if (is_kfence_address(address))
-+		return;
-+
-+	hw_set_mem_tag_range(reset_tag(address),
-+			round_up(size, KASAN_GRANULE_SIZE), value);
-+}
-+
-+void unpoison_range(const void *address, size_t size)
-+{
-+	/* Skip KFENCE memory if called explicitly outside of sl*b. */
-+	if (is_kfence_address(address))
-+		return;
-+
-+	hw_set_mem_tag_range(reset_tag(address),
-+			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
-+}
-+
-+u8 random_tag(void)
-+{
-+	return hw_get_random_tag();
-+}
-+
-+bool check_invalid_free(void *addr)
-+{
-+	u8 ptr_tag = get_tag(addr);
-+	u8 mem_tag = hw_get_mem_tag(addr);
-+
-+	return (mem_tag == KASAN_TAG_INVALID) ||
-+		(ptr_tag != KASAN_TAG_KERNEL && ptr_tag != mem_tag);
-+}
-+
-+void kasan_set_free_info(struct kmem_cache *cache,
-+				void *object, u8 tag)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+
-+	alloc_meta = get_alloc_info(cache, object);
-+	kasan_set_track(&alloc_meta->free_track[0], GFP_NOWAIT);
-+}
-+
-+struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
-+				void *object, u8 tag)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+
-+	alloc_meta = get_alloc_info(cache, object);
-+	return &alloc_meta->free_track[0];
-+}
---- a/mm/kasan/kasan.h~kasan-arm64-implement-hw_tags-runtime
-+++ a/mm/kasan/kasan.h
-@@ -154,6 +154,11 @@ struct kasan_alloc_meta *get_alloc_info(
- struct kasan_free_meta *get_free_info(struct kmem_cache *cache,
- 					const void *object);
- 
-+void poison_range(const void *address, size_t size, u8 value);
-+void unpoison_range(const void *address, size_t size);
-+
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
-+
- static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
- {
- 	return (void *)(((unsigned long)shadow_addr - KASAN_SHADOW_OFFSET)
-@@ -165,9 +170,6 @@ static inline bool addr_has_metadata(con
- 	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
+-	update_gcr_el1_excl(current->thread.gcr_user_excl);
++	update_gcr_el1_excl(gcr_kernel_excl);
  }
  
--void poison_range(const void *address, size_t size, u8 value);
--void unpoison_range(const void *address, size_t size);
--
- /**
-  * check_memory_region - Check memory region, and report if invalid access.
-  * @addr: the accessed address
-@@ -179,6 +181,15 @@ void unpoison_range(const void *address,
- bool check_memory_region(unsigned long addr, size_t size, bool write,
- 				unsigned long ret_ip);
- 
-+#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
-+
-+static inline bool addr_has_metadata(const void *addr)
-+{
-+	return true;
-+}
-+
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
-+
- bool check_invalid_free(void *addr);
- 
- void *find_first_bad_addr(void *addr, size_t size);
-@@ -215,7 +226,7 @@ static inline void quarantine_reduce(voi
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
- 
--#ifdef CONFIG_KASAN_SW_TAGS
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- 
- void print_tags(u8 addr_tag, const void *addr);
- 
---- a/mm/kasan/Makefile~kasan-arm64-implement-hw_tags-runtime
-+++ a/mm/kasan/Makefile
-@@ -10,8 +10,10 @@ CFLAGS_REMOVE_init.o = $(CC_FLAGS_FTRACE
- CFLAGS_REMOVE_quarantine.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_report.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_report_generic.o = $(CC_FLAGS_FTRACE)
-+CFLAGS_REMOVE_report_hw_tags.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_report_sw_tags.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_shadow.o = $(CC_FLAGS_FTRACE)
-+CFLAGS_REMOVE_hw_tags.o = $(CC_FLAGS_FTRACE)
- CFLAGS_REMOVE_sw_tags.o = $(CC_FLAGS_FTRACE)
- 
- # Function splitter causes unnecessary splits in __asan_load1/__asan_store1
-@@ -27,10 +29,13 @@ CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIM
- CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_report_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_report_hw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_report_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_shadow.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_hw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- 
- obj-$(CONFIG_KASAN) := common.o report.o
- obj-$(CONFIG_KASAN_GENERIC) += init.o generic.o report_generic.o shadow.o quarantine.o
-+obj-$(CONFIG_KASAN_HW_TAGS) += hw_tags.o report_hw_tags.o
- obj-$(CONFIG_KASAN_SW_TAGS) += init.o report_sw_tags.o shadow.o sw_tags.o
---- /dev/null
-+++ a/mm/kasan/report_hw_tags.c
-@@ -0,0 +1,42 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * This file contains hardware tag-based KASAN specific error reporting code.
-+ *
-+ * Copyright (c) 2020 Google, Inc.
-+ * Author: Andrey Konovalov <andreyknvl@google.com>
-+ */
-+
-+#include <linux/kasan.h>
-+#include <linux/kernel.h>
-+#include <linux/memory.h>
-+#include <linux/mm.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+
-+#include "kasan.h"
-+
-+const char *get_bug_type(struct kasan_access_info *info)
-+{
-+	return "invalid-access";
-+}
-+
-+void *find_first_bad_addr(void *addr, size_t size)
-+{
-+	return reset_tag(addr);
-+}
-+
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	int i;
-+
-+	for (i = 0; i < META_BYTES_PER_ROW; i++)
-+		buffer[i] = hw_get_mem_tag(row + i * KASAN_GRANULE_SIZE);
-+}
-+
-+void print_tags(u8 addr_tag, const void *addr)
-+{
-+	u8 memory_tag = hw_get_mem_tag((void *)addr);
-+
-+	pr_err("Pointer tag: [%02x], memory tag: [%02x]\n",
-+		addr_tag, memory_tag);
-+}
---- a/mm/kasan/report_sw_tags.c~kasan-arm64-implement-hw_tags-runtime
-+++ a/mm/kasan/report_sw_tags.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-- * This file contains tag-based KASAN specific error reporting code.
-+ * This file contains software tag-based KASAN specific error reporting code.
-  *
-  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
---- a/mm/kasan/shadow.c~kasan-arm64-implement-hw_tags-runtime
-+++ a/mm/kasan/shadow.c
-@@ -120,7 +120,7 @@ void unpoison_range(const void *address,
- 
- 		if (IS_ENABLED(CONFIG_KASAN_SW_TAGS))
- 			*shadow = tag;
--		else
-+		else /* CONFIG_KASAN_GENERIC */
- 			*shadow = size & KASAN_GRANULE_MASK;
- 	}
- }
---- a/mm/kasan/sw_tags.c~kasan-arm64-implement-hw_tags-runtime
-+++ a/mm/kasan/sw_tags.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-- * This file contains core tag-based KASAN code.
-+ * This file contains core software tag-based KASAN code.
-  *
-  * Copyright (c) 2018 Google, Inc.
-  * Author: Andrey Konovalov <andreyknvl@google.com>
+ long set_mte_ctrl(struct task_struct *task, unsigned long arg)
 _
