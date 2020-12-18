@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFBDC3526C
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F137C4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7C1E23B97
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2808923BA7
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:03:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726351AbgLRWDq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:03:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36190 "EHLO mail.kernel.org"
+        id S1726347AbgLRWDx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:03:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726347AbgLRWDq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:03:46 -0500
-Date:   Fri, 18 Dec 2020 14:03:29 -0800
+        id S1726334AbgLRWDw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:03:52 -0500
+Date:   Fri, 18 Dec 2020 14:03:36 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329010;
-        bh=ah5TPYDRLqIHq32JpImdGs7kOi1DMjEaUHb3vestQn4=;
+        s=korg; t=1608329017;
+        bh=gh4y1Xk5AtcuXlMWZAg1eDaRrWbiCuy7OvwHp+REC6g=;
         h=From:To:Subject:In-Reply-To:From;
-        b=C8vc3oa8lfU1zrLZXYK5CMS4oiuWizZ4w9BcitB5pJv4y/JgA36o2+8xUvNtzhfhq
-         pnXRWfmboSHBRo+Rw2V2lt4RVpx1HGtpQkN5mo9onSrEfJTpExkT8qp2NxIAgozsgm
-         NML7B1h2vQlbXveX9ZJ8S53VoJvGEGbXBRS9bfYU=
+        b=mywKPSYJorLe+I9EG93iuK3MtjxPs6RMQgOClw4YlAdqhnChDll1Xk41vyZ8xelUT
+         9lLQ8rdyqnhH+3SIc1tLCDSHdKIh/267nPhf9YODRJrualG1v9GDnzvjd/un1n4nFk
+         1QnrcT/jiozUPrv9e5zBwDzn5IXlXrwyFqifC8ac=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -35,9 +35,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 38/78] arm64: mte: reset the page tag in
- page->flags
-Message-ID: <20201218220329.YlRLmNiSU%akpm@linux-foundation.org>
+Subject:  [patch 40/78] arm64: kasan: allow enabling in-kernel MTE
+Message-ID: <20201218220336.YDA6D1lzU%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,24 +45,32 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: mte: reset the page tag in page->flags
+Subject: arm64: kasan: allow enabling in-kernel MTE
 
-The hardware tag-based KASAN for compatibility with the other modes stores
-the tag associated to a page in page->flags.  Due to this the kernel
-faults on access when it allocates a page with an initial tag and the user
-changes the tags.
+Hardware tag-based KASAN relies on Memory Tagging Extension (MTE) feature
+and requires it to be enabled.  MTE supports
 
-Reset the tag associated by the kernel to a page in all the meaningful
-places to prevent kernel faults on access.
+This patch adds a new mte_enable_kernel() helper, that enables MTE in
+Synchronous mode in EL1 and is intended to be called from KASAN runtime
+during initialization.
 
-Note: An alternative to this approach could be to modify page_to_virt(). 
-This though could end up being racy, in fact if a CPU checks the
-PG_mte_tagged bit and decides that the page is not tagged but another CPU
-maps the same with PROT_MTE and becomes tagged the subsequent kernel
-access would fail.
+The Tag Checking operation causes a synchronous data abort as a
+consequence of a tag check fault when MTE is configured in synchronous
+mode.
 
-Link: https://lkml.kernel.org/r/9073d4e973747a6f78d5bdd7ebe17f290d087096.1606161801.git.andreyknvl@google.com
+As part of this change enable match-all tag for EL1 to allow the kernel to
+access user pages without faulting.  This is required because the kernel
+does not have knowledge of the tags set by the user in a page.
+
+Note: For MTE, the TCF bit field in SCTLR_EL1 affects only EL1 in a
+similar way as TCF0 affects EL0.
+
+MTE that is built on top of the Top Byte Ignore (TBI) feature hence we
+enable it as part of this patch as well.
+
+Link: https://lkml.kernel.org/r/7352b0a0899af65c2785416c8ca6bf3845b66fa1.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
@@ -79,78 +86,101 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/hibernate.c |    5 +++++
- arch/arm64/kernel/mte.c       |    9 +++++++++
- arch/arm64/mm/copypage.c      |    9 +++++++++
- arch/arm64/mm/mteswap.c       |    9 +++++++++
- 4 files changed, 32 insertions(+)
+ arch/arm64/include/asm/mte-kasan.h |    6 ++++++
+ arch/arm64/kernel/mte.c            |    7 +++++++
+ arch/arm64/mm/proc.S               |   23 ++++++++++++++++++++---
+ 3 files changed, 33 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/kernel/hibernate.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/kernel/hibernate.c
-@@ -371,6 +371,11 @@ static void swsusp_mte_restore_tags(void
- 		unsigned long pfn = xa_state.xa_index;
- 		struct page *page = pfn_to_online_page(pfn);
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -29,6 +29,8 @@ u8 mte_get_mem_tag(void *addr);
+ u8 mte_get_random_tag(void);
+ void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
  
-+		/*
-+		 * It is not required to invoke page_kasan_tag_reset(page)
-+		 * at this point since the tags stored in page->flags are
-+		 * already restored.
-+		 */
- 		mte_restore_page_tags(page_address(page), tags);
++void mte_enable_kernel(void);
++
+ #else /* CONFIG_ARM64_MTE */
  
- 		mte_free_tag_storage(tags);
---- a/arch/arm64/kernel/mte.c~arm64-mte-reset-the-page-tag-in-page-flags
+ static inline u8 mte_get_ptr_tag(void *ptr)
+@@ -49,6 +51,10 @@ static inline void *mte_set_mem_tag_rang
+ 	return addr;
+ }
+ 
++static inline void mte_enable_kernel(void)
++{
++}
++
+ #endif /* CONFIG_ARM64_MTE */
+ 
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/mte.c~arm64-kasan-allow-enabling-in-kernel-mte
 +++ a/arch/arm64/kernel/mte.c
-@@ -34,6 +34,15 @@ static void mte_sync_page_tags(struct pa
- 			return;
- 	}
- 
-+	page_kasan_tag_reset(page);
-+	/*
-+	 * We need smp_wmb() in between setting the flags and clearing the
-+	 * tags because if another thread reads page->flags and builds a
-+	 * tagged address out of it, there is an actual dependency to the
-+	 * memory access, but on the current thread we do not guarantee that
-+	 * the new page->flags are visible before the tags were updated.
-+	 */
-+	smp_wmb();
- 	mte_clear_page_tags(page_address(page));
+@@ -129,6 +129,13 @@ void *mte_set_mem_tag_range(void *addr,
+ 	return ptr;
  }
  
---- a/arch/arm64/mm/copypage.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/mm/copypage.c
-@@ -23,6 +23,15 @@ void copy_highpage(struct page *to, stru
++void mte_enable_kernel(void)
++{
++	/* Enable MTE Sync Mode for EL1. */
++	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
++	isb();
++}
++
+ static void update_sctlr_el1_tcf0(u64 tcf0)
+ {
+ 	/* ISB required for the kernel uaccess routines */
+--- a/arch/arm64/mm/proc.S~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/mm/proc.S
+@@ -40,9 +40,15 @@
+ #define TCR_CACHE_FLAGS	TCR_IRGN_WBWA | TCR_ORGN_WBWA
  
- 	if (system_supports_mte() && test_bit(PG_mte_tagged, &from->flags)) {
- 		set_bit(PG_mte_tagged, &to->flags);
-+		page_kasan_tag_reset(to);
-+		/*
-+		 * We need smp_wmb() in between setting the flags and clearing the
-+		 * tags because if another thread reads page->flags and builds a
-+		 * tagged address out of it, there is an actual dependency to the
-+		 * memory access, but on the current thread we do not guarantee that
-+		 * the new page->flags are visible before the tags were updated.
-+		 */
-+		smp_wmb();
- 		mte_copy_page_tags(kto, kfrom);
- 	}
- }
---- a/arch/arm64/mm/mteswap.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/mm/mteswap.c
-@@ -53,6 +53,15 @@ bool mte_restore_tags(swp_entry_t entry,
- 	if (!tags)
- 		return false;
+ #ifdef CONFIG_KASAN_SW_TAGS
+-#define TCR_KASAN_FLAGS TCR_TBI1 | TCR_TBID1
++#define TCR_KASAN_SW_FLAGS TCR_TBI1 | TCR_TBID1
+ #else
+-#define TCR_KASAN_FLAGS 0
++#define TCR_KASAN_SW_FLAGS 0
++#endif
++
++#ifdef CONFIG_KASAN_HW_TAGS
++#define TCR_KASAN_HW_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1
++#else
++#define TCR_KASAN_HW_FLAGS 0
+ #endif
  
-+	page_kasan_tag_reset(page);
-+	/*
-+	 * We need smp_wmb() in between setting the flags and clearing the
-+	 * tags because if another thread reads page->flags and builds a
-+	 * tagged address out of it, there is an actual dependency to the
-+	 * memory access, but on the current thread we do not guarantee that
-+	 * the new page->flags are visible before the tags were updated.
-+	 */
-+	smp_wmb();
- 	mte_restore_page_tags(page_address(page), tags);
+ /*
+@@ -427,6 +433,10 @@ SYM_FUNC_START(__cpu_setup)
+ 	 */
+ 	mov_q	x5, MAIR_EL1_SET
+ #ifdef CONFIG_ARM64_MTE
++	mte_tcr	.req	x20
++
++	mov	mte_tcr, #0
++
+ 	/*
+ 	 * Update MAIR_EL1, GCR_EL1 and TFSR*_EL1 if MTE is supported
+ 	 * (ID_AA64PFR1_EL1[11:8] > 1).
+@@ -447,6 +457,9 @@ SYM_FUNC_START(__cpu_setup)
+ 	/* clear any pending tag check faults in TFSR*_EL1 */
+ 	msr_s	SYS_TFSR_EL1, xzr
+ 	msr_s	SYS_TFSRE0_EL1, xzr
++
++	/* set the TCR_EL1 bits */
++	mov_q	mte_tcr, TCR_KASAN_HW_FLAGS
+ 1:
+ #endif
+ 	msr	mair_el1, x5
+@@ -456,7 +469,11 @@ SYM_FUNC_START(__cpu_setup)
+ 	 */
+ 	mov_q	x10, TCR_TxSZ(VA_BITS) | TCR_CACHE_FLAGS | TCR_SMP_FLAGS | \
+ 			TCR_TG_FLAGS | TCR_KASLR_FLAGS | TCR_ASID16 | \
+-			TCR_TBI0 | TCR_A1 | TCR_KASAN_FLAGS
++			TCR_TBI0 | TCR_A1 | TCR_KASAN_SW_FLAGS
++#ifdef CONFIG_ARM64_MTE
++	orr	x10, x10, mte_tcr
++	.unreq	mte_tcr
++#endif
+ 	tcr_clear_errata_bits x10, x9, x5
  
- 	return true;
+ #ifdef CONFIG_ARM64_VA_BITS_52
 _
