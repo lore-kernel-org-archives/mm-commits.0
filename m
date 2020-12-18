@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A9FAC2D0E4
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67D5FC4361B
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A0FB23B98
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AF6823B5D
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726513AbgLRWFw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 17:05:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39242 "EHLO mail.kernel.org"
+        id S1726520AbgLRWFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 17:05:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39298 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbgLRWFv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 17:05:51 -0500
-Date:   Fri, 18 Dec 2020 14:05:35 -0800
+        id S1726504AbgLRWFy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 17:05:54 -0500
+Date:   Fri, 18 Dec 2020 14:05:38 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329136;
-        bh=Ph3QeDiZ8JX+xdjTpn7oNtGbJ6OTQTRUkX7366TxEWg=;
+        s=korg; t=1608329139;
+        bh=cScJVjf2e9RhdV5mgebB1/uKz6YeNP6orIKwJoQk6rw=;
         h=From:To:Subject:In-Reply-To:From;
-        b=DX7HPNZ/CZ+845MEKN2ej8CAoxx8doDfDy/3uG4TIznvSWCsQNkyc1F1gOTMbKhhx
-         xkATJcHDua6IwTsoZOH3SFOFyy2fsoXQI4aYb+IVlvcYoVKjIBFU3mtEqUg1lL/g30
-         YdH4oGQLnF75aBr4oqftYYEvE4bkRfrJOqlptvL0=
+        b=Fm6PjUPCHkkRGnrSqTn2GHOJLaE143rVYJU7BOraeNQxveBHlcgwYZkn8WrpEMPpZ
+         dMbGO2EPwgIoQWMv6yLIk+VCPXDypBeJVZOM6kv0Qsz587x+Sb0Ce9/gMl2xVe9Y9c
+         fnWnfkym7I3WgN5xdVITZkJ6NB/4ZdHcPC9TSb14=
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         viro@zeniv.linux.org.uk, willemb@google.com, willy@infradead.org
-Subject:  [patch 75/78] epoll: convert internal api to timespec64
-Message-ID: <20201218220535.mUwZSJWEg%akpm@linux-foundation.org>
+Subject:  [patch 76/78] epoll: add syscall epoll_pwait2
+Message-ID: <20201218220538.j23gQP2if%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,179 +41,158 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Willem de Bruijn <willemb@google.com>
-Subject: epoll: convert internal api to timespec64
+Subject: epoll: add syscall epoll_pwait2
 
-Patch series "add epoll_pwait2 syscall", v4.
+Add syscall epoll_pwait2, an epoll_wait variant with nsec resolution that
+replaces int timeout with struct timespec.  It is equivalent otherwise.
 
-Enable nanosecond timeouts for epoll.
+    int epoll_pwait2(int fd, struct epoll_event *events,
+                     int maxevents,
+                     const struct timespec *timeout,
+                     const sigset_t *sigset);
 
-Analogous to pselect and ppoll, introduce an epoll_wait syscall
-variant that takes a struct timespec instead of int timeout.
+The underlying hrtimer is already programmed with nsec resolution. 
+pselect and ppoll also set nsec resolution timeout with timespec.
 
+The sigset_t in epoll_pwait has a compat variant. epoll_pwait2 needs
+the same.
 
-This patch (of 4):
+For timespec, only support this new interface on 2038 aware platforms
+that define __kernel_timespec_t. So no CONFIG_COMPAT_32BIT_TIME.
 
-Make epoll more consistent with select/poll: pass along the timeout as
-timespec64 pointer.
-
-In anticipation of additional changes affecting all three polling
-mechanisms:
-
-- add epoll_pwait2 syscall with timespec semantics,
-  and share poll_select_set_timeout implementation.
-- compute slack before conversion to absolute time,
-  to save one ktime_get_ts64 call.
-
-Link: https://lkml.kernel.org/r/20201121144401.3727659-1-willemdebruijn.kernel@gmail.com
-Link: https://lkml.kernel.org/r/20201121144401.3727659-2-willemdebruijn.kernel@gmail.com
+Link: https://lkml.kernel.org/r/20201121144401.3727659-3-willemdebruijn.kernel@gmail.com
 Signed-off-by: Willem de Bruijn <willemb@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   57 ++++++++++++++++++++++++++++++-----------------
- 1 file changed, 37 insertions(+), 20 deletions(-)
+ fs/eventpoll.c |   87 +++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 73 insertions(+), 14 deletions(-)
 
---- a/fs/eventpoll.c~epoll-convert-internal-api-to-timespec64
+--- a/fs/eventpoll.c~epoll-add-syscall-epoll_pwait2
 +++ a/fs/eventpoll.c
-@@ -1712,15 +1712,25 @@ static int ep_send_events(struct eventpo
- 	return res;
- }
- 
--static inline struct timespec64 ep_set_mstimeout(long ms)
-+static struct timespec64 *ep_timeout_to_timespec(struct timespec64 *to, long ms)
- {
--	struct timespec64 now, ts = {
--		.tv_sec = ms / MSEC_PER_SEC,
--		.tv_nsec = NSEC_PER_MSEC * (ms % MSEC_PER_SEC),
--	};
-+	struct timespec64 now;
-+
-+	if (ms < 0)
-+		return NULL;
-+
-+	if (!ms) {
-+		to->tv_sec = 0;
-+		to->tv_nsec = 0;
-+		return to;
-+	}
-+
-+	to->tv_sec = ms / MSEC_PER_SEC;
-+	to->tv_nsec = NSEC_PER_MSEC * (ms % MSEC_PER_SEC);
- 
- 	ktime_get_ts64(&now);
--	return timespec64_add_safe(now, ts);
-+	*to = timespec64_add_safe(now, *to);
-+	return to;
- }
- 
- /**
-@@ -1732,8 +1742,8 @@ static inline struct timespec64 ep_set_m
-  *          stored.
-  * @maxevents: Size (in terms of number of events) of the caller event buffer.
-  * @timeout: Maximum timeout for the ready events fetch operation, in
-- *           milliseconds. If the @timeout is zero, the function will not block,
-- *           while if the @timeout is less than zero, the function will block
-+ *           timespec. If the timeout is zero, the function will not block,
-+ *           while if the @timeout ptr is NULL, the function will block
-  *           until at least one event has been retrieved (or an error
-  *           occurred).
-  *
-@@ -1741,7 +1751,7 @@ static inline struct timespec64 ep_set_m
-  *          error code, in case of error.
+@@ -2237,11 +2237,10 @@ SYSCALL_DEFINE4(epoll_wait, int, epfd, s
+  * Implement the event wait interface for the eventpoll file. It is the kernel
+  * part of the user space epoll_pwait(2).
   */
- static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
--		   int maxevents, long timeout)
-+		   int maxevents, struct timespec64 *timeout)
+-SYSCALL_DEFINE6(epoll_pwait, int, epfd, struct epoll_event __user *, events,
+-		int, maxevents, int, timeout, const sigset_t __user *, sigmask,
+-		size_t, sigsetsize)
++static int do_epoll_pwait(int epfd, struct epoll_event __user *events,
++			  int maxevents, struct timespec64 *to,
++			  const sigset_t __user *sigmask, size_t sigsetsize)
  {
- 	int res, eavail, timed_out = 0;
- 	u64 slack = 0;
-@@ -1750,13 +1760,11 @@ static int ep_poll(struct eventpoll *ep,
- 
- 	lockdep_assert_irqs_enabled();
- 
--	if (timeout > 0) {
--		struct timespec64 end_time = ep_set_mstimeout(timeout);
--
--		slack = select_estimate_accuracy(&end_time);
-+	if (timeout && (timeout->tv_sec | timeout->tv_nsec)) {
-+		slack = select_estimate_accuracy(timeout);
- 		to = &expires;
--		*to = timespec64_to_ktime(end_time);
--	} else if (timeout == 0) {
-+		*to = timespec64_to_ktime(*timeout);
-+	} else if (timeout) {
- 		/*
- 		 * Avoid the unnecessary trip to the wait queue loop, if the
- 		 * caller specified a non blocking operation.
-@@ -2175,7 +2183,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
-  * part of the user space epoll_wait(2).
-  */
- static int do_epoll_wait(int epfd, struct epoll_event __user *events,
--			 int maxevents, int timeout)
-+			 int maxevents, struct timespec64 *to)
- {
- 	int error;
- 	struct fd f;
-@@ -2209,7 +2217,7 @@ static int do_epoll_wait(int epfd, struc
- 	ep = f.file->private_data;
- 
- 	/* Time to fish for events ... */
--	error = ep_poll(ep, events, maxevents, timeout);
-+	error = ep_poll(ep, events, maxevents, to);
- 
- error_fput:
- 	fdput(f);
-@@ -2219,7 +2227,10 @@ error_fput:
- SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
- 		int, maxevents, int, timeout)
- {
--	return do_epoll_wait(epfd, events, maxevents, timeout);
-+	struct timespec64 to;
-+
-+	return do_epoll_wait(epfd, events, maxevents,
-+			     ep_timeout_to_timespec(&to, timeout));
- }
- 
- /*
-@@ -2230,6 +2241,7 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
- 		int, maxevents, int, timeout, const sigset_t __user *, sigmask,
- 		size_t, sigsetsize)
- {
-+	struct timespec64 to;
+-	struct timespec64 to;
  	int error;
  
  	/*
-@@ -2240,7 +2252,9 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+@@ -2252,22 +2251,48 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
  	if (error)
  		return error;
  
--	error = do_epoll_wait(epfd, events, maxevents, timeout);
-+	error = do_epoll_wait(epfd, events, maxevents,
-+			      ep_timeout_to_timespec(&to, timeout));
-+
+-	error = do_epoll_wait(epfd, events, maxevents,
+-			      ep_timeout_to_timespec(&to, timeout));
++	error = do_epoll_wait(epfd, events, maxevents, to);
+ 
  	restore_saved_sigmask_unless(error == -EINTR);
  
  	return error;
-@@ -2253,6 +2267,7 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
- 			const compat_sigset_t __user *, sigmask,
- 			compat_size_t, sigsetsize)
+ }
+ 
+-#ifdef CONFIG_COMPAT
+-COMPAT_SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+-			struct epoll_event __user *, events,
+-			int, maxevents, int, timeout,
+-			const compat_sigset_t __user *, sigmask,
+-			compat_size_t, sigsetsize)
++SYSCALL_DEFINE6(epoll_pwait, int, epfd, struct epoll_event __user *, events,
++		int, maxevents, int, timeout, const sigset_t __user *, sigmask,
++		size_t, sigsetsize)
  {
-+	struct timespec64 to;
+ 	struct timespec64 to;
++
++	return do_epoll_pwait(epfd, events, maxevents,
++			      ep_timeout_to_timespec(&to, timeout),
++			      sigmask, sigsetsize);
++}
++
++SYSCALL_DEFINE6(epoll_pwait2, int, epfd, struct epoll_event __user *, events,
++		int, maxevents, const struct __kernel_timespec __user *, timeout,
++		const sigset_t __user *, sigmask, size_t, sigsetsize)
++{
++	struct timespec64 ts, *to = NULL;
++
++	if (timeout) {
++		if (get_timespec64(&ts, timeout))
++			return -EFAULT;
++		to = &ts;
++		if (poll_select_set_timeout(to, ts.tv_sec, ts.tv_nsec))
++			return -EINVAL;
++	}
++
++	return do_epoll_pwait(epfd, events, maxevents, to,
++			      sigmask, sigsetsize);
++}
++
++#ifdef CONFIG_COMPAT
++static int do_compat_epoll_pwait(int epfd, struct epoll_event __user *events,
++				 int maxevents, struct timespec64 *timeout,
++				 const compat_sigset_t __user *sigmask,
++				 compat_size_t sigsetsize)
++{
  	long err;
  
  	/*
-@@ -2263,7 +2278,9 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+@@ -2278,13 +2303,47 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
  	if (err)
  		return err;
  
--	err = do_epoll_wait(epfd, events, maxevents, timeout);
-+	err = do_epoll_wait(epfd, events, maxevents,
-+			    ep_timeout_to_timespec(&to, timeout));
-+
+-	err = do_epoll_wait(epfd, events, maxevents,
+-			    ep_timeout_to_timespec(&to, timeout));
++	err = do_epoll_wait(epfd, events, maxevents, timeout);
+ 
  	restore_saved_sigmask_unless(err == -EINTR);
  
  	return err;
+ }
++
++COMPAT_SYSCALL_DEFINE6(epoll_pwait, int, epfd,
++		       struct epoll_event __user *, events,
++		       int, maxevents, int, timeout,
++		       const compat_sigset_t __user *, sigmask,
++		       compat_size_t, sigsetsize)
++{
++	struct timespec64 to;
++
++	return do_compat_epoll_pwait(epfd, events, maxevents,
++				     ep_timeout_to_timespec(&to, timeout),
++				     sigmask, sigsetsize);
++}
++
++COMPAT_SYSCALL_DEFINE6(epoll_pwait2, int, epfd,
++		       struct epoll_event __user *, events,
++		       int, maxevents,
++		       const struct __kernel_timespec __user *, timeout,
++		       const compat_sigset_t __user *, sigmask,
++		       compat_size_t, sigsetsize)
++{
++	struct timespec64 ts, *to = NULL;
++
++	if (timeout) {
++		if (get_timespec64(&ts, timeout))
++			return -EFAULT;
++		to = &ts;
++		if (poll_select_set_timeout(to, ts.tv_sec, ts.tv_nsec))
++			return -EINVAL;
++	}
++
++	return do_compat_epoll_pwait(epfd, events, maxevents, to,
++				     sigmask, sigsetsize);
++}
++
+ #endif
+ 
+ static int __init eventpoll_init(void)
 _
