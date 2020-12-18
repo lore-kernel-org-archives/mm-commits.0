@@ -7,36 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6E94C3526B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A9FAC2D0E4
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8ADC723BAB
+	by mail.kernel.org (Postfix) with ESMTP id 6A0FB23B98
 	for <mm-commits@archiver.kernel.org>; Fri, 18 Dec 2020 22:05:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726483AbgLRWFw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726513AbgLRWFw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 18 Dec 2020 17:05:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39544 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39242 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726504AbgLRWFv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726483AbgLRWFv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Fri, 18 Dec 2020 17:05:51 -0500
-Date:   Fri, 18 Dec 2020 14:05:10 -0800
+Date:   Fri, 18 Dec 2020 14:05:35 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608329111;
-        bh=DHvmhn7Z9vTJP2KW1DOx07RPN/cMcwd6mWA3WswqlMQ=;
+        s=korg; t=1608329136;
+        bh=Ph3QeDiZ8JX+xdjTpn7oNtGbJ6OTQTRUkX7366TxEWg=;
         h=From:To:Subject:In-Reply-To:From;
-        b=GMFDQOkosCB9Wvu/VEi/44DJZRyXSi2pHf4YN8KiQhrJSv8gO7IYukf7NNmoZahql
-         DBikFuGQlR9SG5NLnc0lrcRjvrcl2wfJYC7y13FOEnBORQzu7iJMy/S0EeJsQf2pBP
-         t/I14R+i5IdDPIKQ5Fp8ilAO3uVqaSxbxhHvzR5Y=
+        b=DX7HPNZ/CZ+845MEKN2ej8CAoxx8doDfDy/3uG4TIznvSWCsQNkyc1F1gOTMbKhhx
+         xkATJcHDua6IwTsoZOH3SFOFyy2fsoXQI4aYb+IVlvcYoVKjIBFU3mtEqUg1lL/g30
+         YdH4oGQLnF75aBr4oqftYYEvE4bkRfrJOqlptvL0=
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
-        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
-        eugenis@google.com, glider@google.com, gor@linux.ibm.com,
-        kevin.brodsky@arm.com, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 68/78] kasan: don't round_up too much
-Message-ID: <20201218220510.q8idAv5xN%akpm@linux-foundation.org>
+        viro@zeniv.linux.org.uk, willemb@google.com, willy@infradead.org
+Subject:  [patch 75/78] epoll: convert internal api to timespec64
+Message-ID: <20201218220535.mUwZSJWEg%akpm@linux-foundation.org>
 In-Reply-To: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,73 +40,180 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't round_up too much
+From: Willem de Bruijn <willemb@google.com>
+Subject: epoll: convert internal api to timespec64
 
-For hardware tag-based mode kasan_poison_memory() already rounds up the
-size. Do the same for software modes and remove round_up() from the common
-code.
+Patch series "add epoll_pwait2 syscall", v4.
 
-Link: https://lkml.kernel.org/r/47b232474f1f89dc072aeda0fa58daa6efade377.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ib397128fac6eba874008662b4964d65352db4aa4
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Enable nanosecond timeouts for epoll.
+
+Analogous to pselect and ppoll, introduce an epoll_wait syscall
+variant that takes a struct timespec instead of int timeout.
+
+
+This patch (of 4):
+
+Make epoll more consistent with select/poll: pass along the timeout as
+timespec64 pointer.
+
+In anticipation of additional changes affecting all three polling
+mechanisms:
+
+- add epoll_pwait2 syscall with timespec semantics,
+  and share poll_select_set_timeout implementation.
+- compute slack before conversion to absolute time,
+  to save one ktime_get_ts64 call.
+
+Link: https://lkml.kernel.org/r/20201121144401.3727659-1-willemdebruijn.kernel@gmail.com
+Link: https://lkml.kernel.org/r/20201121144401.3727659-2-willemdebruijn.kernel@gmail.com
+Signed-off-by: Willem de Bruijn <willemb@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    8 ++------
- mm/kasan/shadow.c |    1 +
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ fs/eventpoll.c |   57 ++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 37 insertions(+), 20 deletions(-)
 
---- a/mm/kasan/common.c~kasan-dont-round_up-too-much
-+++ a/mm/kasan/common.c
-@@ -213,9 +213,7 @@ void __kasan_unpoison_object_data(struct
+--- a/fs/eventpoll.c~epoll-convert-internal-api-to-timespec64
++++ a/fs/eventpoll.c
+@@ -1712,15 +1712,25 @@ static int ep_send_events(struct eventpo
+ 	return res;
+ }
  
- void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
+-static inline struct timespec64 ep_set_mstimeout(long ms)
++static struct timespec64 *ep_timeout_to_timespec(struct timespec64 *to, long ms)
  {
--	poison_range(object,
--			round_up(cache->object_size, KASAN_GRANULE_SIZE),
--			KASAN_KMALLOC_REDZONE);
-+	poison_range(object, cache->object_size, KASAN_KMALLOC_REDZONE);
+-	struct timespec64 now, ts = {
+-		.tv_sec = ms / MSEC_PER_SEC,
+-		.tv_nsec = NSEC_PER_MSEC * (ms % MSEC_PER_SEC),
+-	};
++	struct timespec64 now;
++
++	if (ms < 0)
++		return NULL;
++
++	if (!ms) {
++		to->tv_sec = 0;
++		to->tv_nsec = 0;
++		return to;
++	}
++
++	to->tv_sec = ms / MSEC_PER_SEC;
++	to->tv_nsec = NSEC_PER_MSEC * (ms % MSEC_PER_SEC);
+ 
+ 	ktime_get_ts64(&now);
+-	return timespec64_add_safe(now, ts);
++	*to = timespec64_add_safe(now, *to);
++	return to;
+ }
+ 
+ /**
+@@ -1732,8 +1742,8 @@ static inline struct timespec64 ep_set_m
+  *          stored.
+  * @maxevents: Size (in terms of number of events) of the caller event buffer.
+  * @timeout: Maximum timeout for the ready events fetch operation, in
+- *           milliseconds. If the @timeout is zero, the function will not block,
+- *           while if the @timeout is less than zero, the function will block
++ *           timespec. If the timeout is zero, the function will not block,
++ *           while if the @timeout ptr is NULL, the function will block
+  *           until at least one event has been retrieved (or an error
+  *           occurred).
+  *
+@@ -1741,7 +1751,7 @@ static inline struct timespec64 ep_set_m
+  *          error code, in case of error.
+  */
+ static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
+-		   int maxevents, long timeout)
++		   int maxevents, struct timespec64 *timeout)
+ {
+ 	int res, eavail, timed_out = 0;
+ 	u64 slack = 0;
+@@ -1750,13 +1760,11 @@ static int ep_poll(struct eventpoll *ep,
+ 
+ 	lockdep_assert_irqs_enabled();
+ 
+-	if (timeout > 0) {
+-		struct timespec64 end_time = ep_set_mstimeout(timeout);
+-
+-		slack = select_estimate_accuracy(&end_time);
++	if (timeout && (timeout->tv_sec | timeout->tv_nsec)) {
++		slack = select_estimate_accuracy(timeout);
+ 		to = &expires;
+-		*to = timespec64_to_ktime(end_time);
+-	} else if (timeout == 0) {
++		*to = timespec64_to_ktime(*timeout);
++	} else if (timeout) {
+ 		/*
+ 		 * Avoid the unnecessary trip to the wait queue loop, if the
+ 		 * caller specified a non blocking operation.
+@@ -2175,7 +2183,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+  * part of the user space epoll_wait(2).
+  */
+ static int do_epoll_wait(int epfd, struct epoll_event __user *events,
+-			 int maxevents, int timeout)
++			 int maxevents, struct timespec64 *to)
+ {
+ 	int error;
+ 	struct fd f;
+@@ -2209,7 +2217,7 @@ static int do_epoll_wait(int epfd, struc
+ 	ep = f.file->private_data;
+ 
+ 	/* Time to fish for events ... */
+-	error = ep_poll(ep, events, maxevents, timeout);
++	error = ep_poll(ep, events, maxevents, to);
+ 
+ error_fput:
+ 	fdput(f);
+@@ -2219,7 +2227,10 @@ error_fput:
+ SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
+ 		int, maxevents, int, timeout)
+ {
+-	return do_epoll_wait(epfd, events, maxevents, timeout);
++	struct timespec64 to;
++
++	return do_epoll_wait(epfd, events, maxevents,
++			     ep_timeout_to_timespec(&to, timeout));
  }
  
  /*
-@@ -288,7 +286,6 @@ static bool ____kasan_slab_free(struct k
+@@ -2230,6 +2241,7 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 		int, maxevents, int, timeout, const sigset_t __user *, sigmask,
+ 		size_t, sigsetsize)
  {
- 	u8 tag;
- 	void *tagged_object;
--	unsigned long rounded_up_size;
++	struct timespec64 to;
+ 	int error;
  
- 	tag = get_tag(object);
- 	tagged_object = object;
-@@ -309,8 +306,7 @@ static bool ____kasan_slab_free(struct k
- 		return true;
- 	}
+ 	/*
+@@ -2240,7 +2252,9 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 	if (error)
+ 		return error;
  
--	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
--	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
-+	poison_range(object, cache->object_size, KASAN_KMALLOC_FREE);
+-	error = do_epoll_wait(epfd, events, maxevents, timeout);
++	error = do_epoll_wait(epfd, events, maxevents,
++			      ep_timeout_to_timespec(&to, timeout));
++
+ 	restore_saved_sigmask_unless(error == -EINTR);
  
- 	if (!kasan_stack_collection_enabled())
- 		return false;
---- a/mm/kasan/shadow.c~kasan-dont-round_up-too-much
-+++ a/mm/kasan/shadow.c
-@@ -83,6 +83,7 @@ void poison_range(const void *address, s
- 	 * addresses to this function.
- 	 */
- 	address = kasan_reset_tag(address);
-+	size = round_up(size, KASAN_GRANULE_SIZE);
+ 	return error;
+@@ -2253,6 +2267,7 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 			const compat_sigset_t __user *, sigmask,
+ 			compat_size_t, sigsetsize)
+ {
++	struct timespec64 to;
+ 	long err;
  
- 	/* Skip KFENCE memory if called explicitly outside of sl*b. */
- 	if (is_kfence_address(address))
+ 	/*
+@@ -2263,7 +2278,9 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 	if (err)
+ 		return err;
+ 
+-	err = do_epoll_wait(epfd, events, maxevents, timeout);
++	err = do_epoll_wait(epfd, events, maxevents,
++			    ep_timeout_to_timespec(&to, timeout));
++
+ 	restore_saved_sigmask_unless(err == -EINTR);
+ 
+ 	return err;
 _
