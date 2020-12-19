@@ -3,117 +3,78 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1479C4361B
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 01:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5926AC4361B
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 01:14:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA4B223BAD
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 01:14:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21E0B23BCC
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 01:14:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726145AbgLSBOJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Dec 2020 20:14:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37310 "EHLO mail.kernel.org"
+        id S1726149AbgLSBOl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Dec 2020 20:14:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725879AbgLSBOJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 18 Dec 2020 20:14:09 -0500
-Date:   Fri, 18 Dec 2020 17:13:27 -0800
+        id S1725879AbgLSBOl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 18 Dec 2020 20:14:41 -0500
+Date:   Fri, 18 Dec 2020 17:14:00 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608340408;
-        bh=nKaF5qMP2EADBNzYCp8XcuHsLze37G8BzZ55UwoLvGA=;
-        h=From:To:Cc:Subject:In-Reply-To:References:From;
-        b=ugBwM0PbxDkOZP+paw7FM6DkKwSuAnWHNcIUQQTQ3hDWacF7zYfvz5uQImRqJSIJ7
-         /wCCVQ40FuOQrnp/I5c+/ke889q+1fDwBwDG+IcopVvbET2FfN6d4JE1CBwElSgAC5
-         n3Xxhc+H/YPAcSRpkieRoBrgO9mlaZoPqu7zCU98=
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Marco Elver <elver@google.com>
-Cc:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, eugenis@google.com, glider@google.com,
-        gor@linux.ibm.com, kevin.brodsky@arm.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject: Re: [patch 21/78] kasan: split out shadow.c from common.c
-Message-Id: <20201218171327.180140338d183b41a962742d@linux-foundation.org>
-In-Reply-To: <X91JLZhrXYaLzoB8@elver.google.com>
-References: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
-        <20201218220233.pgX0nYYVt%akpm@linux-foundation.org>
-        <X91JLZhrXYaLzoB8@elver.google.com>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        s=korg; t=1608340440;
+        bh=BW6XthPkSP0iPy7eUIGYmbXYfRUrg4NQFRrREnobjeg=;
+        h=From:To:Subject:From;
+        b=RJ5rFiE0wWCzYqorEBOLLTcJhyb0w3+BycuSSZeW28rLsc7swcehCDFGeL6MGtGYI
+         aJmmx5e9el+vQLUFgd3Y1QijWZ0BbE5wpH/aPjNEejmEYf18rEWqMz0n7D23IHGPPU
+         zVR3z8AvyFvlx/itqeR4YRsibXwnnonS7CUlTA/g=
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org
+Subject:  + kasan-remove-kfence-leftovers.patch added to -mm tree
+Message-ID: <20201219011400.nREh3%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, 19 Dec 2020 01:28:29 +0100 Marco Elver <elver@google.com> wrote:
 
-> [...]
-> > -/*
-> > - * Poisons the shadow memory for 'size' bytes starting from 'addr'.
-> > - * Memory addresses should be aligned to KASAN_GRANULE_SIZE.
-> > - */
-> > -void poison_range(const void *address, size_t size, u8 value)
-> > -{
-> > -	void *shadow_start, *shadow_end;
-> > -
-> > -	/*
-> > -	 * Perform shadow offset calculation based on untagged address, as
-> > -	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
-> > -	 * addresses to this function.
-> > -	 */
-> > -	address = reset_tag(address);
-> > -
-> 
-> The moved lines do not mention kfence...
-> (The same commit in -next does.)
+The patch titled
+     Subject: kasan: remove kfence leftovers
+has been added to the -mm tree.  Its filename is
+     kasan-remove-kfence-leftovers.patch
 
-They shouldn't.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-kfence-leftovers.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-kfence-leftovers.patch
 
-> > -	shadow_start = kasan_mem_to_shadow(address);
-> > -	shadow_end = kasan_mem_to_shadow(address + size);
-> > -
-> > -	__memset(shadow_start, value, shadow_end - shadow_start);
-> > -}
-> [...]
-> > --- /dev/null
-> > +++ a/mm/kasan/shadow.c
-> > @@ -0,0 +1,518 @@
-> > +// SPDX-License-Identifier: GPL-2.0
-> > +/*
-> > + * This file contains KASAN runtime code that manages shadow memory for
-> > + * generic and software tag-based KASAN modes.
-> > + *
-> > + * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-> > + * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-> > + *
-> > + * Some code borrowed from https://github.com/xairy/kasan-prototype by
-> > + *        Andrey Konovalov <andreyknvl@gmail.com>
-> > + */
-> > +
-> > +#include <linux/init.h>
-> > +#include <linux/kasan.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/kfence.h>
-> 
-> This is the first time kfence is mentioned. Is this correct?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Yes.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-> Is my assumption correct that the kasan changes and kfence changes are
-> to be swapped?
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-Yes, kfence came in fairly late and seems a bit fresh.  I was planning
-on holding it off until next cycle.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kasan: remove kfence leftovers
 
-Sigh.  I don't have access to my capable-of-compiling-KASAN machine at
-present :(  We'll need this, yes?
+These are remnants of patch series reordering and shouldn't have been
+here.
 
---- a/mm/kasan/kasan.h~a
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/kasan/kasan.h  |    9 ---------
+ mm/kasan/shadow.c |   13 -------------
+ 2 files changed, 22 deletions(-)
+
+--- a/mm/kasan/kasan.h~kasan-remove-kfence-leftovers
 +++ a/mm/kasan/kasan.h
 @@ -3,7 +3,6 @@
  #define __MM_KASAN_KASAN_H
@@ -144,7 +105,7 @@ present :(  We'll need this, yes?
  	hw_set_mem_tag_range(kasan_reset_tag(address),
  			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
  }
---- a/mm/kasan/shadow.c~a
+--- a/mm/kasan/shadow.c~kasan-remove-kfence-leftovers
 +++ a/mm/kasan/shadow.c
 @@ -13,7 +13,6 @@
  #include <linux/init.h>
@@ -181,4 +142,16 @@ present :(  We'll need this, yes?
  
  	if (size & KASAN_GRANULE_MASK) {
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+kasan-remove-kfence-leftovers.patch
+mm.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
