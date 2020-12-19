@@ -4,68 +4,67 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9E8EC4361B
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 19:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F08D1C4361B
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 19:35:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A680B23406
-	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 19:18:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C448222D74
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Dec 2020 19:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727375AbgLSTSh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 14:18:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41918 "EHLO
+        id S1727449AbgLSTfm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Dec 2020 14:35:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727305AbgLSTSg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 19 Dec 2020 14:18:36 -0500
-Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6781CC0613CF
-        for <mm-commits@vger.kernel.org>; Sat, 19 Dec 2020 11:17:56 -0800 (PST)
-Received: by mail-lf1-x131.google.com with SMTP id l11so14192854lfg.0
-        for <mm-commits@vger.kernel.org>; Sat, 19 Dec 2020 11:17:56 -0800 (PST)
+        with ESMTP id S1727443AbgLSTfl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 19 Dec 2020 14:35:41 -0500
+Received: from mail-lf1-x12e.google.com (mail-lf1-x12e.google.com [IPv6:2a00:1450:4864:20::12e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56EFDC0613CF
+        for <mm-commits@vger.kernel.org>; Sat, 19 Dec 2020 11:35:01 -0800 (PST)
+Received: by mail-lf1-x12e.google.com with SMTP id l11so14252856lfg.0
+        for <mm-commits@vger.kernel.org>; Sat, 19 Dec 2020 11:35:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=gcAhDuZrKnZqDHtczSiTXKhkaKN6g1/mcTOt8pUC1rM=;
-        b=hWJHNKVhGJIn0+K3SDKjiJJtSxeZQf9utCIzXVaUnuCKA655fWbguJ1ZS5VNqWvOZU
-         RNZPPQCATeZDkcCaC6qC+8oNWe6Tbdp34BECIQCPBvJh+VntnrJy2iXLNCGRqZJPuN24
-         HwsWsJlXknT4bMxc16FmyGPQDxfLURc61rDFI=
+        bh=xcWtXrMO+0hLztBLJUxRA4dQ4p5GWkZ1849NW4e1u94=;
+        b=IpXxZ4PYWti9EnRaeFDXjWcoIuEIj2uX1TFCjZWzk7VKqOMCbzHcOwVDbuIFszHlL7
+         PWsXD9TyXwgfLkzvfnXKvIt8nSquwtPf6/mfmoC64ap0aH7+Pl4KgUFJeElJarep5OXE
+         x7EyjFPYpJ2gFYxB8NbInWevLCwf9sVHW01xc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=gcAhDuZrKnZqDHtczSiTXKhkaKN6g1/mcTOt8pUC1rM=;
-        b=FwcbW8Pd20QvcdN6zc2uXYQWWig5kbSFXSPeA6WCrmyDAlOg/VuWlTjn1CmY/TeciS
-         2jFPoUVRjsanOIOCeWwQR82FNzo2q72muE/CDxIQmMI4w8dRYwL56vn64QZLcuC6g2pm
-         ElVciKl8O2b82/WXepRwBzQdko4bKFUbJxStnK9D2nhew/rwBnhj4fiLVHzFPnbAWw03
-         pAaRX+HTUKq1O6ILOdA705nbv4JL0CfYNY61e21vMhDdOLpyzOe6OH3OACxTTE6ebTeU
-         H+tioErnJRGRVDudS6MKwOD6GSYzIzFGs2NPNe/tgMbkN+zhOIkjzJoypTRWQlb4aQXj
-         SYRA==
-X-Gm-Message-State: AOAM532o0m+QKtSgl2tA9JYX9TgPxk34euzU+ip545x2JeOdKUwY2SmU
-        sLzOgAF/gID8kM3ytzMTHSPn2N1v2h82rA==
-X-Google-Smtp-Source: ABdhPJww7rK5xNtRsaGG+Cu2W0WLa/p+INFYhKx7sfxt6ni1G+WTvoaCvnjjHauAX6EyumTQJEftyw==
-X-Received: by 2002:a2e:b4ba:: with SMTP id q26mr4285717ljm.117.1608405474423;
-        Sat, 19 Dec 2020 11:17:54 -0800 (PST)
-Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com. [209.85.167.45])
-        by smtp.gmail.com with ESMTPSA id b141sm1389604lfg.123.2020.12.19.11.17.52
+        bh=xcWtXrMO+0hLztBLJUxRA4dQ4p5GWkZ1849NW4e1u94=;
+        b=oCej6/pObWUTjI4MIWeRT/Pv50cMshNbrGiRJWydpwT2isYXpHlt5xTlC0K6+RqjWp
+         gzZZsozgjXA2rchsXs/AcQxxi4ix0Neh0A6LZ7084LRlDrjoKY0DsQPeGkgbTYRmftj8
+         BZ5mapsGT+qRlCmd1/DEy0kANE6l9sUAGERKJMfsQ3tJGHHYKhz3ruA/zjiWW82mz5eU
+         +22B1TgbYpYkqSYJfR5qNytAqoIaZDuc8fDrxb64nZgiS6b+Kmwq4dl1LsY7q0PXJVKw
+         Su3py9PQrLvpEEyxHQ/Hfs4QxNqbxdwCjSnExnRPrI+sihDfSyUQ/rMaoVd2mpbnumLR
+         RkGw==
+X-Gm-Message-State: AOAM532CeyfqGyw5Pq5yJ4wsDSzwpOzscqGhljfZtrL3S2GNfsb2PdzM
+        FZtmYpka3mFcJYgYSD2nFdF+PYtJwqGhJw==
+X-Google-Smtp-Source: ABdhPJx+hJ0oPVTcqgiwMAk37VZVVyeUxLqeSyNkZSJRaJOV3v8/SM7eEMnBq0SKLunC6JYS8ZP5/g==
+X-Received: by 2002:a2e:a414:: with SMTP id p20mr4302712ljn.98.1608406498485;
+        Sat, 19 Dec 2020 11:34:58 -0800 (PST)
+Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com. [209.85.167.50])
+        by smtp.gmail.com with ESMTPSA id e2sm1526131ljp.75.2020.12.19.11.34.58
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 19 Dec 2020 11:17:53 -0800 (PST)
-Received: by mail-lf1-f45.google.com with SMTP id o17so14143472lfg.4
-        for <mm-commits@vger.kernel.org>; Sat, 19 Dec 2020 11:17:52 -0800 (PST)
-X-Received: by 2002:a2e:6f17:: with SMTP id k23mr4271822ljc.411.1608405472606;
- Sat, 19 Dec 2020 11:17:52 -0800 (PST)
+        Sat, 19 Dec 2020 11:34:58 -0800 (PST)
+Received: by mail-lf1-f50.google.com with SMTP id o19so14235344lfo.1
+        for <mm-commits@vger.kernel.org>; Sat, 19 Dec 2020 11:34:58 -0800 (PST)
+X-Received: by 2002:a2e:9b13:: with SMTP id u19mr4080972lji.48.1608406035446;
+ Sat, 19 Dec 2020 11:27:15 -0800 (PST)
 MIME-Version: 1.0
 References: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
  <20201218220233.pgX0nYYVt%akpm@linux-foundation.org> <X91JLZhrXYaLzoB8@elver.google.com>
- <20201218171327.180140338d183b41a962742d@linux-foundation.org>
-In-Reply-To: <20201218171327.180140338d183b41a962742d@linux-foundation.org>
+ <20201218171327.180140338d183b41a962742d@linux-foundation.org> <CAHk-=whK70LHzMw5SxUu_1NHkWtZc-o1PHyotkmwR49e2Jh6rw@mail.gmail.com>
+In-Reply-To: <CAHk-=whK70LHzMw5SxUu_1NHkWtZc-o1PHyotkmwR49e2Jh6rw@mail.gmail.com>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Sat, 19 Dec 2020 11:17:36 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whK70LHzMw5SxUu_1NHkWtZc-o1PHyotkmwR49e2Jh6rw@mail.gmail.com>
-Message-ID: <CAHk-=whK70LHzMw5SxUu_1NHkWtZc-o1PHyotkmwR49e2Jh6rw@mail.gmail.com>
+Date:   Sat, 19 Dec 2020 11:26:59 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wghj1OkyqS0o-W9K19tsytyAwfdZrxpMNhwGX60WbJ_uw@mail.gmail.com>
+Message-ID: <CAHk-=wghj1OkyqS0o-W9K19tsytyAwfdZrxpMNhwGX60WbJ_uw@mail.gmail.com>
 Subject: Re: [patch 21/78] kasan: split out shadow.c from common.c
 To:     Andrew Morton <akpm@linux-foundation.org>
 Cc:     Marco Elver <elver@google.com>,
@@ -87,23 +86,17 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Dec 18, 2020 at 5:13 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+On Sat, Dec 19, 2020 at 11:17 AM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> Sigh.  I don't have access to my capable-of-compiling-KASAN machine at
-> present :(  We'll need this, yes?
+> (That cuts the series of 78 down to 17
 
-Four of the patches in this patch-bomb mention the not-yet-existing
-kfence.h header. This plus two others have it in the actual patch. The
-fourth has it only as context.
+18, actually.
 
-Two others mention kfence in some form or another.
+>                       - and I haven't actually
+> verified that even that smaller subset is entirely independent of the
+> dropped patches yet).
 
-I think I'll drop all the kasan-related patches (and that's most of
-it), and basically only keep the memcg and epoll ones from this
-series.
+Looks like that small remainder is fine.
 
-(That cuts the series of 78 down to 17 - and I haven't actually
-verified that even that smaller subset is entirely independent of the
-dropped patches yet).
-
-            Linus
+           Linus
