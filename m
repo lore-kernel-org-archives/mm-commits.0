@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E66EC4361B
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 01:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E42EC4361B
+	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 01:41:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4EAD123A9C
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 01:41:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E0BA23A00
+	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 01:41:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726765AbgLTBlA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 20:41:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42710 "EHLO mail.kernel.org"
+        id S1726928AbgLTBlZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Dec 2020 20:41:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42736 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726732AbgLTBlA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Dec 2020 20:41:00 -0500
-Date:   Sat, 19 Dec 2020 17:40:19 -0800
+        id S1726898AbgLTBlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Dec 2020 20:41:25 -0500
+Date:   Sat, 19 Dec 2020 17:40:44 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608428420;
-        bh=gbLjj0YK8yucQ1zIU7wz83RhxjMITVomggNqzNxC26g=;
+        s=korg; t=1608428444;
+        bh=DX8V1F8ANt9kNILClfZtV8RZy3PJfiXF0UWt+5EqNrs=;
         h=From:To:Subject:From;
-        b=J/AjxHVFqEf5l16A/az0FjiZMGVFYZa0rkODyB40rG2HzVZUI739uSedzOM6eezjC
-         JXJUfR+1ZTjy2lWnajZOPHnBsJs90/k4ScIjyjvThk+rQ5lRB7kKkRnZAHx0IanPFT
-         Cc7vpSy8YiIftZRcXeuYvWTKBNfJvbYEgJ3pEqNY=
+        b=y5YkVYS0usllJIRDJE1FsNi/lhzKJM98BT5sb79neBVzfx0AdFduVhKYmrO0bnNJC
+         J55zT8WSJKFnR717I/F5TfLdMETKG6XaoH2+6kohlNRYsGVAQPpgcDNogDv/FvB/Nb
+         rt+fJciC6zWkRkx0+N5Z+XOYrLAoAjrFqDtb4Bys=
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
         vincenzo.frascino@arm.com, kevin.brodsky@arm.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, will.deacon@arm.com,
         Branislav.Rankov@arm.com, aryabinin@virtuozzo.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 Subject:  [folded-merged]
- kasan-split-out-shadowc-from-commonc-fix.patch removed from -mm tree
-Message-ID: <20201220014019.b5_2W%akpm@linux-foundation.org>
+ kasan-arm64-implement-hw_tags-runtime-fix.patch removed from -mm tree
+Message-ID: <20201220014044.JfWCL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,15 +45,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-split-out-shadowc-from-commonc-fix
+     Subject: kasan-arm64-implement-hw_tags-runtime-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-split-out-shadowc-from-commonc-fix.patch
+     kasan-arm64-implement-hw_tags-runtime-fix.patch
 
-This patch was dropped because it was folded into kasan-split-out-shadowc-from-commonc.patch
+This patch was dropped because it was folded into kasan-arm64-implement-hw_tags-runtime.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-split-out-shadowc-from-commonc-fix
+Subject: kasan-arm64-implement-hw_tags-runtime-fix
 
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
@@ -70,51 +70,45 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/kasan/hw_tags.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
---- a/mm/kasan/shadow.c~kasan-split-out-shadowc-from-commonc-fix
-+++ a/mm/kasan/shadow.c
-@@ -13,7 +13,6 @@
- #include <linux/init.h>
+--- a/mm/kasan/hw_tags.c~kasan-arm64-implement-hw_tags-runtime-fix
++++ a/mm/kasan/hw_tags.c
+@@ -10,7 +10,6 @@
+ 
  #include <linux/kasan.h>
  #include <linux/kernel.h>
 -#include <linux/kfence.h>
- #include <linux/kmemleak.h>
  #include <linux/memory.h>
  #include <linux/mm.h>
-@@ -84,10 +83,6 @@ void poison_range(const void *address, s
- 	 */
- 	address = reset_tag(address);
+ #include <linux/string.h>
+@@ -38,20 +37,12 @@ void *kasan_reset_tag(const void *addr)
  
+ void poison_range(const void *address, size_t size, u8 value)
+ {
 -	/* Skip KFENCE memory if called explicitly outside of sl*b. */
 -	if (is_kfence_address(address))
 -		return;
 -
- 	shadow_start = kasan_mem_to_shadow(address);
- 	shadow_end = kasan_mem_to_shadow(address + size);
+ 	hw_set_mem_tag_range(reset_tag(address),
+ 			round_up(size, KASAN_GRANULE_SIZE), value);
+ }
  
-@@ -105,14 +100,6 @@ void unpoison_range(const void *address,
- 	 */
- 	address = reset_tag(address);
- 
--	/*
--	 * Skip KFENCE memory if called explicitly outside of sl*b. Also note
--	 * that calls to ksize(), where size is not a multiple of machine-word
--	 * size, would otherwise poison the invalid portion of the word.
--	 */
+ void unpoison_range(const void *address, size_t size)
+ {
+-	/* Skip KFENCE memory if called explicitly outside of sl*b. */
 -	if (is_kfence_address(address))
 -		return;
 -
- 	poison_range(address, size, tag);
- 
- 	if (size & KASAN_GRANULE_MASK) {
+ 	hw_set_mem_tag_range(reset_tag(address),
+ 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-split-out-shadowc-from-commonc.patch
-kasan-arm64-implement-hw_tags-runtime-fix.patch
+kasan-arm64-implement-hw_tags-runtime.patch
 kasan-remove-kfence-leftovers.patch
 mm.patch
 mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
