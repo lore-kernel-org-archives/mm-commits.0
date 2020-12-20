@@ -7,34 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7466DC3527E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96F1FC35296
 	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4830B23B08
+	by mail.kernel.org (Postfix) with ESMTP id 7D3DD23B05
 	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726865AbgLTC64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 21:58:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54460 "EHLO mail.kernel.org"
+        id S1727034AbgLTC66 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Dec 2020 21:58:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727034AbgLTC64 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Dec 2020 21:58:56 -0500
-Date:   Sat, 19 Dec 2020 18:57:59 -0800
+        id S1727050AbgLTC66 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Dec 2020 21:58:58 -0500
+Date:   Sat, 19 Dec 2020 18:58:04 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608433079;
-        bh=x5rEx0DXJj0j2oMJdjW0nvgbBcMiK1nje8g1iwERmYI=;
+        s=korg; t=1608433084;
+        bh=5GC0XhCUSWi3IqEBt47vM0v2TqFTuOdzLvuTlK7AV0c=;
         h=From:To:Subject:From;
-        b=oe4fIsmpVbx6nBXO5mxhZvEZ15+s3X53rpkGzvD8w8LKGEJYCUMEB2Yg3NhyGIUyf
-         AgDXyS0itfp5EicoCC6fDOBUlwSybO0JeoG6nLJWx/ZhE9wHu/7hzkB5Pqx98NyyIu
-         RpcZT7pt99ZF8GfGwKzxNgHsx2hHlTH8AGJVeH4E=
+        b=JGqcSe/ar4ylYptSWowXQ1pLDICYKmSx66iJq4T//JyTY9VYBR0KtMMHLQVtZhWVQ
+         XXSXUMs3hdwerun9tCJGtGWaLOYnFRBo+XlAzQFgey7T/ZWsyTb3NFiFPyjTox9NtL
+         lef/rnVtY3Q89nAW+RhLsgh2UkrFyM7a/jM/VYis=
 From:   akpm@linux-foundation.org
-To:     edumazet@google.com, guantaol@google.com, khazhy@google.com,
-        mm-commits@vger.kernel.org, soheil@google.com,
-        torvalds@linux-foundation.org, willemb@google.com
-Subject:  [merged]
- epoll-eliminate-unnecessary-lock-for-zero-timeout.patch removed from -mm
- tree
-Message-ID: <20201220025759.JcZDvTBtt%akpm@linux-foundation.org>
+To:     arnd@arndb.de, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        willemb@google.com, willy@infradead.org
+Subject:  [merged] epoll-convert-internal-api-to-timespec64.patch
+ removed from -mm tree
+Message-ID: <20201220025804.XPKO8kpiu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,97 +41,191 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: eliminate unnecessary lock for zero timeout
+     Subject: epoll: convert internal api to timespec64
 has been removed from the -mm tree.  Its filename was
-     epoll-eliminate-unnecessary-lock-for-zero-timeout.patch
+     epoll-convert-internal-api-to-timespec64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Soheil Hassas Yeganeh <soheil@google.com>
-Subject: epoll: eliminate unnecessary lock for zero timeout
+From: Willem de Bruijn <willemb@google.com>
+Subject: epoll: convert internal api to timespec64
 
-We call ep_events_available() under lock when timeout is 0, and then call
-it without locks in the loop for the other cases.
+Patch series "add epoll_pwait2 syscall", v4.
 
-Instead, call ep_events_available() without lock for all cases.  For
-non-zero timeouts, we will recheck after adding the thread to the wait
-queue.  For zero timeout cases, by definition, user is opportunistically
-polling and will have to call epoll_wait again in the future.
+Enable nanosecond timeouts for epoll.
 
-Note that this lock was kept in c5a282e9635e9 because the whole loop was
-historically under lock.
+Analogous to pselect and ppoll, introduce an epoll_wait syscall
+variant that takes a struct timespec instead of int timeout.
 
-This patch results in a 1% CPU/RPC reduction in RPC benchmarks.
 
-Link: https://lkml.kernel.org/r/20201106231635.3528496-9-soheil.kdev@gmail.com
-Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
-Suggested-by: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Willem de Bruijn <willemb@google.com>
-Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
-Cc: Guantao Liu <guantaol@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+This patch (of 4):
+
+Make epoll more consistent with select/poll: pass along the timeout as
+timespec64 pointer.
+
+In anticipation of additional changes affecting all three polling
+mechanisms:
+
+- add epoll_pwait2 syscall with timespec semantics,
+  and share poll_select_set_timeout implementation.
+- compute slack before conversion to absolute time,
+  to save one ktime_get_ts64 call.
+
+Link: https://lkml.kernel.org/r/20201121144401.3727659-1-willemdebruijn.kernel@gmail.com
+Link: https://lkml.kernel.org/r/20201121144401.3727659-2-willemdebruijn.kernel@gmail.com
+Signed-off-by: Willem de Bruijn <willemb@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ fs/eventpoll.c |   57 ++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 37 insertions(+), 20 deletions(-)
 
---- a/fs/eventpoll.c~epoll-eliminate-unnecessary-lock-for-zero-timeout
+--- a/fs/eventpoll.c~epoll-convert-internal-api-to-timespec64
 +++ a/fs/eventpoll.c
-@@ -1743,7 +1743,7 @@ static inline struct timespec64 ep_set_m
- static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
- 		   int maxevents, long timeout)
+@@ -1712,15 +1712,25 @@ static int ep_send_events(struct eventpo
+ 	return res;
+ }
+ 
+-static inline struct timespec64 ep_set_mstimeout(long ms)
++static struct timespec64 *ep_timeout_to_timespec(struct timespec64 *to, long ms)
  {
--	int res, eavail = 0, timed_out = 0;
-+	int res, eavail, timed_out = 0;
+-	struct timespec64 now, ts = {
+-		.tv_sec = ms / MSEC_PER_SEC,
+-		.tv_nsec = NSEC_PER_MSEC * (ms % MSEC_PER_SEC),
+-	};
++	struct timespec64 now;
++
++	if (ms < 0)
++		return NULL;
++
++	if (!ms) {
++		to->tv_sec = 0;
++		to->tv_nsec = 0;
++		return to;
++	}
++
++	to->tv_sec = ms / MSEC_PER_SEC;
++	to->tv_nsec = NSEC_PER_MSEC * (ms % MSEC_PER_SEC);
+ 
+ 	ktime_get_ts64(&now);
+-	return timespec64_add_safe(now, ts);
++	*to = timespec64_add_safe(now, *to);
++	return to;
+ }
+ 
+ /**
+@@ -1732,8 +1742,8 @@ static inline struct timespec64 ep_set_m
+  *          stored.
+  * @maxevents: Size (in terms of number of events) of the caller event buffer.
+  * @timeout: Maximum timeout for the ready events fetch operation, in
+- *           milliseconds. If the @timeout is zero, the function will not block,
+- *           while if the @timeout is less than zero, the function will block
++ *           timespec. If the timeout is zero, the function will not block,
++ *           while if the @timeout ptr is NULL, the function will block
+  *           until at least one event has been retrieved (or an error
+  *           occurred).
+  *
+@@ -1741,7 +1751,7 @@ static inline struct timespec64 ep_set_m
+  *          error code, in case of error.
+  */
+ static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
+-		   int maxevents, long timeout)
++		   int maxevents, struct timespec64 *timeout)
+ {
+ 	int res, eavail, timed_out = 0;
  	u64 slack = 0;
- 	wait_queue_entry_t wait;
- 	ktime_t expires, *to = NULL;
-@@ -1759,18 +1759,21 @@ static int ep_poll(struct eventpoll *ep,
- 	} else if (timeout == 0) {
+@@ -1750,13 +1760,11 @@ static int ep_poll(struct eventpoll *ep,
+ 
+ 	lockdep_assert_irqs_enabled();
+ 
+-	if (timeout > 0) {
+-		struct timespec64 end_time = ep_set_mstimeout(timeout);
+-
+-		slack = select_estimate_accuracy(&end_time);
++	if (timeout && (timeout->tv_sec | timeout->tv_nsec)) {
++		slack = select_estimate_accuracy(timeout);
+ 		to = &expires;
+-		*to = timespec64_to_ktime(end_time);
+-	} else if (timeout == 0) {
++		*to = timespec64_to_ktime(*timeout);
++	} else if (timeout) {
  		/*
  		 * Avoid the unnecessary trip to the wait queue loop, if the
--		 * caller specified a non blocking operation. We still need
--		 * lock because we could race and not see an epi being added
--		 * to the ready list while in irq callback. Thus incorrectly
--		 * returning 0 back to userspace.
-+		 * caller specified a non blocking operation.
- 		 */
- 		timed_out = 1;
--
--		write_lock_irq(&ep->lock);
--		eavail = ep_events_available(ep);
--		write_unlock_irq(&ep->lock);
- 	}
+ 		 * caller specified a non blocking operation.
+@@ -2175,7 +2183,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+  * part of the user space epoll_wait(2).
+  */
+ static int do_epoll_wait(int epfd, struct epoll_event __user *events,
+-			 int maxevents, int timeout)
++			 int maxevents, struct timespec64 *to)
+ {
+ 	int error;
+ 	struct fd f;
+@@ -2209,7 +2217,7 @@ static int do_epoll_wait(int epfd, struc
+ 	ep = f.file->private_data;
  
-+	/*
-+	 * This call is racy: We may or may not see events that are being added
-+	 * to the ready list under the lock (e.g., in IRQ callbacks). For, cases
-+	 * with a non-zero timeout, this thread will check the ready list under
-+	 * lock and will added to the wait queue.  For, cases with a zero
-+	 * timeout, the user by definition should not care and will have to
-+	 * recheck again.
-+	 */
-+	eavail = ep_events_available(ep);
+ 	/* Time to fish for events ... */
+-	error = ep_poll(ep, events, maxevents, timeout);
++	error = ep_poll(ep, events, maxevents, to);
+ 
+ error_fput:
+ 	fdput(f);
+@@ -2219,7 +2227,10 @@ error_fput:
+ SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
+ 		int, maxevents, int, timeout)
+ {
+-	return do_epoll_wait(epfd, events, maxevents, timeout);
++	struct timespec64 to;
 +
- 	while (1) {
- 		if (eavail) {
- 			/*
-@@ -1786,10 +1789,6 @@ static int ep_poll(struct eventpoll *ep,
- 		if (timed_out)
- 			return 0;
++	return do_epoll_wait(epfd, events, maxevents,
++			     ep_timeout_to_timespec(&to, timeout));
+ }
  
--		eavail = ep_events_available(ep);
--		if (eavail)
--			continue;
--
- 		eavail = ep_busy_loop(ep, timed_out);
- 		if (eavail)
- 			continue;
+ /*
+@@ -2230,6 +2241,7 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 		int, maxevents, int, timeout, const sigset_t __user *, sigmask,
+ 		size_t, sigsetsize)
+ {
++	struct timespec64 to;
+ 	int error;
+ 
+ 	/*
+@@ -2240,7 +2252,9 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 	if (error)
+ 		return error;
+ 
+-	error = do_epoll_wait(epfd, events, maxevents, timeout);
++	error = do_epoll_wait(epfd, events, maxevents,
++			      ep_timeout_to_timespec(&to, timeout));
++
+ 	restore_saved_sigmask_unless(error == -EINTR);
+ 
+ 	return error;
+@@ -2253,6 +2267,7 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 			const compat_sigset_t __user *, sigmask,
+ 			compat_size_t, sigsetsize)
+ {
++	struct timespec64 to;
+ 	long err;
+ 
+ 	/*
+@@ -2263,7 +2278,9 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 	if (err)
+ 		return err;
+ 
+-	err = do_epoll_wait(epfd, events, maxevents, timeout);
++	err = do_epoll_wait(epfd, events, maxevents,
++			    ep_timeout_to_timespec(&to, timeout));
++
+ 	restore_saved_sigmask_unless(err == -EINTR);
+ 
+ 	return err;
 _
 
-Patches currently in -mm which might be from soheil@google.com are
+Patches currently in -mm which might be from willemb@google.com are
 
 
