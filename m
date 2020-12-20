@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D67C352B3
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BCEDC4361B
+	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF17E23B7B
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2EEE623ACA
+	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727050AbgLTC7G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 21:59:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54418 "EHLO mail.kernel.org"
+        id S1726854AbgLTC7c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Dec 2020 21:59:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727068AbgLTC7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Dec 2020 21:59:06 -0500
-Date:   Sat, 19 Dec 2020 18:58:11 -0800
+        id S1726786AbgLTC7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Dec 2020 21:59:32 -0500
+Date:   Sat, 19 Dec 2020 18:58:08 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608433091;
-        bh=fmGQ+zQnMkok+Sd3+DX5Bi0EoaE3dUmJ778DwXQHRWo=;
+        s=korg; t=1608433088;
+        bh=7m2KqeBSI8nJmc0v1SqRlZqVmfcddnrsFkb6qzghJX0=;
         h=From:To:Subject:From;
-        b=WVkfJmVJoX6CJ5w6qo6Iar7QloiHCUyLgXQrfh5CJRoVYhhU2aLgAMcZ7yCC/AUpF
-         7sdFU5m3C1YGQzllBDpinl4V6nwNmpI2Va8n7W4wo17fu1nKSzgZ1BAN15skUyrMG3
-         +7zxsptQDIV/aqDLTJ0e97v9ZxZ3OVrC84HKSUho=
+        b=ueHqOIhmg0N+GLlxu/8CjZBLRdkAHVvXOICqaBSpFqLpEyAM/sf6l1iwOC2s7sMVd
+         O4CN1UuwwGgR6+urHmsZ46OiJmAXsVfiYBkmf52VM1DMViLBGZJ3uJXyU++RN2LtFm
+         HZLZrj5sW7p2xnLaUTnP46E9UsiNHZJia1ONgunY=
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         willemb@google.com, willy@infradead.org
-Subject:  [merged]
- selftests-filesystems-expand-epoll-with-epoll_pwait2.patch removed from -mm
- tree
-Message-ID: <20201220025811.KqG6-mwWm%akpm@linux-foundation.org>
+Subject:  [merged] epoll-wire-up-syscall-epoll_pwait2.patch removed
+ from -mm tree
+Message-ID: <20201220025808.vBMiWjsWF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,22 +41,19 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/filesystems: expand epoll with epoll_pwait2
+     Subject: epoll: wire up syscall epoll_pwait2
 has been removed from the -mm tree.  Its filename was
-     selftests-filesystems-expand-epoll-with-epoll_pwait2.patch
+     epoll-wire-up-syscall-epoll_pwait2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Willem de Bruijn <willemb@google.com>
-Subject: selftests/filesystems: expand epoll with epoll_pwait2
+Subject: epoll: wire up syscall epoll_pwait2
 
-Code coverage for the epoll_pwait2 syscall.
+Split off from prev patch in the series that implements the syscall.
 
-epoll62: Repeat basic test epoll1, but exercising the new syscall.
-epoll63: Pass a timespec and exercise the timeout wakeup path.
-
-Link: https://lkml.kernel.org/r/20201121144401.3727659-5-willemdebruijn.kernel@gmail.com
+Link: https://lkml.kernel.org/r/20201121144401.3727659-4-willemdebruijn.kernel@gmail.com
 Signed-off-by: Willem de Bruijn <willemb@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -65,102 +61,222 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   72 ++++++++++
- 1 file changed, 72 insertions(+)
+ arch/alpha/kernel/syscalls/syscall.tbl      |    1 +
+ arch/arm/tools/syscall.tbl                  |    1 +
+ arch/arm64/include/asm/unistd.h             |    2 +-
+ arch/arm64/include/asm/unistd32.h           |    2 ++
+ arch/ia64/kernel/syscalls/syscall.tbl       |    1 +
+ arch/m68k/kernel/syscalls/syscall.tbl       |    1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl |    1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl   |    1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl   |    1 +
+ arch/parisc/kernel/syscalls/syscall.tbl     |    1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl    |    1 +
+ arch/s390/kernel/syscalls/syscall.tbl       |    1 +
+ arch/sh/kernel/syscalls/syscall.tbl         |    1 +
+ arch/sparc/kernel/syscalls/syscall.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
+ arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl     |    1 +
+ include/linux/compat.h                      |    6 ++++++
+ include/linux/syscalls.h                    |    5 +++++
+ include/uapi/asm-generic/unistd.h           |    4 +++-
+ kernel/sys_ni.c                             |    2 ++
+ 22 files changed, 35 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~selftests-filesystems-expand-epoll-with-epoll_pwait2
-+++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
-@@ -1,6 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0
+--- a/arch/alpha/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -480,3 +480,4 @@
+ 548	common	pidfd_getfd			sys_pidfd_getfd
+ 549	common	faccessat2			sys_faccessat2
+ 550	common	process_madvise			sys_process_madvise
++551	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/arm64/include/asm/unistd32.h~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -889,6 +889,8 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+ #define __NR_process_madvise 440
+ __SYSCALL(__NR_process_madvise, sys_process_madvise)
++#define __NR_epoll_pwait2 441
++__SYSCALL(__NR_epoll_pwait2, sys_epoll_pwait2)
  
- #define _GNU_SOURCE
-+#include <asm/unistd.h>
-+#include <linux/time_types.h>
- #include <poll.h>
- #include <unistd.h>
- #include <assert.h>
-@@ -21,6 +23,19 @@ struct epoll_mtcontext
- 	pthread_t waiter;
- };
+ /*
+  * Please add new compat syscalls above this comment and update
+--- a/arch/arm64/include/asm/unistd.h~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/arm64/include/asm/unistd.h
+@@ -38,7 +38,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
  
-+#ifndef __NR_epoll_pwait2
-+#define __NR_epoll_pwait2 -1
-+#endif
-+
-+static inline int sys_epoll_pwait2(int fd, struct epoll_event *events,
-+				   int maxevents,
-+				   const struct __kernel_timespec *timeout,
-+				   const sigset_t *sigset, size_t sigsetsize)
-+{
-+	return syscall(__NR_epoll_pwait2, fd, events, maxevents, timeout,
-+		       sigset, sigsetsize);
-+}
-+
- static void signal_handler(int signum)
- {
- }
-@@ -3377,4 +3392,61 @@ TEST(epoll61)
- 	close(ctx.evfd);
- }
+-#define __NR_compat_syscalls		441
++#define __NR_compat_syscalls		442
+ #endif
  
-+/* Equivalent to basic test epoll1, but exercising epoll_pwait2. */
-+TEST(epoll62)
-+{
-+	int efd;
-+	int sfd[2];
-+	struct epoll_event e;
-+
-+	ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sfd), 0);
-+
-+	efd = epoll_create(1);
-+	ASSERT_GE(efd, 0);
-+
-+	e.events = EPOLLIN;
-+	ASSERT_EQ(epoll_ctl(efd, EPOLL_CTL_ADD, sfd[0], &e), 0);
-+
-+	ASSERT_EQ(write(sfd[1], "w", 1), 1);
-+
-+	EXPECT_EQ(sys_epoll_pwait2(efd, &e, 1, NULL, NULL, 0), 1);
-+	EXPECT_EQ(sys_epoll_pwait2(efd, &e, 1, NULL, NULL, 0), 1);
-+
-+	close(efd);
-+	close(sfd[0]);
-+	close(sfd[1]);
-+}
-+
-+/* Epoll_pwait2 basic timeout test. */
-+TEST(epoll63)
-+{
-+	const int cfg_delay_ms = 10;
-+	unsigned long long tdiff;
-+	struct __kernel_timespec ts;
-+	int efd;
-+	int sfd[2];
-+	struct epoll_event e;
-+
-+	ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, sfd), 0);
-+
-+	efd = epoll_create(1);
-+	ASSERT_GE(efd, 0);
-+
-+	e.events = EPOLLIN;
-+	ASSERT_EQ(epoll_ctl(efd, EPOLL_CTL_ADD, sfd[0], &e), 0);
-+
-+	ts.tv_sec = 0;
-+	ts.tv_nsec = cfg_delay_ms * 1000 * 1000;
-+
-+	tdiff = msecs();
-+	EXPECT_EQ(sys_epoll_pwait2(efd, &e, 1, &ts, NULL, 0), 0);
-+	tdiff = msecs() - tdiff;
-+
-+	EXPECT_GE(tdiff, cfg_delay_ms);
-+
-+	close(efd);
-+	close(sfd[0]);
-+	close(sfd[1]);
-+}
-+
- TEST_HARNESS_MAIN
+ #define __ARCH_WANT_SYS_CLONE
+--- a/arch/arm/tools/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/arm/tools/syscall.tbl
+@@ -454,3 +454,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/ia64/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -361,3 +361,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/m68k/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -440,3 +440,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -446,3 +446,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -379,3 +379,4 @@
+ 438	n32	pidfd_getfd			sys_pidfd_getfd
+ 439	n32	faccessat2			sys_faccessat2
+ 440	n32	process_madvise			sys_process_madvise
++441	n32	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -355,3 +355,4 @@
+ 438	n64	pidfd_getfd			sys_pidfd_getfd
+ 439	n64	faccessat2			sys_faccessat2
+ 440	n64	process_madvise			sys_process_madvise
++441	n64	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -428,3 +428,4 @@
+ 438	o32	pidfd_getfd			sys_pidfd_getfd
+ 439	o32	faccessat2			sys_faccessat2
+ 440	o32	process_madvise			sys_process_madvise
++441	o32	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -438,3 +438,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -530,3 +530,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
+--- a/arch/s390/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -443,3 +443,4 @@
+ 438  common	pidfd_getfd		sys_pidfd_getfd			sys_pidfd_getfd
+ 439  common	faccessat2		sys_faccessat2			sys_faccessat2
+ 440  common	process_madvise		sys_process_madvise		sys_process_madvise
++441  common	epoll_pwait2		sys_epoll_pwait2		sys_epoll_pwait2
+--- a/arch/sh/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/sh/kernel/syscalls/syscall.tbl
+@@ -443,3 +443,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -486,3 +486,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -445,3 +445,4 @@
+ 438	i386	pidfd_getfd		sys_pidfd_getfd
+ 439	i386	faccessat2		sys_faccessat2
+ 440	i386	process_madvise		sys_process_madvise
++441	i386	epoll_pwait2		sys_epoll_pwait2		compat_sys_epoll_pwait2
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -362,6 +362,7 @@
+ 438	common	pidfd_getfd		sys_pidfd_getfd
+ 439	common	faccessat2		sys_faccessat2
+ 440	common	process_madvise		sys_process_madvise
++441	common	epoll_pwait2		sys_epoll_pwait2
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
++++ a/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -411,3 +411,4 @@
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+ 440	common	process_madvise			sys_process_madvise
++441	common	epoll_pwait2			sys_epoll_pwait2
+--- a/include/linux/compat.h~epoll-wire-up-syscall-epoll_pwait2
++++ a/include/linux/compat.h
+@@ -537,6 +537,12 @@ asmlinkage long compat_sys_epoll_pwait(i
+ 			int maxevents, int timeout,
+ 			const compat_sigset_t __user *sigmask,
+ 			compat_size_t sigsetsize);
++asmlinkage long compat_sys_epoll_pwait2(int epfd,
++			struct epoll_event __user *events,
++			int maxevents,
++			const struct __kernel_timespec __user *timeout,
++			const compat_sigset_t __user *sigmask,
++			compat_size_t sigsetsize);
+ 
+ /* fs/fcntl.c */
+ asmlinkage long compat_sys_fcntl(unsigned int fd, unsigned int cmd,
+--- a/include/linux/syscalls.h~epoll-wire-up-syscall-epoll_pwait2
++++ a/include/linux/syscalls.h
+@@ -362,6 +362,11 @@ asmlinkage long sys_epoll_pwait(int epfd
+ 				int maxevents, int timeout,
+ 				const sigset_t __user *sigmask,
+ 				size_t sigsetsize);
++asmlinkage long sys_epoll_pwait2(int epfd, struct epoll_event __user *events,
++				 int maxevents,
++				 const struct __kernel_timespec __user *timeout,
++				 const sigset_t __user *sigmask,
++				 size_t sigsetsize);
+ 
+ /* fs/fcntl.c */
+ asmlinkage long sys_dup(unsigned int fildes);
+--- a/include/uapi/asm-generic/unistd.h~epoll-wire-up-syscall-epoll_pwait2
++++ a/include/uapi/asm-generic/unistd.h
+@@ -859,9 +859,11 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+ #define __NR_process_madvise 440
+ __SYSCALL(__NR_process_madvise, sys_process_madvise)
++#define __NR_epoll_pwait2 441
++__SC_COMP(__NR_epoll_pwait2, sys_epoll_pwait2, compat_sys_epoll_pwait2)
+ 
+ #undef __NR_syscalls
+-#define __NR_syscalls 441
++#define __NR_syscalls 442
+ 
+ /*
+  * 32 bit systems traditionally used different
+--- a/kernel/sys_ni.c~epoll-wire-up-syscall-epoll_pwait2
++++ a/kernel/sys_ni.c
+@@ -68,6 +68,8 @@ COND_SYSCALL(epoll_create1);
+ COND_SYSCALL(epoll_ctl);
+ COND_SYSCALL(epoll_pwait);
+ COND_SYSCALL_COMPAT(epoll_pwait);
++COND_SYSCALL(epoll_pwait2);
++COND_SYSCALL_COMPAT(epoll_pwait2);
+ 
+ /* fs/fcntl.c */
+ 
 _
 
 Patches currently in -mm which might be from willemb@google.com are
