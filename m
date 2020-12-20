@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0D93C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F052EC3526D
 	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:58:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CAB823ACA
+	by mail.kernel.org (Postfix) with ESMTP id CB69923BC7
 	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:58:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbgLTC6K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 21:58:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54098 "EHLO mail.kernel.org"
+        id S1726915AbgLTC6P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Dec 2020 21:58:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54186 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726786AbgLTC6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Dec 2020 21:58:09 -0500
-Date:   Sat, 19 Dec 2020 18:57:28 -0800
+        id S1726865AbgLTC6P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Dec 2020 21:58:15 -0500
+Date:   Sat, 19 Dec 2020 18:57:34 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608433049;
-        bh=GHfrFMeSsbP63cAmbShAYN1yY2Cvc3P9yLlwo2iJpwg=;
+        s=korg; t=1608433054;
+        bh=sMxhkzfGHjYmSWrwxfxOVvMQsV1kqrCSxFG/tDlAjMM=;
         h=From:To:Subject:From;
-        b=vBowiQqakgzAev2NrevuYs/BB4/rk7f+p5vBiJkOsAkmrV0Qf8bxs7vdkMk8Anh/c
-         YYnAx7QmFQjAbAP5lLthOdJu2LZDtjri/spHzX4qB5IgP6ey6pwA7TdLCVZxBL1hAb
-         8Fm22A2i1u1sDH+hqTMgOZ0+IUojZkMK9ii7pHY0=
+        b=rlYZ9KxYdAqxXlvxnpFdfTQrhWC69OlBoy+oik4nXiOAJD+FInT2fCYMsYnHpAgqK
+         g4Lyzl05PjFFgdqoo4hlgDPJhNVCFJ93D06S6iyWFz8qY7fmfB8jPBbWomPIOcqrgc
+         GSVu/u3Prng2PbwVXRfokiV//wF6tWNoEN1t2/yU=
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org,
-        hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        vdavydov.dev@gmail.com
-Subject:  [merged]
- mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch removed
- from -mm tree
-Message-ID: <20201220025728.d0c8g4eM1%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, pbonzini@redhat.com,
+        shakeelb@google.com
+Subject:  [merged] mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
+ removed from -mm tree
+Message-ID: <20201220025734.f8_0AI1u7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,66 +42,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: bail early from swap accounting if memcg disabled
+     Subject: mm, kvm: account kvm_vcpu_mmap to kmemcg
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled.patch
+     mm-kvm-account-kvm_vcpu_mmap-to-kmemcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/memcg: bail early from swap accounting if memcg disabled
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm, kvm: account kvm_vcpu_mmap to kmemcg
 
-Patch series "bail out early for memcg disable".
+A VCPU of a VM can allocate couple of pages which can be mmap'ed by the
+user space application. At the moment this memory is not charged to the
+memcg of the VMM. On a large machine running large number of VMs or
+small number of VMs having large number of VCPUs, this unaccounted
+memory can be very significant. So, charge this memory to the memcg of
+the VMM. Please note that lifetime of these allocations corresponds to
+the lifetime of the VMM.
 
-These 2 patches are indepenedent from per memcg lru lock, and may
-encounter unexpected warning, so let's move out them from per memcg
-lru locking patchset.
-
-
-This patch (of 2):
-
-We could bail out early when memcg wasn't enabled.
-
-Link: https://lkml.kernel.org/r/1604283436-18880-1-git-send-email-alex.shi@linux.alibaba.com
-Link: https://lkml.kernel.org/r/1604283436-18880-2-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20201106202923.2087414-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/x86/kvm/x86.c        |    2 +-
+ virt/kvm/coalesced_mmio.c |    2 +-
+ virt/kvm/kvm_main.c       |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-bail-early-from-swap-accounting-if-memcg-disabled
-+++ a/mm/memcontrol.c
-@@ -7178,6 +7178,9 @@ void mem_cgroup_swapout(struct page *pag
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
- 	VM_BUG_ON_PAGE(page_count(page), page);
+--- a/arch/x86/kvm/x86.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
++++ a/arch/x86/kvm/x86.c
+@@ -9869,7 +9869,7 @@ int kvm_arch_vcpu_create(struct kvm_vcpu
  
-+	if (mem_cgroup_disabled())
-+		return;
-+
- 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return;
+ 	r = -ENOMEM;
  
-@@ -7242,6 +7245,9 @@ int mem_cgroup_try_charge_swap(struct pa
- 	struct mem_cgroup *memcg;
- 	unsigned short oldid;
+-	page = alloc_page(GFP_KERNEL | __GFP_ZERO);
++	page = alloc_page(GFP_KERNEL_ACCOUNT | __GFP_ZERO);
+ 	if (!page)
+ 		goto fail_free_lapic;
+ 	vcpu->arch.pio_data = page_address(page);
+--- a/virt/kvm/coalesced_mmio.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
++++ a/virt/kvm/coalesced_mmio.c
+@@ -111,7 +111,7 @@ int kvm_coalesced_mmio_init(struct kvm *
+ {
+ 	struct page *page;
  
-+	if (mem_cgroup_disabled())
-+		return 0;
-+
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return 0;
+-	page = alloc_page(GFP_KERNEL | __GFP_ZERO);
++	page = alloc_page(GFP_KERNEL_ACCOUNT | __GFP_ZERO);
+ 	if (!page)
+ 		return -ENOMEM;
  
+--- a/virt/kvm/kvm_main.c~mm-kvm-account-kvm_vcpu_mmap-to-kmemcg
++++ a/virt/kvm/kvm_main.c
+@@ -3116,7 +3116,7 @@ static int kvm_vm_ioctl_create_vcpu(stru
+ 	}
+ 
+ 	BUILD_BUG_ON(sizeof(struct kvm_run) > PAGE_SIZE);
+-	page = alloc_page(GFP_KERNEL | __GFP_ZERO);
++	page = alloc_page(GFP_KERNEL_ACCOUNT | __GFP_ZERO);
+ 	if (!page) {
+ 		r = -ENOMEM;
+ 		goto vcpu_free;
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
 
