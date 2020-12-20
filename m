@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD4DC0018C
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:58:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8A5FC3526C
+	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0EF423BB5
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:58:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7605023B03
+	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726898AbgLTC6N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 21:58:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54164 "EHLO mail.kernel.org"
+        id S1726997AbgLTC6u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Dec 2020 21:58:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54420 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726865AbgLTC6N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Dec 2020 21:58:13 -0500
-Date:   Sat, 19 Dec 2020 18:57:32 -0800
+        id S1726996AbgLTC6u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 19 Dec 2020 21:58:50 -0500
+Date:   Sat, 19 Dec 2020 18:57:42 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608433052;
-        bh=XyU/brs/9B7MwJA9tE4ybmT/TEE4pO9d851mCcESRpg=;
+        s=korg; t=1608433062;
+        bh=qdcYc6yehOGBWJnOpeXlIz0OqsxyRpX463Ek1x7EXJQ=;
         h=From:To:Subject:From;
-        b=xDcAKMwH/zWs6CrEyULygTELbGEBDqqHEVsruSnyGa51FBNpwH9B2abSwgj1exgGN
-         gkDi6KcSei6sa2+DemdvY+KuqpJ0NLzHJ7Q0Nhq+fq/J0DnS8Es1mHK0UsFtbyzAl/
-         992og95v/+YE5k7t7L+jGuiCVzmJIhqFFS4sTVzo=
+        b=Dgu+06yXAZdwXFNY1m18j325919Ejw6B85F67oMOMekDIHwJysoPNk7ZwYlJSGKVS
+         7i/8pQzucOKAof/XRdu/jzE1P6vkmyKAZwcPkPGFq9waQKVrL5TRRe9Qm8AuM+tjy7
+         e6fJB01oIuewulZtxKG8R5Sgt05p1KDuXUQKU2CY=
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
-        shakeelb@google.com
-Subject:  [merged] mm-memcg-remove-unused-definitions.patch removed
+To:     edumazet@google.com, guantaol@google.com, khazhy@google.com,
+        mm-commits@vger.kernel.org, soheil@google.com,
+        torvalds@linux-foundation.org, willemb@google.com
+Subject:  [merged] epoll-simplify-signal-handling.patch removed
  from -mm tree
-Message-ID: <20201220025732.fpJVjqLGf%akpm@linux-foundation.org>
+Message-ID: <20201220025742.gqGygvzOJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,187 +42,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: remove unused definitions
+     Subject: epoll: simplify signal handling
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-remove-unused-definitions.patch
+     epoll-simplify-signal-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memcg: remove unused definitions
+From: Soheil Hassas Yeganeh <soheil@google.com>
+Subject: epoll: simplify signal handling
 
-Some definitions are left unused, just clean them.
+Check signals before locking ep->lock, and immediately return -EINTR if
+there is any signal pending.
 
-Link: https://lkml.kernel.org/r/20201108003834.12669-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+This saves a few loads, stores, and branches from the hot path and
+simplifies the loop structure for follow up patches.
+
+Link: https://lkml.kernel.org/r/20201106231635.3528496-3-soheil.kdev@gmail.com
+Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Willem de Bruijn <willemb@google.com>
+Reviewed-by: Khazhismel Kumykov <khazhy@google.com>
+Cc: Guantao Liu <guantaol@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |  118 -----------------------------------
- 1 file changed, 118 deletions(-)
+ fs/eventpoll.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-remove-unused-definitions
-+++ a/include/linux/memcontrol.h
-@@ -913,41 +913,6 @@ static inline void mod_memcg_state(struc
- 	local_irq_restore(flags);
- }
- 
--/**
-- * mod_memcg_page_state - update page state statistics
-- * @page: the page
-- * @idx: page state item to account
-- * @val: number of pages (positive or negative)
-- *
-- * The @page must be locked or the caller must use lock_page_memcg()
-- * to prevent double accounting when the page is concurrently being
-- * moved to another memcg:
-- *
-- *   lock_page(page) or lock_page_memcg(page)
-- *   if (TestClearPageState(page))
-- *     mod_memcg_page_state(page, state, -1);
-- *   unlock_page(page) or unlock_page_memcg(page)
-- *
-- * Kernel pages are an exception to this, since they'll never move.
-- */
--static inline void __mod_memcg_page_state(struct page *page,
--					  int idx, int val)
--{
--	struct mem_cgroup *memcg = page_memcg(page);
--
--	if (memcg)
--		__mod_memcg_state(memcg, idx, val);
--}
--
--static inline void mod_memcg_page_state(struct page *page,
--					int idx, int val)
--{
--	struct mem_cgroup *memcg = page_memcg(page);
--
--	if (memcg)
--		mod_memcg_state(memcg, idx, val);
--}
--
- static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
- 					      enum node_stat_item idx)
+--- a/fs/eventpoll.c~epoll-simplify-signal-handling
++++ a/fs/eventpoll.c
+@@ -1733,7 +1733,7 @@ static inline struct timespec64 ep_set_m
+ static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
+ 		   int maxevents, long timeout)
  {
-@@ -1395,18 +1360,6 @@ static inline void mod_memcg_state(struc
- {
- }
+-	int res = 0, eavail, timed_out = 0;
++	int res, eavail, timed_out = 0;
+ 	u64 slack = 0;
+ 	wait_queue_entry_t wait;
+ 	ktime_t expires, *to = NULL;
+@@ -1780,6 +1780,9 @@ fetch_events:
+ 	ep_reset_busy_poll_napi_id(ep);
  
--static inline void __mod_memcg_page_state(struct page *page,
--					  int idx,
--					  int nr)
--{
--}
--
--static inline void mod_memcg_page_state(struct page *page,
--					int idx,
--					int nr)
--{
--}
--
- static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
- 					      enum node_stat_item idx)
- {
-@@ -1479,34 +1432,6 @@ static inline void lruvec_memcg_debug(st
- }
- #endif /* CONFIG_MEMCG */
+ 	do {
++		if (signal_pending(current))
++			return -EINTR;
++
+ 		/*
+ 		 * Internally init_wait() uses autoremove_wake_function(),
+ 		 * thus wait entry is removed from the wait queue on each
+@@ -1809,15 +1812,12 @@ fetch_events:
+ 		 * important.
+ 		 */
+ 		eavail = ep_events_available(ep);
+-		if (!eavail) {
+-			if (signal_pending(current))
+-				res = -EINTR;
+-			else
+-				__add_wait_queue_exclusive(&ep->wq, &wait);
+-		}
++		if (!eavail)
++			__add_wait_queue_exclusive(&ep->wq, &wait);
++
+ 		write_unlock_irq(&ep->lock);
  
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void __inc_memcg_state(struct mem_cgroup *memcg,
--				     int idx)
--{
--	__mod_memcg_state(memcg, idx, 1);
--}
--
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void __dec_memcg_state(struct mem_cgroup *memcg,
--				     int idx)
--{
--	__mod_memcg_state(memcg, idx, -1);
--}
--
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void __inc_memcg_page_state(struct page *page,
--					  int idx)
--{
--	__mod_memcg_page_state(page, idx, 1);
--}
--
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void __dec_memcg_page_state(struct page *page,
--					  int idx)
--{
--	__mod_memcg_page_state(page, idx, -1);
--}
--
- static inline void __inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
- {
- 	__mod_lruvec_kmem_state(p, idx, 1);
-@@ -1517,34 +1442,6 @@ static inline void __dec_lruvec_kmem_sta
- 	__mod_lruvec_kmem_state(p, idx, -1);
- }
+-		if (!eavail && !res)
++		if (!eavail)
+ 			timed_out = !schedule_hrtimeout_range(to, slack,
+ 							      HRTIMER_MODE_ABS);
  
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void inc_memcg_state(struct mem_cgroup *memcg,
--				   int idx)
--{
--	mod_memcg_state(memcg, idx, 1);
--}
--
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void dec_memcg_state(struct mem_cgroup *memcg,
--				   int idx)
--{
--	mod_memcg_state(memcg, idx, -1);
--}
--
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void inc_memcg_page_state(struct page *page,
--					int idx)
--{
--	mod_memcg_page_state(page, idx, 1);
--}
--
--/* idx can be of type enum memcg_stat_item or node_stat_item */
--static inline void dec_memcg_page_state(struct page *page,
--					int idx)
--{
--	mod_memcg_page_state(page, idx, -1);
--}
--
- static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
- {
- 	struct mem_cgroup *memcg;
-@@ -1733,21 +1630,6 @@ static inline void memcg_kmem_uncharge_p
- 		__memcg_kmem_uncharge_page(page, order);
- }
+@@ -1853,14 +1853,14 @@ send_events:
+ 		 * finding more events available and fetching
+ 		 * repeatedly.
+ 		 */
+-		res = -EINTR;
++		return -EINTR;
+ 	}
+ 	/*
+ 	 * Try to transfer events to user space. In case we get 0 events and
+ 	 * there's still timeout left over, we go trying again in search of
+ 	 * more luck.
+ 	 */
+-	if (!res && eavail &&
++	if (eavail &&
+ 	    !(res = ep_send_events(ep, events, maxevents)) && !timed_out)
+ 		goto fetch_events;
  
--static inline int memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
--				    unsigned int nr_pages)
--{
--	if (memcg_kmem_enabled())
--		return __memcg_kmem_charge(memcg, gfp, nr_pages);
--	return 0;
--}
--
--static inline void memcg_kmem_uncharge(struct mem_cgroup *memcg,
--				       unsigned int nr_pages)
--{
--	if (memcg_kmem_enabled())
--		__memcg_kmem_uncharge(memcg, nr_pages);
--}
--
- /*
-  * A helper for accessing memcg's kmem_id, used for getting
-  * corresponding LRU lists.
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from soheil@google.com are
 
 
