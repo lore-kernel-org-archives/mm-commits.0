@@ -2,283 +2,118 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BCEDC4361B
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8C82C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Dec 2020 10:11:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2EEE623ACA
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Dec 2020 02:59:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CA7422A85
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Dec 2020 10:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbgLTC7c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Dec 2020 21:59:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54600 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726786AbgLTC7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 19 Dec 2020 21:59:32 -0500
-Date:   Sat, 19 Dec 2020 18:58:08 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608433088;
-        bh=7m2KqeBSI8nJmc0v1SqRlZqVmfcddnrsFkb6qzghJX0=;
-        h=From:To:Subject:From;
-        b=ueHqOIhmg0N+GLlxu/8CjZBLRdkAHVvXOICqaBSpFqLpEyAM/sf6l1iwOC2s7sMVd
-         O4CN1UuwwGgR6+urHmsZ46OiJmAXsVfiYBkmf52VM1DMViLBGZJ3uJXyU++RN2LtFm
-         HZLZrj5sW7p2xnLaUTnP46E9UsiNHZJia1ONgunY=
-From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        willemb@google.com, willy@infradead.org
-Subject:  [merged] epoll-wire-up-syscall-epoll_pwait2.patch removed
- from -mm tree
-Message-ID: <20201220025808.vBMiWjsWF%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S1725947AbgLUKLH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Dec 2020 05:11:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58692 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726121AbgLUKLH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2020 05:11:07 -0500
+Received: from mail-qt1-x833.google.com (mail-qt1-x833.google.com [IPv6:2607:f8b0:4864:20::833])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F958C0611C5
+        for <mm-commits@vger.kernel.org>; Mon, 21 Dec 2020 02:10:22 -0800 (PST)
+Received: by mail-qt1-x833.google.com with SMTP id h19so6190495qtq.13
+        for <mm-commits@vger.kernel.org>; Mon, 21 Dec 2020 02:10:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=0cbhRPuCt0/1sbC5MrA/bpQlkWQDIOUYF5sZHElvneU=;
+        b=oiqEGTc/fBYiHoDY1YxtUn0epdLTfQ9K0hSHDs84bPxgn3/v8C8Opp3fWCzWLWTnKJ
+         4NdkUMUG4YtaHDj63ElkmWmy7/mst/FlZ1xUGqFb815W/73MxOqKAopOe3RnxZ35R5Hf
+         AeS2o7fWcZ7e0Mlz/cBL4oq5PzMlSQhcxObe9SqhUhdrwW7VPbhnq38v+Q4sUkItPnxY
+         qQEyeuBziSjD9uFYXEIy0Qn94E5t0rWP0432vGBDaLz6+6Nr62uBGDDsM6O0zViJcfC2
+         RQnawrjVqaRMJrQFfSrIxe6raVgAFWSlG2R/LTJeq/rxhSOdvkyannzTBjrUIon8NmTf
+         CQdw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=0cbhRPuCt0/1sbC5MrA/bpQlkWQDIOUYF5sZHElvneU=;
+        b=r1d49M2DNcAvseJiv+hA/entGDYXAtzAFMtm57lnSJzDryBxNzJjS7aEGFfCmVj2wS
+         L5h5JiGz72ncSWx6yrFEW5IwjpklVvBdlMBba5BSIUN2rc8jRZRQqxOPigLMbWtYzmFi
+         gdw7xYgo1gWT2nUeQC13PnwWh13gZcIP2VaoLKoF/XdgNRrdRCoWfmXwwq9e/h09/4YM
+         JThbL7A2TjZbaTN8D6wuUBGYNH/cplWvwt5+b/EvRIWwDzlwFfV7EAkwf4F/Iw//XsTJ
+         Nc0/P485+NpZoi0EnXRF2qf4M+5u51zG1h8bZ8n5DVpQ801Me3UiyqksM0F1PbHu/x7k
+         Pi7A==
+X-Gm-Message-State: AOAM533dCw7mLNT9M9QJTb9BBQAMhXkDkjlb3vu2YK3IxdXOlgVUcU2U
+        /HVDuOBg651KB7sMbMn6F3TrcnCNwnyEA8l4jzXxPxBEIJxdlVgb
+X-Google-Smtp-Source: ABdhPJw/lSQmTshYM70tQVP24egHqi7meJRElMP56Q+foUzLSLkSsP46RArT/iuwNW8JzWSISmuWbBCFY3qSJWXq5UQ=
+X-Received: by 2002:a05:620a:1372:: with SMTP id d18mr292475qkl.6.1608543977483;
+ Mon, 21 Dec 2020 01:46:17 -0800 (PST)
+MIME-Version: 1.0
+References: <20201218140046.497484741326828e5b5d46ec@linux-foundation.org>
+ <20201218220233.pgX0nYYVt%akpm@linux-foundation.org> <X91JLZhrXYaLzoB8@elver.google.com>
+ <20201218171327.180140338d183b41a962742d@linux-foundation.org> <CAHk-=whK70LHzMw5SxUu_1NHkWtZc-o1PHyotkmwR49e2Jh6rw@mail.gmail.com>
+In-Reply-To: <CAHk-=whK70LHzMw5SxUu_1NHkWtZc-o1PHyotkmwR49e2Jh6rw@mail.gmail.com>
+From:   Alexander Potapenko <glider@google.com>
+Date:   Mon, 21 Dec 2020 10:46:05 +0100
+Message-ID: <CAG_fn=UuweEsetS8o-wwrke=9JQOxFvDvjRjG9Y8YG+5bLpfOA@mail.gmail.com>
+Subject: Re: [patch 21/78] kasan: split out shadow.c from common.c
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Marco Elver <elver@google.com>,
+        Andrey Konovalov <andreyknvl@google.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Branislav Rankov <Branislav.Rankov@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Evgeniy Stepanov <eugenis@google.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Kevin Brodsky <kevin.brodsky@arm.com>,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Vincenzo Frascino <vincenzo.frascino@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sat, Dec 19, 2020 at 8:17 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+> On Fri, Dec 18, 2020 at 5:13 PM Andrew Morton <akpm@linux-foundation.org>=
+ wrote:
+> >
+> > Sigh.  I don't have access to my capable-of-compiling-KASAN machine at
+> > present :(  We'll need this, yes?
+>
+> Four of the patches in this patch-bomb mention the not-yet-existing
+> kfence.h header. This plus two others have it in the actual patch. The
+> fourth has it only as context.
+>
+> Two others mention kfence in some form or another.
+>
+> I think I'll drop all the kasan-related patches (and that's most of
+> it), and basically only keep the memcg and epoll ones from this
+> series.
 
-The patch titled
-     Subject: epoll: wire up syscall epoll_pwait2
-has been removed from the -mm tree.  Its filename was
-     epoll-wire-up-syscall-epoll_pwait2.patch
+@Andrew, were you planning to resend the KASAN series for 5.11? Do you
+need help with that?
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+It would be a pity to punt that big chunk of MTE-related work the
+folks did just because of the leftover KFENCE bits, we didn't mean to.
 
-------------------------------------------------------
-From: Willem de Bruijn <willemb@google.com>
-Subject: epoll: wire up syscall epoll_pwait2
+--=20
+Alexander Potapenko
+Software Engineer
 
-Split off from prev patch in the series that implements the syscall.
+Google Germany GmbH
+Erika-Mann-Stra=C3=9Fe, 33
+80636 M=C3=BCnchen
 
-Link: https://lkml.kernel.org/r/20201121144401.3727659-4-willemdebruijn.kernel@gmail.com
-Signed-off-by: Willem de Bruijn <willemb@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/alpha/kernel/syscalls/syscall.tbl      |    1 +
- arch/arm/tools/syscall.tbl                  |    1 +
- arch/arm64/include/asm/unistd.h             |    2 +-
- arch/arm64/include/asm/unistd32.h           |    2 ++
- arch/ia64/kernel/syscalls/syscall.tbl       |    1 +
- arch/m68k/kernel/syscalls/syscall.tbl       |    1 +
- arch/microblaze/kernel/syscalls/syscall.tbl |    1 +
- arch/mips/kernel/syscalls/syscall_n32.tbl   |    1 +
- arch/mips/kernel/syscalls/syscall_n64.tbl   |    1 +
- arch/mips/kernel/syscalls/syscall_o32.tbl   |    1 +
- arch/parisc/kernel/syscalls/syscall.tbl     |    1 +
- arch/powerpc/kernel/syscalls/syscall.tbl    |    1 +
- arch/s390/kernel/syscalls/syscall.tbl       |    1 +
- arch/sh/kernel/syscalls/syscall.tbl         |    1 +
- arch/sparc/kernel/syscalls/syscall.tbl      |    1 +
- arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
- arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
- arch/xtensa/kernel/syscalls/syscall.tbl     |    1 +
- include/linux/compat.h                      |    6 ++++++
- include/linux/syscalls.h                    |    5 +++++
- include/uapi/asm-generic/unistd.h           |    4 +++-
- kernel/sys_ni.c                             |    2 ++
- 22 files changed, 35 insertions(+), 2 deletions(-)
-
---- a/arch/alpha/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -480,3 +480,4 @@
- 548	common	pidfd_getfd			sys_pidfd_getfd
- 549	common	faccessat2			sys_faccessat2
- 550	common	process_madvise			sys_process_madvise
-+551	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/arm64/include/asm/unistd32.h~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -889,6 +889,8 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
- __SYSCALL(__NR_faccessat2, sys_faccessat2)
- #define __NR_process_madvise 440
- __SYSCALL(__NR_process_madvise, sys_process_madvise)
-+#define __NR_epoll_pwait2 441
-+__SYSCALL(__NR_epoll_pwait2, sys_epoll_pwait2)
- 
- /*
-  * Please add new compat syscalls above this comment and update
---- a/arch/arm64/include/asm/unistd.h~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/arm64/include/asm/unistd.h
-@@ -38,7 +38,7 @@
- #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
- #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
- 
--#define __NR_compat_syscalls		441
-+#define __NR_compat_syscalls		442
- #endif
- 
- #define __ARCH_WANT_SYS_CLONE
---- a/arch/arm/tools/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/arm/tools/syscall.tbl
-@@ -454,3 +454,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/ia64/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/ia64/kernel/syscalls/syscall.tbl
-@@ -361,3 +361,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/m68k/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/m68k/kernel/syscalls/syscall.tbl
-@@ -440,3 +440,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/microblaze/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/microblaze/kernel/syscalls/syscall.tbl
-@@ -446,3 +446,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/mips/kernel/syscalls/syscall_n32.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
-@@ -379,3 +379,4 @@
- 438	n32	pidfd_getfd			sys_pidfd_getfd
- 439	n32	faccessat2			sys_faccessat2
- 440	n32	process_madvise			sys_process_madvise
-+441	n32	epoll_pwait2			sys_epoll_pwait2
---- a/arch/mips/kernel/syscalls/syscall_n64.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
-@@ -355,3 +355,4 @@
- 438	n64	pidfd_getfd			sys_pidfd_getfd
- 439	n64	faccessat2			sys_faccessat2
- 440	n64	process_madvise			sys_process_madvise
-+441	n64	epoll_pwait2			sys_epoll_pwait2
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
-@@ -428,3 +428,4 @@
- 438	o32	pidfd_getfd			sys_pidfd_getfd
- 439	o32	faccessat2			sys_faccessat2
- 440	o32	process_madvise			sys_process_madvise
-+441	o32	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
---- a/arch/parisc/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/parisc/kernel/syscalls/syscall.tbl
-@@ -438,3 +438,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
---- a/arch/powerpc/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/powerpc/kernel/syscalls/syscall.tbl
-@@ -530,3 +530,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2		compat_sys_epoll_pwait2
---- a/arch/s390/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/s390/kernel/syscalls/syscall.tbl
-@@ -443,3 +443,4 @@
- 438  common	pidfd_getfd		sys_pidfd_getfd			sys_pidfd_getfd
- 439  common	faccessat2		sys_faccessat2			sys_faccessat2
- 440  common	process_madvise		sys_process_madvise		sys_process_madvise
-+441  common	epoll_pwait2		sys_epoll_pwait2		sys_epoll_pwait2
---- a/arch/sh/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/sh/kernel/syscalls/syscall.tbl
-@@ -443,3 +443,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/sparc/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -486,3 +486,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/arch/x86/entry/syscalls/syscall_32.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -445,3 +445,4 @@
- 438	i386	pidfd_getfd		sys_pidfd_getfd
- 439	i386	faccessat2		sys_faccessat2
- 440	i386	process_madvise		sys_process_madvise
-+441	i386	epoll_pwait2		sys_epoll_pwait2		compat_sys_epoll_pwait2
---- a/arch/x86/entry/syscalls/syscall_64.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -362,6 +362,7 @@
- 438	common	pidfd_getfd		sys_pidfd_getfd
- 439	common	faccessat2		sys_faccessat2
- 440	common	process_madvise		sys_process_madvise
-+441	common	epoll_pwait2		sys_epoll_pwait2
- 
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/arch/xtensa/kernel/syscalls/syscall.tbl~epoll-wire-up-syscall-epoll_pwait2
-+++ a/arch/xtensa/kernel/syscalls/syscall.tbl
-@@ -411,3 +411,4 @@
- 438	common	pidfd_getfd			sys_pidfd_getfd
- 439	common	faccessat2			sys_faccessat2
- 440	common	process_madvise			sys_process_madvise
-+441	common	epoll_pwait2			sys_epoll_pwait2
---- a/include/linux/compat.h~epoll-wire-up-syscall-epoll_pwait2
-+++ a/include/linux/compat.h
-@@ -537,6 +537,12 @@ asmlinkage long compat_sys_epoll_pwait(i
- 			int maxevents, int timeout,
- 			const compat_sigset_t __user *sigmask,
- 			compat_size_t sigsetsize);
-+asmlinkage long compat_sys_epoll_pwait2(int epfd,
-+			struct epoll_event __user *events,
-+			int maxevents,
-+			const struct __kernel_timespec __user *timeout,
-+			const compat_sigset_t __user *sigmask,
-+			compat_size_t sigsetsize);
- 
- /* fs/fcntl.c */
- asmlinkage long compat_sys_fcntl(unsigned int fd, unsigned int cmd,
---- a/include/linux/syscalls.h~epoll-wire-up-syscall-epoll_pwait2
-+++ a/include/linux/syscalls.h
-@@ -362,6 +362,11 @@ asmlinkage long sys_epoll_pwait(int epfd
- 				int maxevents, int timeout,
- 				const sigset_t __user *sigmask,
- 				size_t sigsetsize);
-+asmlinkage long sys_epoll_pwait2(int epfd, struct epoll_event __user *events,
-+				 int maxevents,
-+				 const struct __kernel_timespec __user *timeout,
-+				 const sigset_t __user *sigmask,
-+				 size_t sigsetsize);
- 
- /* fs/fcntl.c */
- asmlinkage long sys_dup(unsigned int fildes);
---- a/include/uapi/asm-generic/unistd.h~epoll-wire-up-syscall-epoll_pwait2
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -859,9 +859,11 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
- __SYSCALL(__NR_faccessat2, sys_faccessat2)
- #define __NR_process_madvise 440
- __SYSCALL(__NR_process_madvise, sys_process_madvise)
-+#define __NR_epoll_pwait2 441
-+__SC_COMP(__NR_epoll_pwait2, sys_epoll_pwait2, compat_sys_epoll_pwait2)
- 
- #undef __NR_syscalls
--#define __NR_syscalls 441
-+#define __NR_syscalls 442
- 
- /*
-  * 32 bit systems traditionally used different
---- a/kernel/sys_ni.c~epoll-wire-up-syscall-epoll_pwait2
-+++ a/kernel/sys_ni.c
-@@ -68,6 +68,8 @@ COND_SYSCALL(epoll_create1);
- COND_SYSCALL(epoll_ctl);
- COND_SYSCALL(epoll_pwait);
- COND_SYSCALL_COMPAT(epoll_pwait);
-+COND_SYSCALL(epoll_pwait2);
-+COND_SYSCALL_COMPAT(epoll_pwait2);
- 
- /* fs/fcntl.c */
- 
-_
-
-Patches currently in -mm which might be from willemb@google.com are
-
-
+Gesch=C3=A4ftsf=C3=BChrer: Paul Manicle, Halimah DeLaine Prado
+Registergericht und -nummer: Hamburg, HRB 86891
+Sitz der Gesellschaft: Hamburg
