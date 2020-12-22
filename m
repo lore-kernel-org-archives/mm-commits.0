@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 211DBC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 108BEC433E6
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8D6823137
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE6BB23133
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727326AbgLVUCh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:02:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45768 "EHLO mail.kernel.org"
+        id S1726289AbgLVUCi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:02:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726289AbgLVUCh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:02:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1E7F023137;
-        Tue, 22 Dec 2020 20:02:21 +0000 (UTC)
+        id S1727341AbgLVUCi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:02:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AED0C20771;
+        Tue, 22 Dec 2020 20:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667341;
-        bh=24kg3PNyKlXnB6Xe61RW6pY/C7fqdxm5pJlEpurIZYw=;
+        s=korg; t=1608667317;
+        bh=8O226vQPibDszPVjnip5QVA2WJlOWY1esr9ASN8tjZQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OGpn/ioGrNub06J0iS4FlJNbQT2o0xADJff5SMLvDGocPf0rRsufJRR7ZUYIIuqIi
-         1zu/sLHTSj1gXyGZbJCeCnu8iZR7svdPqV8/AKSvrL696r9f9jTkri5/52aF2tSK+y
-         Q7/n7EBLchOuFv3VY4BPBLMh4SQIrONxDhYobBb0=
-Date:   Tue, 22 Dec 2020 12:02:20 -0800
+        b=uzivVGqI6Q5nrAXYJhQJ8dfNihUIKSFg3uQ2QtHcZ9gKSkn70bGbsfs/Kgi7nlSDV
+         pExo0dR9ZC1B5cY8wPSJNegOElvcJ9d8zMq2FJlqAOK5dmZe64CNDSRFi4NiyqELQA
+         7rcbktUlUKgQhVW8O9gdhkmRzzMpVUmV7D90GP8s=
+Date:   Tue, 22 Dec 2020 12:01:56 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 39/60] kasan, arm64: enable CONFIG_KASAN_HW_TAGS
-Message-ID: <20201222200220.wzQYtRYE1%akpm@linux-foundation.org>
+Subject:  [patch 32/60] arm64: kasan: add arch layer for memory
+ tagging helpers
+Message-ID: <20201222200156.bCJvLZ_dr%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,16 +48,23 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: enable CONFIG_KASAN_HW_TAGS
+Subject: arm64: kasan: add arch layer for memory tagging helpers
 
-Hardware tag-based KASAN is now ready, enable the configuration option.
+This patch add a set of arch_*() memory tagging helpers currently only
+defined for arm64 when hardware tag-based KASAN is enabled.  These helpers
+will be used by KASAN runtime to implement the hardware tag-based mode.
 
-Link: https://lkml.kernel.org/r/a6fa50d3bb6b318e05c6389a44095be96442b8b0.1606161801.git.andreyknvl@google.com
+The arch-level indirection level is introduced to simplify adding hardware
+tag-based KASAN support for other architectures in the future by defining
+the appropriate arch_*() macros.
+
+Link: https://lkml.kernel.org/r/fc9e5bb71201c03131a2fc00a74125723568dda9.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -68,17 +76,61 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm64/include/asm/memory.h |    9 +++++++++
+ mm/kasan/kasan.h                |   26 ++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
---- a/arch/arm64/Kconfig~kasan-arm64-enable-config_kasan_hw_tags
-+++ a/arch/arm64/Kconfig
-@@ -137,6 +137,7 @@ config ARM64
- 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
- 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
- 	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
-+	select HAVE_ARCH_KASAN_HW_TAGS if (HAVE_ARCH_KASAN && ARM64_MTE)
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS
- 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
+--- a/arch/arm64/include/asm/memory.h~arm64-kasan-add-arch-layer-for-memory-tagging-helpers
++++ a/arch/arm64/include/asm/memory.h
+@@ -230,6 +230,15 @@ static inline const void *__tag_set(cons
+ 	return (const void *)(__addr | __tag_shifted(tag));
+ }
+ 
++#ifdef CONFIG_KASAN_HW_TAGS
++#define arch_enable_tagging()			mte_enable_kernel()
++#define arch_init_tags(max_tag)			mte_init_tags(max_tag)
++#define arch_get_random_tag()			mte_get_random_tag()
++#define arch_get_mem_tag(addr)			mte_get_mem_tag(addr)
++#define arch_set_mem_tag_range(addr, size, tag)	\
++			mte_set_mem_tag_range((addr), (size), (tag))
++#endif /* CONFIG_KASAN_HW_TAGS */
++
+ /*
+  * Physical vs virtual RAM address space conversion.  These are
+  * private definitions which should NOT be used outside memory.h
+--- a/mm/kasan/kasan.h~arm64-kasan-add-arch-layer-for-memory-tagging-helpers
++++ a/mm/kasan/kasan.h
+@@ -243,6 +243,32 @@ static inline const void *arch_kasan_set
+ #define reset_tag(addr)		((void *)arch_kasan_reset_tag(addr))
+ #define get_tag(addr)		arch_kasan_get_tag(addr)
+ 
++#ifdef CONFIG_KASAN_HW_TAGS
++
++#ifndef arch_enable_tagging
++#define arch_enable_tagging()
++#endif
++#ifndef arch_init_tags
++#define arch_init_tags(max_tag)
++#endif
++#ifndef arch_get_random_tag
++#define arch_get_random_tag()	(0xFF)
++#endif
++#ifndef arch_get_mem_tag
++#define arch_get_mem_tag(addr)	(0xFF)
++#endif
++#ifndef arch_set_mem_tag_range
++#define arch_set_mem_tag_range(addr, size, tag) ((void *)(addr))
++#endif
++
++#define hw_enable_tagging()			arch_enable_tagging()
++#define hw_init_tags(max_tag)			arch_init_tags(max_tag)
++#define hw_get_random_tag()			arch_get_random_tag()
++#define hw_get_mem_tag(addr)			arch_get_mem_tag(addr)
++#define hw_set_mem_tag_range(addr, size, tag)	arch_set_mem_tag_range((addr), (size), (tag))
++
++#endif /* CONFIG_KASAN_HW_TAGS */
++
+ /*
+  * Exported functions for interfaces called from assembly or from generated
+  * code. Declarations here to avoid warning about missing declarations.
 _
