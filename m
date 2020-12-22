@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69D5FC433E9
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 969ABC433E6
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DE6B20867
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72A2E23139
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727165AbgLVUBu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:01:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44908 "EHLO mail.kernel.org"
+        id S1727139AbgLVUBx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:01:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727139AbgLVUBu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:01:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5817A2332A;
-        Tue, 22 Dec 2020 20:01:21 +0000 (UTC)
+        id S1727201AbgLVUBw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:01:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 612A1221FF;
+        Tue, 22 Dec 2020 20:01:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667282;
-        bh=aZ20VFyvvs6LomSn07Oc4uZtBKQwry8f4qJ1pOVDoBk=;
+        s=korg; t=1608667296;
+        bh=qpMIML1/gII246ISYK6mXLCd8OVwFtW20z8VkUZtJjY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SEr5TZATQbH29/gA87nSbl2F7O5wlJWXX0VqlCl/cmCyWVQOi2CHvTIbOUhJsVzXf
-         eMK+RPzbaYEbTEl0kSd8Eknqu48vuqjfFTlv0+YgCOPQeexEcQORcKvh+oh20JsH8U
-         eYoXg0PUTqi+QMffJOCV0nfKX3gheQg3TP4eYXEQ=
-Date:   Tue, 22 Dec 2020 12:01:20 -0800
+        b=puLsTPjeZ0HNJ30FXoUw6b77hWljrgx7iVHvFMUjMNEp9XLKasPWgFNZxklZgXjT+
+         PzmeJvQuIqRoqo+2E6ZTtIBQFVFgOr9Fsp8YdotB8QlPNGi5C7aJKLOzUXL1UT6oWL
+         SfBPKdFsxB66J72DOp0FpiNDCFQnZvP23J5YQYAU=
+Date:   Tue, 22 Dec 2020 12:01:35 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 22/60] kasan: introduce CONFIG_KASAN_HW_TAGS
-Message-ID: <20201222200120.Kv4I4h0r3%akpm@linux-foundation.org>
+Subject:  [patch 26/60] arm64: mte: add in-kernel tag fault handler
+Message-ID: <20201222200135.bp8Ma_xt8%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,167 +46,165 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce CONFIG_KASAN_HW_TAGS
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: mte: add in-kernel tag fault handler
 
-This patch adds a configuration option for a new KASAN mode called
-hardware tag-based KASAN.  This mode uses the memory tagging approach like
-the software tag-based mode, but relies on arm64 Memory Tagging Extension
-feature for tag management and access checking.
+Add the implementation of the in-kernel fault handler.
 
-Link: https://lkml.kernel.org/r/44906a209d3a44f9c6f5a21841e90988e365601e.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+When a tag fault happens on a kernel address:
+* MTE is disabled on the current CPU,
+* the execution continues.
+
+When a tag fault happens on a user address:
+* the kernel executes do_bad_area() and panics.
+
+The tag fault handler for kernel addresses is currently empty and will be
+filled in by a future commit.
+
+Link: https://lkml.kernel.org/r/ad31529b073e22840b7a2246172c2b67747ed7c4.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
+[catalin.marinas@arm.com: ensure CONFIG_ARM64_PAN is enabled with MTE]
+  Link: https://lkml.kernel.org/r/20201203102628.GB2224@gaia
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |   61 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 44 insertions(+), 17 deletions(-)
+ arch/arm64/Kconfig               |    2 +
+ arch/arm64/include/asm/uaccess.h |   23 ++++++++++++++
+ arch/arm64/mm/fault.c            |   45 +++++++++++++++++++++++++++++
+ 3 files changed, 70 insertions(+)
 
---- a/lib/Kconfig.kasan~kasan-introduce-config_kasan_hw_tags
-+++ a/lib/Kconfig.kasan
-@@ -6,7 +6,10 @@ config HAVE_ARCH_KASAN
- config HAVE_ARCH_KASAN_SW_TAGS
- 	bool
+--- a/arch/arm64/include/asm/uaccess.h~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -159,8 +159,28 @@ static inline void __uaccess_enable_hw_p
+ 			CONFIG_ARM64_PAN));
+ }
  
--config	HAVE_ARCH_KASAN_VMALLOC
-+config HAVE_ARCH_KASAN_HW_TAGS
-+	bool
++/*
++ * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
++ * affects EL0 and TCF affects EL1 irrespective of which TTBR is
++ * used.
++ * The kernel accesses TTBR0 usually with LDTR/STTR instructions
++ * when UAO is available, so these would act as EL0 accesses using
++ * TCF0.
++ * However futex.h code uses exclusives which would be executed as
++ * EL1, this can potentially cause a tag check fault even if the
++ * user disables TCF0.
++ *
++ * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
++ * and reset it in uaccess_disable().
++ *
++ * The Tag check override (TCO) bit disables temporarily the tag checking
++ * preventing the issue.
++ */
+ static inline void uaccess_disable_privileged(void)
+ {
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
 +
-+config HAVE_ARCH_KASAN_VMALLOC
- 	bool
+ 	if (uaccess_ttbr0_disable())
+ 		return;
  
- config CC_HAS_KASAN_GENERIC
-@@ -15,16 +18,19 @@ config CC_HAS_KASAN_GENERIC
- config CC_HAS_KASAN_SW_TAGS
- 	def_bool $(cc-option, -fsanitize=kernel-hwaddress)
+@@ -169,6 +189,9 @@ static inline void uaccess_disable_privi
  
-+# This option is only required for software KASAN modes.
-+# Old GCC versions don't have proper support for no_sanitize_address.
-+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89124 for details.
- config CC_HAS_WORKING_NOSANITIZE_ADDRESS
- 	def_bool !CC_IS_GCC || GCC_VERSION >= 80300
+ static inline void uaccess_enable_privileged(void)
+ {
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
++
+ 	if (uaccess_ttbr0_enable())
+ 		return;
  
- menuconfig KASAN
- 	bool "KASAN: runtime memory debugger"
--	depends on (HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
--		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
-+	depends on (((HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
-+		     (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)) && \
-+		    CC_HAS_WORKING_NOSANITIZE_ADDRESS) || \
-+		   HAVE_ARCH_KASAN_HW_TAGS
- 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
--	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
--	select CONSTRUCTORS
- 	select STACKDEPOT
+--- a/arch/arm64/Kconfig~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/Kconfig
+@@ -1649,6 +1649,8 @@ config ARM64_MTE
+ 	default y
+ 	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
+ 	depends on AS_HAS_ARMV8_5
++	# Required for tag checking in the uaccess routines
++	depends on ARM64_PAN
+ 	select ARCH_USES_HIGH_VMA_FLAGS
  	help
- 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
-@@ -37,18 +43,24 @@ choice
- 	prompt "KASAN mode"
- 	default KASAN_GENERIC
- 	help
--	  KASAN has two modes: generic KASAN (similar to userspace ASan,
--	  x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC) and
--	  software tag-based KASAN (a version based on software memory
--	  tagging, arm64 only, similar to userspace HWASan, enabled with
--	  CONFIG_KASAN_SW_TAGS).
-+	  KASAN has three modes:
-+	  1. generic KASAN (similar to userspace ASan,
-+	     x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC),
-+	  2. software tag-based KASAN (arm64 only, based on software
-+	     memory tagging (similar to userspace HWASan), enabled with
-+	     CONFIG_KASAN_SW_TAGS), and
-+	  3. hardware tag-based KASAN (arm64 only, based on hardware
-+	     memory tagging, enabled with CONFIG_KASAN_HW_TAGS).
+ 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
+--- a/arch/arm64/mm/fault.c~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/mm/fault.c
+@@ -33,6 +33,7 @@
+ #include <asm/debug-monitors.h>
+ #include <asm/esr.h>
+ #include <asm/kprobes.h>
++#include <asm/mte.h>
+ #include <asm/processor.h>
+ #include <asm/sysreg.h>
+ #include <asm/system_misc.h>
+@@ -296,6 +297,44 @@ static void die_kernel_fault(const char
+ 	do_exit(SIGKILL);
+ }
+ 
++static void report_tag_fault(unsigned long addr, unsigned int esr,
++			     struct pt_regs *regs)
++{
++}
 +
-+	  All KASAN modes are strictly debugging features.
- 
--	  Both generic and tag-based KASAN are strictly debugging features.
-+	  For better error reports enable CONFIG_STACKTRACE.
- 
- config KASAN_GENERIC
- 	bool "Generic mode"
- 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
- 	select SLUB_DEBUG if SLUB
-+	select CONSTRUCTORS
- 	help
- 	  Enables generic KASAN mode.
- 
-@@ -61,8 +73,6 @@ config KASAN_GENERIC
- 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
- 	  The performance slowdown is ~x3.
- 
--	  For better error detection enable CONFIG_STACKTRACE.
--
- 	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
- 
-@@ -70,11 +80,15 @@ config KASAN_SW_TAGS
- 	bool "Software tag-based mode"
- 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
- 	select SLUB_DEBUG if SLUB
-+	select CONSTRUCTORS
- 	help
- 	  Enables software tag-based KASAN mode.
- 
--	  This mode requires Top Byte Ignore support by the CPU and therefore
--	  is only supported for arm64. This mode requires Clang.
-+	  This mode require software memory tagging support in the form of
-+	  HWASan-like compiler instrumentation.
++static void do_tag_recovery(unsigned long addr, unsigned int esr,
++			   struct pt_regs *regs)
++{
++	static bool reported;
 +
-+	  Currently this mode is only implemented for arm64 CPUs and relies on
-+	  Top Byte Ignore. This mode requires Clang.
- 
- 	  This mode consumes about 1/16th of available memory at kernel start
- 	  and introduces an overhead of ~20% for the rest of the allocations.
-@@ -82,15 +96,27 @@ config KASAN_SW_TAGS
- 	  casting and comparison, as it embeds tags into the top byte of each
- 	  pointer.
- 
--	  For better error detection enable CONFIG_STACKTRACE.
--
- 	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
- 
-+config KASAN_HW_TAGS
-+	bool "Hardware tag-based mode"
-+	depends on HAVE_ARCH_KASAN_HW_TAGS
-+	depends on SLUB
-+	help
-+	  Enables hardware tag-based KASAN mode.
++	if (!READ_ONCE(reported)) {
++		report_tag_fault(addr, esr, regs);
++		WRITE_ONCE(reported, true);
++	}
 +
-+	  This mode requires hardware memory tagging support, and can be used
-+	  by any architecture that provides it.
++	/*
++	 * Disable MTE Tag Checking on the local CPU for the current EL.
++	 * It will be done lazily on the other CPUs when they will hit a
++	 * tag fault.
++	 */
++	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_NONE);
++	isb();
++}
 +
-+	  Currently this mode is only implemented for arm64 CPUs starting from
-+	  ARMv8.5 and relies on Memory Tagging Extension and Top Byte Ignore.
++static bool is_el1_mte_sync_tag_check_fault(unsigned int esr)
++{
++	unsigned int ec = ESR_ELx_EC(esr);
++	unsigned int fsc = esr & ESR_ELx_FSC;
 +
- endchoice
++	if (ec != ESR_ELx_EC_DABT_CUR)
++		return false;
++
++	if (fsc == ESR_ELx_FSC_MTE)
++		return true;
++
++	return false;
++}
++
+ static void __do_kernel_fault(unsigned long addr, unsigned int esr,
+ 			      struct pt_regs *regs)
+ {
+@@ -312,6 +351,12 @@ static void __do_kernel_fault(unsigned l
+ 	    "Ignoring spurious kernel translation fault at virtual address %016lx\n", addr))
+ 		return;
  
- choice
- 	prompt "Instrumentation type"
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	default KASAN_OUTLINE
- 
- config KASAN_OUTLINE
-@@ -114,6 +140,7 @@ endchoice
- 
- config KASAN_STACK_ENABLE
- 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	help
- 	  The LLVM stack address sanitizer has a know problem that
- 	  causes excessive stack usage in a lot of functions, see
++	if (is_el1_mte_sync_tag_check_fault(esr)) {
++		do_tag_recovery(addr, esr, regs);
++
++		return;
++	}
++
+ 	if (is_el1_permission_fault(addr, esr, regs)) {
+ 		if (esr & ESR_ELx_WNR)
+ 			msg = "write to read-only memory";
 _
