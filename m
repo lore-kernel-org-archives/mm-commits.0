@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA385C433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8335C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B23DE20855
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BA4D20855
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727071AbgLVUDi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:03:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47132 "EHLO mail.kernel.org"
+        id S1727201AbgLVUDl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:03:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726486AbgLVUDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:03:38 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC1EB20855;
-        Tue, 22 Dec 2020 20:02:56 +0000 (UTC)
+        id S1726486AbgLVUDl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:03:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0850B23133;
+        Tue, 22 Dec 2020 20:03:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667377;
-        bh=KtQ8zqniFHEwjOHUzzt9kqDNd7huicdLPzTDnHqEmzo=;
+        s=korg; t=1608667405;
+        bh=JM8QWrDg7sBMI5LsEMe0za0IAKlgysbCmniUFjiFTvI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wnXTFkBd1Gqn7XG7XVAnYtu3u8Xij+u75Uols6Hc71Y8ww64ZGFc5L1IZ03eQEsF6
-         xyPp6ev7bYLeJaq9L+k2/rcL66I50HNcc5mTWYOT44O95OUReqn8rB7QUwVidGaWOt
-         xTUiLTUCBWyC6y/Oh6vJSLpLUCKuBbGqdSdSHjC0=
-Date:   Tue, 22 Dec 2020 12:02:56 -0800
+        b=nclu423SdrM8qiuSa+xzq5QFk/c3R0I3QHYtD77yKQ1vuKW7+zC5vE0I6w9m3IovR
+         cYgZENXCZ4maG9OZlsPnIPWddDUKDH1jtjeU1VPZ88zcJnRghTd3e0UQ09CG8BFVCV
+         MP8zc2ICFc4FuBY4/9kpWGKsAt/0wMUU1aOk+BAg=
+Date:   Tue, 22 Dec 2020 12:03:24 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 49/60] kasan: inline random_tag for HW_TAGS
-Message-ID: <20201222200256.8RSW2lfSj%akpm@linux-foundation.org>
+Subject:  [patch 57/60] kasan: clarify comment in
+ __kasan_kfree_large
+Message-ID: <20201222200324.fNkB_D1hi%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,17 +48,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: inline random_tag for HW_TAGS
+Subject: kasan: clarify comment in __kasan_kfree_large
 
-Using random_tag() currently results in a function call. Move its
-definition to mm/kasan/kasan.h and turn it into a static inline function
-for hardware tag-based mode to avoid uneeded function calls.
+Currently it says that the memory gets poisoned by page_alloc code. 
+Clarify this by mentioning the specific callback that poisons the memory.
 
-Link: https://lkml.kernel.org/r/be438471690e351e1d792e6bb432e8c03ccb15d3.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Iac5b2faf9a912900e16cca6834d621f5d4abf427
+Link: https://lkml.kernel.org/r/1c8380fe0332a3bcc720fe29f1e0bef2e2974416.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I1334dffb69b87d7986fab88a1a039cc3ea764725
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -70,76 +70,16 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |    5 -----
- mm/kasan/kasan.h   |   31 ++++++++++++++-----------------
- 2 files changed, 14 insertions(+), 22 deletions(-)
+ mm/kasan/common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/hw_tags.c~kasan-inline-random_tag-for-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -42,11 +42,6 @@ void unpoison_range(const void *address,
- 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+--- a/mm/kasan/common.c~kasan-clarify-comment-in-__kasan_kfree_large
++++ a/mm/kasan/common.c
+@@ -446,5 +446,5 @@ void __kasan_kfree_large(void *ptr, unsi
+ {
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+ 		kasan_report_invalid_free(ptr, ip);
+-	/* The object will be poisoned by page_alloc. */
++	/* The object will be poisoned by kasan_free_pages(). */
  }
- 
--u8 random_tag(void)
--{
--	return hw_get_random_tag();
--}
--
- bool check_invalid_free(void *addr)
- {
- 	u8 ptr_tag = get_tag(addr);
---- a/mm/kasan/kasan.h~kasan-inline-random_tag-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -190,6 +190,12 @@ static inline bool addr_has_metadata(con
- 
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+void print_tags(u8 addr_tag, const void *addr);
-+#else
-+static inline void print_tags(u8 addr_tag, const void *addr) { }
-+#endif
-+
- bool check_invalid_free(void *addr);
- 
- void *find_first_bad_addr(void *addr, size_t size);
-@@ -225,23 +231,6 @@ static inline void quarantine_reduce(voi
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
- 
--#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
--
--void print_tags(u8 addr_tag, const void *addr);
--
--u8 random_tag(void);
--
--#else
--
--static inline void print_tags(u8 addr_tag, const void *addr) { }
--
--static inline u8 random_tag(void)
--{
--	return 0;
--}
--
--#endif
--
- #ifndef arch_kasan_set_tag
- static inline const void *arch_kasan_set_tag(const void *addr, u8 tag)
- {
-@@ -281,6 +270,14 @@ static inline const void *arch_kasan_set
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
-+#ifdef CONFIG_KASAN_SW_TAGS
-+u8 random_tag(void);
-+#elif defined(CONFIG_KASAN_HW_TAGS)
-+static inline u8 random_tag(void) { return hw_get_random_tag(); }
-+#else
-+static inline u8 random_tag(void) { return 0; }
-+#endif
-+
- /*
-  * Exported functions for interfaces called from assembly or from generated
-  * code. Declarations here to avoid warning about missing declarations.
 _
