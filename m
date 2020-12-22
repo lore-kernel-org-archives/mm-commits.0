@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C3C0C433E6
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A9F4C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D13C023139
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F38CB23139
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726605AbgLVUDY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:03:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46870 "EHLO mail.kernel.org"
+        id S1726614AbgLVUDa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:03:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgLVUDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:03:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A4CB23133;
-        Tue, 22 Dec 2020 20:02:42 +0000 (UTC)
+        id S1725913AbgLVUDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:03:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F1C821D81;
+        Tue, 22 Dec 2020 20:03:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667363;
-        bh=WNKVRpkZq69N5UEbck7KrA2+8iIlHIEGJXiayP/E030=;
+        s=korg; t=1608667394;
+        bh=9TsHQ6uDKwIEBcEbiKo3oU2d3k0N/gw6C3j6ssode7M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZDVJlZjsw1Gdr45ZH6YWl3IMS79zWl55jWI6EmoOZvb53VzdC7UysN0FlKq2x2ZMR
-         /eQJexKdxsPpG2H5DAd/B96v8D2FnO+Fkj+55hej3WoWtKzGMCdqVAflJ923cv+vl8
-         U3HqIS22KrGEgbXNdlsgR0ejWfHgFqxCUEv1CgcM=
-Date:   Tue, 22 Dec 2020 12:02:42 -0800
+        b=g4ZxiF5BD9oUF0yMZvieVnSLMmYApQTke2TZDfr4nhvMIvzmII+yIfkiUBkESKOXw
+         IH3V8ZDa3hDxzyABoA8UtXUeyjq/Xa9ccHSm001GSn7z5HjWeDNP2SreCs5SGacTpq
+         QP1PAPOgyGYETIAeJBv4weLDnB55ARjqeo35nS6Q=
+Date:   Tue, 22 Dec 2020 12:03:13 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 45/60] kasan, arm64: unpoison stack only with
- CONFIG_KASAN_STACK
-Message-ID: <20201222200242.WjED4h0iJ%akpm@linux-foundation.org>
+Subject:  [patch 54/60] kasan, mm: rename kasan_poison_kfree
+Message-ID: <20201222200313.0kdHaewuD%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,30 +47,24 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+Subject: kasan, mm: rename kasan_poison_kfree
 
-There's a config option CONFIG_KASAN_STACK that has to be enabled for
-KASAN to use stack instrumentation and perform validity checks for
-stack variables.
+Rename kasan_poison_kfree() to kasan_slab_free_mempool() as it better
+reflects what this annotation does. Also add a comment that explains the
+PageSlab() check.
 
-There's no need to unpoison stack when CONFIG_KASAN_STACK is not enabled.
-Only call kasan_unpoison_task_stack[_below]() when CONFIG_KASAN_STACK is
-enabled.
+No functional changes.
 
-Note, that CONFIG_KASAN_STACK is an option that is currently always
-defined when CONFIG_KASAN is enabled, and therefore has to be tested
-with #if instead of #ifdef.
-
-Link: https://lkml.kernel.org/r/d09dd3f8abb388da397fd11598c5edeaa83fe559.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/If8a891e9fe01ea543e00b576852685afec0887e3
+Link: https://lkml.kernel.org/r/141675fb493555e984c5dca555e9d9f768c7bbaa.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I5026f87364e556b506ef1baee725144bb04b8810
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -79,83 +72,122 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/sleep.S        |    2 +-
- arch/x86/kernel/acpi/wakeup_64.S |    2 +-
- include/linux/kasan.h            |   10 ++++++----
- mm/kasan/common.c                |    2 ++
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ include/linux/kasan.h |   16 ++++++++--------
+ mm/kasan/common.c     |   40 +++++++++++++++++++++++-----------------
+ mm/mempool.c          |    2 +-
+ 3 files changed, 32 insertions(+), 26 deletions(-)
 
---- a/arch/arm64/kernel/sleep.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/arm64/kernel/sleep.S
-@@ -133,7 +133,7 @@ SYM_FUNC_START(_cpu_resume)
- 	 */
- 	bl	cpu_do_resume
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	mov	x0, sp
- 	bl	kasan_unpoison_task_stack_below
- #endif
---- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/x86/kernel/acpi/wakeup_64.S
-@@ -112,7 +112,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
- 	movq	pt_regs_r14(%rax), %r14
- 	movq	pt_regs_r15(%rax), %r15
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	/*
- 	 * The suspend path may have poisoned some areas deeper in the stack,
- 	 * which we now need to unpoison.
---- a/include/linux/kasan.h~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
+--- a/include/linux/kasan.h~kasan-mm-rename-kasan_poison_kfree
 +++ a/include/linux/kasan.h
-@@ -77,8 +77,6 @@ static inline void kasan_disable_current
+@@ -176,6 +176,13 @@ static __always_inline bool kasan_slab_f
+ 	return false;
+ }
  
- void kasan_unpoison_range(const void *address, size_t size);
++void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
++static __always_inline void kasan_slab_free_mempool(void *ptr, unsigned long ip)
++{
++	if (kasan_enabled())
++		__kasan_slab_free_mempool(ptr, ip);
++}
++
+ void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
+ 				       void *object, gfp_t flags);
+ static __always_inline void * __must_check kasan_slab_alloc(
+@@ -216,13 +223,6 @@ static __always_inline void * __must_che
+ 	return (void *)object;
+ }
  
--void kasan_unpoison_task_stack(struct task_struct *task);
+-void __kasan_poison_kfree(void *ptr, unsigned long ip);
+-static __always_inline void kasan_poison_kfree(void *ptr, unsigned long ip)
+-{
+-	if (kasan_enabled())
+-		__kasan_poison_kfree(ptr, ip);
+-}
 -
- void kasan_alloc_pages(struct page *page, unsigned int order);
- void kasan_free_pages(struct page *page, unsigned int order);
- 
-@@ -123,8 +121,6 @@ void kasan_restore_multi_shot(bool enabl
- 
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
- 
--static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
--
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
- 
-@@ -176,6 +172,12 @@ static inline size_t kasan_metadata_size
+ void __kasan_kfree_large(void *ptr, unsigned long ip);
+ static __always_inline void kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+@@ -261,6 +261,7 @@ static inline bool kasan_slab_free(struc
+ {
+ 	return false;
+ }
++static inline void kasan_slab_free_mempool(void *ptr, unsigned long ip) {}
+ static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+ 				   gfp_t flags)
+ {
+@@ -280,7 +281,6 @@ static inline void *kasan_krealloc(const
+ {
+ 	return (void *)object;
+ }
+-static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
+ static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
  
  #endif /* CONFIG_KASAN */
- 
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
-+void kasan_unpoison_task_stack(struct task_struct *task);
-+#else
-+static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
-+#endif
-+
- #ifdef CONFIG_KASAN_GENERIC
- 
- void kasan_cache_shrink(struct kmem_cache *cache);
---- a/mm/kasan/common.c~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
+--- a/mm/kasan/common.c~kasan-mm-rename-kasan_poison_kfree
 +++ a/mm/kasan/common.c
-@@ -63,6 +63,7 @@ void kasan_unpoison_range(const void *ad
- 	unpoison_range(address, size);
+@@ -331,6 +331,29 @@ bool __kasan_slab_free(struct kmem_cache
+ 	return ____kasan_slab_free(cache, object, ip, true);
  }
  
-+#if CONFIG_KASAN_STACK
- static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
++void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
++{
++	struct page *page;
++
++	page = virt_to_head_page(ptr);
++
++	/*
++	 * Even though this function is only called for kmem_cache_alloc and
++	 * kmalloc backed mempool allocations, those allocations can still be
++	 * !PageSlab() when the size provided to kmalloc is larger than
++	 * KMALLOC_MAX_SIZE, and kmalloc falls back onto page_alloc.
++	 */
++	if (unlikely(!PageSlab(page))) {
++		if (ptr != page_address(page)) {
++			kasan_report_invalid_free(ptr, ip);
++			return;
++		}
++		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
++	} else {
++		____kasan_slab_free(page->slab_cache, ptr, ip, false);
++	}
++}
++
+ static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
  {
- 	void *base = task_stack_page(task);
-@@ -89,6 +90,7 @@ asmlinkage void kasan_unpoison_task_stac
- 
- 	unpoison_range(base, watermark - base);
+ 	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
+@@ -422,23 +445,6 @@ void * __must_check __kasan_krealloc(con
+ 						flags, true);
  }
-+#endif /* CONFIG_KASAN_STACK */
  
- void kasan_alloc_pages(struct page *page, unsigned int order)
+-void __kasan_poison_kfree(void *ptr, unsigned long ip)
+-{
+-	struct page *page;
+-
+-	page = virt_to_head_page(ptr);
+-
+-	if (unlikely(!PageSlab(page))) {
+-		if (ptr != page_address(page)) {
+-			kasan_report_invalid_free(ptr, ip);
+-			return;
+-		}
+-		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
+-	} else {
+-		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+-	}
+-}
+-
+ void __kasan_kfree_large(void *ptr, unsigned long ip)
  {
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+--- a/mm/mempool.c~kasan-mm-rename-kasan_poison_kfree
++++ a/mm/mempool.c
+@@ -104,7 +104,7 @@ static inline void poison_element(mempoo
+ static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
+ {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_poison_kfree(element, _RET_IP_);
++		kasan_slab_free_mempool(element, _RET_IP_);
+ 	else if (pool->alloc == mempool_alloc_pages)
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
 _
