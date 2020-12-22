@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA9AC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1413C433E6
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B62821D81
+	by mail.kernel.org (Postfix) with ESMTP id C0E0A22583
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727314AbgLVUCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:02:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44910 "EHLO mail.kernel.org"
+        id S1727325AbgLVUCY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:02:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725850AbgLVUCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:02:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E856320700;
-        Tue, 22 Dec 2020 20:02:06 +0000 (UTC)
+        id S1725850AbgLVUCY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:02:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D206022583;
+        Tue, 22 Dec 2020 20:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667327;
-        bh=mphpU/kKZiL4hPerdJpms8BqxL07kb338OrSwnPQhrQ=;
+        s=korg; t=1608667303;
+        bh=DDDH2RVDluwp8itwATWBD8/EvB5Hgdjo8/Xdk/NWnkg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Cquy94+JT5R2YooukclKkDdhvBC/Qumn3lR1ol7r9i1CBUM0oVfKD0XKeQeR+VsxH
-         /rqbt5tOXE6X5qLRASB/Rq8XZVzQw7Gdi9vqzriUfoguIbQYNvenSNSb04qII9b1Tu
-         gqaNXrkNypm3e7Gnj4HiLH2TCj68Zo1udnE3aPEc=
-Date:   Tue, 22 Dec 2020 12:02:06 -0800
+        b=qEXg0vgyKFYriHUgfT5UgYkNSdwl39se4/S6jmPzp6jkcICATClKVG/SFQFiVC812
+         ayijQGBNP/0j7DKP6kzeykNBi6XCZmlrfBtvqASwPZPLv+zwSlO7pSYyhz7bMwcE/a
+         PYdH5stzcvDhpY2ClpNWDqbb3p500oqiWV8t9p+M=
+Date:   Tue, 22 Dec 2020 12:01:42 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 35/60] kasan, arm64: expand CONFIG_KASAN checks
-Message-ID: <20201222200206.DFpU_FeHE%akpm@linux-foundation.org>
+Subject:  [patch 28/60] arm64: mte: convert gcr_user into an
+ exclude mask
+Message-ID: <20201222200142.y7aeQtVE1%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,19 +47,30 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: expand CONFIG_KASAN checks
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: mte: convert gcr_user into an exclude mask
 
-Some #ifdef CONFIG_KASAN checks are only relevant for software KASAN modes
-(either related to shadow memory or compiler instrumentation).  Expand
-those into CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS.
+The gcr_user mask is a per thread mask that represents the tags that are
+excluded from random generation when the Memory Tagging Extension is
+present and an 'irg' instruction is invoked.
 
-Link: https://lkml.kernel.org/r/e6971e432dbd72bb897ff14134ebb7e169bdcf0c.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+gcr_user affects the behavior on EL0 only.
+
+Currently that mask is an include mask and it is controlled by the user
+via prctl() while GCR_EL1 accepts an exclude mask.
+
+Convert the include mask into an exclude one to make it easier the
+register setting.
+
+Note: This change will affect gcr_kernel (for EL1) introduced with a
+future patch.
+
+Link: https://lkml.kernel.org/r/946dd31be833b660334c4f93410acf6d6c4cf3c4.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -70,298 +82,113 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig                 |    2 +-
- arch/arm64/Makefile                |    2 +-
- arch/arm64/include/asm/assembler.h |    2 +-
- arch/arm64/include/asm/memory.h    |    2 +-
- arch/arm64/include/asm/string.h    |    5 +++--
- arch/arm64/kernel/head.S           |    2 +-
- arch/arm64/kernel/image-vars.h     |    2 +-
- arch/arm64/kernel/kaslr.c          |    3 ++-
- arch/arm64/kernel/module.c         |    6 ++++--
- arch/arm64/mm/ptdump.c             |    6 +++---
- include/linux/kasan-checks.h       |    2 +-
- include/linux/kasan.h              |    7 ++++---
- include/linux/moduleloader.h       |    3 ++-
- include/linux/string.h             |    2 +-
- mm/ptdump.c                        |   13 ++++++++-----
- scripts/Makefile.lib               |    2 ++
- 16 files changed, 36 insertions(+), 25 deletions(-)
+ arch/arm64/include/asm/processor.h |    2 -
+ arch/arm64/kernel/mte.c            |   29 +++++++++++++--------------
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/include/asm/assembler.h~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/include/asm/assembler.h
-@@ -473,7 +473,7 @@ USER(\label, ic	ivau, \tmp2)			// invali
- #define NOKPROBE(x)
+--- a/arch/arm64/include/asm/processor.h~arm64-mte-convert-gcr_user-into-an-exclude-mask
++++ a/arch/arm64/include/asm/processor.h
+@@ -152,7 +152,7 @@ struct thread_struct {
  #endif
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- #define EXPORT_SYMBOL_NOKASAN(name)
- #else
- #define EXPORT_SYMBOL_NOKASAN(name)	EXPORT_SYMBOL(name)
---- a/arch/arm64/include/asm/memory.h~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/include/asm/memory.h
-@@ -72,7 +72,7 @@
-  * address space for the shadow region respectively. They can bloat the stack
-  * significantly, so double the (minimum) stack size when they are in use.
-  */
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- #define KASAN_SHADOW_OFFSET	_AC(CONFIG_KASAN_SHADOW_OFFSET, UL)
- #define KASAN_SHADOW_END	((UL(1) << (64 - KASAN_SHADOW_SCALE_SHIFT)) \
- 					+ KASAN_SHADOW_OFFSET)
---- a/arch/arm64/include/asm/string.h~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/include/asm/string.h
-@@ -5,7 +5,7 @@
- #ifndef __ASM_STRING_H
- #define __ASM_STRING_H
- 
--#ifndef CONFIG_KASAN
-+#if !(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
- #define __HAVE_ARCH_STRRCHR
- extern char *strrchr(const char *, int c);
- 
-@@ -48,7 +48,8 @@ extern void *__memset(void *, int, __ker
- void memcpy_flushcache(void *dst, const void *src, size_t cnt);
- #endif
- 
--#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+	!defined(__SANITIZE_ADDRESS__)
- 
- /*
-  * For files that are not instrumented (e.g. mm/slub.c) we
---- a/arch/arm64/Kconfig~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/Kconfig
-@@ -334,7 +334,7 @@ config BROKEN_GAS_INST
- 
- config KASAN_SHADOW_OFFSET
- 	hex
--	depends on KASAN
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	default 0xdfff800000000000 if (ARM64_VA_BITS_48 || ARM64_VA_BITS_52) && !KASAN_SW_TAGS
- 	default 0xdfffc00000000000 if ARM64_VA_BITS_47 && !KASAN_SW_TAGS
- 	default 0xdffffe0000000000 if ARM64_VA_BITS_42 && !KASAN_SW_TAGS
---- a/arch/arm64/kernel/head.S~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/kernel/head.S
-@@ -433,7 +433,7 @@ SYM_FUNC_START_LOCAL(__primary_switched)
- 	bl	__pi_memset
- 	dsb	ishst				// Make zero page visible to PTW
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	bl	kasan_early_init
- #endif
- #ifdef CONFIG_RANDOMIZE_BASE
---- a/arch/arm64/kernel/image-vars.h~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/kernel/image-vars.h
-@@ -37,7 +37,7 @@ __efistub_strncmp		= __pi_strncmp;
- __efistub_strrchr		= __pi_strrchr;
- __efistub___clean_dcache_area_poc = __pi___clean_dcache_area_poc;
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- __efistub___memcpy		= __pi_memcpy;
- __efistub___memmove		= __pi_memmove;
- __efistub___memset		= __pi_memset;
---- a/arch/arm64/kernel/kaslr.c~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/kernel/kaslr.c
-@@ -161,7 +161,8 @@ u64 __init kaslr_early_init(u64 dt_phys)
- 	/* use the top 16 bits to randomize the linear region */
- 	memstart_offset_seed = seed >> 48;
- 
--	if (IS_ENABLED(CONFIG_KASAN))
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC) ||
-+	    IS_ENABLED(CONFIG_KASAN_SW_TAGS))
- 		/*
- 		 * KASAN does not expect the module region to intersect the
- 		 * vmalloc region, since shadow memory is allocated for each
---- a/arch/arm64/kernel/module.c~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/kernel/module.c
-@@ -30,7 +30,8 @@ void *module_alloc(unsigned long size)
- 	if (IS_ENABLED(CONFIG_ARM64_MODULE_PLTS))
- 		gfp_mask |= __GFP_NOWARN;
- 
--	if (IS_ENABLED(CONFIG_KASAN))
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC) ||
-+	    IS_ENABLED(CONFIG_KASAN_SW_TAGS))
- 		/* don't exceed the static module region - see below */
- 		module_alloc_end = MODULES_END;
- 
-@@ -39,7 +40,8 @@ void *module_alloc(unsigned long size)
- 				NUMA_NO_NODE, __builtin_return_address(0));
- 
- 	if (!p && IS_ENABLED(CONFIG_ARM64_MODULE_PLTS) &&
--	    !IS_ENABLED(CONFIG_KASAN))
-+	    !IS_ENABLED(CONFIG_KASAN_GENERIC) &&
-+	    !IS_ENABLED(CONFIG_KASAN_SW_TAGS))
- 		/*
- 		 * KASAN can only deal with module allocations being served
- 		 * from the reserved module region, since the remainder of
---- a/arch/arm64/Makefile~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/Makefile
-@@ -137,7 +137,7 @@ head-y		:= arch/arm64/kernel/head.o
- 
- ifeq ($(CONFIG_KASAN_SW_TAGS), y)
- KASAN_SHADOW_SCALE_SHIFT := 4
--else
-+else ifeq ($(CONFIG_KASAN_GENERIC), y)
- KASAN_SHADOW_SCALE_SHIFT := 3
- endif
- 
---- a/arch/arm64/mm/ptdump.c~kasan-arm64-expand-config_kasan-checks
-+++ a/arch/arm64/mm/ptdump.c
-@@ -29,7 +29,7 @@
- enum address_markers_idx {
- 	PAGE_OFFSET_NR = 0,
- 	PAGE_END_NR,
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	KASAN_START_NR,
+ #ifdef CONFIG_ARM64_MTE
+ 	u64			sctlr_tcf0;
+-	u64			gcr_user_incl;
++	u64			gcr_user_excl;
  #endif
  };
-@@ -37,7 +37,7 @@ enum address_markers_idx {
- static struct addr_marker address_markers[] = {
- 	{ PAGE_OFFSET,			"Linear Mapping start" },
- 	{ 0 /* PAGE_END */,		"Linear Mapping end" },
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	{ 0 /* KASAN_SHADOW_START */,	"Kasan shadow start" },
- 	{ KASAN_SHADOW_END,		"Kasan shadow end" },
- #endif
-@@ -383,7 +383,7 @@ void ptdump_check_wx(void)
- static int ptdump_init(void)
+ 
+--- a/arch/arm64/kernel/mte.c~arm64-mte-convert-gcr_user-into-an-exclude-mask
++++ a/arch/arm64/kernel/mte.c
+@@ -156,23 +156,22 @@ static void set_sctlr_el1_tcf0(u64 tcf0)
+ 	preempt_enable();
+ }
+ 
+-static void update_gcr_el1_excl(u64 incl)
++static void update_gcr_el1_excl(u64 excl)
  {
- 	address_markers[PAGE_END_NR].start_address = PAGE_END;
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	address_markers[KASAN_START_NR].start_address = KASAN_SHADOW_START;
- #endif
- 	ptdump_initialize();
---- a/include/linux/kasan-checks.h~kasan-arm64-expand-config_kasan-checks
-+++ a/include/linux/kasan-checks.h
-@@ -9,7 +9,7 @@
-  * even in compilation units that selectively disable KASAN, but must use KASAN
-  * to validate access to an address.   Never use these in header files!
-  */
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- bool __kasan_check_read(const volatile void *p, unsigned int size);
- bool __kasan_check_write(const volatile void *p, unsigned int size);
- #else
---- a/include/linux/kasan.h~kasan-arm64-expand-config_kasan-checks
-+++ a/include/linux/kasan.h
-@@ -238,7 +238,8 @@ static inline void kasan_release_vmalloc
+-	u64 excl = ~incl & SYS_GCR_EL1_EXCL_MASK;
  
- #endif /* CONFIG_KASAN_VMALLOC */
+ 	/*
+-	 * Note that 'incl' is an include mask (controlled by the user via
+-	 * prctl()) while GCR_EL1 accepts an exclude mask.
++	 * Note that the mask controlled by the user via prctl() is an
++	 * include while GCR_EL1 accepts an exclude mask.
+ 	 * No need for ISB since this only affects EL0 currently, implicit
+ 	 * with ERET.
+ 	 */
+ 	sysreg_clear_set_s(SYS_GCR_EL1, SYS_GCR_EL1_EXCL_MASK, excl);
+ }
  
--#if defined(CONFIG_KASAN) && !defined(CONFIG_KASAN_VMALLOC)
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+		!defined(CONFIG_KASAN_VMALLOC)
+-static void set_gcr_el1_excl(u64 incl)
++static void set_gcr_el1_excl(u64 excl)
+ {
+-	current->thread.gcr_user_incl = incl;
+-	update_gcr_el1_excl(incl);
++	current->thread.gcr_user_excl = excl;
++	update_gcr_el1_excl(excl);
+ }
  
- /*
-  * These functions provide a special case to support backing module
-@@ -248,12 +249,12 @@ static inline void kasan_release_vmalloc
- int kasan_module_alloc(void *addr, size_t size);
- void kasan_free_shadow(const struct vm_struct *vm);
+ void flush_mte_state(void)
+@@ -187,7 +186,7 @@ void flush_mte_state(void)
+ 	/* disable tag checking */
+ 	set_sctlr_el1_tcf0(SCTLR_EL1_TCF0_NONE);
+ 	/* reset tag generation mask */
+-	set_gcr_el1_excl(0);
++	set_gcr_el1_excl(SYS_GCR_EL1_EXCL_MASK);
+ }
  
--#else /* CONFIG_KASAN && !CONFIG_KASAN_VMALLOC */
-+#else /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
+ void mte_thread_switch(struct task_struct *next)
+@@ -198,7 +197,7 @@ void mte_thread_switch(struct task_struc
+ 	/* avoid expensive SCTLR_EL1 accesses if no change */
+ 	if (current->thread.sctlr_tcf0 != next->thread.sctlr_tcf0)
+ 		update_sctlr_el1_tcf0(next->thread.sctlr_tcf0);
+-	update_gcr_el1_excl(next->thread.gcr_user_incl);
++	update_gcr_el1_excl(next->thread.gcr_user_excl);
+ }
  
- static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
- static inline void kasan_free_shadow(const struct vm_struct *vm) {}
+ void mte_suspend_exit(void)
+@@ -206,13 +205,14 @@ void mte_suspend_exit(void)
+ 	if (!system_supports_mte())
+ 		return;
  
--#endif /* CONFIG_KASAN && !CONFIG_KASAN_VMALLOC */
-+#endif /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
+-	update_gcr_el1_excl(current->thread.gcr_user_incl);
++	update_gcr_el1_excl(current->thread.gcr_user_excl);
+ }
  
- #ifdef CONFIG_KASAN_INLINE
- void kasan_non_canonical_hook(unsigned long addr);
---- a/include/linux/moduleloader.h~kasan-arm64-expand-config_kasan-checks
-+++ a/include/linux/moduleloader.h
-@@ -96,7 +96,8 @@ void module_arch_cleanup(struct module *
- /* Any cleanup before freeing mod->module_init */
- void module_arch_freeing_init(struct module *mod);
+ long set_mte_ctrl(struct task_struct *task, unsigned long arg)
+ {
+ 	u64 tcf0;
+-	u64 gcr_incl = (arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT;
++	u64 gcr_excl = ~((arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT) &
++		       SYS_GCR_EL1_EXCL_MASK;
  
--#if defined(CONFIG_KASAN) && !defined(CONFIG_KASAN_VMALLOC)
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+		!defined(CONFIG_KASAN_VMALLOC)
- #include <linux/kasan.h>
- #define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
- #else
---- a/include/linux/string.h~kasan-arm64-expand-config_kasan-checks
-+++ a/include/linux/string.h
-@@ -267,7 +267,7 @@ void __write_overflow(void) __compiletim
+ 	if (!system_supports_mte())
+ 		return 0;
+@@ -233,10 +233,10 @@ long set_mte_ctrl(struct task_struct *ta
  
- #if !defined(__NO_FORTIFY) && defined(__OPTIMIZE__) && defined(CONFIG_FORTIFY_SOURCE)
+ 	if (task != current) {
+ 		task->thread.sctlr_tcf0 = tcf0;
+-		task->thread.gcr_user_incl = gcr_incl;
++		task->thread.gcr_user_excl = gcr_excl;
+ 	} else {
+ 		set_sctlr_el1_tcf0(tcf0);
+-		set_gcr_el1_excl(gcr_incl);
++		set_gcr_el1_excl(gcr_excl);
+ 	}
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- extern void *__underlying_memchr(const void *p, int c, __kernel_size_t size) __RENAME(memchr);
- extern int __underlying_memcmp(const void *p, const void *q, __kernel_size_t size) __RENAME(memcmp);
- extern void *__underlying_memcpy(void *p, const void *q, __kernel_size_t size) __RENAME(memcpy);
---- a/mm/ptdump.c~kasan-arm64-expand-config_kasan-checks
-+++ a/mm/ptdump.c
-@@ -4,7 +4,7 @@
- #include <linux/ptdump.h>
- #include <linux/kasan.h>
+ 	return 0;
+@@ -245,11 +245,12 @@ long set_mte_ctrl(struct task_struct *ta
+ long get_mte_ctrl(struct task_struct *task)
+ {
+ 	unsigned long ret;
++	u64 incl = ~task->thread.gcr_user_excl & SYS_GCR_EL1_EXCL_MASK;
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- /*
-  * This is an optimization for KASAN=y case. Since all kasan page tables
-  * eventually point to the kasan_early_shadow_page we could call note_page()
-@@ -31,7 +31,8 @@ static int ptdump_pgd_entry(pgd_t *pgd,
- 	struct ptdump_state *st = walk->private;
- 	pgd_t val = READ_ONCE(*pgd);
+ 	if (!system_supports_mte())
+ 		return 0;
  
--#if CONFIG_PGTABLE_LEVELS > 4 && defined(CONFIG_KASAN)
-+#if CONFIG_PGTABLE_LEVELS > 4 && \
-+		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
- 	if (pgd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_p4d)))
- 		return note_kasan_page_table(walk, addr);
- #endif
-@@ -51,7 +52,8 @@ static int ptdump_p4d_entry(p4d_t *p4d,
- 	struct ptdump_state *st = walk->private;
- 	p4d_t val = READ_ONCE(*p4d);
+-	ret = task->thread.gcr_user_incl << PR_MTE_TAG_SHIFT;
++	ret = incl << PR_MTE_TAG_SHIFT;
  
--#if CONFIG_PGTABLE_LEVELS > 3 && defined(CONFIG_KASAN)
-+#if CONFIG_PGTABLE_LEVELS > 3 && \
-+		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
- 	if (p4d_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pud)))
- 		return note_kasan_page_table(walk, addr);
- #endif
-@@ -71,7 +73,8 @@ static int ptdump_pud_entry(pud_t *pud,
- 	struct ptdump_state *st = walk->private;
- 	pud_t val = READ_ONCE(*pud);
- 
--#if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_KASAN)
-+#if CONFIG_PGTABLE_LEVELS > 2 && \
-+		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
- 	if (pud_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pmd)))
- 		return note_kasan_page_table(walk, addr);
- #endif
-@@ -91,7 +94,7 @@ static int ptdump_pmd_entry(pmd_t *pmd,
- 	struct ptdump_state *st = walk->private;
- 	pmd_t val = READ_ONCE(*pmd);
- 
--#if defined(CONFIG_KASAN)
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	if (pmd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pte)))
- 		return note_kasan_page_table(walk, addr);
- #endif
---- a/scripts/Makefile.lib~kasan-arm64-expand-config_kasan-checks
-+++ a/scripts/Makefile.lib
-@@ -148,10 +148,12 @@ endif
- # we don't want to check (depends on variables KASAN_SANITIZE_obj.o, KASAN_SANITIZE)
- #
- ifeq ($(CONFIG_KASAN),y)
-+ifneq ($(CONFIG_KASAN_HW_TAGS),y)
- _c_flags += $(if $(patsubst n%,, \
- 		$(KASAN_SANITIZE_$(basetarget).o)$(KASAN_SANITIZE)y), \
- 		$(CFLAGS_KASAN), $(CFLAGS_KASAN_NOSANITIZE))
- endif
-+endif
- 
- ifeq ($(CONFIG_UBSAN),y)
- _c_flags += $(if $(patsubst n%,, \
+ 	switch (task->thread.sctlr_tcf0) {
+ 	case SCTLR_EL1_TCF0_NONE:
 _
