@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C02C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AACA4C433E9
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C417923133
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6310A23133
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727245AbgLVUCO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:02:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45646 "EHLO mail.kernel.org"
+        id S1727254AbgLVUCQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:02:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45668 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727201AbgLVUCO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:02:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 84F1C2313F;
-        Tue, 22 Dec 2020 20:01:14 +0000 (UTC)
+        id S1727201AbgLVUCP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:02:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DFC8B23331;
+        Tue, 22 Dec 2020 20:01:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667275;
-        bh=WkJP5ueegwzdiDDMvDzqZf2U3rSH1/aHsOmLVGy5lhQ=;
+        s=korg; t=1608667285;
+        bh=o4LWwQlSOpED0V2os9lzQIgkMFv6BxZ2jMv9cz3gbxo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=FkFYZ+YIHPLA8OrDGuOC9XRX6LR/LQWCz8kC+gpM27b1RIc6tDM3Wz1qiiOATH2Ty
-         owRai9uRIbVWbhpzLxJ59hQl5wKBpwEybHPAlDJLnsRnLvpOIFNfvf9WddESCAzQCF
-         lqohOeme5kqh/Y0IF1Yjntv7yoku8b6s9Af2Yyu4=
-Date:   Tue, 22 Dec 2020 12:01:14 -0800
+        b=kgjqxayu+tLuqIE2MD1+9Xt6dFKLNWUe70Vb07j0ztC/cFTkHaoShefYqtQVJbMUB
+         oHVoiFHrpnJaNxm4MmsIxRNFmCmDMLd5Y5W7xgFmNXJPh2DDhKmvJDtZV2kAIcUW6g
+         lLjQNHBjde21VWEjvfa6mcJFsiSgVjP6OEswWiAM=
+Date:   Tue, 22 Dec 2020 12:01:24 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 20/60] kasan: rename SHADOW layout macros to META
-Message-ID: <20201222200114.mt0mOLilb%akpm@linux-foundation.org>
+Subject:  [patch 23/60] arm64: enable armv8.5-a asm-arch option
+Message-ID: <20201222200124.8TIWn8vqx%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,114 +46,68 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename SHADOW layout macros to META
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: enable armv8.5-a asm-arch option
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
+Hardware tag-based KASAN relies on Memory Tagging Extension (MTE) which is
+an armv8.5-a architecture extension.
 
-Hardware tag-based KASAN won't be using shadow memory, but will reuse
-these macros.  Rename "SHADOW" to implementation-neutral "META".
+Enable the correct asm option when the compiler supports it in order to
+allow the usage of ALTERNATIVE()s with MTE instructions.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/f96244ec59dc17db35173ec352c5592b14aefaf8.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/d03d1157124ea3532eaeb77507988733f5734986.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ arch/arm64/Kconfig  |    4 ++++
+ arch/arm64/Makefile |    5 +++++
+ 2 files changed, 9 insertions(+)
 
---- a/mm/kasan/report.c~kasan-rename-shadow-layout-macros-to-meta
-+++ a/mm/kasan/report.c
-@@ -33,11 +33,11 @@
- #include "kasan.h"
- #include "../slab.h"
+--- a/arch/arm64/Kconfig~arm64-enable-armv85-a-asm-arch-option
++++ a/arch/arm64/Kconfig
+@@ -1571,6 +1571,9 @@ endmenu
  
--/* Shadow layout customization. */
--#define SHADOW_BYTES_PER_BLOCK 1
--#define SHADOW_BLOCKS_PER_ROW 16
--#define SHADOW_BYTES_PER_ROW (SHADOW_BLOCKS_PER_ROW * SHADOW_BYTES_PER_BLOCK)
--#define SHADOW_ROWS_AROUND_ADDR 2
-+/* Metadata layout customization. */
-+#define META_BYTES_PER_BLOCK 1
-+#define META_BLOCKS_PER_ROW 16
-+#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
-+#define META_ROWS_AROUND_ADDR 2
+ menu "ARMv8.5 architectural features"
  
- static unsigned long kasan_flags;
++config AS_HAS_ARMV8_5
++	def_bool $(cc-option,-Wa$(comma)-march=armv8.5-a)
++
+ config ARM64_BTI
+ 	bool "Branch Target Identification support"
+ 	default y
+@@ -1645,6 +1648,7 @@ config ARM64_MTE
+ 	bool "Memory Tagging Extension support"
+ 	default y
+ 	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
++	depends on AS_HAS_ARMV8_5
+ 	select ARCH_USES_HIGH_VMA_FLAGS
+ 	help
+ 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
+--- a/arch/arm64/Makefile~arm64-enable-armv85-a-asm-arch-option
++++ a/arch/arm64/Makefile
+@@ -96,6 +96,11 @@ ifeq ($(CONFIG_AS_HAS_ARMV8_4), y)
+ asm-arch := armv8.4-a
+ endif
  
-@@ -240,7 +240,7 @@ static void print_address_description(vo
- 
- static bool row_is_guilty(const void *row, const void *guilty)
- {
--	return (row <= guilty) && (guilty < row + SHADOW_BYTES_PER_ROW);
-+	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
- }
- 
- static int shadow_pointer_offset(const void *row, const void *shadow)
-@@ -249,7 +249,7 @@ static int shadow_pointer_offset(const v
- 	 *    3 + (BITS_PER_LONG/8)*2 chars.
- 	 */
- 	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
--		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
-+		(shadow - row) / META_BYTES_PER_BLOCK + 1;
- }
- 
- static void print_memory_metadata(const void *addr)
-@@ -259,15 +259,15 @@ static void print_memory_metadata(const
- 	const void *shadow_row;
- 
- 	shadow_row = (void *)round_down((unsigned long)shadow,
--					SHADOW_BYTES_PER_ROW)
--		- SHADOW_ROWS_AROUND_ADDR * SHADOW_BYTES_PER_ROW;
-+					META_BYTES_PER_ROW)
-+		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
- 
- 	pr_err("Memory state around the buggy address:\n");
- 
--	for (i = -SHADOW_ROWS_AROUND_ADDR; i <= SHADOW_ROWS_AROUND_ADDR; i++) {
-+	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
- 		const void *kaddr = kasan_shadow_to_mem(shadow_row);
- 		char buffer[4 + (BITS_PER_LONG/8)*2];
--		char shadow_buf[SHADOW_BYTES_PER_ROW];
-+		char shadow_buf[META_BYTES_PER_ROW];
- 
- 		snprintf(buffer, sizeof(buffer),
- 			(i == 0) ? ">%px: " : " %px: ", kaddr);
-@@ -276,17 +276,17 @@ static void print_memory_metadata(const
- 		 * function, because generic functions may try to
- 		 * access kasan mapping for the passed address.
- 		 */
--		memcpy(shadow_buf, shadow_row, SHADOW_BYTES_PER_ROW);
-+		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
- 		print_hex_dump(KERN_ERR, buffer,
--			DUMP_PREFIX_NONE, SHADOW_BYTES_PER_ROW, 1,
--			shadow_buf, SHADOW_BYTES_PER_ROW, 0);
-+			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
-+			shadow_buf, META_BYTES_PER_ROW, 0);
- 
- 		if (row_is_guilty(shadow_row, shadow))
- 			pr_err("%*c\n",
- 				shadow_pointer_offset(shadow_row, shadow),
- 				'^');
- 
--		shadow_row += SHADOW_BYTES_PER_ROW;
-+		shadow_row += META_BYTES_PER_ROW;
- 	}
- }
- 
++ifeq ($(CONFIG_AS_HAS_ARMV8_5), y)
++# make sure to pass the newest target architecture to -march.
++asm-arch := armv8.5-a
++endif
++
+ ifdef asm-arch
+ KBUILD_CFLAGS	+= -Wa,-march=$(asm-arch) \
+ 		   -DARM64_ASM_ARCH='"$(asm-arch)"'
 _
