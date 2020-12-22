@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1413C433E6
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B9DC433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0E0A22583
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FFF522583
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727325AbgLVUCY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:02:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45818 "EHLO mail.kernel.org"
+        id S1726412AbgLVUCa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:02:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725850AbgLVUCY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:02:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D206022583;
-        Tue, 22 Dec 2020 20:01:42 +0000 (UTC)
+        id S1725850AbgLVUCa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:02:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 215DA21D1B;
+        Tue, 22 Dec 2020 20:02:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667303;
-        bh=DDDH2RVDluwp8itwATWBD8/EvB5Hgdjo8/Xdk/NWnkg=;
+        s=korg; t=1608667334;
+        bh=PrQJM9rlJRzM+cN/hE0wVm8FU6/mdbHuXXko4hMlZVg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=qEXg0vgyKFYriHUgfT5UgYkNSdwl39se4/S6jmPzp6jkcICATClKVG/SFQFiVC812
-         ayijQGBNP/0j7DKP6kzeykNBi6XCZmlrfBtvqASwPZPLv+zwSlO7pSYyhz7bMwcE/a
-         PYdH5stzcvDhpY2ClpNWDqbb3p500oqiWV8t9p+M=
-Date:   Tue, 22 Dec 2020 12:01:42 -0800
+        b=vttNYF3jjn3odV0CidymostduPv6Lat0JL8TYxLHCadkYRSLk58I6hKIfG3cZVgVl
+         Y6hu2HEDvNE1b17YL51JQQrk0pqch7QMty/qheN8h+lnv8K+ekjFmPFVH5MIHnTzeS
+         0GFqqUKBYEndy/OEYxF7wiR3fchT2HsrKRzNymE0=
+Date:   Tue, 22 Dec 2020 12:02:13 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 28/60] arm64: mte: convert gcr_user into an
- exclude mask
-Message-ID: <20201222200142.y7aeQtVE1%akpm@linux-foundation.org>
+Subject:  [patch 37/60] kasan, arm64: print report from tag fault
+ handler
+Message-ID: <20201222200213.YGSu-WgCL%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,30 +47,24 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: mte: convert gcr_user into an exclude mask
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan, arm64: print report from tag fault handler
 
-The gcr_user mask is a per thread mask that represents the tags that are
-excluded from random generation when the Memory Tagging Extension is
-present and an 'irg' instruction is invoked.
+Add error reporting for hardware tag-based KASAN.  When
+CONFIG_KASAN_HW_TAGS is enabled, print KASAN report from the arm64 tag
+fault handler.
 
-gcr_user affects the behavior on EL0 only.
+SAS bits aren't set in ESR for all faults reported in EL1, so it's
+impossible to find out the size of the access the caused the fault.  Adapt
+KASAN reporting code to handle this case.
 
-Currently that mask is an include mask and it is controlled by the user
-via prctl() while GCR_EL1 accepts an exclude mask.
-
-Convert the include mask into an exclude one to make it easier the
-register setting.
-
-Note: This change will affect gcr_kernel (for EL1) introduced with a
-future patch.
-
-Link: https://lkml.kernel.org/r/946dd31be833b660334c4f93410acf6d6c4cf3c4.1606161801.git.andreyknvl@google.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/b559c82b6a969afedf53b4694b475f0234067a1a.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -82,113 +76,62 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/processor.h |    2 -
- arch/arm64/kernel/mte.c            |   29 +++++++++++++--------------
- 2 files changed, 16 insertions(+), 15 deletions(-)
+ arch/arm64/mm/fault.c |   14 ++++++++++++++
+ mm/kasan/report.c     |   11 ++++++++---
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/processor.h~arm64-mte-convert-gcr_user-into-an-exclude-mask
-+++ a/arch/arm64/include/asm/processor.h
-@@ -152,7 +152,7 @@ struct thread_struct {
- #endif
- #ifdef CONFIG_ARM64_MTE
- 	u64			sctlr_tcf0;
--	u64			gcr_user_incl;
-+	u64			gcr_user_excl;
- #endif
- };
- 
---- a/arch/arm64/kernel/mte.c~arm64-mte-convert-gcr_user-into-an-exclude-mask
-+++ a/arch/arm64/kernel/mte.c
-@@ -156,23 +156,22 @@ static void set_sctlr_el1_tcf0(u64 tcf0)
- 	preempt_enable();
+--- a/arch/arm64/mm/fault.c~kasan-arm64-print-report-from-tag-fault-handler
++++ a/arch/arm64/mm/fault.c
+@@ -14,6 +14,7 @@
+ #include <linux/mm.h>
+ #include <linux/hardirq.h>
+ #include <linux/init.h>
++#include <linux/kasan.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+ #include <linux/page-flags.h>
+@@ -297,10 +298,23 @@ static void die_kernel_fault(const char
+ 	do_exit(SIGKILL);
  }
  
--static void update_gcr_el1_excl(u64 incl)
-+static void update_gcr_el1_excl(u64 excl)
++#ifdef CONFIG_KASAN_HW_TAGS
+ static void report_tag_fault(unsigned long addr, unsigned int esr,
+ 			     struct pt_regs *regs)
  {
--	u64 excl = ~incl & SYS_GCR_EL1_EXCL_MASK;
- 
- 	/*
--	 * Note that 'incl' is an include mask (controlled by the user via
--	 * prctl()) while GCR_EL1 accepts an exclude mask.
-+	 * Note that the mask controlled by the user via prctl() is an
-+	 * include while GCR_EL1 accepts an exclude mask.
- 	 * No need for ISB since this only affects EL0 currently, implicit
- 	 * with ERET.
- 	 */
- 	sysreg_clear_set_s(SYS_GCR_EL1, SYS_GCR_EL1_EXCL_MASK, excl);
++	bool is_write  = ((esr & ESR_ELx_WNR) >> ESR_ELx_WNR_SHIFT) != 0;
++
++	/*
++	 * SAS bits aren't set for all faults reported in EL1, so we can't
++	 * find out access size.
++	 */
++	kasan_report(addr, 0, is_write, regs->pc);
  }
++#else
++/* Tag faults aren't enabled without CONFIG_KASAN_HW_TAGS. */
++static inline void report_tag_fault(unsigned long addr, unsigned int esr,
++				    struct pt_regs *regs) { }
++#endif
  
--static void set_gcr_el1_excl(u64 incl)
-+static void set_gcr_el1_excl(u64 excl)
+ static void do_tag_recovery(unsigned long addr, unsigned int esr,
+ 			   struct pt_regs *regs)
+--- a/mm/kasan/report.c~kasan-arm64-print-report-from-tag-fault-handler
++++ a/mm/kasan/report.c
+@@ -62,9 +62,14 @@ static void print_error_description(stru
  {
--	current->thread.gcr_user_incl = incl;
--	update_gcr_el1_excl(incl);
-+	current->thread.gcr_user_excl = excl;
-+	update_gcr_el1_excl(excl);
+ 	pr_err("BUG: KASAN: %s in %pS\n",
+ 		get_bug_type(info), (void *)info->ip);
+-	pr_err("%s of size %zu at addr %px by task %s/%d\n",
+-		info->is_write ? "Write" : "Read", info->access_size,
+-		info->access_addr, current->comm, task_pid_nr(current));
++	if (info->access_size)
++		pr_err("%s of size %zu at addr %px by task %s/%d\n",
++			info->is_write ? "Write" : "Read", info->access_size,
++			info->access_addr, current->comm, task_pid_nr(current));
++	else
++		pr_err("%s at addr %px by task %s/%d\n",
++			info->is_write ? "Write" : "Read",
++			info->access_addr, current->comm, task_pid_nr(current));
  }
  
- void flush_mte_state(void)
-@@ -187,7 +186,7 @@ void flush_mte_state(void)
- 	/* disable tag checking */
- 	set_sctlr_el1_tcf0(SCTLR_EL1_TCF0_NONE);
- 	/* reset tag generation mask */
--	set_gcr_el1_excl(0);
-+	set_gcr_el1_excl(SYS_GCR_EL1_EXCL_MASK);
- }
- 
- void mte_thread_switch(struct task_struct *next)
-@@ -198,7 +197,7 @@ void mte_thread_switch(struct task_struc
- 	/* avoid expensive SCTLR_EL1 accesses if no change */
- 	if (current->thread.sctlr_tcf0 != next->thread.sctlr_tcf0)
- 		update_sctlr_el1_tcf0(next->thread.sctlr_tcf0);
--	update_gcr_el1_excl(next->thread.gcr_user_incl);
-+	update_gcr_el1_excl(next->thread.gcr_user_excl);
- }
- 
- void mte_suspend_exit(void)
-@@ -206,13 +205,14 @@ void mte_suspend_exit(void)
- 	if (!system_supports_mte())
- 		return;
- 
--	update_gcr_el1_excl(current->thread.gcr_user_incl);
-+	update_gcr_el1_excl(current->thread.gcr_user_excl);
- }
- 
- long set_mte_ctrl(struct task_struct *task, unsigned long arg)
- {
- 	u64 tcf0;
--	u64 gcr_incl = (arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT;
-+	u64 gcr_excl = ~((arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT) &
-+		       SYS_GCR_EL1_EXCL_MASK;
- 
- 	if (!system_supports_mte())
- 		return 0;
-@@ -233,10 +233,10 @@ long set_mte_ctrl(struct task_struct *ta
- 
- 	if (task != current) {
- 		task->thread.sctlr_tcf0 = tcf0;
--		task->thread.gcr_user_incl = gcr_incl;
-+		task->thread.gcr_user_excl = gcr_excl;
- 	} else {
- 		set_sctlr_el1_tcf0(tcf0);
--		set_gcr_el1_excl(gcr_incl);
-+		set_gcr_el1_excl(gcr_excl);
- 	}
- 
- 	return 0;
-@@ -245,11 +245,12 @@ long set_mte_ctrl(struct task_struct *ta
- long get_mte_ctrl(struct task_struct *task)
- {
- 	unsigned long ret;
-+	u64 incl = ~task->thread.gcr_user_excl & SYS_GCR_EL1_EXCL_MASK;
- 
- 	if (!system_supports_mte())
- 		return 0;
- 
--	ret = task->thread.gcr_user_incl << PR_MTE_TAG_SHIFT;
-+	ret = incl << PR_MTE_TAG_SHIFT;
- 
- 	switch (task->thread.sctlr_tcf0) {
- 	case SCTLR_EL1_TCF0_NONE:
+ static DEFINE_SPINLOCK(report_lock);
 _
