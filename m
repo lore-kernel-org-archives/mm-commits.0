@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1497AC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84788C433E0
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEC3720705
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51DC823133
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727041AbgLVUBp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727028AbgLVUBp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Dec 2020 15:01:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45140 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727028AbgLVUBp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726810AbgLVUBp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 22 Dec 2020 15:01:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3FA2620705;
-        Tue, 22 Dec 2020 20:00:57 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D98FE20700;
+        Tue, 22 Dec 2020 20:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667257;
-        bh=rO//3/1UfidKt13OxnpGFo0kBSvNUoU6eix40zc5yKE=;
+        s=korg; t=1608667254;
+        bh=wdKlI9yL+xh6v3JC0ySPdCRxNpCE+sflhhU2MWYOChE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=1+e5G7hLYPu8SnZrD3c4Wg0WCEmcsoFzE7Tj7Uns/6cqNGULa587C8fFSSshCYsif
-         PjjPH53AkmMxroIxSGwWySoEmCNgBnv2GUG0bCgZ0seavEPRTmp60eb1oVN6qTxBHs
-         CG7n6bak397k96U91WJuTsA57h/eGkTVZGCw/KTo=
-Date:   Tue, 22 Dec 2020 12:00:56 -0800
+        b=zp6VCnJ3w5817iZ+c0BnrMJ9fBEXM3MmRA7Qd2v/7hAYNO3Sfxzak+kPXo0/M8Jb2
+         4fAEZCwF0V8wxDxtnFDnp0qkem0kFwh/oYUx+TkFxiiIoQkJpDKiq8AmbrKeccyciI
+         MNlThdtDqyG82xAwIT+a939ZKIJXg7+Mc9Tc2cUE=
+Date:   Tue, 22 Dec 2020 12:00:53 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 15/60] kasan, arm64: only use kasan_depth for
- software modes
-Message-ID: <20201222200056.QaXj4OC5P%akpm@linux-foundation.org>
+Subject:  [patch 14/60] kasan, arm64: only init shadow for software
+ modes
+Message-ID: <20201222200053.8m3hZ9VEE%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,17 +48,17 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: only use kasan_depth for software modes
+Subject: kasan, arm64: only init shadow for software modes
 
 This is a preparatory commit for the upcoming addition of a new hardware
 tag-based (MTE-based) KASAN mode.
 
-Hardware tag-based KASAN won't use kasan_depth.  Only define and use it
+Hardware tag-based KASAN won't be using shadow memory.  Only initialize it
 when one of the software KASAN modes are enabled.
 
 No functional changes for software modes.
 
-Link: https://lkml.kernel.org/r/e16f15aeda90bc7fb4dfc2e243a14b74cc5c8219.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/d1742eea2cd728d150d49b144e49b6433405c7ba.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
@@ -75,138 +75,74 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/kasan_init.c |   11 ++++++++---
- include/linux/kasan.h      |   18 +++++++++---------
- include/linux/sched.h      |    2 +-
- init/init_task.c           |    2 +-
- mm/kasan/common.c          |    2 ++
- mm/kasan/report.c          |    2 ++
- 6 files changed, 23 insertions(+), 14 deletions(-)
+ arch/arm64/include/asm/kasan.h |    8 ++++++--
+ arch/arm64/mm/kasan_init.c     |   15 ++++++++++++++-
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/mm/kasan_init.c~kasan-arm64-only-use-kasan_depth-for-software-modes
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -273,17 +273,22 @@ static void __init kasan_init_shadow(voi
- 	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
- }
- 
-+static void __init kasan_init_depth(void)
-+{
-+	init_task.kasan_depth = 0;
-+}
-+
- #else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) */
- 
- static inline void __init kasan_init_shadow(void) { }
- 
-+static inline void __init kasan_init_depth(void) { }
-+
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
- void __init kasan_init(void)
- {
- 	kasan_init_shadow();
--
--	/* At this point kasan is fully initialized. Enable error messages */
--	init_task.kasan_depth = 0;
-+	kasan_init_depth();
- 	pr_info("KernelAddressSanitizer initialized\n");
- }
---- a/include/linux/kasan.h~kasan-arm64-only-use-kasan_depth-for-software-modes
-+++ a/include/linux/kasan.h
-@@ -52,6 +52,12 @@ static inline void *kasan_mem_to_shadow(
- int kasan_add_zero_shadow(void *start, unsigned long size);
- void kasan_remove_zero_shadow(void *start, unsigned long size);
- 
-+/* Enable reporting bugs after kasan_disable_current() */
-+extern void kasan_enable_current(void);
-+
-+/* Disable reporting bugs for current task */
-+extern void kasan_disable_current(void);
-+
- #else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
- static inline int kasan_add_zero_shadow(void *start, unsigned long size)
-@@ -62,16 +68,13 @@ static inline void kasan_remove_zero_sha
- 					unsigned long size)
- {}
- 
-+static inline void kasan_enable_current(void) {}
-+static inline void kasan_disable_current(void) {}
-+
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+--- a/arch/arm64/include/asm/kasan.h~kasan-arm64-only-init-shadow-for-software-modes
++++ a/arch/arm64/include/asm/kasan.h
+@@ -13,6 +13,12 @@
+ #define arch_kasan_get_tag(addr)	__tag_get(addr)
  
  #ifdef CONFIG_KASAN
- 
--/* Enable reporting bugs after kasan_disable_current() */
--extern void kasan_enable_current(void);
--
--/* Disable reporting bugs for current task */
--extern void kasan_disable_current(void);
--
- void kasan_unpoison_range(const void *address, size_t size);
- 
- void kasan_unpoison_task_stack(struct task_struct *task);
-@@ -122,9 +125,6 @@ static inline void kasan_unpoison_range(
- 
- static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
- 
--static inline void kasan_enable_current(void) {}
--static inline void kasan_disable_current(void) {}
--
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
- 
---- a/include/linux/sched.h~kasan-arm64-only-use-kasan_depth-for-software-modes
-+++ a/include/linux/sched.h
-@@ -1234,7 +1234,7 @@ struct task_struct {
- 	u64				timer_slack_ns;
- 	u64				default_timer_slack_ns;
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	unsigned int			kasan_depth;
- #endif
- 
---- a/init/init_task.c~kasan-arm64-only-use-kasan_depth-for-software-modes
-+++ a/init/init_task.c
-@@ -176,7 +176,7 @@ struct task_struct init_task
- 	.numa_group	= NULL,
- 	.numa_faults	= NULL,
- #endif
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	.kasan_depth	= 1,
- #endif
- #ifdef CONFIG_KCSAN
---- a/mm/kasan/common.c~kasan-arm64-only-use-kasan_depth-for-software-modes
-+++ a/mm/kasan/common.c
-@@ -46,6 +46,7 @@ void kasan_set_track(struct kasan_track
- 	track->stack = kasan_save_stack(flags);
- }
- 
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- void kasan_enable_current(void)
- {
- 	current->kasan_depth++;
-@@ -55,6 +56,7 @@ void kasan_disable_current(void)
- {
- 	current->kasan_depth--;
- }
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
- void kasan_unpoison_range(const void *address, size_t size)
- {
---- a/mm/kasan/report.c~kasan-arm64-only-use-kasan_depth-for-software-modes
-+++ a/mm/kasan/report.c
-@@ -292,8 +292,10 @@ static void print_shadow_for_address(con
- 
- static bool report_enabled(void)
- {
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	if (current->kasan_depth)
- 		return false;
++void kasan_init(void);
++#else
++static inline void kasan_init(void) { }
 +#endif
- 	if (test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
- 		return true;
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
++
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 
+ /*
+  * KASAN_SHADOW_START: beginning of the kernel virtual addresses.
+@@ -33,12 +39,10 @@
+ #define _KASAN_SHADOW_START(va)	(KASAN_SHADOW_END - (1UL << ((va) - KASAN_SHADOW_SCALE_SHIFT)))
+ #define KASAN_SHADOW_START      _KASAN_SHADOW_START(vabits_actual)
+ 
+-void kasan_init(void);
+ void kasan_copy_shadow(pgd_t *pgdir);
+ asmlinkage void kasan_early_init(void);
+ 
+ #else
+-static inline void kasan_init(void) { }
+ static inline void kasan_copy_shadow(pgd_t *pgdir) { }
+ #endif
+ 
+--- a/arch/arm64/mm/kasan_init.c~kasan-arm64-only-init-shadow-for-software-modes
++++ a/arch/arm64/mm/kasan_init.c
+@@ -21,6 +21,8 @@
+ #include <asm/sections.h>
+ #include <asm/tlbflush.h>
+ 
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
++
+ static pgd_t tmp_pg_dir[PTRS_PER_PGD] __initdata __aligned(PGD_SIZE);
+ 
+ /*
+@@ -208,7 +210,7 @@ static void __init clear_pgds(unsigned l
+ 		set_pgd(pgd_offset_k(start), __pgd(0));
+ }
+ 
+-void __init kasan_init(void)
++static void __init kasan_init_shadow(void)
+ {
+ 	u64 kimg_shadow_start, kimg_shadow_end;
+ 	u64 mod_shadow_start, mod_shadow_end;
+@@ -269,6 +271,17 @@ void __init kasan_init(void)
+ 
+ 	memset(kasan_early_shadow_page, KASAN_SHADOW_INIT, PAGE_SIZE);
+ 	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
++}
++
++#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) */
++
++static inline void __init kasan_init_shadow(void) { }
++
++#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
++
++void __init kasan_init(void)
++{
++	kasan_init_shadow();
+ 
+ 	/* At this point kasan is fully initialized. Enable error messages */
+ 	init_task.kasan_depth = 0;
 _
