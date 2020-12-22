@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A57BC43381
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6A14C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1683320705
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8ED5720705
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727080AbgLVUBq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:01:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44846 "EHLO mail.kernel.org"
+        id S1727149AbgLVUBt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:01:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44910 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726810AbgLVUBq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:01:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FB0720771;
-        Tue, 22 Dec 2020 20:01:00 +0000 (UTC)
+        id S1727139AbgLVUBt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:01:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A3D023159;
+        Tue, 22 Dec 2020 20:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667261;
-        bh=0o31pG6AdEpFva+9QxweYjoptW0XURaqpwcvMaqTi7c=;
+        s=korg; t=1608667278;
+        bh=SZTQn9fjqbA0ifLQitsdafMEg0vq3YSpL7vQ+CatsAs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=p8OWnqgwnlk4z+rCYNbPALpAbqflSxLl2VVgpxRQqndUZMA1ZnxNj+nDbBVWdqq8Q
-         pXE57mqlEy0rbiiR+SMDls6PTxDCE8jiRXi9ybjHB2O/ak62n7VxArs+Gfgp1geQUj
-         NA8UCxDH7FqnRGdkTcVtm5w02ie/31QHcHn4Jxjc=
-Date:   Tue, 22 Dec 2020 12:01:00 -0800
+        b=gCrS98moG/qMWsHVeV+Vsh79MPJ2oDoMLFb1vBvfOdjdC5EM5UXZ4BXE2eNwslGSa
+         UCNH9aAzmhr61mq+Q0370sDiCxX1VxVHGk2LTxxHholrNdxKQziSYS2PthAU1fnSwH
+         tkxAkk/cyvg2eFK1Iw9GN3oX+wBFwVtPHY7TBXfw=
+Date:   Tue, 22 Dec 2020 12:01:17 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 16/60] kasan, arm64: move initialization message
-Message-ID: <20201222200100.nMe3EBu9c%akpm@linux-foundation.org>
+Subject:  [patch 21/60] kasan: separate metadata_fetch_row for each
+ mode
+Message-ID: <20201222200117.RQORRRZUR%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,119 +48,189 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: move initialization message
+Subject: kasan: separate metadata_fetch_row for each mode
 
-Software tag-based KASAN mode is fully initialized with kasan_init_tags(),
-while the generic mode only requires kasan_init().  Move the
-initialization message for tag-based mode into kasan_init_tags().
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Also fix pr_fmt() usage for KASAN code: generic.c doesn't need it as it
-doesn't use any printing functions; tag-based mode should use "kasan:"
-instead of KBUILD_MODNAME (which stands for file name).
+Rework print_memory_metadata() to make it agnostic with regard to the way
+metadata is stored.  Allow providing a separate metadata_fetch_row()
+implementation for each KASAN mode.  Hardware tag-based KASAN will provide
+its own implementation that doesn't use shadow memory.
 
-Link: https://lkml.kernel.org/r/29a30ea4e1750450dd1f693d25b7b6cb05913ecf.1606161801.git.andreyknvl@google.com
+No functional changes for software modes.
+
+Link: https://lkml.kernel.org/r/5fb1ec0152bb1f521505017800387ec3e36ffe18.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/kasan.h |    9 +++------
- arch/arm64/mm/kasan_init.c     |   13 +++++--------
- mm/kasan/generic.c             |    2 --
- mm/kasan/sw_tags.c             |    4 +++-
- 4 files changed, 11 insertions(+), 17 deletions(-)
+ mm/kasan/kasan.h          |    8 +++++
+ mm/kasan/report.c         |   56 +++++++++++++++++-------------------
+ mm/kasan/report_generic.c |    5 +++
+ mm/kasan/report_sw_tags.c |    5 +++
+ 4 files changed, 45 insertions(+), 29 deletions(-)
 
---- a/arch/arm64/include/asm/kasan.h~kasan-arm64-move-initialization-message
-+++ a/arch/arm64/include/asm/kasan.h
-@@ -12,14 +12,10 @@
- #define arch_kasan_reset_tag(addr)	__tag_reset(addr)
- #define arch_kasan_get_tag(addr)	__tag_get(addr)
- 
--#ifdef CONFIG_KASAN
--void kasan_init(void);
--#else
--static inline void kasan_init(void) { }
--#endif
--
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 
-+void kasan_init(void);
-+
- /*
-  * KASAN_SHADOW_START: beginning of the kernel virtual addresses.
-  * KASAN_SHADOW_END: KASAN_SHADOW_START + 1/N of kernel virtual addresses,
-@@ -43,6 +39,7 @@ void kasan_copy_shadow(pgd_t *pgdir);
- asmlinkage void kasan_early_init(void);
- 
- #else
-+static inline void kasan_init(void) { }
- static inline void kasan_copy_shadow(pgd_t *pgdir) { }
+--- a/mm/kasan/kasan.h~kasan-separate-metadata_fetch_row-for-each-mode
++++ a/mm/kasan/kasan.h
+@@ -58,6 +58,13 @@
+ #define KASAN_ABI_VERSION 1
  #endif
  
---- a/arch/arm64/mm/kasan_init.c~kasan-arm64-move-initialization-message
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -278,17 +278,14 @@ static void __init kasan_init_depth(void
- 	init_task.kasan_depth = 0;
++/* Metadata layout customization. */
++#define META_BYTES_PER_BLOCK 1
++#define META_BLOCKS_PER_ROW 16
++#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
++#define META_MEM_BYTES_PER_ROW (META_BYTES_PER_ROW * KASAN_GRANULE_SIZE)
++#define META_ROWS_AROUND_ADDR 2
++
+ struct kasan_access_info {
+ 	const void *access_addr;
+ 	const void *first_bad_addr;
+@@ -170,6 +177,7 @@ bool check_invalid_free(void *addr);
+ 
+ void *find_first_bad_addr(void *addr, size_t size);
+ const char *get_bug_type(struct kasan_access_info *info);
++void metadata_fetch_row(char *buffer, void *row);
+ 
+ #if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
+ void print_address_stack_frame(const void *addr);
+--- a/mm/kasan/report.c~kasan-separate-metadata_fetch_row-for-each-mode
++++ a/mm/kasan/report.c
+@@ -33,12 +33,6 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+-/* Metadata layout customization. */
+-#define META_BYTES_PER_BLOCK 1
+-#define META_BLOCKS_PER_ROW 16
+-#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
+-#define META_ROWS_AROUND_ADDR 2
+-
+ static unsigned long kasan_flags;
+ 
+ #define KASAN_BIT_REPORTED	0
+@@ -238,55 +232,59 @@ static void print_address_description(vo
+ 	print_address_stack_frame(addr);
  }
  
--#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) */
--
--static inline void __init kasan_init_shadow(void) { }
--
--static inline void __init kasan_init_depth(void) { }
--
--#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
--
- void __init kasan_init(void)
+-static bool row_is_guilty(const void *row, const void *guilty)
++static bool meta_row_is_guilty(const void *row, const void *addr)
  {
- 	kasan_init_shadow();
- 	kasan_init_depth();
-+#if defined(CONFIG_KASAN_GENERIC)
-+	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_tags(). */
- 	pr_info("KernelAddressSanitizer initialized\n");
-+#endif
- }
-+
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
---- a/mm/kasan/generic.c~kasan-arm64-move-initialization-message
-+++ a/mm/kasan/generic.c
-@@ -9,8 +9,6 @@
-  *        Andrey Konovalov <andreyknvl@gmail.com>
-  */
- 
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
- #include <linux/export.h>
- #include <linux/interrupt.h>
- #include <linux/init.h>
---- a/mm/kasan/sw_tags.c~kasan-arm64-move-initialization-message
-+++ a/mm/kasan/sw_tags.c
-@@ -6,7 +6,7 @@
-  * Author: Andrey Konovalov <andreyknvl@google.com>
-  */
- 
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#define pr_fmt(fmt) "kasan: " fmt
- 
- #include <linux/export.h>
- #include <linux/interrupt.h>
-@@ -41,6 +41,8 @@ void kasan_init_tags(void)
- 
- 	for_each_possible_cpu(cpu)
- 		per_cpu(prng_state, cpu) = (u32)get_cycles();
-+
-+	pr_info("KernelAddressSanitizer initialized\n");
+-	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
++	return (row <= addr) && (addr < row + META_MEM_BYTES_PER_ROW);
  }
  
- /*
+-static int shadow_pointer_offset(const void *row, const void *shadow)
++static int meta_pointer_offset(const void *row, const void *addr)
+ {
+-	/* The length of ">ff00ff00ff00ff00: " is
+-	 *    3 + (BITS_PER_LONG/8)*2 chars.
++	/*
++	 * Memory state around the buggy address:
++	 *  ff00ff00ff00ff00: 00 00 00 05 fe fe fe fe fe fe fe fe fe fe fe fe
++	 *  ...
++	 *
++	 * The length of ">ff00ff00ff00ff00: " is
++	 *    3 + (BITS_PER_LONG / 8) * 2 chars.
++	 * The length of each granule metadata is 2 bytes
++	 *    plus 1 byte for space.
+ 	 */
+-	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
+-		(shadow - row) / META_BYTES_PER_BLOCK + 1;
++	return 3 + (BITS_PER_LONG / 8) * 2 +
++		(addr - row) / KASAN_GRANULE_SIZE * 3 + 1;
+ }
+ 
+ static void print_memory_metadata(const void *addr)
+ {
+ 	int i;
+-	const void *shadow = kasan_mem_to_shadow(addr);
+-	const void *shadow_row;
++	void *row;
+ 
+-	shadow_row = (void *)round_down((unsigned long)shadow,
+-					META_BYTES_PER_ROW)
+-		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
++	row = (void *)round_down((unsigned long)addr, META_MEM_BYTES_PER_ROW)
++			- META_ROWS_AROUND_ADDR * META_MEM_BYTES_PER_ROW;
+ 
+ 	pr_err("Memory state around the buggy address:\n");
+ 
+ 	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
+-		const void *kaddr = kasan_shadow_to_mem(shadow_row);
+-		char buffer[4 + (BITS_PER_LONG/8)*2];
+-		char shadow_buf[META_BYTES_PER_ROW];
++		char buffer[4 + (BITS_PER_LONG / 8) * 2];
++		char metadata[META_BYTES_PER_ROW];
+ 
+ 		snprintf(buffer, sizeof(buffer),
+-			(i == 0) ? ">%px: " : " %px: ", kaddr);
++				(i == 0) ? ">%px: " : " %px: ", row);
++
+ 		/*
+ 		 * We should not pass a shadow pointer to generic
+ 		 * function, because generic functions may try to
+ 		 * access kasan mapping for the passed address.
+ 		 */
+-		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
++		metadata_fetch_row(&metadata[0], row);
++
+ 		print_hex_dump(KERN_ERR, buffer,
+ 			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
+-			shadow_buf, META_BYTES_PER_ROW, 0);
++			metadata, META_BYTES_PER_ROW, 0);
+ 
+-		if (row_is_guilty(shadow_row, shadow))
+-			pr_err("%*c\n",
+-				shadow_pointer_offset(shadow_row, shadow),
+-				'^');
++		if (meta_row_is_guilty(row, addr))
++			pr_err("%*c\n", meta_pointer_offset(row, addr), '^');
+ 
+-		shadow_row += META_BYTES_PER_ROW;
++		row += META_MEM_BYTES_PER_ROW;
+ 	}
+ }
+ 
+--- a/mm/kasan/report_generic.c~kasan-separate-metadata_fetch_row-for-each-mode
++++ a/mm/kasan/report_generic.c
+@@ -123,6 +123,11 @@ const char *get_bug_type(struct kasan_ac
+ 	return get_wild_bug_type(info);
+ }
+ 
++void metadata_fetch_row(char *buffer, void *row)
++{
++	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
++}
++
+ #if CONFIG_KASAN_STACK
+ static bool __must_check tokenize_frame_descr(const char **frame_descr,
+ 					      char *token, size_t max_tok_len,
+--- a/mm/kasan/report_sw_tags.c~kasan-separate-metadata_fetch_row-for-each-mode
++++ a/mm/kasan/report_sw_tags.c
+@@ -80,6 +80,11 @@ void *find_first_bad_addr(void *addr, si
+ 	return p;
+ }
+ 
++void metadata_fetch_row(char *buffer, void *row)
++{
++	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
++}
++
+ void print_tags(u8 addr_tag, const void *addr)
+ {
+ 	u8 *shadow = (u8 *)kasan_mem_to_shadow(addr);
 _
