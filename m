@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B326C43381
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A2FDC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5ACA52333B
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 27E1622583
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726956AbgLVUBh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:01:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44984 "EHLO mail.kernel.org"
+        id S1727008AbgLVUBk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:01:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726810AbgLVUBh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:01:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 32F9623133;
-        Tue, 22 Dec 2020 20:00:43 +0000 (UTC)
+        id S1726991AbgLVUBk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:01:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BA93723137;
+        Tue, 22 Dec 2020 20:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667243;
-        bh=BnKABBFXehNVsAf/DxE7GIkSrsUgxtLfAbUVA2DgJtY=;
+        s=korg; t=1608667247;
+        bh=l3lg1QHfWNiKhxkb3gVgUjhwfevdtIV2NAFdxq0ggH0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jtrIYAPlKB4UuiTVvsW1INcaGBHvGdr3rT5UlZcW82r8DfXPCKv/BIkGek6yCYe8w
-         YVwSB5LZ+kELtHil6BC6tLqMENmwi9/olzqi/TJKmHTX6RSL50I+HJqw9gsw1cvo8x
-         CMxCyF75I14l6sRKVbKlqiPrZ0GXHIR2ipl5UH00=
-Date:   Tue, 22 Dec 2020 12:00:42 -0800
+        b=Ncc0R+aq8vmgNfHAZFO1XEy5auFNqVHgPYh8uoDovmfWKriBDu9CUWniCd1UhVYxT
+         pUuqm6+Xpy/NFJuU/SIiuNWAcw3O4qrSc7smLSlAH03ge9AS+unM2QVWOfURw/iaPO
+         dlm9Sm0CklkptV7lkgHOGRMKAvACitzMjsAmDuRI=
+Date:   Tue, 22 Dec 2020 12:00:46 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 11/60] kasan: don't duplicate config dependencies
-Message-ID: <20201222200042.iCRSiCYmC%akpm@linux-foundation.org>
+Subject:  [patch 12/60] kasan: hide invalid free check
+ implementation
+Message-ID: <20201222200046.skGG0SPl-%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,12 +48,20 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't duplicate config dependencies
+Subject: kasan: hide invalid free check implementation
 
-Both KASAN_GENERIC and KASAN_SW_TAGS have common dependencies, move those
-to KASAN.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Link: https://lkml.kernel.org/r/c1cc0d562608a318c607afe22db5ec2a7af72e47.1606161801.git.andreyknvl@google.com
+For software KASAN modes the check is based on the value in the shadow
+memory.  Hardware tag-based KASAN won't be using shadow, so hide the
+implementation of the check in check_invalid_free().
+
+Also simplify the code for software tag-based mode.
+
+No functional changes for software modes.
+
+Link: https://lkml.kernel.org/r/d01534a4b977f97d87515dc590e6348e1406de81.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -69,40 +78,93 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/kasan/common.c  |   19 +------------------
+ mm/kasan/generic.c |    7 +++++++
+ mm/kasan/kasan.h   |    2 ++
+ mm/kasan/sw_tags.c |    9 +++++++++
+ 4 files changed, 19 insertions(+), 18 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-dont-duplicate-config-dependencies
-+++ a/lib/Kconfig.kasan
-@@ -24,6 +24,8 @@ menuconfig KASAN
- 		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
- 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
- 	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
-+	select CONSTRUCTORS
-+	select STACKDEPOT
- 	help
- 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
- 	  designed to find out-of-bounds accesses and use-after-free bugs.
-@@ -46,10 +48,7 @@ choice
- config KASAN_GENERIC
- 	bool "Generic mode"
- 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
--	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
- 	select SLUB_DEBUG if SLUB
--	select CONSTRUCTORS
--	select STACKDEPOT
- 	help
- 	  Enables generic KASAN mode.
+--- a/mm/kasan/common.c~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/common.c
+@@ -277,25 +277,9 @@ void * __must_check kasan_init_slab_obj(
+ 	return (void *)object;
+ }
  
-@@ -70,10 +69,7 @@ config KASAN_GENERIC
- config KASAN_SW_TAGS
- 	bool "Software tag-based mode"
- 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
--	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
- 	select SLUB_DEBUG if SLUB
--	select CONSTRUCTORS
--	select STACKDEPOT
- 	help
- 	  Enables software tag-based KASAN mode.
+-static inline bool shadow_invalid(u8 tag, s8 shadow_byte)
+-{
+-	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+-		return shadow_byte < 0 ||
+-			shadow_byte >= KASAN_GRANULE_SIZE;
+-
+-	/* else CONFIG_KASAN_SW_TAGS: */
+-	if ((u8)shadow_byte == KASAN_TAG_INVALID)
+-		return true;
+-	if ((tag != KASAN_TAG_KERNEL) && (tag != (u8)shadow_byte))
+-		return true;
+-
+-	return false;
+-}
+-
+ static bool __kasan_slab_free(struct kmem_cache *cache, void *object,
+ 			      unsigned long ip, bool quarantine)
+ {
+-	s8 shadow_byte;
+ 	u8 tag;
+ 	void *tagged_object;
+ 	unsigned long rounded_up_size;
+@@ -314,8 +298,7 @@ static bool __kasan_slab_free(struct kme
+ 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
+ 		return false;
  
+-	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
+-	if (shadow_invalid(tag, shadow_byte)) {
++	if (check_invalid_free(tagged_object)) {
+ 		kasan_report_invalid_free(tagged_object, ip);
+ 		return true;
+ 	}
+--- a/mm/kasan/generic.c~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/generic.c
+@@ -187,6 +187,13 @@ bool check_memory_region(unsigned long a
+ 	return check_memory_region_inline(addr, size, write, ret_ip);
+ }
+ 
++bool check_invalid_free(void *addr)
++{
++	s8 shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(addr));
++
++	return shadow_byte < 0 || shadow_byte >= KASAN_GRANULE_SIZE;
++}
++
+ void kasan_cache_shrink(struct kmem_cache *cache)
+ {
+ 	quarantine_remove_cache(cache);
+--- a/mm/kasan/kasan.h~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/kasan.h
+@@ -166,6 +166,8 @@ void unpoison_range(const void *address,
+ bool check_memory_region(unsigned long addr, size_t size, bool write,
+ 				unsigned long ret_ip);
+ 
++bool check_invalid_free(void *addr);
++
+ void *find_first_bad_addr(void *addr, size_t size);
+ const char *get_bug_type(struct kasan_access_info *info);
+ 
+--- a/mm/kasan/sw_tags.c~kasan-hide-invalid-free-check-implementation
++++ a/mm/kasan/sw_tags.c
+@@ -121,6 +121,15 @@ bool check_memory_region(unsigned long a
+ 	return true;
+ }
+ 
++bool check_invalid_free(void *addr)
++{
++	u8 tag = get_tag(addr);
++	u8 shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(reset_tag(addr)));
++
++	return (shadow_byte == KASAN_TAG_INVALID) ||
++		(tag != KASAN_TAG_KERNEL && tag != shadow_byte);
++}
++
+ #define DEFINE_HWASAN_LOAD_STORE(size)					\
+ 	void __hwasan_load##size##_noabort(unsigned long addr)		\
+ 	{								\
 _
