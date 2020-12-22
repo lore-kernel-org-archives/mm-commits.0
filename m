@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 315FBC433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1AD7C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFF8E20771
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97BD023133
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727376AbgLVUDp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:03:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47264 "EHLO mail.kernel.org"
+        id S1725850AbgLVUDt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:03:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726486AbgLVUDp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:03:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F18DA20700;
-        Tue, 22 Dec 2020 20:03:03 +0000 (UTC)
+        id S1727389AbgLVUDt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:03:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3CA1123137;
+        Tue, 22 Dec 2020 20:03:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667384;
-        bh=wPvi+UsUpTxgCzcocHc0vONZ7AR6L8dOcpE8h6uun9o=;
+        s=korg; t=1608667387;
+        bh=hyYfzSohot5OY4xtsFYuRbnkcFMBQrgeMqhDRbh4nro=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=b8FF/zUnen67BY4xiFx/uRWePB4rUwcb8BAH/CjhDdoFB1kxNsHb4hiLN6NbyPdqc
-         +QqByp74CulQt+zBcQt8ZKH8dP4sa75HuT6XS8J/6MbsevkiCn+tKvFsX1QhfZilnT
-         EtNeKyC2QbDpvvMED7dlI6ICiKp1owe0ILZVwVUU=
-Date:   Tue, 22 Dec 2020 12:03:03 -0800
+        b=AEPR80h5NNkOWu2+61+hX1Z8EYAQ4d30+bXgrrJRRve1irfxbWq8YOhtFOc2FdVg8
+         vyNGRV2qxg8uc/rBzEwKWmaC82U0tOfpkhe2482gsV7DEmdguwACa9lxeGYspZI8Xu
+         iUiuaZ14TjPJdrc//HibNBYyDiCO2ce3yvk6SfX8=
+Date:   Tue, 22 Dec 2020 12:03:06 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 51/60] kasan: inline (un)poison_range and
- check_invalid_free
-Message-ID: <20201222200303.rJO6f-L6E%akpm@linux-foundation.org>
+Subject:  [patch 52/60] kasan: add and integrate kasan boot
+ parameters
+Message-ID: <20201222200306.eGuADKVc8%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,23 +48,58 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: inline (un)poison_range and check_invalid_free
+Subject: kasan: add and integrate kasan boot parameters
 
-Using (un)poison_range() or check_invalid_free() currently results in
-function calls. Move their definitions to mm/kasan/kasan.h and turn them
-into static inline functions for hardware tag-based mode to avoid
-unneeded function calls.
+Hardware tag-based KASAN mode is intended to eventually be used in
+production as a security mitigation. Therefore there's a need for finer
+control over KASAN features and for an existence of a kill switch.
 
-Link: https://lkml.kernel.org/r/7007955b69eb31b5376a7dc1e0f4ac49138504f2.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ia9d8191024a12d1374675b3d27197f10193f50bb
+This change adds a few boot parameters for hardware tag-based KASAN that
+allow to disable or otherwise control particular KASAN features.
+
+The features that can be controlled are:
+
+1. Whether KASAN is enabled at all.
+2. Whether KASAN collects and saves alloc/free stacks.
+3. Whether KASAN panics on a detected bug or not.
+
+With this change a new boot parameter kasan.mode allows to choose one of
+three main modes:
+
+- kasan.mode=off - KASAN is disabled, no tag checks are performed
+- kasan.mode=prod - only essential production features are enabled
+- kasan.mode=full - all KASAN features are enabled
+
+The chosen mode provides default control values for the features mentioned
+above. However it's also possible to override the default values by
+providing:
+
+- kasan.stacktrace=off/on - enable alloc/free stack collection
+                            (default: on for mode=full, otherwise off)
+- kasan.fault=report/panic - only report tag fault or also panic
+                             (default: report)
+
+If kasan.mode parameter is not provided, it defaults to full when
+CONFIG_DEBUG_KERNEL is enabled, and to prod otherwise.
+
+It is essential that switching between these modes doesn't require
+rebuilding the kernel with different configs, as this is required by
+the Android GKI (Generic Kernel Image) initiative [1].
+
+[1] https://source.android.com/devices/architecture/kernel/generic-kernel-image
+
+[andreyknvl@google.com: don't use read-only static keys]
+  Link: https://lkml.kernel.org/r/f2ded589eba1597f7360a972226083de9afd86e2.1607537948.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/cb093613879d8d8841173f090133eddeb4c35f1f.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/If7d37003875b2ed3e0935702c8015c223d6416a4
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -72,97 +107,312 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |   21 ---------------------
- mm/kasan/kasan.h   |   36 +++++++++++++++++++++++++++++++-----
- 2 files changed, 31 insertions(+), 26 deletions(-)
+ mm/kasan/common.c  |   22 ++++--
+ mm/kasan/hw_tags.c |  151 +++++++++++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.h   |   16 ++++
+ mm/kasan/report.c  |   14 +++
+ 4 files changed, 196 insertions(+), 7 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-inline-unpoison_range-and-check_invalid_free
+--- a/mm/kasan/common.c~kasan-add-and-integrate-kasan-boot-parameters
++++ a/mm/kasan/common.c
+@@ -134,6 +134,11 @@ void kasan_cache_create(struct kmem_cach
+ 	unsigned int redzone_size;
+ 	int redzone_adjust;
+ 
++	if (!kasan_stack_collection_enabled()) {
++		*flags |= SLAB_KASAN;
++		return;
++	}
++
+ 	/* Add alloc meta. */
+ 	cache->kasan_info.alloc_meta_offset = *size;
+ 	*size += sizeof(struct kasan_alloc_meta);
+@@ -170,6 +175,8 @@ void kasan_cache_create(struct kmem_cach
+ 
+ size_t kasan_metadata_size(struct kmem_cache *cache)
+ {
++	if (!kasan_stack_collection_enabled())
++		return 0;
+ 	return (cache->kasan_info.alloc_meta_offset ?
+ 		sizeof(struct kasan_alloc_meta) : 0) +
+ 		(cache->kasan_info.free_meta_offset ?
+@@ -262,11 +269,13 @@ void * __must_check kasan_init_slab_obj(
+ {
+ 	struct kasan_alloc_meta *alloc_meta;
+ 
+-	if (!(cache->flags & SLAB_KASAN))
+-		return (void *)object;
++	if (kasan_stack_collection_enabled()) {
++		if (!(cache->flags & SLAB_KASAN))
++			return (void *)object;
+ 
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	__memset(alloc_meta, 0, sizeof(*alloc_meta));
++		alloc_meta = kasan_get_alloc_meta(cache, object);
++		__memset(alloc_meta, 0, sizeof(*alloc_meta));
++	}
+ 
+ 	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
+ 		object = set_tag(object, assign_tag(cache, object, true, false));
+@@ -303,6 +312,9 @@ static bool __kasan_slab_free(struct kme
+ 	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
+ 	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
+ 
++	if (!kasan_stack_collection_enabled())
++		return false;
++
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine) ||
+ 			unlikely(!(cache->flags & SLAB_KASAN)))
+ 		return false;
+@@ -350,7 +362,7 @@ static void *__kasan_kmalloc(struct kmem
+ 	poison_range((void *)redzone_start, redzone_end - redzone_start,
+ 		     KASAN_KMALLOC_REDZONE);
+ 
+-	if (cache->flags & SLAB_KASAN)
++	if (kasan_stack_collection_enabled() && (cache->flags & SLAB_KASAN))
+ 		set_alloc_info(cache, (void *)object, flags);
+ 
+ 	return set_tag(object, tag);
+--- a/mm/kasan/hw_tags.c~kasan-add-and-integrate-kasan-boot-parameters
 +++ a/mm/kasan/hw_tags.c
-@@ -30,27 +30,6 @@ void __init kasan_init_hw_tags(void)
+@@ -8,18 +8,115 @@
+ 
+ #define pr_fmt(fmt) "kasan: " fmt
+ 
++#include <linux/init.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
++#include <linux/static_key.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+ 
+ #include "kasan.h"
+ 
++enum kasan_arg_mode {
++	KASAN_ARG_MODE_DEFAULT,
++	KASAN_ARG_MODE_OFF,
++	KASAN_ARG_MODE_PROD,
++	KASAN_ARG_MODE_FULL,
++};
++
++enum kasan_arg_stacktrace {
++	KASAN_ARG_STACKTRACE_DEFAULT,
++	KASAN_ARG_STACKTRACE_OFF,
++	KASAN_ARG_STACKTRACE_ON,
++};
++
++enum kasan_arg_fault {
++	KASAN_ARG_FAULT_DEFAULT,
++	KASAN_ARG_FAULT_REPORT,
++	KASAN_ARG_FAULT_PANIC,
++};
++
++static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
++static enum kasan_arg_stacktrace kasan_arg_stacktrace __ro_after_init;
++static enum kasan_arg_fault kasan_arg_fault __ro_after_init;
++
++/* Whether KASAN is enabled at all. */
++DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
++EXPORT_SYMBOL(kasan_flag_enabled);
++
++/* Whether to collect alloc/free stack traces. */
++DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
++
++/* Whether panic or disable tag checking on fault. */
++bool kasan_flag_panic __ro_after_init;
++
++/* kasan.mode=off/prod/full */
++static int __init early_kasan_mode(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "off"))
++		kasan_arg_mode = KASAN_ARG_MODE_OFF;
++	else if (!strcmp(arg, "prod"))
++		kasan_arg_mode = KASAN_ARG_MODE_PROD;
++	else if (!strcmp(arg, "full"))
++		kasan_arg_mode = KASAN_ARG_MODE_FULL;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kasan.mode", early_kasan_mode);
++
++/* kasan.stack=off/on */
++static int __init early_kasan_flag_stacktrace(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "off"))
++		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_OFF;
++	else if (!strcmp(arg, "on"))
++		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
++
++/* kasan.fault=report/panic */
++static int __init early_kasan_fault(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "report"))
++		kasan_arg_fault = KASAN_ARG_FAULT_REPORT;
++	else if (!strcmp(arg, "panic"))
++		kasan_arg_fault = KASAN_ARG_FAULT_PANIC;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kasan.fault", early_kasan_fault);
++
+ /* kasan_init_hw_tags_cpu() is called for each CPU. */
+ void kasan_init_hw_tags_cpu(void)
+ {
++	/*
++	 * There's no need to check that the hardware is MTE-capable here,
++	 * as this function is only called for MTE-capable hardware.
++	 */
++
++	/* If KASAN is disabled, do nothing. */
++	if (kasan_arg_mode == KASAN_ARG_MODE_OFF)
++		return;
++
+ 	hw_init_tags(KASAN_TAG_MAX);
+ 	hw_enable_tagging();
+ }
+@@ -27,6 +124,60 @@ void kasan_init_hw_tags_cpu(void)
+ /* kasan_init_hw_tags() is called once on boot CPU. */
+ void __init kasan_init_hw_tags(void)
+ {
++	/* If hardware doesn't support MTE, do nothing. */
++	if (!system_supports_mte())
++		return;
++
++	/* Choose KASAN mode if kasan boot parameter is not provided. */
++	if (kasan_arg_mode == KASAN_ARG_MODE_DEFAULT) {
++		if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
++			kasan_arg_mode = KASAN_ARG_MODE_FULL;
++		else
++			kasan_arg_mode = KASAN_ARG_MODE_PROD;
++	}
++
++	/* Preset parameter values based on the mode. */
++	switch (kasan_arg_mode) {
++	case KASAN_ARG_MODE_DEFAULT:
++		/* Shouldn't happen as per the check above. */
++		WARN_ON(1);
++		return;
++	case KASAN_ARG_MODE_OFF:
++		/* If KASAN is disabled, do nothing. */
++		return;
++	case KASAN_ARG_MODE_PROD:
++		static_branch_enable(&kasan_flag_enabled);
++		break;
++	case KASAN_ARG_MODE_FULL:
++		static_branch_enable(&kasan_flag_enabled);
++		static_branch_enable(&kasan_flag_stacktrace);
++		break;
++	}
++
++	/* Now, optionally override the presets. */
++
++	switch (kasan_arg_stacktrace) {
++	case KASAN_ARG_STACKTRACE_DEFAULT:
++		break;
++	case KASAN_ARG_STACKTRACE_OFF:
++		static_branch_disable(&kasan_flag_stacktrace);
++		break;
++	case KASAN_ARG_STACKTRACE_ON:
++		static_branch_enable(&kasan_flag_stacktrace);
++		break;
++	}
++
++	switch (kasan_arg_fault) {
++	case KASAN_ARG_FAULT_DEFAULT:
++		break;
++	case KASAN_ARG_FAULT_REPORT:
++		kasan_flag_panic = false;
++		break;
++	case KASAN_ARG_FAULT_PANIC:
++		kasan_flag_panic = true;
++		break;
++	}
++
  	pr_info("KernelAddressSanitizer initialized\n");
  }
  
--void poison_range(const void *address, size_t size, u8 value)
--{
--	hw_set_mem_tag_range(kasan_reset_tag(address),
--			round_up(size, KASAN_GRANULE_SIZE), value);
--}
--
--void unpoison_range(const void *address, size_t size)
--{
--	hw_set_mem_tag_range(kasan_reset_tag(address),
--			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
--}
--
--bool check_invalid_free(void *addr)
--{
--	u8 ptr_tag = get_tag(addr);
--	u8 mem_tag = hw_get_mem_tag(addr);
--
--	return (mem_tag == KASAN_TAG_INVALID) ||
--		(ptr_tag != KASAN_TAG_KERNEL && ptr_tag != mem_tag);
--}
--
- void kasan_set_free_info(struct kmem_cache *cache,
- 				void *object, u8 tag)
- {
---- a/mm/kasan/kasan.h~kasan-inline-unpoison_range-and-check_invalid_free
+--- a/mm/kasan/kasan.h~kasan-add-and-integrate-kasan-boot-parameters
 +++ a/mm/kasan/kasan.h
-@@ -154,9 +154,6 @@ struct kasan_alloc_meta *kasan_get_alloc
- struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
- 						const void *object);
- 
--void poison_range(const void *address, size_t size, u8 value);
--void unpoison_range(const void *address, size_t size);
--
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 
- static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
-@@ -196,8 +193,6 @@ void print_tags(u8 addr_tag, const void
- static inline void print_tags(u8 addr_tag, const void *addr) { }
- #endif
- 
--bool check_invalid_free(void *addr);
--
- void *find_first_bad_addr(void *addr, size_t size);
- const char *get_bug_type(struct kasan_access_info *info);
- void metadata_fetch_row(char *buffer, void *row);
-@@ -278,6 +273,37 @@ static inline u8 random_tag(void) { retu
- static inline u8 random_tag(void) { return 0; }
- #endif
+@@ -5,6 +5,22 @@
+ #include <linux/kasan.h>
+ #include <linux/stackdepot.h>
  
 +#ifdef CONFIG_KASAN_HW_TAGS
-+
-+static inline void poison_range(const void *address, size_t size, u8 value)
++#include <linux/static_key.h>
++DECLARE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
++static inline bool kasan_stack_collection_enabled(void)
 +{
-+	hw_set_mem_tag_range(kasan_reset_tag(address),
-+			round_up(size, KASAN_GRANULE_SIZE), value);
++	return static_branch_unlikely(&kasan_flag_stacktrace);
 +}
-+
-+static inline void unpoison_range(const void *address, size_t size)
++#else
++static inline bool kasan_stack_collection_enabled(void)
 +{
-+	hw_set_mem_tag_range(kasan_reset_tag(address),
-+			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
++	return true;
 +}
++#endif
 +
-+static inline bool check_invalid_free(void *addr)
++extern bool kasan_flag_panic __ro_after_init;
++
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
+ #else
+--- a/mm/kasan/report.c~kasan-add-and-integrate-kasan-boot-parameters
++++ a/mm/kasan/report.c
+@@ -99,6 +99,10 @@ static void end_report(unsigned long *fl
+ 		panic_on_warn = 0;
+ 		panic("panic_on_warn set ...\n");
+ 	}
++#ifdef CONFIG_KASAN_HW_TAGS
++	if (kasan_flag_panic)
++		panic("kasan.fault=panic set ...\n");
++#endif
+ 	kasan_enable_current();
+ }
+ 
+@@ -161,8 +165,8 @@ static void describe_object_addr(struct
+ 		(void *)(object_addr + cache->object_size));
+ }
+ 
+-static void describe_object(struct kmem_cache *cache, void *object,
+-				const void *addr, u8 tag)
++static void describe_object_stacks(struct kmem_cache *cache, void *object,
++					const void *addr, u8 tag)
+ {
+ 	struct kasan_alloc_meta *alloc_meta = kasan_get_alloc_meta(cache, object);
+ 
+@@ -190,7 +194,13 @@ static void describe_object(struct kmem_
+ 		}
+ #endif
+ 	}
++}
+ 
++static void describe_object(struct kmem_cache *cache, void *object,
++				const void *addr, u8 tag)
 +{
-+	u8 ptr_tag = get_tag(addr);
-+	u8 mem_tag = hw_get_mem_tag(addr);
-+
-+	return (mem_tag == KASAN_TAG_INVALID) ||
-+		(ptr_tag != KASAN_TAG_KERNEL && ptr_tag != mem_tag);
-+}
-+
-+#else /* CONFIG_KASAN_HW_TAGS */
-+
-+void poison_range(const void *address, size_t size, u8 value);
-+void unpoison_range(const void *address, size_t size);
-+bool check_invalid_free(void *addr);
-+
-+#endif /* CONFIG_KASAN_HW_TAGS */
-+
- /*
-  * Exported functions for interfaces called from assembly or from generated
-  * code. Declarations here to avoid warning about missing declarations.
++	if (kasan_stack_collection_enabled())
++		describe_object_stacks(cache, object, addr, tag);
+ 	describe_object_addr(cache, object, addr);
+ }
+ 
 _
