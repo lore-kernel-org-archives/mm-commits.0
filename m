@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71844C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A57BC43381
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A42C21D1B
+	by mail.kernel.org (Postfix) with ESMTP id 1683320705
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726810AbgLVUBq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727080AbgLVUBq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Dec 2020 15:01:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44848 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727071AbgLVUBq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726810AbgLVUBq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 22 Dec 2020 15:01:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6627E21D1B;
-        Tue, 22 Dec 2020 20:01:07 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FB0720771;
+        Tue, 22 Dec 2020 20:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667268;
-        bh=CntEdFeEhpEy8nANGl/CKXpvCpvnknYL6NlgBt4vUtk=;
+        s=korg; t=1608667261;
+        bh=0o31pG6AdEpFva+9QxweYjoptW0XURaqpwcvMaqTi7c=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=AXw+dT5Kk5nTnDmzxLgWHprV59YVX6/0wkUurtNU1bRzlPQ2BQXIoytYsqXjI4FNi
-         3LvqXqKasrGAtd+vbMSHsngOS/AQoFLBnh+BuPESnI5Zm4+mIGv3fh+13Hb5T2iU1R
-         pSS1G+bwe+mLH9VpgIDx7a+6jX6xDg5hUhjzHijo=
-Date:   Tue, 22 Dec 2020 12:01:07 -0800
+        b=p8OWnqgwnlk4z+rCYNbPALpAbqflSxLl2VVgpxRQqndUZMA1ZnxNj+nDbBVWdqq8Q
+         pXE57mqlEy0rbiiR+SMDls6PTxDCE8jiRXi9ybjHB2O/ak62n7VxArs+Gfgp1geQUj
+         NA8UCxDH7FqnRGdkTcVtm5w02ie/31QHcHn4Jxjc=
+Date:   Tue, 22 Dec 2020 12:01:00 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 18/60] kasan: rename addr_has_shadow to
- addr_has_metadata
-Message-ID: <20201222200107.iVjy6s2QW%akpm@linux-foundation.org>
+Subject:  [patch 16/60] kasan, arm64: move initialization message
+Message-ID: <20201222200100.nMe3EBu9c%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,83 +47,119 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: rename addr_has_shadow to addr_has_metadata
+Subject: kasan, arm64: move initialization message
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
+Software tag-based KASAN mode is fully initialized with kasan_init_tags(),
+while the generic mode only requires kasan_init().  Move the
+initialization message for tag-based mode into kasan_init_tags().
 
-Hardware tag-based KASAN won't be using shadow memory, but will reuse this
-function.  Rename "shadow" to implementation-neutral "metadata".
+Also fix pr_fmt() usage for KASAN code: generic.c doesn't need it as it
+doesn't use any printing functions; tag-based mode should use "kasan:"
+instead of KBUILD_MODNAME (which stands for file name).
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/370466fba590a4596b55ffd38adfd990f8886db4.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/29a30ea4e1750450dd1f693d25b7b6cb05913ecf.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h          |    2 +-
- mm/kasan/report.c         |    6 +++---
- mm/kasan/report_generic.c |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm64/include/asm/kasan.h |    9 +++------
+ arch/arm64/mm/kasan_init.c     |   13 +++++--------
+ mm/kasan/generic.c             |    2 --
+ mm/kasan/sw_tags.c             |    4 +++-
+ 4 files changed, 11 insertions(+), 17 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/kasan.h
-@@ -147,7 +147,7 @@ static inline const void *kasan_shadow_t
- 		<< KASAN_SHADOW_SCALE_SHIFT);
+--- a/arch/arm64/include/asm/kasan.h~kasan-arm64-move-initialization-message
++++ a/arch/arm64/include/asm/kasan.h
+@@ -12,14 +12,10 @@
+ #define arch_kasan_reset_tag(addr)	__tag_reset(addr)
+ #define arch_kasan_get_tag(addr)	__tag_get(addr)
+ 
+-#ifdef CONFIG_KASAN
+-void kasan_init(void);
+-#else
+-static inline void kasan_init(void) { }
+-#endif
+-
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 
++void kasan_init(void);
++
+ /*
+  * KASAN_SHADOW_START: beginning of the kernel virtual addresses.
+  * KASAN_SHADOW_END: KASAN_SHADOW_START + 1/N of kernel virtual addresses,
+@@ -43,6 +39,7 @@ void kasan_copy_shadow(pgd_t *pgdir);
+ asmlinkage void kasan_early_init(void);
+ 
+ #else
++static inline void kasan_init(void) { }
+ static inline void kasan_copy_shadow(pgd_t *pgdir) { }
+ #endif
+ 
+--- a/arch/arm64/mm/kasan_init.c~kasan-arm64-move-initialization-message
++++ a/arch/arm64/mm/kasan_init.c
+@@ -278,17 +278,14 @@ static void __init kasan_init_depth(void
+ 	init_task.kasan_depth = 0;
  }
  
--static inline bool addr_has_shadow(const void *addr)
-+static inline bool addr_has_metadata(const void *addr)
+-#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) */
+-
+-static inline void __init kasan_init_shadow(void) { }
+-
+-static inline void __init kasan_init_depth(void) { }
+-
+-#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+-
+ void __init kasan_init(void)
  {
- 	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
+ 	kasan_init_shadow();
+ 	kasan_init_depth();
++#if defined(CONFIG_KASAN_GENERIC)
++	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_tags(). */
+ 	pr_info("KernelAddressSanitizer initialized\n");
++#endif
  }
---- a/mm/kasan/report.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/report.c
-@@ -361,7 +361,7 @@ static void __kasan_report(unsigned long
- 	untagged_addr = reset_tag(tagged_addr);
++
++#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+--- a/mm/kasan/generic.c~kasan-arm64-move-initialization-message
++++ a/mm/kasan/generic.c
+@@ -9,8 +9,6 @@
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+  */
  
- 	info.access_addr = tagged_addr;
--	if (addr_has_shadow(untagged_addr))
-+	if (addr_has_metadata(untagged_addr))
- 		info.first_bad_addr = find_first_bad_addr(tagged_addr, size);
- 	else
- 		info.first_bad_addr = untagged_addr;
-@@ -372,11 +372,11 @@ static void __kasan_report(unsigned long
- 	start_report(&flags);
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include <linux/export.h>
+ #include <linux/interrupt.h>
+ #include <linux/init.h>
+--- a/mm/kasan/sw_tags.c~kasan-arm64-move-initialization-message
++++ a/mm/kasan/sw_tags.c
+@@ -6,7 +6,7 @@
+  * Author: Andrey Konovalov <andreyknvl@google.com>
+  */
  
- 	print_error_description(&info);
--	if (addr_has_shadow(untagged_addr))
-+	if (addr_has_metadata(untagged_addr))
- 		print_tags(get_tag(tagged_addr), info.first_bad_addr);
- 	pr_err("\n");
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#define pr_fmt(fmt) "kasan: " fmt
  
--	if (addr_has_shadow(untagged_addr)) {
-+	if (addr_has_metadata(untagged_addr)) {
- 		print_address_description(untagged_addr, get_tag(tagged_addr));
- 		pr_err("\n");
- 		print_shadow_for_address(info.first_bad_addr);
---- a/mm/kasan/report_generic.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
-+++ a/mm/kasan/report_generic.c
-@@ -118,7 +118,7 @@ const char *get_bug_type(struct kasan_ac
- 	if (info->access_addr + info->access_size < info->access_addr)
- 		return "out-of-bounds";
+ #include <linux/export.h>
+ #include <linux/interrupt.h>
+@@ -41,6 +41,8 @@ void kasan_init_tags(void)
  
--	if (addr_has_shadow(info->access_addr))
-+	if (addr_has_metadata(info->access_addr))
- 		return get_shadow_bug_type(info);
- 	return get_wild_bug_type(info);
+ 	for_each_possible_cpu(cpu)
+ 		per_cpu(prng_state, cpu) = (u32)get_cycles();
++
++	pr_info("KernelAddressSanitizer initialized\n");
  }
+ 
+ /*
 _
