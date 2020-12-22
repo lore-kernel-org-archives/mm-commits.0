@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D48C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E031FC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A33372313F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A724B21D1B
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725913AbgLVUDd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:03:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46994 "EHLO mail.kernel.org"
+        id S1726734AbgLVUDe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:03:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726486AbgLVUDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:03:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A63DF20771;
-        Tue, 22 Dec 2020 20:02:49 +0000 (UTC)
+        id S1726486AbgLVUDe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:03:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B031E21D1B;
+        Tue, 22 Dec 2020 20:03:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667370;
-        bh=qTjQu+aAiKh3WeHDrcy3Ad4bAKWypLWyNRllSXK4W20=;
+        s=korg; t=1608667398;
+        bh=yp1OULphLpM+nd+iKILWI/XZeC4mNqXX649a/tA6Mm4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vV789QWAgVBT5A0euD4P8/nHuuqivsdYaCOmWjIBCj565zpMHb8JCcRG2m9aCHQTm
-         KFrZLWCKwYs3GDy5OY23Gg2RXn/O/lvn8M8kOsidgjyBF0xGoXjQaASaKUnirZuxd+
-         jiTlLF7PaB0/xnk1QnRnprE1eDjppk3eK+VH977Y=
-Date:   Tue, 22 Dec 2020 12:02:49 -0800
+        b=Lquvbzc4+EdHIhl/btBLVR1892D+s+BFC5QQJuR+vs8mFfEy4CwBZGQaupIWfwgpp
+         1la0MEN07txM4K+7ZkNAEGFeb07yXNfgjsN1GvNocM26Xiu3rZU9Qa9bG9GGaWn9ri
+         2fwVAIXud6xf+nDWhLV0tydS93j1eH7z/fihSzIE=
+Date:   Tue, 22 Dec 2020 12:03:17 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 47/60] kasan: remove __kasan_unpoison_stack
-Message-ID: <20201222200249.pSPi936nP%akpm@linux-foundation.org>
+Subject:  [patch 55/60] kasan: don't round_up too much
+Message-ID: <20201222200317.GjVde9W0u%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,16 +47,14 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: remove __kasan_unpoison_stack
+Subject: kasan: don't round_up too much
 
-There's no need for __kasan_unpoison_stack() helper, as it's only
-currently used in a single place. Removing it also removes unneeded
-arithmetic.
+For hardware tag-based mode kasan_poison_memory() already rounds up the
+size. Do the same for software modes and remove round_up() from the common
+code.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/93e78948704a42ea92f6248ff8a725613d721161.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ie5ba549d445292fe629b4a96735e4034957bcc50
+Link: https://lkml.kernel.org/r/47b232474f1f89dc072aeda0fa58daa6efade377.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ib397128fac6eba874008662b4964d65352db4aa4
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -72,31 +70,49 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/kasan/common.c |    8 ++------
+ mm/kasan/shadow.c |    1 +
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/common.c~kasan-remove-__kasan_unpoison_stack
+--- a/mm/kasan/common.c~kasan-dont-round_up-too-much
 +++ a/mm/kasan/common.c
-@@ -64,18 +64,12 @@ void kasan_unpoison_range(const void *ad
- }
+@@ -213,9 +213,7 @@ void __kasan_unpoison_object_data(struct
  
- #if CONFIG_KASAN_STACK
--static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
--{
--	void *base = task_stack_page(task);
--	size_t size = sp - base;
--
--	unpoison_range(base, size);
--}
--
- /* Unpoison the entire stack for a task. */
- void kasan_unpoison_task_stack(struct task_struct *task)
+ void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
  {
--	__kasan_unpoison_stack(task, task_stack_page(task) + THREAD_SIZE);
-+	void *base = task_stack_page(task);
-+
-+	unpoison_range(base, THREAD_SIZE);
+-	poison_range(object,
+-			round_up(cache->object_size, KASAN_GRANULE_SIZE),
+-			KASAN_KMALLOC_REDZONE);
++	poison_range(object, cache->object_size, KASAN_KMALLOC_REDZONE);
  }
  
- /* Unpoison the stack for the current task beyond a watermark sp value. */
+ /*
+@@ -288,7 +286,6 @@ static bool ____kasan_slab_free(struct k
+ {
+ 	u8 tag;
+ 	void *tagged_object;
+-	unsigned long rounded_up_size;
+ 
+ 	tag = get_tag(object);
+ 	tagged_object = object;
+@@ -309,8 +306,7 @@ static bool ____kasan_slab_free(struct k
+ 		return true;
+ 	}
+ 
+-	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
+-	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
++	poison_range(object, cache->object_size, KASAN_KMALLOC_FREE);
+ 
+ 	if (!kasan_stack_collection_enabled())
+ 		return false;
+--- a/mm/kasan/shadow.c~kasan-dont-round_up-too-much
++++ a/mm/kasan/shadow.c
+@@ -82,6 +82,7 @@ void poison_range(const void *address, s
+ 	 * addresses to this function.
+ 	 */
+ 	address = kasan_reset_tag(address);
++	size = round_up(size, KASAN_GRANULE_SIZE);
+ 
+ 	shadow_start = kasan_mem_to_shadow(address);
+ 	shadow_end = kasan_mem_to_shadow(address + size);
 _
