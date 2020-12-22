@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0525C433E6
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ED1EC433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0BEB20867
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:02:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F2622313C
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:03:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725782AbgLVUCz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:02:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46068 "EHLO mail.kernel.org"
+        id S1726337AbgLVUDC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:03:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgLVUCz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:02:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D087B2313C;
-        Tue, 22 Dec 2020 20:02:38 +0000 (UTC)
+        id S1726030AbgLVUDC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:03:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2224220700;
+        Tue, 22 Dec 2020 20:02:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667359;
-        bh=t0cd2hZ+0IGmC6YZOXAl7iIEiMiy2IvhFrjitqSK3sE=;
+        s=korg; t=1608667366;
+        bh=rn5Neti983/U06+GwPVruLgh6wBz38/ROfpXbbmR6Qk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ScF+l/yplvCw8J6GYIozS3M10rS9uhPqH+MkBnZOJXbdpUrAo41PW58wqmYAYal9k
-         NVPh5N+TuMNNneV70sSI8aReCnZNytoQrBGzwPdBHOntuzLCV4RwSrbBv81gFaAnJC
-         BK1cQxDGV0YCK/EGVnWQJe77ng6rB/1gJ1dfnDYs=
-Date:   Tue, 22 Dec 2020 12:02:38 -0800
+        b=y4bLIbM8OatYgZuYkvWE2Xn3m3hJspUTWrfDCm+sIWtzCQsBg137yfQipDsst/EwX
+         0Ct+/p49oe34TZTCxUosVdjhsV8dsedK0LtiT+/fJcFlTsRtr59hPYO+4jaKkOIkVU
+         SmS+5/gFuO7Y0LC7AUCATSjuX3+1qIc+9q4ku98g=
+Date:   Tue, 22 Dec 2020 12:02:45 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,8 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 44/60] kasan: introduce set_alloc_info
-Message-ID: <20201222200238.37xoLOd-R%akpm@linux-foundation.org>
+Subject:  [patch 46/60] kasan: allow VMAP_STACK for HW_TAGS mode
+Message-ID: <20201222200245.lfDSG5aGm%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,23 +47,22 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce set_alloc_info
+Subject: kasan: allow VMAP_STACK for HW_TAGS mode
 
-Add set_alloc_info() helper and move kasan_set_track() into it. This will
-simplify the code for one of the upcoming changes.
+Even though hardware tag-based mode currently doesn't support checking
+vmalloc allocations, it doesn't use shadow memory and works with
+VMAP_STACK as is. Change VMAP_STACK definition accordingly.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/b2393e8f1e311a70fc3aaa2196461b6acdee7d21.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I0316193cbb4ecc9b87b7c2eee0dd79f8ec908c1a
+Link: https://lkml.kernel.org/r/ecdb2a1658ebd88eb276dee2493518ac0e82de41.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I3552cbc12321dec82cd7372676e9372a2eb452ac
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -71,30 +70,30 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/kasan/common.c~kasan-introduce-set_alloc_info
-+++ a/mm/kasan/common.c
-@@ -323,6 +323,11 @@ bool kasan_slab_free(struct kmem_cache *
- 	return __kasan_slab_free(cache, object, ip, true);
- }
+--- a/arch/Kconfig~kasan-allow-vmap_stack-for-hw_tags-mode
++++ a/arch/Kconfig
+@@ -976,16 +976,16 @@ config VMAP_STACK
+ 	default y
+ 	bool "Use a virtually-mapped stack"
+ 	depends on HAVE_ARCH_VMAP_STACK
+-	depends on !KASAN || KASAN_VMALLOC
++	depends on !KASAN || KASAN_HW_TAGS || KASAN_VMALLOC
+ 	help
+ 	  Enable this if you want the use virtually-mapped kernel stacks
+ 	  with guard pages.  This causes kernel stack overflows to be
+ 	  caught immediately rather than causing difficult-to-diagnose
+ 	  corruption.
  
-+static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
-+{
-+	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
-+}
-+
- static void *__kasan_kmalloc(struct kmem_cache *cache, const void *object,
- 				size_t size, gfp_t flags, bool keep_tag)
- {
-@@ -350,7 +355,7 @@ static void *__kasan_kmalloc(struct kmem
- 		     KASAN_KMALLOC_REDZONE);
+-	  To use this with KASAN, the architecture must support backing
+-	  virtual mappings with real shadow memory, and KASAN_VMALLOC must
+-	  be enabled.
++	  To use this with software KASAN modes, the architecture must support
++	  backing virtual mappings with real shadow memory, and KASAN_VMALLOC
++	  must be enabled.
  
- 	if (cache->flags & SLAB_KASAN)
--		kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
-+		set_alloc_info(cache, (void *)object, flags);
- 
- 	return set_tag(object, tag);
- }
+ config ARCH_OPTIONAL_KERNEL_RWX
+ 	def_bool n
 _
