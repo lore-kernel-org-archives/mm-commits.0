@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7027FC433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73970C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D6AA22AB9
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:39:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2720922B2D
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726540AbgLVUjG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:39:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59144 "EHLO mail.kernel.org"
+        id S1727669AbgLVUnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:43:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726526AbgLVUjF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:39:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C3FD1224F4;
-        Tue, 22 Dec 2020 20:38:24 +0000 (UTC)
+        id S1727358AbgLVUnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:43:11 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5939D224F4;
+        Tue, 22 Dec 2020 20:42:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608669505;
-        bh=gisp+0ZrWn7mV5tIl4pOTt+FmMAf48I3fG2aucB8CGc=;
+        s=korg; t=1608669750;
+        bh=E2nVnw6yQ2KaRMCEDrbVMUUIFH5Wp9B4tE5Yy53AID0=;
         h=Date:From:To:Subject:From;
-        b=cu9OWDDvjm1j/dKG4HDGCU1kZnwAjn1fOjsIWgi8eIkWkIR/4PIWW2MzMIPgntadH
-         gqp4vRReVu5AwhekW5FdAGPdviiX5vRnv45/+IFw5RlUTO5y+m3/TIQ+pr7JzjwUwb
-         2w0FuysXmerqZOjWXWLmhl+h8/LfIilX0lnpE2FE=
-Date:   Tue, 22 Dec 2020 12:38:24 -0800
+        b=m1L8lQYvJpxVpXQCuJHkGC9pTqPoj602PBqtfwYrF1GrEdF+nTmSB6JOq3WtXNrlI
+         aWGybueFRBKHBOmOrpMoLplT3TDmq/I+tzs0blUk3nwvBz3MvXcU3JNcLJrNO1IPC3
+         32PEPtkIn7+/39eOc6hHTB2pC4x1brx0YqndrEBI=
+Date:   Tue, 22 Dec 2020 12:42:29 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, zaslonko@linux.ibm.com,
-        iii@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com,
-        borntraeger@de.ibm.com, rdunlap@infradead.org
-Subject:  +
- zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch added to
- -mm tree
-Message-ID: <20201222203824.9CBem%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vilhelm.gray@gmail.com,
+        michal.simek@xilinx.com, linus.walleij@linaro.org,
+        bgolaszewski@baylibre.com, arnd@arndb.de,
+        andriy.shevchenko@linux.intel.com, syednwaris@gmail.com
+Subject:  [to-be-updated]
+ bitops-introduce-the-for_each_set_clump-macro.patch removed from -mm tree
+Message-ID: <20201222204229.I1V-R%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,121 +45,284 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
-has been added to the -mm tree.  Its filename is
-     zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
+     Subject: bitops: introduce the for_each_set_clump macro
+has been removed from the -mm tree.  Its filename was
+     bitops-introduce-the-for_each_set_clump-macro.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
+From: Syed Nayyar Waris <syednwaris@gmail.com>
+Subject: bitops: introduce the for_each_set_clump macro
 
-In 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules"), I added
-EXPORT_SYMBOL()s to dfltcc_inflate.c but then Mikhail said that these
-should probably be in dfltcc_syms.c with the other EXPORT_SYMBOL()s.
+Patch series "Introduce the for_each_set_clump macro", v12.
 
-However, that is contrary to the current kernel style, which places
-EXPORT_SYMBOL() immediately after the function that it applies to,
-so move all EXPORT_SYMBOL()s to their respective function locations
-and drop the dfltcc_syms.c file. Also move MODULE_LICENSE() from the
-deleted file to dfltcc.c.
+This patchset introduces a new generic version of for_each_set_clump.  The
+previous version of for_each_set_clump8 used a fixed size 8-bit clump, but
+the new generic version can work with clump (n-bits) having size between 1
+and BITS_PER_LONG inclusive.  size less than 1 or more than BITS_PER_LONG
+causes undefined behaviour.  The patchset utilizes the new macro in some
+GPIO drivers.
 
-Link: https://lkml.kernel.org/r/20201219052530.28461-1-rdunlap@infradead.org
-Fixes: 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Zaslonko Mikhail <zaslonko@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+The earlier 8-bit for_each_set_clump8 facilitated a for-loop syntax that
+iterates over a memory region entire groups of set bits at a time.
+
+For example, suppose you would like to iterate over a 32-bit integer 8
+bits at a time, skipping over 8-bit groups with no set bit, where
+XXXXXXXX represents the current 8-bit group:
+
+    Example:        10111110 00000000 11111111 00110011
+    First loop:     10111110 00000000 11111111 XXXXXXXX
+    Second loop:    10111110 00000000 XXXXXXXX 00110011
+    Third loop:     XXXXXXXX 00000000 11111111 00110011
+
+Each iteration of the loop returns the next 8-bit group that has at least
+one set bit.
+
+But with the new for_each_set_clump the clump size can be different from 8
+bits.  Moreover, the clump can be split at word boundary in situations
+where word size is not multiple of clump size.  Following are examples
+showing the working of new macro for clump sizes of 24 bits and 6 bits.
+
+Example 1:
+clump size: 24 bits, Number of clumps (or ports): 10
+bitmap stores the bit information from where successive clumps are retrieved.
+
+     /* bitmap memory region */
+        0x00aa0000ff000000;  /* Most significant bits */
+        0xaaaaaa0000ff0000;
+        0x000000aa000000aa;
+        0xbbbbabcdeffedcba;  /* Least significant bits */
+
+Different iterations of for_each_set_clump:-
+'offset' is the bit position and 'clump' is the 24 bit clump from the
+above bitmap.
+Iteration first:        offset: 0 clump: 0xfedcba
+Iteration second:       offset: 24 clump: 0xabcdef
+Iteration third:        offset: 48 clump: 0xaabbbb
+Iteration fourth:       offset: 96 clump: 0xaa
+Iteration fifth:        offset: 144 clump: 0xff
+Iteration sixth:        offset: 168 clump: 0xaaaaaa
+Iteration seventh:      offset: 216 clump: 0xff
+Loop breaks because in the end the remaining bits (0x00aa) size was less
+than clump size of 24 bits.
+
+In above example it can be seen that in iteration third, the 24 bit clump
+that was retrieved was split between bitmap[0] and bitmap[1].  This
+example also shows that 24 bit zeroes if present in between, were skipped
+(preserving the previous for_each_set_macro8 behaviour).  
+
+Example 2:
+clump size = 6 bits, Number of clumps (or ports) = 3.
+
+     /* bitmap memory region */
+        0x00aa0000ff000000;  /* Most significant bits */
+        0xaaaaaa0000ff0000;
+        0x0f00000000000000;
+        0x0000000000000ac0;  /* Least significant bits */
+
+Different iterations of for_each_set_clump:
+'offset' is the bit position and 'clump' is the 6 bit clump from the
+above bitmap.
+Iteration first:        offset: 6 clump: 0x2b
+Loop breaks because 6 * 3 = 18 bits traversed in bitmap.
+Here 6 * 3 is clump size * no. of clumps.
+
+
+This patch (of 4):
+
+This macro iterates for each group of bits (clump) with set bits, within a
+bitmap memory region.  For each iteration, "start" is set to the bit
+offset of the found clump, while the respective clump value is stored to
+the location pointed by "clump".
+
+Additionally, the bitmap_get_value() and bitmap_set_value() functions are
+introduced to respectively get and set a value of n-bits in a bitmap
+memory region.  The n-bits can have any size from 1 to BITS_PER_LONG. 
+size less than 1 or more than BITS_PER_LONG causes undefined behaviour.
+
+Moreover, during setting value of n-bit in bitmap, if a situation arise
+that the width of next n-bit is exceeding the word boundary, then it will
+divide itself such that some portion of it is stored in that word, while
+the remaining portion is stored in the next higher word.  Similar
+situation occurs while retrieving the value from bitmap.
+
+Link: https://lkml.kernel.org/r/cover.1603055402.git.syednwaris@gmail.com
+Link: https://lkml.kernel.org/r/199b749c404450d1acb667e629ec4da37f44b60c.1603055402.git.syednwaris@gmail.com
+Signed-off-by: Syed Nayyar Waris <syednwaris@gmail.com>
+Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Michal Simek <michal.simek@xilinx.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_dfltcc/dfltcc.c         |    6 +++++-
- lib/zlib_dfltcc/dfltcc_deflate.c |    3 +++
- lib/zlib_dfltcc/dfltcc_syms.c    |   17 -----------------
- 3 files changed, 8 insertions(+), 18 deletions(-)
+ include/asm-generic/bitops/find.h |   19 ++++++++
+ include/linux/bitmap.h            |   61 ++++++++++++++++++++++++++++
+ include/linux/bitops.h            |   13 +++++
+ lib/find_bit.c                    |   14 ++++++
+ 4 files changed, 107 insertions(+)
 
---- a/lib/zlib_dfltcc/dfltcc.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/dfltcc.c
-@@ -1,7 +1,8 @@
- // SPDX-License-Identifier: Zlib
- /* dfltcc.c - SystemZ DEFLATE CONVERSION CALL support. */
+--- a/include/asm-generic/bitops/find.h~bitops-introduce-the-for_each_set_clump-macro
++++ a/include/asm-generic/bitops/find.h
+@@ -97,4 +97,23 @@ extern unsigned long find_next_clump8(un
+ #define find_first_clump8(clump, bits, size) \
+ 	find_next_clump8((clump), (bits), (size), 0)
  
--#include <linux/zutil.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- 
-@@ -53,3 +54,6 @@ void dfltcc_reset(
-     dfltcc_state->dht_threshold = DFLTCC_DHT_MIN_SAMPLE_SIZE;
-     dfltcc_state->param.ribm = DFLTCC_RIBM;
- }
-+EXPORT_SYMBOL(dfltcc_reset);
++/**
++ * find_next_clump - find next clump with set bits in a memory region
++ * @clump: location to store copy of found clump
++ * @addr: address to base the search on
++ * @size: bitmap size in number of bits
++ * @offset: bit offset at which to start searching
++ * @clump_size: clump size in bits
++ *
++ * Returns the bit offset for the next set clump; the found clump value is
++ * copied to the location pointed by @clump. If no bits are set, returns @size.
++ */
++extern unsigned long find_next_clump(unsigned long *clump,
++				      const unsigned long *addr,
++				      unsigned long size, unsigned long offset,
++				      unsigned long clump_size);
 +
-+MODULE_LICENSE("GPL");
---- a/lib/zlib_dfltcc/dfltcc_deflate.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/dfltcc_deflate.c
-@@ -4,6 +4,7 @@
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- #include <asm/setup.h>
-+#include <linux/export.h>
- #include <linux/zutil.h>
- 
- /*
-@@ -34,6 +35,7 @@ int dfltcc_can_deflate(
- 
-     return 1;
++#define find_first_clump(clump, bits, size, clump_size) \
++	find_next_clump((clump), (bits), (size), 0, (clump_size))
++
+ #endif /*_ASM_GENERIC_BITOPS_FIND_H_ */
+--- a/include/linux/bitmap.h~bitops-introduce-the-for_each_set_clump-macro
++++ a/include/linux/bitmap.h
+@@ -75,7 +75,11 @@
+  *  bitmap_from_arr32(dst, buf, nbits)          Copy nbits from u32[] buf to dst
+  *  bitmap_to_arr32(buf, src, nbits)            Copy nbits from buf to u32[] dst
+  *  bitmap_get_value8(map, start)               Get 8bit value from map at start
++ *  bitmap_get_value(map, start, nbits)		Get bit value of size
++ *                                              'nbits' from map at start
+  *  bitmap_set_value8(map, value, start)        Set 8bit value to map at start
++ *  bitmap_set_value(map, value, start, nbits)	Set bit value of size 'nbits'
++ *                                              of map at start
+  *
+  * Note, bitmap_zero() and bitmap_fill() operate over the region of
+  * unsigned longs, that is, bits behind bitmap till the unsigned long
+@@ -562,6 +566,34 @@ static inline unsigned long bitmap_get_v
  }
-+EXPORT_SYMBOL(dfltcc_can_deflate);
  
- static void dfltcc_gdht(
-     z_streamp strm
-@@ -277,3 +279,4 @@ again:
-         goto again; /* deflate() must use all input or all output */
-     return 1;
+ /**
++ * bitmap_get_value - get a value of n-bits from the memory region
++ * @map: address to the bitmap memory region
++ * @start: bit offset of the n-bit value
++ * @nbits: size of value in bits (must be between 1 and BITS_PER_LONG inclusive).
++ *
++ * Returns value of nbits located at the @start bit offset within the @map
++ * memory region.
++ */
++static inline unsigned long bitmap_get_value(const unsigned long *map,
++					      unsigned long start,
++					      unsigned long nbits)
++{
++	const size_t index = BIT_WORD(start);
++	const unsigned long offset = start % BITS_PER_LONG;
++	const unsigned long ceiling = round_up(start + 1, BITS_PER_LONG);
++	const unsigned long space = ceiling - start;
++	unsigned long value_low, value_high;
++
++	if (space >= nbits)
++		return (map[index] >> offset) & GENMASK(nbits - 1, 0);
++	else {
++		value_low = map[index] & BITMAP_FIRST_WORD_MASK(start);
++		value_high = map[index + 1] & BITMAP_LAST_WORD_MASK(start + nbits);
++		return (value_low >> offset) | (value_high << space);
++	}
++}
++
++/**
+  * bitmap_set_value8 - set an 8-bit value within a memory region
+  * @map: address to the bitmap memory region
+  * @value: the 8-bit value; values wider than 8 bits may clobber bitmap
+@@ -577,6 +609,35 @@ static inline void bitmap_set_value8(uns
+ 	map[index] |= value << offset;
  }
-+EXPORT_SYMBOL(dfltcc_deflate);
---- a/lib/zlib_dfltcc/dfltcc_syms.c
-+++ /dev/null
-@@ -1,17 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * linux/lib/zlib_dfltcc/dfltcc_syms.c
-- *
-- * Exported symbols for the s390 zlib dfltcc support.
-- *
-- */
--
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/zlib.h>
--#include "dfltcc.h"
--
--EXPORT_SYMBOL(dfltcc_can_deflate);
--EXPORT_SYMBOL(dfltcc_deflate);
--EXPORT_SYMBOL(dfltcc_reset);
--MODULE_LICENSE("GPL");
+ 
++/**
++ * bitmap_set_value - set n-bit value within a memory region
++ * @map: address to the bitmap memory region
++ * @value: value of nbits
++ * @start: bit offset of the n-bit value
++ * @nbits: size of value in bits (must be between 1 and BITS_PER_LONG inclusive).
++ */
++static inline void bitmap_set_value(unsigned long *map,
++				    unsigned long value,
++				    unsigned long start, unsigned long nbits)
++{
++	const size_t index = BIT_WORD(start);
++	const unsigned long offset = start % BITS_PER_LONG;
++	const unsigned long ceiling = round_up(start + 1, BITS_PER_LONG);
++	const unsigned long space = ceiling - start;
++
++	value &= GENMASK(nbits - 1, 0);
++
++	if (space >= nbits) {
++		map[index] &= ~(GENMASK(nbits - 1, 0) << offset);
++		map[index] |= value << offset;
++	} else {
++		map[index + 0] &= ~BITMAP_FIRST_WORD_MASK(start);
++		map[index + 0] |= value << offset;
++		map[index + 1] &= ~BITMAP_LAST_WORD_MASK(start + nbits);
++		map[index + 1] |= value >> space;
++	}
++}
++
+ #endif /* __ASSEMBLY__ */
+ 
+ #endif /* __LINUX_BITMAP_H */
+--- a/include/linux/bitops.h~bitops-introduce-the-for_each_set_clump-macro
++++ a/include/linux/bitops.h
+@@ -65,6 +65,19 @@ extern unsigned long __sw_hweight64(__u6
+ 	     (start) < (size); \
+ 	     (start) = find_next_clump8(&(clump), (bits), (size), (start) + 8))
+ 
++/**
++ * for_each_set_clump - iterate over bitmap for each clump with set bits
++ * @start: bit offset to start search and to store the current iteration offset
++ * @clump: location to store copy of current 8-bit clump
++ * @bits: bitmap address to base the search on
++ * @size: bitmap size in number of bits
++ * @clump_size: clump size in bits
++ */
++#define for_each_set_clump(start, clump, bits, size, clump_size) \
++	for ((start) = find_first_clump(&(clump), (bits), (size), (clump_size)); \
++	     (start) < (size); \
++	     (start) = find_next_clump(&(clump), (bits), (size), (start) + (clump_size), (clump_size)))
++
+ static inline int get_bitmask_order(unsigned int count)
+ {
+ 	int order;
+--- a/lib/find_bit.c~bitops-introduce-the-for_each_set_clump-macro
++++ a/lib/find_bit.c
+@@ -192,3 +192,17 @@ unsigned long find_next_clump8(unsigned
+ 	return offset;
+ }
+ EXPORT_SYMBOL(find_next_clump8);
++
++unsigned long find_next_clump(unsigned long *clump, const unsigned long *addr,
++			       unsigned long size, unsigned long offset,
++			       unsigned long clump_size)
++{
++	offset = find_next_bit(addr, size, offset);
++	if (offset == size)
++		return size;
++
++	offset = rounddown(offset, clump_size);
++	*clump = bitmap_get_value(addr, offset, clump_size);
++	return offset;
++}
++EXPORT_SYMBOL(find_next_clump);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from syednwaris@gmail.com are
 
-zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
+lib-test_bitmapc-add-for_each_set_clump-test-cases.patch
+gpio-thunderx-utilize-for_each_set_clump-macro.patch
+gpio-xilinx-utilize-generic-bitmap_get_value-and-_set_value.patch
 
