@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6A14C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69D5FC433E9
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8ED5720705
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DE6B20867
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 20:01:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727149AbgLVUBt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 15:01:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44910 "EHLO mail.kernel.org"
+        id S1727165AbgLVUBu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 15:01:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44908 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727139AbgLVUBt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 15:01:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A3D023159;
-        Tue, 22 Dec 2020 20:01:18 +0000 (UTC)
+        id S1727139AbgLVUBu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 15:01:50 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5817A2332A;
+        Tue, 22 Dec 2020 20:01:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608667278;
-        bh=SZTQn9fjqbA0ifLQitsdafMEg0vq3YSpL7vQ+CatsAs=;
+        s=korg; t=1608667282;
+        bh=aZ20VFyvvs6LomSn07Oc4uZtBKQwry8f4qJ1pOVDoBk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gCrS98moG/qMWsHVeV+Vsh79MPJ2oDoMLFb1vBvfOdjdC5EM5UXZ4BXE2eNwslGSa
-         UCNH9aAzmhr61mq+Q0370sDiCxX1VxVHGk2LTxxHholrNdxKQziSYS2PthAU1fnSwH
-         tkxAkk/cyvg2eFK1Iw9GN3oX+wBFwVtPHY7TBXfw=
-Date:   Tue, 22 Dec 2020 12:01:17 -0800
+        b=SEr5TZATQbH29/gA87nSbl2F7O5wlJWXX0VqlCl/cmCyWVQOi2CHvTIbOUhJsVzXf
+         eMK+RPzbaYEbTEl0kSd8Eknqu48vuqjfFTlv0+YgCOPQeexEcQORcKvh+oh20JsH8U
+         eYoXg0PUTqi+QMffJOCV0nfKX3gheQg3TP4eYXEQ=
+Date:   Tue, 22 Dec 2020 12:01:20 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
@@ -37,9 +37,8 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         kevin.brodsky@arm.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 21/60] kasan: separate metadata_fetch_row for each
- mode
-Message-ID: <20201222200117.RQORRRZUR%akpm@linux-foundation.org>
+Subject:  [patch 22/60] kasan: introduce CONFIG_KASAN_HW_TAGS
+Message-ID: <20201222200120.Kv4I4h0r3%akpm@linux-foundation.org>
 In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,20 +47,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: separate metadata_fetch_row for each mode
+Subject: kasan: introduce CONFIG_KASAN_HW_TAGS
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
+This patch adds a configuration option for a new KASAN mode called
+hardware tag-based KASAN.  This mode uses the memory tagging approach like
+the software tag-based mode, but relies on arm64 Memory Tagging Extension
+feature for tag management and access checking.
 
-Rework print_memory_metadata() to make it agnostic with regard to the way
-metadata is stored.  Allow providing a separate metadata_fetch_row()
-implementation for each KASAN mode.  Hardware tag-based KASAN will provide
-its own implementation that doesn't use shadow memory.
-
-No functional changes for software modes.
-
-Link: https://lkml.kernel.org/r/5fb1ec0152bb1f521505017800387ec3e36ffe18.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/44906a209d3a44f9c6f5a21841e90988e365601e.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -77,160 +72,141 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h          |    8 +++++
- mm/kasan/report.c         |   56 +++++++++++++++++-------------------
- mm/kasan/report_generic.c |    5 +++
- mm/kasan/report_sw_tags.c |    5 +++
- 4 files changed, 45 insertions(+), 29 deletions(-)
+ lib/Kconfig.kasan |   61 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 44 insertions(+), 17 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/kasan.h
-@@ -58,6 +58,13 @@
- #define KASAN_ABI_VERSION 1
- #endif
+--- a/lib/Kconfig.kasan~kasan-introduce-config_kasan_hw_tags
++++ a/lib/Kconfig.kasan
+@@ -6,7 +6,10 @@ config HAVE_ARCH_KASAN
+ config HAVE_ARCH_KASAN_SW_TAGS
+ 	bool
  
-+/* Metadata layout customization. */
-+#define META_BYTES_PER_BLOCK 1
-+#define META_BLOCKS_PER_ROW 16
-+#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
-+#define META_MEM_BYTES_PER_ROW (META_BYTES_PER_ROW * KASAN_GRANULE_SIZE)
-+#define META_ROWS_AROUND_ADDR 2
+-config	HAVE_ARCH_KASAN_VMALLOC
++config HAVE_ARCH_KASAN_HW_TAGS
++	bool
 +
- struct kasan_access_info {
- 	const void *access_addr;
- 	const void *first_bad_addr;
-@@ -170,6 +177,7 @@ bool check_invalid_free(void *addr);
++config HAVE_ARCH_KASAN_VMALLOC
+ 	bool
  
- void *find_first_bad_addr(void *addr, size_t size);
- const char *get_bug_type(struct kasan_access_info *info);
-+void metadata_fetch_row(char *buffer, void *row);
+ config CC_HAS_KASAN_GENERIC
+@@ -15,16 +18,19 @@ config CC_HAS_KASAN_GENERIC
+ config CC_HAS_KASAN_SW_TAGS
+ 	def_bool $(cc-option, -fsanitize=kernel-hwaddress)
  
- #if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
- void print_address_stack_frame(const void *addr);
---- a/mm/kasan/report.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report.c
-@@ -33,12 +33,6 @@
- #include "kasan.h"
- #include "../slab.h"
++# This option is only required for software KASAN modes.
++# Old GCC versions don't have proper support for no_sanitize_address.
++# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89124 for details.
+ config CC_HAS_WORKING_NOSANITIZE_ADDRESS
+ 	def_bool !CC_IS_GCC || GCC_VERSION >= 80300
  
--/* Metadata layout customization. */
--#define META_BYTES_PER_BLOCK 1
--#define META_BLOCKS_PER_ROW 16
--#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
--#define META_ROWS_AROUND_ADDR 2
+ menuconfig KASAN
+ 	bool "KASAN: runtime memory debugger"
+-	depends on (HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
+-		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
++	depends on (((HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
++		     (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)) && \
++		    CC_HAS_WORKING_NOSANITIZE_ADDRESS) || \
++		   HAVE_ARCH_KASAN_HW_TAGS
+ 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+-	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
+-	select CONSTRUCTORS
+ 	select STACKDEPOT
+ 	help
+ 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
+@@ -37,18 +43,24 @@ choice
+ 	prompt "KASAN mode"
+ 	default KASAN_GENERIC
+ 	help
+-	  KASAN has two modes: generic KASAN (similar to userspace ASan,
+-	  x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC) and
+-	  software tag-based KASAN (a version based on software memory
+-	  tagging, arm64 only, similar to userspace HWASan, enabled with
+-	  CONFIG_KASAN_SW_TAGS).
++	  KASAN has three modes:
++	  1. generic KASAN (similar to userspace ASan,
++	     x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC),
++	  2. software tag-based KASAN (arm64 only, based on software
++	     memory tagging (similar to userspace HWASan), enabled with
++	     CONFIG_KASAN_SW_TAGS), and
++	  3. hardware tag-based KASAN (arm64 only, based on hardware
++	     memory tagging, enabled with CONFIG_KASAN_HW_TAGS).
++
++	  All KASAN modes are strictly debugging features.
+ 
+-	  Both generic and tag-based KASAN are strictly debugging features.
++	  For better error reports enable CONFIG_STACKTRACE.
+ 
+ config KASAN_GENERIC
+ 	bool "Generic mode"
+ 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
+ 	select SLUB_DEBUG if SLUB
++	select CONSTRUCTORS
+ 	help
+ 	  Enables generic KASAN mode.
+ 
+@@ -61,8 +73,6 @@ config KASAN_GENERIC
+ 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
+ 	  The performance slowdown is ~x3.
+ 
+-	  For better error detection enable CONFIG_STACKTRACE.
 -
- static unsigned long kasan_flags;
+ 	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
+ 	  (the resulting kernel does not boot).
  
- #define KASAN_BIT_REPORTED	0
-@@ -238,55 +232,59 @@ static void print_address_description(vo
- 	print_address_stack_frame(addr);
- }
+@@ -70,11 +80,15 @@ config KASAN_SW_TAGS
+ 	bool "Software tag-based mode"
+ 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
+ 	select SLUB_DEBUG if SLUB
++	select CONSTRUCTORS
+ 	help
+ 	  Enables software tag-based KASAN mode.
  
--static bool row_is_guilty(const void *row, const void *guilty)
-+static bool meta_row_is_guilty(const void *row, const void *addr)
- {
--	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
-+	return (row <= addr) && (addr < row + META_MEM_BYTES_PER_ROW);
- }
- 
--static int shadow_pointer_offset(const void *row, const void *shadow)
-+static int meta_pointer_offset(const void *row, const void *addr)
- {
--	/* The length of ">ff00ff00ff00ff00: " is
--	 *    3 + (BITS_PER_LONG/8)*2 chars.
-+	/*
-+	 * Memory state around the buggy address:
-+	 *  ff00ff00ff00ff00: 00 00 00 05 fe fe fe fe fe fe fe fe fe fe fe fe
-+	 *  ...
-+	 *
-+	 * The length of ">ff00ff00ff00ff00: " is
-+	 *    3 + (BITS_PER_LONG / 8) * 2 chars.
-+	 * The length of each granule metadata is 2 bytes
-+	 *    plus 1 byte for space.
- 	 */
--	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
--		(shadow - row) / META_BYTES_PER_BLOCK + 1;
-+	return 3 + (BITS_PER_LONG / 8) * 2 +
-+		(addr - row) / KASAN_GRANULE_SIZE * 3 + 1;
- }
- 
- static void print_memory_metadata(const void *addr)
- {
- 	int i;
--	const void *shadow = kasan_mem_to_shadow(addr);
--	const void *shadow_row;
-+	void *row;
- 
--	shadow_row = (void *)round_down((unsigned long)shadow,
--					META_BYTES_PER_ROW)
--		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
-+	row = (void *)round_down((unsigned long)addr, META_MEM_BYTES_PER_ROW)
-+			- META_ROWS_AROUND_ADDR * META_MEM_BYTES_PER_ROW;
- 
- 	pr_err("Memory state around the buggy address:\n");
- 
- 	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
--		const void *kaddr = kasan_shadow_to_mem(shadow_row);
--		char buffer[4 + (BITS_PER_LONG/8)*2];
--		char shadow_buf[META_BYTES_PER_ROW];
-+		char buffer[4 + (BITS_PER_LONG / 8) * 2];
-+		char metadata[META_BYTES_PER_ROW];
- 
- 		snprintf(buffer, sizeof(buffer),
--			(i == 0) ? ">%px: " : " %px: ", kaddr);
-+				(i == 0) ? ">%px: " : " %px: ", row);
+-	  This mode requires Top Byte Ignore support by the CPU and therefore
+-	  is only supported for arm64. This mode requires Clang.
++	  This mode require software memory tagging support in the form of
++	  HWASan-like compiler instrumentation.
 +
- 		/*
- 		 * We should not pass a shadow pointer to generic
- 		 * function, because generic functions may try to
- 		 * access kasan mapping for the passed address.
- 		 */
--		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
-+		metadata_fetch_row(&metadata[0], row);
++	  Currently this mode is only implemented for arm64 CPUs and relies on
++	  Top Byte Ignore. This mode requires Clang.
+ 
+ 	  This mode consumes about 1/16th of available memory at kernel start
+ 	  and introduces an overhead of ~20% for the rest of the allocations.
+@@ -82,15 +96,27 @@ config KASAN_SW_TAGS
+ 	  casting and comparison, as it embeds tags into the top byte of each
+ 	  pointer.
+ 
+-	  For better error detection enable CONFIG_STACKTRACE.
+-
+ 	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
+ 	  (the resulting kernel does not boot).
+ 
++config KASAN_HW_TAGS
++	bool "Hardware tag-based mode"
++	depends on HAVE_ARCH_KASAN_HW_TAGS
++	depends on SLUB
++	help
++	  Enables hardware tag-based KASAN mode.
 +
- 		print_hex_dump(KERN_ERR, buffer,
- 			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
--			shadow_buf, META_BYTES_PER_ROW, 0);
-+			metadata, META_BYTES_PER_ROW, 0);
- 
--		if (row_is_guilty(shadow_row, shadow))
--			pr_err("%*c\n",
--				shadow_pointer_offset(shadow_row, shadow),
--				'^');
-+		if (meta_row_is_guilty(row, addr))
-+			pr_err("%*c\n", meta_pointer_offset(row, addr), '^');
- 
--		shadow_row += META_BYTES_PER_ROW;
-+		row += META_MEM_BYTES_PER_ROW;
- 	}
- }
- 
---- a/mm/kasan/report_generic.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report_generic.c
-@@ -123,6 +123,11 @@ const char *get_bug_type(struct kasan_ac
- 	return get_wild_bug_type(info);
- }
- 
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
-+}
++	  This mode requires hardware memory tagging support, and can be used
++	  by any architecture that provides it.
 +
- #if CONFIG_KASAN_STACK
- static bool __must_check tokenize_frame_descr(const char **frame_descr,
- 					      char *token, size_t max_tok_len,
---- a/mm/kasan/report_sw_tags.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report_sw_tags.c
-@@ -80,6 +80,11 @@ void *find_first_bad_addr(void *addr, si
- 	return p;
- }
- 
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
-+}
++	  Currently this mode is only implemented for arm64 CPUs starting from
++	  ARMv8.5 and relies on Memory Tagging Extension and Top Byte Ignore.
 +
- void print_tags(u8 addr_tag, const void *addr)
- {
- 	u8 *shadow = (u8 *)kasan_mem_to_shadow(addr);
+ endchoice
+ 
+ choice
+ 	prompt "Instrumentation type"
++	depends on KASAN_GENERIC || KASAN_SW_TAGS
+ 	default KASAN_OUTLINE
+ 
+ config KASAN_OUTLINE
+@@ -114,6 +140,7 @@ endchoice
+ 
+ config KASAN_STACK_ENABLE
+ 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
++	depends on KASAN_GENERIC || KASAN_SW_TAGS
+ 	help
+ 	  The LLVM stack address sanitizer has a know problem that
+ 	  causes excessive stack usage in a lot of functions, see
 _
