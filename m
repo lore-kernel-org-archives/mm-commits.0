@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3F4FC433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59A23C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A7F3B223DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D380223DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727100AbgLWS35 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:29:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45242 "EHLO mail.kernel.org"
+        id S1728437AbgLWSaA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728355AbgLWS35 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1728428AbgLWS35 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 23 Dec 2020 13:29:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 71A8622287;
-        Wed, 23 Dec 2020 18:29:29 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F1A62251F;
+        Wed, 23 Dec 2020 18:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748169;
-        bh=6JkN6oaLSMSq3mpHGq1Z23jfviaQWYER7fGg3calMZo=;
+        s=korg; t=1608748172;
+        bh=dUQZuuz9+UV9MTpFzAohQiRbgFhznOPTs6iNsIJW52s=;
         h=Date:From:To:Subject:From;
-        b=Cop3Lqe6S5ZCw9LtmpZtQEC9rbzU59VB1GP3EZJ/gHk39sRdsHEvbRud5MIJWHwoB
-         aasLGORDlYTpmHzFlCKh/Z2C5B8z/dJbCBastSmwMPT0FeUHnEupNd//vEdC1GLlJX
-         5NlfQWCYylzt6I+8qTjMafD0CSh9MouEdiJll9YI=
-Date:   Wed, 23 Dec 2020 10:29:29 -0800
+        b=ZzKf6HPF2nMwiB0ngAClmnoEP9GvliqcdHSEWQyCbEiKetjAgU8uRL3l5FIahlJdy
+         Y4EpfsrYqeE+oni4zMiJ3uUYB5li0TKiZBwxNGuJNPC+ofAy4sdb4e0FqIxlHTouJW
+         uBc0dIS9RdmfxGSu2kMmyi85KWgVFl3TY6GLn0so=
+Date:   Wed, 23 Dec 2020 10:29:31 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged]
- kasan-mm-reset-tags-when-accessing-metadata.patch removed from -mm tree
-Message-ID: <20201223182929.2X02cLLbV%akpm@linux-foundation.org>
+Subject:  [merged] kasan-arm64-enable-config_kasan_hw_tags.patch
+ removed from -mm tree
+Message-ID: <20201223182931.3oOxL5Zis%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,197 +47,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: reset tags when accessing metadata
+     Subject: kasan, arm64: enable CONFIG_KASAN_HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-mm-reset-tags-when-accessing-metadata.patch
+     kasan-arm64-enable-config_kasan_hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: reset tags when accessing metadata
+Subject: kasan, arm64: enable CONFIG_KASAN_HW_TAGS
 
-Kernel allocator code accesses metadata for slab objects, that may lie
-out-of-bounds of the object itself, or be accessed when an object is
-freed.  Such accesses trigger tag faults and lead to false-positive
-reports with hardware tag-based KASAN.
+Hardware tag-based KASAN is now ready, enable the configuration option.
 
-Software KASAN modes disable instrumentation for allocator code via
-KASAN_SANITIZE Makefile macro, and rely on kasan_enable/disable_current()
-annotations which are used to ignore KASAN reports.
-
-With hardware tag-based KASAN neither of those options are available, as
-it doesn't use compiler instrumetation, no tag faults are ignored, and MTE
-is disabled after the first one.
-
-Instead, reset tags when accessing metadata (currently only for SLUB).
-
-Link: https://lkml.kernel.org/r/a0f3cefbc49f34c843b664110842de4db28179d0.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/a6fa50d3bb6b318e05c6389a44095be96442b8b0.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Acked-by: Marco Elver <elver@google.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c  |    4 +++-
- mm/page_poison.c |    2 +-
- mm/slub.c        |   29 ++++++++++++++++-------------
- 3 files changed, 20 insertions(+), 15 deletions(-)
+ arch/arm64/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~kasan-mm-reset-tags-when-accessing-metadata
-+++ a/mm/page_alloc.c
-@@ -1204,8 +1204,10 @@ static void kernel_init_free_pages(struc
- 
- 	/* s390's use of memset() could override KASAN redzones. */
- 	kasan_disable_current();
--	for (i = 0; i < numpages; i++)
-+	for (i = 0; i < numpages; i++) {
-+		page_kasan_tag_reset(page + i);
- 		clear_highpage(page + i);
-+	}
- 	kasan_enable_current();
- }
- 
---- a/mm/page_poison.c~kasan-mm-reset-tags-when-accessing-metadata
-+++ a/mm/page_poison.c
-@@ -25,7 +25,7 @@ static void poison_page(struct page *pag
- 
- 	/* KASAN still think the page is in-use, so skip it. */
- 	kasan_disable_current();
--	memset(addr, PAGE_POISON, PAGE_SIZE);
-+	memset(kasan_reset_tag(addr), PAGE_POISON, PAGE_SIZE);
- 	kasan_enable_current();
- 	kunmap_atomic(addr);
- }
---- a/mm/slub.c~kasan-mm-reset-tags-when-accessing-metadata
-+++ a/mm/slub.c
-@@ -249,7 +249,7 @@ static inline void *freelist_ptr(const s
- {
- #ifdef CONFIG_SLAB_FREELIST_HARDENED
- 	/*
--	 * When CONFIG_KASAN_SW_TAGS is enabled, ptr_addr might be tagged.
-+	 * When CONFIG_KASAN_SW/HW_TAGS is enabled, ptr_addr might be tagged.
- 	 * Normally, this doesn't cause any issues, as both set_freepointer()
- 	 * and get_freepointer() are called with a pointer with the same tag.
- 	 * However, there are some issues with CONFIG_SLUB_DEBUG code. For
-@@ -275,6 +275,7 @@ static inline void *freelist_dereference
- 
- static inline void *get_freepointer(struct kmem_cache *s, void *object)
- {
-+	object = kasan_reset_tag(object);
- 	return freelist_dereference(s, object + s->offset);
- }
- 
-@@ -304,6 +305,7 @@ static inline void set_freepointer(struc
- 	BUG_ON(object == fp); /* naive detection of double free or corruption */
- #endif
- 
-+	freeptr_addr = (unsigned long)kasan_reset_tag((void *)freeptr_addr);
- 	*(void **)freeptr_addr = freelist_ptr(s, fp, freeptr_addr);
- }
- 
-@@ -538,8 +540,8 @@ static void print_section(char *level, c
- 			  unsigned int length)
- {
- 	metadata_access_enable();
--	print_hex_dump(level, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
--			length, 1);
-+	print_hex_dump(level, kasan_reset_tag(text), DUMP_PREFIX_ADDRESS,
-+			16, 1, addr, length, 1);
- 	metadata_access_disable();
- }
- 
-@@ -570,7 +572,7 @@ static struct track *get_track(struct km
- 
- 	p = object + get_info_end(s);
- 
--	return p + alloc;
-+	return kasan_reset_tag(p + alloc);
- }
- 
- static void set_track(struct kmem_cache *s, void *object,
-@@ -583,7 +585,8 @@ static void set_track(struct kmem_cache
- 		unsigned int nr_entries;
- 
- 		metadata_access_enable();
--		nr_entries = stack_trace_save(p->addrs, TRACK_ADDRS_COUNT, 3);
-+		nr_entries = stack_trace_save(kasan_reset_tag(p->addrs),
-+					      TRACK_ADDRS_COUNT, 3);
- 		metadata_access_disable();
- 
- 		if (nr_entries < TRACK_ADDRS_COUNT)
-@@ -747,7 +750,7 @@ static __printf(3, 4) void slab_err(stru
- 
- static void init_object(struct kmem_cache *s, void *object, u8 val)
- {
--	u8 *p = object;
-+	u8 *p = kasan_reset_tag(object);
- 
- 	if (s->flags & SLAB_RED_ZONE)
- 		memset(p - s->red_left_pad, val, s->red_left_pad);
-@@ -777,7 +780,7 @@ static int check_bytes_and_report(struct
- 	u8 *addr = page_address(page);
- 
- 	metadata_access_enable();
--	fault = memchr_inv(start, value, bytes);
-+	fault = memchr_inv(kasan_reset_tag(start), value, bytes);
- 	metadata_access_disable();
- 	if (!fault)
- 		return 1;
-@@ -873,7 +876,7 @@ static int slab_pad_check(struct kmem_ca
- 
- 	pad = end - remainder;
- 	metadata_access_enable();
--	fault = memchr_inv(pad, POISON_INUSE, remainder);
-+	fault = memchr_inv(kasan_reset_tag(pad), POISON_INUSE, remainder);
- 	metadata_access_disable();
- 	if (!fault)
- 		return 1;
-@@ -1118,7 +1121,7 @@ void setup_page_debug(struct kmem_cache
- 		return;
- 
- 	metadata_access_enable();
--	memset(addr, POISON_INUSE, page_size(page));
-+	memset(kasan_reset_tag(addr), POISON_INUSE, page_size(page));
- 	metadata_access_disable();
- }
- 
-@@ -1566,10 +1569,10 @@ static inline bool slab_free_freelist_ho
- 			 * Clear the object and the metadata, but don't touch
- 			 * the redzone.
- 			 */
--			memset(object, 0, s->object_size);
-+			memset(kasan_reset_tag(object), 0, s->object_size);
- 			rsize = (s->flags & SLAB_RED_ZONE) ? s->red_left_pad
- 							   : 0;
--			memset((char *)object + s->inuse, 0,
-+			memset((char *)kasan_reset_tag(object) + s->inuse, 0,
- 			       s->size - s->inuse - rsize);
- 
- 		}
-@@ -2881,10 +2884,10 @@ redo:
- 		stat(s, ALLOC_FASTPATH);
- 	}
- 
--	maybe_wipe_obj_freeptr(s, object);
-+	maybe_wipe_obj_freeptr(s, kasan_reset_tag(object));
- 
- 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
--		memset(object, 0, s->object_size);
-+		memset(kasan_reset_tag(object), 0, s->object_size);
- 
- 	slab_post_alloc_hook(s, objcg, gfpflags, 1, &object);
- 
+--- a/arch/arm64/Kconfig~kasan-arm64-enable-config_kasan_hw_tags
++++ a/arch/arm64/Kconfig
+@@ -137,6 +137,7 @@ config ARM64
+ 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
+ 	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
+ 	select HAVE_ARCH_KASAN_SW_TAGS if HAVE_ARCH_KASAN
++	select HAVE_ARCH_KASAN_HW_TAGS if (HAVE_ARCH_KASAN && ARM64_MTE)
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
