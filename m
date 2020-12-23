@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84127C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93465C433E6
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53265222B3
+	by mail.kernel.org (Postfix) with ESMTP id 6AEF0222BB
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728378AbgLWSaI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1728404AbgLWSaI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 23 Dec 2020 13:30:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45514 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45906 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728404AbgLWSaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727971AbgLWSaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 23 Dec 2020 13:30:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A2C05222B3;
-        Wed, 23 Dec 2020 18:29:43 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 981BB222BB;
+        Wed, 23 Dec 2020 18:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748184;
-        bh=M0R9TZxI9fxAM6r92KJz7YW8Z1cYioSPlAm+tgkE7+I=;
+        s=korg; t=1608748146;
+        bh=BPHvBK3mzbjMUgQ60vExRH2TUAB97ipB75hXg7Vrjog=;
         h=Date:From:To:Subject:From;
-        b=q/90eY52mgrulBA38HyUbASLLEZpSeZTh1gRzxBQ2ocdx/8aPCFNkQnDD+BIpzP+D
-         cFASrqUqDUWFIw7sEQrsx1ytlMadP+SxGi3Svjg1qURn8TlNVaMh+sEjzWIrsjz1yj
-         sXJ3mtNC/86eLHbPYbHWJf1c2nUzN1P2XyxagNpE=
-Date:   Wed, 23 Dec 2020 10:29:43 -0800
+        b=BKYKPgpG09LZ859yA/J6YKDH4Oz1IaMtA7TdpP6LccogkqpKqQEx9OIfoBvI5JjHy
+         fGVdy0QcWff+ilS6dfK1f9MOxx+JPWy4iDcMIQuZJG06/M1gF7XUzS8B+vEdJ8hvx5
+         787LcFvh6nRTMRtR0mPW1Wgj7PoVAUJ5x1eDyYzI=
+Date:   Wed, 23 Dec 2020 10:29:05 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,10 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged]
- kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch removed from
- -mm tree
-Message-ID: <20201223182943.K4pUb1d4A%akpm@linux-foundation.org>
+Subject:  [merged] arm64-mte-add-in-kernel-tag-fault-handler.patch
+ removed from -mm tree
+Message-ID: <20201223182905.WMIUay_yk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,126 +47,176 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+     Subject: arm64: mte: add in-kernel tag fault handler
 has been removed from the -mm tree.  Its filename was
-     kasan-arm64-unpoison-stack-only-with-config_kasan_stack.patch
+     arm64-mte-add-in-kernel-tag-fault-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: unpoison stack only with CONFIG_KASAN_STACK
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: mte: add in-kernel tag fault handler
 
-There's a config option CONFIG_KASAN_STACK that has to be enabled for
-KASAN to use stack instrumentation and perform validity checks for
-stack variables.
+Add the implementation of the in-kernel fault handler.
 
-There's no need to unpoison stack when CONFIG_KASAN_STACK is not enabled.
-Only call kasan_unpoison_task_stack[_below]() when CONFIG_KASAN_STACK is
-enabled.
+When a tag fault happens on a kernel address:
+* MTE is disabled on the current CPU,
+* the execution continues.
 
-Note, that CONFIG_KASAN_STACK is an option that is currently always
-defined when CONFIG_KASAN is enabled, and therefore has to be tested
-with #if instead of #ifdef.
+When a tag fault happens on a user address:
+* the kernel executes do_bad_area() and panics.
 
-Link: https://lkml.kernel.org/r/d09dd3f8abb388da397fd11598c5edeaa83fe559.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/If8a891e9fe01ea543e00b576852685afec0887e3
+The tag fault handler for kernel addresses is currently empty and will be
+filled in by a future commit.
+
+Link: https://lkml.kernel.org/r/ad31529b073e22840b7a2246172c2b67747ed7c4.1606161801.git.andreyknvl@google.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
+[catalin.marinas@arm.com: ensure CONFIG_ARM64_PAN is enabled with MTE]
+  Link: https://lkml.kernel.org/r/20201203102628.GB2224@gaia
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/sleep.S        |    2 +-
- arch/x86/kernel/acpi/wakeup_64.S |    2 +-
- include/linux/kasan.h            |   10 ++++++----
- mm/kasan/common.c                |    2 ++
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ arch/arm64/Kconfig               |    2 +
+ arch/arm64/include/asm/uaccess.h |   23 ++++++++++++++
+ arch/arm64/mm/fault.c            |   45 +++++++++++++++++++++++++++++
+ 3 files changed, 70 insertions(+)
 
---- a/arch/arm64/kernel/sleep.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/arm64/kernel/sleep.S
-@@ -133,7 +133,7 @@ SYM_FUNC_START(_cpu_resume)
- 	 */
- 	bl	cpu_do_resume
+--- a/arch/arm64/include/asm/uaccess.h~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -159,8 +159,28 @@ static inline void __uaccess_enable_hw_p
+ 			CONFIG_ARM64_PAN));
+ }
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	mov	x0, sp
- 	bl	kasan_unpoison_task_stack_below
- #endif
---- a/arch/x86/kernel/acpi/wakeup_64.S~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/arch/x86/kernel/acpi/wakeup_64.S
-@@ -112,7 +112,7 @@ SYM_FUNC_START(do_suspend_lowlevel)
- 	movq	pt_regs_r14(%rax), %r14
- 	movq	pt_regs_r15(%rax), %r15
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
- 	/*
- 	 * The suspend path may have poisoned some areas deeper in the stack,
- 	 * which we now need to unpoison.
---- a/include/linux/kasan.h~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/include/linux/kasan.h
-@@ -77,8 +77,6 @@ static inline void kasan_disable_current
- 
- void kasan_unpoison_range(const void *address, size_t size);
- 
--void kasan_unpoison_task_stack(struct task_struct *task);
--
- void kasan_alloc_pages(struct page *page, unsigned int order);
- void kasan_free_pages(struct page *page, unsigned int order);
- 
-@@ -123,8 +121,6 @@ void kasan_restore_multi_shot(bool enabl
- 
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
- 
--static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
--
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
- 
-@@ -176,6 +172,12 @@ static inline size_t kasan_metadata_size
- 
- #endif /* CONFIG_KASAN */
- 
-+#if defined(CONFIG_KASAN) && CONFIG_KASAN_STACK
-+void kasan_unpoison_task_stack(struct task_struct *task);
-+#else
-+static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
-+#endif
++/*
++ * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
++ * affects EL0 and TCF affects EL1 irrespective of which TTBR is
++ * used.
++ * The kernel accesses TTBR0 usually with LDTR/STTR instructions
++ * when UAO is available, so these would act as EL0 accesses using
++ * TCF0.
++ * However futex.h code uses exclusives which would be executed as
++ * EL1, this can potentially cause a tag check fault even if the
++ * user disables TCF0.
++ *
++ * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
++ * and reset it in uaccess_disable().
++ *
++ * The Tag check override (TCO) bit disables temporarily the tag checking
++ * preventing the issue.
++ */
+ static inline void uaccess_disable_privileged(void)
+ {
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
 +
- #ifdef CONFIG_KASAN_GENERIC
+ 	if (uaccess_ttbr0_disable())
+ 		return;
  
- void kasan_cache_shrink(struct kmem_cache *cache);
---- a/mm/kasan/common.c~kasan-arm64-unpoison-stack-only-with-config_kasan_stack
-+++ a/mm/kasan/common.c
-@@ -63,6 +63,7 @@ void kasan_unpoison_range(const void *ad
- 	unpoison_range(address, size);
+@@ -169,6 +189,9 @@ static inline void uaccess_disable_privi
+ 
+ static inline void uaccess_enable_privileged(void)
+ {
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
++
+ 	if (uaccess_ttbr0_enable())
+ 		return;
+ 
+--- a/arch/arm64/Kconfig~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/Kconfig
+@@ -1649,6 +1649,8 @@ config ARM64_MTE
+ 	default y
+ 	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
+ 	depends on AS_HAS_ARMV8_5
++	# Required for tag checking in the uaccess routines
++	depends on ARM64_PAN
+ 	select ARCH_USES_HIGH_VMA_FLAGS
+ 	help
+ 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
+--- a/arch/arm64/mm/fault.c~arm64-mte-add-in-kernel-tag-fault-handler
++++ a/arch/arm64/mm/fault.c
+@@ -33,6 +33,7 @@
+ #include <asm/debug-monitors.h>
+ #include <asm/esr.h>
+ #include <asm/kprobes.h>
++#include <asm/mte.h>
+ #include <asm/processor.h>
+ #include <asm/sysreg.h>
+ #include <asm/system_misc.h>
+@@ -296,6 +297,44 @@ static void die_kernel_fault(const char
+ 	do_exit(SIGKILL);
  }
  
-+#if CONFIG_KASAN_STACK
- static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
++static void report_tag_fault(unsigned long addr, unsigned int esr,
++			     struct pt_regs *regs)
++{
++}
++
++static void do_tag_recovery(unsigned long addr, unsigned int esr,
++			   struct pt_regs *regs)
++{
++	static bool reported;
++
++	if (!READ_ONCE(reported)) {
++		report_tag_fault(addr, esr, regs);
++		WRITE_ONCE(reported, true);
++	}
++
++	/*
++	 * Disable MTE Tag Checking on the local CPU for the current EL.
++	 * It will be done lazily on the other CPUs when they will hit a
++	 * tag fault.
++	 */
++	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_NONE);
++	isb();
++}
++
++static bool is_el1_mte_sync_tag_check_fault(unsigned int esr)
++{
++	unsigned int ec = ESR_ELx_EC(esr);
++	unsigned int fsc = esr & ESR_ELx_FSC;
++
++	if (ec != ESR_ELx_EC_DABT_CUR)
++		return false;
++
++	if (fsc == ESR_ELx_FSC_MTE)
++		return true;
++
++	return false;
++}
++
+ static void __do_kernel_fault(unsigned long addr, unsigned int esr,
+ 			      struct pt_regs *regs)
  {
- 	void *base = task_stack_page(task);
-@@ -89,6 +90,7 @@ asmlinkage void kasan_unpoison_task_stac
+@@ -312,6 +351,12 @@ static void __do_kernel_fault(unsigned l
+ 	    "Ignoring spurious kernel translation fault at virtual address %016lx\n", addr))
+ 		return;
  
- 	unpoison_range(base, watermark - base);
- }
-+#endif /* CONFIG_KASAN_STACK */
- 
- void kasan_alloc_pages(struct page *page, unsigned int order)
- {
++	if (is_el1_mte_sync_tag_check_fault(esr)) {
++		do_tag_recovery(addr, esr, regs);
++
++		return;
++	}
++
+ 	if (is_el1_permission_fault(addr, esr, regs)) {
+ 		if (esr & ESR_ELx_WNR)
+ 			msg = "write to read-only memory";
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
 
