@@ -2,96 +2,99 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0095C433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 21:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F82CC433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 00:29:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 79AF222AAE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Dec 2020 21:44:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D56622AAA
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 00:29:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727958AbgLVVot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 16:44:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50174 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726540AbgLVVos (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2020 16:44:48 -0500
-Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5029BC0613D3
-        for <mm-commits@vger.kernel.org>; Tue, 22 Dec 2020 13:44:08 -0800 (PST)
-Received: by mail-lf1-x135.google.com with SMTP id b26so25866224lff.9
-        for <mm-commits@vger.kernel.org>; Tue, 22 Dec 2020 13:44:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=fQOBFvS04B+DEeDrOe6dtVMqdgYNu3ydTTbbpU6XSOc=;
-        b=XRUsB9/s7JSsddVyosJ2hW1Xp5vbcsu+kxmh+3bwMzlg/6BiyQLeKGMBGM8TO5gyuW
-         sETvQlwkEyK1jgRDq+/Ui2e1YirUXhm+HBTzQ79L7BOIopTWyS4QL3PYDKA2drNyzBG3
-         IAhzOXcCQQra6ZkjNx0ne6JEhCCXWs/fGv5pg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fQOBFvS04B+DEeDrOe6dtVMqdgYNu3ydTTbbpU6XSOc=;
-        b=KYXv40mKB89cvaRiV7+evECE1foaf3TndhLZlgqZ3JY4krV8CLGv9lSOLqE8axvxgP
-         1WuKe0XvxRtNw3ihgD5GM6jUIzpxJ23uKf/rG9Nu0NLRVKdDm8foujD3wam2TgasHMjG
-         VGhkPY/DUA4b5AdZaycx5QdSsNgFtQWcboy2my/XQJ8kXYSnplBcktsZIge/9xnn6sHi
-         VMBuC11IijXvOaeNfFGKbqT8fvKtP2344Yq9AGwJ6CT0YpJ3UVHA28S4Th/+upSbP7jE
-         QyEz7MhL/sLH3ws3ARVBlvKdFhTvWT5JPhLwdw9Gbr7EnG/ba+S0kxPg4Y3GUspfzA+1
-         teIg==
-X-Gm-Message-State: AOAM531ks479lGNCeGHTwX0Q/pSoTuHynE7NJSc1exAvz697K1JfXo7a
-        V94ApThdRRFFYA0t21XqxK/KRNROGrsHpA==
-X-Google-Smtp-Source: ABdhPJzs04x+1QNIAwUn1J6ZMT8wT/hOQOLxb1ltSgSuJ6cftEQQdUxMt1A0vrJEkNSt7DXCzuJ1Tw==
-X-Received: by 2002:ac2:43bb:: with SMTP id t27mr9271027lfl.93.1608673446494;
-        Tue, 22 Dec 2020 13:44:06 -0800 (PST)
-Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com. [209.85.167.44])
-        by smtp.gmail.com with ESMTPSA id b141sm2818804lfg.123.2020.12.22.13.44.05
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 22 Dec 2020 13:44:05 -0800 (PST)
-Received: by mail-lf1-f44.google.com with SMTP id m25so35285359lfc.11
-        for <mm-commits@vger.kernel.org>; Tue, 22 Dec 2020 13:44:05 -0800 (PST)
-X-Received: by 2002:a2e:8995:: with SMTP id c21mr10187762lji.251.1608673445334;
- Tue, 22 Dec 2020 13:44:05 -0800 (PST)
-MIME-Version: 1.0
-References: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
-In-Reply-To: <20201222115844.d30aaef7df6f5b120d3e0c3d@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Tue, 22 Dec 2020 13:43:49 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wj37L3_N2N2TjXr0Hdw789=PwMCAeCVDcYoe_fPuZDkDw@mail.gmail.com>
-Message-ID: <CAHk-=wj37L3_N2N2TjXr0Hdw789=PwMCAeCVDcYoe_fPuZDkDw@mail.gmail.com>
-Subject: Re: incoming
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        id S1725850AbgLWA3k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 19:29:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47392 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725833AbgLWA3k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 19:29:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C42EF22A83;
+        Wed, 23 Dec 2020 00:28:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1608683339;
+        bh=8tYaSWSQaD5VVggQ46knqNsGFVrQdmC7yX43o/xX+uQ=;
+        h=Date:From:To:Subject:From;
+        b=NnLSTJ08LWiCFY44o6DRhoK3bDJOiwPo430n0XGmhD+o5c4edFd7SMCFW7WvFJ1Mx
+         ovrJD7MeJq3Cp83G5akyFj0IGlmIyvG7C0LL77t18yg/eIDh5Y8Cm/jyY2FgBkkF3b
+         MnaoFeJbdP8ExXZnLuvFaV1NmRM49QXd7JpFeZfU=
+Date:   Tue, 22 Dec 2020 16:28:59 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, alexander.h.duyck@linux.intel.com,
+        akpm@linux-foundation.org, sh_def@163.com
+Subject:  +
+ mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch added
+ to -mm tree
+Message-ID: <20201223002859.hdWJp%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Dec 22, 2020 at 11:58 AM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> 60 patches, based on 8653b778e454a7708847aeafe689bce07aeeb94e.
 
-I see that you enabled renaming in the patches. Lovely.
+The patch titled
+     Subject: mm/page_reporting: use list_entry_is_head() in page_reporting_cycle()
+has been added to the -mm tree.  Its filename is
+     mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
 
-Can you also enable it in the diffstat?
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
 
->  74 files changed, 2869 insertions(+), 1553 deletions(-)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-With -M in the diffstat, you should have seen
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
- 72 files changed, 2775 insertions(+), 1460 deletions(-)
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-and if you add "--summary", you'll also see the rename part ofthe file
-create/delete summary:
+------------------------------------------------------
+From: sh <sh_def@163.com>
+Subject: mm/page_reporting: use list_entry_is_head() in page_reporting_cycle()
 
- rename mm/kasan/{tags_report.c => report_sw_tags.c} (78%)
+Replace '&next->lru != list' with list_entry_is_head().  No functional
+change.
 
-which is often nice to see in addition to the line stats..
+Link: https://lkml.kernel.org/r/20201222182735.GA1257912@ubuntu-A520I-AC
+Signed-off-by: sh <sh_def@163.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-           Linus
+ mm/page_reporting.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mm/page_reporting.c~mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle
++++ a/mm/page_reporting.c
+@@ -211,7 +211,7 @@ page_reporting_cycle(struct page_reporti
+ 	}
+ 
+ 	/* Rotate any leftover pages to the head of the freelist */
+-	if (&next->lru != list && !list_is_first(&next->lru, list))
++	if (!list_entry_is_head(next, list, lru) && !list_is_first(&next->lru, list))
+ 		list_rotate_to_front(&next->lru, list);
+ 
+ 	spin_unlock_irq(&zone->lock);
+_
+
+Patches currently in -mm which might be from sh_def@163.com are
+
+mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
+
