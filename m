@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F1AC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A78AC433E9
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1730B222F9
+	by mail.kernel.org (Postfix) with ESMTP id 6578C222F9
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728433AbgLWSaK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45932 "EHLO mail.kernel.org"
+        id S1727902AbgLWSaL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728444AbgLWSaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1728442AbgLWSaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 23 Dec 2020 13:30:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AA967222F9;
-        Wed, 23 Dec 2020 18:29:09 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FE9B22482;
+        Wed, 23 Dec 2020 18:29:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748150;
-        bh=2g/qPSPLOv/ORTNdkLwu4mo4uPWZ7s8EVAMGmiLGZqM=;
+        s=korg; t=1608748190;
+        bh=6A1Y5PP4zHNQqSL3BAYQURrjGfsXDIn+vrme9xn2btA=;
         h=Date:From:To:Subject:From;
-        b=FhBC/7BLu8zoEKSP64U0vD45RVpHsb2OTmE2cjHs8q/B0uZqBQsg7hYLicdIfE0nl
-         Zq/pbLTDuuh4lqP5JVP+vLidcSqiPH0ihLTYIoKP8EVbQpx9Nhsud04kEAApGCStLl
-         xz6ZDL+3mSbUjNJ45Fv9HiJ4pcTBISfl5/mX3x2k=
-Date:   Wed, 23 Dec 2020 10:29:09 -0800
+        b=PJ9DOJYdqp8Pd+Gh1X25jP8/iYs0VUnjIi3MMzAvVlnU0cxBGL4FK/FSsPNnYk1eY
+         ZCIH8hc6XouBHLjwzdDizpY/X4lI9XvOvjKkTkLyXA6Cwr/M8QnGn6+5X82xOq3sQ7
+         Ow8xA3yAwx80+mPTmvzjnT2LxeJhff6AvosVic2A=
+Date:   Wed, 23 Dec 2020 10:29:49 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -37,8 +37,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
 Subject:  [merged]
- arm64-mte-convert-gcr_user-into-an-exclude-mask.patch removed from -mm tree
-Message-ID: <20201223182909.x-XB174D0%akpm@linux-foundation.org>
+ kasan-inline-kasan_reset_tag-for-tag-based-modes.patch removed from -mm
+ tree
+Message-ID: <20201223182949._mIW8BE7g%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,159 +48,240 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: convert gcr_user into an exclude mask
+     Subject: kasan: inline kasan_reset_tag for tag-based modes
 has been removed from the -mm tree.  Its filename was
-     arm64-mte-convert-gcr_user-into-an-exclude-mask.patch
+     kasan-inline-kasan_reset_tag-for-tag-based-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: mte: convert gcr_user into an exclude mask
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: inline kasan_reset_tag for tag-based modes
 
-The gcr_user mask is a per thread mask that represents the tags that are
-excluded from random generation when the Memory Tagging Extension is
-present and an 'irg' instruction is invoked.
+Using kasan_reset_tag() currently results in a function call. As it's
+called quite often from the allocator code, this leads to a noticeable
+slowdown. Move it to include/linux/kasan.h and turn it into a static
+inline function. Also remove the now unneeded reset_tag() internal KASAN
+macro and use kasan_reset_tag() instead.
 
-gcr_user affects the behavior on EL0 only.
-
-Currently that mask is an include mask and it is controlled by the user
-via prctl() while GCR_EL1 accepts an exclude mask.
-
-Convert the include mask into an exclude one to make it easier the
-register setting.
-
-Note: This change will affect gcr_kernel (for EL1) introduced with a
-future patch.
-
-Link: https://lkml.kernel.org/r/946dd31be833b660334c4f93410acf6d6c4cf3c4.1606161801.git.andreyknvl@google.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/6940383a3a9dfb416134d338d8fac97a9ebb8686.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I4d2061acfe91d480a75df00b07c22d8494ef14b5
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/processor.h |    2 -
- arch/arm64/kernel/mte.c            |   29 +++++++++++++--------------
- 2 files changed, 16 insertions(+), 15 deletions(-)
+ include/linux/kasan.h     |    5 ++++-
+ mm/kasan/common.c         |    6 +++---
+ mm/kasan/hw_tags.c        |    9 ++-------
+ mm/kasan/kasan.h          |    4 ----
+ mm/kasan/report.c         |    4 ++--
+ mm/kasan/report_hw_tags.c |    2 +-
+ mm/kasan/report_sw_tags.c |    4 ++--
+ mm/kasan/shadow.c         |    4 ++--
+ mm/kasan/sw_tags.c        |    9 ++-------
+ 9 files changed, 18 insertions(+), 29 deletions(-)
 
---- a/arch/arm64/include/asm/processor.h~arm64-mte-convert-gcr_user-into-an-exclude-mask
-+++ a/arch/arm64/include/asm/processor.h
-@@ -152,7 +152,7 @@ struct thread_struct {
- #endif
- #ifdef CONFIG_ARM64_MTE
- 	u64			sctlr_tcf0;
--	u64			gcr_user_incl;
-+	u64			gcr_user_excl;
- #endif
- };
+--- a/include/linux/kasan.h~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/include/linux/kasan.h
+@@ -194,7 +194,10 @@ static inline void kasan_record_aux_stac
  
---- a/arch/arm64/kernel/mte.c~arm64-mte-convert-gcr_user-into-an-exclude-mask
-+++ a/arch/arm64/kernel/mte.c
-@@ -156,23 +156,22 @@ static void set_sctlr_el1_tcf0(u64 tcf0)
- 	preempt_enable();
+ #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
+ 
+-void *kasan_reset_tag(const void *addr);
++static inline void *kasan_reset_tag(const void *addr)
++{
++	return (void *)arch_kasan_reset_tag(addr);
++}
+ 
+ bool kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+--- a/mm/kasan/common.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/common.c
+@@ -179,14 +179,14 @@ size_t kasan_metadata_size(struct kmem_c
+ struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
+ 					      const void *object)
+ {
+-	return (void *)reset_tag(object) + cache->kasan_info.alloc_meta_offset;
++	return kasan_reset_tag(object) + cache->kasan_info.alloc_meta_offset;
  }
  
--static void update_gcr_el1_excl(u64 incl)
-+static void update_gcr_el1_excl(u64 excl)
+ struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
+ 					    const void *object)
  {
--	u64 excl = ~incl & SYS_GCR_EL1_EXCL_MASK;
+ 	BUILD_BUG_ON(sizeof(struct kasan_free_meta) > 32);
+-	return (void *)reset_tag(object) + cache->kasan_info.free_meta_offset;
++	return kasan_reset_tag(object) + cache->kasan_info.free_meta_offset;
+ }
  
- 	/*
--	 * Note that 'incl' is an include mask (controlled by the user via
--	 * prctl()) while GCR_EL1 accepts an exclude mask.
-+	 * Note that the mask controlled by the user via prctl() is an
-+	 * include while GCR_EL1 accepts an exclude mask.
- 	 * No need for ISB since this only affects EL0 currently, implicit
- 	 * with ERET.
+ void kasan_poison_slab(struct page *page)
+@@ -283,7 +283,7 @@ static bool __kasan_slab_free(struct kme
+ 
+ 	tag = get_tag(object);
+ 	tagged_object = object;
+-	object = reset_tag(object);
++	object = kasan_reset_tag(object);
+ 
+ 	if (unlikely(nearest_obj(cache, virt_to_head_page(object), object) !=
+ 	    object)) {
+--- a/mm/kasan/hw_tags.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/hw_tags.c
+@@ -30,20 +30,15 @@ void __init kasan_init_hw_tags(void)
+ 	pr_info("KernelAddressSanitizer initialized\n");
+ }
+ 
+-void *kasan_reset_tag(const void *addr)
+-{
+-	return reset_tag(addr);
+-}
+-
+ void poison_range(const void *address, size_t size, u8 value)
+ {
+-	hw_set_mem_tag_range(reset_tag(address),
++	hw_set_mem_tag_range(kasan_reset_tag(address),
+ 			round_up(size, KASAN_GRANULE_SIZE), value);
+ }
+ 
+ void unpoison_range(const void *address, size_t size)
+ {
+-	hw_set_mem_tag_range(reset_tag(address),
++	hw_set_mem_tag_range(kasan_reset_tag(address),
+ 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+ }
+ 
+--- a/mm/kasan/kasan.h~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/kasan.h
+@@ -248,15 +248,11 @@ static inline const void *arch_kasan_set
+ 	return addr;
+ }
+ #endif
+-#ifndef arch_kasan_reset_tag
+-#define arch_kasan_reset_tag(addr)	((void *)(addr))
+-#endif
+ #ifndef arch_kasan_get_tag
+ #define arch_kasan_get_tag(addr)	0
+ #endif
+ 
+ #define set_tag(addr, tag)	((void *)arch_kasan_set_tag((addr), (tag)))
+-#define reset_tag(addr)		((void *)arch_kasan_reset_tag(addr))
+ #define get_tag(addr)		arch_kasan_get_tag(addr)
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+--- a/mm/kasan/report.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/report.c
+@@ -328,7 +328,7 @@ void kasan_report_invalid_free(void *obj
+ 	unsigned long flags;
+ 	u8 tag = get_tag(object);
+ 
+-	object = reset_tag(object);
++	object = kasan_reset_tag(object);
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+@@ -361,7 +361,7 @@ static void __kasan_report(unsigned long
+ 	disable_trace_on_warning();
+ 
+ 	tagged_addr = (void *)addr;
+-	untagged_addr = reset_tag(tagged_addr);
++	untagged_addr = kasan_reset_tag(tagged_addr);
+ 
+ 	info.access_addr = tagged_addr;
+ 	if (addr_has_metadata(untagged_addr))
+--- a/mm/kasan/report_hw_tags.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/report_hw_tags.c
+@@ -22,7 +22,7 @@ const char *get_bug_type(struct kasan_ac
+ 
+ void *find_first_bad_addr(void *addr, size_t size)
+ {
+-	return reset_tag(addr);
++	return kasan_reset_tag(addr);
+ }
+ 
+ void metadata_fetch_row(char *buffer, void *row)
+--- a/mm/kasan/report_sw_tags.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/report_sw_tags.c
+@@ -41,7 +41,7 @@ const char *get_bug_type(struct kasan_ac
+ 	int i;
+ 
+ 	tag = get_tag(info->access_addr);
+-	addr = reset_tag(info->access_addr);
++	addr = kasan_reset_tag(info->access_addr);
+ 	page = kasan_addr_to_page(addr);
+ 	if (page && PageSlab(page)) {
+ 		cache = page->slab_cache;
+@@ -72,7 +72,7 @@ const char *get_bug_type(struct kasan_ac
+ void *find_first_bad_addr(void *addr, size_t size)
+ {
+ 	u8 tag = get_tag(addr);
+-	void *p = reset_tag(addr);
++	void *p = kasan_reset_tag(addr);
+ 	void *end = p + size;
+ 
+ 	while (p < end && tag == *(u8 *)kasan_mem_to_shadow(p))
+--- a/mm/kasan/shadow.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/shadow.c
+@@ -81,7 +81,7 @@ void poison_range(const void *address, s
+ 	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
+ 	 * addresses to this function.
  	 */
- 	sysreg_clear_set_s(SYS_GCR_EL1, SYS_GCR_EL1_EXCL_MASK, excl);
+-	address = reset_tag(address);
++	address = kasan_reset_tag(address);
+ 
+ 	shadow_start = kasan_mem_to_shadow(address);
+ 	shadow_end = kasan_mem_to_shadow(address + size);
+@@ -98,7 +98,7 @@ void unpoison_range(const void *address,
+ 	 * some of the callers (e.g. kasan_unpoison_object_data) pass tagged
+ 	 * addresses to this function.
+ 	 */
+-	address = reset_tag(address);
++	address = kasan_reset_tag(address);
+ 
+ 	poison_range(address, size, tag);
+ 
+--- a/mm/kasan/sw_tags.c~kasan-inline-kasan_reset_tag-for-tag-based-modes
++++ a/mm/kasan/sw_tags.c
+@@ -67,11 +67,6 @@ u8 random_tag(void)
+ 	return (u8)(state % (KASAN_TAG_MAX + 1));
  }
  
--static void set_gcr_el1_excl(u64 incl)
-+static void set_gcr_el1_excl(u64 excl)
+-void *kasan_reset_tag(const void *addr)
+-{
+-	return reset_tag(addr);
+-}
+-
+ bool check_memory_region(unsigned long addr, size_t size, bool write,
+ 				unsigned long ret_ip)
  {
--	current->thread.gcr_user_incl = incl;
--	update_gcr_el1_excl(incl);
-+	current->thread.gcr_user_excl = excl;
-+	update_gcr_el1_excl(excl);
- }
+@@ -107,7 +102,7 @@ bool check_memory_region(unsigned long a
+ 	if (tag == KASAN_TAG_KERNEL)
+ 		return true;
  
- void flush_mte_state(void)
-@@ -187,7 +186,7 @@ void flush_mte_state(void)
- 	/* disable tag checking */
- 	set_sctlr_el1_tcf0(SCTLR_EL1_TCF0_NONE);
- 	/* reset tag generation mask */
--	set_gcr_el1_excl(0);
-+	set_gcr_el1_excl(SYS_GCR_EL1_EXCL_MASK);
- }
- 
- void mte_thread_switch(struct task_struct *next)
-@@ -198,7 +197,7 @@ void mte_thread_switch(struct task_struc
- 	/* avoid expensive SCTLR_EL1 accesses if no change */
- 	if (current->thread.sctlr_tcf0 != next->thread.sctlr_tcf0)
- 		update_sctlr_el1_tcf0(next->thread.sctlr_tcf0);
--	update_gcr_el1_excl(next->thread.gcr_user_incl);
-+	update_gcr_el1_excl(next->thread.gcr_user_excl);
- }
- 
- void mte_suspend_exit(void)
-@@ -206,13 +205,14 @@ void mte_suspend_exit(void)
- 	if (!system_supports_mte())
- 		return;
- 
--	update_gcr_el1_excl(current->thread.gcr_user_incl);
-+	update_gcr_el1_excl(current->thread.gcr_user_excl);
- }
- 
- long set_mte_ctrl(struct task_struct *task, unsigned long arg)
+-	untagged_addr = reset_tag((const void *)addr);
++	untagged_addr = kasan_reset_tag((const void *)addr);
+ 	if (unlikely(untagged_addr <
+ 			kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
+ 		return !kasan_report(addr, size, write, ret_ip);
+@@ -126,7 +121,7 @@ bool check_memory_region(unsigned long a
+ bool check_invalid_free(void *addr)
  {
- 	u64 tcf0;
--	u64 gcr_incl = (arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT;
-+	u64 gcr_excl = ~((arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT) &
-+		       SYS_GCR_EL1_EXCL_MASK;
+ 	u8 tag = get_tag(addr);
+-	u8 shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(reset_tag(addr)));
++	u8 shadow_byte = READ_ONCE(*(u8 *)kasan_mem_to_shadow(kasan_reset_tag(addr)));
  
- 	if (!system_supports_mte())
- 		return 0;
-@@ -233,10 +233,10 @@ long set_mte_ctrl(struct task_struct *ta
- 
- 	if (task != current) {
- 		task->thread.sctlr_tcf0 = tcf0;
--		task->thread.gcr_user_incl = gcr_incl;
-+		task->thread.gcr_user_excl = gcr_excl;
- 	} else {
- 		set_sctlr_el1_tcf0(tcf0);
--		set_gcr_el1_excl(gcr_incl);
-+		set_gcr_el1_excl(gcr_excl);
- 	}
- 
- 	return 0;
-@@ -245,11 +245,12 @@ long set_mte_ctrl(struct task_struct *ta
- long get_mte_ctrl(struct task_struct *task)
- {
- 	unsigned long ret;
-+	u64 incl = ~task->thread.gcr_user_excl & SYS_GCR_EL1_EXCL_MASK;
- 
- 	if (!system_supports_mte())
- 		return 0;
- 
--	ret = task->thread.gcr_user_incl << PR_MTE_TAG_SHIFT;
-+	ret = incl << PR_MTE_TAG_SHIFT;
- 
- 	switch (task->thread.sctlr_tcf0) {
- 	case SCTLR_EL1_TCF0_NONE:
+ 	return (shadow_byte == KASAN_TAG_INVALID) ||
+ 		(tag != KASAN_TAG_KERNEL && tag != shadow_byte);
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
