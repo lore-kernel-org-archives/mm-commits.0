@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FBA1C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 01:02:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2E32C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 01:27:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC1DB22287
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 01:02:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 775FE224D2
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 01:27:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726068AbgLWBCl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 20:02:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54802 "EHLO mail.kernel.org"
+        id S1726518AbgLWB1c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 20:27:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725902AbgLWBCl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 20:02:41 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9376722287;
-        Wed, 23 Dec 2020 01:02:00 +0000 (UTC)
+        id S1726514AbgLWB1b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 20:27:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A2B39224BE;
+        Wed, 23 Dec 2020 01:26:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608685320;
-        bh=jFuh35c7eU/dSrUh9twGeTUuZqDZ5XpSac6dhCiHQd4=;
+        s=korg; t=1608686810;
+        bh=vcKKCJsJob/31sSw1KBHIOIExwl38OovtZ4zCJioGd0=;
         h=Date:From:To:Subject:From;
-        b=JbaUGn5IAxTNBEqHGxf8oM/gkaRlTPfchk9OdUkb8QkGdnLFB6kQOEkgJwAQIP075
-         AUGHp0ZZ2e39/UAsB+muEiTgQTKYvQp9QfpUM53gfbBmCPUaZiMJVnVnRcXoX7Q6VG
-         BUx2A49nOy+QWzyiUQbVDztdpBIc6KGXJsYzFfQA=
-Date:   Tue, 22 Dec 2020 17:02:00 -0800
+        b=Uv924qpkU/J+dsibb/liX5Wyq5ardtsdCZL8USW+4JJDKj/lgxOVoA+F2HDnR6+Kg
+         NNCCGb2STNsi+gcNc+Rgn9hrcQZxiTefTyNpMD0abVKWgi5jm5g7xgCcGYv6xQaFzn
+         s8OiIy/qFVdjxyTj2HtZtN1/Gm104Xh0yXA1rIBo=
+Date:   Tue, 22 Dec 2020 17:26:49 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, matti.vaittinen@fi.rohmeurope.com,
         broonie@kernel.org, rdunlap@infradead.org
 Subject:  + lib-linear_ranges-fix-repeated-words-one-typo.patch added
  to -mm tree
-Message-ID: <20201223010200.tq1gx%akpm@linux-foundation.org>
+Message-ID: <20201223012649.XzC1a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -72,8 +72,8 @@ Change "ranges" to possessive "range's" in 1 place.
 
 Link: https://lkml.kernel.org/r/20201221040610.12809-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
 Cc: Mark Brown <broonie@kernel.org>
-Cc: Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
