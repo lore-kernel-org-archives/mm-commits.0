@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE5BC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 779E9C43381
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7A0F222BB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 507E4222BB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727971AbgLWSaK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1728443AbgLWSaK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 23 Dec 2020 13:30:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45102 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45132 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728433AbgLWSaI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EE612247F;
-        Wed, 23 Dec 2020 18:29:47 +0000 (UTC)
+        id S1728452AbgLWSaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:30:09 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E85A224B0;
+        Wed, 23 Dec 2020 18:29:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748188;
-        bh=EoWWFKflnerMxSd5M/tLCRkmYV4pSCVEdZXX4Kzy1iw=;
+        s=korg; t=1608748192;
+        bh=rUXIh/4GobLqclJrQE96XdZQCfvp9TGvHnJ5xfPUeF0=;
         h=Date:From:To:Subject:From;
-        b=TEh+9UtOKEcpRU52hdrthdrfO67RoAItF4dIPt3uj4voSwNgnCLDOhcZZLk+b9b8h
-         REH4G5UNnevh7JZt5upSognhouh8lEBFcUWyHo7mZnk1gV77BRV0LYumkLJ/FzxqjP
-         TyLT5vVdtBt4tcZ3fvIKcOROGaDiWYYb0prjNMYs=
-Date:   Wed, 23 Dec 2020 10:29:47 -0800
+        b=nBEEZDR8Gfod/Z79aNhFLYSkzEOv/4J4aWkbzD2G0T24fAYKw28UXJqd11tc/X2ga
+         lwz5Ugh//LaMnfYIhTo9lIiBSF4o5HNS/glz1oMORQuADkaaS0i7YtTtKgx25kmQSq
+         KzXsR3F7tJPJx/m1Nucfoq4bJsh1u69t+O8W7O9w=
+Date:   Wed, 23 Dec 2020 10:29:51 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] kasan-remove-__kasan_unpoison_stack.patch
+Subject:  [merged] kasan-inline-random_tag-for-hw_tags.patch
  removed from -mm tree
-Message-ID: <20201223182947.i6wtnOsHt%akpm@linux-foundation.org>
+Message-ID: <20201223182951.IcpnfQwK1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,27 +47,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: remove __kasan_unpoison_stack
+     Subject: kasan: inline random_tag for HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-remove-__kasan_unpoison_stack.patch
+     kasan-inline-random_tag-for-hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: remove __kasan_unpoison_stack
+Subject: kasan: inline random_tag for HW_TAGS
 
-There's no need for __kasan_unpoison_stack() helper, as it's only
-currently used in a single place. Removing it also removes unneeded
-arithmetic.
+Using random_tag() currently results in a function call. Move its
+definition to mm/kasan/kasan.h and turn it into a static inline function
+for hardware tag-based mode to avoid uneeded function calls.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/93e78948704a42ea92f6248ff8a725613d721161.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ie5ba549d445292fe629b4a96735e4034957bcc50
+Link: https://lkml.kernel.org/r/be438471690e351e1d792e6bb432e8c03ccb15d3.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Iac5b2faf9a912900e16cca6834d621f5d4abf427
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -80,33 +78,78 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/kasan/hw_tags.c |    5 -----
+ mm/kasan/kasan.h   |   31 ++++++++++++++-----------------
+ 2 files changed, 14 insertions(+), 22 deletions(-)
 
---- a/mm/kasan/common.c~kasan-remove-__kasan_unpoison_stack
-+++ a/mm/kasan/common.c
-@@ -64,18 +64,12 @@ void kasan_unpoison_range(const void *ad
+--- a/mm/kasan/hw_tags.c~kasan-inline-random_tag-for-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -42,11 +42,6 @@ void unpoison_range(const void *address,
+ 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
  }
  
- #if CONFIG_KASAN_STACK
--static void __kasan_unpoison_stack(struct task_struct *task, const void *sp)
+-u8 random_tag(void)
 -{
--	void *base = task_stack_page(task);
--	size_t size = sp - base;
--
--	unpoison_range(base, size);
+-	return hw_get_random_tag();
 -}
 -
- /* Unpoison the entire stack for a task. */
- void kasan_unpoison_task_stack(struct task_struct *task)
+ bool check_invalid_free(void *addr)
  {
--	__kasan_unpoison_stack(task, task_stack_page(task) + THREAD_SIZE);
-+	void *base = task_stack_page(task);
-+
-+	unpoison_range(base, THREAD_SIZE);
- }
+ 	u8 ptr_tag = get_tag(addr);
+--- a/mm/kasan/kasan.h~kasan-inline-random_tag-for-hw_tags
++++ a/mm/kasan/kasan.h
+@@ -190,6 +190,12 @@ static inline bool addr_has_metadata(con
  
- /* Unpoison the stack for the current task beyond a watermark sp value. */
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 
++#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
++void print_tags(u8 addr_tag, const void *addr);
++#else
++static inline void print_tags(u8 addr_tag, const void *addr) { }
++#endif
++
+ bool check_invalid_free(void *addr);
+ 
+ void *find_first_bad_addr(void *addr, size_t size);
+@@ -225,23 +231,6 @@ static inline void quarantine_reduce(voi
+ static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
+ #endif
+ 
+-#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
+-
+-void print_tags(u8 addr_tag, const void *addr);
+-
+-u8 random_tag(void);
+-
+-#else
+-
+-static inline void print_tags(u8 addr_tag, const void *addr) { }
+-
+-static inline u8 random_tag(void)
+-{
+-	return 0;
+-}
+-
+-#endif
+-
+ #ifndef arch_kasan_set_tag
+ static inline const void *arch_kasan_set_tag(const void *addr, u8 tag)
+ {
+@@ -281,6 +270,14 @@ static inline const void *arch_kasan_set
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS */
+ 
++#ifdef CONFIG_KASAN_SW_TAGS
++u8 random_tag(void);
++#elif defined(CONFIG_KASAN_HW_TAGS)
++static inline u8 random_tag(void) { return hw_get_random_tag(); }
++#else
++static inline u8 random_tag(void) { return 0; }
++#endif
++
+ /*
+  * Exported functions for interfaces called from assembly or from generated
+  * code. Declarations here to avoid warning about missing declarations.
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
