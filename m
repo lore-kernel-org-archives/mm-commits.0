@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B65AC43381
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0615BC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 056FB22473
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D983F224B0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728365AbgLWS3m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:29:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44438 "EHLO mail.kernel.org"
+        id S1728380AbgLWS3n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:29:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728334AbgLWS3m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:29:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ACB21222B3;
-        Wed, 23 Dec 2020 18:29:03 +0000 (UTC)
+        id S1728378AbgLWS3n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:29:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AC9A224B8;
+        Wed, 23 Dec 2020 18:28:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748144;
-        bh=0C4g3+L8PoH6ErV/bMcUSLItRu8efsyciFISSFKyQ6g=;
+        s=korg; t=1608748130;
+        bh=1BSgylEEvsF9uRFJf6OUPBit1m8cIYxzPpEk0OqWOdM=;
         h=Date:From:To:Subject:From;
-        b=dSynw90SFJdKyBDBrwuqQVzCF1+HBVtIx42dwzgoK5IikRYobIAR5AADQYETcty+e
-         gOkwwM92WFSyMkvl9GbU6WZvr/I2qXrqDz8F71mLRHs3CuCyXOqZmKzTTRDMafpn80
-         VwrSqx6sCQycYXriSyU4kV0gAktxevz6K8ZB/nE0=
-Date:   Wed, 23 Dec 2020 10:29:03 -0800
+        b=lJqM6CiHD+oc37vrSFPl9EA6lG15GuQbf+N2U6Uu7b0dbSvCH0m2xzXbcoAdaPc5i
+         27T5zLGFbMAfkQc0PVfbciKCfc3rOD6I77i36CIk7FDY3CeutU81t45qFqKaa0JUi2
+         6sVS3VI/b99XoupVBv8uYA3o4/i+EAKjolafNFso=
+Date:   Wed, 23 Dec 2020 10:28:49 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] arm64-mte-reset-the-page-tag-in-page-flags.patch
- removed from -mm tree
-Message-ID: <20201223182903.bJrsJFEzf%akpm@linux-foundation.org>
+Subject:  [merged]
+ kasan-rename-addr_has_shadow-to-addr_has_metadata.patch removed from -mm
+ tree
+Message-ID: <20201223182849.4dHX0mpzs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,123 +48,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: reset the page tag in page->flags
+     Subject: kasan: rename addr_has_shadow to addr_has_metadata
 has been removed from the -mm tree.  Its filename was
-     arm64-mte-reset-the-page-tag-in-page-flags.patch
+     kasan-rename-addr_has_shadow-to-addr_has_metadata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: mte: reset the page tag in page->flags
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: rename addr_has_shadow to addr_has_metadata
 
-The hardware tag-based KASAN for compatibility with the other modes stores
-the tag associated to a page in page->flags.  Due to this the kernel
-faults on access when it allocates a page with an initial tag and the user
-changes the tags.
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-Reset the tag associated by the kernel to a page in all the meaningful
-places to prevent kernel faults on access.
+Hardware tag-based KASAN won't be using shadow memory, but will reuse this
+function.  Rename "shadow" to implementation-neutral "metadata".
 
-Note: An alternative to this approach could be to modify page_to_virt(). 
-This though could end up being racy, in fact if a CPU checks the
-PG_mte_tagged bit and decides that the page is not tagged but another CPU
-maps the same with PROT_MTE and becomes tagged the subsequent kernel
-access would fail.
+No functional changes.
 
-Link: https://lkml.kernel.org/r/9073d4e973747a6f78d5bdd7ebe17f290d087096.1606161801.git.andreyknvl@google.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/370466fba590a4596b55ffd38adfd990f8886db4.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/hibernate.c |    5 +++++
- arch/arm64/kernel/mte.c       |    9 +++++++++
- arch/arm64/mm/copypage.c      |    9 +++++++++
- arch/arm64/mm/mteswap.c       |    9 +++++++++
- 4 files changed, 32 insertions(+)
+ mm/kasan/kasan.h          |    2 +-
+ mm/kasan/report.c         |    6 +++---
+ mm/kasan/report_generic.c |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/kernel/hibernate.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/kernel/hibernate.c
-@@ -371,6 +371,11 @@ static void swsusp_mte_restore_tags(void
- 		unsigned long pfn = xa_state.xa_index;
- 		struct page *page = pfn_to_online_page(pfn);
- 
-+		/*
-+		 * It is not required to invoke page_kasan_tag_reset(page)
-+		 * at this point since the tags stored in page->flags are
-+		 * already restored.
-+		 */
- 		mte_restore_page_tags(page_address(page), tags);
- 
- 		mte_free_tag_storage(tags);
---- a/arch/arm64/kernel/mte.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/kernel/mte.c
-@@ -34,6 +34,15 @@ static void mte_sync_page_tags(struct pa
- 			return;
- 	}
- 
-+	page_kasan_tag_reset(page);
-+	/*
-+	 * We need smp_wmb() in between setting the flags and clearing the
-+	 * tags because if another thread reads page->flags and builds a
-+	 * tagged address out of it, there is an actual dependency to the
-+	 * memory access, but on the current thread we do not guarantee that
-+	 * the new page->flags are visible before the tags were updated.
-+	 */
-+	smp_wmb();
- 	mte_clear_page_tags(page_address(page));
+--- a/mm/kasan/kasan.h~kasan-rename-addr_has_shadow-to-addr_has_metadata
++++ a/mm/kasan/kasan.h
+@@ -147,7 +147,7 @@ static inline const void *kasan_shadow_t
+ 		<< KASAN_SHADOW_SCALE_SHIFT);
  }
  
---- a/arch/arm64/mm/copypage.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/mm/copypage.c
-@@ -23,6 +23,15 @@ void copy_highpage(struct page *to, stru
- 
- 	if (system_supports_mte() && test_bit(PG_mte_tagged, &from->flags)) {
- 		set_bit(PG_mte_tagged, &to->flags);
-+		page_kasan_tag_reset(to);
-+		/*
-+		 * We need smp_wmb() in between setting the flags and clearing the
-+		 * tags because if another thread reads page->flags and builds a
-+		 * tagged address out of it, there is an actual dependency to the
-+		 * memory access, but on the current thread we do not guarantee that
-+		 * the new page->flags are visible before the tags were updated.
-+		 */
-+		smp_wmb();
- 		mte_copy_page_tags(kto, kfrom);
- 	}
+-static inline bool addr_has_shadow(const void *addr)
++static inline bool addr_has_metadata(const void *addr)
+ {
+ 	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
  }
---- a/arch/arm64/mm/mteswap.c~arm64-mte-reset-the-page-tag-in-page-flags
-+++ a/arch/arm64/mm/mteswap.c
-@@ -53,6 +53,15 @@ bool mte_restore_tags(swp_entry_t entry,
- 	if (!tags)
- 		return false;
+--- a/mm/kasan/report.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
++++ a/mm/kasan/report.c
+@@ -361,7 +361,7 @@ static void __kasan_report(unsigned long
+ 	untagged_addr = reset_tag(tagged_addr);
  
-+	page_kasan_tag_reset(page);
-+	/*
-+	 * We need smp_wmb() in between setting the flags and clearing the
-+	 * tags because if another thread reads page->flags and builds a
-+	 * tagged address out of it, there is an actual dependency to the
-+	 * memory access, but on the current thread we do not guarantee that
-+	 * the new page->flags are visible before the tags were updated.
-+	 */
-+	smp_wmb();
- 	mte_restore_page_tags(page_address(page), tags);
+ 	info.access_addr = tagged_addr;
+-	if (addr_has_shadow(untagged_addr))
++	if (addr_has_metadata(untagged_addr))
+ 		info.first_bad_addr = find_first_bad_addr(tagged_addr, size);
+ 	else
+ 		info.first_bad_addr = untagged_addr;
+@@ -372,11 +372,11 @@ static void __kasan_report(unsigned long
+ 	start_report(&flags);
  
- 	return true;
+ 	print_error_description(&info);
+-	if (addr_has_shadow(untagged_addr))
++	if (addr_has_metadata(untagged_addr))
+ 		print_tags(get_tag(tagged_addr), info.first_bad_addr);
+ 	pr_err("\n");
+ 
+-	if (addr_has_shadow(untagged_addr)) {
++	if (addr_has_metadata(untagged_addr)) {
+ 		print_address_description(untagged_addr, get_tag(tagged_addr));
+ 		pr_err("\n");
+ 		print_shadow_for_address(info.first_bad_addr);
+--- a/mm/kasan/report_generic.c~kasan-rename-addr_has_shadow-to-addr_has_metadata
++++ a/mm/kasan/report_generic.c
+@@ -118,7 +118,7 @@ const char *get_bug_type(struct kasan_ac
+ 	if (info->access_addr + info->access_size < info->access_addr)
+ 		return "out-of-bounds";
+ 
+-	if (addr_has_shadow(info->access_addr))
++	if (addr_has_metadata(info->access_addr))
+ 		return get_shadow_bug_type(info);
+ 	return get_wild_bug_type(info);
+ }
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
