@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E23B7C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75A24C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE2A8223C8
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 477FB222F9
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727901AbgLWSaa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45580 "EHLO mail.kernel.org"
+        id S1728447AbgLWSaf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727663AbgLWSaa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 72D94222BB;
-        Wed, 23 Dec 2020 18:30:13 +0000 (UTC)
+        id S1727663AbgLWSae (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:30:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D34D222F9;
+        Wed, 23 Dec 2020 18:30:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748213;
-        bh=1AuA7hhfVzfaLEtxrCsGKL2qHYfyPZjE3ybP8Ov8Amk=;
+        s=korg; t=1608748218;
+        bh=ojLGAWNVlZlJ/LvrTNqAAPh8UxEbnHs9NUwb7giG8sc=;
         h=Date:From:To:Subject:From;
-        b=w/uNSWcUCFcMg6rhiSk04m4w8HVSs6bVTJpL7uPV1OfM7nIS27B/EqOEG+PzO7aXk
-         b04OoBuVlQCuDnrGxBFsiwQjrF4h4iHHe7CDpzpBJXbbSvIdrXyUQrDe3AJaIyGjzq
-         UDgbKkJtN7uScGYmfTIHuJJkTcGE3LdvqORRqk6A=
-Date:   Wed, 23 Dec 2020 10:30:11 -0800
+        b=nvSr12XaS8UKdFVomXMvBN6y6c4QEw15Y1tECWjy7kS1c2mDSrJ6gNkl7xPxIRClK
+         lvBJ2xegoFG0CHWsW5Twrr2rvfRl3bmLUR8EUCp4bkoUa1KbiwzbjoyGaKRe0z5trm
+         v2d1y+uyi3NJk6XsiMIWoFHriuT8lAS/GNuuFhjI=
+Date:   Wed, 23 Dec 2020 10:30:18 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
         dvyukov@google.com, elver@google.com, eugenis@google.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, Vincenzo.Frascino@arm.com,
+        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged]
- kasan-sanitize-objects-when-metadata-doesnt-fit.patch removed from -mm tree
-Message-ID: <20201223183011.GECXRMkD-%akpm@linux-foundation.org>
+Subject:  [merged] kasan-update-documentation.patch removed from
+ -mm tree
+Message-ID: <20201223183018.ZFb0v5MAv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,48 +47,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: sanitize objects when metadata doesn't fit
+     Subject: kasan: update documentation
 has been removed from the -mm tree.  Its filename was
-     kasan-sanitize-objects-when-metadata-doesnt-fit.patch
+     kasan-update-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: sanitize objects when metadata doesn't fit
+Subject: kasan: update documentation
 
-KASAN marks caches that are sanitized with the SLAB_KASAN cache flag. 
-Currently if the metadata that is appended after the object (stores e.g. 
-stack trace ids) doesn't fit into KMALLOC_MAX_SIZE (can only happen with
-SLAB, see the comment in the patch), KASAN turns off sanitization
-completely.
+This change updates KASAN documentation to reflect the addition of boot
+parameters and also reworks and clarifies some of the existing sections,
+in particular: defines what a memory granule is, mentions quarantine,
+makes Kunit section more readable.
 
-With this change sanitization of the object data is always enabled. 
-However the metadata is only stored when it fits.  Instead of checking for
-SLAB_KASAN flag accross the code to find out whether the metadata is
-there, use cache->kasan_info.alloc/free_meta_offset.  As 0 can be a valid
-value for free_meta_offset, introduce KASAN_NO_FREE_META as an indicator
-that the free metadata is missing.
-
-Without this change all sanitized KASAN objects would be put into
-quarantine with generic KASAN.  With this change, only the objects that
-have metadata (i.e.  when it fits) are put into quarantine, the rest is
-freed right away.
-
-Along the way rework __kasan_cache_create() and add claryfying comments.
-
-Link: https://lkml.kernel.org/r/aee34b87a5e4afe586c2ac6a0b32db8dc4dcc2dc.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Icd947e2bea054cb5cfbdc6cf6652227d97032dcb
-Co-developed-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
-Signed-off-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
+Link: https://lkml.kernel.org/r/748daf013e17d925b0fe00c1c3b5dce726dd2430.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ib1f83e91be273264b25f42b04448ac96b858849f
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -96,457 +79,290 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c         |  116 ++++++++++++++++++++++--------------
- mm/kasan/generic.c        |    9 +-
- mm/kasan/hw_tags.c        |    6 +
- mm/kasan/kasan.h          |   17 ++++-
- mm/kasan/quarantine.c     |   18 ++++-
- mm/kasan/report.c         |   43 +++++++------
- mm/kasan/report_sw_tags.c |    9 +-
- mm/kasan/sw_tags.c        |    4 +
- 8 files changed, 147 insertions(+), 75 deletions(-)
+ Documentation/dev-tools/kasan.rst |  188 +++++++++++++++++-----------
+ 1 file changed, 117 insertions(+), 71 deletions(-)
 
---- a/mm/kasan/common.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/common.c
-@@ -114,9 +114,6 @@ void __kasan_free_pages(struct page *pag
-  */
- static inline unsigned int optimal_redzone(unsigned int object_size)
- {
--	if (!IS_ENABLED(CONFIG_KASAN_GENERIC))
--		return 0;
+--- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation
++++ a/Documentation/dev-tools/kasan.rst
+@@ -4,8 +4,9 @@ The Kernel Address Sanitizer (KASAN)
+ Overview
+ --------
+ 
+-KernelAddressSANitizer (KASAN) is a dynamic memory error detector designed to
+-find out-of-bound and use-after-free bugs. KASAN has three modes:
++KernelAddressSANitizer (KASAN) is a dynamic memory safety error detector
++designed to find out-of-bound and use-after-free bugs. KASAN has three modes:
++
+ 1. generic KASAN (similar to userspace ASan),
+ 2. software tag-based KASAN (similar to userspace HWASan),
+ 3. hardware tag-based KASAN (based on hardware memory tagging).
+@@ -39,23 +40,13 @@ CONFIG_KASAN_INLINE. Outline and inline
+ The former produces smaller binary while the latter is 1.1 - 2 times faster.
+ 
+ Both software KASAN modes work with both SLUB and SLAB memory allocators,
+-hardware tag-based KASAN currently only support SLUB.
+-For better bug detection and nicer reporting, enable CONFIG_STACKTRACE.
++while the hardware tag-based KASAN currently only support SLUB.
++
++For better error reports that include stack traces, enable CONFIG_STACKTRACE.
+ 
+ To augment reports with last allocation and freeing stack of the physical page,
+ it is recommended to enable also CONFIG_PAGE_OWNER and boot with page_owner=on.
+ 
+-To disable instrumentation for specific files or directories, add a line
+-similar to the following to the respective kernel Makefile:
 -
- 	return
- 		object_size <= 64        - 16   ? 16 :
- 		object_size <= 128       - 32   ? 32 :
-@@ -130,47 +127,77 @@ static inline unsigned int optimal_redzo
- void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
- 			  slab_flags_t *flags)
- {
--	unsigned int orig_size = *size;
--	unsigned int redzone_size;
--	int redzone_adjust;
-+	unsigned int ok_size;
-+	unsigned int optimal_size;
-+
-+	/*
-+	 * SLAB_KASAN is used to mark caches as ones that are sanitized by
-+	 * KASAN. Currently this flag is used in two places:
-+	 * 1. In slab_ksize() when calculating the size of the accessible
-+	 *    memory within the object.
-+	 * 2. In slab_common.c to prevent merging of sanitized caches.
-+	 */
-+	*flags |= SLAB_KASAN;
- 
--	if (!kasan_stack_collection_enabled()) {
--		*flags |= SLAB_KASAN;
-+	if (!kasan_stack_collection_enabled())
- 		return;
--	}
- 
--	/* Add alloc meta. */
-+	ok_size = *size;
-+
-+	/* Add alloc meta into redzone. */
- 	cache->kasan_info.alloc_meta_offset = *size;
- 	*size += sizeof(struct kasan_alloc_meta);
- 
--	/* Add free meta. */
--	if (IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--	    (cache->flags & SLAB_TYPESAFE_BY_RCU || cache->ctor ||
--	     cache->object_size < sizeof(struct kasan_free_meta))) {
--		cache->kasan_info.free_meta_offset = *size;
--		*size += sizeof(struct kasan_free_meta);
-+	/*
-+	 * If alloc meta doesn't fit, don't add it.
-+	 * This can only happen with SLAB, as it has KMALLOC_MAX_SIZE equal
-+	 * to KMALLOC_MAX_CACHE_SIZE and doesn't fall back to page_alloc for
-+	 * larger sizes.
-+	 */
-+	if (*size > KMALLOC_MAX_SIZE) {
-+		cache->kasan_info.alloc_meta_offset = 0;
-+		*size = ok_size;
-+		/* Continue, since free meta might still fit. */
- 	}
- 
--	redzone_size = optimal_redzone(cache->object_size);
--	redzone_adjust = redzone_size -	(*size - cache->object_size);
--	if (redzone_adjust > 0)
--		*size += redzone_adjust;
+-- For a single file (e.g. main.o)::
 -
--	*size = min_t(unsigned int, KMALLOC_MAX_SIZE,
--			max(*size, cache->object_size + redzone_size));
-+	/* Only the generic mode uses free meta or flexible redzones. */
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
-+		cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
-+		return;
-+	}
- 
- 	/*
--	 * If the metadata doesn't fit, don't enable KASAN at all.
-+	 * Add free meta into redzone when it's not possible to store
-+	 * it in the object. This is the case when:
-+	 * 1. Object is SLAB_TYPESAFE_BY_RCU, which means that it can
-+	 *    be touched after it was freed, or
-+	 * 2. Object has a constructor, which means it's expected to
-+	 *    retain its content until the next allocation, or
-+	 * 3. Object is too small.
-+	 * Otherwise cache->kasan_info.free_meta_offset = 0 is implied.
- 	 */
--	if (*size <= cache->kasan_info.alloc_meta_offset ||
--			*size <= cache->kasan_info.free_meta_offset) {
--		cache->kasan_info.alloc_meta_offset = 0;
--		cache->kasan_info.free_meta_offset = 0;
--		*size = orig_size;
--		return;
-+	if ((cache->flags & SLAB_TYPESAFE_BY_RCU) || cache->ctor ||
-+	    cache->object_size < sizeof(struct kasan_free_meta)) {
-+		ok_size = *size;
-+
-+		cache->kasan_info.free_meta_offset = *size;
-+		*size += sizeof(struct kasan_free_meta);
-+
-+		/* If free meta doesn't fit, don't add it. */
-+		if (*size > KMALLOC_MAX_SIZE) {
-+			cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
-+			*size = ok_size;
-+		}
- 	}
- 
--	*flags |= SLAB_KASAN;
-+	/* Calculate size with optimal redzone. */
-+	optimal_size = cache->object_size + optimal_redzone(cache->object_size);
-+	/* Limit it with KMALLOC_MAX_SIZE (relevant for SLAB only). */
-+	if (optimal_size > KMALLOC_MAX_SIZE)
-+		optimal_size = KMALLOC_MAX_SIZE;
-+	/* Use optimal size if the size with added metas is not large enough. */
-+	if (*size < optimal_size)
-+		*size = optimal_size;
- }
- 
- size_t __kasan_metadata_size(struct kmem_cache *cache)
-@@ -186,15 +213,21 @@ size_t __kasan_metadata_size(struct kmem
- struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
- 					      const void *object)
- {
-+	if (!cache->kasan_info.alloc_meta_offset)
-+		return NULL;
- 	return kasan_reset_tag(object) + cache->kasan_info.alloc_meta_offset;
- }
- 
-+#ifdef CONFIG_KASAN_GENERIC
- struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
- 					    const void *object)
- {
- 	BUILD_BUG_ON(sizeof(struct kasan_free_meta) > 32);
-+	if (cache->kasan_info.free_meta_offset == KASAN_NO_FREE_META)
-+		return NULL;
- 	return kasan_reset_tag(object) + cache->kasan_info.free_meta_offset;
- }
-+#endif
- 
- void __kasan_poison_slab(struct page *page)
- {
-@@ -271,11 +304,9 @@ void * __must_check __kasan_init_slab_ob
- 	struct kasan_alloc_meta *alloc_meta;
- 
- 	if (kasan_stack_collection_enabled()) {
--		if (!(cache->flags & SLAB_KASAN))
--			return (void *)object;
+-    KASAN_SANITIZE_main.o := n
 -
- 		alloc_meta = kasan_get_alloc_meta(cache, object);
--		__memset(alloc_meta, 0, sizeof(*alloc_meta));
-+		if (alloc_meta)
-+			__memset(alloc_meta, 0, sizeof(*alloc_meta));
- 	}
- 
- 	/* Tag is ignored in set_tag() without CONFIG_KASAN_SW/HW_TAGS */
-@@ -314,15 +345,12 @@ static bool ____kasan_slab_free(struct k
- 	if (!kasan_stack_collection_enabled())
- 		return false;
- 
--	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine) ||
--			unlikely(!(cache->flags & SLAB_KASAN)))
-+	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
- 		return false;
- 
- 	kasan_set_free_info(cache, object, tag);
- 
--	quarantine_put(cache, object);
+-- For all files in one directory::
 -
--	return IS_ENABLED(CONFIG_KASAN_GENERIC);
-+	return quarantine_put(cache, object);
- }
- 
- bool __kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
-@@ -355,7 +383,11 @@ void __kasan_slab_free_mempool(void *ptr
- 
- static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
- {
--	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
-+	struct kasan_alloc_meta *alloc_meta;
-+
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (alloc_meta)
-+		kasan_set_track(&alloc_meta->alloc_track, flags);
- }
- 
- static void *____kasan_kmalloc(struct kmem_cache *cache, const void *object,
-@@ -382,7 +414,7 @@ static void *____kasan_kmalloc(struct km
- 	poison_range((void *)redzone_start, redzone_end - redzone_start,
- 		     KASAN_KMALLOC_REDZONE);
- 
--	if (kasan_stack_collection_enabled() && (cache->flags & SLAB_KASAN))
-+	if (kasan_stack_collection_enabled())
- 		set_alloc_info(cache, (void *)object, flags);
- 
- 	return set_tag(object, tag);
---- a/mm/kasan/generic.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/generic.c
-@@ -348,11 +348,11 @@ void kasan_set_free_info(struct kmem_cac
- 	struct kasan_free_meta *free_meta;
- 
- 	free_meta = kasan_get_free_meta(cache, object);
--	kasan_set_track(&free_meta->free_track, GFP_NOWAIT);
-+	if (!free_meta)
-+		return;
- 
--	/*
--	 *  the object was freed and has free track set
--	 */
-+	kasan_set_track(&free_meta->free_track, GFP_NOWAIT);
-+	/* The object was freed and has free track set. */
- 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_KMALLOC_FREETRACK;
- }
- 
-@@ -361,5 +361,6 @@ struct kasan_track *kasan_get_free_track
- {
- 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_KMALLOC_FREETRACK)
- 		return NULL;
-+	/* Free meta must be present with KASAN_KMALLOC_FREETRACK. */
- 	return &kasan_get_free_meta(cache, object)->free_track;
- }
---- a/mm/kasan/hw_tags.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/hw_tags.c
-@@ -187,7 +187,8 @@ void kasan_set_free_info(struct kmem_cac
- 	struct kasan_alloc_meta *alloc_meta;
- 
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
--	kasan_set_track(&alloc_meta->free_track[0], GFP_NOWAIT);
-+	if (alloc_meta)
-+		kasan_set_track(&alloc_meta->free_track[0], GFP_NOWAIT);
- }
- 
- struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
-@@ -196,5 +197,8 @@ struct kasan_track *kasan_get_free_track
- 	struct kasan_alloc_meta *alloc_meta;
- 
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return NULL;
-+
- 	return &alloc_meta->free_track[0];
- }
---- a/mm/kasan/kasan.h~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/kasan.h
-@@ -155,20 +155,31 @@ struct kasan_alloc_meta {
- struct qlist_node {
- 	struct qlist_node *next;
- };
-+
-+/*
-+ * Generic mode either stores free meta in the object itself or in the redzone
-+ * after the object. In the former case free meta offset is 0, in the latter
-+ * case it has some sane value smaller than INT_MAX. Use INT_MAX as free meta
-+ * offset when free meta isn't present.
-+ */
-+#define KASAN_NO_FREE_META INT_MAX
-+
- struct kasan_free_meta {
-+#ifdef CONFIG_KASAN_GENERIC
- 	/* This field is used while the object is in the quarantine.
- 	 * Otherwise it might be used for the allocator freelist.
- 	 */
- 	struct qlist_node quarantine_link;
--#ifdef CONFIG_KASAN_GENERIC
- 	struct kasan_track free_track;
- #endif
- };
- 
- struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
- 						const void *object);
-+#ifdef CONFIG_KASAN_GENERIC
- struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
- 						const void *object);
-+#endif
- 
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 
-@@ -233,11 +244,11 @@ struct kasan_track *kasan_get_free_track
- 
- #if defined(CONFIG_KASAN_GENERIC) && \
- 	(defined(CONFIG_SLAB) || defined(CONFIG_SLUB))
--void quarantine_put(struct kmem_cache *cache, void *object);
-+bool quarantine_put(struct kmem_cache *cache, void *object);
- void quarantine_reduce(void);
- void quarantine_remove_cache(struct kmem_cache *cache);
- #else
--static inline void quarantine_put(struct kmem_cache *cache, void *object) { }
-+static inline bool quarantine_put(struct kmem_cache *cache, void *object) { return false; }
- static inline void quarantine_reduce(void) { }
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
---- a/mm/kasan/quarantine.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/quarantine.c
-@@ -137,7 +137,12 @@ static void qlink_free(struct qlist_node
- 	if (IS_ENABLED(CONFIG_SLAB))
- 		local_irq_save(flags);
- 
-+	/*
-+	 * As the object now gets freed from the quaratine, assume that its
-+	 * free track is no longer valid.
-+	 */
- 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_KMALLOC_FREE;
-+
- 	___cache_free(cache, object, _THIS_IP_);
- 
- 	if (IS_ENABLED(CONFIG_SLAB))
-@@ -163,7 +168,7 @@ static void qlist_free_all(struct qlist_
- 	qlist_init(q);
- }
- 
--void quarantine_put(struct kmem_cache *cache, void *object)
-+bool quarantine_put(struct kmem_cache *cache, void *object)
- {
- 	unsigned long flags;
- 	struct qlist_head *q;
-@@ -171,6 +176,13 @@ void quarantine_put(struct kmem_cache *c
- 	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
- 
- 	/*
-+	 * If there's no metadata for this object, don't put it into
-+	 * quarantine.
-+	 */
-+	if (!meta)
-+		return false;
-+
-+	/*
- 	 * Note: irq must be disabled until after we move the batch to the
- 	 * global quarantine. Otherwise quarantine_remove_cache() can miss
- 	 * some objects belonging to the cache if they are in our local temp
-@@ -183,7 +195,7 @@ void quarantine_put(struct kmem_cache *c
- 	q = this_cpu_ptr(&cpu_quarantine);
- 	if (q->offline) {
- 		local_irq_restore(flags);
--		return;
-+		return false;
- 	}
- 	qlist_put(q, &meta->quarantine_link, cache->size);
- 	if (unlikely(q->bytes > QUARANTINE_PERCPU_SIZE)) {
-@@ -206,6 +218,8 @@ void quarantine_put(struct kmem_cache *c
- 	}
- 
- 	local_irq_restore(flags);
-+
-+	return true;
- }
- 
- void quarantine_reduce(void)
---- a/mm/kasan/report.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/report.c
-@@ -168,32 +168,35 @@ static void describe_object_addr(struct
- static void describe_object_stacks(struct kmem_cache *cache, void *object,
- 					const void *addr, u8 tag)
- {
--	struct kasan_alloc_meta *alloc_meta = kasan_get_alloc_meta(cache, object);
+-    KASAN_SANITIZE := n
 -
--	if (cache->flags & SLAB_KASAN) {
--		struct kasan_track *free_track;
-+	struct kasan_alloc_meta *alloc_meta;
-+	struct kasan_track *free_track;
+ Error reports
+ ~~~~~~~~~~~~~
  
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (alloc_meta) {
- 		print_track(&alloc_meta->alloc_track, "Allocated");
- 		pr_err("\n");
--		free_track = kasan_get_free_track(cache, object, tag);
--		if (free_track) {
--			print_track(free_track, "Freed");
--			pr_err("\n");
--		}
-+	}
+@@ -140,22 +131,75 @@ freed (in case of a use-after-free bug r
+ the accessed slab object and information about the accessed memory page.
+ 
+ In the last section the report shows memory state around the accessed address.
+-Reading this part requires some understanding of how KASAN works.
+-
+-The state of each 8 aligned bytes of memory is encoded in one shadow byte.
+-Those 8 bytes can be accessible, partially accessible, freed or be a redzone.
+-We use the following encoding for each shadow byte: 0 means that all 8 bytes
+-of the corresponding memory region are accessible; number N (1 <= N <= 7) means
+-that the first N bytes are accessible, and other (8 - N) bytes are not;
+-any negative value indicates that the entire 8-byte word is inaccessible.
+-We use different negative values to distinguish between different kinds of
+-inaccessible memory like redzones or freed memory (see mm/kasan/kasan.h).
++Internally KASAN tracks memory state separately for each memory granule, which
++is either 8 or 16 aligned bytes depending on KASAN mode. Each number in the
++memory state section of the report shows the state of one of the memory
++granules that surround the accessed address.
 +
-+	free_track = kasan_get_free_track(cache, object, tag);
-+	if (free_track) {
-+		print_track(free_track, "Freed");
-+		pr_err("\n");
-+	}
++For generic KASAN the size of each memory granule is 8. The state of each
++granule is encoded in one shadow byte. Those 8 bytes can be accessible,
++partially accessible, freed or be a part of a redzone. KASAN uses the following
++encoding for each shadow byte: 0 means that all 8 bytes of the corresponding
++memory region are accessible; number N (1 <= N <= 7) means that the first N
++bytes are accessible, and other (8 - N) bytes are not; any negative value
++indicates that the entire 8-byte word is inaccessible. KASAN uses different
++negative values to distinguish between different kinds of inaccessible memory
++like redzones or freed memory (see mm/kasan/kasan.h).
  
- #ifdef CONFIG_KASAN_GENERIC
--		if (alloc_meta->aux_stack[0]) {
--			pr_err("Last potentially related work creation:\n");
--			print_stack(alloc_meta->aux_stack[0]);
--			pr_err("\n");
--		}
--		if (alloc_meta->aux_stack[1]) {
--			pr_err("Second to last potentially related work creation:\n");
--			print_stack(alloc_meta->aux_stack[1]);
--			pr_err("\n");
--		}
--#endif
-+	if (!alloc_meta)
-+		return;
-+	if (alloc_meta->aux_stack[0]) {
-+		pr_err("Last potentially related work creation:\n");
-+		print_stack(alloc_meta->aux_stack[0]);
-+		pr_err("\n");
- 	}
-+	if (alloc_meta->aux_stack[1]) {
-+		pr_err("Second to last potentially related work creation:\n");
-+		print_stack(alloc_meta->aux_stack[1]);
-+		pr_err("\n");
-+	}
-+#endif
- }
+ In the report above the arrows point to the shadow byte 03, which means that
+ the accessed address is partially accessible.
  
- static void describe_object(struct kmem_cache *cache, void *object,
---- a/mm/kasan/report_sw_tags.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/report_sw_tags.c
-@@ -48,9 +48,12 @@ const char *get_bug_type(struct kasan_ac
- 		object = nearest_obj(cache, page, (void *)addr);
- 		alloc_meta = kasan_get_alloc_meta(cache, object);
+ For tag-based KASAN this last report section shows the memory tags around the
+-accessed address (see Implementation details section).
++accessed address (see `Implementation details`_ section).
++
++Boot parameters
++~~~~~~~~~~~~~~~
++
++Hardware tag-based KASAN mode (see the section about different mode below) is
++intended for use in production as a security mitigation. Therefore it supports
++boot parameters that allow to disable KASAN competely or otherwise control
++particular KASAN features.
++
++The things that can be controlled are:
++
++1. Whether KASAN is enabled at all.
++2. Whether KASAN collects and saves alloc/free stacks.
++3. Whether KASAN panics on a detected bug or not.
++
++The ``kasan.mode`` boot parameter allows to choose one of three main modes:
++
++- ``kasan.mode=off`` - KASAN is disabled, no tag checks are performed
++- ``kasan.mode=prod`` - only essential production features are enabled
++- ``kasan.mode=full`` - all KASAN features are enabled
++
++The chosen mode provides default control values for the features mentioned
++above. However it's also possible to override the default values by providing:
++
++- ``kasan.stacktrace=off`` or ``=on`` - enable alloc/free stack collection
++					(default: ``on`` for ``mode=full``,
++					 otherwise ``off``)
++- ``kasan.fault=report`` or ``=panic`` - only print KASAN report or also panic
++					 (default: ``report``)
++
++If ``kasan.mode`` parameter is not provided, it defaults to ``full`` when
++``CONFIG_DEBUG_KERNEL`` is enabled, and to ``prod`` otherwise.
++
++For developers
++~~~~~~~~~~~~~~
++
++Software KASAN modes use compiler instrumentation to insert validity checks.
++Such instrumentation might be incompatible with some part of the kernel, and
++therefore needs to be disabled. To disable instrumentation for specific files
++or directories, add a line similar to the following to the respective kernel
++Makefile:
++
++- For a single file (e.g. main.o)::
++
++    KASAN_SANITIZE_main.o := n
++
++- For all files in one directory::
++
++    KASAN_SANITIZE := n
  
--		for (i = 0; i < KASAN_NR_FREE_STACKS; i++)
--			if (alloc_meta->free_pointer_tag[i] == tag)
--				return "use-after-free";
-+		if (alloc_meta) {
-+			for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
-+				if (alloc_meta->free_pointer_tag[i] == tag)
-+					return "use-after-free";
-+			}
-+		}
- 		return "out-of-bounds";
- 	}
  
---- a/mm/kasan/sw_tags.c~kasan-sanitize-objects-when-metadata-doesnt-fit
-+++ a/mm/kasan/sw_tags.c
-@@ -170,6 +170,8 @@ void kasan_set_free_info(struct kmem_cac
- 	u8 idx = 0;
+ Implementation details
+@@ -164,10 +208,10 @@ Implementation details
+ Generic KASAN
+ ~~~~~~~~~~~~~
  
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return;
+-From a high level, our approach to memory error detection is similar to that
+-of kmemcheck: use shadow memory to record whether each byte of memory is safe
+-to access, and use compile-time instrumentation to insert checks of shadow
+-memory on each memory access.
++From a high level perspective, KASAN's approach to memory error detection is
++similar to that of kmemcheck: use shadow memory to record whether each byte of
++memory is safe to access, and use compile-time instrumentation to insert checks
++of shadow memory on each memory access.
  
- #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
- 	idx = alloc_meta->free_track_idx;
-@@ -187,6 +189,8 @@ struct kasan_track *kasan_get_free_track
- 	int i = 0;
+ Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (e.g. 16TB
+ to cover 128TB on x86_64) and uses direct mapping with a scale and offset to
+@@ -198,6 +242,9 @@ Generic KASAN also reports the last 2 ca
+ potentially has access to an object. Call stacks for the following are shown:
+ call_rcu() and workqueue queuing.
  
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return NULL;
++Generic KASAN is the only mode that delays the reuse of freed object via
++quarantine (see mm/kasan/quarantine.c for implementation).
++
+ Software tag-based KASAN
+ ~~~~~~~~~~~~~~~~~~~~~~~~
  
- #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
- 	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
+@@ -305,15 +352,15 @@ therefore be wasteful. Furthermore, to e
+ use different shadow pages, mappings would have to be aligned to
+ ``KASAN_GRANULE_SIZE * PAGE_SIZE``.
+ 
+-Instead, we share backing space across multiple mappings. We allocate
++Instead, KASAN shares backing space across multiple mappings. It allocates
+ a backing page when a mapping in vmalloc space uses a particular page
+ of the shadow region. This page can be shared by other vmalloc
+ mappings later on.
+ 
+-We hook in to the vmap infrastructure to lazily clean up unused shadow
++KASAN hooks into the vmap infrastructure to lazily clean up unused shadow
+ memory.
+ 
+-To avoid the difficulties around swapping mappings around, we expect
++To avoid the difficulties around swapping mappings around, KASAN expects
+ that the part of the shadow region that covers the vmalloc space will
+ not be covered by the early shadow page, but will be left
+ unmapped. This will require changes in arch-specific code.
+@@ -324,24 +371,31 @@ architectures that do not have a fixed m
+ CONFIG_KASAN_KUNIT_TEST & CONFIG_TEST_KASAN_MODULE
+ --------------------------------------------------
+ 
+-``CONFIG_KASAN_KUNIT_TEST`` utilizes the KUnit Test Framework for testing.
+-This means each test focuses on a small unit of functionality and
+-there are a few ways these tests can be run.
++KASAN tests consist on two parts:
++
++1. Tests that are integrated with the KUnit Test Framework. Enabled with
++``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
++automatically in a few different ways, see the instructions below.
++
++2. Tests that are currently incompatible with KUnit. Enabled with
++``CONFIG_TEST_KASAN_MODULE`` and can only be run as a module. These tests can
++only be verified manually, by loading the kernel module and inspecting the
++kernel log for KASAN reports.
+ 
+-Each test will print the KASAN report if an error is detected and then
+-print the number of the test and the status of the test:
++Each KUnit-compatible KASAN test prints a KASAN report if an error is detected.
++Then the test prints its number and status.
+ 
+-pass::
++When a test passes::
+ 
+         ok 28 - kmalloc_double_kzfree
+ 
+-or, if kmalloc failed::
++When a test fails due to a failed ``kmalloc``::
+ 
+         # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
+         Expected ptr is not null, but is
+         not ok 4 - kmalloc_large_oob_right
+ 
+-or, if a KASAN report was expected, but not found::
++When a test fails due to a missing KASAN report::
+ 
+         # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:629
+         Expected kasan_data->report_expected == kasan_data->report_found, but
+@@ -349,46 +403,38 @@ or, if a KASAN report was expected, but
+         kasan_data->report_found == 0
+         not ok 28 - kmalloc_double_kzfree
+ 
+-All test statuses are tracked as they run and an overall status will
+-be printed at the end::
++At the end the cumulative status of all KASAN tests is printed. On success::
+ 
+         ok 1 - kasan
+ 
+-or::
++Or, if one of the tests failed::
+ 
+         not ok 1 - kasan
+ 
+-(1) Loadable Module
+-~~~~~~~~~~~~~~~~~~~~
++
++There are a few ways to run KUnit-compatible KASAN tests.
++
++1. Loadable module
++~~~~~~~~~~~~~~~~~~
+ 
+ With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
+-a loadable module and run on any architecture that supports KASAN
+-using something like insmod or modprobe. The module is called ``test_kasan``.
++a loadable module and run on any architecture that supports KASAN by loading
++the module with insmod or modprobe. The module is called ``test_kasan``.
+ 
+-(2) Built-In
+-~~~~~~~~~~~~~
++2. Built-In
++~~~~~~~~~~~
+ 
+ With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
+-on any architecture that supports KASAN. These and any other KUnit
+-tests enabled will run and print the results at boot as a late-init
+-call.
+-
+-(3) Using kunit_tool
+-~~~~~~~~~~~~~~~~~~~~~
+-
+-With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, we can also
+-use kunit_tool to see the results of these along with other KUnit
+-tests in a more readable way. This will not print the KASAN reports
+-of tests that passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_ for more up-to-date
+-information on kunit_tool.
++on any architecure that supports KASAN. These and any other KUnit tests enabled
++will run and print the results at boot as a late-init call.
+ 
+-.. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
++3. Using kunit_tool
++~~~~~~~~~~~~~~~~~~~
+ 
+-``CONFIG_TEST_KASAN_MODULE`` is a set of KASAN tests that could not be
+-converted to KUnit. These tests can be run only as a module with
+-``CONFIG_TEST_KASAN_MODULE`` built as a loadable module and
+-``CONFIG_KASAN`` built-in. The type of error expected and the
+-function being run is printed before the expression expected to give
+-an error. Then the error is printed, if found, and that test
+-should be interpreted to pass only if the error was the one expected
+-by the test.
++With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
++possible use ``kunit_tool`` to see the results of these and other KUnit tests
++in a more readable way. This will not print the KASAN reports of the tests that
++passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
++for more up-to-date information on ``kunit_tool``.
++
++.. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
