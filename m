@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75A24C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E343DC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 477FB222F9
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B08B2222BB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728447AbgLWSaf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46042 "EHLO mail.kernel.org"
+        id S1728020AbgLWSal (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727663AbgLWSae (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D34D222F9;
-        Wed, 23 Dec 2020 18:30:18 +0000 (UTC)
+        id S1727663AbgLWSal (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:30:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8D4722287;
+        Wed, 23 Dec 2020 18:29:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748218;
-        bh=ojLGAWNVlZlJ/LvrTNqAAPh8UxEbnHs9NUwb7giG8sc=;
+        s=korg; t=1608748200;
+        bh=ptCfFoqa4kchAV5pevjGhQmf7ThITM8F4JeQ5buGf38=;
         h=Date:From:To:Subject:From;
-        b=nvSr12XaS8UKdFVomXMvBN6y6c4QEw15Y1tECWjy7kS1c2mDSrJ6gNkl7xPxIRClK
-         lvBJ2xegoFG0CHWsW5Twrr2rvfRl3bmLUR8EUCp4bkoUa1KbiwzbjoyGaKRe0z5trm
-         v2d1y+uyi3NJk6XsiMIWoFHriuT8lAS/GNuuFhjI=
-Date:   Wed, 23 Dec 2020 10:30:18 -0800
+        b=kts5L3xLAAghmRITW/lylSs4HR6QEpC0dCMuASBeB6Cgl3s0ublWAiyrI/YLJ3Sfb
+         l5hyWhWsMOan5pUecXbu1yO9k56mxeGHUFGKlmdM02QEOfAk72g+cWkLme+8ERU7Xn
+         OEMttcNUPBemTFpCd+ErGad3sW3wgPrd4Y/qTIGQ=
+Date:   Wed, 23 Dec 2020 10:29:59 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] kasan-update-documentation.patch removed from
- -mm tree
-Message-ID: <20201223183018.ZFb0v5MAv%akpm@linux-foundation.org>
+Subject:  [merged]
+ kasan-add-and-integrate-kasan-boot-parameters.patch removed from -mm tree
+Message-ID: <20201223182959.iO97RoeMv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,26 +47,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: update documentation
+     Subject: kasan: add and integrate kasan boot parameters
 has been removed from the -mm tree.  Its filename was
-     kasan-update-documentation.patch
+     kasan-add-and-integrate-kasan-boot-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update documentation
+Subject: kasan: add and integrate kasan boot parameters
 
-This change updates KASAN documentation to reflect the addition of boot
-parameters and also reworks and clarifies some of the existing sections,
-in particular: defines what a memory granule is, mentions quarantine,
-makes Kunit section more readable.
+Hardware tag-based KASAN mode is intended to eventually be used in
+production as a security mitigation. Therefore there's a need for finer
+control over KASAN features and for an existence of a kill switch.
 
-Link: https://lkml.kernel.org/r/748daf013e17d925b0fe00c1c3b5dce726dd2430.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ib1f83e91be273264b25f42b04448ac96b858849f
+This change adds a few boot parameters for hardware tag-based KASAN that
+allow to disable or otherwise control particular KASAN features.
+
+The features that can be controlled are:
+
+1. Whether KASAN is enabled at all.
+2. Whether KASAN collects and saves alloc/free stacks.
+3. Whether KASAN panics on a detected bug or not.
+
+With this change a new boot parameter kasan.mode allows to choose one of
+three main modes:
+
+- kasan.mode=off - KASAN is disabled, no tag checks are performed
+- kasan.mode=prod - only essential production features are enabled
+- kasan.mode=full - all KASAN features are enabled
+
+The chosen mode provides default control values for the features mentioned
+above. However it's also possible to override the default values by
+providing:
+
+- kasan.stacktrace=off/on - enable alloc/free stack collection
+                            (default: on for mode=full, otherwise off)
+- kasan.fault=report/panic - only report tag fault or also panic
+                             (default: report)
+
+If kasan.mode parameter is not provided, it defaults to full when
+CONFIG_DEBUG_KERNEL is enabled, and to prod otherwise.
+
+It is essential that switching between these modes doesn't require
+rebuilding the kernel with different configs, as this is required by
+the Android GKI (Generic Kernel Image) initiative [1].
+
+[1] https://source.android.com/devices/architecture/kernel/generic-kernel-image
+
+[andreyknvl@google.com: don't use read-only static keys]
+  Link: https://lkml.kernel.org/r/f2ded589eba1597f7360a972226083de9afd86e2.1607537948.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/cb093613879d8d8841173f090133eddeb4c35f1f.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/If7d37003875b2ed3e0935702c8015c223d6416a4
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -79,290 +114,314 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |  188 +++++++++++++++++-----------
- 1 file changed, 117 insertions(+), 71 deletions(-)
+ mm/kasan/common.c  |   22 ++++--
+ mm/kasan/hw_tags.c |  151 +++++++++++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.h   |   16 ++++
+ mm/kasan/report.c  |   14 +++
+ 4 files changed, 196 insertions(+), 7 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -4,8 +4,9 @@ The Kernel Address Sanitizer (KASAN)
- Overview
- --------
+--- a/mm/kasan/common.c~kasan-add-and-integrate-kasan-boot-parameters
++++ a/mm/kasan/common.c
+@@ -134,6 +134,11 @@ void kasan_cache_create(struct kmem_cach
+ 	unsigned int redzone_size;
+ 	int redzone_adjust;
  
--KernelAddressSANitizer (KASAN) is a dynamic memory error detector designed to
--find out-of-bound and use-after-free bugs. KASAN has three modes:
-+KernelAddressSANitizer (KASAN) is a dynamic memory safety error detector
-+designed to find out-of-bound and use-after-free bugs. KASAN has three modes:
++	if (!kasan_stack_collection_enabled()) {
++		*flags |= SLAB_KASAN;
++		return;
++	}
 +
- 1. generic KASAN (similar to userspace ASan),
- 2. software tag-based KASAN (similar to userspace HWASan),
- 3. hardware tag-based KASAN (based on hardware memory tagging).
-@@ -39,23 +40,13 @@ CONFIG_KASAN_INLINE. Outline and inline
- The former produces smaller binary while the latter is 1.1 - 2 times faster.
+ 	/* Add alloc meta. */
+ 	cache->kasan_info.alloc_meta_offset = *size;
+ 	*size += sizeof(struct kasan_alloc_meta);
+@@ -170,6 +175,8 @@ void kasan_cache_create(struct kmem_cach
  
- Both software KASAN modes work with both SLUB and SLAB memory allocators,
--hardware tag-based KASAN currently only support SLUB.
--For better bug detection and nicer reporting, enable CONFIG_STACKTRACE.
-+while the hardware tag-based KASAN currently only support SLUB.
+ size_t kasan_metadata_size(struct kmem_cache *cache)
+ {
++	if (!kasan_stack_collection_enabled())
++		return 0;
+ 	return (cache->kasan_info.alloc_meta_offset ?
+ 		sizeof(struct kasan_alloc_meta) : 0) +
+ 		(cache->kasan_info.free_meta_offset ?
+@@ -262,11 +269,13 @@ void * __must_check kasan_init_slab_obj(
+ {
+ 	struct kasan_alloc_meta *alloc_meta;
+ 
+-	if (!(cache->flags & SLAB_KASAN))
+-		return (void *)object;
++	if (kasan_stack_collection_enabled()) {
++		if (!(cache->flags & SLAB_KASAN))
++			return (void *)object;
+ 
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	__memset(alloc_meta, 0, sizeof(*alloc_meta));
++		alloc_meta = kasan_get_alloc_meta(cache, object);
++		__memset(alloc_meta, 0, sizeof(*alloc_meta));
++	}
+ 
+ 	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) || IS_ENABLED(CONFIG_KASAN_HW_TAGS))
+ 		object = set_tag(object, assign_tag(cache, object, true, false));
+@@ -303,6 +312,9 @@ static bool __kasan_slab_free(struct kme
+ 	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
+ 	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
+ 
++	if (!kasan_stack_collection_enabled())
++		return false;
 +
-+For better error reports that include stack traces, enable CONFIG_STACKTRACE.
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine) ||
+ 			unlikely(!(cache->flags & SLAB_KASAN)))
+ 		return false;
+@@ -350,7 +362,7 @@ static void *__kasan_kmalloc(struct kmem
+ 	poison_range((void *)redzone_start, redzone_end - redzone_start,
+ 		     KASAN_KMALLOC_REDZONE);
  
- To augment reports with last allocation and freeing stack of the physical page,
- it is recommended to enable also CONFIG_PAGE_OWNER and boot with page_owner=on.
+-	if (cache->flags & SLAB_KASAN)
++	if (kasan_stack_collection_enabled() && (cache->flags & SLAB_KASAN))
+ 		set_alloc_info(cache, (void *)object, flags);
  
--To disable instrumentation for specific files or directories, add a line
--similar to the following to the respective kernel Makefile:
--
--- For a single file (e.g. main.o)::
--
--    KASAN_SANITIZE_main.o := n
--
--- For all files in one directory::
--
--    KASAN_SANITIZE := n
--
- Error reports
- ~~~~~~~~~~~~~
+ 	return set_tag(object, tag);
+--- a/mm/kasan/hw_tags.c~kasan-add-and-integrate-kasan-boot-parameters
++++ a/mm/kasan/hw_tags.c
+@@ -8,18 +8,115 @@
  
-@@ -140,22 +131,75 @@ freed (in case of a use-after-free bug r
- the accessed slab object and information about the accessed memory page.
+ #define pr_fmt(fmt) "kasan: " fmt
  
- In the last section the report shows memory state around the accessed address.
--Reading this part requires some understanding of how KASAN works.
--
--The state of each 8 aligned bytes of memory is encoded in one shadow byte.
--Those 8 bytes can be accessible, partially accessible, freed or be a redzone.
--We use the following encoding for each shadow byte: 0 means that all 8 bytes
--of the corresponding memory region are accessible; number N (1 <= N <= 7) means
--that the first N bytes are accessible, and other (8 - N) bytes are not;
--any negative value indicates that the entire 8-byte word is inaccessible.
--We use different negative values to distinguish between different kinds of
--inaccessible memory like redzones or freed memory (see mm/kasan/kasan.h).
-+Internally KASAN tracks memory state separately for each memory granule, which
-+is either 8 or 16 aligned bytes depending on KASAN mode. Each number in the
-+memory state section of the report shows the state of one of the memory
-+granules that surround the accessed address.
++#include <linux/init.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
++#include <linux/static_key.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+ 
+ #include "kasan.h"
+ 
++enum kasan_arg_mode {
++	KASAN_ARG_MODE_DEFAULT,
++	KASAN_ARG_MODE_OFF,
++	KASAN_ARG_MODE_PROD,
++	KASAN_ARG_MODE_FULL,
++};
 +
-+For generic KASAN the size of each memory granule is 8. The state of each
-+granule is encoded in one shadow byte. Those 8 bytes can be accessible,
-+partially accessible, freed or be a part of a redzone. KASAN uses the following
-+encoding for each shadow byte: 0 means that all 8 bytes of the corresponding
-+memory region are accessible; number N (1 <= N <= 7) means that the first N
-+bytes are accessible, and other (8 - N) bytes are not; any negative value
-+indicates that the entire 8-byte word is inaccessible. KASAN uses different
-+negative values to distinguish between different kinds of inaccessible memory
-+like redzones or freed memory (see mm/kasan/kasan.h).
- 
- In the report above the arrows point to the shadow byte 03, which means that
- the accessed address is partially accessible.
- 
- For tag-based KASAN this last report section shows the memory tags around the
--accessed address (see Implementation details section).
-+accessed address (see `Implementation details`_ section).
++enum kasan_arg_stacktrace {
++	KASAN_ARG_STACKTRACE_DEFAULT,
++	KASAN_ARG_STACKTRACE_OFF,
++	KASAN_ARG_STACKTRACE_ON,
++};
 +
-+Boot parameters
-+~~~~~~~~~~~~~~~
++enum kasan_arg_fault {
++	KASAN_ARG_FAULT_DEFAULT,
++	KASAN_ARG_FAULT_REPORT,
++	KASAN_ARG_FAULT_PANIC,
++};
 +
-+Hardware tag-based KASAN mode (see the section about different mode below) is
-+intended for use in production as a security mitigation. Therefore it supports
-+boot parameters that allow to disable KASAN competely or otherwise control
-+particular KASAN features.
++static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
++static enum kasan_arg_stacktrace kasan_arg_stacktrace __ro_after_init;
++static enum kasan_arg_fault kasan_arg_fault __ro_after_init;
 +
-+The things that can be controlled are:
++/* Whether KASAN is enabled at all. */
++DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
++EXPORT_SYMBOL(kasan_flag_enabled);
 +
-+1. Whether KASAN is enabled at all.
-+2. Whether KASAN collects and saves alloc/free stacks.
-+3. Whether KASAN panics on a detected bug or not.
++/* Whether to collect alloc/free stack traces. */
++DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
 +
-+The ``kasan.mode`` boot parameter allows to choose one of three main modes:
++/* Whether panic or disable tag checking on fault. */
++bool kasan_flag_panic __ro_after_init;
 +
-+- ``kasan.mode=off`` - KASAN is disabled, no tag checks are performed
-+- ``kasan.mode=prod`` - only essential production features are enabled
-+- ``kasan.mode=full`` - all KASAN features are enabled
++/* kasan.mode=off/prod/full */
++static int __init early_kasan_mode(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
 +
-+The chosen mode provides default control values for the features mentioned
-+above. However it's also possible to override the default values by providing:
++	if (!strcmp(arg, "off"))
++		kasan_arg_mode = KASAN_ARG_MODE_OFF;
++	else if (!strcmp(arg, "prod"))
++		kasan_arg_mode = KASAN_ARG_MODE_PROD;
++	else if (!strcmp(arg, "full"))
++		kasan_arg_mode = KASAN_ARG_MODE_FULL;
++	else
++		return -EINVAL;
 +
-+- ``kasan.stacktrace=off`` or ``=on`` - enable alloc/free stack collection
-+					(default: ``on`` for ``mode=full``,
-+					 otherwise ``off``)
-+- ``kasan.fault=report`` or ``=panic`` - only print KASAN report or also panic
-+					 (default: ``report``)
++	return 0;
++}
++early_param("kasan.mode", early_kasan_mode);
 +
-+If ``kasan.mode`` parameter is not provided, it defaults to ``full`` when
-+``CONFIG_DEBUG_KERNEL`` is enabled, and to ``prod`` otherwise.
++/* kasan.stack=off/on */
++static int __init early_kasan_flag_stacktrace(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
 +
-+For developers
-+~~~~~~~~~~~~~~
++	if (!strcmp(arg, "off"))
++		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_OFF;
++	else if (!strcmp(arg, "on"))
++		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
++	else
++		return -EINVAL;
 +
-+Software KASAN modes use compiler instrumentation to insert validity checks.
-+Such instrumentation might be incompatible with some part of the kernel, and
-+therefore needs to be disabled. To disable instrumentation for specific files
-+or directories, add a line similar to the following to the respective kernel
-+Makefile:
++	return 0;
++}
++early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
 +
-+- For a single file (e.g. main.o)::
++/* kasan.fault=report/panic */
++static int __init early_kasan_fault(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
 +
-+    KASAN_SANITIZE_main.o := n
++	if (!strcmp(arg, "report"))
++		kasan_arg_fault = KASAN_ARG_FAULT_REPORT;
++	else if (!strcmp(arg, "panic"))
++		kasan_arg_fault = KASAN_ARG_FAULT_PANIC;
++	else
++		return -EINVAL;
 +
-+- For all files in one directory::
++	return 0;
++}
++early_param("kasan.fault", early_kasan_fault);
 +
-+    KASAN_SANITIZE := n
- 
- 
- Implementation details
-@@ -164,10 +208,10 @@ Implementation details
- Generic KASAN
- ~~~~~~~~~~~~~
- 
--From a high level, our approach to memory error detection is similar to that
--of kmemcheck: use shadow memory to record whether each byte of memory is safe
--to access, and use compile-time instrumentation to insert checks of shadow
--memory on each memory access.
-+From a high level perspective, KASAN's approach to memory error detection is
-+similar to that of kmemcheck: use shadow memory to record whether each byte of
-+memory is safe to access, and use compile-time instrumentation to insert checks
-+of shadow memory on each memory access.
- 
- Generic KASAN dedicates 1/8th of kernel memory to its shadow memory (e.g. 16TB
- to cover 128TB on x86_64) and uses direct mapping with a scale and offset to
-@@ -198,6 +242,9 @@ Generic KASAN also reports the last 2 ca
- potentially has access to an object. Call stacks for the following are shown:
- call_rcu() and workqueue queuing.
- 
-+Generic KASAN is the only mode that delays the reuse of freed object via
-+quarantine (see mm/kasan/quarantine.c for implementation).
+ /* kasan_init_hw_tags_cpu() is called for each CPU. */
+ void kasan_init_hw_tags_cpu(void)
+ {
++	/*
++	 * There's no need to check that the hardware is MTE-capable here,
++	 * as this function is only called for MTE-capable hardware.
++	 */
 +
- Software tag-based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
- 
-@@ -305,15 +352,15 @@ therefore be wasteful. Furthermore, to e
- use different shadow pages, mappings would have to be aligned to
- ``KASAN_GRANULE_SIZE * PAGE_SIZE``.
- 
--Instead, we share backing space across multiple mappings. We allocate
-+Instead, KASAN shares backing space across multiple mappings. It allocates
- a backing page when a mapping in vmalloc space uses a particular page
- of the shadow region. This page can be shared by other vmalloc
- mappings later on.
- 
--We hook in to the vmap infrastructure to lazily clean up unused shadow
-+KASAN hooks into the vmap infrastructure to lazily clean up unused shadow
- memory.
- 
--To avoid the difficulties around swapping mappings around, we expect
-+To avoid the difficulties around swapping mappings around, KASAN expects
- that the part of the shadow region that covers the vmalloc space will
- not be covered by the early shadow page, but will be left
- unmapped. This will require changes in arch-specific code.
-@@ -324,24 +371,31 @@ architectures that do not have a fixed m
- CONFIG_KASAN_KUNIT_TEST & CONFIG_TEST_KASAN_MODULE
- --------------------------------------------------
- 
--``CONFIG_KASAN_KUNIT_TEST`` utilizes the KUnit Test Framework for testing.
--This means each test focuses on a small unit of functionality and
--there are a few ways these tests can be run.
-+KASAN tests consist on two parts:
++	/* If KASAN is disabled, do nothing. */
++	if (kasan_arg_mode == KASAN_ARG_MODE_OFF)
++		return;
 +
-+1. Tests that are integrated with the KUnit Test Framework. Enabled with
-+``CONFIG_KASAN_KUNIT_TEST``. These tests can be run and partially verified
-+automatically in a few different ways, see the instructions below.
+ 	hw_init_tags(KASAN_TAG_MAX);
+ 	hw_enable_tagging();
+ }
+@@ -27,6 +124,60 @@ void kasan_init_hw_tags_cpu(void)
+ /* kasan_init_hw_tags() is called once on boot CPU. */
+ void __init kasan_init_hw_tags(void)
+ {
++	/* If hardware doesn't support MTE, do nothing. */
++	if (!system_supports_mte())
++		return;
 +
-+2. Tests that are currently incompatible with KUnit. Enabled with
-+``CONFIG_TEST_KASAN_MODULE`` and can only be run as a module. These tests can
-+only be verified manually, by loading the kernel module and inspecting the
-+kernel log for KASAN reports.
- 
--Each test will print the KASAN report if an error is detected and then
--print the number of the test and the status of the test:
-+Each KUnit-compatible KASAN test prints a KASAN report if an error is detected.
-+Then the test prints its number and status.
- 
--pass::
-+When a test passes::
- 
-         ok 28 - kmalloc_double_kzfree
- 
--or, if kmalloc failed::
-+When a test fails due to a failed ``kmalloc``::
- 
-         # kmalloc_large_oob_right: ASSERTION FAILED at lib/test_kasan.c:163
-         Expected ptr is not null, but is
-         not ok 4 - kmalloc_large_oob_right
- 
--or, if a KASAN report was expected, but not found::
-+When a test fails due to a missing KASAN report::
- 
-         # kmalloc_double_kzfree: EXPECTATION FAILED at lib/test_kasan.c:629
-         Expected kasan_data->report_expected == kasan_data->report_found, but
-@@ -349,46 +403,38 @@ or, if a KASAN report was expected, but
-         kasan_data->report_found == 0
-         not ok 28 - kmalloc_double_kzfree
- 
--All test statuses are tracked as they run and an overall status will
--be printed at the end::
-+At the end the cumulative status of all KASAN tests is printed. On success::
- 
-         ok 1 - kasan
- 
--or::
-+Or, if one of the tests failed::
- 
-         not ok 1 - kasan
- 
--(1) Loadable Module
--~~~~~~~~~~~~~~~~~~~~
++	/* Choose KASAN mode if kasan boot parameter is not provided. */
++	if (kasan_arg_mode == KASAN_ARG_MODE_DEFAULT) {
++		if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
++			kasan_arg_mode = KASAN_ARG_MODE_FULL;
++		else
++			kasan_arg_mode = KASAN_ARG_MODE_PROD;
++	}
 +
-+There are a few ways to run KUnit-compatible KASAN tests.
++	/* Preset parameter values based on the mode. */
++	switch (kasan_arg_mode) {
++	case KASAN_ARG_MODE_DEFAULT:
++		/* Shouldn't happen as per the check above. */
++		WARN_ON(1);
++		return;
++	case KASAN_ARG_MODE_OFF:
++		/* If KASAN is disabled, do nothing. */
++		return;
++	case KASAN_ARG_MODE_PROD:
++		static_branch_enable(&kasan_flag_enabled);
++		break;
++	case KASAN_ARG_MODE_FULL:
++		static_branch_enable(&kasan_flag_enabled);
++		static_branch_enable(&kasan_flag_stacktrace);
++		break;
++	}
 +
-+1. Loadable module
-+~~~~~~~~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` enabled, ``CONFIG_KASAN_KUNIT_TEST`` can be built as
--a loadable module and run on any architecture that supports KASAN
--using something like insmod or modprobe. The module is called ``test_kasan``.
-+a loadable module and run on any architecture that supports KASAN by loading
-+the module with insmod or modprobe. The module is called ``test_kasan``.
- 
--(2) Built-In
--~~~~~~~~~~~~~
-+2. Built-In
-+~~~~~~~~~~~
- 
- With ``CONFIG_KUNIT`` built-in, ``CONFIG_KASAN_KUNIT_TEST`` can be built-in
--on any architecture that supports KASAN. These and any other KUnit
--tests enabled will run and print the results at boot as a late-init
--call.
--
--(3) Using kunit_tool
--~~~~~~~~~~~~~~~~~~~~~
--
--With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, we can also
--use kunit_tool to see the results of these along with other KUnit
--tests in a more readable way. This will not print the KASAN reports
--of tests that passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_ for more up-to-date
--information on kunit_tool.
-+on any architecure that supports KASAN. These and any other KUnit tests enabled
-+will run and print the results at boot as a late-init call.
- 
--.. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
-+3. Using kunit_tool
-+~~~~~~~~~~~~~~~~~~~
- 
--``CONFIG_TEST_KASAN_MODULE`` is a set of KASAN tests that could not be
--converted to KUnit. These tests can be run only as a module with
--``CONFIG_TEST_KASAN_MODULE`` built as a loadable module and
--``CONFIG_KASAN`` built-in. The type of error expected and the
--function being run is printed before the expression expected to give
--an error. Then the error is printed, if found, and that test
--should be interpreted to pass only if the error was the one expected
--by the test.
-+With ``CONFIG_KUNIT`` and ``CONFIG_KASAN_KUNIT_TEST`` built-in, it's also
-+possible use ``kunit_tool`` to see the results of these and other KUnit tests
-+in a more readable way. This will not print the KASAN reports of the tests that
-+passed. Use `KUnit documentation <https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html>`_
-+for more up-to-date information on ``kunit_tool``.
++	/* Now, optionally override the presets. */
 +
-+.. _KUnit: https://www.kernel.org/doc/html/latest/dev-tools/kunit/index.html
++	switch (kasan_arg_stacktrace) {
++	case KASAN_ARG_STACKTRACE_DEFAULT:
++		break;
++	case KASAN_ARG_STACKTRACE_OFF:
++		static_branch_disable(&kasan_flag_stacktrace);
++		break;
++	case KASAN_ARG_STACKTRACE_ON:
++		static_branch_enable(&kasan_flag_stacktrace);
++		break;
++	}
++
++	switch (kasan_arg_fault) {
++	case KASAN_ARG_FAULT_DEFAULT:
++		break;
++	case KASAN_ARG_FAULT_REPORT:
++		kasan_flag_panic = false;
++		break;
++	case KASAN_ARG_FAULT_PANIC:
++		kasan_flag_panic = true;
++		break;
++	}
++
+ 	pr_info("KernelAddressSanitizer initialized\n");
+ }
+ 
+--- a/mm/kasan/kasan.h~kasan-add-and-integrate-kasan-boot-parameters
++++ a/mm/kasan/kasan.h
+@@ -5,6 +5,22 @@
+ #include <linux/kasan.h>
+ #include <linux/stackdepot.h>
+ 
++#ifdef CONFIG_KASAN_HW_TAGS
++#include <linux/static_key.h>
++DECLARE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
++static inline bool kasan_stack_collection_enabled(void)
++{
++	return static_branch_unlikely(&kasan_flag_stacktrace);
++}
++#else
++static inline bool kasan_stack_collection_enabled(void)
++{
++	return true;
++}
++#endif
++
++extern bool kasan_flag_panic __ro_after_init;
++
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
+ #else
+--- a/mm/kasan/report.c~kasan-add-and-integrate-kasan-boot-parameters
++++ a/mm/kasan/report.c
+@@ -99,6 +99,10 @@ static void end_report(unsigned long *fl
+ 		panic_on_warn = 0;
+ 		panic("panic_on_warn set ...\n");
+ 	}
++#ifdef CONFIG_KASAN_HW_TAGS
++	if (kasan_flag_panic)
++		panic("kasan.fault=panic set ...\n");
++#endif
+ 	kasan_enable_current();
+ }
+ 
+@@ -161,8 +165,8 @@ static void describe_object_addr(struct
+ 		(void *)(object_addr + cache->object_size));
+ }
+ 
+-static void describe_object(struct kmem_cache *cache, void *object,
+-				const void *addr, u8 tag)
++static void describe_object_stacks(struct kmem_cache *cache, void *object,
++					const void *addr, u8 tag)
+ {
+ 	struct kasan_alloc_meta *alloc_meta = kasan_get_alloc_meta(cache, object);
+ 
+@@ -190,7 +194,13 @@ static void describe_object(struct kmem_
+ 		}
+ #endif
+ 	}
++}
+ 
++static void describe_object(struct kmem_cache *cache, void *object,
++				const void *addr, u8 tag)
++{
++	if (kasan_stack_collection_enabled())
++		describe_object_stacks(cache, object, addr, tag);
+ 	describe_object_addr(cache, object, addr);
+ }
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
