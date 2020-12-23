@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB675C4360C
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:41:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5375EC4332E
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:43:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B462B2256F
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:41:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0975022573
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:43:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729973AbgLWClr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 21:41:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52696 "EHLO mail.kernel.org"
+        id S1728438AbgLWCmi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 21:42:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729960AbgLWCXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 21:23:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CBEF22285;
-        Wed, 23 Dec 2020 02:22:39 +0000 (UTC)
+        id S1729934AbgLWCXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 21:23:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B64D223332;
+        Wed, 23 Dec 2020 02:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608690159;
-        bh=9q7KjnuPYE16vFQ7Wpo1squBCbXcbUopql5xU2gkgPo=;
+        s=korg; t=1608690171;
+        bh=waEnqV0AfXx6s+qdQO7A3hJizUPYNEKDBIB8ce7cIU0=;
         h=Date:From:To:Subject:From;
-        b=zzlAJG2TQ7agKpIxhzG6xS8aNOLFTL/SyIAOm9RF8QyNPxDyOzlLqoSg2PL+EEQHO
-         HLgLHhPCOxoVNjBCqSAuct+C8ZRxBjjHK2R9agIZd/DUII9PduSJjV9WQKzjt6d0zF
-         pV3rocGTkYVkn6ztXQXYNiCKBN+qemMbiAiLJQic=
-Date:   Tue, 22 Dec 2020 18:22:38 -0800
+        b=OYCdf9wpPq8TI7PSzXrgNAxzoWxArbQl0OJ1ZNIKA3RlyB/Sc5Sq7yD2NH3E2+Yc8
+         lA096/C+LaODcVzFTATMzeH6BYl/s9YztJX7z9kwZOXpDr50MT/2U58TaG1tszr8h+
+         T2BgXreJpQAnp6An268cewNoQM32E5fpWDfBJ9uc=
+Date:   Tue, 22 Dec 2020 18:22:50 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
         shakeelb@google.com, samitolvanen@google.com,
@@ -37,9 +37,9 @@ To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
         iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
         guro@fb.com, gregkh@linuxfoundation.org, feng.tang@intel.com,
         adobriyan@gmail.com, songmuchun@bytedance.com
-Subject:  + mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+Subject:  + mm-memcontrol-make-the-slab-calculation-consistent.patch
  added to -mm tree
-Message-ID: <20201223022238.4V43f%akpm@linux-foundation.org>
+Message-ID: <20201223022250.uFbMq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: convert NR_FILE_THPS account to pages
+     Subject: mm: memcontrol: make the slab calculation consistent
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+     mm-memcontrol-make-the-slab-calculation-consistent.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-the-slab-calculation-consistent.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-the-slab-calculation-consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,28 +70,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: convert NR_FILE_THPS account to pages
+Subject: mm: memcontrol: make the slab calculation consistent
 
-Currently we use struct per_cpu_nodestat to cache the vmstat counters,
-which leads to inaccurate statistics expecially THP vmstat counters.  In
-the systems with hundreads of processors it can be GBs of memory.  For
-example, for a 96 CPUs system, the threshold is the maximum number of 125.
-And the per cpu counters can cache 23.4375 GB in total.
+Although the ratio of the slab is one, we also should read the ratio from
+the related memory_stats instead of hard-coding.  And the local variable
+of size is already the value of slab_unreclaimable.  So we do not need to
+read again.
 
-The THP page is already a form of batched addition (it will add 512 worth
-of memory in one go) so skipping the batching seems like sensible. 
-Although every THP stats update overflows the per-cpu counter, resorting
-to atomic global updates.  But it can make the statistics more accuracy
-for the THP vmstat counters.
+To do this we need some code like below:
 
-So we convert the NR_FILE_THPS account to pages.  This patch is consistent
-with 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page arrival").
-Doing this also can make the unit of vmstat counters more unified. 
-Finally, the unit of the vmstat counters are pages, kB and bytes.  The
-B/KB suffix can tell us that the unit is bytes or kB.  The rest which is
-without suffix are pages.
+if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
+-	size = memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
+-	       memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B);
++	size += memcg_page_state(memcg, memory_stats[i - 1].idx) *
++		memory_stats[i - 1].ratio;
 
-Link: https://lkml.kernel.org/r/20201217034356.4708-4-songmuchun@bytedance.com
+It requires a series of BUG_ONs or comments to ensure these two items are
+actually adjacent and in the right order.  So it would probably be easier
+to implement this using a wrapper that has a big switch() for unit
+conversion.
+
+This would fix the ratio inconsistency and get rid of the order guarantee.
+
+Link: https://lkml.kernel.org/r/20201217034356.4708-8-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Feng Tang <feng.tang@intel.com>
@@ -111,123 +112,157 @@ Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    3 +--
- fs/proc/meminfo.c      |    2 +-
- include/linux/mmzone.h |    3 ++-
- mm/filemap.c           |    2 +-
- mm/huge_memory.c       |    5 ++++-
- mm/khugepaged.c        |    4 +++-
- mm/memcontrol.c        |    5 ++---
- 7 files changed, 14 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |  105 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 66 insertions(+), 39 deletions(-)
 
---- a/drivers/base/node.c~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/drivers/base/node.c
-@@ -466,8 +466,7 @@ static ssize_t node_read_meminfo(struct
- 				    HPAGE_PMD_NR),
- 			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
- 				    HPAGE_PMD_NR),
--			     nid, K(node_page_state(pgdat, NR_FILE_THPS) *
--				    HPAGE_PMD_NR),
-+			     nid, K(node_page_state(pgdat, NR_FILE_THPS)),
- 			     nid, K(node_page_state(pgdat, NR_FILE_PMDMAPPED) *
- 				    HPAGE_PMD_NR)
+--- a/mm/memcontrol.c~mm-memcontrol-make-the-slab-calculation-consistent
++++ a/mm/memcontrol.c
+@@ -1512,49 +1512,71 @@ static bool mem_cgroup_wait_acct_move(st
+ 
+ struct memory_stat {
+ 	const char *name;
+-	unsigned int ratio;
+ 	unsigned int idx;
+ };
+ 
+ static const struct memory_stat memory_stats[] = {
+-	{ "anon", PAGE_SIZE, NR_ANON_MAPPED },
+-	{ "file", PAGE_SIZE, NR_FILE_PAGES },
+-	{ "kernel_stack", 1024, NR_KERNEL_STACK_KB },
+-	{ "pagetables", PAGE_SIZE, NR_PAGETABLE },
+-	{ "percpu", 1, MEMCG_PERCPU_B },
+-	{ "sock", PAGE_SIZE, MEMCG_SOCK },
+-	{ "shmem", PAGE_SIZE, NR_SHMEM },
+-	{ "file_mapped", PAGE_SIZE, NR_FILE_MAPPED },
+-	{ "file_dirty", PAGE_SIZE, NR_FILE_DIRTY },
+-	{ "file_writeback", PAGE_SIZE, NR_WRITEBACK },
++	{ "anon",			NR_ANON_MAPPED			},
++	{ "file",			NR_FILE_PAGES			},
++	{ "kernel_stack",		NR_KERNEL_STACK_KB		},
++	{ "pagetables",			NR_PAGETABLE			},
++	{ "percpu",			MEMCG_PERCPU_B			},
++	{ "sock",			MEMCG_SOCK			},
++	{ "shmem",			NR_SHMEM			},
++	{ "file_mapped",		NR_FILE_MAPPED			},
++	{ "file_dirty",			NR_FILE_DIRTY			},
++	{ "file_writeback",		NR_WRITEBACK			},
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	{ "anon_thp", PAGE_SIZE, NR_ANON_THPS },
+-	{ "file_thp", PAGE_SIZE, NR_FILE_THPS },
+-	{ "shmem_thp", PAGE_SIZE, NR_SHMEM_THPS },
++	{ "anon_thp",			NR_ANON_THPS			},
++	{ "file_thp",			NR_FILE_THPS			},
++	{ "shmem_thp",			NR_SHMEM_THPS			},
  #endif
---- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/fs/proc/meminfo.c
-@@ -135,7 +135,7 @@ static int meminfo_proc_show(struct seq_
- 	show_val_kb(m, "ShmemPmdMapped: ",
- 		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
- 	show_val_kb(m, "FileHugePages:  ",
--		    global_node_page_state(NR_FILE_THPS) * HPAGE_PMD_NR);
-+		    global_node_page_state(NR_FILE_THPS));
- 	show_val_kb(m, "FilePmdMapped:  ",
- 		    global_node_page_state(NR_FILE_PMDMAPPED) * HPAGE_PMD_NR);
- #endif
---- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/include/linux/mmzone.h
-@@ -216,7 +216,8 @@ enum node_stat_item {
-  */
- static __always_inline bool vmstat_item_print_in_thp(enum node_stat_item item)
+-	{ "inactive_anon", PAGE_SIZE, NR_INACTIVE_ANON },
+-	{ "active_anon", PAGE_SIZE, NR_ACTIVE_ANON },
+-	{ "inactive_file", PAGE_SIZE, NR_INACTIVE_FILE },
+-	{ "active_file", PAGE_SIZE, NR_ACTIVE_FILE },
+-	{ "unevictable", PAGE_SIZE, NR_UNEVICTABLE },
+-
+-	/*
+-	 * Note: The slab_reclaimable and slab_unreclaimable must be
+-	 * together and slab_reclaimable must be in front.
+-	 */
+-	{ "slab_reclaimable", 1, NR_SLAB_RECLAIMABLE_B },
+-	{ "slab_unreclaimable", 1, NR_SLAB_UNRECLAIMABLE_B },
++	{ "inactive_anon",		NR_INACTIVE_ANON		},
++	{ "active_anon",		NR_ACTIVE_ANON			},
++	{ "inactive_file",		NR_INACTIVE_FILE		},
++	{ "active_file",		NR_ACTIVE_FILE			},
++	{ "unevictable",		NR_UNEVICTABLE			},
++	{ "slab_reclaimable",		NR_SLAB_RECLAIMABLE_B		},
++	{ "slab_unreclaimable",		NR_SLAB_UNRECLAIMABLE_B		},
+ 
+ 	/* The memory events */
+-	{ "workingset_refault_anon", 1, WORKINGSET_REFAULT_ANON },
+-	{ "workingset_refault_file", 1, WORKINGSET_REFAULT_FILE },
+-	{ "workingset_activate_anon", 1, WORKINGSET_ACTIVATE_ANON },
+-	{ "workingset_activate_file", 1, WORKINGSET_ACTIVATE_FILE },
+-	{ "workingset_restore_anon", 1, WORKINGSET_RESTORE_ANON },
+-	{ "workingset_restore_file", 1, WORKINGSET_RESTORE_FILE },
+-	{ "workingset_nodereclaim", 1, WORKINGSET_NODERECLAIM },
++	{ "workingset_refault_anon",	WORKINGSET_REFAULT_ANON		},
++	{ "workingset_refault_file",	WORKINGSET_REFAULT_FILE		},
++	{ "workingset_activate_anon",	WORKINGSET_ACTIVATE_ANON	},
++	{ "workingset_activate_file",	WORKINGSET_ACTIVATE_FILE	},
++	{ "workingset_restore_anon",	WORKINGSET_RESTORE_ANON		},
++	{ "workingset_restore_file",	WORKINGSET_RESTORE_FILE		},
++	{ "workingset_nodereclaim",	WORKINGSET_NODERECLAIM		},
+ };
+ 
++/* Translate stat items to the correct unit for memory.stat output */
++static int memcg_page_state_unit(int item)
++{
++	switch (item) {
++	case MEMCG_PERCPU_B:
++	case NR_SLAB_RECLAIMABLE_B:
++	case NR_SLAB_UNRECLAIMABLE_B:
++	case WORKINGSET_REFAULT_ANON:
++	case WORKINGSET_REFAULT_FILE:
++	case WORKINGSET_ACTIVATE_ANON:
++	case WORKINGSET_ACTIVATE_FILE:
++	case WORKINGSET_RESTORE_ANON:
++	case WORKINGSET_RESTORE_FILE:
++	case WORKINGSET_NODERECLAIM:
++		return 1;
++	case NR_KERNEL_STACK_KB:
++		return SZ_1K;
++	default:
++		return PAGE_SIZE;
++	}
++}
++
++static inline unsigned long memcg_page_state_output(struct mem_cgroup *memcg,
++						    int item)
++{
++	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
++}
++
+ static char *memory_stat_format(struct mem_cgroup *memcg)
  {
--	return item == NR_ANON_THPS;
-+	return item == NR_ANON_THPS ||
-+	       item == NR_FILE_THPS;
+ 	struct seq_buf s;
+@@ -1578,13 +1600,12 @@ static char *memory_stat_format(struct m
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		u64 size;
+ 
+-		size = memcg_page_state(memcg, memory_stats[i].idx);
+-		size *= memory_stats[i].ratio;
++		size = memcg_page_state_output(memcg, memory_stats[i].idx);
+ 		seq_buf_printf(&s, "%s %llu\n", memory_stats[i].name, size);
+ 
+ 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
+-			size = memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
+-			       memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B);
++			size += memcg_page_state_output(memcg,
++							NR_SLAB_RECLAIMABLE_B);
+ 			seq_buf_printf(&s, "slab %llu\n", size);
+ 		}
+ 	}
+@@ -6378,6 +6399,12 @@ static int memory_stat_show(struct seq_f
  }
  
- /*
---- a/mm/filemap.c~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/mm/filemap.c
-@@ -206,7 +206,7 @@ static void unaccount_page_cache_page(st
- 		if (PageTransHuge(page))
- 			__dec_lruvec_page_state(page, NR_SHMEM_THPS);
- 	} else if (PageTransHuge(page)) {
--		__dec_lruvec_page_state(page, NR_FILE_THPS);
-+		__mod_lruvec_page_state(page, NR_FILE_THPS, -nr);
- 		filemap_nr_thps_dec(mapping);
- 	}
- 
---- a/mm/huge_memory.c~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/mm/huge_memory.c
-@@ -2743,10 +2743,13 @@ int split_huge_page_to_list(struct page
- 		}
- 		spin_unlock(&ds_queue->split_queue_lock);
- 		if (mapping) {
-+			int nr = thp_nr_pages(head);
+ #ifdef CONFIG_NUMA
++static inline unsigned long lruvec_page_state_output(struct lruvec *lruvec,
++						     int item)
++{
++	return lruvec_page_state(lruvec, item) * memcg_page_state_unit(item);
++}
 +
- 			if (PageSwapBacked(head))
- 				__dec_lruvec_page_state(head, NR_SHMEM_THPS);
- 			else
--				__dec_lruvec_page_state(head, NR_FILE_THPS);
-+				__mod_lruvec_page_state(head, NR_FILE_THPS,
-+							-nr);
+ static int memory_numa_stat_show(struct seq_file *m, void *v)
+ {
+ 	int i;
+@@ -6395,8 +6422,8 @@ static int memory_numa_stat_show(struct
+ 			struct lruvec *lruvec;
+ 
+ 			lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+-			size = lruvec_page_state(lruvec, memory_stats[i].idx);
+-			size *= memory_stats[i].ratio;
++			size = lruvec_page_state_output(lruvec,
++							memory_stats[i].idx);
+ 			seq_printf(m, " N%d=%llu", nid, size);
  		}
- 
- 		__split_huge_page(page, list, end);
---- a/mm/khugepaged.c~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/mm/khugepaged.c
-@@ -1644,6 +1644,7 @@ static void collapse_file(struct mm_stru
- 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
- 	int nr_none = 0, result = SCAN_SUCCEED;
- 	bool is_shmem = shmem_file(file);
-+	int nr;
- 
- 	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
- 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
-@@ -1855,11 +1856,12 @@ out_unlock:
- 		put_page(page);
- 		goto xa_unlocked;
- 	}
-+	nr = thp_nr_pages(new_page);
- 
- 	if (is_shmem)
- 		__inc_lruvec_page_state(new_page, NR_SHMEM_THPS);
- 	else {
--		__inc_lruvec_page_state(new_page, NR_FILE_THPS);
-+		__mod_lruvec_page_state(new_page, NR_FILE_THPS, nr);
- 		filemap_nr_thps_inc(mapping);
- 	}
- 
---- a/mm/memcontrol.c~mm-memcontrol-convert-nr_file_thps-account-to-pages
-+++ a/mm/memcontrol.c
-@@ -1534,7 +1534,7 @@ static struct memory_stat memory_stats[]
- 	 * constant(e.g. powerpc).
- 	 */
- 	{ "anon_thp", PAGE_SIZE, NR_ANON_THPS },
--	{ "file_thp", 0, NR_FILE_THPS },
-+	{ "file_thp", PAGE_SIZE, NR_FILE_THPS },
- 	{ "shmem_thp", 0, NR_SHMEM_THPS },
- #endif
- 	{ "inactive_anon", PAGE_SIZE, NR_INACTIVE_ANON },
-@@ -1566,8 +1566,7 @@ static int __init memory_stats_init(void
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		if (memory_stats[i].idx == NR_FILE_THPS ||
--		    memory_stats[i].idx == NR_SHMEM_THPS)
-+		if (memory_stats[i].idx == NR_SHMEM_THPS)
- 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
- #endif
- 		VM_BUG_ON(!memory_stats[i].ratio);
+ 		seq_putc(m, '\n');
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
