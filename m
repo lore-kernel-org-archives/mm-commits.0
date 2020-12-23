@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F4EC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FFA1C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D5C0224D4
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 114E42253A
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728328AbgLWS30 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:29:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44438 "EHLO mail.kernel.org"
+        id S1728345AbgLWS32 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:29:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728326AbgLWS30 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:29:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F971224D4;
-        Wed, 23 Dec 2020 18:28:55 +0000 (UTC)
+        id S1728334AbgLWS32 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:29:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A2D0C22287;
+        Wed, 23 Dec 2020 18:28:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748136;
-        bh=tDcgvLO0Foftq35LGk3GpUhwJAOXChTbpTCbVM7caMA=;
+        s=korg; t=1608748140;
+        bh=Qlm3I25LriV0HNeXrcrNh+AXf/+jel777d1bNBBEKlo=;
         h=Date:From:To:Subject:From;
-        b=vSTOANWyLyDSXgYbsyupqiJjNw1kTN2pb5pHvgPjJSMUveIFC9qht0etYMOHxV8L3
-         p2dSYWKJPlCCz81+ORjmUqmK9vr+tlOU6WJlCFTzh+MRHKL5Q1RD4MHmjQ0EmaIMEx
-         CmA8Ez0THoHxRBTn/q8x1C4wu6KUug8QDTcSkfIo=
-Date:   Wed, 23 Dec 2020 10:28:55 -0800
+        b=iEkBVG3fss0bof11b+dIs0YyAdHFfSMFlTtfbz/ox9bNqX/OEiQtjQjz30XQc8Qcq
+         750+XJFRBRpcveJneDc1GJgL2Xs17d7n9/HEkL9HUfK+qyM98jMKtjBhT80hQp7Gnw
+         6tGr/17sMSCvKMM1QlXq294f/TZWUVinxmsEwx2w=
+Date:   Wed, 23 Dec 2020 10:28:59 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged]
- kasan-separate-metadata_fetch_row-for-each-mode.patch removed from -mm tree
-Message-ID: <20201223182855.4gUMExZd3%akpm@linux-foundation.org>
+Subject:  [merged] arm64-enable-armv85-a-asm-arch-option.patch
+ removed from -mm tree
+Message-ID: <20201223182859.5uSR5GE8Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,201 +47,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: separate metadata_fetch_row for each mode
+     Subject: arm64: enable armv8.5-a asm-arch option
 has been removed from the -mm tree.  Its filename was
-     kasan-separate-metadata_fetch_row-for-each-mode.patch
+     arm64-enable-armv85-a-asm-arch-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: separate metadata_fetch_row for each mode
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: enable armv8.5-a asm-arch option
 
-This is a preparatory commit for the upcoming addition of a new hardware
-tag-based (MTE-based) KASAN mode.
+Hardware tag-based KASAN relies on Memory Tagging Extension (MTE) which is
+an armv8.5-a architecture extension.
 
-Rework print_memory_metadata() to make it agnostic with regard to the way
-metadata is stored.  Allow providing a separate metadata_fetch_row()
-implementation for each KASAN mode.  Hardware tag-based KASAN will provide
-its own implementation that doesn't use shadow memory.
+Enable the correct asm option when the compiler supports it in order to
+allow the usage of ALTERNATIVE()s with MTE instructions.
 
-No functional changes for software modes.
-
-Link: https://lkml.kernel.org/r/5fb1ec0152bb1f521505017800387ec3e36ffe18.1606161801.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/d03d1157124ea3532eaeb77507988733f5734986.1606161801.git.andreyknvl@google.com
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h          |    8 +++++
- mm/kasan/report.c         |   56 +++++++++++++++++-------------------
- mm/kasan/report_generic.c |    5 +++
- mm/kasan/report_sw_tags.c |    5 +++
- 4 files changed, 45 insertions(+), 29 deletions(-)
+ arch/arm64/Kconfig  |    4 ++++
+ arch/arm64/Makefile |    5 +++++
+ 2 files changed, 9 insertions(+)
 
---- a/mm/kasan/kasan.h~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/kasan.h
-@@ -58,6 +58,13 @@
- #define KASAN_ABI_VERSION 1
- #endif
+--- a/arch/arm64/Kconfig~arm64-enable-armv85-a-asm-arch-option
++++ a/arch/arm64/Kconfig
+@@ -1571,6 +1571,9 @@ endmenu
  
-+/* Metadata layout customization. */
-+#define META_BYTES_PER_BLOCK 1
-+#define META_BLOCKS_PER_ROW 16
-+#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
-+#define META_MEM_BYTES_PER_ROW (META_BYTES_PER_ROW * KASAN_GRANULE_SIZE)
-+#define META_ROWS_AROUND_ADDR 2
+ menu "ARMv8.5 architectural features"
+ 
++config AS_HAS_ARMV8_5
++	def_bool $(cc-option,-Wa$(comma)-march=armv8.5-a)
 +
- struct kasan_access_info {
- 	const void *access_addr;
- 	const void *first_bad_addr;
-@@ -170,6 +177,7 @@ bool check_invalid_free(void *addr);
+ config ARM64_BTI
+ 	bool "Branch Target Identification support"
+ 	default y
+@@ -1645,6 +1648,7 @@ config ARM64_MTE
+ 	bool "Memory Tagging Extension support"
+ 	default y
+ 	depends on ARM64_AS_HAS_MTE && ARM64_TAGGED_ADDR_ABI
++	depends on AS_HAS_ARMV8_5
+ 	select ARCH_USES_HIGH_VMA_FLAGS
+ 	help
+ 	  Memory Tagging (part of the ARMv8.5 Extensions) provides
+--- a/arch/arm64/Makefile~arm64-enable-armv85-a-asm-arch-option
++++ a/arch/arm64/Makefile
+@@ -96,6 +96,11 @@ ifeq ($(CONFIG_AS_HAS_ARMV8_4), y)
+ asm-arch := armv8.4-a
+ endif
  
- void *find_first_bad_addr(void *addr, size_t size);
- const char *get_bug_type(struct kasan_access_info *info);
-+void metadata_fetch_row(char *buffer, void *row);
- 
- #if defined(CONFIG_KASAN_GENERIC) && CONFIG_KASAN_STACK
- void print_address_stack_frame(const void *addr);
---- a/mm/kasan/report.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report.c
-@@ -33,12 +33,6 @@
- #include "kasan.h"
- #include "../slab.h"
- 
--/* Metadata layout customization. */
--#define META_BYTES_PER_BLOCK 1
--#define META_BLOCKS_PER_ROW 16
--#define META_BYTES_PER_ROW (META_BLOCKS_PER_ROW * META_BYTES_PER_BLOCK)
--#define META_ROWS_AROUND_ADDR 2
--
- static unsigned long kasan_flags;
- 
- #define KASAN_BIT_REPORTED	0
-@@ -238,55 +232,59 @@ static void print_address_description(vo
- 	print_address_stack_frame(addr);
- }
- 
--static bool row_is_guilty(const void *row, const void *guilty)
-+static bool meta_row_is_guilty(const void *row, const void *addr)
- {
--	return (row <= guilty) && (guilty < row + META_BYTES_PER_ROW);
-+	return (row <= addr) && (addr < row + META_MEM_BYTES_PER_ROW);
- }
- 
--static int shadow_pointer_offset(const void *row, const void *shadow)
-+static int meta_pointer_offset(const void *row, const void *addr)
- {
--	/* The length of ">ff00ff00ff00ff00: " is
--	 *    3 + (BITS_PER_LONG/8)*2 chars.
-+	/*
-+	 * Memory state around the buggy address:
-+	 *  ff00ff00ff00ff00: 00 00 00 05 fe fe fe fe fe fe fe fe fe fe fe fe
-+	 *  ...
-+	 *
-+	 * The length of ">ff00ff00ff00ff00: " is
-+	 *    3 + (BITS_PER_LONG / 8) * 2 chars.
-+	 * The length of each granule metadata is 2 bytes
-+	 *    plus 1 byte for space.
- 	 */
--	return 3 + (BITS_PER_LONG/8)*2 + (shadow - row)*2 +
--		(shadow - row) / META_BYTES_PER_BLOCK + 1;
-+	return 3 + (BITS_PER_LONG / 8) * 2 +
-+		(addr - row) / KASAN_GRANULE_SIZE * 3 + 1;
- }
- 
- static void print_memory_metadata(const void *addr)
- {
- 	int i;
--	const void *shadow = kasan_mem_to_shadow(addr);
--	const void *shadow_row;
-+	void *row;
- 
--	shadow_row = (void *)round_down((unsigned long)shadow,
--					META_BYTES_PER_ROW)
--		- META_ROWS_AROUND_ADDR * META_BYTES_PER_ROW;
-+	row = (void *)round_down((unsigned long)addr, META_MEM_BYTES_PER_ROW)
-+			- META_ROWS_AROUND_ADDR * META_MEM_BYTES_PER_ROW;
- 
- 	pr_err("Memory state around the buggy address:\n");
- 
- 	for (i = -META_ROWS_AROUND_ADDR; i <= META_ROWS_AROUND_ADDR; i++) {
--		const void *kaddr = kasan_shadow_to_mem(shadow_row);
--		char buffer[4 + (BITS_PER_LONG/8)*2];
--		char shadow_buf[META_BYTES_PER_ROW];
-+		char buffer[4 + (BITS_PER_LONG / 8) * 2];
-+		char metadata[META_BYTES_PER_ROW];
- 
- 		snprintf(buffer, sizeof(buffer),
--			(i == 0) ? ">%px: " : " %px: ", kaddr);
-+				(i == 0) ? ">%px: " : " %px: ", row);
++ifeq ($(CONFIG_AS_HAS_ARMV8_5), y)
++# make sure to pass the newest target architecture to -march.
++asm-arch := armv8.5-a
++endif
 +
- 		/*
- 		 * We should not pass a shadow pointer to generic
- 		 * function, because generic functions may try to
- 		 * access kasan mapping for the passed address.
- 		 */
--		memcpy(shadow_buf, shadow_row, META_BYTES_PER_ROW);
-+		metadata_fetch_row(&metadata[0], row);
-+
- 		print_hex_dump(KERN_ERR, buffer,
- 			DUMP_PREFIX_NONE, META_BYTES_PER_ROW, 1,
--			shadow_buf, META_BYTES_PER_ROW, 0);
-+			metadata, META_BYTES_PER_ROW, 0);
- 
--		if (row_is_guilty(shadow_row, shadow))
--			pr_err("%*c\n",
--				shadow_pointer_offset(shadow_row, shadow),
--				'^');
-+		if (meta_row_is_guilty(row, addr))
-+			pr_err("%*c\n", meta_pointer_offset(row, addr), '^');
- 
--		shadow_row += META_BYTES_PER_ROW;
-+		row += META_MEM_BYTES_PER_ROW;
- 	}
- }
- 
---- a/mm/kasan/report_generic.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report_generic.c
-@@ -123,6 +123,11 @@ const char *get_bug_type(struct kasan_ac
- 	return get_wild_bug_type(info);
- }
- 
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
-+}
-+
- #if CONFIG_KASAN_STACK
- static bool __must_check tokenize_frame_descr(const char **frame_descr,
- 					      char *token, size_t max_tok_len,
---- a/mm/kasan/report_sw_tags.c~kasan-separate-metadata_fetch_row-for-each-mode
-+++ a/mm/kasan/report_sw_tags.c
-@@ -80,6 +80,11 @@ void *find_first_bad_addr(void *addr, si
- 	return p;
- }
- 
-+void metadata_fetch_row(char *buffer, void *row)
-+{
-+	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
-+}
-+
- void print_tags(u8 addr_tag, const void *addr)
- {
- 	u8 *shadow = (u8 *)kasan_mem_to_shadow(addr);
+ ifdef asm-arch
+ KBUILD_CFLAGS	+= -Wa,-march=$(asm-arch) \
+ 		   -DARM64_ASM_ARCH='"$(asm-arch)"'
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
 
