@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C75C433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B4B2C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FDB52247F
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07D40224B0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728334AbgLWS3o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:29:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44440 "EHLO mail.kernel.org"
+        id S1728394AbgLWS3r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:29:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728378AbgLWS3o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:29:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B08E8224F4;
-        Wed, 23 Dec 2020 18:29:07 +0000 (UTC)
+        id S1728385AbgLWS3r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:29:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3837224BE;
+        Wed, 23 Dec 2020 18:28:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748148;
-        bh=1ygWW0Le01gjIpTGJ4leXTlo60HzqXBp+Hcq/kj4I0A=;
+        s=korg; t=1608748132;
+        bh=r/yzexrVksoYndUGDOTSYst7WVkMEOvIKZwkIzQQylc=;
         h=Date:From:To:Subject:From;
-        b=hD/Kc43HcKlx8kn9/ZH8PuFP7izEJGokocPTfpWpa+rqevVeUneCeYdxFx0HQBdQO
-         wyBa78OaLTc4V05I7IpdOVKRG7zs+fEZaz8rE7P7A4vKY5N80nuSRemyXsJ+ErKVBU
-         AGhzO3Sp9yXlC2Bou2fennPLa7IQR9mXhOJRNfVU=
-Date:   Wed, 23 Dec 2020 10:29:07 -0800
+        b=I8IOFLIXZW3K2gwsCb1/xuWU/H2zPrw7vepTnXoSDxydeyODhB6rNRxmvDSsS7V7p
+         dRm7tRPiC1Y+IBn1etVbAIDMXrgOdssmn83uEbJCKyxa9YpfvMMCB6dA3h09d84iv7
+         jeod7YEccRdcTSL/fcQvEK6ydOMYfXnwFyhV5iMM=
+Date:   Wed, 23 Dec 2020 10:28:51 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,10 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] arm64-kasan-allow-enabling-in-kernel-mte.patch
+Subject:  [merged]
+ kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
  removed from -mm tree
-Message-ID: <20201223182907.qONpltYMH%akpm@linux-foundation.org>
+Message-ID: <20201223182851.nkUpnrirb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,154 +48,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kasan: allow enabling in-kernel MTE
+     Subject: kasan: rename print_shadow_for_address to print_memory_metadata
 has been removed from the -mm tree.  Its filename was
-     arm64-kasan-allow-enabling-in-kernel-mte.patch
+     kasan-rename-print_shadow_for_address-to-print_memory_metadata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: kasan: allow enabling in-kernel MTE
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: rename print_shadow_for_address to print_memory_metadata
 
-Hardware tag-based KASAN relies on Memory Tagging Extension (MTE) feature
-and requires it to be enabled.  MTE supports
+This is a preparatory commit for the upcoming addition of a new hardware
+tag-based (MTE-based) KASAN mode.
 
-This patch adds a new mte_enable_kernel() helper, that enables MTE in
-Synchronous mode in EL1 and is intended to be called from KASAN runtime
-during initialization.
+Hardware tag-based KASAN won't be using shadow memory, but will reuse this
+function.  Rename "shadow" to implementation-neutral "metadata".
 
-The Tag Checking operation causes a synchronous data abort as a
-consequence of a tag check fault when MTE is configured in synchronous
-mode.
+No functional changes.
 
-As part of this change enable match-all tag for EL1 to allow the kernel to
-access user pages without faulting.  This is required because the kernel
-does not have knowledge of the tags set by the user in a page.
-
-Note: For MTE, the TCF bit field in SCTLR_EL1 affects only EL1 in a
-similar way as TCF0 affects EL0.
-
-MTE that is built on top of the Top Byte Ignore (TBI) feature hence we
-enable it as part of this patch as well.
-
-Link: https://lkml.kernel.org/r/7352b0a0899af65c2785416c8ca6bf3845b66fa1.1606161801.git.andreyknvl@google.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/dd955c5aadaee16aef451a6189d19172166a23f5.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/mte-kasan.h |    6 ++++++
- arch/arm64/kernel/mte.c            |    7 +++++++
- arch/arm64/mm/proc.S               |   23 ++++++++++++++++++++---
- 3 files changed, 33 insertions(+), 3 deletions(-)
+ mm/kasan/report.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-allow-enabling-in-kernel-mte
-+++ a/arch/arm64/include/asm/mte-kasan.h
-@@ -29,6 +29,8 @@ u8 mte_get_mem_tag(void *addr);
- u8 mte_get_random_tag(void);
- void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
- 
-+void mte_enable_kernel(void);
-+
- #else /* CONFIG_ARM64_MTE */
- 
- static inline u8 mte_get_ptr_tag(void *ptr)
-@@ -49,6 +51,10 @@ static inline void *mte_set_mem_tag_rang
- 	return addr;
+--- a/mm/kasan/report.c~kasan-rename-print_shadow_for_address-to-print_memory_metadata
++++ a/mm/kasan/report.c
+@@ -252,7 +252,7 @@ static int shadow_pointer_offset(const v
+ 		(shadow - row) / SHADOW_BYTES_PER_BLOCK + 1;
  }
  
-+static inline void mte_enable_kernel(void)
-+{
-+}
-+
- #endif /* CONFIG_ARM64_MTE */
- 
- #endif /* __ASSEMBLY__ */
---- a/arch/arm64/kernel/mte.c~arm64-kasan-allow-enabling-in-kernel-mte
-+++ a/arch/arm64/kernel/mte.c
-@@ -129,6 +129,13 @@ void *mte_set_mem_tag_range(void *addr,
- 	return ptr;
- }
- 
-+void mte_enable_kernel(void)
-+{
-+	/* Enable MTE Sync Mode for EL1. */
-+	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
-+	isb();
-+}
-+
- static void update_sctlr_el1_tcf0(u64 tcf0)
+-static void print_shadow_for_address(const void *addr)
++static void print_memory_metadata(const void *addr)
  {
- 	/* ISB required for the kernel uaccess routines */
---- a/arch/arm64/mm/proc.S~arm64-kasan-allow-enabling-in-kernel-mte
-+++ a/arch/arm64/mm/proc.S
-@@ -40,9 +40,15 @@
- #define TCR_CACHE_FLAGS	TCR_IRGN_WBWA | TCR_ORGN_WBWA
+ 	int i;
+ 	const void *shadow = kasan_mem_to_shadow(addr);
+@@ -338,7 +338,7 @@ void kasan_report_invalid_free(void *obj
+ 	pr_err("\n");
+ 	print_address_description(object, tag);
+ 	pr_err("\n");
+-	print_shadow_for_address(object);
++	print_memory_metadata(object);
+ 	end_report(&flags);
+ }
  
- #ifdef CONFIG_KASAN_SW_TAGS
--#define TCR_KASAN_FLAGS TCR_TBI1 | TCR_TBID1
-+#define TCR_KASAN_SW_FLAGS TCR_TBI1 | TCR_TBID1
- #else
--#define TCR_KASAN_FLAGS 0
-+#define TCR_KASAN_SW_FLAGS 0
-+#endif
-+
-+#ifdef CONFIG_KASAN_HW_TAGS
-+#define TCR_KASAN_HW_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1
-+#else
-+#define TCR_KASAN_HW_FLAGS 0
- #endif
- 
- /*
-@@ -427,6 +433,10 @@ SYM_FUNC_START(__cpu_setup)
- 	 */
- 	mov_q	x5, MAIR_EL1_SET
- #ifdef CONFIG_ARM64_MTE
-+	mte_tcr	.req	x20
-+
-+	mov	mte_tcr, #0
-+
- 	/*
- 	 * Update MAIR_EL1, GCR_EL1 and TFSR*_EL1 if MTE is supported
- 	 * (ID_AA64PFR1_EL1[11:8] > 1).
-@@ -447,6 +457,9 @@ SYM_FUNC_START(__cpu_setup)
- 	/* clear any pending tag check faults in TFSR*_EL1 */
- 	msr_s	SYS_TFSR_EL1, xzr
- 	msr_s	SYS_TFSRE0_EL1, xzr
-+
-+	/* set the TCR_EL1 bits */
-+	mov_q	mte_tcr, TCR_KASAN_HW_FLAGS
- 1:
- #endif
- 	msr	mair_el1, x5
-@@ -456,7 +469,11 @@ SYM_FUNC_START(__cpu_setup)
- 	 */
- 	mov_q	x10, TCR_TxSZ(VA_BITS) | TCR_CACHE_FLAGS | TCR_SMP_FLAGS | \
- 			TCR_TG_FLAGS | TCR_KASLR_FLAGS | TCR_ASID16 | \
--			TCR_TBI0 | TCR_A1 | TCR_KASAN_FLAGS
-+			TCR_TBI0 | TCR_A1 | TCR_KASAN_SW_FLAGS
-+#ifdef CONFIG_ARM64_MTE
-+	orr	x10, x10, mte_tcr
-+	.unreq	mte_tcr
-+#endif
- 	tcr_clear_errata_bits x10, x9, x5
- 
- #ifdef CONFIG_ARM64_VA_BITS_52
+@@ -379,7 +379,7 @@ static void __kasan_report(unsigned long
+ 	if (addr_has_metadata(untagged_addr)) {
+ 		print_address_description(untagged_addr, get_tag(tagged_addr));
+ 		pr_err("\n");
+-		print_shadow_for_address(info.first_bad_addr);
++		print_memory_metadata(info.first_bad_addr);
+ 	} else {
+ 		dump_stack();
+ 	}
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
