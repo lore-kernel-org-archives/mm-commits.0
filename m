@@ -7,36 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE283C433E9
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 01:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BCB2C4160E
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:23:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C47522583
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 01:54:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55DEB22A83
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726733AbgLWByJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 20:54:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38098 "EHLO mail.kernel.org"
+        id S1730057AbgLWCXl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 21:23:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726361AbgLWByI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 20:54:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C69022583;
-        Wed, 23 Dec 2020 01:53:27 +0000 (UTC)
+        id S1730047AbgLWCXk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 21:23:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF1BD229CA;
+        Wed, 23 Dec 2020 02:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608688407;
-        bh=WoGGl5Fw3tm5+MXUS1LywxBdJ0GnLSiX8oGh9lDydRk=;
+        s=korg; t=1608690204;
+        bh=PXGc6+xywfS0XeKsgVljgyIicFFDUwCiyswT9yIIkKg=;
         h=Date:From:To:Subject:From;
-        b=KoVC5/GjB5GSAFp84Ab1ek+cXdV2TQK7yjzUG+Cvv8ZmPadyLfYpqZN3nqfvLtwyY
-         IsM5fjXIF+n0oTjR5FNP4PHXMoNQDkIFyZqgLf/65Nfnh30EFNjqvrNGvMstObJFLz
-         2gHUDQAoc2Od4bSnWsK8+bfqJ24tno+nqU6yKVj8=
-Date:   Tue, 22 Dec 2020 17:53:27 -0800
+        b=2Mepbv/SUlm5eVqozjzeit6b68+cWB8RJZZvsmwKqh+bz1bhn0msVYf3ZA3PNrYqj
+         O0jY9GHO97FOdcwFAiRwNfjlLCGbLRiwqI5S92HQG7ebT7Z2GYFUTgFgk6whx305G3
+         jF6x35kZya+1U2s7Ae0AycTdA+T0CQh6inj+nDS0=
+Date:   Tue, 22 Dec 2020 18:23:23 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vvghjk1234@gmail.com,
-        rppt@linux.ibm.com, riel@surriel.com, mhocko@kernel.org,
-        iamjoonsoo.kim@lge.com, guro@fb.com
-Subject:  +
- memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch added to
- -mm tree
-Message-ID: <20201223015327.oDktL%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
+        shakeelb@google.com, samitolvanen@google.com,
+        rdunlap@infradead.org, rafael@kernel.org,
+        pankaj.gupta@cloud.ionos.com, neilb@suse.de, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
+        guro@fb.com, gregkh@linuxfoundation.org, feng.tang@intel.com,
+        adobriyan@gmail.com, songmuchun@bytedance.com
+Subject:  + mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+ added to -mm tree
+Message-ID: <20201223022323.KDZLd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: do not start bottom-up allocations with kernel_end
+     Subject: mm: memcontrol: convert NR_ANON_THPS account to pages
 has been added to the -mm tree.  Its filename is
-     memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+     mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,147 +69,267 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: memblock: do not start bottom-up allocations with kernel_end
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: convert NR_ANON_THPS account to pages
 
-With kaslr the kernel image is placed at a random place, so starting the
-bottom-up allocation with the kernel_end can result in an allocation
-failure and a warning like this one:
+Currently we use struct per_cpu_nodestat to cache the vmstat counters,
+which leads to inaccurate statistics expecially THP vmstat counters.  In
+the systems with hundreads of processors it can be GBs of memory.  For
+example, for a 96 CPUs system, the threshold is the maximum number of 125.
+And the per cpu counters can cache 23.4375 GB in total.
 
-[    0.002920] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
-[    0.002921] ------------[ cut here ]------------
-[    0.002922] memblock: bottom-up allocation failed, memory hotremove may be affected
-[    0.002937] WARNING: CPU: 0 PID: 0 at mm/memblock.c:332 memblock_find_in_range_node+0x178/0x25a
-[    0.002937] Modules linked in:
-[    0.002939] CPU: 0 PID: 0 Comm: swapper Not tainted 5.10.0+ #1169
-[    0.002940] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-1.fc33 04/01/2014
-[    0.002942] RIP: 0010:memblock_find_in_range_node+0x178/0x25a
-[    0.002944] Code: e9 6d ff ff ff 48 85 c0 0f 85 da 00 00 00 80 3d 9b 35 df 00 00 75 15 48 c7 c7 c0 75 59 88 c6 05 8b 35 df 00 01 e8 25 8a fa ff <0f> 0b 48 c7 44 24 20 ff ff ff ff 44 89 e6 44 89 ea 48 c7 c1 70 5c
-[    0.002945] RSP: 0000:ffffffff88803d18 EFLAGS: 00010086 ORIG_RAX: 0000000000000000
-[    0.002947] RAX: 0000000000000000 RBX: 0000000240000000 RCX: 00000000ffffdfff
-[    0.002948] RDX: 00000000ffffdfff RSI: 00000000ffffffea RDI: 0000000000000046
-[    0.002948] RBP: 0000000100000000 R08: ffffffff88922788 R09: 0000000000009ffb
-[    0.002949] R10: 00000000ffffe000 R11: 3fffffffffffffff R12: 0000000000000000
-[    0.002950] R13: 0000000000000000 R14: 0000000080000000 R15: 00000001fb42c000
-[    0.002952] FS:  0000000000000000(0000) GS:ffffffff88f71000(0000) knlGS:0000000000000000
-[    0.002953] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    0.002954] CR2: ffffa080fb401000 CR3: 00000001fa80a000 CR4: 00000000000406b0
-[    0.002956] Call Trace:
-[    0.002961]  ? memblock_alloc_range_nid+0x8d/0x11e
-[    0.002963]  ? cma_declare_contiguous_nid+0x2c4/0x38c
-[    0.002964]  ? hugetlb_cma_reserve+0xdc/0x128
-[    0.002968]  ? flush_tlb_one_kernel+0xc/0x20
-[    0.002969]  ? native_set_fixmap+0x82/0xd0
-[    0.002971]  ? flat_get_apic_id+0x5/0x10
-[    0.002973]  ? register_lapic_address+0x8e/0x97
-[    0.002975]  ? setup_arch+0x8a5/0xc3f
-[    0.002978]  ? start_kernel+0x66/0x547
-[    0.002980]  ? load_ucode_bsp+0x4c/0xcd
-[    0.002982]  ? secondary_startup_64_no_verify+0xb0/0xbb
-[    0.002986] random: get_random_bytes called from __warn+0xab/0x110 with crng_init=0
-[    0.002988] ---[ end trace f151227d0b39be70 ]---
+The THP page is already a form of batched addition (it will add 512 worth
+of memory in one go) so skipping the batching seems like sensible. 
+Although every THP stats update overflows the per-cpu counter, resorting
+to atomic global updates.  But it can make the statistics more accuracy
+for the THP vmstat counters.
 
-At the same time, the kernel image is protected with memblock_reserve(),
-so we can just start searching at PAGE_SIZE.  In this case the bottom-up
-allocation has the same chances to success as a top-down allocation, so
-there is no reason to fallback in the case of a failure.  All together it
-simplifies the logic.
+So we convert the NR_ANON_THPS account to pages.  This patch is consistent
+with 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page arrival").
+Doing this also can make the unit of vmstat counters more unified. 
+Finally, the unit of the vmstat counters are pages, kB and bytes.  The
+B/KB suffix can tell us that the unit is bytes or kB.  The rest which is
+without suffix are pages.
 
-Link: https://lkml.kernel.org/r/20201217201214.3414100-2-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20201217034356.4708-3-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Wonhyuk Yang <vvghjk1234@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Cc: Rafael. J. Wysocki <rafael@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   49 +++++-------------------------------------------
- 1 file changed, 6 insertions(+), 43 deletions(-)
+ drivers/base/node.c    |   15 +++++++++------
+ fs/proc/meminfo.c      |    2 +-
+ include/linux/mmzone.h |   10 ++++++++++
+ mm/huge_memory.c       |    3 ++-
+ mm/memcontrol.c        |   20 ++++++--------------
+ mm/page_alloc.c        |    2 +-
+ mm/rmap.c              |    6 +++---
+ mm/vmstat.c            |   11 +++++++++--
+ 8 files changed, 41 insertions(+), 28 deletions(-)
 
---- a/mm/memblock.c~memblock-do-not-start-bottom-up-allocations-with-kernel_end
-+++ a/mm/memblock.c
-@@ -275,14 +275,6 @@ __memblock_find_range_top_down(phys_addr
-  *
-  * Find @size free area aligned to @align in the specified range and node.
-  *
-- * When allocation direction is bottom-up, the @start should be greater
-- * than the end of the kernel image. Otherwise, it will be trimmed. The
-- * reason is that we want the bottom-up allocation just near the kernel
-- * image so it is highly likely that the allocated memory and the kernel
-- * will reside in the same node.
-- *
-- * If bottom-up allocation failed, will try to allocate memory top-down.
-- *
-  * Return:
-  * Found address on success, 0 on failure.
-  */
-@@ -291,8 +283,6 @@ static phys_addr_t __init_memblock membl
- 					phys_addr_t end, int nid,
- 					enum memblock_flags flags)
- {
--	phys_addr_t kernel_end, ret;
--
- 	/* pump up @end */
- 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE ||
- 	    end == MEMBLOCK_ALLOC_KASAN)
-@@ -301,40 +291,13 @@ static phys_addr_t __init_memblock membl
- 	/* avoid allocating the first page */
- 	start = max_t(phys_addr_t, start, PAGE_SIZE);
- 	end = max(start, end);
--	kernel_end = __pa_symbol(_end);
--
--	/*
--	 * try bottom-up allocation only when bottom-up mode
--	 * is set and @end is above the kernel image.
--	 */
--	if (memblock_bottom_up() && end > kernel_end) {
--		phys_addr_t bottom_up_start;
--
--		/* make sure we will allocate above the kernel */
--		bottom_up_start = max(start, kernel_end);
--
--		/* ok, try bottom-up allocation first */
--		ret = __memblock_find_range_bottom_up(bottom_up_start, end,
--						      size, align, nid, flags);
--		if (ret)
--			return ret;
--
--		/*
--		 * we always limit bottom-up allocation above the kernel,
--		 * but top-down allocation doesn't have the limit, so
--		 * retrying top-down allocation may succeed when bottom-up
--		 * allocation failed.
--		 *
--		 * bottom-up allocation is expected to be fail very rarely,
--		 * so we use WARN_ONCE() here to see the stack trace if
--		 * fail happens.
--		 */
--		WARN_ONCE(IS_ENABLED(CONFIG_MEMORY_HOTREMOVE),
--			  "memblock: bottom-up allocation failed, memory hotremove may be affected\n");
--	}
+--- a/drivers/base/node.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/drivers/base/node.c
+@@ -461,8 +461,7 @@ static ssize_t node_read_meminfo(struct
+ 			     nid, K(sunreclaimable)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 			     ,
+-			     nid, K(node_page_state(pgdat, NR_ANON_THPS) *
+-				    HPAGE_PMD_NR),
++			     nid, K(node_page_state(pgdat, NR_ANON_THPS)),
+ 			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS) *
+ 				    HPAGE_PMD_NR),
+ 			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
+@@ -519,10 +518,14 @@ static ssize_t node_read_vmstat(struct d
+ 				     sum_zone_numa_state(nid, i));
  
--	return __memblock_find_range_top_down(start, end, size, align, nid,
--					      flags);
-+	if (memblock_bottom_up())
-+		return __memblock_find_range_bottom_up(start, end, size, align,
-+						       nid, flags);
-+	else
-+		return __memblock_find_range_top_down(start, end, size, align,
-+						      nid, flags);
+ #endif
+-	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+-		len += sysfs_emit_at(buf, len, "%s %lu\n",
+-				     node_stat_name(i),
+-				     node_page_state_pages(pgdat, i));
++	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
++		unsigned long pages = node_page_state_pages(pgdat, i);
++
++		if (vmstat_item_print_in_thp(i))
++			pages /= HPAGE_PMD_NR;
++		len += sysfs_emit_at(buf, len, "%s %lu\n", node_stat_name(i),
++				     pages);
++	}
+ 
+ 	return len;
  }
+--- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/fs/proc/meminfo.c
+@@ -129,7 +129,7 @@ static int meminfo_proc_show(struct seq_
  
- /**
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	show_val_kb(m, "AnonHugePages:  ",
+-		    global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR);
++		    global_node_page_state(NR_ANON_THPS));
+ 	show_val_kb(m, "ShmemHugePages: ",
+ 		    global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR);
+ 	show_val_kb(m, "ShmemPmdMapped: ",
+--- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/include/linux/mmzone.h
+@@ -210,6 +210,16 @@ enum node_stat_item {
+ };
+ 
+ /*
++ * Returns true if the item should be printed in THPs (/proc/vmstat
++ * currently prints number of anon, file and shmem THPs. But the item
++ * is charged in pages).
++ */
++static __always_inline bool vmstat_item_print_in_thp(enum node_stat_item item)
++{
++	return item == NR_ANON_THPS;
++}
++
++/*
+  * Returns true if the value is measured in bytes (most vmstat values are
+  * measured in pages). This defines the API part, the internal representation
+  * might be different.
+--- a/mm/huge_memory.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/mm/huge_memory.c
+@@ -2176,7 +2176,8 @@ static void __split_huge_pmd_locked(stru
+ 		lock_page_memcg(page);
+ 		if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
+ 			/* Last compound_mapcount is gone. */
+-			__dec_lruvec_page_state(page, NR_ANON_THPS);
++			__mod_lruvec_page_state(page, NR_ANON_THPS,
++						-HPAGE_PMD_NR);
+ 			if (TestClearPageDoubleMap(page)) {
+ 				/* No need in mapcount reference anymore */
+ 				for (i = 0; i < HPAGE_PMD_NR; i++)
+--- a/mm/memcontrol.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/mm/memcontrol.c
+@@ -1533,7 +1533,7 @@ static struct memory_stat memory_stats[]
+ 	 * on some architectures, the macro of HPAGE_PMD_SIZE is not
+ 	 * constant(e.g. powerpc).
+ 	 */
+-	{ "anon_thp", 0, NR_ANON_THPS },
++	{ "anon_thp", PAGE_SIZE, NR_ANON_THPS },
+ 	{ "file_thp", 0, NR_FILE_THPS },
+ 	{ "shmem_thp", 0, NR_SHMEM_THPS },
+ #endif
+@@ -1566,8 +1566,7 @@ static int __init memory_stats_init(void
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		if (memory_stats[i].idx == NR_ANON_THPS ||
+-		    memory_stats[i].idx == NR_FILE_THPS ||
++		if (memory_stats[i].idx == NR_FILE_THPS ||
+ 		    memory_stats[i].idx == NR_SHMEM_THPS)
+ 			memory_stats[i].ratio = HPAGE_PMD_SIZE;
+ #endif
+@@ -4089,10 +4088,6 @@ static int memcg_stat_show(struct seq_fi
+ 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
+ 			continue;
+ 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		if (memcg1_stats[i] == NR_ANON_THPS)
+-			nr *= HPAGE_PMD_NR;
+-#endif
+ 		seq_printf(m, "%s %lu\n", memcg1_stat_names[i], nr * PAGE_SIZE);
+ 	}
+ 
+@@ -4123,10 +4118,6 @@ static int memcg_stat_show(struct seq_fi
+ 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
+ 			continue;
+ 		nr = memcg_page_state(memcg, memcg1_stats[i]);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		if (memcg1_stats[i] == NR_ANON_THPS)
+-			nr *= HPAGE_PMD_NR;
+-#endif
+ 		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
+ 						(u64)nr * PAGE_SIZE);
+ 	}
+@@ -5654,10 +5645,11 @@ static int mem_cgroup_move_account(struc
+ 			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
+ 			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
+ 			if (PageTransHuge(page)) {
+-				__dec_lruvec_state(from_vec, NR_ANON_THPS);
+-				__inc_lruvec_state(to_vec, NR_ANON_THPS);
++				__mod_lruvec_state(from_vec, NR_ANON_THPS,
++						   -nr_pages);
++				__mod_lruvec_state(to_vec, NR_ANON_THPS,
++						   nr_pages);
+ 			}
+-
+ 		}
+ 	} else {
+ 		__mod_lruvec_state(from_vec, NR_FILE_PAGES, -nr_pages);
+--- a/mm/page_alloc.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/mm/page_alloc.c
+@@ -5580,7 +5580,7 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_SHMEM_THPS) * HPAGE_PMD_NR),
+ 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
+ 					* HPAGE_PMD_NR),
+-			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
++			K(node_page_state(pgdat, NR_ANON_THPS)),
+ #endif
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			node_page_state(pgdat, NR_KERNEL_STACK_KB),
+--- a/mm/rmap.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/mm/rmap.c
+@@ -1144,7 +1144,7 @@ void do_page_add_anon_rmap(struct page *
+ 		 * disabled.
+ 		 */
+ 		if (compound)
+-			__inc_lruvec_page_state(page, NR_ANON_THPS);
++			__mod_lruvec_page_state(page, NR_ANON_THPS, nr);
+ 		__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
+ 	}
+ 
+@@ -1186,7 +1186,7 @@ void page_add_new_anon_rmap(struct page
+ 		if (hpage_pincount_available(page))
+ 			atomic_set(compound_pincount_ptr(page), 0);
+ 
+-		__inc_lruvec_page_state(page, NR_ANON_THPS);
++		__mod_lruvec_page_state(page, NR_ANON_THPS, nr);
+ 	} else {
+ 		/* Anon THP always mapped first with PMD */
+ 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
+@@ -1292,7 +1292,7 @@ static void page_remove_anon_compound_rm
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		return;
+ 
+-	__dec_lruvec_page_state(page, NR_ANON_THPS);
++	__mod_lruvec_page_state(page, NR_ANON_THPS, -thp_nr_pages(page));
+ 
+ 	if (TestClearPageDoubleMap(page)) {
+ 		/*
+--- a/mm/vmstat.c~mm-memcontrol-convert-nr_anon_thps-account-to-pages
++++ a/mm/vmstat.c
+@@ -1619,8 +1619,12 @@ static void zoneinfo_show_print(struct s
+ 	if (is_zone_first_populated(pgdat, zone)) {
+ 		seq_printf(m, "\n  per-node stats");
+ 		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
++			unsigned long pages = node_page_state_pages(pgdat, i);
++
++			if (vmstat_item_print_in_thp(i))
++				pages /= HPAGE_PMD_NR;
+ 			seq_printf(m, "\n      %-12s %lu", node_stat_name(i),
+-				   node_page_state_pages(pgdat, i));
++				   pages);
+ 		}
+ 	}
+ 	seq_printf(m,
+@@ -1740,8 +1744,11 @@ static void *vmstat_start(struct seq_fil
+ 	v += NR_VM_NUMA_STAT_ITEMS;
+ #endif
+ 
+-	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
++	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+ 		v[i] = global_node_page_state_pages(i);
++		if (vmstat_item_print_in_thp(i))
++			v[i] /= HPAGE_PMD_NR;
++	}
+ 	v += NR_VM_NODE_STAT_ITEMS;
+ 
+ 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-slub-call-account_slab_page-after-slab-page-initialization.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
-mm-cma-allocate-cma-areas-bottom-up.patch
-mm-cma-allocate-cma-areas-bottom-up-fix.patch
-memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
+mm-memcontrol-make-the-slab-calculation-consistent.patch
 
