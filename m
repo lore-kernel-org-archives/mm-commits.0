@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B8BEC4332B
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C75C433E6
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 200AA224B0
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FDB52247F
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728382AbgLWS3n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:29:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45292 "EHLO mail.kernel.org"
+        id S1728334AbgLWS3o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:29:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728334AbgLWS3n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:29:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8379224B2;
-        Wed, 23 Dec 2020 18:28:47 +0000 (UTC)
+        id S1728378AbgLWS3o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:29:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B08E8224F4;
+        Wed, 23 Dec 2020 18:29:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748128;
-        bh=rlgNgPrBVTMARTQfSa8TIuqdjk81hFT4g0rk5zKHwCA=;
+        s=korg; t=1608748148;
+        bh=1ygWW0Le01gjIpTGJ4leXTlo60HzqXBp+Hcq/kj4I0A=;
         h=Date:From:To:Subject:From;
-        b=lhYXZVhIjSHPFs37VEwSC1iXS7ZRWCQQO6oUgPn2wVQGX3/Tw3gFx6701cl9jjzXj
-         cHzHeMSnW6era+pvOnqs40pjauPj2DBDQ1BDZgE/zNcyoCYkO8xdJERMZgQhbUzXB/
-         A6a5xUvw34AtarIDM19l4TQvppQwoYjR9lLQuxvQ=
-Date:   Wed, 23 Dec 2020 10:28:47 -0800
+        b=hD/Kc43HcKlx8kn9/ZH8PuFP7izEJGokocPTfpWpa+rqevVeUneCeYdxFx0HQBdQO
+         wyBa78OaLTc4V05I7IpdOVKRG7zs+fEZaz8rE7P7A4vKY5N80nuSRemyXsJ+ErKVBU
+         AGhzO3Sp9yXlC2Bou2fennPLa7IQR9mXhOJRNfVU=
+Date:   Wed, 23 Dec 2020 10:29:07 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,10 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged]
- kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch removed from
- -mm tree
-Message-ID: <20201223182847.zptQg4Osv%akpm@linux-foundation.org>
+Subject:  [merged] arm64-kasan-allow-enabling-in-kernel-mte.patch
+ removed from -mm tree
+Message-ID: <20201223182907.qONpltYMH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,25 +47,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: rename kasan_init_tags and mark as __init
+     Subject: arm64: kasan: allow enabling in-kernel MTE
 has been removed from the -mm tree.  Its filename was
-     kasan-arm64-rename-kasan_init_tags-and-mark-as-__init.patch
+     arm64-kasan-allow-enabling-in-kernel-mte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: rename kasan_init_tags and mark as __init
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: kasan: allow enabling in-kernel MTE
 
-Rename kasan_init_tags() to kasan_init_sw_tags() as the upcoming hardware
-tag-based KASAN mode will have its own initialization routine.  Also
-similarly to kasan_init() mark kasan_init_tags() as __init.
+Hardware tag-based KASAN relies on Memory Tagging Extension (MTE) feature
+and requires it to be enabled.  MTE supports
 
-Link: https://lkml.kernel.org/r/71e52af72a09f4b50c8042f16101c60e50649fbb.1606161801.git.andreyknvl@google.com
+This patch adds a new mte_enable_kernel() helper, that enables MTE in
+Synchronous mode in EL1 and is intended to be called from KASAN runtime
+during initialization.
+
+The Tag Checking operation causes a synchronous data abort as a
+consequence of a tag check fault when MTE is configured in synchronous
+mode.
+
+As part of this change enable match-all tag for EL1 to allow the kernel to
+access user pages without faulting.  This is required because the kernel
+does not have knowledge of the tags set by the user in a page.
+
+Note: For MTE, the TCF bit field in SCTLR_EL1 affects only EL1 in a
+similar way as TCF0 affects EL0.
+
+MTE that is built on top of the Top Byte Ignore (TBI) feature hence we
+enable it as part of this patch as well.
+
+Link: https://lkml.kernel.org/r/7352b0a0899af65c2785416c8ca6bf3845b66fa1.1606161801.git.andreyknvl@google.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Co-developed-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -78,67 +96,105 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/setup.c  |    2 +-
- arch/arm64/mm/kasan_init.c |    2 +-
- include/linux/kasan.h      |    4 ++--
- mm/kasan/sw_tags.c         |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm64/include/asm/mte-kasan.h |    6 ++++++
+ arch/arm64/kernel/mte.c            |    7 +++++++
+ arch/arm64/mm/proc.S               |   23 ++++++++++++++++++++---
+ 3 files changed, 33 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/kernel/setup.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/arch/arm64/kernel/setup.c
-@@ -358,7 +358,7 @@ void __init __no_sanitize_address setup_
- 	smp_build_mpidr_hash();
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -29,6 +29,8 @@ u8 mte_get_mem_tag(void *addr);
+ u8 mte_get_random_tag(void);
+ void *mte_set_mem_tag_range(void *addr, size_t size, u8 tag);
  
- 	/* Init percpu seeds for random tags after cpus are set up. */
--	kasan_init_tags();
-+	kasan_init_sw_tags();
++void mte_enable_kernel(void);
++
+ #else /* CONFIG_ARM64_MTE */
  
- #ifdef CONFIG_ARM64_SW_TTBR0_PAN
- 	/*
---- a/arch/arm64/mm/kasan_init.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -283,7 +283,7 @@ void __init kasan_init(void)
- 	kasan_init_shadow();
- 	kasan_init_depth();
- #if defined(CONFIG_KASAN_GENERIC)
--	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_tags(). */
-+	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_sw_tags(). */
- 	pr_info("KernelAddressSanitizer initialized\n");
- #endif
+ static inline u8 mte_get_ptr_tag(void *ptr)
+@@ -49,6 +51,10 @@ static inline void *mte_set_mem_tag_rang
+ 	return addr;
  }
---- a/include/linux/kasan.h~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/include/linux/kasan.h
-@@ -192,7 +192,7 @@ static inline void kasan_record_aux_stac
+ 
++static inline void mte_enable_kernel(void)
++{
++}
++
+ #endif /* CONFIG_ARM64_MTE */
+ 
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/mte.c~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/kernel/mte.c
+@@ -129,6 +129,13 @@ void *mte_set_mem_tag_range(void *addr,
+ 	return ptr;
+ }
+ 
++void mte_enable_kernel(void)
++{
++	/* Enable MTE Sync Mode for EL1. */
++	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
++	isb();
++}
++
+ static void update_sctlr_el1_tcf0(u64 tcf0)
+ {
+ 	/* ISB required for the kernel uaccess routines */
+--- a/arch/arm64/mm/proc.S~arm64-kasan-allow-enabling-in-kernel-mte
++++ a/arch/arm64/mm/proc.S
+@@ -40,9 +40,15 @@
+ #define TCR_CACHE_FLAGS	TCR_IRGN_WBWA | TCR_ORGN_WBWA
  
  #ifdef CONFIG_KASAN_SW_TAGS
+-#define TCR_KASAN_FLAGS TCR_TBI1 | TCR_TBID1
++#define TCR_KASAN_SW_FLAGS TCR_TBI1 | TCR_TBID1
+ #else
+-#define TCR_KASAN_FLAGS 0
++#define TCR_KASAN_SW_FLAGS 0
++#endif
++
++#ifdef CONFIG_KASAN_HW_TAGS
++#define TCR_KASAN_HW_FLAGS SYS_TCR_EL1_TCMA1 | TCR_TBI1
++#else
++#define TCR_KASAN_HW_FLAGS 0
+ #endif
  
--void kasan_init_tags(void);
-+void __init kasan_init_sw_tags(void);
+ /*
+@@ -427,6 +433,10 @@ SYM_FUNC_START(__cpu_setup)
+ 	 */
+ 	mov_q	x5, MAIR_EL1_SET
+ #ifdef CONFIG_ARM64_MTE
++	mte_tcr	.req	x20
++
++	mov	mte_tcr, #0
++
+ 	/*
+ 	 * Update MAIR_EL1, GCR_EL1 and TFSR*_EL1 if MTE is supported
+ 	 * (ID_AA64PFR1_EL1[11:8] > 1).
+@@ -447,6 +457,9 @@ SYM_FUNC_START(__cpu_setup)
+ 	/* clear any pending tag check faults in TFSR*_EL1 */
+ 	msr_s	SYS_TFSR_EL1, xzr
+ 	msr_s	SYS_TFSRE0_EL1, xzr
++
++	/* set the TCR_EL1 bits */
++	mov_q	mte_tcr, TCR_KASAN_HW_FLAGS
+ 1:
+ #endif
+ 	msr	mair_el1, x5
+@@ -456,7 +469,11 @@ SYM_FUNC_START(__cpu_setup)
+ 	 */
+ 	mov_q	x10, TCR_TxSZ(VA_BITS) | TCR_CACHE_FLAGS | TCR_SMP_FLAGS | \
+ 			TCR_TG_FLAGS | TCR_KASLR_FLAGS | TCR_ASID16 | \
+-			TCR_TBI0 | TCR_A1 | TCR_KASAN_FLAGS
++			TCR_TBI0 | TCR_A1 | TCR_KASAN_SW_FLAGS
++#ifdef CONFIG_ARM64_MTE
++	orr	x10, x10, mte_tcr
++	.unreq	mte_tcr
++#endif
+ 	tcr_clear_errata_bits x10, x9, x5
  
- void *kasan_reset_tag(const void *addr);
- 
-@@ -201,7 +201,7 @@ bool kasan_report(unsigned long addr, si
- 
- #else /* CONFIG_KASAN_SW_TAGS */
- 
--static inline void kasan_init_tags(void) { }
-+static inline void kasan_init_sw_tags(void) { }
- 
- static inline void *kasan_reset_tag(const void *addr)
- {
---- a/mm/kasan/sw_tags.c~kasan-arm64-rename-kasan_init_tags-and-mark-as-__init
-+++ a/mm/kasan/sw_tags.c
-@@ -35,7 +35,7 @@
- 
- static DEFINE_PER_CPU(u32, prng_state);
- 
--void kasan_init_tags(void)
-+void __init kasan_init_sw_tags(void)
- {
- 	int cpu;
- 
+ #ifdef CONFIG_ARM64_VA_BITS_52
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
 
