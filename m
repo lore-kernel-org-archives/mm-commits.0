@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C481C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F174DC433E6
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76326224B2
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7398224B1
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:29:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728397AbgLWS3w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:29:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45514 "EHLO mail.kernel.org"
+        id S1728405AbgLWS3x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:29:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45104 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728387AbgLWS3v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:29:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A5AF2224DF;
-        Wed, 23 Dec 2020 18:28:57 +0000 (UTC)
+        id S1728400AbgLWS3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:29:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A26B2223DB;
+        Wed, 23 Dec 2020 18:29:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748138;
-        bh=gso6JJ2GhDLdY3U5LjmQ1GzaY53e1U2428AtgCVR0DA=;
+        s=korg; t=1608748156;
+        bh=af+WC6d6s/7XeXukN+zx73TJleZvEG0ZLkc+eYkZJJc=;
         h=Date:From:To:Subject:From;
-        b=2ZZYgmSHurKbSt82QR4FQofBwuAU5EbMMzmeUMKUcKkvXQAG6zPZ34ZKU3yUtkcCz
-         WG4VLRBwTe2eEpbSicuFiavBKzLFDFFVxfnXzjjK0BokvXP6CzjfDpXaC23gdt1/qM
-         69xe6DQNgRdjszcyX/UBvGooS+5WnqYkCttgvvVg=
-Date:   Wed, 23 Dec 2020 10:28:57 -0800
+        b=EA8o0SdusLiMNozoxKuxwLSQktSfmXeljJrRsEBgVu58+eSIk4PVqiWfR/nL2zeJn
+         IioDoc5cujuBVMXUsXgdQY/GJn0yzKh6Nkz7ln8K8e/rmlJPoj3ZoBWdslLoCajDNF
+         FHrK0SxWAel5uVFNSc62DeY22su1V0edywzyK0s8=
+Date:   Wed, 23 Dec 2020 10:29:15 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] kasan-introduce-config_kasan_hw_tags.patch
+Subject:  [merged] arm64-kasan-align-allocations-for-hw_tags.patch
  removed from -mm tree
-Message-ID: <20201223182857.7NVi7AbrX%akpm@linux-foundation.org>
+Message-ID: <20201223182915.kYEDbGLxJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,176 +47,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: introduce CONFIG_KASAN_HW_TAGS
+     Subject: arm64: kasan: align allocations for HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-introduce-config_kasan_hw_tags.patch
+     arm64-kasan-align-allocations-for-hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce CONFIG_KASAN_HW_TAGS
+Subject: arm64: kasan: align allocations for HW_TAGS
 
-This patch adds a configuration option for a new KASAN mode called
-hardware tag-based KASAN.  This mode uses the memory tagging approach like
-the software tag-based mode, but relies on arm64 Memory Tagging Extension
-feature for tag management and access checking.
+Hardware tag-based KASAN uses the memory tagging approach, which requires
+all allocations to be aligned to the memory granule size.  Align the
+allocations to MTE_GRANULE_SIZE via ARCH_SLAB_MINALIGN when
+CONFIG_KASAN_HW_TAGS is enabled.
 
-Link: https://lkml.kernel.org/r/44906a209d3a44f9c6f5a21841e90988e365601e.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fe64131606b1c2aabfd34ae99554c0d9df18eb19.1606161801.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |   61 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 44 insertions(+), 17 deletions(-)
+ arch/arm64/include/asm/cache.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/Kconfig.kasan~kasan-introduce-config_kasan_hw_tags
-+++ a/lib/Kconfig.kasan
-@@ -6,7 +6,10 @@ config HAVE_ARCH_KASAN
- config HAVE_ARCH_KASAN_SW_TAGS
- 	bool
+--- a/arch/arm64/include/asm/cache.h~arm64-kasan-align-allocations-for-hw_tags
++++ a/arch/arm64/include/asm/cache.h
+@@ -6,6 +6,7 @@
+ #define __ASM_CACHE_H
  
--config	HAVE_ARCH_KASAN_VMALLOC
-+config HAVE_ARCH_KASAN_HW_TAGS
-+	bool
-+
-+config HAVE_ARCH_KASAN_VMALLOC
- 	bool
+ #include <asm/cputype.h>
++#include <asm/mte-kasan.h>
  
- config CC_HAS_KASAN_GENERIC
-@@ -15,16 +18,19 @@ config CC_HAS_KASAN_GENERIC
- config CC_HAS_KASAN_SW_TAGS
- 	def_bool $(cc-option, -fsanitize=kernel-hwaddress)
+ #define CTR_L1IP_SHIFT		14
+ #define CTR_L1IP_MASK		3
+@@ -51,6 +52,8 @@
  
-+# This option is only required for software KASAN modes.
-+# Old GCC versions don't have proper support for no_sanitize_address.
-+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89124 for details.
- config CC_HAS_WORKING_NOSANITIZE_ADDRESS
- 	def_bool !CC_IS_GCC || GCC_VERSION >= 80300
+ #ifdef CONFIG_KASAN_SW_TAGS
+ #define ARCH_SLAB_MINALIGN	(1ULL << KASAN_SHADOW_SCALE_SHIFT)
++#elif defined(CONFIG_KASAN_HW_TAGS)
++#define ARCH_SLAB_MINALIGN	MTE_GRANULE_SIZE
+ #endif
  
- menuconfig KASAN
- 	bool "KASAN: runtime memory debugger"
--	depends on (HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
--		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
-+	depends on (((HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
-+		     (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)) && \
-+		    CC_HAS_WORKING_NOSANITIZE_ADDRESS) || \
-+		   HAVE_ARCH_KASAN_HW_TAGS
- 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
--	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
--	select CONSTRUCTORS
- 	select STACKDEPOT
- 	help
- 	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
-@@ -37,18 +43,24 @@ choice
- 	prompt "KASAN mode"
- 	default KASAN_GENERIC
- 	help
--	  KASAN has two modes: generic KASAN (similar to userspace ASan,
--	  x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC) and
--	  software tag-based KASAN (a version based on software memory
--	  tagging, arm64 only, similar to userspace HWASan, enabled with
--	  CONFIG_KASAN_SW_TAGS).
-+	  KASAN has three modes:
-+	  1. generic KASAN (similar to userspace ASan,
-+	     x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC),
-+	  2. software tag-based KASAN (arm64 only, based on software
-+	     memory tagging (similar to userspace HWASan), enabled with
-+	     CONFIG_KASAN_SW_TAGS), and
-+	  3. hardware tag-based KASAN (arm64 only, based on hardware
-+	     memory tagging, enabled with CONFIG_KASAN_HW_TAGS).
-+
-+	  All KASAN modes are strictly debugging features.
- 
--	  Both generic and tag-based KASAN are strictly debugging features.
-+	  For better error reports enable CONFIG_STACKTRACE.
- 
- config KASAN_GENERIC
- 	bool "Generic mode"
- 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
- 	select SLUB_DEBUG if SLUB
-+	select CONSTRUCTORS
- 	help
- 	  Enables generic KASAN mode.
- 
-@@ -61,8 +73,6 @@ config KASAN_GENERIC
- 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
- 	  The performance slowdown is ~x3.
- 
--	  For better error detection enable CONFIG_STACKTRACE.
--
- 	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
- 
-@@ -70,11 +80,15 @@ config KASAN_SW_TAGS
- 	bool "Software tag-based mode"
- 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
- 	select SLUB_DEBUG if SLUB
-+	select CONSTRUCTORS
- 	help
- 	  Enables software tag-based KASAN mode.
- 
--	  This mode requires Top Byte Ignore support by the CPU and therefore
--	  is only supported for arm64. This mode requires Clang.
-+	  This mode require software memory tagging support in the form of
-+	  HWASan-like compiler instrumentation.
-+
-+	  Currently this mode is only implemented for arm64 CPUs and relies on
-+	  Top Byte Ignore. This mode requires Clang.
- 
- 	  This mode consumes about 1/16th of available memory at kernel start
- 	  and introduces an overhead of ~20% for the rest of the allocations.
-@@ -82,15 +96,27 @@ config KASAN_SW_TAGS
- 	  casting and comparison, as it embeds tags into the top byte of each
- 	  pointer.
- 
--	  For better error detection enable CONFIG_STACKTRACE.
--
- 	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
- 
-+config KASAN_HW_TAGS
-+	bool "Hardware tag-based mode"
-+	depends on HAVE_ARCH_KASAN_HW_TAGS
-+	depends on SLUB
-+	help
-+	  Enables hardware tag-based KASAN mode.
-+
-+	  This mode requires hardware memory tagging support, and can be used
-+	  by any architecture that provides it.
-+
-+	  Currently this mode is only implemented for arm64 CPUs starting from
-+	  ARMv8.5 and relies on Memory Tagging Extension and Top Byte Ignore.
-+
- endchoice
- 
- choice
- 	prompt "Instrumentation type"
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	default KASAN_OUTLINE
- 
- config KASAN_OUTLINE
-@@ -114,6 +140,7 @@ endchoice
- 
- config KASAN_STACK_ENABLE
- 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
-+	depends on KASAN_GENERIC || KASAN_SW_TAGS
- 	help
- 	  The LLVM stack address sanitizer has a know problem that
- 	  causes excessive stack usage in a lot of functions, see
+ #ifndef __ASSEMBLY__
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
