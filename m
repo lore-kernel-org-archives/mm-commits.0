@@ -7,40 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF162C4332E
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:44:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B294C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 03:05:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9B86225AA
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 02:44:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17B5F20705
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 03:05:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728617AbgLWCnk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Dec 2020 21:43:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51014 "EHLO mail.kernel.org"
+        id S1727687AbgLWDEt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Dec 2020 22:04:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729862AbgLWCXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 22 Dec 2020 21:23:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B6A1523159;
-        Wed, 23 Dec 2020 02:22:44 +0000 (UTC)
+        id S1728548AbgLWCTO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 22 Dec 2020 21:19:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90F962332A;
+        Wed, 23 Dec 2020 02:18:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608690165;
-        bh=6x617QMaafUIBou3uLxxF3gOxFw9rizSWwzN8jaK1bw=;
+        s=korg; t=1608689914;
+        bh=2Wu7ezOQLvqZIvFRVykMYFxZ3u485hCdejWTHqYrnzQ=;
         h=Date:From:To:Subject:From;
-        b=Gvne8IGSZlDTbfdPK5avqQYUYpDgy1/DxzrQ1n7W+P+BGL9IVaqusemmnk0Z2qi1P
-         2rMMqI/xxQ55xnmbadbCHNSeaHjlveSsQRexdBTWJ2RpL11pdaiLsioxgj1jkj8mLM
-         9+9qf1CMR3QU9x1K44ujA7lacXCsELokjzhBznoY=
-Date:   Tue, 22 Dec 2020 18:22:44 -0800
+        b=mx+wHc80FOEq+IYDzqvQTsUG54/ylx7vPKTrEjX1VOi5HNssP8Nfjknqo5CwF1iab
+         uvb8pDMJ3MsN986z9Wck9YCCUREG1aVzOKSx5OQSt79RLrGwuDIpiT38rkJZjr41j6
+         kvI9xg913sFrEN4jPYp+3crLZrnLHQ+NKG199Ttw=
+Date:   Tue, 22 Dec 2020 18:18:34 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
-        shakeelb@google.com, samitolvanen@google.com,
-        rdunlap@infradead.org, rafael@kernel.org,
-        pankaj.gupta@cloud.ionos.com, neilb@suse.de, mhocko@suse.com,
-        iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
-        guro@fb.com, gregkh@linuxfoundation.org, feng.tang@intel.com,
-        adobriyan@gmail.com, songmuchun@bytedance.com
+To:     mm-commits@vger.kernel.org, deller@gmx.de, adobriyan@gmail.com,
+        akpm@linux-foundation.org
 Subject:  +
- mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch added to -mm
- tree
-Message-ID: <20201223022244.JMKjm%akpm@linux-foundation.org>
+ proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix.patch added to
+ -mm tree
+Message-ID: <20201223021834.9n93L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: convert NR_SHMEM_PMDMAPPED account to pages
+     Subject: proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+     proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,153 +65,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: convert NR_SHMEM_PMDMAPPED account to pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix
 
-Currently we use struct per_cpu_nodestat to cache the vmstat counters,
-which leads to inaccurate statistics expecially THP vmstat counters.  In
-the systems with hundreads of processors it can be GBs of memory.  For
-example, for a 96 CPUs system, the threshold is the maximum number of 125.
-And the per cpu counters can cache 23.4375 GB in total.
+further simplification
 
-The THP page is already a form of batched addition (it will add 512 worth
-of memory in one go) so skipping the batching seems like sensible. 
-Although every THP stats update overflows the per-cpu counter, resorting
-to atomic global updates.  But it can make the statistics more accuracy
-for the THP vmstat counters.
-
-So we convert the NR_SHMEM_PMDMAPPED account to pages.  This patch is
-consistent with 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page
-arrival").  Doing this also can make the unit of vmstat counters more
-unified.  Finally, the unit of the vmstat counters are pages, kB and
-bytes.  The B/KB suffix can tell us that the unit is bytes or kB.  The
-rest which is without suffix are pages.
-
-Link: https://lkml.kernel.org/r/20201217034356.4708-6-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
-Cc: Rafael. J. Wysocki <rafael@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    3 +--
- fs/proc/meminfo.c      |    2 +-
- include/linux/mmzone.h |    3 ++-
- mm/page_alloc.c        |    3 +--
- mm/rmap.c              |   14 ++++++++++----
- 5 files changed, 15 insertions(+), 10 deletions(-)
+ fs/proc/base.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/drivers/base/node.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/drivers/base/node.c
-@@ -463,8 +463,7 @@ static ssize_t node_read_meminfo(struct
- 			     ,
- 			     nid, K(node_page_state(pgdat, NR_ANON_THPS)),
- 			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS)),
--			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
--				    HPAGE_PMD_NR),
-+			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
- 			     nid, K(node_page_state(pgdat, NR_FILE_THPS)),
- 			     nid, K(node_page_state(pgdat, NR_FILE_PMDMAPPED) *
- 				    HPAGE_PMD_NR)
---- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/fs/proc/meminfo.c
-@@ -133,7 +133,7 @@ static int meminfo_proc_show(struct seq_
- 	show_val_kb(m, "ShmemHugePages: ",
- 		    global_node_page_state(NR_SHMEM_THPS));
- 	show_val_kb(m, "ShmemPmdMapped: ",
--		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
-+		    global_node_page_state(NR_SHMEM_PMDMAPPED));
- 	show_val_kb(m, "FileHugePages:  ",
- 		    global_node_page_state(NR_FILE_THPS));
- 	show_val_kb(m, "FilePmdMapped:  ",
---- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/include/linux/mmzone.h
-@@ -218,7 +218,8 @@ static __always_inline bool vmstat_item_
+--- a/fs/proc/base.c~proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix
++++ a/fs/proc/base.c
+@@ -384,15 +384,8 @@ static const struct file_operations proc
+ static int proc_pid_wchan(struct seq_file *m, struct pid_namespace *ns,
+ 			  struct pid *pid, struct task_struct *task)
  {
- 	return item == NR_ANON_THPS ||
- 	       item == NR_FILE_THPS ||
--	       item == NR_SHMEM_THPS;
-+	       item == NR_SHMEM_THPS ||
-+	       item == NR_SHMEM_PMDMAPPED;
- }
+-	unsigned long wchan;
+-
+ 	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
+-		wchan = get_wchan(task);
+-	else
+-		wchan = 0;
+-
+-	if (wchan)
+-		seq_printf(m, "%ps", (void *) wchan);
++		seq_printf(m, "%ps", (void *)get_wchan(task));
+ 	else
+ 		seq_putc(m, '0');
  
- /*
---- a/mm/page_alloc.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/mm/page_alloc.c
-@@ -5578,8 +5578,7 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_SHMEM)),
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			K(node_page_state(pgdat, NR_SHMEM_THPS)),
--			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
--					* HPAGE_PMD_NR),
-+			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
- 			K(node_page_state(pgdat, NR_ANON_THPS)),
- #endif
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
---- a/mm/rmap.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/mm/rmap.c
-@@ -1211,14 +1211,17 @@ void page_add_file_rmap(struct page *pag
- 	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
- 	lock_page_memcg(page);
- 	if (compound && PageTransHuge(page)) {
--		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
-+		int nr_pages = thp_nr_pages(page);
-+
-+		for (i = 0, nr = 0; i < nr_pages; i++) {
- 			if (atomic_inc_and_test(&page[i]._mapcount))
- 				nr++;
- 		}
- 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
- 			goto out;
- 		if (PageSwapBacked(page))
--			__inc_node_page_state(page, NR_SHMEM_PMDMAPPED);
-+			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
-+						nr_pages);
- 		else
- 			__inc_node_page_state(page, NR_FILE_PMDMAPPED);
- 	} else {
-@@ -1252,14 +1255,17 @@ static void page_remove_file_rmap(struct
- 
- 	/* page still mapped by someone else? */
- 	if (compound && PageTransHuge(page)) {
--		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
-+		int nr_pages = thp_nr_pages(page);
-+
-+		for (i = 0, nr = 0; i < nr_pages; i++) {
- 			if (atomic_add_negative(-1, &page[i]._mapcount))
- 				nr++;
- 		}
- 		if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
- 			return;
- 		if (PageSwapBacked(page))
--			__dec_node_page_state(page, NR_SHMEM_PMDMAPPED);
-+			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
-+						-nr_pages);
- 		else
- 			__dec_node_page_state(page, NR_FILE_PMDMAPPED);
- 	} else {
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
-mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
-mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
+mm-add-prototype-for-__add_to_page_cache_locked-fix.patch
+mm.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+proc-wchan-use-printk-format-instead-of-lookup_symbol_name-fix.patch
+linux-next-rejects.patch
+kmap-stupid-hacks-to-make-it-compile.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
