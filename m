@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35DBDC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26DD3C433E9
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A628223E0
+	by mail.kernel.org (Postfix) with ESMTP id F2EC8223DB
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727040AbgLWSaS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46044 "EHLO mail.kernel.org"
+        id S1728318AbgLWSaT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728318AbgLWSaS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A544022512;
-        Wed, 23 Dec 2020 18:29:17 +0000 (UTC)
+        id S1727663AbgLWSaT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:30:19 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BF3F5223DB;
+        Wed, 23 Dec 2020 18:30:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748158;
-        bh=5N0ZX1EHB55t0nzFAeMT0zInAwiOyR+6OMIeZPCbyKo=;
+        s=korg; t=1608748204;
+        bh=RpxOj9dZwuJ2t1zms53TnLKdtAkooP53ub1uVxsUufw=;
         h=Date:From:To:Subject:From;
-        b=oQCNB3M1WqqM1LDklRu1sK3vN7zc1t/I4wLbAdcdgjkWTmo8CxNy/+ewEXkhyE+D7
-         CsR+kJ8XVdDeP20WCMSJPiAKzr0QCz1j6jYKIPdB3vOCKzNS6zeWhwcOca4qJBNm8e
-         /D/ySQvHelz4hYojuO/Lru8fm2c8nh5tD1H2X2Gw=
-Date:   Wed, 23 Dec 2020 10:29:17 -0800
+        b=cwSmTqDHwZBxOwiDTh+hmRFgkm79Qosngz4xXn4whZ12rA4wU1CNsJsLDYlBS4xBd
+         53U5H1KgSFj3l/jIsk+jOfaLPcsUgzHxwig6ecOGba5n6IeuS4KaPGYseZqDtfdMJC
+         7Z9gia6hsa1CpsrCQRvS5O8slD3cKVJDr19S1oEE=
+Date:   Wed, 23 Dec 2020 10:30:03 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,10 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged]
- arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch removed from
- -mm tree
-Message-ID: <20201223182917.4bdPL7PHA%akpm@linux-foundation.org>
+Subject:  [merged] kasan-mm-rename-kasan_poison_kfree.patch removed
+ from -mm tree
+Message-ID: <20201223183003.O82RKcj6b%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,99 +47,157 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kasan: add arch layer for memory tagging helpers
+     Subject: kasan, mm: rename kasan_poison_kfree
 has been removed from the -mm tree.  Its filename was
-     arm64-kasan-add-arch-layer-for-memory-tagging-helpers.patch
+     kasan-mm-rename-kasan_poison_kfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64: kasan: add arch layer for memory tagging helpers
+Subject: kasan, mm: rename kasan_poison_kfree
 
-This patch add a set of arch_*() memory tagging helpers currently only
-defined for arm64 when hardware tag-based KASAN is enabled.  These helpers
-will be used by KASAN runtime to implement the hardware tag-based mode.
+Rename kasan_poison_kfree() to kasan_slab_free_mempool() as it better
+reflects what this annotation does. Also add a comment that explains the
+PageSlab() check.
 
-The arch-level indirection level is introduced to simplify adding hardware
-tag-based KASAN support for other architectures in the future by defining
-the appropriate arch_*() macros.
+No functional changes.
 
-Link: https://lkml.kernel.org/r/fc9e5bb71201c03131a2fc00a74125723568dda9.1606161801.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/141675fb493555e984c5dca555e9d9f768c7bbaa.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I5026f87364e556b506ef1baee725144bb04b8810
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/memory.h |    9 +++++++++
- mm/kasan/kasan.h                |   26 ++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+)
+ include/linux/kasan.h |   16 ++++++++--------
+ mm/kasan/common.c     |   40 +++++++++++++++++++++++-----------------
+ mm/mempool.c          |    2 +-
+ 3 files changed, 32 insertions(+), 26 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~arm64-kasan-add-arch-layer-for-memory-tagging-helpers
-+++ a/arch/arm64/include/asm/memory.h
-@@ -230,6 +230,15 @@ static inline const void *__tag_set(cons
- 	return (const void *)(__addr | __tag_shifted(tag));
+--- a/include/linux/kasan.h~kasan-mm-rename-kasan_poison_kfree
++++ a/include/linux/kasan.h
+@@ -176,6 +176,13 @@ static __always_inline bool kasan_slab_f
+ 	return false;
  }
  
-+#ifdef CONFIG_KASAN_HW_TAGS
-+#define arch_enable_tagging()			mte_enable_kernel()
-+#define arch_init_tags(max_tag)			mte_init_tags(max_tag)
-+#define arch_get_random_tag()			mte_get_random_tag()
-+#define arch_get_mem_tag(addr)			mte_get_mem_tag(addr)
-+#define arch_set_mem_tag_range(addr, size, tag)	\
-+			mte_set_mem_tag_range((addr), (size), (tag))
-+#endif /* CONFIG_KASAN_HW_TAGS */
++void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
++static __always_inline void kasan_slab_free_mempool(void *ptr, unsigned long ip)
++{
++	if (kasan_enabled())
++		__kasan_slab_free_mempool(ptr, ip);
++}
 +
- /*
-  * Physical vs virtual RAM address space conversion.  These are
-  * private definitions which should NOT be used outside memory.h
---- a/mm/kasan/kasan.h~arm64-kasan-add-arch-layer-for-memory-tagging-helpers
-+++ a/mm/kasan/kasan.h
-@@ -243,6 +243,32 @@ static inline const void *arch_kasan_set
- #define reset_tag(addr)		((void *)arch_kasan_reset_tag(addr))
- #define get_tag(addr)		arch_kasan_get_tag(addr)
+ void * __must_check __kasan_slab_alloc(struct kmem_cache *s,
+ 				       void *object, gfp_t flags);
+ static __always_inline void * __must_check kasan_slab_alloc(
+@@ -216,13 +223,6 @@ static __always_inline void * __must_che
+ 	return (void *)object;
+ }
  
-+#ifdef CONFIG_KASAN_HW_TAGS
+-void __kasan_poison_kfree(void *ptr, unsigned long ip);
+-static __always_inline void kasan_poison_kfree(void *ptr, unsigned long ip)
+-{
+-	if (kasan_enabled())
+-		__kasan_poison_kfree(ptr, ip);
+-}
+-
+ void __kasan_kfree_large(void *ptr, unsigned long ip);
+ static __always_inline void kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+@@ -261,6 +261,7 @@ static inline bool kasan_slab_free(struc
+ {
+ 	return false;
+ }
++static inline void kasan_slab_free_mempool(void *ptr, unsigned long ip) {}
+ static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
+ 				   gfp_t flags)
+ {
+@@ -280,7 +281,6 @@ static inline void *kasan_krealloc(const
+ {
+ 	return (void *)object;
+ }
+-static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
+ static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
+ 
+ #endif /* CONFIG_KASAN */
+--- a/mm/kasan/common.c~kasan-mm-rename-kasan_poison_kfree
++++ a/mm/kasan/common.c
+@@ -331,6 +331,29 @@ bool __kasan_slab_free(struct kmem_cache
+ 	return ____kasan_slab_free(cache, object, ip, true);
+ }
+ 
++void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
++{
++	struct page *page;
 +
-+#ifndef arch_enable_tagging
-+#define arch_enable_tagging()
-+#endif
-+#ifndef arch_init_tags
-+#define arch_init_tags(max_tag)
-+#endif
-+#ifndef arch_get_random_tag
-+#define arch_get_random_tag()	(0xFF)
-+#endif
-+#ifndef arch_get_mem_tag
-+#define arch_get_mem_tag(addr)	(0xFF)
-+#endif
-+#ifndef arch_set_mem_tag_range
-+#define arch_set_mem_tag_range(addr, size, tag) ((void *)(addr))
-+#endif
++	page = virt_to_head_page(ptr);
 +
-+#define hw_enable_tagging()			arch_enable_tagging()
-+#define hw_init_tags(max_tag)			arch_init_tags(max_tag)
-+#define hw_get_random_tag()			arch_get_random_tag()
-+#define hw_get_mem_tag(addr)			arch_get_mem_tag(addr)
-+#define hw_set_mem_tag_range(addr, size, tag)	arch_set_mem_tag_range((addr), (size), (tag))
++	/*
++	 * Even though this function is only called for kmem_cache_alloc and
++	 * kmalloc backed mempool allocations, those allocations can still be
++	 * !PageSlab() when the size provided to kmalloc is larger than
++	 * KMALLOC_MAX_SIZE, and kmalloc falls back onto page_alloc.
++	 */
++	if (unlikely(!PageSlab(page))) {
++		if (ptr != page_address(page)) {
++			kasan_report_invalid_free(ptr, ip);
++			return;
++		}
++		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
++	} else {
++		____kasan_slab_free(page->slab_cache, ptr, ip, false);
++	}
++}
 +
-+#endif /* CONFIG_KASAN_HW_TAGS */
-+
- /*
-  * Exported functions for interfaces called from assembly or from generated
-  * code. Declarations here to avoid warning about missing declarations.
+ static void set_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+ {
+ 	kasan_set_track(&kasan_get_alloc_meta(cache, object)->alloc_track, flags);
+@@ -422,23 +445,6 @@ void * __must_check __kasan_krealloc(con
+ 						flags, true);
+ }
+ 
+-void __kasan_poison_kfree(void *ptr, unsigned long ip)
+-{
+-	struct page *page;
+-
+-	page = virt_to_head_page(ptr);
+-
+-	if (unlikely(!PageSlab(page))) {
+-		if (ptr != page_address(page)) {
+-			kasan_report_invalid_free(ptr, ip);
+-			return;
+-		}
+-		poison_range(ptr, page_size(page), KASAN_FREE_PAGE);
+-	} else {
+-		____kasan_slab_free(page->slab_cache, ptr, ip, false);
+-	}
+-}
+-
+ void __kasan_kfree_large(void *ptr, unsigned long ip)
+ {
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+--- a/mm/mempool.c~kasan-mm-rename-kasan_poison_kfree
++++ a/mm/mempool.c
+@@ -104,7 +104,7 @@ static inline void poison_element(mempoo
+ static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
+ {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_poison_kfree(element, _RET_IP_);
++		kasan_slab_free_mempool(element, _RET_IP_);
+ 	else if (pool->alloc == mempool_alloc_pages)
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
