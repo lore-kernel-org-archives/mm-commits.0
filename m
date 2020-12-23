@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8135FC433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:38:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC59C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:39:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4431122510
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:38:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3FF82246B
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:39:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729117AbgLWUiI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 15:38:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41178 "EHLO mail.kernel.org"
+        id S1727147AbgLWUi5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 15:38:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726279AbgLWUiI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 15:38:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1AF22246B;
-        Wed, 23 Dec 2020 20:37:27 +0000 (UTC)
+        id S1726979AbgLWUi5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 15:38:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 979B5223DB;
+        Wed, 23 Dec 2020 20:38:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608755847;
-        bh=jOQt2hN7nmv0ABNV1G0SSEBz0PRvNzE4e/V1UfFM1xM=;
+        s=korg; t=1608755896;
+        bh=UeLaZHV8nvDJI940dm1wMNRXwyZh7p/fw5fCUsVrbY0=;
         h=Date:From:To:Subject:From;
-        b=doS6iu3JZNTuwHxBMbfLjxoui5p29Ud1LaG78qcONpPQcPTiPXjMTgC197lnsnySC
-         lWQE7u2/kDu661jteME1gZFsEGpOlpzZLy30LJCYH784rORf2tFTYcOAc8hI8bo8Gd
-         9CGvQQ4HULHbCbAH190wjfCexurv1d/U6srLP0Aw=
-Date:   Wed, 23 Dec 2020 12:37:27 -0800
+        b=WSTZURZgpYveeY8xKqxIuFtxJgf+1wqduOfrvleYOlygBzSgBPQgtMRakEO7JTPsO
+         j3HD34nEbF9NuJWCzn0TehubG6AIWrAwzaz3fFhdumkKW6z+mgbCVxM6N61D+yd38n
+         vTJVCl40MLu/cxfObf1GXVta8h/cm16wt9xadMMk=
+Date:   Wed, 23 Dec 2020 12:38:15 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
-        joe@perches.com
-Subject:  + checkpatch-prefer-strscpy-to-strlcpy.patch added to -mm
- tree
-Message-ID: <20201223203727.4oUVP%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        alex.shi@linux.alibaba.com, jrdr.linux@gmail.com
+Subject:  [to-be-updated]
+ mm-add-prototype-for-__add_to_page_cache_locked.patch removed from -mm tree
+Message-ID: <20201223203815.cOk2m%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,59 +43,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: prefer strscpy to strlcpy
-has been added to the -mm tree.  Its filename is
-     checkpatch-prefer-strscpy-to-strlcpy.patch
+     Subject: include/linux/mm.h: add prototype for __add_to_page_cache_locked()
+has been removed from the -mm tree.  Its filename was
+     mm-add-prototype-for-__add_to_page_cache_locked.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-prefer-strscpy-to-strlcpy.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-prefer-strscpy-to-strlcpy.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: prefer strscpy to strlcpy
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Subject: include/linux/mm.h: add prototype for __add_to_page_cache_locked()
 
-Prefer strscpy over the deprecated strlcpy function.
+Otherwise it causes a gcc warning:
 
-Link: https://lkml.kernel.org/r/19fe91084890e2c16fe56f960de6c570a93fa99b.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Requested-by: Andrew Morton <akpm@linux-foundation.org>
+../mm/filemap.c:830:14: warning: no previous prototype for
+`__add_to_page_cache_locked' [-Wmissing-prototypes]
+
+A previous attempt to make this function static led to compilation
+errors for a few architectures, because __add_to_page_cache_locked() is
+referred to by BPF code.
+
+Adding a prototype will silence the warning.
+
+Link: https://lkml.kernel.org/r/1608646792-29073-1-git-send-email-jrdr.linux@gmail.com
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
+ include/linux/mm.h |    6 ++++++
  1 file changed, 6 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-prefer-strscpy-to-strlcpy
-+++ a/scripts/checkpatch.pl
-@@ -6646,6 +6646,12 @@ sub process {
- #			}
- #		}
+--- a/include/linux/mm.h~mm-add-prototype-for-__add_to_page_cache_locked
++++ a/include/linux/mm.h
+@@ -216,6 +216,12 @@ int overcommit_kbytes_handler(struct ctl
+ 		loff_t *);
+ int overcommit_policy_handler(struct ctl_table *, int, void *, size_t *,
+ 		loff_t *);
++/*
++ * Any attempt to mark this function as static leads to build failure
++ * for few architectures. Adding a prototype to silence gcc warning.
++ */
++int __add_to_page_cache_locked(struct page *page, struct address_space *mapping,
++		pgoff_t offset, gfp_t gfp, void **shadowp);
  
-+# strlcpy uses that should likely be strscpy
-+		if ($line =~ /\bstrlcpy\s*\(/) {
-+			WARN("STRLCPY",
-+			     "Prefer strscpy over strlcpy - see: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw\@mail.gmail.com/\n" . $herecurr);
-+		}
-+
- # typecasts on min/max could be min_t/max_t
- 		if ($perl_version_ok &&
- 		    defined $stat &&
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jrdr.linux@gmail.com are
 
-checkpatch-prefer-strscpy-to-strlcpy.patch
 
