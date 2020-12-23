@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 526C1C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27D83C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:16:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 266FB22286
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00B57223E4
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:16:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728012AbgLWSa5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46674 "EHLO mail.kernel.org"
+        id S1727671AbgLWUQa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 15:16:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727836AbgLWSa5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6EC6F2229C;
-        Wed, 23 Dec 2020 18:30:16 +0000 (UTC)
+        id S1727369AbgLWUQa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 15:16:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BD95220855;
+        Wed, 23 Dec 2020 20:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748216;
-        bh=eSLk7k7fQbyqJqzEqjmciy5eyTO236Id6TvF9kt31j8=;
+        s=korg; t=1608754549;
+        bh=2gaTC+3SihtYLiGHeL4PRgpV46rCE+yLesfk9UMgWd4=;
         h=Date:From:To:Subject:From;
-        b=oVusyUMpTJV8bYMEUYBi9EPO9QLc2i8PFFLavEr3W7v5/a7QJUC61HBARxBAmfPDD
-         UXWPYrdNYr3gOF5dU047PgLkS00/uuC1VTEt10CfgA3f79fkMpNUbuXEnhx3uF8zws
-         y0D16ABxatwbh7FxZ1pfRFHaxe+1v0o9gOU6lbLE=
-Date:   Wed, 23 Dec 2020 10:30:16 -0800
+        b=b7artWaTTjvjFHCXj1B3m44jYvpE6zwFbALw8aQzkkV8x/UjWo5wPydlmRZCf90zt
+         c1aswz555ppTYMS628kDSqrsPqh2bg1s+L0fWy9Uis+G8F6VsLk9Hli9hVTgcAAZAW
+         D1Buv66OvyH6P6ZHtcQXzvBRUbwCrIUTj0A3QA6w=
+Date:   Wed, 23 Dec 2020 12:15:49 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, Vincenzo.Frascino@arm.com,
-        will.deacon@arm.com
-Subject:  [merged]
- kasan-mm-allow-cache-merging-with-no-metadata.patch removed from -mm tree
-Message-ID: <20201223183016.eQZvWbOMa%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, guro@fb.com
+Subject:  + mm-cma-allocate-cma-areas-bottom-up-fix-2.patch added to
+ -mm tree
+Message-ID: <20201223201549.3Zwhl%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,137 +42,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: allow cache merging with no metadata
-has been removed from the -mm tree.  Its filename was
-     kasan-mm-allow-cache-merging-with-no-metadata.patch
+     Subject: mm-cma-allocate-cma-areas-bottom-up-fix-2
+has been added to the -mm tree.  Its filename is
+     mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: allow cache merging with no metadata
+From: Roman Gushchin <guro@fb.com>
+Subject: mm-cma-allocate-cma-areas-bottom-up-fix-2
 
-The reason cache merging is disabled with KASAN is because KASAN puts its
-metadata right after the allocated object. When the merged caches have
-slightly different sizes, the metadata ends up in different places, which
-KASAN doesn't support.
+fix 32-bit warnings
 
-It might be possible to adjust the metadata allocation algorithm and make
-it friendly to the cache merging code. Instead this change takes a simpler
-approach and allows merging caches when no metadata is present. Which is
-the case for hardware tag-based KASAN with kasan.mode=prod.
-
-Link: https://lkml.kernel.org/r/37497e940bfd4b32c0a93a702a9ae4cf061d5392.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ia114847dfb2244f297d2cb82d592bf6a07455dba
-Co-developed-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
-Signed-off-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: https://lkml.kernel.org/r/20201223163537.GA4011967@carbon.DHCP.thefacebook.com
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   21 +++++++++++++++++++--
- mm/kasan/common.c     |   11 +++++++++++
- mm/slab_common.c      |    3 ++-
- 3 files changed, 32 insertions(+), 3 deletions(-)
+ mm/cma.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/kasan.h~kasan-mm-allow-cache-merging-with-no-metadata
-+++ a/include/linux/kasan.h
-@@ -82,17 +82,30 @@ struct kasan_cache {
- };
+--- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up-fix-2
++++ a/mm/cma.c
+@@ -344,12 +344,14 @@ int __init cma_declare_contiguous_nid(ph
+ 		 * Avoid using first 4GB to not interfere with constrained zones
+ 		 * like DMA/DMA32.
+ 		 */
++#if BITS_PER_LONG > 32
+ 		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
+ 			memblock_set_bottom_up(true);
+ 			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
+ 							limit, nid, true);
+ 			memblock_set_bottom_up(false);
+ 		}
++#endif
  
- #ifdef CONFIG_KASAN_HW_TAGS
-+
- DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
-+
- static __always_inline bool kasan_enabled(void)
- {
- 	return static_branch_likely(&kasan_flag_enabled);
- }
--#else
-+
-+#else /* CONFIG_KASAN_HW_TAGS */
-+
- static inline bool kasan_enabled(void)
- {
- 	return true;
- }
--#endif
-+
-+#endif /* CONFIG_KASAN_HW_TAGS */
-+
-+slab_flags_t __kasan_never_merge(void);
-+static __always_inline slab_flags_t kasan_never_merge(void)
-+{
-+	if (kasan_enabled())
-+		return __kasan_never_merge();
-+	return 0;
-+}
- 
- void __kasan_unpoison_range(const void *addr, size_t size);
- static __always_inline void kasan_unpoison_range(const void *addr, size_t size)
-@@ -239,6 +252,10 @@ static inline bool kasan_enabled(void)
- {
- 	return false;
- }
-+static inline slab_flags_t kasan_never_merge(void)
-+{
-+	return 0;
-+}
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
- static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
- static inline void kasan_free_pages(struct page *page, unsigned int order) {}
---- a/mm/kasan/common.c~kasan-mm-allow-cache-merging-with-no-metadata
-+++ a/mm/kasan/common.c
-@@ -86,6 +86,17 @@ asmlinkage void kasan_unpoison_task_stac
- }
- #endif /* CONFIG_KASAN_STACK */
- 
-+/*
-+ * Only allow cache merging when stack collection is disabled and no metadata
-+ * is present.
-+ */
-+slab_flags_t __kasan_never_merge(void)
-+{
-+	if (kasan_stack_collection_enabled())
-+		return SLAB_KASAN;
-+	return 0;
-+}
-+
- void __kasan_alloc_pages(struct page *page, unsigned int order)
- {
- 	u8 tag;
---- a/mm/slab_common.c~kasan-mm-allow-cache-merging-with-no-metadata
-+++ a/mm/slab_common.c
-@@ -18,6 +18,7 @@
- #include <linux/seq_file.h>
- #include <linux/proc_fs.h>
- #include <linux/debugfs.h>
-+#include <linux/kasan.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <asm/page.h>
-@@ -53,7 +54,7 @@ static DECLARE_WORK(slab_caches_to_rcu_d
-  */
- #define SLAB_NEVER_MERGE (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
- 		SLAB_TRACE | SLAB_TYPESAFE_BY_RCU | SLAB_NOLEAKTRACE | \
--		SLAB_FAILSLAB | SLAB_KASAN)
-+		SLAB_FAILSLAB | kasan_never_merge())
- 
- #define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | \
- 			 SLAB_CACHE_DMA32 | SLAB_ACCOUNT)
+ 		if (!addr) {
+ 			addr = memblock_alloc_range_nid(size, alignment, base,
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from guro@fb.com are
 
+mm-slub-call-account_slab_page-after-slab-page-initialization.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+mm-cma-allocate-cma-areas-bottom-up.patch
+mm-cma-allocate-cma-areas-bottom-up-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
+memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
