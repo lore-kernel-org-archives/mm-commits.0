@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E0B2C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:43:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 863E0C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 22:21:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 395D82222D
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 20:43:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B8062247F
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 22:21:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728751AbgLWUmx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 15:42:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42126 "EHLO mail.kernel.org"
+        id S1726112AbgLWWV4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 17:21:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727677AbgLWUmx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 15:42:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 85306223E4;
-        Wed, 23 Dec 2020 20:42:12 +0000 (UTC)
+        id S1726047AbgLWWVz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 17:21:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B728F22283;
+        Wed, 23 Dec 2020 22:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608756132;
-        bh=G1H7pT7sIAn56USi96WAiKi0gVPXLJAJGY7ZWElCq2Q=;
+        s=korg; t=1608762074;
+        bh=Cicxw/duyA2qeOL05tWQ2pin3i5FzUPi28b1PCRJprw=;
         h=Date:From:To:Subject:From;
-        b=jHEnOEeMovIRG3dbmF82j+qcujhuXj0nNZheuwIeXwchOmEwUorpAfBpkFcmoa5GZ
-         e8NhxRo2WTANVIES+NfE7JXLtmit00RDHpweJZ1CVYolh3MUapg9aXZGRWo/mB/6Mc
-         1ZiV1naRWb6PpBVQs3vnPCn50+8t65undK+rwTzU=
-Date:   Wed, 23 Dec 2020 12:42:12 -0800
+        b=ICoARz4br+Y5+Z3irZ3q03a0bNfMFynJCxP6SS0wmF356aHxyba4CIYKjjWaphYID
+         7WJkyIsoPIYj3lG8TwZXxNpPkh/D89UESR3FOhkiqIzckc+ciO9YcabW47nUe8iRZd
+         gm314K43gqgInbekiSqOljhk9VIQRf1/8Wv02YSE=
+Date:   Wed, 23 Dec 2020 14:21:14 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        rientjes@google.com, penberg@kernel.org,
-        paulmck@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, cl@linux.com,
-        jian.w.wen@oracle.com
-Subject:  + mm-tracing-record-slab-name-for-kmem_cache_free.patch
- added to -mm tree
-Message-ID: <20201223204212.ktjXk%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, yuzhao@google.com
+Subject:  [to-be-updated]
+ mm-dont-setpageworkingset-unconditionally-during-swapin.patch removed from
+ -mm tree
+Message-ID: <20201223222114.yqxP5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,146 +44,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, tracing: record slab name for kmem_cache_free()
-has been added to the -mm tree.  Its filename is
-     mm-tracing-record-slab-name-for-kmem_cache_free.patch
+     Subject: mm/swap: don't SetPageWorkingset unconditionally during swapin
+has been removed from the -mm tree.  Its filename was
+     mm-dont-setpageworkingset-unconditionally-during-swapin.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-record-slab-name-for-kmem_cache_free.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-record-slab-name-for-kmem_cache_free.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Jacob Wen <jian.w.wen@oracle.com>
-Subject: mm, tracing: record slab name for kmem_cache_free()
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/swap: don't SetPageWorkingset unconditionally during swapin
 
-Currently, a trace record generated by the RCU core is as below.
+We are capable of SetPageWorkingset based on refault distances after
+commit aae466b0052e ("mm/swap: implement workingset detection for
+anonymous LRU") This is done by workingset_refault(), which is right above
+the unconditional SetPageWorkingset deleted by this patch.
 
-... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=00000000f3b49a66
+The unconditional SetPageWorkingset miscategorizes pages that are read
+ahead or never belonged to the working set (e.g., tmpfs pages accessed by
+fd).  When those pages are swapped in (after they were swapped out) for
+the first time, they skew PSI (when using async swap).  When this happens
+again, depending on their refault distances, they might skew
+workingset_restore_anon counter in addition to PSI because their shadows
+say they were part of the working set.
 
-It doesn't tell us what the RCU core has freed.
-
-This patch adds the slab name to trace_kmem_cache_free().
-The new format is as follows.
-
-... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=0000000037f79c8d name=dentry
-... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=00000000f78cb7b5 name=sock_inode_cache
-... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=0000000018768985 name=pool_workqueue
-... kmem_cache_free: call_site=rcu_core+0x1fd/0x610 ptr=000000006a6cb484 name=radix_tree_node
-
-We can use it to understand what the RCU core is going to free. For
-example, some users maybe interested in when the RCU core starts
-freeing reclaimable slabs like dentry to reduce memory pressure.
-
-Link: https://lkml.kernel.org/r/20201216072804.8838-1-jian.w.wen@oracle.com
-Signed-off-by: Jacob Wen <jian.w.wen@oracle.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Link: https://lkml.kernel.org/r/20201209012400.1771150-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/kmem.h |   24 ++++++++++++++++--------
- mm/slab.c                   |    2 +-
- mm/slob.c                   |    2 +-
- mm/slub.c                   |    2 +-
- 4 files changed, 19 insertions(+), 11 deletions(-)
+ mm/swap_state.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/trace/events/kmem.h~mm-tracing-record-slab-name-for-kmem_cache_free
-+++ a/include/trace/events/kmem.h
-@@ -115,7 +115,7 @@ DEFINE_EVENT(kmem_alloc_node, kmem_cache
- 	TP_ARGS(call_site, ptr, bytes_req, bytes_alloc, gfp_flags, node)
- );
+--- a/mm/swap_state.c~mm-dont-setpageworkingset-unconditionally-during-swapin
++++ a/mm/swap_state.c
+@@ -537,7 +537,6 @@ struct page *__read_swap_cache_async(swp
+ 		workingset_refault(page, shadow);
  
--DECLARE_EVENT_CLASS(kmem_free,
-+TRACE_EVENT(kfree,
- 
- 	TP_PROTO(unsigned long call_site, const void *ptr),
- 
-@@ -135,18 +135,26 @@ DECLARE_EVENT_CLASS(kmem_free,
- 		  (void *)__entry->call_site, __entry->ptr)
- );
- 
--DEFINE_EVENT(kmem_free, kfree,
-+TRACE_EVENT(kmem_cache_free,
- 
--	TP_PROTO(unsigned long call_site, const void *ptr),
-+	TP_PROTO(unsigned long call_site, const void *ptr, const char *name),
- 
--	TP_ARGS(call_site, ptr)
--);
-+	TP_ARGS(call_site, ptr, name),
- 
--DEFINE_EVENT(kmem_free, kmem_cache_free,
-+	TP_STRUCT__entry(
-+		__field(	unsigned long,	call_site	)
-+		__field(	const void *,	ptr		)
-+		__field(	const char *,	name		)
-+	),
- 
--	TP_PROTO(unsigned long call_site, const void *ptr),
-+	TP_fast_assign(
-+		__entry->call_site	= call_site;
-+		__entry->ptr		= ptr;
-+		__entry->name		= name;
-+	),
- 
--	TP_ARGS(call_site, ptr)
-+	TP_printk("call_site=%pS ptr=%p name=%s",
-+		  (void *)__entry->call_site, __entry->ptr, __entry->name)
- );
- 
- TRACE_EVENT(mm_page_free,
---- a/mm/slab.c~mm-tracing-record-slab-name-for-kmem_cache_free
-+++ a/mm/slab.c
-@@ -3697,7 +3697,7 @@ void kmem_cache_free(struct kmem_cache *
- 	__cache_free(cachep, objp, _RET_IP_);
- 	local_irq_restore(flags);
- 
--	trace_kmem_cache_free(_RET_IP_, objp);
-+	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
---- a/mm/slob.c~mm-tracing-record-slab-name-for-kmem_cache_free
-+++ a/mm/slob.c
-@@ -667,7 +667,7 @@ void kmem_cache_free(struct kmem_cache *
- 		__kmem_cache_free(b, c->size);
- 	}
- 
--	trace_kmem_cache_free(_RET_IP_, b);
-+	trace_kmem_cache_free(_RET_IP_, b, c->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
---- a/mm/slub.c~mm-tracing-record-slab-name-for-kmem_cache_free
-+++ a/mm/slub.c
-@@ -3156,7 +3156,7 @@ void kmem_cache_free(struct kmem_cache *
- 	if (!s)
- 		return;
- 	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
--	trace_kmem_cache_free(_RET_IP_, x);
-+	trace_kmem_cache_free(_RET_IP_, x, s->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
+ 	/* Caller will initiate read into locked page */
+-	SetPageWorkingset(page);
+ 	lru_cache_add(page);
+ 	*new_page_allocated = true;
+ 	return page;
 _
 
-Patches currently in -mm which might be from jian.w.wen@oracle.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-tracing-record-slab-name-for-kmem_cache_free.patch
+mm-swap-dont-setpageworkingset-unconditionally-during-swapin.patch
 
