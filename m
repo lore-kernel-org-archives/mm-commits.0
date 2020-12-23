@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D18C433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 526C1C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCC8622287
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 266FB22286
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727377AbgLWSau (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46582 "EHLO mail.kernel.org"
+        id S1728012AbgLWSa5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726384AbgLWSau (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A979222B3;
-        Wed, 23 Dec 2020 18:30:09 +0000 (UTC)
+        id S1727836AbgLWSa5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:30:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6EC6F2229C;
+        Wed, 23 Dec 2020 18:30:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748210;
-        bh=TsCfTwd5djLh6oYhK9Orce9zSJz4jiUuuGKxGMYbss4=;
+        s=korg; t=1608748216;
+        bh=eSLk7k7fQbyqJqzEqjmciy5eyTO236Id6TvF9kt31j8=;
         h=Date:From:To:Subject:From;
-        b=fEI1Ik5gZb025vS5vKlwFThWiq3tnnGbspSA/3V14kqs1PFK/V2ngZObG4SbmijG2
-         cXeFIInYW2FeBa/Bs9pFrZy7RLgKCIrr/zZ+EuRdRFcrvn+Nv/jDeRsBZOARVWSEEx
-         FJB+te3kDiUNs+pJyvMWTfz88xwRYQbihMJM6fVQ=
-Date:   Wed, 23 Dec 2020 10:30:09 -0800
+        b=oVusyUMpTJV8bYMEUYBi9EPO9QLc2i8PFFLavEr3W7v5/a7QJUC61HBARxBAmfPDD
+         UXWPYrdNYr3gOF5dU047PgLkS00/uuC1VTEt10CfgA3f79fkMpNUbuXEnhx3uF8zws
+         y0D16ABxatwbh7FxZ1pfRFHaxe+1v0o9gOU6lbLE=
+Date:   Wed, 23 Dec 2020 10:30:16 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
         dvyukov@google.com, elver@google.com, eugenis@google.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        mm-commits@vger.kernel.org, Vincenzo.Frascino@arm.com,
         will.deacon@arm.com
 Subject:  [merged]
- kasan-clarify-comment-in-__kasan_kfree_large.patch removed from -mm tree
-Message-ID: <20201223183009.5vZuq0CJi%akpm@linux-foundation.org>
+ kasan-mm-allow-cache-merging-with-no-metadata.patch removed from -mm tree
+Message-ID: <20201223183016.eQZvWbOMa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,21 +47,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: clarify comment in __kasan_kfree_large
+     Subject: kasan, mm: allow cache merging with no metadata
 has been removed from the -mm tree.  Its filename was
-     kasan-clarify-comment-in-__kasan_kfree_large.patch
+     kasan-mm-allow-cache-merging-with-no-metadata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clarify comment in __kasan_kfree_large
+Subject: kasan, mm: allow cache merging with no metadata
 
-Currently it says that the memory gets poisoned by page_alloc code. 
-Clarify this by mentioning the specific callback that poisons the memory.
+The reason cache merging is disabled with KASAN is because KASAN puts its
+metadata right after the allocated object. When the merged caches have
+slightly different sizes, the metadata ends up in different places, which
+KASAN doesn't support.
 
-Link: https://lkml.kernel.org/r/1c8380fe0332a3bcc720fe29f1e0bef2e2974416.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I1334dffb69b87d7986fab88a1a039cc3ea764725
+It might be possible to adjust the metadata allocation algorithm and make
+it friendly to the cache merging code. Instead this change takes a simpler
+approach and allows merging caches when no metadata is present. Which is
+the case for hardware tag-based KASAN with kasan.mode=prod.
+
+Link: https://lkml.kernel.org/r/37497e940bfd4b32c0a93a702a9ae4cf061d5392.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ia114847dfb2244f297d2cb82d592bf6a07455dba
+Co-developed-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
+Signed-off-by: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -77,18 +86,96 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kasan.h |   21 +++++++++++++++++++--
+ mm/kasan/common.c     |   11 +++++++++++
+ mm/slab_common.c      |    3 ++-
+ 3 files changed, 32 insertions(+), 3 deletions(-)
 
---- a/mm/kasan/common.c~kasan-clarify-comment-in-__kasan_kfree_large
-+++ a/mm/kasan/common.c
-@@ -446,5 +446,5 @@ void __kasan_kfree_large(void *ptr, unsi
+--- a/include/linux/kasan.h~kasan-mm-allow-cache-merging-with-no-metadata
++++ a/include/linux/kasan.h
+@@ -82,17 +82,30 @@ struct kasan_cache {
+ };
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
++
+ DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
++
+ static __always_inline bool kasan_enabled(void)
  {
- 	if (ptr != page_address(virt_to_head_page(ptr)))
- 		kasan_report_invalid_free(ptr, ip);
--	/* The object will be poisoned by page_alloc. */
-+	/* The object will be poisoned by kasan_free_pages(). */
+ 	return static_branch_likely(&kasan_flag_enabled);
  }
+-#else
++
++#else /* CONFIG_KASAN_HW_TAGS */
++
+ static inline bool kasan_enabled(void)
+ {
+ 	return true;
+ }
+-#endif
++
++#endif /* CONFIG_KASAN_HW_TAGS */
++
++slab_flags_t __kasan_never_merge(void);
++static __always_inline slab_flags_t kasan_never_merge(void)
++{
++	if (kasan_enabled())
++		return __kasan_never_merge();
++	return 0;
++}
+ 
+ void __kasan_unpoison_range(const void *addr, size_t size);
+ static __always_inline void kasan_unpoison_range(const void *addr, size_t size)
+@@ -239,6 +252,10 @@ static inline bool kasan_enabled(void)
+ {
+ 	return false;
+ }
++static inline slab_flags_t kasan_never_merge(void)
++{
++	return 0;
++}
+ static inline void kasan_unpoison_range(const void *address, size_t size) {}
+ static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
+ static inline void kasan_free_pages(struct page *page, unsigned int order) {}
+--- a/mm/kasan/common.c~kasan-mm-allow-cache-merging-with-no-metadata
++++ a/mm/kasan/common.c
+@@ -86,6 +86,17 @@ asmlinkage void kasan_unpoison_task_stac
+ }
+ #endif /* CONFIG_KASAN_STACK */
+ 
++/*
++ * Only allow cache merging when stack collection is disabled and no metadata
++ * is present.
++ */
++slab_flags_t __kasan_never_merge(void)
++{
++	if (kasan_stack_collection_enabled())
++		return SLAB_KASAN;
++	return 0;
++}
++
+ void __kasan_alloc_pages(struct page *page, unsigned int order)
+ {
+ 	u8 tag;
+--- a/mm/slab_common.c~kasan-mm-allow-cache-merging-with-no-metadata
++++ a/mm/slab_common.c
+@@ -18,6 +18,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/proc_fs.h>
+ #include <linux/debugfs.h>
++#include <linux/kasan.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ #include <asm/page.h>
+@@ -53,7 +54,7 @@ static DECLARE_WORK(slab_caches_to_rcu_d
+  */
+ #define SLAB_NEVER_MERGE (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
+ 		SLAB_TRACE | SLAB_TYPESAFE_BY_RCU | SLAB_NOLEAKTRACE | \
+-		SLAB_FAILSLAB | SLAB_KASAN)
++		SLAB_FAILSLAB | kasan_never_merge())
+ 
+ #define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | \
+ 			 SLAB_CACHE_DMA32 | SLAB_ACCOUNT)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
