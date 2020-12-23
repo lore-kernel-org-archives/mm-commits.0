@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47D2BC433DB
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D18C433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 130F822287
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCC8622287
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727239AbgLWSaq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 13:30:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46520 "EHLO mail.kernel.org"
+        id S1727377AbgLWSau (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Dec 2020 13:30:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726384AbgLWSaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 23 Dec 2020 13:30:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F269223E4;
-        Wed, 23 Dec 2020 18:30:05 +0000 (UTC)
+        id S1726384AbgLWSau (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:30:50 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A979222B3;
+        Wed, 23 Dec 2020 18:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748205;
-        bh=vzZkIhu6bxCgZUNpuUca0tONvKa9pbJiwoADgDEH1Jk=;
+        s=korg; t=1608748210;
+        bh=TsCfTwd5djLh6oYhK9Orce9zSJz4jiUuuGKxGMYbss4=;
         h=Date:From:To:Subject:From;
-        b=mGWhzpSJQ4LWGB/v2XRUX1GMjeOnXikY2YW+096BEGXr2HEYT5/tb2iL044QahRhi
-         XOJ/BjLm1uTCFV3cJt3oZXdUyyASCYaFI0lmps1nwqmc3aIcl9qmvz2OfcYHXC1pqy
-         Ai/WHgg4+OBmIdujf1qn7Q+vK1vyphhyfndSEVRQ=
-Date:   Wed, 23 Dec 2020 10:30:05 -0800
+        b=fEI1Ik5gZb025vS5vKlwFThWiq3tnnGbspSA/3V14kqs1PFK/V2ngZObG4SbmijG2
+         cXeFIInYW2FeBa/Bs9pFrZy7RLgKCIrr/zZ+EuRdRFcrvn+Nv/jDeRsBZOARVWSEEx
+         FJB+te3kDiUNs+pJyvMWTfz88xwRYQbihMJM6fVQ=
+Date:   Wed, 23 Dec 2020 10:30:09 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] kasan-dont-round_up-too-much.patch removed from
- -mm tree
-Message-ID: <20201223183005.zaiQUMHKW%akpm@linux-foundation.org>
+Subject:  [merged]
+ kasan-clarify-comment-in-__kasan_kfree_large.patch removed from -mm tree
+Message-ID: <20201223183009.5vZuq0CJi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,22 +47,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: don't round_up too much
+     Subject: kasan: clarify comment in __kasan_kfree_large
 has been removed from the -mm tree.  Its filename was
-     kasan-dont-round_up-too-much.patch
+     kasan-clarify-comment-in-__kasan_kfree_large.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't round_up too much
+Subject: kasan: clarify comment in __kasan_kfree_large
 
-For hardware tag-based mode kasan_poison_memory() already rounds up the
-size. Do the same for software modes and remove round_up() from the common
-code.
+Currently it says that the memory gets poisoned by page_alloc code. 
+Clarify this by mentioning the specific callback that poisons the memory.
 
-Link: https://lkml.kernel.org/r/47b232474f1f89dc072aeda0fa58daa6efade377.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Ib397128fac6eba874008662b4964d65352db4aa4
+Link: https://lkml.kernel.org/r/1c8380fe0332a3bcc720fe29f1e0bef2e2974416.1606162397.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I1334dffb69b87d7986fab88a1a039cc3ea764725
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
@@ -78,51 +77,18 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    8 ++------
- mm/kasan/shadow.c |    1 +
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ mm/kasan/common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/common.c~kasan-dont-round_up-too-much
+--- a/mm/kasan/common.c~kasan-clarify-comment-in-__kasan_kfree_large
 +++ a/mm/kasan/common.c
-@@ -213,9 +213,7 @@ void __kasan_unpoison_object_data(struct
- 
- void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
+@@ -446,5 +446,5 @@ void __kasan_kfree_large(void *ptr, unsi
  {
--	poison_range(object,
--			round_up(cache->object_size, KASAN_GRANULE_SIZE),
--			KASAN_KMALLOC_REDZONE);
-+	poison_range(object, cache->object_size, KASAN_KMALLOC_REDZONE);
+ 	if (ptr != page_address(virt_to_head_page(ptr)))
+ 		kasan_report_invalid_free(ptr, ip);
+-	/* The object will be poisoned by page_alloc. */
++	/* The object will be poisoned by kasan_free_pages(). */
  }
- 
- /*
-@@ -288,7 +286,6 @@ static bool ____kasan_slab_free(struct k
- {
- 	u8 tag;
- 	void *tagged_object;
--	unsigned long rounded_up_size;
- 
- 	tag = get_tag(object);
- 	tagged_object = object;
-@@ -309,8 +306,7 @@ static bool ____kasan_slab_free(struct k
- 		return true;
- 	}
- 
--	rounded_up_size = round_up(cache->object_size, KASAN_GRANULE_SIZE);
--	poison_range(object, rounded_up_size, KASAN_KMALLOC_FREE);
-+	poison_range(object, cache->object_size, KASAN_KMALLOC_FREE);
- 
- 	if (!kasan_stack_collection_enabled())
- 		return false;
---- a/mm/kasan/shadow.c~kasan-dont-round_up-too-much
-+++ a/mm/kasan/shadow.c
-@@ -82,6 +82,7 @@ void poison_range(const void *address, s
- 	 * addresses to this function.
- 	 */
- 	address = kasan_reset_tag(address);
-+	size = round_up(size, KASAN_GRANULE_SIZE);
- 
- 	shadow_start = kasan_mem_to_shadow(address);
- 	shadow_end = kasan_mem_to_shadow(address + size);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
