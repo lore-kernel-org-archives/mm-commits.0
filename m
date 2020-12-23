@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 779E9C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F1AC433E6
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 507E4222BB
+	by mail.kernel.org (Postfix) with ESMTP id 1730B222F9
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Dec 2020 18:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728443AbgLWSaK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1728433AbgLWSaK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 23 Dec 2020 13:30:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45132 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45932 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728452AbgLWSaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1728444AbgLWSaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 23 Dec 2020 13:30:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E85A224B0;
-        Wed, 23 Dec 2020 18:29:51 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AA967222F9;
+        Wed, 23 Dec 2020 18:29:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1608748192;
-        bh=rUXIh/4GobLqclJrQE96XdZQCfvp9TGvHnJ5xfPUeF0=;
+        s=korg; t=1608748150;
+        bh=2g/qPSPLOv/ORTNdkLwu4mo4uPWZ7s8EVAMGmiLGZqM=;
         h=Date:From:To:Subject:From;
-        b=nBEEZDR8Gfod/Z79aNhFLYSkzEOv/4J4aWkbzD2G0T24fAYKw28UXJqd11tc/X2ga
-         lwz5Ugh//LaMnfYIhTo9lIiBSF4o5HNS/glz1oMORQuADkaaS0i7YtTtKgx25kmQSq
-         KzXsR3F7tJPJx/m1Nucfoq4bJsh1u69t+O8W7O9w=
-Date:   Wed, 23 Dec 2020 10:29:51 -0800
+        b=FhBC/7BLu8zoEKSP64U0vD45RVpHsb2OTmE2cjHs8q/B0uZqBQsg7hYLicdIfE0nl
+         Zq/pbLTDuuh4lqP5JVP+vLidcSqiPH0ihLTYIoKP8EVbQpx9Nhsud04kEAApGCStLl
+         xz6ZDL+3mSbUjNJ45Fv9HiJ4pcTBISfl5/mX3x2k=
+Date:   Wed, 23 Dec 2020 10:29:09 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, gor@linux.ibm.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
-Subject:  [merged] kasan-inline-random_tag-for-hw_tags.patch
- removed from -mm tree
-Message-ID: <20201223182951.IcpnfQwK1%akpm@linux-foundation.org>
+Subject:  [merged]
+ arm64-mte-convert-gcr_user-into-an-exclude-mask.patch removed from -mm tree
+Message-ID: <20201223182909.x-XB174D0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,111 +47,159 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: inline random_tag for HW_TAGS
+     Subject: arm64: mte: convert gcr_user into an exclude mask
 has been removed from the -mm tree.  Its filename was
-     kasan-inline-random_tag-for-hw_tags.patch
+     arm64-mte-convert-gcr_user-into-an-exclude-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: inline random_tag for HW_TAGS
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: mte: convert gcr_user into an exclude mask
 
-Using random_tag() currently results in a function call. Move its
-definition to mm/kasan/kasan.h and turn it into a static inline function
-for hardware tag-based mode to avoid uneeded function calls.
+The gcr_user mask is a per thread mask that represents the tags that are
+excluded from random generation when the Memory Tagging Extension is
+present and an 'irg' instruction is invoked.
 
-Link: https://lkml.kernel.org/r/be438471690e351e1d792e6bb432e8c03ccb15d3.1606162397.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/Iac5b2faf9a912900e16cca6834d621f5d4abf427
+gcr_user affects the behavior on EL0 only.
+
+Currently that mask is an include mask and it is controlled by the user
+via prctl() while GCR_EL1 accepts an exclude mask.
+
+Convert the include mask into an exclude one to make it easier the
+register setting.
+
+Note: This change will affect gcr_kernel (for EL1) introduced with a
+future patch.
+
+Link: https://lkml.kernel.org/r/946dd31be833b660334c4f93410acf6d6c4cf3c4.1606161801.git.andreyknvl@google.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |    5 -----
- mm/kasan/kasan.h   |   31 ++++++++++++++-----------------
- 2 files changed, 14 insertions(+), 22 deletions(-)
+ arch/arm64/include/asm/processor.h |    2 -
+ arch/arm64/kernel/mte.c            |   29 +++++++++++++--------------
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-inline-random_tag-for-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -42,11 +42,6 @@ void unpoison_range(const void *address,
- 			round_up(size, KASAN_GRANULE_SIZE), get_tag(address));
+--- a/arch/arm64/include/asm/processor.h~arm64-mte-convert-gcr_user-into-an-exclude-mask
++++ a/arch/arm64/include/asm/processor.h
+@@ -152,7 +152,7 @@ struct thread_struct {
+ #endif
+ #ifdef CONFIG_ARM64_MTE
+ 	u64			sctlr_tcf0;
+-	u64			gcr_user_incl;
++	u64			gcr_user_excl;
+ #endif
+ };
+ 
+--- a/arch/arm64/kernel/mte.c~arm64-mte-convert-gcr_user-into-an-exclude-mask
++++ a/arch/arm64/kernel/mte.c
+@@ -156,23 +156,22 @@ static void set_sctlr_el1_tcf0(u64 tcf0)
+ 	preempt_enable();
  }
  
--u8 random_tag(void)
--{
--	return hw_get_random_tag();
--}
--
- bool check_invalid_free(void *addr)
+-static void update_gcr_el1_excl(u64 incl)
++static void update_gcr_el1_excl(u64 excl)
  {
- 	u8 ptr_tag = get_tag(addr);
---- a/mm/kasan/kasan.h~kasan-inline-random_tag-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -190,6 +190,12 @@ static inline bool addr_has_metadata(con
+-	u64 excl = ~incl & SYS_GCR_EL1_EXCL_MASK;
  
- #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 	/*
+-	 * Note that 'incl' is an include mask (controlled by the user via
+-	 * prctl()) while GCR_EL1 accepts an exclude mask.
++	 * Note that the mask controlled by the user via prctl() is an
++	 * include while GCR_EL1 accepts an exclude mask.
+ 	 * No need for ISB since this only affects EL0 currently, implicit
+ 	 * with ERET.
+ 	 */
+ 	sysreg_clear_set_s(SYS_GCR_EL1, SYS_GCR_EL1_EXCL_MASK, excl);
+ }
  
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+void print_tags(u8 addr_tag, const void *addr);
-+#else
-+static inline void print_tags(u8 addr_tag, const void *addr) { }
-+#endif
-+
- bool check_invalid_free(void *addr);
- 
- void *find_first_bad_addr(void *addr, size_t size);
-@@ -225,23 +231,6 @@ static inline void quarantine_reduce(voi
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
- 
--#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
--
--void print_tags(u8 addr_tag, const void *addr);
--
--u8 random_tag(void);
--
--#else
--
--static inline void print_tags(u8 addr_tag, const void *addr) { }
--
--static inline u8 random_tag(void)
--{
--	return 0;
--}
--
--#endif
--
- #ifndef arch_kasan_set_tag
- static inline const void *arch_kasan_set_tag(const void *addr, u8 tag)
+-static void set_gcr_el1_excl(u64 incl)
++static void set_gcr_el1_excl(u64 excl)
  {
-@@ -281,6 +270,14 @@ static inline const void *arch_kasan_set
+-	current->thread.gcr_user_incl = incl;
+-	update_gcr_el1_excl(incl);
++	current->thread.gcr_user_excl = excl;
++	update_gcr_el1_excl(excl);
+ }
  
- #endif /* CONFIG_KASAN_HW_TAGS */
+ void flush_mte_state(void)
+@@ -187,7 +186,7 @@ void flush_mte_state(void)
+ 	/* disable tag checking */
+ 	set_sctlr_el1_tcf0(SCTLR_EL1_TCF0_NONE);
+ 	/* reset tag generation mask */
+-	set_gcr_el1_excl(0);
++	set_gcr_el1_excl(SYS_GCR_EL1_EXCL_MASK);
+ }
  
-+#ifdef CONFIG_KASAN_SW_TAGS
-+u8 random_tag(void);
-+#elif defined(CONFIG_KASAN_HW_TAGS)
-+static inline u8 random_tag(void) { return hw_get_random_tag(); }
-+#else
-+static inline u8 random_tag(void) { return 0; }
-+#endif
-+
- /*
-  * Exported functions for interfaces called from assembly or from generated
-  * code. Declarations here to avoid warning about missing declarations.
+ void mte_thread_switch(struct task_struct *next)
+@@ -198,7 +197,7 @@ void mte_thread_switch(struct task_struc
+ 	/* avoid expensive SCTLR_EL1 accesses if no change */
+ 	if (current->thread.sctlr_tcf0 != next->thread.sctlr_tcf0)
+ 		update_sctlr_el1_tcf0(next->thread.sctlr_tcf0);
+-	update_gcr_el1_excl(next->thread.gcr_user_incl);
++	update_gcr_el1_excl(next->thread.gcr_user_excl);
+ }
+ 
+ void mte_suspend_exit(void)
+@@ -206,13 +205,14 @@ void mte_suspend_exit(void)
+ 	if (!system_supports_mte())
+ 		return;
+ 
+-	update_gcr_el1_excl(current->thread.gcr_user_incl);
++	update_gcr_el1_excl(current->thread.gcr_user_excl);
+ }
+ 
+ long set_mte_ctrl(struct task_struct *task, unsigned long arg)
+ {
+ 	u64 tcf0;
+-	u64 gcr_incl = (arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT;
++	u64 gcr_excl = ~((arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT) &
++		       SYS_GCR_EL1_EXCL_MASK;
+ 
+ 	if (!system_supports_mte())
+ 		return 0;
+@@ -233,10 +233,10 @@ long set_mte_ctrl(struct task_struct *ta
+ 
+ 	if (task != current) {
+ 		task->thread.sctlr_tcf0 = tcf0;
+-		task->thread.gcr_user_incl = gcr_incl;
++		task->thread.gcr_user_excl = gcr_excl;
+ 	} else {
+ 		set_sctlr_el1_tcf0(tcf0);
+-		set_gcr_el1_excl(gcr_incl);
++		set_gcr_el1_excl(gcr_excl);
+ 	}
+ 
+ 	return 0;
+@@ -245,11 +245,12 @@ long set_mte_ctrl(struct task_struct *ta
+ long get_mte_ctrl(struct task_struct *task)
+ {
+ 	unsigned long ret;
++	u64 incl = ~task->thread.gcr_user_excl & SYS_GCR_EL1_EXCL_MASK;
+ 
+ 	if (!system_supports_mte())
+ 		return 0;
+ 
+-	ret = task->thread.gcr_user_incl << PR_MTE_TAG_SHIFT;
++	ret = incl << PR_MTE_TAG_SHIFT;
+ 
+ 	switch (task->thread.sctlr_tcf0) {
+ 	case SCTLR_EL1_TCF0_NONE:
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
 
