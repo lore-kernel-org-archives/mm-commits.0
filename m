@@ -2,213 +2,96 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A57CCC433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Dec 2020 03:13:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CDB4C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Dec 2020 11:53:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63289224B8
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Dec 2020 03:13:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC00722273
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Dec 2020 11:52:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728779AbgLXDNE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Dec 2020 22:13:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38862 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728544AbgLXDNE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2020 22:13:04 -0500
-Received: from mail-pf1-x42f.google.com (mail-pf1-x42f.google.com [IPv6:2607:f8b0:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 341A1C061794
-        for <mm-commits@vger.kernel.org>; Wed, 23 Dec 2020 19:12:24 -0800 (PST)
-Received: by mail-pf1-x42f.google.com with SMTP id f9so529329pfc.11
-        for <mm-commits@vger.kernel.org>; Wed, 23 Dec 2020 19:12:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=EbypRiS+9PLfGMqxSxXC547WEWfIQ4iF1EiMz2Usxn0=;
-        b=1+669ZjdqM7iT1NhCq2oNw//9yauIL84PQhZQMQqRRlPcoM32NuiQmvi4Q/K1xpVrH
-         swN8EnBuUMcBmrUjQ42Ci5mX9KvModAtHnhBX6tOXTiNds0Wh8vhZaRN/s3yf8RPXLeB
-         cyfHedBxluRyZD2OlYcsypi+2UUNUsW8eHFNBLhgpNnBSAzV+RvFBZ2udeKP6zJyHNqL
-         1r7c4lmWwPq+QFQPrNTQy9otiYfBm/QyTTyK8qhWtbJD811CFgFjJ1SsPilhd/w5ghef
-         SUVAD+Xi0vm4/A49Ou2o6GHswa/sc40RUXwIqtVD9Pu8X6wDxO6ODMAg0ifDXU8yTRq3
-         cR8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=EbypRiS+9PLfGMqxSxXC547WEWfIQ4iF1EiMz2Usxn0=;
-        b=nAKoBNr+VXaZClSvSBleidgMqP6SOqfAqDDwD21+JDlRugD7NHdwZTu1WfrYSbpzWT
-         8x74a/4fXA7hne4Dh1vBQPiCh8bXmTUELyq4WneD2rbhZxndhxDz8qh7126TA+I2XsAa
-         NFM8RkV4K18z+a2W6z7BFafVxGI4VrB5lq35AXlwK7EECS7ILLA7Ybb0JQpIkbJHWlGl
-         zANZxl7C7p52TOqVZLWUAJQlrEEjK2yU70enhRvEISHX8kt77ghdR9QMkj1yxF7fGVUb
-         YI45tg2etejMIIgs+jbv4tfmIARUOEmvMle0yQxMBOray51LiSAFt4EUjLWMEq3EE8lM
-         Wyng==
-X-Gm-Message-State: AOAM531+19MdhJuM2npiGMHARlRVMuMe0jLMlKiKSRL/T3n2Dr+h5nxq
-        Wgrc4YlhrwdZE0NRURBnd5HxGDYuDpDYIncvRMjlKddcFivMWxJX3U0=
-X-Google-Smtp-Source: ABdhPJx9C3d/DmC7+EMAdHwkpdH81cpBPXMiiZ/K4MGw43gwXske/acVfm3oRuv2s/okVoIxwisyKYUQGcOvtgboyA0=
-X-Received: by 2002:aa7:8701:0:b029:19e:561:d476 with SMTP id
- b1-20020aa787010000b029019e0561d476mr6837324pfo.2.1608779543625; Wed, 23 Dec
- 2020 19:12:23 -0800 (PST)
-MIME-Version: 1.0
-References: <20201224001635.5H0RjpkF_%akpm@linux-foundation.org> <a7b46040-2980-c2f4-45ea-1fa38f36d351@infradead.org>
-In-Reply-To: <a7b46040-2980-c2f4-45ea-1fa38f36d351@infradead.org>
-From:   Muchun Song <songmuchun@bytedance.com>
-Date:   Thu, 24 Dec 2020 11:11:47 +0800
-Message-ID: <CAMZfGtVvoQA00zENRzURHTomVgNvNYxXiX2rUkimYfOFt26P8Q@mail.gmail.com>
-Subject: Re: [External] Re: mmotm 2020-12-23-16-15 uploaded (mm/vmstat.c)
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        mhocko@suse.cz, mm-commits@vger.kernel.org,
-        Stephen Rothwell <sfr@canb.auug.org.au>
+        id S1726931AbgLXLw7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Dec 2020 06:52:59 -0500
+Received: from mailgw01.mediatek.com ([210.61.82.183]:51683 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726186AbgLXLw7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Dec 2020 06:52:59 -0500
+X-UUID: 7df082fdcf394686b3ae0e0585d18cd1-20201224
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
+        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=GVd/uEmz3BT2bNSrN2oF0YBq2VYSrsG41VAyyl5jBoY=;
+        b=BhD+v+xV/9Tzasv1YPdXRudo3W0jvdly8Ic2C49NN2ZP+Zlr45uIGhKj0RmQNKLQRxmCFmpR8Dk/+JmNT9j2WfDYrHL6mekH60y7HoSnKn2TMtJffz5zd6MYah+9PhAzFFfEmF/xa+Nl65XunxKMkv3n4LzhpZOIyNYik4BsXdo=;
+X-UUID: 7df082fdcf394686b3ae0e0585d18cd1-20201224
+Received: from mtkcas06.mediatek.inc [(172.21.101.30)] by mailgw01.mediatek.com
+        (envelope-from <kuan-ying.lee@mediatek.com>)
+        (Cellopoint E-mail Firewall v4.1.14 Build 0819 with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 1303805721; Thu, 24 Dec 2020 19:52:12 +0800
+Received: from mtkcas11.mediatek.inc (172.21.101.40) by
+ mtkmbs08n2.mediatek.inc (172.21.101.56) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Thu, 24 Dec 2020 19:52:03 +0800
+Received: from [172.21.84.99] (172.21.84.99) by mtkcas11.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Thu, 24 Dec 2020 19:52:03 +0800
+Message-ID: <1608810724.9171.65.camel@mtksdccf07>
+Subject: Re: [to-be-updated] kasan-fix-memory-leak-of-kasan-quarantine.patch
+ removed from -mm tree
+From:   Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+To:     <akpm@linux-foundation.org>
+CC:     <mm-commits@vger.kernel.org>, <stable@vger.kernel.org>,
+        <matthias.bgg@gmail.com>, <glider@google.com>,
+        <dvyukov@google.com>, <aryabinin@virtuozzo.com>,
+        <miles.chen@mediatek.com>
+Date:   Thu, 24 Dec 2020 19:52:04 +0800
+In-Reply-To: <20201222190426.zM-LA%akpm@linux-foundation.org>
+References: <20201222190426.zM-LA%akpm@linux-foundation.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Mailer: Evolution 3.2.3-0ubuntu6 
+MIME-Version: 1.0
+X-TM-SNTS-SMTP: B296D1DBEB0960FDFD2B5CE45D6DF1CE3B3B7FCF88E98D3C2C544FB30480C0152000:8
+X-MTK:  N
+Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Dec 24, 2020 at 10:57 AM Randy Dunlap <rdunlap@infradead.org> wrote=
-:
->
-> On 12/23/20 4:16 PM, akpm@linux-foundation.org wrote:
-> > The mm-of-the-moment snapshot 2020-12-23-16-15 has been uploaded to
-> >
-> >    https://www.ozlabs.org/~akpm/mmotm/
-> >
-> > mmotm-readme.txt says
-> >
-> > README for mm-of-the-moment:
-> >
-> > https://www.ozlabs.org/~akpm/mmotm/
-> >
-> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> > more than once a week.
-> >
-> > You will need quilt to apply these patches to the latest Linus release =
-(5.x
-> > or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated=
- in
-> > https://ozlabs.org/~akpm/mmotm/series
-> >
-> > The file broken-out.tar.gz contains two datestamp files: .DATE and
-> > .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss=
-,
-> > followed by the base kernel version against which this patch series is =
-to
-> > be applied.
->
-> on i386 or UML on i386 or x86_64:
-> (and probably on x86_64, but my builds haven't got there yet)
->
-> when CONFIG_TRANSPARENT_HUGEPAGE is not set/enabled:
+T24gVHVlLCAyMDIwLTEyLTIyIGF0IDExOjA0IC0wODAwLCBha3BtQGxpbnV4LWZvdW5kYXRpb24u
+b3JnIHdyb3RlOg0KPiBUaGUgcGF0Y2ggdGl0bGVkDQo+ICAgICAgU3ViamVjdDoga2FzYW46IGZp
+eCBtZW1vcnkgbGVhayBvZiBrYXNhbiBxdWFyYW50aW5lDQo+IGhhcyBiZWVuIHJlbW92ZWQgZnJv
+bSB0aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgd2FzDQo+ICAgICAga2FzYW4tZml4LW1lbW9y
+eS1sZWFrLW9mLWthc2FuLXF1YXJhbnRpbmUucGF0Y2gNCj4gDQo+IFRoaXMgcGF0Y2ggd2FzIGRy
+b3BwZWQgYmVjYXVzZSBhbiB1cGRhdGVkIHZlcnNpb24gd2lsbCBiZSBtZXJnZWQNCj4gDQo+IC0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiBG
+cm9tOiBLdWFuLVlpbmcgTGVlIDxLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbT4NCj4gU3ViamVj
+dDoga2FzYW46IGZpeCBtZW1vcnkgbGVhayBvZiBrYXNhbiBxdWFyYW50aW5lDQo+IA0KPiBXaGVu
+IGNwdSBpcyBnb2luZyBvZmZsaW5lLCBzZXQgcS0+b2ZmbGluZSBhcyB0cnVlIGFuZCBpbnRlcnJ1
+cHQgaGFwcGVuZWQuIA0KPiBUaGUgaW50ZXJydXB0IG1heSBjYWxsIHRoZSBxdWFyYW50aW5lX3B1
+dC4gIEJ1dCBxdWFyYW50aW5lX3B1dCBkbyBub3QgZnJlZQ0KPiB0aGUgdGhlIG9iamVjdC4gIFRo
+ZSBvYmplY3Qgd2lsbCBjYXVzZSBtZW1vcnkgbGVhay4NCj4gDQo+IEFkZCBxbGlua19mcmVlKCkg
+dG8gZnJlZSB0aGUgb2JqZWN0Lg0KPiANCj4gTGluazogaHR0cHM6Ly9sa21sLmtlcm5lbC5vcmcv
+ci8xNjA4MjA3NDg3LTMwNTM3LTItZ2l0LXNlbmQtZW1haWwtS3Vhbi1ZaW5nLkxlZUBtZWRpYXRl
+ay5jb20NCj4gRml4ZXM6IDZjODJkNDVjN2YwMyAoa2FzYW46IGZpeCBvYmplY3QgcmVtYWluaW5n
+IGluIG9mZmxpbmUgcGVyLWNwdSBxdWFyYW50aW5lKQ0KPiBTaWduZWQtb2ZmLWJ5OiBLdWFuLVlp
+bmcgTGVlIDxLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbT4NCj4gQ2M6IEFuZHJleSBSeWFiaW5p
+biA8YXJ5YWJpbmluQHZpcnR1b3p6by5jb20+DQo+IENjOiBBbGV4YW5kZXIgUG90YXBlbmtvIDxn
+bGlkZXJAZ29vZ2xlLmNvbT4NCj4gQ2M6IERtaXRyeSBWeXVrb3YgPGR2eXVrb3ZAZ29vZ2xlLmNv
+bT4NCj4gQ2M6IE1hdHRoaWFzIEJydWdnZXIgPG1hdHRoaWFzLmJnZ0BnbWFpbC5jb20+DQo+IENj
+OiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gICAgWzUuMTAtXQ0KPiBTaWduZWQtb2ZmLWJ5OiBB
+bmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KPiAtLS0NCj4gDQo+ICBt
+bS9rYXNhbi9xdWFyYW50aW5lLmMgfCAgICAxICsNCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2Vy
+dGlvbigrKQ0KPiANCj4gLS0tIGEvbW0va2FzYW4vcXVhcmFudGluZS5jfmthc2FuLWZpeC1tZW1v
+cnktbGVhay1vZi1rYXNhbi1xdWFyYW50aW5lDQo+ICsrKyBhL21tL2thc2FuL3F1YXJhbnRpbmUu
+Yw0KPiBAQCAtMTk0LDYgKzE5NCw3IEBAIGJvb2wgcXVhcmFudGluZV9wdXQoc3RydWN0IGttZW1f
+Y2FjaGUgKmMNCj4gIA0KPiAgCXEgPSB0aGlzX2NwdV9wdHIoJmNwdV9xdWFyYW50aW5lKTsNCj4g
+IAlpZiAocS0+b2ZmbGluZSkgew0KPiArCQlxbGlua19mcmVlKCZpbmZvLT5xdWFyYW50aW5lX2xp
+bmssIGNhY2hlKTsNCj4gIAkJbG9jYWxfaXJxX3Jlc3RvcmUoZmxhZ3MpOw0KPiAgCQlyZXR1cm4g
+ZmFsc2U7DQo+ICAJfQ0KPiBfDQo+IA0KPiBQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2gg
+bWlnaHQgYmUgZnJvbSBLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbSBhcmUNCj4gDQo+IA0KDQpI
+aSBBbmRyZXcsDQoNClNvcnJ5IHRvIGJvdGhlci4NCkFmdGVyIHJlY2VudGx5IGthc2FuIHNlcmll
+cyBtZXJnZWQgaW50byBtYWlubGluZSwgdGhlIG1lbW9yeSBsZWFrDQppc3N1ZSBoYXMgYmVlbiBm
+aXhlZC4gV2UgZG9uJ3QgbmVlZCB0aGlzIHBhdGNoIGFueW1vcmUuDQoNClRoaXMgcGF0Y2ggc3Rh
+dGUgY2FuIGJlIGNoYW5nZWQgdG8gb2Jzb2xldGUuDQoNClBsZWFzZSBhYmFuZG9uIHRoaXMgcGF0
+Y2guDQoNClRoYW5rcy4NCg0K
 
-Very thanks for your information. I will fix this in the next version. Than=
-ks.
-
->
-> ../mm/vmstat.c: In function =E2=80=98zoneinfo_show_print=E2=80=99:
-> ./../include/linux/compiler_types.h:320:38: error: call to =E2=80=98__com=
-piletime_assert_269=E2=80=99 declared with attribute error: BUILD_BUG faile=
-d
->   _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
->                                       ^
-> ./../include/linux/compiler_types.h:301:4: note: in definition of macro =
-=E2=80=98__compiletime_assert=E2=80=99
->     prefix ## suffix();    \
->     ^~~~~~
-> ./../include/linux/compiler_types.h:320:2: note: in expansion of macro =
-=E2=80=98_compiletime_assert=E2=80=99
->   _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
->   ^~~~~~~~~~~~~~~~~~~
-> ../include/linux/build_bug.h:39:37: note: in expansion of macro =E2=80=98=
-compiletime_assert=E2=80=99
->  #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
->                                      ^~~~~~~~~~~~~~~~~~
-> ../include/linux/build_bug.h:59:21: note: in expansion of macro =E2=80=98=
-BUILD_BUG_ON_MSG=E2=80=99
->  #define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
->                      ^~~~~~~~~~~~~~~~
-> ../include/linux/huge_mm.h:325:28: note: in expansion of macro =E2=80=98B=
-UILD_BUG=E2=80=99
->  #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
->                             ^~~~~~~~~
-> ../include/linux/huge_mm.h:106:26: note: in expansion of macro =E2=80=98H=
-PAGE_PMD_SHIFT=E2=80=99
->  #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
->                           ^~~~~~~~~~~~~~~
-> ../include/linux/huge_mm.h:107:26: note: in expansion of macro =E2=80=98H=
-PAGE_PMD_ORDER=E2=80=99
->  #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
->                           ^~~~~~~~~~~~~~~
-> ../mm/vmstat.c:1630:14: note: in expansion of macro =E2=80=98HPAGE_PMD_NR=
-=E2=80=99
->      pages /=3D HPAGE_PMD_NR;
->               ^~~~~~~~~~~~
-> ../mm/vmstat.c: In function =E2=80=98vmstat_start=E2=80=99:
-> ./../include/linux/compiler_types.h:320:38: error: call to =E2=80=98__com=
-piletime_assert_271=E2=80=99 declared with attribute error: BUILD_BUG faile=
-d
->   _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
->                                       ^
-> ./../include/linux/compiler_types.h:301:4: note: in definition of macro =
-=E2=80=98__compiletime_assert=E2=80=99
->     prefix ## suffix();    \
->     ^~~~~~
-> ./../include/linux/compiler_types.h:320:2: note: in expansion of macro =
-=E2=80=98_compiletime_assert=E2=80=99
->   _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
->   ^~~~~~~~~~~~~~~~~~~
-> ../include/linux/build_bug.h:39:37: note: in expansion of macro =E2=80=98=
-compiletime_assert=E2=80=99
->  #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
->                                      ^~~~~~~~~~~~~~~~~~
-> ../include/linux/build_bug.h:59:21: note: in expansion of macro =E2=80=98=
-BUILD_BUG_ON_MSG=E2=80=99
->  #define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
->                      ^~~~~~~~~~~~~~~~
-> ../include/linux/huge_mm.h:325:28: note: in expansion of macro =E2=80=98B=
-UILD_BUG=E2=80=99
->  #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
->                             ^~~~~~~~~
-> ../include/linux/huge_mm.h:106:26: note: in expansion of macro =E2=80=98H=
-PAGE_PMD_SHIFT=E2=80=99
->  #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
->                           ^~~~~~~~~~~~~~~
-> ../include/linux/huge_mm.h:107:26: note: in expansion of macro =E2=80=98H=
-PAGE_PMD_ORDER=E2=80=99
->  #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
->                           ^~~~~~~~~~~~~~~
-> ../mm/vmstat.c:1755:12: note: in expansion of macro =E2=80=98HPAGE_PMD_NR=
-=E2=80=99
->     v[i] /=3D HPAGE_PMD_NR;
->             ^~~~~~~~~~~~
->
-> due to <linux/huge_mm.h>:
->
-> #else /* CONFIG_TRANSPARENT_HUGEPAGE */
-> #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
-> #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
-> #define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
->
-> #define HPAGE_PUD_SHIFT ({ BUILD_BUG(); 0; })
-> #define HPAGE_PUD_MASK ({ BUILD_BUG(); 0; })
-> #define HPAGE_PUD_SIZE ({ BUILD_BUG(); 0; })
->
->
->
-> >> mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
->
-> --
-> ~Randy
->
-
-
---=20
-Yours,
-Muchun
