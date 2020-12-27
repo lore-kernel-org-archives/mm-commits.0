@@ -2,96 +2,105 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CDB4C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Dec 2020 11:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F1CC433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Dec 2020 22:02:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC00722273
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Dec 2020 11:52:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25C5A22A84
+	for <mm-commits@archiver.kernel.org>; Sun, 27 Dec 2020 22:02:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726931AbgLXLw7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Dec 2020 06:52:59 -0500
-Received: from mailgw01.mediatek.com ([210.61.82.183]:51683 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726186AbgLXLw7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Dec 2020 06:52:59 -0500
-X-UUID: 7df082fdcf394686b3ae0e0585d18cd1-20201224
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
-        h=Content-Transfer-Encoding:MIME-Version:Content-Type:References:In-Reply-To:Date:CC:To:From:Subject:Message-ID; bh=GVd/uEmz3BT2bNSrN2oF0YBq2VYSrsG41VAyyl5jBoY=;
-        b=BhD+v+xV/9Tzasv1YPdXRudo3W0jvdly8Ic2C49NN2ZP+Zlr45uIGhKj0RmQNKLQRxmCFmpR8Dk/+JmNT9j2WfDYrHL6mekH60y7HoSnKn2TMtJffz5zd6MYah+9PhAzFFfEmF/xa+Nl65XunxKMkv3n4LzhpZOIyNYik4BsXdo=;
-X-UUID: 7df082fdcf394686b3ae0e0585d18cd1-20201224
-Received: from mtkcas06.mediatek.inc [(172.21.101.30)] by mailgw01.mediatek.com
-        (envelope-from <kuan-ying.lee@mediatek.com>)
-        (Cellopoint E-mail Firewall v4.1.14 Build 0819 with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 1303805721; Thu, 24 Dec 2020 19:52:12 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by
- mtkmbs08n2.mediatek.inc (172.21.101.56) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2; Thu, 24 Dec 2020 19:52:03 +0800
-Received: from [172.21.84.99] (172.21.84.99) by mtkcas11.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Thu, 24 Dec 2020 19:52:03 +0800
-Message-ID: <1608810724.9171.65.camel@mtksdccf07>
-Subject: Re: [to-be-updated] kasan-fix-memory-leak-of-kasan-quarantine.patch
- removed from -mm tree
-From:   Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-To:     <akpm@linux-foundation.org>
-CC:     <mm-commits@vger.kernel.org>, <stable@vger.kernel.org>,
-        <matthias.bgg@gmail.com>, <glider@google.com>,
-        <dvyukov@google.com>, <aryabinin@virtuozzo.com>,
-        <miles.chen@mediatek.com>
-Date:   Thu, 24 Dec 2020 19:52:04 +0800
-In-Reply-To: <20201222190426.zM-LA%akpm@linux-foundation.org>
-References: <20201222190426.zM-LA%akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.2.3-0ubuntu6 
-MIME-Version: 1.0
-X-TM-SNTS-SMTP: B296D1DBEB0960FDFD2B5CE45D6DF1CE3B3B7FCF88E98D3C2C544FB30480C0152000:8
-X-MTK:  N
-Content-Transfer-Encoding: base64
+        id S1726194AbgL0WBy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Dec 2020 17:01:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41630 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726172AbgL0WBy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 27 Dec 2020 17:01:54 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B981522A84;
+        Sun, 27 Dec 2020 22:01:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1609106473;
+        bh=qhJ9yBlYS38O182J3b5BxQYiGfa4suPnO3t3Je+lFvM=;
+        h=Date:From:To:Subject:From;
+        b=lshoLHzfQEdQ/zPk3FzjpVs6AFytbNAuciAsMtxkyDeZD6oSkX7azGkeXQUnvXbVO
+         LLzbWA8JscT4QO42Zfa5pcmrifUGmGAqP74RNKHjiKME7SQweV7OFcxckLWZ062YZb
+         OOYHSXBrxzPoBigvbHJK+kwywtKWjaXQqMDep6Kw=
+Date:   Sun, 27 Dec 2020 14:01:11 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, zaslonko@linux.ibm.com,
+        sfr@canb.auug.org.au, lkp@intel.com, hca@linux.ibm.com,
+        gor@linux.ibm.com, borntraeger@de.ibm.com, rdunlap@infradead.org
+Subject:  +
+ zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc-fix.patch
+ added to -mm tree
+Message-ID: <20201227220111.FmFBa%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-T24gVHVlLCAyMDIwLTEyLTIyIGF0IDExOjA0IC0wODAwLCBha3BtQGxpbnV4LWZvdW5kYXRpb24u
-b3JnIHdyb3RlOg0KPiBUaGUgcGF0Y2ggdGl0bGVkDQo+ICAgICAgU3ViamVjdDoga2FzYW46IGZp
-eCBtZW1vcnkgbGVhayBvZiBrYXNhbiBxdWFyYW50aW5lDQo+IGhhcyBiZWVuIHJlbW92ZWQgZnJv
-bSB0aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgd2FzDQo+ICAgICAga2FzYW4tZml4LW1lbW9y
-eS1sZWFrLW9mLWthc2FuLXF1YXJhbnRpbmUucGF0Y2gNCj4gDQo+IFRoaXMgcGF0Y2ggd2FzIGRy
-b3BwZWQgYmVjYXVzZSBhbiB1cGRhdGVkIHZlcnNpb24gd2lsbCBiZSBtZXJnZWQNCj4gDQo+IC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiBG
-cm9tOiBLdWFuLVlpbmcgTGVlIDxLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbT4NCj4gU3ViamVj
-dDoga2FzYW46IGZpeCBtZW1vcnkgbGVhayBvZiBrYXNhbiBxdWFyYW50aW5lDQo+IA0KPiBXaGVu
-IGNwdSBpcyBnb2luZyBvZmZsaW5lLCBzZXQgcS0+b2ZmbGluZSBhcyB0cnVlIGFuZCBpbnRlcnJ1
-cHQgaGFwcGVuZWQuIA0KPiBUaGUgaW50ZXJydXB0IG1heSBjYWxsIHRoZSBxdWFyYW50aW5lX3B1
-dC4gIEJ1dCBxdWFyYW50aW5lX3B1dCBkbyBub3QgZnJlZQ0KPiB0aGUgdGhlIG9iamVjdC4gIFRo
-ZSBvYmplY3Qgd2lsbCBjYXVzZSBtZW1vcnkgbGVhay4NCj4gDQo+IEFkZCBxbGlua19mcmVlKCkg
-dG8gZnJlZSB0aGUgb2JqZWN0Lg0KPiANCj4gTGluazogaHR0cHM6Ly9sa21sLmtlcm5lbC5vcmcv
-ci8xNjA4MjA3NDg3LTMwNTM3LTItZ2l0LXNlbmQtZW1haWwtS3Vhbi1ZaW5nLkxlZUBtZWRpYXRl
-ay5jb20NCj4gRml4ZXM6IDZjODJkNDVjN2YwMyAoa2FzYW46IGZpeCBvYmplY3QgcmVtYWluaW5n
-IGluIG9mZmxpbmUgcGVyLWNwdSBxdWFyYW50aW5lKQ0KPiBTaWduZWQtb2ZmLWJ5OiBLdWFuLVlp
-bmcgTGVlIDxLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbT4NCj4gQ2M6IEFuZHJleSBSeWFiaW5p
-biA8YXJ5YWJpbmluQHZpcnR1b3p6by5jb20+DQo+IENjOiBBbGV4YW5kZXIgUG90YXBlbmtvIDxn
-bGlkZXJAZ29vZ2xlLmNvbT4NCj4gQ2M6IERtaXRyeSBWeXVrb3YgPGR2eXVrb3ZAZ29vZ2xlLmNv
-bT4NCj4gQ2M6IE1hdHRoaWFzIEJydWdnZXIgPG1hdHRoaWFzLmJnZ0BnbWFpbC5jb20+DQo+IENj
-OiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gICAgWzUuMTAtXQ0KPiBTaWduZWQtb2ZmLWJ5OiBB
-bmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KPiAtLS0NCj4gDQo+ICBt
-bS9rYXNhbi9xdWFyYW50aW5lLmMgfCAgICAxICsNCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2Vy
-dGlvbigrKQ0KPiANCj4gLS0tIGEvbW0va2FzYW4vcXVhcmFudGluZS5jfmthc2FuLWZpeC1tZW1v
-cnktbGVhay1vZi1rYXNhbi1xdWFyYW50aW5lDQo+ICsrKyBhL21tL2thc2FuL3F1YXJhbnRpbmUu
-Yw0KPiBAQCAtMTk0LDYgKzE5NCw3IEBAIGJvb2wgcXVhcmFudGluZV9wdXQoc3RydWN0IGttZW1f
-Y2FjaGUgKmMNCj4gIA0KPiAgCXEgPSB0aGlzX2NwdV9wdHIoJmNwdV9xdWFyYW50aW5lKTsNCj4g
-IAlpZiAocS0+b2ZmbGluZSkgew0KPiArCQlxbGlua19mcmVlKCZpbmZvLT5xdWFyYW50aW5lX2xp
-bmssIGNhY2hlKTsNCj4gIAkJbG9jYWxfaXJxX3Jlc3RvcmUoZmxhZ3MpOw0KPiAgCQlyZXR1cm4g
-ZmFsc2U7DQo+ICAJfQ0KPiBfDQo+IA0KPiBQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2gg
-bWlnaHQgYmUgZnJvbSBLdWFuLVlpbmcuTGVlQG1lZGlhdGVrLmNvbSBhcmUNCj4gDQo+IA0KDQpI
-aSBBbmRyZXcsDQoNClNvcnJ5IHRvIGJvdGhlci4NCkFmdGVyIHJlY2VudGx5IGthc2FuIHNlcmll
-cyBtZXJnZWQgaW50byBtYWlubGluZSwgdGhlIG1lbW9yeSBsZWFrDQppc3N1ZSBoYXMgYmVlbiBm
-aXhlZC4gV2UgZG9uJ3QgbmVlZCB0aGlzIHBhdGNoIGFueW1vcmUuDQoNClRoaXMgcGF0Y2ggc3Rh
-dGUgY2FuIGJlIGNoYW5nZWQgdG8gb2Jzb2xldGUuDQoNClBsZWFzZSBhYmFuZG9uIHRoaXMgcGF0
-Y2guDQoNClRoYW5rcy4NCg0K
+
+The patch titled
+     Subject: lib/zlib: dfltcc: remove dfltcc_syms.o from Makefile
+has been added to the -mm tree.  Its filename is
+     zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc-fix.patch
+
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib/zlib: dfltcc: remove dfltcc_syms.o from Makefile
+
+Oops, missed removing this deleted file from the Makefile.
+
+make[3]: *** No rule to make target 'lib/zlib_dfltcc/dfltcc_syms.o', needed by 'lib/zlib_dfltcc/built-in.a'.
+
+Link: https://lkml.kernel.org/r/20201227171837.15492-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Zaslonko Mikhail <zaslonko@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/zlib_dfltcc/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lib/zlib_dfltcc/Makefile~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc-fix
++++ a/lib/zlib_dfltcc/Makefile
+@@ -8,4 +8,4 @@
+ 
+ obj-$(CONFIG_ZLIB_DFLTCC) += zlib_dfltcc.o
+ 
+-zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o dfltcc_syms.o
++zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
+zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc-fix.patch
+mm-zswap-clean-up-confusing-comment.patch
+lib-linear_ranges-fix-repeated-words-one-typo.patch
 
