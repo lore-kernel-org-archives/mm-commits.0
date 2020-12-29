@@ -2,171 +2,116 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53790C433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:14:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9C54C433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3349A223DB
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:14:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8840221D1B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726161AbgL2XOb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:14:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36744 "EHLO mail.kernel.org"
+        id S1726158AbgL2XPE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 18:15:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36972 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726156AbgL2XOb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:14:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6719520771;
-        Tue, 29 Dec 2020 23:13:50 +0000 (UTC)
+        id S1726156AbgL2XPD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 18:15:03 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF7EB21D1B;
+        Tue, 29 Dec 2020 23:14:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283630;
-        bh=7jZO7lK/ShAiwXS9L0PgHS0G9a/hPzufx30lRF/2epw=;
-        h=Date:From:To:Cc:Subject:From;
-        b=Nn+Tmv7fxPEL7xyjbNGvkVPDoFarS+kJ0B1jU8NTey77l/wAa6rW7L5SZG41cdPC9
-         SMugkjaGPEdtvJTzgcmPIcr1CmhDUHvwVsjNtgeupeNoWpIIGEMAYED3402IfhM+15
-         RB8Q/wNqwGzr6BESyLfVKIc+PGWXVmUl9yTtLeIA=
-Date:   Tue, 29 Dec 2020 15:13:49 -0800
+        s=korg; t=1609283663;
+        bh=KlaPJWZ7EXv/buYdzj7AkA5aJXq/+7sMb4bZBF0gC5g=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=vWFNxPTyvbpbngoWES4xAVvYTkGdicWu2ucFXlGOPP+B6HYXAsS2GtMTNU+rKjvnv
+         B2OX7pcpwpnq91D86S3YnX5Tae75GQ3OF34XFOwISkAjCJJr4J+EuzbVIO61qnelPt
+         xnhP71wtqeSxm73bLls1Im/hhz51Tw4qJ5mBKABs=
+Date:   Tue, 29 Dec 2020 15:14:22 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
-Subject: incoming
-Message-Id: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, dave.hansen@intel.com,
+        harish@linux.ibm.com, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, sandipan@linux.ibm.com,
+        shuah@kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 01/16] selftests/vm: fix building protection keys
+ test
+Message-ID: <20201229231422.7qDu59KZm%akpm@linux-foundation.org>
+In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-16 patches, based on dea8dcf2a9fa8cc540136a6cd885c3beece16ec3.
+From: Harish <harish@linux.ibm.com>
+Subject: selftests/vm: fix building protection keys test
 
-Subsystems affected by this patch series:
+The patch d8cbe8bfa7d tries to include a ARCH check for powerpc, however
+ARCH is not defined in the Makefile before including lib.mk.  This makes
+test building to skip on both x86 and powerpc.  Fix the arch check by
+replacing it using machine type as it is already defined and used in the
+test.
 
-  mm/selftests
-  mm/hugetlb
-  kbuild
-  checkpatch
-  mm/pagecache
-  mm/mremap
-  mm/kasan
-  misc
-  lib
-  mm/slub
+Link: https://lkml.kernel.org/r/20201215100402.257376-1-harish@linux.ibm.com
+Fixes: d8cbe8bfa7d ("tools/testing/selftests/vm: fix build error")
+Signed-off-by: Harish <harish@linux.ibm.com>
+Reviewed-by: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: mm/selftests
-
-    Harish <harish@linux.ibm.com>:
-      selftests/vm: fix building protection keys test
-
-Subsystem: mm/hugetlb
-
-    Mike Kravetz <mike.kravetz@oracle.com>:
-      mm/hugetlb: fix deadlock in hugetlb_cow error path
-
-Subsystem: kbuild
-
-    Masahiro Yamada <masahiroy@kernel.org>:
-      Revert "kbuild: avoid static_assert for genksyms"
-
-Subsystem: checkpatch
-
-    Joe Perches <joe@perches.com>:
-      checkpatch: prefer strscpy to strlcpy
-
-Subsystem: mm/pagecache
-
-    Souptick Joarder <jrdr.linux@gmail.com>:
-      mm: add prototype for __add_to_page_cache_locked()
-
-    Baoquan He <bhe@redhat.com>:
-      mm: memmap defer init doesn't work as expected
-
-Subsystem: mm/mremap
-
-    Kalesh Singh <kaleshsingh@google.com>:
-      mm/mremap.c: fix extent calculation
-
-    Nicholas Piggin <npiggin@gmail.com>:
-      mm: generalise COW SMC TLB flushing race comment
-
-Subsystem: mm/kasan
-
-    Walter Wu <walter-zh.wu@mediatek.com>:
-      kasan: fix null pointer dereference in kasan_record_aux_stack
-
-Subsystem: misc
-
-    Randy Dunlap <rdunlap@infradead.org>:
-      local64.h: make <asm/local64.h> mandatory
-
-    Huang Shijie <sjhuang@iluvatar.ai>:
-      sizes.h: add SZ_8G/SZ_16G/SZ_32G macros
-
-    Josh Poimboeuf <jpoimboe@redhat.com>:
-      kdev_t: always inline major/minor helper functions
-
-Subsystem: lib
-
-    Huang Shijie <sjhuang@iluvatar.ai>:
-      lib/genalloc: fix the overflow when size is too big
-
-    Ilya Leoshkevich <iii@linux.ibm.com>:
-      lib/zlib: fix inflating zlib streams on s390
-
-    Randy Dunlap <rdunlap@infradead.org>:
-      zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
-
-Subsystem: mm/slub
-
-    Roman Gushchin <guro@fb.com>:
-      mm: slub: call account_slab_page() after slab page initialization
-
- arch/alpha/include/asm/local64.h    |    1 -
- arch/arc/include/asm/Kbuild         |    1 -
- arch/arm/include/asm/Kbuild         |    1 -
- arch/arm64/include/asm/Kbuild       |    1 -
- arch/csky/include/asm/Kbuild        |    1 -
- arch/h8300/include/asm/Kbuild       |    1 -
- arch/hexagon/include/asm/Kbuild     |    1 -
- arch/ia64/include/asm/local64.h     |    1 -
- arch/ia64/mm/init.c                 |    4 ++--
- arch/m68k/include/asm/Kbuild        |    1 -
- arch/microblaze/include/asm/Kbuild  |    1 -
- arch/mips/include/asm/Kbuild        |    1 -
- arch/nds32/include/asm/Kbuild       |    1 -
- arch/openrisc/include/asm/Kbuild    |    1 -
- arch/parisc/include/asm/Kbuild      |    1 -
- arch/powerpc/include/asm/Kbuild     |    1 -
- arch/riscv/include/asm/Kbuild       |    1 -
- arch/s390/include/asm/Kbuild        |    1 -
- arch/sh/include/asm/Kbuild          |    1 -
- arch/sparc/include/asm/Kbuild       |    1 -
- arch/x86/include/asm/local64.h      |    1 -
- arch/xtensa/include/asm/Kbuild      |    1 -
- include/asm-generic/Kbuild          |    1 +
- include/linux/build_bug.h           |    5 -----
- include/linux/kdev_t.h              |   22 +++++++++++-----------
- include/linux/mm.h                  |   12 ++++++++++--
- include/linux/sizes.h               |    3 +++
- lib/genalloc.c                      |   25 +++++++++++++------------
- lib/zlib_dfltcc/Makefile            |    2 +-
- lib/zlib_dfltcc/dfltcc.c            |    6 +++++-
- lib/zlib_dfltcc/dfltcc_deflate.c    |    3 +++
- lib/zlib_dfltcc/dfltcc_inflate.c    |    4 ++--
- lib/zlib_dfltcc/dfltcc_syms.c       |   17 -----------------
- mm/hugetlb.c                        |   22 +++++++++++++++++++++-
- mm/kasan/generic.c                  |    2 ++
- mm/memory.c                         |    8 +++++---
- mm/memory_hotplug.c                 |    2 +-
- mm/mremap.c                         |    4 +++-
- mm/page_alloc.c                     |    8 +++++---
- mm/slub.c                           |    5 ++---
- scripts/checkpatch.pl               |    6 ++++++
  tools/testing/selftests/vm/Makefile |   10 +++++-----
- 42 files changed, 101 insertions(+), 91 deletions(-)
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-building-protection-keys-test
++++ a/tools/testing/selftests/vm/Makefile
+@@ -4,7 +4,7 @@
+ include local_config.mk
+ 
+ uname_M := $(shell uname -m 2>/dev/null || echo not)
+-MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/')
++MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
+ 
+ # Without this, failed build products remain, with up-to-date timestamps,
+ # thus tricking Make (and you!) into believing that All Is Well, in subsequent
+@@ -43,7 +43,7 @@ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+ 
+-ifeq ($(ARCH),x86_64)
++ifeq ($(MACHINE),x86_64)
+ CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bit_program.c -m32)
+ CAN_BUILD_X86_64 := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_64bit_program.c)
+ CAN_BUILD_WITH_NOPIE := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_program.c -no-pie)
+@@ -65,13 +65,13 @@ TEST_GEN_FILES += $(BINARIES_64)
+ endif
+ else
+ 
+-ifneq (,$(findstring $(ARCH),powerpc))
++ifneq (,$(findstring $(MACHINE),ppc64))
+ TEST_GEN_FILES += protection_keys
+ endif
+ 
+ endif
+ 
+-ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64))
++ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sh64 sparc64 x86_64))
+ TEST_GEN_FILES += va_128TBswitch
+ TEST_GEN_FILES += virtual_address_range
+ TEST_GEN_FILES += write_to_hugetlbfs
+@@ -84,7 +84,7 @@ TEST_FILES := test_vmalloc.sh
+ KSFT_KHDR_INSTALL := 1
+ include ../lib.mk
+ 
+-ifeq ($(ARCH),x86_64)
++ifeq ($(MACHINE),x86_64)
+ BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
+ BINARIES_64 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
+ 
+_
