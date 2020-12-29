@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1337CC43381
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA47CC433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0BC621D94
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C440B20771
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726209AbgL2XPT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:15:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37288 "EHLO mail.kernel.org"
+        id S1726214AbgL2XP2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 18:15:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726156AbgL2XPT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:15:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A63B122242;
-        Tue, 29 Dec 2020 23:14:37 +0000 (UTC)
+        id S1726156AbgL2XP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 18:15:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F0DFF222BB;
+        Tue, 29 Dec 2020 23:14:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283678;
-        bh=ogLhJEivgDXHXe3RmBa7vFUbS9ReUeuAeWCUQeOD4TU=;
+        s=korg; t=1609283699;
+        bh=JZSKov2Q9D8ARZ7+bly635SOWSD7d5ztPC34lSjb0ak=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xJgTGSy/2QPRM7vWFhDlbg8iHmnmbGK4Yq1K/qpDh3lVAX+lE1+BCthBsEtnLt79d
-         8Oem4GirrYVpmS/ix78mmH+So+F+ClmIMxRgvPrVXh6JluiVLKI6+qORWIhmd2fSMW
-         7+8ca6vyy+362G46s472Br6R7mQr0MGPSI0pu0kE=
-Date:   Tue, 29 Dec 2020 15:14:37 -0800
+        b=2e4kt2C8q2B2KvtER/c0CG5Yu8YE1/UfOSK7H+jcEIqJ8o1SaNZ/RVjhe52s/s5Mi
+         43GZV+v33rMqXyBY0jWM5hr5dj9181yPKRTZD5gKAopf/DxyVHjuWHaB6Yoogad4WZ
+         wQcYaJFJhaIAbb+Z1cqMI3LU5xHFGDf8zGryohRc=
+Date:   Tue, 29 Dec 2020 15:14:58 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com,
-        gopakumarr@vmware.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 06/16] mm: memmap defer init doesn't work as
- expected
-Message-ID: <20201229231437.SvlLvc3cC%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jiasheng.shi@iluvatar.ai,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        sjhuang@iluvatar.ai, torvalds@linux-foundation.org
+Subject:  [patch 13/16] lib/genalloc: fix the overflow when size is
+ too big
+Message-ID: <20201229231458.Ox75V2Zd-%akpm@linux-foundation.org>
 In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,149 +43,126 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baoquan He <bhe@redhat.com>
-Subject: mm: memmap defer init doesn't work as expected
+From: Huang Shijie <sjhuang@iluvatar.ai>
+Subject: lib/genalloc: fix the overflow when size is too big
 
-VMware observed a performance regression during memmap init on their
-platform, and bisected to commit 73a6e474cb376 ("mm: memmap_init: iterate
-over memblock regions rather that check each PFN") causing it.
+Some graphic card has very big memory on chip, such as 32G bytes.
 
-Before the commit:
+In the following case, it will cause overflow:
+  --------------------------------------------
+  pool = gen_pool_create(PAGE_SHIFT, NUMA_NO_NODE);
+  ret = gen_pool_add(pool, 0x1000000, SZ_32G, NUMA_NO_NODE);
 
-  [0.033176] Normal zone: 1445888 pages used for memmap
-  [0.033176] Normal zone: 89391104 pages, LIFO batch:63
-  [0.035851] ACPI: PM-Timer IO Port: 0x448
+  va = gen_pool_alloc(pool, SZ_4G);
+  --------------------------------------------
 
-With commit
+The overflow occurs in gen_pool_alloc_algo_owner():
 
-  [0.026874] Normal zone: 1445888 pages used for memmap
-  [0.026875] Normal zone: 89391104 pages, LIFO batch:63
-  [2.028450] ACPI: PM-Timer IO Port: 0x448
+  --------------------------------------------
+		....
+		size = nbits << order;
+		....
+  --------------------------------------------
 
-The root cause is the current memmap defer init doesn't work as expected. 
-Before, memmap_init_zone() was used to do memmap init of one whole zone,
-to initialize all low zones of one numa node, but defer memmap init of the
-last zone in that numa node.  However, since commit 73a6e474cb376,
-function memmap_init() is adapted to iterater over memblock regions inside
-one zone, then call memmap_init_zone() to do memmap init for each region.
+The @nbits is "int" type, so it will overflow.
+Then the gen_pool_avail() will return the wrong value.
 
-E.g, on VMware's system, the memory layout is as below, there are two
-memory regions in node 2.  The current code will mistakenly initialize the
-whole 1st region [mem 0xab00000000-0xfcffffffff], then do memmap defer to
-iniatialize only one memmory section on the 2nd region [mem
-0x10000000000-0x1033fffffff].  In fact, we only expect to see that there's
-only one memory section's memmap initialized.  That's why more time is
-costed at the time.
+This patch converts some "int" to "unsigned long", and
+changes the compare code in while.
 
-[    0.008842] ACPI: SRAT: Node 0 PXM 0 [mem 0x00000000-0x0009ffff]
-[    0.008842] ACPI: SRAT: Node 0 PXM 0 [mem 0x00100000-0xbfffffff]
-[    0.008843] ACPI: SRAT: Node 0 PXM 0 [mem 0x100000000-0x55ffffffff]
-[    0.008844] ACPI: SRAT: Node 1 PXM 1 [mem 0x5600000000-0xaaffffffff]
-[    0.008844] ACPI: SRAT: Node 2 PXM 2 [mem 0xab00000000-0xfcffffffff]
-[    0.008845] ACPI: SRAT: Node 2 PXM 2 [mem 0x10000000000-0x1033fffffff]
-
-Now, let's add a parameter 'zone_end_pfn' to memmap_init_zone() to pass
-down the real zone end pfn so that defer_init() can use it to judge
-whether defer need be taken in zone wide.
-
-Link: https://lkml.kernel.org/r/20201223080811.16211-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20201223080811.16211-2-bhe@redhat.com
-Fixes: commit 73a6e474cb376 ("mm: memmap_init: iterate over memblock regions rather that check each PFN")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Rahul Gopakumar <gopakumarr@vmware.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20201229060657.3389-1-sjhuang@iluvatar.ai
+Signed-off-by: Huang Shijie <sjhuang@iluvatar.ai>
+Reported-by: Shi Jiasheng <jiasheng.shi@iluvatar.ai>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    4 ++--
- include/linux/mm.h  |    5 +++--
- mm/memory_hotplug.c |    2 +-
- mm/page_alloc.c     |    8 +++++---
- 4 files changed, 11 insertions(+), 8 deletions(-)
+ lib/genalloc.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
---- a/arch/ia64/mm/init.c~mm-memmap-defer-init-dosnt-work-as-expected
-+++ a/arch/ia64/mm/init.c
-@@ -536,7 +536,7 @@ virtual_memmap_init(u64 start, u64 end,
- 
- 	if (map_start < map_end)
- 		memmap_init_zone((unsigned long)(map_end - map_start),
--				 args->nid, args->zone, page_to_pfn(map_start),
-+				 args->nid, args->zone, page_to_pfn(map_start), page_to_pfn(map_end),
- 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 	return 0;
- }
-@@ -546,7 +546,7 @@ memmap_init (unsigned long size, int nid
- 	     unsigned long start_pfn)
- {
- 	if (!vmem_map) {
--		memmap_init_zone(size, nid, zone, start_pfn,
-+		memmap_init_zone(size, nid, zone, start_pfn, start_pfn + size,
- 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 	} else {
- 		struct page *start;
---- a/include/linux/mm.h~mm-memmap-defer-init-dosnt-work-as-expected
-+++ a/include/linux/mm.h
-@@ -2439,8 +2439,9 @@ extern int __meminit early_pfn_to_nid(un
- #endif
- 
- extern void set_dma_reserve(unsigned long new_dma_reserve);
--extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long,
--		enum meminit_context, struct vmem_altmap *, int migratetype);
-+extern void memmap_init_zone(unsigned long, int, unsigned long,
-+		unsigned long, unsigned long, enum meminit_context,
-+		struct vmem_altmap *, int migratetype);
- extern void setup_per_zone_wmarks(void);
- extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
---- a/mm/memory_hotplug.c~mm-memmap-defer-init-dosnt-work-as-expected
-+++ a/mm/memory_hotplug.c
-@@ -713,7 +713,7 @@ void __ref move_pfn_range_to_zone(struct
- 	 * expects the zone spans the pfn range. All the pages in the range
- 	 * are reserved so nobody should be touching them so we should be safe
- 	 */
--	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn,
-+	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn, 0,
- 			 MEMINIT_HOTPLUG, altmap, migratetype);
- 
- 	set_zone_contiguous(zone);
---- a/mm/page_alloc.c~mm-memmap-defer-init-dosnt-work-as-expected
-+++ a/mm/page_alloc.c
-@@ -423,6 +423,8 @@ defer_init(int nid, unsigned long pfn, u
- 	if (end_pfn < pgdat_end_pfn(NODE_DATA(nid)))
- 		return false;
- 
-+	if (NODE_DATA(nid)->first_deferred_pfn != ULONG_MAX)
-+		return true;
- 	/*
- 	 * We start only with one section of pages, more pages are added as
- 	 * needed until the rest of deferred pages are initialized.
-@@ -6116,7 +6118,7 @@ overlap_memmap_init(unsigned long zone,
-  * zone stats (e.g., nr_isolate_pageblock) are touched.
+--- a/lib/genalloc.c~lib-genalloc-fix-the-overflow-when-size-is-too-big
++++ a/lib/genalloc.c
+@@ -81,14 +81,14 @@ static int clear_bits_ll(unsigned long *
+  * users set the same bit, one user will return remain bits, otherwise
+  * return 0.
   */
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
--		unsigned long start_pfn,
-+		unsigned long start_pfn, unsigned long zone_end_pfn,
- 		enum meminit_context context,
- 		struct vmem_altmap *altmap, int migratetype)
+-static int bitmap_set_ll(unsigned long *map, int start, int nr)
++static int bitmap_set_ll(unsigned long *map, unsigned long start, unsigned long nr)
  {
-@@ -6152,7 +6154,7 @@ void __meminit memmap_init_zone(unsigned
- 		if (context == MEMINIT_EARLY) {
- 			if (overlap_memmap_init(zone, &pfn))
- 				continue;
--			if (defer_init(nid, pfn, end_pfn))
-+			if (defer_init(nid, pfn, zone_end_pfn))
- 				break;
- 		}
+ 	unsigned long *p = map + BIT_WORD(start);
+-	const int size = start + nr;
++	const unsigned long size = start + nr;
+ 	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
+ 	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
  
-@@ -6266,7 +6268,7 @@ void __meminit __weak memmap_init(unsign
+-	while (nr - bits_to_set >= 0) {
++	while (nr >= bits_to_set) {
+ 		if (set_bits_ll(p, mask_to_set))
+ 			return nr;
+ 		nr -= bits_to_set;
+@@ -116,14 +116,15 @@ static int bitmap_set_ll(unsigned long *
+  * users clear the same bit, one user will return remain bits,
+  * otherwise return 0.
+  */
+-static int bitmap_clear_ll(unsigned long *map, int start, int nr)
++static unsigned long
++bitmap_clear_ll(unsigned long *map, unsigned long start, unsigned long nr)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
+-	const int size = start + nr;
++	const unsigned long size = start + nr;
+ 	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
+ 	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
  
- 		if (end_pfn > start_pfn) {
- 			size = end_pfn - start_pfn;
--			memmap_init_zone(size, nid, zone, start_pfn,
-+			memmap_init_zone(size, nid, zone, start_pfn, range_end_pfn,
- 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
- 		}
- 	}
+-	while (nr - bits_to_clear >= 0) {
++	while (nr >= bits_to_clear) {
+ 		if (clear_bits_ll(p, mask_to_clear))
+ 			return nr;
+ 		nr -= bits_to_clear;
+@@ -183,8 +184,8 @@ int gen_pool_add_owner(struct gen_pool *
+ 		 size_t size, int nid, void *owner)
+ {
+ 	struct gen_pool_chunk *chunk;
+-	int nbits = size >> pool->min_alloc_order;
+-	int nbytes = sizeof(struct gen_pool_chunk) +
++	unsigned long nbits = size >> pool->min_alloc_order;
++	unsigned long nbytes = sizeof(struct gen_pool_chunk) +
+ 				BITS_TO_LONGS(nbits) * sizeof(long);
+ 
+ 	chunk = vzalloc_node(nbytes, nid);
+@@ -242,7 +243,7 @@ void gen_pool_destroy(struct gen_pool *p
+ 	struct list_head *_chunk, *_next_chunk;
+ 	struct gen_pool_chunk *chunk;
+ 	int order = pool->min_alloc_order;
+-	int bit, end_bit;
++	unsigned long bit, end_bit;
+ 
+ 	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
+ 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
+@@ -278,7 +279,7 @@ unsigned long gen_pool_alloc_algo_owner(
+ 	struct gen_pool_chunk *chunk;
+ 	unsigned long addr = 0;
+ 	int order = pool->min_alloc_order;
+-	int nbits, start_bit, end_bit, remain;
++	unsigned long nbits, start_bit, end_bit, remain;
+ 
+ #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	BUG_ON(in_nmi());
+@@ -487,7 +488,7 @@ void gen_pool_free_owner(struct gen_pool
+ {
+ 	struct gen_pool_chunk *chunk;
+ 	int order = pool->min_alloc_order;
+-	int start_bit, nbits, remain;
++	unsigned long start_bit, nbits, remain;
+ 
+ #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	BUG_ON(in_nmi());
+@@ -755,7 +756,7 @@ unsigned long gen_pool_best_fit(unsigned
+ 	index = bitmap_find_next_zero_area(map, size, start, nr, 0);
+ 
+ 	while (index < size) {
+-		int next_bit = find_next_bit(map, size, index + nr);
++		unsigned long next_bit = find_next_bit(map, size, index + nr);
+ 		if ((next_bit - index) < len) {
+ 			len = next_bit - index;
+ 			start_bit = index;
 _
