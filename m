@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52032C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4594CC433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2587C22242
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1743421D94
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726274AbgL2XPo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:15:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37770 "EHLO mail.kernel.org"
+        id S1726284AbgL2XPr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 18:15:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37816 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726276AbgL2XPo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:15:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F99C22227;
-        Tue, 29 Dec 2020 23:14:44 +0000 (UTC)
+        id S1726281AbgL2XPr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 18:15:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 26F1E22287;
+        Tue, 29 Dec 2020 23:14:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283684;
-        bh=pGk9J4rCy7GP3M8Z2VVdPhrK1//OAap2SW0trSWHEig=;
+        s=korg; t=1609283687;
+        bh=EUBUYzUVxiCfDEWYNoVbTWvr07q5l1xLhwxWpkqkpOY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=i8EVdVcyTBS1W7pHpVuzGFHTDIgj1oh1R52kMGq0RAx6v48AXf5jZOppPCmBWmhY/
-         Ca9t7tispxkkw7PA+hm4znbEklObbW843XeIUk7f6I/jXZjpzFBEf7UgbFsOkhjN7L
-         ssTGvrMs15MLLc0g4Gryi2knmjA0TRmHp0zxZa1c=
-Date:   Tue, 29 Dec 2020 15:14:43 -0800
+        b=utBJoZy6Ql5YA1GEpxesMxbYOs6i0hXOYwiTuJlWnDD7n10B2fcDmTysdlPnHr4k3
+         SKbZl0p4frVCxpHFekKNx7AlKt+EnrBy7XmFD3o37/QYZo6FUGZPhqa7Y7BIaAwuLg
+         cdm7a8CxIC3FQCFmHO7e1bDetawaBvrBCy8ZxgOU=
+Date:   Tue, 29 Dec 2020 15:14:46 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, davem@davemloft.net, hughd@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        peterz@infradead.org, sbsiddha@gmail.com,
-        suresh.b.siddha@intel.com, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 08/16] mm: generalise COW SMC TLB flushing race
- comment
-Message-ID: <20201229231443.n5HPa3y-B%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
+Subject:  [patch 09/16] kasan: fix null pointer dereference in
+ kasan_record_aux_stack
+Message-ID: <20201229231446.l1zpffxO9%akpm@linux-foundation.org>
 In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,56 +44,48 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: mm: generalise COW SMC TLB flushing race comment
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: fix null pointer dereference in kasan_record_aux_stack
 
-I'm not sure if I'm completely missing something here, but AFAIKS the
-reference to the mysterious "COW SMC race" confuses the issue.  The
-original changelog and mailing list thread didn't help me either.
+Syzbot reported the following [1]:
 
-This SMC race is where the problem was detected, but isn't the general
-problem bigger and more obvious: that the new PTE could be picked up at
-any time by any TLB while entries for the old PTE exist in other TLBs
-before the TLB flush takes effect?
+ BUG: kernel NULL pointer dereference, address: 0000000000000008
+ #PF: supervisor read access in kernel mode
+ #PF: error_code(0x0000) - not-present page
+ PGD 2d993067 P4D 2d993067 PUD 19a3c067 PMD 0
+ Oops: 0000 [#1] PREEMPT SMP KASAN
+ CPU: 1 PID: 3852 Comm: kworker/1:2 Not tainted 5.10.0-syzkaller #0
+ Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+ Workqueue: events free_ipc
+ RIP: 0010:kasan_record_aux_stack+0x77/0xb0
 
-The case where the iTLB and dTLB of a CPU are pointing at different pages
-is an interesting one but follows from the general problem.
+Add null checking slab object from kasan_get_alloc_meta()
+in order to avoid null pointer dereference.
 
-The other (minor) thing with the comment I think it makes it a bit clearer
-to say what the old code was doing (i.e., it avoids the race as opposed to
-what?).
+[1] https://syzkaller.appspot.com/x/log.txt?x=10a82a50d00000
 
-References: 4ce072f1faf29 ("mm: fix a race condition under SMC + COW")
-Link: https://lkml.kernel.org/r/20201215121119.351650-1-npiggin@gmail.com
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
+Link: https://lkml.kernel.org/r/20201228080018.23041-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/kasan/generic.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory.c~mm-generalise-cow-smc-tlb-flushing-race-comment
-+++ a/mm/memory.c
-@@ -2892,11 +2892,13 @@ static vm_fault_t wp_page_copy(struct vm
- 		entry = mk_pte(new_page, vma->vm_page_prot);
- 		entry = pte_sw_mkyoung(entry);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+
- 		/*
- 		 * Clear the pte entry and flush it first, before updating the
--		 * pte with the new entry. This will avoid a race condition
--		 * seen in the presence of one thread doing SMC and another
--		 * thread doing COW.
-+		 * pte with the new entry, to keep TLBs on different CPUs in
-+		 * sync. This code used to set the new PTE then flush TLBs, but
-+		 * that left a window where the new PTE could be loaded into
-+		 * some TLBs while the old PTE remains in others.
- 		 */
- 		ptep_clear_flush_notify(vma, vmf->address, vmf->pte);
- 		page_add_new_anon_rmap(new_page, vma, vmf->address, false);
+--- a/mm/kasan/generic.c~kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack
++++ a/mm/kasan/generic.c
+@@ -337,6 +337,8 @@ void kasan_record_aux_stack(void *addr)
+ 	cache = page->slab_cache;
+ 	object = nearest_obj(cache, page, addr);
+ 	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (!alloc_meta)
++		return;
+ 
+ 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
+ 	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
 _
