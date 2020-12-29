@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4594CC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1473AC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1743421D94
+	by mail.kernel.org (Postfix) with ESMTP id D887B20771
 	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726284AbgL2XPr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:15:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37816 "EHLO mail.kernel.org"
+        id S1726281AbgL2XPs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 18:15:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726281AbgL2XPr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:15:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26F1E22287;
-        Tue, 29 Dec 2020 23:14:47 +0000 (UTC)
+        id S1726276AbgL2XPs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 18:15:48 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E6EE22262;
+        Tue, 29 Dec 2020 23:14:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283687;
-        bh=EUBUYzUVxiCfDEWYNoVbTWvr07q5l1xLhwxWpkqkpOY=;
+        s=korg; t=1609283690;
+        bh=JMNiCJcUsIrodt28Tq5CxaZma3T1N+3SIXS9f/5tGR4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=utBJoZy6Ql5YA1GEpxesMxbYOs6i0hXOYwiTuJlWnDD7n10B2fcDmTysdlPnHr4k3
-         SKbZl0p4frVCxpHFekKNx7AlKt+EnrBy7XmFD3o37/QYZo6FUGZPhqa7Y7BIaAwuLg
-         cdm7a8CxIC3FQCFmHO7e1bDetawaBvrBCy8ZxgOU=
-Date:   Tue, 29 Dec 2020 15:14:46 -0800
+        b=lTH8THbFYi++DaiZtqZyl95C5xbFIOmFx9BLTSqxkXMp/T9e2j3+9MQdwSEexYWYw
+         ra1KrB+6NJeQwjf2cbmsl8eSZKCLazNMxk8ugq4V3czpBdzkfXlJIxwlDbHq9MZ1MY
+         SpZeig/pn9tsptHUa36Zl5xBtqdzJVCKF4BIzeGw=
+Date:   Tue, 29 Dec 2020 15:14:49 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
-Subject:  [patch 09/16] kasan: fix null pointer dereference in
- kasan_record_aux_stack
-Message-ID: <20201229231446.l1zpffxO9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, axboe@kernel.dk,
+        hch@infradead.org, jacquiot.aurelien@gmail.com,
+        ley.foon.tan@intel.com, linux-mm@kvack.org, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, msalter@redhat.com,
+        peterz@infradead.org, rdunlap@infradead.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 10/16] local64.h: make <asm/local64.h> mandatory
+Message-ID: <20201229231449.Abfir3q7f%akpm@linux-foundation.org>
 In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,48 +45,247 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: kasan: fix null pointer dereference in kasan_record_aux_stack
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: local64.h: make <asm/local64.h> mandatory
 
-Syzbot reported the following [1]:
+Make <asm-generic/local64.h> mandatory in include/asm-generic/Kbuild and
+remove all arch/*/include/asm/local64.h arch-specific files since they
+only #include <asm-generic/local64.h>.
 
- BUG: kernel NULL pointer dereference, address: 0000000000000008
- #PF: supervisor read access in kernel mode
- #PF: error_code(0x0000) - not-present page
- PGD 2d993067 P4D 2d993067 PUD 19a3c067 PMD 0
- Oops: 0000 [#1] PREEMPT SMP KASAN
- CPU: 1 PID: 3852 Comm: kworker/1:2 Not tainted 5.10.0-syzkaller #0
- Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
- Workqueue: events free_ipc
- RIP: 0010:kasan_record_aux_stack+0x77/0xb0
+This fixes build errors on arch/c6x/ and arch/nios2/ for
+block/blk-iocost.c.
 
-Add null checking slab object from kasan_get_alloc_meta()
-in order to avoid null pointer dereference.
+Build-tested on 21 of 25 arch-es. (tools problems on the others)
 
-[1] https://syzkaller.appspot.com/x/log.txt?x=10a82a50d00000
+Yes, we could even rename <asm-generic/local64.h> to
+<linux/local64.h> and change all #includes to use
+<linux/local64.h> instead.
 
-Link: https://lkml.kernel.org/r/20201228080018.23041-1-walter-zh.wu@mediatek.com
-Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Suggested-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: https://lkml.kernel.org/r/20201227024446.17018-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/alpha/include/asm/local64.h   |    1 -
+ arch/arc/include/asm/Kbuild        |    1 -
+ arch/arm/include/asm/Kbuild        |    1 -
+ arch/arm64/include/asm/Kbuild      |    1 -
+ arch/csky/include/asm/Kbuild       |    1 -
+ arch/h8300/include/asm/Kbuild      |    1 -
+ arch/hexagon/include/asm/Kbuild    |    1 -
+ arch/ia64/include/asm/local64.h    |    1 -
+ arch/m68k/include/asm/Kbuild       |    1 -
+ arch/microblaze/include/asm/Kbuild |    1 -
+ arch/mips/include/asm/Kbuild       |    1 -
+ arch/nds32/include/asm/Kbuild      |    1 -
+ arch/openrisc/include/asm/Kbuild   |    1 -
+ arch/parisc/include/asm/Kbuild     |    1 -
+ arch/powerpc/include/asm/Kbuild    |    1 -
+ arch/riscv/include/asm/Kbuild      |    1 -
+ arch/s390/include/asm/Kbuild       |    1 -
+ arch/sh/include/asm/Kbuild         |    1 -
+ arch/sparc/include/asm/Kbuild      |    1 -
+ arch/x86/include/asm/local64.h     |    1 -
+ arch/xtensa/include/asm/Kbuild     |    1 -
+ include/asm-generic/Kbuild         |    1 +
+ 22 files changed, 1 insertion(+), 21 deletions(-)
 
---- a/mm/kasan/generic.c~kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack
-+++ a/mm/kasan/generic.c
-@@ -337,6 +337,8 @@ void kasan_record_aux_stack(void *addr)
- 	cache = page->slab_cache;
- 	object = nearest_obj(cache, page, addr);
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return;
+--- a/arch/alpha/include/asm/local64.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/local64.h>
+--- a/arch/arc/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/arc/include/asm/Kbuild
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ generic-y += extable.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += parport.h
+ generic-y += user.h
+--- a/arch/arm64/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/arm64/include/asm/Kbuild
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ generic-y += early_ioremap.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += qrwlock.h
+ generic-y += qspinlock.h
+--- a/arch/arm/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/arm/include/asm/Kbuild
+@@ -2,7 +2,6 @@
+ generic-y += early_ioremap.h
+ generic-y += extable.h
+ generic-y += flat.h
+-generic-y += local64.h
+ generic-y += parport.h
  
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
- 	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
+ generated-y += mach-types.h
+--- a/arch/csky/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/csky/include/asm/Kbuild
+@@ -2,7 +2,6 @@
+ generic-y += asm-offsets.h
+ generic-y += gpio.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += qrwlock.h
+ generic-y += user.h
+ generic-y += vmlinux.lds.h
+--- a/arch/h8300/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/h8300/include/asm/Kbuild
+@@ -2,7 +2,6 @@
+ generic-y += asm-offsets.h
+ generic-y += extable.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += parport.h
+ generic-y += spinlock.h
+--- a/arch/hexagon/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/hexagon/include/asm/Kbuild
+@@ -2,5 +2,4 @@
+ generic-y += extable.h
+ generic-y += iomap.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+--- a/arch/ia64/include/asm/local64.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/local64.h>
+--- a/arch/m68k/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/m68k/include/asm/Kbuild
+@@ -2,6 +2,5 @@
+ generated-y += syscall_table.h
+ generic-y += extable.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += spinlock.h
+--- a/arch/microblaze/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/microblaze/include/asm/Kbuild
+@@ -2,7 +2,6 @@
+ generated-y += syscall_table.h
+ generic-y += extable.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += parport.h
+ generic-y += syscalls.h
+--- a/arch/mips/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/mips/include/asm/Kbuild
+@@ -6,7 +6,6 @@ generated-y += syscall_table_64_n64.h
+ generated-y += syscall_table_64_o32.h
+ generic-y += export.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += parport.h
+ generic-y += qrwlock.h
+--- a/arch/nds32/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/nds32/include/asm/Kbuild
+@@ -4,6 +4,5 @@ generic-y += cmpxchg.h
+ generic-y += export.h
+ generic-y += gpio.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += parport.h
+ generic-y += user.h
+--- a/arch/openrisc/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/openrisc/include/asm/Kbuild
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ generic-y += extable.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += qspinlock_types.h
+ generic-y += qspinlock.h
+--- a/arch/parisc/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/parisc/include/asm/Kbuild
+@@ -3,6 +3,5 @@ generated-y += syscall_table_32.h
+ generated-y += syscall_table_64.h
+ generated-y += syscall_table_c32.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += user.h
+--- a/arch/powerpc/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/powerpc/include/asm/Kbuild
+@@ -5,7 +5,6 @@ generated-y += syscall_table_c32.h
+ generated-y += syscall_table_spu.h
+ generic-y += export.h
+ generic-y += kvm_types.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += qrwlock.h
+ generic-y += vtime.h
+--- a/arch/riscv/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/riscv/include/asm/Kbuild
+@@ -3,6 +3,5 @@ generic-y += early_ioremap.h
+ generic-y += extable.h
+ generic-y += flat.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += user.h
+ generic-y += vmlinux.lds.h
+--- a/arch/s390/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/s390/include/asm/Kbuild
+@@ -7,5 +7,4 @@ generated-y += unistd_nr.h
+ generic-y += asm-offsets.h
+ generic-y += export.h
+ generic-y += kvm_types.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+--- a/arch/sh/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/sh/include/asm/Kbuild
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ generated-y += syscall_table.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += parport.h
+--- a/arch/sparc/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/sparc/include/asm/Kbuild
+@@ -6,5 +6,4 @@ generated-y += syscall_table_64.h
+ generated-y += syscall_table_c32.h
+ generic-y += export.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+--- a/arch/x86/include/asm/local64.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/local64.h>
+--- a/arch/xtensa/include/asm/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/arch/xtensa/include/asm/Kbuild
+@@ -2,7 +2,6 @@
+ generated-y += syscall_table.h
+ generic-y += extable.h
+ generic-y += kvm_para.h
+-generic-y += local64.h
+ generic-y += mcs_spinlock.h
+ generic-y += param.h
+ generic-y += qrwlock.h
+--- a/include/asm-generic/Kbuild~local64h-make-asm-local64h-mandatory
++++ a/include/asm-generic/Kbuild
+@@ -34,6 +34,7 @@ mandatory-y += kmap_size.h
+ mandatory-y += kprobes.h
+ mandatory-y += linkage.h
+ mandatory-y += local.h
++mandatory-y += local64.h
+ mandatory-y += mm-arch-hooks.h
+ mandatory-y += mmiowb.h
+ mandatory-y += mmu.h
 _
