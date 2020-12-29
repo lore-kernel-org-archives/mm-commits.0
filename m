@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F3F8C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D01ACC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC38122209
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A015620771
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726276AbgL2XPu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:15:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37860 "EHLO mail.kernel.org"
+        id S1726289AbgL2XPx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 18:15:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726289AbgL2XPu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:15:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 15358223C8;
-        Tue, 29 Dec 2020 23:14:56 +0000 (UTC)
+        id S1726161AbgL2XPx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 18:15:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B236223DB;
+        Tue, 29 Dec 2020 23:15:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283696;
-        bh=J6VggAO7YP44xmD8ur3wY+jiMg7exwG1V+MM2XJ2N/s=;
+        s=korg; t=1609283702;
+        bh=I+kANtDsJWBoHJ0KQZKqJmAYuK8D3gsAukkRlX/7QCI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oc1YFgaKn2aq6/XbuU9+Ofqb20RvWGnoE4KBjcjWLhP11cOlkD+AMVFUnO7b1cbBP
-         k68Je5Tzc0PxuD39wIY5j20nnIa+a4Uwkd/0GmzKXwe8AjoQaNIxd5ttqr8PUn70va
-         APDoYkOQhDmiEY6JSqF3eVskFPUo+LrFQ+8jzkN0=
-Date:   Tue, 29 Dec 2020 15:14:55 -0800
+        b=CtY4oX0zTLAE2dJBLxDOUdDiDo0R01dc7Tx6WhjESeNp+PoaTLkcP1NA4w+R6xF5V
+         eBIGghV4Vk6zt65SU+LRyVBRmqiQACrYXS5wzXAfJc6h2C4XormG5YGHmqrX4Uz0Dx
+         3BFe+GLfxuzo+ShKMaLU248iKc5GiOi5aLVDHuVY=
+Date:   Tue, 29 Dec 2020 15:15:01 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-        jpoimboe@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 12/16] kdev_t: always inline major/minor helper
- functions
-Message-ID: <20201229231455.c7xXLalLH%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
+        gor@linux.ibm.com, hca@linux.ibm.com, iii@linux.ibm.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        zaslonko@linux.ibm.com
+Subject:  [patch 14/16] lib/zlib: fix inflating zlib streams on
+ s390
+Message-ID: <20201229231501.ix0FESQg2%akpm@linux-foundation.org>
 In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,100 +45,57 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: kdev_t: always inline major/minor helper functions
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: lib/zlib: fix inflating zlib streams on s390
 
-Silly GCC doesn't always inline these trivial functions.
+Decompressing zlib streams on s390 fails with "incorrect data check"
+error.
 
-Fixes the following warning:
+Userspace zlib checks inflate_state.flags in order to byteswap checksums
+only for zlib streams, and s390 hardware inflate code, which was ported
+from there, tries to match this behavior.  At the same time, kernel zlib
+does not use inflate_state.flags, so it contains essentially random
+values.  For many use cases either zlib stream is zeroed out or checksum
+is not used, so this problem is masked, but at least SquashFS is still
+affected.
 
-  arch/x86/kernel/sys_ia32.o: warning: objtool: cp_stat64()+0xd8: call to new_encode_dev() with UACCESS enabled
+Fix by always passing a checksum to and from the hardware as is, which
+matches zlib_inflate()'s expectations.
 
-Link: https://lkml.kernel.org/r/984353b44a4484d86ba9f73884b7306232e25e30.1608737428.git.jpoimboe@redhat.com
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>	[build-tested]
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20201215155551.894884-1-iii@linux.ibm.com
+Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Acked-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: <stable@vger.kernel.org>	[5.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kdev_t.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ lib/zlib_dfltcc/dfltcc_inflate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/kdev_t.h~kdev_t-always-inline-major-minor-helper-functions
-+++ a/include/linux/kdev_t.h
-@@ -21,61 +21,61 @@
- 	})
+--- a/lib/zlib_dfltcc/dfltcc_inflate.c~lib-zlib-fix-inflating-zlib-streams-on-s390
++++ a/lib/zlib_dfltcc/dfltcc_inflate.c
+@@ -125,7 +125,7 @@ dfltcc_inflate_action dfltcc_inflate(
+     param->ho = (state->write - state->whave) & ((1 << HB_BITS) - 1);
+     if (param->hl)
+         param->nt = 0; /* Honor history for the first block */
+-    param->cv = state->flags ? REVERSE(state->check) : state->check;
++    param->cv = state->check;
  
- /* acceptable for old filesystems */
--static inline bool old_valid_dev(dev_t dev)
-+static __always_inline bool old_valid_dev(dev_t dev)
- {
- 	return MAJOR(dev) < 256 && MINOR(dev) < 256;
- }
- 
--static inline u16 old_encode_dev(dev_t dev)
-+static __always_inline u16 old_encode_dev(dev_t dev)
- {
- 	return (MAJOR(dev) << 8) | MINOR(dev);
- }
- 
--static inline dev_t old_decode_dev(u16 val)
-+static __always_inline dev_t old_decode_dev(u16 val)
- {
- 	return MKDEV((val >> 8) & 255, val & 255);
- }
- 
--static inline u32 new_encode_dev(dev_t dev)
-+static __always_inline u32 new_encode_dev(dev_t dev)
- {
- 	unsigned major = MAJOR(dev);
- 	unsigned minor = MINOR(dev);
- 	return (minor & 0xff) | (major << 8) | ((minor & ~0xff) << 12);
- }
- 
--static inline dev_t new_decode_dev(u32 dev)
-+static __always_inline dev_t new_decode_dev(u32 dev)
- {
- 	unsigned major = (dev & 0xfff00) >> 8;
- 	unsigned minor = (dev & 0xff) | ((dev >> 12) & 0xfff00);
- 	return MKDEV(major, minor);
- }
- 
--static inline u64 huge_encode_dev(dev_t dev)
-+static __always_inline u64 huge_encode_dev(dev_t dev)
- {
- 	return new_encode_dev(dev);
- }
- 
--static inline dev_t huge_decode_dev(u64 dev)
-+static __always_inline dev_t huge_decode_dev(u64 dev)
- {
- 	return new_decode_dev(dev);
- }
- 
--static inline int sysv_valid_dev(dev_t dev)
-+static __always_inline int sysv_valid_dev(dev_t dev)
- {
- 	return MAJOR(dev) < (1<<14) && MINOR(dev) < (1<<18);
- }
- 
--static inline u32 sysv_encode_dev(dev_t dev)
-+static __always_inline u32 sysv_encode_dev(dev_t dev)
- {
- 	return MINOR(dev) | (MAJOR(dev) << 18);
- }
- 
--static inline unsigned sysv_major(u32 dev)
-+static __always_inline unsigned sysv_major(u32 dev)
- {
- 	return (dev >> 18) & 0x3fff;
- }
- 
--static inline unsigned sysv_minor(u32 dev)
-+static __always_inline unsigned sysv_minor(u32 dev)
- {
- 	return dev & 0x3ffff;
- }
+     /* Inflate */
+     do {
+@@ -138,7 +138,7 @@ dfltcc_inflate_action dfltcc_inflate(
+     state->bits = param->sbb;
+     state->whave = param->hl;
+     state->write = (param->ho + param->hl) & ((1 << HB_BITS) - 1);
+-    state->check = state->flags ? REVERSE(param->cv) : param->cv;
++    state->check = param->cv;
+     if (cc == DFLTCC_CC_OP2_CORRUPT && param->oesc != 0) {
+         /* Report an error if stream is corrupted */
+         state->mode = BAD;
 _
