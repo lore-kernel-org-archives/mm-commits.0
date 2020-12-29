@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50AC3C433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35EDDC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1924E20771
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 055DC22227
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726230AbgL2XPa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:15:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37202 "EHLO mail.kernel.org"
+        id S1726278AbgL2XPo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 18:15:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37768 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726156AbgL2XPa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:15:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 08E4C22209;
-        Tue, 29 Dec 2020 23:15:08 +0000 (UTC)
+        id S1726274AbgL2XPo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 18:15:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EE52B2222A;
+        Tue, 29 Dec 2020 23:14:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283708;
-        bh=o9L4INN7jM+h/jWMta1csQDzdwUzM0efDVa+ZoGj9R8=;
+        s=korg; t=1609283681;
+        bh=h4KxPNu8JUKNQQue82eivjsaXfmQO5zgNGJKT/TWOVw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=RYAP45Fogb9iFA2he4PZRNFYHqoNVobEZo0lSpSt27ZfvooLO9evDiK/aJzZf25tV
-         /BNIxiCJ0WAS2B1ESBVIyCvwJVk/0dmR60YplHivzZXOykY4BRERv23h8v/Ne9pt/t
-         cVguk5vs/QhIaZawrymSnKBV1hWV93Nv6D4hIEO0=
-Date:   Tue, 29 Dec 2020 15:15:07 -0800
+        b=1dYzjBhyjsGZwVbN6FDf7EZFm3S97O3O9Qty48RIN2gk1fWXJV3fnjA5bPBLlktZV
+         QVldDSxaWRJ6VeJtrE/OLT8XM2dI+Xb7ax+9dwV0usueNss9bq5oZvqdJG0KctoCl2
+         AJzPsrt00JnUv9TxWs8z6LAla4b4VuORxsQX+79E=
+Date:   Tue, 29 Dec 2020 15:14:40 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
+To:     akpm@linux-foundation.org, deller@gmx.de, kaleshsingh@google.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        linux@roeck-us.net, lokeshgidra@google.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, surenb@google.com,
         torvalds@linux-foundation.org
-Subject:  [patch 16/16] mm: slub: call account_slab_page() after
- slab page initialization
-Message-ID: <20201229231507.0MS9eCjiX%akpm@linux-foundation.org>
+Subject:  [patch 07/16] mm/mremap.c: fix extent calculation
+Message-ID: <20201229231440.q8f_qyKwg%akpm@linux-foundation.org>
 In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,51 +44,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: slub: call account_slab_page() after slab page initialization
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: mm/mremap.c: fix extent calculation
 
-It's convenient to have page->objects initialized before calling into
-account_slab_page().  In particular, this information can be used to
-pre-alloc the obj_cgroup vector.
+When `next < old_addr`, `next - old_addr` arithmetic underflows
+causing `extent` to be incorrect.
 
-Let's call account_slab_page() a bit later, after the initialization of
-page->objects.
+Make `extent` the smaller of `next - old_addr` or `old_end - old_addr`.
 
-This commit doesn't bring any functional change, but is required for
-further optimizations.
-
-[akpm@linux-foundation.org: undo changes needed by forthcoming mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch]
-Link: https://lkml.kernel.org/r/20201110195753.530157-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: https://lkml.kernel.org/r/20201219170433.2418867-1-kaleshsingh@google.com
+Fixes: c49dd34018026 ("mm: speedup mremap on 1GB or larger regions")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/mremap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-call-account_slab_page-after-slab-page-initialization
-+++ a/mm/slub.c
-@@ -1619,9 +1619,6 @@ static inline struct page *alloc_slab_pa
- 	else
- 		page = __alloc_pages_node(node, flags, order);
+--- a/mm/mremap.c~mm-mremap-fix-extent-calculation
++++ a/mm/mremap.c
+@@ -358,7 +358,9 @@ static unsigned long get_extent(enum pgt
  
--	if (page)
--		account_slab_page(page, order, s);
--
- 	return page;
- }
- 
-@@ -1774,6 +1771,8 @@ static struct page *allocate_slab(struct
- 
- 	page->objects = oo_objects(oo);
- 
-+	account_slab_page(page, oo_order(oo), s);
-+
- 	page->slab_cache = s;
- 	__SetPageSlab(page);
- 	if (page_is_pfmemalloc(page))
+ 	next = (old_addr + size) & mask;
+ 	/* even if next overflowed, extent below will be ok */
+-	extent = (next > old_end) ? old_end - old_addr : next - old_addr;
++	extent = next - old_addr;
++	if (extent > old_end - old_addr)
++		extent = old_end - old_addr;
+ 	next = (new_addr + size) & mask;
+ 	if (extent > next - new_addr)
+ 		extent = next - new_addr;
 _
