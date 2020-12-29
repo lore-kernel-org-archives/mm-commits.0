@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A7ABC433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 21:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8736DC433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 21:02:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 291AA221F8
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 21:01:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F36D21D1B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 21:02:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726126AbgL2VBD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 16:01:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41816 "EHLO mail.kernel.org"
+        id S1726138AbgL2VB7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 16:01:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42132 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726111AbgL2VBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 16:01:03 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A9AFE21D1B;
-        Tue, 29 Dec 2020 21:00:22 +0000 (UTC)
+        id S1726111AbgL2VB7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 16:01:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AA3A121D1B;
+        Tue, 29 Dec 2020 21:01:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609275622;
-        bh=4+6hEsB2FaT6cjlohU3wxms1uMlJtrypj3ItcOs587o=;
+        s=korg; t=1609275678;
+        bh=flpeRGdt2BPGOeJm6C/KTRFdqmPOq6cMFwhMa7EpLnY=;
         h=Date:From:To:Subject:From;
-        b=O8BAP5SvEavZjV+bcSr/GFeVkfQbyv1DLc1upF7knwVgkJS8ai+7lofgoSGBMnGn+
-         pixXexk07HWcwjp59ZiVwNjsncxEuNbWuHXd0CWCWzNvHfO0fBDMIeJmUkaPZOoWFo
-         Qz66ylnjwpUX6d++TlMpgsh4iusnF94rEUtcQbYg=
-Date:   Tue, 29 Dec 2020 13:00:22 -0800
+        b=WePEtubsic3XRqxsA4e+UuflRCzHkTDdc8DAbo6nZTaHnQPdHUMuMuTJFNy+4++1K
+         UwkS2IfyyNSfrz9K82IJxX2CgmHtHAqxEnTX7ft3yLh872ZyxrEIvWAj9Z8HexDPVo
+         ZzOcbvgQvgDzSux5BxdqBc32m1L770YSgTkCyJV0=
+Date:   Tue, 29 Dec 2020 13:01:16 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rientjes@google.com,
-        penberg@kernel.org, iamjoonsoo.kim@lge.com, cl@linux.com,
-        jannh@google.com
+To:     mm-commits@vger.kernel.org, glider@google.com, dvyukov@google.com,
+        aryabinin@virtuozzo.com, andreyknvl@google.com,
+        walter-zh.wu@mediatek.com
 Subject:  +
- mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch added to
+ kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack.patch added to
  -mm tree
-Message-ID: <20201229210022.PoYQn%akpm@linux-foundation.org>
+Message-ID: <20201229210116.fk6NS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: consider rest of partial list if acquire_slab() fails
+     Subject: kasan: fix null pointer dereference in kasan_record_aux_stack
 has been added to the -mm tree.  Its filename is
-     mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch
+     kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,48 +66,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm, slub: consider rest of partial list if acquire_slab() fails
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: fix null pointer dereference in kasan_record_aux_stack
 
-acquire_slab() fails if there is contention on the freelist of the page
-(probably because some other CPU is concurrently freeing an object from
-the page).  In that case, it might make sense to look for a different page
-(since there might be more remote frees to the page from other CPUs, and
-we don't want contention on struct page).
+Syzbot reported the following [1]:
 
-However, the current code accidentally stops looking at the partial list
-completely in that case.  Especially on kernels without CONFIG_NUMA set,
-this means that get_partial() fails and new_slab_objects() falls back to
-new_slab(), allocating new pages.  This could lead to an unnecessary
-increase in memory fragmentation.
+ BUG: kernel NULL pointer dereference, address: 0000000000000008
+ #PF: supervisor read access in kernel mode
+ #PF: error_code(0x0000) - not-present page
+ PGD 2d993067 P4D 2d993067 PUD 19a3c067 PMD 0
+ Oops: 0000 [#1] PREEMPT SMP KASAN
+ CPU: 1 PID: 3852 Comm: kworker/1:2 Not tainted 5.10.0-syzkaller #0
+ Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+ Workqueue: events free_ipc
+ RIP: 0010:kasan_record_aux_stack+0x77/0xb0
 
-Link: https://lkml.kernel.org/r/20201228130853.1871516-1-jannh@google.com
-Fixes: 7ced37197196 ("slub: Acquire_slab() avoid loop")
-Signed-off-by: Jann Horn <jannh@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Add null checking slab object from kasan_get_alloc_meta()
+in order to avoid null pointer dereference.
+
+[1] https://syzkaller.appspot.com/x/log.txt?x=10a82a50d00000
+
+Link: https://lkml.kernel.org/r/20201228080018.23041-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/generic.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/slub.c~mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails
-+++ a/mm/slub.c
-@@ -1973,7 +1973,7 @@ static void *get_partial_node(struct kme
+--- a/mm/kasan/generic.c~kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack
++++ a/mm/kasan/generic.c
+@@ -337,6 +337,8 @@ void kasan_record_aux_stack(void *addr)
+ 	cache = page->slab_cache;
+ 	object = nearest_obj(cache, page, addr);
+ 	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (!alloc_meta)
++		return;
  
- 		t = acquire_slab(s, n, page, object == NULL, &objects);
- 		if (!t)
--			break;
-+			continue; /* cmpxchg raced */
- 
- 		available += objects;
- 		if (!object) {
+ 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
+ 	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
-mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch
+kasan-fix-null-pointer-dereference-in-kasan_record_aux_stack.patch
 
