@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBAE2C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:58:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C345C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:58:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 92D42206E9
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:58:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA075206ED
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:58:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726198AbgL2T6O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 14:58:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56098 "EHLO mail.kernel.org"
+        id S1726203AbgL2T6n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 14:58:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726111AbgL2T6O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 14:58:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B307C22225;
-        Tue, 29 Dec 2020 19:57:32 +0000 (UTC)
+        id S1726111AbgL2T6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 14:58:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ACDF222227;
+        Tue, 29 Dec 2020 19:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609271853;
-        bh=sZ/r7oKf5fd1IbndBdwNREMlPrJEu3qGolBFg8YpTpg=;
+        s=korg; t=1609271856;
+        bh=z+lJDb/gL7gJUXo5XAGHfYlxwz0I5tvv1E6HHQ6ExxU=;
         h=Date:From:To:Subject:From;
-        b=NHCWZ2bOBmKuhpq4flIV22oJxb5GLh3c2595EHaQJHGZcIUDom3l6v/u1AhXkUkyg
-         nMC0KVGISyVMqGlcm42MHjHRr9kxcr6GMdbLk1C2eq4sRA8aI/Dyd8nQyfzPD5FX5Y
-         LqIggMrhfPPuisUM6Q7GSJXQEQCiQPGbbO8fStYY=
-Date:   Tue, 29 Dec 2020 11:57:32 -0800
+        b=MrEWGJ9hPCnYTX/SfbYw5HsczKyh55aZIlpIFovuQnS2HaYaj88AhdxX+sI6lQzLT
+         ufnt5NX9UkLjT+Px8nVMeefE2q7JJCRbKJ4BtdjFQm4lpKzNpHO6gZcORKfGD+9ubx
+         ddcG+/bW3vgj1U5hpvHnKnm9ohi8QOmZLFs9uHiI=
+Date:   Tue, 29 Dec 2020 11:57:35 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
         shakeelb@google.com, samitolvanen@google.com,
@@ -38,9 +38,9 @@ To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
         guro@fb.com, gregkh@linuxfoundation.org, feng.tang@intel.com,
         adobriyan@gmail.com, songmuchun@bytedance.com
 Subject:  +
- mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch added to -mm
+ mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch added to -mm
  tree
-Message-ID: <20201229195732.RknXX%akpm@linux-foundation.org>
+Message-ID: <20201229195735.v9f2U%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: convert NR_SHMEM_PMDMAPPED account to pages
+     Subject: mm: memcontrol: convert NR_FILE_PMDMAPPED account to pages
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+     mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,7 +71,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: convert NR_SHMEM_PMDMAPPED account to pages
+Subject: mm: memcontrol: convert NR_FILE_PMDMAPPED account to pages
 
 Currently we use struct per_cpu_nodestat to cache the vmstat counters,
 which leads to inaccurate statistics especially THP vmstat counters.  In
@@ -85,14 +85,14 @@ Although every THP stats update overflows the per-cpu counter, resorting
 to atomic global updates.  But it can make the statistics more accuracy
 for the THP vmstat counters.
 
-So we convert the NR_SHMEM_PMDMAPPED account to pages.  This patch is
+So we convert the NR_FILE_PMDMAPPED account to pages.  This patch is
 consistent with 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page
 arrival").  Doing this also can make the unit of vmstat counters more
 unified.  Finally, the unit of the vmstat counters are pages, kB and
 bytes.  The B/KB suffix can tell us that the unit is bytes or kB.  The
 rest which is without suffix are pages.
 
-Link: https://lkml.kernel.org/r/20201228164110.2838-6-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20201228164110.2838-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Feng Tang <feng.tang@intel.com>
@@ -115,99 +115,66 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/base/node.c    |    3 +--
  fs/proc/meminfo.c      |    2 +-
  include/linux/mmzone.h |    3 ++-
- mm/page_alloc.c        |    3 +--
- mm/rmap.c              |   14 ++++++++++----
- 5 files changed, 15 insertions(+), 10 deletions(-)
+ mm/rmap.c              |    6 ++++--
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/drivers/base/node.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
+--- a/drivers/base/node.c~mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages
 +++ a/drivers/base/node.c
-@@ -463,8 +463,7 @@ static ssize_t node_read_meminfo(struct
- 			     ,
- 			     nid, K(node_page_state(pgdat, NR_ANON_THPS)),
+@@ -465,8 +465,7 @@ static ssize_t node_read_meminfo(struct
  			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS)),
--			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED) *
--				    HPAGE_PMD_NR),
-+			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
+ 			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
  			     nid, K(node_page_state(pgdat, NR_FILE_THPS)),
- 			     nid, K(node_page_state(pgdat, NR_FILE_PMDMAPPED) *
- 				    HPAGE_PMD_NR)
---- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
+-			     nid, K(node_page_state(pgdat, NR_FILE_PMDMAPPED) *
+-				    HPAGE_PMD_NR)
++			     nid, K(node_page_state(pgdat, NR_FILE_PMDMAPPED))
+ #endif
+ 			    );
+ 	len += hugetlb_report_node_meminfo(buf, len, nid);
+--- a/fs/proc/meminfo.c~mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages
 +++ a/fs/proc/meminfo.c
-@@ -133,7 +133,7 @@ static int meminfo_proc_show(struct seq_
- 	show_val_kb(m, "ShmemHugePages: ",
- 		    global_node_page_state(NR_SHMEM_THPS));
- 	show_val_kb(m, "ShmemPmdMapped: ",
--		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
-+		    global_node_page_state(NR_SHMEM_PMDMAPPED));
+@@ -137,7 +137,7 @@ static int meminfo_proc_show(struct seq_
  	show_val_kb(m, "FileHugePages:  ",
  		    global_node_page_state(NR_FILE_THPS));
  	show_val_kb(m, "FilePmdMapped:  ",
---- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/include/linux/mmzone.h
-@@ -221,7 +221,8 @@ static __always_inline bool vmstat_item_
+-		    global_node_page_state(NR_FILE_PMDMAPPED) * HPAGE_PMD_NR);
++		    global_node_page_state(NR_FILE_PMDMAPPED));
+ #endif
  
+ #ifdef CONFIG_CMA
+--- a/include/linux/mmzone.h~mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages
++++ a/include/linux/mmzone.h
+@@ -222,7 +222,8 @@ static __always_inline bool vmstat_item_
  	return item == NR_ANON_THPS ||
  	       item == NR_FILE_THPS ||
--	       item == NR_SHMEM_THPS;
-+	       item == NR_SHMEM_THPS ||
-+	       item == NR_SHMEM_PMDMAPPED;
+ 	       item == NR_SHMEM_THPS ||
+-	       item == NR_SHMEM_PMDMAPPED;
++	       item == NR_SHMEM_PMDMAPPED ||
++	       item == NR_FILE_PMDMAPPED;
  }
  
  /*
---- a/mm/page_alloc.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
-+++ a/mm/page_alloc.c
-@@ -5580,8 +5580,7 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_SHMEM)),
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			K(node_page_state(pgdat, NR_SHMEM_THPS)),
--			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
--					* HPAGE_PMD_NR),
-+			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
- 			K(node_page_state(pgdat, NR_ANON_THPS)),
- #endif
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
---- a/mm/rmap.c~mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages
+--- a/mm/rmap.c~mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages
 +++ a/mm/rmap.c
-@@ -1211,14 +1211,17 @@ void page_add_file_rmap(struct page *pag
- 	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
- 	lock_page_memcg(page);
- 	if (compound && PageTransHuge(page)) {
--		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
-+		int nr_pages = thp_nr_pages(page);
-+
-+		for (i = 0, nr = 0; i < nr_pages; i++) {
- 			if (atomic_inc_and_test(&page[i]._mapcount))
- 				nr++;
- 		}
- 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
- 			goto out;
- 		if (PageSwapBacked(page))
--			__inc_node_page_state(page, NR_SHMEM_PMDMAPPED);
-+			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
+@@ -1223,7 +1223,8 @@ void page_add_file_rmap(struct page *pag
+ 			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
+ 						nr_pages);
+ 		else
+-			__inc_node_page_state(page, NR_FILE_PMDMAPPED);
++			__mod_lruvec_page_state(page, NR_FILE_PMDMAPPED,
 +						nr_pages);
- 		else
- 			__inc_node_page_state(page, NR_FILE_PMDMAPPED);
  	} else {
-@@ -1252,14 +1255,17 @@ static void page_remove_file_rmap(struct
- 
- 	/* page still mapped by someone else? */
- 	if (compound && PageTransHuge(page)) {
--		for (i = 0, nr = 0; i < thp_nr_pages(page); i++) {
-+		int nr_pages = thp_nr_pages(page);
-+
-+		for (i = 0, nr = 0; i < nr_pages; i++) {
- 			if (atomic_add_negative(-1, &page[i]._mapcount))
- 				nr++;
- 		}
- 		if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
- 			return;
- 		if (PageSwapBacked(page))
--			__dec_node_page_state(page, NR_SHMEM_PMDMAPPED);
-+			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
+ 		if (PageTransCompound(page) && page_mapping(page)) {
+ 			VM_WARN_ON_ONCE(!PageLocked(page));
+@@ -1267,7 +1268,8 @@ static void page_remove_file_rmap(struct
+ 			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
+ 						-nr_pages);
+ 		else
+-			__dec_node_page_state(page, NR_FILE_PMDMAPPED);
++			__mod_lruvec_page_state(page, NR_FILE_PMDMAPPED,
 +						-nr_pages);
- 		else
- 			__dec_node_page_state(page, NR_FILE_PMDMAPPED);
  	} else {
+ 		if (!atomic_add_negative(-1, &page->_mapcount))
+ 			return;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
