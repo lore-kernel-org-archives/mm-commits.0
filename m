@@ -7,34 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 595AFC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:50:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28082C433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:58:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1360C221F8
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:50:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4508206ED
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 19:58:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726178AbgL2TuL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 14:50:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54554 "EHLO mail.kernel.org"
+        id S1726168AbgL2T6C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Dec 2020 14:58:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726111AbgL2TuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 14:50:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EB0020867;
-        Tue, 29 Dec 2020 19:49:30 +0000 (UTC)
+        id S1726111AbgL2T6C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 29 Dec 2020 14:58:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E766820867;
+        Tue, 29 Dec 2020 19:57:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609271370;
-        bh=3jNSzd8TbkfWlaZcdsMp0+tqOrDXzZQLyJJj7+Gl+GQ=;
+        s=korg; t=1609271841;
+        bh=MC/Q9MNWKgOUPwhbfivqqoG++Cf0DxfkQ7crdNWBkCY=;
         h=Date:From:To:Subject:From;
-        b=dQgnqdr3W3Erg/PxsdUTdAiP79YMS9Sk/72PGhPOyMKWT2K9hK6z0CmWu1OHKuLfx
-         yNMtkuCHkLSh5qmGA6fDQLYLGA4WxmhabhsBx07JwJgYBgMlFD0rWizfjZdy5aFQEx
-         U5X5fb8c0YBY4wyoUFsfyNcCJx1l9GETO9VYdQbU=
-Date:   Tue, 29 Dec 2020 11:49:29 -0800
+        b=EhZF2V5zW/AprE6SrIZJTWfSspDL11Fua5S7JN1BcxmHjT2av6lWMPoEys13PSmEw
+         ZCLzVkC++Z1BwN+AvYZMgRCFipa2pMig53okNK4bKrONXf3V5UVXZA7yYk+TGwfvD8
+         /i7K8QI6vTDsrR3PpdF9gbzws45obMQIEMQkSQ6E=
+Date:   Tue, 29 Dec 2020 11:57:20 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, rppt@kernel.org,
-        guro@fb.com
-Subject:  + mm-cma-allocate-cma-areas-bottom-up-fix-3.patch added to
- -mm tree
-Message-ID: <20201229194929._FM9M%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
+        shakeelb@google.com, samitolvanen@google.com,
+        rdunlap@infradead.org, rafael@kernel.org,
+        pankaj.gupta@cloud.ionos.com, neilb@suse.de, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
+        guro@fb.com, gregkh@linuxfoundation.org, feng.tang@intel.com,
+        adobriyan@gmail.com, songmuchun@bytedance.com
+Subject:  +
+ mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch added to -mm
+ tree
+Message-ID: <20201229195720.qP9CK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-allocate-cma-areas-bottom-up-fix-3
+     Subject: mm: memcontrol: fix NR_ANON_THPS accounting in charge moving
 has been added to the -mm tree.  Its filename is
-     mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
+     mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,44 +70,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm-cma-allocate-cma-areas-bottom-up-fix-3
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: fix NR_ANON_THPS accounting in charge moving
 
-> 32-bit systems can have more than 32 bit in the physical address.
-> I think a better option would be to use CONFIG_PHYS_ADDR_T_64BIT
+Patch series "Convert all THP vmstat counters to pages", v6.
 
-I agree. An updated fixup below.
+This patch series is aimed to convert all THP vmstat counters to pages.
 
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+The unit of some vmstat counters are pages, some are bytes, some are
+HPAGE_PMD_NR, and some are KiB. When we want to expose these vmstat
+counters to the userspace, we have to know the unit of the vmstat counters
+is which one. When the unit is bytes or kB, both clearly distinguishable
+by the B/KB suffix. But for the THP vmstat counters, we may make mistakes.
+
+For example, the below is some bug fix for the THP vmstat counters:
+
+  - 7de2e9f195b9 ("mm: memcontrol: correct the NR_ANON_THPS counter of hierarchical memcg")
+  - The first commit in this series ("fix NR_ANON_THPS accounting in charge moving")
+
+This patch series can make the code clear. And make all the unit of the THP
+vmstat counters in pages. Finally, the unit of the vmstat counters are
+pages, kB and bytes. The B/KB suffix can tell us that the unit is bytes
+or kB. The rest which is without suffix are pages.
+
+In this series, I changed the following vmstat counters unit from HPAGE_PMD_NR
+to pages. However, there is no change to the print format of output to user
+space.
+
+  - NR_ANON_THPS
+  - NR_FILE_THPS
+  - NR_SHMEM_THPS
+  - NR_SHMEM_PMDMAPPED
+  - NR_FILE_PMDMAPPED
+
+Doing this also can make the statistics more accuracy for the THP vmstat
+counters. This series is consistent with 8f182270dfec ("mm/swap.c: flush lru
+pvecs on compound page arrival").
+
+Because we use struct per_cpu_nodestat to cache the vmstat counters, which
+leads to inaccurate statistics especially THP vmstat counters. In the systems
+with hundreds of processors it can be GBs of memory. For example, for a 96
+CPUs system, the threshold is the maximum number of 125. And the per cpu
+counters can cache 23.4375 GB in total.
+
+The THP page is already a form of batched addition (it will add 512 worth of
+memory in one go) so skipping the batching seems like sensible. Although every
+THP stats update overflows the per-cpu counter, resorting to atomic global
+updates. But it can make the statistics more accuracy for the THP vmstat
+counters. From this point of view, I think that do this converting is
+reasonable.
+
+Thanks Hugh for mentioning this. This was inspired by Johannes and Roman.
+Thanks to them.
+
+
+This patch (of 7):
+
+The unit of NR_ANON_THPS is HPAGE_PMD_NR already.  So it should inc/dec by
+one rather than nr_pages.
+
+Link: https://lkml.kernel.org/r/20201228164110.2838-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20201228164110.2838-2-songmuchun@bytedance.com
+Fixes: 468c398233da ("mm: memcontrol: switch to native NR_ANON_THPS counter")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Rafael. J. Wysocki <rafael@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up-fix-3
-+++ a/mm/cma.c
-@@ -344,7 +344,7 @@ int __init cma_declare_contiguous_nid(ph
- 		 * Avoid using first 4GB to not interfere with constrained zones
- 		 * like DMA/DMA32.
- 		 */
--#if BITS_PER_LONG > 32
-+#if CONFIG_PHYS_ADDR_T_64BIT
- 		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
- 			memblock_set_bottom_up(true);
- 			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
+--- a/mm/memcontrol.c~mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving
++++ a/mm/memcontrol.c
+@@ -5654,10 +5654,8 @@ static int mem_cgroup_move_account(struc
+ 			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
+ 			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
+ 			if (PageTransHuge(page)) {
+-				__mod_lruvec_state(from_vec, NR_ANON_THPS,
+-						   -nr_pages);
+-				__mod_lruvec_state(to_vec, NR_ANON_THPS,
+-						   nr_pages);
++				__dec_lruvec_state(from_vec, NR_ANON_THPS);
++				__inc_lruvec_state(to_vec, NR_ANON_THPS);
+ 			}
+ 
+ 		}
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-slub-call-account_slab_page-after-slab-page-initialization.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
-mm-cma-allocate-cma-areas-bottom-up.patch
-mm-cma-allocate-cma-areas-bottom-up-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
-memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
+mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
+mm-memcontrol-make-the-slab-calculation-consistent.patch
 
