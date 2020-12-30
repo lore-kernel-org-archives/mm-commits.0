@@ -2,149 +2,155 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BAB4C433E6
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6681C433E6
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Dec 2020 15:45:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4743021D1B
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Dec 2020 23:15:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7592721D1B
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Dec 2020 15:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726300AbgL2XP4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Dec 2020 18:15:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37894 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726161AbgL2XPz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 29 Dec 2020 18:15:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B18021D1B;
-        Tue, 29 Dec 2020 23:15:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609283705;
-        bh=GE5GHuwFJDT3/4zIbtS3dpOWvJuWmD7rRTXESYC96L4=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=DEKaykU0wisJrXLXHIfVVO8KMhaN4y0AWqNGagv9lm+L9cCY5fsBihnP1lMQbuGUr
-         /HqXEffZ5KqtJ2jBLjgvjR8+cV1yZx7ayt4LvGk7LCQOZDti8y2YwAYdMZ5sysYtYq
-         7Grjn7MfBaJc32MdEgqV3NoLeGknxqV4VQX+qoYA=
-Date:   Tue, 29 Dec 2020 15:15:04 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
-        gor@linux.ibm.com, hca@linux.ibm.com, iii@linux.ibm.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org,
-        zaslonko@linux.ibm.com
-Subject:  [patch 15/16] zlib: move EXPORT_SYMBOL() and
- MODULE_LICENSE() out of dfltcc_syms.c
-Message-ID: <20201229231504.R7cT98sub%akpm@linux-foundation.org>
-In-Reply-To: <20201229151349.3285926ec0d1f65a27ac8534@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S1726161AbgL3PpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Dec 2020 10:45:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36744 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725853AbgL3PpO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2020 10:45:14 -0500
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9B22C06179C
+        for <mm-commits@vger.kernel.org>; Wed, 30 Dec 2020 07:44:33 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id d13so17736657wrc.13
+        for <mm-commits@vger.kernel.org>; Wed, 30 Dec 2020 07:44:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=colorfullife-com.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:references:from:cc:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=Ec8poaPF6qlRrNwp+xHF6bY/o9NVo8b8Mjo+pjEbuDo=;
+        b=p5ZWH3UXn+ALAlomf+AMGo0qpgilK3fzPQvE3q4wYtSdeUs87fZcES1ZveUXB1mW23
+         swOZC23Nc8ClVKZwO5ZmK9k11s3ALjY2GxAiVm3tcFI8JvmFx43jnJBF5el+r2VZy4WY
+         iDemgsZc/GIaLrwcWWe3RN2BQKEoZ7zgBXvAdyShuy6Y7jDcEHCpC+YGai7FWDU98T7u
+         cBI//TZinzDJ7LDBYRj+Lb09vEbP7osA4vevyqRUrldBAvci15Qlo2gH8HywWWD/7lj7
+         hs6MxfqqEHKiNFZCZ5KExMAM9IAmUvIb3BTToe39UBjzBTbrY9L3Q53+tyT+ubsSwnrb
+         VBzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:references:from:cc:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=Ec8poaPF6qlRrNwp+xHF6bY/o9NVo8b8Mjo+pjEbuDo=;
+        b=gVZQsx5e0jMfuw6hWluSmV9kF8THx0JmBUyQwk5d8L3KJQ6HU4vfWQZ7ukJ3svUrJL
+         gEjMfmWHR4Ay9nXMVJuL9SfwgYpCmB0sMww2nDwwLtGUGdOMkFXZu3grYNavffaGXvyC
+         YoMGcxCQ08iF+FLPQOsC4H5CmF2LAAQgNj2h6YQAYYvqXk3L+lMi/G5DrqUNAVGdIGdp
+         DhbvhoBAxzGJVJj0nSL3rd9D+8dsqsF9mbckF+NRvsY7pUeV+J6FaMkybz4YWE94fy9u
+         fZ70ISAfWqUdujhlcLl9qQTLNiRbz4w50exxpP6vRHefzt272cQEiN19VEN6AY3Smrvc
+         +Mgg==
+X-Gm-Message-State: AOAM531EPf9o6ATB613XtslKUoLiE3/9kIU7rEB490irGvm8lpa5pIr7
+        pHlyp+NLcflDP+eTV9uqlWmiEqlR1PCUDmT2
+X-Google-Smtp-Source: ABdhPJx75hGMwnI/4mGQur2LZ4QuGRIic58aW/TdwtkibjFrMpNiiX/shxSN5pb5YVz/sWxSeiBAuQ==
+X-Received: by 2002:adf:eecc:: with SMTP id a12mr60570143wrp.312.1609343072516;
+        Wed, 30 Dec 2020 07:44:32 -0800 (PST)
+Received: from localhost.localdomain (p200300d9970348005c94200a58b3c908.dip0.t-ipconnect.de. [2003:d9:9703:4800:5c94:200a:58b3:c908])
+        by smtp.googlemail.com with ESMTPSA id h184sm8207819wmh.23.2020.12.30.07.44.31
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 30 Dec 2020 07:44:31 -0800 (PST)
+Subject: Re: + ipc-convert-ipcs_idr-to-xarray-update.patch added to -mm tree
+To:     Andrew Morton <akpm@linux-foundation.org>, dave@stgolabs.net,
+        mm-commits@vger.kernel.org, willy@infradead.org
+References: <20200424014753.DfBuzjmzo%akpm@linux-foundation.org>
+From:   Manfred Spraul <manfred@colorfullife.com>
+Cc:     1vier1@web.de
+Message-ID: <3e33fff1-4b28-8fe5-6567-3f26cdc8b1b2@colorfullife.com>
+Date:   Wed, 30 Dec 2020 16:44:30 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
+MIME-Version: 1.0
+In-Reply-To: <20200424014753.DfBuzjmzo%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
+Hi Matthew,
 
-In 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules"), I added
-EXPORT_SYMBOL()s to dfltcc_inflate.c but then Mikhail said that these
-should probably be in dfltcc_syms.c with the other EXPORT_SYMBOL()s.
+Due to lack of time, I didn't follow up immediately, but I haven't 
+forgotten the patch series:
 
-However, that is contrary to the current kernel style, which places
-EXPORT_SYMBOL() immediately after the function that it applies to,
-so move all EXPORT_SYMBOL()s to their respective function locations
-and drop the dfltcc_syms.c file. Also move MODULE_LICENSE() from the
-deleted file to dfltcc.c.
+On 4/24/20 3:47 AM, Andrew Morton wrote:
+> The patch titled
+>       Subject: ipc-convert-ipcs_idr-to-xarray-update
 
-[rdunlap@infradead.org: remove dfltcc_syms.o from Makefile]
-  Link: https://lkml.kernel.org/r/20201227171837.15492-1-rdunlap@infradead.org
-Link: https://lkml.kernel.org/r/20201219052530.28461-1-rdunlap@infradead.org
-Fixes: 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Zaslonko Mikhail <zaslonko@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+[...]
 
- lib/zlib_dfltcc/Makefile         |    2 +-
- lib/zlib_dfltcc/dfltcc.c         |    6 +++++-
- lib/zlib_dfltcc/dfltcc_deflate.c |    3 +++
- lib/zlib_dfltcc/dfltcc_syms.c    |   17 -----------------
- 4 files changed, 9 insertions(+), 19 deletions(-)
+> -		xas_lock(&xas);
+> +		xa_lock(&ids->ipcs);
+>   
+> -		min_idx = ids->next_idx;
+> -		new->seq = ids->seq;
+> +		err = __xa_alloc_cyclic(&ids->ipcs, &idx, NULL,
+> +				XA_LIMIT(0, max_idx), &ids->next_idx,
+> +				GFP_KERNEL);
+> +		if (err == 1) {
+> +			ids->seq++;
+> +			if (ids->seq >= ipcid_seq_max())
+> +				ids->seq = 0;
+> +		}
+> +
+> +		if (err >= 0) {
+> +			new->seq = ids->seq;
+> +			new->id = (new->seq << ipcmni_seq_shift()) + idx;
+> +			/* xa_store contains a write barrier */
+> +			__xa_store(&ids->ipcs, idx, new, GFP_KERNEL);
+> +		}
 
---- a/lib/zlib_dfltcc/dfltcc.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/dfltcc.c
-@@ -1,7 +1,8 @@
- // SPDX-License-Identifier: Zlib
- /* dfltcc.c - SystemZ DEFLATE CONVERSION CALL support. */
- 
--#include <linux/zutil.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- 
-@@ -53,3 +54,6 @@ void dfltcc_reset(
-     dfltcc_state->dht_threshold = DFLTCC_DHT_MIN_SAMPLE_SIZE;
-     dfltcc_state->param.ribm = DFLTCC_RIBM;
- }
-+EXPORT_SYMBOL(dfltcc_reset);
-+
-+MODULE_LICENSE("GPL");
---- a/lib/zlib_dfltcc/dfltcc_deflate.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/dfltcc_deflate.c
-@@ -4,6 +4,7 @@
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- #include <asm/setup.h>
-+#include <linux/export.h>
- #include <linux/zutil.h>
- 
- /*
-@@ -34,6 +35,7 @@ int dfltcc_can_deflate(
- 
-     return 1;
- }
-+EXPORT_SYMBOL(dfltcc_can_deflate);
- 
- static void dfltcc_gdht(
-     z_streamp strm
-@@ -277,3 +279,4 @@ again:
-         goto again; /* deflate() must use all input or all output */
-     return 1;
- }
-+EXPORT_SYMBOL(dfltcc_deflate);
---- a/lib/zlib_dfltcc/dfltcc_syms.c
-+++ /dev/null
-@@ -1,17 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * linux/lib/zlib_dfltcc/dfltcc_syms.c
-- *
-- * Exported symbols for the s390 zlib dfltcc support.
-- *
-- */
--
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/zlib.h>
--#include "dfltcc.h"
--
--EXPORT_SYMBOL(dfltcc_can_deflate);
--EXPORT_SYMBOL(dfltcc_deflate);
--EXPORT_SYMBOL(dfltcc_reset);
--MODULE_LICENSE("GPL");
---- a/lib/zlib_dfltcc/Makefile~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/Makefile
-@@ -8,4 +8,4 @@
- 
- obj-$(CONFIG_ZLIB_DFLTCC) += zlib_dfltcc.o
- 
--zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o dfltcc_syms.o
-+zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o
-_
+The GFP_KERNEL is really ugly.
+
+When I see "GFP_KERNEL", it means for me that the called function might 
+sleep.
+When I see "GFP_ATOMIC", it means for me that the called function may 
+fail, and that the caller must implement a retry algorithm.
+
+I think the GFP_KERNEL here means nothing, but I'm not sure.
+
+Would it be possible to make __xa_store(,,,0) an officially supported 
+feature?
+- The function will fail if there was no previous xa_alloc for exactly 
+the to be stored entry (or an xa_insert, or an xa_store(,,,GFP_KERNEL), 
+etc.)
+- The function will not allocate any memory.
+- The function will not fail due to out of memory.
+- The function will not drop the xa_lock()
+
+Then the usage would be clear:
+    xa_alloc(,GFP_KERNEL)
+    acquire_all_locks()
+    __xa_store(,,,0)
+    drop_all_locks()
+
+
+The kerneldoc is for me not clear enough:
+
+> **
+>  * __xa_store() - Store this entry in the XArray.
+>  * @xa: XArray.
+>  * @index: Index into array.
+>  * @entry: New entry.
+>  * @gfp: Memory allocation flags.
+>  *
+>  * You must already be holding the xa_lock when calling this function.
+>  * It will drop the lock if needed to allocate memory, and then reacquire
+>  * it afterwards.
+Is it guaranteed the dropping/acquiring the lock will never happen after 
+storing the entry into the array?
+If the xarray code first stores the entry, and then allocates memory for 
+tree balancing or similar, then it would break the ipc/*.c
+
+--
+
+     Manfred
+
