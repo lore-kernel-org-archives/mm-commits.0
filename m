@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD1EC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63DC8C433E0
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26C02223E4
+	by mail.kernel.org (Postfix) with ESMTP id 3D7E52246B
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726652AbgLaSYL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726628AbgLaSYL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 31 Dec 2020 13:24:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34128 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726628AbgLaSYL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726579AbgLaSYL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 31 Dec 2020 13:24:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 66EFD224B0;
-        Thu, 31 Dec 2020 18:23:08 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B11F224B2;
+        Thu, 31 Dec 2020 18:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609438988;
-        bh=bsHiDG0KWW7I0TvfhdIliSBtG0unlTyQcb2UaTssUK0=;
+        s=korg; t=1609438990;
+        bh=te1n9+qZUVB21nv3eLjNUdXdDHgJYWmgnnO6gcddYqc=;
         h=Date:From:To:Subject:From;
-        b=AQ5FC30GgFibI0AlQkyPF56plo62K6HtX8u1+/7F78zvqn4r24RqPjmiaa6zP7oo6
-         EfWFKn8ZjLVPOytpF+NekuJAcYeMfeJFQwgTaif83qkxTSn5a/RRetgPFFViQiocZ/
-         f77jxaj/Stky2lIMvlGABdUlG910HTxDZAenAJmw=
-Date:   Thu, 31 Dec 2020 10:23:08 -0800
+        b=wPH//BTtliJZB3sJA73gxSQcVZKuJRQUTxDOxkDo6DHKKlsfINP/pztN0SFF+0QyU
+         1XyIRMm+HEfG3EWI4jaVX+tSb9YBX8/KkfbIysUrd7TFQtEqpo5QpsdKdvee4kHCWD
+         l01q/JfyDzlOVV1TcpGcy9b3I7y6190Rk9F0JKH8=
+Date:   Thu, 31 Dec 2020 10:23:10 -0800
 From:   akpm@linux-foundation.org
-To:     gregkh@linuxfoundation.org, jpoimboe@redhat.com,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        rdunlap@infradead.org
+To:     jiasheng.shi@iluvatar.ai, mm-commits@vger.kernel.org,
+        sjhuang@iluvatar.ai
 Subject:  [merged]
- kdev_t-always-inline-major-minor-helper-functions.patch removed from -mm
+ lib-genalloc-fix-the-overflow-when-size-is-too-big.patch removed from -mm
  tree
-Message-ID: <20201231182308.k3rq8qbBB%akpm@linux-foundation.org>
+Message-ID: <20201231182310.RhigI-P3g%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,111 +44,137 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdev_t: always inline major/minor helper functions
+     Subject: lib/genalloc: fix the overflow when size is too big
 has been removed from the -mm tree.  Its filename was
-     kdev_t-always-inline-major-minor-helper-functions.patch
+     lib-genalloc-fix-the-overflow-when-size-is-too-big.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: kdev_t: always inline major/minor helper functions
+From: Huang Shijie <sjhuang@iluvatar.ai>
+Subject: lib/genalloc: fix the overflow when size is too big
 
-Silly GCC doesn't always inline these trivial functions.
+Some graphic card has very big memory on chip, such as 32G bytes.
 
-Fixes the following warning:
+In the following case, it will cause overflow:
+  --------------------------------------------
+  pool = gen_pool_create(PAGE_SHIFT, NUMA_NO_NODE);
+  ret = gen_pool_add(pool, 0x1000000, SZ_32G, NUMA_NO_NODE);
 
-  arch/x86/kernel/sys_ia32.o: warning: objtool: cp_stat64()+0xd8: call to new_encode_dev() with UACCESS enabled
+  va = gen_pool_alloc(pool, SZ_4G);
+  --------------------------------------------
 
-Link: https://lkml.kernel.org/r/984353b44a4484d86ba9f73884b7306232e25e30.1608737428.git.jpoimboe@redhat.com
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>	[build-tested]
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+The overflow occurs in gen_pool_alloc_algo_owner():
+
+  --------------------------------------------
+		....
+		size = nbits << order;
+		....
+  --------------------------------------------
+
+The @nbits is "int" type, so it will overflow.
+Then the gen_pool_avail() will return the wrong value.
+
+This patch converts some "int" to "unsigned long", and
+changes the compare code in while.
+
+Link: https://lkml.kernel.org/r/20201229060657.3389-1-sjhuang@iluvatar.ai
+Signed-off-by: Huang Shijie <sjhuang@iluvatar.ai>
+Reported-by: Shi Jiasheng <jiasheng.shi@iluvatar.ai>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kdev_t.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ lib/genalloc.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
---- a/include/linux/kdev_t.h~kdev_t-always-inline-major-minor-helper-functions
-+++ a/include/linux/kdev_t.h
-@@ -21,61 +21,61 @@
- 	})
- 
- /* acceptable for old filesystems */
--static inline bool old_valid_dev(dev_t dev)
-+static __always_inline bool old_valid_dev(dev_t dev)
+--- a/lib/genalloc.c~lib-genalloc-fix-the-overflow-when-size-is-too-big
++++ a/lib/genalloc.c
+@@ -81,14 +81,14 @@ static int clear_bits_ll(unsigned long *
+  * users set the same bit, one user will return remain bits, otherwise
+  * return 0.
+  */
+-static int bitmap_set_ll(unsigned long *map, int start, int nr)
++static int bitmap_set_ll(unsigned long *map, unsigned long start, unsigned long nr)
  {
- 	return MAJOR(dev) < 256 && MINOR(dev) < 256;
- }
+ 	unsigned long *p = map + BIT_WORD(start);
+-	const int size = start + nr;
++	const unsigned long size = start + nr;
+ 	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
+ 	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
  
--static inline u16 old_encode_dev(dev_t dev)
-+static __always_inline u16 old_encode_dev(dev_t dev)
+-	while (nr - bits_to_set >= 0) {
++	while (nr >= bits_to_set) {
+ 		if (set_bits_ll(p, mask_to_set))
+ 			return nr;
+ 		nr -= bits_to_set;
+@@ -116,14 +116,15 @@ static int bitmap_set_ll(unsigned long *
+  * users clear the same bit, one user will return remain bits,
+  * otherwise return 0.
+  */
+-static int bitmap_clear_ll(unsigned long *map, int start, int nr)
++static unsigned long
++bitmap_clear_ll(unsigned long *map, unsigned long start, unsigned long nr)
  {
- 	return (MAJOR(dev) << 8) | MINOR(dev);
- }
+ 	unsigned long *p = map + BIT_WORD(start);
+-	const int size = start + nr;
++	const unsigned long size = start + nr;
+ 	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
+ 	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
  
--static inline dev_t old_decode_dev(u16 val)
-+static __always_inline dev_t old_decode_dev(u16 val)
+-	while (nr - bits_to_clear >= 0) {
++	while (nr >= bits_to_clear) {
+ 		if (clear_bits_ll(p, mask_to_clear))
+ 			return nr;
+ 		nr -= bits_to_clear;
+@@ -183,8 +184,8 @@ int gen_pool_add_owner(struct gen_pool *
+ 		 size_t size, int nid, void *owner)
  {
- 	return MKDEV((val >> 8) & 255, val & 255);
- }
+ 	struct gen_pool_chunk *chunk;
+-	int nbits = size >> pool->min_alloc_order;
+-	int nbytes = sizeof(struct gen_pool_chunk) +
++	unsigned long nbits = size >> pool->min_alloc_order;
++	unsigned long nbytes = sizeof(struct gen_pool_chunk) +
+ 				BITS_TO_LONGS(nbits) * sizeof(long);
  
--static inline u32 new_encode_dev(dev_t dev)
-+static __always_inline u32 new_encode_dev(dev_t dev)
- {
- 	unsigned major = MAJOR(dev);
- 	unsigned minor = MINOR(dev);
- 	return (minor & 0xff) | (major << 8) | ((minor & ~0xff) << 12);
- }
+ 	chunk = vzalloc_node(nbytes, nid);
+@@ -242,7 +243,7 @@ void gen_pool_destroy(struct gen_pool *p
+ 	struct list_head *_chunk, *_next_chunk;
+ 	struct gen_pool_chunk *chunk;
+ 	int order = pool->min_alloc_order;
+-	int bit, end_bit;
++	unsigned long bit, end_bit;
  
--static inline dev_t new_decode_dev(u32 dev)
-+static __always_inline dev_t new_decode_dev(u32 dev)
- {
- 	unsigned major = (dev & 0xfff00) >> 8;
- 	unsigned minor = (dev & 0xff) | ((dev >> 12) & 0xfff00);
- 	return MKDEV(major, minor);
- }
+ 	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
+ 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
+@@ -278,7 +279,7 @@ unsigned long gen_pool_alloc_algo_owner(
+ 	struct gen_pool_chunk *chunk;
+ 	unsigned long addr = 0;
+ 	int order = pool->min_alloc_order;
+-	int nbits, start_bit, end_bit, remain;
++	unsigned long nbits, start_bit, end_bit, remain;
  
--static inline u64 huge_encode_dev(dev_t dev)
-+static __always_inline u64 huge_encode_dev(dev_t dev)
+ #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	BUG_ON(in_nmi());
+@@ -487,7 +488,7 @@ void gen_pool_free_owner(struct gen_pool
  {
- 	return new_encode_dev(dev);
- }
+ 	struct gen_pool_chunk *chunk;
+ 	int order = pool->min_alloc_order;
+-	int start_bit, nbits, remain;
++	unsigned long start_bit, nbits, remain;
  
--static inline dev_t huge_decode_dev(u64 dev)
-+static __always_inline dev_t huge_decode_dev(u64 dev)
- {
- 	return new_decode_dev(dev);
- }
+ #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	BUG_ON(in_nmi());
+@@ -755,7 +756,7 @@ unsigned long gen_pool_best_fit(unsigned
+ 	index = bitmap_find_next_zero_area(map, size, start, nr, 0);
  
--static inline int sysv_valid_dev(dev_t dev)
-+static __always_inline int sysv_valid_dev(dev_t dev)
- {
- 	return MAJOR(dev) < (1<<14) && MINOR(dev) < (1<<18);
- }
- 
--static inline u32 sysv_encode_dev(dev_t dev)
-+static __always_inline u32 sysv_encode_dev(dev_t dev)
- {
- 	return MINOR(dev) | (MAJOR(dev) << 18);
- }
- 
--static inline unsigned sysv_major(u32 dev)
-+static __always_inline unsigned sysv_major(u32 dev)
- {
- 	return (dev >> 18) & 0x3fff;
- }
- 
--static inline unsigned sysv_minor(u32 dev)
-+static __always_inline unsigned sysv_minor(u32 dev)
- {
- 	return dev & 0x3ffff;
- }
+ 	while (index < size) {
+-		int next_bit = find_next_bit(map, size, index + nr);
++		unsigned long next_bit = find_next_bit(map, size, index + nr);
+ 		if ((next_bit - index) < len) {
+ 			len = next_bit - index;
+ 			start_bit = index;
 _
 
-Patches currently in -mm which might be from jpoimboe@redhat.com are
+Patches currently in -mm which might be from sjhuang@iluvatar.ai are
 
 
