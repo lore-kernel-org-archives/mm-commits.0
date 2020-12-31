@@ -2,155 +2,139 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6681C433E6
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Dec 2020 15:45:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 064B6C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:23:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7592721D1B
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Dec 2020 15:45:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBEFA223E8
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:23:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726161AbgL3PpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Dec 2020 10:45:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36744 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725853AbgL3PpO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2020 10:45:14 -0500
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9B22C06179C
-        for <mm-commits@vger.kernel.org>; Wed, 30 Dec 2020 07:44:33 -0800 (PST)
-Received: by mail-wr1-x42b.google.com with SMTP id d13so17736657wrc.13
-        for <mm-commits@vger.kernel.org>; Wed, 30 Dec 2020 07:44:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=colorfullife-com.20150623.gappssmtp.com; s=20150623;
-        h=subject:to:references:from:cc:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=Ec8poaPF6qlRrNwp+xHF6bY/o9NVo8b8Mjo+pjEbuDo=;
-        b=p5ZWH3UXn+ALAlomf+AMGo0qpgilK3fzPQvE3q4wYtSdeUs87fZcES1ZveUXB1mW23
-         swOZC23Nc8ClVKZwO5ZmK9k11s3ALjY2GxAiVm3tcFI8JvmFx43jnJBF5el+r2VZy4WY
-         iDemgsZc/GIaLrwcWWe3RN2BQKEoZ7zgBXvAdyShuy6Y7jDcEHCpC+YGai7FWDU98T7u
-         cBI//TZinzDJ7LDBYRj+Lb09vEbP7osA4vevyqRUrldBAvci15Qlo2gH8HywWWD/7lj7
-         hs6MxfqqEHKiNFZCZ5KExMAM9IAmUvIb3BTToe39UBjzBTbrY9L3Q53+tyT+ubsSwnrb
-         VBzw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:cc:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=Ec8poaPF6qlRrNwp+xHF6bY/o9NVo8b8Mjo+pjEbuDo=;
-        b=gVZQsx5e0jMfuw6hWluSmV9kF8THx0JmBUyQwk5d8L3KJQ6HU4vfWQZ7ukJ3svUrJL
-         gEjMfmWHR4Ay9nXMVJuL9SfwgYpCmB0sMww2nDwwLtGUGdOMkFXZu3grYNavffaGXvyC
-         YoMGcxCQ08iF+FLPQOsC4H5CmF2LAAQgNj2h6YQAYYvqXk3L+lMi/G5DrqUNAVGdIGdp
-         DhbvhoBAxzGJVJj0nSL3rd9D+8dsqsF9mbckF+NRvsY7pUeV+J6FaMkybz4YWE94fy9u
-         fZ70ISAfWqUdujhlcLl9qQTLNiRbz4w50exxpP6vRHefzt272cQEiN19VEN6AY3Smrvc
-         +Mgg==
-X-Gm-Message-State: AOAM531EPf9o6ATB613XtslKUoLiE3/9kIU7rEB490irGvm8lpa5pIr7
-        pHlyp+NLcflDP+eTV9uqlWmiEqlR1PCUDmT2
-X-Google-Smtp-Source: ABdhPJx75hGMwnI/4mGQur2LZ4QuGRIic58aW/TdwtkibjFrMpNiiX/shxSN5pb5YVz/sWxSeiBAuQ==
-X-Received: by 2002:adf:eecc:: with SMTP id a12mr60570143wrp.312.1609343072516;
-        Wed, 30 Dec 2020 07:44:32 -0800 (PST)
-Received: from localhost.localdomain (p200300d9970348005c94200a58b3c908.dip0.t-ipconnect.de. [2003:d9:9703:4800:5c94:200a:58b3:c908])
-        by smtp.googlemail.com with ESMTPSA id h184sm8207819wmh.23.2020.12.30.07.44.31
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 30 Dec 2020 07:44:31 -0800 (PST)
-Subject: Re: + ipc-convert-ipcs_idr-to-xarray-update.patch added to -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>, dave@stgolabs.net,
-        mm-commits@vger.kernel.org, willy@infradead.org
-References: <20200424014753.DfBuzjmzo%akpm@linux-foundation.org>
-From:   Manfred Spraul <manfred@colorfullife.com>
-Cc:     1vier1@web.de
-Message-ID: <3e33fff1-4b28-8fe5-6567-3f26cdc8b1b2@colorfullife.com>
-Date:   Wed, 30 Dec 2020 16:44:30 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.0
-MIME-Version: 1.0
-In-Reply-To: <20200424014753.DfBuzjmzo%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        id S1726492AbgLaSXZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Dec 2020 13:23:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33622 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726213AbgLaSXZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 31 Dec 2020 13:23:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5C89C223E0;
+        Thu, 31 Dec 2020 18:22:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1609438964;
+        bh=kczjqQ9QtjP6FYcMTr5xKp7Uh/vb8xYvuzgWJLjVZJg=;
+        h=Date:From:To:Subject:From;
+        b=sR8cZv4G7p0i9hFCUQpEicwwQicZRi2RojIw97Ii/5TQhmVbJWiPeb0WhS22rtmVe
+         Bo6o/tgNy+RJ+EJeo3dcRpQF855dbjW1eK2+0FGmLIvh9ir6etDO1UUkfoAlr/aPZM
+         pJ/iRwMK139TBAAv5eAT8ulYKih1XICc7jDoXY4U=
+Date:   Thu, 31 Dec 2020 10:22:44 -0800
+From:   akpm@linux-foundation.org
+To:     aneesh.kumar@linux.vnet.ibm.com, dave@stgolabs.net,
+        hughd@google.com, mhocko@kernel.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        stable@vger.kernel.org
+Subject:  [merged]
+ mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch removed from -mm
+ tree
+Message-ID: <20201231182244._w28iTi6u%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Matthew,
 
-Due to lack of time, I didn't follow up immediately, but I haven't 
-forgotten the patch series:
+The patch titled
+     Subject: mm/hugetlb: fix deadlock in hugetlb_cow error path
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path.patch
 
-On 4/24/20 3:47 AM, Andrew Morton wrote:
-> The patch titled
->       Subject: ipc-convert-ipcs_idr-to-xarray-update
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-[...]
+------------------------------------------------------
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: fix deadlock in hugetlb_cow error path
 
-> -		xas_lock(&xas);
-> +		xa_lock(&ids->ipcs);
->   
-> -		min_idx = ids->next_idx;
-> -		new->seq = ids->seq;
-> +		err = __xa_alloc_cyclic(&ids->ipcs, &idx, NULL,
-> +				XA_LIMIT(0, max_idx), &ids->next_idx,
-> +				GFP_KERNEL);
-> +		if (err == 1) {
-> +			ids->seq++;
-> +			if (ids->seq >= ipcid_seq_max())
-> +				ids->seq = 0;
-> +		}
-> +
-> +		if (err >= 0) {
-> +			new->seq = ids->seq;
-> +			new->id = (new->seq << ipcmni_seq_shift()) + idx;
-> +			/* xa_store contains a write barrier */
-> +			__xa_store(&ids->ipcs, idx, new, GFP_KERNEL);
-> +		}
+syzbot reported the deadlock here [1].  The issue is in hugetlb cow error
+handling when there are not enough huge pages for the faulting task which
+took the original reservation.  It is possible that other (child) tasks
+could have consumed pages associated with the reservation.  In this case,
+we want the task which took the original reservation to succeed.  So, we
+unmap any associated pages in children so that they can be used by the
+faulting task that owns the reservation.
 
-The GFP_KERNEL is really ugly.
+The unmapping code needs to hold i_mmap_rwsem in write mode.  However, due
+to commit c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing
+synchronization") we are already holding i_mmap_rwsem in read mode when
+hugetlb_cow is called.  Technically, i_mmap_rwsem does not need to be held
+in read mode for COW mappings as they can not share pmd's.  Modifying the
+fault code to not take i_mmap_rwsem in read mode for COW (and other
+non-sharable) mappings is too involved for a stable fix.  Instead, we
+simply drop the hugetlb_fault_mutex and i_mmap_rwsem before unmapping. 
+This is OK as it is technically not needed.  They are reacquired after
+unmapping as expected by calling code.  Since this is done in an uncommon
+error path, the overhead of dropping and reacquiring mutexes is
+acceptable.
 
-When I see "GFP_KERNEL", it means for me that the called function might 
-sleep.
-When I see "GFP_ATOMIC", it means for me that the called function may 
-fail, and that the caller must implement a retry algorithm.
+While making changes, remove redundant BUG_ON after unmap_ref_private.
 
-I think the GFP_KERNEL here means nothing, but I'm not sure.
+[1] https://lkml.kernel.org/r/000000000000b73ccc05b5cf8558@google.com
 
-Would it be possible to make __xa_store(,,,0) an officially supported 
-feature?
-- The function will fail if there was no previous xa_alloc for exactly 
-the to be stored entry (or an xa_insert, or an xa_store(,,,GFP_KERNEL), 
-etc.)
-- The function will not allocate any memory.
-- The function will not fail due to out of memory.
-- The function will not drop the xa_lock()
+Link: https://lkml.kernel.org/r/4c5781b8-3b00-761e-c0c7-c5edebb6ec1a@oracle.com
+Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: syzbot+5eee4145df3c15e96625@syzkaller.appspotmail.com
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Then the usage would be clear:
-    xa_alloc(,GFP_KERNEL)
-    acquire_all_locks()
-    __xa_store(,,,0)
-    drop_all_locks()
+ mm/hugetlb.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
+--- a/mm/hugetlb.c~mm-hugetlb-fix-deadlock-in-hugetlb_cow-error-path
++++ a/mm/hugetlb.c
+@@ -4105,10 +4105,30 @@ retry_avoidcopy:
+ 		 * may get SIGKILLed if it later faults.
+ 		 */
+ 		if (outside_reserve) {
++			struct address_space *mapping = vma->vm_file->f_mapping;
++			pgoff_t idx;
++			u32 hash;
++
+ 			put_page(old_page);
+ 			BUG_ON(huge_pte_none(pte));
++			/*
++			 * Drop hugetlb_fault_mutex and i_mmap_rwsem before
++			 * unmapping.  unmapping needs to hold i_mmap_rwsem
++			 * in write mode.  Dropping i_mmap_rwsem in read mode
++			 * here is OK as COW mappings do not interact with
++			 * PMD sharing.
++			 *
++			 * Reacquire both after unmap operation.
++			 */
++			idx = vma_hugecache_offset(h, vma, haddr);
++			hash = hugetlb_fault_mutex_hash(mapping, idx);
++			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++			i_mmap_unlock_read(mapping);
++
+ 			unmap_ref_private(mm, vma, old_page, haddr);
+-			BUG_ON(huge_pte_none(pte));
++
++			i_mmap_lock_read(mapping);
++			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 			spin_lock(ptl);
+ 			ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
+ 			if (likely(ptep &&
+_
 
-The kerneldoc is for me not clear enough:
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-> **
->  * __xa_store() - Store this entry in the XArray.
->  * @xa: XArray.
->  * @index: Index into array.
->  * @entry: New entry.
->  * @gfp: Memory allocation flags.
->  *
->  * You must already be holding the xa_lock when calling this function.
->  * It will drop the lock if needed to allocate memory, and then reacquire
->  * it afterwards.
-Is it guaranteed the dropping/acquiring the lock will never happen after 
-storing the entry into the array?
-If the xarray code first stores the entry, and then allocates memory for 
-tree balancing or similar, then it would break the ipc/*.c
-
---
-
-     Manfred
+mm-hugetlb-change-hugetlb_reserve_pages-to-type-bool.patch
+hugetlbfs-remove-special-hugetlbfs_set_page_dirty.patch
 
