@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63DC8C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6496C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D7E52246B
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B353223E4
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726628AbgLaSYL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Dec 2020 13:24:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34130 "EHLO mail.kernel.org"
+        id S1726681AbgLaSYO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Dec 2020 13:24:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726579AbgLaSYL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 31 Dec 2020 13:24:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B11F224B2;
-        Thu, 31 Dec 2020 18:23:10 +0000 (UTC)
+        id S1726669AbgLaSYO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 31 Dec 2020 13:24:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7623E224D2;
+        Thu, 31 Dec 2020 18:23:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609438990;
-        bh=te1n9+qZUVB21nv3eLjNUdXdDHgJYWmgnnO6gcddYqc=;
+        s=korg; t=1609438994;
+        bh=L6U6SvnuGR+jhYrHCLI17ninnVNqgAfGDn3AfdOf8yU=;
         h=Date:From:To:Subject:From;
-        b=wPH//BTtliJZB3sJA73gxSQcVZKuJRQUTxDOxkDo6DHKKlsfINP/pztN0SFF+0QyU
-         1XyIRMm+HEfG3EWI4jaVX+tSb9YBX8/KkfbIysUrd7TFQtEqpo5QpsdKdvee4kHCWD
-         l01q/JfyDzlOVV1TcpGcy9b3I7y6190Rk9F0JKH8=
-Date:   Thu, 31 Dec 2020 10:23:10 -0800
+        b=yxUDlxoaJFTh5+cklMSNWhBA5Yzm+XEXQ41zKTJZxbqAjbjN0EZZuk6Y5KhI8vxh+
+         dG1Z38QQOjfCSos0JNy1HbN4QhlnBVVe8US4RgMAEqcpbv0w3Qms6k7vNe61saFOVZ
+         JrUnUq83fxoJa0x6Fx4OC7r27h7uGM3HHSloowJg=
+Date:   Thu, 31 Dec 2020 10:23:14 -0800
 From:   akpm@linux-foundation.org
-To:     jiasheng.shi@iluvatar.ai, mm-commits@vger.kernel.org,
-        sjhuang@iluvatar.ai
+To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        iii@linux.ibm.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, zaslonko@linux.ibm.com
 Subject:  [merged]
- lib-genalloc-fix-the-overflow-when-size-is-too-big.patch removed from -mm
- tree
-Message-ID: <20201231182310.RhigI-P3g%akpm@linux-foundation.org>
+ zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
+ removed from -mm tree
+Message-ID: <20201231182314.Aztdwu9Sz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,137 +45,120 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/genalloc: fix the overflow when size is too big
+     Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
 has been removed from the -mm tree.  Its filename was
-     lib-genalloc-fix-the-overflow-when-size-is-too-big.patch
+     zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Shijie <sjhuang@iluvatar.ai>
-Subject: lib/genalloc: fix the overflow when size is too big
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
 
-Some graphic card has very big memory on chip, such as 32G bytes.
+In 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules"), I added
+EXPORT_SYMBOL()s to dfltcc_inflate.c but then Mikhail said that these
+should probably be in dfltcc_syms.c with the other EXPORT_SYMBOL()s.
 
-In the following case, it will cause overflow:
-  --------------------------------------------
-  pool = gen_pool_create(PAGE_SHIFT, NUMA_NO_NODE);
-  ret = gen_pool_add(pool, 0x1000000, SZ_32G, NUMA_NO_NODE);
+However, that is contrary to the current kernel style, which places
+EXPORT_SYMBOL() immediately after the function that it applies to,
+so move all EXPORT_SYMBOL()s to their respective function locations
+and drop the dfltcc_syms.c file. Also move MODULE_LICENSE() from the
+deleted file to dfltcc.c.
 
-  va = gen_pool_alloc(pool, SZ_4G);
-  --------------------------------------------
-
-The overflow occurs in gen_pool_alloc_algo_owner():
-
-  --------------------------------------------
-		....
-		size = nbits << order;
-		....
-  --------------------------------------------
-
-The @nbits is "int" type, so it will overflow.
-Then the gen_pool_avail() will return the wrong value.
-
-This patch converts some "int" to "unsigned long", and
-changes the compare code in while.
-
-Link: https://lkml.kernel.org/r/20201229060657.3389-1-sjhuang@iluvatar.ai
-Signed-off-by: Huang Shijie <sjhuang@iluvatar.ai>
-Reported-by: Shi Jiasheng <jiasheng.shi@iluvatar.ai>
+[rdunlap@infradead.org: remove dfltcc_syms.o from Makefile]
+  Link: https://lkml.kernel.org/r/20201227171837.15492-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20201219052530.28461-1-rdunlap@infradead.org
+Fixes: 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Zaslonko Mikhail <zaslonko@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ lib/zlib_dfltcc/Makefile         |    2 +-
+ lib/zlib_dfltcc/dfltcc.c         |    6 +++++-
+ lib/zlib_dfltcc/dfltcc_deflate.c |    3 +++
+ lib/zlib_dfltcc/dfltcc_syms.c    |   17 -----------------
+ 4 files changed, 9 insertions(+), 19 deletions(-)
 
---- a/lib/genalloc.c~lib-genalloc-fix-the-overflow-when-size-is-too-big
-+++ a/lib/genalloc.c
-@@ -81,14 +81,14 @@ static int clear_bits_ll(unsigned long *
-  * users set the same bit, one user will return remain bits, otherwise
-  * return 0.
-  */
--static int bitmap_set_ll(unsigned long *map, int start, int nr)
-+static int bitmap_set_ll(unsigned long *map, unsigned long start, unsigned long nr)
- {
- 	unsigned long *p = map + BIT_WORD(start);
--	const int size = start + nr;
-+	const unsigned long size = start + nr;
- 	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
- 	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
+--- a/lib/zlib_dfltcc/dfltcc.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
++++ a/lib/zlib_dfltcc/dfltcc.c
+@@ -1,7 +1,8 @@
+ // SPDX-License-Identifier: Zlib
+ /* dfltcc.c - SystemZ DEFLATE CONVERSION CALL support. */
  
--	while (nr - bits_to_set >= 0) {
-+	while (nr >= bits_to_set) {
- 		if (set_bits_ll(p, mask_to_set))
- 			return nr;
- 		nr -= bits_to_set;
-@@ -116,14 +116,15 @@ static int bitmap_set_ll(unsigned long *
-  * users clear the same bit, one user will return remain bits,
-  * otherwise return 0.
-  */
--static int bitmap_clear_ll(unsigned long *map, int start, int nr)
-+static unsigned long
-+bitmap_clear_ll(unsigned long *map, unsigned long start, unsigned long nr)
- {
- 	unsigned long *p = map + BIT_WORD(start);
--	const int size = start + nr;
-+	const unsigned long size = start + nr;
- 	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
- 	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
+-#include <linux/zutil.h>
++#include <linux/export.h>
++#include <linux/module.h>
+ #include "dfltcc_util.h"
+ #include "dfltcc.h"
  
--	while (nr - bits_to_clear >= 0) {
-+	while (nr >= bits_to_clear) {
- 		if (clear_bits_ll(p, mask_to_clear))
- 			return nr;
- 		nr -= bits_to_clear;
-@@ -183,8 +184,8 @@ int gen_pool_add_owner(struct gen_pool *
- 		 size_t size, int nid, void *owner)
- {
- 	struct gen_pool_chunk *chunk;
--	int nbits = size >> pool->min_alloc_order;
--	int nbytes = sizeof(struct gen_pool_chunk) +
-+	unsigned long nbits = size >> pool->min_alloc_order;
-+	unsigned long nbytes = sizeof(struct gen_pool_chunk) +
- 				BITS_TO_LONGS(nbits) * sizeof(long);
+@@ -53,3 +54,6 @@ void dfltcc_reset(
+     dfltcc_state->dht_threshold = DFLTCC_DHT_MIN_SAMPLE_SIZE;
+     dfltcc_state->param.ribm = DFLTCC_RIBM;
+ }
++EXPORT_SYMBOL(dfltcc_reset);
++
++MODULE_LICENSE("GPL");
+--- a/lib/zlib_dfltcc/dfltcc_deflate.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
++++ a/lib/zlib_dfltcc/dfltcc_deflate.c
+@@ -4,6 +4,7 @@
+ #include "dfltcc_util.h"
+ #include "dfltcc.h"
+ #include <asm/setup.h>
++#include <linux/export.h>
+ #include <linux/zutil.h>
  
- 	chunk = vzalloc_node(nbytes, nid);
-@@ -242,7 +243,7 @@ void gen_pool_destroy(struct gen_pool *p
- 	struct list_head *_chunk, *_next_chunk;
- 	struct gen_pool_chunk *chunk;
- 	int order = pool->min_alloc_order;
--	int bit, end_bit;
-+	unsigned long bit, end_bit;
+ /*
+@@ -34,6 +35,7 @@ int dfltcc_can_deflate(
  
- 	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
- 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-@@ -278,7 +279,7 @@ unsigned long gen_pool_alloc_algo_owner(
- 	struct gen_pool_chunk *chunk;
- 	unsigned long addr = 0;
- 	int order = pool->min_alloc_order;
--	int nbits, start_bit, end_bit, remain;
-+	unsigned long nbits, start_bit, end_bit, remain;
+     return 1;
+ }
++EXPORT_SYMBOL(dfltcc_can_deflate);
  
- #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	BUG_ON(in_nmi());
-@@ -487,7 +488,7 @@ void gen_pool_free_owner(struct gen_pool
- {
- 	struct gen_pool_chunk *chunk;
- 	int order = pool->min_alloc_order;
--	int start_bit, nbits, remain;
-+	unsigned long start_bit, nbits, remain;
+ static void dfltcc_gdht(
+     z_streamp strm
+@@ -277,3 +279,4 @@ again:
+         goto again; /* deflate() must use all input or all output */
+     return 1;
+ }
++EXPORT_SYMBOL(dfltcc_deflate);
+--- a/lib/zlib_dfltcc/dfltcc_syms.c
++++ /dev/null
+@@ -1,17 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * linux/lib/zlib_dfltcc/dfltcc_syms.c
+- *
+- * Exported symbols for the s390 zlib dfltcc support.
+- *
+- */
+-
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/zlib.h>
+-#include "dfltcc.h"
+-
+-EXPORT_SYMBOL(dfltcc_can_deflate);
+-EXPORT_SYMBOL(dfltcc_deflate);
+-EXPORT_SYMBOL(dfltcc_reset);
+-MODULE_LICENSE("GPL");
+--- a/lib/zlib_dfltcc/Makefile~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
++++ a/lib/zlib_dfltcc/Makefile
+@@ -8,4 +8,4 @@
  
- #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	BUG_ON(in_nmi());
-@@ -755,7 +756,7 @@ unsigned long gen_pool_best_fit(unsigned
- 	index = bitmap_find_next_zero_area(map, size, start, nr, 0);
+ obj-$(CONFIG_ZLIB_DFLTCC) += zlib_dfltcc.o
  
- 	while (index < size) {
--		int next_bit = find_next_bit(map, size, index + nr);
-+		unsigned long next_bit = find_next_bit(map, size, index + nr);
- 		if ((next_bit - index) < len) {
- 			len = next_bit - index;
- 			start_bit = index;
+-zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o dfltcc_syms.o
++zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o
 _
 
-Patches currently in -mm which might be from sjhuang@iluvatar.ai are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+fs-delete-repeated-words-in-comments.patch
+mm-zswap-clean-up-confusing-comment.patch
+lib-linear_ranges-fix-repeated-words-one-typo.patch
 
