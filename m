@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C6FCC433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B4FDC4332D
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:23:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 07C9F223E0
+	by mail.kernel.org (Postfix) with ESMTP id 49A77224D4
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:23:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726499AbgLaSX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Dec 2020 13:23:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33658 "EHLO mail.kernel.org"
+        id S1726524AbgLaSXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Dec 2020 13:23:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33688 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726352AbgLaSX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 31 Dec 2020 13:23:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2AFA6223E4;
-        Thu, 31 Dec 2020 18:22:47 +0000 (UTC)
+        id S1726515AbgLaSXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 31 Dec 2020 13:23:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E7A522242A;
+        Thu, 31 Dec 2020 18:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609438967;
-        bh=ZSN5eVcp5UEZHR/KVyNovraFnCy32MY77p4x5Eyu2Fs=;
+        s=korg; t=1609438973;
+        bh=MzC7cE3QcN/BmW1qdI8f4YSiS376ty7NFR6ivsn+vPI=;
         h=Date:From:To:Subject:From;
-        b=Sv+keONNymRPYF4tBqxmoli9zrJpHLxbZ+VxWw5PdzNFZlGs8EQZNY/gv6nvmc9+5
-         1Yo7NyodTyFjJc/nWRnZBSqEuAQvU8CjRlSkDSOaXpQDzQHyXAnWoyXFdjBBedtBiC
-         sKVB8w9H9fQddOqol2hSYz78WhG7Embx/rIb2G+Q=
-Date:   Thu, 31 Dec 2020 10:22:46 -0800
+        b=Bu41XmiuoPLYvJo/Dc1Epqm3cEzw5+0FFpmL71f5ZdbQ3S7PSb7UhX2Qd4MVgQ5xN
+         pM/QXDxUJjUtparoGlzXuiYi8+TfDzKrRQNzhko6sHZygP+sWKVEQSBjrw0MjRPgGP
+         MPaQ1/er5zkZpQj89xh648OsCymsAI8C9/AA1ZRQ=
+Date:   Thu, 31 Dec 2020 10:22:52 -0800
 From:   akpm@linux-foundation.org
-To:     elver@google.com, masahiroy@kernel.org, mm-commits@vger.kernel.org
+To:     alex.shi@linux.alibaba.com, jrdr.linux@gmail.com,
+        mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- revert-kbuild-avoid-static_assert-for-genksyms.patch removed from -mm tree
-Message-ID: <20201231182246.bv94RQgTA%akpm@linux-foundation.org>
+ mm-add-prototype-for-__add_to_page_cache_locked.patch removed from -mm tree
+Message-ID: <20201231182252.jWTMBJ6Zg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,72 +43,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "kbuild: avoid static_assert for genksyms"
+     Subject: mm: add prototype for __add_to_page_cache_locked()
 has been removed from the -mm tree.  Its filename was
-     revert-kbuild-avoid-static_assert-for-genksyms.patch
+     mm-add-prototype-for-__add_to_page_cache_locked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <masahiroy@kernel.org>
-Subject: Revert "kbuild: avoid static_assert for genksyms"
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Subject: mm: add prototype for __add_to_page_cache_locked()
 
-This reverts commit 14dc3983b5dff513a90bd5a8cc90acaf7867c3d0.
+Otherwise it causes a gcc warning:
 
-Macro Elver had sent a fix proper fix earlier, and also pointed out
-corner cases:
+../mm/filemap.c:830:14: warning: no previous prototype for
+`__add_to_page_cache_locked' [-Wmissing-prototypes]
 
-"I guess what you propose is simpler, but might still have corner cases
-where we still get warnings. In particular, if some file (for whatever
-reason) does not include build_bug.h and uses a raw _Static_assert(),
-then we still get warnings. E.g. I see 1 user of raw _Static_assert()
-(drivers/gpu/drm/amd/amdgpu/amdgv_sriovmsg.h )."
+A previous attempt to make this function static led to compilation errors
+when CONFIG_DEBUG_INFO_BTF is enabled because __add_to_page_cache_locked()
+is referred to by BPF code.
 
-I believe the raw use of _Static_assert() should be allowed, so this
-should be fixed in genksyms.
+Adding a prototype will silence the warning.
 
-Even after commit 14dc3983b5df ("kbuild: avoid static_assert for
-genksyms"), I confirmed the following test code emits the warning.
-
-  ---------------->8----------------
-  #include <linux/export.h>
-
-  _Static_assert((1 ?: 0), "");
-
-  void foo(void) { }
-  EXPORT_SYMBOL(foo);
-  ---------------->8----------------
-
-  WARNING: modpost: EXPORT symbol "foo" [vmlinux] version generation failed, symbol will not be versioned.
-
-Now that commit 869b91992bce ("genksyms: Ignore module scoped
-_Static_assert()") fixed this issue properly, the workaround should
-be reverted.
-
-Link: https://lkml.org/lkml/2020/12/10/845
-Link: https://lkml.kernel.org/r/20201219183911.181442-1-masahiroy@kernel.org
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/1608693702-4665-1-git-send-email-jrdr.linux@gmail.com
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/build_bug.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/mm.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/include/linux/build_bug.h~revert-kbuild-avoid-static_assert-for-genksyms
-+++ a/include/linux/build_bug.h
-@@ -77,9 +77,4 @@
- #define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
- #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
+--- a/include/linux/mm.h~mm-add-prototype-for-__add_to_page_cache_locked
++++ a/include/linux/mm.h
+@@ -216,6 +216,13 @@ int overcommit_kbytes_handler(struct ctl
+ 		loff_t *);
+ int overcommit_policy_handler(struct ctl_table *, int, void *, size_t *,
+ 		loff_t *);
++/*
++ * Any attempt to mark this function as static leads to build failure
++ * when CONFIG_DEBUG_INFO_BTF is enabled because __add_to_page_cache_locked()
++ * is referred to by BPF code. This must be visible for error injection.
++ */
++int __add_to_page_cache_locked(struct page *page, struct address_space *mapping,
++		pgoff_t index, gfp_t gfp, void **shadowp);
  
--#ifdef __GENKSYMS__
--/* genksyms gets confused by _Static_assert */
--#define _Static_assert(expr, ...)
--#endif
--
- #endif	/* _LINUX_BUILD_BUG_H */
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
 _
 
-Patches currently in -mm which might be from masahiroy@kernel.org are
+Patches currently in -mm which might be from jrdr.linux@gmail.com are
 
 
