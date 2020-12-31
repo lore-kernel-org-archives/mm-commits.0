@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C21CC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE20EC433E0
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A2F9223E4
+	by mail.kernel.org (Postfix) with ESMTP id 9FFF4223E4
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726531AbgLaSYD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Dec 2020 13:24:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34094 "EHLO mail.kernel.org"
+        id S1726550AbgLaSYE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Dec 2020 13:24:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726423AbgLaSYD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 31 Dec 2020 13:24:03 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 46CB52246B;
-        Thu, 31 Dec 2020 18:22:58 +0000 (UTC)
+        id S1726352AbgLaSYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 31 Dec 2020 13:24:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D78820758;
+        Thu, 31 Dec 2020 18:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609438978;
-        bh=jdHS1qCxB+3J/tkbebvMsD3K2Wddh+1yvo8RDBwDyJg=;
+        s=korg; t=1609438975;
+        bh=yxAHoquwLIvv8J+BRF9jeVNFT/eHxdoB4CrPf3J2mIA=;
         h=Date:From:To:Subject:From;
-        b=fYPt1moulQR//kJ1hY6YYC7w/0BBeQl1M+TBxDyO1D9dCSynZo3Xgs6m9a/4R4tI6
-         dmIZ+JLCA9BeVO0yuQoiPIXHRJcg+QEsI5nIWR1u9fT1Z/kMYCSRjW+tkRNDUK1bTW
-         V7yj8BB8fbtdcKycoo/q5GhpDZOwtmomOemlMqks=
-Date:   Thu, 31 Dec 2020 10:22:57 -0800
+        b=K2YksBIkiML/scNvYW4S8CKcQ9WtEzp9HVxoTfXsCuapviuMcwyVLOngduV66MAEU
+         N7WzhfNiAbXyQlXnmmkuYoKRrFa2Nu3MooGD+aIJz/AF+Ms8H1buIob+edyy+G1o8S
+         zhhqNtsMveuqW2lhS6WL+fAWW27KJwhnYDMhIxOk=
+Date:   Thu, 31 Dec 2020 10:22:55 -0800
 From:   akpm@linux-foundation.org
-To:     deller@gmx.de, kaleshsingh@google.com,
-        kirill.shutemov@linux.intel.com, linux@roeck-us.net,
-        lokeshgidra@google.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, surenb@google.com
-Subject:  [merged] mm-mremap-fix-extent-calculation.patch removed
- from -mm tree
-Message-ID: <20201231182257.QI8l5roc3%akpm@linux-foundation.org>
+To:     bhe@redhat.com, david@redhat.com, gopakumarr@vmware.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        stable@vger.kernel.org
+Subject:  [merged]
+ mm-memmap-defer-init-dosnt-work-as-expected.patch removed from -mm tree
+Message-ID: <20201231182255.MFjYS1iqM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,53 +44,160 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap.c: fix extent calculation
+     Subject: mm: memmap defer init doesn't work as expected
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-fix-extent-calculation.patch
+     mm-memmap-defer-init-dosnt-work-as-expected.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm/mremap.c: fix extent calculation
+From: Baoquan He <bhe@redhat.com>
+Subject: mm: memmap defer init doesn't work as expected
 
-When `next < old_addr`, `next - old_addr` arithmetic underflows
-causing `extent` to be incorrect.
+VMware observed a performance regression during memmap init on their
+platform, and bisected to commit 73a6e474cb376 ("mm: memmap_init: iterate
+over memblock regions rather that check each PFN") causing it.
 
-Make `extent` the smaller of `next - old_addr` or `old_end - old_addr`.
+Before the commit:
 
-Link: https://lkml.kernel.org/r/20201219170433.2418867-1-kaleshsingh@google.com
-Fixes: c49dd34018026 ("mm: speedup mremap on 1GB or larger regions")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+  [0.033176] Normal zone: 1445888 pages used for memmap
+  [0.033176] Normal zone: 89391104 pages, LIFO batch:63
+  [0.035851] ACPI: PM-Timer IO Port: 0x448
+
+With commit
+
+  [0.026874] Normal zone: 1445888 pages used for memmap
+  [0.026875] Normal zone: 89391104 pages, LIFO batch:63
+  [2.028450] ACPI: PM-Timer IO Port: 0x448
+
+The root cause is the current memmap defer init doesn't work as expected. 
+Before, memmap_init_zone() was used to do memmap init of one whole zone,
+to initialize all low zones of one numa node, but defer memmap init of the
+last zone in that numa node.  However, since commit 73a6e474cb376,
+function memmap_init() is adapted to iterater over memblock regions inside
+one zone, then call memmap_init_zone() to do memmap init for each region.
+
+E.g, on VMware's system, the memory layout is as below, there are two
+memory regions in node 2.  The current code will mistakenly initialize the
+whole 1st region [mem 0xab00000000-0xfcffffffff], then do memmap defer to
+iniatialize only one memmory section on the 2nd region [mem
+0x10000000000-0x1033fffffff].  In fact, we only expect to see that there's
+only one memory section's memmap initialized.  That's why more time is
+costed at the time.
+
+[    0.008842] ACPI: SRAT: Node 0 PXM 0 [mem 0x00000000-0x0009ffff]
+[    0.008842] ACPI: SRAT: Node 0 PXM 0 [mem 0x00100000-0xbfffffff]
+[    0.008843] ACPI: SRAT: Node 0 PXM 0 [mem 0x100000000-0x55ffffffff]
+[    0.008844] ACPI: SRAT: Node 1 PXM 1 [mem 0x5600000000-0xaaffffffff]
+[    0.008844] ACPI: SRAT: Node 2 PXM 2 [mem 0xab00000000-0xfcffffffff]
+[    0.008845] ACPI: SRAT: Node 2 PXM 2 [mem 0x10000000000-0x1033fffffff]
+
+Now, let's add a parameter 'zone_end_pfn' to memmap_init_zone() to pass
+down the real zone end pfn so that defer_init() can use it to judge
+whether defer need be taken in zone wide.
+
+Link: https://lkml.kernel.org/r/20201223080811.16211-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20201223080811.16211-2-bhe@redhat.com
+Fixes: commit 73a6e474cb376 ("mm: memmap_init: iterate over memblock regions rather that check each PFN")
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reported-by: Rahul Gopakumar <gopakumarr@vmware.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/ia64/mm/init.c |    4 ++--
+ include/linux/mm.h  |    5 +++--
+ mm/memory_hotplug.c |    2 +-
+ mm/page_alloc.c     |    8 +++++---
+ 4 files changed, 11 insertions(+), 8 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-fix-extent-calculation
-+++ a/mm/mremap.c
-@@ -358,7 +358,9 @@ static unsigned long get_extent(enum pgt
+--- a/arch/ia64/mm/init.c~mm-memmap-defer-init-dosnt-work-as-expected
++++ a/arch/ia64/mm/init.c
+@@ -536,7 +536,7 @@ virtual_memmap_init(u64 start, u64 end,
  
- 	next = (old_addr + size) & mask;
- 	/* even if next overflowed, extent below will be ok */
--	extent = (next > old_end) ? old_end - old_addr : next - old_addr;
-+	extent = next - old_addr;
-+	if (extent > old_end - old_addr)
-+		extent = old_end - old_addr;
- 	next = (new_addr + size) & mask;
- 	if (extent > next - new_addr)
- 		extent = next - new_addr;
+ 	if (map_start < map_end)
+ 		memmap_init_zone((unsigned long)(map_end - map_start),
+-				 args->nid, args->zone, page_to_pfn(map_start),
++				 args->nid, args->zone, page_to_pfn(map_start), page_to_pfn(map_end),
+ 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 	return 0;
+ }
+@@ -546,7 +546,7 @@ memmap_init (unsigned long size, int nid
+ 	     unsigned long start_pfn)
+ {
+ 	if (!vmem_map) {
+-		memmap_init_zone(size, nid, zone, start_pfn,
++		memmap_init_zone(size, nid, zone, start_pfn, start_pfn + size,
+ 				 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 	} else {
+ 		struct page *start;
+--- a/include/linux/mm.h~mm-memmap-defer-init-dosnt-work-as-expected
++++ a/include/linux/mm.h
+@@ -2439,8 +2439,9 @@ extern int __meminit early_pfn_to_nid(un
+ #endif
+ 
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+-extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long,
+-		enum meminit_context, struct vmem_altmap *, int migratetype);
++extern void memmap_init_zone(unsigned long, int, unsigned long,
++		unsigned long, unsigned long, enum meminit_context,
++		struct vmem_altmap *, int migratetype);
+ extern void setup_per_zone_wmarks(void);
+ extern int __meminit init_per_zone_wmark_min(void);
+ extern void mem_init(void);
+--- a/mm/memory_hotplug.c~mm-memmap-defer-init-dosnt-work-as-expected
++++ a/mm/memory_hotplug.c
+@@ -713,7 +713,7 @@ void __ref move_pfn_range_to_zone(struct
+ 	 * expects the zone spans the pfn range. All the pages in the range
+ 	 * are reserved so nobody should be touching them so we should be safe
+ 	 */
+-	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn,
++	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn, 0,
+ 			 MEMINIT_HOTPLUG, altmap, migratetype);
+ 
+ 	set_zone_contiguous(zone);
+--- a/mm/page_alloc.c~mm-memmap-defer-init-dosnt-work-as-expected
++++ a/mm/page_alloc.c
+@@ -423,6 +423,8 @@ defer_init(int nid, unsigned long pfn, u
+ 	if (end_pfn < pgdat_end_pfn(NODE_DATA(nid)))
+ 		return false;
+ 
++	if (NODE_DATA(nid)->first_deferred_pfn != ULONG_MAX)
++		return true;
+ 	/*
+ 	 * We start only with one section of pages, more pages are added as
+ 	 * needed until the rest of deferred pages are initialized.
+@@ -6116,7 +6118,7 @@ overlap_memmap_init(unsigned long zone,
+  * zone stats (e.g., nr_isolate_pageblock) are touched.
+  */
+ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+-		unsigned long start_pfn,
++		unsigned long start_pfn, unsigned long zone_end_pfn,
+ 		enum meminit_context context,
+ 		struct vmem_altmap *altmap, int migratetype)
+ {
+@@ -6152,7 +6154,7 @@ void __meminit memmap_init_zone(unsigned
+ 		if (context == MEMINIT_EARLY) {
+ 			if (overlap_memmap_init(zone, &pfn))
+ 				continue;
+-			if (defer_init(nid, pfn, end_pfn))
++			if (defer_init(nid, pfn, zone_end_pfn))
+ 				break;
+ 		}
+ 
+@@ -6266,7 +6268,7 @@ void __meminit __weak memmap_init(unsign
+ 
+ 		if (end_pfn > start_pfn) {
+ 			size = end_pfn - start_pfn;
+-			memmap_init_zone(size, nid, zone, start_pfn,
++			memmap_init_zone(size, nid, zone, start_pfn, range_end_pfn,
+ 					 MEMINIT_EARLY, NULL, MIGRATE_MOVABLE);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
 
