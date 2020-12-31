@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F7B9C433E9
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12475C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9049223E4
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D77DE223E4
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726688AbgLaSYO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Dec 2020 13:24:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34132 "EHLO mail.kernel.org"
+        id S1726697AbgLaSYT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Dec 2020 13:24:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726579AbgLaSYO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 31 Dec 2020 13:24:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 63732224BD;
-        Thu, 31 Dec 2020 18:23:12 +0000 (UTC)
+        id S1726579AbgLaSYT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 31 Dec 2020 13:24:19 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D5A8224D3;
+        Thu, 31 Dec 2020 18:23:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609438992;
-        bh=qY5OdqO3IUAVHvrVkTHp74z2hZ0Ljubm/B0ZIFqN8Co=;
+        s=korg; t=1609438996;
+        bh=1saSkaa2prwtCsDOiJZu2sxngbOgxIL4Esbarc+sEtI=;
         h=Date:From:To:Subject:From;
-        b=GN6W+po+mtq86HHg3Rv5HK0L23EakAtxJmXgGwHJ/Y0lUPJwOKp/5ER07cNSK+JI3
-         FC2XevUQlybjZ6VnJyl6ngrk/h7XNU9WVmrXctT5v7+W6uniXjvXTOGQBnMskJtASB
-         mb2NmndUUoYNCw2+vHJDJ+S2fc0PZs8yC7nleSUs=
-Date:   Thu, 31 Dec 2020 10:23:12 -0800
+        b=ViYTie2RN0TZQvyvQmh4wJtOGLuiFFHaBAxtkL2DFFhLAq1M91GjNnNVCXWb4sfRy
+         kqQtc6M5NgaTXn5lkjfUfEqWF4sgejRkSbEw6bogndg2mraYi65rCIsd3pPhQFAaXi
+         EWm9ec1c++lSKfYq44C4R3HQkC2jOdP5aYelGWiU=
+Date:   Thu, 31 Dec 2020 10:23:16 -0800
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        iii@linux.ibm.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, zaslonko@linux.ibm.com
+To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com
 Subject:  [merged]
- lib-zlib-fix-inflating-zlib-streams-on-s390.patch removed from -mm tree
-Message-ID: <20201231182312.3lAg6JsAQ%akpm@linux-foundation.org>
+ mm-slub-call-account_slab_page-after-slab-page-initialization.patch removed
+ from -mm tree
+Message-ID: <20201231182316.Eae-t4vwY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,68 +44,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/zlib: fix inflating zlib streams on s390
+     Subject: mm: slub: call account_slab_page() after slab page initialization
 has been removed from the -mm tree.  Its filename was
-     lib-zlib-fix-inflating-zlib-streams-on-s390.patch
+     mm-slub-call-account_slab_page-after-slab-page-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: lib/zlib: fix inflating zlib streams on s390
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: slub: call account_slab_page() after slab page initialization
 
-Decompressing zlib streams on s390 fails with "incorrect data check"
-error.
+It's convenient to have page->objects initialized before calling into
+account_slab_page().  In particular, this information can be used to
+pre-alloc the obj_cgroup vector.
 
-Userspace zlib checks inflate_state.flags in order to byteswap checksums
-only for zlib streams, and s390 hardware inflate code, which was ported
-from there, tries to match this behavior.  At the same time, kernel zlib
-does not use inflate_state.flags, so it contains essentially random
-values.  For many use cases either zlib stream is zeroed out or checksum
-is not used, so this problem is masked, but at least SquashFS is still
-affected.
+Let's call account_slab_page() a bit later, after the initialization of
+page->objects.
 
-Fix by always passing a checksum to and from the hardware as is, which
-matches zlib_inflate()'s expectations.
+This commit doesn't bring any functional change, but is required for
+further optimizations.
 
-Link: https://lkml.kernel.org/r/20201215155551.894884-1-iii@linux.ibm.com
-Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
-Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: <stable@vger.kernel.org>	[5.6+]
+[akpm@linux-foundation.org: undo changes needed by forthcoming mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch]
+Link: https://lkml.kernel.org/r/20201110195753.530157-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_dfltcc/dfltcc_inflate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/lib/zlib_dfltcc/dfltcc_inflate.c~lib-zlib-fix-inflating-zlib-streams-on-s390
-+++ a/lib/zlib_dfltcc/dfltcc_inflate.c
-@@ -125,7 +125,7 @@ dfltcc_inflate_action dfltcc_inflate(
-     param->ho = (state->write - state->whave) & ((1 << HB_BITS) - 1);
-     if (param->hl)
-         param->nt = 0; /* Honor history for the first block */
--    param->cv = state->flags ? REVERSE(state->check) : state->check;
-+    param->cv = state->check;
+--- a/mm/slub.c~mm-slub-call-account_slab_page-after-slab-page-initialization
++++ a/mm/slub.c
+@@ -1619,9 +1619,6 @@ static inline struct page *alloc_slab_pa
+ 	else
+ 		page = __alloc_pages_node(node, flags, order);
  
-     /* Inflate */
-     do {
-@@ -138,7 +138,7 @@ dfltcc_inflate_action dfltcc_inflate(
-     state->bits = param->sbb;
-     state->whave = param->hl;
-     state->write = (param->ho + param->hl) & ((1 << HB_BITS) - 1);
--    state->check = state->flags ? REVERSE(param->cv) : param->cv;
-+    state->check = param->cv;
-     if (cc == DFLTCC_CC_OP2_CORRUPT && param->oesc != 0) {
-         /* Report an error if stream is corrupted */
-         state->mode = BAD;
+-	if (page)
+-		account_slab_page(page, order, s);
+-
+ 	return page;
+ }
+ 
+@@ -1774,6 +1771,8 @@ static struct page *allocate_slab(struct
+ 
+ 	page->objects = oo_objects(oo);
+ 
++	account_slab_page(page, oo_order(oo), s);
++
+ 	page->slab_cache = s;
+ 	__SetPageSlab(page);
+ 	if (page_is_pfmemalloc(page))
 _
 
-Patches currently in -mm which might be from iii@linux.ibm.com are
+Patches currently in -mm which might be from guro@fb.com are
 
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+mm-cma-allocate-cma-areas-bottom-up.patch
+mm-cma-allocate-cma-areas-bottom-up-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
+memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
