@@ -5,38 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6496C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F7B9C433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B353223E4
+	by mail.kernel.org (Postfix) with ESMTP id D9049223E4
 	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 18:24:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726681AbgLaSYO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726688AbgLaSYO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 31 Dec 2020 13:24:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34132 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726669AbgLaSYO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726579AbgLaSYO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 31 Dec 2020 13:24:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7623E224D2;
-        Thu, 31 Dec 2020 18:23:14 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 63732224BD;
+        Thu, 31 Dec 2020 18:23:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609438994;
-        bh=L6U6SvnuGR+jhYrHCLI17ninnVNqgAfGDn3AfdOf8yU=;
+        s=korg; t=1609438992;
+        bh=qY5OdqO3IUAVHvrVkTHp74z2hZ0Ljubm/B0ZIFqN8Co=;
         h=Date:From:To:Subject:From;
-        b=yxUDlxoaJFTh5+cklMSNWhBA5Yzm+XEXQ41zKTJZxbqAjbjN0EZZuk6Y5KhI8vxh+
-         dG1Z38QQOjfCSos0JNy1HbN4QhlnBVVe8US4RgMAEqcpbv0w3Qms6k7vNe61saFOVZ
-         JrUnUq83fxoJa0x6Fx4OC7r27h7uGM3HHSloowJg=
-Date:   Thu, 31 Dec 2020 10:23:14 -0800
+        b=GN6W+po+mtq86HHg3Rv5HK0L23EakAtxJmXgGwHJ/Y0lUPJwOKp/5ER07cNSK+JI3
+         FC2XevUQlybjZ6VnJyl6ngrk/h7XNU9WVmrXctT5v7+W6uniXjvXTOGQBnMskJtASB
+         mb2NmndUUoYNCw2+vHJDJ+S2fc0PZs8yC7nleSUs=
+Date:   Thu, 31 Dec 2020 10:23:12 -0800
 From:   akpm@linux-foundation.org
 To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
         iii@linux.ibm.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, zaslonko@linux.ibm.com
+        stable@vger.kernel.org, zaslonko@linux.ibm.com
 Subject:  [merged]
- zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
- removed from -mm tree
-Message-ID: <20201231182314.Aztdwu9Sz%akpm@linux-foundation.org>
+ lib-zlib-fix-inflating-zlib-streams-on-s390.patch removed from -mm tree
+Message-ID: <20201231182312.3lAg6JsAQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,120 +44,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
+     Subject: lib/zlib: fix inflating zlib streams on s390
 has been removed from the -mm tree.  Its filename was
-     zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc.patch
+     lib-zlib-fix-inflating-zlib-streams-on-s390.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: zlib: move EXPORT_SYMBOL() and MODULE_LICENSE() out of dfltcc_syms.c
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: lib/zlib: fix inflating zlib streams on s390
 
-In 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules"), I added
-EXPORT_SYMBOL()s to dfltcc_inflate.c but then Mikhail said that these
-should probably be in dfltcc_syms.c with the other EXPORT_SYMBOL()s.
+Decompressing zlib streams on s390 fails with "incorrect data check"
+error.
 
-However, that is contrary to the current kernel style, which places
-EXPORT_SYMBOL() immediately after the function that it applies to,
-so move all EXPORT_SYMBOL()s to their respective function locations
-and drop the dfltcc_syms.c file. Also move MODULE_LICENSE() from the
-deleted file to dfltcc.c.
+Userspace zlib checks inflate_state.flags in order to byteswap checksums
+only for zlib streams, and s390 hardware inflate code, which was ported
+from there, tries to match this behavior.  At the same time, kernel zlib
+does not use inflate_state.flags, so it contains essentially random
+values.  For many use cases either zlib stream is zeroed out or checksum
+is not used, so this problem is masked, but at least SquashFS is still
+affected.
 
-[rdunlap@infradead.org: remove dfltcc_syms.o from Makefile]
-  Link: https://lkml.kernel.org/r/20201227171837.15492-1-rdunlap@infradead.org
-Link: https://lkml.kernel.org/r/20201219052530.28461-1-rdunlap@infradead.org
-Fixes: 11fb479ff5d9 ("zlib: export S390 symbols for zlib modules")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Fix by always passing a checksum to and from the hardware as is, which
+matches zlib_inflate()'s expectations.
+
+Link: https://lkml.kernel.org/r/20201215155551.894884-1-iii@linux.ibm.com
+Fixes: 126196100063 ("lib/zlib: add s390 hardware support for kernel zlib_inflate")
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Acked-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
 Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Zaslonko Mikhail <zaslonko@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: <stable@vger.kernel.org>	[5.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_dfltcc/Makefile         |    2 +-
- lib/zlib_dfltcc/dfltcc.c         |    6 +++++-
- lib/zlib_dfltcc/dfltcc_deflate.c |    3 +++
- lib/zlib_dfltcc/dfltcc_syms.c    |   17 -----------------
- 4 files changed, 9 insertions(+), 19 deletions(-)
+ lib/zlib_dfltcc/dfltcc_inflate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/zlib_dfltcc/dfltcc.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/dfltcc.c
-@@ -1,7 +1,8 @@
- // SPDX-License-Identifier: Zlib
- /* dfltcc.c - SystemZ DEFLATE CONVERSION CALL support. */
+--- a/lib/zlib_dfltcc/dfltcc_inflate.c~lib-zlib-fix-inflating-zlib-streams-on-s390
++++ a/lib/zlib_dfltcc/dfltcc_inflate.c
+@@ -125,7 +125,7 @@ dfltcc_inflate_action dfltcc_inflate(
+     param->ho = (state->write - state->whave) & ((1 << HB_BITS) - 1);
+     if (param->hl)
+         param->nt = 0; /* Honor history for the first block */
+-    param->cv = state->flags ? REVERSE(state->check) : state->check;
++    param->cv = state->check;
  
--#include <linux/zutil.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- 
-@@ -53,3 +54,6 @@ void dfltcc_reset(
-     dfltcc_state->dht_threshold = DFLTCC_DHT_MIN_SAMPLE_SIZE;
-     dfltcc_state->param.ribm = DFLTCC_RIBM;
- }
-+EXPORT_SYMBOL(dfltcc_reset);
-+
-+MODULE_LICENSE("GPL");
---- a/lib/zlib_dfltcc/dfltcc_deflate.c~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/dfltcc_deflate.c
-@@ -4,6 +4,7 @@
- #include "dfltcc_util.h"
- #include "dfltcc.h"
- #include <asm/setup.h>
-+#include <linux/export.h>
- #include <linux/zutil.h>
- 
- /*
-@@ -34,6 +35,7 @@ int dfltcc_can_deflate(
- 
-     return 1;
- }
-+EXPORT_SYMBOL(dfltcc_can_deflate);
- 
- static void dfltcc_gdht(
-     z_streamp strm
-@@ -277,3 +279,4 @@ again:
-         goto again; /* deflate() must use all input or all output */
-     return 1;
- }
-+EXPORT_SYMBOL(dfltcc_deflate);
---- a/lib/zlib_dfltcc/dfltcc_syms.c
-+++ /dev/null
-@@ -1,17 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * linux/lib/zlib_dfltcc/dfltcc_syms.c
-- *
-- * Exported symbols for the s390 zlib dfltcc support.
-- *
-- */
--
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/zlib.h>
--#include "dfltcc.h"
--
--EXPORT_SYMBOL(dfltcc_can_deflate);
--EXPORT_SYMBOL(dfltcc_deflate);
--EXPORT_SYMBOL(dfltcc_reset);
--MODULE_LICENSE("GPL");
---- a/lib/zlib_dfltcc/Makefile~zlib-move-export_symbol-and-module_license-out-of-dfltcc_symsc
-+++ a/lib/zlib_dfltcc/Makefile
-@@ -8,4 +8,4 @@
- 
- obj-$(CONFIG_ZLIB_DFLTCC) += zlib_dfltcc.o
- 
--zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o dfltcc_syms.o
-+zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o
+     /* Inflate */
+     do {
+@@ -138,7 +138,7 @@ dfltcc_inflate_action dfltcc_inflate(
+     state->bits = param->sbb;
+     state->whave = param->hl;
+     state->write = (param->ho + param->hl) & ((1 << HB_BITS) - 1);
+-    state->check = state->flags ? REVERSE(param->cv) : param->cv;
++    state->check = param->cv;
+     if (cc == DFLTCC_CC_OP2_CORRUPT && param->oesc != 0) {
+         /* Report an error if stream is corrupted */
+         state->mode = BAD;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
-fs-delete-repeated-words-in-comments.patch
-mm-zswap-clean-up-confusing-comment.patch
-lib-linear_ranges-fix-repeated-words-one-typo.patch
 
