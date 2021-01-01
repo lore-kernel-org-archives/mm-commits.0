@@ -2,92 +2,108 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0929C433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 20:50:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15DE0C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Jan 2021 00:13:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 968C9207A3
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Dec 2020 20:50:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD1AC20888
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Jan 2021 00:13:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727015AbgLaUua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Dec 2020 15:50:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49546 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726628AbgLaUua (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Dec 2020 15:50:30 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14E08C061575;
-        Thu, 31 Dec 2020 12:49:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=uRKoJvU7TdaCONZ8ed5/ubeZ6GnkrfHObj5AFY5rUu0=; b=X8vzhElJYLFHKKG/lqG6qK4gIy
-        Hp1g3z2rjL0mhK8KIm7S5lO+nr2gaPez7Kq/YIo4f+QB/+q+BwgDaYVNuEQ2EUuuDmbRujByU8x7R
-        S0ke8wr/44V4DJ2icDuqUZDtkmiwfZBpPTO6Rk5o2++JQXjP1c9oT77JDglbZ30NE9nZTMZ2573mh
-        MlJt782VR7Jy8P7aDt7Cb+qy3NnhBZxq+RrpxrVdwIx0DmmUVatbTvKs79hEKZbHPX4/YBOcF65pN
-        M3CmfeQBabzYxF5PZx5VZCPQV+yphDo2rIjR17isIzKWulLs/xOpf+uynu1ywfEpIOZhpzyZodCzm
-        7qUIghsA==;
-Received: from [2601:1c0:6280:3f0::2c43]
-        by casper.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-        id 1kv4tG-00160z-DR; Thu, 31 Dec 2020 20:49:47 +0000
-Subject: Re: mmotm 2020-12-31-11-52 uploaded (mm/cma.c)
-To:     akpm@linux-foundation.org, broonie@kernel.org, mhocko@suse.cz,
-        sfr@canb.auug.org.au, linux-next@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
-References: <20201231195330.PHhcH%akpm@linux-foundation.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <75e72a00-8758-7d67-388a-55dc6b35be57@infradead.org>
-Date:   Thu, 31 Dec 2020 12:49:40 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
-MIME-Version: 1.0
-In-Reply-To: <20201231195330.PHhcH%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        id S1726219AbhAAANg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Dec 2020 19:13:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34464 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726122AbhAAANf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 31 Dec 2020 19:13:35 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DC1D52158C;
+        Fri,  1 Jan 2021 00:12:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1609459975;
+        bh=LGCoNrthLc2ZyIl5zxKdnOhWm3UAvN8mU45WhVYSqGQ=;
+        h=Date:From:To:Subject:From;
+        b=WbvpkFGS/yhQ7AnnAw+bX/fj7Kity2+pZRqN+hYB9r9DKT5hotxT0+i2MnrQXKufc
+         vPaqdm5zEeA4j0CkG7bM//7tP1h4tI0Si8YRwWiRn6+j2TVZle5IuwiVRrb4bYB0mn
+         fcmXEiNBDZix442Ytan1W1t2LEdAAn6EyKK761wI=
+Date:   Thu, 31 Dec 2020 16:12:54 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, rppt@kernel.org,
+        rdunlap@infradead.org, guro@fb.com, akpm@linux-foundation.org
+Subject:  + mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch added
+ to -mm tree
+Message-ID: <20210101001254.BnAID%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 12/31/20 11:53 AM, akpm@linux-foundation.org wrote:
-> The mm-of-the-moment snapshot 2020-12-31-11-52 has been uploaded to
-> 
->    https://www.ozlabs.org/~akpm/mmotm/
-> 
-> mmotm-readme.txt says
-> 
-> README for mm-of-the-moment:
-> 
-> https://www.ozlabs.org/~akpm/mmotm/
-> 
-> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> more than once a week.
-> 
-> You will need quilt to apply these patches to the latest Linus release (5.x
-> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> https://ozlabs.org/~akpm/mmotm/series
-> 
-> The file broken-out.tar.gz contains two datestamp files: .DATE and
-> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> followed by the base kernel version against which this patch series is to
-> be applied.
 
-../mm/cma.c: In function ‘cma_declare_contiguous_nid’:
-../mm/cma.c:347:5: warning: "CONFIG_PHYS_ADDR_T_64BIT" is not defined, evaluates to 0 [-Wundef]
- #if CONFIG_PHYS_ADDR_T_64BIT
-     ^~~~~~~~~~~~~~~~~~~~~~~~
+The patch titled
+     Subject: mm-cma-allocate-cma-areas-bottom-up-fix-3-fix
+has been added to the -mm tree.  Its filename is
+     mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
 
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
 
-s/#if/#ifdef/
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
--- 
-~Randy
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-allocate-cma-areas-bottom-up-fix-3-fix
+
+build fix
+
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mm/cma.c~mm-cma-allocate-cma-areas-bottom-up-fix-3-fix
++++ a/mm/cma.c
+@@ -344,7 +344,7 @@ int __init cma_declare_contiguous_nid(ph
+ 		 * Avoid using first 4GB to not interfere with constrained zones
+ 		 * like DMA/DMA32.
+ 		 */
+-#if CONFIG_PHYS_ADDR_T_64BIT
++#ifdef CONFIG_PHYS_ADDR_T_64BIT
+ 		if (!memblock_bottom_up() && memblock_end >= SZ_4G + size) {
+ 			memblock_set_bottom_up(true);
+ 			addr = memblock_alloc_range_nid(size, alignment, SZ_4G,
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-page_alloc-add-a-missing-mm_page_alloc_zone_locked-tracepoint-fix.patch
+mm.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout-checkpatch-fixes.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+linux-next-git-rejects.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
