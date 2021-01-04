@@ -2,60 +2,97 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46E7FC433E6
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2592C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D3CB22512
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB53522512
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726124AbhADWR0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jan 2021 17:17:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45498 "EHLO mail.kernel.org"
+        id S1726163AbhADWRa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jan 2021 17:17:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45514 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726074AbhADWR0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 Jan 2021 17:17:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CB2D22512;
-        Mon,  4 Jan 2021 22:16:46 +0000 (UTC)
+        id S1726074AbhADWRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 Jan 2021 17:17:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D057622513;
+        Mon,  4 Jan 2021 22:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609798606;
-        bh=20k1C8b1bfnDLBUtJ+lxsA6G1nvgNK/gdCU7+HqIqH8=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=mpy9HsaKv3WT6BEZvknl3GrhxF9RWaXKx5XQc5A9JJ8amdc5xBjF9UD1VcQLGkmVO
-         jLDzhJ24gL5ufM9w5XqV2obYG3JiIsQwrkC1TYBKCmzfn3UN0qeTS5WKrfIExSGJOc
-         GHTpLuHfna55CLNKJWENDC2Xd0TbqF1G/t7TtniY=
-Date:   Mon, 4 Jan 2021 14:16:45 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Joe Perches <joe@perches.com>
-Cc:     johannes.czekay@fau.de, mm-commits@vger.kernel.org,
-        nicolai.fischer@fau.de
-Subject: Re: + checkpatch-kconfig-enforce-help-text-indentation.patch added
- to -mm tree
-Message-Id: <20210104141645.a170adb73d48db0c422e1f14@linux-foundation.org>
-In-Reply-To: <a1f2f49b9ea565893fb5c86989c14d7e653abd76.camel@perches.com>
-References: <20210104211237.3Iy7io4dd%akpm@linux-foundation.org>
-        <a1f2f49b9ea565893fb5c86989c14d7e653abd76.camel@perches.com>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        s=korg; t=1609798610;
+        bh=vxyieDsUMDj9ABT/pGXopFSZhy2zS0sQxtIsW7cM8Ts=;
+        h=Date:From:To:Subject:From;
+        b=0STMD95nNgOuLHaEiXKJ4vU4dAQXung9LoqpDaX1P8/mnF4uIvas+Sd1bp05JiZKy
+         2EufJVCt6eAVGTgnCx0XLS/hSHul350YOURBKSDh5ylk/ptghMbQIg7DfU5j89A3no
+         SQ7xstfDyNu5QxRDTWGXc99oPxYjiYLaw7vmPOK8=
+Date:   Mon, 04 Jan 2021 14:16:49 -0800
+From:   akpm@linux-foundation.org
+To:     joe@perches.com, johannes.czekay@fau.de,
+        mm-commits@vger.kernel.org, nicolai.fischer@fau.de
+Subject:  [to-be-updated]
+ checkpatch-kconfig-replace-help-with-help.patch removed from -mm tree
+Message-ID: <20210104221649.PKdrn9MJB%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, 04 Jan 2021 13:49:11 -0800 Joe Perches <joe@perches.com> wrote:
 
-> I think you should wait to apply these until
-> I ack/nak them.
+The patch titled
+     Subject: checkpatch: kconfig: replace '---help---' with 'help'
+has been removed from the -mm tree.  Its filename was
+     checkpatch-kconfig-replace-help-with-help.patch
 
-At version 3 I assume you've already gone a couple of rounds on them and
-things are good-enough.
+This patch was dropped because an updated version will be merged
 
-> Nak.
+------------------------------------------------------
+From: Nicolai Fischer <nicolai.fischer@fau.de>
+Subject: checkpatch: kconfig: replace '---help---' with 'help'
 
-Oh well.
+Patch series "update kconfig parsing", v3.
+
+This series updates the parsing of Kconfig files within checkpatch.pl to
+the current state.
+
+
+This patch (of 5):
+
+All '---help---' lines have been replaced by just 'help'.  Therefore it is
+no longer necessary to include '---' in the regex.
+
+Link: https://lkml.kernel.org/r/20210103075015.23946-1-nicolai.fischer@fau.de
+Link: https://lkml.kernel.org/r/20210103075015.23946-2-nicolai.fischer@fau.de
+Co-developed-by: Johannes Czekay <johannes.czekay@fau.de>
+Signed-off-by: Johannes Czekay <johannes.czekay@fau.de>
+Signed-off-by: Nicolai Fischer <nicolai.fischer@fau.de>
+Acked-by: Joe Perches <joe@perches.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/scripts/checkpatch.pl~checkpatch-kconfig-replace-help-with-help
++++ a/scripts/checkpatch.pl
+@@ -3323,7 +3323,7 @@ sub process {
+ 
+ 				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|prompt)\s*["']/) {
+ 					$is_start = 1;
+-				} elsif ($lines[$ln - 1] =~ /^\+\s*(?:---)?help(?:---)?$/) {
++				} elsif ($lines[$ln - 1] =~ /^\+\s*help$/) {
+ 					$length = -1;
+ 				}
+ 
+_
+
+Patches currently in -mm which might be from nicolai.fischer@fau.de are
+
+checkpatch-kconfig-add-missing-types-to-regex.patch
+checkpatch-kconfig-enforce-help-text-indentation.patch
+checkpatch-kconfig-clarify-warning-for-paragraph-length.patch
+checkpatch-kconfig-enforce-block-indentation.patch
+
