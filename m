@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4613DC433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:23:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 735DEC433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 23:19:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D8752251E
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:23:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 307482253D
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 23:19:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726323AbhADWXv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jan 2021 17:23:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46226 "EHLO mail.kernel.org"
+        id S1726734AbhADXTC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jan 2021 18:19:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726026AbhADWXv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 Jan 2021 17:23:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E1B92251E;
-        Mon,  4 Jan 2021 22:23:10 +0000 (UTC)
+        id S1727276AbhADXTC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 Jan 2021 18:19:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A59B322473;
+        Mon,  4 Jan 2021 23:18:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609798990;
-        bh=oRQNkBq74qtYoVH/N4Mq8O+66izaOzHvqUX4nowZpXQ=;
+        s=korg; t=1609802301;
+        bh=/EWmep0s5kOlZSyu5zYzauiJ0JEXCDQ3GPudUeZfL28=;
         h=Date:From:To:Subject:From;
-        b=YGktRlVT3F2STt6lfTX/TDGmVHLQNdGsRzJMqqG/R0s/x3WSMTUCql6l3gBwGzE/A
-         js6vkVORS3lVom0Dw9cXrp3kvGEAPoGE1PAJXgQzTV+O2kTZfETaNdQFDkV7A1WUGq
-         RAVyd9cv+8DrW5IuQUoDbCEXOltHougltwUmLykw=
-Date:   Mon, 04 Jan 2021 14:23:09 -0800
+        b=bIuaGNMfJFfkjRDe4w3jic1gZX7sOoLivGeXV1xmWxFPW/O+EgTcuyjhpVWn0uRhJ
+         x6emd3Ze/H/Q7ank8FJ2YDa+Jx8mGwjYY4yFnpwIkhDFE0IU5k4hEMeY/ZOGbVCcEo
+         tmwcUfmUB+zsKXHoSVSbv7l2xki0fmMwppqc84Ng=
+Date:   Mon, 04 Jan 2021 15:18:21 -0800
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        yili@winhong.com
-Subject:  + ocfs2-remove-redundant-conditional-before-iput.patch
- added to -mm tree
-Message-ID: <20210104222309.ujANU0D2O%akpm@linux-foundation.org>
+To:     joe@perches.com, mm-commits@vger.kernel.org,
+        rocking@linux.alibaba.com
+Subject:  +
+ checkpatch-ignore-warning-designated-initializers-using-nr_cpus.patch added
+ to -mm tree
+Message-ID: <20210104231821.r7OhUVkQ2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove redundant conditional before iput
+     Subject: checkpatch: ignore warning designated initializers using NR_CPUS
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-redundant-conditional-before-iput.patch
+     checkpatch-ignore-warning-designated-initializers-using-nr_cpus.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-redundant-conditional-before-iput.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-ignore-warning-designated-initializers-using-nr_cpus.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-redundant-conditional-before-iput.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-ignore-warning-designated-initializers-using-nr_cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,41 +65,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yi Li <yili@winhong.com>
-Subject: ocfs2: remove redundant conditional before iput
+From: Peng Wang <rocking@linux.alibaba.com>
+Subject: checkpatch: ignore warning designated initializers using NR_CPUS
 
-iput handles NULL pointers gracefully, so there's no need to check the
-pointer before the call.
+Some max_length wants to hold as large room as possible to ensure enough
+size to tackle with the biggest NR_CPUS.  An example below:
 
-Link: https://lkml.kernel.org/r/20201231040535.4091761-1-yili@winhong.com
-Signed-off-by: Yi Li <yili@winhong.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+kernel/cgroup/cpuset.c:
+static struct cftype legacy_files[] = {
+        {
+                .name = "cpus",
+                .seq_show = cpuset_common_seq_show,
+                .write = cpuset_write_resmask,
+                .max_write_len = (100U + 6 * NR_CPUS),
+                .private = FILE_CPULIST,
+        },
+	...
+}
+
+Link: https://lkml.kernel.org/r/5d4998aa8a8ac7efada2c7daffa9e73559f8b186.1609331255.git.rocking@linux.alibaba.com
+Signed-off-by: Peng Wang <rocking@linux.alibaba.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    2 --
- 1 file changed, 2 deletions(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/super.c~ocfs2-remove-redundant-conditional-before-iput
-+++ a/fs/ocfs2/super.c
-@@ -973,8 +973,6 @@ static void ocfs2_disable_quotas(struct
- 		 * quota files */
- 		dquot_disable(sb, type, DQUOT_USAGE_ENABLED |
- 					DQUOT_LIMITS_ENABLED);
--		if (!inode)
--			continue;
- 		iput(inode);
- 	}
- }
+--- a/scripts/checkpatch.pl~checkpatch-ignore-warning-designated-initializers-using-nr_cpus
++++ a/scripts/checkpatch.pl
+@@ -7034,12 +7034,14 @@ sub process {
+ 
+ # use of NR_CPUS is usually wrong
+ # ignore definitions of NR_CPUS and usage to define arrays as likely right
++# ignore designated initializers using NR_CPUS
+ 		if ($line =~ /\bNR_CPUS\b/ &&
+ 		    $line !~ /^.\s*\s*#\s*if\b.*\bNR_CPUS\b/ &&
+ 		    $line !~ /^.\s*\s*#\s*define\b.*\bNR_CPUS\b/ &&
+ 		    $line !~ /^.\s*$Declare\s.*\[[^\]]*NR_CPUS[^\]]*\]/ &&
+ 		    $line !~ /\[[^\]]*\.\.\.[^\]]*NR_CPUS[^\]]*\]/ &&
+-		    $line !~ /\[[^\]]*NR_CPUS[^\]]*\.\.\.[^\]]*\]/)
++		    $line !~ /\[[^\]]*NR_CPUS[^\]]*\.\.\.[^\]]*\]/ &&
++		    $line !~ /^.\s*\.\w+\s*=\s*.*\bNR_CPUS\b/)
+ 		{
+ 			WARN("NR_CPUS",
+ 			     "usage of NR_CPUS is often wrong - consider using cpu_possible(), num_possible_cpus(), for_each_possible_cpu(), etc\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from yili@winhong.com are
+Patches currently in -mm which might be from rocking@linux.alibaba.com are
 
-ocfs2-remove-redundant-conditional-before-iput.patch
+checkpatch-ignore-warning-designated-initializers-using-nr_cpus.patch
 
