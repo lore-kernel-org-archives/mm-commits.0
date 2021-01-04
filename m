@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 529FAC433DB
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 21:13:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B48E1C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 21:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2698720679
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 21:13:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F274224F4
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 21:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726330AbhADVNX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jan 2021 16:13:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38504 "EHLO mail.kernel.org"
+        id S1726148AbhADV3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jan 2021 16:29:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726289AbhADVNX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 Jan 2021 16:13:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D579A2225E;
-        Mon,  4 Jan 2021 21:12:42 +0000 (UTC)
+        id S1726098AbhADV3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 Jan 2021 16:29:54 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BA7C5216C4;
+        Mon,  4 Jan 2021 21:29:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609794763;
-        bh=1rbUWQATOLY5FFuzYd8kEj8qKhTTPbFBshiEE1XRWuU=;
+        s=korg; t=1609795754;
+        bh=9lURVQwU3/7juLSQBYgzeQVmxQNmW5VM5Gcor25EijQ=;
         h=Date:From:To:Subject:From;
-        b=Aj59mKdUzl53qjSUlqVq94GQngBrzqBJ8WgTqY+ukGS7Cw+6ZWCwrokHzbaCws/gM
-         fWrzCytr4uQfEDVd4BurZ/xjnf2IW1VodolGFYPhVCEZnBzDF72dXtgxvnrCF7R/eq
-         XWJdWUccBL9TTmZWVRlQIZdoXU3HxZag+UXgvsVs=
-Date:   Mon, 04 Jan 2021 13:12:42 -0800
+        b=tOTFMeSjqWwKjRO6JGNh/62ia3VDP15tWIY/db1xY3ks1RO+lGDLAIxI5BaAZmgB1
+         5ZGG0YpltAlwLFDB5GwbFnDjhTmEthwbKV2YCDYEzBbgUS3aowJBX1P/RAsOfyUbvT
+         bYeT+Kk52eYAiVowAQrOp299h0lrM0rRlPUXw+sU=
+Date:   Mon, 04 Jan 2021 13:29:13 -0800
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, johannes.czekay@fau.de,
-        mm-commits@vger.kernel.org, nicolai.fischer@fau.de
-Subject:  + checkpatch-kconfig-enforce-block-indentation.patch
- added to -mm tree
-Message-ID: <20210104211242.Zccc2iiiN%akpm@linux-foundation.org>
+To:     aryabinin@virtuozzo.com, dan.j.williams@intel.com,
+        dvyukov@google.com, glider@google.com, lecopzer.chen@mediatek.com,
+        lecopzer@gmail.com, mm-commits@vger.kernel.org
+Subject:  +
+ kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch added
+ to -mm tree
+Message-ID: <20210104212913.Dp2ZoxVB9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: kconfig: enforce block indentation
+     Subject: kasan: fix incorrect arguments passing in kasan_add_zero_shadow
 has been added to the -mm tree.  Its filename is
-     checkpatch-kconfig-enforce-block-indentation.patch
+     kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-kconfig-enforce-block-indentation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-kconfig-enforce-block-indentation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,73 +66,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolai Fischer <nicolai.fischer@fau.de>
-Subject: checkpatch: kconfig: enforce block indentation
+From: Lecopzer Chen <lecopzer@gmail.com>
+Subject: kasan: fix incorrect arguments passing in kasan_add_zero_shadow
 
-Adds a new warning to checkpatch in case a new Kconfig block is not
-indented one sigle tab more than the keyword which starts it.
+kasan_remove_zero_shadow() shall use original virtual address, start and
+size, instead of shadow address.
 
-Link: https://lkml.kernel.org/r/20210103075015.23946-6-nicolai.fischer@fau.de
-Co-developed-by: Johannes Czekay <johannes.czekay@fau.de>
-Signed-off-by: Johannes Czekay <johannes.czekay@fau.de>
-Signed-off-by: Nicolai Fischer <nicolai.fischer@fau.de>
-Cc: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20210103063847.5963-1-lecopzer@gmail.com
+Fixes: 0207df4fa1a86 ("kernel/memremap, kasan: make ZONE_DEVICE with work with KASAN")
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ mm/kasan/init.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-kconfig-enforce-block-indentation
-+++ a/scripts/checkpatch.pl
-@@ -3306,7 +3306,8 @@ sub process {
- 		    # 'choice' is usually the last thing on the line (though
- 		    # Kconfig supports named choices), so use a word boundary
- 		    # (\b) rather than a whitespace character (\s)
--		    $line =~ /^\+\s*(?:config|menuconfig|choice)\b/) {
-+		    $line =~ /^\+(\s*)(?:config|menuconfig|choice)\b/) {
-+			my $base_indent = $1;
- 			my $length = 0;
- 			my $cnt = $realcnt;
- 			my $ln = $linenr + 1;
-@@ -3315,6 +3316,7 @@ sub process {
- 			my $is_end = 0;
- 			my $help_indent;
- 			my $help_stat_real;
-+			my $block_stat_real;
- 			for (; $cnt > 0 && defined $lines[$ln - 1]; $ln++) {
- 				$f = $lines[$ln - 1];
- 				$cnt-- if ($lines[$ln - 1] !~ /^-/);
-@@ -3323,7 +3325,10 @@ sub process {
- 				next if ($f =~ /^-/);
- 				last if (!$file && $f =~ /^\@\@/);
+--- a/mm/kasan/init.c~kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow
++++ a/mm/kasan/init.c
+@@ -485,7 +485,6 @@ int kasan_add_zero_shadow(void *start, u
  
--				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|int|hex|string|prompt)\s*(?:["'].*)?$/) {
-+				if ($lines[$ln - 1] =~ /^\+(\s*)(?:bool|tristate|int|hex|string|prompt)\s*(?:["'].*)?$/) {
-+					if ($1 !~ /^$base_indent\t$/) {
-+						$block_stat_real = get_stat_real($linenr, $ln);
-+					}
- 					$is_start = 1;
- 				} elsif ($lines[$ln - 1] =~ /^\+(\s*)help$/) {
- 					$help_indent = $1;
-@@ -3358,6 +3363,10 @@ sub process {
- 				WARN("CONFIG_DESCRIPTION",
- 				     "please write a paragraph ($length/$min_conf_desc_length lines) that describes the config symbol fully\n" . $herecurr);
- 			}
-+			if ($is_start && $is_end && defined $block_stat_real) {
-+				WARN("CONFIG_DESCRIPTION",
-+				     "please indent the block a single tab more than the start\n" . "$here\n$block_stat_real\n");
-+			}
- 			if ($is_start && $is_end && defined $help_stat_real) {
- 				WARN("CONFIG_DESCRIPTION",
- 				     "please indent the help text two spaces more than the keyword\n" . "$here\n$help_stat_real\n");
+ 	ret = kasan_populate_early_shadow(shadow_start, shadow_end);
+ 	if (ret)
+-		kasan_remove_zero_shadow(shadow_start,
+-					size >> KASAN_SHADOW_SCALE_SHIFT);
++		kasan_remove_zero_shadow(start, size);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from nicolai.fischer@fau.de are
+Patches currently in -mm which might be from lecopzer@gmail.com are
 
-checkpatch-kconfig-replace-help-with-help.patch
-checkpatch-kconfig-add-missing-types-to-regex.patch
-checkpatch-kconfig-enforce-help-text-indentation.patch
-checkpatch-kconfig-clarify-warning-for-paragraph-length.patch
-checkpatch-kconfig-enforce-block-indentation.patch
+kasan-fix-unaligned-address-is-unhandled-in-kasan_remove_zero_shadow.patch
+kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
 
