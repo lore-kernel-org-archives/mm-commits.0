@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB2DAC433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 20:23:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB530C433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 20:25:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8478D2226A
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 20:23:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88FC522273
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 20:25:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726397AbhADUWr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jan 2021 15:22:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34104 "EHLO mail.kernel.org"
+        id S1726163AbhADUZZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jan 2021 15:25:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726396AbhADUWr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 Jan 2021 15:22:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0257D221F8;
-        Mon,  4 Jan 2021 20:22:05 +0000 (UTC)
+        id S1725840AbhADUZY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 Jan 2021 15:25:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD83B2225E;
+        Mon,  4 Jan 2021 20:24:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609791726;
-        bh=z2L10slN5Fwswf+TiY5iL4AyXSDKlGWY3DRgxXvEUxU=;
+        s=korg; t=1609791884;
+        bh=fE4iBWmfuKOXviLveyTPHWtcnnWHlpBafq18p9icCUM=;
         h=Date:From:To:Subject:From;
-        b=KazuJ/Xj+dbmItyqb3ptJm3C82eiDyE3DxynyOEXAJqEsUgszdHqrLpF/6xD14NBF
-         jfriSbofRl3t3a04za4h49NQPg9rfXn5pqCBdsm1Ksr452nRj584SgtdQZfEK6dq31
-         OGzLL7RzRlelGw7w2/52Wr//KWEBewLAcFGzCYeg=
-Date:   Mon, 04 Jan 2021 12:22:05 -0800
+        b=gn80Y4JkuaDm5l5CCN6oz6lrcZUq5l8vIyyRxJ+gelTACgsz7r8YNVwBk/+5Ks9Ou
+         AKnRG80RFO3hmlHHpyZTwwJmn8DKU1xX8Rxj/Z0BLHvqNgRkfBukB9RRQNzkYZBVAA
+         Wwq/SAGimTYj+I88HBuavAZdp9Ov0HSuxjBcglcE=
+Date:   Mon, 04 Jan 2021 12:24:43 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, dave.hansen@intel.com, jgross@suse.com,
-        jinyuqi@huawei.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, paul.burton@mips.com, rppt@linux.ibm.com,
-        rusty@rustcorp.com.au, zhangshaokun@hisilicon.com
-Subject:  + lib-optimize-cpumask_local_spread-v8.patch added to -mm
- tree
-Message-ID: <20210104202205.ms7rlF6Up%akpm@linux-foundation.org>
+To:     lixinhai.lxh@gmail.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com
+Subject:  [to-be-updated]
+ mm-hugetlbc-fix-unnecessary-address-expansion-of-pmd-sharing.patch removed
+ from -mm tree
+Message-ID: <20210104202443.DKANyQl3O%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,180 +44,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-optimize-cpumask_local_spread-v8
-has been added to the -mm tree.  Its filename is
-     lib-optimize-cpumask_local_spread-v8.patch
+     Subject: mm/hugetlb.c: fix unnecessary address expansion of pmd sharing
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlbc-fix-unnecessary-address-expansion-of-pmd-sharing.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_local_spread-v8.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_local_spread-v8.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yuqi Jin <jinyuqi@huawei.com>
-Subject: lib-optimize-cpumask_local_spread-v8
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/hugetlb.c: fix unnecessary address expansion of pmd sharing
 
-    1. Fix confusing comments
-    2. Improve the loop for choosing the nearest node.
+The current code would unnecessarily expand the address range.  Consider
+one example, (start, end) = (1G-2M, 3G+2M), and (vm_start, vm_end) =
+(1G-4M, 3G+4M), the expected adjustment should be keep (1G-2M, 3G+2M)
+without expand.  But the current result will be (1G-4M, 3G+4M).  Actually,
+the range (1G-4M, 1G) and (3G, 3G+4M) would never been involved in pmd
+sharing.
 
-Link: https://lkml.kernel.org/r/1609759109-62925-1-git-send-email-zhangshaokun@hisilicon.com
-Signed-off-by: Yuqi Jin <jinyuqi@huawei.com>
-Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+After this patch, we will check that the vma span at least one PUD aligned
+size and the start,end range overlap the aligned range of vma.
+
+With above example, the aligned vma range is (1G, 3G), so if (start, end)
+range is within (1G-4M, 1G), or within (3G, 3G+4M), then no adjustment to
+both start and end.  Otherwise, we will have chance to adjust start
+downwards or end upwards without exceeding (vm_start, vm_end).
+
+Mike said:
+
+: The 'adjusted range' is used for calls to mmu notifiers and cache(tlb)
+: flushing.  Since the current code unnecessarily expands the range in
+: some cases, more entries than necessary would be flushed.  This
+: would/could result in performance degradation.  However, this is highly
+: dependent on the user runtime.  Is there a combination of vma layout
+: and calls to actually hit this issue?  If the issue is hit, will those
+: entries unnecessarily flushed be used again and need to be
+: unnecessarily reloaded?
+
+Link: https://lkml.kernel.org/r/20201229042125.2663029-1-lixinhai.lxh@gmail.com
+Fixes: commit 75802ca66354 ("mm/hugetlb: fix calculation of adjust_range_if_pmd_sharing_possible")
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    2 -
- lib/cpumask.c           |   61 +++++++++++++++++++-------------------
- 2 files changed, 32 insertions(+), 31 deletions(-)
+ mm/hugetlb.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/include/linux/cpumask.h~lib-optimize-cpumask_local_spread-v8
-+++ a/include/linux/cpumask.h
-@@ -189,7 +189,7 @@ static inline unsigned int cpumask_any_b
- 	return 1;
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-unnecessary-address-expansion-of-pmd-sharing
++++ a/mm/hugetlb.c
+@@ -5269,11 +5269,16 @@ void adjust_range_if_pmd_sharing_possibl
+ 	a_end = ALIGN(*end, PUD_SIZE);
+ 
+ 	/*
+-	 * Intersect the range with the vma range, since pmd sharing won't be
+-	 * across vma after all
++	 * If the PUD aligned address across vma range, then it means the
++	 * vm_start/vm_end is not PUD aligned. In that case, we must don't
++	 * adjust range because pmd sharing is not possbile at the start and/or
++	 * end part of vma.
+ 	 */
+-	*start = max(vma->vm_start, a_start);
+-	*end = min(vma->vm_end, a_end);
++	if (a_start >= vma->vm_start)
++		*start = a_start;
++
++	if (a_end <= vma->vm_end)
++		*end = a_end;
  }
  
--static inline unsigned int cpumask_local_spread(unsigned int i, int node)
-+static inline unsigned int cpumask_local_spread(unsigned int cpu_index, int node)
- {
- 	return 0;
- }
---- a/lib/cpumask.c~lib-optimize-cpumask_local_spread-v8
-+++ a/lib/cpumask.c
-@@ -193,80 +193,81 @@ void __init free_bootmem_cpumask_var(cpu
- }
- #endif
- 
--static int find_nearest_node(int node, bool *used)
-+static int find_nearest_node(int node, nodemask_t nodes)
- {
- 	int i, min_dist, node_id = -1;
- 
- 	/* Choose the first unused node to compare */
--	for (i = 0; i < nr_node_ids; i++) {
--		if (used[i] == false) {
-+	for (i = 0; i < nr_node_ids; i++)
-+		if (!node_isset(i, nodes)) {
- 			min_dist = node_distance(node, i);
- 			node_id = i;
- 			break;
- 		}
--	}
- 
- 	/* Compare and return the nearest node */
--	for (i = 0; i < nr_node_ids; i++) {
--		if (node_distance(node, i) < min_dist && used[i] == false) {
-+	for (i = 0; i < nr_node_ids; i++)
-+		if (!node_isset(i, nodes) &&
-+			node_distance(node, i) < min_dist) {
- 			min_dist = node_distance(node, i);
- 			node_id = i;
- 		}
--	}
- 
- 	return node_id;
- }
- 
- /**
-  * cpumask_local_spread - select the i'th cpu with local numa cpu's first
-- * @i: index number
-+ * @cpu_index: index number
-  * @node: local numa_node
-  *
-  * This function selects an online CPU according to a numa aware policy;
-- * local cpus are returned first, followed by the next one which is the
-- * nearest unused NUMA node based on NUMA distance, then it wraps around.
-+ * Loop through all the online CPUs on the system. Start with the CPUs on
-+ * 'node', then fall back to CPUs on NUMA nodes which are increasingly far
-+ * away.
-  *
-- * It's not very efficient, but useful for setup.
-+ * This function is not very efficient, especially for large 'cpu_index'
-+ * because it loops over the same CPUs on each call and does not remember
-+ * its state from previous calls, but it is useful for setup.
-  */
--unsigned int cpumask_local_spread(unsigned int i, int node)
-+unsigned int cpumask_local_spread(unsigned int cpu_index, int node)
- {
--	static DEFINE_SPINLOCK(spread_lock);
--	static bool used[MAX_NUMNODES];
--	unsigned long flags;
--	int cpu, hk_flags, j, id;
-+	int cpu, hk_flags, j, ncpus, id;
- 	const struct cpumask *mask;
-+	struct cpumask nmsk;
-+	nodemask_t nodes_msk;
- 
- 	hk_flags = HK_FLAG_DOMAIN | HK_FLAG_MANAGED_IRQ;
- 	mask = housekeeping_cpumask(hk_flags);
- 	/* Wrap: we always want a cpu. */
--	i %= cpumask_weight(mask);
-+	cpu_index %= cpumask_weight(mask);
- 
- 	if (node == NUMA_NO_NODE) {
- 		for_each_cpu(cpu, mask) {
--			if (i-- == 0)
-+			if (cpu_index-- == 0)
- 				return cpu;
- 		}
- 	} else {
--		spin_lock_irqsave(&spread_lock, flags);
--		memset(used, 0, nr_node_ids * sizeof(bool));
- 		/* select node according to the distance from local node */
-+		nodes_clear(nodes_msk);
- 		for (j = 0; j < nr_node_ids; j++) {
--			id = find_nearest_node(node, used);
-+			id = find_nearest_node(node, nodes_msk);
- 			if (id < 0)
- 				break;
--
--			for_each_cpu_and(cpu, cpumask_of_node(id), mask)
--				if (i-- == 0) {
--					spin_unlock_irqrestore(&spread_lock,
--							       flags);
-+			cpumask_and(&nmsk, mask, cpumask_of_node(id));
-+			ncpus = cpumask_weight(&nmsk);
-+			if (cpu_index >= ncpus) {
-+				cpu_index -= ncpus;
-+				node_set(id, nodes_msk);
-+				continue;
-+			}
-+			for_each_cpu(cpu, &nmsk)
-+				if (cpu_index-- == 0)
- 					return cpu;
--				}
--			used[id] = true;
- 		}
--		spin_unlock_irqrestore(&spread_lock, flags);
- 
- 		for_each_cpu(cpu, mask)
--			if (i-- == 0)
-+			if (cpu_index-- == 0)
- 				return cpu;
- 	}
- 	BUG();
+ /*
 _
 
-Patches currently in -mm which might be from jinyuqi@huawei.com are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
-lib-optimize-cpumask_local_spread.patch
-lib-optimize-cpumask_local_spread-v8.patch
 
