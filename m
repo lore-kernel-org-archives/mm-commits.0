@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2592C433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D90FAC433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB53522512
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A564A22512
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726163AbhADWRa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jan 2021 17:17:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45514 "EHLO mail.kernel.org"
+        id S1726168AbhADWRd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jan 2021 17:17:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45532 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726074AbhADWRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 Jan 2021 17:17:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D057622513;
-        Mon,  4 Jan 2021 22:16:49 +0000 (UTC)
+        id S1726074AbhADWRd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 Jan 2021 17:17:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FED522515;
+        Mon,  4 Jan 2021 22:16:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609798610;
-        bh=vxyieDsUMDj9ABT/pGXopFSZhy2zS0sQxtIsW7cM8Ts=;
+        s=korg; t=1609798612;
+        bh=UMfD+GjqnnBiHnnSVni5BHJZXAap4Nmbix75qHbIs64=;
         h=Date:From:To:Subject:From;
-        b=0STMD95nNgOuLHaEiXKJ4vU4dAQXung9LoqpDaX1P8/mnF4uIvas+Sd1bp05JiZKy
-         2EufJVCt6eAVGTgnCx0XLS/hSHul350YOURBKSDh5ylk/ptghMbQIg7DfU5j89A3no
-         SQ7xstfDyNu5QxRDTWGXc99oPxYjiYLaw7vmPOK8=
-Date:   Mon, 04 Jan 2021 14:16:49 -0800
+        b=RvPX04lCZO4t1Ns3HIS5jgAht15QFypI50dx8y9Rffy5nt3/AVnGdO5r+ZE/cPwVy
+         jtONt8eZ/+6RYSIWpPOdY0MpVZ3PJ7+UDFnbGzwtE6JvX5CunJ4wzixm856bYOAh23
+         AmeqIjeKH6TIQy94epzWMSMkZ99auNEtNe5NgKd4=
+Date:   Mon, 04 Jan 2021 14:16:52 -0800
 From:   akpm@linux-foundation.org
 To:     joe@perches.com, johannes.czekay@fau.de,
         mm-commits@vger.kernel.org, nicolai.fischer@fau.de
 Subject:  [to-be-updated]
- checkpatch-kconfig-replace-help-with-help.patch removed from -mm tree
-Message-ID: <20210104221649.PKdrn9MJB%akpm@linux-foundation.org>
+ checkpatch-kconfig-add-missing-types-to-regex.patch removed from -mm tree
+Message-ID: <20210104221652.ExT53E7Mt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,55 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: kconfig: replace '---help---' with 'help'
+     Subject: checkpatch: kconfig: add missing types to regex
 has been removed from the -mm tree.  Its filename was
-     checkpatch-kconfig-replace-help-with-help.patch
+     checkpatch-kconfig-add-missing-types-to-regex.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Nicolai Fischer <nicolai.fischer@fau.de>
-Subject: checkpatch: kconfig: replace '---help---' with 'help'
+Subject: checkpatch: kconfig: add missing types to regex
 
-Patch series "update kconfig parsing", v3.
+Kconfig parsing does not recognise all type attributes.
+This adds the missing 'int', 'string' and 'hex' types.
 
-This series updates the parsing of Kconfig files within checkpatch.pl to
-the current state.
-
-
-This patch (of 5):
-
-All '---help---' lines have been replaced by just 'help'.  Therefore it is
-no longer necessary to include '---' in the regex.
-
-Link: https://lkml.kernel.org/r/20210103075015.23946-1-nicolai.fischer@fau.de
-Link: https://lkml.kernel.org/r/20210103075015.23946-2-nicolai.fischer@fau.de
+Link: https://lkml.kernel.org/r/20210103075015.23946-3-nicolai.fischer@fau.de
 Co-developed-by: Johannes Czekay <johannes.czekay@fau.de>
 Signed-off-by: Johannes Czekay <johannes.czekay@fau.de>
 Signed-off-by: Nicolai Fischer <nicolai.fischer@fau.de>
-Acked-by: Joe Perches <joe@perches.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-kconfig-replace-help-with-help
+--- a/scripts/checkpatch.pl~checkpatch-kconfig-add-missing-types-to-regex
 +++ a/scripts/checkpatch.pl
-@@ -3323,7 +3323,7 @@ sub process {
+@@ -3321,7 +3321,7 @@ sub process {
+ 				next if ($f =~ /^-/);
+ 				last if (!$file && $f =~ /^\@\@/);
  
- 				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|prompt)\s*["']/) {
+-				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|prompt)\s*["']/) {
++				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|int|hex|string|prompt)\s*(?:["'].*)?$/) {
  					$is_start = 1;
--				} elsif ($lines[$ln - 1] =~ /^\+\s*(?:---)?help(?:---)?$/) {
-+				} elsif ($lines[$ln - 1] =~ /^\+\s*help$/) {
+ 				} elsif ($lines[$ln - 1] =~ /^\+\s*help$/) {
  					$length = -1;
- 				}
- 
 _
 
 Patches currently in -mm which might be from nicolai.fischer@fau.de are
 
-checkpatch-kconfig-add-missing-types-to-regex.patch
 checkpatch-kconfig-enforce-help-text-indentation.patch
 checkpatch-kconfig-clarify-warning-for-paragraph-length.patch
 checkpatch-kconfig-enforce-block-indentation.patch
