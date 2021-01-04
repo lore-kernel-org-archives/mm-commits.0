@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D90FAC433E0
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36B77C433DB
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A564A22512
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10DA822512
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jan 2021 22:17:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726168AbhADWRd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jan 2021 17:17:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45532 "EHLO mail.kernel.org"
+        id S1726074AbhADWRg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jan 2021 17:17:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45548 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726074AbhADWRd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 Jan 2021 17:17:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FED522515;
-        Mon,  4 Jan 2021 22:16:52 +0000 (UTC)
+        id S1726026AbhADWRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 Jan 2021 17:17:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA98022516;
+        Mon,  4 Jan 2021 22:16:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609798612;
-        bh=UMfD+GjqnnBiHnnSVni5BHJZXAap4Nmbix75qHbIs64=;
+        s=korg; t=1609798616;
+        bh=iegQt6ZU96LV+c9BXR6Yo74uk6vh9Mk627jY7A1l5eM=;
         h=Date:From:To:Subject:From;
-        b=RvPX04lCZO4t1Ns3HIS5jgAht15QFypI50dx8y9Rffy5nt3/AVnGdO5r+ZE/cPwVy
-         jtONt8eZ/+6RYSIWpPOdY0MpVZ3PJ7+UDFnbGzwtE6JvX5CunJ4wzixm856bYOAh23
-         AmeqIjeKH6TIQy94epzWMSMkZ99auNEtNe5NgKd4=
-Date:   Mon, 04 Jan 2021 14:16:52 -0800
+        b=siUqzf8A3OhyC7B9gsLU1wvRo1y1VLv5Brtqhiv3mMRCC0ip3Wfd5tANI5asWOdhl
+         bhVZzmbWmsCevsvJZISk8nuzFg+WQD+XjTXsc6VQUZURjcfOjXCDwV3Ao/I5IgVnHo
+         E2CJcXnqmHLwFq+n/qYWa/vjgLkjlb0eySgqPEWk=
+Date:   Mon, 04 Jan 2021 14:16:55 -0800
 From:   akpm@linux-foundation.org
 To:     joe@perches.com, johannes.czekay@fau.de,
         mm-commits@vger.kernel.org, nicolai.fischer@fau.de
 Subject:  [to-be-updated]
- checkpatch-kconfig-add-missing-types-to-regex.patch removed from -mm tree
-Message-ID: <20210104221652.ExT53E7Mt%akpm@linux-foundation.org>
+ checkpatch-kconfig-enforce-help-text-indentation.patch removed from -mm
+ tree
+Message-ID: <20210104221655.IOjpd70xd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,20 +44,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: kconfig: add missing types to regex
+     Subject: checkpatch: kconfig: enforce help text indentation
 has been removed from the -mm tree.  Its filename was
-     checkpatch-kconfig-add-missing-types-to-regex.patch
+     checkpatch-kconfig-enforce-help-text-indentation.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Nicolai Fischer <nicolai.fischer@fau.de>
-Subject: checkpatch: kconfig: add missing types to regex
+Subject: checkpatch: kconfig: enforce help text indentation
 
-Kconfig parsing does not recognise all type attributes.
-This adds the missing 'int', 'string' and 'hex' types.
+Adds a new warning in case the indentation level of the
+first line of a Kconfig help message is not at least two spaces
+higher than the keyword itself.
+Blank lines between the message and the help keyword
+are ignored.
 
-Link: https://lkml.kernel.org/r/20210103075015.23946-3-nicolai.fischer@fau.de
+Link: https://lkml.kernel.org/r/20210103075015.23946-4-nicolai.fischer@fau.de
 Co-developed-by: Johannes Czekay <johannes.czekay@fau.de>
 Signed-off-by: Johannes Czekay <johannes.czekay@fau.de>
 Signed-off-by: Nicolai Fischer <nicolai.fischer@fau.de>
@@ -64,25 +68,62 @@ Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-kconfig-add-missing-types-to-regex
+--- a/scripts/checkpatch.pl~checkpatch-kconfig-enforce-help-text-indentation
 +++ a/scripts/checkpatch.pl
-@@ -3321,7 +3321,7 @@ sub process {
- 				next if ($f =~ /^-/);
- 				last if (!$file && $f =~ /^\@\@/);
+@@ -3313,6 +3313,8 @@ sub process {
+ 			my $f;
+ 			my $is_start = 0;
+ 			my $is_end = 0;
++			my $help_indent;
++			my $help_stat_real;
+ 			for (; $cnt > 0 && defined $lines[$ln - 1]; $ln++) {
+ 				$f = $lines[$ln - 1];
+ 				$cnt-- if ($lines[$ln - 1] !~ /^-/);
+@@ -3323,8 +3325,10 @@ sub process {
  
--				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|prompt)\s*["']/) {
-+				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|int|hex|string|prompt)\s*(?:["'].*)?$/) {
+ 				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|int|hex|string|prompt)\s*(?:["'].*)?$/) {
  					$is_start = 1;
- 				} elsif ($lines[$ln - 1] =~ /^\+\s*help$/) {
- 					$length = -1;
+-				} elsif ($lines[$ln - 1] =~ /^\+\s*help$/) {
+-					$length = -1;
++				} elsif ($lines[$ln - 1] =~ /^\+(\s*)help$/) {
++					$help_indent = $1;
++					$length = 0;
++					next;
+ 				}
+ 
+ 				$f =~ s/^.//;
+@@ -3332,6 +3336,13 @@ sub process {
+ 				$f =~ s/^\s+//;
+ 				next if ($f =~ /^$/);
+ 
++				if (defined $help_indent) {
++					if ($lines[$ln - 1] !~ /^\+$help_indent\ {2,}\S*/) {
++						$help_stat_real = get_stat_real($ln - 1, $ln);
++					}
++					undef $help_indent;
++				}
++
+ 				# This only checks context lines in the patch
+ 				# and so hopefully shouldn't trigger false
+ 				# positives, even though some of these are
+@@ -3347,6 +3358,10 @@ sub process {
+ 				WARN("CONFIG_DESCRIPTION",
+ 				     "please write a paragraph that describes the config symbol fully\n" . $herecurr);
+ 			}
++			if ($is_start && $is_end && defined $help_stat_real) {
++				WARN("CONFIG_DESCRIPTION",
++				     "please indent the help text two spaces more than the keyword\n" . "$here\n$help_stat_real\n");
++			}
+ 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from nicolai.fischer@fau.de are
 
-checkpatch-kconfig-enforce-help-text-indentation.patch
 checkpatch-kconfig-clarify-warning-for-paragraph-length.patch
 checkpatch-kconfig-enforce-block-indentation.patch
 
