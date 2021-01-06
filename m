@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE279C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D01A5C433DB
 	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 21:50:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0F9A2333C
+	by mail.kernel.org (Postfix) with ESMTP id ABBD52333B
 	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 21:50:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726684AbhAFVuF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Jan 2021 16:50:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40252 "EHLO mail.kernel.org"
+        id S1726681AbhAFVuE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Jan 2021 16:50:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726624AbhAFVuF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 6 Jan 2021 16:50:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D2F523333;
-        Wed,  6 Jan 2021 21:49:20 +0000 (UTC)
+        id S1726624AbhAFVuE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 6 Jan 2021 16:50:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 048272332A;
+        Wed,  6 Jan 2021 21:49:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609969760;
-        bh=EI5oCPY9Ral3cUTRdeoZIJYU706T3N6e1yztGwKtO6U=;
+        s=korg; t=1609969757;
+        bh=Db4WqwuRMUBEIewqJ8/WpOTXu2TrgcCWx0mxQuk9Od8=;
         h=Date:From:To:Subject:From;
-        b=LEjn9LzTLqdufjCftoChkjvLMoez+yWtqJbvrW0c/rpeLZSFVXjWukMTKtsL1blwP
-         tn3746RZT9VlfCJvqBzB4G3qs630lOtWtePCkI0FEz8mKDRKYs53pjDDo2h03148mE
-         8++UCiSkkf5pzX4KsfxCU9FVvqU6Cnh+sQgdvNJk=
-Date:   Wed, 06 Jan 2021 13:49:19 -0800
+        b=mM5zVGj2S/nTWhBPJVVmB9rUSDkAKKBTjQcfL+ToK7R4yyE6ztcU++6inyO0gxwCx
+         3ztU58jPuZy+BbnafBFO7IB4qWwOhcOe9TREaK53pfvcMa9arTfWHOMPGcJqXzEzEp
+         gdfRwWI6cxi22iiwYJAQic5lQPgfabiXnF2GI22k=
+Date:   Wed, 06 Jan 2021 13:49:16 -0800
 From:   akpm@linux-foundation.org
 To:     andrii@kernel.org, axboe@kernel.dk, cl@linux.com,
         iamjoonsoo.kim@lge.com, ming.lei@redhat.com,
         mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz
 Subject:  +
- percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
+ rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
  added to -mm tree
-Message-ID: <20210106214919.YopB_p2dm%akpm@linux-foundation.org>
+Message-ID: <20210106214916.jAyr_OqMT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu_ref: dump mem_dump_obj() info upon reference-count underflow
+     Subject: rcu: make call_rcu() print mem_dump_obj() info for double-freed callback
 has been added to the -mm tree.  Its filename is
-     percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
+     rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,71 +68,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Paul E. McKenney" <paulmck@kernel.org>
-Subject: percpu_ref: dump mem_dump_obj() info upon reference-count underflow
+Subject: rcu: make call_rcu() print mem_dump_obj() info for double-freed callback
 
-Reference-count underflow for percpu_ref is detected in the RCU callback
-percpu_ref_switch_to_atomic_rcu(), and the resulting warning does not
-print anything allowing easy identification of which percpu_ref use case
-is underflowing.  This is of course not normally a problem when developing
-a new percpu_ref use case because it is most likely that the problem
-resides in this new use case.  However, when deploying a new kernel to a
-large set of servers, the underflow might well be a new corner case in any
-of the old percpu_ref use cases.
+The debug-object double-free checks in __call_rcu() print out the RCU
+callback function, which is usually sufficient to track down the double
+free.  However, all uses of things like queue_rcu_work() will have the
+same RCU callback function (rcu_work_rcufn() in this case), so a
+diagnostic message for a double queue_rcu_work() needs more than just the
+callback function.
 
 This commit therefore calls mem_dump_obj() to dump out any additional
-available information on the underflowing percpu_ref instance.
+available information on the double-freed callback.
 
-Link: https://lkml.kernel.org/r/20210106011750.13709-6-paulmck@kernel.org
+Link: https://lkml.kernel.org/r/20210106011750.13709-5-paulmck@kernel.org
 Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
 Reported-by: Andrii Nakryiko <andrii@kernel.org>
-Cc: Ming Lei <ming.lei@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ming Lei <ming.lei@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu-refcount.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ kernel/rcu/tree.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/lib/percpu-refcount.c~percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow
-+++ a/lib/percpu-refcount.c
-@@ -5,6 +5,7 @@
- #include <linux/sched.h>
- #include <linux/wait.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/percpu-refcount.h>
- 
- /*
-@@ -168,6 +169,7 @@ static void percpu_ref_switch_to_atomic_
- 			struct percpu_ref_data, rcu);
- 	struct percpu_ref *ref = data->ref;
- 	unsigned long __percpu *percpu_count = percpu_count_ptr(ref);
-+	static atomic_t underflows;
- 	unsigned long count = 0;
- 	int cpu;
- 
-@@ -191,9 +193,13 @@ static void percpu_ref_switch_to_atomic_
- 	 */
- 	atomic_long_add((long)count - PERCPU_COUNT_BIAS, &data->count);
- 
--	WARN_ONCE(atomic_long_read(&data->count) <= 0,
--		  "percpu ref (%ps) <= 0 (%ld) after switching to atomic",
--		  data->release, atomic_long_read(&data->count));
-+	if (WARN_ONCE(atomic_long_read(&data->count) <= 0,
-+		      "percpu ref (%ps) <= 0 (%ld) after switching to atomic",
-+		      data->release, atomic_long_read(&data->count)) &&
-+	    atomic_inc_return(&underflows) < 4) {
-+		pr_err("%s(): percpu_ref underflow", __func__);
-+		mem_dump_obj(data);
-+	}
- 
- 	/* @ref is viewed as dead on all CPUs, send out switch confirmation */
- 	percpu_ref_call_confirm_rcu(rcu);
+--- a/kernel/rcu/tree.c~rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback
++++ a/kernel/rcu/tree.c
+@@ -2941,6 +2941,7 @@ static void check_cb_ovld(struct rcu_dat
+ static void
+ __call_rcu(struct rcu_head *head, rcu_callback_t func)
+ {
++	static atomic_t doublefrees;
+ 	unsigned long flags;
+ 	struct rcu_data *rdp;
+ 	bool was_alldone;
+@@ -2954,8 +2955,10 @@ __call_rcu(struct rcu_head *head, rcu_ca
+ 		 * Use rcu:rcu_callback trace event to find the previous
+ 		 * time callback was passed to __call_rcu().
+ 		 */
+-		WARN_ONCE(1, "__call_rcu(): Double-freed CB %p->%pS()!!!\n",
+-			  head, head->func);
++		if (atomic_inc_return(&doublefrees) < 4) {
++			pr_err("%s(): Double-freed CB %p->%pS()!!!  ", __func__, head, head->func);
++			mem_dump_obj(head);
++		}
+ 		WRITE_ONCE(head->func, rcu_leak_callback);
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from paulmck@kernel.org are
