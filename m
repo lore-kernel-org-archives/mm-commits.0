@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D01A5C433DB
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 21:50:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75BDAC433DB
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 23:37:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABBD52333B
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 21:50:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 273BB23123
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 23:37:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726681AbhAFVuE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Jan 2021 16:50:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40206 "EHLO mail.kernel.org"
+        id S1727098AbhAFXhF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Jan 2021 18:37:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726624AbhAFVuE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 6 Jan 2021 16:50:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 048272332A;
-        Wed,  6 Jan 2021 21:49:16 +0000 (UTC)
+        id S1727047AbhAFXhF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 6 Jan 2021 18:37:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B6F1123123;
+        Wed,  6 Jan 2021 23:36:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609969757;
-        bh=Db4WqwuRMUBEIewqJ8/WpOTXu2TrgcCWx0mxQuk9Od8=;
+        s=korg; t=1609976184;
+        bh=yeA/QvInKiwWxJzNAcZTHeX5fBBfCiyeLl69S5k8KKs=;
         h=Date:From:To:Subject:From;
-        b=mM5zVGj2S/nTWhBPJVVmB9rUSDkAKKBTjQcfL+ToK7R4yyE6ztcU++6inyO0gxwCx
-         3ztU58jPuZy+BbnafBFO7IB4qWwOhcOe9TREaK53pfvcMa9arTfWHOMPGcJqXzEzEp
-         gdfRwWI6cxi22iiwYJAQic5lQPgfabiXnF2GI22k=
-Date:   Wed, 06 Jan 2021 13:49:16 -0800
+        b=Z6tT/ImZ8RnckYzwG60SplumcpMiTULjR768/5Ika1FWtIgxZSCwQMc3vusOetuWk
+         F619xLlS9MVkdRjaPHVWQdY0G5f0HqtkWOyY6hiBNrljC1/V9dJJKk4f27JxJZiLLN
+         B1pEZ7rMklpvbb3XTe8RjFuYbaUQe2mBXKaM0f/U=
+Date:   Wed, 06 Jan 2021 15:36:24 -0800
 From:   akpm@linux-foundation.org
-To:     andrii@kernel.org, axboe@kernel.dk, cl@linux.com,
-        iamjoonsoo.kim@lge.com, ming.lei@redhat.com,
-        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  +
- rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
- added to -mm tree
-Message-ID: <20210106214916.jAyr_OqMT%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        tglx@linutronix.de
+Subject:  [obsolete] kmap-stupid-hacks-to-make-it-compile.patch
+ removed from -mm tree
+Message-ID: <20210106233624.0o4sG-hfV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,87 +43,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rcu: make call_rcu() print mem_dump_obj() info for double-freed callback
-has been added to the -mm tree.  Its filename is
-     rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
+     Subject: kmap: stupid hacks to make it compile
+has been removed from the -mm tree.  Its filename was
+     kmap-stupid-hacks-to-make-it-compile.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: "Paul E. McKenney" <paulmck@kernel.org>
-Subject: rcu: make call_rcu() print mem_dump_obj() info for double-freed callback
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kmap: stupid hacks to make it compile
 
-The debug-object double-free checks in __call_rcu() print out the RCU
-callback function, which is usually sufficient to track down the double
-free.  However, all uses of things like queue_rcu_work() will have the
-same RCU callback function (rcu_work_rcufn() in this case), so a
-diagnostic message for a double queue_rcu_work() needs more than just the
-callback function.
-
-This commit therefore calls mem_dump_obj() to dump out any additional
-available information on the double-freed callback.
-
-Link: https://lkml.kernel.org/r/20210106011750.13709-5-paulmck@kernel.org
-Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
-Reported-by: Andrii Nakryiko <andrii@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Ming Lei <ming.lei@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/fork.c       |    3 ++-
+ kernel/sched/core.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/kernel/rcu/tree.c~rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback
-+++ a/kernel/rcu/tree.c
-@@ -2941,6 +2941,7 @@ static void check_cb_ovld(struct rcu_dat
- static void
- __call_rcu(struct rcu_head *head, rcu_callback_t func)
+--- a/kernel/fork.c~kmap-stupid-hacks-to-make-it-compile
++++ a/kernel/fork.c
+@@ -77,6 +77,7 @@
+ #include <linux/random.h>
+ #include <linux/tty.h>
+ #include <linux/blkdev.h>
++#include <linux/highmem.h>
+ #include <linux/fs_struct.h>
+ #include <linux/magic.h>
+ #include <linux/perf_event.h>
+@@ -932,7 +933,7 @@ static struct task_struct *dup_task_stru
+ 	account_kernel_stack(tsk, 1);
+ 
+ 	kcov_task_init(tsk);
+-	kmap_local_fork(tsk);
++//	kmap_local_fork(tsk);
+ 
+ #ifdef CONFIG_FAULT_INJECTION
+ 	tsk->fail_nth = 0;
+--- a/kernel/sched/core.c~kmap-stupid-hacks-to-make-it-compile
++++ a/kernel/sched/core.c
+@@ -4094,16 +4094,16 @@ static inline void finish_lock_switch(st
+ static inline void kmap_local_sched_out(void)
  {
-+	static atomic_t doublefrees;
- 	unsigned long flags;
- 	struct rcu_data *rdp;
- 	bool was_alldone;
-@@ -2954,8 +2955,10 @@ __call_rcu(struct rcu_head *head, rcu_ca
- 		 * Use rcu:rcu_callback trace event to find the previous
- 		 * time callback was passed to __call_rcu().
- 		 */
--		WARN_ONCE(1, "__call_rcu(): Double-freed CB %p->%pS()!!!\n",
--			  head, head->func);
-+		if (atomic_inc_return(&doublefrees) < 4) {
-+			pr_err("%s(): Double-freed CB %p->%pS()!!!  ", __func__, head, head->func);
-+			mem_dump_obj(head);
-+		}
- 		WRITE_ONCE(head->func, rcu_leak_callback);
- 		return;
- 	}
+ #ifdef CONFIG_KMAP_LOCAL
+-	if (unlikely(current->kmap_ctrl.idx))
+-		__kmap_local_sched_out();
++//	if (unlikely(current->kmap_ctrl.idx))
++//		__kmap_local_sched_out();
+ #endif
+ }
+ 
+ static inline void kmap_local_sched_in(void)
+ {
+ #ifdef CONFIG_KMAP_LOCAL
+-	if (unlikely(current->kmap_ctrl.idx))
+-		__kmap_local_sched_in();
++//	if (unlikely(current->kmap_ctrl.idx))
++//		__kmap_local_sched_in();
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from paulmck@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-mem_dump_obj-to-print-source-of-memory-block.patch
-mm-make-mem_dump_obj-handle-null-and-zero-sized-pointers.patch
-mm-make-mem_dump_obj-handle-vmalloc-memory.patch
-mm-make-mem_obj_dump-vmalloc-dumps-include-start-and-length.patch
-rcu-make-call_rcu-print-mem_dump_obj-info-for-double-freed-callback.patch
-percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
+mm-page_alloc-add-a-missing-mm_page_alloc_zone_locked-tracepoint-fix.patch
+ubsan-disable-unsigned-integer-overflow-sanitizer-with-clang-fix.patch
+mm.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
