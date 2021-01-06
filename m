@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71A1FC433DB
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 00:12:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D93C433E0
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 00:12:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36EDD22D74
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 00:12:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D322222E03
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 00:12:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726059AbhAFAMQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Jan 2021 19:12:16 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44154 "EHLO mail.kernel.org"
+        id S1726177AbhAFAMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Jan 2021 19:12:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726051AbhAFAMQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Jan 2021 19:12:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 199A0230FB;
-        Wed,  6 Jan 2021 00:11:14 +0000 (UTC)
+        id S1726109AbhAFAMU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Jan 2021 19:12:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C227230FD;
+        Wed,  6 Jan 2021 00:11:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609891875;
-        bh=JX7kV74BlkM4bkWrZaEnnbPCXo69NG0Tlond6dtFiVU=;
+        s=korg; t=1609891881;
+        bh=ZuPCgaF5rSaZ2v2IsIoYii3cmHoyDqFL+q2jczDjq1s=;
         h=Date:From:To:Subject:From;
-        b=V46hxw4WwnJARGXMKe+4bT4pMO+eI1QUo6HklzAfL2P4pDvNHn54T49zrAIwFordk
-         +DUbjOOH4379AULjOJzlACVd+TQMiAaD+kYUhrHYxtERH+MCh1tXwYXTOimAvoK7i2
-         X03JCyqCxIjSC68qKJMNF0NffWqY6HHkDNLbvb9w=
-Date:   Tue, 05 Jan 2021 16:11:13 -0800
+        b=rSOxWxZE7FC51OpSLoDooaG961PbjatCtvgb/bk7y+pcBf/l0adxVbKaFQyZnUOvJ
+         /Rkw/SiHt9/Za12tjQZB6TMszyMnvNMjT0Cygc8QTTrkcxdpuq5lBWZuXkd58bERRf
+         9W6h3ISpdF0sXGBymh98ztrbP4BwfXDTNXZbJ11k=
+Date:   Tue, 05 Jan 2021 16:11:20 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -37,9 +37,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         will.deacon@arm.com
 Subject:  +
- kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch added to -mm
+ kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch added to -mm
  tree
-Message-ID: <20210106001113.QfGDV0l_M%akpm@linux-foundation.org>
+Message-ID: <20210106001120.UhFaBXb0Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add compiler barriers to KUNIT_EXPECT_KASAN_FAIL
+     Subject: kasan: fix memory corruption in kasan_bitops_tags test
 has been added to the -mm tree.  Its filename is
-     kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+     kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,17 +70,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add compiler barriers to KUNIT_EXPECT_KASAN_FAIL
+Subject: kasan: fix memory corruption in kasan_bitops_tags test
 
-It might not be obvious to the compiler that the expression must be
-executed between writing and reading to fail_data. In this case, the
-compiler might reorder or optimize away some of the accesses, and
-the tests will fail.
+Since the hardware tag-based KASAN mode might not have a redzone that
+comes after an allocated object (when kasan.mode=prod is enabled), the
+kasan_bitops_tags() test ends up corrupting the next object in memory.
 
-Add compiler barriers around the expression in KUNIT_EXPECT_KASAN_FAIL.
+Change the test so it always accesses the redzone that lies within the
+allocated object's boundaries.
 
-Link: https://lkml.kernel.org/r/a37dab02f89ad93cc986a87866da74fb8be1850d.1609871239.git.andreyknvl@google.com
-Link: https://linux-review.googlesource.com/id/I046079f48641a1d36fe627fc8827a9249102fd50Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Link: https://lkml.kernel.org/r/0c51a7266ea851797dc9816405fc40d860a48db1.1609871239.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I67f51d1ee48f0a8d0fe2658c2a39e4879fe0832a
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Branislav Rankov <Branislav.Rankov@arm.com>
@@ -94,21 +95,35 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/test_kasan.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/test_kasan.c~kasan-add-compiler-barriers-to-kunit_expect_kasan_fail
+--- a/lib/test_kasan.c~kasan-fix-memory-corruption-in-kasan_bitops_tags-test
 +++ a/lib/test_kasan.c
-@@ -79,7 +79,9 @@ static void kasan_test_exit(struct kunit
- 				NULL,				\
- 				&resource,			\
- 				"kasan_data", &fail_data);	\
-+	barrier();						\
- 	expression;						\
-+	barrier();						\
- 	KUNIT_EXPECT_EQ(test,					\
- 			fail_data.report_expected,		\
- 			fail_data.report_found);		\
+@@ -771,17 +771,17 @@ static void kasan_bitops_tags(struct kun
+ 
+ 	/* This test is specifically crafted for the tag-based mode. */
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		kunit_info(test, "skipping, CONFIG_KASAN_SW_TAGS required");
++		kunit_info(test, "skipping, CONFIG_KASAN_SW/HW_TAGS required");
+ 		return;
+ 	}
+ 
+-	/* Allocation size will be rounded to up granule size, which is 16. */
+-	bits = kzalloc(sizeof(*bits), GFP_KERNEL);
++	/* kmalloc-64 cache will be used and the last 16 bytes will be the redzone. */
++	bits = kzalloc(48, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bits);
+ 
+-	/* Do the accesses past the 16 allocated bytes. */
+-	kasan_bitops_modify(test, BITS_PER_LONG, &bits[1]);
+-	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, &bits[1]);
++	/* Do the accesses past the 48 allocated bytes, but within the redone. */
++	kasan_bitops_modify(test, BITS_PER_LONG, (void *)bits + 48);
++	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, (void *)bits + 48);
+ 
+ 	kfree(bits);
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
