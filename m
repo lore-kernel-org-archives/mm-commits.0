@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF289C433E0
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 19:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD204C433E6
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 19:51:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D64523131
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 19:47:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 819FE23131
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jan 2021 19:51:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726439AbhAFTro (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Jan 2021 14:47:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45818 "EHLO mail.kernel.org"
+        id S1726808AbhAFTvk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Jan 2021 14:51:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46232 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726370AbhAFTro (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 6 Jan 2021 14:47:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E350023131;
-        Wed,  6 Jan 2021 19:47:02 +0000 (UTC)
+        id S1726773AbhAFTvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 6 Jan 2021 14:51:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF6A923132;
+        Wed,  6 Jan 2021 19:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1609962423;
-        bh=bu6rP45nZTtfIbGUmjpHRximeEuPjyzlMZzOcBZ4A2g=;
+        s=korg; t=1609962660;
+        bh=2M5BHXVSzCX+regNSKMw13CGNtTdIjhChQNb8WrTjmg=;
         h=Date:From:To:Subject:From;
-        b=jlRGl2Y3o+dygYNALz4mIb0OXtGKWfrjPgAAr2/ndnanL/33bjnKYdHvMD46fSI9Z
-         skYgBgUQR7hiDcTv/caPSdxoWVQrlwuHJ1GfvScG6im5R/wIlUTmSAjvOTVytIdDCm
-         gA62Xgxs13L4KVsIg9rE66oFx776bWqgj1FH/tPA=
-Date:   Wed, 06 Jan 2021 11:47:02 -0800
+        b=sXxorEOwJisbStQonwEUbOpOeBPzTZyJer6/qmlS7z1K4JidpIAehIfmaShmkAPyo
+         K/a+zejBDvojR+CGvPVoqWzhA4lFawH8v79O10zTGo5d0TWuGgCGCqdE522q+opTVt
+         vggEi5+a0webfugmHwXr66ywKpealZVzXIyIYMXs=
+Date:   Wed, 06 Jan 2021 11:50:59 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, hughd@google.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org
-Subject:  [nacked] mm-mmap-replace-if-cond-bug-with-bug_on.patch
- removed from -mm tree
-Message-ID: <20210106194702.qUPJylHbH%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, imran.f.khan@oracle.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  + mm-memcg-slab-optimize-objcg-stock-draining.patch added
+ to -mm tree
+Message-ID: <20210106195059.OWpyPK_iE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,97 +43,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: replace if (cond) BUG() with BUG_ON()
-has been removed from the -mm tree.  Its filename was
-     mm-mmap-replace-if-cond-bug-with-bug_on.patch
+     Subject: mm: memcg/slab: optimize objcg stock draining
+has been added to the -mm tree.  Its filename is
+     mm-memcg-slab-optimize-objcg-stock-draining.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-optimize-objcg-stock-draining.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-optimize-objcg-stock-draining.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/mmap.c: replace if (cond) BUG() with BUG_ON()
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: memcg/slab: optimize objcg stock draining
 
-coccinelle reports some warnings:
-WARNING: Use BUG_ON instead of if condition followed by BUG.
+Imran Khan reported a regression in hackbench results caused by the commit
+f2fe7b09a52b ("mm: memcg/slab: charge individual slab objects instead of
+pages").  The regression is noticeable in the case of a consequent
+allocation of several relatively large slab objects, e.g.  skb's.  As soon
+as the amount of stocked bytes exceeds PAGE_SIZE, drain_obj_stock() and
+__memcg_kmem_uncharge() are called, and it leads to a number of atomic
+operations in page_counter_uncharge().
 
-It could be fixed by BUG_ON().
+The corresponding call graph is below (provided by Imran Khan):
+  |__alloc_skb
+  |    |
+  |    |__kmalloc_reserve.isra.61
+  |    |    |
+  |    |    |__kmalloc_node_track_caller
+  |    |    |    |
+  |    |    |    |slab_pre_alloc_hook.constprop.88
+  |    |    |     obj_cgroup_charge
+  |    |    |    |    |
+  |    |    |    |    |__memcg_kmem_charge
+  |    |    |    |    |    |
+  |    |    |    |    |    |page_counter_try_charge
+  |    |    |    |    |
+  |    |    |    |    |refill_obj_stock
+  |    |    |    |    |    |
+  |    |    |    |    |    |drain_obj_stock.isra.68
+  |    |    |    |    |    |    |
+  |    |    |    |    |    |    |__memcg_kmem_uncharge
+  |    |    |    |    |    |    |    |
+  |    |    |    |    |    |    |    |page_counter_uncharge
+  |    |    |    |    |    |    |    |    |
+  |    |    |    |    |    |    |    |    |page_counter_cancel
+  |    |    |    |
+  |    |    |    |
+  |    |    |    |__slab_alloc
+  |    |    |    |    |
+  |    |    |    |    |___slab_alloc
+  |    |    |    |    |
+  |    |    |    |slab_post_alloc_hook
 
-Link: https://lkml.kernel.org/r/e50574aa-87b8-8ddf-2235-ef98e22bcb7d@linux.alibaba.com
-Reported-by: abaci@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+Instead of directly uncharging the accounted kernel memory, it's possible
+to refill the generic page-sized per-cpu stock instead.  It's a much
+faster operation, especially on a default hierarchy.  As a bonus,
+__memcg_kmem_uncharge_page() will also get faster, so the freeing of
+page-sized kernel allocations (e.g.  large kmallocs) will become faster.
+
+A similar change has been done earlier for the socket memory by the commit
+475d0487a2ad ("mm: memcontrol: use per-cpu stocks for socket memory
+uncharging").
+
+Link: https://lkml.kernel.org/r/20210106042239.2860107-1-guro@fb.com
+Fixes: f2fe7b09a52b ("mm: memcg/slab: charge individual slab objects instead of
+pages")
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reported-by: Imran Khan <imran.f.khan@oracle.com>
+Tested-by: Imran Khan <imran.f.khan@oracle.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-replace-if-cond-bug-with-bug_on
-+++ a/mm/mmap.c
-@@ -710,9 +710,8 @@ static void __insert_vm_struct(struct mm
- 	struct vm_area_struct *prev;
- 	struct rb_node **rb_link, *rb_parent;
+--- a/mm/memcontrol.c~mm-memcg-slab-optimize-objcg-stock-draining
++++ a/mm/memcontrol.c
+@@ -3122,9 +3122,7 @@ void __memcg_kmem_uncharge(struct mem_cg
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		page_counter_uncharge(&memcg->kmem, nr_pages);
  
--	if (find_vma_links(mm, vma->vm_start, vma->vm_end,
--			   &prev, &rb_link, &rb_parent))
--		BUG();
-+	BUG_ON(find_vma_links(mm, vma->vm_start, vma->vm_end,
-+			   &prev, &rb_link, &rb_parent));
- 	__vma_link(mm, vma, prev, rb_link, rb_parent);
- 	mm->map_count++;
- }
-@@ -3569,9 +3568,8 @@ static void vm_lock_anon_vma(struct mm_s
- 		 * can't change from under us thanks to the
- 		 * anon_vma->root->rwsem.
- 		 */
--		if (__test_and_set_bit(0, (unsigned long *)
--				       &anon_vma->root->rb_root.rb_root.rb_node))
--			BUG();
-+		BUG_ON(__test_and_set_bit(0, (unsigned long *)
-+			&anon_vma->root->rb_root.rb_root.rb_node));
- 	}
+-	page_counter_uncharge(&memcg->memory, nr_pages);
+-	if (do_memsw_account())
+-		page_counter_uncharge(&memcg->memsw, nr_pages);
++	refill_stock(memcg, nr_pages);
  }
  
-@@ -3587,8 +3585,7 @@ static void vm_lock_mapping(struct mm_st
- 		 * mm_all_locks_mutex, there may be other cpus
- 		 * changing other bitflags in parallel to us.
- 		 */
--		if (test_and_set_bit(AS_MM_ALL_LOCKS, &mapping->flags))
--			BUG();
-+		BUG_ON(test_and_set_bit(AS_MM_ALL_LOCKS, &mapping->flags));
- 		down_write_nest_lock(&mapping->i_mmap_rwsem, &mm->mmap_lock);
- 	}
- }
-@@ -3685,9 +3682,8 @@ static void vm_unlock_anon_vma(struct an
- 		 * can't change from under us until we release the
- 		 * anon_vma->root->rwsem.
- 		 */
--		if (!__test_and_clear_bit(0, (unsigned long *)
--					  &anon_vma->root->rb_root.rb_root.rb_node))
--			BUG();
-+		BUG_ON(!__test_and_clear_bit(0, (unsigned long *)
-+				&anon_vma->root->rb_root.rb_root.rb_node));
- 		anon_vma_unlock_write(anon_vma);
- 	}
- }
-@@ -3700,9 +3696,7 @@ static void vm_unlock_mapping(struct add
- 		 * because we hold the mm_all_locks_mutex.
- 		 */
- 		i_mmap_unlock_write(mapping);
--		if (!test_and_clear_bit(AS_MM_ALL_LOCKS,
--					&mapping->flags))
--			BUG();
-+		BUG_ON(!test_and_clear_bit(AS_MM_ALL_LOCKS, &mapping->flags));
- 	}
- }
- 
+ /**
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from guro@fb.com are
 
-mm-memcg-revise-the-using-condition-of-lock_page_lruvec-function-series.patch
-mm-memcg-remove-rcu-locking-for-lock_page_lruvec-function-series.patch
-mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
-mm-compaction-remove-rcu_read_lock-during-page-compaction.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+mm-memcg-slab-optimize-objcg-stock-draining.patch
+mm-cma-allocate-cma-areas-bottom-up.patch
+mm-cma-allocate-cma-areas-bottom-up-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
+memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
