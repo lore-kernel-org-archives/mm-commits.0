@@ -7,32 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14110C433E0
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 22:34:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E618C433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 23:06:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B776623601
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 22:34:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E25E8235FC
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 23:06:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727977AbhAGWeh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Jan 2021 17:34:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43528 "EHLO mail.kernel.org"
+        id S1727434AbhAGXGw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jan 2021 18:06:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728097AbhAGWeh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 Jan 2021 17:34:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A559235FD;
-        Thu,  7 Jan 2021 22:33:56 +0000 (UTC)
+        id S1727107AbhAGXGw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 Jan 2021 18:06:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 51749235FC;
+        Thu,  7 Jan 2021 23:06:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610058836;
-        bh=cfoCOJSDia/Wd3UUy2Y3wHxXGx6sbaeMqERuoNx8+/8=;
+        s=korg; t=1610060771;
+        bh=UU8lbxR3OC4OtqGru9nv9xIQclfJ+HGDggTsDGF+mS8=;
         h=Date:From:To:Subject:From;
-        b=f0uwYeL4Un5R/UYfQAmW6aj60fPUPbtpJqgwOCPCIxWXtxVt57YYHfnqiat2JyIv4
-         l1XOU/lICrAZZWwmhUb64Gwb9tStfeMKcVjehL38mHEUZRDuRC6zTIegfCUfH/trPl
-         1AJkwgzYkJkd2y06L/fCYJuVEaF5WosF5jwuWhCs=
-Date:   Thu, 07 Jan 2021 14:33:56 -0800
+        b=FVHhNoeqNEat6z6jKcTWuijxtCpZNRvFV5a1zoLH9xDfBmrGDWXq+CM1OGLL10bJL
+         tCjplzgfEM1q5iweSDa1vRBOqI05E/1dMUn24fspNvyJb7w0AfFUH07Xwex1pNFmSO
+         dqgHUckEh5ewwegpjW59iefxdhEeQmpc4zLUMHXI=
+Date:   Thu, 07 Jan 2021 15:06:10 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210107223356.GZcRCTmDU%akpm@linux-foundation.org>
+To:     arnd@arndb.de, elver@google.com, georgepope@android.com,
+        keescook@chromium.org, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, ndesaulniers@google.com,
+        sfr@canb.auug.org.au
+Subject:  [to-be-updated]
+ ubsan-disable-unsigned-integer-overflow-sanitizer-with-clang.patch removed
+ from -mm tree
+Message-ID: <20210107230610.AAqFR2oAk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,69 +46,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: ubsan: disable unsigned-integer-overflow sanitizer with clang
+has been removed from the -mm tree.  Its filename was
+     ubsan-disable-unsigned-integer-overflow-sanitizer-with-clang.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ubsan: disable unsigned-integer-overflow sanitizer with clang
 
+Building ubsan kernels even for compile-testing introduced these warnings
+in my randconfig environment:
+
+crypto/blake2b_generic.c:98:13: error: stack frame size of 9636 bytes in function 'blake2b_compress' [-Werror,-Wframe-larger-than=]
+static void blake2b_compress(struct blake2b_state *S,
+crypto/sha512_generic.c:151:13: error: stack frame size of 1292 bytes in function 'sha512_generic_block_fn' [-Werror,-Wframe-larger-than=]
+static void sha512_generic_block_fn(struct sha512_state *sst, u8 const *src,
+lib/crypto/curve25519-fiat32.c:312:22: error: stack frame size of 2180 bytes in function 'fe_mul_impl' [-Werror,-Wframe-larger-than=]
+static noinline void fe_mul_impl(u32 out[10], const u32 in1[10], const u32 in2[10])
+lib/crypto/curve25519-fiat32.c:444:22: error: stack frame size of 1588 bytes in function 'fe_sqr_impl' [-Werror,-Wframe-larger-than=]
+static noinline void fe_sqr_impl(u32 out[10], const u32 in1[10])
+
+Further testing showed that this is caused by
+-fsanitize=unsigned-integer-overflow.
+
+The one in blake2b immediately overflows the 8KB stack area on 32-bit
+architectures, so better ensure this never happens by making this option
+gcc-only.
+
+[akpm@linux-foundation.org: fix comment typo, per Nathan]
+Link: https://lkml.kernel.org/r/20201230154749.746641-1-arnd@kernel.org
+Fixes: d0a3ac549f38 ("ubsan: enable for all*config builds")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: George Popescu <georgepope@android.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/qcom-rpmh-regulator.c |    3 ---
- 1 file changed, 3 deletions(-)
+ lib/Kconfig.ubsan |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/drivers/regulator/qcom-rpmh-regulator.c~linux-next-git-rejects
-+++ a/drivers/regulator/qcom-rpmh-regulator.c
-@@ -727,8 +727,6 @@ static const struct rpmh_vreg_hw_data pm
- 	.regulator_type = VRM,
- 	.ops = &rpmh_regulator_vrm_ops,
- 	.voltage_range = REGULATOR_LINEAR_RANGE(2800000, 0, 4, 16000),
--<<<<<<< HEAD
--=======
- 	.n_voltages = 5,
- 	.pmic_mode_map = pmic_mode_map_pmic5_smps,
- 	.of_map_mode = rpmh_regulator_pmic4_smps_of_map_mode,
-@@ -738,7 +736,6 @@ static const struct rpmh_vreg_hw_data pm
- 	.regulator_type = VRM,
- 	.ops = &rpmh_regulator_vrm_ops,
- 	.voltage_range = REGULATOR_LINEAR_RANGE(900000, 0, 4, 16000),
-->>>>>>> linux-next/akpm-base
- 	.n_voltages = 5,
- 	.pmic_mode_map = pmic_mode_map_pmic5_smps,
- 	.of_map_mode = rpmh_regulator_pmic4_smps_of_map_mode,
+--- a/lib/Kconfig.ubsan~ubsan-disable-unsigned-integer-overflow-sanitizer-with-clang
++++ a/lib/Kconfig.ubsan
+@@ -122,6 +122,8 @@ config UBSAN_SIGNED_OVERFLOW
+ 
+ config UBSAN_UNSIGNED_OVERFLOW
+ 	bool "Perform checking for unsigned arithmetic overflow"
++	# clang hugely expands stack usage with -fsanitize=unsigned-integer-overflow
++	depends on !CC_IS_CLANG
+ 	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
+ 	help
+ 	  This option enables -fsanitize=unsigned-integer-overflow which checks
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-page_alloc-add-a-missing-mm_page_alloc_zone_locked-tracepoint-fix.patch
-mm.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
-linux-next-git-rejects.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
