@@ -7,37 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC32CC433E6
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 22:33:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14110C433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 22:34:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACE90236F9
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 22:33:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B776623601
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jan 2021 22:34:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727406AbhAGWd6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Jan 2021 17:33:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43412 "EHLO mail.kernel.org"
+        id S1727977AbhAGWeh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jan 2021 17:34:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727107AbhAGWd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 Jan 2021 17:33:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F10223601;
-        Thu,  7 Jan 2021 22:32:49 +0000 (UTC)
+        id S1728097AbhAGWeh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 Jan 2021 17:34:37 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A559235FD;
+        Thu,  7 Jan 2021 22:33:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610058769;
-        bh=H4jgyd7IykIyGU+ScMw5NOTroQJzLM3TMQFNWAm1Zes=;
+        s=korg; t=1610058836;
+        bh=cfoCOJSDia/Wd3UUy2Y3wHxXGx6sbaeMqERuoNx8+/8=;
         h=Date:From:To:Subject:From;
-        b=RkXk5zx7IhSUYn+zAGwVB9QmBy6kESe3N4R3MqHu1ZjxeJTsOfpDJYd7mgawonw1h
-         HMOwoanCUVIEs7eXO/4qKERIxyIHGsY6EyqtwfAZ3WWm4foh3/pcBHw4nZ50iKiSq5
-         pliPToZfBk8lCOJ3NslnWPNY4LtFLA0p705Pss+I=
-Date:   Thu, 07 Jan 2021 14:32:49 -0800
+        b=f0uwYeL4Un5R/UYfQAmW6aj60fPUPbtpJqgwOCPCIxWXtxVt57YYHfnqiat2JyIv4
+         l1XOU/lICrAZZWwmhUb64Gwb9tStfeMKcVjehL38mHEUZRDuRC6zTIegfCUfH/trPl
+         1AJkwgzYkJkd2y06L/fCYJuVEaF5WosF5jwuWhCs=
+Date:   Thu, 07 Jan 2021 14:33:56 -0800
 From:   akpm@linux-foundation.org
-To:     andrii@kernel.org, axboe@kernel.dk, cl@linux.com,
-        iamjoonsoo.kim@lge.com, ming.lei@redhat.com,
-        mm-commits@vger.kernel.org, paulmck@kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  [merged]
- percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
- removed from -mm tree
-Message-ID: <20210107223249.kxVr7w66T%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20210107223356.GZcRCTmDU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,81 +41,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu_ref: dump mem_dump_obj() info upon reference-count underflow
-has been removed from the -mm tree.  Its filename was
-     percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Paul E. McKenney" <paulmck@kernel.org>
-Subject: percpu_ref: dump mem_dump_obj() info upon reference-count underflow
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Reference-count underflow for percpu_ref is detected in the RCU callback
-percpu_ref_switch_to_atomic_rcu(), and the resulting warning does not
-print anything allowing easy identification of which percpu_ref use case
-is underflowing.  This is of course not normally a problem when developing
-a new percpu_ref use case because it is most likely that the problem
-resides in this new use case.  However, when deploying a new kernel to a
-large set of servers, the underflow might well be a new corner case in any
-of the old percpu_ref use cases.
-
-This commit therefore calls mem_dump_obj() to dump out any additional
-available information on the underflowing percpu_ref instance.
-
-Link: https://lkml.kernel.org/r/20210106011750.13709-6-paulmck@kernel.org
-Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
-Reported-by: Andrii Nakryiko <andrii@kernel.org>
-Cc: Ming Lei <ming.lei@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu-refcount.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/regulator/qcom-rpmh-regulator.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/lib/percpu-refcount.c~percpu_ref-dump-mem_dump_obj-info-upon-reference-count-underflow
-+++ a/lib/percpu-refcount.c
-@@ -5,6 +5,7 @@
- #include <linux/sched.h>
- #include <linux/wait.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/percpu-refcount.h>
- 
- /*
-@@ -168,6 +169,7 @@ static void percpu_ref_switch_to_atomic_
- 			struct percpu_ref_data, rcu);
- 	struct percpu_ref *ref = data->ref;
- 	unsigned long __percpu *percpu_count = percpu_count_ptr(ref);
-+	static atomic_t underflows;
- 	unsigned long count = 0;
- 	int cpu;
- 
-@@ -191,9 +193,13 @@ static void percpu_ref_switch_to_atomic_
- 	 */
- 	atomic_long_add((long)count - PERCPU_COUNT_BIAS, &data->count);
- 
--	WARN_ONCE(atomic_long_read(&data->count) <= 0,
--		  "percpu ref (%ps) <= 0 (%ld) after switching to atomic",
--		  data->release, atomic_long_read(&data->count));
-+	if (WARN_ONCE(atomic_long_read(&data->count) <= 0,
-+		      "percpu ref (%ps) <= 0 (%ld) after switching to atomic",
-+		      data->release, atomic_long_read(&data->count)) &&
-+	    atomic_inc_return(&underflows) < 4) {
-+		pr_err("%s(): percpu_ref underflow", __func__);
-+		mem_dump_obj(data);
-+	}
- 
- 	/* @ref is viewed as dead on all CPUs, send out switch confirmation */
- 	percpu_ref_call_confirm_rcu(rcu);
+--- a/drivers/regulator/qcom-rpmh-regulator.c~linux-next-git-rejects
++++ a/drivers/regulator/qcom-rpmh-regulator.c
+@@ -727,8 +727,6 @@ static const struct rpmh_vreg_hw_data pm
+ 	.regulator_type = VRM,
+ 	.ops = &rpmh_regulator_vrm_ops,
+ 	.voltage_range = REGULATOR_LINEAR_RANGE(2800000, 0, 4, 16000),
+-<<<<<<< HEAD
+-=======
+ 	.n_voltages = 5,
+ 	.pmic_mode_map = pmic_mode_map_pmic5_smps,
+ 	.of_map_mode = rpmh_regulator_pmic4_smps_of_map_mode,
+@@ -738,7 +736,6 @@ static const struct rpmh_vreg_hw_data pm
+ 	.regulator_type = VRM,
+ 	.ops = &rpmh_regulator_vrm_ops,
+ 	.voltage_range = REGULATOR_LINEAR_RANGE(900000, 0, 4, 16000),
+->>>>>>> linux-next/akpm-base
+ 	.n_voltages = 5,
+ 	.pmic_mode_map = pmic_mode_map_pmic5_smps,
+ 	.of_map_mode = rpmh_regulator_pmic4_smps_of_map_mode,
 _
 
-Patches currently in -mm which might be from paulmck@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-page_alloc-add-a-missing-mm_page_alloc_zone_locked-tracepoint-fix.patch
+mm.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+kasan-fix-bug-detection-via-ksize-for-hw_tags-mode-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+linux-next-git-rejects.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
