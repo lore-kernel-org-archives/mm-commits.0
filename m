@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2EC9C433E0
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 00:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91FA7C433E0
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 00:32:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A15342399A
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 00:26:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E55723A79
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 00:32:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725817AbhAIA0V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jan 2021 19:26:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56528 "EHLO mail.kernel.org"
+        id S1725872AbhAIAcA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jan 2021 19:32:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725306AbhAIA0V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 Jan 2021 19:26:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E7507208E4;
-        Sat,  9 Jan 2021 00:25:39 +0000 (UTC)
+        id S1725817AbhAIAcA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 Jan 2021 19:32:00 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 54A9023A79;
+        Sat,  9 Jan 2021 00:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610151940;
-        bh=eL6+8W8t6wy1wDQdeBWTqpBsOq2lllkZcma0gWlaCAo=;
+        s=korg; t=1610152279;
+        bh=U/efYcnH/eEvynzRHOVxEFCTc0EDiWWRL7rlqn22YNo=;
         h=Date:From:To:Subject:From;
-        b=mfzI4y+W/blgE0jKqXkwmo2zMLuQTj49898jBZ+2t8rgDA47/0jWfEoP5XRo8AmAP
-         uZ9eoMETcC2HA1THPM6CgiEgu0uT/GaqeMgTea8EkjEImhZlnOG/AiRY18QSuYNp8T
-         zHljarbmyQ1zCWDtg9Ffq71eI1WvFbx88GYiRZ4U=
-Date:   Fri, 08 Jan 2021 16:25:39 -0800
+        b=mBlm1+KF2ISr23RE9auFwF6Wm9Adq8hV6nZ1Oaw0zJ5ZScUvURDQmmydsFhNlPSJZ
+         eTaNfH52gnbHVcU5rXnFf36F/qKc/vOPZMaFv/W441Ojgh0fhT/ZW+Xd79NSS+Oj1I
+         6aYTqkLnbQnnch4271O4oolnBRQvnY2TQXP+dxLo=
+Date:   Fri, 08 Jan 2021 16:31:18 -0800
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, gregkh@linuxfoundation.org,
-        joe@perches.com, mm-commits@vger.kernel.org
-Subject:  +
- checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch added to
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        shy828301@gmail.com, songmuchun@bytedance.com,
+        stable@vger.kernel.org
+Subject:  + mm-memcg-fix-memcg-file_dirty-numa-stat.patch added to
  -mm tree
-Message-ID: <20210109002539.ZPYcSP5ag%akpm@linux-foundation.org>
+Message-ID: <20210109003118.n6j35Rw7q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: prefer ftrace over function entry/exit printks
+     Subject: mm: memcg: fix memcg file_dirty numa stat
 has been added to the -mm tree.  Its filename is
-     checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
+     mm-memcg-fix-memcg-file_dirty-numa-stat.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-fix-memcg-file_dirty-numa-stat.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-fix-memcg-file_dirty-numa-stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,79 +66,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: prefer ftrace over function entry/exit printks
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: memcg: fix memcg file_dirty numa stat
 
-Prefer using ftrace over function entry/exit logging messages.
+The kernel updates the per-node NR_FILE_DIRTY stats on page migration but
+not the memcg numa stats.  That was not an issue until recently the commit
+5f9a4f4a7096 ("mm: memcontrol: add the missing numa_stat interface for
+cgroup v2") exposed numa stats for the memcg.  So fix the file_dirty
+per-memcg numa stat.
 
-Warn with various function entry/exit only logging that only
-use __func__ with or without descriptive decoration.
-
-Link: https://lkml.kernel.org/r/47c01081533a417c99c9a80a4cd537f8c308503f.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20210108155813.2914586-1-shakeelb@google.com
+Fixes: 5f9a4f4a7096 ("mm: memcontrol: add the missing numa_stat interface for cgroup v2")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ mm/migrate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-prefer-ftrace-over-function-entry-exit-printks
-+++ a/scripts/checkpatch.pl
-@@ -507,6 +507,30 @@ our $signature_tags = qr{(?xi:
- 	Cc:
- )};
- 
-+our $tracing_logging_tags = qr{(?xi:
-+	[=-]*> |
-+	<[=-]* |
-+	\[ |
-+	\] |
-+	start |
-+	called |
-+	entered |
-+	entry |
-+	enter |
-+	in |
-+	inside |
-+	here |
-+	begin |
-+	exit |
-+	end |
-+	done |
-+	leave |
-+	completed |
-+	out |
-+	return |
-+	[\.\!:\s]*
-+)};
-+
- sub edit_distance_min {
- 	my (@arr) = @_;
- 	my $len = scalar @arr;
-@@ -5981,6 +6005,17 @@ sub process {
- 			     "Prefer using '\"%s...\", __func__' to using '$context_function', this function's name, in a string\n" . $herecurr);
+--- a/mm/migrate.c~mm-memcg-fix-memcg-file_dirty-numa-stat
++++ a/mm/migrate.c
+@@ -500,9 +500,9 @@ int migrate_page_move_mapping(struct add
+ 			__inc_lruvec_state(new_lruvec, NR_SHMEM);
  		}
- 
-+# check for unnecessary function tracing like uses
-+# This does not use $logFunctions because there are many instances like
-+# 'dprintk(FOO, "%s()\n", __func__);' which do not match $logFunctions
-+		if ($rawline =~ /^\+.*\([^"]*"$tracing_logging_tags{0,3}%s(?:\s*\(\s*\)\s*)?$tracing_logging_tags{0,3}(?:\\n)?"\s*,\s*__func__\s*\)\s*;/) {
-+			if (WARN("TRACING_LOGGING",
-+				 "Unnecessary ftrace-like logging - prefer using ftrace\n" . $herecurr) &&
-+			    $fix) {
-+                                fix_delete_line($fixlinenr, $rawline);
-+			}
-+		}
-+
- # check for spaces before a quoted newline
- 		if ($rawline =~ /^.*\".*\s\\n/) {
- 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
+ 		if (dirty && mapping_can_writeback(mapping)) {
+-			__dec_node_state(oldzone->zone_pgdat, NR_FILE_DIRTY);
++			__dec_lruvec_state(old_lruvec, NR_FILE_DIRTY);
+ 			__dec_zone_state(oldzone, NR_ZONE_WRITE_PENDING);
+-			__inc_node_state(newzone->zone_pgdat, NR_FILE_DIRTY);
++			__inc_lruvec_state(new_lruvec, NR_FILE_DIRTY);
+ 			__inc_zone_state(newzone, NR_ZONE_WRITE_PENDING);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-checkpatch-improve-blank-line-after-declaration-test.patch
-checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
+mm-memcg-fix-memcg-file_dirty-numa-stat.patch
+mm-fix-numa-stats-for-thp-migration.patch
+mm-memcg-add-swapcache-stat-for-memcg-v2.patch
 
