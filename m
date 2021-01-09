@@ -7,757 +7,137 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF83BC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jan 2021 09:07:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2EC9C433E0
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 00:26:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 41E1822248
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jan 2021 09:07:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A15342399A
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 00:26:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727869AbhAHJHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jan 2021 04:07:51 -0500
-Received: from confino.investici.org ([212.103.72.250]:34603 "EHLO
-        confino.investici.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727824AbhAHJHu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2021 04:07:50 -0500
-X-Greylist: delayed 412 seconds by postgrey-1.27 at vger.kernel.org; Fri, 08 Jan 2021 04:07:46 EST
-Received: from mx1.investici.org (unknown [127.0.0.1])
-        by confino.investici.org (Postfix) with ESMTP id 4DBxrW5j09z13jg;
-        Fri,  8 Jan 2021 09:00:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=privacyrequired.com;
-        s=stigmate; t=1610096411;
-        bh=jPej6LDUxENWeLhBHbRjGZxrOfXvK6jRvRP7J7qdY3s=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mKqxqZ+f15ad5yfsgYN8Nh8dinHMkoSZ8ypqDxjhmbDgxlyu0y2oVV1ip1QpzvJwF
-         5vd4G00Bpby1mHkqBwc93nK4NEWA6ONp9YOCdK57zoHF9yxJ81I+jfSEyO6nqrnk2T
-         T02uYegfqGNf3Qvha7WokZFfFfDBVtfdELZBK+oU=
-Received: from [212.103.72.250] (mx1.investici.org [212.103.72.250]) (Authenticated sender: laniel_francis@privacyrequired.com) by localhost (Postfix) with ESMTPSA id 4DBxrW3vW9z13jf;
-        Fri,  8 Jan 2021 09:00:11 +0000 (UTC)
-From:   Francis Laniel <laniel_francis@privacyrequired.com>
-To:     akpm@linux-foundation.org
-Cc:     danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org,
-        mm-commits@vger.kernel.org
-Subject: Re: + stringh-create-header-for-fortified-string-functions.patch added to -mm tree
-Date:   Fri, 08 Jan 2021 10:00:10 +0100
-Message-ID: <1846192.16USh5EnDN@machine>
-In-Reply-To: <20210107230851.fGVFuJNLR%akpm@linux-foundation.org>
-References: <20210107230851.fGVFuJNLR%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        id S1725817AbhAIA0V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jan 2021 19:26:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56528 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725306AbhAIA0V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 Jan 2021 19:26:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E7507208E4;
+        Sat,  9 Jan 2021 00:25:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1610151940;
+        bh=eL6+8W8t6wy1wDQdeBWTqpBsOq2lllkZcma0gWlaCAo=;
+        h=Date:From:To:Subject:From;
+        b=mfzI4y+W/blgE0jKqXkwmo2zMLuQTj49898jBZ+2t8rgDA47/0jWfEoP5XRo8AmAP
+         uZ9eoMETcC2HA1THPM6CgiEgu0uT/GaqeMgTea8EkjEImhZlnOG/AiRY18QSuYNp8T
+         zHljarbmyQ1zCWDtg9Ffq71eI1WvFbx88GYiRZ4U=
+Date:   Fri, 08 Jan 2021 16:25:39 -0800
+From:   akpm@linux-foundation.org
+To:     dan.carpenter@oracle.com, gregkh@linuxfoundation.org,
+        joe@perches.com, mm-commits@vger.kernel.org
+Subject:  +
+ checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch added to
+ -mm tree
+Message-ID: <20210109002539.ZPYcSP5ag%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi.
 
+The patch titled
+     Subject: checkpatch: prefer ftrace over function entry/exit printks
+has been added to the -mm tree.  Its filename is
+     checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
 
-I am really sorry to mail you but the kernel test robot pointed me two=20
-problems:
-1. When I copied/pasted the code from string.h to the new header my editor=
-=20
-misindented some code and I did not check properly the compilation warnings=
-=2E..
-=46or example, this code exists in the patch and is then misindented:
-+	if (p_size < p_len + copy_len + 1)
-+		fortify_panic(__func__);
-+		__underlying_memcpy(p + p_len, q, copy_len);
-2. It also showed me some warnings when compiling for ARM and related to=20
-string length:
-In function 'strncpy',
-       inlined from 'uhid_dev_create2' at drivers/hid/uhid.c:499:2,
-       inlined from 'uhid_char_write' at drivers/hid/uhid.c:738:9:
-       include/linux/fortify-string.h:27:30: warning: '__builtin_strncpy'=20
-output may be truncated copying 127 bytes from a string of length 127 [-
-Wstringop-truncation]
-      27 | #define __underlying_strncpy __builtin_strncpy
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
 
-So, can you please revert it and I, at least, send a v2 with the code=20
-correctly indented?
-Moreover, I would like to investigate the problem for the ARM compilation t=
-o=20
-see if it is related to the new code I added.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Best regards and sorry for the trouble...
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-Le vendredi 8 janvier 2021, 00:08:51 CET akpm@linux-foundation.org a =E9cri=
-t :
-> The patch titled
->      Subject: string.h: create header for fortified string functions
-> has been added to the -mm tree.  Its filename is
->      stringh-create-header-for-fortified-string-functions.patch
->=20
-> This patch should soon appear at
->   =20
-> https://ozlabs.org/~akpm/mmots/broken-out/stringh-create-header-for-forti=
-fi
-> ed-string-functions.patch and later at
->   =20
-> https://ozlabs.org/~akpm/mmotm/broken-out/stringh-create-header-for-forti=
-fi
-> ed-string-functions.patch
->=20
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->=20
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng
-> your code ***
->=20
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
->=20
-> ------------------------------------------------------
-> From: Francis Laniel <laniel_francis@privacyrequired.com>
-> Subject: string.h: create header for fortified string functions
->=20
-> Add fortify-string.h to contain fortified functions definitions.  Thus,
-> the code is more separated and compile time is slightly faster for people
-> who do not set CONFIG_FORTIFY_SOURCE.
->=20
-> Link:
-> https://lkml.kernel.org/r/20210107145143.7438-2-laniel_francis@privacyreq=
-ui
-> red.com Signed-off-by: Francis Laniel <laniel_francis@privacyrequired.com>
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Daniel Axtens <dja@axtens.net>
-> Cc: Daniel Micay <danielmicay@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->=20
->  include/linux/fortify-string.h |  302 +++++++++++++++++++++++++++++++
->  include/linux/string.h         |  282 ----------------------------
->  2 files changed, 303 insertions(+), 281 deletions(-)
->=20
-> --- /dev/null
-> +++ a/include/linux/fortify-string.h
-> @@ -0,0 +1,302 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +#ifndef _LINUX_FORTIFY_STRING_H_
-> +#define _LINUX_FORTIFY_STRING_H_
-> +
-> +
-> +#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
-> +extern void *__underlying_memchr(const void *p, int c, __kernel_size_t
-> size) __RENAME(memchr); +extern int __underlying_memcmp(const void *p,
-> const void *q, __kernel_size_t size) __RENAME(memcmp); +extern void
-> *__underlying_memcpy(void *p, const void *q, __kernel_size_t size)
-> __RENAME(memcpy); +extern void *__underlying_memmove(void *p, const void
-> *q, __kernel_size_t size) __RENAME(memmove); +extern void
-> *__underlying_memset(void *p, int c, __kernel_size_t size)
-> __RENAME(memset); +extern char *__underlying_strcat(char *p, const char *=
-q)
-> __RENAME(strcat); +extern char *__underlying_strcpy(char *p, const char *=
-q)
-> __RENAME(strcpy); +extern __kernel_size_t __underlying_strlen(const char
-> *p) __RENAME(strlen); +extern char *__underlying_strncat(char *p, const
-> char *q, __kernel_size_t count) __RENAME(strncat); +extern char
-> *__underlying_strncpy(char *p, const char *q, __kernel_size_t size)
-> __RENAME(strncpy); +#else
-> +#define __underlying_memchr	__builtin_memchr
-> +#define __underlying_memcmp	__builtin_memcmp
-> +#define __underlying_memcpy	__builtin_memcpy
-> +#define __underlying_memmove	__builtin_memmove
-> +#define __underlying_memset	__builtin_memset
-> +#define __underlying_strcat	__builtin_strcat
-> +#define __underlying_strcpy	__builtin_strcpy
-> +#define __underlying_strlen	__builtin_strlen
-> +#define __underlying_strncat	__builtin_strncat
-> +#define __underlying_strncpy	__builtin_strncpy
-> +#endif
-> +
-> +__FORTIFY_INLINE char *strncpy(char *p, const char *q, __kernel_size_t
-> size) +{
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +
-> +	if (__builtin_constant_p(size) && p_size < size)
-> +		__write_overflow();
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	return __underlying_strncpy(p, q, size);
-> +}
-> +
-> +__FORTIFY_INLINE char *strcat(char *p, const char *q)
-> +{
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +
-> +	if (p_size =3D=3D (size_t)-1)
-> +		return __underlying_strcat(p, q);
-> +	if (strlcat(p, q, p_size) >=3D p_size)
-> +		fortify_panic(__func__);
-> +	return p;
-> +}
-> +
-> +__FORTIFY_INLINE __kernel_size_t strlen(const char *p)
-> +{
-> +	__kernel_size_t ret;
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +
-> +	/* Work around gcc excess stack consumption issue */
-> +	if (p_size =3D=3D (size_t)-1 ||
-> +		(__builtin_constant_p(p[p_size - 1]) && p[p_size - 1] =3D=3D '\0'))
-> +		return __underlying_strlen(p);
-> +	ret =3D strnlen(p, p_size);
-> +	if (p_size <=3D ret)
-> +		fortify_panic(__func__);
-> +	return ret;
-> +}
-> +
-> +extern __kernel_size_t __real_strnlen(const char *, __kernel_size_t)
-> __RENAME(strnlen); +__FORTIFY_INLINE __kernel_size_t strnlen(const char *=
-p,
-> __kernel_size_t maxlen) +{
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +	__kernel_size_t ret =3D __real_strnlen(p, maxlen < p_size ? maxlen :
-> p_size); +
-> +	if (p_size <=3D ret && maxlen !=3D ret)
-> +		fortify_panic(__func__);
-> +	return ret;
-> +}
-> +
-> +/* defined after fortified strlen to reuse it */
-> +extern size_t __real_strlcpy(char *, const char *, size_t)
-> __RENAME(strlcpy); +__FORTIFY_INLINE size_t strlcpy(char *p, const char *=
-q,
-> size_t size) +{
-> +	size_t ret;
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +	size_t q_size =3D __builtin_object_size(q, 1);
-> +
-> +	if (p_size =3D=3D (size_t)-1 && q_size =3D=3D (size_t)-1)
-> +		return __real_strlcpy(p, q, size);
-> +	ret =3D strlen(q);
-> +	if (size) {
-> +		size_t len =3D (ret >=3D size) ? size - 1 : ret;
-> +
-> +		if (__builtin_constant_p(len) && len >=3D p_size)
-> +			__write_overflow();
-> +		if (len >=3D p_size)
-> +			fortify_panic(__func__);
-> +			__underlying_memcpy(p, q, len);
-> +		p[len] =3D '\0';
-> +	}
-> +	return ret;
-> +}
-> +
-> +/* defined after fortified strnlen to reuse it */
-> +extern ssize_t __real_strscpy(char *, const char *, size_t)
-> __RENAME(strscpy); +__FORTIFY_INLINE ssize_t strscpy(char *p, const char
-> *q, size_t size) +{
-> +	size_t len;
-> +	/* Use string size rather than possible enclosing struct size. */
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +	size_t q_size =3D __builtin_object_size(q, 1);
-> +
-> +	/* If we cannot get size of p and q default to call strscpy. */
-> +	if (p_size =3D=3D (size_t) -1 && q_size =3D=3D (size_t) -1)
-> +		return __real_strscpy(p, q, size);
-> +
-> +	/*
-> +	 * If size can be known at compile time and is greater than
-> +	 * p_size, generate a compile time write overflow error.
-> +	 */
-> +	if (__builtin_constant_p(size) && size > p_size)
-> +		__write_overflow();
-> +
-> +	/*
-> +	 * This call protects from read overflow, because len will default to q
-> +	 * length if it smaller than size.
-> +	 */
-> +	len =3D strnlen(q, size);
-> +	/*
-> +	 * If len equals size, we will copy only size bytes which leads to
-> +	 * -E2BIG being returned.
-> +	 * Otherwise we will copy len + 1 because of the final '\O'.
-> +	 */
-> +	len =3D len =3D=3D size ? size : len + 1;
-> +
-> +	/*
-> +	 * Generate a runtime write overflow error if len is greater than
-> +	 * p_size.
-> +	 */
-> +	if (len > p_size)
-> +		fortify_panic(__func__);
-> +
-> +	/*
-> +	 * We can now safely call vanilla strscpy because we are protected from:
-> +	 * 1. Read overflow thanks to call to strnlen().
-> +	 * 2. Write overflow thanks to above ifs.
-> +	 */
-> +	return __real_strscpy(p, q, len);
-> +}
-> +
-> +/* defined after fortified strlen and strnlen to reuse them */
-> +__FORTIFY_INLINE char *strncat(char *p, const char *q, __kernel_size_t
-> count) +{
-> +	size_t p_len, copy_len;
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +	size_t q_size =3D __builtin_object_size(q, 1);
-> +
-> +	if (p_size =3D=3D (size_t)-1 && q_size =3D=3D (size_t)-1)
-> +		return __underlying_strncat(p, q, count);
-> +	p_len =3D strlen(p);
-> +	copy_len =3D strnlen(q, count);
-> +	if (p_size < p_len + copy_len + 1)
-> +		fortify_panic(__func__);
-> +		__underlying_memcpy(p + p_len, q, copy_len);
-> +	p[p_len + copy_len] =3D '\0';
-> +	return p;
-> +}
-> +
-> +__FORTIFY_INLINE void *memset(void *p, int c, __kernel_size_t size)
-> +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +
-> +	if (__builtin_constant_p(size) && p_size < size)
-> +		__write_overflow();
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	return __underlying_memset(p, c, size);
-> +}
-> +
-> +__FORTIFY_INLINE void *memcpy(void *p, const void *q, __kernel_size_t si=
-ze)
-> +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +	size_t q_size =3D __builtin_object_size(q, 0);
-> +
-> +	if (__builtin_constant_p(size)) {
-> +		if (p_size < size)
-> +			__write_overflow();
-> +		if (q_size < size)
-> +			__read_overflow2();
-> +	}
-> +	if (p_size < size || q_size < size)
-> +		fortify_panic(__func__);
-> +	return __underlying_memcpy(p, q, size);
-> +}
-> +
-> +__FORTIFY_INLINE void *memmove(void *p, const void *q, __kernel_size_t
-> size) +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +	size_t q_size =3D __builtin_object_size(q, 0);
-> +
-> +	if (__builtin_constant_p(size)) {
-> +		if (p_size < size)
-> +			__write_overflow();
-> +		if (q_size < size)
-> +			__read_overflow2();
-> +	}
-> +	if (p_size < size || q_size < size)
-> +		fortify_panic(__func__);
-> +	return __underlying_memmove(p, q, size);
-> +}
-> +
-> +extern void *__real_memscan(void *, int, __kernel_size_t)
-> __RENAME(memscan); +__FORTIFY_INLINE void *memscan(void *p, int c,
-> __kernel_size_t size) +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +
-> +	if (__builtin_constant_p(size) && p_size < size)
-> +		__read_overflow();
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	return __real_memscan(p, c, size);
-> +}
-> +
-> +__FORTIFY_INLINE int memcmp(const void *p, const void *q, __kernel_size_t
-> size) +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +	size_t q_size =3D __builtin_object_size(q, 0);
-> +
-> +	if (__builtin_constant_p(size)) {
-> +		if (p_size < size)
-> +			__read_overflow();
-> +		if (q_size < size)
-> +			__read_overflow2();
-> +	}
-> +	if (p_size < size || q_size < size)
-> +		fortify_panic(__func__);
-> +	return __underlying_memcmp(p, q, size);
-> +}
-> +
-> +__FORTIFY_INLINE void *memchr(const void *p, int c, __kernel_size_t size)
-> +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +
-> +	if (__builtin_constant_p(size) && p_size < size)
-> +		__read_overflow();
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	return __underlying_memchr(p, c, size);
-> +}
-> +
-> +void *__real_memchr_inv(const void *s, int c, size_t n)
-> __RENAME(memchr_inv); +__FORTIFY_INLINE void *memchr_inv(const void *p, i=
-nt
-> c, size_t size) +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +
-> +	if (__builtin_constant_p(size) && p_size < size)
-> +		__read_overflow();
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	return __real_memchr_inv(p, c, size);
-> +}
-> +
-> +extern void *__real_kmemdup(const void *src, size_t len, gfp_t gfp)
-> __RENAME(kmemdup); +__FORTIFY_INLINE void *kmemdup(const void *p, size_t
-> size, gfp_t gfp) +{
-> +	size_t p_size =3D __builtin_object_size(p, 0);
-> +
-> +	if (__builtin_constant_p(size) && p_size < size)
-> +		__read_overflow();
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	return __real_kmemdup(p, size, gfp);
-> +}
-> +
-> +/* defined after fortified strlen and memcpy to reuse them */
-> +__FORTIFY_INLINE char *strcpy(char *p, const char *q)
-> +{
-> +	size_t p_size =3D __builtin_object_size(p, 1);
-> +	size_t q_size =3D __builtin_object_size(q, 1);
-> +	size_t size;
-> +
-> +	if (p_size =3D=3D (size_t)-1 && q_size =3D=3D (size_t)-1)
-> +		return __underlying_strcpy(p, q);
-> +	size =3D strlen(q) + 1;
-> +	/* test here to use the more stringent object size */
-> +	if (p_size < size)
-> +		fortify_panic(__func__);
-> +	memcpy(p, q, size);
-> +	return p;
-> +}
-> +
-> +/* Don't use these outside the FORITFY_SOURCE implementation */
-> +#undef __underlying_memchr
-> +#undef __underlying_memcmp
-> +#undef __underlying_memcpy
-> +#undef __underlying_memmove
-> +#undef __underlying_memset
-> +#undef __underlying_strcat
-> +#undef __underlying_strcpy
-> +#undef __underlying_strlen
-> +#undef __underlying_strncat
-> +#undef __underlying_strncpy
-> +
-> +#endif /* _LINUX_FORTIFY_STRING_H_ */
-> ---
-> a/include/linux/string.h~stringh-create-header-for-fortified-string-funct=
-io
-> ns +++ a/include/linux/string.h
-> @@ -266,287 +266,7 @@ void __read_overflow3(void) __compiletim
->  void __write_overflow(void) __compiletime_error("detected write beyond s=
-ize
-> of object passed as 1st parameter");
->=20
->  #if !defined(__NO_FORTIFY) && defined(__OPTIMIZE__) &&
-> defined(CONFIG_FORTIFY_SOURCE) -
-> -#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
-> -extern void *__underlying_memchr(const void *p, int c, __kernel_size_t
-> size) __RENAME(memchr); -extern int __underlying_memcmp(const void *p,
-> const void *q, __kernel_size_t size) __RENAME(memcmp); -extern void
-> *__underlying_memcpy(void *p, const void *q, __kernel_size_t size)
-> __RENAME(memcpy); -extern void *__underlying_memmove(void *p, const void
-> *q, __kernel_size_t size) __RENAME(memmove); -extern void
-> *__underlying_memset(void *p, int c, __kernel_size_t size)
-> __RENAME(memset); -extern char *__underlying_strcat(char *p, const char *=
-q)
-> __RENAME(strcat); -extern char *__underlying_strcpy(char *p, const char *=
-q)
-> __RENAME(strcpy); -extern __kernel_size_t __underlying_strlen(const char
-> *p) __RENAME(strlen); -extern char *__underlying_strncat(char *p, const
-> char *q, __kernel_size_t count) __RENAME(strncat); -extern char
-> *__underlying_strncpy(char *p, const char *q, __kernel_size_t size)
-> __RENAME(strncpy); -#else
-> -#define __underlying_memchr	__builtin_memchr
-> -#define __underlying_memcmp	__builtin_memcmp
-> -#define __underlying_memcpy	__builtin_memcpy
-> -#define __underlying_memmove	__builtin_memmove
-> -#define __underlying_memset	__builtin_memset
-> -#define __underlying_strcat	__builtin_strcat
-> -#define __underlying_strcpy	__builtin_strcpy
-> -#define __underlying_strlen	__builtin_strlen
-> -#define __underlying_strncat	__builtin_strncat
-> -#define __underlying_strncpy	__builtin_strncpy
-> -#endif
-> -
-> -__FORTIFY_INLINE char *strncpy(char *p, const char *q, __kernel_size_t
-> size) -{
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	if (__builtin_constant_p(size) && p_size < size)
-> -		__write_overflow();
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	return __underlying_strncpy(p, q, size);
-> -}
-> -
-> -__FORTIFY_INLINE char *strcat(char *p, const char *q)
-> -{
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	if (p_size =3D=3D (size_t)-1)
-> -		return __underlying_strcat(p, q);
-> -	if (strlcat(p, q, p_size) >=3D p_size)
-> -		fortify_panic(__func__);
-> -	return p;
-> -}
-> -
-> -__FORTIFY_INLINE __kernel_size_t strlen(const char *p)
-> -{
-> -	__kernel_size_t ret;
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -
-> -	/* Work around gcc excess stack consumption issue */
-> -	if (p_size =3D=3D (size_t)-1 ||
-> -	    (__builtin_constant_p(p[p_size - 1]) && p[p_size - 1] =3D=3D '\0'))
-> -		return __underlying_strlen(p);
-> -	ret =3D strnlen(p, p_size);
-> -	if (p_size <=3D ret)
-> -		fortify_panic(__func__);
-> -	return ret;
-> -}
-> -
-> -extern __kernel_size_t __real_strnlen(const char *, __kernel_size_t)
-> __RENAME(strnlen); -__FORTIFY_INLINE __kernel_size_t strnlen(const char *=
-p,
-> __kernel_size_t maxlen) -{
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	__kernel_size_t ret =3D __real_strnlen(p, maxlen < p_size ? maxlen :
-> p_size); -	if (p_size <=3D ret && maxlen !=3D ret)
-> -		fortify_panic(__func__);
-> -	return ret;
-> -}
-> -
-> -/* defined after fortified strlen to reuse it */
-> -extern size_t __real_strlcpy(char *, const char *, size_t)
-> __RENAME(strlcpy); -__FORTIFY_INLINE size_t strlcpy(char *p, const char *=
-q,
-> size_t size) -{
-> -	size_t ret;
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	size_t q_size =3D __builtin_object_size(q, 1);
-> -	if (p_size =3D=3D (size_t)-1 && q_size =3D=3D (size_t)-1)
-> -		return __real_strlcpy(p, q, size);
-> -	ret =3D strlen(q);
-> -	if (size) {
-> -		size_t len =3D (ret >=3D size) ? size - 1 : ret;
-> -		if (__builtin_constant_p(len) && len >=3D p_size)
-> -			__write_overflow();
-> -		if (len >=3D p_size)
-> -			fortify_panic(__func__);
-> -		__underlying_memcpy(p, q, len);
-> -		p[len] =3D '\0';
-> -	}
-> -	return ret;
-> -}
-> -
-> -/* defined after fortified strnlen to reuse it */
-> -extern ssize_t __real_strscpy(char *, const char *, size_t)
-> __RENAME(strscpy); -__FORTIFY_INLINE ssize_t strscpy(char *p, const char
-> *q, size_t size) -{
-> -	size_t len;
-> -	/* Use string size rather than possible enclosing struct size. */
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	size_t q_size =3D __builtin_object_size(q, 1);
-> -
-> -	/* If we cannot get size of p and q default to call strscpy. */
-> -	if (p_size =3D=3D (size_t) -1 && q_size =3D=3D (size_t) -1)
-> -		return __real_strscpy(p, q, size);
-> -
-> -	/*
-> -	 * If size can be known at compile time and is greater than
-> -	 * p_size, generate a compile time write overflow error.
-> -	 */
-> -	if (__builtin_constant_p(size) && size > p_size)
-> -		__write_overflow();
-> -
-> -	/*
-> -	 * This call protects from read overflow, because len will default to q
-> -	 * length if it smaller than size.
-> -	 */
-> -	len =3D strnlen(q, size);
-> -	/*
-> -	 * If len equals size, we will copy only size bytes which leads to
-> -	 * -E2BIG being returned.
-> -	 * Otherwise we will copy len + 1 because of the final '\O'.
-> -	 */
-> -	len =3D len =3D=3D size ? size : len + 1;
-> -
-> -	/*
-> -	 * Generate a runtime write overflow error if len is greater than
-> -	 * p_size.
-> -	 */
-> -	if (len > p_size)
-> -		fortify_panic(__func__);
-> -
-> -	/*
-> -	 * We can now safely call vanilla strscpy because we are protected from:
-> -	 * 1. Read overflow thanks to call to strnlen().
-> -	 * 2. Write overflow thanks to above ifs.
-> -	 */
-> -	return __real_strscpy(p, q, len);
-> -}
-> -
-> -/* defined after fortified strlen and strnlen to reuse them */
-> -__FORTIFY_INLINE char *strncat(char *p, const char *q, __kernel_size_t
-> count) -{
-> -	size_t p_len, copy_len;
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	size_t q_size =3D __builtin_object_size(q, 1);
-> -	if (p_size =3D=3D (size_t)-1 && q_size =3D=3D (size_t)-1)
-> -		return __underlying_strncat(p, q, count);
-> -	p_len =3D strlen(p);
-> -	copy_len =3D strnlen(q, count);
-> -	if (p_size < p_len + copy_len + 1)
-> -		fortify_panic(__func__);
-> -	__underlying_memcpy(p + p_len, q, copy_len);
-> -	p[p_len + copy_len] =3D '\0';
-> -	return p;
-> -}
-> -
-> -__FORTIFY_INLINE void *memset(void *p, int c, __kernel_size_t size)
-> -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	if (__builtin_constant_p(size) && p_size < size)
-> -		__write_overflow();
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	return __underlying_memset(p, c, size);
-> -}
-> -
-> -__FORTIFY_INLINE void *memcpy(void *p, const void *q, __kernel_size_t si=
-ze)
-> -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	size_t q_size =3D __builtin_object_size(q, 0);
-> -	if (__builtin_constant_p(size)) {
-> -		if (p_size < size)
-> -			__write_overflow();
-> -		if (q_size < size)
-> -			__read_overflow2();
-> -	}
-> -	if (p_size < size || q_size < size)
-> -		fortify_panic(__func__);
-> -	return __underlying_memcpy(p, q, size);
-> -}
-> -
-> -__FORTIFY_INLINE void *memmove(void *p, const void *q, __kernel_size_t
-> size) -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	size_t q_size =3D __builtin_object_size(q, 0);
-> -	if (__builtin_constant_p(size)) {
-> -		if (p_size < size)
-> -			__write_overflow();
-> -		if (q_size < size)
-> -			__read_overflow2();
-> -	}
-> -	if (p_size < size || q_size < size)
-> -		fortify_panic(__func__);
-> -	return __underlying_memmove(p, q, size);
-> -}
-> -
-> -extern void *__real_memscan(void *, int, __kernel_size_t)
-> __RENAME(memscan); -__FORTIFY_INLINE void *memscan(void *p, int c,
-> __kernel_size_t size) -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	if (__builtin_constant_p(size) && p_size < size)
-> -		__read_overflow();
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	return __real_memscan(p, c, size);
-> -}
-> -
-> -__FORTIFY_INLINE int memcmp(const void *p, const void *q, __kernel_size_t
-> size) -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	size_t q_size =3D __builtin_object_size(q, 0);
-> -	if (__builtin_constant_p(size)) {
-> -		if (p_size < size)
-> -			__read_overflow();
-> -		if (q_size < size)
-> -			__read_overflow2();
-> -	}
-> -	if (p_size < size || q_size < size)
-> -		fortify_panic(__func__);
-> -	return __underlying_memcmp(p, q, size);
-> -}
-> -
-> -__FORTIFY_INLINE void *memchr(const void *p, int c, __kernel_size_t size)
-> -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	if (__builtin_constant_p(size) && p_size < size)
-> -		__read_overflow();
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	return __underlying_memchr(p, c, size);
-> -}
-> -
-> -void *__real_memchr_inv(const void *s, int c, size_t n)
-> __RENAME(memchr_inv); -__FORTIFY_INLINE void *memchr_inv(const void *p, i=
-nt
-> c, size_t size) -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	if (__builtin_constant_p(size) && p_size < size)
-> -		__read_overflow();
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	return __real_memchr_inv(p, c, size);
-> -}
-> -
-> -extern void *__real_kmemdup(const void *src, size_t len, gfp_t gfp)
-> __RENAME(kmemdup); -__FORTIFY_INLINE void *kmemdup(const void *p, size_t
-> size, gfp_t gfp) -{
-> -	size_t p_size =3D __builtin_object_size(p, 0);
-> -	if (__builtin_constant_p(size) && p_size < size)
-> -		__read_overflow();
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	return __real_kmemdup(p, size, gfp);
-> -}
-> -
-> -/* defined after fortified strlen and memcpy to reuse them */
-> -__FORTIFY_INLINE char *strcpy(char *p, const char *q)
-> -{
-> -	size_t p_size =3D __builtin_object_size(p, 1);
-> -	size_t q_size =3D __builtin_object_size(q, 1);
-> -	size_t size;
-> -	if (p_size =3D=3D (size_t)-1 && q_size =3D=3D (size_t)-1)
-> -		return __underlying_strcpy(p, q);
-> -	size =3D strlen(q) + 1;
-> -	/* test here to use the more stringent object size */
-> -	if (p_size < size)
-> -		fortify_panic(__func__);
-> -	memcpy(p, q, size);
-> -	return p;
-> -}
-> -
-> -/* Don't use these outside the FORITFY_SOURCE implementation */
-> -#undef __underlying_memchr
-> -#undef __underlying_memcmp
-> -#undef __underlying_memcpy
-> -#undef __underlying_memmove
-> -#undef __underlying_memset
-> -#undef __underlying_strcat
-> -#undef __underlying_strcpy
-> -#undef __underlying_strlen
-> -#undef __underlying_strncat
-> -#undef __underlying_strncpy
-> +#include <linux/fortify-string.h>
->  #endif
->=20
->  /**
-> _
->=20
-> Patches currently in -mm which might be from
-> laniel_francis@privacyrequired.com are
->=20
-> stringh-create-header-for-fortified-string-functions.patch
+------------------------------------------------------
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: prefer ftrace over function entry/exit printks
 
+Prefer using ftrace over function entry/exit logging messages.
 
+Warn with various function entry/exit only logging that only
+use __func__ with or without descriptive decoration.
 
+Link: https://lkml.kernel.org/r/47c01081533a417c99c9a80a4cd537f8c308503f.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+--- a/scripts/checkpatch.pl~checkpatch-prefer-ftrace-over-function-entry-exit-printks
++++ a/scripts/checkpatch.pl
+@@ -507,6 +507,30 @@ our $signature_tags = qr{(?xi:
+ 	Cc:
+ )};
+ 
++our $tracing_logging_tags = qr{(?xi:
++	[=-]*> |
++	<[=-]* |
++	\[ |
++	\] |
++	start |
++	called |
++	entered |
++	entry |
++	enter |
++	in |
++	inside |
++	here |
++	begin |
++	exit |
++	end |
++	done |
++	leave |
++	completed |
++	out |
++	return |
++	[\.\!:\s]*
++)};
++
+ sub edit_distance_min {
+ 	my (@arr) = @_;
+ 	my $len = scalar @arr;
+@@ -5981,6 +6005,17 @@ sub process {
+ 			     "Prefer using '\"%s...\", __func__' to using '$context_function', this function's name, in a string\n" . $herecurr);
+ 		}
+ 
++# check for unnecessary function tracing like uses
++# This does not use $logFunctions because there are many instances like
++# 'dprintk(FOO, "%s()\n", __func__);' which do not match $logFunctions
++		if ($rawline =~ /^\+.*\([^"]*"$tracing_logging_tags{0,3}%s(?:\s*\(\s*\)\s*)?$tracing_logging_tags{0,3}(?:\\n)?"\s*,\s*__func__\s*\)\s*;/) {
++			if (WARN("TRACING_LOGGING",
++				 "Unnecessary ftrace-like logging - prefer using ftrace\n" . $herecurr) &&
++			    $fix) {
++                                fix_delete_line($fixlinenr, $rawline);
++			}
++		}
++
+ # check for spaces before a quoted newline
+ 		if ($rawline =~ /^.*\".*\s\\n/) {
+ 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-improve-blank-line-after-declaration-test.patch
+checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
 
