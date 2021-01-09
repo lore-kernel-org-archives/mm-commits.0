@@ -4,41 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48602C433E0
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 01:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D9ECC433E0
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 01:52:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 129DC23A1E
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 01:45:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BBCE2399C
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 01:52:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725836AbhAIBpP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jan 2021 20:45:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39568 "EHLO mail.kernel.org"
+        id S1726738AbhAIBvr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jan 2021 20:51:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725835AbhAIBpP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 Jan 2021 20:45:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF91C2399A;
-        Sat,  9 Jan 2021 01:44:34 +0000 (UTC)
+        id S1726729AbhAIBvp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 Jan 2021 20:51:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 099D22399C;
+        Sat,  9 Jan 2021 01:51:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610156674;
-        bh=+nROqm89LGhUngDVW1dwUbNQrNU9a2g87r+TdXv+o+0=;
+        s=korg; t=1610157064;
+        bh=q+U97/f2ZusGnJOUgz17CUaIQ+Sd3bKeDR5GKs0KjhU=;
         h=Date:From:To:Subject:From;
-        b=MnKgLZiZSDUGoqEm65KIkMEkTyH81QWFLcNrOGSixhfF83cg0vjbnfm774M/k5O4l
-         GVtRggTmiVKdO0D/NwQHEsRMCeRSAh+3VWOxr+RFLCzL9TWfNI0P5Q35pKDdD25vuP
-         Bo3CQKh4NYoYJ1Xtr/4usGoz9UzlU7Y7QOWjd7yk=
-Date:   Fri, 08 Jan 2021 17:44:34 -0800
+        b=EDceVnsuKMJmKKtAF6nNEpCtJTWPJqdue1U/u7e+9P4MFz5OSck5T1981QzkNhb91
+         GkQzPR00gl3y0T/BZxIulotITDhKCqxU3bnhWo2ciH/p4WCTJyTfNs64sOdCN1+9w4
+         x0TJ9l0Gsi5alZAk7BaOFHZ1USN98266Pw/eh4rI=
+Date:   Fri, 08 Jan 2021 17:51:03 -0800
 From:   akpm@linux-foundation.org
-To:     baolin.wang@linux.alibaba.com, miklos@szeredi.hu,
-        mm-commits@vger.kernel.org, willy@infradead.org
+To:     adobriyan@gmail.com, keescook@chromium.org, mcgrof@kernel.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, nixiaoming@huawei.com,
+        vbabka@suse.cz, yzaikin@google.com
 Subject:  +
- =?US-ASCII?Q?mm-filemap-remove-unused-parameter-and-change-to-void-type-f?=
- =?US-ASCII?Q?or-replace=5Fpage=5Fcache=5Fpage.patch?= added to -mm tree
-Message-ID: <20210109014434.g5z4Q4edi%akpm@linux-foundation.org>
+ proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch added to
+ -mm tree
+Message-ID: <20210109015103.TvS498rH6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: remove unused parameter and change to void type for replace_page_cache_page()
+     Subject: proc_sysctl: fix oops caused by incorrect command parameters.
 has been added to the -mm tree.  Its filename is
-     mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page.patch
+     proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,86 +66,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm/filemap: remove unused parameter and change to void type for replace_page_cache_page()
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: proc_sysctl: fix oops caused by incorrect command parameters.
 
-Since commit 74d609585d8b ("page cache: Add and replace pages using the
-XArray") was merged, the replace_page_cache_page() can not fail and always
-return 0, we can remove the redundant return value and void it.  Moreover
-remove the unused gfp_mask.
+The process_sysctl_arg() does not check whether val is empty before
+invoking strlen(val).  If the command line parameter () is incorrectly
+configured and val is empty, oops is triggered.
 
-Link: https://lkml.kernel.org/r/609c30e5274ba15d8b90c872fd0d8ac437a9b2bb.1610071401.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+For example, "hung_task_panic=1" is incorrectly written as "hung_task_panic".
+
+log:
+	Kernel command line: .... hung_task_panic
+	....
+	[000000000000000n] user address but active_mm is swapper
+	Internal error: Oops: 96000005 [#1] SMP
+	Modules linked in:
+	CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.10.1 #1
+	Hardware name: linux,dummy-virt (DT)
+	pstate: 40000005 (nZcv daif -PAN -UAO -TCO BTYPE=--)
+	pc : __pi_strlen+0x10/0x98
+	lr : process_sysctl_arg+0x1e4/0x2ac
+	sp : ffffffc01104bd40
+	x29: ffffffc01104bd40 x28: 0000000000000000
+	x27: ffffff80c0a4691e x26: ffffffc0102a7c8c
+	x25: 0000000000000000 x24: ffffffc01104be80
+	x23: ffffff80c22f0b00 x22: ffffff80c02e28c0
+	x21: ffffffc0109f9000 x20: 0000000000000000
+	x19: ffffffc0107c08de x18: 0000000000000003
+	x17: ffffffc01105d000 x16: 0000000000000054
+	x15: ffffffffffffffff x14: 3030253078413830
+	x13: 000000000000ffff x12: 0000000000000000
+	x11: 0101010101010101 x10: 0000000000000005
+	x9 : 0000000000000003 x8 : ffffff80c0980c08
+	x7 : 0000000000000000 x6 : 0000000000000002
+	x5 : ffffff80c0235000 x4 : ffffff810f7c7ee0
+	x3 : 000000000000043a x2 : 00bdcc4ebacf1a54
+	x1 : 0000000000000000 x0 : 0000000000000000
+	Call trace:
+	 __pi_strlen+0x10/0x98
+	 parse_args+0x278/0x344
+	 do_sysctl_args+0x8c/0xfc
+	 kernel_init+0x5c/0xf4
+	 ret_from_fork+0x10/0x30
+	Code: b200c3eb 927cec01 f2400c07 54000301 (a8c10c22)
+
+Link: https://lkml.kernel.org/r/20210108023339.55917-1-nixiaoming@huawei.com
+Fixes: 3db978d480e2843 ("kernel/sysctl: support setting sysctl parameters from kernel command line")
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c           |    6 +-----
- include/linux/pagemap.h |    2 +-
- mm/filemap.c            |    7 +------
- 3 files changed, 3 insertions(+), 12 deletions(-)
+ fs/proc/proc_sysctl.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/fs/fuse/dev.c~mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page
-+++ a/fs/fuse/dev.c
-@@ -844,11 +844,7 @@ static int fuse_try_move_page(struct fus
- 	if (WARN_ON(PageMlocked(oldpage)))
- 		goto out_fallback_unlock;
+--- a/fs/proc/proc_sysctl.c~proc_sysctl-fix-oops-caused-by-incorrect-command-parameters
++++ a/fs/proc/proc_sysctl.c
+@@ -1757,6 +1757,11 @@ static int process_sysctl_arg(char *para
+ 	loff_t pos = 0;
+ 	ssize_t wret;
  
--	err = replace_page_cache_page(oldpage, newpage, GFP_KERNEL);
--	if (err) {
--		unlock_page(newpage);
--		goto out_put_old;
--	}
-+	replace_page_cache_page(oldpage, newpage);
- 
- 	get_page(newpage);
- 
---- a/include/linux/pagemap.h~mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page
-+++ a/include/linux/pagemap.h
-@@ -757,7 +757,7 @@ int add_to_page_cache_lru(struct page *p
- 				pgoff_t index, gfp_t gfp_mask);
- extern void delete_from_page_cache(struct page *page);
- extern void __delete_from_page_cache(struct page *page, void *shadow);
--int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
-+void replace_page_cache_page(struct page *old, struct page *new);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
- 
---- a/mm/filemap.c~mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page
-+++ a/mm/filemap.c
-@@ -775,7 +775,6 @@ EXPORT_SYMBOL(file_write_and_wait_range)
-  * replace_page_cache_page - replace a pagecache page with a new one
-  * @old:	page to be replaced
-  * @new:	page to replace with
-- * @gfp_mask:	allocation mode
-  *
-  * This function replaces a page in the pagecache with a new one.  On
-  * success it acquires the pagecache reference for the new page and
-@@ -784,10 +783,8 @@ EXPORT_SYMBOL(file_write_and_wait_range)
-  * caller must do that.
-  *
-  * The remove + add is atomic.  This function cannot fail.
-- *
-- * Return: %0
-  */
--int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask)
-+void replace_page_cache_page(struct page *old, struct page *new)
- {
- 	struct address_space *mapping = old->mapping;
- 	void (*freepage)(struct page *) = mapping->a_ops->freepage;
-@@ -822,8 +819,6 @@ int replace_page_cache_page(struct page
- 	if (freepage)
- 		freepage(old);
- 	put_page(old);
--
--	return 0;
- }
- EXPORT_SYMBOL_GPL(replace_page_cache_page);
++	if (!val) {
++		pr_err("Missing param value! Expected '%s=...value...'\n", param);
++		return 0;
++	}
++
+ 	if (strncmp(param, "sysctl", sizeof("sysctl") - 1) == 0) {
+ 		param += sizeof("sysctl") - 1;
  
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
-mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page.patch
+proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
