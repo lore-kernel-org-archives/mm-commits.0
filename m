@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08347C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21AE3C4332D
 	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2B5C23135
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09BB623139
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389925AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S2387858AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 12 Jan 2021 19:42:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46324 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391986AbhALXu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 18:50:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE70D23132;
-        Tue, 12 Jan 2021 23:49:27 +0000 (UTC)
+        id S2391945AbhALXuB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 Jan 2021 18:50:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EE3D23136;
+        Tue, 12 Jan 2021 23:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610495368;
-        bh=u6wwpMUYCNQ5KCpzwNq+++EmdOrZkPCTm/p56rtCb+4=;
+        s=korg; t=1610495358;
+        bh=Fyfc3St6XcETCyfxluudtDudj6bhhgxSuzF95j2USdc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=dOCNoUzQToYWm1VqyV89M0Q4jM5RaulF9ArMQopEuYis+og7G50uCGPwUxzHX3oyV
-         vOvtIoJbZyHvKFKatbBqOVuC2w7i3yZca2e1nXEZZsuazULMMBbWO8LMPm9lYlKVKy
-         AGfyQoEjF+72CFyCk6FBX+9CO8SJlASOalETJX34=
-Date:   Tue, 12 Jan 2021 15:49:27 -0800
+        b=aokZhffsiHHbXlNGDfx4+YHl54EUfd5rsVedet7FuCJ5HSJ8fpcLzkDxa2ohR+iaE
+         TWkG7gEcBaoFNOtJeSGNKgK2s4qlmXhT8kViDNC4RIyRPM9aEJ3wV3dyHF/lpeJIO4
+         Y68S7c+ZiI+shG+PeQWjwH4QZVSphrbGtlhS662E=
+Date:   Tue, 12 Jan 2021 15:49:18 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 08/10] MAINTAINERS: add Vlastimil as slab
- allocators maintainer
-Message-ID: <20210112234927.qjKNk9pDa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        linux-mm@kvack.org, luoshijie1@huawei.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, urezki@gmail.com
+Subject:  [patch 05/10] mm/vmalloc.c: fix potential memory leak
+Message-ID: <20210112234918.AY5LtPz7k%akpm@linux-foundation.org>
 In-Reply-To: <20210112154839.abeb6e57de79480059fd9b0e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,35 +43,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: MAINTAINERS: add Vlastimil as slab allocators maintainer
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/vmalloc.c: fix potential memory leak
 
-I would like to help with slab allocators maintenance, from the
-perspective of being responsible for SLAB and more recently also SLUB in
-an enterprise distro kernel and supporting its users.  Recently I've been
-focusing on improving SLUB's debugging features, and patch review in the
-area, including the kmemcg accounting rewrite last year.
+In VM_MAP_PUT_PAGES case, we should put pages and free array in vfree. 
+But we missed to set area->nr_pages in vmap().  So we would failed to put
+pages in __vunmap() because area->nr_pages = 0.
 
-Link: https://lkml.kernel.org/r/20210108110353.19971-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20210107123541.39206-1-linmiaohe@huawei.com
+Fixes: b944afc9d64d ("mm: add a VM_MAP_PUT_PAGES flag for vmap")
+Signed-off-by: Shijie Luo <luoshijie1@huawei.com>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-myself-as-slab-allocators-maintainer
-+++ a/MAINTAINERS
-@@ -16319,6 +16319,7 @@ M:	Pekka Enberg <penberg@kernel.org>
- M:	David Rientjes <rientjes@google.com>
- M:	Joonsoo Kim <iamjoonsoo.kim@lge.com>
- M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	Vlastimil Babka <vbabka@suse.cz>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	include/linux/sl?b*.h
+--- a/mm/vmalloc.c~mm-vmallocc-fix-potential-memory-leak
++++ a/mm/vmalloc.c
+@@ -2420,8 +2420,10 @@ void *vmap(struct page **pages, unsigned
+ 		return NULL;
+ 	}
+ 
+-	if (flags & VM_MAP_PUT_PAGES)
++	if (flags & VM_MAP_PUT_PAGES) {
+ 		area->pages = pages;
++		area->nr_pages = count;
++	}
+ 	return area->addr;
+ }
+ EXPORT_SYMBOL(vmap);
 _
