@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB6CBC433DB
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 22:35:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97C3EC433E9
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 00:54:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F5BB23888
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Jan 2021 22:35:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76A4A22510
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 00:54:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726077AbhAIWfd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 9 Jan 2021 17:35:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43226 "EHLO mail.kernel.org"
+        id S1726098AbhALAyr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Jan 2021 19:54:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726062AbhAIWfc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 9 Jan 2021 17:35:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0C53023741;
-        Sat,  9 Jan 2021 22:34:52 +0000 (UTC)
+        id S1726011AbhALAyr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 Jan 2021 19:54:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DBDA92253A;
+        Tue, 12 Jan 2021 00:54:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610231692;
-        bh=FMx3EBoefkJhLi6eiOw9Xc0S7WCFNfTlJb85XQOPTvQ=;
+        s=korg; t=1610412846;
+        bh=cigcvxM47gH8g26kS6gkZ9wCXDK5QLoClXWyCISsKyE=;
         h=Date:From:To:Subject:From;
-        b=aX1Lg9roiPhWOP98Tb47l58NAbrQpmEKehBa7hfPXY+cpQwvIHEKCLVYrq51fSBhv
-         kh1pwlMU2B/CkbzYmVqV72JPM1FxBTZzSTJRWAkkozkz6Njs6nuI7XyVfJ/ZX2BeQR
-         c1psSjzbySklU0LoSLLLk4OmPDTYBjEbxMC9Uob8=
-Date:   Sat, 09 Jan 2021 14:34:51 -0800
+        b=q56Rx5Qq9FUM0ytKLMEBAVSmKLVcys+aVvcAFFWvkxzNajwBempL3qphxzBy9mYYg
+         /OUOXOKGvawaAjEfcqER+5yeInJWudaWcMLL+XMVjmCtyTe9egmZqq/heSGTTjGcrv
+         lNuqHnDQbNmXKb9C5AUR4mJwGtMDGfUyoGedWdRo=
+Date:   Mon, 11 Jan 2021 16:54:05 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de,
-        me@kylehuey.com, mm-commits@vger.kernel.org,
-        viro@zeniv.linux.org.uk
-Subject:  + mm-process_vm_accessc-include-compath.patch added to
- -mm tree
-Message-ID: <20210109223451.qaB8SWAS4%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, bhe@redhat.com, cai@lca.pw, david@redhat.com,
+        mgorman@suse.de, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, stable@vger.kernel.org, vbabka@suse.cz
+Subject:  [to-be-updated]
+ mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
+ removed from -mm tree
+Message-ID: <20210112005405.I9flYBs2J%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,68 +45,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/process_vm_access.c: include compat.h
-has been added to the -mm tree.  Its filename is
-     mm-process_vm_accessc-include-compath.patch
+     Subject: mm: memblock: enforce overlap of memory.memblock and memory.reserved
+has been removed from the -mm tree.  Its filename was
+     mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-process_vm_accessc-include-compath.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-process_vm_accessc-include-compath.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/process_vm_access.c: include compat.h
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: memblock: enforce overlap of memory.memblock and memory.reserved
 
-mm/process_vm_access.c:277:5: error: implicit declaration of function 'in_compat_syscall'; did you mean 'in_ia32_syscall'? [-Werror=implicit-function-declaration]
+Patch series "mm: fix initialization of struct page for holes in  memory layout", v2.
 
-Fixes: 38dc5079da7081e "Fix compat regression in process_vm_rw()"
-Reported-by: syzbot+5b0d0de84d6c65b8dd2b@syzkaller.appspotmail.com
-Cc: Kyle Huey <me@kylehuey.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Commit 73a6e474cb37 ("mm: memmap_init: iterate over memblock regions
+rather that check each PFN") exposed several issues with the memory map
+initialization and these patches fix those issues.
+
+Initially there were crashes during compaction that Qian Cai reported back
+in April [1].  It seemed back then that the probelm was fixed, but a few
+weeks ago Andrea Arcangeli hit the same bug [2] and after a long
+discussion between us [3] I think these patches are the proper fix.
+
+[1] https://lore.kernel.org/lkml/8C537EB7-85EE-4DCF-943E-3CC0ED0DF56D@lca.pw
+[2] https://lore.kernel.org/lkml/20201121194506.13464-1-aarcange@redhat.com
+[3] https://lore.kernel.org/mm-commits/20201206005401.qKuAVgOXr%akpm@linux-foundation.org
+
+
+This patch (of 2):
+
+memblock does not require that the reserved memory ranges will be a subset
+of memblock.memory.
+
+As a result there may be reserved pages that are not in the range of any
+zone or node because zone and node boundaries are detected based on
+memblock.memory and pages that only present in memblock.reserved are not
+taken into account during zone/node size detection.
+
+Make sure that all ranges in memblock.reserved are added to
+memblock.memory before calculating node and zone boundaries.
+
+Link: https://lkml.kernel.org/r/20201209214304.6812-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20201209214304.6812-2-rppt@kernel.org
+Fixes: 73a6e474cb37 ("mm: memmap_init: iterate over memblock regions rather that check each PFN")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/process_vm_access.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |   24 ++++++++++++++++++++++++
+ mm/page_alloc.c          |    7 +++++++
+ 3 files changed, 32 insertions(+)
 
---- a/mm/process_vm_access.c~mm-process_vm_accessc-include-compath
-+++ a/mm/process_vm_access.c
-@@ -9,6 +9,7 @@
- #include <linux/mm.h>
- #include <linux/uio.h>
- #include <linux/sched.h>
-+#include <linux/compat.h>
- #include <linux/sched/mm.h>
- #include <linux/highmem.h>
- #include <linux/ptrace.h>
+--- a/include/linux/memblock.h~mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved
++++ a/include/linux/memblock.h
+@@ -120,6 +120,7 @@ int memblock_clear_nomap(phys_addr_t bas
+ unsigned long memblock_free_all(void);
+ void reset_node_managed_pages(pg_data_t *pgdat);
+ void reset_all_zones_managed_pages(void);
++void memblock_enforce_memory_reserved_overlap(void);
+ 
+ /* Low level functions */
+ void __next_mem_range(u64 *idx, int nid, enum memblock_flags flags,
+--- a/mm/memblock.c~mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved
++++ a/mm/memblock.c
+@@ -1860,6 +1860,30 @@ void __init_memblock memblock_trim_memor
+ 	}
+ }
+ 
++/**
++ * memblock_enforce_memory_reserved_overlap - make sure every range in
++ * @memblock.reserved is covered by @memblock.memory
++ *
++ * The data in @memblock.memory is used to detect zone and node boundaries
++ * during initialization of the memory map and the page allocator. Make
++ * sure that every memory range present in @memblock.reserved is also added
++ * to @memblock.memory even if the architecture specific memory
++ * initialization failed to do so
++ */
++void __init memblock_enforce_memory_reserved_overlap(void)
++{
++	phys_addr_t start, end;
++	int nid;
++	u64 i;
++
++	__for_each_mem_range(i, &memblock.reserved, &memblock.memory,
++			     NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end, &nid) {
++		pr_warn("memblock: reserved range [%pa-%pa] is not in memory\n",
++			&start, &end);
++		memblock_add_node(start, (end - start), nid);
++	}
++}
++
+ void __init_memblock memblock_set_current_limit(phys_addr_t limit)
+ {
+ 	memblock.current_limit = limit;
+--- a/mm/page_alloc.c~mm-memblock-enforce-overlap-of-memorymemblock-and-memoryreserved
++++ a/mm/page_alloc.c
+@@ -7513,6 +7513,13 @@ void __init free_area_init(unsigned long
+ 	memset(arch_zone_highest_possible_pfn, 0,
+ 				sizeof(arch_zone_highest_possible_pfn));
+ 
++	/*
++	 * Some architectures (e.g. x86) have reserved pages outside of
++	 * memblock.memory. Make sure these pages are taken into account
++	 * when detecting zone and node boundaries
++	 */
++	memblock_enforce_memory_reserved_overlap();
++
+ 	start_pfn = find_min_pfn_with_active_regions();
+ 	descending = arch_has_descending_max_zone_pfns();
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-page_alloc-add-a-missing-mm_page_alloc_zone_locked-tracepoint-fix.patch
-mm-process_vm_accessc-include-compath.patch
-mm.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
+mm-add-definition-of-pmd_page_order.patch
+mmap-make-mlock_future_check-global.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+secretmem-add-memcg-accounting.patch
+pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant.patch
+secretmem-test-add-basic-selftest-for-memfd_secret2.patch
 
