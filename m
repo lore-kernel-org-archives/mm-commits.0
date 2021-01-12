@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51B97C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D308C433E6
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:24:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29AE42312F
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:24:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 402382312E
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:24:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728590AbhALWYH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Jan 2021 17:24:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56674 "EHLO mail.kernel.org"
+        id S1731185AbhALWYI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Jan 2021 17:24:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394562AbhALWYG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 17:24:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 048162312A;
-        Tue, 12 Jan 2021 22:23:24 +0000 (UTC)
+        id S1730906AbhALWYI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 Jan 2021 17:24:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BED782312E;
+        Tue, 12 Jan 2021 22:23:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610490205;
-        bh=ly0jU8tQ6gD/4asdvpGJRFdO1gfEDIV+SkIL+PuyAS4=;
+        s=korg; t=1610490208;
+        bh=OIwLSRiduSBTHZkxNB3ukark8PFEZP/0hrMpb7llYWI=;
         h=Date:From:To:Subject:From;
-        b=BOKwSmOOhA2yf0h4Ve0q3VNNqxmGgmwrX0TUQIrwEZjpntnXpjDXp4Pz/zFl3xEEd
-         FmmteQdfldeHbyN/TglitYTkxaxT+0/kNSu1zZvUf27trOKdETp/00uoI/E3T4QawP
-         6yOYsHTjHu/uOGHwFz2+oXzgrxIuf8oBa+VbNP/s=
-Date:   Tue, 12 Jan 2021 14:23:23 -0800
+        b=UQ1UH0An8CYe3hbHa29SNP0ycoRYRS4Y1IvnMtxZPKXtHLf5rkJTMSvXJ0Ijm5Kd3
+         QWOmsLH3bCJEDRYbdzjGqlfeEDlUGhIFrsvQMSoCM1rqvUC0CnHQ19AzlWzRQdLiN5
+         jOcaCMfe0Bhz/7RdNxZA9blZszOY62Ydux6M4goI=
+Date:   Tue, 12 Jan 2021 14:23:27 -0800
 From:   akpm@linux-foundation.org
 To:     ak@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         shy828301@gmail.com, songmuchun@bytedance.com
 Subject:  [to-be-updated]
- mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch removed
- from -mm tree
-Message-ID: <20210112222323.uspAhhA8g%akpm@linux-foundation.org>
+ mm-hugetlb-add-return-eagain-for-dissolve_free_huge_page.patch removed from
+ -mm tree
+Message-ID: <20210112222327.JK6BQ-b1s%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,54 +45,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: do not migrate HugeTLB page whose refcount is one
+     Subject: mm: hugetlb: add return -EAGAIN for dissolve_free_huge_page
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch
+     mm-hugetlb-add-return-eagain-for-dissolve_free_huge_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: migrate: do not migrate HugeTLB page whose refcount is one
+Subject: mm: hugetlb: add return -EAGAIN for dissolve_free_huge_page
 
-All pages isolated for the migration have an elevated reference count
-and therefore seeing a reference count equal to 1 means that the last
-user of the page has dropped the reference and the page has became
-unused and there doesn't make much sense to migrate it anymore.  This
-has been done for regular pages and this patch does the same for
-hugetlb pages.  Although the likelyhood of the race is rather small for
-hugetlb pages it makes sense the two code paths in sync.
+There is a race between dissolve_free_huge_page() and put_page(),
+and the race window is quite small. Theoretically, we should return
+-EBUSY when we encounter this race. In fact, we have a chance to
+successfully dissolve the page if we do a retry. Because the race
+window is quite small. If we seize this opportunity, it is an
+optimization for increasing the success rate of dissolving page.
 
-[mhocko@suse.com: new changelog]
-Link: https://lkml.kernel.org/r/20210110124017.86750-2-songmuchun@bytedance.com
+If we free a HugeTLB page from a non-task context, it is deferred
+through a workqueue. In this case, we need to flush the work.
+
+The dissolve_free_huge_page() can be called from memory hotplug,
+the caller aims to free the HugeTLB page to the buddy allocator
+so that the caller can unplug the page successfully.
+
+Link: https://lkml.kernel.org/r/20210110124017.86750-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/hugetlb.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one
-+++ a/mm/migrate.c
-@@ -1284,6 +1284,12 @@ static int unmap_and_move_huge_page(new_
- 		return -ENOSYS;
- 	}
+--- a/mm/hugetlb.c~mm-hugetlb-add-return-eagain-for-dissolve_free_huge_page
++++ a/mm/hugetlb.c
+@@ -1763,10 +1763,11 @@ static int free_pool_huge_page(struct hs
+  * nothing for in-use hugepages and non-hugepages.
+  * This function returns values like below:
+  *
+- *  -EBUSY: failed to dissolved free hugepages or the hugepage is in-use
+- *          (allocated or reserved.)
+- *       0: successfully dissolved free hugepages or the page is not a
+- *          hugepage (considered as already dissolved)
++ *  -EAGAIN: race with __free_huge_page() and can do a retry
++ *  -EBUSY:  failed to dissolved free hugepages or the hugepage is in-use
++ *           (allocated or reserved.)
++ *       0:  successfully dissolved free hugepages or the page is not a
++ *           hugepage (considered as already dissolved)
+  */
+ int dissolve_free_huge_page(struct page *page)
+ {
+@@ -1793,8 +1794,10 @@ int dissolve_free_huge_page(struct page
+ 		 * We should make sure that the page is already on the free list
+ 		 * when it is dissolved.
+ 		 */
+-		if (unlikely(!PageHugeFreed(head)))
++		if (unlikely(!PageHugeFreed(head))) {
++			rc = -EAGAIN;
+ 			goto out;
++		}
  
-+	if (page_count(hpage) == 1) {
-+		/* page was freed from under us. So we are done. */
-+		putback_active_hugepage(hpage);
-+		return MIGRATEPAGE_SUCCESS;
-+	}
+ 		/*
+ 		 * Move PageHWPoison flag from head page to the raw error page,
+@@ -1813,6 +1816,14 @@ int dissolve_free_huge_page(struct page
+ 	}
+ out:
+ 	spin_unlock(&hugetlb_lock);
 +
- 	new_hpage = get_new_page(hpage, private);
- 	if (!new_hpage)
- 		return -ENOMEM;
++	/*
++	 * If the freeing of the HugeTLB page is put on a work queue, we should
++	 * flush the work before retrying.
++	 */
++	if (unlikely(rc == -EAGAIN))
++		flush_work(&free_hpage_work);
++
+ 	return rc;
+ }
+ 
+@@ -1835,7 +1846,12 @@ int dissolve_free_huge_pages(unsigned lo
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order) {
+ 		page = pfn_to_page(pfn);
++retry:
+ 		rc = dissolve_free_huge_page(page);
++		if (rc == -EAGAIN) {
++			cpu_relax();
++			goto retry;
++		}
+ 		if (rc)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
@@ -109,5 +156,4 @@ mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
 mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
 mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
 mm-memcontrol-make-the-slab-calculation-consistent.patch
-mm-hugetlb-add-return-eagain-for-dissolve_free_huge_page.patch
 
