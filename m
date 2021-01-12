@@ -5,36 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DA5C433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 04:48:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E91C5C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 04:57:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C0292250E
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 04:48:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF59222B37
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 04:57:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732390AbhALEsM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Jan 2021 23:48:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39364 "EHLO mail.kernel.org"
+        id S2387498AbhALE5w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Jan 2021 23:57:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732895AbhALEsM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 Jan 2021 23:48:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE030221FE;
-        Tue, 12 Jan 2021 04:47:31 +0000 (UTC)
+        id S1733273AbhALE5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 Jan 2021 23:57:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9624122510;
+        Tue, 12 Jan 2021 04:57:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610426851;
-        bh=n/OSY6WZmQ1scpO1eG2rQFfBy4FWr7JKkwu1nOj+7Kc=;
+        s=korg; t=1610427431;
+        bh=ZYcHkfWzkzJaXYTGb5giWP3VhaQgC7/gmb2mI5C/qjM=;
         h=Date:From:To:Subject:From;
-        b=wbxcldkbpfYo6zE7gsaPFZ7t83rUrfOsL0q4PuTTK17ka4LbGvwjzdLLKZ54mz1L5
-         lmGG/hOp0TQGSkAAeFxi3Iq9YvO4/A7YzTPvNaxxDVVIzddUIn5bbvRLtD0KyvhtGP
-         vecLgU4R61JVAA9yPSmtuNaem+2RH9R5h7tOUvNk=
-Date:   Mon, 11 Jan 2021 20:47:31 -0800
+        b=lgtUmBS3ap3NigqvF2/nKbALRNtmJh8/m53rDvNDuNE41Cgql3u9DFqMAFsMRn35Q
+         ujoay4YGjopi9shSsKbpSHW95bqGGeOXBIk17h6gTBkVaDVsk17qzuG+FweJ2aYpJF
+         X/KZNZ/pX9P+++mNUcsc5dTC5QAn2HwofP840HdM=
+Date:   Mon, 11 Jan 2021 20:57:10 -0800
 From:   akpm@linux-foundation.org
-To:     benbjiang@tencent.com, cl@linux-foundation.org,
-        mm-commits@vger.kernel.org, robinlai@tencent.com
-Subject:  + mm-vmstatc-erase-latency-in-vmstat_shepherd.patch added
- to -mm tree
-Message-ID: <20210112044731.P0lhvWZSA%akpm@linux-foundation.org>
+To:     ak@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        songmuchun@bytedance.com, stable@vger.kernel.org
+Subject:  +
+ mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch added to
+ -mm tree
+Message-ID: <20210112045710.wFWGDYaDg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat.c: erase latency in vmstat_shepherd
+     Subject: mm: hugetlbfs: fix cannot migrate the fallocated HugeTLB page
 has been added to the -mm tree.  Its filename is
-     mm-vmstatc-erase-latency-in-vmstat_shepherd.patch
+     mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstatc-erase-latency-in-vmstat_shepherd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstatc-erase-latency-in-vmstat_shepherd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,39 +66,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiang Biao <benbjiang@tencent.com>
-Subject: mm/vmstat.c: erase latency in vmstat_shepherd
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlbfs: fix cannot migrate the fallocated HugeTLB page
 
-Many 100us+ latencies have been deteceted in vmstat_shepherd() on CPX
-platform which has 208 logic cpus.  And vmstat_shepherd is queued every
-second, which could make the case worse.
+If a new hugetlb page is allocated during fallocate it will not be marked
+as active (set_page_huge_active) which will result in a later
+isolate_huge_page failure when the page migration code would like to move
+that page.  Such a failure would be unexpected and wrong.
 
-Add schedule point in vmstat_shepherd() to erase the latency.
+Only export set_page_huge_active, just leave clear_page_huge_active
+as static. Because there are no external users.
 
-Link: https://lkml.kernel.org/r/20210111035526.1511-1-benbjiang@tencent.com
-Signed-off-by: Jiang Biao <benbjiang@tencent.com>
-Reported-by: Bin Lai <robinlai@tencent.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20210110124017.86750-3-songmuchun@bytedance.com
+Fixes: 70c3547e36f5 (hugetlbfs: add hugetlbfs_fallocate())
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/hugetlbfs/inode.c    |    3 ++-
+ include/linux/hugetlb.h |    2 ++
+ mm/hugetlb.c            |    2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstatc-erase-latency-in-vmstat_shepherd
-+++ a/mm/vmstat.c
-@@ -1973,6 +1973,8 @@ static void vmstat_shepherd(struct work_
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
++++ a/fs/hugetlbfs/inode.c
+@@ -735,9 +735,10 @@ static long hugetlbfs_fallocate(struct f
  
- 		if (!delayed_work_pending(dw) && need_update(cpu))
- 			queue_delayed_work_on(cpu, mm_percpu_wq, dw, 0);
+ 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 
++		set_page_huge_active(page);
+ 		/*
+ 		 * unlock_page because locked by add_to_page_cache()
+-		 * page_put due to reference from alloc_huge_page()
++		 * put_page() due to reference from alloc_huge_page()
+ 		 */
+ 		unlock_page(page);
+ 		put_page(page);
+--- a/include/linux/hugetlb.h~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
++++ a/include/linux/hugetlb.h
+@@ -770,6 +770,8 @@ static inline void huge_ptep_modify_prot
+ }
+ #endif
+ 
++void set_page_huge_active(struct page *page);
 +
-+		cond_resched();
- 	}
- 	put_online_cpus();
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
  
+--- a/mm/hugetlb.c~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
++++ a/mm/hugetlb.c
+@@ -1349,7 +1349,7 @@ bool page_huge_active(struct page *page)
+ }
+ 
+ /* never called for tail page */
+-static void set_page_huge_active(struct page *page)
++void set_page_huge_active(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
+ 	SetPagePrivate(&page[1]);
 _
 
-Patches currently in -mm which might be from benbjiang@tencent.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-vmstatc-erase-latency-in-vmstat_shepherd.patch
+mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
+mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch
+mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch
+mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
+mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
+mm-memcontrol-make-the-slab-calculation-consistent.patch
+mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch
+mm-hugetlb-add-return-eagain-for-dissolve_free_huge_page.patch
 
