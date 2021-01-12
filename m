@@ -5,37 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A80F6C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3247C433E0
 	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 860482312F
+	by mail.kernel.org (Postfix) with ESMTP id A07222312E
 	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390064AbhAMAmt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Jan 2021 19:42:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46328 "EHLO mail.kernel.org"
+        id S2388839AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Jan 2021 19:42:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391989AbhALXua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 18:50:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 61F5723131;
-        Tue, 12 Jan 2021 23:49:34 +0000 (UTC)
+        id S2391950AbhALXuC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 Jan 2021 18:50:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EF8023138;
+        Tue, 12 Jan 2021 23:49:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610495375;
-        bh=IQLpdJSqJTkSxzfWi+dXB1+DERUDSuH3taG7+PK6n3E=;
+        s=korg; t=1610495362;
+        bh=RDcIaqC9EWRiTftuo/Tl8jcOF/9zYknnO+03Bno0x6k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=eWuiIHli0EO70cgQHU1ERd+t/UkAS++HuBaJm1rtrnypQivTdE9I0J5a1+MbcesRz
-         9oNblxlMmP5caGO7wl0DNYG9A7m/h/ENbo0L1v9XNww/9/FNb3JPrdjq7XOHMbtHsK
-         c5ivg+SrbGPeT5LD+7bRIRMMqv8XRW1r/vr1Xuok=
-Date:   Tue, 12 Jan 2021 15:49:33 -0800
+        b=1uxqsSYK14GsNc3bX09iPRCjufcccpG+YCV/kEQZNVQtqumA6rvz45/il3XQMk9S+
+         tbQSBJhIedltUXaElDzQQFsZhAXd8BUpidvdzS6TbqkH/9BquhNaOVHMzJP1btxbML
+         siW2IqHgjKrMxnoHgwWg3jGgskgRbVG+I9sIy+ns=
+Date:   Tue, 12 Jan 2021 15:49:21 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de,
-        linux-mm@kvack.org, me@kylehuey.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk
-Subject:  [patch 10/10] mm/process_vm_access.c: include compat.h
-Message-ID: <20210112234933.KYQegrK93%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, jack@suse.cz, jstancek@redhat.com,
+        linux-mm@kvack.org, mgorman@suse.de, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shy828301@gmail.com,
+        songliubraving@fb.com, torvalds@linux-foundation.org,
+        willy@infradead.org, ziy@nvidia.com
+Subject:  [patch 06/10] mm: migrate: initialize err in
+ do_migrate_pages
+Message-ID: <20210112234921.ydOmosyOp%akpm@linux-foundation.org>
 In-Reply-To: <20210112154839.abeb6e57de79480059fd9b0e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,32 +45,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/process_vm_access.c: include compat.h
+From: Jan Stancek <jstancek@redhat.com>
+Subject: mm: migrate: initialize err in do_migrate_pages
 
-mm/process_vm_access.c:277:5: error: implicit declaration of function 'in_compat_syscall'; did you mean 'in_ia32_syscall'? [-Werror=implicit-function-declaration]
+After commit 236c32eb1096 ("mm: migrate: clean up migrate_prep{_local}")',
+do_migrate_pages can return uninitialized variable 'err' (which is
+propagated to user-space as error) when 'from' and 'to' nodesets are
+identical.  This can be reproduced with LTP migrate_pages01, which calls
+migrate_pages() with same set for both old/new_nodes.
 
-Fixes: 38dc5079da7081e "Fix compat regression in process_vm_rw()"
-Reported-by: syzbot+5b0d0de84d6c65b8dd2b@syzkaller.appspotmail.com
-Cc: Kyle Huey <me@kylehuey.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@vger.kernel.org>
+Add 'err' initialization back.
+
+Link: https://lkml.kernel.org/r/456a021c7ef3636d7668cec9dcb4a446a4244812.1609855564.git.jstancek@redhat.com
+Fixes: 236c32eb1096 ("mm: migrate: clean up migrate_prep{_local}")
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/process_vm_access.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/process_vm_access.c~mm-process_vm_accessc-include-compath
-+++ a/mm/process_vm_access.c
-@@ -9,6 +9,7 @@
- #include <linux/mm.h>
- #include <linux/uio.h>
- #include <linux/sched.h>
-+#include <linux/compat.h>
- #include <linux/sched/mm.h>
- #include <linux/highmem.h>
- #include <linux/ptrace.h>
+--- a/mm/mempolicy.c~mm-migrate-initialize-err-in-do_migrate_pages
++++ a/mm/mempolicy.c
+@@ -1111,7 +1111,7 @@ int do_migrate_pages(struct mm_struct *m
+ 		     const nodemask_t *to, int flags)
+ {
+ 	int busy = 0;
+-	int err;
++	int err = 0;
+ 	nodemask_t tmp;
+ 
+ 	migrate_prep();
 _
