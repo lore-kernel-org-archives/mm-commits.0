@@ -2,131 +2,92 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6456C43331
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:05:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57B20C433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:21:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E806223E0
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:05:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 040A12312A
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:21:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389693AbhALWFG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Jan 2021 17:05:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394174AbhALWE6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 17:04:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F37BA221F5;
-        Tue, 12 Jan 2021 22:04:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610489057;
-        bh=ZaSIXm2lumXBYNPeyk1NRRneKKe8XqoXpdNOY+1Mzys=;
-        h=Date:From:To:Subject:From;
-        b=kzOENaFulgHBk39exkhCBuxcEH/ux5X5rzmqk0l8+qWT5D3YxXfccRONjOeQx9P2l
-         pWNRNfFC2Yrg0ZgdJx3NOHMNW9VI7Rk0FALOzLkEhRvoZ5lO2hV6+iTTx11qbmBMYH
-         2DcSNBFdhUC6C+SASc8eqfqFkvFtD1/dMfIYWM3A=
-Date:   Tue, 12 Jan 2021 14:04:16 -0800
-From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        stable@vger.kernel.org, tj@kernel.org
-Subject:  +
- mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch added to -mm
- tree
-Message-ID: <20210112220416.zrt4UTYJ2%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S2404667AbhALWVB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Jan 2021 17:21:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54570 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394523AbhALWUw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2021 17:20:52 -0500
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47DF7C061575;
+        Tue, 12 Jan 2021 14:20:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+        :Reply-To:Content-ID:Content-Description;
+        bh=s+I14tYnxOlyfxHrlO9JYe0T5UDj9LyjfS6FStHPM4c=; b=nLfDVtpl4aEhI+9k8tvCHGFGIL
+        WUoLkJx7AclGbCCkV6bC9lDRuKncLV99etAOe0ireXEKACLePG0cbdqNHY27eJPc4hh8MpZegnwVX
+        jWSAkmF0i7pe8V4eKrt9Qh+wWtvAlBW1S+eEuvrwN61WHiuJVG8ONldkStnwAP3Cz8lghcyaLFxFt
+        Wdmy5t5dZyyVX4V5pEEHySq7QR1M4HktljsJeMqwkf6TPS/AEK6VVRD8Be2I9nRMP77weJX79Yrni
+        hR69k2dEzuSN2Gv9xSuiZEpikGp0KHtAfRpbo62ve8H9bMzXNvyyRFspZfELVRWnDrTyltMN6aJ9z
+        1uFe+JBQ==;
+Received: from [2601:1c0:6280:3f0::9abc]
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kzS1G-0003Ru-OR; Tue, 12 Jan 2021 22:20:07 +0000
+Subject: Re: mmotm 2021-01-12-01-57 uploaded (NR_SWAPCACHE in mm/)
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        Shakeel Butt <shakeelb@google.com>
+References: <20210112095806.I2Z6as5al%akpm@linux-foundation.org>
+ <ac517aa0-2396-321c-3396-13aafba46116@infradead.org>
+ <20210112135010.267508efa85fe98f670ed9e9@linux-foundation.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <6ef78ccc-ab9e-5a18-ced7-ed2e993e4fef@infradead.org>
+Date:   Tue, 12 Jan 2021 14:20:00 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
+MIME-Version: 1.0
+In-Reply-To: <20210112135010.267508efa85fe98f670ed9e9@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On 1/12/21 1:50 PM, Andrew Morton wrote:
 
-The patch titled
-     Subject: mm: memcontrol: prevent starvation when writing memory.high
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
+>>
+>> on i386 and x86_64:
+>>
+>> when CONFIG_SWAP is not set/enabled:
+>>
+>> ../mm/migrate.c: In function ‘migrate_page_move_mapping’:
+>> ../mm/migrate.c:504:35: error: ‘NR_SWAPCACHE’ undeclared (first use in this function); did you mean ‘QC_SPACE’?
+>>     __mod_lruvec_state(old_lruvec, NR_SWAPCACHE, -nr);
+>>                                    ^~~~~~~~~~~~
+>>
+>> ../mm/memcontrol.c:1529:20: error: ‘NR_SWAPCACHE’ undeclared here (not in a function); did you mean ‘SGP_CACHE’?
+>>   { "swapcached",   NR_SWAPCACHE   },
+>>                     ^~~~~~~~~~~~
+> 
+> Thanks.  I did the below.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
+WorsForMe. Thanks.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+> But we're still emitting "Node %d SwapCached: 0 kB" in sysfs when
+> CONFIG_SWAP=n, which is probably wrong.  Shakeel, can you please have a
+> think?
 
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: prevent starvation when writing memory.high
-
-When a value is written to a cgroup's memory.high control file, the
-write() context first tries to reclaim the cgroup to size before putting
-the limit in place for the workload.  Concurrent charges from the workload
-can keep such a write() looping in reclaim indefinitely.
-
-In the past, a write to memory.high would first put the limit in place for
-the workload, then do targeted reclaim until the new limit has been met -
-similar to how we do it for memory.max.  This wasn't prone to the
-described starvation issue.  However, this sequence could cause excessive
-latencies in the workload, when allocating threads could be put into long
-penalty sleeps on the sudden memory.high overage created by the write(),
-before that had a chance to work it off.
-
-Now that memory_high_write() performs reclaim before enforcing the new
-limit, reflect that the cgroup may well fail to converge due to concurrent
-workload activity.  Bail out of the loop after a few tries.
-
-Link: https://lkml.kernel.org/r/20210112163011.127833-1-hannes@cmpxchg.org
-Fixes: 536d3bf261a2 ("mm: memcontrol: avoid workload stalls when lowering memory.high")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Tejun Heo <tj@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[5.8+]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
---- a/mm/memcontrol.c~mm-memcontrol-prevent-starvation-when-writing-memoryhigh
-+++ a/mm/memcontrol.c
-@@ -6273,7 +6273,6 @@ static ssize_t memory_high_write(struct
- 
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
--		unsigned long reclaimed;
- 
- 		if (nr_pages <= high)
- 			break;
-@@ -6287,10 +6286,10 @@ static ssize_t memory_high_write(struct
- 			continue;
- 		}
- 
--		reclaimed = try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
--							 GFP_KERNEL, true);
-+		try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
-+					     GFP_KERNEL, true);
- 
--		if (!reclaimed && !nr_retries--)
-+		if (!nr_retries--)
- 			break;
- 	}
- 
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
-
+-- 
+~Randy
+You can't do anything without having to do something else first.
+-- Belefant's Law
