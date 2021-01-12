@@ -4,145 +4,82 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC1AC433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:28:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BCCAC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:42:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78CA02312E
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:28:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1B54230FC
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Jan 2021 22:42:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729159AbhALW2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Jan 2021 17:28:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57964 "EHLO mail.kernel.org"
+        id S2438417AbhALWmd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Jan 2021 17:42:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393152AbhALW2G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 17:28:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D963C2312E;
-        Tue, 12 Jan 2021 22:27:25 +0000 (UTC)
+        id S2438406AbhALWmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 Jan 2021 17:42:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 236D1230FC;
+        Tue, 12 Jan 2021 22:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610490446;
-        bh=LD2De/8Cv30EnmDeMrMimhErOSc4FsKTgEp/E78081w=;
-        h=Date:From:To:Subject:From;
-        b=gga0bl1TYEJb5b2yd7Y40NA681A9mV4NHYNW0jv025vcrM4l6tyxHbJtRUj9JcQEN
-         GAW6Pk/od59yzX1fTJeXC2a0tuhOQ+Dpit3lQ/XZM5cUj8qzw5rzmcRNhdu6Q/lU4s
-         rIq0eiy4vWKP7SR3YghWFUyMdn7GI2j4LCugVZEI=
-Date:   Tue, 12 Jan 2021 14:27:25 -0800
-From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, vbabka@suse.cz, wu-yan@tcl.com
-Subject:  + mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
- added to -mm tree
-Message-ID: <20210112222725.GdMhWf999%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1610491312;
+        bh=I0AFmIa3UnK/Jcz9FTKsaEckCk/F2Xw9lSaL3nbr97M=;
+        h=Date:From:To:Subject:In-Reply-To:References:From;
+        b=UG9UJ5BDh3sZHkF2fq3KEmtzmMkgJaqyon57/JiebbpLRtUKyRbgFdB2mc9wMoWAV
+         Rl3ewuviNP34tvTP1ajnx2EG1QuY/BAvQt+QmGXpq/IhHfToJ52rLPKZm6QQ6pLOR4
+         dUkMymZ4w+9aDxkSTSQkmCevl3qoNRcdw+yHKQvc=
+Date:   Tue, 12 Jan 2021 14:41:51 -0800
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     aryabinin@virtuozzo.com, dan.j.williams@intel.com,
+        dvyukov@google.com, glider@google.com, lecopzer.chen@mediatek.com,
+        lecopzer@gmail.com, mm-commits@vger.kernel.org
+Subject: Re: +
+ kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch added
+ to -mm tree
+Message-Id: <20210112144151.9293558d9f4cdf156d9edc39@linux-foundation.org>
+In-Reply-To: <20210104212913.Dp2ZoxVB9%akpm@linux-foundation.org>
+References: <20210104212913.Dp2ZoxVB9%akpm@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Mon, 04 Jan 2021 13:29:13 -0800 akpm@linux-foundation.org wrote:
 
-The patch titled
-     Subject: mm, compaction: move high_pfn to the for loop scope
-has been added to the -mm tree.  Its filename is
-     mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
+> 
+> From: Lecopzer Chen <lecopzer@gmail.com>
+> Subject: kasan: fix incorrect arguments passing in kasan_add_zero_shadow
+> 
+> kasan_remove_zero_shadow() shall use original virtual address, start and
+> size, instead of shadow address.
+> 
+> Link: https://lkml.kernel.org/r/20210103063847.5963-1-lecopzer@gmail.com
+> Fixes: 0207df4fa1a86 ("kernel/memremap, kasan: make ZONE_DEVICE with work with KASAN")
+> Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+> Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dmitry Vyukov <dvyukov@google.com>
+> Cc: Alexander Potapenko <glider@google.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/kasan/init.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> --- a/mm/kasan/init.c~kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow
+> +++ a/mm/kasan/init.c
+> @@ -485,7 +485,6 @@ int kasan_add_zero_shadow(void *start, u
+>  
+>  	ret = kasan_populate_early_shadow(shadow_start, shadow_end);
+>  	if (ret)
+> -		kasan_remove_zero_shadow(shadow_start,
+> -					size >> KASAN_SHADOW_SCALE_SHIFT);
+> +		kasan_remove_zero_shadow(start, size);
+>  	return ret;
+>  }
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Rokudo Yan <wu-yan@tcl.com>
-Subject: mm, compaction: move high_pfn to the for loop scope
-
-In fast_isolate_freepages, high_pfn will be used if a prefered one(PFN >=
-low_fn) not found.  But the high_pfn is not reset before searching an free
-area, so when it was used as freepage, it may from another free area
-searched before.  And move_freelist_head(freelist, freepage) will have
-unexpected behavior(eg.  corrupt the MOVABLE freelist)
-
-Unable to handle kernel paging request at virtual address dead000000000200
-Mem abort info:
-  ESR = 0x96000044
-  Exception class = DABT (current EL), IL = 32 bits
-  SET = 0, FnV = 0
-  EA = 0, S1PTW = 0
-Data abort info:
-  ISV = 0, ISS = 0x00000044
-  CM = 0, WnR = 1
-[dead000000000200] address between user and kernel address ranges
-
--000|list_cut_before(inline)
--000|move_freelist_head(inline)
--000|fast_isolate_freepages(inline)
--000|isolate_freepages(inline)
--000|compaction_alloc(?, ?)
--001|unmap_and_move(inline)
--001|migrate_pages([NSD:0xFFFFFF80088CBBD0] from = 0xFFFFFF80088CBD88, [NSD:0xFFFFFF80088CBBC8] get_new_p
--002|__read_once_size(inline)
--002|static_key_count(inline)
--002|static_key_false(inline)
--002|trace_mm_compaction_migratepages(inline)
--002|compact_zone(?, [NSD:0xFFFFFF80088CBCB0] capc = 0x0)
--003|kcompactd_do_work(inline)
--003|kcompactd([X19] p = 0xFFFFFF93227FBC40)
--004|kthread([X20] _create = 0xFFFFFFE1AFB26380)
--005|ret_from_fork(asm)
----|end of frame
-
-The issue was reported on an smart phone product with 6GB ram and 3GB zram
-as swap device.
-
-This patch fixes the issue by reset high_pfn before searching each free
-area, which ensure freepage and freelist match when call
-move_freelist_head in fast_isolate_freepages().
-
-Link: http://lkml.kernel.org/r/20190118175136.31341-12-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20210112094720.1238444-1-wu-yan@tcl.com
-Fixes: 5a811889de10f1eb ("mm, compaction: use free lists to quickly locate a migration target")
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/compaction.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/mm/compaction.c~mm-compaction-move-high_pfn-to-the-for-loop-scope
-+++ a/mm/compaction.c
-@@ -1342,7 +1342,7 @@ fast_isolate_freepages(struct compact_co
- {
- 	unsigned int limit = min(1U, freelist_scan_limit(cc) >> 1);
- 	unsigned int nr_scanned = 0;
--	unsigned long low_pfn, min_pfn, high_pfn = 0, highest = 0;
-+	unsigned long low_pfn, min_pfn, highest = 0;
- 	unsigned long nr_isolated = 0;
- 	unsigned long distance;
- 	struct page *page = NULL;
-@@ -1387,6 +1387,7 @@ fast_isolate_freepages(struct compact_co
- 		struct page *freepage;
- 		unsigned long flags;
- 		unsigned int order_scanned = 0;
-+		unsigned long high_pfn = 0;
- 
- 		if (!area->nr_free)
- 			continue;
-_
-
-Patches currently in -mm which might be from wu-yan@tcl.com are
-
-mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
-
+Reviewer input on this one, please?
