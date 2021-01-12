@@ -5,82 +5,110 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3247C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19B88C4332E
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A07222312E
+	by mail.kernel.org (Postfix) with ESMTP id E5A1F23131
 	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388839AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1730975AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 12 Jan 2021 19:42:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46106 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391950AbhALXuC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 18:50:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EF8023138;
-        Tue, 12 Jan 2021 23:49:21 +0000 (UTC)
+        id S2391925AbhALXt4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 Jan 2021 18:49:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2175223135;
+        Tue, 12 Jan 2021 23:49:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610495362;
-        bh=RDcIaqC9EWRiTftuo/Tl8jcOF/9zYknnO+03Bno0x6k=;
+        s=korg; t=1610495355;
+        bh=NSG9iDmXs2vC1wTygyubD7mqFbb432cVnyBE6JWzfhc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=1uxqsSYK14GsNc3bX09iPRCjufcccpG+YCV/kEQZNVQtqumA6rvz45/il3XQMk9S+
-         tbQSBJhIedltUXaElDzQQFsZhAXd8BUpidvdzS6TbqkH/9BquhNaOVHMzJP1btxbML
-         siW2IqHgjKrMxnoHgwWg3jGgskgRbVG+I9sIy+ns=
-Date:   Tue, 12 Jan 2021 15:49:21 -0800
+        b=Xo5NvK1Bf1m9mVo1KVKYEsBzLJ0sPAOUrRgP9/3ngQlGKf7eQ2kkzpldyHye61KiO
+         31jA5Tj3J8Urw89dB3InYwND0+rbf/jQNBrIoOxkvXig+aQQrh0u/663FZKNFygHfz
+         VeeEHEV4Fp2IUZOL+mItT+HBqmR8304JkgoIaDqU=
+Date:   Tue, 12 Jan 2021 15:49:14 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jack@suse.cz, jstancek@redhat.com,
-        linux-mm@kvack.org, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shy828301@gmail.com,
-        songliubraving@fb.com, torvalds@linux-foundation.org,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 06/10] mm: migrate: initialize err in
- do_migrate_pages
-Message-ID: <20210112234921.ydOmosyOp%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ardb@kernel.org,
+        aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com,
+        guo.ziliang@zte.com.cn, linus.walleij@linaro.org,
+        linux-mm@kvack.org, linux@armlinux.org.uk, liu.hailong6@zte.com.cn,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 04/10] arm/kasan: fix the array size of
+ kasan_early_shadow_pte[]
+Message-ID: <20210112234914.NwudbAxXv%akpm@linux-foundation.org>
 In-Reply-To: <20210112154839.abeb6e57de79480059fd9b0e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jan Stancek <jstancek@redhat.com>
-Subject: mm: migrate: initialize err in do_migrate_pages
+=46rom: Hailong Liu <liu.hailong6@zte.com.cn>
+Subject: arm/kasan: fix the array size of kasan_early_shadow_pte[]
 
-After commit 236c32eb1096 ("mm: migrate: clean up migrate_prep{_local}")',
-do_migrate_pages can return uninitialized variable 'err' (which is
-propagated to user-space as error) when 'from' and 'to' nodesets are
-identical.  This can be reproduced with LTP migrate_pages01, which calls
-migrate_pages() with same set for both old/new_nodes.
+The size of kasan_early_shadow_pte[] now is PTRS_PER_PTE which defined to
+512 for arm architecture.  This means that it only covers the prev Linux
+pte entries, but not the HWTABLE pte entries for arm.
 
-Add 'err' initialization back.
+The reason it works well current is that the symbol
+kasan_early_shadow_page immediately following kasan_early_shadow_pte in
+memory is page aligned, which makes kasan_early_shadow_pte look like a 4KB
+size array.  But we can't ensure the order always right with different
+compiler/linker, nor more bss symbols be introduced.
 
-Link: https://lkml.kernel.org/r/456a021c7ef3636d7668cec9dcb4a446a4244812.1609855564.git.jstancek@redhat.com
-Fixes: 236c32eb1096 ("mm: migrate: clean up migrate_prep{_local}")
-Signed-off-by: Jan Stancek <jstancek@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Song Liu <songliubraving@fb.com>
+We had a test with QEMU + vexpress=EF=BC=9Aput a 512KB-size symbol with
+attribute __section(".bss..page_aligned") after kasan_early_shadow_pte,
+and poison it after kasan_early_init().  Then enabled CONFIG_KASAN, it
+failed to boot up.
+
+Link: https://lkml.kernel.org/r/20210109044622.8312-1-hailongliiu@yeah.net
+Signed-off-by: Hailong Liu <liu.hailong6@zte.com.cn>
+Signed-off-by: Ziliang Guo <guo.ziliang@zte.com.cn>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kasan.h |    6 +++++-
+ mm/kasan/init.c       |    3 ++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/mempolicy.c~mm-migrate-initialize-err-in-do_migrate_pages
-+++ a/mm/mempolicy.c
-@@ -1111,7 +1111,7 @@ int do_migrate_pages(struct mm_struct *m
- 		     const nodemask_t *to, int flags)
+--- a/include/linux/kasan.h~arm-kasan-fix-the-arry-size-of-kasan_early_shad=
+ow_pte
++++ a/include/linux/kasan.h
+@@ -35,8 +35,12 @@ struct kunit_kasan_expectation {
+ #define KASAN_SHADOW_INIT 0
+ #endif
+=20
++#ifndef PTE_HWTABLE_PTRS
++#define PTE_HWTABLE_PTRS 0
++#endif
++
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+-extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
++extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS];
+ extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+ extern pud_t kasan_early_shadow_pud[PTRS_PER_PUD];
+ extern p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D];
+--- a/mm/kasan/init.c~arm-kasan-fix-the-arry-size-of-kasan_early_shadow_pte
++++ a/mm/kasan/init.c
+@@ -64,7 +64,8 @@ static inline bool kasan_pmd_table(pud_t
+ 	return false;
+ }
+ #endif
+-pte_t kasan_early_shadow_pte[PTRS_PER_PTE] __page_aligned_bss;
++pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS]
++	__page_aligned_bss;
+=20
+ static inline bool kasan_pte_table(pmd_t pmd)
  {
- 	int busy = 0;
--	int err;
-+	int err = 0;
- 	nodemask_t tmp;
- 
- 	migrate_prep();
 _
