@@ -5,40 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46489C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08347C4332B
 	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 214C923131
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2B5C23135
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jan 2021 00:56:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730131AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S2389925AbhAMAms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 12 Jan 2021 19:42:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45964 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391937AbhALXtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 Jan 2021 18:49:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FE9423133;
-        Tue, 12 Jan 2021 23:49:11 +0000 (UTC)
+        id S2391986AbhALXu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 Jan 2021 18:50:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE70D23132;
+        Tue, 12 Jan 2021 23:49:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610495352;
-        bh=8koHiLzr5itWHBQjzON8eFAiTv4vMLkrNnLaFsHT9XY=;
+        s=korg; t=1610495368;
+        bh=u6wwpMUYCNQ5KCpzwNq+++EmdOrZkPCTm/p56rtCb+4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lvXeWdYGaZjPsNQua6b0I/SrPqjOlXOMOSbc4SSJ5y3fgoy912qIodtDGyb0YU1bi
-         zeBUIy/iJxOm0/sQl8fQt/8zI+wXmqrXhZ4k+6awc8FaEm2eT1u0esMXL19rvNxbT6
-         SQ8iwPzepdSWuLj/FBlwrJbZtdbHsqfTUORb/t4Q=
-Date:   Tue, 12 Jan 2021 15:49:11 -0800
+        b=dOCNoUzQToYWm1VqyV89M0Q4jM5RaulF9ArMQopEuYis+og7G50uCGPwUxzHX3oyV
+         vOvtIoJbZyHvKFKatbBqOVuC2w7i3yZca2e1nXEZZsuazULMMBbWO8LMPm9lYlKVKy
+         AGfyQoEjF+72CFyCk6FBX+9CO8SJlASOalETJX34=
+Date:   Tue, 12 Jan 2021 15:49:27 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        bhe@redhat.com, chris@chrisdown.name, guro@fb.com,
-        hannes@cmpxchg.org, hughd@google.com, linux-mm@kvack.org,
-        lstoakes@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        sh_def@163.com, shakeelb@google.com, torvalds@linux-foundation.org,
-        vbabka@suse.cz
-Subject:  [patch 03/10] mm/memcontrol: fix warning in
- mem_cgroup_page_lruvec()
-Message-ID: <20210112234911.PDWRysjU0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 08/10] MAINTAINERS: add Vlastimil as slab
+ allocators maintainer
+Message-ID: <20210112234927.qjKNk9pDa%akpm@linux-foundation.org>
 In-Reply-To: <20210112154839.abeb6e57de79480059fd9b0e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,49 +43,35 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/memcontrol: fix warning in mem_cgroup_page_lruvec()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: MAINTAINERS: add Vlastimil as slab allocators maintainer
 
-Boot a CONFIG_MEMCG=y kernel with "cgroup_disabled=memory" and you are met
-by a series of warnings from the VM_WARN_ON_ONCE_PAGE(!memcg, page)
-recently added to the inline mem_cgroup_page_lruvec().
+I would like to help with slab allocators maintenance, from the
+perspective of being responsible for SLAB and more recently also SLUB in
+an enterprise distro kernel and supporting its users.  Recently I've been
+focusing on improving SLUB's debugging features, and patch review in the
+area, including the kmemcg accounting rewrite last year.
 
-An earlier attempt to place that warning, in mem_cgroup_lruvec(), had been
-careful to do so after weeding out the mem_cgroup_disabled() case; but was
-itself invalid because of the mem_cgroup_lruvec(NULL, pgdat) in
-clear_pgdat_congested() and age_active_anon().
-
-Warning in mem_cgroup_page_lruvec() was once useful in detecting a KSM
-charge bug, so may be worth keeping: but skip if mem_cgroup_disabled().
-
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2101032056260.1093@eggly.anvils
-Fixes: 9a1ac2288cf1 ("mm/memcontrol:rewrite mem_cgroup_page_lruvec()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hui Su <sh_def@163.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20210108110353.19971-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec
-+++ a/include/linux/memcontrol.h
-@@ -665,7 +665,7 @@ static inline struct lruvec *mem_cgroup_
- {
- 	struct mem_cgroup *memcg = page_memcg(page);
- 
--	VM_WARN_ON_ONCE_PAGE(!memcg, page);
-+	VM_WARN_ON_ONCE_PAGE(!memcg && !mem_cgroup_disabled(), page);
- 	return mem_cgroup_lruvec(memcg, pgdat);
- }
- 
+--- a/MAINTAINERS~maintainers-add-myself-as-slab-allocators-maintainer
++++ a/MAINTAINERS
+@@ -16319,6 +16319,7 @@ M:	Pekka Enberg <penberg@kernel.org>
+ M:	David Rientjes <rientjes@google.com>
+ M:	Joonsoo Kim <iamjoonsoo.kim@lge.com>
+ M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Vlastimil Babka <vbabka@suse.cz>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	include/linux/sl?b*.h
 _
