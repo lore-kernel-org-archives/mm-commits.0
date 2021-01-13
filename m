@@ -7,40 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D0C2C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:57:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F40F2C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:59:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6D712343B
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:57:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B82C523442
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:59:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727837AbhANB5Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jan 2021 20:57:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54380 "EHLO mail.kernel.org"
+        id S1728377AbhANB60 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jan 2021 20:58:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729578AbhAMXnr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Jan 2021 18:43:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A08952339D;
-        Wed, 13 Jan 2021 23:43:05 +0000 (UTC)
+        id S1729487AbhAMXl4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Jan 2021 18:41:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E860222248;
+        Wed, 13 Jan 2021 23:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610581386;
-        bh=NGRNFXt+eEIeCPAbPgK5dj/xoos2QY/l6OXGmcLJ+fE=;
+        s=korg; t=1610581222;
+        bh=7LOErbfKYvmtc32PcRxhq0yDGVjhmozc2wzfzgsMZAc=;
         h=Date:From:To:Subject:From;
-        b=Hy4R+PfeweB6W0Qb1Ejr/0v37jm/wRkTR8QdW4bYt1+V3G2NGND0HW3fslIr41CR6
-         FchMNKnbPIFB4PCwX6p4Crfk91hWetR8BKo4+7SFJ4jdwXwOurjR7z4k/lQFJs02v6
-         NjJNnWAxZKeDjTO0z76tmSUvcY0xkwYNEfmGEz+k=
-Date:   Wed, 13 Jan 2021 15:43:05 -0800
+        b=1p6DcW7HYhtOftWL9udDN3kvnmk7XOwqGbvckdz8Foy5kMy2MFiUoHuBoWvQHODov
+         Zg/MQ1eY20gFUmAaJmjNbuOSAD02QHxp7V7uqkECHmGnZllpYT+3tdNDQqHUUjj/oB
+         Av2GC6Jhw8OsAkEhiIBQu/BXNe1Yg86p3D/iB5tc=
+Date:   Wed, 13 Jan 2021 15:40:21 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, charante@codeaurora.org,
-        khalid.aziz@oracle.com, mgorman@techsingularity.net,
-        mhocko@suse.com, mm-commits@vger.kernel.org, ngupta@nitingupta.dev,
-        vbabka@suse.cz, vinmenon@codeaurora.org
+To:     charante@codeaurora.org, khalid.aziz@oracle.com,
+        mgorman@techsingularity.net, mhocko@suse.com,
+        mm-commits@vger.kernel.org, ngupta@nitingupta.dev, vbabka@suse.cz,
+        vinmenon@codeaurora.org
 Subject:  +
- =?US-ASCII?Q?mm-compaction-return-proper-state-in-should=5Fproactive=5Fco?=
- =?US-ASCII?Q?mpact=5Fnode-fix.patch?= added to -mm tree
-Message-ID: <20210113234305.ZKh_i2ZGL%akpm@linux-foundation.org>
+ mm-compaction-return-proper-state-in-should_proactive_compact_node.patch
+ added to -mm tree
+Message-ID: <20210113234021.uYvIAiUrk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-return-proper-state-in-should_proactive_compact_node-fix
+     Subject: mm/compaction: return proper state in should_proactive_compact_node
 has been added to the -mm tree.  Its filename is
-     mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
+     mm-compaction-return-proper-state-in-should_proactive_compact_node.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-return-proper-state-in-should_proactive_compact_node.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-return-proper-state-in-should_proactive_compact_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,51 +67,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-return-proper-state-in-should_proactive_compact_node-fix
+From: Charan Teja Reddy <charante@codeaurora.org>
+Subject: mm/compaction: return proper state in should_proactive_compact_node
 
-s/max_t/max/
+should_proactive_compact_node() returns true when sum of the fragmentation
+score of all the zones in the node is greater than the wmark_high of
+compaction which then triggers the proactive compaction that operates on
+the individual zones of the node.  But proactive compaction runs on the
+zone only when the fragmentation score of the zone is greater than
+wmark_low(=wmark_high - 10).
 
-Cc: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+This means that the sum of the fragmentation scores of all the zones can
+exceed the wmark_high but individual zone scores can still be less than
+the wmark_low which makes the unnecessary trigger of the proactive
+compaction only to return doing nothing.
+
+Another issue with the return of proactive compaction with out even trying
+is its deferral.  It is simply deferred for 1 << COMPACT_MAX_DEFER_SHIFT
+if the scores across the proactive compaction is same, thinking that
+compaction didn't make any progress but in reality it didn't even try. 
+With the delay between successive retries for proactive compaction is
+500msec, it can result into the deferral for ~30sec with out even trying
+the proactive compaction.
+
+Test scenario is that: compaction_proactiveness=50 thus the wmark_low = 50
+and wmark_high = 60.  System have 2 zones(Normal and Movable) with sizes
+5GB and 6GB respectively.  After opening some apps on the android, the
+fragmentation scores of these zones are 47 and 49 respectively.  Since the
+sum of these fragmentation scores are above the wmark_high which triggers
+the proactive compaction and there since the individual zone scores are
+below wmark_low, it returns without trying the compaction.  As a result
+the fragmentation scores of the zones are still 47 and 49 which makes the
+existing logic to defer the compaction thinking that noprogress is made
+across the compaction.
+
+So, run the proactive compaction on the node zones only when atleast one
+of the zones fragmentation score is greater than wmark_low.  This avoids
+the unnecessary deferral and retries of the compaction.
+
+Link: https://lkml.kernel.org/r/1610546586-18998-1-git-send-email-charante@codeaurora.org
+Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: Nitin Gupta <ngupta@nitingupta.dev>
 Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |   27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-return-proper-state-in-should_proactive_compact_node-fix
+--- a/mm/compaction.c~mm-compaction-return-proper-state-in-should_proactive_compact_node
 +++ a/mm/compaction.c
-@@ -1975,7 +1975,7 @@ static unsigned int fragmentation_score_
- 		struct zone *zone;
+@@ -1961,6 +1961,26 @@ static unsigned int fragmentation_score_
+ 	return score;
+ }
  
- 		zone = &pgdat->node_zones[zoneid];
--		max = max_t(unsigned int, fragmentation_score_zone(zone), max);
-+		max = max(fragmentation_score_zone(zone), max);
- 	}
++/*
++ * Returns the maximum of fragmentation scores of zones in a node. This is
++ * used in taking the decission of whether to trigger the proactive compaction
++ * on the zones of this node.
++ */
++static unsigned int fragmentation_score_node_zones_max(pg_data_t *pgdat)
++{
++	int zoneid;
++	unsigned int max = 0;
++
++	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
++		struct zone *zone;
++
++		zone = &pgdat->node_zones[zoneid];
++		max = max_t(unsigned int, fragmentation_score_zone(zone), max);
++	}
++
++	return max;
++}
++
+ static unsigned int fragmentation_score_wmark(pg_data_t *pgdat, bool low)
+ {
+ 	unsigned int wmark_low;
+@@ -1976,13 +1996,16 @@ static unsigned int fragmentation_score_
  
- 	return max;
+ static bool should_proactive_compact_node(pg_data_t *pgdat)
+ {
+-	int wmark_high;
++	int wmark_low, wmark_high;
+ 
+ 	if (!sysctl_compaction_proactiveness || kswapd_is_running(pgdat))
+ 		return false;
+ 
+ 	wmark_high = fragmentation_score_wmark(pgdat, false);
+-	return fragmentation_score_node(pgdat) > wmark_high;
++	wmark_low = fragmentation_score_wmark(pgdat, true);
++
++	return fragmentation_score_node(pgdat) > wmark_high &&
++		fragmentation_score_node_zones_max(pgdat) > wmark_low;
+ }
+ 
+ static enum compact_result __compact_finished(struct compact_control *cc)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from charante@codeaurora.org are
 
-mm-process_vm_accessc-include-compath.patch
-mm.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
-mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode-fix.patch
-mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
-linux-next-git-rejects.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-compaction-return-proper-state-in-should_proactive_compact_node.patch
 
