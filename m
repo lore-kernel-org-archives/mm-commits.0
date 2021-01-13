@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3CC8C432C3
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:53:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB2DC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:53:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E8A02074A
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:53:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23540206C0
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 01:53:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728338AbhANAAT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jan 2021 19:00:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55964 "EHLO mail.kernel.org"
+        id S1726003AbhANBxi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jan 2021 20:53:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729695AbhANAAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Jan 2021 19:00:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26A2E2336F;
-        Wed, 13 Jan 2021 23:50:46 +0000 (UTC)
+        id S1729694AbhANAAH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Jan 2021 19:00:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E4EE623382;
+        Wed, 13 Jan 2021 23:50:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610581846;
-        bh=1XQOmkUfUb5fVNtNpITBriPzac7g8rHzUE9zfAaveVI=;
+        s=korg; t=1610581849;
+        bh=nH5X1lSjza38aPxER8lu2FI2OwMk9UzrQM9sGEyY1ug=;
         h=Date:From:To:Subject:From;
-        b=bC7/UlvBs7M9xoUaqjEy5iDzreegQ54mswMqthGRjNk4P73dsyluCyqOHj+2T0Eso
-         VR36ZB5EpIkTDYH3J7N9+jTM3I96UBN+4dLgbWzdM0JOQC2Z+ZNdhvFmGij3zPtMlG
-         8Y5OZzx2OeqHbCtmFmqXMyNMdFJ6WQWOuio9kAGo=
-Date:   Wed, 13 Jan 2021 15:50:45 -0800
+        b=BREXEISC74ECSEAxmIdw9Z8zn76oLxuNgCsddAIujeNmHPvuusQlDziJ9l58wiuVp
+         FqATx3x8QRH6trGeyq98HPLBijyhc/ImK2peen9SDfHmKma/3PnulOrthApJEpW6a3
+         ND6bEWaK6tb+eD3BTbmZ6K+KZdA0oyJVpnccZbdY=
+Date:   Wed, 13 Jan 2021 15:50:48 -0800
 From:   akpm@linux-foundation.org
 To:     cai@redhat.com, cl@linux.com, david@redhat.com,
         iamjoonsoo.kim@lge.com, mhocko@kernel.org,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz, vdavydov.dev@gmail.com
-Subject:  +
- mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch added
- to -mm tree
-Message-ID: <20210113235045.SrbiXrb8R%akpm@linux-foundation.org>
+Subject:  + mm-slab-slub-stop-taking-memory-hotplug-lock.patch
+ added to -mm tree
+Message-ID: <20210113235048.RLE0OMUcg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: stop freeing kmem_cache_node structures on node offline
+     Subject: mm, slab, slub: stop taking memory hotplug lock
 has been added to the -mm tree.  Its filename is
-     mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+     mm-slab-slub-stop-taking-memory-hotplug-lock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-slub-stop-taking-memory-hotplug-lock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-slub-stop-taking-memory-hotplug-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,133 +67,210 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: stop freeing kmem_cache_node structures on node offline
+Subject: mm, slab, slub: stop taking memory hotplug lock
 
-Patch series "mm, slab, slub: remove cpu and memory hotplug locks".
+Since commit 03afc0e25f7f ("slab: get_online_mems for
+kmem_cache_{create,destroy,shrink}") we are taking memory hotplug lock for
+SLAB and SLUB when creating, destroying or shrinking a cache.  It is quite
+a heavy lock and it's best to avoid it if possible, as we had several
+issues with lockdep complaining about ordering in the past, see e.g. 
+e4f8e513c3d3 ("mm/slub: fix a deadlock in show_slab_objects()").
 
-Some related work caused me to look at how we use get/put_mems_online()
-and get/put_online_cpus() during kmem cache
-creation/descruction/shrinking, and realize that it should be actually
-safe to remove all of that with rather small effort (as e.g.  Michal Hocko
-suspected in some of the past discussions already).  This has the benefit
-to avoid rather heavy locks that have caused locking order issues already
-in the past.  So this is the result, Patches 2 and 3 remove memory hotplug
-and cpu hotplug locking, respectively.  Patch 1 is due to realization that
-in fact some races exist despite the locks (even if not removed), but the
-most sane solution is not to introduce more of them, but rather accept
-some wasted memory in scenarios that should be rare anyway (full memory
-hot remove), as we do the same in other contexts already.
+The problem scenario in 03afc0e25f7f (solved by the memory hotplug lock)
+can be summarized as follows: while there's slab_mutex synchronizing new
+kmem cache creation and SLUB's MEM_GOING_ONLINE callback
+slab_mem_going_online_callback(), we may miss creation of kmem_cache_node
+for the hotplugged node in the new kmem cache, because the hotplug
+callback doesn't yet see the new cache, and cache creation in
+init_kmem_cache_nodes() only inits kmem_cache_node for nodes in the
+N_NORMAL_MEMORY nodemask, which however may not yet include the new node,
+as that happens only later after the MEM_GOING_ONLINE callback.
 
+Instead of using get/put_online_mems(), the problem can be solved by SLUB
+maintaining its own nodemask of nodes for which it has allocated the
+per-node kmem_cache_node structures.  This nodemask would generally mirror
+the N_NORMAL_MEMORY nodemask, but would be updated only in under SLUB's
+control in its memory hotplug callbacks under the slab_mutex.  This patch
+adds such nodemask and its handling.
 
-This patch (of 3):
+Commit 03afc0e25f7f mentiones "issues like [the one above]", but there
+don't appear to be further issues.  All the paths (shared for SLAB and
+SLUB) taking the memory hotplug locks are also taking the slab_mutex,
+except kmem_cache_shrink() where 03afc0e25f7f replaced slab_mutex with
+get/put_online_mems().
 
-Commit e4f8e513c3d3 ("mm/slub: fix a deadlock in show_slab_objects()") has
-fixed a problematic locking order by removing the memory hotplug lock
-get/put_online_mems() from show_slab_objects().  During the discussion, it
-was argued [1] that this is OK, because existing slabs on the node would
-prevent a hotremove to proceed.
+We however cannot simply restore slab_mutex in kmem_cache_shrink(), as
+SLUB can enters the function from a write to sysfs 'shrink' file, thus
+holding kernfs lock, and in kmem_cache_create() the kernfs lock is nested
+within slab_mutex.  But on closer inspection we don't actually need to
+protect kmem_cache_shrink() from hotplug callbacks: While SLUB's
+__kmem_cache_shrink() does for_each_kmem_cache_node(), missing a new node
+added in parallel hotplug is not fatal, and parallel hotremove does not
+free kmem_cache_node's anymore after the previous patch, so use-after free
+cannot happen.  The per-node shrinking itself is protected by
+n->list_lock.  Same is true for SLAB, and SLOB is no-op.
 
-That's true, but per-node kmem_cache_node structures are not necessarily
-allocated on the same node and may exist even without actual slab pages on
-the same node.  Any path that uses get_node() directly or via
-for_each_kmem_cache_node() (such as show_slab_objects()) can race with
-freeing of kmem_cache_node even with the !NULL check, resulting in
-use-after-free.
+SLAB also doesn't need the memory hotplug locking, which it only gained by
+03afc0e25f7f through the shared paths in slab_common.c.  Its memory
+hotplug callbacks are also protected by slab_mutex against races with
+these paths.  The problem of SLUB relying on N_NORMAL_MEMORY doesn't apply
+to SLAB, as its setup_kmem_cache_nodes relies on N_ONLINE, and the new
+node is already set there during the MEM_GOING_ONLINE callback, so no
+special care is needed for SLAB.
 
-To that end, commit e4f8e513c3d3 argues in a comment that:
+As such, this patch removes all get/put_online_mems() usage by the slab
+subsystem.
 
- * We don't really need mem_hotplug_lock (to hold off
- * slab_mem_going_offline_callback) here because slab's memory hot
- * unplug code doesn't destroy the kmem_cache->node[] data.
-
-While it's true that slab_mem_going_offline_callback() doesn't free the
-kmem_cache_node, the later callback slab_mem_offline_callback() actually
-does, so the race and use-after-free exists.  Not just for
-show_slab_objects() after commit e4f8e513c3d3, but also many other places
-that are not under slab_mutex.  And adding slab_mutex locking or other
-synchronization to SLUB paths such as get_any_partial() would be bad for
-performance and error-prone.
-
-The easiest solution is therefore to make the abovementioned comment true
-and stop freeing the kmem_cache_node structures, accepting some wasted
-memory in the full memory node removal scenario.  Analogically we also
-don't free hotremoved pgdat as mentioned in [1], nor the similar per-node
-structures in SLAB.  Importantly this approach will not block the
-hotremove, as generally such nodes should be movable in order to succeed
-hotremove in the first place, and thus the GFP_KERNEL allocated
-kmem_cache_node will come from elsewhere.
-
-[1] https://lore.kernel.org/linux-mm/20190924151147.GB23050@dhcp22.suse.cz/
-
-Link: https://lkml.kernel.org/r/20210113131634.3671-1-vbabka@suse.cz
-Link: https://lkml.kernel.org/r/20210113131634.3671-2-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210113131634.3671-3-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Qian Cai <cai@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Qian Cai <cai@redhat.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+ mm/slab_common.c |    8 ++------
+ mm/slub.c        |   28 +++++++++++++++++++++++++---
+ 2 files changed, 27 insertions(+), 9 deletions(-)
 
---- a/mm/slub.c~mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline
+--- a/mm/slab_common.c~mm-slab-slub-stop-taking-memory-hotplug-lock
++++ a/mm/slab_common.c
+@@ -310,7 +310,6 @@ kmem_cache_create_usercopy(const char *n
+ 	int err;
+ 
+ 	get_online_cpus();
+-	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+@@ -360,7 +359,6 @@ kmem_cache_create_usercopy(const char *n
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+-	put_online_mems();
+ 	put_online_cpus();
+ 
+ 	if (err) {
+@@ -487,7 +485,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 		return;
+ 
+ 	get_online_cpus();
+-	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+@@ -504,7 +501,6 @@ void kmem_cache_destroy(struct kmem_cach
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+-	put_online_mems();
+ 	put_online_cpus();
+ }
+ EXPORT_SYMBOL(kmem_cache_destroy);
+@@ -523,10 +519,10 @@ int kmem_cache_shrink(struct kmem_cache
+ 	int ret;
+ 
+ 	get_online_cpus();
+-	get_online_mems();
++
+ 	kasan_cache_shrink(cachep);
+ 	ret = __kmem_cache_shrink(cachep);
+-	put_online_mems();
++
+ 	put_online_cpus();
+ 	return ret;
+ }
+--- a/mm/slub.c~mm-slab-slub-stop-taking-memory-hotplug-lock
 +++ a/mm/slub.c
-@@ -4221,8 +4221,6 @@ static int slab_mem_going_offline_callba
+@@ -235,6 +235,14 @@ static inline void stat(const struct kme
+ #endif
+ }
  
- static void slab_mem_offline_callback(void *arg)
++/*
++ * Tracks for which NUMA nodes we have kmem_cache_nodes allocated.
++ * Corresponds to node_state[N_NORMAL_MEMORY], but can temporarily
++ * differ during memory hotplug/hotremove operations.
++ * Protected by slab_mutex.
++ */
++static nodemask_t slab_nodes;
++
+ /********************************************************************
+  * 			Core slab cache functions
+  *******************************************************************/
+@@ -2681,7 +2689,7 @@ static void *___slab_alloc(struct kmem_c
+ 		 * ignore the node constraint
+ 		 */
+ 		if (unlikely(node != NUMA_NO_NODE &&
+-			     !node_state(node, N_NORMAL_MEMORY)))
++			     !node_isset(node, slab_nodes)))
+ 			node = NUMA_NO_NODE;
+ 		goto new_slab;
+ 	}
+@@ -2692,7 +2700,7 @@ redo:
+ 		 * same as above but node_match() being false already
+ 		 * implies node != NUMA_NO_NODE
+ 		 */
+-		if (!node_state(node, N_NORMAL_MEMORY)) {
++		if (!node_isset(node, slab_nodes)) {
+ 			node = NUMA_NO_NODE;
+ 			goto redo;
+ 		} else {
+@@ -3580,7 +3588,7 @@ static int init_kmem_cache_nodes(struct
  {
--	struct kmem_cache_node *n;
--	struct kmem_cache *s;
- 	struct memory_notify *marg = arg;
- 	int offline_node;
+ 	int node;
  
-@@ -4236,21 +4234,11 @@ static void slab_mem_offline_callback(vo
+-	for_each_node_state(node, N_NORMAL_MEMORY) {
++	for_each_node_mask(node, slab_nodes) {
+ 		struct kmem_cache_node *n;
+ 
+ 		if (slab_state == DOWN) {
+@@ -4234,6 +4242,7 @@ static void slab_mem_offline_callback(vo
  		return;
  
  	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
--		n = get_node(s, offline_node);
--		if (n) {
--			/*
--			 * if n->nr_slabs > 0, slabs still exist on the node
--			 * that is going down. We were unable to free them,
--			 * and offline_pages() function shouldn't call this
--			 * callback. So, we must fail.
--			 */
--			BUG_ON(slabs_node(s, offline_node));
--
--			s->node[offline_node] = NULL;
--			kmem_cache_free(kmem_cache_node, n);
--		}
--	}
++	node_clear(offline_node, slab_nodes);
+ 	/*
+ 	 * We no longer free kmem_cache_node structures here, as it would be
+ 	 * racy with all get_node() users, and infeasible to protect them with
+@@ -4283,6 +4292,11 @@ static int slab_mem_going_online_callbac
+ 		init_kmem_cache_node(n);
+ 		s->node[nid] = n;
+ 	}
 +	/*
-+	 * We no longer free kmem_cache_node structures here, as it would be
-+	 * racy with all get_node() users, and infeasible to protect them with
-+	 * slab_mutex.
++	 * Any cache created after this point will also have kmem_cache_node
++	 * initialized for the new node.
 +	 */
++	node_set(nid, slab_nodes);
+ out:
  	mutex_unlock(&slab_mutex);
- }
+ 	return ret;
+@@ -4363,6 +4377,7 @@ void __init kmem_cache_init(void)
+ {
+ 	static __initdata struct kmem_cache boot_kmem_cache,
+ 		boot_kmem_cache_node;
++	int node;
  
-@@ -4277,6 +4265,12 @@ static int slab_mem_going_online_callbac
- 	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list) {
- 		/*
-+		 * The structure may already exist if the node was previously
-+		 * onlined and offlined.
-+		 */
-+		if (get_node(s, nid))
-+			continue;
-+		/*
- 		 * XXX: kmem_cache_alloc_node will fallback to other nodes
- 		 *      since memory is not yet available from the node that
- 		 *      is brought up.
+ 	if (debug_guardpage_minorder())
+ 		slub_max_order = 0;
+@@ -4370,6 +4385,13 @@ void __init kmem_cache_init(void)
+ 	kmem_cache_node = &boot_kmem_cache_node;
+ 	kmem_cache = &boot_kmem_cache;
+ 
++	/*
++	 * Initialize the nodemask for which we will allocate per node
++	 * structures. Here we don't need taking slab_mutex yet.
++	 */
++	for_each_node_state(node, N_NORMAL_MEMORY)
++		node_set(node, slab_nodes);
++
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
+ 		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN, 0, 0);
+ 
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
