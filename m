@@ -4,41 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 527EAC433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 02:02:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58966C433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 02:05:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15342235E4
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 02:02:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13926235F8
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Jan 2021 02:05:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728413AbhANCBg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jan 2021 21:01:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51466 "EHLO mail.kernel.org"
+        id S1729353AbhAMWaR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jan 2021 17:30:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44992 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729471AbhAMXZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Jan 2021 18:25:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 02A672336F;
-        Wed, 13 Jan 2021 23:14:56 +0000 (UTC)
+        id S1726149AbhAMW3E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Jan 2021 17:29:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A365C23136;
+        Wed, 13 Jan 2021 22:27:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610579698;
-        bh=C2LbjnBDUtZLNYlLYaG7cDuS93OuqyZgx8jrkfo+1U4=;
+        s=korg; t=1610576873;
+        bh=4R28s4RskL3wZRbbfTzVoE1GtGr60GuD5wEYWATQwOs=;
         h=Date:From:To:Subject:From;
-        b=zdl/Zo6I8hvTajOOr591mgyT82A8vOUUn/PsVBp1Vd8OjCcuZ2m8Yn2Uc2zsbMPEs
-         Lqe8eIage6nH18WZsMZaAPkv1kSep3650ljhwTKpqzKVozYKjtr6QjBVtedOJZxKvw
-         pYLP0mBc2EwxXhZRj04SBRQ8pcpTWR3HRVLAulqE=
-Date:   Wed, 13 Jan 2021 15:14:56 -0800
+        b=13tqKqe9LzME1JA9HnQzLZ40/oiYc/P0nil+hx5JtJFOxj+CN0+FhljY177tBtkSI
+         mj0oIdx9l+/9mkuGlodoib3kfc8SpMXuIkBnF1UHzadcP0YtbHScRnZN+8ojXGa/it
+         mx4zmkxaqe92j+pDEJVTWEpTbrJCyqxE+76Fg7ts=
+Date:   Wed, 13 Jan 2021 14:27:53 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, avagin@gmail.com, bernd.edlinger@hotmail.de,
-        christian.brauner@ubuntu.com, ckennelly@google.com,
-        ebiederm@xmission.com, figiel@google.com, gladkov.alexey@gmail.com,
-        keescook@chromium.org, mathieu.desnoyers@efficios.com,
-        mm-commits@vger.kernel.org, pjt@google.com, posk@google.com,
-        walken@google.com
-Subject:  + fs-proc-expose-rseq-configuration.patch added to -mm
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
  tree
-Message-ID: <20210113231456.y8_R1ULXh%akpm@linux-foundation.org>
+Message-ID: <20210113222753.BjFivWHEE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,113 +42,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc: expose RSEQ configuration
-has been added to the -mm tree.  Its filename is
-     fs-proc-expose-rseq-configuration.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-expose-rseq-configuration.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-expose-rseq-configuration.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Piotr Figiel <figiel@google.com>
-Subject: fs/proc: expose RSEQ configuration
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-For userspace checkpoint and restore (C/R) some way of getting process
-state containing RSEQ configuration is needed.
-
-There are two ways this information is going to be used:
- - to re-enable RSEQ for threads which had it enabled before C/R
- - to detect if a thread was in a critical section during C/R
-
-Since C/R preserves TLS memory and addresses RSEQ ABI will be restored
-using the address registered before C/R.
-
-Detection whether the thread is in a critical section during C/R is needed
-to enforce behavior of RSEQ abort during C/R.  Attaching with ptrace()
-before registers are dumped itself doesn't cause RSEQ abort.  Restoring
-the instruction pointer within the critical section is problematic because
-rseq_cs may get cleared before the control is passed to the migrated
-application code leading to RSEQ invariants not being preserved.
-
-Link: https://lkml.kernel.org/r/20210113174127.2500051-1-figiel@google.com
-Signed-off-by: Piotr Figiel <figiel@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Peter Oskolkov <posk@google.com>
-Cc: Chris Kennelly <ckennelly@google.com>
-Cc: Paul Turner <pjt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ fs/btrfs/space-info.c |    4 ----
+ fs/io_uring.c         |    9 ---------
+ 2 files changed, 13 deletions(-)
 
---- a/fs/proc/base.c~fs-proc-expose-rseq-configuration
-+++ a/fs/proc/base.c
-@@ -659,6 +659,20 @@ static int proc_pid_syscall(struct seq_f
- 
- 	return 0;
+--- a/fs/io_uring.c~linux-next-git-rejects
++++ a/fs/io_uring.c
+@@ -9011,15 +9011,6 @@ static void io_uring_del_task_file(struc
+ 		fput(file);
  }
-+
-+#ifdef CONFIG_RSEQ
-+static int proc_pid_rseq(struct seq_file *m, struct pid_namespace *ns,
-+				struct pid *pid, struct task_struct *task)
-+{
-+	int res = lock_trace(task);
-+
-+	if (res)
-+		return res;
-+	seq_printf(m, "0x%llx 0x%x\n", (uint64_t)task->rseq, task->rseq_sig);
-+	unlock_trace(task);
-+	return 0;
-+}
-+#endif /* CONFIG_RSEQ */
- #endif /* CONFIG_HAVE_ARCH_TRACEHOOK */
  
- /************************************************************************/
-@@ -3179,6 +3193,9 @@ static const struct pid_entry tgid_base_
- 	REG("comm",      S_IRUGO|S_IWUSR, proc_pid_set_comm_operations),
- #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
- 	ONE("syscall",    S_IRUSR, proc_pid_syscall),
-+#ifdef CONFIG_RSEQ
-+	ONE("rseq",       S_IRUSR, proc_pid_rseq),
-+#endif
- #endif
- 	REG("cmdline",    S_IRUGO, proc_pid_cmdline_ops),
- 	ONE("stat",       S_IRUGO, proc_tgid_stat),
-@@ -3519,6 +3536,9 @@ static const struct pid_entry tid_base_s
- 			 &proc_pid_set_comm_operations, {}),
- #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
- 	ONE("syscall",   S_IRUSR, proc_pid_syscall),
-+#ifdef CONFIG_RSEQ
-+	ONE("rseq",      S_IRUSR, proc_pid_rseq),
-+#endif
- #endif
- 	REG("cmdline",   S_IRUGO, proc_pid_cmdline_ops),
- 	ONE("stat",      S_IRUGO, proc_tid_stat),
+-static void io_uring_remove_task_files(struct io_uring_task *tctx)
+-{
+-	struct file *file;
+-	unsigned long index;
+-
+-	xa_for_each(&tctx->xa, index, file)
+-		io_uring_del_task_file(file);
+-}
+-
+ void __io_uring_files_cancel(struct files_struct *files)
+ {
+ 	struct io_uring_task *tctx = current->io_uring;
+--- a/fs/btrfs/space-info.c~linux-next-git-rejects
++++ a/fs/btrfs/space-info.c
+@@ -527,11 +527,7 @@ static void shrink_delalloc(struct btrfs
+ 		wait_ordered = true;
+ 
+ 	loops = 0;
+-<<<<<<< HEAD
+-	while ((delalloc_bytes || dio_bytes) && loops < 3) {
+-=======
+ 	while ((delalloc_bytes || ordered_bytes) && loops < 3) {
+->>>>>>> linux-next/akpm-base
+ 		u64 nr_pages = min(delalloc_bytes, to_reclaim) >> PAGE_SHIFT;
+ 
+ 		btrfs_start_delalloc_roots(fs_info, nr_pages, true);
 _
 
-Patches currently in -mm which might be from figiel@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-proc-expose-rseq-configuration.patch
+mm-process_vm_accessc-include-compath.patch
+mm.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
+kasan-fix-bug-detection-via-ksize-for-hw_tags-mode-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
