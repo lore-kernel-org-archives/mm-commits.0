@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 699D4C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65C48C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:27:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 421A321D7F
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 092C4224B1
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:27:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730204AbhAQUJY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 15:09:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45814 "EHLO mail.kernel.org"
+        id S1729469AbhAQU1X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 15:27:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730219AbhAQUJV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 15:09:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BCBC9224DE;
-        Sun, 17 Jan 2021 20:08:38 +0000 (UTC)
+        id S1729386AbhAQU1V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 15:27:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 66A1121D7F;
+        Sun, 17 Jan 2021 20:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610914120;
-        bh=kvfUwvD6ry8Ipc/hiuYhZn2kyV/3Lc/l5ugfWLqGXCU=;
+        s=korg; t=1610915200;
+        bh=klFJWte8QlGeKTYu3G3C7RWNSiP/HxzW2bIhmySeJgI=;
         h=Date:From:To:Subject:From;
-        b=sctUCsxIsOwCM/5zwj+OvbaXO3MPOLYyAtWeIeiOIcOHFNtrSxtVc/i885TNJK5ii
-         M4bs8zZ/yvRAVqclPVnc96jwiwvxTmoLuzqU8VZxJAFjC6CEZMW5PJdzWCDKqiyHeY
-         si78jt4CeZwO9bPnbM/WqEzzXwQTt76eKiIOYf3Q=
-Date:   Sun, 17 Jan 2021 12:08:37 -0800
+        b=axn2FKB8B0spTMC1F2vnm79uf4eqYASTZ8cxkh7vtVHcNmTUWE5EB6ldqQ9Mwm1Yi
+         OVe4O8UYFeN4p8Dc+5br0E23jcvTr5XhaiKtLVeu8iWGEVOF+HMx1eOzlwl/0q4Sbd
+         +rY/eSdqSE7BY50GCvM+6d1h8WZRnSFX9rmAVUEc=
+Date:   Sun, 17 Jan 2021 12:26:38 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
         dvyukov@google.com, elver@google.com, eugenis@google.com,
         glider@google.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com,
+        mm-commits@vger.kernel.org, pcc@google.com, vbabka@suse.cz,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+Subject:  + kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
  added to -mm tree
-Message-ID: <20210117200837.usb8MqRr3%akpm@linux-foundation.org>
+Message-ID: <20210117202638.wb8CbdCca%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add a test for kmem_cache_alloc/free_bulk
+     Subject: kasan, mm: fix conflicts with init_on_alloc/free
 has been added to the -mm tree.  Its filename is
-     kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+     kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,109 +69,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add a test for kmem_cache_alloc/free_bulk
+Subject: kasan, mm: fix conflicts with init_on_alloc/free
 
-Add a test for kmem_cache_alloc/free_bulk to make sure there are no
-false-positives when these functions are used.
+A few places where SLUB accesses object's data or metadata were missed in
+a previous patch.  This leads to false positives with hardware tag-based
+KASAN when bulk allocations are used with init_on_alloc/free.
 
-Link: https://linux-review.googlesource.com/id/I2a8bf797aecf81baeac61380c567308f319e263d
-Link: https://lkml.kernel.org/r/418122ebe4600771ac81e9ca6eab6740cf8dcfa1.1610733117.git.andreyknvl@google.com
+Fix the false-positives by resetting pointer tags during these accesses.
+
+(The kasan_reset_tag call is removed from slab_alloc_node, as it's added
+ into maybe_wipe_obj_freeptr.)
+
+Link: https://linux-review.googlesource.com/id/I50dd32838a666e173fe06c3c5c766f2c36aae901
+Link: https://lkml.kernel.org/r/093428b5d2ca8b507f4a79f92f9929b35f7fada7.1610731872.git.andreyknvl@google.com
+Fixes: aa1ef4d7b3f67 ("kasan, mm: reset tags when accessing metadata")
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Peter Collingbourne <pcc@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Will Deacon <will.deacon@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   38 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ mm/slub.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/lib/test_kasan.c~kasan-add-a-test-for-kmem_cache_alloc-free_bulk
-+++ a/lib/test_kasan.c
-@@ -479,10 +479,11 @@ static void kmem_cache_oob(struct kunit
+--- a/mm/slub.c~kasan-mm-fix-conflicts-with-init_on_alloc-free
++++ a/mm/slub.c
+@@ -2791,7 +2791,8 @@ static __always_inline void maybe_wipe_o
+ 						   void *obj)
  {
- 	char *p;
- 	size_t size = 200;
--	struct kmem_cache *cache = kmem_cache_create("test_cache",
--						size, 0,
--						0, NULL);
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
- 	p = kmem_cache_alloc(cache, GFP_KERNEL);
- 	if (!p) {
- 		kunit_err(test, "Allocation failed: %s\n", __func__);
-@@ -491,11 +492,12 @@ static void kmem_cache_oob(struct kunit
+ 	if (unlikely(slab_want_init_on_free(s)) && obj)
+-		memset((void *)((char *)obj + s->offset), 0, sizeof(void *));
++		memset((void *)((char *)kasan_reset_tag(obj) + s->offset),
++			0, sizeof(void *));
+ }
+ 
+ /*
+@@ -2883,7 +2884,7 @@ redo:
+ 		stat(s, ALLOC_FASTPATH);
  	}
  
- 	KUNIT_EXPECT_KASAN_FAIL(test, *p = p[size + OOB_TAG_OFF]);
-+
- 	kmem_cache_free(cache, p);
- 	kmem_cache_destroy(cache);
- }
+-	maybe_wipe_obj_freeptr(s, kasan_reset_tag(object));
++	maybe_wipe_obj_freeptr(s, object);
  
--static void memcg_accounted_kmem_cache(struct kunit *test)
-+static void kmem_cache_accounted(struct kunit *test)
- {
- 	int i;
- 	char *p;
-@@ -522,6 +524,31 @@ free_cache:
- 	kmem_cache_destroy(cache);
- }
+ 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
+ 		memset(kasan_reset_tag(object), 0, s->object_size);
+@@ -3329,7 +3330,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 		int j;
  
-+static void kmem_cache_bulk(struct kunit *test)
-+{
-+	struct kmem_cache *cache;
-+	size_t size = 200;
-+	char *p[10];
-+	bool ret;
-+	int i;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
-+	ret = kmem_cache_alloc_bulk(cache, GFP_KERNEL, ARRAY_SIZE(p), (void **)&p);
-+	if (!ret) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(p); i++)
-+		p[i][0] = p[i][size - 1] = 42;
-+
-+	kmem_cache_free_bulk(cache, ARRAY_SIZE(p), (void **)&p);
-+	kmem_cache_destroy(cache);
-+}
-+
- static char global_array[10];
+ 		for (j = 0; j < i; j++)
+-			memset(p[j], 0, s->object_size);
++			memset(kasan_reset_tag(p[j]), 0, s->object_size);
+ 	}
  
- static void kasan_global_oob(struct kunit *test)
-@@ -961,7 +988,8 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kfree_via_page),
- 	KUNIT_CASE(kfree_via_phys),
- 	KUNIT_CASE(kmem_cache_oob),
--	KUNIT_CASE(memcg_accounted_kmem_cache),
-+	KUNIT_CASE(kmem_cache_accounted),
-+	KUNIT_CASE(kmem_cache_bulk),
- 	KUNIT_CASE(kasan_global_oob),
- 	KUNIT_CASE(kasan_stack_oob),
- 	KUNIT_CASE(kasan_alloca_oob_left),
+ 	/* memcg and kmem_cache debug support */
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
 
 kasan-fix-hw_tags-boot-parameters.patch
+kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
 kasan-prefix-global-functions-with-kasan_.patch
 kasan-clarify-hw_tags-impact-on-tbi.patch
 kasan-clean-up-comments-in-tests.patch
