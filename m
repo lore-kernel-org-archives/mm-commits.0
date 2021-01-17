@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60EC0C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EDF9C433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F9B121D7F
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B8BE224B1
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730213AbhAQUJE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 15:09:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45688 "EHLO mail.kernel.org"
+        id S1730207AbhAQUJF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 15:09:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730207AbhAQUJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730206AbhAQUJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sun, 17 Jan 2021 15:09:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DC73F2250F;
-        Sun, 17 Jan 2021 20:08:13 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5E4521D7F;
+        Sun, 17 Jan 2021 20:08:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610914095;
-        bh=6kQjj6ViPYaiuMeXcqKMKbtxOcKk94ohnM6K96nA8i4=;
+        s=korg; t=1610914090;
+        bh=NLysQToFW3clsETBy+KcfCYsY/wSxRSRrKpJsGniRTI=;
         h=Date:From:To:Subject:From;
-        b=c4GrsCQ0C2T8KOBRoVjSzSRHWJsUbVqUbewDbdZMn9Uu/zPv6SrZjD62VJN7+UBCq
-         kTOOh+pd8fxK2gddJvEvxpmVScYcaEeT9N7zFCEshF1dQDyHX2LnEJSw/bSPYokgs7
-         kDIR4GWoRBmrvCo/rheM+dTrUDC4arNxO3PZazFI=
-Date:   Sun, 17 Jan 2021 12:08:12 -0800
+        b=1BlQLC1OEu6n9Di8Zrxgse3DHugEFDcWJsZgTPw3jV/xNWR5/+563j5VeKjEg6FTJ
+         dh5B0WnfQwHRSPwq76N+EHrHPWSom6C+DZYyxbekEWS+5joqg6UEzUvu5I3u/Pc5lv
+         6vjz6RmHYHREuji9k1tmFofyHG9QgrIv214iIWfU=
+Date:   Sun, 17 Jan 2021 12:08:06 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,10 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  +
- kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch added to -mm
- tree
-Message-ID: <20210117200812.lD_l1Cere%akpm@linux-foundation.org>
+Subject:  + kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+ added to -mm tree
+Message-ID: <20210117200806.fk9wW3cPr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix memory corruption in kasan_bitops_tags test
+     Subject: kasan: adapt kmalloc_uaf2 test to HW_TAGS mode
 has been added to the -mm tree.  Its filename is
-     kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+     kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,17 +69,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix memory corruption in kasan_bitops_tags test
+Subject: kasan: adapt kmalloc_uaf2 test to HW_TAGS mode
 
-Since the hardware tag-based KASAN mode might not have a redzone that
-comes after an allocated object (when kasan.mode=prod is enabled), the
-kasan_bitops_tags() test ends up corrupting the next object in memory.
+In the kmalloc_uaf2() test, the pointers to the two allocated memory
+blocks might happen to be the same, and the test will fail. With the
+software tag-based mode, the probability of the that is 1/254, so it's
+hard to observe the failure. For the hardware tag-based mode though,
+the probablity is 1/14, which is quite noticable.
 
-Change the test so it always accesses the redzone that lies within the
-allocated object's boundaries.
+Allow up to 16 attempts at generating different tags for the tag-based
+modes.
 
-Link: https://linux-review.googlesource.com/id/I67f51d1ee48f0a8d0fe2658c2a39e4879fe0832a
-Link: https://lkml.kernel.org/r/7d452ce4ae35bb1988d2c9244dfea56cf2cc9315.1610733117.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ibfa458ef2804ff465d8eb07434a300bf36388d55
+Link: https://lkml.kernel.org/r/9cd5cf2f633dcbf55cab801cd26845d2b075cec7.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -96,30 +97,37 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ lib/test_kasan.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/lib/test_kasan.c~kasan-fix-memory-corruption-in-kasan_bitops_tags-test
+--- a/lib/test_kasan.c~kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode
 +++ a/lib/test_kasan.c
-@@ -749,13 +749,13 @@ static void kasan_bitops_tags(struct kun
- 	/* This test is specifically crafted for tag-based modes. */
- 	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_GENERIC);
+@@ -382,7 +382,9 @@ static void kmalloc_uaf2(struct kunit *t
+ {
+ 	char *ptr1, *ptr2;
+ 	size_t size = 43;
++	int counter = 0;
  
--	/* Allocation size will be rounded to up granule size, which is 16. */
--	bits = kzalloc(sizeof(*bits), GFP_KERNEL);
-+	/* kmalloc-64 cache will be used and the last 16 bytes will be the redzone. */
-+	bits = kzalloc(48, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bits);
++again:
+ 	ptr1 = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
  
--	/* Do the accesses past the 16 allocated bytes. */
--	kasan_bitops_modify(test, BITS_PER_LONG, &bits[1]);
--	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, &bits[1]);
-+	/* Do the accesses past the 48 allocated bytes, but within the redone. */
-+	kasan_bitops_modify(test, BITS_PER_LONG, (void *)bits + 48);
-+	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, (void *)bits + 48);
+@@ -391,6 +393,15 @@ static void kmalloc_uaf2(struct kunit *t
+ 	ptr2 = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
  
- 	kfree(bits);
- }
++	/*
++	 * For tag-based KASAN ptr1 and ptr2 tags might happen to be the same.
++	 * Allow up to 16 attempts at generating different tags.
++	 */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) && ptr1 == ptr2 && counter++ < 16) {
++		kfree(ptr2);
++		goto again;
++	}
++
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ptr1[40] = 'x');
+ 	KUNIT_EXPECT_PTR_NE(test, ptr1, ptr2);
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
