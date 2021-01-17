@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B309C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12BBDC43381
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1400722CB8
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E664122C97
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727838AbhAQCMI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727943AbhAQCMI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 16 Jan 2021 21:12:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41698 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727888AbhAQCMH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727838AbhAQCMH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 16 Jan 2021 21:12:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EB6A22D57;
-        Sun, 17 Jan 2021 02:11:03 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D56A22D0B;
+        Sun, 17 Jan 2021 02:11:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610849463;
-        bh=yhoiB6id23yikiGVT6ASO9SQHNlM/3AyukVqw5MuVCM=;
+        s=korg; t=1610849461;
+        bh=vd87QPbQYdpPTRRN2V5LPFUkecUaNlfLxlEFPMd0nmY=;
         h=Date:From:To:Subject:From;
-        b=Uuv0ovhlW4Ws1oLTTrdwJSyjf0cVl19LxvsgDcS8cLX1iPc20BODD4z6KK9CoJ9VL
-         9HSs2LS2Lwpp1mGBfydlJY4KqxhAjOWzMbtWjI2IfVlDIpD7AADHr7SeAK0Za6DNjx
-         jQgqv9oSXwjwon/zmMo7w8c3urFW05BJncalDxPM=
-Date:   Sat, 16 Jan 2021 18:11:03 -0800
+        b=Q+xbb3tP2ZgEcJHSuxvUIZa51bj8toNYMCrFO175Xr8vLAfCtnCrd+LLwTVQOz6/l
+         kxqn53tzYWsNRojj0Y11EgJBre2ZmwUDyskNgsbVfYrSUWDK4/r3Ri9hwaMwnSJF8v
+         HsyWZdfLRH31Fq5zklf5QDKUAlliMF58rLmWLaAc=
+Date:   Sat, 16 Jan 2021 18:11:01 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, dan.carpenter@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de
-Subject:  [merged] mmhwpoison-fix-printing-of-page-flags.patch
- removed from -mm tree
-Message-ID: <20210117021103.lasWEZF8w%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
+Subject:  [merged]
+ maintainers-add-myself-as-slab-allocators-maintainer.patch removed from -mm
+ tree
+Message-ID: <20210117021101.DxFvrVqdN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,44 +44,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: fix printing of page flags
+     Subject: MAINTAINERS: add Vlastimil as slab allocators maintainer
 has been removed from the -mm tree.  Its filename was
-     mmhwpoison-fix-printing-of-page-flags.patch
+     maintainers-add-myself-as-slab-allocators-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: fix printing of page flags
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: MAINTAINERS: add Vlastimil as slab allocators maintainer
 
-Format %pG expects a lower case 'p' in order to print the flags.
-Fix it.
+I would like to help with slab allocators maintenance, from the
+perspective of being responsible for SLAB and more recently also SLUB in
+an enterprise distro kernel and supporting its users.  Recently I've been
+focusing on improving SLUB's debugging features, and patch review in the
+area, including the kmemcg accounting rewrite last year.
 
-Link: https://lkml.kernel.org/r/20210108085202.4506-1-osalvador@suse.de
-Fixes: 8295d535e2aa ("mm,hwpoison: refactor get_any_page")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20210108110353.19971-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory-failure.c~mmhwpoison-fix-printing-of-page-flags
-+++ a/mm/memory-failure.c
-@@ -1940,7 +1940,7 @@ retry:
- 			goto retry;
- 		}
- 	} else if (ret == -EIO) {
--		pr_info("%s: %#lx: unknown page type: %lx (%pGP)\n",
-+		pr_info("%s: %#lx: unknown page type: %lx (%pGp)\n",
- 			 __func__, pfn, page->flags, &page->flags);
- 	}
- 
+--- a/MAINTAINERS~maintainers-add-myself-as-slab-allocators-maintainer
++++ a/MAINTAINERS
+@@ -16319,6 +16319,7 @@ M:	Pekka Enberg <penberg@kernel.org>
+ M:	David Rientjes <rientjes@google.com>
+ M:	Joonsoo Kim <iamjoonsoo.kim@lge.com>
+ M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Vlastimil Babka <vbabka@suse.cz>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	include/linux/sl?b*.h
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+mm-slab-slub-stop-taking-memory-hotplug-lock.patch
+mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
 
