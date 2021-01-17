@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B9F2C433E9
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90E69C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67588224F9
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68195224B1
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730208AbhAQUJK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 15:09:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45682 "EHLO mail.kernel.org"
+        id S1730202AbhAQUJX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 15:09:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730204AbhAQUJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 15:09:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EBA102250E;
-        Sun, 17 Jan 2021 20:08:01 +0000 (UTC)
+        id S1730204AbhAQUJP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 15:09:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 47D87224D3;
+        Sun, 17 Jan 2021 20:08:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610914083;
-        bh=/+EYATTHsqgZL/+X6SlGcPnmMq97z6UAw6CCFwYt3ro=;
+        s=korg; t=1610914114;
+        bh=CJcDleiGG1t6fVZytrReSHcGUk6hlwGD/BsIQHjZ0YY=;
         h=Date:From:To:Subject:From;
-        b=vSrNpyBuehDgmP6qMvR5Ft4ZPGDZCJdkjGflZBRDisPTKJnhiz1ATjnPG64mqMFlD
-         wjMVTQWgTQv6nMZz2wD3iiQDJs45O1///MXROqVT/XWWPl/vR4HQfTviHvm+SdV/Dq
-         X7SWmYfGhlASL2Uq/Kx97EQ09zSPd4TmCBdTNUUY=
-Date:   Sun, 17 Jan 2021 12:08:00 -0800
+        b=oUUErsz5GVOio0nirBXIOUkHo1pKoh0eN/GumRe27m7zhhyd5zD/6ZCOjbPqsuA/c
+         8JsPhbv136EMpwpH/aC2ME6VrQ8jHPgwJsxF8TRuk8F0q6RSXyogL+ut4si+0g7d+a
+         ALm/6u/cB6Lp+R3s8RX43kydJieFiPT0TpyYSEFk=
+Date:   Sun, 17 Jan 2021 12:08:32 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,10 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  +
- kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch added to -mm
- tree
-Message-ID: <20210117200800.KpwQiZTUh%akpm@linux-foundation.org>
+Subject:  + kasan-add-proper-page-allocator-tests.patch added to
+ -mm tree
+Message-ID: <20210117200832.UcfL4fe0Q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add compiler barriers to KUNIT_EXPECT_KASAN_FAIL
+     Subject: kasan: add proper page allocator tests
 has been added to the -mm tree.  Its filename is
-     kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+     kasan-add-proper-page-allocator-tests.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-proper-page-allocator-tests.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-proper-page-allocator-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,18 +69,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add compiler barriers to KUNIT_EXPECT_KASAN_FAIL
+Subject: kasan: add proper page allocator tests
 
-It might not be obvious to the compiler that the expression must be
-executed between writing and reading to fail_data. In this case, the
-compiler might reorder or optimize away some of the accesses, and
-the tests will fail.
+The currently existing page allocator tests rely on kmalloc fallback
+with large sizes that is only present for SLUB. Add proper tests that
+use alloc/free_pages().
 
-Add compiler barriers around the expression in KUNIT_EXPECT_KASAN_FAIL
-and use READ/WRITE_ONCE() for accessing fail_data fields.
-
-Link: https://linux-review.googlesource.com/id/I046079f48641a1d36fe627fc8827a9249102fd50
-Link: https://lkml.kernel.org/r/6f11596f367d8ae8f71d800351e9a5d91eda19f6.1610733117.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Ia173d5a1b215fe6b2548d814ef0f4433cf983570
+Link: https://lkml.kernel.org/r/a2648930e55ff75b8e700f2e0d905c2b55a67483.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -97,59 +92,102 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c  |   17 ++++++++++++-----
- mm/kasan/report.c |    2 +-
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ lib/test_kasan.c |   51 ++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 46 insertions(+), 5 deletions(-)
 
---- a/lib/test_kasan.c~kasan-add-compiler-barriers-to-kunit_expect_kasan_fail
+--- a/lib/test_kasan.c~kasan-add-proper-page-allocator-tests
 +++ a/lib/test_kasan.c
-@@ -68,23 +68,30 @@ static void kasan_test_exit(struct kunit
-  * normally auto-disabled. When this happens, this test handler reenables
-  * tag checking. As tag checking can be only disabled or enabled per CPU, this
-  * handler disables migration (preemption).
-+ *
-+ * Since the compiler doesn't see that the expression can change the fail_data
-+ * fields, it can reorder or optimize away the accesses to those fields.
-+ * Use READ/WRITE_ONCE() for the accesses and compiler barriers around the
-+ * expression to prevent that.
-  */
- #define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {		\
- 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS))			\
- 		migrate_disable();				\
--	fail_data.report_expected = true;			\
--	fail_data.report_found = false;				\
-+	WRITE_ONCE(fail_data.report_expected, true);		\
-+	WRITE_ONCE(fail_data.report_found, false);		\
- 	kunit_add_named_resource(test,				\
- 				NULL,				\
- 				NULL,				\
- 				&resource,			\
- 				"kasan_data", &fail_data);	\
-+	barrier();						\
- 	expression;						\
-+	barrier();						\
- 	KUNIT_EXPECT_EQ(test,					\
--			fail_data.report_expected,		\
--			fail_data.report_found);		\
-+			READ_ONCE(fail_data.report_expected),	\
-+			READ_ONCE(fail_data.report_found));	\
- 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {			\
--		if (fail_data.report_found)			\
-+		if (READ_ONCE(fail_data.report_found))		\
- 			hw_enable_tagging();			\
- 		migrate_enable();				\
- 	}							\
---- a/mm/kasan/report.c~kasan-add-compiler-barriers-to-kunit_expect_kasan_fail
-+++ a/mm/kasan/report.c
-@@ -331,7 +331,7 @@ static void kasan_update_kunit_status(st
- 	}
- 
- 	kasan_data = (struct kunit_kasan_expectation *)resource->data;
--	kasan_data->report_found = true;
-+	WRITE_ONCE(kasan_data->report_found, true);
- 	kunit_put_resource(resource);
+@@ -147,6 +147,12 @@ static void kmalloc_node_oob_right(struc
+ 	kfree(ptr);
  }
- #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
++/*
++ * These kmalloc_pagealloc_* tests try allocating a memory chunk that doesn't
++ * fit into a slab cache and therefore is allocated via the page allocator
++ * fallback. Since this kind of fallback is only implemented for SLUB, these
++ * tests are limited to that allocator.
++ */
+ static void kmalloc_pagealloc_oob_right(struct kunit *test)
+ {
+ 	char *ptr;
+@@ -154,14 +160,11 @@ static void kmalloc_pagealloc_oob_right(
+ 
+ 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
+ 
+-	/*
+-	 * Allocate a chunk that does not fit into a SLUB cache to trigger
+-	 * the page allocator fallback.
+-	 */
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size + OOB_TAG_OFF] = 0);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -174,8 +177,8 @@ static void kmalloc_pagealloc_uaf(struct
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+-
+ 	kfree(ptr);
++
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ptr[0] = 0);
+ }
+ 
+@@ -192,6 +195,42 @@ static void kmalloc_pagealloc_invalid_fr
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kfree(ptr + 1));
+ }
+ 
++static void pagealloc_oob_right(struct kunit *test)
++{
++	char *ptr;
++	struct page *pages;
++	size_t order = 4;
++	size_t size = (1UL << (PAGE_SHIFT + order));
++
++	/*
++	 * With generic KASAN page allocations have no redzones, thus
++	 * out-of-bounds detection is not guaranteed.
++	 * See https://bugzilla.kernel.org/show_bug.cgi?id=210503.
++	 */
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_GENERIC);
++
++	pages = alloc_pages(GFP_KERNEL, order);
++	ptr = page_address(pages);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size] = 0);
++	free_pages((unsigned long)ptr, order);
++}
++
++static void pagealloc_uaf(struct kunit *test)
++{
++	char *ptr;
++	struct page *pages;
++	size_t order = 4;
++
++	pages = alloc_pages(GFP_KERNEL, order);
++	ptr = page_address(pages);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
++	free_pages((unsigned long)ptr, order);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, ptr[0] = 0);
++}
++
+ static void kmalloc_large_oob_right(struct kunit *test)
+ {
+ 	char *ptr;
+@@ -903,6 +942,8 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kmalloc_pagealloc_oob_right),
+ 	KUNIT_CASE(kmalloc_pagealloc_uaf),
+ 	KUNIT_CASE(kmalloc_pagealloc_invalid_free),
++	KUNIT_CASE(pagealloc_oob_right),
++	KUNIT_CASE(pagealloc_uaf),
+ 	KUNIT_CASE(kmalloc_large_oob_right),
+ 	KUNIT_CASE(kmalloc_oob_krealloc_more),
+ 	KUNIT_CASE(kmalloc_oob_krealloc_less),
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
