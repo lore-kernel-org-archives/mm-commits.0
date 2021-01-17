@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49FC4C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 778F9C433DB
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:11:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0976B22C7C
+	by mail.kernel.org (Postfix) with ESMTP id 4248022D72
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:11:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727796AbhAQCLZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jan 2021 21:11:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41472 "EHLO mail.kernel.org"
+        id S1727870AbhAQCLa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jan 2021 21:11:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41510 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727786AbhAQCLY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 16 Jan 2021 21:11:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0818922C7C;
-        Sun, 17 Jan 2021 02:10:43 +0000 (UTC)
+        id S1727786AbhAQCL3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 16 Jan 2021 21:11:29 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B5CE22CB8;
+        Sun, 17 Jan 2021 02:10:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610849444;
-        bh=i/evS1JEcIvpF794FUGV0kzKpmC/p60qAJg5ZGdE3S8=;
+        s=korg; t=1610849449;
+        bh=o9BIAGaQsvW7oiLue0nM02Cndv9ZrIo1EYeC9L/tOp4=;
         h=Date:From:To:Subject:From;
-        b=ZGd0HAr+rDlySClT+c8dLjvY2l5Zz0JgXolCMpypLeuDPuvNRGVRREXzJTzfwkgm0
-         vJhrjtjw8sxCPUX2SwtWBiM1K8HR8Tbsk23Mt8tMRYyu1Z9DlzCTovRLhWD9DysX7n
-         /58NQF14WwV5FyN5GOqbcfJCBCsRUW44oMrSF1nM=
-Date:   Sat, 16 Jan 2021 18:10:43 -0800
+        b=UO3dM9ErvlHyUP4jHNGLgGGcGnNXXqY4ABu1DNDirFet3AApq+ArfbrSCn9mQxUGI
+         5o9U7m+ct92z/gjfqzXSz2IDPwXKRqPwG3Qitq8xmgoilqJBGVFTpNF2OxQqfbg1aa
+         /FlXPXIr2XCTrOEo1oCpJlSZXT4MP+EhNiBk4eIM=
+Date:   Sat, 16 Jan 2021 18:10:48 -0800
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, jannh@google.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To:     alex.shi@linux.alibaba.com, bhe@redhat.com, chris@chrisdown.name,
+        guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
+        lstoakes@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        sh_def@163.com, shakeelb@google.com, vbabka@suse.cz
 Subject:  [merged]
- mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch removed
- from -mm tree
-Message-ID: <20210117021043.C8w7B8YPl%akpm@linux-foundation.org>
+ mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec.patch removed from -mm
+ tree
+Message-ID: <20210117021048.QVJe4BH4i%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,54 +46,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: consider rest of partial list if acquire_slab() fails
+     Subject: mm/memcontrol: fix warning in mem_cgroup_page_lruvec()
 has been removed from the -mm tree.  Its filename was
-     mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails.patch
+     mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm, slub: consider rest of partial list if acquire_slab() fails
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/memcontrol: fix warning in mem_cgroup_page_lruvec()
 
-acquire_slab() fails if there is contention on the freelist of the page
-(probably because some other CPU is concurrently freeing an object from
-the page).  In that case, it might make sense to look for a different page
-(since there might be more remote frees to the page from other CPUs, and
-we don't want contention on struct page).
+Boot a CONFIG_MEMCG=y kernel with "cgroup_disabled=memory" and you are met
+by a series of warnings from the VM_WARN_ON_ONCE_PAGE(!memcg, page)
+recently added to the inline mem_cgroup_page_lruvec().
 
-However, the current code accidentally stops looking at the partial list
-completely in that case.  Especially on kernels without CONFIG_NUMA set,
-this means that get_partial() fails and new_slab_objects() falls back to
-new_slab(), allocating new pages.  This could lead to an unnecessary
-increase in memory fragmentation.
+An earlier attempt to place that warning, in mem_cgroup_lruvec(), had been
+careful to do so after weeding out the mem_cgroup_disabled() case; but was
+itself invalid because of the mem_cgroup_lruvec(NULL, pgdat) in
+clear_pgdat_congested() and age_active_anon().
 
-Link: https://lkml.kernel.org/r/20201228130853.1871516-1-jannh@google.com
-Fixes: 7ced37197196 ("slub: Acquire_slab() avoid loop")
-Signed-off-by: Jann Horn <jannh@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Warning in mem_cgroup_page_lruvec() was once useful in detecting a KSM
+charge bug, so may be worth keeping: but skip if mem_cgroup_disabled().
+
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2101032056260.1093@eggly.anvils
+Fixes: 9a1ac2288cf1 ("mm/memcontrol:rewrite mem_cgroup_page_lruvec()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hui Su <sh_def@163.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
+ include/linux/memcontrol.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-consider-rest-of-partial-list-if-acquire_slab-fails
-+++ a/mm/slub.c
-@@ -1973,7 +1973,7 @@ static void *get_partial_node(struct kme
+--- a/include/linux/memcontrol.h~mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec
++++ a/include/linux/memcontrol.h
+@@ -665,7 +665,7 @@ static inline struct lruvec *mem_cgroup_
+ {
+ 	struct mem_cgroup *memcg = page_memcg(page);
  
- 		t = acquire_slab(s, n, page, object == NULL, &objects);
- 		if (!t)
--			break;
-+			continue; /* cmpxchg raced */
+-	VM_WARN_ON_ONCE_PAGE(!memcg, page);
++	VM_WARN_ON_ONCE_PAGE(!memcg && !mem_cgroup_disabled(), page);
+ 	return mem_cgroup_lruvec(memcg, pgdat);
+ }
  
- 		available += objects;
- 		if (!object) {
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
