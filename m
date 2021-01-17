@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F419C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:54:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33811C433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:59:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 02EED20784
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:54:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07668224D2
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:59:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728700AbhAQTy3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 14:54:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44670 "EHLO mail.kernel.org"
+        id S1729551AbhAQT7e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 14:59:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728815AbhAQTy2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 14:54:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A85020784;
-        Sun, 17 Jan 2021 19:53:47 +0000 (UTC)
+        id S1729740AbhAQT7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 14:59:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D9498224D2;
+        Sun, 17 Jan 2021 19:58:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610913227;
-        bh=PUDPYfPpzrfGT/hXzRiGwRFSszFLQc9vKapXwwqMeDk=;
+        s=korg; t=1610913531;
+        bh=1GafHMMjQ0J760RoObcKkxdQCPmCKqqPm0nniavH4Nc=;
         h=Date:From:To:Subject:From;
-        b=oqCc544At575jqDGXDGegA313kPPdRk0XBI30nmOU+UsQQLgxdb8jHJRq/Bozplmf
-         96zbWWlJyB+3zSXyrYOG0Q9M6H0d6PxNy4F+2MgLQ5ms7ITMF7QdOtQ/omHdXKKKUo
-         X2vTLqa2fiR9DsQknFWL7Hulp2Ie7SquRQSO+rjA=
-Date:   Sun, 17 Jan 2021 11:53:46 -0800
+        b=HOS1GfNpas/GbI68OM00gsy6FQIQO6S3B/U1hmePqxjUzLokZVv4nHkBpdR9seXCh
+         51nutV8ylhzNCC+VOwXiw0jZGGksF7smzu3tRfUUB4yGMOim/jwwdvtkG7D2L9DyyJ
+         4AoOZHxBoEoLOISVH2o/fxMmADwhcO3vxFWu53Po=
+Date:   Sun, 17 Jan 2021 11:58:50 -0800
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, jannh@google.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  +
- mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch added to -mm
- tree
-Message-ID: <20210117195346.TfUxa7sSV%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        will.deacon@arm.com
+Subject:  [to-be-updated] kasan-clarify-hw_tags-impact-on-tbi.patch
+ removed from -mm tree
+Message-ID: <20210117195850.ko98ju8fn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,158 +47,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
-has been added to the -mm tree.  Its filename is
-     mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
+     Subject: kasan: clarify HW_TAGS impact on TBI
+has been removed from the -mm tree.  Its filename was
+     kasan-clarify-hw_tags-impact-on-tbi.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: clarify HW_TAGS impact on TBI
 
-In deactivate_slab() we currently move all but one objects on the cpu
-freelist to the page freelist one by one using the costly cmpxchg_double()
-operation.  Then we unfreeze the page while moving the last object on page
-freelist, with a final cmpxchg_double().
+Mention in the documentation that enabling CONFIG_KASAN_HW_TAGS
+always results in in-kernel TBI (Top Byte Ignore) being enabled.
 
-This can be optimized to avoid the cmpxchg_double() per object.  Just
-count the objects on cpu freelist (to adjust page->inuse properly) and
-also remember the last object in the chain.  Then splice page->freelist to
-the last object and effectively add the whole cpu freelist to
-page->freelist while unfreezing the page, with a single cmpxchg_double().
+Also do a few minor documentation cleanups.
 
-Link: https://lkml.kernel.org/r/20210115183543.15097-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Jann Horn <jannh@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/a5dfc703ddd7eacda0ee0da083c7afad44afff8c.1609871239.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/Iba2a6697e3c6304cb53f89ec61dedc77fa29e3aeSigned-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   59 +++++++++++++++++++++-------------------------------
- 1 file changed, 24 insertions(+), 35 deletions(-)
+ Documentation/dev-tools/kasan.rst |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/slub.c~mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab
-+++ a/mm/slub.c
-@@ -2170,9 +2170,9 @@ static void deactivate_slab(struct kmem_
- {
- 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
--	int lock = 0;
-+	int lock = 0, free_delta = 0;
- 	enum slab_modes l = M_NONE, m = M_NONE;
--	void *nextfree;
-+	void *nextfree, *freelist_iter, *freelist_tail;
- 	int tail = DEACTIVATE_TO_HEAD;
- 	struct page new;
- 	struct page old;
-@@ -2183,45 +2183,34 @@ static void deactivate_slab(struct kmem_
- 	}
+--- a/Documentation/dev-tools/kasan.rst~kasan-clarify-hw_tags-impact-on-tbi
++++ a/Documentation/dev-tools/kasan.rst
+@@ -147,15 +147,14 @@ negative values to distinguish between d
+ like redzones or freed memory (see mm/kasan/kasan.h).
  
- 	/*
--	 * Stage one: Free all available per cpu objects back
--	 * to the page freelist while it is still frozen. Leave the
--	 * last one.
--	 *
--	 * There is no need to take the list->lock because the page
--	 * is still frozen.
-+	 * Stage one: Count the objects on cpu's freelist as free_delta and
-+	 * remember the last object in freelist_tail for later splicing.
- 	 */
--	while (freelist && (nextfree = get_freepointer(s, freelist))) {
--		void *prior;
--		unsigned long counters;
-+	freelist_tail = NULL;
-+	freelist_iter = freelist;
-+	while (freelist_iter) {
-+		nextfree = get_freepointer(s, freelist_iter);
- 
- 		/*
- 		 * If 'nextfree' is invalid, it is possible that the object at
--		 * 'freelist' is already corrupted.  So isolate all objects
--		 * starting at 'freelist'.
-+		 * 'freelist_iter' is already corrupted.  So isolate all objects
-+		 * starting at 'freelist_iter' by skipping them.
- 		 */
--		if (freelist_corrupted(s, page, &freelist, nextfree))
-+		if (freelist_corrupted(s, page, &freelist_iter, nextfree))
- 			break;
- 
--		do {
--			prior = page->freelist;
--			counters = page->counters;
--			set_freepointer(s, freelist, prior);
--			new.counters = counters;
--			new.inuse--;
--			VM_BUG_ON(!new.frozen);
+ In the report above the arrows point to the shadow byte 03, which means that
+-the accessed address is partially accessible.
 -
--		} while (!__cmpxchg_double_slab(s, page,
--			prior, counters,
--			freelist, new.counters,
--			"drain percpu freelist"));
-+		freelist_tail = freelist_iter;
-+		free_delta++;
+-For tag-based KASAN this last report section shows the memory tags around the
+-accessed address (see `Implementation details`_ section).
++the accessed address is partially accessible. For tag-based KASAN modes this
++last report section shows the memory tags around the accessed address
++(see the `Implementation details`_ section).
  
--		freelist = nextfree;
-+		freelist_iter = nextfree;
- 	}
+ Boot parameters
+ ~~~~~~~~~~~~~~~
  
- 	/*
--	 * Stage two: Ensure that the page is unfrozen while the
--	 * list presence reflects the actual number of objects
--	 * during unfreeze.
-+	 * Stage two: Unfreeze the page while splicing the per-cpu
-+	 * freelist to the head of page's freelist.
-+	 *
-+	 * Ensure that the page is unfrozen while the list presence
-+	 * reflects the actual number of objects during unfreeze.
- 	 *
- 	 * We setup the list membership and then perform a cmpxchg
- 	 * with the count. If there is a mismatch then the page
-@@ -2234,15 +2223,15 @@ static void deactivate_slab(struct kmem_
- 	 */
- redo:
+-Hardware tag-based KASAN mode (see the section about different mode below) is
++Hardware tag-based KASAN mode (see the section about various modes below) is
+ intended for use in production as a security mitigation. Therefore it supports
+ boot parameters that allow to disable KASAN competely or otherwise control
+ particular KASAN features.
+@@ -305,6 +304,13 @@ reserved to tag freed memory regions.
+ Hardware tag-based KASAN currently only supports tagging of
+ kmem_cache_alloc/kmalloc and page_alloc memory.
  
--	old.freelist = page->freelist;
--	old.counters = page->counters;
-+	old.freelist = READ_ONCE(page->freelist);
-+	old.counters = READ_ONCE(page->counters);
- 	VM_BUG_ON(!old.frozen);
++If the hardware doesn't support MTE (pre ARMv8.5), hardware tag-based KASAN
++won't be enabled. In this case all boot parameters are ignored.
++
++Note, that enabling CONFIG_KASAN_HW_TAGS always results in in-kernel TBI being
++enabled. Even when kasan.mode=off is provided, or when the hardware doesn't
++support MTE (but supports TBI).
++
+ What memory accesses are sanitised by KASAN?
+ --------------------------------------------
  
- 	/* Determine target state of the slab */
- 	new.counters = old.counters;
--	if (freelist) {
--		new.inuse--;
--		set_freepointer(s, freelist, old.freelist);
-+	if (freelist_tail) {
-+		new.inuse -= free_delta;
-+		set_freepointer(s, freelist_tail, old.freelist);
- 		new.freelist = freelist;
- 	} else
- 		new.freelist = old.freelist;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
-mm-slab-slub-stop-taking-memory-hotplug-lock.patch
-mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
-mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
+kasan-fix-hw_tags-boot-parameters.patch
+kasan-clean-up-comments-in-tests.patch
+kasan-add-match-all-tag-tests.patch
+kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
+kasan-rename-config_test_kasan_module.patch
+kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+kasan-adopt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
+kasan-add-proper-page-allocator-tests.patch
 
