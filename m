@@ -7,38 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 778F9C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 884F7C433E9
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:11:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4248022D72
+	by mail.kernel.org (Postfix) with ESMTP id 64A3F22DA7
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:11:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727870AbhAQCLa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jan 2021 21:11:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41510 "EHLO mail.kernel.org"
+        id S1727867AbhAQCLd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jan 2021 21:11:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41546 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727786AbhAQCL3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 16 Jan 2021 21:11:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B5CE22CB8;
-        Sun, 17 Jan 2021 02:10:48 +0000 (UTC)
+        id S1727786AbhAQCLc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 16 Jan 2021 21:11:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EA8122CF8;
+        Sun, 17 Jan 2021 02:10:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610849449;
-        bh=o9BIAGaQsvW7oiLue0nM02Cndv9ZrIo1EYeC9L/tOp4=;
+        s=korg; t=1610849451;
+        bh=STv9o+g/zCFlmSZPSl9ayIW12eDVDjzSoPeqimZLU9c=;
         h=Date:From:To:Subject:From;
-        b=UO3dM9ErvlHyUP4jHNGLgGGcGnNXXqY4ABu1DNDirFet3AApq+ArfbrSCn9mQxUGI
-         5o9U7m+ct92z/gjfqzXSz2IDPwXKRqPwG3Qitq8xmgoilqJBGVFTpNF2OxQqfbg1aa
-         /FlXPXIr2XCTrOEo1oCpJlSZXT4MP+EhNiBk4eIM=
-Date:   Sat, 16 Jan 2021 18:10:48 -0800
+        b=O2C1NHuI5p0f9TlPXBG9RLHTtqpMcGNuWjsDf8qQjkf6OdyaYy0WbEZ+PuECm6XZL
+         hJhbmnYKkYCIinfNtq7TmweWkrlfM1L+fw1giINBFQ2PmiwyR3ZBdDtTre4SGgum2I
+         16pkvVkRv0DeyaEuBLRzeLTPMEv3p9SyimQK3tyo=
+Date:   Sat, 16 Jan 2021 18:10:51 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, bhe@redhat.com, chris@chrisdown.name,
-        guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
-        lstoakes@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        sh_def@163.com, shakeelb@google.com, vbabka@suse.cz
+To:     ardb@kernel.org, aryabinin@virtuozzo.com, dvyukov@google.com,
+        glider@google.com, guo.ziliang@zte.com.cn,
+        linus.walleij@linaro.org, linux@armlinux.org.uk,
+        liu.hailong6@zte.com.cn, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec.patch removed from -mm
- tree
-Message-ID: <20210117021048.QVJe4BH4i%akpm@linux-foundation.org>
+ arm-kasan-fix-the-arry-size-of-kasan_early_shadow_pte.patch removed from
+ -mm tree
+Message-ID: <20210117021051.I96_9w_z3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,60 +49,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: fix warning in mem_cgroup_page_lruvec()
+     Subject: arm/kasan: fix the array size of kasan_early_shadow_pte[]
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec.patch
+     arm-kasan-fix-the-arry-size-of-kasan_early_shadow_pte.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/memcontrol: fix warning in mem_cgroup_page_lruvec()
+=46rom: Hailong Liu <liu.hailong6@zte.com.cn>
+Subject: arm/kasan: fix the array size of kasan_early_shadow_pte[]
 
-Boot a CONFIG_MEMCG=y kernel with "cgroup_disabled=memory" and you are met
-by a series of warnings from the VM_WARN_ON_ONCE_PAGE(!memcg, page)
-recently added to the inline mem_cgroup_page_lruvec().
+The size of kasan_early_shadow_pte[] now is PTRS_PER_PTE which defined to
+512 for arm architecture.  This means that it only covers the prev Linux
+pte entries, but not the HWTABLE pte entries for arm.
 
-An earlier attempt to place that warning, in mem_cgroup_lruvec(), had been
-careful to do so after weeding out the mem_cgroup_disabled() case; but was
-itself invalid because of the mem_cgroup_lruvec(NULL, pgdat) in
-clear_pgdat_congested() and age_active_anon().
+The reason it works well current is that the symbol
+kasan_early_shadow_page immediately following kasan_early_shadow_pte in
+memory is page aligned, which makes kasan_early_shadow_pte look like a 4KB
+size array.  But we can't ensure the order always right with different
+compiler/linker, nor more bss symbols be introduced.
 
-Warning in mem_cgroup_page_lruvec() was once useful in detecting a KSM
-charge bug, so may be worth keeping: but skip if mem_cgroup_disabled().
+We had a test with QEMU + vexpress=EF=BC=9Aput a 512KB-size symbol with
+attribute __section(".bss..page_aligned") after kasan_early_shadow_pte,
+and poison it after kasan_early_init().  Then enabled CONFIG_KASAN, it
+failed to boot up.
 
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2101032056260.1093@eggly.anvils
-Fixes: 9a1ac2288cf1 ("mm/memcontrol:rewrite mem_cgroup_page_lruvec()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hui Su <sh_def@163.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20210109044622.8312-1-hailongliiu@yeah.net
+Signed-off-by: Hailong Liu <liu.hailong6@zte.com.cn>
+Signed-off-by: Ziliang Guo <guo.ziliang@zte.com.cn>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kasan.h |    6 +++++-
+ mm/kasan/init.c       |    3 ++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-fix-warning-in-mem_cgroup_page_lruvec
-+++ a/include/linux/memcontrol.h
-@@ -665,7 +665,7 @@ static inline struct lruvec *mem_cgroup_
- {
- 	struct mem_cgroup *memcg = page_memcg(page);
- 
--	VM_WARN_ON_ONCE_PAGE(!memcg, page);
-+	VM_WARN_ON_ONCE_PAGE(!memcg && !mem_cgroup_disabled(), page);
- 	return mem_cgroup_lruvec(memcg, pgdat);
+--- a/include/linux/kasan.h~arm-kasan-fix-the-arry-size-of-kasan_early_shad=
+ow_pte
++++ a/include/linux/kasan.h
+@@ -35,8 +35,12 @@ struct kunit_kasan_expectation {
+ #define KASAN_SHADOW_INIT 0
+ #endif
+=20
++#ifndef PTE_HWTABLE_PTRS
++#define PTE_HWTABLE_PTRS 0
++#endif
++
+ extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+-extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
++extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS];
+ extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
+ extern pud_t kasan_early_shadow_pud[PTRS_PER_PUD];
+ extern p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D];
+--- a/mm/kasan/init.c~arm-kasan-fix-the-arry-size-of-kasan_early_shadow_pte
++++ a/mm/kasan/init.c
+@@ -64,7 +64,8 @@ static inline bool kasan_pmd_table(pud_t
+ 	return false;
  }
- 
+ #endif
+-pte_t kasan_early_shadow_pte[PTRS_PER_PTE] __page_aligned_bss;
++pte_t kasan_early_shadow_pte[PTRS_PER_PTE + PTE_HWTABLE_PTRS]
++	__page_aligned_bss;
+=20
+ static inline bool kasan_pte_table(pmd_t pmd)
+ {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from liu.hailong6@zte.com.cn are
 
 
