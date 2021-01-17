@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D376C433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:45:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F419C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:54:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60694224B8
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:45:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 02EED20784
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 19:54:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729444AbhAQTpB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 14:45:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43898 "EHLO mail.kernel.org"
+        id S1728700AbhAQTy3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 14:54:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729248AbhAQTpA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 14:45:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 305AF224B8;
-        Sun, 17 Jan 2021 19:44:18 +0000 (UTC)
+        id S1728815AbhAQTy2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 14:54:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A85020784;
+        Sun, 17 Jan 2021 19:53:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610912659;
-        bh=nDztvgQpP6bQ94r3Bgd+xRExCkShOaPITIFz8mF6Tjw=;
+        s=korg; t=1610913227;
+        bh=PUDPYfPpzrfGT/hXzRiGwRFSszFLQc9vKapXwwqMeDk=;
         h=Date:From:To:Subject:From;
-        b=R5cmnxP+U57FcPk5Ooh+dcBGWaQi8PX7s6VBVFcNITGBVWAdhTRBAKXm6zkmUo7Qt
-         Kj25ydJ9uhD7i7Llc2PUOBE5eO4wOKPsM+b5hYMOaMGlnTkoml2LuVnzU3wQD0FPFq
-         5z9f2OsHb2pt0hAI2893iLtv65zMMs2nsTr3pDMI=
-Date:   Sun, 17 Jan 2021 11:44:17 -0800
+        b=oqCc544At575jqDGXDGegA313kPPdRk0XBI30nmOU+UsQQLgxdb8jHJRq/Bozplmf
+         96zbWWlJyB+3zSXyrYOG0Q9M6H0d6PxNy4F+2MgLQ5ms7ITMF7QdOtQ/omHdXKKKUo
+         X2vTLqa2fiR9DsQknFWL7Hulp2Ie7SquRQSO+rjA=
+Date:   Sun, 17 Jan 2021 11:53:46 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-fix-hw_tags-boot-parameters.patch added to -mm
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, jannh@google.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  +
+ mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch added to -mm
  tree
-Message-ID: <20210117194417.oAavTt7GG%akpm@linux-foundation.org>
+Message-ID: <20210117195346.TfUxa7sSV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix HW_TAGS boot parameters
+     Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
 has been added to the -mm tree.  Its filename is
-     kasan-fix-hw_tags-boot-parameters.patch
+     mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-hw_tags-boot-parameters.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-hw_tags-boot-parameters.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,248 +66,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix HW_TAGS boot parameters
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: splice cpu and page freelists in deactivate_slab()
 
-The initially proposed KASAN command line parameters are redundant.
+In deactivate_slab() we currently move all but one objects on the cpu
+freelist to the page freelist one by one using the costly cmpxchg_double()
+operation.  Then we unfreeze the page while moving the last object on page
+freelist, with a final cmpxchg_double().
 
-This change drops the complex "kasan.mode=off/prod/full" parameter
-and adds a simpler kill switch "kasan=off/on" instead. The new parameter
-together with the already existing ones provides a cleaner way to
-express the same set of features.
+This can be optimized to avoid the cmpxchg_double() per object.  Just
+count the objects on cpu freelist (to adjust page->inuse properly) and
+also remember the last object in the chain.  Then splice page->freelist to
+the last object and effectively add the whole cpu freelist to
+page->freelist while unfreezing the page, with a single cmpxchg_double().
 
-The full set of parameters with this change:
-
-kasan=off/on             - whether KASAN is enabled
-kasan.fault=report/panic - whether to only print a report or also panic
-kasan.stacktrace=off/on  - whether to collect alloc/free stack traces
-
-Default values:
-
-kasan=on
-kasan.fault=report
-kasan.stacktrace=on  (if CONFIG_DEBUG_KERNEL=y)
-kasan.stacktrace=off (otherwise)
-
-Link: https://linux-review.googlesource.com/id/Ib3694ed90b1e8ccac6cf77dfd301847af4aba7b8
-Link: https://lkml.kernel.org/r/4e9c4a4bdcadc168317deb2419144582a9be6e61.1610736745.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Link: https://lkml.kernel.org/r/20210115183543.15097-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Jann Horn <jannh@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   27 ++-------
- mm/kasan/hw_tags.c                |   77 +++++++++++-----------------
- 2 files changed, 38 insertions(+), 66 deletions(-)
+ mm/slub.c |   59 +++++++++++++++++++++-------------------------------
+ 1 file changed, 24 insertions(+), 35 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-fix-hw_tags-boot-parameters
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -160,29 +160,14 @@ intended for use in production as a secu
- boot parameters that allow to disable KASAN competely or otherwise control
- particular KASAN features.
- 
--The things that can be controlled are:
-+- ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
- 
--1. Whether KASAN is enabled at all.
--2. Whether KASAN collects and saves alloc/free stacks.
--3. Whether KASAN panics on a detected bug or not.
-+- ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
-+  traces collection (default: ``on`` for ``CONFIG_DEBUG_KERNEL=y``, otherwise
-+  ``off``).
- 
--The ``kasan.mode`` boot parameter allows to choose one of three main modes:
--
--- ``kasan.mode=off`` - KASAN is disabled, no tag checks are performed
--- ``kasan.mode=prod`` - only essential production features are enabled
--- ``kasan.mode=full`` - all KASAN features are enabled
--
--The chosen mode provides default control values for the features mentioned
--above. However it's also possible to override the default values by providing:
--
--- ``kasan.stacktrace=off`` or ``=on`` - enable alloc/free stack collection
--					(default: ``on`` for ``mode=full``,
--					 otherwise ``off``)
--- ``kasan.fault=report`` or ``=panic`` - only print KASAN report or also panic
--					 (default: ``report``)
--
--If ``kasan.mode`` parameter is not provided, it defaults to ``full`` when
--``CONFIG_DEBUG_KERNEL`` is enabled, and to ``prod`` otherwise.
-+- ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
-+  report or also panic the kernel (default: ``report``).
- 
- For developers
- ~~~~~~~~~~~~~~
---- a/mm/kasan/hw_tags.c~kasan-fix-hw_tags-boot-parameters
-+++ a/mm/kasan/hw_tags.c
-@@ -19,11 +19,10 @@
- 
- #include "kasan.h"
- 
--enum kasan_arg_mode {
--	KASAN_ARG_MODE_DEFAULT,
--	KASAN_ARG_MODE_OFF,
--	KASAN_ARG_MODE_PROD,
--	KASAN_ARG_MODE_FULL,
-+enum kasan_arg {
-+	KASAN_ARG_DEFAULT,
-+	KASAN_ARG_OFF,
-+	KASAN_ARG_ON,
- };
- 
- enum kasan_arg_stacktrace {
-@@ -38,7 +37,7 @@ enum kasan_arg_fault {
- 	KASAN_ARG_FAULT_PANIC,
- };
- 
--static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
-+static enum kasan_arg kasan_arg __ro_after_init;
- static enum kasan_arg_stacktrace kasan_arg_stacktrace __ro_after_init;
- static enum kasan_arg_fault kasan_arg_fault __ro_after_init;
- 
-@@ -52,26 +51,24 @@ DEFINE_STATIC_KEY_FALSE(kasan_flag_stack
- /* Whether panic or disable tag checking on fault. */
- bool kasan_flag_panic __ro_after_init;
- 
--/* kasan.mode=off/prod/full */
--static int __init early_kasan_mode(char *arg)
-+/* kasan=off/on */
-+static int __init early_kasan_flag(char *arg)
+--- a/mm/slub.c~mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab
++++ a/mm/slub.c
+@@ -2170,9 +2170,9 @@ static void deactivate_slab(struct kmem_
  {
- 	if (!arg)
- 		return -EINVAL;
- 
- 	if (!strcmp(arg, "off"))
--		kasan_arg_mode = KASAN_ARG_MODE_OFF;
--	else if (!strcmp(arg, "prod"))
--		kasan_arg_mode = KASAN_ARG_MODE_PROD;
--	else if (!strcmp(arg, "full"))
--		kasan_arg_mode = KASAN_ARG_MODE_FULL;
-+		kasan_arg = KASAN_ARG_OFF;
-+	else if (!strcmp(arg, "on"))
-+		kasan_arg = KASAN_ARG_ON;
- 	else
- 		return -EINVAL;
- 
- 	return 0;
- }
--early_param("kasan.mode", early_kasan_mode);
-+early_param("kasan", early_kasan_flag);
- 
--/* kasan.stack=off/on */
-+/* kasan.stacktrace=off/on */
- static int __init early_kasan_flag_stacktrace(char *arg)
- {
- 	if (!arg)
-@@ -113,8 +110,8 @@ void kasan_init_hw_tags_cpu(void)
- 	 * as this function is only called for MTE-capable hardware.
- 	 */
- 
--	/* If KASAN is disabled, do nothing. */
--	if (kasan_arg_mode == KASAN_ARG_MODE_OFF)
-+	/* If KASAN is disabled via command line, don't initialize it. */
-+	if (kasan_arg == KASAN_ARG_OFF)
- 		return;
- 
- 	hw_init_tags(KASAN_TAG_MAX);
-@@ -124,43 +121,28 @@ void kasan_init_hw_tags_cpu(void)
- /* kasan_init_hw_tags() is called once on boot CPU. */
- void __init kasan_init_hw_tags(void)
- {
--	/* If hardware doesn't support MTE, do nothing. */
-+	/* If hardware doesn't support MTE, don't initialize KASAN. */
- 	if (!system_supports_mte())
- 		return;
- 
--	/* Choose KASAN mode if kasan boot parameter is not provided. */
--	if (kasan_arg_mode == KASAN_ARG_MODE_DEFAULT) {
--		if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
--			kasan_arg_mode = KASAN_ARG_MODE_FULL;
--		else
--			kasan_arg_mode = KASAN_ARG_MODE_PROD;
--	}
--
--	/* Preset parameter values based on the mode. */
--	switch (kasan_arg_mode) {
--	case KASAN_ARG_MODE_DEFAULT:
--		/* Shouldn't happen as per the check above. */
--		WARN_ON(1);
--		return;
--	case KASAN_ARG_MODE_OFF:
--		/* If KASAN is disabled, do nothing. */
-+	/* If KASAN is disabled via command line, don't initialize it. */
-+	if (kasan_arg == KASAN_ARG_OFF)
- 		return;
--	case KASAN_ARG_MODE_PROD:
--		static_branch_enable(&kasan_flag_enabled);
--		break;
--	case KASAN_ARG_MODE_FULL:
--		static_branch_enable(&kasan_flag_enabled);
--		static_branch_enable(&kasan_flag_stacktrace);
--		break;
--	}
- 
--	/* Now, optionally override the presets. */
-+	/* Enable KASAN. */
-+	static_branch_enable(&kasan_flag_enabled);
- 
- 	switch (kasan_arg_stacktrace) {
- 	case KASAN_ARG_STACKTRACE_DEFAULT:
-+		/*
-+		 * Default to enabling stack trace collection for
-+		 * debug kernels.
-+		 */
-+		if (IS_ENABLED(CONFIG_DEBUG_KERNEL))
-+			static_branch_enable(&kasan_flag_stacktrace);
- 		break;
- 	case KASAN_ARG_STACKTRACE_OFF:
--		static_branch_disable(&kasan_flag_stacktrace);
-+		/* Do nothing, kasan_flag_stacktrace keeps its default value. */
- 		break;
- 	case KASAN_ARG_STACKTRACE_ON:
- 		static_branch_enable(&kasan_flag_stacktrace);
-@@ -169,11 +151,16 @@ void __init kasan_init_hw_tags(void)
- 
- 	switch (kasan_arg_fault) {
- 	case KASAN_ARG_FAULT_DEFAULT:
-+		/*
-+		 * Default to no panic on report.
-+		 * Do nothing, kasan_flag_panic keeps its default value.
-+		 */
- 		break;
- 	case KASAN_ARG_FAULT_REPORT:
--		kasan_flag_panic = false;
-+		/* Do nothing, kasan_flag_panic keeps its default value. */
- 		break;
- 	case KASAN_ARG_FAULT_PANIC:
-+		/* Enable panic on report. */
- 		kasan_flag_panic = true;
- 		break;
+ 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
+ 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+-	int lock = 0;
++	int lock = 0, free_delta = 0;
+ 	enum slab_modes l = M_NONE, m = M_NONE;
+-	void *nextfree;
++	void *nextfree, *freelist_iter, *freelist_tail;
+ 	int tail = DEACTIVATE_TO_HEAD;
+ 	struct page new;
+ 	struct page old;
+@@ -2183,45 +2183,34 @@ static void deactivate_slab(struct kmem_
  	}
+ 
+ 	/*
+-	 * Stage one: Free all available per cpu objects back
+-	 * to the page freelist while it is still frozen. Leave the
+-	 * last one.
+-	 *
+-	 * There is no need to take the list->lock because the page
+-	 * is still frozen.
++	 * Stage one: Count the objects on cpu's freelist as free_delta and
++	 * remember the last object in freelist_tail for later splicing.
+ 	 */
+-	while (freelist && (nextfree = get_freepointer(s, freelist))) {
+-		void *prior;
+-		unsigned long counters;
++	freelist_tail = NULL;
++	freelist_iter = freelist;
++	while (freelist_iter) {
++		nextfree = get_freepointer(s, freelist_iter);
+ 
+ 		/*
+ 		 * If 'nextfree' is invalid, it is possible that the object at
+-		 * 'freelist' is already corrupted.  So isolate all objects
+-		 * starting at 'freelist'.
++		 * 'freelist_iter' is already corrupted.  So isolate all objects
++		 * starting at 'freelist_iter' by skipping them.
+ 		 */
+-		if (freelist_corrupted(s, page, &freelist, nextfree))
++		if (freelist_corrupted(s, page, &freelist_iter, nextfree))
+ 			break;
+ 
+-		do {
+-			prior = page->freelist;
+-			counters = page->counters;
+-			set_freepointer(s, freelist, prior);
+-			new.counters = counters;
+-			new.inuse--;
+-			VM_BUG_ON(!new.frozen);
+-
+-		} while (!__cmpxchg_double_slab(s, page,
+-			prior, counters,
+-			freelist, new.counters,
+-			"drain percpu freelist"));
++		freelist_tail = freelist_iter;
++		free_delta++;
+ 
+-		freelist = nextfree;
++		freelist_iter = nextfree;
+ 	}
+ 
+ 	/*
+-	 * Stage two: Ensure that the page is unfrozen while the
+-	 * list presence reflects the actual number of objects
+-	 * during unfreeze.
++	 * Stage two: Unfreeze the page while splicing the per-cpu
++	 * freelist to the head of page's freelist.
++	 *
++	 * Ensure that the page is unfrozen while the list presence
++	 * reflects the actual number of objects during unfreeze.
+ 	 *
+ 	 * We setup the list membership and then perform a cmpxchg
+ 	 * with the count. If there is a mismatch then the page
+@@ -2234,15 +2223,15 @@ static void deactivate_slab(struct kmem_
+ 	 */
+ redo:
+ 
+-	old.freelist = page->freelist;
+-	old.counters = page->counters;
++	old.freelist = READ_ONCE(page->freelist);
++	old.counters = READ_ONCE(page->counters);
+ 	VM_BUG_ON(!old.frozen);
+ 
+ 	/* Determine target state of the slab */
+ 	new.counters = old.counters;
+-	if (freelist) {
+-		new.inuse--;
+-		set_freepointer(s, freelist, old.freelist);
++	if (freelist_tail) {
++		new.inuse -= free_delta;
++		set_freepointer(s, freelist_tail, old.freelist);
+ 		new.freelist = freelist;
+ 	} else
+ 		new.freelist = old.freelist;
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-kasan-fix-hw_tags-boot-parameters.patch
-kasan-prefix-exported-functions-with-kasan_.patch
-kasan-clarify-hw_tags-impact-on-tbi.patch
-kasan-clean-up-comments-in-tests.patch
-kasan-add-match-all-tag-tests.patch
-kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
-kasan-rename-config_test_kasan_module.patch
-kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
-kasan-adopt-kmalloc_uaf2-test-to-hw_tags-mode.patch
-kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
-kasan-add-proper-page-allocator-tests.patch
+mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+mm-slab-slub-stop-taking-memory-hotplug-lock.patch
+mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
+mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
 
