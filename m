@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13033C433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 22:01:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01125C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 22:01:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1808208A9
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 22:01:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0F04207DE
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 22:01:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729944AbhAQWBX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 17:01:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58748 "EHLO mail.kernel.org"
+        id S1730122AbhAQWBe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 17:01:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728918AbhAQWBQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 17:01:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8AE88207DE;
-        Sun, 17 Jan 2021 22:00:34 +0000 (UTC)
+        id S1729956AbhAQWB1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 17:01:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 904512250E;
+        Sun, 17 Jan 2021 22:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610920835;
-        bh=ZBkhPQMa06FG7P2Vg3sgiMotbJx9tiOA09o4igKVrmI=;
+        s=korg; t=1610920847;
+        bh=ww5TyybtvzNkS8SkzTK9PEIky5yisNDk3ww5wJUoqHg=;
         h=Date:From:To:Subject:From;
-        b=qDcrYddj1g/pCIRcUVMiBqsWsm5wcurO2hCq3jnr0jsTOW4aLStaoJ4oKdGK3MRMk
-         7aYGkxid9SsTiVwYQPqg3uhdTwB5o7rvQBnrJYkPPZAgeJSKkXk4Esj1fmTQBfw315
-         y7WySwByjPL7FptqhbH3gxDLSsV6NOhMYYWzeNZ8=
-Date:   Sun, 17 Jan 2021 14:00:33 -0800
+        b=Zt1OQ9u3wa2vvk8w6+QWV018UXQfr8SkJCgovQYqMy9n7diJ30UR/+tpM+2NG0kLN
+         haJYBrPO9z2+T5+73LOkvWlkQNMhs1h7vRvE+b87ySGfQd2rAsCTq2EzFnGjTM+IOB
+         cWPmN2TIbu3wFDs4YW5dxN1H+Q8OdVbqXTxeiQdM=
+Date:   Sun, 17 Jan 2021 14:00:45 -0800
 From:   akpm@linux-foundation.org
 To:     cai@lca.pw, dan.j.williams@intel.com, david@redhat.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, osalvador@suse.de
-Subject:  + mm-move-pfn_to_online_page-out-of-line.patch added to
- -mm tree
-Message-ID: <20210117220033.fhGV1TK71%akpm@linux-foundation.org>
+Subject:  +
+ mm-fix-memory_failure-handling-of-dax-namespace-metadata.patch added to -mm
+ tree
+Message-ID: <20210117220045.kuII7KOcO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move pfn_to_online_page() out of line
+     Subject: mm: fix memory_failure() handling of dax-namespace metadata
 has been added to the -mm tree.  Its filename is
-     mm-move-pfn_to_online_page-out-of-line.patch
+     mm-fix-memory_failure-handling-of-dax-namespace-metadata.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-pfn_to_online_page-out-of-line.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-memory_failure-handling-of-dax-namespace-metadata.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-pfn_to_online_page-out-of-line.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-memory_failure-handling-of-dax-namespace-metadata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,107 +67,95 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: move pfn_to_online_page() out of line
+Subject: mm: fix memory_failure() handling of dax-namespace metadata
 
-Patch series "mm: Fix pfn_to_online_page() with respect to ZONE_DEVICE", v4.
+Given 'struct dev_pagemap' spans both data pages and metadata pages be
+careful to consult the altmap if present to delineate metadata.  In fact
+the pfn_first() helper already identifies the first valid data pfn, so
+export that helper for other code paths via pgmap_pfn_valid().
 
-A pfn-walker that uses pfn_to_online_page() may inadvertently translate a
-pfn as online and in the page allocator, when it is offline managed by a
-ZONE_DEVICE mapping (details in Patch 3: ("mm: Teach pfn_to_online_page()
-about ZONE_DEVICE section collisions")).
+Other usage of get_dev_pagemap() are not a concern because those are
+operating on known data pfns having been looked up by get_user_pages(). 
+I.e.  metadata pfns are never user mapped.
 
-The 2 proposals under consideration are teach pfn_to_online_page() to be
-precise in the presence of mixed-zone sections, or teach the memory-add
-code to drop the System RAM associated with ZONE_DEVICE collisions.  In
-order to not regress memory capacity by a few 10s to 100s of MiB the
-approach taken in this set is to add precision to pfn_to_online_page().
-
-In the course of validating pfn_to_online_page() a couple other fixes
-fell out:
-
-1/ soft_offline_page() fails to drop the reference taken in the
-   madvise(..., MADV_SOFT_OFFLINE) case.
-
-2/ memory_failure() uses get_dev_pagemap() to lookup ZONE_DEVICE pages,
-   however that mapping may contain data pages and metadata raw pfns.
-   Introduce pgmap_pfn_valid() to delineate the 2 types and fail the
-   handling of raw metadata pfns.
-
-
-This patch (of 4);
-
-pfn_to_online_page() is already too large to be a macro or an inline
-function.  In anticipation of further logic changes / growth, move it out
-of line.
-
-No functional change, just code movement.
-
-Link: https://lkml.kernel.org/r/161058499000.1840162.702316708443239771.stgit@dwillia2-desk3.amr.corp.intel.com
-Link: https://lkml.kernel.org/r/161058499608.1840162.10165648147615238793.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lkml.kernel.org/r/161058501758.1840162.4239831989762604527.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: 6100e34b2526 ("mm, memory_failure: Teach memory_failure() about dev_pagemap pages")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Michal Hocko <mhocko@kernel.org>
+Reported-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |   17 +----------------
- mm/memory_hotplug.c            |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ include/linux/memremap.h |    6 ++++++
+ mm/memory-failure.c      |    6 ++++++
+ mm/memremap.c            |   15 +++++++++++++++
+ 3 files changed, 27 insertions(+)
 
---- a/include/linux/memory_hotplug.h~mm-move-pfn_to_online_page-out-of-line
-+++ a/include/linux/memory_hotplug.h
-@@ -16,22 +16,7 @@ struct resource;
- struct vmem_altmap;
+--- a/include/linux/memremap.h~mm-fix-memory_failure-handling-of-dax-namespace-metadata
++++ a/include/linux/memremap.h
+@@ -138,6 +138,7 @@ void *devm_memremap_pages(struct device
+ void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
+ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 		struct dev_pagemap *pgmap);
++bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--/*
-- * Return page for the valid pfn only if the page is online. All pfn
-- * walkers which rely on the fully initialized page->flags and others
-- * should use this rather than pfn_valid && pfn_to_page
-- */
--#define pfn_to_online_page(pfn)					   \
--({								   \
--	struct page *___page = NULL;				   \
--	unsigned long ___pfn = pfn;				   \
--	unsigned long ___nr = pfn_to_section_nr(___pfn);	   \
--								   \
--	if (___nr < NR_MEM_SECTIONS && online_section_nr(___nr) && \
--	    pfn_valid_within(___pfn))				   \
--		___page = pfn_to_page(___pfn);			   \
--	___page;						   \
--})
-+struct page *pfn_to_online_page(unsigned long pfn);
- 
- /*
-  * Types for free bootmem stored in page->lru.next. These have to be in
---- a/mm/memory_hotplug.c~mm-move-pfn_to_online_page-out-of-line
-+++ a/mm/memory_hotplug.c
-@@ -301,6 +301,22 @@ static int check_hotplug_memory_addressa
+ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+ void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
+@@ -171,6 +172,11 @@ static inline struct dev_pagemap *get_de
+ 	return NULL;
  }
  
- /*
-+ * Return page for the valid pfn only if the page is online. All pfn
-+ * walkers which rely on the fully initialized page->flags and others
-+ * should use this rather than pfn_valid && pfn_to_page
-+ */
-+struct page *pfn_to_online_page(unsigned long pfn)
++static inline bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn)
 +{
-+	unsigned long nr = pfn_to_section_nr(pfn);
-+
-+	if (nr < NR_MEM_SECTIONS && online_section_nr(nr) &&
-+	    pfn_valid_within(pfn))
-+		return pfn_to_page(pfn);
-+	return NULL;
++	return false;
 +}
-+EXPORT_SYMBOL_GPL(pfn_to_online_page);
 +
-+/*
-  * Reasonably generic function for adding memory.  It is
-  * expected that archs that support memory hotplug will
-  * call this function after deciding the zone to which to
+ static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
+ {
+ 	return 0;
+--- a/mm/memory-failure.c~mm-fix-memory_failure-handling-of-dax-namespace-metadata
++++ a/mm/memory-failure.c
+@@ -1308,6 +1308,12 @@ static int memory_failure_dev_pagemap(un
+ 		 */
+ 		put_page(page);
+ 
++	/* device metadata space is not recoverable */
++	if (!pgmap_pfn_valid(pgmap, pfn)) {
++		rc = -ENXIO;
++		goto out;
++	}
++
+ 	/*
+ 	 * Prevent the inode from being freed while we are interrogating
+ 	 * the address_space, typically this would be handled by
+--- a/mm/memremap.c~mm-fix-memory_failure-handling-of-dax-namespace-metadata
++++ a/mm/memremap.c
+@@ -80,6 +80,21 @@ static unsigned long pfn_first(struct de
+ 	return pfn + vmem_altmap_offset(pgmap_altmap(pgmap));
+ }
+ 
++bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn)
++{
++	int i;
++
++	for (i = 0; i < pgmap->nr_range; i++) {
++		struct range *range = &pgmap->ranges[i];
++
++		if (pfn >= PHYS_PFN(range->start) &&
++		    pfn <= PHYS_PFN(range->end))
++			return pfn >= pfn_first(pgmap, i);
++	}
++
++	return false;
++}
++
+ static unsigned long pfn_end(struct dev_pagemap *pgmap, int range_id)
+ {
+ 	const struct range *range = &pgmap->ranges[range_id];
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
