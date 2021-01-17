@@ -7,35 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68D59C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F19C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 18:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A33622C97
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFDDD20B1F
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 18:54:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727967AbhAQCML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jan 2021 21:12:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41710 "EHLO mail.kernel.org"
+        id S1728499AbhAQSyd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 13:54:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727888AbhAQCML (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 16 Jan 2021 21:12:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 62D0022D5A;
-        Sun, 17 Jan 2021 02:11:06 +0000 (UTC)
+        id S1728154AbhAQSyc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 13:54:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EA00321D7F;
+        Sun, 17 Jan 2021 18:53:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610849466;
-        bh=WqSNkc457cUzVFmSvSDLfcpcisjUoMEl0tJwGfQzTy4=;
+        s=korg; t=1610909632;
+        bh=K/6rWXmxaz+fXOM62j5C/yLN4ZLemItwhDs+2+VbUFs=;
         h=Date:From:To:Subject:From;
-        b=jWSPF4dXb8XaR0DpNkfTeb8++DACNjJmqo12iIL6LEijUMx0ZQbUoGz+ipJvJNYau
-         ponFq2F7BwlrZHmYGvS4FzbwJyCCI1tYfbMWYPYvW6VuWWakt0f2hiQgvaBj9kE8hw
-         TwQvqCbLTHnMn/0qqD09oM+zfbOUKpm+rDC0D+ik=
-Date:   Sat, 16 Jan 2021 18:11:06 -0800
+        b=S+eLTsXJIx2Tu12bIXKX5xWXcLhNBHH1HfWzDewEKgSw3OowPnCLPeSUGex9+IIb9
+         u3aj7gau+YYwW4rCm7XJAQiqIkulgKNN5dLKOQZvY4scyy+ckpsGaq6pVCb8hChgvI
+         9wwGueAxdIY15cG219aSyyTxyV6KL4r2rP4tuasI=
+Date:   Sun, 17 Jan 2021 10:53:51 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de,
-        me@kylehuey.com, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, viro@zeniv.linux.org.uk
-Subject:  [merged] mm-process_vm_accessc-include-compath.patch
- removed from -mm tree
-Message-ID: <20210117021106.BfaXbX7b2%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20210117185351.KgPUQ-fib%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,41 +41,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/process_vm_access.c: include compat.h
-has been removed from the -mm tree.  Its filename was
-     mm-process_vm_accessc-include-compath.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/process_vm_access.c: include compat.h
+Subject: linux-next-git-rejects
 
-mm/process_vm_access.c:277:5: error: implicit declaration of function 'in_compat_syscall'; did you mean 'in_ia32_syscall'? [-Werror=implicit-function-declaration]
-
-Fixes: 38dc5079da7081e "Fix compat regression in process_vm_rw()"
-Reported-by: syzbot+5b0d0de84d6c65b8dd2b@syzkaller.appspotmail.com
-Cc: Kyle Huey <me@kylehuey.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/process_vm_access.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/process_vm_access.c~mm-process_vm_accessc-include-compath
-+++ a/mm/process_vm_access.c
-@@ -9,6 +9,7 @@
- #include <linux/mm.h>
- #include <linux/uio.h>
- #include <linux/sched.h>
-+#include <linux/compat.h>
- #include <linux/sched/mm.h>
- #include <linux/highmem.h>
- #include <linux/ptrace.h>
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
+@@ -336,8 +336,6 @@ struct amdgpu_display_manager {
+ 	 */
+ 	const struct gpu_info_soc_bounding_box_v1_0 *soc_bounding_box;
+ 
+-<<<<<<< HEAD
+-=======
+ 	/**
+ 	 * @active_vblank_irq_count:
+ 	 *
+@@ -345,7 +343,6 @@ struct amdgpu_display_manager {
+ 	 */
+ 	uint32_t active_vblank_irq_count;
+ 
+->>>>>>> linux-next/akpm-base
+ 	/**
+ 	 * @mst_encoders:
+ 	 *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,4 +106,5 @@ kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
 set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
 arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
 
