@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B8E8C433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:44:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35346C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:45:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0157820791
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:44:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 048AC20791
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:45:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729739AbhAQVoy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 16:44:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56026 "EHLO mail.kernel.org"
+        id S1728469AbhAQVpu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 16:45:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56256 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729550AbhAQVoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 16:44:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 09B3420791;
-        Sun, 17 Jan 2021 21:44:12 +0000 (UTC)
+        id S1728042AbhAQVpt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 16:45:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1621E20791;
+        Sun, 17 Jan 2021 21:45:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610919853;
-        bh=73xAhJXKEinzEBHCEkV8lWEjak142FAVlymkr+VEOaE=;
+        s=korg; t=1610919909;
+        bh=kFYG177ZTx8P0OBzxwaIuo2U0a7QZGIoZfZHFp7eWJI=;
         h=Date:From:To:Subject:From;
-        b=NZmm061omOCpQDOAVyLZYTFw7i681nq/XrIo1rrVeny7g13J3P319YWCnnIMSBWA9
-         VZIImAoYFdnitWDL+HZvMB5kHnp+Im5GuGh5uY4KWSGDjt3RVpCafItGDf6JmBfRwH
-         +vNos0a+rQQiDEathUp6RlxPkgNFlbSkfcy9pmbs=
-Date:   Sun, 17 Jan 2021 13:44:12 -0800
+        b=LbseLuopuTv0A9LrnYF/jGNQy1B4Pioke8MT5IMR+xE6TGlb5bENHYjaveW5PcO1N
+         iiRHmxQDxR6IXDlxtfHYoCxWoDp3ru851NR0XxxTZnpIagYB8dA4lzEFOSfTDf/VO0
+         L/9b3D+EN13vnHjfa/dKZ2IgI75FMfXtH49/drZY=
+Date:   Sun, 17 Jan 2021 13:45:08 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
+To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
- added to -mm tree
-Message-ID: <20210117214412.OYwJhb56A%akpm@linux-foundation.org>
+ mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch added
+ to -mm tree
+Message-ID: <20210117214508.6IbX3OH2H%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: convert to use kmem_cache_zalloc in cache_alloc_zspage()
+     Subject: mm/hugetlb: use helper huge_page_order and pages_per_huge_page
 has been added to the -mm tree.  Its filename is
-     mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+     mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,47 +66,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zsmalloc.c: convert to use kmem_cache_zalloc in cache_alloc_zspage()
+Subject: mm/hugetlb: use helper huge_page_order and pages_per_huge_page
 
-We always memset the zspage allocated via cache_alloc_zspage.  So it's
-more convenient to use kmem_cache_zalloc in cache_alloc_zspage than caller
-do it manually.
+Since commit a5516438959d ("hugetlb: modular state for hugetlb page
+size"), we can use huge_page_order to access hstate->order and
+pages_per_huge_page to fetch the pages per huge page.  But
+gather_bootmem_prealloc() forgot to use it.
 
-Link: https://lkml.kernel.org/r/20210114120032.25885-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210114114435.40075-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage
-+++ a/mm/zsmalloc.c
-@@ -357,7 +357,7 @@ static void cache_free_handle(struct zs_
+--- a/mm/hugetlb.c~mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page
++++ a/mm/hugetlb.c
+@@ -2473,7 +2473,7 @@ static void __init gather_bootmem_preall
+ 		struct hstate *h = m->hstate;
  
- static struct zspage *cache_alloc_zspage(struct zs_pool *pool, gfp_t flags)
- {
--	return kmem_cache_alloc(pool->zspage_cachep,
-+	return kmem_cache_zalloc(pool->zspage_cachep,
- 			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
+ 		WARN_ON(page_count(page) != 1);
+-		prep_compound_huge_page(page, h->order);
++		prep_compound_huge_page(page, huge_page_order(h));
+ 		WARN_ON(PageReserved(page));
+ 		prep_new_huge_page(h, page, page_to_nid(page));
+ 		put_page(page); /* free it into the hugepage allocator */
+@@ -2485,7 +2485,7 @@ static void __init gather_bootmem_preall
+ 		 * side-effects, like CommitLimit going negative.
+ 		 */
+ 		if (hstate_is_gigantic(h))
+-			adjust_managed_page_count(page, 1 << h->order);
++			adjust_managed_page_count(page, pages_per_huge_page(h));
+ 		cond_resched();
+ 	}
  }
- 
-@@ -1064,7 +1064,6 @@ static struct zspage *alloc_zspage(struc
- 	if (!zspage)
- 		return NULL;
- 
--	memset(zspage, 0, sizeof(struct zspage));
- 	zspage->magic = ZSPAGE_MAGIC;
- 	migrate_lock_init(zspage);
- 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
 mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
+mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
 mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
 mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
