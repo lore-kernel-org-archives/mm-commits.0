@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35346C433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:45:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C7A0C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:52:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 048AC20791
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:45:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1879B207AE
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:52:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728469AbhAQVpu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 16:45:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56256 "EHLO mail.kernel.org"
+        id S1728984AbhAQVvq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 16:51:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728042AbhAQVpt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 16:45:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1621E20791;
-        Sun, 17 Jan 2021 21:45:09 +0000 (UTC)
+        id S1728918AbhAQVvq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 16:51:46 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 209CC207AE;
+        Sun, 17 Jan 2021 21:51:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610919909;
-        bh=kFYG177ZTx8P0OBzxwaIuo2U0a7QZGIoZfZHFp7eWJI=;
+        s=korg; t=1610920265;
+        bh=a2eCWG9VX2rcRjav4/DddozREKbQyGBXTz17FvU/LHg=;
         h=Date:From:To:Subject:From;
-        b=LbseLuopuTv0A9LrnYF/jGNQy1B4Pioke8MT5IMR+xE6TGlb5bENHYjaveW5PcO1N
-         iiRHmxQDxR6IXDlxtfHYoCxWoDp3ru851NR0XxxTZnpIagYB8dA4lzEFOSfTDf/VO0
-         L/9b3D+EN13vnHjfa/dKZ2IgI75FMfXtH49/drZY=
-Date:   Sun, 17 Jan 2021 13:45:08 -0800
+        b=Tt7YpWVwHgQXsCYkphGduznmoWDBslK/MYUtHlZIESQbdRZprUGTex2q2Wfwuh+sQ
+         1Oq+KOvuckHRlrf0cYJ3FCHG8KJJxArbTeLaqUGtQCziRZ+mJYVDtNRMG7rKHs6h02
+         xas5R3o86qNZb5xIdGakQ8eEMrtxcdxJkCUzm74c=
+Date:   Sun, 17 Jan 2021 13:51:04 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch added
- to -mm tree
-Message-ID: <20210117214508.6IbX3OH2H%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, daniel.vetter@ffwll.ch,
+        daniel.vetter@intel.com, lkp@intel.com, mm-commits@vger.kernel.org
+Subject:  + bdi-use-might_alloc-fix.patch added to -mm tree
+Message-ID: <20210117215104.4AmJm_BCs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: use helper huge_page_order and pages_per_huge_page
+     Subject: bdi-use-might_alloc-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+     bdi-use-might_alloc-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/bdi-use-might_alloc-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/bdi-use-might_alloc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,51 +63,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: use helper huge_page_order and pages_per_huge_page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bdi-use-might_alloc-fix
 
-Since commit a5516438959d ("hugetlb: modular state for hugetlb page
-size"), we can use huge_page_order to access hstate->order and
-pages_per_huge_page to fetch the pages per huge page.  But
-gather_bootmem_prealloc() forgot to use it.
+include linux/sched/mm.h
 
-Link: https://lkml.kernel.org/r/20210114114435.40075-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/backing-dev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page
-+++ a/mm/hugetlb.c
-@@ -2473,7 +2473,7 @@ static void __init gather_bootmem_preall
- 		struct hstate *h = m->hstate;
- 
- 		WARN_ON(page_count(page) != 1);
--		prep_compound_huge_page(page, h->order);
-+		prep_compound_huge_page(page, huge_page_order(h));
- 		WARN_ON(PageReserved(page));
- 		prep_new_huge_page(h, page, page_to_nid(page));
- 		put_page(page); /* free it into the hugepage allocator */
-@@ -2485,7 +2485,7 @@ static void __init gather_bootmem_preall
- 		 * side-effects, like CommitLimit going negative.
- 		 */
- 		if (hstate_is_gigantic(h))
--			adjust_managed_page_count(page, 1 << h->order);
-+			adjust_managed_page_count(page, pages_per_huge_page(h));
- 		cond_resched();
- 	}
- }
+--- a/mm/backing-dev.c~bdi-use-might_alloc-fix
++++ a/mm/backing-dev.c
+@@ -8,6 +8,7 @@
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
+ #include <linux/mm.h>
++#include <linux/sched/mm.h>
+ #include <linux/sched.h>
+ #include <linux/module.h>
+ #include <linux/writeback.h>
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
-mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+mm.patch
+mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
+mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
+mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+initramfs-panic-with-memory-information-fix.patch
+linux-next-git-rejects.patch
+set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
+arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+bdi-use-might_alloc-fix.patch
 
