@@ -4,41 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65C48C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:27:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A5FCC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:45:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 092C4224B1
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:27:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3357B224B8
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729469AbhAQU1X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 15:27:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47822 "EHLO mail.kernel.org"
+        id S1730319AbhAQUpN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 15:45:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729386AbhAQU1V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 15:27:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 66A1121D7F;
-        Sun, 17 Jan 2021 20:26:39 +0000 (UTC)
+        id S1730308AbhAQUpL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 15:45:11 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D5C921D7A;
+        Sun, 17 Jan 2021 20:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610915200;
-        bh=klFJWte8QlGeKTYu3G3C7RWNSiP/HxzW2bIhmySeJgI=;
+        s=korg; t=1610916264;
+        bh=RvRi6BxgL0VcjiBKDY7T7BePcQ2BnG/wqDj5EfkNWuU=;
         h=Date:From:To:Subject:From;
-        b=axn2FKB8B0spTMC1F2vnm79uf4eqYASTZ8cxkh7vtVHcNmTUWE5EB6ldqQ9Mwm1Yi
-         OVe4O8UYFeN4p8Dc+5br0E23jcvTr5XhaiKtLVeu8iWGEVOF+HMx1eOzlwl/0q4Sbd
-         +rY/eSdqSE7BY50GCvM+6d1h8WZRnSFX9rmAVUEc=
-Date:   Sun, 17 Jan 2021 12:26:38 -0800
+        b=ugEKK9T0wEoB6KBTQPuatmZvUflLvwDZOLWdPOq4LGFXbEPCiVfcBXDEv7fXwtvww
+         Na3RjkvPetSgGuSgjW3ctZs3EqVEn5kC5p5tb2OtmlwPDBXq3TQPXt4CuP8qZkCPHi
+         CQOxFe6NwMelfeq1Ye/1ETGLBazgFG61cAeLh5FQ=
+Date:   Sun, 17 Jan 2021 12:44:22 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, eugenis@google.com,
-        glider@google.com, kevin.brodsky@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com, vbabka@suse.cz,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
- added to -mm tree
-Message-ID: <20210117202638.wb8CbdCca%akpm@linux-foundation.org>
+To:     ak@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        songmuchun@bytedance.com, stable@vger.kernel.org
+Subject:  [to-be-updated]
+ mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch removed
+ from -mm tree
+Message-ID: <20210117204422._bfXz1QN7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,110 +45,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, mm: fix conflicts with init_on_alloc/free
-has been added to the -mm tree.  Its filename is
-     kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
+     Subject: mm: hugetlbfs: fix cannot migrate the fallocated HugeTLB page
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: fix conflicts with init_on_alloc/free
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlbfs: fix cannot migrate the fallocated HugeTLB page
 
-A few places where SLUB accesses object's data or metadata were missed in
-a previous patch.  This leads to false positives with hardware tag-based
-KASAN when bulk allocations are used with init_on_alloc/free.
+If a new hugetlb page is allocated during fallocate it will not be marked
+as active (set_page_huge_active) which will result in a later
+isolate_huge_page failure when the page migration code would like to move
+that page.  Such a failure would be unexpected and wrong.
 
-Fix the false-positives by resetting pointer tags during these accesses.
+Only export set_page_huge_active, just leave clear_page_huge_active
+as static. Because there are no external users.
 
-(The kasan_reset_tag call is removed from slab_alloc_node, as it's added
- into maybe_wipe_obj_freeptr.)
-
-Link: https://linux-review.googlesource.com/id/I50dd32838a666e173fe06c3c5c766f2c36aae901
-Link: https://lkml.kernel.org/r/093428b5d2ca8b507f4a79f92f9929b35f7fada7.1610731872.git.andreyknvl@google.com
-Fixes: aa1ef4d7b3f67 ("kasan, mm: reset tags when accessing metadata")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Link: https://lkml.kernel.org/r/20210110124017.86750-3-songmuchun@bytedance.com
+Fixes: 70c3547e36f5 (hugetlbfs: add hugetlbfs_fallocate())
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c    |    3 ++-
+ include/linux/hugetlb.h |    2 ++
+ mm/hugetlb.c            |    2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~kasan-mm-fix-conflicts-with-init_on_alloc-free
-+++ a/mm/slub.c
-@@ -2791,7 +2791,8 @@ static __always_inline void maybe_wipe_o
- 						   void *obj)
- {
- 	if (unlikely(slab_want_init_on_free(s)) && obj)
--		memset((void *)((char *)obj + s->offset), 0, sizeof(void *));
-+		memset((void *)((char *)kasan_reset_tag(obj) + s->offset),
-+			0, sizeof(void *));
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
++++ a/fs/hugetlbfs/inode.c
+@@ -735,9 +735,10 @@ static long hugetlbfs_fallocate(struct f
+ 
+ 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 
++		set_page_huge_active(page);
+ 		/*
+ 		 * unlock_page because locked by add_to_page_cache()
+-		 * page_put due to reference from alloc_huge_page()
++		 * put_page() due to reference from alloc_huge_page()
+ 		 */
+ 		unlock_page(page);
+ 		put_page(page);
+--- a/include/linux/hugetlb.h~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
++++ a/include/linux/hugetlb.h
+@@ -770,6 +770,8 @@ static inline void huge_ptep_modify_prot
+ }
+ #endif
+ 
++void set_page_huge_active(struct page *page);
++
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
+ 
+--- a/mm/hugetlb.c~mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page
++++ a/mm/hugetlb.c
+@@ -1349,7 +1349,7 @@ bool page_huge_active(struct page *page)
  }
  
- /*
-@@ -2883,7 +2884,7 @@ redo:
- 		stat(s, ALLOC_FASTPATH);
- 	}
- 
--	maybe_wipe_obj_freeptr(s, kasan_reset_tag(object));
-+	maybe_wipe_obj_freeptr(s, object);
- 
- 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
- 		memset(kasan_reset_tag(object), 0, s->object_size);
-@@ -3329,7 +3330,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 		int j;
- 
- 		for (j = 0; j < i; j++)
--			memset(p[j], 0, s->object_size);
-+			memset(kasan_reset_tag(p[j]), 0, s->object_size);
- 	}
- 
- 	/* memcg and kmem_cache debug support */
+ /* never called for tail page */
+-static void set_page_huge_active(struct page *page)
++void set_page_huge_active(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
+ 	SetPagePrivate(&page[1]);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-kasan-fix-hw_tags-boot-parameters.patch
-kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
-kasan-prefix-global-functions-with-kasan_.patch
-kasan-clarify-hw_tags-impact-on-tbi.patch
-kasan-clean-up-comments-in-tests.patch
-kasan-add-macros-to-simplify-checking-test-constraints.patch
-kasan-add-match-all-tag-tests.patch
-kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
-kasan-rename-config_test_kasan_module.patch
-kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
-kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
-kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
-kasan-move-_ret_ip_-to-inline-wrappers.patch
-kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
-kasan-add-proper-page-allocator-tests.patch
-kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
-kasan-dont-run-tests-when-kasan-is-not-enabled.patch
+mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch
+mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch
+mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch
+mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
+mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
+mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
+mm-memcontrol-make-the-slab-calculation-consistent.patch
+mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch
 
