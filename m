@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A911DC433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:35:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE3BC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:41:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F7DE222B3
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:35:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD69E224B8
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 21:41:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729919AbhAQVf1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 16:35:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54858 "EHLO mail.kernel.org"
+        id S1728469AbhAQVlN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 16:41:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729348AbhAQVex (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 17 Jan 2021 16:34:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3288C222B3;
-        Sun, 17 Jan 2021 21:34:10 +0000 (UTC)
+        id S1728042AbhAQVlM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 17 Jan 2021 16:41:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CAC2220791;
+        Sun, 17 Jan 2021 21:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610919250;
-        bh=Gp92TlYjDJ3xoUjPJMYZsa7I15a+wCrs6+aoOL+Y5fo=;
+        s=korg; t=1610919632;
+        bh=Tgo6KO1aEOrq7DJyDNr6OlyoBpvvuhLW2HU1v3fD8tU=;
         h=Date:From:To:Subject:From;
-        b=FshCAxpfHQBbh0/qT5j3pg6emUQYc8cgv3Tej/oSGArVjdhIPgp5SxDL12+rwwXze
-         uUrdXdsBEMQA2dH1i5HNVjR4+JXxXRDqeyeHWwAqKYf1pYMqHbuQoyFsuIkvge/U6r
-         2cvA14vpJxYZeTCaiGUV6QPzqOIwsOeH2ttagHrM=
-Date:   Sun, 17 Jan 2021 13:34:09 -0800
+        b=x79i4lkO0ILN41G4rM8EoIjv0jtighj/PzO6gHAoRd36HO8Mi9YYxN+Vhw2Y1lef4
+         LqxEP3DY3xRc8j8bczj+n8nMJer3dWPwb79znuR5QmVr7y9quiJDMKM+uIYcvS5+H8
+         OTzj19BLkYz74FEG4y4Sc0Vyj9Fgu8iuf7pL9Skg=
+Date:   Sun, 17 Jan 2021 13:40:30 -0800
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, brho@google.com, f.fainelli@gmail.com,
-        mm-commits@vger.kernel.org
-Subject:  + initramfs-panic-with-memory-information.patch added to
- -mm tree
-Message-ID: <20210117213409.5JKZxp3LN%akpm@linux-foundation.org>
+To:     bcain@codeaurora.org, gregkh@linuxfoundation.org,
+        keescook@chromium.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org
+Subject:  +
+ hexagon-remove-config_experimental-from-defconfigs.patch added to -mm tree
+Message-ID: <20210117214030.NNrQdTfLO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: panic with memory information
+     Subject: hexagon: remove CONFIG_EXPERIMENTAL from defconfigs
 has been added to the -mm tree.  Its filename is
-     initramfs-panic-with-memory-information.patch
+     hexagon-remove-config_experimental-from-defconfigs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/initramfs-panic-with-memory-information.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hexagon-remove-config_experimental-from-defconfigs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/initramfs-panic-with-memory-information.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hexagon-remove-config_experimental-from-defconfigs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,89 +65,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: initramfs: panic with memory information
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: hexagon: remove CONFIG_EXPERIMENTAL from defconfigs
 
-On systems with large amounts of reserved memory we may fail to
-successfully complete unpack_to_rootfs() and be left with:
+Since CONFIG_EXPERIMENTAL was removed in 2013, go ahead and drop it
+from any defconfig files.
 
- Kernel panic - not syncing: write error
-
-this is not too helpful to understand what happened, so let's wrap the
-panic() calls with a surrounding show_mem() such that we have a chance of
-understanding the memory conditions leading to these allocation failures.
-
-Link: https://lkml.kernel.org/r/20210114231517.1854379-1-f.fainelli@gmail.com
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Barret Rhoden <brho@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20210115010011.29483-1-rdunlap@infradead.org
+Fixes: 3d374d09f16f ("final removal of CONFIG_EXPERIMENTAL")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Brian Cain <bcain@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ arch/hexagon/configs/comet_defconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/init/initramfs.c~initramfs-panic-with-memory-information
-+++ a/init/initramfs.c
-@@ -11,6 +11,7 @@
- #include <linux/utime.h>
- #include <linux/file.h>
- #include <linux/memblock.h>
-+#include <linux/mm.h>
- #include <linux/namei.h>
- #include <linux/init_syscalls.h>
- 
-@@ -45,6 +46,11 @@ static void __init error(char *x)
- 		message = x;
- }
- 
-+#define panic_show_mem(...) {	\
-+	show_mem(0, NULL);	\
-+	panic(__VA_ARGS__);	\
-+}
-+
- /* link hash */
- 
- #define N_ALIGN(len) ((((len) + 1) & ~3) + 2)
-@@ -80,7 +86,7 @@ static char __init *find_link(int major,
- 	}
- 	q = kmalloc(sizeof(struct hash), GFP_KERNEL);
- 	if (!q)
--		panic("can't allocate link hash entry");
-+		panic_show_mem("can't allocate link hash entry");
- 	q->major = major;
- 	q->minor = minor;
- 	q->ino = ino;
-@@ -125,7 +131,7 @@ static void __init dir_add(const char *n
- {
- 	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
- 	if (!de)
--		panic("can't allocate dir_entry buffer");
-+		panic_show_mem("can't allocate dir_entry buffer");
- 	INIT_LIST_HEAD(&de->list);
- 	de->name = kstrdup(name, GFP_KERNEL);
- 	de->mtime = mtime;
-@@ -460,7 +466,7 @@ static char * __init unpack_to_rootfs(ch
- 	name_buf = kmalloc(N_ALIGN(PATH_MAX), GFP_KERNEL);
- 
- 	if (!header_buf || !symlink_buf || !name_buf)
--		panic("can't allocate buffers");
-+		panic_show_mem("can't allocate buffers");
- 
- 	state = Start;
- 	this_header = 0;
-@@ -607,7 +613,7 @@ static int __init populate_rootfs(void)
- 	/* Load the built in initramfs */
- 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
- 	if (err)
--		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
-+		panic_show_mem("%s", err); /* Failed to decompress INTERNAL initramfs */
- 
- 	if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
- 		goto done;
+--- a/arch/hexagon/configs/comet_defconfig~hexagon-remove-config_experimental-from-defconfigs
++++ a/arch/hexagon/configs/comet_defconfig
+@@ -1,7 +1,6 @@
+ CONFIG_SMP=y
+ CONFIG_DEFAULT_MMAP_MIN_ADDR=0
+ CONFIG_HZ_100=y
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_CROSS_COMPILE="hexagon-"
+ CONFIG_LOCALVERSION="-smp"
+ # CONFIG_LOCALVERSION_AUTO is not set
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-initramfs-panic-with-memory-information.patch
+hexagon-remove-config_experimental-from-defconfigs.patch
+fs-delete-repeated-words-in-comments.patch
+mm-zswap-clean-up-confusing-comment.patch
+alpha-remove-config_experimental-from-defconfigs.patch
 
