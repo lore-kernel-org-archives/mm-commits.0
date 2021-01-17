@@ -4,38 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 881D3C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE03DC433E6
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B81922D49
+	by mail.kernel.org (Postfix) with ESMTP id 884A022C97
 	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 02:12:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727890AbhAQCMG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1727786AbhAQCMG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 16 Jan 2021 21:12:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41690 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41688 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727786AbhAQCMF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1727838AbhAQCMF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 16 Jan 2021 21:12:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7764522D0A;
-        Sun, 17 Jan 2021 02:10:59 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CAE922C97;
+        Sun, 17 Jan 2021 02:10:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610849459;
-        bh=W0gTPwznguCtBODXOr5gJqUg29fHBWTVuVNlLkfEkuc=;
+        s=korg; t=1610849456;
+        bh=/6kq6W+8+EJcV97FGit5krZM9phjq/jPDWsWv+NpqeA=;
         h=Date:From:To:Subject:From;
-        b=0Or2PQYGfR9c9ws4iGt+or+0X2HIbAz0SQ+DoO9acwKkn1N7lxTfx6waoLmrLB9BP
-         z1LSjXLa9X2b3cwvOu3OnbQm6dLH+ksXEC/RyXdyjq+6IlWSMCLtAPyx4JIKBYcuz7
-         OXMRscOk2441RPybkWkD04DlBKyQFmVP2B7aBy0w=
-Date:   Sat, 16 Jan 2021 18:10:59 -0800
+        b=BBZRaKZ59iDzN1tU1c7ofVGSJORKnRIFVLdUFHI0kad0gPQpsbyXLJlk6RIZusXJN
+         ibFA8qdBCfeWLPWZ+L0C5mYUsCC3ub7qQgfQezhl1EDEDUoReYABYQct+hCUQBh04v
+         LD4JB8bibg7fKSVIsL5B98wgzcpC3azaXMiWaP6w=
+Date:   Sat, 16 Jan 2021 18:10:56 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org
+To:     jack@suse.cz, jstancek@redhat.com, mgorman@suse.de,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shy828301@gmail.com,
+        songliubraving@fb.com, willy@infradead.org, ziy@nvidia.com
 Subject:  [merged]
- mm-hugetlb-fix-potential-missing-huge-page-size-info.patch removed from -mm
- tree
-Message-ID: <20210117021059.aKDWs3amp%akpm@linux-foundation.org>
+ mm-migrate-initialize-err-in-do_migrate_pages.patch removed from -mm tree
+Message-ID: <20210117021056.eXUu19N0g%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,45 +44,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix potential missing huge page size info
+     Subject: mm: migrate: initialize err in do_migrate_pages
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-potential-missing-huge-page-size-info.patch
+     mm-migrate-initialize-err-in-do_migrate_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix potential missing huge page size info
+From: Jan Stancek <jstancek@redhat.com>
+Subject: mm: migrate: initialize err in do_migrate_pages
 
-The huge page size is encoded for VM_FAULT_HWPOISON errors only.  So if we
-return VM_FAULT_HWPOISON, huge page size would just be ignored.
+After commit 236c32eb1096 ("mm: migrate: clean up migrate_prep{_local}")',
+do_migrate_pages can return uninitialized variable 'err' (which is
+propagated to user-space as error) when 'from' and 'to' nodesets are
+identical.  This can be reproduced with LTP migrate_pages01, which calls
+migrate_pages() with same set for both old/new_nodes.
 
-Link: https://lkml.kernel.org/r/20210107123449.38481-1-linmiaohe@huawei.com
-Fixes: aa50d3a7aa81 ("Encode huge page size for VM_FAULT_HWPOISON errors")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Add 'err' initialization back.
+
+Link: https://lkml.kernel.org/r/456a021c7ef3636d7668cec9dcb4a446a4244812.1609855564.git.jstancek@redhat.com
+Fixes: 236c32eb1096 ("mm: migrate: clean up migrate_prep{_local}")
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/mempolicy.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-potential-missing-huge-page-size-info
-+++ a/mm/hugetlb.c
-@@ -4371,7 +4371,7 @@ retry:
- 		 * So we need to block hugepage fault by PG_hwpoison bit check.
- 		 */
- 		if (unlikely(PageHWPoison(page))) {
--			ret = VM_FAULT_HWPOISON |
-+			ret = VM_FAULT_HWPOISON_LARGE |
- 				VM_FAULT_SET_HINDEX(hstate_index(h));
- 			goto backout_unlocked;
- 		}
+--- a/mm/mempolicy.c~mm-migrate-initialize-err-in-do_migrate_pages
++++ a/mm/mempolicy.c
+@@ -1111,7 +1111,7 @@ int do_migrate_pages(struct mm_struct *m
+ 		     const nodemask_t *to, int flags)
+ {
+ 	int busy = 0;
+-	int err;
++	int err = 0;
+ 	nodemask_t tmp;
+ 
+ 	migrate_prep();
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from jstancek@redhat.com are
 
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
 
