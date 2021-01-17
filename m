@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EDF9C433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FCDC433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B8BE224B1
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22CEC224DF
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jan 2021 20:09:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730207AbhAQUJF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jan 2021 15:09:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45684 "EHLO mail.kernel.org"
+        id S1730206AbhAQUJH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jan 2021 15:09:07 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730206AbhAQUJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730210AbhAQUJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sun, 17 Jan 2021 15:09:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B5E4521D7F;
-        Sun, 17 Jan 2021 20:08:07 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 39C3E22510;
+        Sun, 17 Jan 2021 20:08:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1610914090;
-        bh=NLysQToFW3clsETBy+KcfCYsY/wSxRSRrKpJsGniRTI=;
+        s=korg; t=1610914127;
+        bh=gGH0T9l7l2dhqs7+X1TwdHcY3GRzwUqw0c2zI/ZcBOM=;
         h=Date:From:To:Subject:From;
-        b=1BlQLC1OEu6n9Di8Zrxgse3DHugEFDcWJsZgTPw3jV/xNWR5/+563j5VeKjEg6FTJ
-         dh5B0WnfQwHRSPwq76N+EHrHPWSom6C+DZYyxbekEWS+5joqg6UEzUvu5I3u/Pc5lv
-         6vjz6RmHYHREuji9k1tmFofyHG9QgrIv214iIWfU=
-Date:   Sun, 17 Jan 2021 12:08:06 -0800
+        b=aREkFxtJPG3FW1fcIaAuO6Hcue/IKgQHDy9QEDHSuVAIKcFQIjEq1FR5+ZIJIyU4w
+         tbnWJH5l4Vxgv+TSJ04mDZU8yknhhqcA6LpiAKTpU1WrsddTlLgvF5JwrzFOCZrV9/
+         5rgSad/46QPfq+gPBF82rGJooD4CeefKuAb6WmTo=
+Date:   Sun, 17 Jan 2021 12:08:43 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+Subject:  + kasan-dont-run-tests-when-kasan-is-not-enabled.patch
  added to -mm tree
-Message-ID: <20210117200806.fk9wW3cPr%akpm@linux-foundation.org>
+Message-ID: <20210117200843.szD-EMOAd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: adapt kmalloc_uaf2 test to HW_TAGS mode
+     Subject: kasan: don't run tests when KASAN is not enabled
 has been added to the -mm tree.  Its filename is
-     kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+     kasan-dont-run-tests-when-kasan-is-not-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-dont-run-tests-when-kasan-is-not-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-dont-run-tests-when-kasan-is-not-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,19 +69,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: adapt kmalloc_uaf2 test to HW_TAGS mode
+Subject: kasan: don't run tests when KASAN is not enabled
 
-In the kmalloc_uaf2() test, the pointers to the two allocated memory
-blocks might happen to be the same, and the test will fail. With the
-software tag-based mode, the probability of the that is 1/254, so it's
-hard to observe the failure. For the hardware tag-based mode though,
-the probablity is 1/14, which is quite noticable.
+Don't run KASAN tests when it's disabled with kasan.mode=off to avoid
+corrupting kernel memory.
 
-Allow up to 16 attempts at generating different tags for the tag-based
-modes.
-
-Link: https://linux-review.googlesource.com/id/Ibfa458ef2804ff465d8eb07434a300bf36388d55
-Link: https://lkml.kernel.org/r/9cd5cf2f633dcbf55cab801cd26845d2b075cec7.1610733117.git.andreyknvl@google.com
+Link: https://linux-review.googlesource.com/id/I6447af436a69a94bfc35477f6bf4e2122948355e
+Link: https://lkml.kernel.org/r/25bd4fb5cae7b421d806a1f33fb633edd313f0c7.1610733117.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -97,37 +91,23 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ lib/test_kasan.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/lib/test_kasan.c~kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode
+--- a/lib/test_kasan.c~kasan-dont-run-tests-when-kasan-is-not-enabled
 +++ a/lib/test_kasan.c
-@@ -382,7 +382,9 @@ static void kmalloc_uaf2(struct kunit *t
+@@ -47,6 +47,11 @@ static bool multishot;
+  */
+ static int kasan_test_init(struct kunit *test)
  {
- 	char *ptr1, *ptr2;
- 	size_t size = 43;
-+	int counter = 0;
- 
-+again:
- 	ptr1 = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
- 
-@@ -391,6 +393,15 @@ static void kmalloc_uaf2(struct kunit *t
- 	ptr2 = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
- 
-+	/*
-+	 * For tag-based KASAN ptr1 and ptr2 tags might happen to be the same.
-+	 * Allow up to 16 attempts at generating different tags.
-+	 */
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) && ptr1 == ptr2 && counter++ < 16) {
-+		kfree(ptr2);
-+		goto again;
++	if (!kasan_enabled()) {
++		kunit_err(test, "can't run KASAN tests with KASAN disabled");
++		return -1;
 +	}
 +
- 	KUNIT_EXPECT_KASAN_FAIL(test, ptr1[40] = 'x');
- 	KUNIT_EXPECT_PTR_NE(test, ptr1, ptr2);
- 
+ 	multishot = kasan_save_enable_multi_shot();
+ 	hw_set_tagging_report_once(false);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
