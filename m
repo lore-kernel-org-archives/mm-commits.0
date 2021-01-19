@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5B2C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6991DC433E9
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:15:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DC5723107
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13EDB23107
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:15:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729717AbhASUAy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 15:00:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52718 "EHLO mail.kernel.org"
+        id S1730806AbhASS5v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 13:57:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392176AbhASUAo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 15:00:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CFF7023104;
-        Tue, 19 Jan 2021 20:00:02 +0000 (UTC)
+        id S2389819AbhASS5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 13:57:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E7AAE20706;
+        Tue, 19 Jan 2021 18:57:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611086403;
-        bh=2BugEwhofgwIrUFBm/W7olnjtj9Dx/nnQ8HxgzBmx5w=;
+        s=korg; t=1611082622;
+        bh=m4nEsgjoJCyf9QeZBCeuOaNH23G/H0L90WA6bbMWPk8=;
         h=Date:From:To:Subject:From;
-        b=S3QgosvvRBXeuG+ndvqBauovpcnb101tnZNtaolqUEBJYWJ+pEKvy3Ehk3t0gZJb2
-         khgbhed/ZhPS7AlvnsTepcaJWpw5uo3+ycd6tSdZ1z3htC9nwBXkylnHP/aRtend+4
-         FZw9q0W2heSpj8kY4pRY8qO05uu19bvu8eRBp5uw=
-Date:   Tue, 19 Jan 2021 12:00:02 -0800
+        b=R8P9O3Qh3zCYOApflShPBkRbjaqohs+BscO8ALXNNk4VprTGMWfFA1d/9qRVVDXo8
+         MhO0pJUcGDNiNxYsKFwCr0z+1yXasRmRvQiqyaMQTifenmbkDBQVW2QYYXsvL1p15G
+         P1vWBfFNivG8ygCD+qhHP5Q6IshiO3Ch/JRGZYt8=
+Date:   Tue, 19 Jan 2021 10:57:01 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        tianjia.zhang@linux.alibaba.com, zhang.jia@linux.alibaba.com
+To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch added to
- -mm tree
-Message-ID: <20210119200002.dsPO1K-pu%akpm@linux-foundation.org>
+ hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch added
+ to -mm tree
+Message-ID: <20210119185701.P17foiJX7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
+     Subject: hugetlbfs: use helper macro default_hstate in init_hugetlbfs_fs
 has been added to the -mm tree.  Its filename is
-     mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
+     hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,43 +65,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
-Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlbfs: use helper macro default_hstate in init_hugetlbfs_fs
 
-Obviously, the error variable detection of the if statement is
-for the mprotect callback function, so it is also put into the
-scope of calling callbck.
+Since commit e5ff215941d5 ("hugetlb: multiple hstates for multiple page
+sizes"), we can use macro default_hstate to get the struct hstate which we
+use by default.  But init_hugetlbfs_fs() forgot to use it.
 
-Link: https://lkml.kernel.org/r/20210118133310.98375-1-tianjia.zhang@linux.alibaba.com
-Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
-Reported-by: Jia Zhang <zhang.jia@linux.alibaba.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20210116091827.20982-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mprotect.c~mm-optimizing-error-condition-detection-in-do_mprotect_pkey
-+++ a/mm/mprotect.c
-@@ -617,10 +617,11 @@ static int do_mprotect_pkey(unsigned lon
- 		if (tmp > end)
- 			tmp = end;
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs
++++ a/fs/hugetlbfs/inode.c
+@@ -1542,7 +1542,7 @@ static int __init init_hugetlbfs_fs(void
+ 		goto out_free;
  
--		if (vma->vm_ops && vma->vm_ops->mprotect)
-+		if (vma->vm_ops && vma->vm_ops->mprotect) {
- 			error = vma->vm_ops->mprotect(vma, nstart, tmp, newflags);
--		if (error)
--			goto out;
-+			if (error)
-+				goto out;
-+		}
- 
- 		error = mprotect_fixup(vma, &prev, nstart, tmp, newflags);
- 		if (error)
+ 	/* default hstate mount is required */
+-	mnt = mount_one_hugetlbfs(&hstates[default_hstate_idx]);
++	mnt = mount_one_hugetlbfs(&default_hstate);
+ 	if (IS_ERR(mnt)) {
+ 		error = PTR_ERR(mnt);
+ 		goto out_unreg;
 _
 
-Patches currently in -mm which might be from tianjia.zhang@linux.alibaba.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
+mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
+mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
+mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
+hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
