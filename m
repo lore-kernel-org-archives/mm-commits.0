@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDC1C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FA19C433E6
 	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:39:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC17423104
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:38:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D2AF23107
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391760AbhASTil (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 14:38:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47966 "EHLO mail.kernel.org"
+        id S2391742AbhASTig (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 14:38:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47940 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391595AbhASTid (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 14:38:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 921BD23105;
-        Tue, 19 Jan 2021 19:37:52 +0000 (UTC)
+        id S2390516AbhASTi3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 14:38:29 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 37CCB23104;
+        Tue, 19 Jan 2021 19:37:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611085073;
-        bh=3qOmcqPG1eA0ecD9j0zNObnHKK5hV2eVFgU7PJzsvW8=;
+        s=korg; t=1611085068;
+        bh=TmDfTigIexHLB4/rfPs7k2gFkKnRjiUW+sg6aKbobO0=;
         h=Date:From:To:Subject:From;
-        b=lke9X8FbfdSFMSt7+AB9rkOy0Cj5v8FAelhWB16WRBhJj3dHZr4iCfvBbORkl35oC
-         h3PvLpZHR8E0E5q8cWekiG56pw4wJREJ0Z74WFef/i45B/uomBKszzhWAMlYL86gXB
-         MMViIp4Hcd5X85atPQsXEMGqHB69ClrYTU2mKubo=
-Date:   Tue, 19 Jan 2021 11:37:51 -0800
+        b=n+aK17V9aEBjF1fys30o036wJPNSzFiS9JvSzAV0/4+GOtDQNQ597e+hQ0yuiRrg6
+         VoKb9EJu+wUAPxOPvLpOhISZD+6HPZxMvLTAvjUbWxXWLvjys5e4l2OhB8kJVzmkRA
+         FUSA3fczVaszNlx77aR6hTk+S0RcmGGQmWLiFvdc=
+Date:   Tue, 19 Jan 2021 11:37:47 -0800
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, ddstreet@ieee.org, efault@gmx.de,
         mm-commits@vger.kernel.org, sjenning@redhat.com,
         song.bao.hua@hisilicon.com, tiantao6@hisilicon.com,
         vitaly.wool@konsulko.com
-Subject:  +
- mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch added to -mm tree
-Message-ID: <20210119193751.YTVeb817B%akpm@linux-foundation.org>
+Subject:  + mm-zswap-add-the-flag-can_sleep_mapped.patch added to
+ -mm tree
+Message-ID: <20210119193747.iNMFPX62v%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: set the sleep_mapped to true for zbud and z3fold
+     Subject: mm/zswap: add the flag can_sleep_mapped
 has been added to the -mm tree.  Its filename is
-     mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
+     mm-zswap-add-the-flag-can_sleep_mapped.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-add-the-flag-can_sleep_mapped.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-add-the-flag-can_sleep_mapped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,47 +67,222 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tian Tao <tiantao6@hisilicon.com>
-Subject: mm: set the sleep_mapped to true for zbud and z3fold
+Subject: mm/zswap: add the flag can_sleep_mapped
 
-zpool driver adds a flag to indicate whether the zpool driver can enter an
-atomic context after mapping.  This patch sets it true for z3fold and
-zbud.
+Patch series "Fix the compatibility of zsmalloc and zswap".
 
-Link: https://lkml.kernel.org/r/1611035683-12732-3-git-send-email-tiantao6@hisilicon.com
+Patch #1 adds a flag to zpool, then zswap used to determine if zpool
+drivers such as zbud/z3fold/zsmalloc will enter an atomic context after
+mapping.
+
+The difference between zbud/z3fold and zsmalloc is that zsmalloc requires
+an atomic context that since its map function holds a preempt-disabled,
+but zbud/z3fold don't require an atomic context.  So patch #2 sets flag
+sleep_mapped to true indicating that zbud/z3fold can sleep after mapping. 
+zsmalloc didn't support sleep after mapping, so don't set that flag to
+true.
+
+
+This patch (of 2):
+
+Add a flag to zpool, named is "can_sleep_mapped", and have it set true for
+zbud/z3fold, not set this flag for zsmalloc, so its default value is
+false.  Then zswap could go the current path if the flag is true; and if
+it's false, copy data from src to a temporary buffer, then unmap the
+handle, take the mutex, process the buffer instead of src to avoid
+sleeping function called from atomic context.
+
+Link: https://lkml.kernel.org/r/1611035683-12732-1-git-send-email-tiantao6@hisilicon.com
+Link: https://lkml.kernel.org/r/1611035683-12732-2-git-send-email-tiantao6@hisilicon.com
 Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
 Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Reported-by: Mike Galbraith <efault@gmx.de>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    1 +
- mm/zbud.c   |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/zpool.h |    3 ++
+ mm/zpool.c            |   13 ++++++++++
+ mm/zswap.c            |   50 ++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 61 insertions(+), 5 deletions(-)
 
---- a/mm/z3fold.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
-+++ a/mm/z3fold.c
-@@ -1778,6 +1778,7 @@ static u64 z3fold_zpool_total_size(void
+--- a/include/linux/zpool.h~mm-zswap-add-the-flag-can_sleep_mapped
++++ a/include/linux/zpool.h
+@@ -73,6 +73,7 @@ u64 zpool_get_total_size(struct zpool *p
+  * @malloc:	allocate mem from a pool.
+  * @free:	free mem from a pool.
+  * @shrink:	shrink the pool.
++ * @sleep_mapped: whether zpool driver can sleep during map.
+  * @map:	map a handle.
+  * @unmap:	unmap a handle.
+  * @total_size:	get total size of a pool.
+@@ -100,6 +101,7 @@ struct zpool_driver {
+ 	int (*shrink)(void *pool, unsigned int pages,
+ 				unsigned int *reclaimed);
  
- static struct zpool_driver z3fold_zpool_driver = {
- 	.type =		"z3fold",
-+	.sleep_mapped = true,
- 	.owner =	THIS_MODULE,
- 	.create =	z3fold_zpool_create,
- 	.destroy =	z3fold_zpool_destroy,
---- a/mm/zbud.c~mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold
-+++ a/mm/zbud.c
-@@ -203,6 +203,7 @@ static u64 zbud_zpool_total_size(void *p
++	bool sleep_mapped;
+ 	void *(*map)(void *pool, unsigned long handle,
+ 				enum zpool_mapmode mm);
+ 	void (*unmap)(void *pool, unsigned long handle);
+@@ -112,5 +114,6 @@ void zpool_register_driver(struct zpool_
+ int zpool_unregister_driver(struct zpool_driver *driver);
  
- static struct zpool_driver zbud_zpool_driver = {
- 	.type =		"zbud",
-+	.sleep_mapped = true,
- 	.owner =	THIS_MODULE,
- 	.create =	zbud_zpool_create,
- 	.destroy =	zbud_zpool_destroy,
+ bool zpool_evictable(struct zpool *pool);
++bool zpool_can_sleep_mapped(struct zpool *pool);
+ 
+ #endif
+--- a/mm/zpool.c~mm-zswap-add-the-flag-can_sleep_mapped
++++ a/mm/zpool.c
+@@ -23,6 +23,7 @@ struct zpool {
+ 	void *pool;
+ 	const struct zpool_ops *ops;
+ 	bool evictable;
++	bool can_sleep_mapped;
+ 
+ 	struct list_head list;
+ };
+@@ -183,6 +184,7 @@ struct zpool *zpool_create_pool(const ch
+ 	zpool->pool = driver->create(name, gfp, ops, zpool);
+ 	zpool->ops = ops;
+ 	zpool->evictable = driver->shrink && ops && ops->evict;
++	zpool->can_sleep_mapped = driver->sleep_mapped;
+ 
+ 	if (!zpool->pool) {
+ 		pr_err("couldn't create %s pool\n", type);
+@@ -393,6 +395,17 @@ bool zpool_evictable(struct zpool *zpool
+ 	return zpool->evictable;
+ }
+ 
++/**
++ * zpool_can_sleep_mapped - Test if zpool can sleep when do mapped.
++ * @zpool:	The zpool to test
++ *
++ * Returns: true if zpool can sleep; false otherwise.
++ */
++bool zpool_can_sleep_mapped(struct zpool *zpool)
++{
++	return zpool->can_sleep_mapped;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Dan Streetman <ddstreet@ieee.org>");
+ MODULE_DESCRIPTION("Common API for compressed memory storage");
+--- a/mm/zswap.c~mm-zswap-add-the-flag-can_sleep_mapped
++++ a/mm/zswap.c
+@@ -935,13 +935,20 @@ static int zswap_writeback_entry(struct
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 
+-	u8 *src;
++	u8 *src, *tmp;
+ 	unsigned int dlen;
+ 	int ret;
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
+ 
++	if (!zpool_can_sleep_mapped(pool)) {
++
++		tmp = kmalloc(entry->length, GFP_ATOMIC);
++		if (!tmp)
++			return -ENOMEM;
++	}
++
+ 	/* extract swpentry from data */
+ 	zhdr = zpool_map_handle(pool, handle, ZPOOL_MM_RO);
+ 	swpentry = zhdr->swpentry; /* here */
+@@ -979,6 +986,14 @@ static int zswap_writeback_entry(struct
+ 		dlen = PAGE_SIZE;
+ 		src = (u8 *)zhdr + sizeof(struct zswap_header);
+ 
++		if (!zpool_can_sleep_mapped(pool)) {
++
++			memcpy(tmp, src, entry->length);
++			src = tmp;
++
++			zpool_unmap_handle(pool, handle);
++		}
++
+ 		mutex_lock(acomp_ctx->mutex);
+ 		sg_init_one(&input, src, entry->length);
+ 		sg_init_table(&output, 1);
+@@ -1033,7 +1048,11 @@ fail:
+ 	spin_unlock(&tree->lock);
+ 
+ end:
+-	zpool_unmap_handle(pool, handle);
++	if (zpool_can_sleep_mapped(pool))
++		zpool_unmap_handle(pool, handle);
++	else
++		kfree(tmp);
++
+ 	return ret;
+ }
+ 
+@@ -1235,7 +1254,7 @@ static int zswap_frontswap_load(unsigned
+ 	struct zswap_entry *entry;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+-	u8 *src, *dst;
++	u8 *src, *dst, *tmp;
+ 	unsigned int dlen;
+ 	int ret;
+ 
+@@ -1256,12 +1275,29 @@ static int zswap_frontswap_load(unsigned
+ 		goto freeentry;
+ 	}
+ 
++	if (!zpool_can_sleep_mapped(entry->pool->zpool)) {
++
++		tmp = kmalloc(entry->length, GFP_ATOMIC);
++		if (!tmp) {
++			ret = -ENOMEM;
++			goto freeentry;
++		}
++	}
++
+ 	/* decompress */
+ 	dlen = PAGE_SIZE;
+ 	src = zpool_map_handle(entry->pool->zpool, entry->handle, ZPOOL_MM_RO);
+ 	if (zpool_evictable(entry->pool->zpool))
+ 		src += sizeof(struct zswap_header);
+ 
++	if (!zpool_can_sleep_mapped(entry->pool->zpool)) {
++
++		memcpy(tmp, src, entry->length);
++		src = tmp;
++
++		zpool_unmap_handle(entry->pool->zpool, entry->handle);
++	}
++
+ 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+ 	mutex_lock(acomp_ctx->mutex);
+ 	sg_init_one(&input, src, entry->length);
+@@ -1271,7 +1307,11 @@ static int zswap_frontswap_load(unsigned
+ 	ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
+ 	mutex_unlock(acomp_ctx->mutex);
+ 
+-	zpool_unmap_handle(entry->pool->zpool, entry->handle);
++	if (zpool_can_sleep_mapped(entry->pool->zpool))
++		zpool_unmap_handle(entry->pool->zpool, entry->handle);
++	else
++		kfree(tmp);
++
+ 	BUG_ON(ret);
+ 
+ freeentry:
+@@ -1279,7 +1319,7 @@ freeentry:
+ 	zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ /* frees an entry in zswap */
 _
 
 Patches currently in -mm which might be from tiantao6@hisilicon.com are
