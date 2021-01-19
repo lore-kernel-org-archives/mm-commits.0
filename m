@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35F1BC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5B2C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D162C2310B
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DC5723107
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729553AbhASUCu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 15:02:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52998 "EHLO mail.kernel.org"
+        id S1729717AbhASUAy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 15:00:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727673AbhASUCp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 15:02:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 87D702310B;
-        Tue, 19 Jan 2021 20:02:02 +0000 (UTC)
+        id S2392176AbhASUAo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 15:00:44 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CFF7023104;
+        Tue, 19 Jan 2021 20:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611086523;
-        bh=K4y4wPQqp3TLEyf/F1oiLqy12C+hPVp+IhKBkIAF5N4=;
+        s=korg; t=1611086403;
+        bh=2BugEwhofgwIrUFBm/W7olnjtj9Dx/nnQ8HxgzBmx5w=;
         h=Date:From:To:Subject:From;
-        b=cCOoXaurC4sT5ZSaQW6aBbTsZyBqjWSC1SRknCRsl2N7k/X8C8F3LIxoLy2YgBpru
-         Owh7I5dF+CxVD2/jk164DXnlmnuu53I+ulxEcqky9ZtYni8qPQdRapbnyhQIAFQiM/
-         zv8vVhgqLstR2cp82+t4KrYPUVDCbhORMLBtIdkk=
-Date:   Tue, 19 Jan 2021 12:02:01 -0800
+        b=S3QgosvvRBXeuG+ndvqBauovpcnb101tnZNtaolqUEBJYWJ+pEKvy3Ehk3t0gZJb2
+         khgbhed/ZhPS7AlvnsTepcaJWpw5uo3+ycd6tSdZ1z3htC9nwBXkylnHP/aRtend+4
+         FZw9q0W2heSpj8kY4pRY8qO05uu19bvu8eRBp5uw=
+Date:   Tue, 19 Jan 2021 12:00:02 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, hkallweit1@gmail.com, keescook@chromium.org,
-        mcgrof@kernel.org, mhiramat@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, nixiaoming@huawei.com,
-        rdunlap@infradead.org, stable@vger.kernel.org, vbabka@suse.cz,
-        yzaikin@google.com
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        tianjia.zhang@linux.alibaba.com, zhang.jia@linux.alibaba.com
 Subject:  +
- proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch added to
+ mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch added to
  -mm tree
-Message-ID: <20210119200201.KWSj1XBo1%akpm@linux-foundation.org>
+Message-ID: <20210119200002.dsPO1K-pu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc_sysctl: fix oops caused by incorrect command parameters
+     Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
 has been added to the -mm tree.  Its filename is
-     proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
+     mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,74 +65,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: proc_sysctl: fix oops caused by incorrect command parameters
+From: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Subject: mm/mprotect.c: optimize error detection in do_mprotect_pkey()
 
-The process_sysctl_arg() does not check whether val is empty before
-invoking strlen(val).  If the command line parameter () is incorrectly
-configured and val is empty, oops is triggered.
+Obviously, the error variable detection of the if statement is
+for the mprotect callback function, so it is also put into the
+scope of calling callbck.
 
-For example:
-  "hung_task_panic=1" is incorrectly written as "hung_task_panic", oops is
-  triggered. The call stack is as follows:
-    Kernel command line: .... hung_task_panic
-    ......
-    Call trace:
-    __pi_strlen+0x10/0x98
-    parse_args+0x278/0x344
-    do_sysctl_args+0x8c/0xfc
-    kernel_init+0x5c/0xf4
-    ret_from_fork+0x10/0x30
-
-To fix it, check whether "val" is empty when "phram" is a sysctl field.
-Error codes are returned in the failure branch, and error logs are
-generated by parse_args().
-
-Link: https://lkml.kernel.org/r/20210118133029.28580-1-nixiaoming@huawei.com
-Fixes: 3db978d480e2843 ("kernel/sysctl: support setting sysctl parameters from kernel command line")
-Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: <stable@vger.kernel.org>	[5.8+]
+Link: https://lkml.kernel.org/r/20210118133310.98375-1-tianjia.zhang@linux.alibaba.com
+Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Reported-by: Jia Zhang <zhang.jia@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/mprotect.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~proc_sysctl-fix-oops-caused-by-incorrect-command-parameters
-+++ a/fs/proc/proc_sysctl.c
-@@ -1770,6 +1770,12 @@ static int process_sysctl_arg(char *para
- 			return 0;
- 	}
+--- a/mm/mprotect.c~mm-optimizing-error-condition-detection-in-do_mprotect_pkey
++++ a/mm/mprotect.c
+@@ -617,10 +617,11 @@ static int do_mprotect_pkey(unsigned lon
+ 		if (tmp > end)
+ 			tmp = end;
  
-+	if (!val)
-+		return -EINVAL;
-+	len = strlen(val);
-+	if (len == 0)
-+		return -EINVAL;
-+
- 	/*
- 	 * To set sysctl options, we use a temporary mount of proc, look up the
- 	 * respective sys/ file and write to it. To avoid mounting it when no
-@@ -1811,7 +1817,6 @@ static int process_sysctl_arg(char *para
- 				file, param, val);
- 		goto out;
- 	}
--	len = strlen(val);
- 	wret = kernel_write(file, val, len, &pos);
- 	if (wret < 0) {
- 		err = wret;
+-		if (vma->vm_ops && vma->vm_ops->mprotect)
++		if (vma->vm_ops && vma->vm_ops->mprotect) {
+ 			error = vma->vm_ops->mprotect(vma, nstart, tmp, newflags);
+-		if (error)
+-			goto out;
++			if (error)
++				goto out;
++		}
+ 
+ 		error = mprotect_fixup(vma, &prev, nstart, tmp, newflags);
+ 		if (error)
 _
 
-Patches currently in -mm which might be from nixiaoming@huawei.com are
+Patches currently in -mm which might be from tianjia.zhang@linux.alibaba.com are
 
-proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
+mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
 
