@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F854C433E9
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 527ACC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:58:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 247BB2310B
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:58:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05B932310B
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:58:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727078AbhAST6y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 14:58:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52390 "EHLO mail.kernel.org"
+        id S1728771AbhAST64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 14:58:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52476 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389698AbhAST6c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 14:58:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7275123104;
-        Tue, 19 Jan 2021 19:57:51 +0000 (UTC)
+        id S2392074AbhAST6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 14:58:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 522332310D;
+        Tue, 19 Jan 2021 19:58:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611086272;
-        bh=iB1lW5u72lh0c7YXTKzuAy8Yk5uKorHz0f0dnqittN8=;
+        s=korg; t=1611086283;
+        bh=EEIigaKbVfbKiW7yaktnaSB90eroh+QKmed2ibibNy8=;
         h=Date:From:To:Subject:From;
-        b=me3TVgH6PPtwQOZAvXgM57zt4+6Iu5z3KBsOIIUtn4rRAEZu2xGrI+Q66oVZgh6Oh
-         PKm6N3RQCNxrT+9mwsy6sN0l2+9VdK+0ZU5FBYp6ZX8RohBPomDSAHh43PjhCvcfK/
-         GDIxZb0VxhQzLchsjT/F/kksbmEVuG6QuMRGfVS4=
-Date:   Tue, 19 Jan 2021 11:57:50 -0800
+        b=M5P8AhHlcSQONo0HZZzBMMWyjlTTUQ6SgMDnj+BIcVQ48boNTOFq/LtfGw+CvrgWb
+         T2aKpjqES+nwdhRhmG6Tgals3oT6Fl5aek0NRwsjB88KIq/NWrP6O32CEpADLqb39o
+         T0z7hFSN7o/Wq0Lx+9qeiiq6r82gMWkeybxJdw+c=
+Date:   Tue, 19 Jan 2021 11:58:01 -0800
 From:   akpm@linux-foundation.org
 To:     andreas@gaisler.com, davem@davemloft.net,
         mm-commits@vger.kernel.org, mpe@ellerman.id.au,
         paul@crapouillou.net, peterz@infradead.org, tglx@linutronix.de,
         tsbogend@alpha.franken.de
-Subject:  + sparc-mm-highmem-flush-cache-and-tlb.patch added to -mm
- tree
-Message-ID: <20210119195750.1lnyIZX0b%akpm@linux-foundation.org>
+Subject:  +
+ powerpc-mm-highmem-use-__set_pte_at-for-kmap_local.patch added to -mm tree
+Message-ID: <20210119195801.fLdoqLND8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc/mm/highmem: flush cache and TLB
+     Subject: powerpc/mm/highmem: use __set_pte_at() for kmap_local()
 has been added to the -mm tree.  Its filename is
-     sparc-mm-highmem-flush-cache-and-tlb.patch
+     powerpc-mm-highmem-use-__set_pte_at-for-kmap_local.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sparc-mm-highmem-flush-cache-and-tlb.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-highmem-use-__set_pte_at-for-kmap_local.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sparc-mm-highmem-flush-cache-and-tlb.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-highmem-use-__set_pte_at-for-kmap_local.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,55 +67,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: sparc/mm/highmem: flush cache and TLB
+Subject: powerpc/mm/highmem: use __set_pte_at() for kmap_local()
 
-Patch series "mm/highmem: Fix fallout from generic kmap_local conversions".
+The original PowerPC highmem mapping function used __set_pte_at() to
+denote that the mapping is per CPU.  This got lost with the conversion to
+the generic implementation.
 
-The kmap_local conversion wreckaged sparc, mips and powerpc as it missed
-some of the details in the original implementation.
+Override the default map function.
 
-
-This patch (of 4):
-
-The recent conversion to the generic kmap_local infrastructure failed to
-assign the proper pre/post map/unmap flush operations for sparc.
-
-Sparc requires cache flush before map/unmap and tlb flush afterwards.
-
-Link: https://lkml.kernel.org/r/20210112170136.078559026@linutronix.de
-Link: https://lkml.kernel.org/r/20210112170410.905976187@linutronix.de
-Fixes: 3293efa97807 ("sparc/mm/highmem: Switch to generic kmap atomic")
+Link: https://lkml.kernel.org/r/20210112170411.281464308@linutronix.de
+Fixes: 47da42b27a56 ("powerpc/mm/highmem: Switch to generic kmap atomic")
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reported-by: Andreas Larsson <andreas@gaisler.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Cercueil <paul@crapouillou.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/highmem.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/powerpc/include/asm/highmem.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/sparc/include/asm/highmem.h~sparc-mm-highmem-flush-cache-and-tlb
-+++ a/arch/sparc/include/asm/highmem.h
-@@ -50,10 +50,11 @@ extern pte_t *pkmap_page_table;
+--- a/arch/powerpc/include/asm/highmem.h~powerpc-mm-highmem-use-__set_pte_at-for-kmap_local
++++ a/arch/powerpc/include/asm/highmem.h
+@@ -58,6 +58,8 @@ extern pte_t *pkmap_page_table;
  
  #define flush_cache_kmaps()	flush_cache_all()
  
--/* FIXME: Use __flush_tlb_one(vaddr) instead of flush_cache_all() -- Anton */
--#define arch_kmap_local_post_map(vaddr, pteval)	flush_cache_all()
--#define arch_kmap_local_post_unmap(vaddr)	flush_cache_all()
--
-+/* FIXME: Use __flush_*_one(vaddr) instead of flush_*_all() -- Anton */
-+#define arch_kmap_local_pre_map(vaddr, pteval)	flush_cache_all()
-+#define arch_kmap_local_pre_unmap(vaddr)	flush_cache_all()
-+#define arch_kmap_local_post_map(vaddr, pteval)	flush_tlb_all()
-+#define arch_kmap_local_post_unmap(vaddr)	flush_tlb_all()
- 
- #endif /* __KERNEL__ */
- 
++#define arch_kmap_local_set_pte(mm, vaddr, ptep, ptev)	\
++	__set_pte_at(mm, vaddr, ptep, ptev, 1)
+ #define arch_kmap_local_post_map(vaddr, pteval)	\
+ 	local_flush_tlb_page(NULL, vaddr)
+ #define arch_kmap_local_post_unmap(vaddr)	\
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
