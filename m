@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 020E4C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 18:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 294A0C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 18:56:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAF1B22CAD
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 18:33:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE42720706
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 18:56:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390432AbhASScv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 13:32:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56934 "EHLO mail.kernel.org"
+        id S1732437AbhASS4B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 13:56:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37618 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390818AbhASScs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 13:32:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BC04B22DD3;
-        Tue, 19 Jan 2021 18:31:37 +0000 (UTC)
+        id S2390170AbhASSz7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 13:55:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB9CA20706;
+        Tue, 19 Jan 2021 18:55:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611081097;
-        bh=yKhtYtac+pFcxrMOzxchZhqj0GrG5xlocX27Oku0xIE=;
+        s=korg; t=1611082518;
+        bh=BAu0YBYFycxJuz80hS7JMXD5pS8OCLm3U8Mq03hn2Xw=;
         h=Date:From:To:Subject:From;
-        b=RAa/WiMBxUtF6n14kQ70DsUPlgFClUbALkvaY7HA5cfniJi9I/4qMrBtcla3+ULX6
-         /WQxEbmO0kjMaC8euukuqDK5J345bhozYF7A6lLNop5jdEOM6e9O0GudmxumYgzvpP
-         35Q+pIr2BC0FDoydMl7gy6Gr9nVGb5a8i3NCz984=
-Date:   Tue, 19 Jan 2021 10:31:37 -0800
+        b=hFC2oT4igce4QcCssWSzFV7SW7Y3ImAXCRevJU5YNUoSPB/RBAPNYdPsPriKM/8Bn
+         yIBrq/+ybQxEyiSxKs/yLEl1hb1B8VHIrCAcpo2sYdGcFn4novMfIYak+nGu3fEUtd
+         zdguO0NqGykyEjonFyejfSjEJn/sPHLpD6TMI06I=
+Date:   Tue, 19 Jan 2021 10:55:17 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210119183137.C6KeEhsPQ%akpm@linux-foundation.org>
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  +
+ hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch added to
+ -mm tree
+Message-ID: <20210119185517.hnX_vk1sT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,56 +44,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: hugetlbfs: remove useless BUG_ON(!inode) in hugetlbfs_setattr()
+has been added to the -mm tree.  Its filename is
+     hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlbfs: remove useless BUG_ON(!inode) in hugetlbfs_setattr()
 
+When we reach here with inode = NULL, we should have crashed as inode has
+already been dereferenced via hstate_inode.  So this BUG_ON(!inode) does
+not take effect and should be removed.
+
+Link: https://lkml.kernel.org/r/20210118110700.52506-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/hugetlbfs/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
-@@ -336,8 +336,6 @@ struct amdgpu_display_manager {
- 	 */
- 	const struct gpu_info_soc_bounding_box_v1_0 *soc_bounding_box;
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr
++++ a/fs/hugetlbfs/inode.c
+@@ -760,8 +760,6 @@ static int hugetlbfs_setattr(struct dent
+ 	unsigned int ia_valid = attr->ia_valid;
+ 	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
  
--<<<<<<< HEAD
--=======
- 	/**
- 	 * @active_vblank_irq_count:
- 	 *
-@@ -345,7 +343,6 @@ struct amdgpu_display_manager {
- 	 */
- 	uint32_t active_vblank_irq_count;
- 
-->>>>>>> linux-next/akpm-base
- 	/**
- 	 * @mst_encoders:
- 	 *
+-	BUG_ON(!inode);
+-
+ 	error = setattr_prepare(dentry, attr);
+ 	if (error)
+ 		return error;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
-mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
-mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-bdi-use-might_alloc-fix.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
-initramfs-panic-with-memory-information-fix.patch
-set_memory-allow-set_direct_map__noflush-for-multiple-pages-fix.patch
-arch-mm-wire-up-memfd_secret-system-call-were-relevant-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
+mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
+mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
+hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
