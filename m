@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE0EAC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35F1BC433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 960472310B
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:58:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D162C2310B
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 20:03:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729553AbhAST66 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 14:58:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52416 "EHLO mail.kernel.org"
+        id S1729553AbhASUCu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 15:02:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391446AbhAST6g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 14:58:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A1A42310B;
-        Tue, 19 Jan 2021 19:57:55 +0000 (UTC)
+        id S1727673AbhASUCp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 15:02:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 87D702310B;
+        Tue, 19 Jan 2021 20:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611086275;
-        bh=fbHVrpHyQB6RiQL2hxPX+nLiSdZBDc06rtC+8EaJUrE=;
+        s=korg; t=1611086523;
+        bh=K4y4wPQqp3TLEyf/F1oiLqy12C+hPVp+IhKBkIAF5N4=;
         h=Date:From:To:Subject:From;
-        b=Il0esIPj707o0hrO4BFDpQ+4xpNDvVfI9JuLljRlpVJ2ejw/xz6gU9PKQy9Q3sqLL
-         ukqjmnWufzBi9bL2WpvcfUqbtkndtktw66B+fPQUxhYufny8kW9LmGHmoiV2Kvzywi
-         6ZHbVNdJ9SHCq/YTjWh8kKiwTwX+aJS+pSRL1pFA=
-Date:   Tue, 19 Jan 2021 11:57:54 -0800
+        b=cCOoXaurC4sT5ZSaQW6aBbTsZyBqjWSC1SRknCRsl2N7k/X8C8F3LIxoLy2YgBpru
+         Owh7I5dF+CxVD2/jk164DXnlmnuu53I+ulxEcqky9ZtYni8qPQdRapbnyhQIAFQiM/
+         zv8vVhgqLstR2cp82+t4KrYPUVDCbhORMLBtIdkk=
+Date:   Tue, 19 Jan 2021 12:02:01 -0800
 From:   akpm@linux-foundation.org
-To:     andreas@gaisler.com, davem@davemloft.net,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        paul@crapouillou.net, peterz@infradead.org, tglx@linutronix.de,
-        tsbogend@alpha.franken.de
-Subject:  + mm-highmem-prepare-for-overriding-set_pte_at.patch
- added to -mm tree
-Message-ID: <20210119195754.bCAsLa8Kv%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, hkallweit1@gmail.com, keescook@chromium.org,
+        mcgrof@kernel.org, mhiramat@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, nixiaoming@huawei.com,
+        rdunlap@infradead.org, stable@vger.kernel.org, vbabka@suse.cz,
+        yzaikin@google.com
+Subject:  +
+ proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch added to
+ -mm tree
+Message-ID: <20210119200201.KWSj1XBo1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem: prepare for overriding set_pte_at()
+     Subject: proc_sysctl: fix oops caused by incorrect command parameters
 has been added to the -mm tree.  Its filename is
-     mm-highmem-prepare-for-overriding-set_pte_at.patch
+     proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-highmem-prepare-for-overriding-set_pte_at.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-highmem-prepare-for-overriding-set_pte_at.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,57 +68,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm/highmem: prepare for overriding set_pte_at()
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: proc_sysctl: fix oops caused by incorrect command parameters
 
-The generic kmap_local() map function uses set_pte_at(), but MIPS requires
-set_pte() and PowerPC wants __set_pte_at().
+The process_sysctl_arg() does not check whether val is empty before
+invoking strlen(val).  If the command line parameter () is incorrectly
+configured and val is empty, oops is triggered.
 
-Provide arch_kmap_local_set_pte() and default it to set_pte_at().
+For example:
+  "hung_task_panic=1" is incorrectly written as "hung_task_panic", oops is
+  triggered. The call stack is as follows:
+    Kernel command line: .... hung_task_panic
+    ......
+    Call trace:
+    __pi_strlen+0x10/0x98
+    parse_args+0x278/0x344
+    do_sysctl_args+0x8c/0xfc
+    kernel_init+0x5c/0xf4
+    ret_from_fork+0x10/0x30
 
-Link: https://lkml.kernel.org/r/20210112170411.056306194@linutronix.de
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To fix it, check whether "val" is empty when "phram" is a sysctl field.
+Error codes are returned in the failure branch, and error logs are
+generated by parse_args().
+
+Link: https://lkml.kernel.org/r/20210118133029.28580-1-nixiaoming@huawei.com
+Fixes: 3db978d480e2843 ("kernel/sysctl: support setting sysctl parameters from kernel command line")
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: <stable@vger.kernel.org>	[5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    7 ++++++-
+ fs/proc/proc_sysctl.c |    7 ++++++-
  1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/highmem.c~mm-highmem-prepare-for-overriding-set_pte_at
-+++ a/mm/highmem.c
-@@ -473,6 +473,11 @@ static inline void *arch_kmap_local_high
- }
- #endif
+--- a/fs/proc/proc_sysctl.c~proc_sysctl-fix-oops-caused-by-incorrect-command-parameters
++++ a/fs/proc/proc_sysctl.c
+@@ -1770,6 +1770,12 @@ static int process_sysctl_arg(char *para
+ 			return 0;
+ 	}
  
-+#ifndef arch_kmap_local_set_pte
-+#define arch_kmap_local_set_pte(mm, vaddr, ptep, ptev)	\
-+	set_pte_at(mm, vaddr, ptep, ptev)
-+#endif
++	if (!val)
++		return -EINVAL;
++	len = strlen(val);
++	if (len == 0)
++		return -EINVAL;
 +
- /* Unmap a local mapping which was obtained by kmap_high_get() */
- static inline bool kmap_high_unmap_local(unsigned long vaddr)
- {
-@@ -515,7 +520,7 @@ void *__kmap_local_pfn_prot(unsigned lon
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- 	pteval = pfn_pte(pfn, prot);
--	set_pte_at(&init_mm, vaddr, kmap_pte - idx, pteval);
-+	arch_kmap_local_set_pte(&init_mm, vaddr, kmap_pte - idx, pteval);
- 	arch_kmap_local_post_map(vaddr, pteval);
- 	current->kmap_ctrl.pteval[kmap_local_idx()] = pteval;
- 	preempt_enable();
+ 	/*
+ 	 * To set sysctl options, we use a temporary mount of proc, look up the
+ 	 * respective sys/ file and write to it. To avoid mounting it when no
+@@ -1811,7 +1817,6 @@ static int process_sysctl_arg(char *para
+ 				file, param, val);
+ 		goto out;
+ 	}
+-	len = strlen(val);
+ 	wret = kernel_write(file, val, len, &pos);
+ 	if (wret < 0) {
+ 		err = wret;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
-sparc-mm-highmem-flush-cache-and-tlb.patch
-mm-highmem-prepare-for-overriding-set_pte_at.patch
-mips-mm-highmem-use-set_pte-for-kmap_local.patch
-powerpc-mm-highmem-use-__set_pte_at-for-kmap_local.patch
+proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
