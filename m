@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6346FC4332E
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7847C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:43:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F7D022E01
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:41:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 829D022E01
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 19:43:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729360AbhASTlq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 14:41:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46374 "EHLO mail.kernel.org"
+        id S1729688AbhASTYE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 14:24:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729900AbhASTbT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Jan 2021 14:31:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0752223103;
-        Tue, 19 Jan 2021 19:30:30 +0000 (UTC)
+        id S2391547AbhASTUv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Jan 2021 14:20:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D5BD2216FD;
+        Tue, 19 Jan 2021 19:20:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611084631;
-        bh=FC9xZaIF2rUsi35olyfRJ94ab7CCRHg0kqxpaTe3eX8=;
+        s=korg; t=1611084011;
+        bh=zTV7xOgtv6IzPoyFduuZ08uu7eXfkodeqIpx6r8IzUM=;
         h=Date:From:To:Subject:From;
-        b=jKZQ/R95ycPUikD0NAvG9eqG3qj9hpouxov3gPh5x+Si98O20/vgEQNLmDEZFHnWq
-         bLgH6v7GrXgkemC7h/qWWiIPJyT52Wav3gzgoHBZ8wyKbXUBlfIHgoXeyeX6E0DQEE
-         CL8vxiU2xcczugxmnvQLDsg+GptpMRvmKBY/7Glc=
-Date:   Tue, 19 Jan 2021 11:30:30 -0800
+        b=078E7uFS7GGlssfQqrcXtXpNT6pFhf4XYq64K2aPCnkf+KFtOKdJrS811GmZ9xRcX
+         WDv+/sa4hy1JwMWuclslgtpT7kaPvHqpUXWasdXYA1tqWfStBzx82+vohsgRU1L80J
+         fClQngMpwAjTw6J3mIKw8WuWY/qDSv5ywEm4xo/4=
+Date:   Tue, 19 Jan 2021 11:20:09 -0800
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, guozh88@chinatelecom.cn,
-        jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- ocfs2-cleanup-some-definitions-which-is-not-used-anymore.patch added to -mm
- tree
-Message-ID: <20210119193030.YagEJKbUi%akpm@linux-foundation.org>
+ hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch added
+ to -mm tree
+Message-ID: <20210119192009.21hYnNSwC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up some definitions which are not used any more
+     Subject: hugetlbfs: correct obsolete function name in hugetlbfs_read_iter()
 has been added to the -mm tree.  Its filename is
-     ocfs2-cleanup-some-definitions-which-is-not-used-anymore.patch
+     hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cleanup-some-definitions-which-is-not-used-anymore.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cleanup-some-definitions-which-is-not-used-anymore.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,71 +65,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: guozh <guozh88@chinatelecom.cn>
-Subject: ocfs2: clean up some definitions which are not used any more
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlbfs: correct obsolete function name in hugetlbfs_read_iter()
 
-There are some definitions which is not used anymore in OCFS2 module, so
-as to be removed.
+Since commit 36e789144267 ("kill do_generic_mapping_read"), the function
+do_generic_mapping_read() is renamed to do_generic_file_read(). And then
+commit 47c27bc46946 ("fs: pass iocb to do_generic_file_read") renamed it
+to generic_file_buffered_read(). So replace do_generic_mapping_read() with
+generic_file_buffered_read() to keep comment uptodate.
 
-Link: https://lkml.kernel.org/r/2021011916182284700534@chinatelecom.cn
-Signed-off-by: Guozhonghua <guozh88@chinatelecom.cn>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20210118063210.47118-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmast.c    |   10 ----------
- fs/ocfs2/dlm/dlmcommon.h |    4 ----
- 2 files changed, 14 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/dlm/dlmast.c~ocfs2-cleanup-some-definitions-which-is-not-used-anymore
-+++ a/fs/ocfs2/dlm/dlmast.c
-@@ -165,16 +165,6 @@ void __dlm_queue_bast(struct dlm_ctxt *d
- 	spin_unlock(&lock->spinlock);
- }
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter
++++ a/fs/hugetlbfs/inode.c
+@@ -310,7 +310,7 @@ hugetlbfs_read_actor(struct page *page,
  
--void dlm_queue_bast(struct dlm_ctxt *dlm, struct dlm_lock *lock)
--{
--	BUG_ON(!dlm);
--	BUG_ON(!lock);
--
--	spin_lock(&dlm->ast_lock);
--	__dlm_queue_bast(dlm, lock);
--	spin_unlock(&dlm->ast_lock);
--}
--
- static void dlm_update_lvb(struct dlm_ctxt *dlm, struct dlm_lock_resource *res,
- 			   struct dlm_lock *lock)
- {
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-cleanup-some-definitions-which-is-not-used-anymore
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -17,10 +17,7 @@
- 
- #define DLM_LOCKID_NAME_MAX    32
- 
--#define DLM_DOMAIN_NAME_MAX_LEN    255
- #define DLM_LOCK_RES_OWNER_UNKNOWN     O2NM_MAX_NODES
--#define DLM_THREAD_SHUFFLE_INTERVAL    5     // flush everything every 5 passes
--#define DLM_THREAD_MS                  200   // flush at least every 200 ms
- 
- #define DLM_HASH_SIZE_DEFAULT	(1 << 17)
- #if DLM_HASH_SIZE_DEFAULT < PAGE_SIZE
-@@ -902,7 +899,6 @@ void __dlm_lockres_grab_inflight_worker(
- 		struct dlm_lock_resource *res);
- 
- void dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
--void dlm_queue_bast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
- void __dlm_queue_ast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
- void __dlm_queue_bast(struct dlm_ctxt *dlm, struct dlm_lock *lock);
- void dlm_do_local_ast(struct dlm_ctxt *dlm,
+ /*
+  * Support for read() - Find the page attached to f_mapping and copy out the
+- * data. Its *very* similar to do_generic_mapping_read(), we can't use that
++ * data. Its *very* similar to generic_file_buffered_read(), we can't use that
+  * since it has PAGE_SIZE assumptions.
+  */
+ static ssize_t hugetlbfs_read_iter(struct kiocb *iocb, struct iov_iter *to)
 _
 
-Patches currently in -mm which might be from guozh88@chinatelecom.cn are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-ocfs2-cleanup-some-definitions-which-is-not-used-anymore.patch
+mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
+mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
+mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
+hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
+hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
+mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
