@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_RED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E51CC4332E
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 22:53:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82BA1C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Jan 2021 03:06:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BC1023104
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jan 2021 22:53:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 293762310D
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Jan 2021 03:06:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726843AbhASWxb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jan 2021 17:53:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48458 "EHLO
+        id S2389741AbhATDFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jan 2021 22:05:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726567AbhASWvv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2021 17:51:51 -0500
+        with ESMTP id S1730075AbhATDFv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2021 22:05:51 -0500
 Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 515F8C0613C1;
-        Tue, 19 Jan 2021 14:51:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B519C061575;
+        Tue, 19 Jan 2021 19:05:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
         In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
         Reply-To:Cc:Content-ID:Content-Description;
-        bh=NAZnclwqIVnkHL0Jf2KXZeJMQN1hBYGTWVtka1kZllk=; b=d2QrYoOSerK3IeTm2nTNWffhnM
-        8TP+801lP1Emqg8TpYQtwK8f5GszUXmLo/SN97dMuWPoKXFjx1vTL5MORlIi9f/oiSV2xrwOG9gnA
-        6gZzzF0xEbBtVQOyOpDvjfIZR3I7CkG6quICum7MsZ7gp2EGA5VqyU7QeJk3B8zWROdAGFzvVHNg3
-        Pzfu81MwNJTrFlUfuo87UD1Hgn3J0hPf7sGaJPfGHdtX8Qk1obZx2Y1oCGd2rmWkbXK0nqTmpHob8
-        KBzn0Ko2t2Y1KZMs5DjVMuqcMxvex9UQb2gjjWsPGQkiH4PKjl78bvgzu/amQV1INAOYRfumueuQe
-        2J7rgkqQ==;
+        bh=cW9dntD9nGh8jVvLhLWe1YqLbc1l7R2XancWLaWAZn0=; b=dgyGnH/9OA6cRq6lOqC17NWXBn
+        gsp7Y/bP2Mx6Mn6cLhVLZKkA3Ag4+5tx3c8Xj5IvsYuBrpU3H6G+VpTi/+KjbDjF2lYqYRjlbDPVF
+        1lD8TU9+2869FaBaX5vemMdnDMY+YQ5lBKSEV7OJgkuN/XtXLeQuoHFBoAM+gtEaCXgwnAE9wQFa8
+        hUUi5BWLiS4bzljjOGy0dcFYLwBj2sHdQfuND27PUEUfsMd/yCjjYmvDdcjRn43bQMSNccI23+XRQ
+        keHOdcCVx4Y5eiO/QqVj4UMPt9eFHQZxRHyF78k31EThdlA31a8lgXgw60M6KIQnKIXApSSZD4R2r
+        suBkbohA==;
 Received: from [2601:1c0:6280:3f0::9abc]
         by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1l1zpz-0002rJ-0v; Tue, 19 Jan 2021 22:50:59 +0000
-Subject: Re: mmotm 2021-01-19-13-36 uploaded (ZONE_DEVICE)
+        id 1l23nm-0004q5-Ox; Wed, 20 Jan 2021 03:04:59 +0000
+Subject: [PATCH -mmotm] mm/memory_hotplug: fix for CONFIG_ZONE_DEVICE not
+ enabled
 To:     akpm@linux-foundation.org, broonie@kernel.org,
         linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
@@ -43,8 +44,8 @@ To:     akpm@linux-foundation.org, broonie@kernel.org,
         Dan Williams <dan.j.williams@intel.com>
 References: <20210119213727.pkiuSGW9i%akpm@linux-foundation.org>
 From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <3dccaa7e-f6e1-2e03-04c0-e055eb42c9b0@infradead.org>
-Date:   Tue, 19 Jan 2021 14:50:52 -0800
+Message-ID: <5f8e2ede-5836-45e1-d8d7-ae949775e76e@infradead.org>
+Date:   Tue, 19 Jan 2021 19:04:50 -0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.4.0
 MIME-Version: 1.0
@@ -57,40 +58,38 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 1/19/21 1:37 PM, akpm@linux-foundation.org wrote:
-> The mm-of-the-moment snapshot 2021-01-19-13-36 has been uploaded to
-> 
->    https://www.ozlabs.org/~akpm/mmotm/
-> 
-> mmotm-readme.txt says
-> 
-> README for mm-of-the-moment:
-> 
-> https://www.ozlabs.org/~akpm/mmotm/
-> 
-> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> more than once a week.
-> 
-> You will need quilt to apply these patches to the latest Linus release (5.x
-> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> https://ozlabs.org/~akpm/mmotm/series
-> 
-> The file broken-out.tar.gz contains two datestamp files: .DATE and
-> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> followed by the base kernel version against which this patch series is to
-> be applied.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-on x86_64: (several build failures so far)
+Fix memory_hotplug.c when CONFIG_ZONE_DEVICE is not enabled.
+
+Fixes this build error:
 
 ../mm/memory_hotplug.c: In function ‘move_pfn_range_to_zone’:
 ../mm/memory_hotplug.c:772:24: error: ‘ZONE_DEVICE’ undeclared (first use in this function); did you mean ‘ZONE_MOVABLE’?
   if (zone_idx(zone) == ZONE_DEVICE) {
 
-when CONFIG_ZONE_DEVICE is not set/enabled.
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+---
+ mm/memory_hotplug.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
+--- mmotm-2021-0119-1336.orig/mm/memory_hotplug.c
++++ mmotm-2021-0119-1336/mm/memory_hotplug.c
+@@ -769,12 +769,14 @@ void __ref move_pfn_range_to_zone(struct
+ 	 * ZONE_DEVICE pages in an otherwise  ZONE_{NORMAL,MOVABLE}
+ 	 * section.
+ 	 */
++#ifdef CONFIG_ZONE_DEVICE
+ 	if (zone_idx(zone) == ZONE_DEVICE) {
+ 		if (!IS_ALIGNED(start_pfn, PAGES_PER_SECTION))
+ 			section_taint_zone_device(start_pfn);
+ 		if (!IS_ALIGNED(start_pfn + nr_pages, PAGES_PER_SECTION))
+ 			section_taint_zone_device(start_pfn + nr_pages);
+ 	}
++#endif
+ 
+ 	/*
+ 	 * TODO now we have a visible range of pages which are not associated
 
--- 
-~Randy
-"He closes his eyes and drops the goggles.  You can't get hurt
-by looking at a bitmap.  Or can you?"
-(Neal Stephenson: Snow Crash)
