@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 753C7C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 20:10:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6FD2C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 21:57:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4562F23A5C
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 20:10:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EE872389B
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 21:57:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726284AbhAUUK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Jan 2021 15:10:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52178 "EHLO mail.kernel.org"
+        id S1725764AbhAUV5O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Jan 2021 16:57:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:41960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727011AbhAUUKK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Jan 2021 15:10:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5327023A5D;
-        Thu, 21 Jan 2021 20:09:29 +0000 (UTC)
+        id S1725283AbhAUV5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Jan 2021 16:57:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ED0AA2389B;
+        Thu, 21 Jan 2021 21:56:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611259769;
-        bh=jJ4kqKSzMIGSfFyHMwJRvpx4QG2t6P4nX7PzyEalHOQ=;
+        s=korg; t=1611266193;
+        bh=I7XhiKd/feAvnUuMQnlr029mEwJSMtqvwHLB8C6Qvy8=;
         h=Date:From:To:Subject:From;
-        b=bjDdt+ubWOZT4R0n2ILKddMkfXyPL5/Sz82OC0sWQEBDDfoL2tgdMkxEXnFQvzdqL
-         3LBXSvYQpuEiRGG3N74FNKMnZjzNP6MI+WcO/9mYGnVLRyHkG3YHwJgexYqLMEhXS3
-         q/OIaB8q95RhsW7kEu1ST3pI3ox7bDrB/FKanlec=
-Date:   Thu, 21 Jan 2021 12:09:28 -0800
+        b=VqeJNiv5uGc4kr2A/AoXn2Tp6aCxucur5GDNWQ2z8+y5J4TaNGK+v+eP/JKTc9p7I
+         LgInO8u9/wr8GtY3OmVy2yu3SfJGXXMvgJvVrumnO1OOfubMElUAF9KoUNH88v55nP
+         WN3s2RZlWF9/zfHVyCMno5R45nnUivlnOwgb3s7Y=
+Date:   Thu, 21 Jan 2021 13:56:32 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- hugetlbfs-remove-meaningless-variable-avoid_reserve.patch added to -mm tree
-Message-ID: <20210121200928.-RJgA3DKe%akpm@linux-foundation.org>
+To:     bot@kernelci.org, lkp@intel.com, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com
+Subject:  + mm-zswap-add-the-flag-can_sleep_mapped-fix.patch added
+ to -mm tree
+Message-ID: <20210121215632.cy17_JBwz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: remove meaningless variable avoid_reserve
+     Subject: mm/zswap: add return value in zswap_frontswap_load
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
+     mm-zswap-add-the-flag-can_sleep_mapped-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-add-the-flag-can_sleep_mapped-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-add-the-flag-can_sleep_mapped-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,63 +64,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: remove meaningless variable avoid_reserve
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: mm/zswap: add return value in zswap_frontswap_load
 
-The variable avoid_reserve is meaningless because we never changed its
-value and just passed it to alloc_huge_page().  So remove it to make code
-more clear that in hugetlbfs_fallocate, we never avoid reserve when alloc
-hugepage yet.  Also add a comment offered by Mike Kravetz to explain this.
+Clang warns:
 
-Link: https://lkml.kernel.org/r/20210120071508.9078-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+mm/zswap.c:1271:6: warning: variable 'ret' is used uninitialized
+whenever 'if' condition is true [-Wsometimes-uninitialized]
+        if (!entry->length) {
+            ^~~~~~~~~~~~~~
+mm/zswap.c:1322:9: note: uninitialized use occurs here
+        return ret;
+               ^~~
+mm/zswap.c:1271:2: note: remove the 'if' if its condition is always
+false
+        if (!entry->length) {
+        ^~~~~~~~~~~~~~~~~~~~~
+mm/zswap.c:1259:9: note: initialize the variable 'ret' to silence this
+warning
+        int ret;
+               ^
+                = 0
+1 warning generated.
+
+Prior to "mm/zswap: add the flag can_sleep_mapped", this path always
+returned 0. Restore that so we are not returning uninitialized memory.
+
+Link: https://github.com/ClangBuiltLinux/linux/issues/1263
+Link: https://lkml.kernel.org/r/20210121214804.926843-1-natechancellor@gmail.com
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Reported-by: kernelci.org bot <bot@kernelci.org>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/zswap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-meaningless-variable-avoid_reserve
-+++ a/fs/hugetlbfs/inode.c
-@@ -680,7 +680,6 @@ static long hugetlbfs_fallocate(struct f
- 		 */
- 		struct page *page;
- 		unsigned long addr;
--		int avoid_reserve = 0;
+--- a/mm/zswap.c~mm-zswap-add-the-flag-can_sleep_mapped-fix
++++ a/mm/zswap.c
+@@ -1272,6 +1272,7 @@ static int zswap_frontswap_load(unsigned
+ 		dst = kmap_atomic(page);
+ 		zswap_fill_page(dst, entry->value);
+ 		kunmap_atomic(dst);
++		ret = 0;
+ 		goto freeentry;
+ 	}
  
- 		cond_resched();
- 
-@@ -716,8 +715,15 @@ static long hugetlbfs_fallocate(struct f
- 			continue;
- 		}
- 
--		/* Allocate page and add to page cache */
--		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
-+		/*
-+		 * Allocate page without setting the avoid_reserve argument.
-+		 * There certainly are no reserves associated with the
-+		 * pseudo_vma.  However, there could be shared mappings with
-+		 * reserves for the file at the inode level.  If we fallocate
-+		 * pages in these areas, we need to consume the reserves
-+		 * to keep reservation accounting consistent.
-+		 */
-+		page = alloc_huge_page(&pseudo_vma, addr, 0);
- 		hugetlb_drop_vma_policy(&pseudo_vma);
- 		if (IS_ERR(page)) {
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from natechancellor@gmail.com are
 
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
-mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
-hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
-hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
-hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
-hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+maintainers-add-a-couple-more-files-to-the-clang-llvm-section.patch
+mm-zswap-add-the-flag-can_sleep_mapped-fix.patch
 
