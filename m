@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D347BC433E9
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B6BEC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:34:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 874E823A5F
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:33:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEB7E23A62
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:34:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726468AbhAUWcx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Jan 2021 17:32:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45556 "EHLO mail.kernel.org"
+        id S1726305AbhAUWeF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Jan 2021 17:34:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726314AbhAUWcn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Jan 2021 17:32:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF64223A56;
-        Thu, 21 Jan 2021 22:31:50 +0000 (UTC)
+        id S1726122AbhAUWd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Jan 2021 17:33:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F1A94239EF;
+        Thu, 21 Jan 2021 22:33:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611268311;
-        bh=Va5VFmMziAdgfzbEVzYaO7/0ftSoKPp7zfd06dMJGd0=;
+        s=korg; t=1611268396;
+        bh=eeld3OAg41Xagv+oihja9SInUhNz/YzbXb9X8gNur0g=;
         h=Date:From:To:Subject:From;
-        b=Sm0soQtg+YaL1C5stio2nYvLHYKYZ43zWgiTFMD+SJaaLeIK3AA9XqXj90pJ3cPGB
-         vOL6mKMS5+DEG0/oF4L8+EPfElujJgA0HXcfvxRnnr9G43MpRIfWBi2p2tCUIP1WwJ
-         LG3AaU89zklw0/AH7/zeBEuBQRxn/olvoeQdUudM=
-Date:   Thu, 21 Jan 2021 14:31:50 -0800
+        b=FMMUoz/vgtNNbEOiDh3ezsBPk3ztWtNAsfTqth8GwueDLwxCFQdNO5tmEEr9u8+m7
+         O5VMeh3iy8/9ww7naVX/pfW6FFxQiiT9fIyz9xHqbUJKyOLrhw+F/qrh2p5lAgi/qL
+         x1NUYQGq0Emq+Jpn2HP07+KHp9/+eE/IXU0vHGH0=
+Date:   Thu, 21 Jan 2021 14:33:15 -0800
 From:   akpm@linux-foundation.org
 To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
-        adobriyan@gmail.com, bhe@redhat.com, dyoung@redhat.com,
-        mm-commits@vger.kernel.org, urezki@gmail.com, vgoyal@redhat.com
-Subject:  + vmalloc-remove-redundant-null-check.patch added to -mm
- tree
-Message-ID: <20210121223150.ZWz8Ftt-f%akpm@linux-foundation.org>
+        akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + mm-memcontrol-remove-redundant-null-check.patch added
+ to -mm tree
+Message-ID: <20210121223315.n11kRWGjX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmalloc: remove redundant NULL check
+     Subject: mm/memcontrol: remove redundant NULL check
 has been added to the -mm tree.  Its filename is
-     vmalloc-remove-redundant-null-check.patch
+     mm-memcontrol-remove-redundant-null-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/vmalloc-remove-redundant-null-check.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-redundant-null-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-remove-redundant-null-check.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-redundant-null-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,45 +65,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Li <abaci-bugfix@linux.alibaba.com>
-Subject: vmalloc: remove redundant NULL check
+Subject: mm/memcontrol: remove redundant NULL check
 
 Fix below warnings reported by coccicheck:
-./fs/proc/vmcore.c:1503:2-7: WARNING: NULL check before some freeing
+./mm/memcontrol.c:451:3-9: WARNING: NULL check before some freeing
 functions is not needed.
 
-Link: https://lkml.kernel.org/r/1611216753-44598-1-git-send-email-abaci-bugfix@linux.alibaba.com
+Link: https://lkml.kernel.org/r/1611216029-34397-1-git-send-email-abaci-bugfix@linux.alibaba.com
 Signed-off-by: Yang Li <abaci-bugfix@linux.alibaba.com>
 Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/proc/vmcore.c~vmalloc-remove-redundant-null-check
-+++ a/fs/proc/vmcore.c
-@@ -1503,11 +1503,8 @@ int vmcore_add_device_dump(struct vmcore
- 	return 0;
- 
- out_err:
--	if (buf)
--		vfree(buf);
--
--	if (dump)
--		vfree(dump);
-+	vfree(buf);
-+	vfree(dump);
- 
- 	return ret;
+--- a/mm/memcontrol.c~mm-memcontrol-remove-redundant-null-check
++++ a/mm/memcontrol.c
+@@ -452,8 +452,7 @@ static void memcg_free_shrinker_maps(str
+ 	for_each_node(nid) {
+ 		pn = mem_cgroup_nodeinfo(memcg, nid);
+ 		map = rcu_dereference_protected(pn->shrinker_map, true);
+-		if (map)
+-			kvfree(map);
++		kvfree(map);
+ 		rcu_assign_pointer(pn->shrinker_map, NULL);
+ 	}
  }
 _
 
 Patches currently in -mm which might be from abaci-bugfix@linux.alibaba.com are
 
+mm-memcontrol-remove-redundant-null-check.patch
 vmalloc-remove-redundant-null-check.patch
 
