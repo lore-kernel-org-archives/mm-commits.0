@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1627C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D347BC433E9
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:33:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97C6623A5E
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:26:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 874E823A5F
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:33:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726462AbhAUW0M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Jan 2021 17:26:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44964 "EHLO mail.kernel.org"
+        id S1726468AbhAUWcx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Jan 2021 17:32:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726431AbhAUW0H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Jan 2021 17:26:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D1E3A221E5;
-        Thu, 21 Jan 2021 22:25:23 +0000 (UTC)
+        id S1726314AbhAUWcn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Jan 2021 17:32:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF64223A56;
+        Thu, 21 Jan 2021 22:31:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611267924;
-        bh=gvEcNWxr1Sw1lSq7DG3hML1ltb/R0XGahQq2/HYMgwc=;
+        s=korg; t=1611268311;
+        bh=Va5VFmMziAdgfzbEVzYaO7/0ftSoKPp7zfd06dMJGd0=;
         h=Date:From:To:Subject:From;
-        b=Pg0x4Cv0Mx9Mecm9skLI6CoddGnQqeloFOZmPx20xbbE22/P8k/xN4QINxWR1qboD
-         3CrZcNtmBobJpMWGPbZs4z/z8lEEOk0nOlb2TEHO49sJ4LDDjDtjF5mqrkiw/8dcZs
-         UIUICOr5YZU97KKqdzSS3U/CYDvSG9vJn2f9pSeQ=
-Date:   Thu, 21 Jan 2021 14:25:23 -0800
+        b=Sm0soQtg+YaL1C5stio2nYvLHYKYZ43zWgiTFMD+SJaaLeIK3AA9XqXj90pJ3cPGB
+         vOL6mKMS5+DEG0/oF4L8+EPfElujJgA0HXcfvxRnnr9G43MpRIfWBi2p2tCUIP1WwJ
+         LG3AaU89zklw0/AH7/zeBEuBQRxn/olvoeQdUudM=
+Date:   Thu, 21 Jan 2021 14:31:50 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tangchunyou@yulong.com,
-        zhangwen@yulong.com
-Subject:  +
- scripts-spellingtxt-increase-error-prone-spell-checking.patch added to -mm
+To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
+        adobriyan@gmail.com, bhe@redhat.com, dyoung@redhat.com,
+        mm-commits@vger.kernel.org, urezki@gmail.com, vgoyal@redhat.com
+Subject:  + vmalloc-remove-redundant-null-check.patch added to -mm
  tree
-Message-ID: <20210121222523.4fjbJCAqE%akpm@linux-foundation.org>
+Message-ID: <20210121223150.ZWz8Ftt-f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: increase error-prone spell checking
+     Subject: vmalloc: remove redundant NULL check
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-increase-error-prone-spell-checking.patch
+     vmalloc-remove-redundant-null-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-increase-error-prone-spell-checking.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/vmalloc-remove-redundant-null-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-increase-error-prone-spell-checking.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-remove-redundant-null-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,32 +65,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: tangchunyou <tangchunyou@yulong.com>
-Subject: scripts/spelling.txt: increase error-prone spell checking
+From: Yang Li <abaci-bugfix@linux.alibaba.com>
+Subject: vmalloc: remove redundant NULL check
 
-Increase maping spelling error check.
+Fix below warnings reported by coccicheck:
+./fs/proc/vmcore.c:1503:2-7: WARNING: NULL check before some freeing
+functions is not needed.
 
-Link: https://lkml.kernel.org/r/20210121092125.2663-1-tangchunyou@163.com
-Signed-off-by: WenZhang <zhangwen@yulong.com>
+Link: https://lkml.kernel.org/r/1611216753-44598-1-git-send-email-abaci-bugfix@linux.alibaba.com
+Signed-off-by: Yang Li <abaci-bugfix@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/vmcore.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-increase-error-prone-spell-checking
-+++ a/scripts/spelling.txt
-@@ -875,6 +875,7 @@ manger||manager
- manoeuvering||maneuvering
- manufaucturing||manufacturing
- mappping||mapping
-+maping||mapping
- matchs||matches
- mathimatical||mathematical
- mathimatic||mathematic
+--- a/fs/proc/vmcore.c~vmalloc-remove-redundant-null-check
++++ a/fs/proc/vmcore.c
+@@ -1503,11 +1503,8 @@ int vmcore_add_device_dump(struct vmcore
+ 	return 0;
+ 
+ out_err:
+-	if (buf)
+-		vfree(buf);
+-
+-	if (dump)
+-		vfree(dump);
++	vfree(buf);
++	vfree(dump);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from tangchunyou@yulong.com are
+Patches currently in -mm which might be from abaci-bugfix@linux.alibaba.com are
 
-scripts-spellingtxt-increase-error-prone-spell-checking.patch
+vmalloc-remove-redundant-null-check.patch
 
