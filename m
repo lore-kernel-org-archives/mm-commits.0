@@ -5,37 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB01C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:37:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DC2FC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:44:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46F1B23A60
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:37:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6797023A56
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Jan 2021 22:44:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726314AbhAUWh2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Jan 2021 17:37:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46264 "EHLO mail.kernel.org"
+        id S1725961AbhAUWoh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Jan 2021 17:44:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726213AbhAUWhZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Jan 2021 17:37:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1163E21973;
-        Thu, 21 Jan 2021 22:36:43 +0000 (UTC)
+        id S1725880AbhAUWoc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Jan 2021 17:44:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DC85423A5B;
+        Thu, 21 Jan 2021 22:43:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611268604;
-        bh=xp35DwQ7FCeL3oCOWCT+bQc5IxE0PrGzVdBjUlH5/m8=;
+        s=korg; t=1611269032;
+        bh=kKBssk66l8HzM8nns4oQ0ONR8zF9rQkirvGJqRp4OVQ=;
         h=Date:From:To:Subject:From;
-        b=lDSqAmQr/5Sk9CqCNmGeNL3wgiisMxRD2oQIBr21OWCHw9o6q+jXa19veDYGjfxlt
-         6VBwOuN0ehYxIe2Fh8ybwi96EqJRl4aC7Wrm6EiDkqVMdvrlyX4CGplmO2ry6nNzOg
-         EjnNYO7UyOi2EuGsXoF5kHe+b99RxP9KB3NFhTp4=
-Date:   Thu, 21 Jan 2021 14:36:43 -0800
+        b=ondBvgx+3cTgEhSKKAFpZ8dxe0izUAmGVobWJiFaSkowOHsQzBVuebymO5UPtGYBY
+         n/5UgkizCaJBDOuEfxzsvV9OzMY8j3Wg+E+QKPUQvFNcBBBaUq5cxRm6b9NjA9vUp3
+         jDKfb+JL1RPMStVwJNrMGame6zLv5w8E2qZn0IZA=
+Date:   Thu, 21 Jan 2021 14:43:51 -0800
 From:   akpm@linux-foundation.org
-To:     dja@axtens.net, hch@lst.de, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, rick.p.edgecombe@intel.com,
-        stable@vger.kernel.org, willy@infradead.org
-Subject:  + mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
- added to -mm tree
-Message-ID: <20210121223643.kgpB7aWFm%akpm@linux-foundation.org>
+To:     arnd@arndb.de, jeyu@kernel.org, johannes.berg@intel.com,
+        mm-commits@vger.kernel.org, oberpar@linux.ibm.com
+Subject:  +
+ init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov.patch added
+ to -mm tree
+Message-ID: <20210121224351.uc1T8QdgR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: reparate put pages and flush VM flags
+     Subject: init/gcov: allow CONFIG_CONSTRUCTORS on UML to fix module gcov
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
+     init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,62 +65,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Subject: mm/vmalloc: reparate put pages and flush VM flags
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: init/gcov: allow CONFIG_CONSTRUCTORS on UML to fix module gcov
 
-When VM_MAP_PUT_PAGES was added, it was defined with the same value as
-VM_FLUSH_RESET_PERMS.  This doesn't seem like it will cause any big
-functional problems other than some excess flushing for VM_MAP_PUT_PAGES
-allocations.
+On ARCH=um, loading a module doesn't result in its constructors getting
+called, which breaks module gcov since the debugfs files are never
+registered.  On the other hand, in-kernel constructors have already been
+called by the dynamic linker, so we can't call them again.
 
-Redefine VM_MAP_PUT_PAGES to have its own value.  Also, move the comment
-and remove whitespace for VM_KASAN such that the flags lower down are less
-likely to be missed in the future.
+Get out of this conundrum by allowing CONFIG_CONSTRUCTORS to be selected,
+but avoiding the in-kernel constructor calls.
 
-Link: https://lkml.kernel.org/r/20210121014118.31922-1-rick.p.edgecombe@intel.com
-Fixes: b944afc9d64d ("mm: add a VM_MAP_PUT_PAGES flag for vmap")
-Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Also remove the "if !UML" from GCOV selecting CONSTRUCTORS now, since we
+really do want CONSTRUCTORS, just not kernel binary ones.
+
+Link: https://lkml.kernel.org/r/20210120172041.c246a2cac2fb.I1358f584b76f1898373adfed77f4462c8705b736@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jessica Yu <jeyu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ init/Kconfig        |    1 -
+ init/main.c         |    8 +++++++-
+ kernel/gcov/Kconfig |    2 +-
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-separate-put-pages-and-flush-vm-flags
-+++ a/include/linux/vmalloc.h
-@@ -23,9 +23,6 @@ struct notifier_block;		/* in notifier.h
- #define VM_DMA_COHERENT		0x00000010	/* dma_alloc_coherent */
- #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
- #define VM_NO_GUARD		0x00000040      /* don't add guard page */
--#define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
--#define VM_MAP_PUT_PAGES	0x00000100	/* put pages and free array in vfree */
--
- /*
-  * VM_KASAN is used slighly differently depending on CONFIG_KASAN_VMALLOC.
-  *
-@@ -36,12 +33,13 @@ struct notifier_block;		/* in notifier.h
-  * Otherwise, VM_KASAN is set for kasan_module_alloc() allocations and used to
-  * determine which allocations need the module shadow freed.
-  */
--
-+#define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
- /*
-  * Memory with VM_FLUSH_RESET_PERMS cannot be freed in an interrupt or with
-  * vfree_atomic().
-  */
- #define VM_FLUSH_RESET_PERMS	0x00000100      /* Reset direct map and flush TLB on unmap */
-+#define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
+--- a/init/Kconfig~init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov
++++ a/init/Kconfig
+@@ -76,7 +76,6 @@ config CC_HAS_ASM_INLINE
  
- /* bits [20..32] reserved for arch specific ioremap internals */
+ config CONSTRUCTORS
+ 	bool
+-	depends on !UML
  
+ config IRQ_WORK
+ 	bool
+--- a/init/main.c~init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov
++++ a/init/main.c
+@@ -1066,7 +1066,13 @@ asmlinkage __visible void __init __no_sa
+ /* Call all constructor functions linked into the kernel. */
+ static void __init do_ctors(void)
+ {
+-#ifdef CONFIG_CONSTRUCTORS
++/*
++ * For UML, the constructors have already been called by the
++ * normal setup code as it's just a normal ELF binary, so we
++ * cannot do it again - but we do need CONFIG_CONSTRUCTORS
++ * even on UML for modules.
++ */
++#if defined(CONFIG_CONSTRUCTORS) && !defined(CONFIG_UML)
+ 	ctor_fn_t *fn = (ctor_fn_t *) __ctors_start;
+ 
+ 	for (; fn < (ctor_fn_t *) __ctors_end; fn++)
+--- a/kernel/gcov/Kconfig~init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov
++++ a/kernel/gcov/Kconfig
+@@ -4,7 +4,7 @@ menu "GCOV-based kernel profiling"
+ config GCOV_KERNEL
+ 	bool "Enable gcov-based kernel profiling"
+ 	depends on DEBUG_FS
+-	select CONSTRUCTORS if !UML
++	select CONSTRUCTORS
+ 	default n
+ 	help
+ 	This option enables gcov-based code profiling (e.g. for code coverage
 _
 
-Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
-mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
+init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov.patch
+mm-slub-disable-user-tracing-for-kmemleak-caches-by-default.patch
 
