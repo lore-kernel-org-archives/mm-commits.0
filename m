@@ -2,237 +2,320 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DF38C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 01:14:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 490C9C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 04:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40C7922CAE
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 01:14:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01AFB22BF5
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 04:09:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726179AbhAVBOs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Jan 2021 20:14:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45526 "EHLO mail.kernel.org"
+        id S1726458AbhAVEJh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Jan 2021 23:09:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725883AbhAVBOr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Jan 2021 20:14:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E78522C7B;
-        Fri, 22 Jan 2021 01:14:06 +0000 (UTC)
+        id S1726264AbhAVEJg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Jan 2021 23:09:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 05432221E5;
+        Fri, 22 Jan 2021 04:08:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611278047;
-        bh=TsmKpZJtcRYpRU8s21Qs02SKdkfcCCmi9TTUpbdAgLs=;
+        s=korg; t=1611288535;
+        bh=Xvx8prvmepRFE71WYjpyOz5/Ss9amb7nxydM/g/njzI=;
         h=Date:From:To:Subject:From;
-        b=ye51t3guhMzMHcGI8K8BexhjX8ZRikJAtHL1Azg8OCeG/QG1d5ZAkfRdfa2uVxMZs
-         +3nS0uT/CdMu0WDvH72wBI306VzdTmJwixkSPlepoQcU70xFnFP8k8+2Zl71jP8njC
-         QsiAVaigWN5l/faO4eQOhVeLXKHv7Oevr1UZ1i2o=
-Date:   Thu, 21 Jan 2021 17:14:05 -0800
+        b=LZ/yQo8S7qtIJlDDpXHCIw+LynjGMrqWzYHx0sWz76Rgp4qopf24Ylf4PHq6ExqDs
+         GWFozE1ZGPObIgU3LxTxDJKKQQxG1MNFTru7M24gFrJizgHibB0sEqLOzLC6DAXJx0
+         Lxj2oihVg2kiEp+9QSsBBJak99xxF6qwCwXjmork=
+Date:   Thu, 21 Jan 2021 20:08:49 -0800
 From:   akpm@linux-foundation.org
-To:     ak@linux.intel.com, dave.hansen@intel.com, hannes@cmpxchg.org,
-        mgorman@suse.de, mhocko@suse.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, peterz@infradead.org, riel@surriel.com,
-        rientjes@google.com, willy@infradead.org, ying.huang@intel.com
-Subject:  +
- numa-balancing-migrate-on-fault-among-multiple-bound-nodes.patch added to
- -mm tree
-Message-ID: <20210122011405.q2EDREf6c%akpm@linux-foundation.org>
+To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+Subject:  mmotm 2021-01-21-20-07 uploaded
+Message-ID: <20210122040849.Uto5hJSIg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The mm-of-the-moment snapshot 2021-01-21-20-07 has been uploaded to
 
-The patch titled
-     Subject: numa balancing: migrate on fault among multiple bound nodes
-has been added to the -mm tree.  Its filename is
-     numa-balancing-migrate-on-fault-among-multiple-bound-nodes.patch
+   https://www.ozlabs.org/~akpm/mmotm/
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/numa-balancing-migrate-on-fault-among-multiple-bound-nodes.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/numa-balancing-migrate-on-fault-among-multiple-bound-nodes.patch
+mmotm-readme.txt says
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+README for mm-of-the-moment:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+https://www.ozlabs.org/~akpm/mmotm/
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: numa balancing: migrate on fault among multiple bound nodes
+You will need quilt to apply these patches to the latest Linus release (5.x
+or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+https://ozlabs.org/~akpm/mmotm/series
 
-Now, NUMA balancing can only optimize the page placement among the NUMA
-nodes if the default memory policy is used.  Because the memory policy
-specified explicitly should take precedence.  But this seems too strict in
-some situations.  For example, on a system with 4 NUMA nodes, if the
-memory of an application is bound to the node 0 and 1, NUMA balancing can
-potentially migrate the pages between the node 0 and 1 to reduce
-cross-node accessing without breaking the explicit memory binding policy.
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
-So in this patch, we add MPOL_F_NUMA_BALANCING mode flag to
-set_mempolicy() when mode is MPOL_BIND.  With the flag specified, NUMA
-balancing will be enabled within the thread to optimize the page placement
-within the constrains of the specified memory binding policy.  With the
-newly added flag, the NUMA balancing control mechanism becomes,
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
-- sysctl knob numa_balancing can enable/disable the NUMA balancing
-  globally.
 
-- even if sysctl numa_balancing is enabled, the NUMA balancing will be
-  disabled for the memory areas or applications with the explicit memory
-  policy by default.
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-- MPOL_F_NUMA_BALANCING can be used to enable the NUMA balancing for the
-  applications when specifying the explicit memory policy (MPOL_BIND).
+	https://github.com/hnaz/linux-mm
 
-Various page placement optimization based on the NUMA balancing can be
-done with these flags.  As the first step, in this patch, if the memory of
-the application is bound to multiple nodes (MPOL_BIND), and in the hint
-page fault handler the accessing node are in the policy nodemask, the page
-will be tried to be migrated to the accessing node to reduce the
-cross-node accessing.
+The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-If the newly added MPOL_F_NUMA_BALANCING flag is specified by an
-application on an old kernel version without its support, set_mempolicy()
-will return -1 and errno will be set to EINVAL.  The application can use
-this behavior to run on both old and new kernel versions.
+A git copy of this tree is also available at
 
-And if the MPOL_F_NUMA_BALANCING flag is specified for the mode other than
-MPOL_BIND, set_mempolicy() will return -1 and errno will be set to EINVAL
-as before.  Because we don't support optimization based on the NUMA
-balancing for these modes.
+	https://github.com/hnaz/linux-mm
 
-In the previous version of the patch, we tried to reuse MPOL_MF_LAZY for
-mbind().  But that flag is tied to MPOL_MF_MOVE.*, so it seems not a good
-API/ABI for the purpose of the patch.
 
-And because it's not clear whether it's necessary to enable NUMA balancing
-for a specific memory area inside an application, so we only add the flag
-at the thread level (set_mempolicy()) instead of the memory area level
-(mbind()).  We can do that when it become necessary.
 
-To test the patch, we run a test case as follows on a 4-node machine with
-192 GB memory (48 GB per node).
+This mmotm tree contains the following patches against 5.11-rc4:
+(patches marked "*" will be included in linux-next)
 
-1. Change pmbench memory accessing benchmark to call set_mempolicy()
-   to bind its memory to node 1 and 3 and enable NUMA balancing.  Some
-   related code snippets are as follows,
-
-     #include <numaif.h>
-     #include <numa.h>
-
-	struct bitmask *bmp;
-	int ret;
-
-	bmp = numa_parse_nodestring("1,3");
-	ret = set_mempolicy(MPOL_BIND | MPOL_F_NUMA_BALANCING,
-			    bmp->maskp, bmp->size + 1);
-	/* If MPOL_F_NUMA_BALANCING isn't supported, fall back to MPOL_BIND */
-	if (ret < 0 && errno == EINVAL)
-		ret = set_mempolicy(MPOL_BIND, bmp->maskp, bmp->size + 1);
-	if (ret < 0) {
-		perror("Failed to call set_mempolicy");
-		exit(-1);
-	}
-
-2. Run a memory eater on node 3 to use 40 GB memory before running pmbench.
-
-3. Run pmbench with 64 processes, the working-set size of each process
-   is 640 MB, so the total working-set size is 64 * 640 MB = 40 GB.  The
-   CPU and the memory (as in step 1.) of all pmbench processes is bound
-   to node 1 and 3. So, after CPU usage is balanced, some pmbench
-   processes run on the CPUs of the node 3 will access the memory of
-   the node 1.
-
-4. After the pmbench processes run for 100 seconds, kill the memory
-   eater.  Now it's possible for some pmbench processes to migrate
-   their pages from node 1 to node 3 to reduce cross-node accessing.
-
-Test results show that, with the patch, the pages can be migrated from
-node 1 to node 3 after killing the memory eater, and the pmbench score
-can increase about 17.5%.
-
-Link: https://lkml.kernel.org/r/20210120061235.148637-2-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/uapi/linux/mempolicy.h |    4 +++-
- mm/mempolicy.c                 |   16 ++++++++++++++++
- 2 files changed, 19 insertions(+), 1 deletion(-)
-
---- a/include/uapi/linux/mempolicy.h~numa-balancing-migrate-on-fault-among-multiple-bound-nodes
-+++ a/include/uapi/linux/mempolicy.h
-@@ -28,12 +28,14 @@ enum {
- /* Flags for set_mempolicy */
- #define MPOL_F_STATIC_NODES	(1 << 15)
- #define MPOL_F_RELATIVE_NODES	(1 << 14)
-+#define MPOL_F_NUMA_BALANCING	(1 << 13) /* Optimize with NUMA balancing if possible */
- 
- /*
-  * MPOL_MODE_FLAGS is the union of all possible optional mode flags passed to
-  * either set_mempolicy() or mbind().
-  */
--#define MPOL_MODE_FLAGS	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
-+#define MPOL_MODE_FLAGS							\
-+	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES | MPOL_F_NUMA_BALANCING)
- 
- /* Flags for get_mempolicy */
- #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
---- a/mm/mempolicy.c~numa-balancing-migrate-on-fault-among-multiple-bound-nodes
-+++ a/mm/mempolicy.c
-@@ -875,6 +875,16 @@ static long do_set_mempolicy(unsigned sh
- 		goto out;
- 	}
- 
-+	if (flags & MPOL_F_NUMA_BALANCING) {
-+		if (new && new->mode == MPOL_BIND) {
-+			new->flags |= (MPOL_F_MOF | MPOL_F_MORON);
-+		} else {
-+			ret = -EINVAL;
-+			mpol_put(new);
-+			goto out;
-+		}
-+	}
-+
- 	ret = mpol_set_nodemask(new, nodes, scratch);
- 	if (ret) {
- 		mpol_put(new);
-@@ -2486,6 +2496,12 @@ int mpol_misplaced(struct page *page, st
- 		break;
- 
- 	case MPOL_BIND:
-+		/* Optimize placement among multiple nodes via NUMA balancing */
-+		if (pol->flags & MPOL_F_MORON) {
-+			if (node_isset(thisnid, pol->v.nodes))
-+				break;
-+			goto out;
-+		}
- 
- 		/*
- 		 * allows binding to multiple nodes.
-_
-
-Patches currently in -mm which might be from ying.huang@intel.com are
-
-numa-balancing-migrate-on-fault-among-multiple-bound-nodes.patch
-
+  origin.patch
+* x86-setup-dont-remove-e820_type_ram-for-pfn-0.patch
+* mm-fix-initialization-of-struct-page-for-holes-in-memory-layout.patch
+* mm-memcg-slab-optimize-objcg-stock-draining.patch
+* mm-memcg-fix-memcg-file_dirty-numa-stat.patch
+* mm-fix-numa-stats-for-thp-migration.patch
+* mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
+* kasan-fix-unaligned-address-is-unhandled-in-kasan_remove_zero_shadow.patch
+* kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
+* kasan-fix-hw_tags-boot-parameters.patch
+* kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
+* kasan-mm-fix-resetting-page_alloc-tags-for-hw_tags.patch
+* mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
+* mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch
+* mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch
+* mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch
+* mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch
+* ubsan-disable-unsigned-overflow-check-for-i386.patch
+* mm-compaction-move-high_pfn-to-the-for-loop-scope.patch
+* mm-fix-page-reference-leak-in-soft_offline_page.patch
+* sparc-mm-highmem-flush-cache-and-tlb.patch
+* mm-highmem-prepare-for-overriding-set_pte_at.patch
+* mips-mm-highmem-use-set_pte-for-kmap_local.patch
+* powerpc-mm-highmem-use-__set_pte_at-for-kmap_local.patch
+* mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
+* init-gcov-allow-config_constructors-on-uml-to-fix-module-gcov.patch
+* proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
+* maintainers-add-a-couple-more-files-to-the-clang-llvm-section.patch
+* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
+* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
+* hexagon-remove-config_experimental-from-defconfigs.patch
+* scripts-spellingtxt-increase-error-prone-spell-checking.patch
+* ocfs2-remove-redundant-conditional-before-iput.patch
+* ocfs2-cleanup-some-definitions-which-is-not-used-anymore.patch
+* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
+* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+* ramfs-support-o_tmpfile.patch
+* fs-delete-repeated-words-in-comments.patch
+* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+  mm.patch
+* mm-tracing-record-slab-name-for-kmem_cache_free.patch
+* mm-slub-disable-user-tracing-for-kmemleak-caches-by-default.patch
+* mm-slub-stop-freeing-kmem_cache_node-structures-on-node-offline.patch
+* mm-slab-slub-stop-taking-memory-hotplug-lock.patch
+* mm-slab-slub-stop-taking-cpu-hotplug-lock.patch
+* mm-slub-splice-cpu-and-page-freelists-in-deactivate_slab.patch
+* mm-debug-improve-memcg-debugging.patch
+* mm-debug_vm_pgtable-basic-add-validation-for-dirtiness-after-write-protect.patch
+* mm-debug_vm_pgtable-basic-iterate-over-entire-protection_map.patch
+* mm-msync-exit-early-when-the-flags-is-an-ms_async-and-start-vm_start.patch
+* mm-filemap-remove-unused-parameter-and-change-to-void-type-for-replace_page_cache_page.patch
+* mm-filemap-dont-revert-iter-on-eiocbqueued.patch
+* mm-swap_slotsc-remove-redundant-null-check.patch
+* mm-swap-dont-setpageworkingset-unconditionally-during-swapin.patch
+* mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account.patch
+* mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
+* mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
+* mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
+* mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
+* mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
+* mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
+* mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
+* mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
+* mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
+* mm-memcontrol-make-the-slab-calculation-consistent.patch
+* mm-memcg-revise-the-using-condition-of-lock_page_lruvec-function-series.patch
+* mm-memcg-remove-rcu-locking-for-lock_page_lruvec-function-series.patch
+* mm-memcg-add-swapcache-stat-for-memcg-v2.patch
+* mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
+* mm-kmem-make-__memcg_kmem_uncharge-static.patch
+* mm-page_counter-relayout-structure-to-reduce-false-sharing.patch
+* mm-memcontrol-remove-redundant-null-check.patch
+* mm-mmap-remove-unnecessary-local-variable.patch
+* mm-mmap-fix-the-adjusted-length-error.patch
+* mm-optimizing-error-condition-detection-in-do_mprotect_pkey.patch
+* mm-rmap-explicitly-reset-vma-anon_vma-in-unlink_anon_vmas.patch
+* mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
+* mm-page_reporting-use-list_entry_is_head-in-page_reporting_cycle.patch
+* vmalloc-remove-redundant-null-check.patch
+* kasan-prefix-global-functions-with-kasan_.patch
+* kasan-clarify-hw_tags-impact-on-tbi.patch
+* kasan-clean-up-comments-in-tests.patch
+* kasan-add-macros-to-simplify-checking-test-constraints.patch
+* kasan-add-match-all-tag-tests.patch
+* kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
+* kasan-rename-config_test_kasan_module.patch
+* kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+* kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+* kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+* kasan-move-_ret_ip_-to-inline-wrappers.patch
+* kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
+* kasan-add-proper-page-allocator-tests.patch
+* kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+* kasan-dont-run-tests-when-kasan-is-not-enabled.patch
+* kasan-remove-redundant-config-option.patch
+* kasan-remove-redundant-config-option-v3.patch
+* mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
+* mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+* mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
+* mm-hugetlbc-fix-unnecessary-address-expansion-of-pmd-sharing.patch
+* mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
+* mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
+* mm-vmscan-__isolate_lru_page_prepare-clean-up.patch
+* z3fold-remove-unused-attribute-for-release_z3fold_page.patch
+* z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
+* mm-compaction-remove-rcu_read_lock-during-page-compaction.patch
+* mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
+* mm-compaction-return-proper-state-in-should_proactive_compact_node.patch
+* mm-compaction-return-proper-state-in-should_proactive_compact_node-fix.patch
+* mm-compaction-correct-deferral-logic-for-proactive-compaction.patch
+* numa-balancing-migrate-on-fault-among-multiple-bound-nodes.patch
+* mm-hugetlb-change-hugetlb_reserve_pages-to-type-bool.patch
+* hugetlbfs-remove-special-hugetlbfs_set_page_dirty.patch
+* hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
+* hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
+* hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
+* hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
+* mm-migrate-remove-unneeded-semicolons.patch
+* mm-make-pagecache-tagged-lookups-return-only-head-pages.patch
+* mm-shmem-use-pagevec_lookup-in-shmem_unlock_mapping.patch
+* mm-swap-optimise-get_shadow_from_swap_cache.patch
+* mm-add-fgp_entry.patch
+* mm-filemap-rename-find_get_entry-to-mapping_get_entry.patch
+* mm-filemap-add-helper-for-finding-pages.patch
+* mm-filemap-add-helper-for-finding-pages-fix.patch
+* mm-filemap-add-mapping_seek_hole_data.patch
+* mm-filemap-add-mapping_seek_hole_data-fix.patch
+* iomap-use-mapping_seek_hole_data.patch
+* mm-add-and-use-find_lock_entries.patch
+* mm-add-and-use-find_lock_entries-fix.patch
+* mm-add-an-end-parameter-to-find_get_entries.patch
+* mm-add-an-end-parameter-to-pagevec_lookup_entries.patch
+* mm-remove-nr_entries-parameter-from-pagevec_lookup_entries.patch
+* mm-pass-pvec-directly-to-find_get_entries.patch
+* mm-remove-pagevec_lookup_entries.patch
+* mmthpshmem-limit-shmem-thp-alloc-gfp_mask.patch
+* mmthpshm-limit-gfp-mask-to-no-more-than-specified.patch
+* mmthpshmem-make-khugepaged-obey-tmpfs-mount-flags.patch
+* mm-cma-allocate-cma-areas-bottom-up.patch
+* mm-cma-allocate-cma-areas-bottom-up-fix.patch
+* mm-cma-allocate-cma-areas-bottom-up-fix-2.patch
+* mm-cma-allocate-cma-areas-bottom-up-fix-3.patch
+* mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
+* memblock-do-not-start-bottom-up-allocations-with-kernel_end.patch
+* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+* mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+* mm-vmstatc-erase-latency-in-vmstat_shepherd.patch
+* mm-move-pfn_to_online_page-out-of-line.patch
+* mm-teach-pfn_to_online_page-to-consider-subsection-validity.patch
+* mm-teach-pfn_to_online_page-about-zone_device-section-collisions.patch
+* mm-teach-pfn_to_online_page-about-zone_device-section-collisions-fix.patch
+* mm-fix-memory_failure-handling-of-dax-namespace-metadata.patch
+* mm-zswap-clean-up-confusing-comment.patch
+* mm-zswap-add-the-flag-can_sleep_mapped.patch
+* mm-zswap-add-the-flag-can_sleep_mapped-fix.patch
+* mm-zswap-fix-variable-entry-is-uninitialized-when-used.patch
+* mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
+* mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+* mm-remove-arch_remap-and-mm-arch-hooksh.patch
+* mm-page-flagsh-typo-fix-it-if.patch
+* mm-dmapool-use-might_alloc.patch
+* bdi-use-might_alloc.patch
+* bdi-use-might_alloc-fix.patch
+* mm-add-kernel-electric-fence-infrastructure.patch
+* mm-add-kernel-electric-fence-infrastructure-fix.patch
+* mm-add-kernel-electric-fence-infrastructure-fix-2.patch
+* mm-add-kernel-electric-fence-infrastructure-fix-3.patch
+* mm-add-kernel-electric-fence-infrastructure-fix-4.patch
+* mm-add-kernel-electric-fence-infrastructure-fix-5.patch
+* x86-kfence-enable-kfence-for-x86.patch
+* x86-kfence-enable-kfence-for-x86-fix.patch
+* arm64-kfence-enable-kfence-for-arm64.patch
+* arm64-kfence-enable-kfence-for-arm64-fix.patch
+* kfence-use-pt_regs-to-generate-stack-trace-on-faults.patch
+* mm-kfence-insert-kfence-hooks-for-slab.patch
+* mm-kfence-insert-kfence-hooks-for-slub.patch
+* kfence-kasan-make-kfence-compatible-with-kasan.patch
+* kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+* kfence-documentation-add-kfence-documentation.patch
+* kfence-documentation-add-kfence-documentation-fix.patch
+* kfence-add-test-suite.patch
+* kfence-add-test-suite-fix.patch
+* kfence-add-test-suite-fix-2.patch
+* maintainers-add-entry-for-kfence.patch
+* tracing-add-error_report_end-trace-point.patch
+* kfence-use-error_report_end-tracepoint.patch
+* kasan-use-error_report_end-tracepoint.patch
+* info-task-hung-in-generic_file_write_iter.patch
+* info-task-hung-in-generic_file_write-fix.patch
+* kernel-hung_taskc-monitor-killed-tasks.patch
+* alpha-remove-config_experimental-from-defconfigs.patch
+* proc-wchan-use-printk-format-instead-of-lookup_symbol_name.patch
+* sysctlc-fix-underflow-value-setting-risk-in-vm_table.patch
+* proc-sysctl-make-protected_-world-readable.patch
+* lib-genalloc-change-return-type-to-unsigned-long-for-bitmap_set_ll.patch
+* lib-optimize-cpumask_local_spread.patch
+* lib-optimize-cpumask_local_spread-v8.patch
+* stringh-move-fortified-functions-definitions-in-a-dedicated-header.patch
+* lib-hexdump-introduce-dump_prefix_unhashed-for-unhashed-addresses.patch
+* mm-page_poison-use-unhashed-address-in-hexdump-for-check_poison_mem.patch
+* bitops-spelling-s-synomyn-synonym.patch
+* checkpatch-improve-blank-line-after-declaration-test.patch
+* checkpatch-ignore-warning-designated-initializers-using-nr_cpus.patch
+* checkpatch-trivial-style-fixes.patch
+* checkpatch-prefer-ftrace-over-function-entry-exit-printks.patch
+* checkpatch-improve-typecast_int_constant-test-message.patch
+* init-versionc-remove-version_linux_version_code-symbol.patch
+* aio-simplify-read_events.patch
+* scripts-gdb-fix-list_for_each.patch
+* initramfs-panic-with-memory-information.patch
+* initramfs-panic-with-memory-information-fix.patch
+  linux-next.patch
+* mm-add-definition-of-pmd_page_order.patch
+* mmap-make-mlock_future_check-global.patch
+* riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+* set_memory-allow-set_direct_map__noflush-for-multiple-pages.patch
+* set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
+* mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+* secretmem-use-pmd-size-pages-to-amortize-direct-map-fragmentation.patch
+* secretmem-add-memcg-accounting.patch
+* pm-hibernate-disable-when-there-are-active-secretmem-users.patch
+* arch-mm-wire-up-memfd_secret-system-call-where-relevant.patch
+* secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  mutex-subsystem-synchro-test-module.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  workaround-for-a-pci-restoring-bug.patch
