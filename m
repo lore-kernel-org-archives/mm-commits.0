@@ -7,40 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D2FCC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 00:32:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5DDC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 00:33:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BC8B23358
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 00:32:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 260AE22D50
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Jan 2021 00:33:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725823AbhAVAcv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Jan 2021 19:32:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37990 "EHLO mail.kernel.org"
+        id S1726047AbhAVAdF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Jan 2021 19:33:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726061AbhAVAcv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Jan 2021 19:32:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4B7C022CAF;
-        Fri, 22 Jan 2021 00:32:09 +0000 (UTC)
+        id S1725918AbhAVAcz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Jan 2021 19:32:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DB9322D50;
+        Fri, 22 Jan 2021 00:32:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611275529;
-        bh=ZdtQXg2AeeGJQWzEya/TuXwGuDhrabMm9k4HywRu5jQ=;
+        s=korg; t=1611275534;
+        bh=JHu+FqNofnjSaEE5RkoaDnRsWLGwY5hjW/p9yWb4mys=;
         h=Date:From:To:Subject:From;
-        b=jO1lWR/svIXgwRmj/O4CsKPFdf0Bdi8ffK14SFqjh+OHMHxafyKrR3/IopRr1ssBM
-         hv4kICbammrZAA0oNQlGr8CcVIbH3Zkdj4a5VYmUrFysX+GnFPKs4/pBHKU2mZWfUt
-         W82qOGDulmnMCW6+A3T/OVcEJ6g9eObPfyfOWK6s=
-Date:   Thu, 21 Jan 2021 16:32:08 -0800
+        b=V3h7iTm2ry6mEXgTiCLY1Ypl2TPHc5UGF7W+AyAsgxG7YSQOLoZobdmX0/1LuyKNg
+         OBhXzv37BRArW7gW2zXxt23L1FO3jl3Z77akTi+rOlE6jy1dFLi9sDbUhM4BMEz6xT
+         qYTFd8eUP5b/8RL685acRpLvvWKjp0NeccuKuv2M=
+Date:   Thu, 21 Jan 2021 16:32:12 -0800
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, catalin.marinas@arm.com,
         christophe.leroy@csgroup.eu, gerald.schaefer@de.ibm.com,
         gerald.schaefer@linux.ibm.com, mm-commits@vger.kernel.org,
         paul.walmsley@sifive.com, steven.price@arm.com, vgupta@synopsys.com
 Subject:  +
- =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-basic-add-validation-for-dirtiness-a?=
- =?US-ASCII?Q?fter-write-protect.patch?= added to -mm tree
-Message-ID: <20210122003208.4VeIvVaxz%akpm@linux-foundation.org>
+ mm-debug_vm_pgtable-basic-iterate-over-entire-protection_map.patch added to
+ -mm tree
+Message-ID: <20210122003212.AgJ-_yyII%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable/basic: add validation for dirtiness after write protect
+     Subject: mm/debug_vm_pgtable/basic: iterate over entire protection_map[]
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-basic-add-validation-for-dirtiness-after-write-protect.patch
+     mm-debug_vm_pgtable-basic-iterate-over-entire-protection_map.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-basic-add-validation-for-dirtiness-after-write-protect.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-basic-iterate-over-entire-protection_map.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-basic-add-validation-for-dirtiness-after-write-protect.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-basic-iterate-over-entire-protection_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,169 +68,167 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/debug_vm_pgtable/basic: add validation for dirtiness after write protect
+Subject: mm/debug_vm_pgtable/basic: iterate over entire protection_map[]
 
-Patch series "mm/debug_vm_pgtable: Some minor updates", v3.
+Currently the basic tests just validate various page table transformations
+after starting with vm_get_page_prot(VM_READ|VM_WRITE|VM_EXEC) protection.
+Instead scan over the entire protection_map[] for better coverage.  It
+also makes sure that all these basic page table tranformations checks hold
+true irrespective of the starting protection value for the page table
+entry.  There is also a slight change in the debug print format for basic
+tests to capture the protection value it is being tested with.  The
+modified output looks something like
 
-This series contains some cleanups and new test suggestions from Catalin
-from an earlier discussion.
+[pte_basic_tests          ]: Validating PTE basic ()
+[pte_basic_tests          ]: Validating PTE basic (read)
+[pte_basic_tests          ]: Validating PTE basic (write)
+[pte_basic_tests          ]: Validating PTE basic (read|write)
+[pte_basic_tests          ]: Validating PTE basic (exec)
+[pte_basic_tests          ]: Validating PTE basic (read|exec)
+[pte_basic_tests          ]: Validating PTE basic (write|exec)
+[pte_basic_tests          ]: Validating PTE basic (read|write|exec)
+[pte_basic_tests          ]: Validating PTE basic (shared)
+[pte_basic_tests          ]: Validating PTE basic (read|shared)
+[pte_basic_tests          ]: Validating PTE basic (write|shared)
+[pte_basic_tests          ]: Validating PTE basic (read|write|shared)
+[pte_basic_tests          ]: Validating PTE basic (exec|shared)
+[pte_basic_tests          ]: Validating PTE basic (read|exec|shared)
+[pte_basic_tests          ]: Validating PTE basic (write|exec|shared)
+[pte_basic_tests          ]: Validating PTE basic (read|write|exec|shared)
 
-https://lore.kernel.org/linux-mm/20201123142237.GF17833@gaia/
+This adds a missing argument 'struct mm_struct *' in pud_basic_tests()
+test .  This never got exposed before as PUD based THP is available only
+on X86 platform where mm_pmd_folded(mm) call gets macro replaced without
+requiring the mm_struct i.e __is_defined(__PAGETABLE_PMD_FOLDED).
 
-
-This patch (of 2):
-
-This adds validation tests for dirtiness after write protect conversion
-for each page table level.  There are two new separate test types involved
-here.
-
-The first test ensures that a given page table entry does not become dirty
-after pxx_wrprotect().  This is important for platforms like arm64 which
-transfers and drops the hardware dirty bit (!PTE_RDONLY) to the software
-dirty bit while making it an write protected one.  This test ensures that
-no fresh page table entry could be created with hardware dirty bit set. 
-The second test ensures that a given page table entry always preserve the
-dirty information across pxx_wrprotect().
-
-This adds two previously missing PUD level basic tests and while here
-fixes pxx_wrprotect() related typos in the documentation file.
-
-Link: https://lkml.kernel.org/r/1611137241-26220-1-git-send-email-anshuman.khandual@arm.com
-Link: https://lkml.kernel.org/r/1611137241-26220-2-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1611137241-26220-3-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
 Tested-by: Gerald Schaefer <gerald.schaefer@de.ibm.com> [s390]
+Reviewed-by: Steven Price <steven.price@arm.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Steven Price <steven.price@arm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/arch_pgtable_helpers.rst |    8 ++--
- mm/debug_vm_pgtable.c                     |   39 ++++++++++++++++++++
- 2 files changed, 43 insertions(+), 4 deletions(-)
+ mm/debug_vm_pgtable.c |   47 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 12 deletions(-)
 
---- a/Documentation/vm/arch_pgtable_helpers.rst~mm-debug_vm_pgtable-basic-add-validation-for-dirtiness-after-write-protect
-+++ a/Documentation/vm/arch_pgtable_helpers.rst
-@@ -50,7 +50,7 @@ PTE Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | pte_mkwrite               | Creates a writable PTE                           |
- +---------------------------+--------------------------------------------------+
--| pte_mkwrprotect           | Creates a write protected PTE                    |
-+| pte_wrprotect             | Creates a write protected PTE                    |
- +---------------------------+--------------------------------------------------+
- | pte_mkspecial             | Creates a special PTE                            |
- +---------------------------+--------------------------------------------------+
-@@ -120,7 +120,7 @@ PMD Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | pmd_mkwrite               | Creates a writable PMD                           |
- +---------------------------+--------------------------------------------------+
--| pmd_mkwrprotect           | Creates a write protected PMD                    |
-+| pmd_wrprotect             | Creates a write protected PMD                    |
- +---------------------------+--------------------------------------------------+
- | pmd_mkspecial             | Creates a special PMD                            |
- +---------------------------+--------------------------------------------------+
-@@ -186,7 +186,7 @@ PUD Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | pud_mkwrite               | Creates a writable PUD                           |
- +---------------------------+--------------------------------------------------+
--| pud_mkwrprotect           | Creates a write protected PUD                    |
-+| pud_wrprotect             | Creates a write protected PUD                    |
- +---------------------------+--------------------------------------------------+
- | pud_mkdevmap              | Creates a ZONE_DEVICE mapped PUD                 |
- +---------------------------+--------------------------------------------------+
-@@ -224,7 +224,7 @@ HugeTLB Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | huge_pte_mkwrite          | Creates a writable HugeTLB                       |
- +---------------------------+--------------------------------------------------+
--| huge_pte_mkwrprotect      | Creates a write protected HugeTLB                |
-+| huge_pte_wrprotect        | Creates a write protected HugeTLB                |
- +---------------------------+--------------------------------------------------+
- | huge_ptep_get_and_clear   | Clears a HugeTLB                                 |
- +---------------------------+--------------------------------------------------+
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-basic-add-validation-for-dirtiness-after-write-protect
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-basic-iterate-over-entire-protection_map
 +++ a/mm/debug_vm_pgtable.c
-@@ -63,6 +63,16 @@ static void __init pte_basic_tests(unsig
- 	pte_t pte = pfn_pte(pfn, prot);
+@@ -58,11 +58,13 @@
+ #define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
+ #define RANDOM_NZVALUE	GENMASK(7, 0)
  
- 	pr_debug("Validating PTE basic\n");
-+
-+	/*
-+	 * This test needs to be executed after the given page table entry
-+	 * is created with pfn_pte() to make sure that protection_map[idx]
-+	 * does not have the dirty bit enabled from the beginning. This is
-+	 * important for platforms like arm64 where (!PTE_RDONLY) indicate
-+	 * dirty bit being set.
-+	 */
-+	WARN_ON(pte_dirty(pte_wrprotect(pte)));
-+
- 	WARN_ON(!pte_same(pte, pte));
- 	WARN_ON(!pte_young(pte_mkyoung(pte_mkold(pte))));
- 	WARN_ON(!pte_dirty(pte_mkdirty(pte_mkclean(pte))));
-@@ -70,6 +80,8 @@ static void __init pte_basic_tests(unsig
- 	WARN_ON(pte_young(pte_mkold(pte_mkyoung(pte))));
- 	WARN_ON(pte_dirty(pte_mkclean(pte_mkdirty(pte))));
- 	WARN_ON(pte_write(pte_wrprotect(pte_mkwrite(pte))));
-+	WARN_ON(pte_dirty(pte_wrprotect(pte_mkclean(pte))));
-+	WARN_ON(!pte_dirty(pte_wrprotect(pte_mkdirty(pte))));
+-static void __init pte_basic_tests(unsigned long pfn, pgprot_t prot)
++static void __init pte_basic_tests(unsigned long pfn, int idx)
+ {
++	pgprot_t prot = protection_map[idx];
+ 	pte_t pte = pfn_pte(pfn, prot);
++	unsigned long val = idx, *ptr = &val;
+ 
+-	pr_debug("Validating PTE basic\n");
++	pr_debug("Validating PTE basic (%pGv)\n", ptr);
+ 
+ 	/*
+ 	 * This test needs to be executed after the given page table entry
+@@ -141,14 +143,16 @@ static void __init pte_savedwrite_tests(
  }
  
- static void __init pte_advanced_tests(struct mm_struct *mm,
-@@ -137,6 +149,17 @@ static void __init pmd_basic_tests(unsig
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static void __init pmd_basic_tests(unsigned long pfn, pgprot_t prot)
++static void __init pmd_basic_tests(unsigned long pfn, int idx)
+ {
++	pgprot_t prot = protection_map[idx];
+ 	pmd_t pmd = pfn_pmd(pfn, prot);
++	unsigned long val = idx, *ptr = &val;
+ 
+ 	if (!has_transparent_hugepage())
  		return;
  
- 	pr_debug("Validating PMD basic\n");
-+
-+	/*
-+	 * This test needs to be executed after the given page table entry
-+	 * is created with pfn_pmd() to make sure that protection_map[idx]
-+	 * does not have the dirty bit enabled from the beginning. This is
-+	 * important for platforms like arm64 where (!PTE_RDONLY) indicate
-+	 * dirty bit being set.
-+	 */
-+	WARN_ON(pmd_dirty(pmd_wrprotect(pmd)));
-+
-+
- 	WARN_ON(!pmd_same(pmd, pmd));
- 	WARN_ON(!pmd_young(pmd_mkyoung(pmd_mkold(pmd))));
- 	WARN_ON(!pmd_dirty(pmd_mkdirty(pmd_mkclean(pmd))));
-@@ -144,6 +167,8 @@ static void __init pmd_basic_tests(unsig
- 	WARN_ON(pmd_young(pmd_mkold(pmd_mkyoung(pmd))));
- 	WARN_ON(pmd_dirty(pmd_mkclean(pmd_mkdirty(pmd))));
- 	WARN_ON(pmd_write(pmd_wrprotect(pmd_mkwrite(pmd))));
-+	WARN_ON(pmd_dirty(pmd_wrprotect(pmd_mkclean(pmd))));
-+	WARN_ON(!pmd_dirty(pmd_wrprotect(pmd_mkdirty(pmd))));
+-	pr_debug("Validating PMD basic\n");
++	pr_debug("Validating PMD basic (%pGv)\n", ptr);
+ 
  	/*
- 	 * A huge page does not point to next level page table
- 	 * entry. Hence this must qualify as pmd_bad().
-@@ -257,11 +282,25 @@ static void __init pud_basic_tests(unsig
+ 	 * This test needs to be executed after the given page table entry
+@@ -274,14 +278,16 @@ static void __init pmd_savedwrite_tests(
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot)
++static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx)
+ {
++	pgprot_t prot = protection_map[idx];
+ 	pud_t pud = pfn_pud(pfn, prot);
++	unsigned long val = idx, *ptr = &val;
+ 
+ 	if (!has_transparent_hugepage())
  		return;
  
- 	pr_debug("Validating PUD basic\n");
+-	pr_debug("Validating PUD basic\n");
++	pr_debug("Validating PUD basic (%pGv)\n", ptr);
+ 
+ 	/*
+ 	 * This test needs to be executed after the given page table entry
+@@ -398,7 +404,7 @@ static void __init pud_huge_tests(pud_t
+ #endif /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+ 
+ #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+-static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
+ static void __init pud_advanced_tests(struct mm_struct *mm,
+ 				      struct vm_area_struct *vma, pud_t *pudp,
+ 				      unsigned long pfn, unsigned long vaddr,
+@@ -411,8 +417,8 @@ static void __init pud_huge_tests(pud_t
+ }
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+-static void __init pmd_basic_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_basic_tests(unsigned long pfn, int idx) { }
++static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
+ static void __init pmd_advanced_tests(struct mm_struct *mm,
+ 				      struct vm_area_struct *vma, pmd_t *pmdp,
+ 				      unsigned long pfn, unsigned long vaddr,
+@@ -938,6 +944,7 @@ static int __init debug_vm_pgtable(void)
+ 	unsigned long vaddr, pte_aligned, pmd_aligned;
+ 	unsigned long pud_aligned, p4d_aligned, pgd_aligned;
+ 	spinlock_t *ptl = NULL;
++	int idx;
+ 
+ 	pr_info("Validating architecture page table helpers\n");
+ 	prot = vm_get_page_prot(VMFLAGS);
+@@ -1002,9 +1009,25 @@ static int __init debug_vm_pgtable(void)
+ 	saved_pmdp = pmd_offset(pudp, 0UL);
+ 	saved_ptep = pmd_pgtable(pmd);
+ 
+-	pte_basic_tests(pte_aligned, prot);
+-	pmd_basic_tests(pmd_aligned, prot);
+-	pud_basic_tests(pud_aligned, prot);
++	/*
++	 * Iterate over the protection_map[] to make sure that all
++	 * the basic page table transformation validations just hold
++	 * true irrespective of the starting protection value for a
++	 * given page table entry.
++	 */
++	for (idx = 0; idx < ARRAY_SIZE(protection_map); idx++) {
++		pte_basic_tests(pte_aligned, idx);
++		pmd_basic_tests(pmd_aligned, idx);
++		pud_basic_tests(mm, pud_aligned, idx);
++	}
 +
 +	/*
-+	 * This test needs to be executed after the given page table entry
-+	 * is created with pfn_pud() to make sure that protection_map[idx]
-+	 * does not have the dirty bit enabled from the beginning. This is
-+	 * important for platforms like arm64 where (!PTE_RDONLY) indicate
-+	 * dirty bit being set.
++	 * Both P4D and PGD level tests are very basic which do not
++	 * involve creating page table entries from the protection
++	 * value and the given pfn. Hence just keep them out from
++	 * the above iteration for now to save some test execution
++	 * time.
 +	 */
-+	WARN_ON(pud_dirty(pud_wrprotect(pud)));
-+
- 	WARN_ON(!pud_same(pud, pud));
- 	WARN_ON(!pud_young(pud_mkyoung(pud_mkold(pud))));
-+	WARN_ON(!pud_dirty(pud_mkdirty(pud_mkclean(pud))));
-+	WARN_ON(pud_dirty(pud_mkclean(pud_mkdirty(pud))));
- 	WARN_ON(!pud_write(pud_mkwrite(pud_wrprotect(pud))));
- 	WARN_ON(pud_write(pud_wrprotect(pud_mkwrite(pud))));
- 	WARN_ON(pud_young(pud_mkold(pud_mkyoung(pud))));
-+	WARN_ON(pud_dirty(pud_wrprotect(pud_mkclean(pud))));
-+	WARN_ON(!pud_dirty(pud_wrprotect(pud_mkdirty(pud))));
+ 	p4d_basic_tests(p4d_aligned, prot);
+ 	pgd_basic_tests(pgd_aligned, prot);
  
- 	if (mm_pmd_folded(mm))
- 		return;
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
