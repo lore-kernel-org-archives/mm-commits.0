@@ -4,36 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3C56C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2602C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:16:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D34F22D07
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:15:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 787E422D2B
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:16:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726475AbhAXBPl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 20:15:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46060 "EHLO mail.kernel.org"
+        id S1726476AbhAXBQS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 20:16:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726386AbhAXBPk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 20:15:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDAC422D07;
-        Sun, 24 Jan 2021 01:14:59 +0000 (UTC)
+        id S1725932AbhAXBQR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 20:16:17 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD09C22CB9;
+        Sun, 24 Jan 2021 01:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611450900;
-        bh=FZgzn4Qwl88RkoqqQ1rvBEvNfd9VKVZs1Tksd9Da5s0=;
+        s=korg; t=1611450937;
+        bh=GWtpz8VHGWR5UOTww5kW6j6E0tkD7p9dquPQZcaCqx8=;
         h=Date:From:To:Subject:From;
-        b=PcfBSFRKWqTw/yP3EMvi/xb3jbbjQ2nQ6o9X2dC41BCS59K3x7ihh84/NPNPYF+GF
-         1aVfAt6x0BwDXfDT85e1fztymRKOYIoPYBUJKwHebWchNl5kpPRTjGL0rFQZCxvU3G
-         uzNIIP7DFK+PG/4XxDJWoV4lIT/4GuwUvhunTVeU=
-Date:   Sat, 23 Jan 2021 17:14:59 -0800
+        b=DDflMACx1+Wpf32URHKeoMAha/SP+W3V37Reic0w/7TmdMI4RCEpxRgQie8/8Tx0+
+         rYzFTGnx4I1Gmh9YkUWThc+9TzEUYgaQLti9mF6oqmTagdyXfAntNeu6TaRkVyFo23
+         G3I6i18JloLnlwhreVXhXnIjJa2m4aJASxnF4aIY=
+Date:   Sat, 23 Jan 2021 17:15:36 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stephenzhangzsd@gmail.com
-Subject:  + mm-swapfilec-fix-debugging-information-problem.patch
- added to -mm tree
-Message-ID: <20210124011459.3maqWP_O0%akpm@linux-foundation.org>
+To:     dja@axtens.net, hch@lst.de, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, rick.p.edgecombe@intel.com,
+        stable@vger.kernel.org, willy@infradead.org
+Subject:  [to-be-updated]
+ mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch removed from -mm
+ tree
+Message-ID: <20210124011536.gnMEJzkWm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,73 +45,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile.c: fix debugging information problem
-has been added to the -mm tree.  Its filename is
-     mm-swapfilec-fix-debugging-information-problem.patch
+     Subject: mm/vmalloc: reparate put pages and flush VM flags
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-separate-put-pages-and-flush-vm-flags.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-fix-debugging-information-problem.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-fix-debugging-information-problem.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Stephen Zhang <stephenzhangzsd@gmail.com>
-Subject: mm/swapfile.c: fix debugging information problem
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Subject: mm/vmalloc: reparate put pages and flush VM flags
 
-Once the function name is changed, it may be easy to forget to modify the
-corresponding code here.
+When VM_MAP_PUT_PAGES was added, it was defined with the same value as
+VM_FLUSH_RESET_PERMS.  This doesn't seem like it will cause any big
+functional problems other than some excess flushing for VM_MAP_PUT_PAGES
+allocations.
 
-Link: https://lkml.kernel.org/r/1611369120-2276-1-git-send-email-stephenzhangzsd@gmail.com
-Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
+Redefine VM_MAP_PUT_PAGES to have its own value.  Also, move the comment
+and remove whitespace for VM_KASAN such that the flags lower down are less
+likely to be missed in the future.
+
+Link: https://lkml.kernel.org/r/20210121014118.31922-1-rick.p.edgecombe@intel.com
+Fixes: b944afc9d64d ("mm: add a VM_MAP_PUT_PAGES flag for vmap")
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Daniel Axtens <dja@axtens.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/vmalloc.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-fix-debugging-information-problem
-+++ a/mm/swapfile.c
-@@ -1158,13 +1158,13 @@ static struct swap_info_struct *__swap_i
- 	return p;
+--- a/include/linux/vmalloc.h~mm-vmalloc-separate-put-pages-and-flush-vm-flags
++++ a/include/linux/vmalloc.h
+@@ -23,9 +23,6 @@ struct notifier_block;		/* in notifier.h
+ #define VM_DMA_COHERENT		0x00000010	/* dma_alloc_coherent */
+ #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
+ #define VM_NO_GUARD		0x00000040      /* don't add guard page */
+-#define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
+-#define VM_MAP_PUT_PAGES	0x00000100	/* put pages and free array in vfree */
+-
+ /*
+  * VM_KASAN is used slighly differently depending on CONFIG_KASAN_VMALLOC.
+  *
+@@ -36,12 +33,13 @@ struct notifier_block;		/* in notifier.h
+  * Otherwise, VM_KASAN is set for kasan_module_alloc() allocations and used to
+  * determine which allocations need the module shadow freed.
+  */
+-
++#define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
+ /*
+  * Memory with VM_FLUSH_RESET_PERMS cannot be freed in an interrupt or with
+  * vfree_atomic().
+  */
+ #define VM_FLUSH_RESET_PERMS	0x00000100      /* Reset direct map and flush TLB on unmap */
++#define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
  
- bad_offset:
--	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
-+	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
- 	goto out;
- bad_device:
--	pr_err("swap_info_get: %s%08lx\n", Unused_file, entry.val);
-+	pr_err("%s: %s%08lx\n", __func__, Unused_file, entry.val);
- 	goto out;
- bad_nofile:
--	pr_err("swap_info_get: %s%08lx\n", Bad_file, entry.val);
-+	pr_err("%s: %s%08lx\n", __func__, Bad_file, entry.val);
- out:
- 	return NULL;
- }
-@@ -1181,7 +1181,7 @@ static struct swap_info_struct *_swap_in
- 	return p;
+ /* bits [20..32] reserved for arch specific ioremap internals */
  
- bad_free:
--	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
-+	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
- out:
- 	return NULL;
- }
 _
 
-Patches currently in -mm which might be from stephenzhangzsd@gmail.com are
+Patches currently in -mm which might be from rick.p.edgecombe@intel.com are
 
-mm-swapfilec-fix-debugging-information-problem.patch
-mm-early_ioremapc-use-__func__-instead-of-function-name.patch
 
