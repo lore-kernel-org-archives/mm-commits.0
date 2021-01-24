@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A043CC433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 02:05:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B3D2C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 03:57:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65569229F0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 02:05:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B6C3225A9
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 03:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726440AbhAXCFO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 21:05:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53658 "EHLO mail.kernel.org"
+        id S1726223AbhAXD50 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 22:57:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726433AbhAXCFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 21:05:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E8A6A229EF;
-        Sun, 24 Jan 2021 02:04:32 +0000 (UTC)
+        id S1726481AbhAXD5Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 22:57:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 17A26225A9;
+        Sun, 24 Jan 2021 03:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611453873;
-        bh=UU5zkx0PUtomZepyoiLiKvYjumr+fS7jKTAIKNmMPqk=;
+        s=korg; t=1611460605;
+        bh=y4iXnONY0VQVtJGb0gomstgPGbnR1cgCzn5BgtYCufw=;
         h=Date:From:To:Subject:From;
-        b=bV4wdy3RKbA/W8kV+zP2C2U15mn4wA0wSAmMsFMvxTQnYvJqtgM2sw8L8Rxbe/fy/
-         dk0iVNoaGCN4b+DTXhjERu5F7JOUancNUsl/u4ESEvZZYjFYN8eTTjamERssiFK90f
-         majTSinn0IEUnHhtCSRoZnC+o6pSapdfSy+RakZA=
-Date:   Sat, 23 Jan 2021 18:04:32 -0800
+        b=PSD7yUTQZQ2chwbF8lburzMWl6EZgVJPzv8iLok9dSQivDX1A/TIuqJPaqWtlmgTh
+         F3Se1FIWiP4nKOpQaKmDxFAc3Tnc3kBCCIJ56m+GHsTsnfPXWit8bEdxlRUrWtpL4+
+         jNJZmVsrKZok8cla9YgK8+MPxcYOseOV/umaLuiA=
+Date:   Sat, 23 Jan 2021 19:56:43 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, hughd@google.com, mm-commits@vger.kernel.org,
-        sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org
-Subject:  + mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
- added to -mm tree
-Message-ID: <20210124020432.9gYUePFNh%akpm@linux-foundation.org>
+To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stephenzhangzsd@gmail.com
+Subject:  + mm-memfd-replace-strcpy-by-strscpy.patch added to -mm
+ tree
+Message-ID: <20210124035643.w-SK7UT3m%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix MADV_REMOVE deadlock on shmem THP
+     Subject: mm/memfd: replace strcpy() by strscpy()
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
+     mm-memfd-replace-strcpy-by-strscpy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memfd-replace-strcpy-by-strscpy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memfd-replace-strcpy-by-strscpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,113 +64,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: thp: fix MADV_REMOVE deadlock on shmem THP
+From: Stephen Zhang <stephenzhangzsd@gmail.com>
+Subject: mm/memfd: replace strcpy() by strscpy()
 
-Sergey reported deadlock between kswapd correctly doing its usual
-lock_page(page) followed by down_read(page->mapping->i_mmap_rwsem), and
-madvise(MADV_REMOVE) on an madvise(MADV_HUGEPAGE) area doing
-down_write(page->mapping->i_mmap_rwsem) followed by lock_page(page).
+strcpy() is being deprecated.  Replace it with the safer strscpy().
 
-This happened when shmem_fallocate(punch hole)'s unmap_mapping_range()
-reaches zap_pmd_range()'s call to __split_huge_pmd().  The same deadlock
-could occur when partially truncating a mapped huge tmpfs file, or using
-fallocate(FALLOC_FL_PUNCH_HOLE) on it.
-
-__split_huge_pmd()'s page lock was added in 5.8, to make sure that any
-concurrent use of reuse_swap_page() (holding page lock) could not catch
-the anon THP's mapcounts and swapcounts while they were being split.
-
-Fortunately, reuse_swap_page() is never applied to a shmem or file THP
-(not even by khugepaged, which checks PageSwapCache before calling), and
-anonymous THPs are never created in shmem or file areas: so that
-__split_huge_pmd()'s page lock can only be necessary for anonymous THPs,
-on which there is no risk of deadlock with i_mmap_rwsem.
-
-Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2101161409470.2022@eggly.anvils
-Fixes: c444eb564fb1 ("mm: thp: make the THP mapcount atomic against __split_huge_pmd_locked()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1611455017-2210-1-git-send-email-stephenzhangzsd@gmail.com
+Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   37 +++++++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ mm/memfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-madv_remove-deadlock-on-shmem-thp
-+++ a/mm/huge_memory.c
-@@ -2202,7 +2202,7 @@ void __split_huge_pmd(struct vm_area_str
- {
- 	spinlock_t *ptl;
- 	struct mmu_notifier_range range;
--	bool was_locked = false;
-+	bool do_unlock_page = false;
- 	pmd_t _pmd;
+--- a/mm/memfd.c~mm-memfd-replace-strcpy-by-strscpy
++++ a/mm/memfd.c
+@@ -278,7 +278,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 	if (!name)
+ 		return -ENOMEM;
  
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
-@@ -2218,7 +2218,6 @@ void __split_huge_pmd(struct vm_area_str
- 	VM_BUG_ON(freeze && !page);
- 	if (page) {
- 		VM_WARN_ON_ONCE(!PageLocked(page));
--		was_locked = true;
- 		if (page != pmd_page(*pmd))
- 			goto out;
- 	}
-@@ -2227,19 +2226,29 @@ repeat:
- 	if (pmd_trans_huge(*pmd)) {
- 		if (!page) {
- 			page = pmd_page(*pmd);
--			if (unlikely(!trylock_page(page))) {
--				get_page(page);
--				_pmd = *pmd;
--				spin_unlock(ptl);
--				lock_page(page);
--				spin_lock(ptl);
--				if (unlikely(!pmd_same(*pmd, _pmd))) {
--					unlock_page(page);
-+			/*
-+			 * An anonymous page must be locked, to ensure that a
-+			 * concurrent reuse_swap_page() sees stable mapcount;
-+			 * but reuse_swap_page() is not used on shmem or file,
-+			 * and page lock must not be taken when zap_pmd_range()
-+			 * calls __split_huge_pmd() while i_mmap_lock is held.
-+			 */
-+			if (PageAnon(page)) {
-+				if (unlikely(!trylock_page(page))) {
-+					get_page(page);
-+					_pmd = *pmd;
-+					spin_unlock(ptl);
-+					lock_page(page);
-+					spin_lock(ptl);
-+					if (unlikely(!pmd_same(*pmd, _pmd))) {
-+						unlock_page(page);
-+						put_page(page);
-+						page = NULL;
-+						goto repeat;
-+					}
- 					put_page(page);
--					page = NULL;
--					goto repeat;
- 				}
--				put_page(page);
-+				do_unlock_page = true;
- 			}
- 		}
- 		if (PageMlocked(page))
-@@ -2249,7 +2258,7 @@ repeat:
- 	__split_huge_pmd_locked(vma, pmd, range.start, freeze);
- out:
- 	spin_unlock(ptl);
--	if (!was_locked && page)
-+	if (do_unlock_page)
- 		unlock_page(page);
- 	/*
- 	 * No need to double call mmu_notifier->invalidate_range() callback.
+-	strcpy(name, MFD_NAME_PREFIX);
++	strscpy(name, MFD_NAME_PREFIX, len + MFD_NAME_PREFIX_LEN);
+ 	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
+ 		error = -EFAULT;
+ 		goto err_name;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from stephenzhangzsd@gmail.com are
 
-mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
+mm-swapfilec-fix-debugging-information-problem.patch
+mm-memfd-replace-strcpy-by-strscpy.patch
+mm-early_ioremapc-use-__func__-instead-of-function-name.patch
 
