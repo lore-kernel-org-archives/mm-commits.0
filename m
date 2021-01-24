@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B942C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B4FC433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33C7022CB9
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E5E022CB2
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726217AbhAXFCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Jan 2021 00:02:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47242 "EHLO mail.kernel.org"
+        id S1726233AbhAXFCo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Jan 2021 00:02:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47286 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726056AbhAXFCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726092AbhAXFCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sun, 24 Jan 2021 00:02:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8905F22D2C;
-        Sun, 24 Jan 2021 05:01:39 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5AAAC22C9F;
+        Sun, 24 Jan 2021 05:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611464501;
-        bh=sh700x7Hu6vxNrBP4J9bML1JZ69fplcFrjgPi1lNSIc=;
+        s=korg; t=1611464510;
+        bh=+9PRErOr+d9hCdk+kaxOcok8QnXLA6TWV8qX8cXfH5o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=pLOURBliCWTpM/V0kNtdFeaonQPu96t3IaXyxMJ1rkxPajuFq6BtERocScIv5gI00
-         Lxw+Kf2qdcsDF4gtpW4KxbdVUq3uzTkPNIUzoBKvxi7TvGRL1pBcIT5Yn+uATBChI5
-         FnYvKM0cz0r3JZ12DDz2Y2KLevY8l/L7yZqths2s=
-Date:   Sat, 23 Jan 2021 21:01:38 -0800
+        b=eb14Tu7R6SmY+FMTbMNPHiFDIMJGF/gt2q8aBus9ZScTr648P9bGDFwP/MXcu4waI
+         diAcr50j8OYk5baM8jlzHEtIVJlKRBvGio18sl+JjXgZG0IvfGDb+msTMcMp7ZBFQW
+         ZwSuPSoic6gD/72aol+TAKJoY6eypqsiUYTEPCYw=
+Date:   Sat, 23 Jan 2021 21:01:48 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
-        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
-        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz,
-        vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  [patch 10/19] kasan, mm: fix conflicts with
- init_on_alloc/free
-Message-ID: <20210124050138.apmWliFQh%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, elver@google.com,
+        georgepope@android.com, keescook@chromium.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        ndesaulniers@google.com, sfr@canb.auug.org.au,
+        torvalds@linux-foundation.org
+Subject:  [patch 12/19] ubsan: disable unsigned-overflow check for
+ i386
+Message-ID: <20210124050148.RYgAz7sLe%akpm@linux-foundation.org>
 In-Reply-To: <20210123210029.a7c704d0cab204683e41ad10@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,68 +45,53 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, mm: fix conflicts with init_on_alloc/free
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ubsan: disable unsigned-overflow check for i386
 
-A few places where SLUB accesses object's data or metadata were missed in
-a previous patch.  This leads to false positives with hardware tag-based
-KASAN when bulk allocations are used with init_on_alloc/free.
+Building ubsan kernels even for compile-testing introduced these warnings
+in my randconfig environment:
 
-Fix the false-positives by resetting pointer tags during these accesses.
+crypto/blake2b_generic.c:98:13: error: stack frame size of 9636 bytes in function 'blake2b_compress' [-Werror,-Wframe-larger-than=]
+static void blake2b_compress(struct blake2b_state *S,
+crypto/sha512_generic.c:151:13: error: stack frame size of 1292 bytes in function 'sha512_generic_block_fn' [-Werror,-Wframe-larger-than=]
+static void sha512_generic_block_fn(struct sha512_state *sst, u8 const *src,
+lib/crypto/curve25519-fiat32.c:312:22: error: stack frame size of 2180 bytes in function 'fe_mul_impl' [-Werror,-Wframe-larger-than=]
+static noinline void fe_mul_impl(u32 out[10], const u32 in1[10], const u32 in2[10])
+lib/crypto/curve25519-fiat32.c:444:22: error: stack frame size of 1588 bytes in function 'fe_sqr_impl' [-Werror,-Wframe-larger-than=]
+static noinline void fe_sqr_impl(u32 out[10], const u32 in1[10])
 
-(The kasan_reset_tag call is removed from slab_alloc_node, as it's added
- into maybe_wipe_obj_freeptr.)
+Further testing showed that this is caused by
+-fsanitize=unsigned-integer-overflow, but is isolated to the 32-bit x86
+architecture.
 
-Link: https://linux-review.googlesource.com/id/I50dd32838a666e173fe06c3c5c766f2c36aae901
-Link: https://lkml.kernel.org/r/093428b5d2ca8b507f4a79f92f9929b35f7fada7.1610731872.git.andreyknvl@google.com
-Fixes: aa1ef4d7b3f67 ("kasan, mm: reset tags when accessing metadata")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
+The one in blake2b immediately overflows the 8KB stack area architectures,
+so better ensure this never happens by disabling the option for 32-bit
+x86.
+
+Link: https://lkml.kernel.org/r/20210112202922.2454435-1-arnd@kernel.org
+Link: https://lore.kernel.org/lkml/20201230154749.746641-1-arnd@kernel.org/
+Fixes: d0a3ac549f38 ("ubsan: enable for all*config builds")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Marco Elver <elver@google.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Branislav Rankov <Branislav.Rankov@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: George Popescu <georgepope@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/Kconfig.ubsan |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/slub.c~kasan-mm-fix-conflicts-with-init_on_alloc-free
-+++ a/mm/slub.c
-@@ -2791,7 +2791,8 @@ static __always_inline void maybe_wipe_o
- 						   void *obj)
- {
- 	if (unlikely(slab_want_init_on_free(s)) && obj)
--		memset((void *)((char *)obj + s->offset), 0, sizeof(void *));
-+		memset((void *)((char *)kasan_reset_tag(obj) + s->offset),
-+			0, sizeof(void *));
- }
- 
- /*
-@@ -2883,7 +2884,7 @@ redo:
- 		stat(s, ALLOC_FASTPATH);
- 	}
- 
--	maybe_wipe_obj_freeptr(s, kasan_reset_tag(object));
-+	maybe_wipe_obj_freeptr(s, object);
- 
- 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
- 		memset(kasan_reset_tag(object), 0, s->object_size);
-@@ -3329,7 +3330,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 		int j;
- 
- 		for (j = 0; j < i; j++)
--			memset(p[j], 0, s->object_size);
-+			memset(kasan_reset_tag(p[j]), 0, s->object_size);
- 	}
- 
- 	/* memcg and kmem_cache debug support */
+--- a/lib/Kconfig.ubsan~ubsan-disable-unsigned-overflow-check-for-i386
++++ a/lib/Kconfig.ubsan
+@@ -123,6 +123,7 @@ config UBSAN_SIGNED_OVERFLOW
+ config UBSAN_UNSIGNED_OVERFLOW
+ 	bool "Perform checking for unsigned arithmetic overflow"
+ 	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
++	depends on !X86_32 # avoid excessive stack usage on x86-32/clang
+ 	help
+ 	  This option enables -fsanitize=unsigned-integer-overflow which checks
+ 	  for overflow of any arithmetic operations with unsigned integers. This
 _
