@@ -7,40 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 435C9C433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 00:23:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C58AEC433E6
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 00:39:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12D9722795
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 00:23:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93C7F22AAB
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 00:39:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726434AbhAXAXj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 19:23:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41354 "EHLO mail.kernel.org"
+        id S1726284AbhAXAjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 19:39:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726472AbhAXAXi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 19:23:38 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1FA60225AC;
-        Sun, 24 Jan 2021 00:22:56 +0000 (UTC)
+        id S1725932AbhAXAjY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 19:39:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F34E7225AC;
+        Sun, 24 Jan 2021 00:38:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611447776;
-        bh=imIyipyeeZAWjNbu1LOl5nFDVhRQYp9CN0jCiZOVmDE=;
+        s=korg; t=1611448723;
+        bh=+hC47nH3mCB+d8QJjW+uNVXTmeNkpkjyTSe0KdamQ60=;
         h=Date:From:To:Subject:From;
-        b=VLfUD0X8OuuZWP+iF6uF6s/6LY1u4yvoReUIkM/AHFQxYaUgmKApHwFbQlXuDe1B8
-         KjSdqTUYHqcurHvM4XyhnqYy7MdUzmux9th3UUAKaEWBe/lRYIZwx7/t4lmnStUOGw
-         VybHCGMAAwxiqfI+PjnTnwEXcF98WjfFoBcw1l7Q=
-Date:   Sat, 23 Jan 2021 16:22:55 -0800
+        b=a0KV2jdVmBYq6cNaRUVnzkLH8cvEyY9uzQhN/GRccM0q8bD6IL/r6LSl5GzWygCjF
+         BgzUZ78KJZh85iWNgZ0m0TWlP/kXFiFYZY/6IJGs7pOsjem86tYvdAelFGl/jS9siQ
+         frDASJa/cvlmT5sLbhpWhYIBM5gxUCs0dhzo/GfE=
+Date:   Sat, 23 Jan 2021 16:38:42 -0800
 From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, dwaipayanray1@gmail.com, joe@perches.com,
-        jpoimboe@redhat.com, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        yashsri421@gmail.com
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        Vbabka@suse.cz, vvghjk1234@gmail.com
 Subject:  +
- =?US-ASCII?Q?checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-asse?=
- =?US-ASCII?Q?mbly-files.patch?= added to -mm tree
-Message-ID: <20210124002255.lAg8iNtrX%akpm@linux-foundation.org>
+ mm-compactoin-fix-edge-case-of-fast_find_migrateblock.patch added to -mm
+ tree
+Message-ID: <20210124003842.gk3BJOmCj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add warning for avoiding .L prefix symbols in assembly files
+     Subject: mm/compaction: fix edge case of fast_find_migrateblock()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-assembly-files.patch
+     mm-compactoin-fix-edge-case-of-fast_find_migrateblock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-assembly-files.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compactoin-fix-edge-case-of-fast_find_migrateblock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-assembly-files.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compactoin-fix-edge-case-of-fast_find_migrateblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,55 +65,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aditya Srivastava <yashsri421@gmail.com>
-Subject: checkpatch: add warning for avoiding .L prefix symbols in assembly files
+From: Wonhyuk Yang <vvghjk1234@gmail.com>
+Subject: mm/compaction: fix edge case of fast_find_migrateblock()
 
-objtool requires that all code must be contained in an ELF symbol.  Symbol
-names that have a '.L' prefix do not emit symbol table entries, as they
-have special meaning for the assembler.
+In the fast_find_migrateblock(), It iterate freelist to find proper
+pageblock.  But there are two edge cases.  First, if the page we found is
+equal to cc->migrate_pfn, it is considered that we didn't found suitable
+pageblock.  Second, if the loop was terminated because order is less than
+PAGE_ALLOC_COSTLY_ORDER, it could be considered that we found suitable
+one.
 
-'.L' prefixed symbols can be used within a code region, but should be
-avoided for denoting a range of code via 'SYM_*_START/END' annotations.
-
-Add a new check to emit a warning on finding the usage of '.L' symbols for
-'.S' files, if it denotes range of code via SYM_*_START/END annotation
-pair.
-
-Link: https://lkml.kernel.org/r/20210123190459.9701-1-yashsri421@gmail.com
-Link: https://lore.kernel.org/lkml/20210112210154.GI4646@sirena.org.uk
-Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
-Suggested-by: Mark Brown <broonie@kernel.org>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Aditya Srivastava <yashsri421@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: https://lkml.kernel.org/r/20210123154320.24278-1-vvghjk1234@gmail.com
+Fixes: 70b44595eafe9 ("mm, compaction: use free lists to quickly locate a migration source")
+Signed-off-by: Wonhyuk Yang <vvghjk1234@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <Vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/compaction.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-assembly-files
-+++ a/scripts/checkpatch.pl
-@@ -3606,6 +3606,13 @@ sub process {
- 			}
- 		}
+--- a/mm/compaction.c~mm-compactoin-fix-edge-case-of-fast_find_migrateblock
++++ a/mm/compaction.c
+@@ -1739,8 +1739,8 @@ static unsigned long fast_find_migratebl
+ 		distance >>= 2;
+ 	high_pfn = pageblock_start_pfn(cc->migrate_pfn + distance);
  
-+# check for .L prefix local symbols in .S files
-+		if ($realfile =~ /\.S$/ &&
-+		    $line =~ /^\+\s*(?:[A-Z]+_)?SYM_[A-Z]+_(?:START|END)(?:_[A-Z_]+)?\s*\(\s*\.L/) {
-+			WARN("AVOID_L_PREFIX",
-+			     "Avoid using '.L' prefixed local symbol names for denoting a range of code via 'SYM_*_START/END' annotations; see Documentation/asm-annotations.rst\n" . $herecurr);
-+		}
-+
- # check we are in a valid source file C or perl if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c|pl|dtsi|dts)$/);
+-	for (order = cc->order - 1;
+-	     order >= PAGE_ALLOC_COSTLY_ORDER && pfn == cc->migrate_pfn && nr_scanned < limit;
++	for (order = cc->order - 1, pfn = high_pfn;
++	     order >= PAGE_ALLOC_COSTLY_ORDER && pfn == high_pfn && nr_scanned < limit;
+ 	     order--) {
+ 		struct free_area *area = &cc->zone->free_area[order];
+ 		struct list_head *freelist;
+@@ -1782,7 +1782,6 @@ static unsigned long fast_find_migratebl
+ 			}
+ 
+ 			if (nr_scanned >= limit) {
+-				cc->fast_search_fail++;
+ 				move_freelist_tail(freelist, freepage);
+ 				break;
+ 			}
+@@ -1796,9 +1795,10 @@ static unsigned long fast_find_migratebl
+ 	 * If fast scanning failed then use a cached entry for a page block
+ 	 * that had free pages as the basis for starting a linear scan.
+ 	 */
+-	if (pfn == cc->migrate_pfn)
++	if (pfn == high_pfn) {
++		cc->fast_search_fail++;
+ 		pfn = reinit_migrate_pfn(cc);
+-
++	}
+ 	return pfn;
+ }
  
 _
 
-Patches currently in -mm which might be from yashsri421@gmail.com are
+Patches currently in -mm which might be from vvghjk1234@gmail.com are
 
-checkpatch-add-warning-for-avoiding-l-prefix-symbols-in-assembly-files.patch
+mm-compactoin-fix-edge-case-of-fast_find_migrateblock.patch
 
