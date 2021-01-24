@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B4FC433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9325AC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E5E022CB2
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65C1322CB2
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726233AbhAXFCo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Jan 2021 00:02:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47286 "EHLO mail.kernel.org"
+        id S1726092AbhAXFCp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Jan 2021 00:02:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726092AbhAXFCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726096AbhAXFCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sun, 24 Jan 2021 00:02:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5AAAC22C9F;
-        Sun, 24 Jan 2021 05:01:49 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A34522D37;
+        Sun, 24 Jan 2021 05:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611464510;
-        bh=+9PRErOr+d9hCdk+kaxOcok8QnXLA6TWV8qX8cXfH5o=;
+        s=korg; t=1611464506;
+        bh=yKNN4Z5OscCqwPYjf8+qmsc/A/D8Skjewqd9GATmXlg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=eb14Tu7R6SmY+FMTbMNPHiFDIMJGF/gt2q8aBus9ZScTr648P9bGDFwP/MXcu4waI
-         diAcr50j8OYk5baM8jlzHEtIVJlKRBvGio18sl+JjXgZG0IvfGDb+msTMcMp7ZBFQW
-         ZwSuPSoic6gD/72aol+TAKJoY6eypqsiUYTEPCYw=
-Date:   Sat, 23 Jan 2021 21:01:48 -0800
+        b=m9RponltuKB+Zwq+BDrDUQIhyC0fvQwQnX0h4wtXGNT3TlZ8+c9hn1Uou0BF5D0kl
+         NTjWEA0xxDHIXa/LVBHTeGXZA41MWuV1nVUkxzzmNLNRoWI8WnvpOod9wO0R6o/xfj
+         q2qvSL0M2wpugJvl54bq9jeji1JzrqSNJhZlNGvE=
+Date:   Sat, 23 Jan 2021 21:01:43 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, elver@google.com,
-        georgepope@android.com, keescook@chromium.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, natechancellor@gmail.com,
-        ndesaulniers@google.com, sfr@canb.auug.org.au,
-        torvalds@linux-foundation.org
-Subject:  [patch 12/19] ubsan: disable unsigned-overflow check for
- i386
-Message-ID: <20210124050148.RYgAz7sLe%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, Branislav.Rankov@arm.com,
+        catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
+        eugenis@google.com, glider@google.com, kevin.brodsky@arm.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
+        torvalds@linux-foundation.org, vincenzo.frascino@arm.com,
+        will.deacon@arm.com
+Subject:  [patch 11/19] kasan, mm: fix resetting page_alloc tags
+ for HW_TAGS
+Message-ID: <20210124050143.UF-3I8lr9%akpm@linux-foundation.org>
 In-Reply-To: <20210123210029.a7c704d0cab204683e41ad10@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,53 +47,50 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: ubsan: disable unsigned-overflow check for i386
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan, mm: fix resetting page_alloc tags for HW_TAGS
 
-Building ubsan kernels even for compile-testing introduced these warnings
-in my randconfig environment:
+A previous commit added resetting KASAN page tags to
+kernel_init_free_pages() to avoid false-positives due to accesses to
+metadata with the hardware tag-based mode.
 
-crypto/blake2b_generic.c:98:13: error: stack frame size of 9636 bytes in function 'blake2b_compress' [-Werror,-Wframe-larger-than=]
-static void blake2b_compress(struct blake2b_state *S,
-crypto/sha512_generic.c:151:13: error: stack frame size of 1292 bytes in function 'sha512_generic_block_fn' [-Werror,-Wframe-larger-than=]
-static void sha512_generic_block_fn(struct sha512_state *sst, u8 const *src,
-lib/crypto/curve25519-fiat32.c:312:22: error: stack frame size of 2180 bytes in function 'fe_mul_impl' [-Werror,-Wframe-larger-than=]
-static noinline void fe_mul_impl(u32 out[10], const u32 in1[10], const u32 in2[10])
-lib/crypto/curve25519-fiat32.c:444:22: error: stack frame size of 1588 bytes in function 'fe_sqr_impl' [-Werror,-Wframe-larger-than=]
-static noinline void fe_sqr_impl(u32 out[10], const u32 in1[10])
+That commit did reset page tags before the metadata access, but didn't
+restore them after.  As the result, KASAN fails to detect bad accesses to
+page_alloc allocations on some configurations.
 
-Further testing showed that this is caused by
--fsanitize=unsigned-integer-overflow, but is isolated to the 32-bit x86
-architecture.
+Fix this by recovering the tag after the metadata access.
 
-The one in blake2b immediately overflows the 8KB stack area architectures,
-so better ensure this never happens by disabling the option for 32-bit
-x86.
-
-Link: https://lkml.kernel.org/r/20210112202922.2454435-1-arnd@kernel.org
-Link: https://lore.kernel.org/lkml/20201230154749.746641-1-arnd@kernel.org/
-Fixes: d0a3ac549f38 ("ubsan: enable for all*config builds")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/02b5bcd692e912c27d484030f666b350ad7e4ae4.1611074450.git.andreyknvl@google.com
+Fixes: aa1ef4d7b3f6 ("kasan, mm: reset tags when accessing metadata")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
-Cc: George Popescu <georgepope@android.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/Kconfig.ubsan~ubsan-disable-unsigned-overflow-check-for-i386
-+++ a/lib/Kconfig.ubsan
-@@ -123,6 +123,7 @@ config UBSAN_SIGNED_OVERFLOW
- config UBSAN_UNSIGNED_OVERFLOW
- 	bool "Perform checking for unsigned arithmetic overflow"
- 	depends on $(cc-option,-fsanitize=unsigned-integer-overflow)
-+	depends on !X86_32 # avoid excessive stack usage on x86-32/clang
- 	help
- 	  This option enables -fsanitize=unsigned-integer-overflow which checks
- 	  for overflow of any arithmetic operations with unsigned integers. This
+--- a/mm/page_alloc.c~kasan-mm-fix-resetting-page_alloc-tags-for-hw_tags
++++ a/mm/page_alloc.c
+@@ -1207,8 +1207,10 @@ static void kernel_init_free_pages(struc
+ 	/* s390's use of memset() could override KASAN redzones. */
+ 	kasan_disable_current();
+ 	for (i = 0; i < numpages; i++) {
++		u8 tag = page_kasan_tag(page + i);
+ 		page_kasan_tag_reset(page + i);
+ 		clear_highpage(page + i);
++		page_kasan_tag_set(page + i, tag);
+ 	}
+ 	kasan_enable_current();
+ }
 _
