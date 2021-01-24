@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 652A6C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:15:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3C56C433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3774022CB9
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:15:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D34F22D07
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:15:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726375AbhAXBPK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 20:15:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46016 "EHLO mail.kernel.org"
+        id S1726475AbhAXBPl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 20:15:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46060 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725932AbhAXBPJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 20:15:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED93622CB9;
-        Sun, 24 Jan 2021 01:14:28 +0000 (UTC)
+        id S1726386AbhAXBPk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 20:15:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDAC422D07;
+        Sun, 24 Jan 2021 01:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611450869;
-        bh=9ea2cR5Mtviv13rDf/yBoxgGxvPXh/E89HtqxMjSJks=;
+        s=korg; t=1611450900;
+        bh=FZgzn4Qwl88RkoqqQ1rvBEvNfd9VKVZs1Tksd9Da5s0=;
         h=Date:From:To:Subject:From;
-        b=w5rSR6TbAcP9gsGEEYKptB05tkk1YI0pP/mnpFZSwZgQFC2ZmcEpGQHv12ZIFR824
-         63ssJ0OSf5J9eL41FKlsZAI8/L4UjLDiPsUx3OkXWqebO9aiyCiiO/APp5sUdarZuf
-         oRiwZ5ajqiMkZKrFEyy7FqOuYW7/wUMzZ3Ly9dRA=
-Date:   Sat, 23 Jan 2021 17:14:28 -0800
+        b=PcfBSFRKWqTw/yP3EMvi/xb3jbbjQ2nQ6o9X2dC41BCS59K3x7ihh84/NPNPYF+GF
+         1aVfAt6x0BwDXfDT85e1fztymRKOYIoPYBUJKwHebWchNl5kpPRTjGL0rFQZCxvU3G
+         uzNIIP7DFK+PG/4XxDJWoV4lIT/4GuwUvhunTVeU=
+Date:   Sat, 23 Jan 2021 17:14:59 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch added
- to -mm tree
-Message-ID: <20210124011428.1q_6L6duK%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, stephenzhangzsd@gmail.com
+Subject:  + mm-swapfilec-fix-debugging-information-problem.patch
+ added to -mm tree
+Message-ID: <20210124011459.3maqWP_O0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: use helper function zone_end_pfn() to get end_pfn
+     Subject: mm/swapfile.c: fix debugging information problem
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+     mm-swapfilec-fix-debugging-information-problem.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-fix-debugging-information-problem.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-fix-debugging-information-problem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,52 +63,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_owner: use helper function zone_end_pfn() to get end_pfn
+From: Stephen Zhang <stephenzhangzsd@gmail.com>
+Subject: mm/swapfile.c: fix debugging information problem
 
-Commit 108bcc96ef70 ("mm: add & use zone_end_pfn() and zone_spans_pfn()")
-introduced the helper zone_end_pfn() to calculate the zone end pfn.  But
-pagetypeinfo_showmixedcount_print forgot to use it.  And the
-initialization of local variable pfn is duplicated, remove one.
+Once the function name is changed, it may be easy to forget to modify the
+corresponding code here.
 
-Link: https://lkml.kernel.org/r/20210123070538.5861-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/1611369120-2276-1-git-send-email-stephenzhangzsd@gmail.com
+Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn
-+++ a/mm/page_owner.c
-@@ -263,8 +263,8 @@ void pagetypeinfo_showmixedcount_print(s
- 	struct page *page;
- 	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
--	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
--	unsigned long end_pfn = pfn + zone->spanned_pages;
-+	unsigned long pfn, block_end_pfn;
-+	unsigned long end_pfn = zone_end_pfn(zone);
- 	unsigned long count[MIGRATE_TYPES] = { 0, };
- 	int pageblock_mt, page_mt;
- 	int i;
+--- a/mm/swapfile.c~mm-swapfilec-fix-debugging-information-problem
++++ a/mm/swapfile.c
+@@ -1158,13 +1158,13 @@ static struct swap_info_struct *__swap_i
+ 	return p;
+ 
+ bad_offset:
+-	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
+ 	goto out;
+ bad_device:
+-	pr_err("swap_info_get: %s%08lx\n", Unused_file, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Unused_file, entry.val);
+ 	goto out;
+ bad_nofile:
+-	pr_err("swap_info_get: %s%08lx\n", Bad_file, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Bad_file, entry.val);
+ out:
+ 	return NULL;
+ }
+@@ -1181,7 +1181,7 @@ static struct swap_info_struct *_swap_in
+ 	return p;
+ 
+ bad_free:
+-	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
++	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
+ out:
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from stephenzhangzsd@gmail.com are
 
-mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
-mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
-mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
-z3fold-remove-unused-attribute-for-release_z3fold_page.patch
-z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
-hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
-hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
-hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
-hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+mm-swapfilec-fix-debugging-information-problem.patch
+mm-early_ioremapc-use-__func__-instead-of-function-name.patch
 
