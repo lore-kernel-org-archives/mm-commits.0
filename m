@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7490CC433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:34:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE66CC433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:44:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40C4D22D06
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:34:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94B75229F0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:44:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726294AbhAXBdu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 20:33:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48128 "EHLO mail.kernel.org"
+        id S1726375AbhAXBoc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 20:44:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726459AbhAXBdk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 20:33:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3E34922D07;
-        Sun, 24 Jan 2021 01:32:59 +0000 (UTC)
+        id S1726288AbhAXBob (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 20:44:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EF42227BF;
+        Sun, 24 Jan 2021 01:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611451979;
-        bh=z8LvK3mqugSZ3OTrafj6LxXmKtZ+2pF9HuRi4icQPbA=;
+        s=korg; t=1611452630;
+        bh=g2I4Cm5uXDgJ8ySnAkTTzo7tYkEYTQgnVRl0wg9Rl3c=;
         h=Date:From:To:Subject:From;
-        b=rMzBI4LskwEic7WkeNO1I0NSD4PGKH3XwN56oAQFR8Dyx0ny8fG+9bl+Eu+zptNMc
-         ASUe5Qdhyx8rpmoDxplfj9WLH+rPhNmpKcAW6+yY13z7/gKniN+Zby4qm7opDCQha5
-         g1vL2r7cQiH4kSVvlnSq34TdLW8olI5nXuEvOMkw=
-Date:   Sat, 23 Jan 2021 17:32:58 -0800
+        b=aJX8GL2o82ajd7AyTr/Sqzij0mHlZK/3jWT+/u3jKftT255NgEiUkmyxRMN8XDono
+         /qbwhg4tOUTz6yKd0urMbtUBewCQYHXysfkWrjoyEVeyDBYIjLLnGShKusTs/rWnvj
+         t7wn8RKPTmK/hwi+chHlxwIr4Lpvocmwv0lNFx/E=
+Date:   Sat, 23 Jan 2021 17:43:48 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mhocko@kernel.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com, osalvador@suse.de,
-        songmuchun@bytedance.com, willy@infradead.org
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mkoutny@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        stable@vger.kernel.org, tj@kernel.org
 Subject:  +
- hugetlb-only-set-hpagemigratable-for-migratable-hstates.patch added to -mm
- tree
-Message-ID: <20210124013258.GSiVQmKw0%akpm@linux-foundation.org>
+ revert-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+ added to -mm tree
+Message-ID: <20210124014348.Dsgf-_zOv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +48,18 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: only set HPageMigratable for migratable hstates
+     Subject: Revert "mm: memcontrol: avoid workload stalls when lowering m=
+emory.high"
 has been added to the -mm tree.  Its filename is
-     hugetlb-only-set-hpagemigratable-for-migratable-hstates.patch
+     revert-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.pa=
+tch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-only-set-hpagemigratable-for-migratable-hstates.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-mm-memcontrol-avoid-wo=
+rkload-stalls-when-lowering-memoryhigh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-only-set-hpagemigratable-for-migratable-hstates.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-memcontrol-avoid-wo=
+rkload-stalls-when-lowering-memoryhigh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,137 +67,108 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: only set HPageMigratable for migratable hstates
+=46rom: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Revert "mm: memcontrol: avoid workload stalls when lowering memory=
+.high"
 
-The HP_Migratable flag indicates a page is a candidate for migration. 
-Only set the flag if the page's hstate supports migration.  This allows
-the migration paths to detect non-migratable pages earlier.  If migration
-is not supported for the hstate, HP_Migratable will not be set, the page
-will not be isolated and no attempt will be made to migrate.  We should
-never get to unmap_and_move_huge_page for a page where migration is not
-supported, so throw a warning if we do.
+This reverts commit 536d3bf261a2fc3b05b3e91e7eef7383443015cf, as it can
+cause writers to memory.high to get stuck in the kernel forever,
+performing page reclaim and consuming excessive amounts of CPU cycles.
 
-Link: https://lkml.kernel.org/r/20210122195231.324857-4-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Before the patch, a write to memory.high would first put the new limit in
+place for the workload, and then reclaim the requested delta.  After the
+patch, the kernel tries to reclaim the delta before putting the new limit
+into place, in order to not overwhelm the workload with a sudden, large
+excess over the limit.  However, if reclaim is actively racing with new
+allocations from the uncurbed workload, it can keep the write() working
+inside the kernel indefinitely.
+
+This is causing problems in Facebook production.  A privileged
+system-level daemon that adjusts memory.high for various workloads running
+on a host can get unexpectedly stuck in the kernel and essentially turn
+into a sort of involuntary kswapd for one of the workloads.  We've
+observed that daemon busy-spin in a write() for minutes at a time,
+neglecting its other duties on the system, and expending privileged system
+resources on behalf of a workload.
+
+To remedy this, we have first considered changing the reclaim logic to
+break out after a couple of loops - whether the workload has converged to
+the new limit or not - and bound the write() call this way.  However, the
+root cause that inspired the sequence change in the first place has been
+fixed through other means, and so a revert back to the proven
+limit-setting sequence, also used by memory.max, is preferable.
+
+The sequence was changed to avoid extreme latencies in the workload when
+the limit was lowered: the sudden, large excess created by the limit
+lowering would erroneously trigger the penalty sleeping code that is meant
+to throttle excessive growth from below.  Allocating threads could end up
+sleeping long after the write() had already reclaimed the delta for which
+they were being punished.
+
+However, erroneous throttling also caused problems in other scenarios at
+around the same time.  This resulted in commit b3ff92916af3 ("mm, memcg:
+reclaim more aggressively before high allocator throttling"), included in
+the same release as the offending commit.  When allocating threads now
+encounter large excess caused by a racing write() to memory.high, instead
+of entering punitive sleeps, they will simply be tasked with helping
+reclaim down the excess, and will be held no longer than it takes to
+accomplish that.  This is in line with regular limit enforcement - i.e.=20
+if the workload allocates up against or over an otherwise unchanged limit
+from below.
+
+With the patch breaking userspace, and the root cause addressed by other
+means already, revert it again.
+
+Link: https://lkml.kernel.org/r/20210122184341.292461-1-hannes@cmpxchg.org
+Fixes: 536d3bf261a2 ("mm: memcontrol: avoid workload stalls when lowering m=
+emory.high")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Tejun Heo <tj@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
+Cc: <stable@vger.kernel.org>	[5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |    2 +-
- include/linux/hugetlb.h |    9 +++++++++
- mm/hugetlb.c            |    8 ++++----
- mm/migrate.c            |    9 ++++-----
- 4 files changed, 18 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-only-set-hpagemigratable-for-migratable-hstates
-+++ a/fs/hugetlbfs/inode.c
-@@ -735,7 +735,7 @@ static long hugetlbfs_fallocate(struct f
- 
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 
--		SetHPageMigratable(page);
-+		SetHPageMigratableIfSupported(page);
- 		/*
- 		 * unlock_page because locked by add_to_page_cache()
- 		 * put_page() due to reference from alloc_huge_page()
---- a/include/linux/hugetlb.h~hugetlb-only-set-hpagemigratable-for-migratable-hstates
-+++ a/include/linux/hugetlb.h
-@@ -741,6 +741,15 @@ static inline bool hugepage_migration_su
- }
- 
- /*
-+ * Only set HPageMigratable if migration supported for page
-+ */
-+static inline void SetHPageMigratableIfSupported(struct page *page)
-+{
-+	if (hugepage_migration_supported(page_hstate(page)))
-+		SetHPageMigratable(page);
-+}
+--- a/mm/memcontrol.c~revert-mm-memcontrol-avoid-workload-stalls-when-lower=
+ing-memoryhigh
++++ a/mm/memcontrol.c
+@@ -6271,6 +6271,8 @@ static ssize_t memory_high_write(struct
+ 	if (err)
+ 		return err;
+=20
++	page_counter_set_high(&memcg->memory, high);
 +
-+/*
-  * Movability check is different as compared to migration check.
-  * It determines whether or not a huge page should be placed on
-  * movable zone or not. Movability of any huge page should be
---- a/mm/hugetlb.c~hugetlb-only-set-hpagemigratable-for-migratable-hstates
-+++ a/mm/hugetlb.c
-@@ -4199,7 +4199,7 @@ retry_avoidcopy:
- 				make_huge_pte(vma, new_page, 1));
- 		page_remove_rmap(old_page, true);
- 		hugepage_add_new_anon_rmap(new_page, vma, haddr);
--		SetHPageMigratable(new_page);
-+		SetHPageMigratableIfSupported(new_page);
- 		/* Make the old page be freed below */
- 		new_page = old_page;
+ 	for (;;) {
+ 		unsigned long nr_pages =3D page_counter_read(&memcg->memory);
+=20
+@@ -6293,10 +6295,7 @@ static ssize_t memory_high_write(struct
+ 			break;
  	}
-@@ -4441,7 +4441,7 @@ retry:
- 	 * been isolated for migration.
- 	 */
- 	if (new_page)
--		SetHPageMigratable(page);
-+		SetHPageMigratableIfSupported(page);
- 
- 	unlock_page(page);
- out:
-@@ -4752,7 +4752,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
- 
- 	spin_unlock(ptl);
--	SetHPageMigratable(page);
-+	SetHPageMigratableIfSupported(page);
- 	if (vm_shared)
- 		unlock_page(page);
- 	ret = 0;
-@@ -5596,7 +5596,7 @@ void putback_active_hugepage(struct page
- {
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 	spin_lock(&hugetlb_lock);
--	SetHPageMigratable(page);
-+	SetHPageMigratableIfSupported(page);
- 	list_move_tail(&page->lru, &(page_hstate(page))->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
- 	put_page(page);
---- a/mm/migrate.c~hugetlb-only-set-hpagemigratable-for-migratable-hstates
-+++ a/mm/migrate.c
-@@ -1275,13 +1275,12 @@ static int unmap_and_move_huge_page(new_
- 	struct address_space *mapping = NULL;
- 
- 	/*
--	 * Migratability of hugepages depends on architectures and their size.
--	 * This check is necessary because some callers of hugepage migration
--	 * like soft offline and memory hotremove don't walk through page
--	 * tables or check whether the hugepage is pmd-based or not before
--	 * kicking migration.
-+	 * Support for migration should be checked at isolation time.
-+	 * Therefore, we should never get here if migration is not supported
-+	 * for the page.
- 	 */
- 	if (!hugepage_migration_supported(page_hstate(hpage))) {
-+		VM_WARN_ON(1);
- 		list_move_tail(&hpage->lru, ret);
- 		return -ENOSYS;
- 	}
+=20
+-	page_counter_set_high(&memcg->memory, high);
+-
+ 	memcg_wb_domain_size_changed(memcg);
+-
+ 	return nbytes;
+ }
+=20
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-hugetlb-use-pageprivate-for-hugetlb-specific-page-flags.patch
-hugetlb-convert-page_huge_active-hpagemigratable-flag.patch
-hugetlb-only-set-hpagemigratable-for-migratable-hstates.patch
-hugetlb-convert-pagehugetemporary-to-hpagetemporary-flag.patch
-hugetlb-convert-pagehugefreed-to-hpagefreed-flag.patch
-mm-hugetlb-change-hugetlb_reserve_pages-to-type-bool.patch
-hugetlbfs-remove-special-hugetlbfs_set_page_dirty.patch
+mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
+revert-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
 
