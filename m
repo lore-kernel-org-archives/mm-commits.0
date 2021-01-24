@@ -5,37 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A06FFC433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 02:02:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A043CC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 02:05:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D45422CF6
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 02:02:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65569229F0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 02:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726487AbhAXCBz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 21:01:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52834 "EHLO mail.kernel.org"
+        id S1726440AbhAXCFO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 21:05:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726512AbhAXCBx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 21:01:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E909229F0;
-        Sun, 24 Jan 2021 02:01:12 +0000 (UTC)
+        id S1726433AbhAXCFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 21:05:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E8A6A229EF;
+        Sun, 24 Jan 2021 02:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611453672;
-        bh=xdke8uuIdwBUnY9nSy5774jSK10KmEqE3Sblmvvt9F0=;
+        s=korg; t=1611453873;
+        bh=UU5zkx0PUtomZepyoiLiKvYjumr+fS7jKTAIKNmMPqk=;
         h=Date:From:To:Subject:From;
-        b=QXa3DPAvlatPy/KWlWzUhXtfV6DMQQctJ5GR4tPXrVjBvytiegRTEtWGvfObObTs0
-         nH0gtbf5V6lgkG1bt/+GnL4/0XmLe0JdOFOfSgLQl+/4hJ27/bO0sIKKMT3f4rqKBx
-         pVR5oUn87oM6nm16shYHzFRhOd1kXqOCecHHrdkQ=
-Date:   Sat, 23 Jan 2021 18:01:11 -0800
+        b=bV4wdy3RKbA/W8kV+zP2C2U15mn4wA0wSAmMsFMvxTQnYvJqtgM2sw8L8Rxbe/fy/
+         dk0iVNoaGCN4b+DTXhjERu5F7JOUancNUsl/u4ESEvZZYjFYN8eTTjamERssiFK90f
+         majTSinn0IEUnHhtCSRoZnC+o6pSapdfSy+RakZA=
+Date:   Sat, 23 Jan 2021 18:04:32 -0800
 From:   akpm@linux-foundation.org
-To:     ak@linux.intel.com, dave.hansen@intel.com, jpoimboe@redhat.com,
-        linmiaohe@huawei.com, louhongxiang@huawei.com,
-        mm-commits@vger.kernel.org, tglx@linutronix.de
-Subject:  + mm-fix-potential-pte_unmap_unlock-pte-error.patch added
- to -mm tree
-Message-ID: <20210124020111.FlylNXrqo%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, hughd@google.com, mm-commits@vger.kernel.org,
+        sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org
+Subject:  + mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
+ added to -mm tree
+Message-ID: <20210124020432.9gYUePFNh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+     Subject: mm: thp: fix MADV_REMOVE deadlock on shmem THP
 has been added to the -mm tree.  Its filename is
-     mm-fix-potential-pte_unmap_unlock-pte-error.patch
+     mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-potential-pte_unmap_unlock-pte-error.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-potential-pte_unmap_unlock-pte-error.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,78 +64,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory.c: fix potential pte_unmap_unlock pte error
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: thp: fix MADV_REMOVE deadlock on shmem THP
 
-Since commit 42e4089c7890 ("x86/speculation/l1tf: Disallow non privileged
-high MMIO PROT_NONE mappings"), when the first pfn modify is not allowed,
-we would break the loop with pte unchanged.  Then the wrong pte - 1 would
-be passed to pte_unmap_unlock.
+Sergey reported deadlock between kswapd correctly doing its usual
+lock_page(page) followed by down_read(page->mapping->i_mmap_rwsem), and
+madvise(MADV_REMOVE) on an madvise(MADV_HUGEPAGE) area doing
+down_write(page->mapping->i_mmap_rwsem) followed by lock_page(page).
 
-Andi said:
+This happened when shmem_fallocate(punch hole)'s unmap_mapping_range()
+reaches zap_pmd_range()'s call to __split_huge_pmd().  The same deadlock
+could occur when partially truncating a mapped huge tmpfs file, or using
+fallocate(FALLOC_FL_PUNCH_HOLE) on it.
 
-: While the fix is correct, I'm not sure if it actually is a real bug.  Is
-: there any architecture that would do something else than unlocking the
-: underlying page?  If it's just the underlying page then it should be
-: always the same page, so no bug.
+__split_huge_pmd()'s page lock was added in 5.8, to make sure that any
+concurrent use of reuse_swap_page() (holding page lock) could not catch
+the anon THP's mapcounts and swapcounts while they were being split.
 
-Link: https://lkml.kernel.org/r/20210109080118.20885-1-linmiaohe@huawei.com
-Fixes: 42e4089c789 ("x86/speculation/l1tf: Disallow non privileged high MMIO PROT_NONE mappings")
-Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Fortunately, reuse_swap_page() is never applied to a shmem or file THP
+(not even by khugepaged, which checks PageSwapCache before calling), and
+anonymous THPs are never created in shmem or file areas: so that
+__split_huge_pmd()'s page lock can only be necessary for anonymous THPs,
+on which there is no risk of deadlock with i_mmap_rwsem.
+
+Link: https://lkml.kernel.org/r/alpine.LSU.2.11.2101161409470.2022@eggly.anvils
+Fixes: c444eb564fb1 ("mm: thp: make the THP mapcount atomic against __split_huge_pmd_locked()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   37 +++++++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
---- a/mm/memory.c~mm-fix-potential-pte_unmap_unlock-pte-error
-+++ a/mm/memory.c
-@@ -2165,11 +2165,11 @@ static int remap_pte_range(struct mm_str
- 			unsigned long addr, unsigned long end,
- 			unsigned long pfn, pgprot_t prot)
+--- a/mm/huge_memory.c~mm-thp-fix-madv_remove-deadlock-on-shmem-thp
++++ a/mm/huge_memory.c
+@@ -2202,7 +2202,7 @@ void __split_huge_pmd(struct vm_area_str
  {
--	pte_t *pte;
-+	pte_t *pte, *mapped_pte;
  	spinlock_t *ptl;
- 	int err = 0;
+ 	struct mmu_notifier_range range;
+-	bool was_locked = false;
++	bool do_unlock_page = false;
+ 	pmd_t _pmd;
  
--	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
-+	mapped_pte = pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
- 	if (!pte)
- 		return -ENOMEM;
- 	arch_enter_lazy_mmu_mode();
-@@ -2183,7 +2183,7 @@ static int remap_pte_range(struct mm_str
- 		pfn++;
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
--	pte_unmap_unlock(pte - 1, ptl);
-+	pte_unmap_unlock(mapped_pte, ptl);
- 	return err;
- }
- 
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+@@ -2218,7 +2218,6 @@ void __split_huge_pmd(struct vm_area_str
+ 	VM_BUG_ON(freeze && !page);
+ 	if (page) {
+ 		VM_WARN_ON_ONCE(!PageLocked(page));
+-		was_locked = true;
+ 		if (page != pmd_page(*pmd))
+ 			goto out;
+ 	}
+@@ -2227,19 +2226,29 @@ repeat:
+ 	if (pmd_trans_huge(*pmd)) {
+ 		if (!page) {
+ 			page = pmd_page(*pmd);
+-			if (unlikely(!trylock_page(page))) {
+-				get_page(page);
+-				_pmd = *pmd;
+-				spin_unlock(ptl);
+-				lock_page(page);
+-				spin_lock(ptl);
+-				if (unlikely(!pmd_same(*pmd, _pmd))) {
+-					unlock_page(page);
++			/*
++			 * An anonymous page must be locked, to ensure that a
++			 * concurrent reuse_swap_page() sees stable mapcount;
++			 * but reuse_swap_page() is not used on shmem or file,
++			 * and page lock must not be taken when zap_pmd_range()
++			 * calls __split_huge_pmd() while i_mmap_lock is held.
++			 */
++			if (PageAnon(page)) {
++				if (unlikely(!trylock_page(page))) {
++					get_page(page);
++					_pmd = *pmd;
++					spin_unlock(ptl);
++					lock_page(page);
++					spin_lock(ptl);
++					if (unlikely(!pmd_same(*pmd, _pmd))) {
++						unlock_page(page);
++						put_page(page);
++						page = NULL;
++						goto repeat;
++					}
+ 					put_page(page);
+-					page = NULL;
+-					goto repeat;
+ 				}
+-				put_page(page);
++				do_unlock_page = true;
+ 			}
+ 		}
+ 		if (PageMlocked(page))
+@@ -2249,7 +2258,7 @@ repeat:
+ 	__split_huge_pmd_locked(vma, pmd, range.start, freeze);
+ out:
+ 	spin_unlock(ptl);
+-	if (!was_locked && page)
++	if (do_unlock_page)
+ 		unlock_page(page);
+ 	/*
+ 	 * No need to double call mmu_notifier->invalidate_range() callback.
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
-mm-fix-potential-pte_unmap_unlock-pte-error.patch
-mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
-mm-hugetlb-avoid-unnecessary-hugetlb_acct_memory-call.patch
-mm-hugetlb-use-helper-huge_page_order-and-pages_per_huge_page.patch
-mm-workingsetc-avoid-unnecessary-max_nodes-estimation-in-count_shadow_nodes.patch
-z3fold-remove-unused-attribute-for-release_z3fold_page.patch
-z3fold-simplify-the-zhdr-initialization-code-in-init_z3fold_page.patch
-mm-compaction-remove-duplicated-vm_bug_on_page-pagelocked.patch
-hugetlbfs-remove-useless-bug_oninode-in-hugetlbfs_setattr.patch
-hugetlbfs-use-helper-macro-default_hstate-in-init_hugetlbfs_fs.patch
-hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
-hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
-hugetlbfs-make-hugepage-size-conversion-more-readable.patch
-mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
-mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
+mm-thp-fix-madv_remove-deadlock-on-shmem-thp.patch
 
