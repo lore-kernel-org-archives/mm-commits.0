@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F47C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:50:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B7B6C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:50:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40A6F22D07
+	by mail.kernel.org (Postfix) with ESMTP id 0708322D07
 	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:50:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726460AbhAXBuH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 20:50:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49930 "EHLO mail.kernel.org"
+        id S1726448AbhAXBuI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 20:50:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49932 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726448AbhAXBuG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726459AbhAXBuG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Sat, 23 Jan 2021 20:50:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2BAE922D07;
-        Sun, 24 Jan 2021 01:49:03 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 258C022D2B;
+        Sun, 24 Jan 2021 01:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611452943;
-        bh=ycmRo+S9vVgot63VfAlioH8F/p7JVxHZlL2EjMqlWtM=;
+        s=korg; t=1611452947;
+        bh=0D+WhYMxMDW1VnVyfEKy8dslaME5UnIFmvUhFvR6o48=;
         h=Date:From:To:Subject:From;
-        b=Fa5QZWk8qHh1BQ0Om37sCeqcJaCGDA54LU9MpkhSQCoXTnS6bO/Wc62piIW4xjAkK
-         1O733fcAp9u0cL88gDLWqlmqY1kFFvPRfNm0L9hmKk4w7IaQqRuKQwrnzxnJ1r+KGo
-         bxNwSZiBT77K2IDscXygAgzlcCLYCsi0YmFK/hus=
-Date:   Sat, 23 Jan 2021 17:49:02 -0800
+        b=N0uGzXvLhPZ/mfw2SwJiMA8LIdl0mDA41pcEC6Wn1fsPXRuSWLPbAzuwjAPKaHxgn
+         pG6Z2Q7zb7tUDbXen+mVfvTPQE6dkZSiAx/vEwhUxO2SywHJsjNkcq4Aj7I5ApIxFi
+         VX+DaKotci97wufMGtJ49ZgXh5UWZsDP5KAtbaFE=
+Date:   Sat, 23 Jan 2021 17:49:06 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  + mm-filemap-support-readpage-splitting-a-page.patch
- added to -mm tree
-Message-ID: <20210124014902.s9a7rlhgd%akpm@linux-foundation.org>
+Subject:  +
+ mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch added to
+ -mm tree
+Message-ID: <20210124014906.9ygu_bHEC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: support readpage splitting a page
+     Subject: mm/filemap: inline __wait_on_page_locked_async into caller
 has been added to the -mm tree.  Its filename is
-     mm-filemap-support-readpage-splitting-a-page.patch
+     mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-support-readpage-splitting-a-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-support-readpage-splitting-a-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-inline-__wait_on_page_locked_async-into-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,25 +66,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: support readpage splitting a page
+Subject: mm/filemap: inline __wait_on_page_locked_async into caller
 
-For page splitting to succeed, the thread asking to split the page has to
-be the only one with a reference to the page.  Calling
-wait_on_page_locked() while holding a reference to the page will
-effectively prevent this from happening with sufficient threads waiting on
-the same page.  Use put_and_wait_on_page_locked() to sleep without holding
-a reference to the page, then retry the page lookup after the page is
-unlocked.
+The previous patch removed wait_on_page_locked_async(), so inline
+__wait_on_page_locked_async into __lock_page_async().
 
-Since we now get the page lock a little earlier in filemap_update_page(),
-we can eliminate a number of duplicate checks.  The original intent
-(commit ebded02788b5 ("avoid unnecessary calls to lock_page when waiting
-for IO to complete during a read")) behind getting the page lock later was
-to avoid re-locking the page after it has been brought uptodate by another
-thread.  We still avoid that because we go through the normal lookup path
-again after the winning thread has brought the page uptodate.
-
-Link: https://lkml.kernel.org/r/20210122160140.223228-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -91,114 +79,78 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   76 ++++++++++++++-----------------------------------
- 1 file changed, 23 insertions(+), 53 deletions(-)
+ mm/filemap.c |   53 ++++++++++++++++++++-----------------------------
+ 1 file changed, 22 insertions(+), 31 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-support-readpage-splitting-a-page
+--- a/mm/filemap.c~mm-filemap-inline-__wait_on_page_locked_async-into-caller
 +++ a/mm/filemap.c
-@@ -1367,14 +1367,6 @@ static int __wait_on_page_locked_async(s
- 	return ret;
+@@ -1337,36 +1337,6 @@ int wait_on_page_bit_killable(struct pag
  }
+ EXPORT_SYMBOL(wait_on_page_bit_killable);
  
--static int wait_on_page_locked_async(struct page *page,
--				     struct wait_page_queue *wait)
+-static int __wait_on_page_locked_async(struct page *page,
+-				       struct wait_page_queue *wait, bool set)
 -{
--	if (!PageLocked(page))
--		return 0;
--	return __wait_on_page_locked_async(compound_head(page), wait, false);
+-	struct wait_queue_head *q = page_waitqueue(page);
+-	int ret = 0;
+-
+-	wait->page = page;
+-	wait->bit_nr = PG_locked;
+-
+-	spin_lock_irq(&q->lock);
+-	__add_wait_queue_entry_tail(q, &wait->wait);
+-	SetPageWaiters(page);
+-	if (set)
+-		ret = !trylock_page(page);
+-	else
+-		ret = PageLocked(page);
+-	/*
+-	 * If we were successful now, we know we're still on the
+-	 * waitqueue as we're still under the lock. This means it's
+-	 * safe to remove and return success, we know the callback
+-	 * isn't going to trigger.
+-	 */
+-	if (!ret)
+-		__remove_wait_queue(q, &wait->wait);
+-	else
+-		ret = -EIOCBQUEUED;
+-	spin_unlock_irq(&q->lock);
+-	return ret;
 -}
 -
  /**
   * put_and_wait_on_page_locked - Drop a reference and wait for it to be unlocked
   * @page: The page to wait for.
-@@ -2280,64 +2272,42 @@ static struct page *filemap_update_page(
- 	struct inode *inode = mapping->host;
- 	int error;
+@@ -1542,7 +1512,28 @@ EXPORT_SYMBOL_GPL(__lock_page_killable);
  
--	/*
--	 * See comment in do_read_cache_page on why
--	 * wait_on_page_locked is used to avoid unnecessarily
--	 * serialisations and why it's safe.
--	 */
- 	if (iocb->ki_flags & IOCB_WAITQ) {
--		error = wait_on_page_locked_async(page,
--						iocb->ki_waitq);
-+		error = lock_page_async(page, iocb->ki_waitq);
-+		if (error) {
-+			put_page(page);
-+			return ERR_PTR(error);
-+		}
- 	} else {
--		error = wait_on_page_locked_killable(page);
--	}
--	if (unlikely(error)) {
--		put_page(page);
--		return ERR_PTR(error);
-+		if (!trylock_page(page)) {
-+			put_and_wait_on_page_locked(page, TASK_KILLABLE);
-+			return NULL;
-+		}
- 	}
--	if (PageUptodate(page))
--		return page;
- 
-+	if (!page->mapping)
-+		goto truncated;
-+	if (PageUptodate(page))
-+		goto uptodate;
- 	if (inode->i_blkbits == PAGE_SHIFT ||
- 			!mapping->a_ops->is_partially_uptodate)
--		goto page_not_up_to_date;
-+		goto readpage;
- 	/* pipes can't handle partially uptodate pages */
- 	if (unlikely(iov_iter_is_pipe(iter)))
--		goto page_not_up_to_date;
--	if (!trylock_page(page))
--		goto page_not_up_to_date;
--	/* Did it get truncated before we got the lock? */
--	if (!page->mapping)
--		goto page_not_up_to_date_locked;
-+		goto readpage;
- 	if (!mapping->a_ops->is_partially_uptodate(page,
--				pos & ~PAGE_MASK, count))
--		goto page_not_up_to_date_locked;
-+				pos & (thp_size(page) - 1), count))
-+		goto readpage;
-+uptodate:
- 	unlock_page(page);
- 	return page;
- 
--page_not_up_to_date:
--	/* Get exclusive access to the page ... */
--	error = lock_page_for_iocb(iocb, page);
--	if (unlikely(error)) {
--		put_page(page);
--		return ERR_PTR(error);
--	}
--
--page_not_up_to_date_locked:
--	/* Did it get truncated before we got the lock? */
--	if (!page->mapping) {
--		unlock_page(page);
--		put_page(page);
--		return NULL;
--	}
--
--	/* Did somebody else fill it already? */
--	if (PageUptodate(page)) {
--		unlock_page(page);
--		return page;
--	}
--
-+readpage:
- 	return filemap_read_page(iocb, filp, mapping, page);
-+truncated:
-+	unlock_page(page);
-+	put_page(page);
-+	return NULL;
+ int __lock_page_async(struct page *page, struct wait_page_queue *wait)
+ {
+-	return __wait_on_page_locked_async(page, wait, true);
++	struct wait_queue_head *q = page_waitqueue(page);
++	int ret = 0;
++
++	wait->page = page;
++	wait->bit_nr = PG_locked;
++
++	spin_lock_irq(&q->lock);
++	__add_wait_queue_entry_tail(q, &wait->wait);
++	SetPageWaiters(page);
++	ret = !trylock_page(page);
++	/*
++	 * If we were successful now, we know we're still on the
++	 * waitqueue as we're still under the lock. This means it's
++	 * safe to remove and return success, we know the callback
++	 * isn't going to trigger.
++	 */
++	if (!ret)
++		__remove_wait_queue(q, &wait->wait);
++	else
++		ret = -EIOCBQUEUED;
++	spin_unlock_irq(&q->lock);
++	return ret;
  }
  
- static struct page *filemap_create_page(struct kiocb *iocb,
+ /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
