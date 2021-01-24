@@ -2,134 +2,144 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDCA6C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:01:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14A22C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:01:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5BD622D0A
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:01:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E235022CF6
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:01:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725800AbhAXFBO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Jan 2021 00:01:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46658 "EHLO mail.kernel.org"
+        id S1725808AbhAXFBp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Jan 2021 00:01:45 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725789AbhAXFBL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 Jan 2021 00:01:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BE3F922581;
-        Sun, 24 Jan 2021 05:00:30 +0000 (UTC)
+        id S1725789AbhAXFBl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 Jan 2021 00:01:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0DFCE227BF;
+        Sun, 24 Jan 2021 05:00:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611464431;
-        bh=G8nZht4TirHMlWnbFiZgIsumSAEwcrOr1+23NW1WupU=;
-        h=Date:From:To:Cc:Subject:From;
-        b=eCoJ6N5ntj/Vku5pL1xtTLeDE35ydsOYfGTXl+lqJWFiIYPsvCrHwHuS23GfmaW5y
-         RcL2nLAjWEi9sWgmOAobEsb/8+7Lw2a8gf1yrqnFfhFbsz1dvoePgtqMF6l33n/YJe
-         /G+RFb60qOaervUS5LYXhwLfOIcnuvKEzoAhSlhk=
-Date:   Sat, 23 Jan 2021 21:00:29 -0800
+        s=korg; t=1611464460;
+        bh=gTCA6l8fHulaeGy01+UkuoQeblt1NxvEMSuKk03+3GE=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=iH5APec+9Zv+ZhLSbV8JU1awwWHjZ0JMk9qCc28qIKXwGXb1A1GNY+G1Hl9frzXIx
+         12vdLCb2f06iAtyvFqkGq6DUzv8db/klPb1/AoGngcDcPLNa0eek7a+sglP8Kq6L6k
+         oncMSfj72kLL/Ct0s4OebsBPRt5rNQ0rIKw10OCc=
+Date:   Sat, 23 Jan 2021 21:00:57 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
-Subject: incoming
-Message-Id: <20210123210029.a7c704d0cab204683e41ad10@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, bhe@redhat.com, bp@alien8.de,
+        cai@lca.pw, david@redhat.com, hpa@zytor.com, linux-mm@kvack.org,
+        mgorman@suse.de, mhocko@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        stable@vger.kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 01/19] x86/setup: don't remove E820_TYPE_RAM for
+ pfn 0
+Message-ID: <20210124050057.NwJ_nb3-V%akpm@linux-foundation.org>
+In-Reply-To: <20210123210029.a7c704d0cab204683e41ad10@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-19 patches, based on e1ae4b0be15891faf46d390e9f3dc9bd71a8cae1.
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: x86/setup: don't remove E820_TYPE_RAM for pfn 0
 
-Subsystems affected by this patch series:
+Patch series "mm: fix initialization of struct page for holes in  memory layout", v3.
 
-  mm/pagealloc
-  mm/memcg
-  mm/kasan
-  ubsan
-  mm/memory-failure
-  mm/highmem
-  proc
-  MAINTAINERS
+Commit 73a6e474cb37 ("mm: memmap_init: iterate over
+memblock regions rather that check each PFN") exposed several issues with
+the memory map initialization and these patches fix those issues.
 
-Subsystem: mm/pagealloc
+Initially there were crashes during compaction that Qian Cai reported back
+in April [1]. It seemed back then that the problem was fixed, but a few
+weeks ago Andrea Arcangeli hit the same bug [2] and there was an additional
+discussion at [3].
 
-    Mike Rapoport <rppt@linux.ibm.com>:
-    Patch series "mm: fix initialization of struct page for holes in memory layout", v3:
-      x86/setup: don't remove E820_TYPE_RAM for pfn 0
-      mm: fix initialization of struct page for holes in memory layout
+[1] https://lore.kernel.org/lkml/8C537EB7-85EE-4DCF-943E-3CC0ED0DF56D@lca.pw
+[2] https://lore.kernel.org/lkml/20201121194506.13464-1-aarcange@redhat.com
+[3] https://lore.kernel.org/mm-commits/20201206005401.qKuAVgOXr%akpm@linux-foundation.org
 
-Subsystem: mm/memcg
 
-    Roman Gushchin <guro@fb.com>:
-      mm: memcg/slab: optimize objcg stock draining
+This patch (of 2):
 
-    Shakeel Butt <shakeelb@google.com>:
-      mm: memcg: fix memcg file_dirty numa stat
-      mm: fix numa stats for thp migration
+The first 4Kb of memory is a BIOS owned area and to avoid its allocation
+for the kernel it was not listed in e820 tables as memory.  As the result,
+pfn 0 was never recognised by the generic memory management and it is not
+a part of neither node 0 nor ZONE_DMA.
 
-    Johannes Weiner <hannes@cmpxchg.org>:
-      mm: memcontrol: prevent starvation when writing memory.high
+If set_pfnblock_flags_mask() would be ever called for the pageblock
+corresponding to the first 2Mbytes of memory, having pfn 0 outside of
+ZONE_DMA would trigger
 
-Subsystem: mm/kasan
+	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
 
-    Lecopzer Chen <lecopzer@gmail.com>:
-      kasan: fix unaligned address is unhandled in kasan_remove_zero_shadow
-      kasan: fix incorrect arguments passing in kasan_add_zero_shadow
+Along with reserving the first 4Kb in e820 tables, several first pages are
+reserved with memblock in several places during setup_arch().  These
+reservations are enough to ensure the kernel does not touch the BIOS area
+and it is not necessary to remove E820_TYPE_RAM for pfn 0.
 
-    Andrey Konovalov <andreyknvl@google.com>:
-      kasan: fix HW_TAGS boot parameters
-      kasan, mm: fix conflicts with init_on_alloc/free
-      kasan, mm: fix resetting page_alloc tags for HW_TAGS
+Remove the update of e820 table that changes the type of pfn 0 and move
+the comment describing why it was done to trim_low_memory_range() that
+reserves the beginning of the memory.
 
-Subsystem: ubsan
+Link: https://lkml.kernel.org/r/20210111194017.22696-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Arnd Bergmann <arnd@arndb.de>:
-      ubsan: disable unsigned-overflow check for i386
+ arch/x86/kernel/setup.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-Subsystem: mm/memory-failure
-
-    Dan Williams <dan.j.williams@intel.com>:
-      mm: fix page reference leak in soft_offline_page()
-
-Subsystem: mm/highmem
-
-    Thomas Gleixner <tglx@linutronix.de>:
-    Patch series "mm/highmem: Fix fallout from generic kmap_local conversions":
-      sparc/mm/highmem: flush cache and TLB
-      mm/highmem: prepare for overriding set_pte_at()
-      mips/mm/highmem: use set_pte() for kmap_local()
-      powerpc/mm/highmem: use __set_pte_at() for kmap_local()
-
-Subsystem: proc
-
-    Xiaoming Ni <nixiaoming@huawei.com>:
-      proc_sysctl: fix oops caused by incorrect command parameters
-
-Subsystem: MAINTAINERS
-
-    Nathan Chancellor <natechancellor@gmail.com>:
-      MAINTAINERS: add a couple more files to the Clang/LLVM section
-
- Documentation/dev-tools/kasan.rst  |   27 ++---------
- MAINTAINERS                        |    2 
- arch/mips/include/asm/highmem.h    |    1 
- arch/powerpc/include/asm/highmem.h |    2 
- arch/sparc/include/asm/highmem.h   |    9 ++-
- arch/x86/kernel/setup.c            |   20 +++-----
- fs/proc/proc_sysctl.c              |    7 ++-
- lib/Kconfig.ubsan                  |    1 
- mm/highmem.c                       |    7 ++-
- mm/kasan/hw_tags.c                 |   77 +++++++++++++--------------------
- mm/kasan/init.c                    |   23 +++++----
- mm/memcontrol.c                    |   11 +---
- mm/memory-failure.c                |   20 ++++++--
- mm/migrate.c                       |   27 ++++++-----
- mm/page_alloc.c                    |   86 ++++++++++++++++++++++---------------
- mm/slub.c                          |    7 +--
- 16 files changed, 173 insertions(+), 154 deletions(-)
-
+--- a/arch/x86/kernel/setup.c~x86-setup-dont-remove-e820_type_ram-for-pfn-0
++++ a/arch/x86/kernel/setup.c
+@@ -661,17 +661,6 @@ static void __init trim_platform_memory_
+ static void __init trim_bios_range(void)
+ {
+ 	/*
+-	 * A special case is the first 4Kb of memory;
+-	 * This is a BIOS owned area, not kernel ram, but generally
+-	 * not listed as such in the E820 table.
+-	 *
+-	 * This typically reserves additional memory (64KiB by default)
+-	 * since some BIOSes are known to corrupt low memory.  See the
+-	 * Kconfig help text for X86_RESERVE_LOW.
+-	 */
+-	e820__range_update(0, PAGE_SIZE, E820_TYPE_RAM, E820_TYPE_RESERVED);
+-
+-	/*
+ 	 * special case: Some BIOSes report the PC BIOS
+ 	 * area (640Kb -> 1Mb) as RAM even though it is not.
+ 	 * take them out.
+@@ -728,6 +717,15 @@ early_param("reservelow", parse_reservel
+ 
+ static void __init trim_low_memory_range(void)
+ {
++	/*
++	 * A special case is the first 4Kb of memory;
++	 * This is a BIOS owned area, not kernel ram, but generally
++	 * not listed as such in the E820 table.
++	 *
++	 * This typically reserves additional memory (64KiB by default)
++	 * since some BIOSes are known to corrupt low memory.  See the
++	 * Kconfig help text for X86_RESERVE_LOW.
++	 */
+ 	memblock_reserve(0, ALIGN(reserve_low, PAGE_SIZE));
+ }
+ 	
+_
