@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F4064C433E6
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E17EC433E9
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:49:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7CE022D5B
+	by mail.kernel.org (Postfix) with ESMTP id 03B6B22D06
 	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 01:49:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726433AbhAXBth (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Jan 2021 20:49:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49636 "EHLO mail.kernel.org"
+        id S1726288AbhAXBtq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Jan 2021 20:49:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726288AbhAXBtg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 23 Jan 2021 20:49:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4516322CF6;
-        Sun, 24 Jan 2021 01:48:55 +0000 (UTC)
+        id S1726448AbhAXBtk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 23 Jan 2021 20:49:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F82022D06;
+        Sun, 24 Jan 2021 01:48:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611452935;
-        bh=nRTzmiqOB96Vz8GjOxw28ZFSQ6YvkIN0Ao7JONHp20g=;
+        s=korg; t=1611452939;
+        bh=zNXM8PjsRL+FW2rPwPccoC8ISijRvDVgwaXdClhUJHg=;
         h=Date:From:To:Subject:From;
-        b=gtbO93jdfYWhzEk7AzN4nc74r0JtvjPIONAJXkHff7OwMtLRBeXPPATaK0fnk5So+
-         mQ4/n35q/nGobKNdQ/Yp6ivwVmoppdyO1cXVynOvV/MtJT2pRHGnjFAS0sPh2jH+Aq
-         us+3ARV5/S7ETh9lyvA7PgwJwvE0jeJyNpEYXlhs=
-Date:   Sat, 23 Jan 2021 17:48:54 -0800
+        b=Jr/ZxcDaRANRelYsQLMLtZP3t+kJ0qTyTQpQEv7687bgX+cklIKt9IzlX74U9+1mW
+         nwojKTTAYqeSTLziH2WrDiurK2BpuIpvsE2tNTKjLy+3lC6ncEOwGsNQo4B8bEYlA/
+         J+8CdFVnKZPI3oNlkvnb0JowLy/9rest8bSvcAE8=
+Date:   Sat, 23 Jan 2021 17:48:58 -0800
 From:   akpm@linux-foundation.org
 To:     hch@lst.de, kent.overstreet@gmail.com, linmiaohe@huawei.com,
         mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  +
- mm-filemap-use-head-pages-in-generic_file_buffered_read.patch added to -mm
- tree
-Message-ID: <20210124014854.4aEyuO_uU%akpm@linux-foundation.org>
+ mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch added to
+ -mm tree
+Message-ID: <20210124014858.gKp5tRLuA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: use head pages in generic_file_buffered_read
+     Subject: mm/filemap: pass a sleep state to put_and_wait_on_page_locked
 has been added to the -mm tree.  Its filename is
-     mm-filemap-use-head-pages-in-generic_file_buffered_read.patch
+     mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-use-head-pages-in-generic_file_buffered_read.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-use-head-pages-in-generic_file_buffered_read.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,15 +66,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap: use head pages in generic_file_buffered_read
+Subject: mm/filemap: pass a sleep state to put_and_wait_on_page_locked
 
-Add filemap_get_read_batch() which returns the head pages which represent
-a contiguous array of bytes in the file.  It also stops when encountering
-a page marked as Readahead or !Uptodate (but does return that page) so it
-can be handled appropriately by filemap_get_pages().  That lets us remove
-the loop in filemap_get_pages() and check only the last page.
+This is prep work for the next patch, but I think at least one of the
+current callers would prefer a killable sleep to an uninterruptible one.
 
-Link: https://lkml.kernel.org/r/20210122160140.223228-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20210122160140.223228-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -82,229 +79,92 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  122 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 85 insertions(+), 37 deletions(-)
+ include/linux/pagemap.h |    3 +--
+ mm/filemap.c            |    7 +++++--
+ mm/huge_memory.c        |    4 ++--
+ mm/migrate.c            |    4 ++--
+ 4 files changed, 10 insertions(+), 8 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-use-head-pages-in-generic_file_buffered_read
-+++ a/mm/filemap.c
-@@ -2172,6 +2172,51 @@ static int lock_page_for_iocb(struct kio
- 		return lock_page_killable(page);
+--- a/include/linux/pagemap.h~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
++++ a/include/linux/pagemap.h
+@@ -681,8 +681,7 @@ static inline int wait_on_page_locked_ki
+ 	return wait_on_page_bit_killable(compound_head(page), PG_locked);
  }
  
-+/*
-+ * filemap_get_read_batch - Get a batch of pages for read
+-extern void put_and_wait_on_page_locked(struct page *page);
+-
++int put_and_wait_on_page_locked(struct page *page, int state);
+ void wait_on_page_writeback(struct page *page);
+ extern void end_page_writeback(struct page *page);
+ void wait_for_stable_page(struct page *page);
+--- a/mm/filemap.c~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
++++ a/mm/filemap.c
+@@ -1378,20 +1378,23 @@ static int wait_on_page_locked_async(str
+ /**
+  * put_and_wait_on_page_locked - Drop a reference and wait for it to be unlocked
+  * @page: The page to wait for.
++ * @state: The sleep state (TASK_KILLABLE, TASK_UNINTERRUPTIBLE, etc).
+  *
+  * The caller should hold a reference on @page.  They expect the page to
+  * become unlocked relatively soon, but do not wish to hold up migration
+  * (for example) by holding the reference while waiting for the page to
+  * come unlocked.  After this function returns, the caller should not
+  * dereference @page.
 + *
-+ * Get a batch of pages which represent a contiguous range of bytes
-+ * in the file.  No tail pages will be returned.  If @index is in the
-+ * middle of a THP, the entire THP will be returned.  The last page in
-+ * the batch may have Readahead set or be not Uptodate so that the
-+ * caller can take the appropriate action.
-+ */
-+static void filemap_get_read_batch(struct address_space *mapping,
-+		pgoff_t index, pgoff_t max, struct pagevec *pvec)
-+{
-+	XA_STATE(xas, &mapping->i_pages, index);
-+	struct page *head;
-+
-+	rcu_read_lock();
-+	for (head = xas_load(&xas); head; head = xas_next(&xas)) {
-+		if (xas_retry(&xas, head))
-+			continue;
-+		if (xas.xa_index > max || xa_is_value(head))
-+			break;
-+		if (!page_cache_get_speculative(head))
-+			goto retry;
-+
-+		/* Has the page moved or been split? */
-+		if (unlikely(head != xas_reload(&xas)))
-+			goto put_page;
-+
-+		if (!pagevec_add(pvec, head))
-+			break;
-+		if (!PageUptodate(head))
-+			break;
-+		if (PageReadahead(head))
-+			break;
-+		xas.xa_index = head->index + thp_nr_pages(head) - 1;
-+		xas.xa_offset = (xas.xa_index >> xas.xa_shift) & XA_CHUNK_MASK;
-+		continue;
-+put_page:
-+		put_page(head);
-+retry:
-+		xas_reset(&xas);
-+	}
-+	rcu_read_unlock();
-+}
-+
- static struct page *filemap_read_page(struct kiocb *iocb, struct file *filp,
- 		struct address_space *mapping, struct page *page)
++ * Return: 0 if the page was unlocked or -EINTR if interrupted by a signal.
+  */
+-void put_and_wait_on_page_locked(struct page *page)
++int put_and_wait_on_page_locked(struct page *page, int state)
  {
-@@ -2325,15 +2370,15 @@ static int filemap_get_pages(struct kioc
- 	struct address_space *mapping = filp->f_mapping;
- 	struct file_ra_state *ra = &filp->f_ra;
- 	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
--	pgoff_t last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
--	unsigned int nr = min_t(unsigned long, last_index - index, PAGEVEC_SIZE);
--	int i, j, err = 0;
-+	pgoff_t last_index;
-+	int err = 0;
+ 	wait_queue_head_t *q;
  
-+	last_index = DIV_ROUND_UP(iocb->ki_pos + iter->count, PAGE_SIZE);
- find_page:
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
+ 	page = compound_head(page);
+ 	q = page_waitqueue(page);
+-	wait_on_page_bit_common(q, page, PG_locked, TASK_UNINTERRUPTIBLE, DROP);
++	return wait_on_page_bit_common(q, page, PG_locked, state, DROP);
+ }
  
--	pvec->nr = find_get_pages_contig(mapping, index, nr, pvec->pages);
-+	filemap_get_read_batch(mapping, index, last_index, pvec);
- 	if (pvec->nr)
- 		goto got_pages;
- 
-@@ -2342,29 +2387,30 @@ find_page:
- 
- 	page_cache_sync_readahead(mapping, ra, filp, index, last_index - index);
- 
--	pvec->nr = find_get_pages_contig(mapping, index, nr, pvec->pages);
-+	filemap_get_read_batch(mapping, index, last_index, pvec);
- 	if (pvec->nr)
- 		goto got_pages;
- 
- 	pvec->pages[0] = filemap_create_page(iocb, iter);
- 	err = PTR_ERR_OR_ZERO(pvec->pages[0]);
--	if (!IS_ERR_OR_NULL(pvec->pages[0]))
--		pvec->nr = 1;
-+	if (IS_ERR_OR_NULL(pvec->pages[0]))
-+		goto err;
-+	pvec->nr = 1;
-+	return 0;
- got_pages:
--	for (i = 0; i < pvec->nr; i++) {
--		struct page *page = pvec->pages[i];
--		pgoff_t pg_index = index + i;
-+	{
-+		struct page *page = pvec->pages[pvec->nr - 1];
-+		pgoff_t pg_index = page->index;
- 		loff_t pg_pos = max(iocb->ki_pos,
- 				    (loff_t) pg_index << PAGE_SHIFT);
- 		loff_t pg_count = iocb->ki_pos + iter->count - pg_pos;
- 
- 		if (PageReadahead(page)) {
- 			if (iocb->ki_flags & IOCB_NOIO) {
--				for (j = i; j < pvec->nr; j++)
--					put_page(pvec->pages[j]);
--				pvec->nr = i;
-+				put_page(page);
-+				pvec->nr--;
- 				err = -EAGAIN;
--				break;
-+				goto err;
- 			}
- 			page_cache_async_readahead(mapping, ra, filp, page,
- 					pg_index, last_index - pg_index);
-@@ -2372,26 +2418,23 @@ got_pages:
- 
- 		if (!PageUptodate(page)) {
- 			if ((iocb->ki_flags & IOCB_NOWAIT) ||
--			    ((iocb->ki_flags & IOCB_WAITQ) && i)) {
--				for (j = i; j < pvec->nr; j++)
--					put_page(pvec->pages[j]);
--				pvec->nr = i;
-+			    ((iocb->ki_flags & IOCB_WAITQ) && pvec->nr > 1)) {
-+				put_page(page);
-+				pvec->nr--;
- 				err = -EAGAIN;
--				break;
-+				goto err;
- 			}
- 
- 			page = filemap_update_page(iocb, filp, iter, page,
- 					pg_pos, pg_count);
- 			if (IS_ERR_OR_NULL(page)) {
--				for (j = i + 1; j < pvec->nr; j++)
--					put_page(pvec->pages[j]);
--				pvec->nr = i;
-+				pvec->nr--;
- 				err = PTR_ERR_OR_ZERO(page);
--				break;
- 			}
- 		}
+ /**
+--- a/mm/huge_memory.c~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
++++ a/mm/huge_memory.c
+@@ -1439,7 +1439,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 		if (!get_page_unless_zero(page))
+ 			goto out_unlock;
+ 		spin_unlock(vmf->ptl);
+-		put_and_wait_on_page_locked(page);
++		put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
+ 		goto out;
  	}
  
-+err:
- 	if (likely(pvec->nr))
- 		return 0;
- 	if (err)
-@@ -2436,6 +2479,7 @@ ssize_t generic_file_buffered_read(struc
- 		return 0;
+@@ -1475,7 +1475,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 		if (!get_page_unless_zero(page))
+ 			goto out_unlock;
+ 		spin_unlock(vmf->ptl);
+-		put_and_wait_on_page_locked(page);
++		put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
+ 		goto out;
+ 	}
  
- 	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
-+	pagevec_init(&pvec);
- 
- 	do {
- 		cond_resched();
-@@ -2463,13 +2507,8 @@ ssize_t generic_file_buffered_read(struc
- 		isize = i_size_read(inode);
- 		if (unlikely(iocb->ki_pos >= isize))
- 			goto put_pages;
--
- 		end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
- 
--		while ((iocb->ki_pos >> PAGE_SHIFT) + pvec.nr >
--		       (end_offset + PAGE_SIZE - 1) >> PAGE_SHIFT)
--			put_page(pvec.pages[--pvec.nr]);
--
- 		/*
- 		 * Once we start copying data, we don't want to be touching any
- 		 * cachelines that might be contended:
-@@ -2483,24 +2522,32 @@ ssize_t generic_file_buffered_read(struc
- 		if (iocb->ki_pos >> PAGE_SHIFT !=
- 		    ra->prev_pos >> PAGE_SHIFT)
- 			mark_page_accessed(pvec.pages[0]);
--		for (i = 1; i < pagevec_count(&pvec); i++)
--			mark_page_accessed(pvec.pages[i]);
- 
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
--			unsigned int offset = iocb->ki_pos & ~PAGE_MASK;
--			unsigned int bytes = min_t(loff_t, end_offset - iocb->ki_pos,
--						   PAGE_SIZE - offset);
--			unsigned int copied;
-+			struct page *page = pvec.pages[i];
-+			size_t page_size = thp_size(page);
-+			size_t offset = iocb->ki_pos & (page_size - 1);
-+			size_t bytes = min_t(loff_t, end_offset - iocb->ki_pos,
-+					     page_size - offset);
-+			size_t copied;
- 
-+			if (end_offset < page_offset(page))
-+				break;
-+			if (i > 0)
-+				mark_page_accessed(page);
- 			/*
- 			 * If users can be writing to this page using arbitrary
- 			 * virtual addresses, take care about potential aliasing
- 			 * before reading the page on the kernel side.
- 			 */
--			if (writably_mapped)
--				flush_dcache_page(pvec.pages[i]);
-+			if (writably_mapped) {
-+				int j;
-+
-+				for (j = 0; j < thp_nr_pages(page); j++)
-+					flush_dcache_page(page + j);
-+			}
- 
--			copied = copy_page_to_iter(pvec.pages[i], offset, bytes, iter);
-+			copied = copy_page_to_iter(page, offset, bytes, iter);
- 
- 			written += copied;
- 			iocb->ki_pos += copied;
-@@ -2514,6 +2561,7 @@ ssize_t generic_file_buffered_read(struc
- put_pages:
- 		for (i = 0; i < pagevec_count(&pvec); i++)
- 			put_page(pvec.pages[i]);
-+		pagevec_reinit(&pvec);
- 	} while (iov_iter_count(iter) && iocb->ki_pos < isize && !error);
- 
- 	file_accessed(filp);
+--- a/mm/migrate.c~mm-filemap-pass-a-sleep-state-to-put_and_wait_on_page_locked
++++ a/mm/migrate.c
+@@ -331,7 +331,7 @@ void __migration_entry_wait(struct mm_st
+ 	if (!get_page_unless_zero(page))
+ 		goto out;
+ 	pte_unmap_unlock(ptep, ptl);
+-	put_and_wait_on_page_locked(page);
++	put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
+ 	return;
+ out:
+ 	pte_unmap_unlock(ptep, ptl);
+@@ -365,7 +365,7 @@ void pmd_migration_entry_wait(struct mm_
+ 	if (!get_page_unless_zero(page))
+ 		goto unlock;
+ 	spin_unlock(ptl);
+-	put_and_wait_on_page_locked(page);
++	put_and_wait_on_page_locked(page, TASK_UNINTERRUPTIBLE);
+ 	return;
+ unlock:
+ 	spin_unlock(ptl);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
