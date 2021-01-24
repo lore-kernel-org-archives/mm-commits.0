@@ -7,106 +7,132 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B2BCC433DB
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E3AAC433E0
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F4A722D6E
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC43A22CB2
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Jan 2021 05:02:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726054AbhAXFCM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Jan 2021 00:02:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47034 "EHLO mail.kernel.org"
+        id S1726086AbhAXFC2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Jan 2021 00:02:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726038AbhAXFCF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 Jan 2021 00:02:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5F7E422581;
-        Sun, 24 Jan 2021 05:01:21 +0000 (UTC)
+        id S1726038AbhAXFC0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 Jan 2021 00:02:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D3BB822CB9;
+        Sun, 24 Jan 2021 05:01:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611464482;
-        bh=WIzIzn9J3HEweHSPZO07FXCJBKhAfp8duZ1IMwbU0dA=;
+        s=korg; t=1611464486;
+        bh=4YYVNreWmm+F6m/SNONR+q8zmV8sjbqxEwGAHqEeXuw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=BTZ3GkSQ/l7aIpN+UsV1arwdMpxsOn2KXVMDLeXyczecPkoZWWDWS2+wf6A3qJk+7
-         LAuYI0Es+Nri4TAUDjQ+J6b6mBc5zNWfppGLvJjvPhjbpW0oSiaf9jsuU9dtUUKomz
-         uPi7oDeMJ9p1GHQ2f1Gkruvp4MsWZYBa20WNFC5o=
-Date:   Sat, 23 Jan 2021 21:01:19 -0800
+        b=jy8IoFyDsfdhnoqTpf3ipjhE/o4gYS3SoetQ6LKsXXwyhfH29AmK5TOR7VhJIgLdA
+         yidF7g699p6wj8pg4e7mFReZowFUUwV1Or33ZwpDhf9/E2Uni7tBhoRWhr1hP4nwzI
+         xa/QCylHcjy3ZM2aQP6bQWSgR0uFH18TNF9SdtVE=
+Date:   Sat, 23 Jan 2021 21:01:25 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, mhocko@suse.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        stable@vger.kernel.org, tj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 06/19] mm: memcontrol: prevent starvation when
- writing memory.high
-Message-ID: <20210124050119.34lm1Gw1Q%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, dan.j.williams@intel.com,
+        dvyukov@google.com, glider@google.com, lecopzer.chen@mediatek.com,
+        lecopzer@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, yj.chiang@mediatek.com
+Subject:  [patch 07/19] kasan: fix unaligned address is unhandled
+ in kasan_remove_zero_shadow
+Message-ID: <20210124050125.TPTFvoKBt%akpm@linux-foundation.org>
 In-Reply-To: <20210123210029.a7c704d0cab204683e41ad10@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: prevent starvation when writing memory.high
+From: Lecopzer Chen <lecopzer@gmail.com>
+Subject: kasan: fix unaligned address is unhandled in kasan_remove_zero_shadow
 
-When a value is written to a cgroup's memory.high control file, the
-write() context first tries to reclaim the cgroup to size before putting
-the limit in place for the workload.  Concurrent charges from the workload
-can keep such a write() looping in reclaim indefinitely.
+During testing kasan_populate_early_shadow and kasan_remove_zero_shadow,
+if the shadow start and end address in kasan_remove_zero_shadow() is not
+aligned to PMD_SIZE, the remain unaligned PTE won't be removed.
 
-In the past, a write to memory.high would first put the limit in place for
-the workload, then do targeted reclaim until the new limit has been met -
-similar to how we do it for memory.max.  This wasn't prone to the
-described starvation issue.  However, this sequence could cause excessive
-latencies in the workload, when allocating threads could be put into long
-penalty sleeps on the sudden memory.high overage created by the write(),
-before that had a chance to work it off.
+In the test case for kasan_remove_zero_shadow():
+    shadow_start: 0xffffffb802000000, shadow end: 0xffffffbfbe000000
+    3-level page table:
+      PUD_SIZE: 0x40000000 PMD_SIZE: 0x200000 PAGE_SIZE: 4K
+0xffffffbf80000000 ~ 0xffffffbfbdf80000 will not be removed because
+in kasan_remove_pud_table(), kasan_pmd_table(*pud) is true but the
+next address is 0xffffffbfbdf80000 which is not aligned to PUD_SIZE.
 
-Now that memory_high_write() performs reclaim before enforcing the new
-limit, reflect that the cgroup may well fail to converge due to concurrent
-workload activity.  Bail out of the loop after a few tries.
+In the correct condition, this should fallback to the next level
+kasan_remove_pmd_table() but the condition flow always continue to skip
+the unaligned part.
 
-Link: https://lkml.kernel.org/r/20210112163011.127833-1-hannes@cmpxchg.org
-Fixes: 536d3bf261a2 ("mm: memcontrol: avoid workload stalls when lowering m=
-emory.high")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Tejun Heo <tj@kernel.org>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[5.8+]
+Fix by correcting the condition when next and addr are neither aligned.
+
+Link: https://lkml.kernel.org/r/20210103135621.83129-1-lecopzer@gmail.com
+Fixes: 0207df4fa1a86 ("kernel/memremap, kasan: make ZONE_DEVICE with work with KASAN")
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: YJ Chiang <yj.chiang@mediatek.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/kasan/init.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-prevent-starvation-when-writing-memoryh=
-igh
-+++ a/mm/memcontrol.c
-@@ -6273,7 +6273,6 @@ static ssize_t memory_high_write(struct
-=20
- 	for (;;) {
- 		unsigned long nr_pages =3D page_counter_read(&memcg->memory);
--		unsigned long reclaimed;
-=20
- 		if (nr_pages <=3D high)
- 			break;
-@@ -6287,10 +6286,10 @@ static ssize_t memory_high_write(struct
- 			continue;
+--- a/mm/kasan/init.c~kasan-fix-unaligned-address-is-unhandled-in-kasan_remove_zero_shadow
++++ a/mm/kasan/init.c
+@@ -373,9 +373,10 @@ static void kasan_remove_pmd_table(pmd_t
+ 
+ 		if (kasan_pte_table(*pmd)) {
+ 			if (IS_ALIGNED(addr, PMD_SIZE) &&
+-			    IS_ALIGNED(next, PMD_SIZE))
++			    IS_ALIGNED(next, PMD_SIZE)) {
+ 				pmd_clear(pmd);
+-			continue;
++				continue;
++			}
  		}
-=20
--		reclaimed =3D try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
--							 GFP_KERNEL, true);
-+		try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
-+					     GFP_KERNEL, true);
-=20
--		if (!reclaimed && !nr_retries--)
-+		if (!nr_retries--)
- 			break;
- 	}
-=20
+ 		pte = pte_offset_kernel(pmd, addr);
+ 		kasan_remove_pte_table(pte, addr, next);
+@@ -398,9 +399,10 @@ static void kasan_remove_pud_table(pud_t
+ 
+ 		if (kasan_pmd_table(*pud)) {
+ 			if (IS_ALIGNED(addr, PUD_SIZE) &&
+-			    IS_ALIGNED(next, PUD_SIZE))
++			    IS_ALIGNED(next, PUD_SIZE)) {
+ 				pud_clear(pud);
+-			continue;
++				continue;
++			}
+ 		}
+ 		pmd = pmd_offset(pud, addr);
+ 		pmd_base = pmd_offset(pud, 0);
+@@ -424,9 +426,10 @@ static void kasan_remove_p4d_table(p4d_t
+ 
+ 		if (kasan_pud_table(*p4d)) {
+ 			if (IS_ALIGNED(addr, P4D_SIZE) &&
+-			    IS_ALIGNED(next, P4D_SIZE))
++			    IS_ALIGNED(next, P4D_SIZE)) {
+ 				p4d_clear(p4d);
+-			continue;
++				continue;
++			}
+ 		}
+ 		pud = pud_offset(p4d, addr);
+ 		kasan_remove_pud_table(pud, addr, next);
+@@ -457,9 +460,10 @@ void kasan_remove_zero_shadow(void *star
+ 
+ 		if (kasan_p4d_table(*pgd)) {
+ 			if (IS_ALIGNED(addr, PGDIR_SIZE) &&
+-			    IS_ALIGNED(next, PGDIR_SIZE))
++			    IS_ALIGNED(next, PGDIR_SIZE)) {
+ 				pgd_clear(pgd);
+-			continue;
++				continue;
++			}
+ 		}
+ 
+ 		p4d = p4d_offset(pgd, addr);
 _
