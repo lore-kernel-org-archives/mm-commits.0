@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6997C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:29:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 662FAC433DB
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:32:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86140207B7
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:29:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35B0222202
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:32:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732271AbhAYW2w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jan 2021 17:28:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35988 "EHLO mail.kernel.org"
+        id S1732050AbhAYWbq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jan 2021 17:31:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732966AbhAYVhZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 Jan 2021 16:37:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E86022581;
-        Mon, 25 Jan 2021 21:35:05 +0000 (UTC)
+        id S1732230AbhAYWbn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 Jan 2021 17:31:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D90822202;
+        Mon, 25 Jan 2021 22:31:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611610505;
-        bh=5AQ1bbniT9EmSLDHwALBNM0BYtmNtVditTpX5RJieE0=;
+        s=korg; t=1611613862;
+        bh=t6Wc5FJnreeoEh/ZBka43KuLwM11AA31/F19KT6l3Ns=;
         h=Date:From:To:Subject:From;
-        b=qbSJRx+Bu/ARqjyKZmzQxzVlhaxzV5uXeMhoVQfTxk2YVdmzR+cwgsfTVrcaVs50Q
-         yGhGMX0rN223NLaCHN4iolnsjSu3IZoXKHdZD8Jq3QSIR0ZQHsDgV/salLYi1kpJLY
-         x6/0sXAlvFEiitF1tD42BJ2DUDOqqPurX8Oaoa3M=
-Date:   Mon, 25 Jan 2021 13:35:05 -0800
+        b=uPZBE329N8LdT2x9fkVVwfMjBdKdCyOVFmcGxTWMKppK2w4xnmegbltimJDBa/oza
+         2Aj08OO2Q8SM9nKji0qEvrCsuDEhz599jvgEG2+DJej08qoCwrl5ojLxhtGC1TE+Dt
+         RlY5zoEG49FQpExdPYwoxs7CrY2361SK8KIr5nxY=
+Date:   Mon, 25 Jan 2021 14:31:01 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        dan.j.williams@intel.com, dvyukov@google.com, glider@google.com,
-        lecopzer.chen@mediatek.com, lecopzer@gmail.com,
+To:     andreyknvl@google.com, arnd@arndb.de, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
         mm-commits@vger.kernel.org
-Subject:  [merged]
- kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
- removed from -mm tree
-Message-ID: <20210125213505.whHGYmWOn%akpm@linux-foundation.org>
+Subject:  + arm64-kfence-enable-kfence-for-arm64-fix-2.patch added
+ to -mm tree
+Message-ID: <20210125223101.e_-bMiyQy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,46 +44,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix incorrect arguments passing in kasan_add_zero_shadow
-has been removed from the -mm tree.  Its filename was
-     kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow.patch
+     Subject: arm64: kfence: fix header inclusion
+has been added to the -mm tree.  Its filename is
+     arm64-kfence-enable-kfence-for-arm64-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kfence-enable-kfence-for-arm64-fix-2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kfence-enable-kfence-for-arm64-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Lecopzer Chen <lecopzer@gmail.com>
-Subject: kasan: fix incorrect arguments passing in kasan_add_zero_shadow
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: arm64: kfence: fix header inclusion
 
-kasan_remove_zero_shadow() shall use original virtual address, start and
-size, instead of shadow address.
+Randconfig builds started warning about a missing function declaration
+after set_memory_valid() is moved to a new file:
 
-Link: https://lkml.kernel.org/r/20210103063847.5963-1-lecopzer@gmail.com
-Fixes: 0207df4fa1a86 ("kernel/memremap, kasan: make ZONE_DEVICE with work with KASAN")
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+In file included from mm/kfence/core.c:26:
+arch/arm64/include/asm/kfence.h:17:2: error: implicit declaration of function 'set_memory_valid' [-Werror,-Wimplicit-function-declaration]
+
+Include the correct header again.
+
+Link: https://lkml.kernel.org/r/20210125125025.102381-1-arnd@kernel.org
+Fixes: 9e18ec3cfabd ("set_memory: allow querying whether set_direct_map_*() is actually enabled")
+Fixes: 204555ff8bd6 ("arm64, kfence: enable KFENCE for ARM64")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/init.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm64/include/asm/kfence.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/init.c~kasan-fix-incorrect-arguments-passing-in-kasan_add_zero_shadow
-+++ a/mm/kasan/init.c
-@@ -486,7 +486,6 @@ int kasan_add_zero_shadow(void *start, u
+--- a/arch/arm64/include/asm/kfence.h~arm64-kfence-enable-kfence-for-arm64-fix-2
++++ a/arch/arm64/include/asm/kfence.h
+@@ -8,7 +8,7 @@
+ #ifndef __ASM_KFENCE_H
+ #define __ASM_KFENCE_H
  
- 	ret = kasan_populate_early_shadow(shadow_start, shadow_end);
- 	if (ret)
--		kasan_remove_zero_shadow(shadow_start,
--					size >> KASAN_SHADOW_SCALE_SHIFT);
-+		kasan_remove_zero_shadow(start, size);
- 	return ret;
- }
+-#include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ 
+ #define KFENCE_SKIP_ARCH_FAULT_HANDLER "el1_sync"
+ 
 _
 
-Patches currently in -mm which might be from lecopzer@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+arm64-kfence-enable-kfence-for-arm64-fix-2.patch
 
