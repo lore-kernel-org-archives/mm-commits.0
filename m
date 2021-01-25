@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 137A1C433E9
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:26:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64319C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:26:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3CAC20756
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:26:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3256E207B7
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:26:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731606AbhAYWZ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jan 2021 17:25:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36004 "EHLO mail.kernel.org"
+        id S1727046AbhAYW0G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jan 2021 17:26:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36012 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732973AbhAYVhZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1732977AbhAYVhZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 25 Jan 2021 16:37:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 84F3C2083E;
-        Mon, 25 Jan 2021 21:35:24 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A77AF229EF;
+        Mon, 25 Jan 2021 21:35:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611610524;
-        bh=N74F6HkEkWDJiW2KTXZ5nJTNnhx+xk5J+9wzPTl3QKY=;
+        s=korg; t=1611610534;
+        bh=EK4tVLL/2DGK3li1UXQNVujHvuxaE5cBk47IHUYo/Ps=;
         h=Date:From:To:Subject:From;
-        b=ArKpcUb3ZFrAuAK6PNdoOIZOkdTBDKmiTR2PD1Ja3SVD6Bsm7nSb3h7g4iltUwMVR
-         PXBFB3w0ITWGKIR0MVZSiKYU0ch8KgHgS2lXorgO/rIn3urptqxfTuuVFAe5tV0E0L
-         EYUYfOGvFKoqTtwVHTvOyKREbdzbVdpqTua7a36Q=
-Date:   Mon, 25 Jan 2021 13:35:24 -0800
+        b=Ab4ts2FxHKj64VBaGAyasnZ55btqlzGlyZZskpOkJyMkyJ8SjPLsWMKbeCROLiYRS
+         jAfnR3LwWsaBEJkuYosCTAZcGFv7Zq+wCWJXmZSuEN4iIVbnMvbItXK9MTsealeFTS
+         ErnkPYCGILDGiSQKQkkrqqmK3FFN9PMjkKgAkiQc=
+Date:   Mon, 25 Jan 2021 13:35:33 -0800
 From:   akpm@linux-foundation.org
-To:     andreas@gaisler.com, davem@davemloft.net,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        paul@crapouillou.net, peterz@infradead.org, tglx@linutronix.de,
-        tsbogend@alpha.franken.de
+To:     adobriyan@gmail.com, hkallweit1@gmail.com, keescook@chromium.org,
+        mcgrof@kernel.org, mhiramat@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, nixiaoming@huawei.com,
+        rdunlap@infradead.org, stable@vger.kernel.org, vbabka@suse.cz,
+        yzaikin@google.com
 Subject:  [merged]
- mm-highmem-prepare-for-overriding-set_pte_at.patch removed from -mm tree
-Message-ID: <20210125213524.-sqT3VrSG%akpm@linux-foundation.org>
+ proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch removed
+ from -mm tree
+Message-ID: <20210125213533.VRqjjuL6-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,60 +47,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem: prepare for overriding set_pte_at()
+     Subject: proc_sysctl: fix oops caused by incorrect command parameters
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-prepare-for-overriding-set_pte_at.patch
+     proc_sysctl-fix-oops-caused-by-incorrect-command-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm/highmem: prepare for overriding set_pte_at()
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: proc_sysctl: fix oops caused by incorrect command parameters
 
-The generic kmap_local() map function uses set_pte_at(), but MIPS requires
-set_pte() and PowerPC wants __set_pte_at().
+The process_sysctl_arg() does not check whether val is empty before
+invoking strlen(val).  If the command line parameter () is incorrectly
+configured and val is empty, oops is triggered.
 
-Provide arch_kmap_local_set_pte() and default it to set_pte_at().
+For example:
+  "hung_task_panic=1" is incorrectly written as "hung_task_panic", oops is
+  triggered. The call stack is as follows:
+    Kernel command line: .... hung_task_panic
+    ......
+    Call trace:
+    __pi_strlen+0x10/0x98
+    parse_args+0x278/0x344
+    do_sysctl_args+0x8c/0xfc
+    kernel_init+0x5c/0xf4
+    ret_from_fork+0x10/0x30
 
-Link: https://lkml.kernel.org/r/20210112170411.056306194@linutronix.de
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To fix it, check whether "val" is empty when "phram" is a sysctl field.
+Error codes are returned in the failure branch, and error logs are
+generated by parse_args().
+
+Link: https://lkml.kernel.org/r/20210118133029.28580-1-nixiaoming@huawei.com
+Fixes: 3db978d480e2843 ("kernel/sysctl: support setting sysctl parameters from kernel command line")
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: <stable@vger.kernel.org>	[5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    7 ++++++-
+ fs/proc/proc_sysctl.c |    7 ++++++-
  1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/highmem.c~mm-highmem-prepare-for-overriding-set_pte_at
-+++ a/mm/highmem.c
-@@ -473,6 +473,11 @@ static inline void *arch_kmap_local_high
- }
- #endif
+--- a/fs/proc/proc_sysctl.c~proc_sysctl-fix-oops-caused-by-incorrect-command-parameters
++++ a/fs/proc/proc_sysctl.c
+@@ -1770,6 +1770,12 @@ static int process_sysctl_arg(char *para
+ 			return 0;
+ 	}
  
-+#ifndef arch_kmap_local_set_pte
-+#define arch_kmap_local_set_pte(mm, vaddr, ptep, ptev)	\
-+	set_pte_at(mm, vaddr, ptep, ptev)
-+#endif
++	if (!val)
++		return -EINVAL;
++	len = strlen(val);
++	if (len == 0)
++		return -EINVAL;
 +
- /* Unmap a local mapping which was obtained by kmap_high_get() */
- static inline bool kmap_high_unmap_local(unsigned long vaddr)
- {
-@@ -515,7 +520,7 @@ void *__kmap_local_pfn_prot(unsigned lon
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- 	pteval = pfn_pte(pfn, prot);
--	set_pte_at(&init_mm, vaddr, kmap_pte - idx, pteval);
-+	arch_kmap_local_set_pte(&init_mm, vaddr, kmap_pte - idx, pteval);
- 	arch_kmap_local_post_map(vaddr, pteval);
- 	current->kmap_ctrl.pteval[kmap_local_idx()] = pteval;
- 	preempt_enable();
+ 	/*
+ 	 * To set sysctl options, we use a temporary mount of proc, look up the
+ 	 * respective sys/ file and write to it. To avoid mounting it when no
+@@ -1811,7 +1817,6 @@ static int process_sysctl_arg(char *para
+ 				file, param, val);
+ 		goto out;
+ 	}
+-	len = strlen(val);
+ 	wret = kernel_write(file, val, len, &pos);
+ 	if (wret < 0) {
+ 		err = wret;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
 
