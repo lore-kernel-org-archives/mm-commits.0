@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 662FAC433DB
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:32:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 759C0C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:33:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35B0222202
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:32:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34C962242A
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 22:33:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732050AbhAYWbq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jan 2021 17:31:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55664 "EHLO mail.kernel.org"
+        id S1732031AbhAYWdY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jan 2021 17:33:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35688 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732230AbhAYWbn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 Jan 2021 17:31:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D90822202;
-        Mon, 25 Jan 2021 22:31:02 +0000 (UTC)
+        id S1732939AbhAYVgi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 Jan 2021 16:36:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A6EB422583;
+        Mon, 25 Jan 2021 21:35:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611613862;
-        bh=t6Wc5FJnreeoEh/ZBka43KuLwM11AA31/F19KT6l3Ns=;
+        s=korg; t=1611610511;
+        bh=5EwggEYfeMjdJE4diRHrD3GwLtaMN4SkPjBJLTYQ9qk=;
         h=Date:From:To:Subject:From;
-        b=uPZBE329N8LdT2x9fkVVwfMjBdKdCyOVFmcGxTWMKppK2w4xnmegbltimJDBa/oza
-         2Aj08OO2Q8SM9nKji0qEvrCsuDEhz599jvgEG2+DJej08qoCwrl5ojLxhtGC1TE+Dt
-         RlY5zoEG49FQpExdPYwoxs7CrY2361SK8KIr5nxY=
-Date:   Mon, 25 Jan 2021 14:31:01 -0800
+        b=z58ibL6gWJJqVxdMjXICcuL/oT2uHrwfIiog7AOCxjUiPZKTtXcFqtFnzI6ZEahmd
+         M/21TwaJXaKzfENRmpCMB7QY3OddACsfNx2t8ZR3njeORdVjP9WCt7t0YuZab+n6yH
+         mDeNmFBvA5D4r5zFaNXlATLEH+NNM01tU0PC+nqg=
+Date:   Mon, 25 Jan 2021 13:35:10 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, arnd@arndb.de, catalin.marinas@arm.com,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        mm-commits@vger.kernel.org
-Subject:  + arm64-kfence-enable-kfence-for-arm64-fix-2.patch added
- to -mm tree
-Message-ID: <20210125223101.e_-bMiyQy%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        Branislav.Rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, kevin.brodsky@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com, vbabka@suse.cz,
+        vincenzo.frascino@arm.com, will.deacon@arm.com
+Subject:  [merged]
+ kasan-mm-fix-conflicts-with-init_on_alloc-free.patch removed from -mm tree
+Message-ID: <20210125213510.I8jJEXBN7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,67 +47,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: kfence: fix header inclusion
-has been added to the -mm tree.  Its filename is
-     arm64-kfence-enable-kfence-for-arm64-fix-2.patch
+     Subject: kasan, mm: fix conflicts with init_on_alloc/free
+has been removed from the -mm tree.  Its filename was
+     kasan-mm-fix-conflicts-with-init_on_alloc-free.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-kfence-enable-kfence-for-arm64-fix-2.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-kfence-enable-kfence-for-arm64-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: arm64: kfence: fix header inclusion
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan, mm: fix conflicts with init_on_alloc/free
 
-Randconfig builds started warning about a missing function declaration
-after set_memory_valid() is moved to a new file:
+A few places where SLUB accesses object's data or metadata were missed in
+a previous patch.  This leads to false positives with hardware tag-based
+KASAN when bulk allocations are used with init_on_alloc/free.
 
-In file included from mm/kfence/core.c:26:
-arch/arm64/include/asm/kfence.h:17:2: error: implicit declaration of function 'set_memory_valid' [-Werror,-Wimplicit-function-declaration]
+Fix the false-positives by resetting pointer tags during these accesses.
 
-Include the correct header again.
+(The kasan_reset_tag call is removed from slab_alloc_node, as it's added
+ into maybe_wipe_obj_freeptr.)
 
-Link: https://lkml.kernel.org/r/20210125125025.102381-1-arnd@kernel.org
-Fixes: 9e18ec3cfabd ("set_memory: allow querying whether set_direct_map_*() is actually enabled")
-Fixes: 204555ff8bd6 ("arm64, kfence: enable KFENCE for ARM64")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Marco Elver <elver@google.com>
+Link: https://linux-review.googlesource.com/id/I50dd32838a666e173fe06c3c5c766f2c36aae901
+Link: https://lkml.kernel.org/r/093428b5d2ca8b507f4a79f92f9929b35f7fada7.1610731872.git.andreyknvl@google.com
+Fixes: aa1ef4d7b3f67 ("kasan, mm: reset tags when accessing metadata")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Branislav Rankov <Branislav.Rankov@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/kfence.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/kfence.h~arm64-kfence-enable-kfence-for-arm64-fix-2
-+++ a/arch/arm64/include/asm/kfence.h
-@@ -8,7 +8,7 @@
- #ifndef __ASM_KFENCE_H
- #define __ASM_KFENCE_H
+--- a/mm/slub.c~kasan-mm-fix-conflicts-with-init_on_alloc-free
++++ a/mm/slub.c
+@@ -2791,7 +2791,8 @@ static __always_inline void maybe_wipe_o
+ 						   void *obj)
+ {
+ 	if (unlikely(slab_want_init_on_free(s)) && obj)
+-		memset((void *)((char *)obj + s->offset), 0, sizeof(void *));
++		memset((void *)((char *)kasan_reset_tag(obj) + s->offset),
++			0, sizeof(void *));
+ }
  
--#include <asm/cacheflush.h>
-+#include <asm/set_memory.h>
+ /*
+@@ -2883,7 +2884,7 @@ redo:
+ 		stat(s, ALLOC_FASTPATH);
+ 	}
  
- #define KFENCE_SKIP_ARCH_FAULT_HANDLER "el1_sync"
+-	maybe_wipe_obj_freeptr(s, kasan_reset_tag(object));
++	maybe_wipe_obj_freeptr(s, object);
  
+ 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
+ 		memset(kasan_reset_tag(object), 0, s->object_size);
+@@ -3329,7 +3330,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 		int j;
+ 
+ 		for (j = 0; j < i; j++)
+-			memset(p[j], 0, s->object_size);
++			memset(kasan_reset_tag(p[j]), 0, s->object_size);
+ 	}
+ 
+ 	/* memcg and kmem_cache debug support */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-arm64-kfence-enable-kfence-for-arm64-fix-2.patch
+kasan-prefix-global-functions-with-kasan_.patch
+kasan-clarify-hw_tags-impact-on-tbi.patch
+kasan-clean-up-comments-in-tests.patch
+kasan-add-macros-to-simplify-checking-test-constraints.patch
+kasan-add-match-all-tag-tests.patch
+kasan-arm64-allow-using-kunit-tests-with-hw_tags-mode.patch
+kasan-rename-config_test_kasan_module.patch
+kasan-add-compiler-barriers-to-kunit_expect_kasan_fail.patch
+kasan-adapt-kmalloc_uaf2-test-to-hw_tags-mode.patch
+kasan-fix-memory-corruption-in-kasan_bitops_tags-test.patch
+kasan-move-_ret_ip_-to-inline-wrappers.patch
+kasan-fix-bug-detection-via-ksize-for-hw_tags-mode.patch
+kasan-add-proper-page-allocator-tests.patch
+kasan-add-a-test-for-kmem_cache_alloc-free_bulk.patch
+kasan-dont-run-tests-when-kasan-is-not-enabled.patch
 
