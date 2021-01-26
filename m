@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C599EC4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA63C4332E
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B07F206C3
+	by mail.kernel.org (Postfix) with ESMTP id BDE6A206D6
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231213AbhA0Csm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231215AbhA0Csm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 26 Jan 2021 21:48:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43226 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728413AbhAZU6Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 15:58:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CEAF0221ED;
-        Tue, 26 Jan 2021 20:57:42 +0000 (UTC)
+        id S1729685AbhAZVBg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 16:01:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E7E5022B3B;
+        Tue, 26 Jan 2021 21:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611694663;
-        bh=smFPW8iwBk9eV3SxvpJeL4oWf3klGrzuhBiV+LxtIyA=;
+        s=korg; t=1611694856;
+        bh=IFHhe3ITsobLhgAcRYwFFpePX/Meb27ck29Ubb9CBQU=;
         h=Date:From:To:Subject:From;
-        b=VttdHDf0PUdMyyTNHl13ErmDkH/HSJ5cHde92sEih3Zm3/G5rvrKU9QR8EsRaNymY
-         HGIhXHfIA05UWMEGL/XKUKWRRGJBleWn1/GeLXKQbobgHYdqWr+F9O+uiPRcPppuHe
-         QIdFmbfERgznM56aJnmPsgXaSACBG40ijVs5xGa4=
-Date:   Tue, 26 Jan 2021 12:57:42 -0800
+        b=tVBczDy4kTH88kTK2syBkRtnXmOPhlnx7x9fJb1DbNBWGx6Zwb0TN06dvRmQEqbON
+         VKugdd96NpTZ8aNipJkxtdvfvZEc8akn5BaLgcdRjm+w5x40+KDuYvaGHVz6GAvlSm
+         /SOAqKp3Q4gNI5/8OLOFLqUVfa+bmpP5xzgtzYIQ=
+Date:   Tue, 26 Jan 2021 13:00:55 -0800
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, nborisov@suse.com, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  + mm-remove-ctor-argument-from-kmem_cache_flags.patch
+To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
+        linmiaohe@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  + mm-hugetlb-simplify-the-calculation-of-variables.patch
  added to -mm tree
-Message-ID: <20210126205742.4VdQFuAEL%akpm@linux-foundation.org>
+Message-ID: <20210126210055.U0utagfxC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sl?b.c: remove ctor argument from kmem_cache_flags
+     Subject: mm/hugetlb: simplify the calculation of variables
 has been added to the -mm tree.  Its filename is
-     mm-remove-ctor-argument-from-kmem_cache_flags.patch
+     mm-hugetlb-simplify-the-calculation-of-variables.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-ctor-argument-from-kmem_cache_flags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-simplify-the-calculation-of-variables.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-ctor-argument-from-kmem_cache_flags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-simplify-the-calculation-of-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,117 +65,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nikolay Borisov <nborisov@suse.com>
-Subject: mm/sl?b.c: remove ctor argument from kmem_cache_flags
+From: Jiapeng Zhong <abaci-bugfix@linux.alibaba.com>
+Subject: mm/hugetlb: simplify the calculation of variables
 
-This argument hasn't been used since e153362a50a3 ("slub: Remove objsize
-check in kmem_cache_flags()") so simply remove it.
+Fix the following coccicheck warnings:
 
-Link: https://lkml.kernel.org/r/20210126095733.974665-1-nborisov@suse.com
-Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+./mm/hugetlb.c:3372:20-22: WARNING !A || A && B is equivalent to
+!A || B.
+
+Link: https://lkml.kernel.org/r/1611643468-52233-1-git-send-email-abaci-bugfix@linux.alibaba.com
+Signed-off-by: Jiapeng Zhong <abaci-bugfix@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    3 +--
- mm/slab.h        |    6 ++----
- mm/slab_common.c |    2 +-
- mm/slub.c        |    9 +++------
- 4 files changed, 7 insertions(+), 13 deletions(-)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/slab.c~mm-remove-ctor-argument-from-kmem_cache_flags
-+++ a/mm/slab.c
-@@ -1790,8 +1790,7 @@ static int __ref setup_cpu_cache(struct
- }
+--- a/mm/hugetlb.c~mm-hugetlb-simplify-the-calculation-of-variables
++++ a/mm/hugetlb.c
+@@ -3417,8 +3417,7 @@ static unsigned int allowed_mems_nr(stru
+ 	mpol_allowed = policy_nodemask_current(gfp_mask);
  
- slab_flags_t kmem_cache_flags(unsigned int object_size,
--	slab_flags_t flags, const char *name,
--	void (*ctor)(void *))
-+	slab_flags_t flags, const char *name)
- {
- 	return flags;
- }
---- a/mm/slab_common.c~mm-remove-ctor-argument-from-kmem_cache_flags
-+++ a/mm/slab_common.c
-@@ -197,7 +197,7 @@ struct kmem_cache *find_mergeable(unsign
- 	size = ALIGN(size, sizeof(void *));
- 	align = calculate_alignment(flags, align, size);
- 	size = ALIGN(size, align);
--	flags = kmem_cache_flags(size, flags, name, NULL);
-+	flags = kmem_cache_flags(size, flags, name);
+ 	for_each_node_mask(node, cpuset_current_mems_allowed) {
+-		if (!mpol_allowed ||
+-		    (mpol_allowed && node_isset(node, *mpol_allowed)))
++		if (!mpol_allowed || node_isset(node, *mpol_allowed))
+ 			nr += array[node];
+ 	}
  
- 	if (flags & SLAB_NEVER_MERGE)
- 		return NULL;
---- a/mm/slab.h~mm-remove-ctor-argument-from-kmem_cache_flags
-+++ a/mm/slab.h
-@@ -110,8 +110,7 @@ __kmem_cache_alias(const char *name, uns
- 		   slab_flags_t flags, void (*ctor)(void *));
- 
- slab_flags_t kmem_cache_flags(unsigned int object_size,
--	slab_flags_t flags, const char *name,
--	void (*ctor)(void *));
-+	slab_flags_t flags, const char *name);
- #else
- static inline struct kmem_cache *
- __kmem_cache_alias(const char *name, unsigned int size, unsigned int align,
-@@ -119,8 +118,7 @@ __kmem_cache_alias(const char *name, uns
- { return NULL; }
- 
- static inline slab_flags_t kmem_cache_flags(unsigned int object_size,
--	slab_flags_t flags, const char *name,
--	void (*ctor)(void *))
-+	slab_flags_t flags, const char *name)
- {
- 	return flags;
- }
---- a/mm/slub.c~mm-remove-ctor-argument-from-kmem_cache_flags
-+++ a/mm/slub.c
-@@ -1400,7 +1400,6 @@ __setup("slub_debug", setup_slub_debug);
-  * @object_size:	the size of an object without meta data
-  * @flags:		flags to set
-  * @name:		name of the cache
-- * @ctor:		constructor function
-  *
-  * Debug option(s) are applied to @flags. In addition to the debug
-  * option(s), if a slab name (or multiple) is specified i.e.
-@@ -1408,8 +1407,7 @@ __setup("slub_debug", setup_slub_debug);
-  * then only the select slabs will receive the debug option(s).
-  */
- slab_flags_t kmem_cache_flags(unsigned int object_size,
--	slab_flags_t flags, const char *name,
--	void (*ctor)(void *))
-+	slab_flags_t flags, const char *name)
- {
- 	char *iter;
- 	size_t len;
-@@ -1474,8 +1472,7 @@ static inline void add_full(struct kmem_
- static inline void remove_full(struct kmem_cache *s, struct kmem_cache_node *n,
- 					struct page *page) {}
- slab_flags_t kmem_cache_flags(unsigned int object_size,
--	slab_flags_t flags, const char *name,
--	void (*ctor)(void *))
-+	slab_flags_t flags, const char *name)
- {
- 	return flags;
- }
-@@ -3783,7 +3780,7 @@ static int calculate_sizes(struct kmem_c
- 
- static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
- {
--	s->flags = kmem_cache_flags(s->size, flags, s->name, s->ctor);
-+	s->flags = kmem_cache_flags(s->size, flags, s->name);
- #ifdef CONFIG_SLAB_FREELIST_HARDENED
- 	s->random = get_random_long();
- #endif
 _
 
-Patches currently in -mm which might be from nborisov@suse.com are
+Patches currently in -mm which might be from abaci-bugfix@linux.alibaba.com are
 
-mm-remove-ctor-argument-from-kmem_cache_flags.patch
+mm-swap_slotsc-remove-redundant-null-check.patch
+mm-memcontrol-remove-redundant-null-check.patch
+vmalloc-remove-redundant-null-check.patch
+mm-hugetlb-simplify-the-calculation-of-variables.patch
 
