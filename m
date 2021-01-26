@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 873CAC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C599EC4332B
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42418206C3
+	by mail.kernel.org (Postfix) with ESMTP id 9B07F206C3
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231158AbhA0Csn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 21:48:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48356 "EHLO mail.kernel.org"
+        id S231213AbhA0Csm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 21:48:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726560AbhAZVmq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 16:42:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 12F9A2053B;
-        Tue, 26 Jan 2021 21:42:06 +0000 (UTC)
+        id S1728413AbhAZU6Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 15:58:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CEAF0221ED;
+        Tue, 26 Jan 2021 20:57:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611697326;
-        bh=Su9CkimX1lGfOFMRNuIa4Ifa5xZDaqPruSvaQkclfd4=;
+        s=korg; t=1611694663;
+        bh=smFPW8iwBk9eV3SxvpJeL4oWf3klGrzuhBiV+LxtIyA=;
         h=Date:From:To:Subject:From;
-        b=nNIiurJqulP5/wlZigb8vDR7jUifUvGUuKEt74FAH/0fJ4ey5aQxjpOGEbCHlOrDy
-         +GB32haIxw564CpLtp6YkyeBgZGYjq7nU700ZUPd7HycsSYGhayT/muFez2hXD2Smk
-         0wxBziWIaSZlRnsfl4lME+pQQb3KLXHBhT0h9QUY=
-Date:   Tue, 26 Jan 2021 13:42:05 -0800
+        b=VttdHDf0PUdMyyTNHl13ErmDkH/HSJ5cHde92sEih3Zm3/G5rvrKU9QR8EsRaNymY
+         HGIhXHfIA05UWMEGL/XKUKWRRGJBleWn1/GeLXKQbobgHYdqWr+F9O+uiPRcPppuHe
+         QIdFmbfERgznM56aJnmPsgXaSACBG40ijVs5xGa4=
+Date:   Tue, 26 Jan 2021 12:57:42 -0800
 From:   akpm@linux-foundation.org
-To:     hubert.jasudowicz@gmail.com, mikelley@microsoft.com,
-        mm-commits@vger.kernel.org, mortonm@chromium.org,
-        peterz@infradead.org, thomascedeno@google.com, xiang@kernel.org
-Subject:  +
- groups-use-flexible-array-member-in-struct-group_info.patch added to -mm
- tree
-Message-ID: <20210126214205.BHCUWFLCe%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, nborisov@suse.com, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz
+Subject:  + mm-remove-ctor-argument-from-kmem_cache_flags.patch
+ added to -mm tree
+Message-ID: <20210126205742.4VdQFuAEL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: groups: use flexible-array member in struct group_info
+     Subject: mm/sl?b.c: remove ctor argument from kmem_cache_flags
 has been added to the -mm tree.  Its filename is
-     groups-use-flexible-array-member-in-struct-group_info.patch
+     mm-remove-ctor-argument-from-kmem_cache_flags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/groups-use-flexible-array-member-in-struct-group_info.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-ctor-argument-from-kmem_cache_flags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/groups-use-flexible-array-member-in-struct-group_info.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-ctor-argument-from-kmem_cache_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,40 +65,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hubert Jasudowicz <hubert.jasudowicz@gmail.com>
-Subject: groups: use flexible-array member in struct group_info
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: mm/sl?b.c: remove ctor argument from kmem_cache_flags
 
-Replace zero-size array with flexible array member, as recommended by
-the docs.
+This argument hasn't been used since e153362a50a3 ("slub: Remove objsize
+check in kmem_cache_flags()") so simply remove it.
 
-Link: https://lkml.kernel.org/r/155995eed35c3c1bdcc56e69d8997c8e4c46740a.1611620846.git.hubert.jasudowicz@gmail.com
-Signed-off-by: Hubert Jasudowicz <hubert.jasudowicz@gmail.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Micah Morton <mortonm@chromium.org>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: Michael Kelley <mikelley@microsoft.com>
-Cc: Thomas Cedeno <thomascedeno@google.com>
+Link: https://lkml.kernel.org/r/20210126095733.974665-1-nborisov@suse.com
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c        |    3 +--
+ mm/slab.h        |    6 ++----
+ mm/slab_common.c |    2 +-
+ mm/slub.c        |    9 +++------
+ 4 files changed, 7 insertions(+), 13 deletions(-)
 
---- a/include/linux/cred.h~groups-use-flexible-array-member-in-struct-group_info
-+++ a/include/linux/cred.h
-@@ -25,7 +25,7 @@ struct inode;
- struct group_info {
- 	atomic_t	usage;
- 	int		ngroups;
--	kgid_t		gid[0];
-+	kgid_t		gid[];
- } __randomize_layout;
+--- a/mm/slab.c~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slab.c
+@@ -1790,8 +1790,7 @@ static int __ref setup_cpu_cache(struct
+ }
  
- /**
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	return flags;
+ }
+--- a/mm/slab_common.c~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slab_common.c
+@@ -197,7 +197,7 @@ struct kmem_cache *find_mergeable(unsign
+ 	size = ALIGN(size, sizeof(void *));
+ 	align = calculate_alignment(flags, align, size);
+ 	size = ALIGN(size, align);
+-	flags = kmem_cache_flags(size, flags, name, NULL);
++	flags = kmem_cache_flags(size, flags, name);
+ 
+ 	if (flags & SLAB_NEVER_MERGE)
+ 		return NULL;
+--- a/mm/slab.h~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slab.h
+@@ -110,8 +110,7 @@ __kmem_cache_alias(const char *name, uns
+ 		   slab_flags_t flags, void (*ctor)(void *));
+ 
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *));
++	slab_flags_t flags, const char *name);
+ #else
+ static inline struct kmem_cache *
+ __kmem_cache_alias(const char *name, unsigned int size, unsigned int align,
+@@ -119,8 +118,7 @@ __kmem_cache_alias(const char *name, uns
+ { return NULL; }
+ 
+ static inline slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	return flags;
+ }
+--- a/mm/slub.c~mm-remove-ctor-argument-from-kmem_cache_flags
++++ a/mm/slub.c
+@@ -1400,7 +1400,6 @@ __setup("slub_debug", setup_slub_debug);
+  * @object_size:	the size of an object without meta data
+  * @flags:		flags to set
+  * @name:		name of the cache
+- * @ctor:		constructor function
+  *
+  * Debug option(s) are applied to @flags. In addition to the debug
+  * option(s), if a slab name (or multiple) is specified i.e.
+@@ -1408,8 +1407,7 @@ __setup("slub_debug", setup_slub_debug);
+  * then only the select slabs will receive the debug option(s).
+  */
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	char *iter;
+ 	size_t len;
+@@ -1474,8 +1472,7 @@ static inline void add_full(struct kmem_
+ static inline void remove_full(struct kmem_cache *s, struct kmem_cache_node *n,
+ 					struct page *page) {}
+ slab_flags_t kmem_cache_flags(unsigned int object_size,
+-	slab_flags_t flags, const char *name,
+-	void (*ctor)(void *))
++	slab_flags_t flags, const char *name)
+ {
+ 	return flags;
+ }
+@@ -3783,7 +3780,7 @@ static int calculate_sizes(struct kmem_c
+ 
+ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
+ {
+-	s->flags = kmem_cache_flags(s->size, flags, s->name, s->ctor);
++	s->flags = kmem_cache_flags(s->size, flags, s->name);
+ #ifdef CONFIG_SLAB_FREELIST_HARDENED
+ 	s->random = get_random_long();
+ #endif
 _
 
-Patches currently in -mm which might be from hubert.jasudowicz@gmail.com are
+Patches currently in -mm which might be from nborisov@suse.com are
 
-groups-use-flexible-array-member-in-struct-group_info.patch
-groups-simplify-struct-group_info-allocation.patch
+mm-remove-ctor-argument-from-kmem_cache_flags.patch
 
