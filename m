@@ -7,35 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA63C4332E
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41336C43332
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BDE6A206D6
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EE81206D6
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231215AbhA0Csm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231205AbhA0Csm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 26 Jan 2021 21:48:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43592 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729685AbhAZVBg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 16:01:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E7E5022B3B;
-        Tue, 26 Jan 2021 21:00:55 +0000 (UTC)
+        id S2404570AbhAZTu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 14:50:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F1CF3221FC;
+        Tue, 26 Jan 2021 19:49:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611694856;
-        bh=IFHhe3ITsobLhgAcRYwFFpePX/Meb27ck29Ubb9CBQU=;
+        s=korg; t=1611690586;
+        bh=SNJJOjvVL7LbUZDZ8eD3oDDaVSxZHFndMJAaaTIBtmI=;
         h=Date:From:To:Subject:From;
-        b=tVBczDy4kTH88kTK2syBkRtnXmOPhlnx7x9fJb1DbNBWGx6Zwb0TN06dvRmQEqbON
-         VKugdd96NpTZ8aNipJkxtdvfvZEc8akn5BaLgcdRjm+w5x40+KDuYvaGHVz6GAvlSm
-         /SOAqKp3Q4gNI5/8OLOFLqUVfa+bmpP5xzgtzYIQ=
-Date:   Tue, 26 Jan 2021 13:00:55 -0800
+        b=mskisnh0nyREC1rexhDvgW779Fk9uethoiP8rnEZCulDpclJnpglKj6zBTxOVYs/t
+         0PTEbBw6JElgAaf/JzkU3dXDRJ8p7b5tHoQWXPPJ4Z/kpIu/V3KjRheB+ujZj6ZyAC
+         gi0aW8SvOq7XuI6b+9waswAYimMqnv/krEfn0svc=
+Date:   Tue, 26 Jan 2021 11:49:45 -0800
 From:   akpm@linux-foundation.org
-To:     abaci-bugfix@linux.alibaba.com, abaci@linux.alibaba.com,
-        linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-hugetlb-simplify-the-calculation-of-variables.patch
- added to -mm tree
-Message-ID: <20210126210055.U0utagfxC%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, boris.ostrovsky@oracle.com,
+        david@redhat.com, haiyangz@microsoft.com, jasowang@redhat.com,
+        jgross@suse.com, kys@microsoft.com, linmiaohe@huawei.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com,
+        osalvador@suse.de, pankaj.gupta.linux@gmail.com,
+        richard.weiyang@linux.alibaba.com, sstabellini@kernel.org,
+        sthemmin@microsoft.com, wei.liu@kernel.org
+Subject:  +
+ mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch added to
+ -mm tree
+Message-ID: <20210126194945.LTb9NYiIL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: simplify the calculation of variables
+     Subject: mm/memory_hotplug: MEMHP_MERGE_RESOURCE -> MHP_MERGE_RESOURCE
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-simplify-the-calculation-of-variables.patch
+     mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-simplify-the-calculation-of-variables.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-simplify-the-calculation-of-variables.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,43 +70,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiapeng Zhong <abaci-bugfix@linux.alibaba.com>
-Subject: mm/hugetlb: simplify the calculation of variables
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: MEMHP_MERGE_RESOURCE -> MHP_MERGE_RESOURCE
 
-Fix the following coccicheck warnings:
+Let's make "MEMHP_MERGE_RESOURCE" consistent with "MHP_NONE", "mhp_t" and
+"mhp_flags".  As discussed recently [1], "mhp" is our internal acronym for
+memory hotplug now.
 
-./mm/hugetlb.c:3372:20-22: WARNING !A || A && B is equivalent to
-!A || B.
+[1] https://lore.kernel.org/linux-mm/c37de2d0-28a1-4f7d-f944-cfd7d81c334d@redhat.com/
 
-Link: https://lkml.kernel.org/r/1611643468-52233-1-git-send-email-abaci-bugfix@linux.alibaba.com
-Signed-off-by: Jiapeng Zhong <abaci-bugfix@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20210126115829.10909-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Wei Liu <wei.liu@kernel.org>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/hv/hv_balloon.c        |    2 +-
+ drivers/virtio/virtio_mem.c    |    2 +-
+ drivers/xen/balloon.c          |    2 +-
+ include/linux/memory_hotplug.h |    2 +-
+ mm/memory_hotplug.c            |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-simplify-the-calculation-of-variables
-+++ a/mm/hugetlb.c
-@@ -3417,8 +3417,7 @@ static unsigned int allowed_mems_nr(stru
- 	mpol_allowed = policy_nodemask_current(gfp_mask);
+--- a/drivers/hv/hv_balloon.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/drivers/hv/hv_balloon.c
+@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long
  
- 	for_each_node_mask(node, cpuset_current_mems_allowed) {
--		if (!mpol_allowed ||
--		    (mpol_allowed && node_isset(node, *mpol_allowed)))
-+		if (!mpol_allowed || node_isset(node, *mpol_allowed))
- 			nr += array[node];
- 	}
+ 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
+-				(HA_CHUNK << PAGE_SHIFT), MEMHP_MERGE_RESOURCE);
++				(HA_CHUNK << PAGE_SHIFT), MHP_MERGE_RESOURCE);
  
+ 		if (ret) {
+ 			pr_err("hot_add memory failed error is %d\n", ret);
+--- a/drivers/virtio/virtio_mem.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/drivers/virtio/virtio_mem.c
+@@ -623,7 +623,7 @@ static int virtio_mem_add_memory(struct
+ 	/* Memory might get onlined immediately. */
+ 	atomic64_add(size, &vm->offline_size);
+ 	rc = add_memory_driver_managed(vm->nid, addr, size, vm->resource_name,
+-				       MEMHP_MERGE_RESOURCE);
++				       MHP_MERGE_RESOURCE);
+ 	if (rc) {
+ 		atomic64_sub(size, &vm->offline_size);
+ 		dev_warn(&vm->vdev->dev, "adding memory failed: %d\n", rc);
+--- a/drivers/xen/balloon.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/drivers/xen/balloon.c
+@@ -331,7 +331,7 @@ static enum bp_state reserve_additional_
+ 	mutex_unlock(&balloon_mutex);
+ 	/* add_memory_resource() requires the device_hotplug lock */
+ 	lock_device_hotplug();
+-	rc = add_memory_resource(nid, resource, MEMHP_MERGE_RESOURCE);
++	rc = add_memory_resource(nid, resource, MHP_MERGE_RESOURCE);
+ 	unlock_device_hotplug();
+ 	mutex_lock(&balloon_mutex);
+ 
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/include/linux/memory_hotplug.h
+@@ -53,7 +53,7 @@ typedef int __bitwise mhp_t;
+  * with this flag set, the resource pointer must no longer be used as it
+  * might be stale, or the resource might have changed.
+  */
+-#define MEMHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
++#define MHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
+ 
+ /*
+  * Extended parameters for memory hotplug:
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource
++++ a/mm/memory_hotplug.c
+@@ -1153,7 +1153,7 @@ int __ref add_memory_resource(int nid, s
+ 	 * In case we're allowed to merge the resource, flag it and trigger
+ 	 * merging now that adding succeeded.
+ 	 */
+-	if (mhp_flags & MEMHP_MERGE_RESOURCE)
++	if (mhp_flags & MHP_MERGE_RESOURCE)
+ 		merge_system_ram_resource(res);
+ 
+ 	/* online pages if requested */
 _
 
-Patches currently in -mm which might be from abaci-bugfix@linux.alibaba.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-swap_slotsc-remove-redundant-null-check.patch
-mm-memcontrol-remove-redundant-null-check.patch
-vmalloc-remove-redundant-null-check.patch
-mm-hugetlb-simplify-the-calculation-of-variables.patch
+video-fbdev-acornfb-remove-free_unused_pages.patch
+mm-simplify-free_highmem_page-and-free_reserved_page.patch
+mm-memory_hotplug-memhp_merge_resource-mhp_merge_resource.patch
 
