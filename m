@@ -7,41 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47A2EC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 23:20:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57012C433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 01:32:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B326227BF
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jan 2021 23:20:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECA2C23107
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 01:32:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732901AbhAYXTy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jan 2021 18:19:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35154 "EHLO mail.kernel.org"
+        id S1727218AbhAZBcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jan 2021 20:32:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732710AbhAYXTp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 Jan 2021 18:19:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F2913229EF;
-        Mon, 25 Jan 2021 23:19:00 +0000 (UTC)
+        id S1730587AbhAZBaK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 Jan 2021 20:30:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2EB6723102;
+        Tue, 26 Jan 2021 01:16:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611616741;
-        bh=5mvxTS2uDTKRs6w5XFMhTlPUtVzRbXOP7NVE6OrP3pY=;
+        s=korg; t=1611623771;
+        bh=GS2nMoSNAjzF6VxpDTzhtfCYPSMBlS+coViiMQABxRE=;
         h=Date:From:To:Subject:From;
-        b=jtbLGa40COr+850cjbcsBDKfJBvRU2weGycIJ4vkxFAywyCTIDDq/KwpiUHqfSoPb
-         60BFv78zvSwYDsRcDBn0J6jUREStuqTtaagzeRIzHddrqKFa2+J97qQbt1GxT/YVS+
-         jl6BuS9pphDIzz2oeYbQvX09a2vB2rcEG8net2JI=
-Date:   Mon, 25 Jan 2021 15:19:00 -0800
+        b=IxEabSWInnAOeXJ+BG1HZTVbdLxdiKitSc+W/mSG2M8AMsMBqGNdYVmZ7SZO2pLm/
+         /SBtv6kwBFhsx2Vc2yQEGHKM8DtWVaYfr5Jt0civ4Eq34or8eBrZxi+K+r5VvUwNwq
+         yjnjfG9c2mYzHKHjZLRGfTPpRYr9ibTKYx/UEsvY=
+Date:   Mon, 25 Jan 2021 17:16:10 -0800
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, hannes@cmpxchg.org,
-        linmiaohe@huawei.com, longman@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, smuchun@gmail.com,
-        stable@vger.kernel.org, willy@infradead.org
-Subject:  +
- =?US-ASCII?Q?mm-filemap-adding-missing-mem=5Fcgroup=5Funcharge-to-?=
- =?US-ASCII?Q?=5F=5Fadd=5Fto=5Fpage=5Fcache=5Flocked.patch?= added to -mm
- tree
-Message-ID: <20210125231900.aBuUkBskf%akpm@linux-foundation.org>
+To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stephenzhangzsd@gmail.com
+Subject:  [to-be-updated] mm-memfd-replace-strcpy-by-strscpy.patch
+ removed from -mm tree
+Message-ID: <20210126011610.YHIacaS57%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,128 +43,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: add missing mem_cgroup_uncharge() to __add_to_page_cache_locked()
-has been added to the -mm tree.  Its filename is
-     mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked.patch
+     Subject: mm/memfd: replace strcpy() by strscpy()
+has been removed from the -mm tree.  Its filename was
+     mm-memfd-replace-strcpy-by-strscpy.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/filemap: add missing mem_cgroup_uncharge() to __add_to_page_cache_locked()
+From: Stephen Zhang <stephenzhangzsd@gmail.com>
+Subject: mm/memfd: replace strcpy() by strscpy()
 
-commit 3fea5a499d57 ("mm: memcontrol: convert page cache to a new
-mem_cgroup_charge() API") introduced a bug in __add_to_page_cache_locked()
-causing the following splat:
+strcpy() is being deprecated.  Replace it with the safer strscpy().
 
- [ 1570.068330] page dumped because: VM_BUG_ON_PAGE(page_memcg(page))
- [ 1570.068333] pages's memcg:ffff8889a4116000
- [ 1570.068343] ------------[ cut here ]------------
- [ 1570.068346] kernel BUG at mm/memcontrol.c:2924!
- [ 1570.068355] invalid opcode: 0000 [#1] SMP KASAN PTI
- [ 1570.068359] CPU: 35 PID: 12345 Comm: cat Tainted: G S      W I       5.11.0-rc4-debug+ #1
- [ 1570.068363] Hardware name: HP HP Z8 G4 Workstation/81C7, BIOS P60 v01.25 12/06/2017
- [ 1570.068365] RIP: 0010:commit_charge+0xf4/0x130
-   :
- [ 1570.068375] RSP: 0018:ffff8881b38d70e8 EFLAGS: 00010286
- [ 1570.068379] RAX: 0000000000000000 RBX: ffffea00260ddd00 RCX: 0000000000000027
- [ 1570.068382] RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff88907ebe05a8
- [ 1570.068384] RBP: ffffea00260ddd00 R08: ffffed120fd7c0b6 R09: ffffed120fd7c0b6
- [ 1570.068386] R10: ffff88907ebe05ab R11: ffffed120fd7c0b5 R12: ffffea00260ddd38
- [ 1570.068389] R13: ffff8889a4116000 R14: ffff8889a4116000 R15: 0000000000000001
- [ 1570.068391] FS:  00007ff039638680(0000) GS:ffff88907ea00000(0000) knlGS:0000000000000000
- [ 1570.068394] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- [ 1570.068396] CR2: 00007f36f354cc20 CR3: 00000008a0126006 CR4: 00000000007706e0
- [ 1570.068398] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- [ 1570.068400] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- [ 1570.068402] PKRU: 55555554
- [ 1570.068404] Call Trace:
- [ 1570.068407]  mem_cgroup_charge+0x175/0x770
- [ 1570.068413]  __add_to_page_cache_locked+0x712/0xad0
- [ 1570.068439]  add_to_page_cache_lru+0xc5/0x1f0
- [ 1570.068461]  cachefiles_read_or_alloc_pages+0x895/0x2e10 [cachefiles]
- [ 1570.068524]  __fscache_read_or_alloc_pages+0x6c0/0xa00 [fscache]
- [ 1570.068540]  __nfs_readpages_from_fscache+0x16d/0x630 [nfs]
- [ 1570.068585]  nfs_readpages+0x24e/0x540 [nfs]
- [ 1570.068693]  read_pages+0x5b1/0xc40
- [ 1570.068711]  page_cache_ra_unbounded+0x460/0x750
- [ 1570.068729]  generic_file_buffered_read_get_pages+0x290/0x1710
- [ 1570.068756]  generic_file_buffered_read+0x2a9/0xc30
- [ 1570.068832]  nfs_file_read+0x13f/0x230 [nfs]
- [ 1570.068872]  new_sync_read+0x3af/0x610
- [ 1570.068901]  vfs_read+0x339/0x4b0
- [ 1570.068909]  ksys_read+0xf1/0x1c0
- [ 1570.068920]  do_syscall_64+0x33/0x40
- [ 1570.068926]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
- [ 1570.068930] RIP: 0033:0x7ff039135595
-
-Before that commit, there was a try_charge() and commit_charge() in
-__add_to_page_cache_locked().  These 2 separated charge functions were
-replaced by a single mem_cgroup_charge().  However, it forgot to add a
-matching mem_cgroup_uncharge() when the xarray insertion failed with the
-page released back to the pool.  Fix this by adding a
-mem_cgroup_uncharge() call when insertion error happens.
-
-Link: https://lkml.kernel.org/r/20210125042441.20030-1-longman@redhat.com
-Fixes: 3fea5a499d57 ("mm: memcontrol: convert page cache to a new mem_cgroup_charge() API")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <smuchun@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1611455017-2210-1-git-send-email-stephenzhangzsd@gmail.com
+Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked
-+++ a/mm/filemap.c
-@@ -835,6 +835,7 @@ noinline int __add_to_page_cache_locked(
- 	XA_STATE(xas, &mapping->i_pages, offset);
- 	int huge = PageHuge(page);
- 	int error;
-+	bool charged = false;
+--- a/mm/memfd.c~mm-memfd-replace-strcpy-by-strscpy
++++ a/mm/memfd.c
+@@ -278,7 +278,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 	if (!name)
+ 		return -ENOMEM;
  
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
-@@ -848,6 +849,7 @@ noinline int __add_to_page_cache_locked(
- 		error = mem_cgroup_charge(page, current->mm, gfp);
- 		if (error)
- 			goto error;
-+		charged = true;
- 	}
- 
- 	gfp &= GFP_RECLAIM_MASK;
-@@ -896,6 +898,8 @@ unlock:
- 
- 	if (xas_error(&xas)) {
- 		error = xas_error(&xas);
-+		if (charged)
-+			mem_cgroup_uncharge(page);
- 		goto error;
- 	}
- 
+-	strcpy(name, MFD_NAME_PREFIX);
++	strscpy(name, MFD_NAME_PREFIX, len + MFD_NAME_PREFIX_LEN);
+ 	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
+ 		error = -EFAULT;
+ 		goto err_name;
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from stephenzhangzsd@gmail.com are
 
-mm-filemap-adding-missing-mem_cgroup_uncharge-to-__add_to_page_cache_locked.patch
+mm-swapfilec-fix-debugging-information-problem.patch
+mm-early_ioremapc-use-__func__-instead-of-function-name.patch
 
