@@ -7,34 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57012C433DB
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 01:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E88C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:17:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECA2C23107
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 01:32:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2851E20732
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:17:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727218AbhAZBcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jan 2021 20:32:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59622 "EHLO mail.kernel.org"
+        id S1726913AbhAZFRh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:17:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730587AbhAZBaK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 Jan 2021 20:30:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2EB6723102;
-        Tue, 26 Jan 2021 01:16:11 +0000 (UTC)
+        id S1726711AbhAZB2K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 Jan 2021 20:28:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7351F23109;
+        Tue, 26 Jan 2021 01:27:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611623771;
-        bh=GS2nMoSNAjzF6VxpDTzhtfCYPSMBlS+coViiMQABxRE=;
+        s=korg; t=1611624450;
+        bh=hQYb+AfRG4Gb6CILMMYW6l6zWAtVSTVdWPizaupk6wQ=;
         h=Date:From:To:Subject:From;
-        b=IxEabSWInnAOeXJ+BG1HZTVbdLxdiKitSc+W/mSG2M8AMsMBqGNdYVmZ7SZO2pLm/
-         /SBtv6kwBFhsx2Vc2yQEGHKM8DtWVaYfr5Jt0civ4Eq34or8eBrZxi+K+r5VvUwNwq
-         yjnjfG9c2mYzHKHjZLRGfTPpRYr9ibTKYx/UEsvY=
-Date:   Mon, 25 Jan 2021 17:16:10 -0800
+        b=O/7YWNgeCsCqcEs6hEM/9HViPkwe+RdRdwYTPsV6UgAbCpJdtyQk5FW1UchVzJhFK
+         gwUPY2ZszgagKALhvfaxfodeZb3PkSbJq7FINbTVHhdfYAHWDkyGhJALlVOb1WPA7/
+         kRiXoQ/cGY2gE+v28/N+KOMp1aq7hZeMbjKkjIjY=
+Date:   Mon, 25 Jan 2021 17:27:28 -0800
 From:   akpm@linux-foundation.org
-To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        stephenzhangzsd@gmail.com
-Subject:  [to-be-updated] mm-memfd-replace-strcpy-by-strscpy.patch
- removed from -mm tree
-Message-ID: <20210126011610.YHIacaS57%akpm@linux-foundation.org>
+To:     areber@redhat.com, christian.brauner@ubuntu.com, hulkci@huawei.com,
+        liao.pingfang@zte.com.cn, linux@rasmusvillemoes.dk,
+        mchristi@redhat.com, mm-commits@vger.kernel.org,
+        Nicolas.Viennot@twosigma.com, tglx@linutronix.de,
+        thomascedeno@google.com, viresh.kumar@linaro.org,
+        viro@zeniv.linux.org.uk, zou_wei@huawei.com
+Subject:  [failures]
+ kernel-sysc-remove-unused-including-linux-versionh.patch removed from -mm
+ tree
+Message-ID: <20210126012728.eFbVmEib5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,42 +48,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memfd: replace strcpy() by strscpy()
+     Subject: kernel/sys.c: Remove unused including <linux/version.h>
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-replace-strcpy-by-strscpy.patch
+     kernel-sysc-remove-unused-including-linux-versionh.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Stephen Zhang <stephenzhangzsd@gmail.com>
-Subject: mm/memfd: replace strcpy() by strscpy()
+From: Zou Wei <zou_wei@huawei.com>
+Subject: kernel/sys.c: Remove unused including <linux/version.h>
 
-strcpy() is being deprecated.  Replace it with the safer strscpy().
+Fix the following versioncheck warning:
 
-Link: https://lkml.kernel.org/r/1611455017-2210-1-git-send-email-stephenzhangzsd@gmail.com
-Signed-off-by: Stephen Zhang <stephenzhangzsd@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+kernel/sys.c:42:1: unused including <linux/version.h>
+
+Link: https://lkml.kernel.org/r/1611578869-43453-1-git-send-email-zou_wei@huawei.com
+Signed-off-by: Zou Wei <zou_wei@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Thomas Cedeno <thomascedeno@google.com>
+Cc: Nicolas Viennot <Nicolas.Viennot@twosigma.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Liao Pingfang <liao.pingfang@zte.com.cn>
+Cc: Mike Christie <mchristi@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memfd.c~mm-memfd-replace-strcpy-by-strscpy
-+++ a/mm/memfd.c
-@@ -278,7 +278,7 @@ SYSCALL_DEFINE2(memfd_create,
- 	if (!name)
- 		return -ENOMEM;
+--- a/kernel/sys.c~kernel-sysc-remove-unused-including-linux-versionh
++++ a/kernel/sys.c
+@@ -40,7 +40,6 @@
+ #include <linux/mount.h>
+ #include <linux/gfp.h>
+ #include <linux/syscore_ops.h>
+-#include <linux/version.h>
+ #include <linux/ctype.h>
+ #include <linux/syscall_user_dispatch.h>
  
--	strcpy(name, MFD_NAME_PREFIX);
-+	strscpy(name, MFD_NAME_PREFIX, len + MFD_NAME_PREFIX_LEN);
- 	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
- 		error = -EFAULT;
- 		goto err_name;
 _
 
-Patches currently in -mm which might be from stephenzhangzsd@gmail.com are
+Patches currently in -mm which might be from zou_wei@huawei.com are
 
-mm-swapfilec-fix-debugging-information-problem.patch
-mm-early_ioremapc-use-__func__-instead-of-function-name.patch
 
