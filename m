@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C091C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13015C433E0
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:18:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE74C20732
+	by mail.kernel.org (Postfix) with ESMTP id D29562053B
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730995AbhAZFRq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:17:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33744 "EHLO mail.kernel.org"
+        id S1730808AbhAZFRo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:17:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730994AbhAZBuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730995AbhAZBuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 25 Jan 2021 20:50:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1ED2522DFB;
-        Tue, 26 Jan 2021 00:32:16 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF8EF22DD6;
+        Tue, 26 Jan 2021 00:32:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611621136;
-        bh=DFwiLydcn2ocvTUIBTk0RR8Nf3hO5sU5Yw5BzNSZXz0=;
+        s=korg; t=1611621127;
+        bh=w0biTjlw/PmzE0eJ/Va2hWhm/sZXMaV/DNqu2Wbjx78=;
         h=Date:From:To:Subject:From;
-        b=i2bcEMtE+pahjhRngh9H9qhs+IJaYSQ+R2u9NEZ1/eMr1VLOkQWS7ZWqkmWv/lqWu
-         XeWC4qr+C+0QoKX/37stWsOXsPuPvuqZxLsuugNTX7BAkFQNQNyd5lWlQO+1PRdzIV
-         4p4+tYv4xZZlwxgr5OlWZfjZ3uyw4Zfn6zqeMxoQ=
-Date:   Mon, 25 Jan 2021 16:32:15 -0800
+        b=LQep7jut/7lf5rEmIIk9M40WuyhCkWnj8+isZ68ZTPbS6r+wjZxrU8hpt8p4VWgF2
+         HyHM+wMyi50NRxPo2vLyHMhdp3idPifIWfy4xEldG4Veg8bagOgK/kmP/2J2bJEpwF
+         ieRdPV+slvVcNfUQwIo+pUbxEOkxcG4tBAgsP+Ks=
+Date:   Mon, 25 Jan 2021 16:32:06 -0800
 From:   akpm@linux-foundation.org
 To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org
-Subject:  + mm-hugetlb-refactor-subpage-recording.patch added to
- -mm tree
-Message-ID: <20210126003215.HjTYNZiB_%akpm@linux-foundation.org>
+Subject:  +
+ mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch added
+ to -mm tree
+Message-ID: <20210126003206.ZNOHEhYko%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: refactor subpage recording
+     Subject: mm/hugetlb: grab head page refcount once per group of subpages
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-refactor-subpage-recording.patch
+     mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-refactor-subpage-recording.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-refactor-subpage-recording.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,118 +66,151 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/hugetlb: refactor subpage recording
+Subject: mm/hugetlb: grab head page refcount once per group of subpages
 
-For a given hugepage backing a VA, there's a rather ineficient
-loop which is solely responsible for storing subpages in the passed
-pages/vmas array. For each subpage we check whether it's within
-range or size of @pages and keep incrementing @pfn_offset and a couple
-other variables per subpage iteration.
+Patch series "mm/hugetlb: follow_hugetlb_page() improvements".
 
-Simplify this logic and minimize ops per iteration to just
-store the output page/vma. Instead of incrementing number of @refs
-iteratively, we do it through a precalculation of @refs and having
-only a tight loop for storing pinned subpages/vmas.
+While looking at ZONE_DEVICE struct page reuse particularly the last
+patch[0], I found two possible improvements for follow_hugetlb_page()
+which is solely used for get_user_pages()/pin_user_pages().
 
-pinning consequently improves considerably, bringing us close to
-{pin,get}_user_pages_fast:
+The first patch batches page refcount updates while the second tidies
+up storing the subpages/vmas. Both together bring the cost of slow
+variant of gup() cost from ~86k usecs to ~4.4k usecs.
+
+libhugetlbfs tests seem to pass as well gup_test benchmarks
+with hugetlbfs vmas.
+
+
+This patch (of 2):
+
+follow_hugetlb_page() once it locks the pmd/pud, it checks all the
+subpages in a huge page and grabs a reference for each one, depending on
+how many pages we can store or the size of va range.  Similar to gup-fast,
+have follow_hugetlb_page() grab the head page refcount only after counting
+all its subpages that are part of the just faulted huge page.
+
+Consequently we reduce the number of atomics necessary to pin
+said huge page, which improves non-fast gup() considerably:
 
  - 16G with 1G huge page size
  gup_test -f /mnt/huge/file -m 16384 -r 10 -L -S -n 512 -w
 
- PIN_LONGTERM_BENCHMARK: ~11k us -> ~4400 us
- PIN_FAST_BENCHMARK: ~3700 us
+ PIN_LONGTERM_BENCHMARK: ~87.6k us -> ~11k us
 
-Link: https://lkml.kernel.org/r/20210125205744.10203-3-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20210125205744.10203-1-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20210125205744.10203-2-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   49 ++++++++++++++++++++++++++++---------------------
- 1 file changed, 28 insertions(+), 21 deletions(-)
+ include/linux/mm.h |    3 +++
+ mm/gup.c           |    5 ++---
+ mm/hugetlb.c       |   43 ++++++++++++++++++++++++-------------------
+ 3 files changed, 29 insertions(+), 22 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-refactor-subpage-recording
-+++ a/mm/hugetlb.c
-@@ -4789,6 +4789,20 @@ out_release_nounlock:
- 	goto out;
+--- a/include/linux/mm.h~mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages
++++ a/include/linux/mm.h
+@@ -1181,6 +1181,9 @@ static inline void get_page(struct page
  }
  
-+static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
-+				 int refs, struct page **pages,
-+				 struct vm_area_struct **vmas)
-+{
-+	int nr;
+ bool __must_check try_grab_page(struct page *page, unsigned int flags);
++__maybe_unused struct page *try_grab_compound_head(struct page *page, int refs,
++						   unsigned int flags);
 +
-+	for (nr = 0; nr < refs; nr++) {
-+		if (likely(pages))
-+			pages[nr] = page++;
-+		if (vmas)
-+			vmas[nr] = vma;
-+	}
-+}
-+
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			 struct page **pages, struct vm_area_struct **vmas,
- 			 unsigned long *position, unsigned long *nr_pages,
-@@ -4918,28 +4932,16 @@ long follow_hugetlb_page(struct mm_struc
+ 
+ static inline __must_check bool try_get_page(struct page *page)
+ {
+--- a/mm/gup.c~mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages
++++ a/mm/gup.c
+@@ -78,9 +78,8 @@ static inline struct page *try_get_compo
+  * considered failure, and furthermore, a likely bug in the caller, so a warning
+  * is also emitted.
+  */
+-static __maybe_unused struct page *try_grab_compound_head(struct page *page,
+-							  int refs,
+-							  unsigned int flags)
++__maybe_unused struct page *try_grab_compound_head(struct page *page,
++						   int refs, unsigned int flags)
+ {
+ 	if (flags & FOLL_GET)
+ 		return try_get_compound_head(page, refs);
+--- a/mm/hugetlb.c~mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages
++++ a/mm/hugetlb.c
+@@ -4798,7 +4798,7 @@ long follow_hugetlb_page(struct mm_struc
+ 	unsigned long vaddr = *position;
+ 	unsigned long remainder = *nr_pages;
+ 	struct hstate *h = hstate_vma(vma);
+-	int err = -EFAULT;
++	int err = -EFAULT, refs;
+ 
+ 	while (vaddr < vma->vm_end && remainder) {
+ 		pte_t *pte;
+@@ -4918,26 +4918,11 @@ long follow_hugetlb_page(struct mm_struc
  			continue;
  		}
  
--		refs = 0;
-+		refs = min3(pages_per_huge_page(h) - pfn_offset,
-+			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
- 
--same_page:
--		if (pages)
--			pages[i] = mem_map_offset(page, pfn_offset);
-+		if (pages || vmas)
-+			record_subpages_vmas(mem_map_offset(page, pfn_offset),
-+					     vma, refs,
-+					     likely(pages) ? pages + i : NULL,
-+					     vmas ? vmas + i : NULL);
- 
--		if (vmas)
--			vmas[i] = vma;
--
--		vaddr += PAGE_SIZE;
--		++pfn_offset;
--		--remainder;
--		++i;
--		refs++;
--		if (vaddr < vma->vm_end && remainder &&
--				pfn_offset < pages_per_huge_page(h)) {
++		refs = 0;
++
+ same_page:
+-		if (pages) {
++		if (pages)
+ 			pages[i] = mem_map_offset(page, pfn_offset);
 -			/*
--			 * We use pfn_offset to avoid touching the pageframes
--			 * of this compound page.
+-			 * try_grab_page() should always succeed here, because:
+-			 * a) we hold the ptl lock, and b) we've just checked
+-			 * that the huge page is present in the page tables. If
+-			 * the huge page is present, then the tail pages must
+-			 * also be present. The ptl prevents the head page and
+-			 * tail pages from being rearranged in any way. So this
+-			 * page must be available at this point, unless the page
+-			 * refcount overflowed:
 -			 */
--			goto same_page;
--		} else if (pages) {
-+		if (pages) {
+-			if (WARN_ON_ONCE(!try_grab_page(pages[i], flags))) {
+-				spin_unlock(ptl);
+-				remainder = 0;
+-				err = -ENOMEM;
+-				break;
+-			}
+-		}
+ 
+ 		if (vmas)
+ 			vmas[i] = vma;
+@@ -4946,6 +4931,7 @@ same_page:
+ 		++pfn_offset;
+ 		--remainder;
+ 		++i;
++		refs++;
+ 		if (vaddr < vma->vm_end && remainder &&
+ 				pfn_offset < pages_per_huge_page(h)) {
  			/*
- 			 * try_grab_compound_head() should always succeed here,
- 			 * because: a) we hold the ptl lock, and b) we've just
-@@ -4950,7 +4952,7 @@ same_page:
- 			 * any way. So this page must be available at this
- 			 * point, unless the page refcount overflowed:
+@@ -4953,6 +4939,25 @@ same_page:
+ 			 * of this compound page.
  			 */
--			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
-+			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i],
- 								 refs,
- 								 flags))) {
- 				spin_unlock(ptl);
-@@ -4959,6 +4961,11 @@ same_page:
- 				break;
- 			}
+ 			goto same_page;
++		} else if (pages) {
++			/*
++			 * try_grab_compound_head() should always succeed here,
++			 * because: a) we hold the ptl lock, and b) we've just
++			 * checked that the huge page is present in the page
++			 * tables. If the huge page is present, then the tail
++			 * pages must also be present. The ptl prevents the
++			 * head page and tail pages from being rearranged in
++			 * any way. So this page must be available at this
++			 * point, unless the page refcount overflowed:
++			 */
++			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
++								 refs,
++								 flags))) {
++				spin_unlock(ptl);
++				remainder = 0;
++				err = -ENOMEM;
++				break;
++			}
  		}
-+
-+		vaddr += (refs << PAGE_SHIFT);
-+		remainder -= refs;
-+		i += refs;
-+
  		spin_unlock(ptl);
  	}
- 	*nr_pages = remainder;
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
