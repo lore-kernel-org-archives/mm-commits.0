@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF4FC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 652CCC43381
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 21310206CB
+	by mail.kernel.org (Postfix) with ESMTP id 397C6206CC
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbhA0Csl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 21:48:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60210 "EHLO mail.kernel.org"
+        id S231126AbhA0Csj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 21:48:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390340AbhAZTq7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 14:46:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 51B9F221FC;
-        Tue, 26 Jan 2021 19:46:18 +0000 (UTC)
+        id S2404074AbhAZTjO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 14:39:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A7FDB207C8;
+        Tue, 26 Jan 2021 19:38:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611690378;
-        bh=oidb4E6nncVTtjmMwOyYtG12PF5U+lwUY4QXsRpvxUU=;
+        s=korg; t=1611689913;
+        bh=KRUlM3ZA1gToOXxg/JkYCvWhOK5sJ47IvcVLIihDSIE=;
         h=Date:From:To:Subject:From;
-        b=eYO6gBX2qObHxeFwWsXTwtCiTP76gKNLO99x2bIYLn4JGpEguM26Vw0FDCJRGhZ0t
-         ef5td53W+/r91fqfvWfPvCEi3qxRlqXm5gvvdwriOm4t5/0eQ71xinEWUTGq+wKPPZ
-         rE6HOd8lth0esCYWO2Wgnx1pYhD+lvlTS2bJR9Bs=
-Date:   Tue, 26 Jan 2021 11:46:17 -0800
+        b=zcwiF5Lbd67L85o6/R+JnVjuAv67BwMG9JWU5RoyFcJlTHIpwmW5HNV7UknFiNN0L
+         wbx8l9ARbEf64i/v+BPuQ+KsvmCQ8c4c2iaS8v8q33UqfXqO3/ivZIjeaer+Vz6jpg
+         jjGSkNaGxyts7xLFAxouVHt3N+x8q8UhDMa5r1Uo=
+Date:   Tue, 26 Jan 2021 11:38:33 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
-        catalin.marinas@arm.com, dvyukov@google.com, glider@google.com,
-        leonro@mellanox.com, mark.rutland@arm.com,
-        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        paulmck@kernel.org, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-add-explicit-preconditions-to-kasan_report.patch
- added to -mm tree
-Message-ID: <20210126194617.D_MCPYFZF%akpm@linux-foundation.org>
+To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  [to-be-updated]
+ mm-hugetlb-refactor-subpage-recording.patch removed from -mm tree
+Message-ID: <20210126193833.jQmHRI0Y3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,129 +43,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add explicit preconditions to kasan_report()
-has been added to the -mm tree.  Its filename is
-     kasan-add-explicit-preconditions-to-kasan_report.patch
+     Subject: mm/hugetlb: refactor subpage recording
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-refactor-subpage-recording.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-explicit-preconditions-to-kasan_report.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-explicit-preconditions-to-kasan_report.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: kasan: add explicit preconditions to kasan_report()
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: refactor subpage recording
 
-Patch series "kasan: Fix metadata detection for KASAN_HW_TAGS", v5.
+For a given hugepage backing a VA, there's a rather ineficient
+loop which is solely responsible for storing subpages in the passed
+pages/vmas array. For each subpage we check whether it's within
+range or size of @pages and keep incrementing @pfn_offset and a couple
+other variables per subpage iteration.
 
-With the introduction of KASAN_HW_TAGS, kasan_report() currently assumes
-that every location in memory has valid metadata associated.  This is due
-to the fact that addr_has_metadata() returns always true.
+Simplify this logic and minimize ops per iteration to just
+store the output page/vma. Instead of incrementing number of @refs
+iteratively, we do it through a precalculation of @refs and having
+only a tight loop for storing pinned subpages/vmas.
 
-As a consequence of this, an invalid address (e.g.  NULL pointer address)
-passed to kasan_report() when KASAN_HW_TAGS is enabled, leads to a kernel
-panic.
+pinning consequently improves considerably, bringing us close to
+{pin,get}_user_pages_fast:
 
-Example below, based on arm64:
+ - 16G with 1G huge page size
+ gup_test -f /mnt/huge/file -m 16384 -r 10 -L -S -n 512 -w
 
- ==================================================================
- BUG: KASAN: invalid-access in 0x0
- Read at addr 0000000000000000 by task swapper/0/1
- Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
- Mem abort info:
-   ESR = 0x96000004
-   EC = 0x25: DABT (current EL), IL = 32 bits
-   SET = 0, FnV = 0
-   EA = 0, S1PTW = 0
- Data abort info:
-   ISV = 0, ISS = 0x00000004
-   CM = 0, WnR = 0
+ PIN_LONGTERM_BENCHMARK: ~11k us -> ~4400 us
+ PIN_FAST_BENCHMARK: ~3700 us
 
-...
-
- Call trace:
-  mte_get_mem_tag+0x24/0x40
-  kasan_report+0x1a4/0x410
-  alsa_sound_last_init+0x8c/0xa4
-  do_one_initcall+0x50/0x1b0
-  kernel_init_freeable+0x1d4/0x23c
-  kernel_init+0x14/0x118
-  ret_from_fork+0x10/0x34
- Code: d65f03c0 9000f021 f9428021 b6cfff61 (d9600000)
- ---[ end trace 377c8bb45bdd3a1a ]---
- hrtimer: interrupt took 48694256 ns
- note: swapper/0[1] exited with preempt_count 1
- Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
- SMP: stopping secondary CPUs
- Kernel Offset: 0x35abaf140000 from 0xffff800010000000
- PHYS_OFFSET: 0x40000000
- CPU features: 0x0a7e0152,61c0a030
- Memory Limit: none
- ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b ]---
-
-This series fixes the behavior of addr_has_metadata() that now returns
-true only when the address is valid.
-
-
-This patch (of 2):
-
-With the introduction of KASAN_HW_TAGS, kasan_report() accesses the
-metadata only when addr_has_metadata() succeeds.
-
-Add a comment to make sure that the preconditions to the function are
-explicitly clarified.
-
-Link: https://lkml.kernel.org/r/20210126134409.47894-1-vincenzo.frascino@arm.com
-Link: https://lkml.kernel.org/r/20210126134409.47894-2-vincenzo.frascino@arm.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+Link: https://lkml.kernel.org/r/20210125205744.10203-3-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/hugetlb.c |   49 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 21 deletions(-)
 
---- a/include/linux/kasan.h~kasan-add-explicit-preconditions-to-kasan_report
-+++ a/include/linux/kasan.h
-@@ -333,6 +333,13 @@ static inline void *kasan_reset_tag(cons
- 	return (void *)arch_kasan_reset_tag(addr);
+--- a/mm/hugetlb.c~mm-hugetlb-refactor-subpage-recording
++++ a/mm/hugetlb.c
+@@ -4789,6 +4789,20 @@ out_release_nounlock:
+ 	goto out;
  }
  
-+/**
-+ * kasan_report - print a report about a bad memory access detected by KASAN
-+ * @addr: address of the bad access
-+ * @size: size of the bad access
-+ * @is_write: whether the bad access is a write or a read
-+ * @ip: instruction pointer for the accessibility check or the bad access itself
-+ */
- bool kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
++static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
++				 int refs, struct page **pages,
++				 struct vm_area_struct **vmas)
++{
++	int nr;
++
++	for (nr = 0; nr < refs; nr++) {
++		if (likely(pages))
++			pages[nr] = page++;
++		if (vmas)
++			vmas[nr] = vma;
++	}
++}
++
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
+@@ -4918,28 +4932,16 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
  
+-		refs = 0;
++		refs = min3(pages_per_huge_page(h) - pfn_offset,
++			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
+ 
+-same_page:
+-		if (pages)
+-			pages[i] = mem_map_offset(page, pfn_offset);
++		if (pages || vmas)
++			record_subpages_vmas(mem_map_offset(page, pfn_offset),
++					     vma, refs,
++					     likely(pages) ? pages + i : NULL,
++					     vmas ? vmas + i : NULL);
+ 
+-		if (vmas)
+-			vmas[i] = vma;
+-
+-		vaddr += PAGE_SIZE;
+-		++pfn_offset;
+-		--remainder;
+-		++i;
+-		refs++;
+-		if (vaddr < vma->vm_end && remainder &&
+-				pfn_offset < pages_per_huge_page(h)) {
+-			/*
+-			 * We use pfn_offset to avoid touching the pageframes
+-			 * of this compound page.
+-			 */
+-			goto same_page;
+-		} else if (pages) {
++		if (pages) {
+ 			/*
+ 			 * try_grab_compound_head() should always succeed here,
+ 			 * because: a) we hold the ptl lock, and b) we've just
+@@ -4950,7 +4952,7 @@ same_page:
+ 			 * any way. So this page must be available at this
+ 			 * point, unless the page refcount overflowed:
+ 			 */
+-			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
++			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i],
+ 								 refs,
+ 								 flags))) {
+ 				spin_unlock(ptl);
+@@ -4959,6 +4961,11 @@ same_page:
+ 				break;
+ 			}
+ 		}
++
++		vaddr += (refs << PAGE_SHIFT);
++		remainder -= refs;
++		i += refs;
++
+ 		spin_unlock(ptl);
+ 	}
+ 	*nr_pages = remainder;
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-kasan-add-explicit-preconditions-to-kasan_report.patch
-kasan-make-addr_has_metadata-return-true-for-valid-addresses.patch
 
