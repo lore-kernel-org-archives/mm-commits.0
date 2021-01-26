@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19131C4361A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 032CAC4360C
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA76B206D8
+	by mail.kernel.org (Postfix) with ESMTP id D43E1206C3
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231145AbhA0Csi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 21:48:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59044 "EHLO mail.kernel.org"
+        id S231153AbhA0Csj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 21:48:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403914AbhAZTiV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 14:38:21 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2603A2223D;
-        Tue, 26 Jan 2021 19:37:40 +0000 (UTC)
+        id S2403924AbhAZTi3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 14:38:29 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AE2C22A84;
+        Tue, 26 Jan 2021 19:37:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611689860;
-        bh=axqVJCLyQf/aKVRr6BzixjS9ELGle2AXyXPbsxQWD3Q=;
+        s=korg; t=1611689863;
+        bh=c9qRByeX+Ol3NGARNxooofr+f4irDzvea/KQaNwy+Vs=;
         h=Date:From:To:Subject:From;
-        b=NpFd3MUg/8WEmONg/hmbXfw4A3dW0ZTHctw8vhD8crR7/GIyTykrLTKLsEZexYErh
-         SXsP6w0CbeOkFHlOz5DVPdapEeSl0Atb7siSKIx6gfTQdXFBnR+TVL7vmKWEyknRfJ
-         Ukgrm8v88LcEjax9YlGdpEpQDYmNGAMsn19CdS7k=
-Date:   Tue, 26 Jan 2021 11:37:39 -0800
+        b=zouacwRHWcOCqP6+VFeONuF8osA3S0wNgr7glaibkXX8QN7fUaUDUOZ4uEPtJMWxo
+         buqEv0Wj1fu7Z6zX3n80qyotSzfvKOnHr2CNsBumd4oGmoCJ4LaMa//u0c3FWgDbLi
+         0sg3SwVlVN0gDP+AJEhj2fEvWti5lDJOUEpFnqCA=
+Date:   Tue, 26 Jan 2021 11:37:42 -0800
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, gustavoars@kernel.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, osalvador@suse.de,
         peterz@infradead.org, richard.weiyang@linux.alibaba.com,
         rppt@kernel.org, sam@ravnborg.org, tglx@linutronix.de
-Subject:  + video-fbdev-acornfb-remove-free_unused_pages.patch
- added to -mm tree
-Message-ID: <20210126193739.3cvdiBU0d%akpm@linux-foundation.org>
+Subject:  +
+ mm-simplify-free_highmem_page-and-free_reserved_page.patch added to -mm
+ tree
+Message-ID: <20210126193742.Wt7JdLcG7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: fbdev: acornfb: remove free_unused_pages()
+     Subject: mm: simplify free_highmem_page() and free_reserved_page()
 has been added to the -mm tree.  Its filename is
-     video-fbdev-acornfb-remove-free_unused_pages.patch
+     mm-simplify-free_highmem_page-and-free_reserved_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/video-fbdev-acornfb-remove-free_unused_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-free_highmem_page-and-free_reserved_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/video-fbdev-acornfb-remove-free_unused_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-free_highmem_page-and-free_reserved_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,20 +68,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: video: fbdev: acornfb: remove free_unused_pages()
+Subject: mm: simplify free_highmem_page() and free_reserved_page()
 
-Patch series "mm: simplify free_highmem_page() and free_reserved_page()".
+adjust_managed_page_count() as called by free_reserved_page() properly
+handles pages in a highmem zone, so we can reuse it for
+free_highmem_page().
 
-Let's simplify and unify free_highmem_page() and free_reserved_page().
+We can now get rid of totalhigh_pages_inc() and simplify
+free_reserved_page().
 
-
-This patch (of 2):
-
-This function is never used and it is one of the last remaining user of
-__free_reserved_page().  Let's just drop it.
-
-Link: https://lkml.kernel.org/r/20210126182113.19892-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20210126182113.19892-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20210126182113.19892-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
@@ -93,52 +90,82 @@ Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/acornfb.c |   34 --------------------------------
- 1 file changed, 34 deletions(-)
+ include/linux/highmem-internal.h |    5 -----
+ include/linux/mm.h               |   16 ++--------------
+ mm/page_alloc.c                  |   11 -----------
+ 3 files changed, 2 insertions(+), 30 deletions(-)
 
---- a/drivers/video/fbdev/acornfb.c~video-fbdev-acornfb-remove-free_unused_pages
-+++ a/drivers/video/fbdev/acornfb.c
-@@ -921,40 +921,6 @@ static int acornfb_detect_monitortype(vo
- 	return 4;
+--- a/include/linux/highmem-internal.h~mm-simplify-free_highmem_page-and-free_reserved_page
++++ a/include/linux/highmem-internal.h
+@@ -127,11 +127,6 @@ static inline unsigned long totalhigh_pa
+ 	return (unsigned long)atomic_long_read(&_totalhigh_pages);
  }
  
--/*
-- * This enables the unused memory to be freed on older Acorn machines.
-- * We are freeing memory on behalf of the architecture initialisation
-- * code here.
-- */
--static inline void
--free_unused_pages(unsigned int virtual_start, unsigned int virtual_end)
+-static inline void totalhigh_pages_inc(void)
 -{
--	int mb_freed = 0;
--
--	/*
--	 * Align addresses
--	 */
--	virtual_start = PAGE_ALIGN(virtual_start);
--	virtual_end = PAGE_ALIGN(virtual_end);
--
--	while (virtual_start < virtual_end) {
--		struct page *page;
--
--		/*
--		 * Clear page reserved bit,
--		 * set count to 1, and free
--		 * the page.
--		 */
--		page = virt_to_page(virtual_start);
--		__free_reserved_page(page);
--
--		virtual_start += PAGE_SIZE;
--		mb_freed += PAGE_SIZE / 1024;
--	}
--
--	printk("acornfb: freed %dK memory\n", mb_freed);
+-	atomic_long_inc(&_totalhigh_pages);
 -}
 -
- static int acornfb_probe(struct platform_device *dev)
+ static inline void totalhigh_pages_add(long count)
  {
- 	unsigned long size;
+ 	atomic_long_add(count, &_totalhigh_pages);
+--- a/include/linux/mm.h~mm-simplify-free_highmem_page-and-free_reserved_page
++++ a/include/linux/mm.h
+@@ -2344,32 +2344,20 @@ extern void free_initmem(void);
+ extern unsigned long free_reserved_area(void *start, void *end,
+ 					int poison, const char *s);
+ 
+-#ifdef	CONFIG_HIGHMEM
+-/*
+- * Free a highmem page into the buddy system, adjusting totalhigh_pages
+- * and totalram_pages.
+- */
+-extern void free_highmem_page(struct page *page);
+-#endif
+-
+ extern void adjust_managed_page_count(struct page *page, long count);
+ extern void mem_init_print_info(const char *str);
+ 
+ extern void reserve_bootmem_region(phys_addr_t start, phys_addr_t end);
+ 
+ /* Free the reserved page into the buddy system, so it gets managed. */
+-static inline void __free_reserved_page(struct page *page)
++static inline void free_reserved_page(struct page *page)
+ {
+ 	ClearPageReserved(page);
+ 	init_page_count(page);
+ 	__free_page(page);
+-}
+-
+-static inline void free_reserved_page(struct page *page)
+-{
+-	__free_reserved_page(page);
+ 	adjust_managed_page_count(page, 1);
+ }
++#define free_highmem_page(page) free_reserved_page(page)
+ 
+ static inline void mark_page_reserved(struct page *page)
+ {
+--- a/mm/page_alloc.c~mm-simplify-free_highmem_page-and-free_reserved_page
++++ a/mm/page_alloc.c
+@@ -7705,17 +7705,6 @@ unsigned long free_reserved_area(void *s
+ 	return pages;
+ }
+ 
+-#ifdef	CONFIG_HIGHMEM
+-void free_highmem_page(struct page *page)
+-{
+-	__free_reserved_page(page);
+-	totalram_pages_inc();
+-	atomic_long_inc(&page_zone(page)->managed_pages);
+-	totalhigh_pages_inc();
+-}
+-#endif
+-
+-
+ void __init mem_init_print_info(const char *str)
+ {
+ 	unsigned long physpages, codesize, datasize, rosize, bss_size;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
