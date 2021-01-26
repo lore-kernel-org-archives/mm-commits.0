@@ -2,219 +2,88 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13015C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:18:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90A6DC433DB
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 17:24:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D29562053B
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:18:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64D4E20829
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 17:24:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730808AbhAZFRo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:17:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33746 "EHLO mail.kernel.org"
+        id S2388444AbhAZRX7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 12:23:59 -0500
+Received: from foss.arm.com ([217.140.110.172]:53530 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730995AbhAZBuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 Jan 2021 20:50:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF8EF22DD6;
-        Tue, 26 Jan 2021 00:32:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611621127;
-        bh=w0biTjlw/PmzE0eJ/Va2hWhm/sZXMaV/DNqu2Wbjx78=;
-        h=Date:From:To:Subject:From;
-        b=LQep7jut/7lf5rEmIIk9M40WuyhCkWnj8+isZ68ZTPbS6r+wjZxrU8hpt8p4VWgF2
-         HyHM+wMyi50NRxPo2vLyHMhdp3idPifIWfy4xEldG4Veg8bagOgK/kmP/2J2bJEpwF
-         ieRdPV+slvVcNfUQwIo+pUbxEOkxcG4tBAgsP+Ks=
-Date:   Mon, 25 Jan 2021 16:32:06 -0800
-From:   akpm@linux-foundation.org
-To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch added
- to -mm tree
-Message-ID: <20210126003206.ZNOHEhYko%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S2389461AbhAZHio (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 02:38:44 -0500
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 987D331B;
+        Mon, 25 Jan 2021 23:31:02 -0800 (PST)
+Received: from [192.168.0.130] (unknown [172.31.20.19])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C0F8B3F68F;
+        Mon, 25 Jan 2021 23:31:00 -0800 (PST)
+Subject: Re: + mm-memory_hotplug-rename-all-existing-memhp-into-mhp.patch
+ added to -mm tree
+To:     akpm@linux-foundation.org, david@redhat.com,
+        gregkh@linuxfoundation.org, mm-commits@vger.kernel.org,
+        rafael@kernel.org
+References: <20210125230029.J9GtAldi1%akpm@linux-foundation.org>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <e17945d3-d402-cc6a-09dc-9183363a89cf@arm.com>
+Date:   Tue, 26 Jan 2021 13:01:14 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
+MIME-Version: 1.0
+In-Reply-To: <20210125230029.J9GtAldi1%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/hugetlb: grab head page refcount once per group of subpages
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
+On 1/26/21 4:30 AM, akpm@linux-foundation.org wrote:
+> 
+> The patch titled
+>      Subject: mm/memory_hotplug: rename all existing 'memhp' into 'mhp'
+> has been added to the -mm tree.  Its filename is
+>      mm-memory_hotplug-rename-all-existing-memhp-into-mhp.patch
+> 
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-rename-all-existing-memhp-into-mhp.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-rename-all-existing-memhp-into-mhp.patch
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Anshuman Khandual <anshuman.khandual@arm.com>
+> Subject: mm/memory_hotplug: rename all existing 'memhp' into 'mhp'
+> 
+> This renames all 'memhp' instances to 'mhp' except for memhp_default_state
+> for being a kernel command line option.  This is just a clean up and
+> should not cause a functional change.  Let's make it consistent rater than
+> mixing the two prefixes.  In preparation for more users of the 'mhp'
+> terminology.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Thanks Andrew for updating the commit message here, which I assume
+is now complete. But otherwise please do let me know, will be happy
+to respin the patch with additional context as mentioned earlier in
+the thread.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/hugetlb: grab head page refcount once per group of subpages
-
-Patch series "mm/hugetlb: follow_hugetlb_page() improvements".
-
-While looking at ZONE_DEVICE struct page reuse particularly the last
-patch[0], I found two possible improvements for follow_hugetlb_page()
-which is solely used for get_user_pages()/pin_user_pages().
-
-The first patch batches page refcount updates while the second tidies
-up storing the subpages/vmas. Both together bring the cost of slow
-variant of gup() cost from ~86k usecs to ~4.4k usecs.
-
-libhugetlbfs tests seem to pass as well gup_test benchmarks
-with hugetlbfs vmas.
-
-
-This patch (of 2):
-
-follow_hugetlb_page() once it locks the pmd/pud, it checks all the
-subpages in a huge page and grabs a reference for each one, depending on
-how many pages we can store or the size of va range.  Similar to gup-fast,
-have follow_hugetlb_page() grab the head page refcount only after counting
-all its subpages that are part of the just faulted huge page.
-
-Consequently we reduce the number of atomics necessary to pin
-said huge page, which improves non-fast gup() considerably:
-
- - 16G with 1G huge page size
- gup_test -f /mnt/huge/file -m 16384 -r 10 -L -S -n 512 -w
-
- PIN_LONGTERM_BENCHMARK: ~87.6k us -> ~11k us
-
-Link: https://lkml.kernel.org/r/20210125205744.10203-1-joao.m.martins@oracle.com
-Link: https://lkml.kernel.org/r/20210125205744.10203-2-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mm.h |    3 +++
- mm/gup.c           |    5 ++---
- mm/hugetlb.c       |   43 ++++++++++++++++++++++++-------------------
- 3 files changed, 29 insertions(+), 22 deletions(-)
-
---- a/include/linux/mm.h~mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages
-+++ a/include/linux/mm.h
-@@ -1181,6 +1181,9 @@ static inline void get_page(struct page
- }
- 
- bool __must_check try_grab_page(struct page *page, unsigned int flags);
-+__maybe_unused struct page *try_grab_compound_head(struct page *page, int refs,
-+						   unsigned int flags);
-+
- 
- static inline __must_check bool try_get_page(struct page *page)
- {
---- a/mm/gup.c~mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages
-+++ a/mm/gup.c
-@@ -78,9 +78,8 @@ static inline struct page *try_get_compo
-  * considered failure, and furthermore, a likely bug in the caller, so a warning
-  * is also emitted.
-  */
--static __maybe_unused struct page *try_grab_compound_head(struct page *page,
--							  int refs,
--							  unsigned int flags)
-+__maybe_unused struct page *try_grab_compound_head(struct page *page,
-+						   int refs, unsigned int flags)
- {
- 	if (flags & FOLL_GET)
- 		return try_get_compound_head(page, refs);
---- a/mm/hugetlb.c~mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages
-+++ a/mm/hugetlb.c
-@@ -4798,7 +4798,7 @@ long follow_hugetlb_page(struct mm_struc
- 	unsigned long vaddr = *position;
- 	unsigned long remainder = *nr_pages;
- 	struct hstate *h = hstate_vma(vma);
--	int err = -EFAULT;
-+	int err = -EFAULT, refs;
- 
- 	while (vaddr < vma->vm_end && remainder) {
- 		pte_t *pte;
-@@ -4918,26 +4918,11 @@ long follow_hugetlb_page(struct mm_struc
- 			continue;
- 		}
- 
-+		refs = 0;
-+
- same_page:
--		if (pages) {
-+		if (pages)
- 			pages[i] = mem_map_offset(page, pfn_offset);
--			/*
--			 * try_grab_page() should always succeed here, because:
--			 * a) we hold the ptl lock, and b) we've just checked
--			 * that the huge page is present in the page tables. If
--			 * the huge page is present, then the tail pages must
--			 * also be present. The ptl prevents the head page and
--			 * tail pages from being rearranged in any way. So this
--			 * page must be available at this point, unless the page
--			 * refcount overflowed:
--			 */
--			if (WARN_ON_ONCE(!try_grab_page(pages[i], flags))) {
--				spin_unlock(ptl);
--				remainder = 0;
--				err = -ENOMEM;
--				break;
--			}
--		}
- 
- 		if (vmas)
- 			vmas[i] = vma;
-@@ -4946,6 +4931,7 @@ same_page:
- 		++pfn_offset;
- 		--remainder;
- 		++i;
-+		refs++;
- 		if (vaddr < vma->vm_end && remainder &&
- 				pfn_offset < pages_per_huge_page(h)) {
- 			/*
-@@ -4953,6 +4939,25 @@ same_page:
- 			 * of this compound page.
- 			 */
- 			goto same_page;
-+		} else if (pages) {
-+			/*
-+			 * try_grab_compound_head() should always succeed here,
-+			 * because: a) we hold the ptl lock, and b) we've just
-+			 * checked that the huge page is present in the page
-+			 * tables. If the huge page is present, then the tail
-+			 * pages must also be present. The ptl prevents the
-+			 * head page and tail pages from being rearranged in
-+			 * any way. So this page must be available at this
-+			 * point, unless the page refcount overflowed:
-+			 */
-+			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
-+								 refs,
-+								 flags))) {
-+				spin_unlock(ptl);
-+				remainder = 0;
-+				err = -ENOMEM;
-+				break;
-+			}
- 		}
- 		spin_unlock(ptl);
- 	}
-_
-
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
-
-mm-hugetlb-grab-head-page-refcount-once-per-group-of-subpages.patch
-mm-hugetlb-refactor-subpage-recording.patch
-
+- Anshuman
