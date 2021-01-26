@@ -7,37 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57F86C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD5E0C433E6
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:17:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E44820732
+	by mail.kernel.org (Postfix) with ESMTP id 9DE7A22ADF
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Jan 2021 05:17:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726711AbhAZFRj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:17:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33422 "EHLO mail.kernel.org"
+        id S1730765AbhAZFRm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:17:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730765AbhAZBpL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1730808AbhAZBpL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 25 Jan 2021 20:45:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CDDEC207B3;
-        Tue, 26 Jan 2021 00:54:56 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D07B5229C4;
+        Tue, 26 Jan 2021 01:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611622497;
-        bh=nHgrrxtie3TTtWXQnqR0/z6SGvUzT15i2+KMZfnCIUI=;
+        s=korg; t=1611622857;
+        bh=2fhVeA9L0qxjYu7pa1o0emVCKJX9T5S21Dol+AZsFlo=;
         h=Date:From:To:Subject:From;
-        b=gPjJVR6dtuF0NGqSPFtk3zrcwfykW21IYG8E82xq/nmkNALj7kXgTxftjEZzj+TWn
-         A03CqT6lNKW9cySQXM/YSchV3TLvVyPa6yYdAYu9mwwT2ZDTi2GD6xE39nf+MrMxZQ
-         JaEesKLigJBpWl5mH0ltfm740YRU5VoRuiQwMj8Y=
-Date:   Mon, 25 Jan 2021 16:54:56 -0800
+        b=ZNO+gbgeQopziTbX0E2yFu6WDOnA6t2Z5HMZseexytpcdz2DT5MuizW6XYic3YkJ7
+         JvFbRy0j8LDcL5M8fLnpZe8qXx8xiUzqwuzu6FOTc1Pa11UrbfY4b8dhDKvDtI8IgJ
+         VBfjlDJtaub5A8711dGmDovNcOqkqqWplckawsko=
+Date:   Mon, 25 Jan 2021 17:00:56 -0800
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, ddstreet@ieee.org,
-        mm-commits@vger.kernel.org, sjenning@redhat.com,
-        song.bao.hua@hisilicon.com, tiantao6@hisilicon.com,
-        vitaly.wool@konsulko.com
-Subject:  + mm-zswap-fix-potential-memory-leak.patch added to -mm
- tree
-Message-ID: <20210126005456.zj8snkPOL%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mkoutny@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        stable@vger.kernel.org, tj@kernel.org
+Subject:  [alternative-merged]
+ mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch removed from
+ -mm tree
+Message-ID: <20210126010056.MshuMuzDK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,62 +48,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: fix potential memory leak
-has been added to the -mm tree.  Its filename is
-     mm-zswap-fix-potential-memory-leak.patch
+     Subject: mm: memcontrol: prevent starvation when writing memory.high
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-prevent-starvation-when-writing-memoryhigh.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-fix-potential-memory-leak.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-fix-potential-memory-leak.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Tian Tao <tiantao6@hisilicon.com>
-Subject: mm/zswap: fix potential memory leak
+=46rom: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: prevent starvation when writing memory.high
 
-If entry is NULL, the requested memory tmp should be freed, otherwise it
-may cause a memory leak.
+When a value is written to a cgroup's memory.high control file, the
+write() context first tries to reclaim the cgroup to size before putting
+the limit in place for the workload.  Concurrent charges from the workload
+can keep such a write() looping in reclaim indefinitely.
 
-Link: https://lkml.kernel.org/r/1611538365-51811-1-git-send-email-tiantao6@hisilicon.com
-Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Seth Jennings <sjenning@redhat.com>
+In the past, a write to memory.high would first put the limit in place for
+the workload, then do targeted reclaim until the new limit has been met -
+similar to how we do it for memory.max.  This wasn't prone to the
+described starvation issue.  However, this sequence could cause excessive
+latencies in the workload, when allocating threads could be put into long
+penalty sleeps on the sudden memory.high overage created by the write(),
+before that had a chance to work it off.
+
+Now that memory_high_write() performs reclaim before enforcing the new
+limit, reflect that the cgroup may well fail to converge due to concurrent
+workload activity.  Bail out of the loop after a few tries.
+
+Link: https://lkml.kernel.org/r/20210112163011.127833-1-hannes@cmpxchg.org
+Fixes: 536d3bf261a2 ("mm: memcontrol: avoid workload stalls when lowering m=
+emory.high")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reported-by: Tejun Heo <tj@kernel.org>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>	[5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-potential-memory-leak
-+++ a/mm/zswap.c
-@@ -961,6 +961,7 @@ static int zswap_writeback_entry(struct
- 		/* entry was invalidated */
- 		spin_unlock(&tree->lock);
- 		zpool_unmap_handle(pool, handle);
-+		kfree(tmp);
- 		return 0;
+--- a/mm/memcontrol.c~mm-memcontrol-prevent-starvation-when-writing-memoryh=
+igh
++++ a/mm/memcontrol.c
+@@ -6273,7 +6273,6 @@ static ssize_t memory_high_write(struct
+=20
+ 	for (;;) {
+ 		unsigned long nr_pages =3D page_counter_read(&memcg->memory);
+-		unsigned long reclaimed;
+=20
+ 		if (nr_pages <=3D high)
+ 			break;
+@@ -6287,10 +6286,10 @@ static ssize_t memory_high_write(struct
+ 			continue;
+ 		}
+=20
+-		reclaimed =3D try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
+-							 GFP_KERNEL, true);
++		try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
++					     GFP_KERNEL, true);
+=20
+-		if (!reclaimed && !nr_retries--)
++		if (!nr_retries--)
+ 			break;
  	}
- 	spin_unlock(&tree->lock);
+=20
 _
 
-Patches currently in -mm which might be from tiantao6@hisilicon.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-zswap-add-the-flag-can_sleep_mapped.patch
-mm-zswap-fix-variable-entry-is-uninitialized-when-used.patch
-mm-set-the-sleep_mapped-to-true-for-zbud-and-z3fold.patch
-mm-zswap-fix-potential-memory-leak.patch
+revert-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
 
