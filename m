@@ -5,38 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9646EC433E9
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 803DAC432C3
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 616CC206E5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4EB2A206CB
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231216AbhA0Csn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 21:48:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45300 "EHLO mail.kernel.org"
+        id S231193AbhA0Csl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jan 2021 21:48:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60236 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728534AbhAZVPj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 16:15:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A77722B2C;
-        Tue, 26 Jan 2021 21:14:57 +0000 (UTC)
+        id S2390533AbhAZTrB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 Jan 2021 14:47:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 190622220B;
+        Tue, 26 Jan 2021 19:46:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611695698;
-        bh=LJa+EjZkO8n/sGtn9wsG2+5gf+uriwbCGuXersm6trM=;
+        s=korg; t=1611690381;
+        bh=E2H5NCddluFQ2G+mQqhJW07gnpgo3oXgiI+YQxD0pww=;
         h=Date:From:To:Subject:From;
-        b=XUBzEnbmzD97Lz3kOmv5fDAA7y6gkI5oh9B7h8W+pkmxrFAmWellrtVe38bWXJa6x
-         B8leTKMe5Z2cRyZnARHSw5mnxAM79oDLGEt4VkPQ7dLslypfvKqdId4yYSn/1dcap0
-         PkbAv3RWqQf0mx0YHY4CawR7Cv8fP5e4aeN7tC44=
-Date:   Tue, 26 Jan 2021 13:14:57 -0800
+        b=1M25exU3prkBlPOfpXbNSKHvkyIcmCeIwWSjA93BbK0Yc/c/FGdMt6e5NmldjM0SP
+         r9VdFg+ugvtPjLgkS1OOX1RfnE7Oq0N3yr6K+40RTphkCp4+2d92wbM3mriojnZ0kr
+         qMrqLo8py2Z17a1OiFsSOmitutKjN+GfUB8+zLz0=
+Date:   Tue, 26 Jan 2021 11:46:20 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        stable@vger.kernel.org
+To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
+        catalin.marinas@arm.com, dvyukov@google.com, glider@google.com,
+        leonro@mellanox.com, mark.rutland@arm.com,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        paulmck@kernel.org, vincenzo.frascino@arm.com, will@kernel.org
 Subject:  +
- mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch added to -mm
- tree
-Message-ID: <20210126211457.EUKDwYVhX%akpm@linux-foundation.org>
+ kasan-make-addr_has_metadata-return-true-for-valid-addresses.patch added to
+ -mm tree
+Message-ID: <20210126194620.CmoWTPeKt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix missing put_page in gather_surplus_pages()
+     Subject: kasan: make addr_has_metadata() return true for valid addresses
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch
+     kasan-make-addr_has_metadata-return-true-for-valid-addresses.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-make-addr_has_metadata-return-true-for-valid-addresses.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-make-addr_has_metadata-return-true-for-valid-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,60 +68,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: fix missing put_page in gather_surplus_pages()
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: kasan: make addr_has_metadata() return true for valid addresses
 
-The VM_BUG_ON_PAGE avoids the generation of any code, even if that
-expression has side-effects when !CONFIG_DEBUG_VM.
+Currently, addr_has_metadata() returns true for every address.  An invalid
+address (e.g.  NULL) passed to the function when, KASAN_HW_TAGS is
+enabled, leads to a kernel panic.
 
-Link: https://lkml.kernel.org/r/20210126031009.96266-1-songmuchun@bytedance.com
-Fixes: e5dfacebe4a4 ("mm/hugetlb.c: just use put_page_testzero() instead of page_count()")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: <stable@vger.kernel.org>
+Make addr_has_metadata() return true for valid addresses only.
+
+Note: KASAN_HW_TAGS support for vmalloc will be added with a future patch.
+
+Link: https://lkml.kernel.org/r/20210126134409.47894-3-vincenzo.frascino@arm.com
+Fixes: 2e903b91479782b7 ("kasan, arm64: implement HW_TAGS runtime")
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/kasan/kasan.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages
-+++ a/mm/hugetlb.c
-@@ -2047,13 +2047,16 @@ retry:
+--- a/mm/kasan/kasan.h~kasan-make-addr_has_metadata-return-true-for-valid-addresses
++++ a/mm/kasan/kasan.h
+@@ -209,7 +209,7 @@ bool check_memory_region(unsigned long a
  
- 	/* Free the needed pages to the hugetlb pool */
- 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
-+		int zeroed;
-+
- 		if ((--needed) < 0)
- 			break;
- 		/*
- 		 * This page is now managed by the hugetlb allocator and has
- 		 * no users -- drop the buddy allocator's reference.
- 		 */
--		VM_BUG_ON_PAGE(!put_page_testzero(page), page);
-+		zeroed = put_page_testzero(page);
-+		VM_BUG_ON_PAGE(!zeroed, page);
- 		enqueue_huge_page(h, page);
- 	}
- free:
+ static inline bool addr_has_metadata(const void *addr)
+ {
+-	return true;
++	return (is_vmalloc_addr(addr) || virt_addr_valid(addr));
+ }
+ 
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
-mm-hugetlbfs-fix-cannot-migrate-the-fallocated-hugetlb-page.patch
-mm-hugetlb-fix-a-race-between-freeing-and-dissolving-the-page.patch
-mm-hugetlb-fix-a-race-between-isolating-and-freeing-page.patch
-mm-hugetlb-remove-vm_bug_on_page-from-page_huge_active.patch
-mm-migrate-do-not-migrate-hugetlb-page-whose-refcount-is-one.patch
-mm-hugetlb-fix-missing-put_page-in-gather_surplus_pages.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage.patch
-mm-memcontrol-fix-nr_anon_thps-accounting-in-charge-moving.patch
-mm-memcontrol-convert-nr_anon_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_file_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_thps-account-to-pages.patch
-mm-memcontrol-convert-nr_shmem_pmdmapped-account-to-pages.patch
-mm-memcontrol-convert-nr_file_pmdmapped-account-to-pages.patch
-mm-memcontrol-make-the-slab-calculation-consistent.patch
+kasan-add-explicit-preconditions-to-kasan_report.patch
+kasan-make-addr_has_metadata-return-true-for-valid-addresses.patch
 
