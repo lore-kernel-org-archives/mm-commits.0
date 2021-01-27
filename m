@@ -2,76 +2,56 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0E2FC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 08:49:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 667EAC433DB
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 19:38:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43CFA20754
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 08:49:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15AD064D9E
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 19:38:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231797AbhA0ItF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Jan 2021 03:49:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55140 "EHLO
+        id S1344571AbhA0TiA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 14:38:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231960AbhA0IpN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2021 03:45:13 -0500
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB8BCC061786
-        for <mm-commits@vger.kernel.org>; Wed, 27 Jan 2021 00:44:04 -0800 (PST)
-Received: by mail-ed1-x52b.google.com with SMTP id b21so1416945edy.6
-        for <mm-commits@vger.kernel.org>; Wed, 27 Jan 2021 00:44:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:references:from:message-id:date:user-agent:mime-version
-         :in-reply-to:content-language:content-transfer-encoding;
-        bh=IdCxDBZ3sPhSRhLXyA1keD+lZP64AgdCld/NmXg3+hk=;
-        b=IS/HNzCqaTlQKuldfjXFljfGdWDkR3yNq67tdqVlOUT6zPBlq+nMnBxLkrT4kxOCPP
-         fYXbrCkUG3NWvUo7u6RVGMYvLa0ITwHkmwi1zyJYUzcIYbC2f25OwTMEEOw/AjGXXt2U
-         vBzl9JwOZRCuY8a1P8f3Vv8AQevPvT2QrY/2NpIs7mGLRPoGbatztwBrLkHaHs1vSfv9
-         rbAz28Uc5xHj3bDnDGnBLiehj3s6z/xmDhar9kPo65/KDYJwPmCi63+CPHJGi3KiSVhO
-         z+/WCWSF1enXBaZVNKk6Hjh2ACWvCdDJms3tyhAJqzsSdOt2roTWJLkP/ZPrOjyZqjSu
-         jDJw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=IdCxDBZ3sPhSRhLXyA1keD+lZP64AgdCld/NmXg3+hk=;
-        b=X0pKXDObalXsqcJQgDxhO+XRVhiMnIajmHn5AsB6jw7p5WQU6xfjnh0s//chrFyEKF
-         C625bvv9J692c0UFaA+6IAf6i1D2FmFs76fPVhBldTvQ4os3gmFdURf/HJbJ/pB1aTek
-         w877ONwYXwifgirLAfy47dziGsOV/wSv43mmCSO7jKodgLd7TMj/U+o86VV9zexcUcZ5
-         kHJNe4iFo1Ci2YUrujuWbJDtQDuFir8VmuKDLFfT6oAzLO6PthkJmSoPX/9C87m0lDxW
-         jPm+kW26/iK4U58/enhM9Lp3znyh0JavQWoII9w3zCCIsWMpIDJCnDYoOvlxzumUKqTe
-         WwbA==
-X-Gm-Message-State: AOAM533tRftl4SNH1CuG4vp/aF6/GjsSjBtbGO8L4kCHgdYu/Jcn+yQE
-        zAvDtz7HhyIub2HaqTuYsss=
-X-Google-Smtp-Source: ABdhPJyyg+lUbtIMpPnxAaFxnnKPgPap/Igaxcv4p83jV8GCp+H4agMVbbQvVwsWhRB4M7RPmJJT5w==
-X-Received: by 2002:aa7:c34f:: with SMTP id j15mr7857771edr.120.1611737043639;
-        Wed, 27 Jan 2021 00:44:03 -0800 (PST)
-Received: from localhost.localdomain ([131.228.2.21])
-        by smtp.gmail.com with ESMTPSA id r26sm837993edc.95.2021.01.27.00.44.01
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 27 Jan 2021 00:44:03 -0800 (PST)
-Subject: Re: +
- mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
- added to -mm tree
-To:     akpm@linux-foundation.org, aarcange@redhat.com, bgeffon@google.com,
-        kirill.shutemov@linux.intel.com, lokeshgidra@google.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
-References: <20210119193228.8J478mJSk%akpm@linux-foundation.org>
-From:   Li Xinhai <lixinhai.lxh@gmail.com>
-Message-ID: <38431252-7540-8303-921c-4386021a6066@gmail.com>
-Date:   Wed, 27 Jan 2021 16:43:57 +0800
+        with ESMTP id S1344587AbhA0Tg5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2021 14:36:57 -0500
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A25BC061573;
+        Wed, 27 Jan 2021 11:36:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
+        Reply-To:Cc:Content-ID:Content-Description;
+        bh=e8MHSFAxiS7UdxXBZlqFbrVKBNkvXqogAmgOIMEikQ8=; b=yvGMjwoP/+k3rHesHCE2f9nLbG
+        gUEDn2qyX4KQfjBPkeO/5HRFsYk5/WO5eAMK4s/c32DNGpbsxZNole9VkwCxML/ZvMfMDhprCutw2
+        37RcmBVLFLVxuNwVxxfmu006aE0vToyIicusfdagBwrPaPeGhKyDFxOzvE6uw9dNAhXHq9xoB/ib9
+        KlPCwdV9ots8gUxsOBp0qbIE3Y88d9FheNRK9C8AlkcbMJuwRQ0lggO22QAdzRyYdB5BcwNuF+dTn
+        sNRM1+A4fzKWkwLOl1fRyvInSpaIiWIBp5BzrqM+fupHzHAoLEBVQjghRQeXSGGtd90WaAd1n4cBX
+        HfO6NuFg==;
+Received: from [2601:1c0:6280:3f0::7650]
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1l4qbp-0002hL-Ag; Wed, 27 Jan 2021 19:36:09 +0000
+Subject: Re: mmotm 2021-01-25-21-18 uploaded (drm/i915/Kconfig.debug)
+To:     akpm@linux-foundation.org, broonie@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+References: <20210126051917.rcgrHGfQS%akpm@linux-foundation.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <0f9e7192-622d-c016-561f-7b5d5ee9ecd1@infradead.org>
+Date:   Wed, 27 Jan 2021 11:36:01 -0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.1
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-In-Reply-To: <20210119193228.8J478mJSk%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20210126051917.rcgrHGfQS%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -79,85 +59,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On 1/25/21 9:19 PM, akpm@linux-foundation.org wrote:
+> The mm-of-the-moment snapshot 2021-01-25-21-18 has been uploaded to
+> 
+>    https://www.ozlabs.org/~akpm/mmotm/
+> 
+> mmotm-readme.txt says
+> 
+> README for mm-of-the-moment:
+> 
+> https://www.ozlabs.org/~akpm/mmotm/
+> 
+> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> more than once a week.
+> 
+> You will need quilt to apply these patches to the latest Linus release (5.x
+> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> https://ozlabs.org/~akpm/mmotm/series
+> 
+> The file broken-out.tar.gz contains two datestamp files: .DATE and
+> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+> followed by the base kernel version against which this patch series is to
+> be applied.
+
+on x86_64:
+
+when CONFIG_COMPILE_TEST=y:
+
+WARNING: unmet direct dependencies detected for DRM_I915_WERROR
+  Depends on [n]: HAS_IOMEM [=y] && DRM_I915 [=m] && EXPERT [=y] && !COMPILE_TEST [=y]
+  Selected by [m]:
+  - DRM_I915_DEBUG [=y] && HAS_IOMEM [=y] && EXPERT [=y] && DRM_I915 [=m]
 
 
-On 1/20/21 3:32 AM, akpm@linux-foundation.org wrote:
-> The patch titled
->       Subject: mm: mremap: unlink anon_vmas when mremap with MREMAP_DONTUNMAP success
-> has been added to the -mm tree.  Its filename is
->       mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
-> 
-> This patch should soon appear at
->      https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
-> and later at
->      https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
-> 
-> Before you just go and hit "reply", please:
->     a) Consider who else should be cc'ed
->     b) Prefer to cc a suitable mailing list as well
->     c) Ideally: find the original patch on the mailing list and do a
->        reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
+-- 
+~Randy
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
 
-Andrew,
-These two patches require updates. I've sent out v2, please consider the new patches. Thanks.
-
-mm-rmap-explicitly-reset-vma-anon_vma-in-unlink_anon_vmas.patch
-mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
-
-> ------------------------------------------------------
-> From: Li Xinhai <lixinhai.lxh@gmail.com>
-> Subject: mm: mremap: unlink anon_vmas when mremap with MREMAP_DONTUNMAP success
-> 
-> mremap with MREMAP_DONTUNMAP will move all page table entries to new vma,
-> which means all pages allocated for the old vma are not relevant to it
-> anymore, and the relevant anon_vma links needs to be unlinked, in nature
-> the old vma is much like been freshly created and have no pages been fault
-> in.
-> 
-> But we should not do unlink, if the new vma has effectively merged with
-> the old one.
-> 
-> Link: https://lkml.kernel.org/r/20210119075126.3513154-2-lixinhai.lxh@gmail.com
-> Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-> Cc: Brian Geffon <bgeffon@google.com>
-> Cc: Lokesh Gidra <lokeshgidra@google.com>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: Andrea Arcangeli <aarcange@redhat.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->   mm/mremap.c |    7 +++++++
->   1 file changed, 7 insertions(+)
-> 
-> --- a/mm/mremap.c~mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success
-> +++ a/mm/mremap.c
-> @@ -595,6 +595,13 @@ static unsigned long move_vma(struct vm_
->   		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
->   		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
->   
-> +		/*
-> +		 * anon_vma links of the old vma is no longer needed after its page
-> +		 * table has been moved.
-> +		 */
-> +		if (new_vma != vma)
-> +			unlink_anon_vmas(vma);
-> +
->   		/* Because we won't unmap we don't need to touch locked_vm */
->   		return new_addr;
->   	}
-> _
-> 
-> Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
-> 
-> mm-rmap-explicitly-reset-vma-anon_vma-in-unlink_anon_vmas.patch
-> mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
-> mm-hugetlbc-fix-unnecessary-address-expansion-of-pmd-sharing.patch
-> 
