@@ -2,174 +2,162 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 032CAC4360C
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0E2FC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 08:49:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D43E1206C3
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 02:49:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43CFA20754
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jan 2021 08:49:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231153AbhA0Csj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jan 2021 21:48:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59078 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403924AbhAZTi3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 Jan 2021 14:38:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AE2C22A84;
-        Tue, 26 Jan 2021 19:37:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611689863;
-        bh=c9qRByeX+Ol3NGARNxooofr+f4irDzvea/KQaNwy+Vs=;
-        h=Date:From:To:Subject:From;
-        b=zouacwRHWcOCqP6+VFeONuF8osA3S0wNgr7glaibkXX8QN7fUaUDUOZ4uEPtJMWxo
-         buqEv0Wj1fu7Z6zX3n80qyotSzfvKOnHr2CNsBumd4oGmoCJ4LaMa//u0c3FWgDbLi
-         0sg3SwVlVN0gDP+AJEhj2fEvWti5lDJOUEpFnqCA=
-Date:   Tue, 26 Jan 2021 11:37:42 -0800
-From:   akpm@linux-foundation.org
-To:     david@redhat.com, gustavoars@kernel.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
-        peterz@infradead.org, richard.weiyang@linux.alibaba.com,
-        rppt@kernel.org, sam@ravnborg.org, tglx@linutronix.de
-Subject:  +
- mm-simplify-free_highmem_page-and-free_reserved_page.patch added to -mm
- tree
-Message-ID: <20210126193742.Wt7JdLcG7%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S231797AbhA0ItF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 03:49:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55140 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231960AbhA0IpN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2021 03:45:13 -0500
+Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB8BCC061786
+        for <mm-commits@vger.kernel.org>; Wed, 27 Jan 2021 00:44:04 -0800 (PST)
+Received: by mail-ed1-x52b.google.com with SMTP id b21so1416945edy.6
+        for <mm-commits@vger.kernel.org>; Wed, 27 Jan 2021 00:44:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:references:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-language:content-transfer-encoding;
+        bh=IdCxDBZ3sPhSRhLXyA1keD+lZP64AgdCld/NmXg3+hk=;
+        b=IS/HNzCqaTlQKuldfjXFljfGdWDkR3yNq67tdqVlOUT6zPBlq+nMnBxLkrT4kxOCPP
+         fYXbrCkUG3NWvUo7u6RVGMYvLa0ITwHkmwi1zyJYUzcIYbC2f25OwTMEEOw/AjGXXt2U
+         vBzl9JwOZRCuY8a1P8f3Vv8AQevPvT2QrY/2NpIs7mGLRPoGbatztwBrLkHaHs1vSfv9
+         rbAz28Uc5xHj3bDnDGnBLiehj3s6z/xmDhar9kPo65/KDYJwPmCi63+CPHJGi3KiSVhO
+         z+/WCWSF1enXBaZVNKk6Hjh2ACWvCdDJms3tyhAJqzsSdOt2roTWJLkP/ZPrOjyZqjSu
+         jDJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=IdCxDBZ3sPhSRhLXyA1keD+lZP64AgdCld/NmXg3+hk=;
+        b=X0pKXDObalXsqcJQgDxhO+XRVhiMnIajmHn5AsB6jw7p5WQU6xfjnh0s//chrFyEKF
+         C625bvv9J692c0UFaA+6IAf6i1D2FmFs76fPVhBldTvQ4os3gmFdURf/HJbJ/pB1aTek
+         w877ONwYXwifgirLAfy47dziGsOV/wSv43mmCSO7jKodgLd7TMj/U+o86VV9zexcUcZ5
+         kHJNe4iFo1Ci2YUrujuWbJDtQDuFir8VmuKDLFfT6oAzLO6PthkJmSoPX/9C87m0lDxW
+         jPm+kW26/iK4U58/enhM9Lp3znyh0JavQWoII9w3zCCIsWMpIDJCnDYoOvlxzumUKqTe
+         WwbA==
+X-Gm-Message-State: AOAM533tRftl4SNH1CuG4vp/aF6/GjsSjBtbGO8L4kCHgdYu/Jcn+yQE
+        zAvDtz7HhyIub2HaqTuYsss=
+X-Google-Smtp-Source: ABdhPJyyg+lUbtIMpPnxAaFxnnKPgPap/Igaxcv4p83jV8GCp+H4agMVbbQvVwsWhRB4M7RPmJJT5w==
+X-Received: by 2002:aa7:c34f:: with SMTP id j15mr7857771edr.120.1611737043639;
+        Wed, 27 Jan 2021 00:44:03 -0800 (PST)
+Received: from localhost.localdomain ([131.228.2.21])
+        by smtp.gmail.com with ESMTPSA id r26sm837993edc.95.2021.01.27.00.44.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 27 Jan 2021 00:44:03 -0800 (PST)
+Subject: Re: +
+ mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
+ added to -mm tree
+To:     akpm@linux-foundation.org, aarcange@redhat.com, bgeffon@google.com,
+        kirill.shutemov@linux.intel.com, lokeshgidra@google.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
+References: <20210119193228.8J478mJSk%akpm@linux-foundation.org>
+From:   Li Xinhai <lixinhai.lxh@gmail.com>
+Message-ID: <38431252-7540-8303-921c-4386021a6066@gmail.com>
+Date:   Wed, 27 Jan 2021 16:43:57 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.1
+MIME-Version: 1.0
+In-Reply-To: <20210119193228.8J478mJSk%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: simplify free_highmem_page() and free_reserved_page()
-has been added to the -mm tree.  Its filename is
-     mm-simplify-free_highmem_page-and-free_reserved_page.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-free_highmem_page-and-free_reserved_page.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-free_highmem_page-and-free_reserved_page.patch
+On 1/20/21 3:32 AM, akpm@linux-foundation.org wrote:
+> The patch titled
+>       Subject: mm: mremap: unlink anon_vmas when mremap with MREMAP_DONTUNMAP success
+> has been added to the -mm tree.  Its filename is
+>       mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
+> 
+> This patch should soon appear at
+>      https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
+> and later at
+>      https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
+> 
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Andrew,
+These two patches require updates. I've sent out v2, please consider the new patches. Thanks.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+mm-rmap-explicitly-reset-vma-anon_vma-in-unlink_anon_vmas.patch
+mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: simplify free_highmem_page() and free_reserved_page()
-
-adjust_managed_page_count() as called by free_reserved_page() properly
-handles pages in a highmem zone, so we can reuse it for
-free_highmem_page().
-
-We can now get rid of totalhigh_pages_inc() and simplify
-free_reserved_page().
-
-Link: https://lkml.kernel.org/r/20210126182113.19892-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/highmem-internal.h |    5 -----
- include/linux/mm.h               |   16 ++--------------
- mm/page_alloc.c                  |   11 -----------
- 3 files changed, 2 insertions(+), 30 deletions(-)
-
---- a/include/linux/highmem-internal.h~mm-simplify-free_highmem_page-and-free_reserved_page
-+++ a/include/linux/highmem-internal.h
-@@ -127,11 +127,6 @@ static inline unsigned long totalhigh_pa
- 	return (unsigned long)atomic_long_read(&_totalhigh_pages);
- }
- 
--static inline void totalhigh_pages_inc(void)
--{
--	atomic_long_inc(&_totalhigh_pages);
--}
--
- static inline void totalhigh_pages_add(long count)
- {
- 	atomic_long_add(count, &_totalhigh_pages);
---- a/include/linux/mm.h~mm-simplify-free_highmem_page-and-free_reserved_page
-+++ a/include/linux/mm.h
-@@ -2344,32 +2344,20 @@ extern void free_initmem(void);
- extern unsigned long free_reserved_area(void *start, void *end,
- 					int poison, const char *s);
- 
--#ifdef	CONFIG_HIGHMEM
--/*
-- * Free a highmem page into the buddy system, adjusting totalhigh_pages
-- * and totalram_pages.
-- */
--extern void free_highmem_page(struct page *page);
--#endif
--
- extern void adjust_managed_page_count(struct page *page, long count);
- extern void mem_init_print_info(const char *str);
- 
- extern void reserve_bootmem_region(phys_addr_t start, phys_addr_t end);
- 
- /* Free the reserved page into the buddy system, so it gets managed. */
--static inline void __free_reserved_page(struct page *page)
-+static inline void free_reserved_page(struct page *page)
- {
- 	ClearPageReserved(page);
- 	init_page_count(page);
- 	__free_page(page);
--}
--
--static inline void free_reserved_page(struct page *page)
--{
--	__free_reserved_page(page);
- 	adjust_managed_page_count(page, 1);
- }
-+#define free_highmem_page(page) free_reserved_page(page)
- 
- static inline void mark_page_reserved(struct page *page)
- {
---- a/mm/page_alloc.c~mm-simplify-free_highmem_page-and-free_reserved_page
-+++ a/mm/page_alloc.c
-@@ -7705,17 +7705,6 @@ unsigned long free_reserved_area(void *s
- 	return pages;
- }
- 
--#ifdef	CONFIG_HIGHMEM
--void free_highmem_page(struct page *page)
--{
--	__free_reserved_page(page);
--	totalram_pages_inc();
--	atomic_long_inc(&page_zone(page)->managed_pages);
--	totalhigh_pages_inc();
--}
--#endif
--
--
- void __init mem_init_print_info(const char *str)
- {
- 	unsigned long physpages, codesize, datasize, rosize, bss_size;
-_
-
-Patches currently in -mm which might be from david@redhat.com are
-
-video-fbdev-acornfb-remove-free_unused_pages.patch
-mm-simplify-free_highmem_page-and-free_reserved_page.patch
-
+> ------------------------------------------------------
+> From: Li Xinhai <lixinhai.lxh@gmail.com>
+> Subject: mm: mremap: unlink anon_vmas when mremap with MREMAP_DONTUNMAP success
+> 
+> mremap with MREMAP_DONTUNMAP will move all page table entries to new vma,
+> which means all pages allocated for the old vma are not relevant to it
+> anymore, and the relevant anon_vma links needs to be unlinked, in nature
+> the old vma is much like been freshly created and have no pages been fault
+> in.
+> 
+> But we should not do unlink, if the new vma has effectively merged with
+> the old one.
+> 
+> Link: https://lkml.kernel.org/r/20210119075126.3513154-2-lixinhai.lxh@gmail.com
+> Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+> Cc: Brian Geffon <bgeffon@google.com>
+> Cc: Lokesh Gidra <lokeshgidra@google.com>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Andrea Arcangeli <aarcange@redhat.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>   mm/mremap.c |    7 +++++++
+>   1 file changed, 7 insertions(+)
+> 
+> --- a/mm/mremap.c~mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success
+> +++ a/mm/mremap.c
+> @@ -595,6 +595,13 @@ static unsigned long move_vma(struct vm_
+>   		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
+>   		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
+>   
+> +		/*
+> +		 * anon_vma links of the old vma is no longer needed after its page
+> +		 * table has been moved.
+> +		 */
+> +		if (new_vma != vma)
+> +			unlink_anon_vmas(vma);
+> +
+>   		/* Because we won't unmap we don't need to touch locked_vm */
+>   		return new_addr;
+>   	}
+> _
+> 
+> Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+> 
+> mm-rmap-explicitly-reset-vma-anon_vma-in-unlink_anon_vmas.patch
+> mm-mremap-unlink-anon_vmas-when-mremap-with-mremap_dontunmap-success.patch
+> mm-hugetlbc-fix-unnecessary-address-expansion-of-pmd-sharing.patch
+> 
