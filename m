@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EA87C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62904C433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 01:02:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B947A61492
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:27:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4645264DDA
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 01:02:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231199AbhA1A1F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Jan 2021 19:27:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56704 "EHLO mail.kernel.org"
+        id S231219AbhA1BCQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 20:02:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231782AbhA1AZP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Jan 2021 19:25:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C96E164DD4;
-        Thu, 28 Jan 2021 00:24:34 +0000 (UTC)
+        id S229494AbhA1A6q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Jan 2021 19:58:46 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B40964DD0;
+        Thu, 28 Jan 2021 00:57:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611793475;
-        bh=d+Almr4opXn7OJ1/3wlvr+Dwz1M2L6jO97STLOx6K28=;
+        s=korg; t=1611795473;
+        bh=p5BfKirv1cfkSPN7dG3e1Ug6MO2mT4CjYeXSchtXicU=;
         h=Date:From:To:Subject:From;
-        b=TmsywqbIZIf8hEmOfzFeEuMA/qCPV3X+lGyXMmcK1LARNssbQC1g+yyjX7ckV9KSo
-         owwGTDbQWaFuh0+rUiTeIG6Up9RKzSiJUgzPMrlBLrGIfleuO4GsG3hycHvIK1SHWM
-         E7kzMrYc74k5R+yBzLOTbKil6ijDnl8S3k/iedWc=
-Date:   Wed, 27 Jan 2021 16:24:34 -0800
+        b=Cci4D3IMmV8aRMG3BL468dxEl4k+zByP8gna7oNT8If3ks8TEU0C411joYR5Th9W4
+         D3mtQHqWboQfh8uSTzZnw+2JIymz4xpDn9yPFltdrxyLiuWloDj9P5FrUu6utvQgS4
+         J/H/h/wtLsyJ9ltjUVTVONJnpQ3+IFj1RJW+UPg8=
+Date:   Wed, 27 Jan 2021 16:57:52 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        christian.brauner@ubuntu.com, mm-commits@vger.kernel.org
-Subject:  + fs-ramfs-inodec-update-inode_operationstmpfile.patch
- added to -mm tree
-Message-ID: <20210128002434.VFjN2L2X0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, glider@google.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, vinmenon@codeaurora.org,
+        vjitta@codeaurora.org, ylal@codeaurora.org
+Subject:  +
+ lib-stackdepot-add-support-to-disable-stack-depot-fix.patch added to -mm
+ tree
+Message-ID: <20210128005752.PW80Sl_Bb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ramfs/inode.c: update inode_operations.tmpfile
+     Subject: lib-stackdepot-add-support-to-disable-stack-depot-fix
 has been added to the -mm tree.  Its filename is
-     fs-ramfs-inodec-update-inode_operationstmpfile.patch
+     lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-ramfs-inodec-update-inode_operationstmpfile.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-ramfs-inodec-update-inode_operationstmpfile.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,31 +67,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/ramfs/inode.c: update inode_operations.tmpfile
+Subject: lib-stackdepot-add-support-to-disable-stack-depot-fix
 
-Update "ramfs: support O_TMPFILE" for 549c7297717c32ee ("fs: make helpers
-idmap mount aware").
+fix CONFIG_STACKDEPOT=n build
 
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+main.c:(.init.text+0x4c1): undefined reference to `stack_depot_init'
+
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Yogesh Lal <ylal@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/stackdepot.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/fs/ramfs/inode.c~fs-ramfs-inodec-update-inode_operationstmpfile
-+++ a/fs/ramfs/inode.c
-@@ -151,7 +151,8 @@ static int ramfs_symlink(struct user_nam
- 	return error;
- }
+--- a/include/linux/stackdepot.h~lib-stackdepot-add-support-to-disable-stack-depot-fix
++++ a/include/linux/stackdepot.h
+@@ -21,5 +21,13 @@ unsigned int stack_depot_fetch(depot_sta
  
--static int ramfs_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
-+static int ramfs_tmpfile(struct user_namespace *mnt_userns,
-+			 struct inode *dir, struct dentry *dentry, umode_t mode)
- {
- 	struct inode *inode;
+ unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
  
++#ifdef CONFIG_STACKDEPOT
+ int stack_depot_init(void);
++#else
++static inline int stack_depot_init(void)
++{
++	return 0;
++}
++#endif	/* CONFIG_STACKDEPOT */
++
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +113,7 @@ mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
 mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
 bdi-use-might_alloc-fix.patch
 kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
+lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
 initramfs-panic-with-memory-information-fix.patch
 linux-next-rejects.patch
 fs-ramfs-inodec-update-inode_operationstmpfile.patch
