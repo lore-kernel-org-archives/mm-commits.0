@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9EB9C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:50:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBE1C43381
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:54:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95D4B64DE5
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:50:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FA6F64DD6
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231365AbhA1UuI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Jan 2021 15:50:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55346 "EHLO mail.kernel.org"
+        id S231154AbhA1Uyk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Jan 2021 15:54:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229646AbhA1Utv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 28 Jan 2021 15:49:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EBAE364DD6;
-        Thu, 28 Jan 2021 20:49:10 +0000 (UTC)
+        id S231260AbhA1Ux6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 28 Jan 2021 15:53:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DA1F364DDB;
+        Thu, 28 Jan 2021 20:53:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611866951;
-        bh=pRhF+mFV+bLodVKfuvualC0XZx/WrnSz0Cnp5enRmvw=;
+        s=korg; t=1611867197;
+        bh=Q5G8pOGi+ZhOYn0O228S+4bZKqpH4T/UOVBiTznbUQg=;
         h=Date:From:To:Subject:From;
-        b=kIYE+0y4jZjyLnx31GEoNIBQXBI3ndRaPiu28UPTQrDMK6x2fRZ08ctzTI7bDu05a
-         oBdRLW4qzJp2rpCcv5cPFPAdeaA+Q8IZdhbNx3ks+ggSynZyJQMTybHabS+w3GHXVo
-         tUZSEcqaAsUzpXJtGje3jOtNmbL4z+nasHHRGWc8=
-Date:   Thu, 28 Jan 2021 12:49:10 -0800
+        b=IQwZoaVYj/S4PypO6G5of66u4UQB+m6C4Jw57F+H5e1OyBNspZ2GMBHN21sp7DvKL
+         7WYsM2YbqSyi8M3onHb3LNFUvinD/WTjSab25m/WV5/u9+groT1qlbXJ95HRklV5V0
+         XR8rgDcFJcfM65j969XwtzHJR1a3ZTKvxbjFiAOA=
+Date:   Thu, 28 Jan 2021 12:53:16 -0800
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, ddstreet@ieee.org,
-        mm-commits@vger.kernel.org, sjenning@redhat.com,
-        tiantao6@hisilicon.com, vitaly.wool@konsulko.com
-Subject:  + mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch
- added to -mm tree
-Message-ID: <20210128204910.mTposZmxP%akpm@linux-foundation.org>
+To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        vbabka@suse.cz, vvghjk1234@gmail.com
+Subject:  +
+ mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock.patch added to -mm
+ tree
+Message-ID: <20210128205316.qDSROAO4Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: fix potential uninitialized pointer read on tmp
+     Subject: mm/compaction: fix misbehaviors of fast_find_migrateblock()
 has been added to the -mm tree.  Its filename is
-     mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch
+     mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,41 +65,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/zswap: fix potential uninitialized pointer read on tmp
+From: Wonhyuk Yang <vvghjk1234@gmail.com>
+Subject: mm/compaction: fix misbehaviors of fast_find_migrateblock()
 
-In the case where zpool_can_sleep_mapped(pool) returns 0 then tmp is not
-allocated and tmp is then an uninitialized pointer.  Later if entry is
-null, tmp is freed, hence free'ing an uninitialized pointer.  Fix this by
-ensuring tmp is initialized to NULL.
+In the fast_find_migrateblock(), It iterate freelist to find proper
+pageblock.  But there are some misbehaviors.
 
-Link: https://lkml.kernel.org/r/20210128141728.639030-1-colin.king@canonical.com
-Addresses-Coverity: ("Uninitialized pointer read")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Tian Tao <tiantao6@hisilicon.com>
+First, if the page we found is equal to cc->migrate_pfn, it is considered
+that we didn't found suitable pageblock.  Second, if the loop was
+terminated because order is less than PAGE_ALLOC_COSTLY_ORDER, it could be
+considered that we found suitable one.  Third, if the skip bit is set on
+the page block and go continue, it doesn't check the nr_scanned.  Fourth,
+if the page block's skip bit is set, it check that page block is the last
+of list.  But it is unnecessary.
+
+Link: https://lkml.kernel.org/r/20210128130411.6125-1-vvghjk1234@gmail.com
+Fixes: 70b44595eafe9 ("mm, compaction: use free lists to quickly locate a migration source")
+Signed-off-by: Wonhyuk Yang <vvghjk1234@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-add-the-flag-can_sleep_mapped-fix-3
-+++ a/mm/zswap.c
-@@ -935,7 +935,7 @@ static int zswap_writeback_entry(struct
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
+--- a/mm/compaction.c~mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock
++++ a/mm/compaction.c
+@@ -1698,6 +1698,7 @@ static unsigned long fast_find_migratebl
+ 	unsigned long pfn = cc->migrate_pfn;
+ 	unsigned long high_pfn;
+ 	int order;
++	bool found_block = false;
  
--	u8 *src, *tmp;
-+	u8 *src, *tmp = NULL;
- 	unsigned int dlen;
- 	int ret;
- 	struct writeback_control wbc = {
+ 	/* Skip hints are relied on to avoid repeats on the fast search */
+ 	if (cc->ignore_skip_hint)
+@@ -1740,7 +1741,7 @@ static unsigned long fast_find_migratebl
+ 	high_pfn = pageblock_start_pfn(cc->migrate_pfn + distance);
+ 
+ 	for (order = cc->order - 1;
+-	     order >= PAGE_ALLOC_COSTLY_ORDER && pfn == cc->migrate_pfn && nr_scanned < limit;
++	     order >= PAGE_ALLOC_COSTLY_ORDER && !found_block && nr_scanned < limit;
+ 	     order--) {
+ 		struct free_area *area = &cc->zone->free_area[order];
+ 		struct list_head *freelist;
+@@ -1755,7 +1756,11 @@ static unsigned long fast_find_migratebl
+ 		list_for_each_entry(freepage, freelist, lru) {
+ 			unsigned long free_pfn;
+ 
+-			nr_scanned++;
++			if (nr_scanned++ >= limit) {
++				move_freelist_tail(freelist, freepage);
++				break;
++			}
++
+ 			free_pfn = page_to_pfn(freepage);
+ 			if (free_pfn < high_pfn) {
+ 				/*
+@@ -1764,12 +1769,8 @@ static unsigned long fast_find_migratebl
+ 				 * the list assumes an entry is deleted, not
+ 				 * reordered.
+ 				 */
+-				if (get_pageblock_skip(freepage)) {
+-					if (list_is_last(freelist, &freepage->lru))
+-						break;
+-
++				if (get_pageblock_skip(freepage))
+ 					continue;
+-				}
+ 
+ 				/* Reorder to so a future search skips recent pages */
+ 				move_freelist_tail(freelist, freepage);
+@@ -1777,15 +1778,10 @@ static unsigned long fast_find_migratebl
+ 				update_fast_start_pfn(cc, free_pfn);
+ 				pfn = pageblock_start_pfn(free_pfn);
+ 				cc->fast_search_fail = 0;
++				found_block = true;
+ 				set_pageblock_skip(freepage);
+ 				break;
+ 			}
+-
+-			if (nr_scanned >= limit) {
+-				cc->fast_search_fail++;
+-				move_freelist_tail(freelist, freepage);
+-				break;
+-			}
+ 		}
+ 		spin_unlock_irqrestore(&cc->zone->lock, flags);
+ 	}
+@@ -1796,9 +1792,10 @@ static unsigned long fast_find_migratebl
+ 	 * If fast scanning failed then use a cached entry for a page block
+ 	 * that had free pages as the basis for starting a linear scan.
+ 	 */
+-	if (pfn == cc->migrate_pfn)
++	if (!found_block) {
++		cc->fast_search_fail++;
+ 		pfn = reinit_migrate_pfn(cc);
+-
++	}
+ 	return pfn;
+ }
+ 
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from vvghjk1234@gmail.com are
 
-mm-zswap-add-the-flag-can_sleep_mapped-fix-3.patch
+mm-compactoin-fix-misbehaviors-of-fast_find_migrateblock.patch
 
