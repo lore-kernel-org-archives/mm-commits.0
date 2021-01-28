@@ -7,32 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59088C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB19EC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:37:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1290D64E02
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:15:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C438664DDE
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 20:37:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229854AbhA1UPA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Jan 2021 15:15:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34918 "EHLO mail.kernel.org"
+        id S229596AbhA1UhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Jan 2021 15:37:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231213AbhA1UND (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 28 Jan 2021 15:13:03 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3836C64DFF;
-        Thu, 28 Jan 2021 20:12:23 +0000 (UTC)
+        id S229595AbhA1UhH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 28 Jan 2021 15:37:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D6C1560C3D;
+        Thu, 28 Jan 2021 20:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611864743;
-        bh=CduNRzKKPZ1a+r8UlXNXIeYzGqgAF68b+m+iUlG/BLw=;
+        s=korg; t=1611866186;
+        bh=UnjnbpOr7S8wvqviHLuyvwVaPayExtrG6hOm65l6hwA=;
         h=Date:From:To:Subject:From;
-        b=oTyMfB0L9fa5TFLaC/av2lC75B39N9sr980u4mB1a6HWM7p0A0ziKG2aeo6JQYD6q
-         TFvougNI+hSiJ4vPso4s3JREbcaWenbgwMC8rSW3sPnSiEnYmoNQZD7Ata6r7vzVED
-         euNGeJOBdrGa/LhBpn1xqr9zqHouguWYbRr8jwqI=
-Date:   Thu, 28 Jan 2021 12:12:22 -0800
+        b=M552VH1dEA7QDbA+u+ArKI5Kj11QcuurHfmijp+I8bM7tqtipHZizVBC8HDaTUMMs
+         lDhz7UCBocfGp0Eavj2UxjbKD1Ekmwzl6X+aws+Go4MnK6PIUSkzXD9Yx9upkWI4ax
+         wpBZQovAxh8tf9+ad7MlflALvH/KJjfgxIKLHNCk=
+Date:   Thu, 28 Jan 2021 12:36:25 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210128201222.ePXYra-1m%akpm@linux-foundation.org>
+To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  + mm-hugetlb-refactor-subpage-recording.patch added to
+ -mm tree
+Message-ID: <20210128203625.MUxVEPUyl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/hugetlb: refactor subpage recording
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-hugetlb-refactor-subpage-recording.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-refactor-subpage-recording.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-refactor-subpage-recording.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,45 +64,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: refactor subpage recording
 
+For a given hugepage backing a VA, there's a rather ineficient loop which
+is solely responsible for storing subpages in GUP @pages/@vmas array.  For
+each subpage we check whether it's within range or size of @pages and keep
+increment @pfn_offset and a couple other variables per subpage iteration.
+
+Simplify this logic and minimize the cost of each iteration to just store
+the output page/vma.  Instead of incrementing number of @refs iteratively,
+we do it through pre-calculation of @refs and only with a tight loop for
+storing pinned subpages/vmas.
+
+Additionally, retain existing behaviour with using mem_map_offset() when
+recording the subpages for configurations that don't have a contiguous
+mem_map.
+
+pinning consequently improves bringing us close to
+{pin,get}_user_pages_fast:
+
+  - 16G with 1G huge page size
+  gup_test -f /mnt/huge/file -m 16384 -r 30 -L -S -n 512 -w
+
+PIN_LONGTERM_BENCHMARK: ~12.8k us -> ~5.8k us
+PIN_FAST_BENCHMARK: ~3.7k us
+
+Link: https://lkml.kernel.org/r/20210128182632.24562-3-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/soc/atmel/soc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/hugetlb.c |   49 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 21 deletions(-)
 
---- a/drivers/soc/atmel/soc.c~linux-next-git-rejects
-+++ a/drivers/soc/atmel/soc.c
-@@ -358,10 +358,7 @@ static const struct of_device_id at91_so
- 	{ .compatible = "atmel,at91sam9", },
- 	{ .compatible = "atmel,sama5", },
- 	{ .compatible = "atmel,samv7", },
--<<<<<<< HEAD
--=======
- 	{ .compatible = "microchip,sama7g5", },
-->>>>>>> linux-next/akpm-base
- 	{ }
- };
+--- a/mm/hugetlb.c~mm-hugetlb-refactor-subpage-recording
++++ a/mm/hugetlb.c
+@@ -4801,6 +4801,20 @@ out_release_nounlock:
+ 	goto out;
+ }
  
++static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
++				 int refs, struct page **pages,
++				 struct vm_area_struct **vmas)
++{
++	int nr;
++
++	for (nr = 0; nr < refs; nr++) {
++		if (likely(pages))
++			pages[nr] = mem_map_offset(page, nr);
++		if (vmas)
++			vmas[nr] = vma;
++	}
++}
++
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
+@@ -4930,28 +4944,16 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
+ 
+-		refs = 0;
++		refs = min3(pages_per_huge_page(h) - pfn_offset,
++			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
+ 
+-same_page:
+-		if (pages)
+-			pages[i] = mem_map_offset(page, pfn_offset);
++		if (pages || vmas)
++			record_subpages_vmas(mem_map_offset(page, pfn_offset),
++					     vma, refs,
++					     likely(pages) ? pages + i : NULL,
++					     vmas ? vmas + i : NULL);
+ 
+-		if (vmas)
+-			vmas[i] = vma;
+-
+-		vaddr += PAGE_SIZE;
+-		++pfn_offset;
+-		--remainder;
+-		++i;
+-		++refs;
+-		if (vaddr < vma->vm_end && remainder &&
+-				pfn_offset < pages_per_huge_page(h)) {
+-			/*
+-			 * We use pfn_offset to avoid touching the pageframes
+-			 * of this compound page.
+-			 */
+-			goto same_page;
+-		} else if (pages) {
++		if (pages) {
+ 			/*
+ 			 * try_grab_compound_head() should always succeed here,
+ 			 * because: a) we hold the ptl lock, and b) we've just
+@@ -4962,7 +4964,7 @@ same_page:
+ 			 * any way. So this page must be available at this
+ 			 * point, unless the page refcount overflowed:
+ 			 */
+-			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i-1],
++			if (WARN_ON_ONCE(!try_grab_compound_head(pages[i],
+ 								 refs,
+ 								 flags))) {
+ 				spin_unlock(ptl);
+@@ -4971,6 +4973,11 @@ same_page:
+ 				break;
+ 			}
+ 		}
++
++		vaddr += (refs << PAGE_SHIFT);
++		remainder -= refs;
++		i += refs;
++
+ 		spin_unlock(ptl);
+ 	}
+ 	*nr_pages = remainder;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-mm.patch
-mm-memcg-slab-pre-allocate-obj_cgroups-for-slab-caches-with-slab_account-fix.patch
-mm-memcontrol-optimize-per-lruvec-stats-counter-memory-usage-checkpatch-fixes.patch
-mm-memcg-add-swapcache-stat-for-memcg-v2-fix.patch
-kasan-add-match-all-tag-tests-fix-fix.patch
-mm-cma-allocate-cma-areas-bottom-up-fix-3-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-bdi-use-might_alloc-fix.patch
-kfence-kasan-make-kfence-compatible-with-kasan-fix.patch
-lib-stackdepot-add-support-to-disable-stack-depot-fix.patch
-initramfs-panic-with-memory-information-fix.patch
-linux-next-rejects.patch
-fs-ramfs-inodec-update-inode_operationstmpfile.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mm-hugetlb-grab-head-page-refcount-once-for-group-of-subpages.patch
+mm-hugetlb-refactor-subpage-recording.patch
 
