@@ -7,38 +7,40 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC1FCC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D186C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:03:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 810C064DCE
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:03:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33B9264D99
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:03:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbhA1ACx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Jan 2021 19:02:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49962 "EHLO mail.kernel.org"
+        id S229716AbhA1ACy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 19:02:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229716AbhA1ACq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Jan 2021 19:02:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 52DFE64D99;
-        Thu, 28 Jan 2021 00:02:05 +0000 (UTC)
+        id S231162AbhA1ACt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Jan 2021 19:02:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F321164DCE;
+        Thu, 28 Jan 2021 00:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611792125;
-        bh=hcwidSGeaWL1SfbBLgfY/PNu6I5GJxjg53klue2uUog=;
+        s=korg; t=1611792128;
+        bh=6iVEZJQLAbO7FAeHzix9C3ebQwQIldGYue24hJtoQZY=;
         h=Date:From:To:Subject:From;
-        b=ZNPz732vmm8itaNH5n70ZbgTHqQlBsaWBTOI9zYHFCCiCVf2zw7Zz6/iwSkbggVO6
-         PxUWHsl8Gpq8wfulLXeo01h53dh03J6lTzoKUxCH5gYKtZLYwuzlXTj/xndDFmXTUK
-         uZD5CXPDUAy3hqJ4xYP7jB9buSPccuD3TwIpx4Gw=
-Date:   Wed, 27 Jan 2021 16:02:04 -0800
+        b=BggfBarniiDCexHb3wC13s4TbVPQ8FC0IEToGn2g6II9554veoak7+BjLfFZENv5f
+         bCu7MVfIx1uCjWJnP82IqNbMztu/qtPxBOiRJn7htqjqB9MAm+yG4DO26hJb2VUVRm
+         sQqjr0DdCBRvpU+cYcCCei6ZrvSdyqO9/3hz4N2w=
+Date:   Wed, 27 Jan 2021 16:02:07 -0800
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
         osalvador@suse.de, peterz@infradead.org,
         richard.weiyang@linux.alibaba.com, rppt@kernel.org,
         tglx@linutronix.de, ziy@nvidia.com
 Subject:  +
- mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails.patch
- added to -mm tree
-Message-ID: <20210128000204.zXYQXU9df%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Falloc-count-cma-pages-per-zone-and-print-them-in?=
+ =?US-ASCII?Q?-proc-zoneinfo.patch?= added to -mm tree
+Message-ID: <20210128000207.W42zrnfel%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: expose all pages to the buddy if activation of an area fails
+     Subject: mm/page_alloc: count CMA pages per zone and print them in /proc/zoneinfo
 has been added to the -mm tree.  Its filename is
-     mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails.patch
+     mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,128 +70,93 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/cma: expose all pages to the buddy if activation of an area fails
+Subject: mm/page_alloc: count CMA pages per zone and print them in /proc/zoneinfo
 
-Right now, if activation fails, we might already have exposed some pages
-to the buddy for CMA use (although they will never get actually used by
-CMA), and some pages won't be exposed to the buddy at all.
+Let's count the number of CMA pages per zone and print them in
+/proc/zoneinfo.
 
-Let's check for "single zone" early and on error, don't expose any pages
-for CMA use - instead, expose them to the buddy available for any use. 
-Simply call free_reserved_page() on every single page - easier than going
-via free_reserved_area(), converting back and forth between pfns and virt
-addresses.
+Having access to the total number of CMA pages per zone is helpful for
+debugging purposes to know where exactly the CMA pages ended up, and to
+figure out how many pages of a zone might behave differently (e.g., like
+ZONE_MOVABLE) - even after some of these pages might already have been
+allocated.
 
-In addition, make sure to fixup totalcma_pages properly.
+For now, we are only able to get the global nr+free cma pages from
+/proc/meminfo and the free cma pages per zone from /proc/zoneinfo.
 
-Example: 6 GiB QEMU VM with "... hugetlb_cma=2G movablecore=20% ...":
-  [    0.006891] hugetlb_cma: reserve 2048 MiB, up to 2048 MiB per node
-  [    0.006893] cma: Reserved 2048 MiB at 0x0000000100000000
-  [    0.006893] hugetlb_cma: reserved 2048 MiB on node 0
-  ...
-  [    0.175433] cma: CMA area hugetlb0 could not be activated
+Note: Track/print that information even without CONFIG_CMA, similar to
+"nr_free_cma" in /proc/zoneinfo.  This is different to /proc/meminfo -
+maybe we want to make that consistent in the future (however, changing
+/proc/zoneinfo output might uglify the code a bit).
 
-Before this patch:
-  # cat /proc/meminfo
-  MemTotal:        5867348 kB
-  MemFree:         5692808 kB
-  MemAvailable:    5542516 kB
-  ...
-  CmaTotal:        2097152 kB
-  CmaFree:         1884160 kB
-
-After this patch:
-  # cat /proc/meminfo
-  MemTotal:        6077308 kB
-  MemFree:         5904208 kB
-  MemAvailable:    5747968 kB
-  ...
-  CmaTotal:              0 kB
-  CmaFree:               0 kB
-
-Note: cma_init_reserved_mem() makes sure that we always cover full
-pageblocks / MAX_ORDER - 1 pages.
-
-Link: https://lkml.kernel.org/r/20210127101813.6370-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20210127101813.6370-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   43 +++++++++++++++++++++----------------------
- 1 file changed, 21 insertions(+), 22 deletions(-)
+ include/linux/mmzone.h |    4 ++++
+ mm/page_alloc.c        |    1 +
+ mm/vmstat.c            |    6 ++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/cma.c~mm-cma-expose-all-pages-to-the-buddy-if-activation-of-an-area-fails
-+++ a/mm/cma.c
-@@ -94,34 +94,29 @@ static void cma_clear_bitmap(struct cma
+--- a/include/linux/mmzone.h~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
++++ a/include/linux/mmzone.h
+@@ -503,6 +503,9 @@ struct zone {
+ 	 * bootmem allocator):
+ 	 *	managed_pages = present_pages - reserved_pages;
+ 	 *
++	 * cma pages is present pages that are assigned for CMA use
++	 * (MIGRATE_CMA).
++	 *
+ 	 * So present_pages may be used by memory hotplug or memory power
+ 	 * management logic to figure out unmanaged pages by checking
+ 	 * (present_pages - managed_pages). And managed_pages should be used
+@@ -527,6 +530,7 @@ struct zone {
+ 	atomic_long_t		managed_pages;
+ 	unsigned long		spanned_pages;
+ 	unsigned long		present_pages;
++	unsigned long		cma_pages;
  
- static void __init cma_activate_area(struct cma *cma)
- {
--	unsigned long base_pfn = cma->base_pfn, pfn = base_pfn;
--	unsigned i = cma->count >> pageblock_order;
-+	unsigned long base_pfn = cma->base_pfn, pfn;
- 	struct zone *zone;
+ 	const char		*name;
  
- 	cma->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma), GFP_KERNEL);
- 	if (!cma->bitmap)
- 		goto out_error;
+--- a/mm/page_alloc.c~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
++++ a/mm/page_alloc.c
+@@ -2168,6 +2168,7 @@ void __init init_cma_reserved_pageblock(
+ 	}
  
--	WARN_ON_ONCE(!pfn_valid(pfn));
--	zone = page_zone(pfn_to_page(pfn));
--
--	do {
--		unsigned j;
--
--		base_pfn = pfn;
--		for (j = pageblock_nr_pages; j; --j, pfn++) {
--			WARN_ON_ONCE(!pfn_valid(pfn));
--			/*
--			 * alloc_contig_range requires the pfn range
--			 * specified to be in the same zone. Make this
--			 * simple by forcing the entire CMA resv range
--			 * to be in the same zone.
--			 */
--			if (page_zone(pfn_to_page(pfn)) != zone)
--				goto not_in_zone;
--		}
--		init_cma_reserved_pageblock(pfn_to_page(base_pfn));
--	} while (--i);
-+	/*
-+	 * alloc_contig_range() requires the pfn range specified to be in the
-+	 * same zone. Simplify by forcing the entire CMA resv range to be in the
-+	 * same zone.
-+	 */
-+	WARN_ON_ONCE(!pfn_valid(base_pfn));
-+	zone = page_zone(pfn_to_page(base_pfn));
-+	for (pfn = base_pfn + 1; pfn < base_pfn + cma->count; pfn++) {
-+		WARN_ON_ONCE(!pfn_valid(pfn));
-+		if (page_zone(pfn_to_page(pfn)) != zone)
-+			goto not_in_zone;
-+	}
-+
-+	for (pfn = base_pfn; pfn < base_pfn + cma->count;
-+	     pfn += pageblock_nr_pages)
-+		init_cma_reserved_pageblock(pfn_to_page(pfn));
+ 	adjust_managed_page_count(page, pageblock_nr_pages);
++	page_zone(page)->cma_pages += pageblock_nr_pages;
+ }
+ #endif
  
- 	mutex_init(&cma->lock);
+--- a/mm/vmstat.c~mm-page_alloc-count-cma-pages-per-zone-and-print-them-in-proc-zoneinfo
++++ a/mm/vmstat.c
+@@ -1637,14 +1637,16 @@ static void zoneinfo_show_print(struct s
+ 		   "\n        high     %lu"
+ 		   "\n        spanned  %lu"
+ 		   "\n        present  %lu"
+-		   "\n        managed  %lu",
++		   "\n        managed  %lu"
++		   "\n        cma      %lu",
+ 		   zone_page_state(zone, NR_FREE_PAGES),
+ 		   min_wmark_pages(zone),
+ 		   low_wmark_pages(zone),
+ 		   high_wmark_pages(zone),
+ 		   zone->spanned_pages,
+ 		   zone->present_pages,
+-		   zone_managed_pages(zone));
++		   zone_managed_pages(zone),
++		   zone->cma_pages);
  
-@@ -135,6 +130,10 @@ static void __init cma_activate_area(str
- not_in_zone:
- 	bitmap_free(cma->bitmap);
- out_error:
-+	/* Expose all pages to the buddy, they are useless for CMA. */
-+	for (pfn = base_pfn; pfn < base_pfn + cma->count; pfn++)
-+		free_reserved_page(pfn_to_page(pfn));
-+	totalcma_pages -= cma->count;
- 	cma->count = 0;
- 	pr_err("CMA area %s could not be activated\n", cma->name);
- 	return;
+ 	seq_printf(m,
+ 		   "\n        protection: (%ld",
 _
 
 Patches currently in -mm which might be from david@redhat.com are
