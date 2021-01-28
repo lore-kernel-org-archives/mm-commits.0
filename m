@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04CD5C433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77ACFC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:06:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C27A864DCE
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:03:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 448A264DD3
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:06:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231162AbhA1ADe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Jan 2021 19:03:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50132 "EHLO mail.kernel.org"
+        id S231131AbhA1AG1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 19:06:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231158AbhA1ADb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Jan 2021 19:03:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BD50A64DBD;
-        Thu, 28 Jan 2021 00:02:50 +0000 (UTC)
+        id S231217AbhA1AGY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Jan 2021 19:06:24 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC45D64DD1;
+        Thu, 28 Jan 2021 00:05:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611792170;
-        bh=Xesu3DH6KBQyhoi6r/5Xh4pET8QupqlVnhPccahkpbo=;
+        s=korg; t=1611792339;
+        bh=sm91hxx5rmPm7Hi/18yz+QeZDnUkSBwKR16jJaN5WKM=;
         h=Date:From:To:Subject:From;
-        b=0ky+LYNfoZH05DyLEEBfzIOT94b718tcbY/lBH08Hvd5W5znTboWLMXEvUgZFNGqi
-         Rtip7c/Gnbc6frKTzOnpMjO6YbW618PHlG0sS35rpYVQI9TNVk2IVNnADDSC+im5D4
-         hRgW0owMZpv9GcEqyINZDyg2NukqYgYu7BkclVP4=
-Date:   Wed, 27 Jan 2021 16:02:50 -0800
+        b=w1Nv69JW9hSmys4zgVtCO2950+LH1BSMffqWf56mY/6RTPJy2WNmsjwNHpkWdWhNj
+         zN4Q2vWvVGVG3ZuYCVP7Rclx8YFgwQ6KzXezZWLMBCrzN8t838gmqdFGJidm7QxKap
+         FXTXIglOoRxiMmJKBk05mGpaTc5rU9ZdnVCfjhnQ=
+Date:   Wed, 27 Jan 2021 16:05:39 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org
+To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  +
- hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch added to
- -mm tree
-Message-ID: <20210128000250.89gKvkTIF%akpm@linux-foundation.org>
+ mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+ added to -mm tree
+Message-ID: <20210128000539.gOcqlpSC9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: correct some obsolete comments about inode i_mutex
+     Subject: mm/memory_hotplug: use helper function zone_end_pfn() to get end_pfn
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
+     mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,41 +65,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: correct some obsolete comments about inode i_mutex
+Subject: mm/memory_hotplug: use helper function zone_end_pfn() to get end_pfn
 
-Since commit 9902af79c01a ("parallel lookups: actual switch to rwsem"),
-i_mutex of inode is converted to i_rwsem. So replace i_mutex with i_rwsem
-to make comments up to date.
+Commit 108bcc96ef70 ("mm: add & use zone_end_pfn() and zone_spans_pfn()")
+introduced the helper zone_end_pfn() to calculate the zone end pfn.  But
+update_pgdat_span() forgot to use it.
 
-Link: https://lkml.kernel.org/r/20210127093111.36672-1-linmiaohe@huawei.com
+Use this helper and rename local variable zone_end_pfn to end_pfn to avoid
+a naming conflict with the existing zone_end_pfn().
+
+Link: https://lkml.kernel.org/r/20210127093211.37714-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex
-+++ a/fs/hugetlbfs/inode.c
-@@ -604,7 +604,7 @@ static long hugetlbfs_punch_hole(struct
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn
++++ a/mm/memory_hotplug.c
+@@ -493,20 +493,19 @@ static void update_pgdat_span(struct pgl
  
- 		inode_lock(inode);
+ 	for (zone = pgdat->node_zones;
+ 	     zone < pgdat->node_zones + MAX_NR_ZONES; zone++) {
+-		unsigned long zone_end_pfn = zone->zone_start_pfn +
+-					     zone->spanned_pages;
++		unsigned long end_pfn = zone_end_pfn(zone);
  
--		/* protected by i_mutex */
-+		/* protected by i_rwsem */
- 		if (info->seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE)) {
- 			inode_unlock(inode);
- 			return -EPERM;
-@@ -776,7 +776,7 @@ static int hugetlbfs_setattr(struct dent
+ 		/* No need to lock the zones, they can't change. */
+ 		if (!zone->spanned_pages)
+ 			continue;
+ 		if (!node_end_pfn) {
+ 			node_start_pfn = zone->zone_start_pfn;
+-			node_end_pfn = zone_end_pfn;
++			node_end_pfn = end_pfn;
+ 			continue;
+ 		}
  
- 		if (newsize & ~huge_page_mask(h))
- 			return -EINVAL;
--		/* protected by i_mutex */
-+		/* protected by i_rwsem */
- 		if ((newsize < oldsize && (info->seals & F_SEAL_SHRINK)) ||
- 		    (newsize > oldsize && (info->seals & F_SEAL_GROW)))
- 			return -EPERM;
+-		if (zone_end_pfn > node_end_pfn)
+-			node_end_pfn = zone_end_pfn;
++		if (end_pfn > node_end_pfn)
++			node_end_pfn = end_pfn;
+ 		if (zone->zone_start_pfn < node_start_pfn)
+ 			node_start_pfn = zone->zone_start_pfn;
+ 	}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -121,6 +130,7 @@ hugetlbfs-correct-obsolete-function-name-in-hugetlbfs_read_iter.patch
 hugetlbfs-remove-meaningless-variable-avoid_reserve.patch
 hugetlbfs-make-hugepage-size-conversion-more-readable.patch
 hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
+mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
 mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
