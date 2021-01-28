@@ -5,36 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77ACFC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F52EC433E6
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:11:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 448A264DD3
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:06:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A4DE64DCE
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:11:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231131AbhA1AG1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Jan 2021 19:06:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50348 "EHLO mail.kernel.org"
+        id S231640AbhA1ALW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 19:11:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231217AbhA1AGY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Jan 2021 19:06:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BC45D64DD1;
-        Thu, 28 Jan 2021 00:05:39 +0000 (UTC)
+        id S229835AbhA1AKc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Jan 2021 19:10:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF05164DD1;
+        Thu, 28 Jan 2021 00:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611792339;
-        bh=sm91hxx5rmPm7Hi/18yz+QeZDnUkSBwKR16jJaN5WKM=;
+        s=korg; t=1611792568;
+        bh=meprjUpGiIVBheb707rmwX6RwWZvg57o5VvC2n4HDsk=;
         h=Date:From:To:Subject:From;
-        b=w1Nv69JW9hSmys4zgVtCO2950+LH1BSMffqWf56mY/6RTPJy2WNmsjwNHpkWdWhNj
-         zN4Q2vWvVGVG3ZuYCVP7Rclx8YFgwQ6KzXezZWLMBCrzN8t838gmqdFGJidm7QxKap
-         FXTXIglOoRxiMmJKBk05mGpaTc5rU9ZdnVCfjhnQ=
-Date:   Wed, 27 Jan 2021 16:05:39 -0800
+        b=pAHMDIQWJs4RMHGI0v3zCbPf0bTPThIpu7LAdSKfcRTiznKEcNldhW7/sOzbohdzF
+         DFqOKsbZDPuRtOpTnDKTtoHhQHQBEEjr9QgFQ+HOSsdH8BOyuh4aA5Bxj3Xt01GskV
+         7DlZQUnUvBfF1t9PDUJ4mm6vlWzdn76yHeBrK0rk=
+Date:   Wed, 27 Jan 2021 16:09:27 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
+To:     hannes@cmpxchg.org, linmiaohe@huawei.com, louhongxiang@huawei.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, stable@vger.kernel.org, vbabka@suse.cz,
+        walken@google.com
 Subject:  +
- mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
- added to -mm tree
-Message-ID: <20210128000539.gOcqlpSC9%akpm@linux-foundation.org>
+ mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch added to -mm
+ tree
+Message-ID: <20210128000927.MhVdMWp-o%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: use helper function zone_end_pfn() to get end_pfn
+     Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+     mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,55 +68,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory_hotplug: use helper function zone_end_pfn() to get end_pfn
+Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
 
-Commit 108bcc96ef70 ("mm: add & use zone_end_pfn() and zone_spans_pfn()")
-introduced the helper zone_end_pfn() to calculate the zone end pfn.  But
-update_pgdat_span() forgot to use it.
+For PMD-mapped page (usually THP), pvmw->pte is NULL.  For PTE-mapped THP,
+pvmw->pte is mapped.  But for HugeTLB pages, pvmw->pte is not mapped and
+set to the relevant page table entry.  So in page_vma_mapped_walk_done(),
+we may do pte_unmap() for HugeTLB pte which is not mapped.  Fix this by
+checking pvmw->page against PageHuge before trying to do pte_unmap().
 
-Use this helper and rename local variable zone_end_pfn to end_pfn to avoid
-a naming conflict with the existing zone_end_pfn().
-
-Link: https://lkml.kernel.org/r/20210127093211.37714-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210127093349.39081-1-linmiaohe@huawei.com
+Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/rmap.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn
-+++ a/mm/memory_hotplug.c
-@@ -493,20 +493,19 @@ static void update_pgdat_span(struct pgl
+--- a/include/linux/rmap.h~mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte
++++ a/include/linux/rmap.h
+@@ -213,7 +213,8 @@ struct page_vma_mapped_walk {
  
- 	for (zone = pgdat->node_zones;
- 	     zone < pgdat->node_zones + MAX_NR_ZONES; zone++) {
--		unsigned long zone_end_pfn = zone->zone_start_pfn +
--					     zone->spanned_pages;
-+		unsigned long end_pfn = zone_end_pfn(zone);
- 
- 		/* No need to lock the zones, they can't change. */
- 		if (!zone->spanned_pages)
- 			continue;
- 		if (!node_end_pfn) {
- 			node_start_pfn = zone->zone_start_pfn;
--			node_end_pfn = zone_end_pfn;
-+			node_end_pfn = end_pfn;
- 			continue;
- 		}
- 
--		if (zone_end_pfn > node_end_pfn)
--			node_end_pfn = zone_end_pfn;
-+		if (end_pfn > node_end_pfn)
-+			node_end_pfn = end_pfn;
- 		if (zone->zone_start_pfn < node_start_pfn)
- 			node_start_pfn = zone->zone_start_pfn;
- 	}
+ static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
+ {
+-	if (pvmw->pte)
++	/* HugeTLB pte is set to the relevant page table entry without pte_mapped. */
++	if (pvmw->pte && !PageHuge(pvmw->page))
+ 		pte_unmap(pvmw->pte);
+ 	if (pvmw->ptl)
+ 		spin_unlock(pvmw->ptl);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
 mm-page_owner-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 mm-fix-potential-pte_unmap_unlock-pte-error.patch
 mm-hugetlb-fix-potential-double-free-in-hugetlb_register_node-error-path.patch
