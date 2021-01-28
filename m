@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FA30C433DB
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 21:19:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BE1AC433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 21:20:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18A0B64DED
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 21:19:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7D2764DF0
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 21:20:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231454AbhA1VTf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Jan 2021 16:19:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59984 "EHLO mail.kernel.org"
+        id S229757AbhA1VUP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Jan 2021 16:20:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229596AbhA1VTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 28 Jan 2021 16:19:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C585464DEE;
-        Thu, 28 Jan 2021 21:18:53 +0000 (UTC)
+        id S229596AbhA1VUO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 28 Jan 2021 16:20:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5F9C64DEF;
+        Thu, 28 Jan 2021 21:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611868733;
-        bh=3t6qTXJO4yWa3G20iPSJFdQFwG5gnZubgkiGUWlzH0k=;
+        s=korg; t=1611868771;
+        bh=I3z6kOF2JQkiKKkEB5rzZz1gg+PBF2sqAcEclxbd77I=;
         h=Date:From:To:Subject:From;
-        b=B5pjzC/BcHInqYkFEF9Cra3AaiRHEWGwuDCXgBRnkYmVM2qMKEKZvJnvQVj85K6cv
-         u2pSBP37pDBYwIZjLjFwyK1StL7FcdwGXu6Q41gT9am//XRuToWlsrp0p4qOevv+iX
-         PV9Qt7kiZjAh+g/4T8BSZkZxbq1+G23GyiQsXohM=
-Date:   Thu, 28 Jan 2021 13:18:53 -0800
+        b=ulFyXUQba4ZTaC4QcQVNmAvEC0MB0ZW5tJdcIew+ZB50Rf8B+ZrRdhJQm+1OR9pEV
+         BXaSHqO2y7pebPfzk5cCdiEzJ8fOg3GKTyab7MaMGpmKRTFg+3lSW9OIhpEGtIUYL4
+         t46vVSux+5tzXPSg1T0p1BLsy8s2f3th/zhRH0rk=
+Date:   Thu, 28 Jan 2021 13:19:31 -0800
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  + mm-hugetlb-fix-some-comment-typos.patch added to -mm
+Subject:  +
+ mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch added to -mm
  tree
-Message-ID: <20210128211853.S_DkUjFRz%akpm@linux-foundation.org>
+Message-ID: <20210128211931.ELKdLktwT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix some comment typos
+     Subject: mm/rmap: fix obsolete comment in __page_check_anon_rmap()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-some-comment-typos.patch
+     mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-some-comment-typos.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-some-comment-typos.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,61 +65,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix some comment typos
+Subject: mm/rmap: fix obsolete comment in __page_check_anon_rmap()
 
-Fix typos sasitfy to satisfy, reservtion to reservation, hugegpage to
-hugepage and uniprocesor to uniprocessor in comments.
+Commit 21333b2b66b8 ("ksm: no debug in page_dup_rmap()") has reverted
+page_dup_rmap() to an inline atomic_inc of mapcount.  So page_dup_rmap()
+does not call __page_check_anon_rmap() anymore.
 
-Link: https://lkml.kernel.org/r/20210128112028.64831-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210128110209.50857-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- mm/hugetlb.c            |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/rmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-some-comment-typos
-+++ a/include/linux/hugetlb.h
-@@ -37,7 +37,7 @@ struct hugepage_subpool {
- 	struct hstate *hstate;
- 	long min_hpages;	/* Minimum huge pages or -1 if no minimum. */
- 	long rsv_hpages;	/* Pages reserved against global pool to */
--				/* sasitfy minimum size. */
-+				/* satisfy minimum size. */
- };
- 
- struct resv_map {
---- a/mm/hugetlb.c~mm-hugetlb-fix-some-comment-typos
-+++ a/mm/hugetlb.c
-@@ -1434,7 +1434,7 @@ static void __free_huge_page(struct page
- 	 * reservation.  If the page was associated with a subpool, there
- 	 * would have been a page reserved in the subpool before allocation
- 	 * via hugepage_subpool_get_pages().  Since we are 'restoring' the
--	 * reservtion, do not call hugepage_subpool_put_pages() as this will
-+	 * reservation, do not call hugepage_subpool_put_pages() as this will
- 	 * remove the reserved page from the subpool.
- 	 */
- 	if (!restore_reserve) {
-@@ -3707,7 +3707,7 @@ static unsigned long hugetlb_vm_op_pages
- /*
-  * We cannot handle pagefaults against hugetlb pages at all.  They cause
-  * handle_mm_fault() to try to instantiate regular-sized pages in the
-- * hugegpage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
-+ * hugepage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
-  * this far.
-  */
- static vm_fault_t hugetlb_vm_op_fault(struct vm_fault *vmf)
-@@ -4505,7 +4505,7 @@ u32 hugetlb_fault_mutex_hash(struct addr
- }
- #else
- /*
-- * For uniprocesor systems we always use a single mutex, so just
-+ * For uniprocessor systems we always use a single mutex, so just
-  * return 0 and avoid the hashing overhead.
-  */
- u32 hugetlb_fault_mutex_hash(struct address_space *mapping, pgoff_t idx)
+--- a/mm/rmap.c~mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap
++++ a/mm/rmap.c
+@@ -1086,8 +1086,7 @@ static void __page_check_anon_rmap(struc
+ 	 * be set up correctly at this point.
+ 	 *
+ 	 * We have exclusion against page_add_anon_rmap because the caller
+-	 * always holds the page locked, except if called from page_dup_rmap,
+-	 * in which case the page is already known to be setup.
++	 * always holds the page locked.
+ 	 *
+ 	 * We have exclusion against page_add_new_anon_rmap because those pages
+ 	 * are initially only visible via the pagetables, and the pte is locked
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -144,5 +116,6 @@ hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
 mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
 mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
+mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
 mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
