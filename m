@@ -5,39 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F52EC433E6
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68407C433DB
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:12:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A4DE64DCE
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:11:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D7B764D99
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jan 2021 00:12:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231640AbhA1ALW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Jan 2021 19:11:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50892 "EHLO mail.kernel.org"
+        id S231172AbhA1AMN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Jan 2021 19:12:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229835AbhA1AKc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Jan 2021 19:10:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF05164DD1;
-        Thu, 28 Jan 2021 00:09:27 +0000 (UTC)
+        id S231570AbhA1ALg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Jan 2021 19:11:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C8B964DD5;
+        Thu, 28 Jan 2021 00:10:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1611792568;
-        bh=meprjUpGiIVBheb707rmwX6RwWZvg57o5VvC2n4HDsk=;
+        s=korg; t=1611792616;
+        bh=YCFB5bwF317DguSZ/Sq2m0ji24e+18U3C+GMYmoufs8=;
         h=Date:From:To:Subject:From;
-        b=pAHMDIQWJs4RMHGI0v3zCbPf0bTPThIpu7LAdSKfcRTiznKEcNldhW7/sOzbohdzF
-         DFqOKsbZDPuRtOpTnDKTtoHhQHQBEEjr9QgFQ+HOSsdH8BOyuh4aA5Bxj3Xt01GskV
-         7DlZQUnUvBfF1t9PDUJ4mm6vlWzdn76yHeBrK0rk=
-Date:   Wed, 27 Jan 2021 16:09:27 -0800
+        b=jJYc75Sdoo+ZvShxV4NYo2mGYe18vTQ06nwEZMs9CtaVmFhhh85mWD6et05Ubv59t
+         BF8O8cso6urgugjvRUIAMBsaP9fOzskVf2wA11H+fN+yeClIV6lGsmMIvg+NNkfHO6
+         qwXYfep2zgpNWDYByVyMaLCJ2ZZCnlIQG0ublIoE=
+Date:   Wed, 27 Jan 2021 16:10:16 -0800
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, linmiaohe@huawei.com, louhongxiang@huawei.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, stable@vger.kernel.org, vbabka@suse.cz,
-        walken@google.com
+To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  +
- mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch added to -mm
+ mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch added to -mm
  tree
-Message-ID: <20210128000927.MhVdMWp-o%akpm@linux-foundation.org>
+Message-ID: <20210128001016.di0zA_hQI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
+     Subject: mm/rmap: remove unneeded semicolon in page_not_mapped()
 has been added to the -mm tree.  Its filename is
-     mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+     mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,42 +65,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/rmap: fix potential pte_unmap on an not mapped pte
+Subject: mm/rmap: remove unneeded semicolon in page_not_mapped()
 
-For PMD-mapped page (usually THP), pvmw->pte is NULL.  For PTE-mapped THP,
-pvmw->pte is mapped.  But for HugeTLB pages, pvmw->pte is not mapped and
-set to the relevant page table entry.  So in page_vma_mapped_walk_done(),
-we may do pte_unmap() for HugeTLB pte which is not mapped.  Fix this by
-checking pvmw->page against PageHuge before trying to do pte_unmap().
+Remove extra semicolon without any functional change intended.
 
-Link: https://lkml.kernel.org/r/20210127093349.39081-1-linmiaohe@huawei.com
-Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
-Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
+Link: https://lkml.kernel.org/r/20210127093425.39640-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/rmap.h~mm-rmap-fix-potential-pte_unmap-on-an-not-mapped-pte
-+++ a/include/linux/rmap.h
-@@ -213,7 +213,8 @@ struct page_vma_mapped_walk {
- 
- static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
+--- a/mm/rmap.c~mm-rmap-remove-unneeded-semicolon-in-page_not_mapped
++++ a/mm/rmap.c
+@@ -1784,7 +1784,7 @@ bool try_to_unmap(struct page *page, enu
+ static int page_not_mapped(struct page *page)
  {
--	if (pvmw->pte)
-+	/* HugeTLB pte is set to the relevant page table entry without pte_mapped. */
-+	if (pvmw->pte && !PageHuge(pvmw->page))
- 		pte_unmap(pvmw->pte);
- 	if (pvmw->ptl)
- 		spin_unlock(pvmw->ptl);
+ 	return !page_mapped(page);
+-};
++}
+ 
+ /**
+  * try_to_munlock - try to munlock a page
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -127,5 +111,6 @@ hugetlbfs-make-hugepage-size-conversion-more-readable.patch
 hugetlbfs-correct-some-obsolete-comments-about-inode-i_mutex.patch
 mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
+mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
