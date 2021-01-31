@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D23C433E0
-	for <mm-commits@archiver.kernel.org>; Sun, 31 Jan 2021 03:55:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A9D3C433DB
+	for <mm-commits@archiver.kernel.org>; Sun, 31 Jan 2021 03:57:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4700664E21
-	for <mm-commits@archiver.kernel.org>; Sun, 31 Jan 2021 03:55:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47D5264E1F
+	for <mm-commits@archiver.kernel.org>; Sun, 31 Jan 2021 03:57:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229561AbhAaDz5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 30 Jan 2021 22:55:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34170 "EHLO mail.kernel.org"
+        id S229851AbhAaD5M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 30 Jan 2021 22:57:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229468AbhAaDz5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 30 Jan 2021 22:55:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ACFD164E1F;
-        Sun, 31 Jan 2021 03:55:16 +0000 (UTC)
+        id S229692AbhAaD5M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 30 Jan 2021 22:57:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A18B364E1F;
+        Sun, 31 Jan 2021 03:56:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612065316;
-        bh=07f8+FvnUXGZQ2zldxYJDaEPYC2GCicdaHPDe9ObRyU=;
+        s=korg; t=1612065391;
+        bh=faRwsWtZJyltyJpwA1WvShneAx+v4yda2ujtr2Xwt14=;
         h=Date:From:To:Subject:From;
-        b=hIBKWBUu1SuQDAanNT6KZ7BIEIJXkj72ev9OKw1Yw7AoP2W9azGhT8scnVfZf7CWw
-         pNSRrny5hV0eXtXkuJqOfGqaQQLYBa5aspFV52SNZKUqy50kGhb5PciTPFKWmgXD7e
-         gbQsVqp2OaN4dkhiU77u1uFO38sFhlUqh0KLNn28=
-Date:   Sat, 30 Jan 2021 19:55:16 -0800
+        b=suDtJmixde5ItCaCMc+3AEyWvlGZFh36TIaRpSesKVRN4Pou8YUwwVQKyGBaaWVGM
+         9TckroIWOEqn0Coylk1YTTHajpk/UrEeizY62+h4G4JH9cmhl404E53TrzcMJvehqk
+         QnCfYl2m6lVub4nVsMFY1cbPszOb6YxNW7TjlgoM=
+Date:   Sat, 30 Jan 2021 19:56:31 -0800
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  +
- mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch added
+Subject:  + mm-rmap-use-page_not_mapped-in-try_to_unmap.patch added
  to -mm tree
-Message-ID: <20210131035516.3qmZMCCWQ%akpm@linux-foundation.org>
+Message-ID: <20210131035631.VL9rYo2zc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: use helper range_in_vma() in queue_pages_test_walk()
+     Subject: mm/rmap: use page_not_mapped in try_to_unmap()
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
+     mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,31 +64,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mempolicy: use helper range_in_vma() in queue_pages_test_walk()
+Subject: mm/rmap: use page_not_mapped in try_to_unmap()
 
-The helper range_in_vma() is introduced via commit 017b1660df89 ("mm:
-migration: fix migration of huge PMD shared pages"). But we forgot to
-use it in queue_pages_test_walk().
+page_mapcount_is_zero() calculates accurately how many mappings a hugepage
+has in order to check against 0 only.  This is a waste of cpu time.  We
+can do this via page_not_mapped() to save some possible atomic_read
+cycles.  Remove the function page_mapcount_is_zero() as it's not used
+anymore and move page_not_mapped() above try_to_unmap() to avoid
+identifier undeclared compilation error.
 
-Link: https://lkml.kernel.org/r/20210130091352.20220-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210130084904.35307-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-helper-range_in_vma-in-queue_pages_test_walk
-+++ a/mm/mempolicy.c
-@@ -677,7 +677,7 @@ static int queue_pages_test_walk(unsigne
- 	unsigned long flags = qp->flags;
+--- a/mm/rmap.c~mm-rmap-use-page_not_mapped-in-try_to_unmap
++++ a/mm/rmap.c
+@@ -1736,9 +1736,9 @@ static bool invalid_migration_vma(struct
+ 	return vma_is_temporary_stack(vma);
+ }
  
- 	/* range check first */
--	VM_BUG_ON_VMA((vma->vm_start > start) || (vma->vm_end < end), vma);
-+	VM_BUG_ON_VMA(!range_in_vma(vma, start, end), vma);
+-static int page_mapcount_is_zero(struct page *page)
++static int page_not_mapped(struct page *page)
+ {
+-	return !total_mapcount(page);
++	return !page_mapped(page);
+ }
  
- 	if (!qp->first) {
- 		qp->first = vma;
+ /**
+@@ -1756,7 +1756,7 @@ bool try_to_unmap(struct page *page, enu
+ 	struct rmap_walk_control rwc = {
+ 		.rmap_one = try_to_unmap_one,
+ 		.arg = (void *)flags,
+-		.done = page_mapcount_is_zero,
++		.done = page_not_mapped,
+ 		.anon_lock = page_lock_anon_vma_read,
+ 	};
+ 
+@@ -1780,11 +1780,6 @@ bool try_to_unmap(struct page *page, enu
+ 	return !page_mapcount(page) ? true : false;
+ }
+ 
+-static int page_not_mapped(struct page *page)
+-{
+-	return !page_mapped(page);
+-}
+-
+ /**
+  * try_to_munlock - try to munlock a page
+  * @page: the page to be munlocked
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -118,5 +144,6 @@ mm-memory_hotplug-use-helper-function-zone_end_pfn-to-get-end_pfn.patch
 mm-rmap-correct-some-obsolete-comments-of-anon_vma.patch
 mm-rmap-remove-unneeded-semicolon-in-page_not_mapped.patch
 mm-rmap-fix-obsolete-comment-in-__page_check_anon_rmap.patch
+mm-rmap-use-page_not_mapped-in-try_to_unmap.patch
 mm-zsmallocc-convert-to-use-kmem_cache_zalloc-in-cache_alloc_zspage.patch
 
