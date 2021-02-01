@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF87C433E6
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29687C433E9
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C69F264EC6
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF7AF64EAA
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229515AbhBAWrF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229525AbhBAWrF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 1 Feb 2021 17:47:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33142 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229525AbhBAWqw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 17:46:52 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F24B264ECE;
-        Mon,  1 Feb 2021 22:46:10 +0000 (UTC)
+        id S229593AbhBAWq4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 17:46:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0AE7C64ED2;
+        Mon,  1 Feb 2021 22:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612219571;
-        bh=n2AAW18rDL98da/Di4MRG0+ZkOef/kLo+KEbtXCTuGE=;
+        s=korg; t=1612219574;
+        bh=LK/I/oa8prx0ZB3JNPseDa7Y/CLkeYueGARr71NROMM=;
         h=Date:From:To:Subject:From;
-        b=ZwZg2ww0zccXUR+RaWSKMIPsnHaabQDbCy9Y6khm8SN03rgYed4Ag6178BZqfB/cG
-         7ZzS0U0jjJukU8l6qPWI5x/+rY/YLa+Eq+RhMA4UTsNMwwqo5mvDN4ZivV5FhLC8iN
-         9nG7Ih+AGic6OauJdWRmiNds7mLZ40yESuFJFCCE=
-Date:   Mon, 01 Feb 2021 14:46:10 -0800
+        b=lAZ1uI4tf3Uf8MP7LpyK6TsZuaTtUYctRBaYUotqAo4aFqPiNKBqSmIGReftGPNIg
+         fvvq01dz5wbQYw8vNFdLdVYI5fl8y5SBA4fqzBjDF2gGRc8zFHv6S0kEIkFBvKtfol
+         Rg9/poBmagrkmzqFSa10W9q+LPVQoDHglrROIUJw=
+Date:   Mon, 01 Feb 2021 14:46:13 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,9 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-optimize-large-kmalloc-poisoning.patch added to
- -mm tree
-Message-ID: <20210201224610.M_8CJXEyp%akpm@linux-foundation.org>
+Subject:  +
+ kasan-clean-up-setting-free-info-in-kasan_slab_free.patch added to -mm tree
+Message-ID: <20210201224613.CIRUcZNUY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: optimize large kmalloc poisoning
+     Subject: kasan: clean up setting free info in kasan_slab_free
 has been added to the -mm tree.  Its filename is
-     kasan-optimize-large-kmalloc-poisoning.patch
+     kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-optimize-large-kmalloc-poisoning.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-optimize-large-kmalloc-poisoning.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-clean-up-setting-free-info-in-kasan_slab_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,15 +69,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: optimize large kmalloc poisoning
+Subject: kasan: clean up setting free info in kasan_slab_free
 
-Similarly to kasan_kmalloc(), kasan_kmalloc_large() doesn't need to
-unpoison the object as it as already unpoisoned by alloc_pages() (or by
-ksize() for krealloc()).
+Put kasan_stack_collection_enabled() check and kasan_set_free_info() calls
+next to each other.
 
-This patch changes kasan_kmalloc_large() to only poison the redzone.
+The way this was previously implemented was a minor optimization that
+relied of the the fact that kasan_stack_collection_enabled() is always
+true for generic KASAN.  The confusion that this brings outweights saving
+a few instructions.
 
-Link: https://lkml.kernel.org/r/8fdbf86842f4eaf2458ecd23d0844058dbc2c7a2.1612208222.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/e762958db74587308514341a18622ff350a75d8a.1612208222.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -93,47 +95,27 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ mm/kasan/common.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/kasan/common.c~kasan-optimize-large-kmalloc-poisoning
+--- a/mm/kasan/common.c~kasan-clean-up-setting-free-info-in-kasan_slab_free
 +++ a/mm/kasan/common.c
-@@ -494,7 +494,6 @@ EXPORT_SYMBOL(__kasan_kmalloc);
- void * __must_check __kasan_kmalloc_large(const void *ptr, size_t size,
- 						gfp_t flags)
- {
--	struct page *page;
- 	unsigned long redzone_start;
- 	unsigned long redzone_end;
+@@ -350,13 +350,11 @@ static bool ____kasan_slab_free(struct k
  
-@@ -504,12 +503,23 @@ void * __must_check __kasan_kmalloc_larg
- 	if (unlikely(ptr == NULL))
- 		return NULL;
+ 	kasan_poison(object, cache->object_size, KASAN_KMALLOC_FREE);
  
--	page = virt_to_page(ptr);
-+	/*
-+	 * The object has already been unpoisoned by kasan_alloc_pages() for
-+	 * alloc_pages() or by ksize() for krealloc().
-+	 */
-+
-+	/*
-+	 * The redzone has byte-level precision for the generic mode.
-+	 * Partially poison the last object granule to cover the unaligned
-+	 * part of the redzone.
-+	 */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		kasan_poison_last_granule(ptr, size);
-+
-+	/* Poison the aligned part of the redzone. */
- 	redzone_start = round_up((unsigned long)(ptr + size),
- 				KASAN_GRANULE_SIZE);
--	redzone_end = (unsigned long)ptr + page_size(page);
+-	if (!kasan_stack_collection_enabled())
+-		return false;
 -
--	kasan_unpoison(ptr, size);
-+	redzone_end = (unsigned long)ptr + page_size(virt_to_page(ptr));
- 	kasan_poison((void *)redzone_start, redzone_end - redzone_start,
- 		     KASAN_PAGE_REDZONE);
+ 	if ((IS_ENABLED(CONFIG_KASAN_GENERIC) && !quarantine))
+ 		return false;
  
+-	kasan_set_free_info(cache, object, tag);
++	if (kasan_stack_collection_enabled())
++		kasan_set_free_info(cache, object, tag);
+ 
+ 	return kasan_quarantine_put(cache, object);
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
