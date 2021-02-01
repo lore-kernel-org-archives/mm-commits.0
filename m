@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4AF9C43381
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D607BC433E0
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2BBE64EAA
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A78B464DDE
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 22:47:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229884AbhBAWrH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 17:47:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33260 "EHLO mail.kernel.org"
+        id S229542AbhBAWr3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 17:47:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229753AbhBAWrC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 17:47:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4917864D9C;
-        Mon,  1 Feb 2021 22:46:17 +0000 (UTC)
+        id S229530AbhBAWr1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 17:47:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 088AB64DDE;
+        Mon,  1 Feb 2021 22:46:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612219577;
-        bh=P1xM26RGTTWaI0a1gMnKqP4bq9dOKOqMVvfS/45O7/A=;
+        s=korg; t=1612219583;
+        bh=F+2XTLckBZ9fbO4UwiPbFIoK4HIPtZPRPlea5D73mXY=;
         h=Date:From:To:Subject:From;
-        b=r4c1u+pm9y3J4Y7jFDkxs2Ix7ybobgN7yhJNsfjbtnH5gw5GKZvAMzOJN7cb7r3WE
-         Ardky8AVLs7ngws4IUtMQFyi1PuWYCvSZvmbW7CqQ1kbQy2cAIu/wW/f5zHQhZtWFY
-         Eua4hOBtxEvRYc8hcUJ59/SzdcVlKB+to6GIBueo=
-Date:   Mon, 01 Feb 2021 14:46:16 -0800
+        b=l3J1MEU1i7WGaHwLqNUGZ3b4VMp6cvbm41Z1A2/smXBeDFt6F7HCPaE2iGE8Hgc5e
+         1/jkrj93p00ATZMsspyGHCSfNdEd1p37N+tdFjsoXGadlEdnw+Xeb3MfTNYdUv0eIm
+         046rxNfFW1G0Nt8R73Xd3eQInVVAFShur0GBSR0U=
+Date:   Mon, 01 Feb 2021 14:46:22 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         Branislav.Rankov@arm.com, catalin.marinas@arm.com,
@@ -36,8 +36,9 @@ To:     andreyknvl@google.com, aryabinin@virtuozzo.com,
         glider@google.com, kevin.brodsky@arm.com,
         mm-commits@vger.kernel.org, pcc@google.com,
         vincenzo.frascino@arm.com, will.deacon@arm.com
-Subject:  + kasan-unify-large-kfree-checks.patch added to -mm tree
-Message-ID: <20210201224616.IxplrGtST%akpm@linux-foundation.org>
+Subject:  + kasan-mm-remove-krealloc-side-effect.patch added to -mm
+ tree
+Message-ID: <20210201224622.rroneNKXj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: unify large kfree checks
+     Subject: kasan, mm: remove krealloc side-effect
 has been added to the -mm tree.  Its filename is
-     kasan-unify-large-kfree-checks.patch
+     kasan-mm-remove-krealloc-side-effect.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-unify-large-kfree-checks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mm-remove-krealloc-side-effect.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-unify-large-kfree-checks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mm-remove-krealloc-side-effect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,15 +69,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: unify large kfree checks
+Subject: kasan, mm: remove krealloc side-effect
 
-Unify checks in kasan_kfree_large() and in kasan_slab_free_mempool() for
-large allocations as it's done for small kfree() allocations.
+Currently, if krealloc() is called on a freed object with KASAN enabled,
+it allocates and returns a new object, but doesn't copy any memory from
+the old one as ksize() returns 0.  This makes a caller believe that
+krealloc() succeeded (KASAN report is printed though).
 
-With this change, kasan_slab_free_mempool() starts checking that the first
-byte of the memory that's being freed is accessible.
+This patch adds an accessibility check into __do_krealloc().  If the check
+fails, krealloc() returns NULL.  This check duplicates the one in ksize();
+this is fixed in the following patch.
 
-Link: https://lkml.kernel.org/r/dbef8131b70766f8d798d24bb1ab9ae75dadea61.1612208222.git.andreyknvl@google.com
+This patch also adds a KASAN-KUnit test to check krealloc() behaviour when
+it's called on a freed object.
+
+Link: https://lkml.kernel.org/r/884e37ddff31b671725f4d83106111c7dcf8fb9b.1612208222.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -92,116 +99,58 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   16 ++++++++--------
- mm/kasan/common.c     |   36 ++++++++++++++++++++++++++----------
- 2 files changed, 34 insertions(+), 18 deletions(-)
+ lib/test_kasan.c |   20 ++++++++++++++++++++
+ mm/slab_common.c |    3 +++
+ 2 files changed, 23 insertions(+)
 
---- a/include/linux/kasan.h~kasan-unify-large-kfree-checks
-+++ a/include/linux/kasan.h
-@@ -200,6 +200,13 @@ static __always_inline bool kasan_slab_f
- 	return false;
+--- a/lib/test_kasan.c~kasan-mm-remove-krealloc-side-effect
++++ a/lib/test_kasan.c
+@@ -353,6 +353,25 @@ static void krealloc_pagealloc_less_oob(
+ 					KMALLOC_MAX_CACHE_SIZE + 201);
  }
  
-+void __kasan_kfree_large(void *ptr, unsigned long ip);
-+static __always_inline void kasan_kfree_large(void *ptr)
++/*
++ * Check that krealloc() detects a use-after-free, returns NULL,
++ * and doesn't unpoison the freed object.
++ */
++static void krealloc_uaf(struct kunit *test)
 +{
-+	if (kasan_enabled())
-+		__kasan_kfree_large(ptr, _RET_IP_);
++	char *ptr1, *ptr2;
++	int size1 = 201;
++	int size2 = 235;
++
++	ptr1 = kmalloc(size1, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
++	kfree(ptr1);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, ptr2 = krealloc(ptr1, size2, GFP_KERNEL));
++	KUNIT_ASSERT_PTR_EQ(test, (void *)ptr2, NULL);
++	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)ptr1);
 +}
 +
- void __kasan_slab_free_mempool(void *ptr, unsigned long ip);
- static __always_inline void kasan_slab_free_mempool(void *ptr)
+ static void kmalloc_oob_16(struct kunit *test)
  {
-@@ -247,13 +254,6 @@ static __always_inline void * __must_che
- 	return (void *)object;
- }
+ 	struct {
+@@ -1050,6 +1069,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(krealloc_less_oob),
+ 	KUNIT_CASE(krealloc_pagealloc_more_oob),
+ 	KUNIT_CASE(krealloc_pagealloc_less_oob),
++	KUNIT_CASE(krealloc_uaf),
+ 	KUNIT_CASE(kmalloc_oob_16),
+ 	KUNIT_CASE(kmalloc_uaf_16),
+ 	KUNIT_CASE(kmalloc_oob_in_memset),
+--- a/mm/slab_common.c~kasan-mm-remove-krealloc-side-effect
++++ a/mm/slab_common.c
+@@ -1061,6 +1061,9 @@ static __always_inline void *__do_kreall
+ 	void *ret;
+ 	size_t ks;
  
--void __kasan_kfree_large(void *ptr, unsigned long ip);
--static __always_inline void kasan_kfree_large(void *ptr)
--{
--	if (kasan_enabled())
--		__kasan_kfree_large(ptr, _RET_IP_);
--}
--
- /*
-  * Unlike kasan_check_read/write(), kasan_check_byte() is performed even for
-  * the hardware tag-based mode that doesn't rely on compiler instrumentation.
-@@ -302,6 +302,7 @@ static inline bool kasan_slab_free(struc
- {
- 	return false;
- }
-+static inline void kasan_kfree_large(void *ptr) {}
- static inline void kasan_slab_free_mempool(void *ptr) {}
- static inline void *kasan_slab_alloc(struct kmem_cache *s, void *object,
- 				   gfp_t flags)
-@@ -322,7 +323,6 @@ static inline void *kasan_krealloc(const
- {
- 	return (void *)object;
- }
--static inline void kasan_kfree_large(void *ptr) {}
- static inline bool kasan_check_byte(const void *address)
- {
- 	return true;
---- a/mm/kasan/common.c~kasan-unify-large-kfree-checks
-+++ a/mm/kasan/common.c
-@@ -364,6 +364,31 @@ bool __kasan_slab_free(struct kmem_cache
- 	return ____kasan_slab_free(cache, object, ip, true);
- }
++	if (likely(!ZERO_OR_NULL_PTR(p)) && !kasan_check_byte(p))
++		return NULL;
++
+ 	ks = ksize(p);
  
-+static bool ____kasan_kfree_large(void *ptr, unsigned long ip)
-+{
-+	if (ptr != page_address(virt_to_head_page(ptr))) {
-+		kasan_report_invalid_free(ptr, ip);
-+		return true;
-+	}
-+
-+	if (!kasan_byte_accessible(ptr)) {
-+		kasan_report_invalid_free(ptr, ip);
-+		return true;
-+	}
-+
-+	/*
-+	 * The object will be poisoned by kasan_free_pages() or
-+	 * kasan_slab_free_mempool().
-+	 */
-+
-+	return false;
-+}
-+
-+void __kasan_kfree_large(void *ptr, unsigned long ip)
-+{
-+	____kasan_kfree_large(ptr, ip);
-+}
-+
- void __kasan_slab_free_mempool(void *ptr, unsigned long ip)
- {
- 	struct page *page;
-@@ -377,10 +402,8 @@ void __kasan_slab_free_mempool(void *ptr
- 	 * KMALLOC_MAX_SIZE, and kmalloc falls back onto page_alloc.
- 	 */
- 	if (unlikely(!PageSlab(page))) {
--		if (ptr != page_address(page)) {
--			kasan_report_invalid_free(ptr, ip);
-+		if (____kasan_kfree_large(ptr, ip))
- 			return;
--		}
- 		kasan_poison(ptr, page_size(page), KASAN_FREE_PAGE);
- 	} else {
- 		____kasan_slab_free(page->slab_cache, ptr, ip, false);
-@@ -539,13 +562,6 @@ void * __must_check __kasan_krealloc(con
- 		return ____kasan_kmalloc(page->slab_cache, object, size, flags);
- }
- 
--void __kasan_kfree_large(void *ptr, unsigned long ip)
--{
--	if (ptr != page_address(virt_to_head_page(ptr)))
--		kasan_report_invalid_free(ptr, ip);
--	/* The object will be poisoned by kasan_free_pages(). */
--}
--
- bool __kasan_check_byte(const void *address, unsigned long ip)
- {
- 	if (!kasan_byte_accessible(address)) {
+ 	if (ks >= new_size) {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
