@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03212C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 382D7C4332E
 	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:01:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D490A64EAA
+	by mail.kernel.org (Postfix) with ESMTP id F0D5464EB8
 	for <mm-commits@archiver.kernel.org>; Mon,  1 Feb 2021 23:01:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230157AbhBAXBM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Feb 2021 18:01:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35312 "EHLO mail.kernel.org"
+        id S229543AbhBAXBW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Feb 2021 18:01:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35428 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230194AbhBAXBE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Feb 2021 18:01:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3124A64ECB;
-        Mon,  1 Feb 2021 23:00:15 +0000 (UTC)
+        id S230197AbhBAXBN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Feb 2021 18:01:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D0C664ECC;
+        Mon,  1 Feb 2021 23:00:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1612220416;
-        bh=VzNCEnTfOm9RC5GpI3ly8NGcGoa/3MdWDw21eH0DIJU=;
+        s=korg; t=1612220420;
+        bh=Y6mjTMb+k1hNaKTJewTY/tTtSoi0BgqAbwt0WiQi1Ws=;
         h=Date:From:To:Subject:From;
-        b=B8yf5vXLdQGbnlYFl5oJ7k8VeFGeIFf02tAjpRFoCnM2Spupev++Z/6OvMb0u+M5x
-         +vkzC/+w43FSW09p03+t2YQb5DwphyJ+TYoKNMmLocKRn3Y1tHPLtQZLeZocHRbc76
-         UJN/pVshFWKH3P13E5y4FH6KjBJMgcdSQhvEqjwM=
-Date:   Mon, 01 Feb 2021 15:00:14 -0800
+        b=fr8TQbUhVLpn9qp9fwit7iihTNYLhWyeQvQnxjJpUOXiajYQuva8ORKqLGwByPF+g
+         yxhihLaz3fB2HwBuzeM7U7wRF9m9nqRdaQV1RQAduMQpRGiUXwjoQ3BCtV5pGyrg6k
+         As+9csT/eUOA/vAoYPNBhub/ygS5KD6MCumDMGSg=
+Date:   Mon, 01 Feb 2021 15:00:18 -0800
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         ira.weiny@intel.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -38,9 +38,9 @@ To:     dan.j.williams@intel.com, david@redhat.com, iamjoonsoo.kim@lge.com,
         pasha.tatashin@soleen.com, peterz@infradead.org,
         rientjes@google.com, rostedt@goodmis.org, sashal@kernel.org,
         tyhicks@linux.microsoft.com, vbabka@suse.cz, willy@infradead.org
-Subject:  +
- mm-gup-change-index-type-to-long-as-it-counts-pages.patch added to -mm tree
-Message-ID: <20210201230014.977MlzkvR%akpm@linux-foundation.org>
+Subject:  + mm-gup-longterm-pin-migration-cleanup.patch added to
+ -mm tree
+Message-ID: <20210201230018.OL9MoWwtL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: change index type to long as it counts pages
+     Subject: mm/gup: longterm pin migration cleanup
 has been added to the -mm tree.  Its filename is
-     mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+     mm-gup-longterm-pin-migration-cleanup.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-longterm-pin-migration-cleanup.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-change-index-type-to-long-as-it-counts-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-longterm-pin-migration-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,29 +71,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/gup: change index type to long as it counts pages
+Subject: mm/gup: longterm pin migration cleanup
 
-In __get_user_pages_locked() i counts number of pages which should be
-long, as long is used in all other places to contain number of pages, and
-32-bit becomes increasingly small for handling page count proportional
-values.
+When pages are longterm pinned, we must migrated them out of movable zone.
+The function that migrates them has a hidden loop with goto.  The loop is
+to retry on isolation failures, and after successful migration.
 
-Link: https://lkml.kernel.org/r/20210201153827.444374-12-pasha.tatashin@soleen.com
+Make this code better by moving this loop to the caller.
+
+Link: https://lkml.kernel.org/r/20210201153827.444374-13-pasha.tatashin@soleen.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -104,20 +105,147 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |   93 +++++++++++++++++++++--------------------------------
+ 1 file changed, 37 insertions(+), 56 deletions(-)
 
---- a/mm/gup.c~mm-gup-change-index-type-to-long-as-it-counts-pages
+--- a/mm/gup.c~mm-gup-longterm-pin-migration-cleanup
 +++ a/mm/gup.c
-@@ -1472,7 +1472,7 @@ static long __get_user_pages_locked(stru
- {
- 	struct vm_area_struct *vma;
- 	unsigned long vm_flags;
--	int i;
-+	long i;
+@@ -1542,27 +1542,28 @@ struct page *get_dump_page(unsigned long
+ #endif /* CONFIG_ELF_CORE */
  
- 	/* calculate required read or write permissions.
- 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
+ #ifdef CONFIG_MIGRATION
+-static long check_and_migrate_movable_pages(struct mm_struct *mm,
+-					    unsigned long start,
+-					    unsigned long nr_pages,
++/*
++ * Check whether all pages are pinnable, if so return number of pages.  If some
++ * pages are not pinnable, migrate them, and unpin all pages. Return zero if
++ * pages were migrated, or if some pages were not successfully isolated.
++ * Return negative error if migration fails.
++ */
++static long check_and_migrate_movable_pages(unsigned long nr_pages,
+ 					    struct page **pages,
+-					    struct vm_area_struct **vmas,
+ 					    unsigned int gup_flags)
+ {
+-	unsigned long i, isolation_error_count;
+-	bool drain_allow;
++	unsigned long i;
++	unsigned long isolation_error_count = 0;
++	bool drain_allow = true;
+ 	LIST_HEAD(movable_page_list);
+-	long ret = nr_pages;
+-	struct page *prev_head, *head;
++	long ret = 0;
++	struct page *prev_head = NULL;
++	struct page *head;
+ 	struct migration_target_control mtc = {
+ 		.nid = NUMA_NO_NODE,
+ 		.gfp_mask = GFP_USER | __GFP_NOWARN,
+ 	};
+ 
+-check_again:
+-	prev_head = NULL;
+-	isolation_error_count = 0;
+-	drain_allow = true;
+ 	for (i = 0; i < nr_pages; i++) {
+ 		head = compound_head(pages[i]);
+ 		if (head == prev_head)
+@@ -1600,47 +1601,27 @@ check_again:
+ 	 * in the correct zone.
+ 	 */
+ 	if (list_empty(&movable_page_list) && !isolation_error_count)
+-		return ret;
++		return nr_pages;
+ 
++	if (gup_flags & FOLL_PIN) {
++		unpin_user_pages(pages, nr_pages);
++	} else {
++		for (i = 0; i < nr_pages; i++)
++			put_page(pages[i]);
++	}
+ 	if (!list_empty(&movable_page_list)) {
+-		/*
+-		 * drop the above get_user_pages reference.
+-		 */
+-		if (gup_flags & FOLL_PIN)
+-			unpin_user_pages(pages, nr_pages);
+-		else
+-			for (i = 0; i < nr_pages; i++)
+-				put_page(pages[i]);
+-
+ 		ret = migrate_pages(&movable_page_list, alloc_migration_target,
+ 				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
+ 				    MR_LONGTERM_PIN);
+-		if (ret) {
+-			if (!list_empty(&movable_page_list))
+-				putback_movable_pages(&movable_page_list);
+-			return ret > 0 ? -ENOMEM : ret;
+-		}
+-
+-		/* We unpinned pages before migration, pin them again */
+-		ret = __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
+-					      NULL, gup_flags);
+-		if (ret <= 0)
+-			return ret;
+-		nr_pages = ret;
++		if (ret && !list_empty(&movable_page_list))
++			putback_movable_pages(&movable_page_list);
+ 	}
+ 
+-	/*
+-	 * check again because pages were unpinned, and we also might have
+-	 * had isolation errors and need more pages to migrate.
+-	 */
+-	goto check_again;
++	return ret > 0 ? -ENOMEM : ret;
+ }
+ #else
+-static long check_and_migrate_movable_pages(struct mm_struct *mm,
+-					    unsigned long start,
+-					    unsigned long nr_pages,
++static long check_and_migrate_movable_pages(unsigned long nr_pages,
+ 					    struct page **pages,
+-					    struct vm_area_struct **vmas,
+ 					    unsigned int gup_flags)
+ {
+ 	return nr_pages;
+@@ -1658,22 +1639,22 @@ static long __gup_longterm_locked(struct
+ 				  struct vm_area_struct **vmas,
+ 				  unsigned int gup_flags)
+ {
+-	unsigned long flags = 0;
++	unsigned int flags;
+ 	long rc;
+ 
+-	if (gup_flags & FOLL_LONGTERM)
+-		flags = memalloc_pin_save();
+-
+-	rc = __get_user_pages_locked(mm, start, nr_pages, pages, vmas, NULL,
+-				     gup_flags);
++	if (!(gup_flags & FOLL_LONGTERM))
++		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
++					       NULL, gup_flags);
++	flags = memalloc_pin_save();
++	do {
++		rc = __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
++					     NULL, gup_flags);
++		if (rc <= 0)
++			break;
++		rc = check_and_migrate_movable_pages(rc, pages, gup_flags);
++	} while (!rc);
++	memalloc_pin_restore(flags);
+ 
+-	if (gup_flags & FOLL_LONGTERM) {
+-		if (rc > 0)
+-			rc = check_and_migrate_movable_pages(mm, start, rc,
+-							     pages, vmas,
+-							     gup_flags);
+-		memalloc_pin_restore(flags);
+-	}
+ 	return rc;
+ }
+ 
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
